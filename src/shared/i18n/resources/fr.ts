@@ -311,14 +311,19 @@ export const fr = {
         archivedMessage: "Cette séance est archivée et ne peut pas être modifiée.",
         backToCatalogue: "Revenir au catalogue",
       },
-      tour: {
-        // T-03 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
-        // REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : libellé exact
-        // remplacé, auparavant "Tour" seul.
-        label: "Nombre de tours",
-        // T02-S01 (CE-T02-01, « Nombre de Tours ») : le contrôle devient
-        // réellement pressable et ouvre la roulette numérique `1..99`.
-        valueAccessibilityLabel: "Nombre de tours",
+      // PRE-6 (story 3.1, CIR-10, Figma `8328:28667`) : en-tête du Circuit — titre, unité du
+      // compteur accordée selon la nature (N = 1 singulier) et nom VoiceOver du réglage.
+      // Remplace l’ancien jeu `tour` (« Nombre de tours », roulette du compte retirée).
+      circuit: {
+        title: "Circuit",
+        unit: {
+          TOURS: { singular: "tour", plural: "tours" },
+          SERIES: { singular: "série", plural: "séries" },
+        },
+        countAccessibilityLabel: {
+          TOURS: "Nombre de tours",
+          SERIES: "Nombre de séries",
+        },
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",

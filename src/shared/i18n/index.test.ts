@@ -181,7 +181,14 @@ describe("strings", () => {
     });
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
-    expect(strings.screens.composition.tour.label).toBe("Nombre de tours");
+    expect(strings.screens.composition.circuit).toEqual({
+      title: "Circuit",
+      unit: {
+        TOURS: { singular: "tour", plural: "tours" },
+        SERIES: { singular: "série", plural: "séries" },
+      },
+      countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
+    });
   });
 
   it("exposes the Composition edit-mode rehydration state texts (T01-S10, CE-T01-S10-09)", () => {

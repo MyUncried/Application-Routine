@@ -449,3 +449,77 @@ describe("PRE5-2.8 — InlineStepper : apparence sans pilule et style de la vale
     expect(onChange).toHaveBeenCalledWith(3);
   });
 });
+
+/**
+ * PRE-6 story 3.1 — ajouts additifs d'`InlineStepper` : `stepButtonStyle` (fond des cercles
+ * seulement), `closeAction` (action accessible « close ») et `onValueActivate`.
+ */
+describe("PRE6-3.1 — InlineStepper : fond des cercles, action Fermer, activer", () => {
+  const base = {
+    value: 3,
+    min: 1,
+    max: 99,
+    policy: EXECUTION_ACCELERATED_HOLD_POLICY,
+    formatValue: (v: number | null) => String(v),
+    onChange: () => {},
+    accessibilityLabel: "Nombre de tours",
+  };
+
+  it("without the new props, circles, hit slop and actions are unchanged", () => {
+    render(<InlineStepper {...base} testID="plain" />);
+    for (const id of ["plain-decrement", "plain-increment"]) {
+      const button = screen.getByTestId(id);
+      expect(StyleSheet.flatten(button.props.style)).toEqual({
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#FFFFFF",
+      });
+      expect(button.props.hitSlop).toBe(10);
+    }
+    const actions = (screen.getByTestId("plain").props.accessibilityActions as { name: string }[]).map((a) => a.name);
+    expect(actions).toEqual(["increment", "decrement"]);
+  });
+
+  it("stepButtonStyle changes only the circles' background", () => {
+    render(<InlineStepper {...base} stepButtonStyle={{ backgroundColor: "#F5F7FA" }} testID="tinted" />);
+    for (const id of ["tinted-decrement", "tinted-increment"]) {
+      const button = screen.getByTestId(id);
+      expect(StyleSheet.flatten(button.props.style)).toEqual({
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#F5F7FA",
+      });
+      expect(button.props.hitSlop).toBe(10);
+    }
+  });
+
+  it("closeAction adds a labelled « close » action on the adjustable; onValueActivate replaces onValuePress for « activate » only", () => {
+    const onClose = jest.fn();
+    const onValuePress = jest.fn();
+    const onValueActivate = jest.fn();
+    render(
+      <InlineStepper
+        {...base}
+        closeAction={{ label: "Fermer", onClose }}
+        onValuePress={onValuePress}
+        onValueActivate={onValueActivate}
+        testID="closable"
+      />,
+    );
+    const stepper = screen.getByTestId("closable");
+    expect(stepper.props.accessibilityActions).toContainEqual({ name: "close", label: "Fermer" });
+    fireEvent(stepper, "accessibilityAction", { nativeEvent: { actionName: "close" } });
+    expect(onClose).toHaveBeenCalledTimes(1);
+    fireEvent(stepper, "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    expect(onValueActivate).toHaveBeenCalledTimes(1);
+    expect(onValuePress).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("closable-value-press"));
+    expect(onValuePress).toHaveBeenCalledTimes(1);
+  });
+});

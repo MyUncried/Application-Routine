@@ -57,6 +57,25 @@ describe("SessionDraftProvider", () => {
     expect(captured.draft.color).toBe("#E5484D");
   });
 
+  it("PRE6-3.1 — updateDraft's functional form computes each patch from the CURRENT draft (successive calls in one batch never read a stale draft)", () => {
+    let captured!: SessionDraftContextValue;
+    render(
+      <SessionDraftProvider>
+        <Capture onRender={(value) => (captured = value)} />
+      </SessionDraftProvider>,
+    );
+
+    act(() => {
+      captured.updateDraft({ name: "Séance", tourRepeatCount: 1 });
+      // Même lot, aucun rendu entre les appels : chaque fonction reçoit le résultat du précédent.
+      captured.updateDraft((current) => ({ tourRepeatCount: (current.tourRepeatCount ?? 0) + 1 }));
+      captured.updateDraft((current) => ({ tourRepeatCount: (current.tourRepeatCount ?? 0) + 1 }));
+    });
+
+    expect(captured.draft.tourRepeatCount).toBe(3);
+    expect(captured.draft.name).toBe("Séance");
+  });
+
   it("resetDraft restores exactly createEmptyDraft(), discarding every prior modification", () => {
     let captured!: SessionDraftContextValue;
     render(

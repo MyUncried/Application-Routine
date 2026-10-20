@@ -12,3 +12,6 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-2-cartes-d-occurrence.md`
   summary: Retirer les jetons devenus orphelins `dimensions.compositionActivityRow.restHeight` et `compactRestHeight` (cartes 64 / 70 depuis la story 2.2).
   evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec le retrait de `recoveryCardHeight`.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-3-1-en-tete-du-circuit-et-compteur.md`
+  summary: Retirer l'icône `icon-tour` (KodjoIcon, manifeste) et le jeton `dimensions.compositionTourControl`, sans usage depuis le retrait de `TourCard`.
+  evidence: `tokens.ts` verrouillé ; à regrouper avec les autres jetons orphelins de PRE-6.

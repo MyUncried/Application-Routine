@@ -170,7 +170,7 @@ async function renderEditor(options: {
   readonly service?: ActivityDefinitionService;
 }) {
   mockSearchParams = options.params;
-  const updateDraft = jest.fn<SessionDraftContextValue["updateDraft"]>();
+  const updateDraft = jest.fn<(patch: Partial<SessionDraftContextValue["draft"]>) => void>();
   const service = options.service ?? realService();
   const referential = { listCategories: async () => new SqliteCategoryRepository(database).listAll() } as unknown as ReferentialService;
   const profile = { getProfile: async () => createDefaultProfile("profile-1", "2026-01-01T00:00:00.000Z") } as unknown as ProfileService;

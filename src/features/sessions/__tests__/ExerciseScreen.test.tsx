@@ -261,7 +261,7 @@ function renderRoute(options: {
   readonly draft?: Partial<SessionDraftContextValue["draft"]>;
 }) {
   mockSearchParams = options.params ?? {};
-  const updateDraft = jest.fn<SessionDraftContextValue["updateDraft"]>();
+  const updateDraft = jest.fn<(patch: Partial<SessionDraftContextValue["draft"]>) => void>();
   const service = fakeActivityDefinitionService(options.service);
   render(
     <TestSafeAreaProvider>

@@ -28,10 +28,21 @@ export type SessionDraftEditStatus =
   | "archived"
   | "error";
 
+/**
+ * Mise à jour du brouillon : les champs à fusionner, ou (PRE-6 story 3.1, forme fonctionnelle
+ * additive) une fonction qui les calcule depuis le brouillon COURANT — pour une suite de pas
+ * rapides (maintien d'un ±) qui ne doit jamais repartir d'un brouillon de rendu périmé.
+ */
+export type SessionDraftUpdate = Partial<SessionDraft> | ((current: SessionDraft) => Partial<SessionDraft>);
+
 export type SessionDraftContextValue = {
   readonly draft: SessionDraft;
-  /** Fusionne les champs fournis dans le brouillon courant — jamais un remplacement complet. */
-  readonly updateDraft: (patch: Partial<SessionDraft>) => void;
+  /**
+   * Fusionne les champs fournis (ou calculés depuis le brouillon courant) — jamais un remplacement
+   * complet. Signature de méthode : les doublures de test existantes, typées sur le seul correctif,
+   * restent assignables ; tout fournisseur réel doit accepter les deux formes.
+   */
+  updateDraft(update: SessionDraftUpdate): void;
   /** Ramène le brouillon à `createEmptyDraft()`. */
   readonly resetDraft: () => void;
   /**

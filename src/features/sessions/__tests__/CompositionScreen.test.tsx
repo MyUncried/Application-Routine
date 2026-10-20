@@ -7,6 +7,7 @@ import {
   allFailureParameters,
   durationParameters,
   repetitionParameters,
+  variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
@@ -22,7 +23,7 @@ import {
 } from "@/features/reference-data/ReferentialServiceContext";
 import { CompositionScreen } from "@/features/sessions/CompositionScreen";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
-import type { SessionDraftContextValue } from "@/features/sessions/SessionDraftContext";
+import type { SessionDraftContextValue, SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import type { SessionService } from "@/features/sessions/SessionService";
@@ -30,7 +31,7 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
@@ -216,8 +217,9 @@ function StatefulDraftWrapper({
     exercises: initialExercises,
     ...draftOverrides,
   }));
-  const updateDraft = useCallback((patch: Partial<SessionDraftContextValue["draft"]>) => {
-    setDraft((current) => ({ ...current, ...patch }));
+  // PRE-6 (story 3.1) : mêmes deux formes que `SessionDraftProvider` (correctif ou fonction).
+  const updateDraft = useCallback((update: SessionDraftUpdate) => {
+    setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
   }, []);
   const resetDraft = useCallback(() => {
     setDraft({
@@ -293,20 +295,20 @@ beforeEach(() => {
 });
 
 describe("CompositionScreen — état initial", () => {
-  it("renders the name field, the countdown/final phase rows, the now-actionable Tour control, and the disabled final action", () => {
+  it("renders the name field, the countdown/final phase rows, the Circuit counter, and the disabled final action", () => {
     renderScreen();
 
     expect(screen.getByLabelText(composition.name)).toBeTruthy();
     expect(screen.getByLabelText(composition.countdown.label)).toBeTruthy();
     expect(screen.getByLabelText(composition.finalPhase.label)).toBeTruthy();
 
-    // T02-S01 (CE-T02-01/AC-08) : le contrôle `Nombre de tours` n'est plus
-    // inerte — il est pressable et annonce sa valeur courante.
-    const tour = screen.getByLabelText(composition.tour.label);
-    expect(tour.props.accessibilityState).toMatchObject({ disabled: false });
-    expect(tour.props.accessibilityValue).toMatchObject({ text: "1" });
-    // T-05/D-130 : valeur `1` seule, jamais de préfixe `×`.
-    expect(screen.getByText("1")).toBeTruthy();
+    // PRE-6 (story 3.1, CIR-10) : le compteur du Circuit est un réglage ajustable qui annonce
+    // N avec son unité ; au repos, « 1 » puis la pastille « tour ».
+    const counter = screen.getByLabelText(composition.circuit.countAccessibilityLabel.TOURS);
+    expect(counter.props.accessibilityRole).toBe("adjustable");
+    expect(counter.props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
+    expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(1);
+    expect(screen.getByTestId("composition-circuit-header-counter-unit-text").props.children).toBe("tour");
     expect(screen.queryByText("×1")).toBeNull();
 
     const continueAction = screen.getByLabelText(composition.saveAction);
@@ -470,7 +472,7 @@ describe("CompositionScreen — état initial", () => {
 
     // REWORK09 : la ligne de synthèse basse est supprimée (redondante
     // depuis REWORK08-C) — une seule occurrence subsiste désormais, sous
-    // « Nombre de tours » (voir composition-tour-summary ci-dessous).
+    // le titre « Circuit » (composition-circuit-header-duration).
     expect(screen.getAllByText("— min")).toHaveLength(1);
   });
 
@@ -558,7 +560,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     expect(screen.queryByText("01 min 10 s")).toBeNull();
     // The exercise is still null in T01-S07: the summary stays the exact
     // local empty label regardless of countdown/final-phase changes (§9.1).
-    // REWORK09 : une seule occurrence désormais (synthèse Tour uniquement,
+    // REWORK09 : une seule occurrence désormais (durée du Circuit uniquement,
     // la ligne basse redondante a été supprimée).
     expect(screen.getAllByText("— min")).toHaveLength(1);
     // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
@@ -870,7 +872,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
 });
 
 describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de correction après contre-recette iPhone 2026-09-03)", () => {
-  it("initial order (no Activity yet): + Ajouter une activité ABOVE Compte à rebours initial, then Tour, then Fin de séance (UI-COMP-002)", () => {
+  it("initial order (no Activity yet): + Ajouter une activité ABOVE Compte à rebours initial, then the Circuit, then Fin de séance (UI-COMP-002)", () => {
     renderScreenWithDraft([]);
 
     const order = testIdOrder(screen.toJSON(), [
@@ -888,13 +890,13 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
     // par labels de texte, dans le même ordre visuel.
     const labelOrder = textOrder(screen.toJSON(), [
       composition.countdown.label,
-      composition.tour.label,
+      composition.circuit.title,
       composition.finalPhase.label,
     ]);
-    expect(labelOrder).toEqual([composition.countdown.label, composition.tour.label, composition.finalPhase.label]);
+    expect(labelOrder).toEqual([composition.countdown.label, composition.circuit.title, composition.finalPhase.label]);
   });
 
-  it("order once an Activity exists: Compte à rebours initial, then the created Activity, then Tour, then Fin de séance (UI-COMP-003) — never after Tour", () => {
+  it("order once an Activity exists: Compte à rebours initial, then the created Activity, then the Circuit, then Fin de séance (UI-COMP-003) — never after the Circuit", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const order = testIdOrder(screen.toJSON(), [
@@ -910,10 +912,10 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
 
     const labelOrder = textOrder(screen.toJSON(), [
       composition.countdown.label,
-      composition.tour.label,
+      composition.circuit.title,
       composition.finalPhase.label,
     ]);
-    expect(labelOrder).toEqual([composition.countdown.label, composition.tour.label, composition.finalPhase.label]);
+    expect(labelOrder).toEqual([composition.countdown.label, composition.circuit.title, composition.finalPhase.label]);
   });
 });
 
@@ -1039,118 +1041,64 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style).height).toBe(32);
   });
 
-  it("CMP-04/T-03/REWORK07B/D-130 — the Tour card is a distinct DS component (background carried by the outer structure, never the inner header), showing the 'Nombre de tours' label and a 66×34 control carrying the value alone, never the Activity icon", () => {
+  it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary, then the Circuit duration Regular 12 tertiary; the counter on the right", () => {
     renderScreen();
 
-    // REWORK07B (« Anatomie canonique — Nombre de tours ») : la SEULE
-    // surface visuelle est la structure extérieure (`composition-tour-
-    // section`, fond bleu canonique) — l'en-tête intérieur
-    // (`composition-tour-card`) est désormais transparent, sans fond ni
-    // bordure ni rayon propres.
+    // REWORK07B : la SEULE surface visuelle est la structure extérieure (fond bleu, rayon 10).
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
     expect(tourSectionStyle.backgroundColor).toBe(colors.tourSurface);
-    expect(tourSectionStyle.backgroundColor).not.toBe(colors.background);
     expect(tourSectionStyle.borderRadius).toBe(10);
 
-    const tourCard = screen.getByTestId("composition-tour-card");
-    const tourCardStyle = StyleSheet.flatten(tourCard.props.style);
-    expect(tourCardStyle.backgroundColor).toBeUndefined();
-    expect(tourCardStyle.borderWidth).toBeUndefined();
-    expect(tourCardStyle.borderRadius).toBeUndefined();
+    const header = within(tourSection).getByTestId("composition-circuit-header");
+    const headerStyle = StyleSheet.flatten(header.props.style);
+    expect(headerStyle.backgroundColor).toBeUndefined();
+    expect(headerStyle.flexDirection).toBe("row");
 
-    expect(within(tourCard).getByText(composition.tour.label)).toBeTruthy();
-    // T-05 : contenu `1` seul, plus de préfixe `×`.
-    expect(within(tourCard).getByText("1")).toBeTruthy();
-    expect(within(tourCard).queryByText("×1")).toBeNull();
+    const title = within(header).getByTestId("composition-circuit-header-title");
+    expect(title.props.children).toBe("Circuit");
+    expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 16, fontWeight: "600", color: colors.textPrimary });
 
-    // **T02-S01 / D-130** (« Validée post-Figma ») — révise explicitement
-    // T-04a/b/c/T-05 (REWORK06, cadre `78×44` + carré violet du chevron),
-    // antérieurs à la publication de cette décision : le sélecteur mesure
-    // `66×34`, affiche la valeur numérique SEULE, centrée et en gras
-    // (`type.cardTitle`, `16/20` Semi Bold — graisse conservée), et
-    // n'affiche AUCUN chevron de repli.
-    const control = screen.getByTestId("composition-tour-control");
-    const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBe(66);
-    expect(controlStyle.height).toBe(34);
-    expect(controlStyle.backgroundColor).toBe(colors.background);
-    expect(controlStyle.backgroundColor).not.toBe(colors.selection);
-    expect(controlStyle.alignItems).toBe("center");
-    expect(controlStyle.justifyContent).toBe("space-between");
+    const duration = within(header).getByTestId("composition-circuit-header-duration");
+    expect(duration.props.children).toBe("— min");
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 12, fontWeight: "400", color: TEXT_TERTIARY });
+    // La durée se tronque (une ligne) ; le bloc texte cède la place, jamais le compteur.
+    expect(duration.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(within(header).getByTestId("composition-circuit-header-text-block").props.style)).toMatchObject({
+      flex: 1,
+      minWidth: 0,
+    });
+    const counter = within(header).getByTestId("composition-circuit-header-counter");
+    expect(StyleSheet.flatten(counter.props.style).flexShrink).toBe(0);
 
-    const valueText = within(control).getByText("1");
-    const valueTextStyle = StyleSheet.flatten(valueText.props.style);
-    expect(valueTextStyle.color).not.toBe(colors.background);
-    expect(valueTextStyle.textAlign).toBe("center");
-    expect(valueTextStyle.fontSize).toBe(16);
-    // Alignement DSF 07/10 (D2) : interligne Inter Auto 16 → 19 (ancien 20).
-    expect(valueTextStyle.lineHeight).toBe(19);
-    expect(valueTextStyle.fontWeight).toBe("600");
-
-    // D-130 : plus aucun chevron de repli, ni son carré violet.
-    expect(screen.getByTestId("composition-tour-control-chevron-box")).toBeTruthy();
-    expect(screen.getByTestId("composition-tour-control-chevron")).toBeTruthy();
-
-    // REWORK12 (COMP-02) : icône du bloc Tour = `composition-main-content`
-    // (vérifiée directement sur le nœud Figma actuel `2028:11742`,
-    // « icon/contenu-principal ») — jamais l'ancienne `icon-tour`, jamais
-    // `composition-reorder` (icône de poignée/structure de la ligne
-    // Exercice, un troisième SVG distinct) ; voir aussi le test R4-11
-    // dédié ci-dessous (`composition-tour-icon`, comparaison de `source`).
-    expect(within(tourCard).getByTestId("composition-tour-icon")).toBeTruthy();
+    // Plus de roulette du compte ni de « Nombre de tours » affiché, ni d'icône Tour.
+    expect(screen.queryByText("Nombre de tours")).toBeNull();
+    expect(screen.queryByTestId("composition-tour-control")).toBeNull();
+    expect(screen.queryByTestId("composition-tour-icon")).toBeNull();
   });
 
-  /**
-   * **T02-S02 (continuation après recette visuelle, point DSF)** : le cadre
-   * visible reste `66 × 34` (D-130), mais il OUVRE la roulette `Nombre de
-   * tours` — sa cible tactile doit donc atteindre `48`
-   * (`size/touch-target-min`), portée par `hitSlop` et jamais par un
-   * agrandissement du cadre.
-   */
-  it("keeps the 66×34 visible frame but reaches the canonical 48pt touch target on the Tour control", () => {
+  it("PRE6-3.1 — at rest: the digit (Semi Bold 13 primary text, 44 touch target) then the unit pill (surface, radius 10, padding 10/4, Semi Bold 13 primary)", () => {
     renderScreen();
 
-    const control = screen.getByTestId("composition-tour-control");
-    const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.height).toBe(34);
-    expect(controlStyle.width).toBe(66);
+    const digit = screen.getByTestId("composition-circuit-header-counter-value");
+    expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
+    const digitTouch = screen.getByTestId("composition-circuit-header-counter-value-press");
+    const digitTouchStyle = StyleSheet.flatten(digitTouch.props.style);
+    expect(digitTouchStyle.minHeight).toBe(44);
+    expect((digitTouchStyle.minWidth as number) + (digitTouch.props.hitSlop?.left ?? 0)).toBeGreaterThanOrEqual(44);
 
-    const hitSlop = control.props.hitSlop as { top: number; bottom: number };
-    expect(controlStyle.height + hitSlop.top + hitSlop.bottom).toBe(minTouchTarget);
-    expect(minTouchTarget).toBe(48);
-  });
-
-  it("REWORK08-C — shows the activity-count/duration summary directly under 'Nombre de tours', same block as the title, styled exactly like the Boundary Activity rows' secondary line, without touching the frozen outer structure or the white/violet control", () => {
-    renderScreen();
-
-    const tourCard = screen.getByTestId("composition-tour-card");
-    const summary = within(tourCard).getByTestId("composition-tour-summary");
-
-    // Contenu canonique (même fonction que bottomAction), état vide T01-S07.
-    expect(summary.props.children).toBe("— min");
-
-    // Même bloc textuel que le titre — un unique conteneur
-    // (`composition-tour-text-block`) porte les deux, pas deux éléments
-    // dispersés dans la rangée.
-    const textBlock = within(tourCard).getByTestId("composition-tour-text-block");
-    expect(within(textBlock).getByText(composition.tour.label)).toBeTruthy();
-    expect(within(textBlock).getByTestId("composition-tour-summary")).toBeTruthy();
-
-    // Typographie de la ligne secondaire des cartes (`type.caption`, `text-secondary`). PRE-6
-    // story 2.1 : les bornes n'ont plus de ligne secondaire (pastille de valeur), la
-    // comparaison se fait donc avec le style canonique lui-même.
-    expect(StyleSheet.flatten(summary.props.style)).toEqual({ ...type.caption, color: colors.textSecondary });
-
-    // Acquis gelés REWORK07B non modifiés par cet ajout : structure
-    // extérieure bleue (fond/rayon) et contrôle blanc/violet inchangés.
-    const tourSection = screen.getByTestId("composition-tour-section");
-    expect(StyleSheet.flatten(tourSection.props.style).backgroundColor).toBe(colors.tourSurface);
-    expect(StyleSheet.flatten(tourSection.props.style).borderRadius).toBe(10);
-    const control = screen.getByTestId("composition-tour-control");
-    const controlStyle = StyleSheet.flatten(control.props.style);
-    expect(controlStyle.width).toBe(66);
-    expect(controlStyle.height).toBe(34);
+    const pill = screen.getByTestId("composition-circuit-header-counter-unit");
+    expect(StyleSheet.flatten(pill.props.style)).toMatchObject({
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    });
+    const pillText = screen.getByTestId("composition-circuit-header-counter-unit-text");
+    expect(StyleSheet.flatten(pillText.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.primary });
+    // La pastille est sans action dans cette story (choix de nature : story 3.2).
+    expect(pill.props.onPress).toBeUndefined();
+    expect(pill.props.accessibilityRole).toBeUndefined();
   });
 
   /**
@@ -1159,17 +1107,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
    * (`10 s`/`5 s` par défaut dans `renderScreenWithDraft`) ne contribuent
    * plus du tout, contrairement à l'ancien commentaire de ce test.
    */
-  it("REWORK08-C/REWORK09/REWORK13 — the Tour summary reflects the real computed Activity-only duration, not a static placeholder", () => {
-    // Correctif T02 (2026-09-08) : la synthèse du Tour n'agrège que la zone
+  it("REWORK08-C/REWORK09/REWORK13 — the Circuit duration reflects the real computed Activity-only duration, not a static placeholder", () => {
+    // Correctif T02 (2026-09-08) : la durée du Circuit n'agrège que la zone
     // IN_TOUR — `createExerciseDraft` positionne par défaut `BEFORE_TOUR`,
     // d'où l'override explicite (sans quoi la synthèse serait vide).
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
-      "composition-tour-summary",
-    );
+    const tourSummary = screen.getByTestId("composition-circuit-header-duration");
     // Contexte : seule l'Activité contribue désormais — 45 s -> ceil(45/60) = 1 min.
     expect(tourSummary.props.children).toBe("1 min");
   });
@@ -1180,15 +1126,13 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
    * Tour (seulement sa propre carte) ; modifier une Activité ou le nombre
    * de Tours l'actualise conformément aux références.
    */
-  it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Tour summary", () => {
+  it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Circuit duration", () => {
     // Correctif T02 (2026-09-08) : voir le test précédent.
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummaryBefore = within(screen.getByTestId("composition-tour-card")).getByTestId(
-      "composition-tour-summary",
-    ).props.children;
+    const tourSummaryBefore = screen.getByTestId("composition-circuit-header-duration").props.children;
     expect(tourSummaryBefore).toBe("1 min");
 
     // Compte à rebours initial : ouvre, change, confirme.
@@ -1197,9 +1141,9 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
     expect(screen.getByText("02 min 10 s")).toBeTruthy(); // sa propre carte a bien changé
     expect(
-      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+      screen.getByTestId("composition-circuit-header-duration")
         .props.children,
-    ).toBe(tourSummaryBefore); // la synthèse Tour, elle, reste identique
+    ).toBe(tourSummaryBefore); // la durée du Circuit, elle, reste identique
 
     // Fin de séance : idem.
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
@@ -1207,21 +1151,19 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
     expect(screen.getByText("03 min 05 s")).toBeTruthy();
     expect(
-      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
+      screen.getByTestId("composition-circuit-header-duration")
         .props.children,
     ).toBe(tourSummaryBefore);
   });
 
-  it("REWORK13 (R13-02) — adding a second Activity updates the Tour summary accordingly (count and duration both recomputed)", () => {
+  it("REWORK13 (R13-02) — adding a second Activity updates the Circuit duration accordingly (count and duration both recomputed)", () => {
     // Correctif T02 (2026-09-08) : voir le premier test de ce bloc.
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
       { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummary = within(screen.getByTestId("composition-tour-card")).getByTestId(
-      "composition-tour-summary",
-    );
+    const tourSummary = screen.getByTestId("composition-circuit-header-duration");
     // 45 + 30 = 75s -> ceil(75/60) = 2 min.
     expect(tourSummary.props.children).toBe("2 min");
   });
@@ -1247,15 +1189,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     }
   });
 
-  it("REWORK09 — supersedes CMP-06: the redundant summary line is removed from the Bottom Action zone (moved to the Tour block by REWORK08-C) — only Continuer remains there", () => {
+  it("REWORK09 — supersedes CMP-06: the redundant summary line is removed from the Bottom Action zone (moved to the Circuit header since REWORK08-C) — only Continuer remains there", () => {
     renderScreen();
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
     expect(within(bottomAction).queryByText("— min")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.saveAction)).toBeTruthy();
-    // La synthèse reste bien affichée ailleurs (sous « Nombre de tours »),
+    // La synthèse reste bien affichée ailleurs (sous le titre « Circuit »),
     // jamais silencieusement perdue.
-    expect(screen.getByTestId("composition-tour-summary")).toBeTruthy();
+    expect(screen.getByTestId("composition-circuit-header-duration")).toBeTruthy();
   });
 
   // PRE-6 story 2.1 (`DSF / Forms / Valeur modifiable`, Texte=13) : pastille de valeur des bornes.
@@ -1293,11 +1235,11 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     const tourSection = screen.getByTestId("composition-tour-section");
-    const tourCard = screen.getByTestId("composition-tour-card");
+    const tourCard = screen.getByTestId("composition-circuit-header");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
     const tourCardStyle = StyleSheet.flatten(tourCard.props.style);
 
-    // L'en-tête intérieur (`composition-tour-card`) ne porte plus aucune
+    // L'en-tête intérieur (PRE-6 story 3.1 : `CircuitHeader`) ne porte aucune
     // des propriétés de boîte de `limitCardBase`.
     expect(tourCardStyle.borderWidth).toBeUndefined();
     expect(tourCardStyle.borderRadius).toBeUndefined();
@@ -1349,8 +1291,8 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(name.props.numberOfLines).toBe(1);
     expect(StyleSheet.flatten(name.props.style)).toMatchObject({ ...type.listCardTitle, color: colors.textPrimary });
 
-    const tourLabel = within(screen.getByTestId("composition-tour-card")).getByText(
-      composition.tour.label,
+    const tourLabel = within(screen.getByTestId("composition-circuit-header")).getByText(
+      composition.circuit.title,
     );
     expect(StyleSheet.flatten(tourLabel.props.style).fontSize).toBe(16);
   });
@@ -1386,26 +1328,8 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     expect(iconStyle.opacity).toBe(0.5);
   });
 
-  it("R4-11 — the canonical Tour icon is now rendered in the Tour card's icon slot (asset gap closed)", () => {
-    renderScreen();
-
-    const iconSlot = screen.getByTestId("composition-tour-icon-slot");
-    expect(within(iconSlot).getByTestId("composition-tour-icon")).toBeTruthy();
-  });
-
-  it("REWORK12 (COMP-02) — the Tour icon's source is the same asset as the Exercise row's structure icon, matching the source verified directly on the current Figma node (2028:11742), never the previous icon-tour.svg", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
-
-    const tourIcon = screen.getByTestId("composition-tour-icon");
-    const exerciseRow = screen.getByTestId("composition-exercise-row-ex-1");
-    const exerciseStructureIcon = within(exerciseRow).getByTestId("composition-boundary-handle-icon");
-
-    // `composition-main-content` (Tour) reste un SVG distinct de
-    // `composition-reorder` (structure/poignée) — sources différentes,
-    // preuve directe qu'il ne s'agit pas du même module réutilisé deux
-    // fois par accident.
-    expect(tourIcon.props.source).not.toBe(exerciseStructureIcon.props.source);
-  });
+  // PRE-6 (story 3.1, Figma `8328:28667`) : l'en-tête du Circuit n'a plus d'icône Tour (R4-11 /
+  // REWORK12 retirés) — absence vérifiée par le test « PRE6-3.1 — Circuit header ».
 
   it("R4-12 — the Tour Section container is wider than its inner card (breaks out of body's own padding by the canonical inset on each side)", () => {
     renderScreen();
@@ -1466,12 +1390,12 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
 
     const labelOrder = textOrder(screen.toJSON(), [
       composition.countdown.label,
-      composition.tour.label,
+      composition.circuit.title,
       composition.finalPhase.label,
     ]);
     expect(labelOrder).toEqual([
       composition.countdown.label,
-      composition.tour.label,
+      composition.circuit.title,
       composition.finalPhase.label,
     ]);
   });
@@ -3095,7 +3019,7 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
  * IN_TOUR, puis application de tourRepeatCount dans la synthèse globale ;
  * recalcul immédiat après déplacement, duplication ou suppression ».
  */
-describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S02)", () => {
+describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-S02)", () => {
   it("counts and totals ONLY the IN_TOUR Activities, then multiplies that zone by tourRepeatCount", () => {
     renderScreenWithDraft([
       anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
@@ -3104,25 +3028,23 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
     ]);
 
     // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
-    // doivent NI compter, NI peser dans la synthèse du Tour.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
+    // doivent NI compter, NI peser dans la durée du Circuit.
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
 
-    fireEvent.press(screen.getByTestId("composition-tour-control"));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    setCircuitCountWithStepper(3);
 
     // Seule la zone `IN_TOUR` est développée : `60 × 3 = 3 min`.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("3 min");
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("3 min");
   });
 
   it("recomputes immediately after a DUPLICATION", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
 
     fireSwipeLeft("core");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-core"));
 
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
       "2 min",
     );
   });
@@ -3132,19 +3054,19 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
       anActivity("core-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
       anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
     ]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
       "2 min",
     );
 
     fireSwipeLeft("core-1");
     fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
 
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("1 min");
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
 
     // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
     // structure (donc `250` en absolu) ; carte `250–310`, centre `280`.
@@ -3158,75 +3080,297 @@ describe("CompositionScreen — recalcul immédiat des métriques du Tour (T02-S
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 } });
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
 
-    // Sortie du Tour : la synthèse du Tour redevient l'état vide.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe(
+    // Sortie du Circuit : la durée du Circuit redevient l'état vide.
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
       composition.summary.empty,
     );
   });
 });
 
-describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)", () => {
+/** PRE-6 (story 3.1) : compteur du Circuit — réglage par l'action VoiceOver du compteur au repos. */
+function stepCircuitCounter(direction: "increment" | "decrement", times = 1) {
+  for (let i = 0; i < times; i += 1) {
+    fireEvent(screen.getByTestId("composition-circuit-header-counter"), "accessibilityAction", {
+      nativeEvent: { actionName: direction },
+    });
+  }
+}
+
+/** PRE-6 (story 3.1) : règle N depuis 1 par le + du stepper révélé (un appui par pas). */
+function setCircuitCountWithStepper(target: number) {
+  fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+  for (let i = 1; i < target; i += 1) {
+    const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment");
+    fireEvent(plus, "pressIn");
+    fireEvent(plus, "pressOut");
+  }
+}
+
+describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10)", () => {
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
+  const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text").props.children;
+  const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
+  const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
+  const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
 
-  it("AC-09 — pressing the control opens the canonical numeric wheel inside the blocking DSF overlay", () => {
+  it("at rest: « 1 » + « tour » in Tours, « 3 » + « séries » in Series (N = 1 singular)", () => {
     renderScreenWithDraft(oneActivity);
+    expect(counterValue()).toBe(1);
+    expect(unitText()).toBe("tour");
+    // Aucun stepper au repos.
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
 
-    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
-    fireEvent.press(screen.getByTestId("composition-tour-control"));
+    screen.unmount();
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 3, circuitNature: "SERIES" });
+    expect(counterValue()).toBe(3);
+    expect(unitText()).toBe("séries");
+  });
 
-    expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-    expect(screen.getByTestId("composition-tour-wheel-picker")).toBeTruthy();
-    // Voile bloquant non dismissible au toucher (contrat transverse).
-    expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
-    // Primitive native réutilisée telle quelle (jamais une réimplémentation).
-    expect(screen.getByTestId("number-wheel-column").props.onSelectionChange).toBeInstanceOf(
-      Function,
+  it("Series N = 1 is singular « série »; Tours N = 2 is plural « tours »", () => {
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 1, circuitNature: "SERIES" });
+    expect(unitText()).toBe("série");
+    screen.unmount();
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 2 });
+    expect(unitText()).toBe("tours");
+  });
+
+  it("touching the digit reveals − and + around « digit + unit pill », on the white radius-18 field with surface circles", () => {
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 4 });
+
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+
+    const field = screen.getByTestId("composition-circuit-header-counter-field");
+    expect(StyleSheet.flatten(field.props.style)).toMatchObject({ backgroundColor: colors.background, borderRadius: 18 });
+    const minus = within(field).getByTestId("composition-circuit-header-counter-stepper-decrement");
+    const plus = within(field).getByTestId("composition-circuit-header-counter-stepper-increment");
+    for (const button of [minus, plus]) {
+      expect(StyleSheet.flatten(button.props.style)).toMatchObject({ width: 28, height: 28, backgroundColor: colors.surface });
+    }
+    // Ordre : −, chiffre, pastille, +.
+    expect(
+      testIdOrder(screen.toJSON(), [
+        "composition-circuit-header-counter-stepper-decrement",
+        "composition-circuit-header-counter-stepper-value",
+        "composition-circuit-header-counter-unit",
+        "composition-circuit-header-counter-stepper-increment",
+      ]),
+    ).toEqual([
+      "composition-circuit-header-counter-stepper-decrement",
+      "composition-circuit-header-counter-stepper-value",
+      "composition-circuit-header-counter-unit",
+      "composition-circuit-header-counter-stepper-increment",
+    ]);
+    const digit = screen.getByTestId("composition-circuit-header-counter-stepper-value");
+    expect(digit.props.children).toBe("4");
+    expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
+    expect(screen.getByTestId("composition-circuit-header-counter-unit-text").props.children).toBe("tours");
+  });
+
+  it("bounds: − unavailable at 1, + unavailable at 99", () => {
+    renderScreenWithDraft(oneActivity);
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(
+      screen.getByTestId("composition-circuit-header-counter-stepper-decrement").props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+    expect(
+      screen.getByTestId("composition-circuit-header-counter-stepper-increment").props.accessibilityState,
+    ).toMatchObject({ disabled: false });
+
+    screen.unmount();
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 99 });
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(
+      screen.getByTestId("composition-circuit-header-counter-stepper-increment").props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+    expect(
+      screen.getByTestId("composition-circuit-header-counter-stepper-decrement").props.accessibilityState,
+    ).toMatchObject({ disabled: false });
+  });
+
+  it("each step updates N, the Circuit duration and the session duration, without any message; the unit agrees", () => {
+    renderScreenWithDraft(oneActivity);
+    expect(circuitDuration()).toBe("1 min");
+    expect(sessionDuration()).toBe("1 min");
+
+    setCircuitCountWithStepper(3);
+
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper-value").props.children).toBe("3");
+    expect(unitText()).toBe("tours");
+    expect(circuitDuration()).toBe("3 min");
+    expect(sessionDuration()).toBe("3 min");
+    // Sans message : aucun dialogue de confirmation.
+    expect(screen.queryByText("Confirmer")).toBeNull();
+
+    const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
+    fireEvent(minus, "pressIn");
+    fireEvent(minus, "pressOut");
+    expect(circuitDuration()).toBe("2 min");
+  });
+
+  it("Series 4 → 3 → 4 goes through setCircuitCount: the 4th row goes to the reserve, then is restored (original rows)", () => {
+    // Durées affichées seulement (le brouillon est vérifié ligne à ligne par le test « compteur
+    // du Circuit et brouillon » de la story 2.3) : lignes de 1, 2, 3 et 4 min sans pause, donc
+    // 10 min à N = 4 et 6 min à N = 3 ; revenir à 10 min (et non 9, la ligne 3 recopiée)
+    // n'est compatible qu'avec le retour de la ligne 4 mise en réserve.
+    renderScreenWithDraft(
+      [
+        anActivity("ex-1", "IN_TOUR", {
+          name: "Squats",
+          executionParameters: variableParameters({ rows: [[60, 0], [120, 0], [180, 0], [240, 0]] }),
+        }),
+      ],
+      { tourRepeatCount: 4, circuitNature: "SERIES" },
     );
+    expect(circuitDuration()).toBe("10 min");
+
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
+    fireEvent(minus, "pressIn");
+    fireEvent(minus, "pressOut");
+    expect(circuitDuration()).toBe("6 min");
+    expect(unitText()).toBe("séries");
+
+    const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment");
+    fireEvent(plus, "pressIn");
+    fireEvent(plus, "pressOut");
+    expect(circuitDuration()).toBe("10 min");
+    expect(sessionDuration()).toBe("10 min");
   });
 
-  it("AC-08/AC-09 — Confirmer applies exactly the centered value to the draft", () => {
+  it("touching the value closes the stepper (RC-4)", () => {
     renderScreenWithDraft(oneActivity);
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
 
-    fireEvent.press(screen.getByTestId("composition-tour-control"));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 99);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-
-    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
-    expect(within(screen.getByTestId("composition-tour-control")).getByText("99")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-stepper-value-press"));
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    expect(screen.getByTestId("composition-circuit-header-counter")).toBeTruthy();
   });
 
-  it("AC-09 — Annuler closes without changing the previously confirmed value", () => {
+  it("touching elsewhere closes the stepper (body, Circuit container, scroll)", () => {
     renderScreenWithDraft(oneActivity);
 
-    fireEvent.press(screen.getByTestId("composition-tour-control"));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 42);
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    fireEvent.press(screen.getByTestId("composition-circuit-counter-outside"));
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    // Sans stepper ouvert, aucune zone d'appui extérieur.
+    expect(screen.queryByTestId("composition-circuit-counter-outside")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section"));
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    fireEvent(screen.getByTestId("composition-body"), "scrollBeginDrag");
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+  });
+
+  const counterClosers: [string, () => void][] = [
+    ["a card press", () => {
+      fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
+    }],
+    ["the Étiquette chip", () => {
+      fireEvent.press(screen.getByTestId("composition-session-color-trigger"));
+    }],
+    ["« + »", () => {
+      fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+    }],
+    ["a long press (drag start)", () => {
+      fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    }],
+    ["a swipe revealing the card actions", () => {
+      fireSwipeLeft("ex-1");
+    }],
+  ];
+  it.each(counterClosers)("RC-4 — %s closes the revealed counter", (_label, trigger) => {
+    renderScreenWithDraft(oneActivity);
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
+
+    trigger();
+
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+  });
+
+  it("RC-4 — the abandon dialog (exit guard) and « Continuer » close the revealed counter", () => {
+    const view = renderScreenWithDraft(oneActivity);
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
+    view.rerender(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={oneActivity}>
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+
+    mockExitGuard.mockReturnValue(defaultExitGuardResult());
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    fireEvent.press(screen.getByTestId("composition-save-action"));
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+  });
+
+  it("one numeric field at a time: opening the counter closes a boundary wheel, and opening a boundary wheel closes the counter", () => {
+    renderScreenWithDraft(oneActivity);
+
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-
-    expect(screen.queryByTestId("composition-tour-wheel-picker")).toBeNull();
-    expect(within(screen.getByTestId("composition-tour-control")).getByText("1")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
+    expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
   });
 
-  it("AC-10 — confirming a new tour count recomputes the Tour summary immediately", () => {
-    renderScreenWithDraft(oneActivity);
+  it("VoiceOver: adjustable « Nombre de tours » usable without revealing the stepper; increment announces « 4 tours »", () => {
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 3 });
 
-    const summary = () =>
-      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
-        .props.children;
-    expect(summary()).toBe("1 min");
+    const counter = () => screen.getByLabelText(composition.circuit.countAccessibilityLabel.TOURS);
+    expect(counter().props.accessibilityRole).toBe("adjustable");
+    expect(counter().props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 3, text: "3 tours" });
 
-    fireEvent.press(screen.getByTestId("composition-tour-control"));
-    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 3);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    stepCircuitCounter("increment");
+    expect(counter().props.accessibilityValue).toMatchObject({ now: 4, text: "4 tours" });
+    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    expect(circuitDuration()).toBe("4 min");
 
-    // 60 s × 3 = 180 s -> 3 min (durée seule, PRE-6 story 1.3, D-390).
-    expect(summary()).toBe("3 min");
+    stepCircuitCounter("decrement", 3);
+    expect(counter().props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
+    // À la borne basse, « décrémenter » n'est plus proposé.
+    const actions = (counter().props.accessibilityActions as { name: string }[]).map((action) => action.name);
+    expect(actions).toEqual(["increment", "activate"]);
+
+    // « Activer » révèle le stepper, qui reste un réglage ajustable annonçant l'unité.
+    fireEvent(counter(), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
+    const stepper = screen.getByTestId("composition-circuit-header-counter-stepper");
+    expect(stepper.props.accessibilityRole).toBe("adjustable");
+    expect(stepper.props.accessibilityLabel).toBe("Nombre de tours");
+    expect(stepper.props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
   });
 
-  it("AC-10 — an out-of-Tour Activity never contributes to the Tour summary, whatever the tour count (correctif T02, 2026-09-08)", () => {
-    // Avant le correctif, l'Activité BEFORE_TOUR contribuait encore au
-    // NOMBRE affiché (sans être multipliée) — désormais elle est exclue à
-    // la source, aussi bien du nombre que de la durée. Seule l'Activité
-    // IN_TOUR (60 s) contribue, multipliée par `tourRepeatCount`.
+  it("VoiceOver in Series: « Nombre de séries », value announced « 2 séries »", () => {
+    renderScreenWithDraft(oneActivity, { tourRepeatCount: 2, circuitNature: "SERIES" });
+    const counter = screen.getByLabelText(composition.circuit.countAccessibilityLabel.SERIES);
+    expect(counter.props.accessibilityValue).toMatchObject({ text: "2 séries" });
+  });
+
+  it("empty Circuit: « — min »; rehydrated drafts show their persisted count", () => {
+    renderScreenWithDraft([], { tourRepeatCount: 7 });
+    expect(circuitDuration()).toBe("— min");
+    expect(counterValue()).toBe(7);
+    expect(unitText()).toBe("tours");
+  });
+
+  it("an out-of-Circuit occurrence never contributes to the Circuit duration, whatever N (correctif T02, 2026-09-08)", () => {
     renderScreenWithDraft(
       [
         anActivity("ex-1", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
@@ -3234,33 +3378,17 @@ describe("CompositionScreen — contrôle Nombre de tours (T02-S01, AC-08/AC-09)
       ],
       { tourRepeatCount: 5 },
     );
-
-    // BEFORE_TOUR (600 s) exclue quel que soit tourRepeatCount ; IN_TOUR
-    // seule contribue : 60 × 5 = 300 s -> ceil(300/60) = 5 min.
-    expect(
-      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
-        .props.children,
-    ).toBe("5 min");
+    expect(circuitDuration()).toBe("5 min");
   });
 
-  it("PRE-6 (story 1.3) — a Series Circuit summary follows the passes of the draft's nature, duration only", () => {
+  it("PRE-6 (story 1.3) — a Series Circuit duration follows the passes of the draft's nature, duration only", () => {
     // 3 séries de 60 s, pause 30 s, R 0 : Séries N = 2 → série 1 et 2 seulement, (60 + 30) × 2 = 180 s ;
     // en Tours, N = 2 développerait les trois séries deux fois (540 s → 9 min).
     renderScreenWithDraft(
       [anActivity("ex-1", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60, 3, 30) })],
       { tourRepeatCount: 2, circuitNature: "SERIES" },
     );
-
-    expect(
-      within(screen.getByTestId("composition-tour-card")).getByTestId("composition-tour-summary")
-        .props.children,
-    ).toBe("3 min");
-  });
-
-  it("rehydrated drafts show their persisted tour count, never a hardcoded 1", () => {
-    renderScreenWithDraft(oneActivity, { tourRepeatCount: 7 });
-
-    expect(within(screen.getByTestId("composition-tour-control")).getByText("7")).toBeTruthy();
+    expect(circuitDuration()).toBe("3 min");
   });
 });
 
@@ -3591,7 +3719,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     // 60 + 60 × 3 + 60 = 300 s → « 5 min » ; Compte à rebours et Fin (10 min chacun) exclus.
     expect(headerDuration()).toBe("5 min");
     // Le résumé du Circuit reste limité à la zone IN_TOUR.
-    expect(screen.getByTestId("composition-tour-summary").props.children).toBe("3 min");
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("3 min");
   });
 
   it("PRE6-2.1 — une cible À l'échec : « ≥ … » dans l'en-tête", () => {
@@ -4018,5 +4146,63 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     const reserve = probe.draft!.circuitSeriesReserve!;
     expect(reserve).toEqual({ "ex-1": [reserveRow], "generated-copy-id": [reserveRow] });
     expect(reserve["generated-copy-id"]![0]).not.toBe(reserve["ex-1"]![0]);
+  });
+  /** PRE-6 (story 3.1) : compteur du Circuit et brouillon — `setCircuitCount` appliqué tel quel. */
+  describe("compteur du Circuit et brouillon (PRE-6, story 3.1)", () => {
+    const rowsOfDraft = (id: string) => {
+      const series = exerciseOf(id).executionParameters.series;
+      return series.kind === "VARIABLE" ? series.rows : [];
+    };
+    const step = (direction: "increment" | "decrement") => {
+      const button = screen.getByTestId(`composition-circuit-header-counter-stepper-${direction}`);
+      fireEvent(button, "pressIn");
+      fireEvent(button, "pressOut");
+    };
+    const row = (value: number) => ({ target: { kind: "NUMBER" as const, value }, pauseSeconds: 0, loadKg: 0 });
+
+    it("Séries 4 → 3 → 4 : la ligne 4 passe en réserve, puis les 4 lignes d'origine reviennent et la réserve disparaît", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }) })],
+        seriesDraft(4),
+      );
+      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+
+      step("decrement");
+      expect(probe.draft!.tourRepeatCount).toBe(3);
+      expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20), row(30)]);
+      expect(probe.draft!.circuitSeriesReserve).toEqual({ "ex-1": [row(40)] });
+
+      step("increment");
+      expect(probe.draft!.tourRepeatCount).toBe(4);
+      expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20), row(30), row(40)]);
+      expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
+    });
+
+    it("Séries 1 → 2 : un exercice d'une ligne reçoit une copie de sa dernière ligne", () => {
+      renderWithProbe(
+        [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: [[25, 0]] }) })],
+        seriesDraft(1),
+      );
+      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+
+      step("increment");
+      expect(probe.draft!.tourRepeatCount).toBe(2);
+      expect(rowsOfDraft("ex-1")).toEqual([row(25), row(25)]);
+      expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
+    });
+
+    it("la pastille d'unité n'ouvre aucune surface et laisse le brouillon inchangé", () => {
+      renderWithProbe([anActivity("ex-1", "IN_TOUR")], seriesDraft(3));
+      const before = probe.draft;
+
+      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-unit"));
+
+      expect(probe.draft).toBe(before);
+      expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+      expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
+      expect(screen.queryByRole("menu")).toBeNull();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
   });
 });

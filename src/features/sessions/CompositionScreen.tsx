@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -20,7 +20,7 @@ import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
-import type { CircuitLoss } from "@/domain/sessions/circuit";
+import { DEFAULT_CIRCUIT_NATURE, setCircuitCount, type CircuitLoss } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import {
   duplicateOccurrence,
@@ -43,6 +43,7 @@ import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
+import { CircuitHeader } from "@/features/sessions/CircuitHeader";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -83,17 +84,19 @@ import {
   SequenceRail,
 } from "@/features/sessions/CompositionSequence";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
-import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
-type OverlayKind = "countdown" | "finalPhase" | "tour";
+/**
+ * Champ numérique actif — un seul à la fois (CIR-10) : roulettes des bornes, ou stepper révélé
+ * du compte du Circuit (PRE-6 story 3.1).
+ */
+type OverlayKind = "countdown" | "finalPhase" | "circuitCount";
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -447,6 +450,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     shouldBlockExit,
     resetDraft,
   );
+  // PRE-6 (story 3.1, RC-4) : le dialogue d'abandon (garde de sortie) referme le compteur révélé
+  // du Circuit — ajustement pendant le rendu, au changement de `isPendingExit` (patron React
+  // « ajuster un état sur un changement de prop », sans effet).
+  const [observedPendingExit, setObservedPendingExit] = useState(isPendingExit);
+  if (isPendingExit !== observedPendingExit) {
+    setObservedPendingExit(isPendingExit);
+    if (isPendingExit && openOverlay === "circuitCount") {
+      setOpenOverlay(null);
+    }
+  }
 
   useEffect(() => {
     if (!hasSaved) return;
@@ -464,6 +477,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * affiché, message D-107, action réactivée (D-107 / CE-T01-S10-09).
    */
   async function handleSave() {
+    // PRE-6 (story 3.1, RC-4) : « Continuer » referme le compteur révélé du Circuit.
+    closeCircuitCounter();
     if (isSavingRef.current) {
       return;
     }
@@ -499,6 +514,29 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setOpenOverlay((current) => (current === kind ? null : kind));
   }, []);
 
+  // PRE-6 (story 3.1, RC-4) : un toucher ailleurs referme le compteur révélé du Circuit ; une
+  // roulette de borne éventuellement ouverte n'est pas concernée.
+  const closeCircuitCounter = useCallback(() => {
+    setOpenOverlay((current) => (current === "circuitCount" ? null : current));
+  }, []);
+  // Écran quitté (perte du premier plan) : le compteur révélé se referme.
+  useFocusEffect(useCallback(() => closeCircuitCounter, [closeCircuitCounter]));
+  // Glisser (appui long) ou révéler les actions d'une carte referme aussi le compteur.
+  const handleRevealActions = useCallback(
+    (activityId: string | null) => {
+      if (activityId !== null) closeCircuitCounter();
+      setRevealedActionsId(activityId);
+    },
+    [closeCircuitCounter],
+  );
+  const handleDragStart = useCallback(
+    (activityId: string | null) => {
+      if (activityId !== null) closeCircuitCounter();
+      setDraggedActivityId(activityId);
+    },
+    [closeCircuitCounter],
+  );
+
   const composition = strings.screens.composition;
 
   // T02-S01 (CE-T02-01) : la Composition restitue le brouillon réel dans
@@ -511,6 +549,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     circuitNature: draft.circuitNature,
     tourRepeatCount,
   };
+  const circuitNature = draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+
+  /**
+   * PRE-6 (story 3.1, AD-38, report de l'epic 1) : tout changement de N passe par
+   * `setCircuitCount` — Tours : le compte seul ; Séries : les exercices du Circuit suivent N
+   * (diminution en réserve, augmentation par restauration puis copie), sans message.
+   */
+  // Forme fonctionnelle : chaque pas (maintien compris) part du brouillon COURANT, jamais de
+  // celui du rendu, et le résultat complet de `setCircuitCount` est appliqué.
+  const handleCircuitCountChange = useCallback(
+    (count: number) => {
+      updateDraft((current) => setCircuitCount(current, count));
+    },
+    [updateDraft],
+  );
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
@@ -593,12 +646,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       if (plan.losses.length > 0) {
         // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
         // COURANT (aucun instantané rejoué).
+        // PRE-6 (story 3.1, RC-4) : un dialogue de décision referme le compteur révélé.
+        closeCircuitCounter();
         setPendingCircuitEntry({ activityId, zone, index, targetCount: plan.targetCount });
         return;
       }
       updateDraft(plan.patch);
     },
-    [draft, updateDraft],
+    [closeCircuitCounter, draft, updateDraft],
   );
 
   const handleDropActivity = useCallback(
@@ -674,15 +729,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   const handleEditActivity = useCallback(
     (activityId: string) => {
+      closeCircuitCounter();
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
-    [router],
+    [closeCircuitCounter, router],
   );
   // REWORK08-C (`[ChatGPT] CHANGES_REQUESTED — REWORK08 — roulette native +
   // synthèse Tour`, 2026-09-04, addendum précédemment `QUEUED_FOR_NEXT_
   // COMPOSITION_REWORK` désormais explicitement autorisé) : calculée UNE
-  // SEULE FOIS, réutilisée à la fois par `TourCard` (nouvelle synthèse sous
-  // `Nombre de tours`) et par `bottomAction` (synthèse déjà existante) —
+  // SEULE FOIS, réutilisée à la fois par `CircuitHeader` (durée sous le titre
+  // « Circuit », PRE-6 story 3.1) et par `bottomAction` (synthèse déjà existante) —
   // même contenu canonique (`formatCompositionSummary`), jamais recalculé
   // ni reformulé localement pour l'un ou l'autre emplacement.
   //
@@ -695,8 +751,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // cette fonction).
   //
   // T02-S01 (CE-T02-01 « Calculs ») : la durée développe désormais les
-  // répétitions du Tour — `tourRepeatCount` est donc transmis, et confirmer
-  // la roulette du Tour actualise immédiatement cette synthèse. Le NOMBRE
+  // répétitions du Tour — `tourRepeatCount` est donc transmis, et chaque pas
+  // du compteur du Circuit actualise immédiatement cette synthèse. Le NOMBRE
   // affiché reste celui des Activités réellement composées, chacune une
   // seule fois.
   const compositionSummary = formatCompositionSummary({
@@ -807,9 +863,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onNameFocus={closeOverlay}
           sessionLabel={sessionLabel}
           sessionColor={sessionColor}
-          onOpenLabelPicker={() => setIsLabelPickerOpen(true)}
+          onOpenLabelPicker={() => {
+            closeCircuitCounter();
+            setIsLabelPickerOpen(true);
+          }}
           sessionDuration={sessionDuration}
-          onAdd={() => setIsAddActivityTreeOpen(true)}
+          onAdd={() => {
+            closeCircuitCounter();
+            setIsAddActivityTreeOpen(true);
+          }}
           testID="composition-context-header"
         />
       </ContextBand>
@@ -858,8 +920,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // défilement est neutralisé — le geste vertical appartient alors
         // exclusivement à la carte soulevée, jamais à la liste.
         scrollEnabled={draggedActivityId === null}
+        // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le compteur révélé du Circuit.
+        onScrollBeginDrag={closeCircuitCounter}
         testID="composition-body"
       >
+        {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `CounterOutsideZone`. */}
+        {openOverlay === "circuitCount" ? (
+          <CounterOutsideZone onPress={closeCircuitCounter} testID="composition-circuit-counter-outside" />
+        ) : null}
         {/* PRE-6 (story 2.1, Figma `8328:28634`) : rail de la Séquence, du centre de la
             première borne à celui de la dernière ; repères posés par chaque étape. */}
         <SequenceRail
@@ -906,8 +974,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
-          onRevealActions={setRevealedActionsId}
-          onDragStart={setDraggedActivityId}
+          onRevealActions={handleRevealActions}
+          onDragStart={handleDragStart}
           onDragEnd={handleDropActivity}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
@@ -915,14 +983,34 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onStep={handleStepActivity}
         />
 
-        <TourCard
-          label={composition.tour.label}
-          summary={compositionSummary}
-          repeatCount={tourRepeatCount}
-          isOpen={openOverlay === "tour"}
-          onPress={() => toggleOverlay("tour")}
-          onLayout={handleTourLayout}
-        >
+        {/*
+         * Conteneur Circuit (`Composition / Tour Section`, R4-12, REWORK07B) : seule surface du
+         * bloc, déborde de `inset` de chaque côté ; il héberge l'en-tête du Circuit puis les
+         * occurrences `IN_TOUR` (CE-T02-01). PRE-6 (story 3.1, AD-41, Figma `8328:28667`) :
+         * `CircuitHeader` remplace `TourCard` et sa roulette du compte.
+         */}
+        <View style={styles.tourSectionContainer} onLayout={handleTourLayout} testID="composition-tour-section">
+          {/* Zone propre au conteneur Circuit — voir `CounterOutsideZone`. */}
+          {openOverlay === "circuitCount" ? (
+            <CounterOutsideZone onPress={closeCircuitCounter} testID="composition-circuit-counter-outside-section" />
+          ) : null}
+          {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
+              déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
+          <SequenceMarker
+            kind="ring"
+            centerY={CIRCUIT_MARKER_CENTER_Y}
+            contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
+            testID="composition-sequence-marker-circuit"
+          />
+          <CircuitHeader
+            nature={circuitNature}
+            count={tourRepeatCount}
+            duration={compositionSummary}
+            isCounterOpen={openOverlay === "circuitCount"}
+            onToggleCounter={() => toggleOverlay("circuitCount")}
+            onChangeCount={handleCircuitCountChange}
+            testID="composition-circuit-header"
+          />
           <ActivityZoneList
             zone="IN_TOUR"
             testID="composition-zone-in-tour"
@@ -935,15 +1023,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onLayout={handleZoneLayout}
             onRowLayout={handleRowLayout}
             onEdit={handleEditActivity}
-            onRevealActions={setRevealedActionsId}
-            onDragStart={setDraggedActivityId}
+            onRevealActions={handleRevealActions}
+            onDragStart={handleDragStart}
             onDragEnd={handleDropActivity}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
             canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
             onStep={handleStepActivity}
           />
-        </TourCard>
+        </View>
 
         <ActivityZoneList
           zone="AFTER_TOUR"
@@ -957,8 +1045,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
-          onRevealActions={setRevealedActionsId}
-          onDragStart={setDraggedActivityId}
+          onRevealActions={handleRevealActions}
+          onDragStart={handleDragStart}
           onDragEnd={handleDropActivity}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
@@ -985,7 +1073,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * `0 activité · 0 min` précédemment affichée ICI est **supprimée** —
        * devenue redondante depuis REWORK08-C, qui affiche désormais la même
        * synthèse canonique (`compositionSummary`) directement sous le
-       * libellé `Nombre de tours` (voir `TourCard` ci-dessus). `Continuer`
+       * titre du Circuit (`CircuitHeader`, PRE-6 story 3.1). `Continuer`
        * reste seul dans cette zone ; le style `summary` (devenu sans
        * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
@@ -1051,34 +1139,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
           cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-        />
-      </WheelPickerOverlay>
-
-      {/*
-       * T02-S01 (CE-T02-01 « Nombre de Tours », AC-08/AC-09) : le contrôle
-       * `Nombre de tours` devient fonctionnel et ouvre `Picker / Popover —
-       * Source exact`, variante `Type=Numeric wheel` (`3210:49`) — la MÊME
-       * primitive `NumberWheelPicker` que Séries/Répétitions (roulette
-       * native iOS `@expo/ui/swift-ui`, `pickerStyle('wheel')`), dans le MÊME
-       * overlay centré au voile bloquant que les deux roulettes de durée. Ses
-       * bornes `1..99` sont celles du composant (`WHEEL_NUMBER_MIN`/
-       * `WHEEL_NUMBER_MAX`, D-058) : aucune valeur invalide n'est atteignable.
-       * `Annuler` ferme sans rien modifier ; `Confirmer` applique exactement
-       * la valeur centrée AU BROUILLON (jamais d'écriture persistante ici —
-       * la valeur n'est enregistrée qu'à l'enregistrement final).
-       */}
-      <WheelPickerOverlay visible={openOverlay === "tour"}>
-        <NumberWheelPicker
-          value={tourRepeatCount}
-          onValidate={(value) => {
-            updateDraft({ tourRepeatCount: value });
-            closeOverlay();
-          }}
-          onCancel={closeOverlay}
-          accessibilityLabel={composition.tour.valueAccessibilityLabel}
-          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-          testID="composition-tour-wheel-picker"
         />
       </WheelPickerOverlay>
 
@@ -1892,6 +1952,20 @@ function CompositionActivityRow({
 }
 
 /**
+ * PRE-6 (story 3.1, RC-4) — zone d'appui extérieur qui referme le compteur révélé du Circuit,
+ * montée seulement pendant l'ouverture, en absolu SOUS le contenu de son parent (hors du flux et
+ * de l'écart `gap`) et non accessible (VoiceOver range le champ par ses propres actions).
+ *
+ * Deux instances, une par parent : le corps défilant (marges et écarts entre étapes) et le
+ * conteneur Circuit. Un toucher n'est proposé qu'à la vue touchée puis à ses ANCÊTRES : un appui
+ * sur le fond bleu du conteneur Circuit (vue sans répondeur) remonte au conteneur, jamais à la
+ * zone du corps, qui en est une sœur placée dessous. Le conteneur porte donc sa propre zone.
+ */
+function CounterOutsideZone({ onPress, testID }: { onPress: () => void; testID: string }) {
+  return <Pressable onPress={onPress} accessible={false} style={styles.counterOutside} testID={testID} />;
+}
+
+/**
  * Hauteur de la carte d'occurrence et de ses actions glissées. PRE-6 (story 2.2,
  * `5544:6797`) : `64`, ou `70` avec la ligne « durée estimée » (`occurrenceCardHeight`) ;
  * l'état soulevé garde son écart constant (`heightDelta`). La ligne structurelle de
@@ -1900,224 +1974,6 @@ function CompositionActivityRow({
 function blockHeightFor(hasEstimatedDuration: boolean, isDragged: boolean): number {
   const rest = occurrenceCardHeight(hasEstimatedDuration);
   return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
-}
-
-/**
- * `Composition / Tour Section` — corrections cumulatives :
- *
- * - **CMP-04** (cycle `REWORK02`) : contrôle présenté dans un conteneur
- *   dédié (`tourCardControl`) avec une affordance de disclosure (chevron)
- *   — la carte Tour n'est toujours pas interactive en T01
- *   (`accessibilityState.disabled`), ce chevron reste donc purement visuel.
- * - **T-01** (cycle `REWORK03`) : géométrie de la carte interne
- *   (padding/bordure/rayon) partagée avec `BoundaryActivityRow` via
- *   `limitCardBase` — seul le fond (`colors.selectionSurface`) reste
- *   spécifique.
- * - **T-02/R4-11** (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
- *   COMPLEMENTS REVIEWED`, 2026-09-03) : **icône Tour canonique intégrée**
- *   — `icon-tour.svg` (`3066:4685`, `20×20`), octets exacts téléchargés
- *   depuis l'asset MCP fourni par l'autorisation, jamais redessinée ni
- *   substituée. Ferme le blocage reconduit depuis `REWORK02`.
- * - **REWORK12 (COMP-02), première tentative** (`[ChatGPT] CHANGES_REQUESTED
- *   — REWORK12`, 2026-09-04) : `icon-tour.svg` avait été temporairement
- *   remplacé par `composition-main-content` après avoir constaté, sur le
- *   Figma alors en vigueur, que l'icône réellement affichée dans l'en-tête
- *   de la structure Tour (`icon/contenu-principal`) ne correspondait pas à
- *   l'ancien export `icon-tour.svg` — écart disclosé dans le rapport de
- *   mission de ce cycle.
- * - **REWORK12-bis — correction canonique définitive** (`[ChatGPT] Applique
- *   impérativement le protocole KODJO actif...`, 2026-09-04 ; `.github/
- *   orchestration/reports/2026-09-04_icon-tour-canonical-source-alignment
- *   .md`, `DESIGN_ICON_TOUR_CANONICAL_SOURCE_ALIGNED`) : le composant DSF
- *   `Icon / Tour` (`3066:4685`) a depuis été **reconstruit** sur le dessin
- *   validé (celui de `Nouvelle séance — Nom renseigné`, `2028:12003`) et
- *   republié à `18×18` (contre `20×20` auparavant) ; `assets/icons/icon-
- *   tour.svg` a été remplacé par le nouvel export (octets exacts). `icon-
- *   tour` (`KodjoIcon.tsx`) redevient donc la source canonique correcte —
- *   revenue ici depuis `composition-main-content`, désormais retiré du
- *   registre (`KodjoIcon.tsx`) et du manifeste Figma (`assets/icons/
- *   manifest.json` ne porte plus aucune entrée `composition.mainContent`).
- *   Ce n'est pas un aller-retour arbitraire : la première tentative avait
- *   correctement diagnostiqué que l'ancien `icon-tour.svg` (`20×20`) ne
- *   correspondait pas à la source canonique — la correction définitive
- *   porte sur LEQUEL export résout ce défaut (le même composant DSF
- *   reconstruit, pas un composant concurrent).
- * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
- *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
- *   `rowLabel`/`tourCardLabel`).
- * - **T-04a/b/c** (audit indépendant REWORK04, 2026-09-03) : anatomie du
- *   contrôle **refaite**, inversant `T-04/R4-10` du cycle précédent —
- *   cadre parent clair (`tourCardControl`, fond `colors.background`)
- *   contenant DEUX éléments distincts côte à côte : la valeur `1` en texte
- *   nu (`tourCardControlValue`, jamais sur fond violet) et un carré violet
- *   `28×28` (`tourCardControlChevronBox`, `colors.selection`) contenant
- *   UNIQUEMENT le chevron blanc — le cycle précédent plaçait `1` et le
- *   chevron ensemble dans le même carré violet, explicitement interdit.
- *   **REWORK06** (`[ChatGPT] PLAN_APPROVED — REWORK06`, 2026-09-04,
- *   addendum) : cadre porté de `66×30` à `78×44` — le `1` est désormais
- *   centré horizontalement ET verticalement (auparavant aligné à gauche),
- *   en `type.cardTitle` (`16/20` Semi Bold, auparavant `type.label` `14/18`
- *   Medium) ; le carré violet dispose de marges visibles identiques en
- *   haut/bas/droite (`8pt` chacune, dérivées par construction — voir
- *   `tourCardControl` ci-dessous).
- * - **T-05** : contenu `1` seul — le signe `×` retiré.
- * - **R4-12** : le conteneur Tour (`tourSectionContainer`, `374`) est
- *   désormais plus large que la carte interne qu'il héberge (`354`,
- *   inset `10`/côté) — INVERSE explicitement `T-01` (qui avait unifié la
- *   largeur de Tour avec celle des cartes limites) : `T-01` unifiait la
- *   GÉOMÉTRIE DE BOÎTE (padding/bordure/rayon, toujours vrai à l'époque) ;
- *   R4-12 distingue la LARGEUR EXTÉRIEURE du conteneur (rôle de conteneur,
- *   pas une carte elle-même) de celle, alors inchangée, de la carte
- *   interne. `marginHorizontal: -inset` fait « déborder » le conteneur de
- *   `10pt` de chaque côté au-delà du padding de `body` (`24`), portant sa
- *   largeur extérieure réelle à `374` sur le canevas de référence
- *   (`402pt`) sans aucune constante de largeur codée en dur — dérivée par
- *   construction, comme pour la marge basse de la navigation (`N-03`).
- *
- * - **REWORK07B — structure extérieure / en-tête transparent** (`[ChatGPT]
- *   PLAN_APPROVED — REWORK07B — contrôles canoniques + structure Tour`,
- *   2026-09-04 ; `12 – Architecture technique.md`, « Anatomie canonique —
- *   Nombre de tours » ; `13 – Contrats d'écran.md`, CE-T01-08/09) : **T-01
- *   est ici explicitement révisé, pas silencieusement contredit** — la
- *   documentation canonique établit que la SEULE surface visuelle du bloc
- *   Tour est la **structure extérieure** (`tourSectionContainer`, `374 pt`,
- *   fond `colors.tourSurface` = `#CDCEFA`, rayon canonique `10`, distinct
- *   du rayon `12` de `limitCardBase`/cartes limites), jamais la carte
- *   interne. L'**en-tête technique intérieur** (`tourHeader`, testID
- *   inchangé `composition-tour-card` — seule sa signification visuelle
- *   change, pas son identifiant) redevient un simple conteneur de mise en
- *   page **transparent** : ni fond, ni bordure, ni rayon, ni apparence de
- *   carte autonome — `limitCardBase` (fond/bordure/padding partagés avec
- *   `BoundaryActivityRow`) ne s'applique donc plus ici. Le `paddingVertical`
- *   et le `minHeight` que portait auparavant la carte interne (via
- *   `limitCardBase`/`tourCard`) sont **relocalisés** sur la structure
- *   extérieure (mêmes valeurs numériques, seul le propriétaire change) :
- *   `tourSectionContainer` disposait déjà, depuis R4-12, exactement de la
- *   géométrie `374 large / inset 10 / contenu 354` requise pour porter
- *   cette surface — aucun nouveau conteneur n'était nécessaire. Absence
- *   d'activité : une seule structure bleue reste visible (aucune carte
- *   intérieure ne dessine plus sa propre surface).
- *
- * - **REWORK08-C — synthèse sous « Nombre de tours »** (`[ChatGPT]
- *   CHANGES_REQUESTED — REWORK08 — roulette native + synthèse Tour`,
- *   2026-09-04) : l'addendum précédemment `QUEUED_FOR_NEXT_COMPOSITION_
- *   REWORK` est désormais implémenté. Titre + synthèse forment un seul
- *   bloc textuel (`tourCardTextBlock`, colonne — même patron que
- *   `boundaryRowTitleSlot`), centré verticalement avec `tourCardControl`
- *   par le `alignItems: "center"` déjà porté par `tourHeader` (hérité,
- *   inchangé). La synthèse (`composition-tour-summary`) réutilise
- *   exactement `formatCompositionSummary` (même contenu canonique que
- *   `bottomAction`, calculé une seule fois dans `CompositionScreen`) et
- *   exactement le style `boundaryRowSecondaryLine` (même typographie que
- *   la ligne secondaire des cartes `Compte à rebours initial`/`Fin de
- *   séance`, réutilisé tel quel, jamais dupliqué). Structure extérieure
- *   bleue et contrôle blanc/violet du nombre de tours : non touchés.
- */
-function TourCard({
-  label,
-  summary,
-  repeatCount,
-  isOpen,
-  onPress,
-  onLayout,
-  children,
-}: {
-  label: string;
-  summary: string;
-  /** T02-S01 : valeur CONFIRMÉE du brouillon (`1..99`, D-058) — jamais un littéral figé. */
-  repeatCount: number;
-  isOpen: boolean;
-  onPress: () => void;
-  onLayout: (event: LayoutChangeEvent) => void;
-  /** T02-S01 (CE-T02-01) : les Activités `IN_TOUR` sont rendues DANS la structure Tour. */
-  children?: ReactNode;
-}) {
-  return (
-    <View style={styles.tourSectionContainer} onLayout={onLayout} testID="composition-tour-section">
-      {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
-          déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
-      <SequenceMarker
-        kind="ring"
-        centerY={CIRCUIT_MARKER_CENTER_Y}
-        contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
-        testID="composition-sequence-marker-circuit"
-      />
-      <View style={styles.tourHeader} testID="composition-tour-card">
-        <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
-          <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
-        </View>
-        {/*
-         * REWORK08-C : titre + synthèse forment désormais UN SEUL bloc
-         * textuel (`tourCardTextBlock`, colonne — même patron que
-         * `boundaryRowTitleSlot`), centré verticalement avec le cadre du
-         * contrôle grâce à `tourHeader.alignItems: "center"` (hérité,
-         * inchangé). La synthèse réutilise exactement le même contenu
-         * canonique (`formatCompositionSummary`, calculé une seule fois
-         * dans `CompositionScreen`) et exactement le même style
-         * typographique que la ligne secondaire des cartes limites —
-         * `styles.boundaryRowSecondaryLine` est réutilisé tel quel
-         * ci-dessous, jamais dupliqué localement, pour garantir l'identité
-         * exacte demandée plutôt qu'une simple ressemblance.
-         */}
-        <View style={styles.tourCardTextBlock} testID="composition-tour-text-block">
-          <Text style={styles.tourCardLabel}>{label}</Text>
-          <Text style={styles.boundaryRowSecondaryLine} testID="composition-tour-summary">
-            {summary}
-          </Text>
-        </View>
-        {/*
-         * **T02-S01 (D-130/CE-T02-01/CE-T02-02)** — le contrôle devient
-         * FONCTIONNEL et sa géométrie canonique est publiée : `66 × 34`,
-         * valeur numérique SEULE (jamais `x` ni `×`), bord droit aligné sur
-         * celui des cartes, et **aucun chevron de repli**.
-         *
-         * **T02-S02 — cadre et chevron d'OUVERTURE rétablis.** `12 –
-         * Architecture technique.md` (« Sélecteur du nombre de tours »)
-         * publie l'anatomie complète : « carré violet `28 × 28` avec `3`
-         * points de marge en haut, à droite et en bas ; icône `#CDCEFA`
-         * issue de la référence `2028:12051` ; aucun chevron de repli ». Les
-         * deux règles ne se contredisent pas — ce carré porte le chevron
-         * d'OUVERTURE de la roulette (le contrôle est un déclencheur), le
-         * chevron proscrit étant celui de REPLI (haut/bas) d'un conteneur
-         * dépliable, que ce contrôle n'est pas. T02-S01 avait supprimé le
-         * carré ENTIER en même temps que le chevron de repli, laissant un
-         * déclencheur sans aucune affordance d'ouverture.
-         *
-         * `accessibilityState.disabled` disparaît : le contrôle n'est plus
-         * inerte, il ouvre la roulette `1..99`.
-         */}
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          accessibilityValue={{ text: String(repeatCount) }}
-          accessibilityState={{ disabled: false, expanded: isOpen }}
-          // T02-S02 (continuation) : cadre visible `66 × 34` INCHANGÉ
-          // (D-130), mais cible tactile portée à `48` — ce contrôle ouvre la
-          // roulette `Nombre de tours`, il doit donc respecter
-          // `size/touch-target-min` comme toute action du DSF.
-          hitSlop={TOUR_CONTROL_HIT_SLOP}
-          style={styles.tourCardControl}
-          testID="composition-tour-control"
-        >
-          <Text style={styles.tourCardControlValue} testID="composition-tour-control-value">
-            {repeatCount}
-          </Text>
-          <View
-            style={styles.tourCardControlChevronBox}
-            testID="composition-tour-control-chevron-box"
-          >
-            <KodjoIcon
-              name="select-field-chevron"
-              tintColor={colors.tourSurface}
-              testID="composition-tour-control-chevron"
-            />
-          </View>
-        </Pressable>
-      </View>
-      {children}
-    </View>
-  );
 }
 
 /**
@@ -2201,18 +2057,6 @@ function CompositionEditState({
  * de relecture.
  */
 const COMPOSITION_ROW_GAP = spacing[6];
-
-/**
- * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
- * de sa hauteur visible canonique (`34`, D-130) à `minTouchTarget` (`48`).
- * Dérivé des deux constantes, jamais codé en dur.
- */
-const TOUR_CONTROL_HIT_SLOP = {
-  top: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
-  bottom: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
-  left: 0,
-  right: 0,
-} as const;
 
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
@@ -2458,16 +2302,12 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.textSecondary,
   },
-  // R4-12 : conteneur Tour, plus large que la carte interne qu'il héberge
-  // — voir `TourCard` ci-dessus pour la justification complète du calcul.
-  // REWORK07B : porte désormais la surface visuelle elle-même (fond,
-  // rayon, padding vertical, hauteur minimale) — relocalisés depuis
-  // l'ancien style `tourCard` (voir `tourHeader` ci-dessous), qui ne
-  // portait pas encore la bonne largeur (`374`) pour cette surface.
-  // T02-S01 : la structure Tour héberge désormais AUSSI les Activités
-  // `IN_TOUR` (CE-T02-01) — `gap` sépare son en-tête technique de cette
-  // liste, sans effet lorsque la zone est vide (le conteneur n'a alors qu'un
-  // seul enfant). Largeur, fond, rayon et hauteur minimale sont inchangés.
+  // R4-12 : conteneur Circuit, déborde de `inset` de chaque côté du contenu
+  // (`marginHorizontal: -inset`), sans largeur codée en dur. REWORK07B : il
+  // porte la seule surface visuelle du bloc (fond, rayon, padding vertical,
+  // hauteur minimale). T02-S01 : il héberge aussi les occurrences `IN_TOUR`
+  // (CE-T02-01) — `gap` sépare l'en-tête du Circuit (`CircuitHeader`, PRE-6
+  // story 3.1) de cette liste.
   tourSectionContainer: {
     marginHorizontal: -dimensions.compositionTourSection.inset,
     paddingHorizontal: dimensions.compositionTourSection.inset,
@@ -2477,95 +2317,14 @@ const styles = StyleSheet.create({
     minHeight: dimensions.compositionTourSection.closedHeight,
     gap: spacing[12],
   },
-  // En-tête technique intérieur de `TourCard`, voir la documentation
-  // REWORK07B ci-dessus pour la justification complète : simple rangée de
-  // mise en page (icône/titre/contrôle), **transparente** — ni fond, ni
-  // bordure, ni rayon, ni padding propres (portés par `tourSectionContainer`
-  // désormais). N'utilise plus `limitCardBase` (fond/bordure partagés avec
-  // `BoundaryActivityRow`, non conformes ici depuis la révision REWORK07B).
-  tourHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-  },
-  // R4-04 : même slot que `boundaryRowHandleSlot` (`28×28`) — icône Tour
-  // désormais réellement affichée dedans (R4-11), plus un espace vide.
-  tourCardIconSlot: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // REWORK08-C : bloc unique titre + synthèse (même patron que
-  // `boundaryRowTitleSlot`) — `flex: 1` (auparavant sur `tourCardLabel`
-  // directement, quand le titre était seul dans la rangée) porte
-  // désormais l'espace disponible du bloc entier, poussant
-  // `tourCardControl` à droite ; `gap` identique à `boundaryRowTitleSlot`.
-  tourCardTextBlock: {
-    flex: 1,
-    gap: spacing[2],
-  },
-  // R4-03/REWORK06 : même style de titre que les cartes limites (voir `rowLabel`).
-  tourCardLabel: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
-  },
-  // T-04a/b/c (cycle REWORK04) : cadre parent clair contenant la valeur `1`
-  // (texte nu, jamais sur fond violet) et le carré violet dédié au chevron
-  // (`tourCardControlChevronBox`) comme deux éléments frères distincts.
-  //
-  // REWORK06 (addendum « écarts visuels encore ouverts », 2026-09-04) :
-  // hauteur portée de `30` à `44` — `alignItems: "center"` centre
-  // mécaniquement le carré violet (`28`) dans cette hauteur, dégageant une
-  // marge haut/bas de `(44-28)/2 = 8` ; `paddingRight: spacing[8]` (`8`)
-  // égale cette même marge à droite du carré, comme demandé (« marges
-  // visibles identiques en haut, en bas et à droite »). Largeur portée de
-  // `66` à `78` pour dégager l'espace nécessaire au centrage du chiffre.
-  // T02-S01 (D-130) : `66 × 34`, fond blanc, rayon inchangé, valeur seule et
-  // centrée — le carré violet du chevron (`tourCardControlChevronBox`,
-  // REWORK06/T-04c) est supprimé avec son style plutôt que laissé mort,
-  // D-130 posant explicitement que « le chevron historique de repli n'est
-  // pas affiché ». Le bord droit reste aligné sur celui des cartes par
-  // construction (dernier enfant de `tourHeader`, dont le padding horizontal
-  // est celui de la structure Tour).
-  //
-  // T02-S02 : le cadre redevient une RANGÉE (`row`) — valeur à gauche, carré
-  // violet du chevron d'ouverture à droite, avec `3` points de marge en
-  // haut, à droite et en bas (`12 – Architecture technique.md`). La hauteur
-  // `34` est exactement `28 + 3 + 3`, obtenue ici par `alignItems: "center"`
-  // (marges haut/bas mécaniques) et `paddingRight` (marge droite explicite)
-  // — jamais par un second littéral.
-  tourCardControl: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: dimensions.compositionTourControl.width,
-    height: dimensions.compositionTourControl.height,
-    backgroundColor: colors.background,
-    borderRadius: dimensions.compositionTourControl.radius,
-    paddingLeft: spacing[8],
-    paddingRight: dimensions.compositionTourControl.chevronBoxMargin,
-  },
-  // Valeur numérique seule (jamais `x` ni `×`), centrée verticalement, en
-  // `type.cardTitle` (`16/20` Semi Bold — graisse et taille conservées de
-  // REWORK06).
-  tourCardControlValue: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-  // Carré violet `28 × 28`, rayon `6` — même anatomie canonique que le carré
-  // de chevron de `Forms / Select Field` (`exerciseParameterRow.chevronBox`,
-  // `ExerciseScreen.tsx`). L'icône est teintée `#CDCEFA` (`colors
-  // .tourSurface`, référence `2028:12051`) plutôt que blanche : c'est la
-  // seule différence documentée entre les deux occurrences.
-  tourCardControlChevronBox: {
-    width: dimensions.compositionTourControl.chevronBox,
-    height: dimensions.compositionTourControl.chevronBox,
-    borderRadius: dimensions.compositionTourControl.chevronBoxRadius,
-    backgroundColor: colors.selection,
-    alignItems: "center",
-    justifyContent: "center",
+  // PRE-6 (story 3.1, RC-4) : zone d'appui extérieur, sous le contenu, qui referme le compteur
+  // révélé du Circuit. Positionnée en absolu : hors du flux et de l'écart (`gap`).
+  counterOutside: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   // V2-CAT-01, VISUAL_CORRECTION (revue indépendante 5753653735, point 7) :
   // arbre `Ajouter une activité` — même géométrie de carte que
