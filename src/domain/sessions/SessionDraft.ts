@@ -27,6 +27,7 @@ import {
   numberTarget,
   type ExecutionParameters,
   type ExecutionParametersInput,
+  type SeriesRow,
 } from "@/domain/activities/ExecutionParameters";
 import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 
@@ -206,6 +207,16 @@ export type SessionDraft = {
    * lit `draft.stopPoints ?? []`.
    */
   readonly stopPoints?: readonly StopPoint[];
+  /**
+   * PRE-6 (story 1.4, AD-38) : réserve du Circuit de Séries — par identifiant
+   * d'occurrence, les lignes variables retirées par une diminution de N, dans
+   * leur ordre relatif, restaurées en premier à l'augmentation
+   * (`setCircuitCount`). Champ de transport VOLATIL : jamais persisté, ignoré
+   * par `toCreateSessionInput`/`toUpdateSessionInput`, les durées, les volumes
+   * et `sessionDraftsEqual` ; jamais produit par `toSessionDraft` (purge par
+   * construction à l'enregistrement). Absent = réserve vide.
+   */
+  readonly circuitSeriesReserve?: Readonly<Record<string, readonly SeriesRow[]>>;
 };
 
 /**

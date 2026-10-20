@@ -16,15 +16,26 @@
  * aucune.
  *
  * Développement de la Composition selon la nature (`expandComposition`,
- * story 1.3, AD-40) ; futur foyer des opérations de Circuit (AD-39, story
- * 1.4). Fonctions pures,
- * sans dépendance React ni SQLite.
+ * story 1.3, AD-40) et opérations de Circuit (AD-39, story 1.4 : nature,
+ * compte, réserve, entrée, sortie, volumes). Fonctions pures, sans
+ * dépendance React ni SQLite.
  */
 
-import { seriesCountOf, type ExecutionMode, type ExecutionSeries } from "@/domain/activities/ExecutionParameters";
+import {
+  clampSeriesCount,
+  resizeSeriesWithReserve,
+  seriesCountOf,
+  seriesRowsOf,
+  type ExecutionMode,
+  type ExecutionSeries,
+  type SeriesRow,
+  type SeriesTarget,
+} from "@/domain/activities/ExecutionParameters";
 
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import type { ActivityType, StructuralPosition } from "./Session";
+import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
+import type { SideMode } from "./sideMode";
 import { orderStopPointsByScope, type StopPoint } from "./StopPoint";
 
 /** Organisation du Circuit (ch10 L686-693) : Tours ou Séries. */
@@ -211,4 +222,251 @@ export function expandComposition(input: CompositionExpansionInput): readonly Co
   }
   outside("AFTER_TOUR");
   return steps;
+}
+
+// --- Opérations de Circuit (story 1.4, AD-37, AD-38, AD-39) ------------------
+
+/** Séries perdues par une occurrence lors d'une conversion ou d'une entrée (AD-39). */
+export type CircuitLoss = {
+  readonly occurrenceId: string;
+  readonly lostSeriesCount: number;
+};
+
+/** Pertes calculées AVANT toute mutation ; vide = aucune confirmation nécessaire. */
+export type CircuitLossReport = { readonly losses: readonly CircuitLoss[] };
+
+/** Ligne de la grille des volumes : un Exercice du Circuit, ses Cibles série par série. */
+export type CircuitVolumeRow = {
+  readonly occurrenceId: string;
+  readonly name: string;
+  readonly mode: ExecutionMode | null;
+  readonly sideMode: SideMode;
+  /** Cible de la série i (index i - 1), `null` si l'exercice n'a pas de série i. */
+  readonly cells: readonly (SeriesTarget | null)[];
+};
+
+/** Volumes du Circuit (AD-39) : colonnes S1..Smax, séries actives seulement. */
+export type CircuitVolumes = {
+  /** Smax : plus grand nombre de séries actives des exercices du Circuit (0 si aucun). */
+  readonly seriesColumnCount: number;
+  readonly rows: readonly CircuitVolumeRow[];
+};
+
+type SeriesReserve = Readonly<Record<string, readonly SeriesRow[]>>;
+
+/** Seules les occurrences `IN_TOUR` de type `EXERCISE` suivent N (AD-37). */
+function isCircuitExercise(exercise: SessionDraftExercise): boolean {
+  return exercise.structuralPosition === "IN_TOUR" && exercise.type === "EXERCISE";
+}
+
+function natureOf(draft: SessionDraft): CircuitNature {
+  return draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+}
+
+function countOf(draft: SessionDraft): number {
+  return circuitBoundCount(circuitBoundOf(draft));
+}
+
+/** Séries perdues par un exercice ramené à `count` (0 si aucune). */
+function lostSeriesCount(exercise: SessionDraftExercise, count: number): number {
+  return Math.max(seriesCountOf(exercise.executionParameters) - count, 0);
+}
+
+/**
+ * Adapte un exercice à N : identiques → `count = N` ; variables → lignes
+ * ramenées à N (restauration depuis `reserve`, puis copie de la dernière
+ * ligne active). Régime et autres paramètres inchangés ; même référence si
+ * rien ne change.
+ */
+function adaptExercise(
+  exercise: SessionDraftExercise,
+  count: number,
+  reserve: readonly SeriesRow[],
+): { readonly exercise: SessionDraftExercise; readonly reserve: readonly SeriesRow[] } {
+  const parameters = exercise.executionParameters;
+  const resized = resizeSeriesWithReserve(parameters.series, reserve, count);
+  if (resized.series === parameters.series) {
+    return { exercise, reserve: resized.reserve };
+  }
+  return {
+    exercise: { ...exercise, executionParameters: { ...parameters, series: resized.series } },
+    reserve: resized.reserve,
+  };
+}
+
+/**
+ * Brouillon avec sa réserve. Une réserve vide est écrite `undefined`, clé
+ * PRÉSENTE : un correctif fusionné (`{ ...current, ...patch }`,
+ * `SessionDraftProvider.updateDraft`) efface ainsi l'ancienne réserve.
+ */
+function withReserve(draft: SessionDraft, reserve: SeriesReserve): SessionDraft {
+  return { ...draft, circuitSeriesReserve: Object.keys(reserve).length === 0 ? undefined : reserve };
+}
+
+/**
+ * Pertes d'un changement de nature, sur l'état COURANT, sans mutation
+ * (AD-39). Tours → Séries : séries au-delà de N, par exercice du Circuit.
+ * Même nature ou Séries → Tours : aucune perte.
+ */
+export function prepareNatureChange(draft: SessionDraft, nature: CircuitNature): CircuitLossReport {
+  if (nature === natureOf(draft) || nature === "TOURS") {
+    return { losses: [] };
+  }
+  const count = countOf(draft);
+  const losses: CircuitLoss[] = [];
+  for (const exercise of draft.exercises) {
+    const lost = isCircuitExercise(exercise) ? lostSeriesCount(exercise, count) : 0;
+    if (lost > 0) {
+      losses.push({ occurrenceId: exercise.id, lostSeriesCount: lost });
+    }
+  }
+  return { losses };
+}
+
+/**
+ * Applique un changement de nature (AD-37, AD-38), sans message ni
+ * confirmation (à la charge de l'appelant, après `prepareNatureChange`).
+ * - Même nature : brouillon inchangé (même référence).
+ * - Tours → Séries : chaque exercice du Circuit est adapté à N ; troncature
+ *   DÉFINITIVE, extension par copie de la dernière ligne active ; aucune
+ *   réserve (une conversion confirmée ne mémorise rien).
+ * - Séries → Tours : seule la nature change ; comptes et valeurs conservés.
+ */
+export function applyNatureChange(draft: SessionDraft, nature: CircuitNature): SessionDraft {
+  if (nature === natureOf(draft)) {
+    return draft;
+  }
+  switch (nature) {
+    case "TOURS":
+      return { ...draft, circuitNature: nature };
+    case "SERIES": {
+      const count = countOf(draft);
+      const exercises = draft.exercises.map((exercise) =>
+        isCircuitExercise(exercise) ? adaptExercise(exercise, count, []).exercise : exercise,
+      );
+      return withReserve({ ...draft, circuitNature: nature, exercises }, {});
+    }
+    default: {
+      const unreachable: never = nature;
+      return unreachable;
+    }
+  }
+}
+
+/**
+ * Change N, borné 1..99 (AD-38). Tours : seul `tourRepeatCount` change.
+ * Séries : chaque exercice du Circuit suit N — diminution : lignes retirées
+ * en réserve, sans message ; augmentation : restauration d'abord depuis la
+ * réserve, puis copie de la dernière ligne active ; identiques : seul
+ * `count` suit N. Même N : brouillon inchangé (même référence).
+ */
+export function setCircuitCount(draft: SessionDraft, requested: number): SessionDraft {
+  if (!Number.isFinite(requested)) {
+    return draft;
+  }
+  const count = clampSeriesCount(requested);
+  if (count === countOf(draft)) {
+    return draft;
+  }
+  const nature = natureOf(draft);
+  switch (nature) {
+    case "TOURS":
+      return { ...draft, tourRepeatCount: count };
+    case "SERIES": {
+      // Une entrée de réserve ne survit pas à sa raison d'être : occurrence
+      // supprimée, sortie du Circuit ou passée en identiques.
+      const reserve: Record<string, readonly SeriesRow[]> = {};
+      for (const exercise of draft.exercises) {
+        const kept = draft.circuitSeriesReserve?.[exercise.id];
+        if (kept !== undefined && isCircuitExercise(exercise) && exercise.executionParameters.series.kind === "VARIABLE") {
+          reserve[exercise.id] = kept;
+        }
+      }
+      const exercises = draft.exercises.map((exercise) => {
+        if (!isCircuitExercise(exercise)) {
+          return exercise;
+        }
+        const adapted = adaptExercise(exercise, count, reserve[exercise.id] ?? []);
+        if (adapted.reserve.length > 0) {
+          reserve[exercise.id] = adapted.reserve;
+        } else {
+          delete reserve[exercise.id];
+        }
+        return adapted.exercise;
+      });
+      return withReserve({ ...draft, tourRepeatCount: count, exercises }, reserve);
+    }
+    default: {
+      const unreachable: never = nature;
+      return unreachable;
+    }
+  }
+}
+
+/**
+ * Pertes de l'entrée d'un exercice dans le Circuit, sans mutation (AD-39) :
+ * en Séries, ses séries au-delà de N ; en Tours, aucune.
+ */
+export function prepareEnterCircuit(draft: SessionDraft, exercise: SessionDraftExercise): CircuitLossReport {
+  if (natureOf(draft) !== "SERIES" || exercise.type !== "EXERCISE") {
+    return { losses: [] };
+  }
+  const lost = lostSeriesCount(exercise, countOf(draft));
+  return { losses: lost > 0 ? [{ occurrenceId: exercise.id, lostSeriesCount: lost }] : [] };
+}
+
+/**
+ * Exercice tel qu'il entre dans le Circuit (AD-39) : adapté à N si le
+ * Circuit est en Séries (troncature définitive, après confirmation par
+ * l'appelant), inchangé en Tours (même référence). Sa position structurelle
+ * reste à la charge de l'opération de Composition qui le déplace.
+ */
+export function enterCircuit(draft: SessionDraft, exercise: SessionDraftExercise): SessionDraftExercise {
+  if (natureOf(draft) !== "SERIES" || exercise.type !== "EXERCISE") {
+    return exercise;
+  }
+  return adaptExercise(exercise, countOf(draft), []).exercise;
+}
+
+/**
+ * Sortie d'un exercice du Circuit (AD-38, AD-39) : son nombre de séries et
+ * ses paramètres sont conservés tels quels (l'exercice n'est pas touché) ;
+ * seule la réserve de cette occurrence est retirée du brouillon. Même
+ * référence s'il n'en avait pas.
+ */
+export function exitCircuit(draft: SessionDraft, exercise: SessionDraftExercise): SessionDraft {
+  const reserve = draft.circuitSeriesReserve;
+  if (reserve === undefined || !Object.prototype.hasOwnProperty.call(reserve, exercise.id)) {
+    return draft;
+  }
+  const { [exercise.id]: _removed, ...rest } = reserve;
+  return withReserve(draft, rest);
+}
+
+/**
+ * Volumes du Circuit (AD-39) : une ligne par exercice `IN_TOUR` dans
+ * l'ordre, colonnes S1..Smax, cellule = Cible de la série i ou `null`.
+ * Séries actives seulement (réserve exclue) ; même résultat dans les deux
+ * natures.
+ */
+export function circuitVolumes(draft: SessionDraft): CircuitVolumes {
+  const exercises = draft.exercises.filter(isCircuitExercise);
+  const seriesColumnCount = exercises.reduce(
+    (max, exercise) => Math.max(max, seriesCountOf(exercise.executionParameters)),
+    0,
+  );
+  const rows = exercises.map((exercise): CircuitVolumeRow => {
+    const series = seriesRowsOf(exercise.executionParameters);
+    return {
+      occurrenceId: exercise.id,
+      name: exercise.name,
+      mode: exercise.executionParameters.mode,
+      sideMode: exercise.sideMode,
+      cells: Array.from({ length: seriesColumnCount }, (_, index) => {
+        const row = series[index];
+        return row === undefined ? null : { ...row.target };
+      }),
+    };
+  });
+  return { seriesColumnCount, rows };
 }

@@ -3,16 +3,36 @@ import { describe, expect, it } from "@jest/globals";
 import {
   CIRCUIT_NATURES,
   DEFAULT_CIRCUIT_NATURE,
+  applyNatureChange,
   circuitBoundCount,
   circuitBoundOf,
+  circuitVolumes,
+  enterCircuit,
+  exitCircuit,
   expandComposition,
   isCircuitNature,
+  prepareEnterCircuit,
+  prepareNatureChange,
+  setCircuitCount,
   type CircuitBound,
+  type CircuitNature,
   type CompositionStep,
   type ExpandableOccurrence,
 } from "@/domain/sessions/circuit";
-import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
-import { createEmptyDraft } from "@/domain/sessions/SessionDraft";
+import { numberTarget, type ExecutionParametersInput, type SeriesRow } from "@/domain/activities/ExecutionParameters";
+import {
+  durationParameters,
+  uniformParameters,
+  variableParameters,
+} from "@/domain/activities/testing/executionParametersFixtures";
+import {
+  createEmptyDraft,
+  createExerciseDraft,
+  sessionDraftsEqual,
+  toCreateSessionInput,
+  type SessionDraft,
+  type SessionDraftExercise,
+} from "@/domain/sessions/SessionDraft";
 
 /** PRE-6 story 1.1 (AC1, AD-34) : nature du Circuit et borne `COUNT` dérivée du compte existant. */
 describe("circuit — nature et borne (PRE-6, AD-34)", () => {
@@ -189,5 +209,326 @@ describe("expandComposition (PRE-6, AD-40)", () => {
       tourRepeatCount: 3,
     });
     expect(steps.map(label)).toEqual(["P:h", "A1"]);
+  });
+});
+
+// --- Opérations de Circuit (story 1.4, AD-37, AD-38, AD-39) ------------------
+
+/** Exercice du brouillon, dans le Circuit par défaut. */
+function exercise(
+  id: string,
+  executionParameters: ExecutionParametersInput,
+  extra: Partial<SessionDraftExercise> = {},
+): SessionDraftExercise {
+  return { ...createExerciseDraft(id), structuralPosition: "IN_TOUR", name: id, executionParameters, ...extra };
+}
+
+function draftOf(nature: CircuitNature, count: number, exercises: readonly SessionDraftExercise[]): SessionDraft {
+  return { ...createEmptyDraft(), name: "Séance", circuitNature: nature, tourRepeatCount: count, exercises };
+}
+
+/** Gel profond : toute mutation du brouillon d'entrée lèverait (mode strict des modules). */
+function deepFreeze<T>(value: T): T {
+  if (value !== null && typeof value === "object" && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const key of Object.keys(value)) {
+      deepFreeze((value as Record<string, unknown>)[key]);
+    }
+  }
+  return value;
+}
+
+function rowsOf(draft: SessionDraft, id: string): readonly SeriesRow[] {
+  const series = draft.exercises.find((item) => item.id === id)!.executionParameters.series;
+  if (series.kind !== "VARIABLE") {
+    throw new Error("séries variables attendues");
+  }
+  return series.rows;
+}
+
+function countOfExercise(draft: SessionDraft, id: string): number {
+  const series = draft.exercises.find((item) => item.id === id)!.executionParameters.series;
+  return series.kind === "UNIFORM" ? series.count : series.rows.length;
+}
+
+const row = (seconds: number, pauseSeconds = 0, loadKg = 0): SeriesRow => ({
+  target: numberTarget(seconds),
+  pauseSeconds,
+  loadKg,
+});
+
+describe("circuit — changement de nature (PRE-6, story 1.4, AD-39)", () => {
+  it("Tours → Séries sans perte : identiques count = N, variables étendues par la dernière ligne", () => {
+    const a = exercise("A", uniformParameters({ count: 3, target: 30, pauseSeconds: 10 }));
+    const b = exercise("B", variableParameters({ rows: [[20, 5, 0], [25, 15, 7.5]] }));
+    const draft = deepFreeze(draftOf("TOURS", 4, [a, b]));
+
+    expect(prepareNatureChange(draft, "SERIES")).toEqual({ losses: [] });
+    const next = applyNatureChange(draft, "SERIES");
+
+    expect(next.circuitNature).toBe("SERIES");
+    expect(next.exercises[0]!.executionParameters).toEqual(uniformParameters({ count: 4, target: 30, pauseSeconds: 10 }));
+    expect(rowsOf(next, "B")).toEqual([row(20, 5), row(25, 15, 7.5), row(25, 15, 7.5), row(25, 15, 7.5)]);
+    expect(rowsOf(next, "B")[2]!.target).not.toBe(rowsOf(next, "B")[1]!.target);
+    // Le régime et les autres paramètres ne changent jamais.
+    expect(next.exercises[1]!.executionParameters.series.kind).toBe("VARIABLE");
+    expect({ ...next.exercises[1]!.executionParameters, series: null }).toEqual({ ...b.executionParameters, series: null });
+    expect(next.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("Tours → Séries avec perte : pertes calculées avant mutation, troncature définitive, réserve vide", () => {
+    const a = exercise("A", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] }));
+    const draft = deepFreeze(draftOf("TOURS", 2, [a]));
+
+    expect(prepareNatureChange(draft, "SERIES")).toEqual({ losses: [{ occurrenceId: "A", lostSeriesCount: 1 }] });
+    expect(rowsOf(draft, "A")).toHaveLength(3);
+
+    const next = applyNatureChange(draft, "SERIES");
+    expect(rowsOf(next, "A")).toEqual([row(10), row(20)]);
+    expect(next.circuitSeriesReserve).toBeUndefined();
+    // Troncature définitive : une augmentation copie la dernière ligne active.
+    expect(rowsOf(setCircuitCount(next, 3), "A")).toEqual([row(10), row(20), row(20)]);
+  });
+
+  it("pertes par exercice, occurrences hors Circuit et anciennes Récupérations ignorées", () => {
+    const draft = draftOf("TOURS", 2, [
+      exercise("X", durationParameters(30, 5), { structuralPosition: "BEFORE_TOUR" }),
+      exercise("A", durationParameters(30, 4)),
+      exercise("R", durationParameters(30, 3), { type: "RECOVERY" }),
+      exercise("B", durationParameters(30, 2)),
+      exercise("C", durationParameters(30, 3)),
+    ]);
+    expect(prepareNatureChange(draft, "SERIES").losses).toEqual([
+      { occurrenceId: "A", lostSeriesCount: 2 },
+      { occurrenceId: "C", lostSeriesCount: 1 },
+    ]);
+    const next = applyNatureChange(draft, "SERIES");
+    expect(next.exercises[0]).toBe(draft.exercises[0]);
+    expect(next.exercises[2]).toBe(draft.exercises[2]);
+    expect(next.exercises[3]).toBe(draft.exercises[3]);
+    expect(countOfExercise(next, "A")).toBe(2);
+    expect(countOfExercise(next, "C")).toBe(2);
+  });
+
+  it("Séries → Tours : seule la nature change, comptes et valeurs conservés, aucune perte", () => {
+    const draft = deepFreeze(
+      draftOf("SERIES", 3, [
+        exercise("A", uniformParameters({ count: 3, target: 30 })),
+        exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] })),
+      ]),
+    );
+    expect(prepareNatureChange(draft, "TOURS")).toEqual({ losses: [] });
+    const next = applyNatureChange(draft, "TOURS");
+    expect(next).toEqual({ ...draft, circuitNature: "TOURS" });
+    expect(next.exercises).toBe(draft.exercises);
+  });
+
+  it("même nature : aucune perte, brouillon inchangé (même référence)", () => {
+    const draft = draftOf("SERIES", 2, [exercise("A", durationParameters(30, 5))]);
+    expect(prepareNatureChange(draft, "SERIES")).toEqual({ losses: [] });
+    expect(applyNatureChange(draft, "SERIES")).toBe(draft);
+    const tours = { ...createEmptyDraft(), exercises: [exercise("A", durationParameters(30, 5))] };
+    expect(applyNatureChange(tours, "TOURS")).toBe(tours);
+  });
+});
+
+describe("circuit — compte et réserve (PRE-6, story 1.4, AD-38)", () => {
+  it("Tours : seul tourRepeatCount change, borné 1..99", () => {
+    const draft = deepFreeze(draftOf("TOURS", 2, [exercise("A", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] }))]));
+    const next = setCircuitCount(draft, 1);
+    expect(next).toEqual({ ...draft, tourRepeatCount: 1 });
+    expect(next.exercises).toBe(draft.exercises);
+    expect(setCircuitCount(draft, 0).tourRepeatCount).toBe(1);
+    expect(setCircuitCount(draft, 150).tourRepeatCount).toBe(99);
+    expect(setCircuitCount(draft, 2)).toBe(draft);
+  });
+
+  it("Séries 4 → 3 → 4 : la ligne 4 passe en réserve puis est restaurée à l'identique", () => {
+    const b = exercise("B", variableParameters({ rows: [[10, 5, 1], [20, 6, 2], [30, 7, 3], [40, 8, 4]] }));
+    const draft = deepFreeze(draftOf("SERIES", 4, [b]));
+
+    const at3 = deepFreeze(setCircuitCount(draft, 3));
+    expect(at3.tourRepeatCount).toBe(3);
+    expect(rowsOf(at3, "B")).toEqual([row(10, 5, 1), row(20, 6, 2), row(30, 7, 3)]);
+    expect(at3.circuitSeriesReserve).toEqual({ B: [row(40, 8, 4)] });
+
+    const at4 = setCircuitCount(at3, 4);
+    expect(rowsOf(at4, "B")).toEqual(rowsOf(draft, "B"));
+    expect(at4.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("Séries : diminutions successives empilées dans l'ordre, puis restauration avant copie", () => {
+    const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
+    const at2 = setCircuitCount(setCircuitCount(draft, 3), 2);
+    expect(at2.circuitSeriesReserve).toEqual({ B: [row(30), row(40)] });
+    const at5 = setCircuitCount(at2, 5);
+    expect(rowsOf(at5, "B")).toEqual([row(10), row(20), row(30), row(40), row(40)]);
+    expect(at5.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("enregistrement à 3 puis augmentation : brouillon relu sans réserve, copie de la 3e ligne", () => {
+    const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
+    const at3 = setCircuitCount(draft, 3);
+    // La réserve n'est jamais transmise : l'entrée persistable est la même sans elle.
+    const { circuitSeriesReserve: _reserve, ...reread } = at3;
+    expect(toCreateSessionInput(at3)).toEqual(toCreateSessionInput(reread));
+    expect(JSON.stringify(toCreateSessionInput(at3))).not.toContain("circuitSeriesReserve");
+
+    const at4 = setCircuitCount(reread, 4);
+    expect(rowsOf(at4, "B")).toEqual([row(10), row(20), row(30), row(30)]);
+  });
+
+  it("Séries, identiques : seul count suit N ; occurrences hors Circuit inchangées", () => {
+    const outside = exercise("X", durationParameters(30, 5), { structuralPosition: "AFTER_TOUR" });
+    const draft = draftOf("SERIES", 3, [exercise("A", uniformParameters({ count: 3, target: 30, pauseSeconds: 10 })), outside]);
+    const at1 = setCircuitCount(draft, 1);
+    expect(at1.exercises[0]!.executionParameters).toEqual(uniformParameters({ count: 1, target: 30, pauseSeconds: 10 }));
+    expect(at1.exercises[1]).toBe(outside);
+    expect(at1.circuitSeriesReserve).toBeUndefined();
+    expect(setCircuitCount(at1, 3).exercises[0]!.executionParameters).toEqual(draft.exercises[0]!.executionParameters);
+  });
+
+  it("réserve vidée : clé présente à undefined, pour qu'un correctif fusionné efface l'ancienne réserve", () => {
+    const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
+    const at3 = setCircuitCount(draft, 3);
+    const at4 = setCircuitCount(at3, 4);
+    expect(at4).toHaveProperty("circuitSeriesReserve", undefined);
+    expect({ ...at3, ...at4 }.circuitSeriesReserve).toBeUndefined();
+    const exited = exitCircuit(at3, at3.exercises[0]!);
+    expect({ ...at3, ...exited }.circuitSeriesReserve).toBeUndefined();
+  });
+
+  it("même N effectif ou requête non finie : brouillon inchangé (même référence)", () => {
+    const { tourRepeatCount: _count, ...implicit } = draftOf("SERIES", 1, [exercise("A", durationParameters(30, 1))]);
+    expect(setCircuitCount(implicit, 1)).toBe(implicit);
+    const draft = draftOf("SERIES", 3, [exercise("A", durationParameters(30, 3))]);
+    expect(setCircuitCount(draft, Number.NaN)).toBe(draft);
+    expect(setCircuitCount(draft, Number.POSITIVE_INFINITY)).toBe(draft);
+  });
+
+  describe("une entrée de réserve ne survit pas à sa raison d'être", () => {
+    const rows4 = variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] });
+    const at3 = setCircuitCount(draftOf("SERIES", 4, [exercise("B", rows4)]), 3);
+
+    it("occurrence supprimée : réserve abandonnée au changement de N suivant", () => {
+      const other = exercise("C", variableParameters({ rows: [[1, 0], [2, 0], [3, 0]] }));
+      const removed = { ...at3, exercises: [other] };
+      const at4 = setCircuitCount(removed, 4);
+      expect(at4.circuitSeriesReserve).toBeUndefined();
+      expect(rowsOf(at4, "C")).toEqual([row(1), row(2), row(3), row(3)]);
+    });
+
+    it("occurrence sortie du Circuit : réserve abandonnée", () => {
+      const moved = { ...at3, exercises: [{ ...at3.exercises[0]!, structuralPosition: "AFTER_TOUR" as const }] };
+      const at4 = setCircuitCount(moved, 4);
+      expect(at4.circuitSeriesReserve).toBeUndefined();
+      expect(rowsOf(at4, "B")).toHaveLength(3);
+    });
+
+    it("occurrence passée en identiques puis revenue en variables : copie de la dernière ligne, pas de restauration", () => {
+      const uniform = { ...at3, exercises: [exercise("B", uniformParameters({ count: 3, target: 50 }))] };
+      const at2 = setCircuitCount(uniform, 2);
+      expect(at2.circuitSeriesReserve).toBeUndefined();
+      const variable = { ...at2, exercises: [exercise("B", variableParameters({ rows: [[50, 0], [60, 0]] }))] };
+      expect(rowsOf(setCircuitCount(variable, 4), "B")).toEqual([row(50), row(60), row(60), row(60)]);
+    });
+  });
+
+  it("la réserve est ignorée par sessionDraftsEqual", () => {
+    const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
+    const at3 = setCircuitCount(draft, 3);
+    expect(sessionDraftsEqual(at3, { ...at3, circuitSeriesReserve: { B: [row(99)] } })).toBe(true);
+    expect(sessionDraftsEqual(setCircuitCount(at3, 4), draft)).toBe(true);
+  });
+});
+
+describe("circuit — entrée et sortie (PRE-6, story 1.4, AD-39)", () => {
+  it("entrée avec perte en Séries : pertes avant mutation, puis exercice ramené à N", () => {
+    const draft = deepFreeze(draftOf("SERIES", 2, []));
+    const incoming = deepFreeze(exercise("E", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] }), { structuralPosition: "BEFORE_TOUR" }));
+    expect(prepareEnterCircuit(draft, incoming)).toEqual({ losses: [{ occurrenceId: "E", lostSeriesCount: 1 }] });
+    const entered = enterCircuit(draft, incoming);
+    expect(entered.executionParameters.series).toEqual({ kind: "VARIABLE", rows: [row(10), row(20)] });
+    expect(rowsOf({ ...draft, exercises: [incoming] }, "E")).toHaveLength(3);
+  });
+
+  it("entrée d'une ancienne Récupération en Séries, N inférieur à ses séries : aucune perte, même référence", () => {
+    const recovery = exercise("R", durationParameters(30, 3), { type: "RECOVERY" });
+    const draft = draftOf("SERIES", 2, []);
+    expect(prepareEnterCircuit(draft, recovery).losses).toEqual([]);
+    expect(enterCircuit(draft, recovery)).toBe(recovery);
+  });
+
+  it("entrée en Séries sans perte : identiques étendues à N ; en Tours : inchangé", () => {
+    const incoming = exercise("E", uniformParameters({ count: 1, target: 30 }));
+    expect(prepareEnterCircuit(draftOf("SERIES", 3, []), incoming)).toEqual({ losses: [] });
+    expect(enterCircuit(draftOf("SERIES", 3, []), incoming).executionParameters).toEqual(uniformParameters({ count: 3, target: 30 }));
+
+    const long = exercise("L", durationParameters(30, 5));
+    expect(prepareEnterCircuit(draftOf("TOURS", 2, []), long)).toEqual({ losses: [] });
+    expect(enterCircuit(draftOf("TOURS", 2, []), long)).toBe(long);
+  });
+
+  it("sortie : paramètres inchangés, réserve de l'occurrence retirée", () => {
+    const draft = draftOf("SERIES", 4, [
+      exercise("A", variableParameters({ rows: [[1, 0], [2, 0], [3, 0], [4, 0]] })),
+      exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] })),
+    ]);
+    const at3 = deepFreeze(setCircuitCount(draft, 3));
+    const exiting = at3.exercises[1]!;
+    const after = exitCircuit(at3, exiting);
+    expect(after.circuitSeriesReserve).toEqual({ A: [row(4)] });
+    expect(after.exercises).toBe(at3.exercises);
+    expect(rowsOf(after, "B")).toHaveLength(3);
+    const afterAll = exitCircuit(after, at3.exercises[0]!);
+    expect(afterAll.circuitSeriesReserve).toBeUndefined();
+    expect(exitCircuit(afterAll, exiting)).toBe(afterAll);
+  });
+});
+
+describe("circuit — volumes (PRE-6, story 1.4, AD-39)", () => {
+  it("colonnes S1..Smax, cellule null si la série n'existe pas, ordre et identité des exercices", () => {
+    const draft = draftOf("TOURS", 1, [
+      exercise("X", durationParameters(99, 6), { structuralPosition: "BEFORE_TOUR" }),
+      exercise("A", uniformParameters({ count: 3, target: 30 }), { name: "Pompes", sideMode: "RIGHT_LEFT" }),
+      exercise("B", variableParameters({ mode: "REPETITIONS", rows: [[10, 0], ["FAILURE", 0]] })),
+    ]);
+    const volumes = circuitVolumes(deepFreeze(draft));
+    expect(volumes.seriesColumnCount).toBe(3);
+    expect(volumes.rows).toEqual([
+      {
+        occurrenceId: "A",
+        name: "Pompes",
+        mode: "DURATION",
+        sideMode: "RIGHT_LEFT",
+        cells: [numberTarget(30), numberTarget(30), numberTarget(30)],
+      },
+      {
+        occurrenceId: "B",
+        name: "B",
+        mode: "REPETITIONS",
+        sideMode: "UNILATERAL",
+        cells: [numberTarget(10), { kind: "FAILURE" }, null],
+      },
+    ]);
+  });
+
+  it("Tours, Smax > N : colonnes = Smax, cellules null au-delà des séries de chaque exercice", () => {
+    const draft = draftOf("TOURS", 2, [
+      exercise("A", durationParameters(30, 5)),
+      exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] })),
+    ]);
+    const volumes = circuitVolumes(draft);
+    expect(volumes.seriesColumnCount).toBe(5);
+    expect(volumes.rows[0]!.cells).toEqual(Array.from({ length: 5 }, () => numberTarget(30)));
+    expect(volumes.rows[1]!.cells).toEqual([numberTarget(10), numberTarget(20), numberTarget(30), null, null]);
+  });
+
+  it("réserve exclue ; Circuit vide", () => {
+    const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
+    const at3 = setCircuitCount(draft, 3);
+    expect(circuitVolumes(at3).seriesColumnCount).toBe(3);
+    expect(circuitVolumes(at3).rows[0]!.cells).toEqual([numberTarget(10), numberTarget(20), numberTarget(30)]);
+    expect(circuitVolumes(createEmptyDraft())).toEqual({ seriesColumnCount: 0, rows: [] });
   });
 });

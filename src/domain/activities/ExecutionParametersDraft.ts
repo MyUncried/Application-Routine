@@ -67,12 +67,14 @@
 
 import {
   alignRowsToBaseline,
+  clampSeriesCount,
   cloneExecutionParameters,
   EXECUTION_BOUNDS,
   EXECUTION_PARAMETERS_VERSION,
   failureTarget,
   normalizeEffective,
   numberTarget,
+  resizeWithReserve,
   seriesCountOf,
   seriesRowsOf,
   unsetTarget,
@@ -312,10 +314,6 @@ export function isSingleSeries(draft: ExecutionSheetDraft): boolean {
   return draft.count === 1;
 }
 
-function clampCount(count: number): number {
-  return Math.min(Math.max(Math.trunc(count), EXECUTION_BOUNDS.seriesCount.min), EXECUTION_BOUNDS.seriesCount.max);
-}
-
 /** Q29 : toute modification du Brouillon invalide l'annulation d'un retrait. */
 function modified(draft: ExecutionSheetDraft): ExecutionSheetDraft {
   return draft.pendingRemoval === null ? draft : { ...draft, pendingRemoval: null };
@@ -396,40 +394,39 @@ function withUniformTarget(draft: ExecutionSheetDraft, target: SeriesTarget): Ex
  * puis clone la dernière ligne active. Uniforme : seul N change.
  */
 export function setSeriesCount(draft: ExecutionSheetDraft, requested: number): ExecutionSheetDraft {
-  const count = clampCount(requested);
+  const count = clampSeriesCount(requested);
   if (!draft.variable) {
     return modified({ ...draft, count });
   }
   const memory = rememberCurrentTargets(draft);
   let nextId = draft.nextId;
-  let rows = [...draft.rows];
-  let rowIds = [...draft.rowIds];
-  let hiddenRows = [...draft.hiddenRows];
-  let hiddenIds = [...draft.hiddenIds];
-  if (count < rows.length) {
-    hiddenRows = [...rows.slice(count), ...hiddenRows];
-    hiddenIds = [...rowIds.slice(count), ...hiddenIds];
-    rows = rows.slice(0, count);
-    rowIds = rowIds.slice(0, count);
-  } else {
-    while (rows.length < count) {
-      const restored = hiddenRows.shift();
-      const restoredId = hiddenIds.shift();
-      if (restored && restoredId !== undefined) {
-        rows.push({ ...restored, target: { ...restored.target } });
-        rowIds.push(restoredId);
-      } else {
-        const sourceId = rowIds[rowIds.length - 1] ?? draft.uniformId;
-        const clone = cloneIdentity(memory, sourceId, nextId);
-        nextId = clone.nextId;
-        // Story 1.3 (AD-9) : la ligne ajoutée copie la dernière (Cible `FAILURE`
-        // et Pause comprises) sans partager l'objet de sa Cible.
-        const last = rows[rows.length - 1] ?? draft.uniform;
-        rows.push({ ...last, target: { ...last.target } });
-        rowIds.push(clone.id);
-      }
-    }
-  }
+  // PRE-6 (story 1.4) : règle « réduire → réserve ; augmenter → restaurer puis
+  // copier la dernière » partagée avec le Circuit (`resizeWithReserve`),
+  // appliquée aux couples (ligne, identité). Identités et mémoires restent ici.
+  type RowWithId = { readonly row: SeriesRow; readonly id: number };
+  const hidden: readonly RowWithId[] = draft.hiddenRows.map((row, index) => ({ row, id: draft.hiddenIds[index]! }));
+  const resized = resizeWithReserve<RowWithId>(
+    draft.rows.map((row, index) => ({ row, id: draft.rowIds[index]! })),
+    hidden,
+    count,
+    (last) => {
+      const sourceId = last?.id ?? draft.uniformId;
+      const clone = cloneIdentity(memory, sourceId, nextId);
+      nextId = clone.nextId;
+      // Story 1.3 (AD-9) : la ligne ajoutée copie la dernière (Cible `FAILURE`
+      // et Pause comprises) sans partager l'objet de sa Cible.
+      const source = last?.row ?? draft.uniform;
+      return { row: { ...source, target: { ...source.target } }, id: clone.id };
+    },
+  );
+  const restored = new Set(hidden);
+  // Une ligne restaurée est recopiée (Cible comprise), comme avant l'extraction.
+  const rows = resized.active.map((item) =>
+    restored.has(item) ? { ...item.row, target: { ...item.row.target } } : item.row,
+  );
+  const rowIds = resized.active.map(({ id }) => id);
+  const hiddenRows = resized.reserve.map(({ row }) => row);
+  const hiddenIds = resized.reserve.map(({ id }) => id);
   // Une ligne ajoutée par N est NOUVELLE : aucune ligne de base (AD-13).
   return { ...draft, ...memory, count, rows, rowIds, hiddenRows, hiddenIds, nextId, pendingRemoval: null };
 }
