@@ -3,6 +3,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   Keyboard,
   Platform,
   Pressable,
@@ -19,6 +20,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
+import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
@@ -39,6 +41,18 @@ import {
   type CompositionState,
 } from "@/domain/sessions/composition";
 import {
+  EMPTY_PLACEMENT_DRAFT,
+  applyPlacementDraft,
+  placementAdditionCount,
+  placementSlots,
+  removePlacementRecovery,
+  setPlacementRecovery,
+  togglePlacementStopPoint,
+  type PlacementDraft,
+  type PlacementSlot,
+} from "@/domain/sessions/placement";
+import type { StopPointLocation } from "@/domain/sessions/StopPoint";
+import {
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
@@ -48,6 +62,7 @@ import {
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
@@ -95,11 +110,15 @@ import {
   SequenceRail,
 } from "@/features/sessions/CompositionSequence";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { PlacementBar } from "@/features/sessions/PlacementBar";
+import { PLACEMENT_SLOT_HEIGHT, PlacementSlotRow } from "@/features/sessions/PlacementLayer";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
+import { RECOVERY_WHEEL_VALUES } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
@@ -460,6 +479,37 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // choix dans le corps défilant (un parent qui le contient entièrement).
   const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
   const [circuitSectionTop, setCircuitSectionTop] = useState(0);
+  // PRE-6 (story 4.1, AD-43) : mode placement — sous-brouillon LOCAL des ajouts (`null` hors
+  // placement). Seul « Confirmer » l'applique au brouillon de séance ; seul « Continuer » persiste
+  // (D-388). Occurrence dont la roulette « Durée de récupération » est ouverte.
+  const [placement, setPlacement] = useState<PlacementDraft | null>(null);
+  const [recoveryWheelOccurrenceId, setRecoveryWheelOccurrenceId] = useState<string | null>(null);
+  // D-307 / RM-209 : défaut de récupération du Profil (30 s initialement), relu à chaque entrée
+  // en placement ; sans service Profil, la constante du Domaine. `null` tant qu'il n'est pas
+  // résolu : la roulette ne s'ouvre qu'une fois la valeur connue. Une réponse tardive (après la
+  // sortie du placement, une nouvelle entrée ou le démontage) est ignorée (`profileRequestRef`).
+  const profileService = useContext(ProfileServiceContext);
+  const [recoveryDefaultSeconds, setRecoveryDefaultSeconds] = useState<number | null>(null);
+  const profileRequestRef = useRef(0);
+  // Demande de focus sur « Ajouter un arrêt », à la sortie du placement par Confirmer / Annuler.
+  const [addStopFocusRequest, setAddStopFocusRequest] = useState(0);
+  /** Sortie du placement sans mutation : sous-brouillon jeté, roulette fermée, défaut en cours ignoré. */
+  const leavePlacement = useCallback(() => {
+    setRecoveryWheelOccurrenceId(null);
+    setPlacement(null);
+  }, []);
+  // Toute sortie du placement (et le démontage) invalide la lecture du défaut en cours.
+  useEffect(() => {
+    if (placement !== null) return undefined;
+    profileRequestRef.current += 1;
+    return undefined;
+  }, [placement]);
+  useEffect(
+    () => () => {
+      profileRequestRef.current += 1;
+    },
+    [],
+  );
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
@@ -483,9 +533,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Enregistrement réussi : la garde de sortie est levée avant la fermeture (effet ci-dessous),
   // pour que `dismissTo` ne soit jamais intercepté comme un abandon.
   const [hasSaved, setHasSaved] = useState(false);
+  // PRE-6 (story 4.1) : pendant le placement, toute sortie est interceptée pour annuler d'abord le
+  // placement (ci-dessous), même sur un brouillon inchangé.
   const shouldBlockExit =
     !hasSaved &&
-    (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline));
+    (placement !== null ||
+      (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
@@ -503,6 +556,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
     if (isPendingExit && pendingNatureChange !== null) {
       setPendingNatureChange(null);
+    }
+    // Story 4.1 : une sortie (retour, X, geste iOS) pendant le placement l'annule d'abord, sans
+    // mutation et sans dialogue d'abandon par-dessus la barre ; la sortie elle-même est abandonnée.
+    if (isPendingExit && placement !== null) {
+      leavePlacement();
+      cancelExit();
     }
   }
 
@@ -574,8 +633,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         setPendingNatureChange(null);
         // Story 3.4 : la feuille des volumes se referme aussi (aucune mutation).
         setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
+        // Story 4.1 : le placement est abandonné sans mutation.
+        leavePlacement();
       },
-      [closeCircuitCounter],
+      [closeCircuitCounter, leavePlacement],
     ),
   );
 
@@ -620,6 +681,122 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setDraggedActivityId(activityId);
     },
     [closeCircuitCounter],
+  );
+
+  /**
+   * PRE-6 (story 4.1, AD-43, `8328:29270`) — « Ajouter un arrêt » : entrée en placement sur un
+   * sous-brouillon vide. Le compteur révélé et les actions glissées se referment ; le défaut de
+   * récupération du Profil est relu (valeur courante, D-307).
+   */
+  const isPlacementActive = placement !== null;
+  const enterPlacement = useCallback(() => {
+    Keyboard.dismiss();
+    // Toute surface ouverte se referme, comme à la perte du premier plan : roulettes des bornes,
+    // compteur et choix de nature, feuille des volumes, dialogues en attente, arbre d'ajout.
+    setOpenOverlay(null);
+    setPendingNatureChange(null);
+    setPendingCircuitEntry(null);
+    setIsAddActivityTreeOpen(false);
+    setRevealedActionsId(null);
+    setRecoveryWheelOccurrenceId(null);
+    setPlacement(EMPTY_PLACEMENT_DRAFT);
+    profileRequestRef.current += 1;
+    const request = profileRequestRef.current;
+    if (!profileService) {
+      setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+      return;
+    }
+    setRecoveryDefaultSeconds(null);
+    profileService.getProfile().then(
+      (profile) => {
+        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(profile.postActivityRecoverySecondsDefault);
+      },
+      () => {
+        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+      },
+    );
+  }, [profileService]);
+  /** « Annuler » (et retour système) : l'état d'entrée est restitué, sans aucune mutation. */
+  const cancelPlacement = useCallback(() => {
+    leavePlacement();
+    setAddStopFocusRequest((current) => current + 1);
+  }, [leavePlacement]);
+  /**
+   * « Confirmer N pauses ajoutées » : une seule mise à jour fonctionnelle du brouillon
+   * (`postActivityRecoverySeconds` et `stopPoints`, `applyPlacementDraft`), puis sortie du
+   * placement. Indisponible à N = 0. Identifiants des points tirés hors du calcul d'état.
+   */
+  const confirmPlacement = useCallback(() => {
+    if (placement === null || placementAdditionCount(placement) === 0) return;
+    const applied = placement;
+    // Rien d'applicable sur le brouillon courant (même brouillon rendu) : aucune mise à jour.
+    if (applyPlacementDraft(draft, applied, () => "") !== draft) {
+      const stopPointIds = applied.stopPoints.map(() => Crypto.randomUUID());
+      updateDraft((current) => {
+        let next = 0;
+        return applyPlacementDraft(current, applied, () => stopPointIds[next++] ?? Crypto.randomUUID());
+      });
+    }
+    leavePlacement();
+    setAddStopFocusRequest((current) => current + 1);
+  }, [draft, leavePlacement, placement, updateDraft]);
+  /** Récupération à ajouter : roulette ; déjà ajoutée : désélection (retirée du sous-brouillon). */
+  const handlePlacementRecoveryPress = useCallback(
+    (occurrenceId: string) => {
+      if (placement === null) return;
+      if (placement.recoveries[occurrenceId] !== undefined) {
+        setPlacement((current) => (current === null ? null : removePlacementRecovery(current, occurrenceId)));
+        return;
+      }
+      setRecoveryWheelOccurrenceId(occurrenceId);
+    },
+    [placement],
+  );
+  /** Toucher « Point d'arrêt » : bascule son ajout. */
+  const handlePlacementStopPointToggle = useCallback((location: StopPointLocation) => {
+    setPlacement((current) => (current === null ? null : togglePlacementStopPoint(current, location)));
+  }, []);
+  // Android : le retour système annule le placement (comme « Annuler »).
+  useEffect(() => {
+    if (!isPlacementActive) return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      cancelPlacement();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [cancelPlacement, isPlacementActive]);
+
+  // Emplacements du placement (Domaine), par occurrence et après le Circuit ; « Ajouter un arrêt »
+  // est indisponible quand aucun n'offre d'ajout (Composition vide, tout est déjà présent).
+  const draftSlots = useMemo(
+    () => placementSlots(draft.exercises, draft.stopPoints ?? []),
+    [draft.exercises, draft.stopPoints],
+  );
+  const hasAddableSlot = draftSlots.some(
+    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
+  );
+  const slotByOccurrence = useMemo(
+    () => new Map(draftSlots.flatMap((slot) => (slot.occurrenceId === null ? [] : [[slot.occurrenceId, slot] as const]))),
+    [draftSlots],
+  );
+  const afterCircuitSlot = draftSlots.find((slot) => slot.occurrenceId === null) ?? null;
+  // Pendant le placement, durées recalculées en direct sur le brouillon tel que « Confirmer » le
+  // produirait (R positive remplace la Pause terminale, story 1.3).
+  const durationDraft = useMemo(
+    () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
+    [draft, placement],
+  );
+  const placementRowContext = useMemo<PlacementRowContext | null>(
+    () =>
+      placement === null
+        ? null
+        : {
+            draft: placement,
+            slotFor: (occurrenceId) => slotByOccurrence.get(occurrenceId) ?? null,
+            onPressRecovery: handlePlacementRecoveryPress,
+            onToggleStopPoint: handlePlacementStopPointToggle,
+          },
+    [handlePlacementRecoveryPress, handlePlacementStopPointToggle, placement, slotByOccurrence],
   );
 
   const composition = strings.screens.composition;
@@ -911,7 +1088,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // affiché reste celui des Activités réellement composées, chacune une
   // seule fois.
   const compositionSummary = formatCompositionSummary({
-    exercises: draft.exercises,
+    exercises: durationDraft.exercises,
     tourRepeatCount,
     // PRE-6 (story 1.3) : la durée du Circuit suit sa nature (Tours / Séries).
     circuitNature: draft.circuitNature,
@@ -919,7 +1096,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
   // Compte à rebours ni Fin ; même formatage que le résumé du Circuit.
   const sessionDuration = formatCompositionSessionDuration({
-    exercises: draft.exercises,
+    exercises: durationDraft.exercises,
     tourRepeatCount,
     circuitNature: draft.circuitNature,
   });
@@ -976,7 +1153,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     <ScreenShell>
       <FixedHeader
         title={composition.title}
-        onBack={() => router.back()}
+        // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
+        onBack={() => (placement !== null ? cancelPlacement() : router.back())}
         backAccessibilityLabel={composition.closeAccessibilityLabel}
         // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) — même action et même
         // garde d’abandon (`useCompositionExitGuard`) que le retour précédent.
@@ -1027,6 +1205,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             closeCircuitCounter();
             setIsAddActivityTreeOpen(true);
           }}
+          onAddStop={enterPlacement}
+          isPlacementActive={isPlacementActive}
+          isAddStopDisabled={!hasAddableSlot}
+          addStopFocusRequest={addStopFocusRequest}
           testID="composition-context-header"
         />
       </ContextBand>
@@ -1090,13 +1272,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           top={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
           bottom={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
         />
-        <BoundaryStep
-          label={composition.countdown.label}
-          value={formatDurationRowValue(draft.initialCountdownSeconds)}
-          isOpen={openOverlay === "countdown"}
-          onPress={() => toggleOverlay("countdown")}
-          testID="composition-boundary-countdown"
-        />
+        {/* PRE-6 (story 4.1) : en placement, les bornes sont atténuées et non interactives. */}
+        <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
+          <BoundaryStep
+            label={composition.countdown.label}
+            value={formatDurationRowValue(draft.initialCountdownSeconds)}
+            isOpen={openOverlay === "countdown"}
+            onPress={() => toggleOverlay("countdown")}
+            testID="composition-boundary-countdown"
+          />
+        </PlacementAttenuation>
 
         {/*
          * UI-COMP-003 : une nouvelle Activité s'insère ICI — entre Compte à
@@ -1136,6 +1321,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
           onStep={handleStepActivity}
+          placement={placementRowContext}
         />
 
         {/*
@@ -1173,6 +1359,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             natureFocusRequest={natureFocusRequest}
             onOpenVolumes={openCircuitVolumes}
             volumesFocusRequest={volumesFocusRequest}
+            // PRE-6 (story 4.1) : compteur, pastille et œil atténués et inactifs en placement.
+            isAttenuated={isPlacementActive}
             onLayout={(event) => {
               const { y, height } = event.nativeEvent.layout;
               setCircuitHeaderLayout((current) =>
@@ -1200,8 +1388,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onDelete={handleDeleteActivity}
             canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
             onStep={handleStepActivity}
+            placement={placementRowContext}
           />
         </View>
+
+        {/* PRE-6 (story 4.1) : emplacement « après le Circuit » (point d'arrêt seul). */}
+        {placement !== null && afterCircuitSlot !== null ? (
+          <PlacementSlotRow
+            slot={afterCircuitSlot}
+            placement={placement}
+            exerciseName={null}
+            onPressRecovery={handlePlacementRecoveryPress}
+            onToggleStopPoint={handlePlacementStopPointToggle}
+            testID="composition-placement-slot-after-circuit"
+          />
+        ) : null}
 
         <ActivityZoneList
           zone="AFTER_TOUR"
@@ -1222,15 +1423,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
           onStep={handleStepActivity}
+          placement={placementRowContext}
         />
 
-        <BoundaryStep
-          label={composition.finalPhase.label}
-          value={formatDurationRowValue(draft.finalPhaseSeconds)}
-          isOpen={openOverlay === "finalPhase"}
-          onPress={() => toggleOverlay("finalPhase")}
-          testID="composition-boundary-final-phase"
-        />
+        <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
+          <BoundaryStep
+            label={composition.finalPhase.label}
+            value={formatDurationRowValue(draft.finalPhaseSeconds)}
+            isOpen={openOverlay === "finalPhase"}
+            onPress={() => toggleOverlay("finalPhase")}
+            testID="composition-boundary-final-phase"
+          />
+        </PlacementAttenuation>
 
         {/*
          * PRE-6 (story 3.2) — Android / web : panneau du choix de nature, hébergé par le contenu
@@ -1279,22 +1483,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
          * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
-        {saveState === "error" ? (
+        {/* PRE-6 (story 4.1, `8328:29423`) : en placement, la barre remplace « Continuer ». */}
+        {placement !== null ? (
+          <PlacementBar
+            count={placementAdditionCount(placement)}
+            onConfirm={confirmPlacement}
+            onCancel={cancelPlacement}
+            testID="composition-placement-bar"
+          />
+        ) : null}
+        {placement === null && saveState === "error" ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
             {composition.saveError}
           </Text>
         ) : null}
-        <Pressable
-          disabled={!isCompositionValid || saveState === "saving"}
-          onPress={handleSave}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
-          accessibilityLabel={composition.saveAction}
-          style={[styles.continueAction, !isCompositionValid || saveState === "saving" ? null : styles.continueActionEnabled]}
-          testID="composition-save-action"
-        >
-          <Text style={styles.continueLabel}>{composition.saveAction}</Text>
-        </Pressable>
+        {placement === null ? (
+          <Pressable
+            disabled={!isCompositionValid || saveState === "saving"}
+            onPress={handleSave}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
+            accessibilityLabel={composition.saveAction}
+            style={[styles.continueAction, !isCompositionValid || saveState === "saving" ? null : styles.continueActionEnabled]}
+            testID="composition-save-action"
+          >
+            <Text style={styles.continueLabel}>{composition.saveAction}</Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {/*
@@ -1333,6 +1548,36 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       </WheelPickerOverlay>
 
+      {/*
+       * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'un emplacement —
+       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14), ouverte sur le défaut du Profil une
+       * fois résolu (une récupération déjà ajoutée est retirée au toucher, jamais rouverte). ✓
+       * ajoute cet emplacement (0 conservé comme présent, D-323) ; ✕ le laisse tel qu'il était.
+       */}
+      <WheelPickerOverlay
+        visible={placement !== null && recoveryWheelOccurrenceId !== null && recoveryDefaultSeconds !== null}
+      >
+        {placement !== null && recoveryWheelOccurrenceId !== null && recoveryDefaultSeconds !== null ? (
+          <DurationWheelPicker
+            totalSeconds={recoveryDefaultSeconds}
+            valueGrid={RECOVERY_WHEEL_VALUES}
+            title={composition.placement.recoveryWheelTitle}
+            onValidate={(totalSeconds) => {
+              const occurrenceId = recoveryWheelOccurrenceId;
+              setPlacement((current) =>
+                current === null ? null : setPlacementRecovery(current, occurrenceId, totalSeconds),
+              );
+              setRecoveryWheelOccurrenceId(null);
+            }}
+            onCancel={() => setRecoveryWheelOccurrenceId(null)}
+            minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
+            secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+            cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+            validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+          />
+        ) : null}
+      </WheelPickerOverlay>
+
       {/* PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : feuille en lecture
           seule, alimentée par la seule grille du Domaine ; sa fermeture n'écrit rien. */}
       {isVolumesSheetMounted ? (
@@ -1345,7 +1590,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       ) : null}
 
-      {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+      {isPendingExit && placement === null ? (
+        <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
 
       {/* PRE-6 (story 3.2, Figma `8328:34964`) : conversion Tours → Séries avec perte. Annuler (ou
           le retour système) : nature, compte et valeurs inchangés ; le voile ne confirme pas. */}
@@ -1492,7 +1739,46 @@ type ActivityZoneListProps = {
   /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
   readonly canStep: (activityId: string, direction: StepDirection) => boolean;
   readonly onStep: (activityId: string, direction: StepDirection) => void;
+  /** PRE-6 (story 4.1) : contexte du mode placement ; `null` hors placement. */
+  readonly placement: PlacementRowContext | null;
 };
+
+/**
+ * PRE-6 (story 4.1, AD-43) : ce que chaque occurrence reçoit en placement — sous-brouillon,
+ * emplacement de l'occurrence (Domaine, `placementSlots`) et actions des puces.
+ */
+type PlacementRowContext = {
+  readonly draft: PlacementDraft;
+  readonly slotFor: (occurrenceId: string) => PlacementSlot | null;
+  readonly onPressRecovery: (occurrenceId: string) => void;
+  readonly onToggleStopPoint: (location: StopPointLocation) => void;
+};
+
+/**
+ * PRE-6 (story 4.1) : en placement, contenu atténué, non interactif et masqué à l'accessibilité
+ * (la lecture ne passe que par les puces). Hors placement, simple conteneur sans effet.
+ */
+function PlacementAttenuation({
+  active,
+  children,
+  testID,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  testID?: string;
+}) {
+  return (
+    <View
+      testID={testID}
+      pointerEvents={active ? "none" : "auto"}
+      accessibilityElementsHidden={active}
+      importantForAccessibility={active ? "no-hide-descendants" : "auto"}
+      style={active ? styles.placementAttenuated : null}
+    >
+      {children}
+    </View>
+  );
+}
 
 /**
  * Liste des Activités d'UNE zone structurelle (T02-S01, CE-T02-01).
@@ -1525,6 +1811,7 @@ function ActivityZoneList({
   onDelete,
   canStep,
   onStep,
+  placement,
 }: ActivityZoneListProps) {
   if (activities.length === 0) {
     return null;
@@ -1560,6 +1847,7 @@ function ActivityZoneList({
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
           onMoveDown={canStep(activity.id, "DOWN") ? () => onStep(activity.id, "DOWN") : null}
+          placement={placement}
         />
       ))}
     </View>
@@ -1597,6 +1885,8 @@ type CompositionActivityRowProps = {
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
   readonly onMoveUp: (() => void) | null;
   readonly onMoveDown: (() => void) | null;
+  /** PRE-6 (story 4.1) : mode placement — carte atténuée et inactive, puces sous la carte. */
+  readonly placement: PlacementRowContext | null;
 };
 
 /** Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). */
@@ -1730,6 +2020,7 @@ function CompositionActivityRow({
   onDelete,
   onMoveUp,
   onMoveDown,
+  placement,
 }: CompositionActivityRowProps) {
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
@@ -2028,15 +2319,21 @@ function CompositionActivityRow({
       // (aucun appui, appui long ni balayage) jusqu'à la fermeture de
       // l'autre, conformément au contrat existant (CE-T02-02).
       pointerEvents={isBlockedByOtherReveal ? "none" : "auto"}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchCancel}
-      onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
-      onResponderMove={handleResponderMove}
-      onResponderRelease={handleResponderRelease}
-      onResponderTerminate={handleResponderTerminate}
-      onResponderTerminationRequest={handleResponderTerminationRequest}
+      // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
+      // les puces de l'emplacement répondent.
+      {...(placement === null
+        ? {
+            onTouchStart: handleTouchStart,
+            onTouchMove: handleTouchMove,
+            onTouchEnd: handleTouchEnd,
+            onTouchCancel: handleTouchCancel,
+            onMoveShouldSetResponderCapture: handleMoveShouldSetResponderCapture,
+            onResponderMove: handleResponderMove,
+            onResponderRelease: handleResponderRelease,
+            onResponderTerminate: handleResponderTerminate,
+            onResponderTerminationRequest: handleResponderTerminationRequest,
+          }
+        : {})}
       testID={`composition-activity-${activity.id}`}
     >
       {/*
@@ -2104,6 +2401,10 @@ function CompositionActivityRow({
         onPress={handlePress}
         onLongPress={handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
+        // PRE-6 (story 4.1) : en placement, carte atténuée, inactive et masquée à l'accessibilité.
+        disabled={placement !== null}
+        accessibilityElementsHidden={placement !== null}
+        importantForAccessibility={placement !== null ? "no-hide-descendants" : "auto"}
         accessibilityRole="button"
         accessibilityLabel={formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
@@ -2124,6 +2425,7 @@ function CompositionActivityRow({
           // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
           // transformation est toujours appliquée pour rester continue.
           { transform: blockTransform },
+          placement !== null ? styles.placementAttenuated : null,
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
@@ -2155,13 +2457,43 @@ function CompositionActivityRow({
         style={[styles.activityRecoveryLine, { transform: blockTransform }]}
         testID={`composition-activity-recovery-slot-${activity.id}`}
       >
-        <ActivityRecoveryLine
-          recoverySeconds={activity.postActivityRecoverySeconds}
-          testID={`composition-activity-recovery-${activity.id}`}
-        />
+        {placement === null ? (
+          <ActivityRecoveryLine
+            recoverySeconds={activity.postActivityRecoverySeconds}
+            testID={`composition-activity-recovery-${activity.id}`}
+          />
+        ) : (
+          // PRE-6 (story 4.1, `8328:29270`, D-303) : en placement, le trait est masqué et
+          // l'emplacement porte les puces récupération / point d'arrêt.
+          <PlacementOccurrenceSlot activity={activity} placement={placement} />
+        )}
       </View>
 
     </View>
+  );
+}
+
+/** PRE-6 (story 4.1) : emplacement d'une occurrence en placement ; sans élément proposé, un espace de même hauteur. */
+function PlacementOccurrenceSlot({
+  activity,
+  placement,
+}: {
+  activity: SessionDraftExercise;
+  placement: PlacementRowContext;
+}) {
+  const slot = placement.slotFor(activity.id);
+  if (slot === null) {
+    return <View style={styles.placementEmptySlot} testID={`composition-placement-slot-${activity.id}`} />;
+  }
+  return (
+    <PlacementSlotRow
+      slot={slot}
+      placement={placement.draft}
+      exerciseName={activity.name}
+      onPressRecovery={placement.onPressRecovery}
+      onToggleStopPoint={placement.onToggleStopPoint}
+      testID={`composition-placement-slot-${activity.id}`}
+    />
   );
 }
 
@@ -2418,6 +2750,13 @@ const styles = StyleSheet.create({
   // PRE-6 (story 2.1, Figma `8328:28645`) : écart 6 entre la carte et sa ligne de récupération.
   activityRecoveryLine: {
     marginTop: spacing[6],
+  },
+  // PRE-6 (story 4.1) : contenu atténué pendant le placement (cartes, bornes).
+  placementAttenuated: {
+    opacity: UNSELECTED_OPACITY,
+  },
+  placementEmptySlot: {
+    height: PLACEMENT_SLOT_HEIGHT,
   },
   activityRowContainerDragged: {
     zIndex: 1,

@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { AccessibilityInfo, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
 import {
   allFailureParameters,
@@ -12,11 +12,14 @@ import {
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
+import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createExerciseDraft, sessionDraftsEqual, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import * as circuitModule from "@/domain/sessions/circuit";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import type { ProfileService } from "@/features/preferences/ProfileService";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import {
   notifyBodyZonesReferentialChanged,
@@ -4696,5 +4699,539 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     );
     expect(screen.queryByTestId(SHEET)).toBeNull();
     expect(probe.draft).toBe(before);
+  });
+});
+
+/**
+ * PRE-6 story 4.1 (AD-43, E7, E13, `8328:28622`, `8328:29270`, `8328:28733`) : action
+ * « Ajouter un arrêt », mode placement sur un sous-brouillon local, puces des emplacements,
+ * roulette « Durée de récupération », barre « Confirmer N pauses ajoutées » / « Annuler ».
+ */
+describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.1)", () => {
+  type Draft = SessionDraftContextValue["draft"];
+  const anyNode = { includeHiddenElements: true } as const;
+  const p = strings.screens.composition.placement;
+  const probe: { draft: Draft | null; updates: number } = { draft: null, updates: 0 };
+
+  /** Brouillon d'état réel qui compte les appels à `updateDraft` (une seule mise à jour à « Confirmer »). */
+  function CountingDraftWrapper({ initial, children }: { initial: Draft; children: React.ReactNode }) {
+    const [draft, setDraft] = useState<Draft>(initial);
+    const updateDraft = useCallback((update: SessionDraftUpdate) => {
+      probe.updates += 1;
+      setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
+    }, []);
+    const resetDraft = useCallback(() => setDraft(initial), [initial]);
+    const value = useMemo<SessionDraftContextValue>(() => ({ draft, updateDraft, resetDraft }), [draft, updateDraft, resetDraft]);
+    useEffect(() => {
+      probe.draft = draft;
+    }, [draft]);
+    return <SessionDraftContext.Provider value={value}>{children}</SessionDraftContext.Provider>;
+  }
+
+  function renderPlacement(
+    exercises: readonly SessionDraftExercise[],
+    { overrides, profileRecoverySeconds }: { overrides?: Partial<Draft>; profileRecoverySeconds?: number } = {},
+  ) {
+    probe.draft = null;
+    probe.updates = 0;
+    const initial: Draft = {
+      name: "Séance simple",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercises,
+      ...overrides,
+    };
+    const profileService =
+      profileRecoverySeconds === undefined
+        ? null
+        : ({
+            getProfile: async () => ({
+              ...createDefaultProfile("profile", "2026-10-21T00:00:00.000Z"),
+              postActivityRecoverySecondsDefault: profileRecoverySeconds,
+            }),
+          } as unknown as ProfileService);
+    return render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <ProfileServiceContext.Provider value={profileService}>
+              <CountingDraftWrapper initial={initial}>
+                <CompositionScreen />
+              </CountingDraftWrapper>
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+
+  /** Matrice de la story : A (avant), Circuit [B, C], D (après). */
+  const matrix = (overrides: Partial<Record<"A" | "B" | "C" | "D", Partial<SessionDraftExercise>>> = {}) => [
+    anActivity("A", "BEFORE_TOUR", { name: "A", ...overrides.A }),
+    anActivity("B", "IN_TOUR", { name: "B", ...overrides.B }),
+    anActivity("C", "IN_TOUR", { name: "C", ...overrides.C }),
+    anActivity("D", "AFTER_TOUR", { name: "D", ...overrides.D }),
+  ];
+  const ADD_STOP = "composition-add-stop-action";
+  const BAR = "composition-placement-bar";
+  const confirm = () => screen.getByTestId(`${BAR}-confirm`);
+  const enter = () => fireEvent.press(screen.getByTestId(ADD_STOP));
+  const recoveryLabel = (name: string) => p.addRecoveryAccessibilityLabel.replace("{exercise}", name);
+  const stopLabel = (name: string) => p.addStopPointAccessibilityLabel.replace("{exercise}", name);
+  const nativeChange = (testID: string, selection: number) =>
+    fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
+
+  it("the header action « Ajouter un arrêt » (round 34, target 44) sits left of « + » and enters placement, filled while active", () => {
+    renderPlacement(matrix());
+    const action = screen.getByLabelText(p.addStopAccessibilityLabel);
+    expect(action.props.testID).toBe(ADD_STOP);
+    expect(StyleSheet.flatten(action.props.style)).toMatchObject({ width: 34, height: 34, borderRadius: 17 });
+    expect(action.props.hitSlop).toBe(5);
+    expect(action.props.accessibilityState).toMatchObject({ selected: false });
+    expect(screen.getByTestId("composition-add-stop-icon")).toBeTruthy();
+    const order = screen
+      .getByTestId("composition-info-row")
+      .findAll((node) => typeof node.props.testID === "string")
+      .map((node) => node.props.testID as string);
+    expect(order.indexOf(ADD_STOP)).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf(ADD_STOP)).toBeLessThan(order.indexOf("composition-add-activity-action"));
+
+    enter();
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByTestId("composition-add-stop-icon-active")).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId(ADD_STOP).props.style).backgroundColor).toBe("#F1F1FF");
+  });
+
+  it("placement: « Continuer » is replaced by the bar, the rest is attenuated and inactive, the demarcation rule is hidden", () => {
+    renderPlacement(matrix());
+    expect(screen.getAllByTestId("composition-recovery-line-rule", anyNode).length).toBe(4);
+    enter();
+
+    expect(screen.queryByTestId("composition-save-action", anyNode)).toBeNull();
+    expect(screen.getByTestId(BAR)).toBeTruthy();
+    expect(screen.queryAllByTestId("composition-recovery-line-rule", anyNode)).toHaveLength(0);
+    // « + », compteur / œil, cartes et bornes : atténués et inactifs.
+    const add = screen.getByTestId("composition-add-activity-action");
+    expect(add.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(add.props.style).opacity).toBe(0.45);
+    const header = screen.getByTestId("composition-circuit-header", anyNode);
+    expect(header.props.pointerEvents ?? StyleSheet.flatten(header.props.style).pointerEvents).toBe("none");
+    expect(StyleSheet.flatten(header.props.style).opacity).toBe(0.45);
+    const card = screen.getByTestId("composition-exercise-row-A", anyNode);
+    expect(StyleSheet.flatten(card.props.style).opacity).toBe(0.45);
+    fireEvent.press(card);
+    expect(mockPush).not.toHaveBeenCalled();
+    for (const id of ["composition-boundary-countdown-placement", "composition-boundary-final-phase-placement"]) {
+      const boundary = screen.getByTestId(id, anyNode);
+      expect(boundary.props.pointerEvents).toBe("none");
+      expect(StyleSheet.flatten(boundary.props.style).opacity).toBe(0.45);
+    }
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+  });
+
+  it("matrix: recovery after A, B, C, D ; stop points after A, B, C and after the Circuit ; none after D (before the End)", () => {
+    renderPlacement(matrix());
+    enter();
+    for (const name of ["A", "B", "C", "D"]) {
+      expect(screen.getByLabelText(recoveryLabel(name))).toBeTruthy();
+    }
+    for (const name of ["A", "B", "C"]) {
+      expect(screen.getByLabelText(stopLabel(name))).toBeTruthy();
+    }
+    expect(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeTruthy();
+    expect(screen.queryByLabelText(stopLabel("D"))).toBeNull();
+    // Ordre de focus : récupération puis point à chaque emplacement.
+    const slot = screen.getByTestId("composition-placement-slot-A");
+    const labels = slot
+      .findAll((node) => node.props.accessibilityRole === "button" && typeof node.props.accessibilityLabel === "string")
+      .map((node) => node.props.accessibilityLabel as string);
+    expect(labels.filter((label, index) => labels.indexOf(label) === index)).toEqual([recoveryLabel("A"), stopLabel("A")]);
+  });
+
+  it("a single exercise: a recovery after it, no stop point", () => {
+    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
+    enter();
+    expect(screen.getByLabelText(recoveryLabel("A"))).toBeTruthy();
+    expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
+    expect(screen.queryByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeNull();
+  });
+
+  it("an existing recovery (B, 20 s) is shown as existing, without an add chip ; an existing point is shown as existing", () => {
+    renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }), {
+      overrides: { stopPoints: [{ id: "kept", scope: "BEFORE_TOUR", position: 1 }] },
+    });
+    enter();
+    expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
+    expect(screen.getByLabelText("Récupération 20 s")).toBeTruthy();
+    expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
+    expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeTruthy();
+  });
+
+  it("adding a recovery: the wheel opens at the Profile default (30 s), ✓ fills the chip « Récupération 30 s », N = 1", () => {
+    renderPlacement(matrix());
+    enter();
+    expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    expect(screen.getByTestId("duration-wheel-title").props.children).toBe("Durée de récupération");
+    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(0);
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(30);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+
+    const chip = screen.getByLabelText(recoveryLabel("A"));
+    expect(chip.props.accessibilityState).toMatchObject({ selected: true });
+    expect(within(chip).getByText("Récupération 30 s")).toBeTruthy();
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+    expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
+    // Aucune écriture du brouillon de séance avant « Confirmer ».
+    expect(probe.updates).toBe(0);
+  });
+
+  it("the wheel offers 0..300 s on the 1 / 5 / 30 s grid", () => {
+    renderPlacement(matrix());
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    const values = (testID: string) =>
+      screen
+        .getByTestId(testID)
+        .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
+        .flatMap((node) => (node.props.modifiers as { $type: string; tag?: number }[]).filter((modifier) => modifier.$type === "tag"))
+        .map((modifier) => modifier.tag);
+    expect(values("duration-wheel-minutes")).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(values("duration-wheel-seconds")).toEqual([0, 1, 2, 3, 4, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55]);
+    nativeChange("duration-wheel-minutes", 2);
+    expect(values("duration-wheel-seconds")).toEqual([0, 30]);
+    nativeChange("duration-wheel-minutes", 5);
+    expect(values("duration-wheel-seconds")).toEqual([0]);
+  });
+
+  it("the wheel opens at the current Profile default (45 s) when a Profile service is present", async () => {
+    renderPlacement(matrix(), { profileRecoverySeconds: 45 });
+    enter();
+    await act(async () => {});
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
+  });
+
+  it("✕ of the wheel leaves the slot unchanged", () => {
+    renderPlacement(matrix());
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    nativeChange("duration-wheel-seconds", 45);
+    fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(screen.getByLabelText(recoveryLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+  });
+
+  it("recovery + stop point at the same location: N = 2 ; touching an added chip deselects it (N decreases)", () => {
+    renderPlacement(matrix());
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(stopLabel("B")));
+    expect(screen.getByLabelText(stopLabel("B")).props.accessibilityState).toMatchObject({ selected: true });
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 2 pauses ajoutées");
+
+    fireEvent.press(screen.getByLabelText(stopLabel("B")));
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("the bar announces each change of N", () => {
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+    announce.mockClear();
+    try {
+      renderPlacement(matrix());
+      enter();
+      const confirmAnnouncements = () =>
+        announce.mock.calls.filter(([message]) => String(message).startsWith("Confirmer"));
+      expect(confirmAnnouncements()).toHaveLength(0);
+      fireEvent.press(screen.getByLabelText(stopLabel("A")));
+      expect(announce).toHaveBeenLastCalledWith("Confirmer 1 pause ajoutée");
+    } finally {
+      announce.mockRestore();
+    }
+  });
+
+  it("Confirmer applies the sub-draft in a single update (recoveries and stopPoints), then leaves placement", () => {
+    renderPlacement(matrix());
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel));
+    fireEvent.press(confirm());
+
+    expect(probe.updates).toBe(1);
+    expect(probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([30, null, null, null]);
+    expect(probe.draft!.stopPoints).toEqual([{ id: "generated-copy-id", scope: "AFTER_TOUR", position: 0 }]);
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(screen.getByTestId("composition-save-action")).toBeTruthy();
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: false });
+  });
+
+  it("Annuler restores the entry state: same draft (identity), no update", () => {
+    renderPlacement(matrix());
+    const before = probe.draft;
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
+    fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+
+    expect(probe.updates).toBe(0);
+    expect(probe.draft).toBe(before);
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    // Nouvelle entrée : sous-brouillon vide.
+    enter();
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+  });
+
+  it("the system back (Android) cancels the placement without mutation", () => {
+    const addListener = jest.spyOn(BackHandler, "addEventListener");
+    try {
+      renderPlacement(matrix());
+      const before = probe.draft;
+      enter();
+      fireEvent.press(screen.getByLabelText(stopLabel("A")));
+      const handler = addListener.mock.calls.at(-1)![1] as () => boolean;
+      let handled = false;
+      act(() => {
+        handled = handler();
+      });
+      expect(handled).toBe(true);
+      expect(screen.queryByTestId(BAR)).toBeNull();
+      expect(probe.draft).toBe(before);
+    } finally {
+      addListener.mockRestore();
+    }
+  });
+
+  it("R = 0 ✓: kept as present at 0, no information shown outside placement", () => {
+    renderPlacement(matrix());
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("D")));
+    nativeChange("duration-wheel-seconds", 0);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(within(screen.getByLabelText(recoveryLabel("D"))).getByText("Récupération 0 s")).toBeTruthy();
+    fireEvent.press(confirm());
+
+    expect(probe.draft!.exercises.find((exercise) => exercise.id === "D")!.postActivityRecoverySeconds).toBe(0);
+    expect(within(screen.getByTestId("composition-activity-recovery-D")).queryByTestId("composition-recovery-line-label")).toBeNull();
+    // Une nouvelle entrée la montre comme existante.
+    enter();
+    expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
+    expect(screen.getByLabelText("Récupération 0 s")).toBeTruthy();
+  });
+
+  it("session and Circuit durations are recalculated live during placement, restored by Annuler", () => {
+    renderPlacement(matrix());
+    const sessionBefore = screen.getByTestId("composition-session-duration").props.children;
+    const circuitBefore = screen.getByTestId("composition-circuit-header-duration", anyNode).props.children;
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
+    nativeChange("duration-wheel-minutes", 2);
+    fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    expect(screen.getByTestId("composition-session-duration").props.children).not.toBe(sessionBefore);
+    expect(screen.getByTestId("composition-circuit-header-duration", anyNode).props.children).not.toBe(circuitBefore);
+    fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
+    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(circuitBefore);
+  });
+  it("entering placement closes every open surface (revealed counter, add tree)", () => {
+    renderPlacement(matrix());
+    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.getByTestId("composition-circuit-header-counter-field")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("composition-add-activity-action"));
+    expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
+    enter();
+    expect(screen.queryByTestId("composition-circuit-header-counter-field", anyNode)).toBeNull();
+    expect(screen.queryByTestId("composition-add-activity-tree", anyNode)).toBeNull();
+    expect(screen.getByTestId(BAR)).toBeTruthy();
+  });
+
+  it("« Ajouter un arrêt » is unavailable when no slot offers an addition (empty Composition, everything already present)", () => {
+    const view = renderPlacement([]);
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true, selected: false });
+    enter();
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    view.unmount();
+    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })]);
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+    screen.unmount();
+    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it("the header X during placement cancels the placement first (no mutation, no navigation)", () => {
+    renderPlacement(matrix());
+    const before = probe.draft;
+    enter();
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
+    fireEvent.press(screen.getByLabelText(composition.closeAccessibilityLabel));
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(probe.draft).toBe(before);
+    expect(probe.updates).toBe(0);
+    fireEvent.press(screen.getByLabelText(composition.closeAccessibilityLabel));
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("an exit intercepted by the guard during placement cancels the placement, without the abandon dialog over the bar", () => {
+    const guard = { pending: false, lastShouldBlock: false };
+    const cancelExit = jest.fn(() => {
+      guard.pending = false;
+    });
+    mockExitGuard.mockImplementation((shouldBlock: unknown) => {
+      guard.lastShouldBlock = shouldBlock as boolean;
+      return { isPendingExit: guard.pending, cancelExit, confirmExit: jest.fn() };
+    });
+    renderPlacement(matrix());
+    const before = probe.draft;
+    enter();
+    // Le placement bloque toujours la sortie (pour l’annuler d’abord).
+    expect(guard.lastShouldBlock).toBe(true);
+    guard.pending = true;
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
+
+    expect(cancelExit).toHaveBeenCalledTimes(1);
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(screen.queryByText(composition.abandonModal.title)).toBeNull();
+    expect(probe.draft).toBe(before);
+    expect(probe.updates).toBe(0);
+  });
+
+  it("focus loss (useFocusEffect cleanup) leaves placement without mutation; re-entry starts empty", () => {
+    mockFocusHarness.callbacks = [];
+    renderPlacement(matrix());
+    const before = probe.draft;
+    enter();
+    fireEvent.press(screen.getByLabelText(stopLabel("A")));
+    act(() => {
+      mockFocusHarness.callbacks.forEach((callback) => (callback() as unknown as (() => void) | undefined)?.());
+    });
+    expect(screen.queryByTestId(BAR)).toBeNull();
+    expect(probe.draft).toBe(before);
+    expect(probe.updates).toBe(0);
+    enter();
+    expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+  });
+
+  it("Profile default: a tap before it resolves opens the wheel only once it is known; a late answer after exit is ignored", async () => {
+    const pending: ((seconds: number) => void)[] = [];
+    const profileService = {
+      getProfile: () =>
+        new Promise((resolve) => {
+          pending.push((seconds) =>
+            resolve({ ...createDefaultProfile("profile", "2026-10-21T00:00:00.000Z"), postActivityRecoverySecondsDefault: seconds }),
+          );
+        }),
+    } as unknown as ProfileService;
+    probe.updates = 0;
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <ProfileServiceContext.Provider value={profileService}>
+              <CountingDraftWrapper
+                initial={{ name: "Séance", labelId: null, initialCountdownSeconds: 10, finalPhaseSeconds: 5, exercises: matrix() }}
+              >
+                <CompositionScreen />
+              </CountingDraftWrapper>
+            </ProfileServiceContext.Provider>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    // Première entrée, puis sortie avant la réponse : la réponse tardive est ignorée.
+    enter();
+    fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+    enter();
+    fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    await act(async () => {
+      pending[0](99);
+    });
+    expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+    await act(async () => {
+      pending[1](45);
+    });
+    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
+  });
+
+  it("in placement, swipe and drag sequences on a card reveal nothing and change nothing", () => {
+    renderPlacement(matrix());
+    const before = probe.draft;
+    enter();
+    fireSwipeLeft("B");
+    expect(screen.queryByTestId("composition-activity-actions-B", anyNode)).toBeNull();
+    const card = screen.getByTestId("composition-exercise-row-B", anyNode);
+    fireEvent(card, "longPress");
+    const container = screen.getByTestId("composition-activity-B");
+    fireEvent(container, "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
+    fireEvent(container, "touchMove", { nativeEvent: { pageX: 100, pageY: 400 } });
+    fireEvent(container, "touchEnd", { nativeEvent: { pageX: 100, pageY: 400 } });
+    expect(screen.queryByTestId("composition-activity-actions-B", anyNode)).toBeNull();
+    expect(probe.updates).toBe(0);
+    expect(probe.draft).toBe(before);
+  });
+
+  it("chips reach a 44-pt target and a selected chip says a tap removes it", () => {
+    renderPlacement(matrix());
+    enter();
+    const chip = screen.getByLabelText(stopLabel("A"));
+    expect(chip.props.hitSlop).toEqual({ top: 10, bottom: 10 });
+    expect(chip.props.accessibilityHint).toBeUndefined();
+    fireEvent.press(chip);
+    expect(screen.getByLabelText(stopLabel("A")).props.accessibilityHint).toBe(p.selectedHint);
+  });
+
+  it("VoiceOver focus moves to the bar on entry and back to « Ajouter un arrêt » after Annuler / Confirmer", () => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    try {
+      renderPlacement(matrix());
+      focus.mockClear();
+      const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+      enter();
+      expect(targets()).toEqual([`${BAR}-confirm`]);
+      focus.mockClear();
+      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+      expect(targets()).toEqual([ADD_STOP]);
+      enter();
+      fireEvent.press(screen.getByLabelText(stopLabel("A")));
+      focus.mockClear();
+      fireEvent.press(confirm());
+      expect(targets()).toEqual([ADD_STOP]);
+    } finally {
+      focus.mockRestore();
+    }
+  });
+
+  it("the after-Circuit slot sits between the Circuit and the AFTER_TOUR occurrences; an existing point there is shown as existing", () => {
+    renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "after", scope: "AFTER_TOUR", position: 0 }] } });
+    enter();
+    const ids = screen
+      .getByTestId("composition-body")
+      .findAll((node) => typeof node.type === "string" && typeof node.props.testID === "string")
+      .map((node) => node.props.testID as string);
+    const at = (id: string) => ids.indexOf(id);
+    expect(at("composition-placement-slot-after-circuit")).toBeGreaterThan(at("composition-tour-section"));
+    expect(at("composition-placement-slot-after-circuit")).toBeGreaterThan(at("composition-activity-C"));
+    expect(at("composition-placement-slot-after-circuit")).toBeLessThan(at("composition-zone-after-tour"));
+    expect(screen.queryByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeNull();
+    const existing = screen.getByLabelText(p.existingStopPointAfterCircuitAccessibilityLabel);
+    expect(existing.props.accessibilityRole).toBeUndefined();
+    expect(StyleSheet.flatten(existing.props.style).borderWidth).toBeUndefined();
+  });
+
+  it("names containing replacement patterns ($&, $1) are inserted verbatim in chip labels", () => {
+    renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "Squat $& $1" }), anActivity("B", "IN_TOUR", { name: "B" })]);
+    enter();
+    expect(screen.getByLabelText("Ajouter un point d’arrêt après Squat $& $1")).toBeTruthy();
   });
 });

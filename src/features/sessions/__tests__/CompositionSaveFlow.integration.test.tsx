@@ -235,7 +235,9 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     expect(canonicalRows.every((row) => row.execution_parameters !== null && row.category_id !== null)).toBe(true);
 
     database.close();
-  });
+  // PRE-6 story 4.1 : parcours de bout en bout (deux exercices complets) proche des 30 s
+  // par défaut sous charge (27 s seul) ; délai propre, assertions inchangées.
+  }, 60000);
 
   it("shows the exact failure message, keeps the draft intact and re-enables the action on a technical save failure — no navigation, no partial data", async () => {
     const { router, database } = await renderCreationRouter();

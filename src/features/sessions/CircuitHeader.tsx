@@ -7,6 +7,7 @@ import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { EXECUTION_UNIT_HOLD_POLICY, InlineStepper } from "@/shared/ui/ProfileStepper";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
@@ -74,6 +75,11 @@ export type CircuitHeaderProps = {
   readonly volumesFocusRequest?: number;
   /** Mesure de l'en-tête dans le conteneur Circuit : ancrage du panneau Android / web par l'écran. */
   readonly onLayout?: ViewProps["onLayout"];
+  /**
+   * PRE-6 story 4.1 : mode placement — l'en-tête (compteur, pastille, œil) est atténué et non
+   * interactif, masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran.
+   */
+  readonly isAttenuated?: boolean;
   readonly testID: string;
 };
 
@@ -126,11 +132,19 @@ export function CircuitHeader({
   onOpenVolumes,
   volumesFocusRequest = 0,
   onLayout,
+  isAttenuated = false,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
   return (
-    <View style={styles.row} onLayout={onLayout} testID={testID}>
+    <View
+      style={[styles.row, isAttenuated ? styles.attenuated : null]}
+      onLayout={onLayout}
+      pointerEvents={isAttenuated ? "none" : "auto"}
+      accessibilityElementsHidden={isAttenuated}
+      importantForAccessibility={isAttenuated ? "no-hide-descendants" : "auto"}
+      testID={testID}
+    >
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
         {/* Story 3.4 : l'œil est sur la ligne du titre, juste après lui ; la durée reste dessous. */}
         <View style={styles.titleRow} testID={`${testID}-title-row`}>
@@ -340,6 +354,10 @@ function CircuitCounter({
 }
 
 const styles = StyleSheet.create({
+  // PRE-6 story 4.1 : en-tête atténué pendant le placement.
+  attenuated: {
+    opacity: UNSELECTED_OPACITY,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",

@@ -248,6 +248,24 @@ describe("strings", () => {
     expect(strings.screens.composition.saveError).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
   });
 
+  it("exposes the placement mode texts (PRE-6 story 4.1, `8328:28622`, `8328:29270`, `8328:28733`)", () => {
+    expect(strings.screens.composition.placement).toEqual({
+      addStopAccessibilityLabel: "Ajouter un arrêt",
+      recovery: "Récupération",
+      stopPoint: "Point d’arrêt",
+      addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
+      addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
+      addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+      existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
+      existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+      confirmSingular: "Confirmer {n} pause ajoutée",
+      confirmPlural: "Confirmer {n} pauses ajoutées",
+      cancel: "Annuler",
+      recoveryWheelTitle: "Durée de récupération",
+      selectedHint: "Un toucher retire cet ajout.",
+    });
+  });
+
   it("exposes the exact local Composition empty-summary label (PRE-6 story 1.3, D-399 : « — min », no exercise count)", () => {
     expect(strings.screens.composition.summary.empty).toBe("— min");
   });

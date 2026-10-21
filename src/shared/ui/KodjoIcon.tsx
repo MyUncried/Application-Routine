@@ -76,6 +76,17 @@ const sources = {
   // ouvre « Volumes du circuit ». Export SVG de l’outil MCP Figma en lecture seule ; le fond de
   // canevas ajouté par l’export est retiré, l’identifiant doublement encodé réparé.
   "view-volumes": require("../../../assets/icons/icon-oeil.svg"),
+  // PRE-6 story 4.1 : action d’en-tête « Ajouter un arrêt » (`8328:28622`) — icône standard
+  // `8328:28624` et icône pleine de l’état actif pendant le placement (`8328:29289`). Exports SVG
+  // de l’outil MCP Figma en lecture seule (boîte 25 × 25 de l’export : le halo blanc déborde d’un
+  // point le cadre 24 × 24).
+  "add-stop": require("../../../assets/icons/icon-ajouter-un-arret.svg"),
+  "add-stop-active": require("../../../assets/icons/icon-ajouter-un-arret-actif.svg"),
+  // PRE-6 story 4.1 : sablier des puces « Récupération » du placement (`8328:40909` sur la puce à
+  // ajouter, `8328:40907` en blanc sur la puce ajoutée). Tracé distinct du sablier 13 de la ligne
+  // structurelle (`recovery-hourglass`).
+  "placement-recovery": require("../../../assets/icons/icon-recuperation-placement.svg"),
+  "placement-recovery-added": require("../../../assets/icons/icon-recuperation-placement-ajoutee.svg"),
 } as const;
 
 const sizes = {
@@ -196,6 +207,12 @@ const sizes = {
   "duration-hourglass": [16, 16],
   // Cadre 24 × 24 du `viewBox` exact ; cercle 32 et cible 44 portés par `CircuitHeader`.
   "view-volumes": [24, 24],
+  // Boîtes 25 × 25 des exports ; cercle 34 et cible 44 portés par `CompositionContextHeader`.
+  "add-stop": [25, 25],
+  "add-stop-active": [25, 25],
+  // Cadres 14 × 14 des `viewBox` exacts (puces du placement).
+  "placement-recovery": [14, 14],
+  "placement-recovery-added": [14, 14],
 } as const;
 
 /**

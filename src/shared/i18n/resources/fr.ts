@@ -379,6 +379,24 @@ export const fr = {
       saveAction: "Continuer",
       // PRE-6 (story 2.1) : durée de séance de l'en-tête (toutes les occurrences, RM-159).
       sessionDurationAccessibilityLabel: "Durée de la séance",
+      // PRE-6 (story 4.1, AD-43, Figma `8328:28622`, `8328:29270`, `8328:28733`) : action
+      // « Ajouter un arrêt » et mode placement — puces des emplacements, barre « Confirmer N
+      // pauses ajoutées » / « Annuler » et roulette « Durée de récupération ».
+      placement: {
+        addStopAccessibilityLabel: "Ajouter un arrêt",
+        recovery: "Récupération",
+        stopPoint: "Point d’arrêt",
+        addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
+        addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
+        addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+        existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
+        existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+        confirmSingular: "Confirmer {n} pause ajoutée",
+        confirmPlural: "Confirmer {n} pauses ajoutées",
+        cancel: "Annuler",
+        recoveryWheelTitle: "Durée de récupération",
+        selectedHint: "Un toucher retire cet ajout.",
+      },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       summary: {
         // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).

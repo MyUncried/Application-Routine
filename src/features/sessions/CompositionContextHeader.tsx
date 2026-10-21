@@ -1,10 +1,12 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { Label } from "@/domain/labels/Label";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -33,6 +35,16 @@ const INFO_ROW_HEIGHT = 32;
 /** Bouton « + » (Figma `8328:28630`) : cercle 34, croix 20 × 2,5, rayon des barres 1. */
 const ADD_BUTTON = { size: 34, glyphLength: 20, glyphThickness: 2.5, glyphRadius: 1 } as const;
 
+/**
+ * Bouton « Ajouter un arrêt » (PRE-6 story 4.1, Figma `8328:28622` / `8328:29287`) : cercle 34,
+ * contour 1 `primary`, icône posée à 5 du bord (contour compris) ; « + » à 44 de son origine
+ * (écart 10, groupe `8328:28621`). Standard : fond blanc et ombre portée (0, 2, flou 4, noir à
+ * 14 %) ; actif (placement) : fond lavande `#F1F1FF`, sans ombre — valeurs Figma sans jeton.
+ */
+const ADD_STOP_BUTTON = { size: 34, iconInset: 5 - 1, actionsGap: spacing[10] } as const;
+const ADD_STOP_ACTIVE_SURFACE = "#F1F1FF";
+const ADD_STOP_SHADOW = { color: "#000000", opacity: 0.14, offsetY: 2, radius: 2 } as const;
+
 export type CompositionContextHeaderProps = {
   readonly name: string;
   readonly onChangeName: (name: string) => void;
@@ -46,16 +58,24 @@ export type CompositionContextHeaderProps = {
   readonly sessionDuration: string;
   /** Ouvre l'arbre d'ajout existant (V2-CAT-01). */
   readonly onAdd: () => void;
+  /** PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). */
+  readonly onAddStop: () => void;
+  /** PRE-6 story 4.1 : mode placement en cours — bouton « Ajouter un arrêt » actif, « + » atténué et inactif. */
+  readonly isPlacementActive?: boolean;
+  /** PRE-6 story 4.1 : aucun emplacement où ajouter une pause (Composition vide, tout est déjà présent). */
+  readonly isAddStopDisabled?: boolean;
+  /** PRE-6 story 4.1 : demande de focus d'accessibilité sur « Ajouter un arrêt » (sortie du placement), jamais au montage. */
+  readonly addStopFocusRequest?: number;
   readonly testID?: string;
 };
 
 /**
  * Bande de contexte de la Composition (PRE-6 story 2.1, AD-41, Figma
  * `8328:28608` « Titre de séance ») : nom de la séance ; dessous, sur une
- * ligne de 32, la puce Étiquette puis la durée de séance, et à droite le
- * bouton rond « + » qui ouvre l'arbre d'ajout (remplace le bouton texte
- * « + Ajouter un exercice »). L'action « Ajouter un arrêt » relève de la
- * story 4.1.
+ * ligne de 32, la puce Étiquette puis la durée de séance, et à droite les
+ * boutons ronds « Ajouter un arrêt » (PRE-6 story 4.1 : entrée du mode placement, état actif
+ * rempli pendant le placement) et « + » qui ouvre l'arbre d'ajout (remplace le bouton texte
+ * « + Ajouter un exercice »).
  *
  * Comportements repris tels quels de la Composition : saisie du nom
  * (`NAME_MAX_LENGTH`, placeholder `text-primary`, R4-01), ouverture de
@@ -71,9 +91,21 @@ export function CompositionContextHeader({
   onOpenLabelPicker,
   sessionDuration,
   onAdd,
+  onAddStop,
+  isPlacementActive = false,
+  isAddStopDisabled = false,
+  addStopFocusRequest = 0,
   testID = "composition-context-header",
 }: CompositionContextHeaderProps) {
   const composition = strings.screens.composition;
+  const addStopRef = useRef<View>(null);
+  const lastAddStopFocusRequestRef = useRef(addStopFocusRequest);
+  useEffect(() => {
+    if (addStopFocusRequest === lastAddStopFocusRequestRef.current) return;
+    lastAddStopFocusRequestRef.current = addStopFocusRequest;
+    if (addStopRef.current) AccessibilityInfo.sendAccessibilityEvent(addStopRef.current, "focus");
+  }, [addStopFocusRequest]);
+  const addStopUnavailable = !isPlacementActive && isAddStopDisabled;
   return (
     <View style={styles.container} testID={testID}>
       <View style={styles.nameRow} testID="composition-name-color-field">
@@ -135,19 +167,45 @@ export function CompositionContextHeader({
             {sessionDuration}
           </Text>
         </View>
-        <Pressable
-          onPress={onAdd}
-          accessibilityRole="button"
-          accessibilityLabel={composition.addActivity}
-          hitSlop={(CONTEXT_TOUCH_TARGET - ADD_BUTTON.size) / 2}
-          style={styles.addButton}
-          testID="composition-add-activity-action"
-        >
-          <View style={styles.addGlyph} testID="composition-add-activity-icon">
-            <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID="composition-add-activity-icon-bar" />
-            <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID="composition-add-activity-icon-bar" />
-          </View>
-        </Pressable>
+        <View style={styles.actions}>
+          <Pressable
+            ref={addStopRef}
+            onPress={onAddStop}
+            disabled={isPlacementActive || addStopUnavailable}
+            accessibilityRole="button"
+            accessibilityLabel={composition.placement.addStopAccessibilityLabel}
+            accessibilityState={{ selected: isPlacementActive, disabled: isPlacementActive || addStopUnavailable }}
+            hitSlop={(CONTEXT_TOUCH_TARGET - ADD_STOP_BUTTON.size) / 2}
+            style={[
+              styles.addStopButton,
+              isPlacementActive ? styles.addStopButtonActive : styles.addStopButtonStandard,
+              addStopUnavailable ? styles.attenuated : null,
+            ]}
+            testID="composition-add-stop-action"
+          >
+            <View style={styles.addStopIcon}>
+              <KodjoIcon
+                name={isPlacementActive ? "add-stop-active" : "add-stop"}
+                testID={isPlacementActive ? "composition-add-stop-icon-active" : "composition-add-stop-icon"}
+              />
+            </View>
+          </Pressable>
+          <Pressable
+            onPress={onAdd}
+            disabled={isPlacementActive}
+            accessibilityRole="button"
+            accessibilityLabel={composition.addActivity}
+            accessibilityState={{ disabled: isPlacementActive }}
+            hitSlop={(CONTEXT_TOUCH_TARGET - ADD_BUTTON.size) / 2}
+            style={[styles.addButton, isPlacementActive ? styles.attenuated : null]}
+            testID="composition-add-activity-action"
+          >
+            <View style={styles.addGlyph} testID="composition-add-activity-icon">
+              <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID="composition-add-activity-icon-bar" />
+              <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID="composition-add-activity-icon-bar" />
+            </View>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -220,6 +278,39 @@ const styles = StyleSheet.create({
     ...type.body,
     color: TEXT_TERTIARY,
     flexShrink: 0,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: ADD_STOP_BUTTON.actionsGap,
+  },
+  addStopButton: {
+    width: ADD_STOP_BUTTON.size,
+    height: ADD_STOP_BUTTON.size,
+    borderRadius: fixedRadii[17],
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  addStopButtonStandard: {
+    backgroundColor: colors.background,
+    shadowColor: ADD_STOP_SHADOW.color,
+    shadowOpacity: ADD_STOP_SHADOW.opacity,
+    shadowOffset: { width: 0, height: ADD_STOP_SHADOW.offsetY },
+    shadowRadius: ADD_STOP_SHADOW.radius,
+    elevation: 2,
+  },
+  addStopButtonActive: {
+    backgroundColor: ADD_STOP_ACTIVE_SURFACE,
+  },
+  // Boîte 25 × 25 de l'export, posée à 5 du bord extérieur (4 dans le contour de 1).
+  addStopIcon: {
+    position: "absolute",
+    left: ADD_STOP_BUTTON.iconInset,
+    top: ADD_STOP_BUTTON.iconInset,
+  },
+  // Mode placement : le reste de l'en-tête d'actions est atténué et inactif.
+  attenuated: {
+    opacity: UNSELECTED_OPACITY,
   },
   addButton: {
     width: ADD_BUTTON.size,
