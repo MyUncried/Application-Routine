@@ -39,7 +39,7 @@ const CHIP_HIT_SLOP = { top: (44 - 24) / 2, bottom: (44 - 24) / 2 } as const;
 const EXISTING_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 11, lineHeight: 13 } as const;
 
 function fill(template: string, values: Record<string, string>): string {
-  // Remplacement par fonction : un nom contenant `  return Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, value), template);` ou `$1` est inséré tel quel.
+  // Remplacement par fonction : un nom contenant `$&` ou `$1` est inséré tel quel.
   return Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, () => value), template);
 }
 
@@ -50,6 +50,8 @@ export type PlacementSlotRowProps = {
   readonly exerciseName: string | null;
   /** Toucher la récupération : roulette (à ajouter) ou désélection (déjà ajoutée). */
   readonly onPressRecovery: (occurrenceId: string) => void;
+  /** Story 4.2 : toucher une récupération existante ouvre sa roulette (modification non comptée dans N). */
+  readonly onPressExistingRecovery: (occurrenceId: string) => void;
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
   readonly testID: string;
 };
@@ -61,10 +63,11 @@ export type PlacementSlotRowProps = {
  *
  * - Récupération : puce en pointillés « Récupération » (ajout possible) ; puce pleine
  *   « Récupération {durée} » une fois ajoutée ; récupération déjà présente (0 ou positive)
- *   affichée comme existante, sans puce.
+ *   affichée comme existante, sans puce — story 4.2 : un bouton qui ouvre sa roulette, la
+ *   nouvelle durée (sous-brouillon, non comptée dans N) étant affichée à sa place.
  * - Point d'arrêt : puce en pointillés (ajout possible), pleine une fois ajouté ; un point déjà
  *   présent est affiché comme existant (symbole et texte tertiaire, comme une récupération
- *   existante), non interactif : sa modification relève de la story 4.2.
+ *   existante), non interactif (son retrait se fait hors placement, story 4.2).
  *
  * Chaque puce est un bouton nommé (cible 44) avec son état sélectionné ; sélectionnée, son indice
  * dit qu'un toucher la retire. L'ordre de lecture suit la ligne : récupération puis point.
@@ -74,6 +77,7 @@ export function PlacementSlotRow({
   placement,
   exerciseName,
   onPressRecovery,
+  onPressExistingRecovery,
   onToggleStopPoint,
   testID,
 }: PlacementSlotRowProps) {
@@ -84,14 +88,24 @@ export function PlacementSlotRow({
   let recovery: ReactNode = <View style={styles.half} />;
   if (slot.recovery !== null && occurrenceId !== null) {
     if (slot.recovery.kind === "EXISTING") {
-      const label = `${t.recovery} ${formatCompactDuration(slot.recovery.seconds)}`;
+      const seconds = placement.recoveryChanges[occurrenceId] ?? slot.recovery.seconds;
+      const label = `${t.recovery} ${formatCompactDuration(seconds)}`;
       recovery = (
-        <View style={[styles.half, styles.existingRecovery]} accessible accessibilityLabel={label} testID={`${testID}-recovery-existing`}>
+        <Pressable
+          onPress={() => onPressExistingRecovery(occurrenceId)}
+          accessibilityRole="button"
+          accessibilityLabel={fill(strings.screens.composition.pauses.modifiableRecoveryAccessibilityLabel, {
+            duration: formatCompactDuration(seconds),
+          })}
+          hitSlop={CHIP_HIT_SLOP}
+          style={[styles.half, styles.existingRecovery]}
+          testID={`${testID}-recovery-existing`}
+        >
           <KodjoIcon name="recovery-hourglass" />
           <Text style={styles.existingText} numberOfLines={1}>
             {label}
           </Text>
-        </View>
+        </Pressable>
       );
     } else {
       const seconds = placement.recoveries[occurrenceId];

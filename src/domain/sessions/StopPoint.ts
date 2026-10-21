@@ -202,3 +202,36 @@ export function reattachStopPoints(
   }
   return result;
 }
+
+/**
+ * Points d'arrêt tels qu'affichés hors placement (PRE-6 story 4.2, `8328:29428`) : chaque point
+ * `p ≥ 1` sous son occurrence d'attache (ARB-3), et le point « après le Circuit »
+ * (`AFTER_TOUR`, `position = 0`) sous le conteneur du Circuit. Un point sans emplacement
+ * affichable (tête de portée avant ou dans le Circuit, hors bornes) n'est pas rendu : le
+ * placement ne propose jamais ces emplacements.
+ */
+export type StopPointDisplay = {
+  readonly byOccurrenceId: ReadonlyMap<string, StopPoint>;
+  readonly afterCircuit: StopPoint | null;
+};
+
+export function stopPointDisplay(
+  occurrences: readonly AnchorableOccurrence[],
+  points: readonly StopPoint[],
+): StopPointDisplay {
+  const byOccurrenceId = new Map<string, StopPoint>();
+  let afterCircuit: StopPoint | null = null;
+  for (const { point, anchorId } of anchorStopPoints(occurrences, points)) {
+    if (anchorId !== null) {
+      if (!byOccurrenceId.has(anchorId)) byOccurrenceId.set(anchorId, point);
+    } else if (point.scope === "AFTER_TOUR" && point.position === 0 && afterCircuit === null) {
+      afterCircuit = point;
+    }
+  }
+  return { byOccurrenceId, afterCircuit };
+}
+
+/** Story 4.2 : retrait d'un point par son identifiant ; inconnu : liste rendue telle quelle (même identité). */
+export function withoutStopPoint<T extends StopPoint>(points: readonly T[], id: string): readonly T[] {
+  return points.some((point) => point.id === id) ? points.filter((point) => point.id !== id) : points;
+}

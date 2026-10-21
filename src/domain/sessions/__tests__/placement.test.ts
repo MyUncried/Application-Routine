@@ -5,11 +5,14 @@ import { createEmptyDraft, createExerciseDraft, type SessionDraft, type SessionD
 import {
   EMPTY_PLACEMENT_DRAFT,
   applyPlacementDraft,
+  hasPlacementChanges,
   isPlacementStopPointAdded,
   placementAdditionCount,
   placementSlots,
   removePlacementRecovery,
+  setOccurrenceRecovery,
   setPlacementRecovery,
+  setPlacementRecoveryChange,
   togglePlacementStopPoint,
 } from "../placement";
 import type { StopPoint } from "../StopPoint";
@@ -165,5 +168,66 @@ describe("applyPlacementDraft (« Confirmer », AD-43)", () => {
     placement = togglePlacementStopPoint(placement, { scope: "BEFORE_TOUR", position: 1 });
     placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 });
     expect(applyPlacementDraft(draft, placement, () => "x")).toBe(draft);
+  });
+});
+
+describe("modification of an existing recovery in placement (PRE-6 story 4.2)", () => {
+  it("is not counted in N but makes the sub-draft confirmable", () => {
+    const placement = setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20);
+    expect(placementAdditionCount(placement)).toBe(0);
+    expect(hasPlacementChanges(placement)).toBe(true);
+    expect(hasPlacementChanges(EMPTY_PLACEMENT_DRAFT)).toBe(false);
+  });
+
+  it("going back to the draft value clears the modification", () => {
+    const changed = setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20);
+    const back = setPlacementRecoveryChange(changed, "B", 20, 20);
+    expect(back.recoveryChanges).toEqual({});
+    expect(hasPlacementChanges(back)).toBe(false);
+    expect(setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 20, 20)).toBe(EMPTY_PLACEMENT_DRAFT);
+  });
+
+  it("Confirmer applies it to the existing recovery only (R = 20 → 45), never creating one", () => {
+    const draft = draftOf([occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR", 20)]);
+    let placement = setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20);
+    placement = setPlacementRecoveryChange(placement, "A", 30, null);
+    const result = applyPlacementDraft(draft, placement, () => "x");
+    expect(result.exercises.map((exercise) => exercise.postActivityRecoverySeconds)).toEqual([null, 45]);
+    expect(draft.exercises[1]!.postActivityRecoverySeconds).toBe(20);
+  });
+
+  it("keeps 0 as present (D-323)", () => {
+    const draft = draftOf([occ("A", "BEFORE_TOUR", 20), occ("B", "IN_TOUR")]);
+    const result = applyPlacementDraft(draft, setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "A", 0, 20), () => "x");
+    expect(result.exercises[0]!.postActivityRecoverySeconds).toBe(0);
+  });
+});
+
+describe("setOccurrenceRecovery (PRE-6 story 4.2, hors placement)", () => {
+  const draft = draftOf([occ("A", "BEFORE_TOUR", 20), occ("B", "IN_TOUR")]);
+
+  it("modifies the occurrence only (0 kept as present, D-323)", () => {
+    expect(setOccurrenceRecovery(draft, "A", 45).exercises.map((e) => e.postActivityRecoverySeconds)).toEqual([45, null]);
+    expect(setOccurrenceRecovery(draft, "A", 0).exercises[0]!.postActivityRecoverySeconds).toBe(0);
+    expect(draft.exercises[0]!.postActivityRecoverySeconds).toBe(20);
+  });
+
+  it("removes it (null: absent recovery)", () => {
+    expect(setOccurrenceRecovery(draft, "A", null).exercises[0]!.postActivityRecoverySeconds).toBeNull();
+  });
+
+  it("returns the same draft for an unknown occurrence or an unchanged value", () => {
+    expect(setOccurrenceRecovery(draft, "gone", 30)).toBe(draft);
+    expect(setOccurrenceRecovery(draft, "A", 20)).toBe(draft);
+    expect(setOccurrenceRecovery(draft, "B", null)).toBe(draft);
+  });
+
+  it("ignores invalid seconds (non-integer, negative, NaN) and non-EXERCISE occurrences", () => {
+    for (const seconds of [2.5, -1, Number.NaN]) {
+      expect(setOccurrenceRecovery(draft, "A", seconds)).toBe(draft);
+    }
+    const withRecoveryOccurrence = draftOf([{ ...occ("R", "BEFORE_TOUR", 20), type: "RECOVERY" }, occ("B", "IN_TOUR")]);
+    expect(setOccurrenceRecovery(withRecoveryOccurrence, "R", 45)).toBe(withRecoveryOccurrence);
+    expect(setOccurrenceRecovery(withRecoveryOccurrence, "R", null)).toBe(withRecoveryOccurrence);
   });
 });

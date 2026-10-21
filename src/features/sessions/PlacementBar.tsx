@@ -26,6 +26,11 @@ export function formatPlacementConfirmLabel(count: number): string {
 export type PlacementBarProps = {
   /** N : nombre d'objets nouvellement ajoutés dans le sous-brouillon. */
   readonly count: number;
+  /**
+   * Story 4.2 : « Confirmer » disponible — par défaut dès N > 0 ; aussi quand le sous-brouillon
+   * ne porte qu’une modification de récupération existante (non comptée dans N).
+   */
+  readonly canConfirm?: boolean;
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
   readonly testID?: string;
@@ -33,13 +38,21 @@ export type PlacementBarProps = {
 
 /**
  * Barre du mode placement (PRE-6 story 4.1, AD-43, Figma `8328:29423`), à la place de
- * « Continuer » : « Confirmer N pauses ajoutées » (indisponible à N = 0) et « Annuler ».
+ * « Continuer » : « Confirmer N pauses ajoutées » et « Annuler ». « Confirmer » est disponible dès
+ * qu'il y a un ajout ou une modification de récupération existante (story 4.2 : même à N = 0,
+ * `canConfirm`) ; sinon indisponible.
  * Chaque changement de N est annoncé (VoiceOver / TalkBack), jamais à l'apparition de la barre.
  */
-export function PlacementBar({ count, onConfirm, onCancel, testID = "composition-placement-bar" }: PlacementBarProps) {
+export function PlacementBar({
+  count,
+  canConfirm = count > 0,
+  onConfirm,
+  onCancel,
+  testID = "composition-placement-bar",
+}: PlacementBarProps) {
   const t = strings.screens.composition.placement;
   const label = formatPlacementConfirmLabel(count);
-  const disabled = count === 0;
+  const disabled = !canConfirm;
 
   // À l'apparition de la barre, le focus d'accessibilité est porté sur « Confirmer ».
   const confirmRef = useRef<View>(null);

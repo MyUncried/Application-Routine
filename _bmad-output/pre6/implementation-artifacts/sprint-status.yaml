@@ -31,7 +31,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-20-2026 18:00
-last_updated: 10-21-2026 15:00
+last_updated: 10-21-2026 18:00
 project: kodjo-pre6
 project_key: NOKEY
 tracking_system: file-system
@@ -59,6 +59,6 @@ development_status:
 
   epic-4: in-progress
   4-1-mode-placement-et-sous-brouillon: review
-  4-2-durée-modification-et-retrait: backlog
+  4-2-durée-modification-et-retrait: review
   4-3-pauses-dans-le-déroulement-et-la-composition: backlog
   epic-4-retrospective: optional

@@ -87,6 +87,12 @@ const sources = {
   // structurelle (`recovery-hourglass`).
   "placement-recovery": require("../../../assets/icons/icon-recuperation-placement.svg"),
   "placement-recovery-added": require("../../../assets/icons/icon-recuperation-placement-ajoutee.svg"),
+  // PRE-6 story 4.2 : sablier blanc 12 de la bulle « Retirer la récupération » (`8328:41025`,
+  // dans `8328:29267`). Ressource servie par `get_design_context` (outil MCP Figma, lecture seule) :
+  // attributs racine preserveAspectRatio/overflow/style retirés, identifiant de groupe décodé
+  // (export doublement encodé) ; tracé inchangé — même dessin que `8328:40907` à l’échelle 12/14,
+  // dont le second sous-chemin reste ouvert comme dans Figma (sans effet sur le remplissage).
+  "remove-recovery": require("../../../assets/icons/icon-retirer-recuperation.svg"),
 } as const;
 
 const sizes = {
@@ -213,6 +219,8 @@ const sizes = {
   // Cadres 14 × 14 des `viewBox` exacts (puces du placement).
   "placement-recovery": [14, 14],
   "placement-recovery-added": [14, 14],
+  // Cadre 12 × 12 du `viewBox` exact (bulle « Retirer la récupération »).
+  "remove-recovery": [12, 12],
 } as const;
 
 /**

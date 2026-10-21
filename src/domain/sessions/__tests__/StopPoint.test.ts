@@ -9,7 +9,9 @@ import {
   isStopPointPositionInRange,
   orderStopPointsByScope,
   reattachStopPoints,
+  stopPointDisplay,
   stopPointNeighbors,
+  withoutStopPoint,
   type StopPoint,
 } from "../StopPoint";
 
@@ -150,5 +152,45 @@ describe("anchorStopPoints / reattachStopPoints (ARB-3)", () => {
       { id: "s0", scope: "IN_TOUR", position: 0 },
     ]);
     expect(reattachStopPoints([occ("a", "IN_TOUR")], anchored).map((point) => point.id)).toEqual(["sa", "s0"]);
+  });
+});
+
+describe("stopPointDisplay (PRE-6 story 4.2, points hors placement)", () => {
+  const occurrences = [occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("D", "AFTER_TOUR")];
+
+  it("puts each point p ≥ 1 under its anchor and the AFTER_TOUR position 0 point after the Circuit", () => {
+    const afterA: StopPoint = { id: "a", scope: "BEFORE_TOUR", position: 1 };
+    const afterC: StopPoint = { id: "c", scope: "IN_TOUR", position: 2 };
+    const afterCircuit: StopPoint = { id: "t", scope: "AFTER_TOUR", position: 0 };
+    const display = stopPointDisplay(occurrences, [afterA, afterC, afterCircuit]);
+    expect([...display.byOccurrenceId.entries()]).toEqual([
+      ["A", afterA],
+      ["C", afterC],
+    ]);
+    expect(display.afterCircuit).toBe(afterCircuit);
+  });
+
+  it("renders no point for a head-of-scope or out-of-range location", () => {
+    const display = stopPointDisplay(occurrences, [
+      { id: "x", scope: "IN_TOUR", position: 0 },
+      { id: "y", scope: "BEFORE_TOUR", position: 3 },
+    ]);
+    expect(display.byOccurrenceId.size).toBe(0);
+    expect(display.afterCircuit).toBeNull();
+  });
+});
+
+describe("withoutStopPoint (PRE-6 story 4.2)", () => {
+  const points: StopPoint[] = [
+    { id: "a", scope: "BEFORE_TOUR", position: 1 },
+    { id: "b", scope: "IN_TOUR", position: 1 },
+  ];
+
+  it("removes the point by id", () => {
+    expect(withoutStopPoint(points, "a")).toEqual([points[1]]);
+  });
+
+  it("returns the same list (identity) for an unknown id", () => {
+    expect(withoutStopPoint(points, "zz")).toBe(points);
   });
 });

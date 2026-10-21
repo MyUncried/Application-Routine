@@ -266,6 +266,14 @@ describe("strings", () => {
     });
   });
 
+  it("exposes the pause modification and removal texts (PRE-6 story 4.2, `8328:29133`, `8328:33689`)", () => {
+    expect(strings.screens.composition.pauses).toEqual({
+      modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
+      removeRecovery: "Retirer la récupération",
+      removeStopPoint: "Retirer le point d’arrêt",
+    });
+  });
+
   it("exposes the exact local Composition empty-summary label (PRE-6 story 1.3, D-399 : « — min », no exercise count)", () => {
     expect(strings.screens.composition.summary.empty).toBe("— min");
   });

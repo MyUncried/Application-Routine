@@ -397,6 +397,14 @@ export const fr = {
         recoveryWheelTitle: "Durée de récupération",
         selectedHint: "Un toucher retire cet ajout.",
       },
+      // PRE-6 (story 4.2, Figma `8328:29428`, `8328:29133`, `8328:33689`) : modification et retrait
+      // d’une récupération ou d’un point d’arrêt — nom du bouton « Récupération
+      // {durée}, toucher pour modifier », bulles « Retirer » et actions accessibles du même nom.
+      pauses: {
+        modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
+        removeRecovery: "Retirer la récupération",
+        removeStopPoint: "Retirer le point d’arrêt",
+      },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       summary: {
         // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
