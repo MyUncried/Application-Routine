@@ -2240,13 +2240,23 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
     expect(zIndexOf("composition-tour-section")).toBeUndefined();
 
+    const rowBackground = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor;
+    expect(rowBackground("composition-activity-ex-1")).toBe(colors.background);
+    expect(rowBackground("composition-activity-core")).toBe(colors.tourSurface);
+
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    // La rangée soulevée, restée à sa place, ne masque plus la voisine qui remonte dans la place libérée.
+    expect(rowBackground("composition-activity-ex-1")).toBe("transparent");
     expect(zIndexOf("composition-zone-before-tour")).toBe(1);
     expect(zIndexOf("composition-tour-section")).toBeUndefined();
     expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
     fireEvent(screen.getByTestId("composition-activity-ex-1"), "responderTerminate", {});
 
+    expect(rowBackground("composition-activity-ex-1")).toBe(colors.background);
+
     fireEvent(screen.getByTestId("composition-exercise-row-core"), "longPress");
+    expect(rowBackground("composition-activity-core")).toBe("transparent");
     expect(zIndexOf("composition-tour-section")).toBe(1);
     expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
     expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();

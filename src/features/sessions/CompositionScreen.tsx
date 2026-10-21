@@ -2936,8 +2936,15 @@ function CompositionActivityRow({
         // Activité `BEFORE_TOUR`/`AFTER_TOUR`, qui repose elle-même sur un
         // fond blanc.
         {
-          backgroundColor:
-            activity.structuralPosition === "IN_TOUR" ? colors.tourSurface : colors.background,
+          // Correctif 2.3b (retour Hermann 21/10/2026) : la rangée soulevée, au premier plan
+          // (`zIndex`) mais restée à sa place d'origine (seuls carte, ligne et repère suivent le
+          // doigt), devient transparente ; sinon son fond opaque masque la voisine qui remonte dans
+          // la place libérée. Aucun balayage n'est possible pendant le glisser.
+          backgroundColor: isDragged
+            ? "transparent"
+            : activity.structuralPosition === "IN_TOUR"
+              ? colors.tourSurface
+              : colors.background,
         },
         isDragged ? styles.activityRowContainerDragged : null,
         // PRE-6 (story 2.3b) : le bloc entier (carte, ligne, repère du rail) libère la place visée.
