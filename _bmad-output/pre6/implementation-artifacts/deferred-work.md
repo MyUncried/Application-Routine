@@ -15,3 +15,6 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-3-1-en-tete-du-circuit-et-compteur.md`
   summary: Retirer l'icône `icon-tour` (KodjoIcon, manifeste) et le jeton `dimensions.compositionTourControl`, sans usage depuis le retrait de `TourCard`.
   evidence: `tokens.ts` verrouillé ; à regrouper avec les autres jetons orphelins de PRE-6.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-3b-reorganisation-animee-au-glisser.md`
+  summary: Test épinglant le nombre de rendus de `CompositionScreen` pendant un glisser (re-rendu seulement au changement d'emplacement).
+  evidence: Revue 2.3b (verification-gap) ; comportement présent, non verrouillé par un test.

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { AccessibilityInfo, Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
+import { AccessibilityInfo, Animated, Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
@@ -80,6 +80,11 @@ export type CircuitHeaderProps = {
    * interactif, masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran.
    */
   readonly isAttenuated?: boolean;
+  /**
+   * PRE-6 story 2.3b : décalage vertical animé (pilote natif) — l'en-tête suit le bord haut du
+   * conteneur Circuit pendant le glisser d'une carte. Translation seule : `onLayout` est inchangé.
+   */
+  readonly translateY?: Animated.Value;
   readonly testID: string;
 };
 
@@ -133,12 +138,17 @@ export function CircuitHeader({
   volumesFocusRequest = 0,
   onLayout,
   isAttenuated = false,
+  translateY,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
   return (
-    <View
-      style={[styles.row, isAttenuated ? styles.attenuated : null]}
+    <Animated.View
+      style={[
+        styles.row,
+        isAttenuated ? styles.attenuated : null,
+        translateY !== undefined ? { transform: [{ translateY }] } : null,
+      ]}
       onLayout={onLayout}
       pointerEvents={isAttenuated ? "none" : "auto"}
       accessibilityElementsHidden={isAttenuated}
@@ -170,7 +180,7 @@ export function CircuitHeader({
         natureFocusRequest={natureFocusRequest}
         testID={`${testID}-counter`}
       />
-    </View>
+    </Animated.View>
   );
 }
 

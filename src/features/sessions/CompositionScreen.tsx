@@ -4,6 +4,7 @@ import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "r
 import {
   AccessibilityInfo,
   ActivityIndicator,
+  Animated,
   BackHandler,
   Keyboard,
   Platform,
@@ -84,11 +85,15 @@ import {
   clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
+  NO_DRAG_SHIFTS,
+  resolveDragShifts,
   resolveDropTarget,
   resolveStepTarget,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
+  type DragShifts,
+  type DropTarget,
   type StepDirection,
 } from "@/features/sessions/compositionGesture";
 import { ActivityRecoveryLine } from "@/features/sessions/ActivityRecoveryLine";
@@ -128,6 +133,7 @@ import { measureAnchor } from "@/features/sessions/measureAnchor";
 import { RemovalBubble, type RemovalBubbleAnchor } from "@/features/sessions/RemovalBubble";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { useAnimatedShift } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
@@ -135,6 +141,7 @@ import { strings } from "@/shared/i18n";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * Champ numérique actif — un seul à la fois (CIR-10) : roulettes des bornes, ou stepper révélé
@@ -245,7 +252,6 @@ function useLabelsReferential(
   }, [activityDefinitionService, refreshToken]);
   return labels;
 }
-
 
 /**
  * Recette 3 (T-49, EXT-R3-2) : valeurs reprises de la zone de contexte de l’éditeur
@@ -468,9 +474,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
   const [draggedActivityId, setDraggedActivityId] = useState<string | null>(null);
+  /**
+   * PRE-6 (story 2.3b) : réorganisation animée pendant le glisser, en UN seul état mis à jour par
+   * une seule écriture à chaque transition (début, changement d'emplacement, dépôt, annulation) —
+   * aucun ordre implicite entre plusieurs `setState`. Voir `DragShiftSession`.
+   */
+  const [dragSession, setDragSession] = useState<DragShiftSession>(IDLE_DRAG_SESSION);
+  /** Hauteur mesurée du conteneur du Circuit ; `0` tant qu'il n'est pas mesuré (fond statique). */
+  const [circuitMeasuredHeight, setCircuitMeasuredHeight] = useState(0);
+  // « Réduire les animations » (D-7) : décalages immédiats.
+  const reduceMotion = useReduceMotion();
   // PRE-6 (story 2.3) : déplacement vers un Circuit de Séries en attente de confirmation de perte
   // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
+  /**
+   * Aperçu EFFECTIF (story 2.3b) : un aperçu périmé est ignoré au rendu — l'occurrence glissée a
+   * quitté le brouillon, ou l'aperçu survit sans geste en cours ni dialogue de perte en attente.
+   * Ses décalages reviennent alors en douceur (`animated` vaut `true` dans ces états). Dérivé au
+   * rendu plutôt que réinitialisé par un effet ; l'état est remplacé au prochain glisser, et une
+   * carte démontée pendant son glisser annule le geste (`onDragCancel`), ce qui le vide.
+   */
+  const storedPreview = dragSession.preview;
+  const dragPreview =
+    storedPreview !== null &&
+    draft.exercises.some((exercise) => exercise.id === storedPreview.activityId) &&
+    (draggedActivityId !== null || pendingCircuitEntry !== null)
+      ? storedPreview
+      : null;
   // PRE-6 (story 3.2, CE-CIR-02) : conversion Tours → Séries avec perte en attente de confirmation.
   // Le garde-fou `ref` n'applique qu'une conversion, même sur un double appui de « Confirmer ».
   const [pendingNatureChange, setPendingNatureChange] = useState<CircuitNature | null>(null);
@@ -741,6 +771,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setOpenOverlay(null);
     setPendingNatureChange(null);
     setPendingCircuitEntry(null);
+    // Story 2.3b : un aperçu conservé pour le dialogue de perte abandonné revient en douceur.
+    setDragSession((current) => endDragSession(current, true));
     setIsAddActivityTreeOpen(false);
     setRevealedActionsId(null);
     setRecoveryWheelOccurrenceId(null);
@@ -1137,6 +1169,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const { y, height } = event.nativeEvent.layout;
     tourLayoutRef.current = { top: y, height };
     setCircuitSectionTop(y);
+    setCircuitMeasuredHeight(height);
   }, []);
 
   /**
@@ -1198,10 +1231,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * conservés, sans message.
    */
   const moveActivityTo = useCallback(
-    (activityId: string, zone: StructuralPosition, index: number) => {
+    (activityId: string, zone: StructuralPosition, index: number): "APPLIED" | "REFUSED" | "PENDING" => {
       const plan = planOccurrenceMove(draft, { activityId, zone, index });
       if (plan === null) {
-        return;
+        return "REFUSED";
       }
       if (plan.losses.length > 0) {
         // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
@@ -1209,24 +1242,110 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // PRE-6 (story 3.1, RC-4) : un dialogue de décision referme le compteur révélé.
         closeCircuitCounter();
         setPendingCircuitEntry({ activityId, zone, index, targetCount: plan.targetCount });
-        return;
+        return "PENDING";
       }
       updateDraft(plan.patch);
+      return "APPLIED";
     },
     [closeCircuitCounter, draft, updateDraft],
   );
 
+  /**
+   * Dépôt. PRE-6 (story 2.3b) : l'emplacement est calculé sur la géométrie FIGÉE au début du geste
+   * (`frozenDropSlot`), exactement comme l'aperçu — le dépôt applique donc l'emplacement montré,
+   * même si une mesure `onLayout` a changé pendant le geste. Repli sur la géométrie courante
+   * seulement sans aperçu (aucun relevé de début de geste).
+   *
+   * Ordre explicite : fin de l'état soulevé, déplacement, puis UNE écriture de la session —
+   * appliqué : décalages remis à 0 sans animation dans le rendu de la nouvelle disposition (aucun
+   * saut) ; refusé : retour en douceur ; confirmation de perte : l'aperçu est CONSERVÉ pendant le
+   * dialogue (« Annuler » le ramène en douceur, « Confirmer » le remet à 0 avec la disposition).
+   */
   const handleDropActivity = useCallback(
     (activity: SessionDraftExercise, translationY: number) => {
-      const target = resolveDropTarget(
-        buildDragLayout(),
-        activity.id,
-        activityAbsoluteCenterY(activity) + translationY,
-      );
-      moveActivityTo(activity.id, target.zone, target.index);
+      const frozen = dragPreview !== null && dragPreview.activityId === activity.id ? frozenDropSlot(dragPreview, translationY) : null;
+      const destination =
+        frozen ?? resolveDropTarget(buildDragLayout(), activity.id, activityAbsoluteCenterY(activity) + translationY);
+      handleDragStart(null);
+      const outcome = moveActivityTo(activity.id, destination.zone, destination.index);
+      if (outcome === "PENDING") {
+        setDragSession((current) =>
+          current.preview === null ? current : { ...current, preview: { ...current.preview, slot: destination }, animated: true },
+        );
+      } else {
+        setDragSession((current) => endDragSession(current, outcome === "REFUSED"));
+      }
     },
-    [activityAbsoluteCenterY, buildDragLayout, moveActivityTo],
+    [activityAbsoluteCenterY, buildDragLayout, dragPreview, handleDragStart, moveActivityTo],
   );
+
+  /**
+   * PRE-6 (story 2.3b) : début (relevé des positions, sans décalage) et fin (`null` : décalages
+   * remis à 0, en douceur sauf dépôt appliqué) du glisser d'une carte.
+   */
+  const handleRowDragStart = useCallback(
+    (activityId: string | null) => {
+      if (activityId === null) {
+        setDragSession((current) => endDragSession(current, true));
+      } else {
+        const originLayout = buildDragLayout();
+        setDragSession({
+          preview: { activityId, originLayout, slot: null },
+          animated: true,
+          circuitHeight: originLayout.tourBottom - originLayout.tourTop,
+        });
+      }
+      handleDragStart(activityId);
+    },
+    [buildDragLayout, handleDragStart],
+  );
+
+  /**
+   * PRE-6 (story 2.3b) : emplacement d'insertion visé pendant le glisser — `frozenDropSlot`, sur
+   * la géométrie figée au début du geste, le même calcul que le dépôt (`handleDropActivity`).
+   * Aucune mutation du brouillon ; l'état ne change que si l'emplacement change.
+   */
+  const handleDragMove = useCallback((activity: SessionDraftExercise, translationY: number) => {
+    setDragSession((current) => {
+      const preview = current.preview;
+      if (preview === null || preview.activityId !== activity.id) {
+        return current;
+      }
+      const slot = frozenDropSlot(preview, translationY);
+      if (slot === null || (preview.slot !== null && preview.slot.zone === slot.zone && preview.slot.index === slot.index)) {
+        return current;
+      }
+      return { ...current, preview: { ...preview, slot } };
+    });
+  }, []);
+
+  /**
+   * Décalages qui montrent la disposition du dépôt à l'emplacement visé (`resolveDragShifts`,
+   * fonction pure) : cartes, bords du Circuit (amendement Hermann du 21/10/2026 : il s'agrandit ou
+   * se rétracte pendant le geste), ligne après le Circuit.
+   */
+  const circuitNatureForShifts = draft.circuitNature;
+  const dragShifts = useMemo<DragShifts>(() => {
+    if (dragPreview === null || dragPreview.slot === null) {
+      return NO_DRAG_SHIFTS;
+    }
+    const insertionHeight = predictedInsertionHeight(draft, dragPreview, dragPreview.slot, {
+      circuitNature: circuitNatureForShifts,
+      tourRepeatCount,
+    });
+    return resolveDragShifts(
+      dragPreview.originLayout,
+      dragPreview.activityId,
+      dragPreview.slot,
+      DRAG_SHIFT_GAPS,
+      insertionHeight,
+    );
+  }, [circuitNatureForShifts, dragPreview, draft, tourRepeatCount]);
+  const animateDragShifts = dragSession.animated && !reduceMotion;
+  const circuitTopShift = useAnimatedShift(dragShifts.circuitTop, animateDragShifts);
+  const circuitBottomShift = useAnimatedShift(dragShifts.circuitBottom, animateDragShifts);
+  const afterCircuitShift = useAnimatedShift(dragShifts.afterCircuit, animateDragShifts);
+  const endShift = useAnimatedShift(dragShifts.end, animateDragShifts);
 
   // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre » — une position dans la
   // séquence affichée, en franchissant les limites du Circuit, mêmes règles que le glisser.
@@ -1547,8 +1666,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
           onRevealActions={handleRevealActions}
-          onDragStart={handleDragStart}
+          onDragStart={handleRowDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDropActivity}
+          dragShifts={dragShifts}
+          animateDragShifts={animateDragShifts}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1563,19 +1685,44 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * occurrences `IN_TOUR` (CE-T02-01). PRE-6 (story 3.1, AD-41, Figma `8328:28667`) :
          * `CircuitHeader` remplace `TourCard` et sa roulette du compte.
          */}
-        <View style={styles.tourSectionContainer} onLayout={handleTourLayout} testID="composition-tour-section">
+        <View
+          style={[
+            styles.tourSectionContainer,
+            // Story 2.3b : tant que le Circuit n'est pas mesuré, fond statique du conteneur.
+            circuitMeasuredHeight > 0 ? null : styles.tourSectionStaticSurface,
+          ]}
+          onLayout={handleTourLayout}
+          testID="composition-tour-section"
+        >
+          {/* PRE-6 (story 2.3b, amendement du 21/10/2026) : fond du conteneur mesuré, qui suit ses
+              bords pendant le glisser — voir `CircuitSurface`. */}
+          {circuitMeasuredHeight > 0 ? (
+            <CircuitSurface
+              top={circuitTopShift}
+              bottom={circuitBottomShift}
+              dragHeight={dragSession.circuitHeight}
+              testID="composition-tour-section-surface"
+            />
+          ) : null}
           {/* Zone propre au conteneur Circuit — voir `CounterOutsideZone`. */}
           {isCircuitControl(openOverlay) ? (
             <CounterOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-counter-outside-section" />
           ) : null}
           {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
               déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
-          <SequenceMarker
-            kind="ring"
-            centerY={CIRCUIT_MARKER_CENTER_Y}
-            contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
-            testID="composition-sequence-marker-circuit"
-          />
+          {/* PRE-6 (story 2.3b) : l'anneau suit le bord haut du Circuit pendant le glisser. */}
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { transform: [{ translateY: circuitTopShift }] }]}
+            testID="composition-sequence-marker-circuit-track"
+          >
+            <SequenceMarker
+              kind="ring"
+              centerY={CIRCUIT_MARKER_CENTER_Y}
+              contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
+              testID="composition-sequence-marker-circuit"
+            />
+          </Animated.View>
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
@@ -1594,6 +1741,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             volumesFocusRequest={volumesFocusRequest}
             // PRE-6 (story 4.1) : compteur, pastille et œil atténués et inactifs en placement.
             isAttenuated={isPlacementActive}
+            // PRE-6 (story 2.3b) : l'en-tête suit le bord haut du Circuit pendant le glisser.
+            translateY={circuitTopShift}
             onLayout={(event) => {
               const { y, height } = event.nativeEvent.layout;
               setCircuitHeaderLayout((current) =>
@@ -1615,8 +1764,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onRowLayout={handleRowLayout}
             onEdit={handleEditActivity}
             onRevealActions={handleRevealActions}
-            onDragStart={handleDragStart}
+            onDragStart={handleRowDragStart}
+            onDragMove={handleDragMove}
             onDragEnd={handleDropActivity}
+            dragShifts={dragShifts}
+            animateDragShifts={animateDragShifts}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
             canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1641,10 +1793,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {/* PRE-6 (story 4.2, `8328:29428`) : hors placement, point « après le Circuit » sur une ligne
             structurelle sous le conteneur du Circuit. */}
         {placement === null && displayedStopPoints.afterCircuit !== null ? (
-          <AfterCircuitStopPointLine
-            stopPoint={displayedStopPoints.afterCircuit}
-            pauses={pauseRowContext}
-          />
+          // PRE-6 (story 2.3b) : la ligne suit le bas du Circuit pendant le glisser.
+          <Animated.View
+            style={{ transform: [{ translateY: afterCircuitShift }] }}
+            testID="composition-after-circuit-line-track"
+          >
+            <AfterCircuitStopPointLine
+              stopPoint={displayedStopPoints.afterCircuit}
+              pauses={pauseRowContext}
+            />
+          </Animated.View>
         ) : null}
 
         <ActivityZoneList
@@ -1660,8 +1818,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onRowLayout={handleRowLayout}
           onEdit={handleEditActivity}
           onRevealActions={handleRevealActions}
-          onDragStart={handleDragStart}
+          onDragStart={handleRowDragStart}
+          onDragMove={handleDragMove}
           onDragEnd={handleDropActivity}
+          dragShifts={dragShifts}
+          animateDragShifts={animateDragShifts}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1670,15 +1831,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           pauses={pauseRowContext}
         />
 
-        <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
-          <BoundaryStep
-            label={composition.finalPhase.label}
-            value={formatDurationRowValue(draft.finalPhaseSeconds)}
-            isOpen={openOverlay === "finalPhase"}
-            onPress={() => toggleOverlay("finalPhase")}
-            testID="composition-boundary-final-phase"
-          />
-        </PlacementAttenuation>
+        {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
+        <Animated.View style={{ transform: [{ translateY: endShift }] }} testID="composition-boundary-final-phase-track">
+          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
+            <BoundaryStep
+              label={composition.finalPhase.label}
+              value={formatDurationRowValue(draft.finalPhaseSeconds)}
+              isOpen={openOverlay === "finalPhase"}
+              onPress={() => toggleOverlay("finalPhase")}
+              testID="composition-boundary-final-phase"
+            />
+          </PlacementAttenuation>
+        </Animated.View>
 
         {/*
          * PRE-6 (story 3.2) — Android / web : panneau du choix de nature, hébergé par le contenu
@@ -1895,7 +2059,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           kind="MOVE"
           seriesCount={pendingCircuitEntry.targetCount}
           exerciseCount={1}
-          onCancel={() => setPendingCircuitEntry(null)}
+          onCancel={() => {
+            setPendingCircuitEntry(null);
+            // Story 2.3b : l'aperçu conservé pendant le dialogue revient en douceur.
+            setDragSession((current) => endDragSession(current, true));
+          }}
           onConfirm={() => {
             // Déplacement rejoué sur le brouillon courant : une modification survenue pendant
             // le dialogue n'est jamais écrasée.
@@ -1904,6 +2072,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             if (plan !== null) {
               updateDraft(plan.patch);
             }
+            // Story 2.3b : appliqué → remise à 0 sans animation avec la nouvelle disposition.
+            setDragSession((current) => endDragSession(current, plan === null));
           }}
         />
       ) : null}
@@ -2017,7 +2187,12 @@ type ActivityZoneListProps = {
   readonly onEdit: (activityId: string) => void;
   readonly onRevealActions: (activityId: string | null) => void;
   readonly onDragStart: (activityId: string | null) => void;
+  /** PRE-6 (story 2.3b) : position de la carte glissée, à chaque mouvement du doigt. */
+  readonly onDragMove: (activity: SessionDraftExercise, translationY: number) => void;
   readonly onDragEnd: (activity: SessionDraftExercise, translationY: number) => void;
+  /** PRE-6 (story 2.3b) : décalage de chaque carte pendant le glisser (absente = 0). */
+  readonly dragShifts: DragShifts;
+  readonly animateDragShifts: boolean;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
   /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
@@ -2171,7 +2346,10 @@ function ActivityZoneList({
   onEdit,
   onRevealActions,
   onDragStart,
+  onDragMove,
   onDragEnd,
+  dragShifts,
+  animateDragShifts,
   onDuplicate,
   onDelete,
   canStep,
@@ -2205,10 +2383,12 @@ function ActivityZoneList({
           onHideActions={() => onRevealActions(null)}
           onDragStart={() => onDragStart(activity.id)}
           onDragCancel={() => onDragStart(null)}
-          onDragEnd={(translationY) => {
-            onDragStart(null);
-            onDragEnd(activity, translationY);
-          }}
+          onDragMove={(translationY) => onDragMove(activity, translationY)}
+          // Story 2.3b : le dépôt (`handleDropActivity`) met lui-même fin à l'état soulevé, dans
+          // un ordre explicite avec la session de décalage.
+          onDragEnd={(translationY) => onDragEnd(activity, translationY)}
+          dragShift={dragShifts.rows.get(activity.id) ?? 0}
+          animateDragShift={animateDragShifts}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
@@ -2246,7 +2426,16 @@ type CompositionActivityRowProps = {
   readonly onHideActions: () => void;
   readonly onDragStart: () => void;
   readonly onDragCancel: () => void;
+  /** PRE-6 (story 2.3b) : déplacement vertical courant de la carte glissée. */
+  readonly onDragMove: (translationY: number) => void;
   readonly onDragEnd: (translationY: number) => void;
+  /**
+   * PRE-6 (story 2.3b) : décalage vertical du bloc (carte, ligne de récupération, repère du rail)
+   * pour libérer l'emplacement visé par une AUTRE carte glissée ; `animateDragShift` : transition
+   * douce, sinon immédiate (dépôt appliqué, « Réduire les animations »).
+   */
+  readonly dragShift: number;
+  readonly animateDragShift: boolean;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
@@ -2386,7 +2575,10 @@ function CompositionActivityRow({
   onHideActions,
   onDragStart,
   onDragCancel,
+  onDragMove,
   onDragEnd,
+  dragShift,
+  animateDragShift,
   onDuplicate,
   onDelete,
   onMoveUp,
@@ -2427,6 +2619,24 @@ function CompositionActivityRow({
   }, [cardFocusToken]);
   const translationYRef = useRef(0);
   const isDraggingRef = useRef(false);
+  /**
+   * PRE-6 (story 2.3b) : une carte démontée pendant son glisser (occurrence retirée du brouillon)
+   * annule le geste — sans quoi l'écran garderait un état soulevé et un aperçu périmés.
+   */
+  const onDragCancelRef = useRef(onDragCancel);
+  useEffect(() => {
+    onDragCancelRef.current = onDragCancel;
+  }, [onDragCancel]);
+  useEffect(() => {
+    const dragging = isDraggingRef;
+    const cancel = onDragCancelRef;
+    return () => {
+      if (dragging.current) {
+        dragging.current = false;
+        cancel.current();
+      }
+    };
+  }, []);
   /**
    * `true` dès qu'un balayage horizontal est engagé pendant le geste
    * courant (V2-CAT-01, CE-T03-08) — tant qu'il l'est, le responder n'est
@@ -2553,13 +2763,14 @@ function CompositionActivityRow({
       const { dx, dy } = trackMovement(event);
       if (isDraggingRef.current) {
         setDragTranslationY(dy);
+        onDragMove(dy);
         return;
       }
       if (Math.abs(dx) > Math.abs(dy)) {
         applySwipeMovement(dx);
       }
     },
-    [applySwipeMovement, trackMovement],
+    [applySwipeMovement, onDragMove, trackMovement],
   );
 
   /**
@@ -2661,6 +2872,12 @@ function CompositionActivityRow({
     onEdit();
   }, [areActionsRevealed, onEdit]);
 
+  /**
+   * PRE-6 (story 2.3b) : décalage animé du bloc pendant le glisser d'une autre carte
+   * (`useAnimatedShift` : translation seule, pilote natif, immédiat si `animateDragShift` est faux).
+   */
+  const dragShiftValue = useAnimatedShift(dragShift, animateDragShift);
+
   /** Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. */
   const handleLongPress = useCallback(() => {
     isDraggingRef.current = true;
@@ -2702,7 +2919,7 @@ function CompositionActivityRow({
   );
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.activityRowContainer,
         // VISUAL_CORRECTION (revue indépendante 5753653735, point 6) : le
@@ -2715,6 +2932,8 @@ function CompositionActivityRow({
             activity.structuralPosition === "IN_TOUR" ? colors.tourSurface : colors.background,
         },
         isDragged ? styles.activityRowContainerDragged : null,
+        // PRE-6 (story 2.3b) : le bloc entier (carte, ligne, repère du rail) libère la place visée.
+        { transform: [{ translateY: dragShiftValue }] },
       ]}
       onLayout={onLayout}
       // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : une
@@ -2886,7 +3105,7 @@ function CompositionActivityRow({
         </View>
       ) : null}
 
-    </View>
+    </Animated.View>
   );
 }
 
@@ -2933,6 +3152,63 @@ function occurrenceStopPoint(activity: SessionDraftExercise, pauses: PauseRowCon
     onLongPress: (anchor: View | null) => pauses.onRequestStopPointRemoval(stopPoint.id, activity.id, anchor),
     onRemove: () => pauses.onRemoveStopPoint(stopPoint.id, activity.id),
   };
+}
+
+/**
+ * PRE-6 (story 2.3b, amendement Hermann du 21/10/2026) — fond du conteneur du Circuit, en trois
+ * couches absolues : haut arrondi, bande centrale sans rayon, bas arrondi. Pendant le glisser, la
+ * mise en page reste figée et le Circuit s'agrandit ou se rétracte par translations seules, sur le
+ * pilote natif : le haut suit `top`, le bas suit `bottom`, et la bande est étirée (`scaleY`,
+ * centrée entre les deux bords) de `bottom - top` rapporté à sa hauteur relevée au début du
+ * glisser (`dragHeight` du conteneur moins les deux rayons). Au repos, décalages nuls : la bande
+ * couvre exactement le conteneur entre ses deux arrondis, quelle que soit sa hauteur.
+ */
+function CircuitSurface({
+  top,
+  bottom,
+  dragHeight,
+  testID,
+}: {
+  top: Animated.Value;
+  bottom: Animated.Value;
+  dragHeight: number;
+  testID: string;
+}) {
+  // Base finie et non nulle : la hauteur relevée moins les deux rayons, au moins 1.
+  const bandHeight = Number.isFinite(dragHeight)
+    ? Math.max(1, dragHeight - 2 * dimensions.compositionTourSection.radius)
+    : 1;
+  const bandTransform = useMemo(
+    () => [
+      { translateY: Animated.multiply(Animated.add(top, bottom), 0.5) },
+      {
+        // Jamais négatif : un retrait plus haut que la bande l'écrase à 0 sans la retourner.
+        scaleY: Animated.add(1, Animated.divide(Animated.subtract(bottom, top), bandHeight)).interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolateLeft: "clamp",
+          extrapolateRight: "extend",
+        }),
+      },
+    ],
+    [bandHeight, bottom, top],
+  );
+  return (
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={StyleSheet.absoluteFill}
+      testID={testID}
+    >
+      <Animated.View style={[styles.circuitSurfaceTop, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
+      <Animated.View style={[styles.circuitSurfaceBand, { transform: bandTransform }]} testID={`${testID}-band`} />
+      <Animated.View
+        style={[styles.circuitSurfaceBottom, { transform: [{ translateY: bottom }] }]}
+        testID={`${testID}-bottom`}
+      />
+    </View>
+  );
 }
 
 /**
@@ -3044,6 +3320,82 @@ function CompositionEditState({
  * de relecture.
  */
 const COMPOSITION_ROW_GAP = spacing[6];
+
+/**
+ * PRE-6 (story 2.3b) : session de la réorganisation animée.
+ *
+ * - `preview` : relevé des positions au début du geste (`originLayout`, figé : aucune mesure
+ *   ultérieure n'y entre) et emplacement visé (`slot`, `null` avant le premier mouvement). Il
+ *   survit au geste pendant un dialogue de confirmation de perte.
+ * - `animated` : `false` après un dépôt appliqué (remise à 0 immédiate, dans le rendu de la
+ *   nouvelle disposition) ; `true` sinon (retour en douceur).
+ * - `circuitHeight` : hauteur du Circuit relevée au début du dernier geste, base de l'étirement
+ *   de son fond ; conservée après le geste, le retour en douceur s'en servant encore.
+ */
+type DragShiftSession = {
+  readonly preview: {
+    readonly activityId: string;
+    readonly originLayout: CompositionDragLayout;
+    readonly slot: DropTarget | null;
+  } | null;
+  readonly animated: boolean;
+  readonly circuitHeight: number;
+};
+
+const IDLE_DRAG_SESSION: DragShiftSession = { preview: null, animated: true, circuitHeight: 0 };
+
+/** Fin d'aperçu : décalages remis à 0, en douceur (`animated`) ou immédiatement. */
+function endDragSession(current: DragShiftSession, animated: boolean): DragShiftSession {
+  return current.preview === null && current.animated === animated ? current : { ...current, preview: null, animated };
+}
+
+/**
+ * Emplacement visé sur la géométrie FIGÉE au début du geste : centre relevé de la carte glissée
+ * plus son déplacement vertical, résolu par `resolveDropTarget`. Seule source de l'aperçu ET du
+ * dépôt. `null` si la carte n'avait pas été mesurée.
+ */
+function frozenDropSlot(preview: NonNullable<DragShiftSession["preview"]>, translationY: number): DropTarget | null {
+  const row = preview.originLayout.rows.find((candidate) => candidate.id === preview.activityId);
+  if (row === undefined) {
+    return null;
+  }
+  return resolveDropTarget(preview.originLayout, preview.activityId, row.top + row.height / 2 + translationY);
+}
+
+/**
+ * Hauteur PRÉDITE du bloc glissé dans la zone visée (story 2.3b, point de revue 5) : la carte vaut
+ * 64, ou 70 avec la ligne « durée estimée », qui dépend de la zone (Circuit de Séries : durée de
+ * l'occurrence adaptée à N). L'occurrence telle que le dépôt la produirait est donnée par le même
+ * plan que le dépôt (`planOccurrenceMove`) ; la hauteur mesurée au début du geste est corrigée de
+ * l'écart de carte. La ligne de récupération ne change pas (récupération et point d'arrêt suivent
+ * l'occurrence, ARB-3). Dépôt refusé : `undefined` (hauteur mesurée).
+ */
+function predictedInsertionHeight(
+  draft: SessionDraft,
+  preview: NonNullable<DragShiftSession["preview"]>,
+  slot: DropTarget,
+  context: OccurrenceCircuitContext,
+): number | undefined {
+  const row = preview.originLayout.rows.find((candidate) => candidate.id === preview.activityId);
+  const current = draft.exercises.find((exercise) => exercise.id === preview.activityId);
+  if (row === undefined || current === undefined) {
+    return undefined;
+  }
+  const plan = planOccurrenceMove(draft, { activityId: preview.activityId, zone: slot.zone, index: slot.index });
+  const moved = plan?.patch.exercises?.find((exercise) => exercise.id === preview.activityId);
+  if (moved === undefined) {
+    return undefined;
+  }
+  const cardHeightOf = (exercise: SessionDraftExercise) =>
+    occurrenceCardHeight(formatOccurrenceEstimatedDuration(exercise, context) !== null);
+  return row.height - cardHeightOf(current) + cardHeightOf(moved);
+}
+
+/** Écart entre l'en-tête du Circuit et sa liste d'occurrences (`tourSectionContainer`). */
+const CIRCUIT_SECTION_GAP = spacing[12];
+
+/** PRE-6 (story 2.3b) : écarts qui apparaissent ou disparaissent avec un bloc déplacé. */
+const DRAG_SHIFT_GAPS = { row: COMPOSITION_ROW_GAP, zone: COMPOSITION_ROW_GAP, circuit: CIRCUIT_SECTION_GAP } as const;
 
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
@@ -3306,10 +3658,44 @@ const styles = StyleSheet.create({
     marginHorizontal: -dimensions.compositionTourSection.inset,
     paddingHorizontal: dimensions.compositionTourSection.inset,
     paddingVertical: spacing[12],
+    // PRE-6 (story 2.3b, amendement du 21/10/2026) : le fond bleu est porté par `CircuitSurface`
+    // (trois couches qui suivent les bords pendant le glisser) ; le rayon reste la géométrie de
+    // référence de la structure.
     borderRadius: dimensions.compositionTourSection.radius,
-    backgroundColor: colors.tourSurface,
     minHeight: dimensions.compositionTourSection.closedHeight,
-    gap: spacing[12],
+    gap: CIRCUIT_SECTION_GAP,
+  },
+  // Story 2.3b : fond du conteneur tant qu'il n'est pas mesuré (sans les couches animées).
+  tourSectionStaticSurface: {
+    backgroundColor: colors.tourSurface,
+  },
+  circuitSurfaceTop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: dimensions.compositionTourSection.radius,
+    borderTopLeftRadius: dimensions.compositionTourSection.radius,
+    borderTopRightRadius: dimensions.compositionTourSection.radius,
+    backgroundColor: colors.tourSurface,
+  },
+  circuitSurfaceBand: {
+    position: "absolute",
+    top: dimensions.compositionTourSection.radius,
+    bottom: dimensions.compositionTourSection.radius,
+    left: 0,
+    right: 0,
+    backgroundColor: colors.tourSurface,
+  },
+  circuitSurfaceBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: dimensions.compositionTourSection.radius,
+    borderBottomLeftRadius: dimensions.compositionTourSection.radius,
+    borderBottomRightRadius: dimensions.compositionTourSection.radius,
+    backgroundColor: colors.tourSurface,
   },
   // PRE-6 (story 3.1, RC-4) : zone d'appui extérieur, sous le contenu, qui referme le compteur
   // révélé du Circuit. Positionnée en absolu : hors du flux et de l'écart (`gap`).

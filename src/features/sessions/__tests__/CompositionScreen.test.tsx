@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { AccessibilityInfo, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, Animated, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
 import {
   allFailureParameters,
@@ -1057,11 +1057,31 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary, then the Circuit duration Regular 12 tertiary; the counter on the right", () => {
     renderScreen();
 
-    // REWORK07B : la SEULE surface visuelle est la structure extérieure (fond bleu, rayon 10).
+    // La seule surface visuelle est la structure extérieure (fond bleu, rayon 10). PRE-6 (story 2.3b,
+    // amendement du 21/10/2026) : non mesurée, elle porte un fond statique ; mesurée, le fond est
+    // porté par les trois couches de `CircuitSurface` (haut et bas arrondis, bande centrale), qui
+    // suivent les bords pendant le glisser.
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
     expect(tourSectionStyle.backgroundColor).toBe(colors.tourSurface);
     expect(tourSectionStyle.borderRadius).toBe(10);
+    expect(screen.queryByTestId("composition-tour-section-surface", { includeHiddenElements: true })).toBeNull();
+
+    fireLayout(tourSection, 230, 170);
+    const measuredStyle = StyleSheet.flatten(screen.getByTestId("composition-tour-section").props.style);
+    expect(measuredStyle.backgroundColor).toBeUndefined();
+    expect(measuredStyle.borderRadius).toBe(10);
+    const surface = (part: string) =>
+      StyleSheet.flatten(
+        within(tourSection).getByTestId(`composition-tour-section-surface-${part}`, { includeHiddenElements: true }).props
+          .style,
+      );
+    for (const part of ["top", "band", "bottom"]) {
+      expect(surface(part).backgroundColor).toBe(colors.tourSurface);
+    }
+    expect(surface("top")).toMatchObject({ top: 0, borderTopLeftRadius: 10, borderTopRightRadius: 10 });
+    expect(surface("bottom")).toMatchObject({ bottom: 0, borderBottomLeftRadius: 10, borderBottomRightRadius: 10 });
+    expect(surface("band")).toMatchObject({ top: 10, bottom: 10 });
 
     const header = within(tourSection).getByTestId("composition-circuit-header");
     const headerStyle = StyleSheet.flatten(header.props.style);
@@ -6006,5 +6026,429 @@ describe("CompositionScreen — avertissement d'enchaînement sans pause (PRE-6 
     await waitFor(() =>
       expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/", params: { catalogueSegment: "sessions" } }),
     );
+  });
+});
+
+/**
+ * PRE-6 (story 2.3b, amendement Hermann du 21/10/2026) : réorganisation animée pendant le
+ * glisser. Géométrie injectée (repère du contenu défilant) : A 70–140 et B 150–220 avant le
+ * Circuit ; Circuit 230–400 (liste à 60 dans le conteneur : X 290–360) ; Z 420–490 après le
+ * Circuit. Pas d'un bloc : 70 + écart 6 = 76. Les animations (pilote natif) sont menées à leur
+ * terme par les minuteries simulées.
+ */
+describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-6 story 2.3b)", () => {
+  type Draft = SessionDraftContextValue["draft"];
+  const PITCH = 70 + spacing[6];
+  const probe: { draft: Draft | null; updateDraft: SessionDraftContextValue["updateDraft"] | null } = {
+    draft: null,
+    updateDraft: null,
+  };
+  function DraftProbe() {
+    const value = useContext(SessionDraftContext);
+    useEffect(() => {
+      probe.draft = value?.draft ?? null;
+      probe.updateDraft = value?.updateDraft ?? null;
+    }, [value]);
+    return null;
+  }
+
+  function renderLaidOut(
+    overrides?: Partial<Draft>,
+    { withX = true, withZ = true, a = {} }: { withX?: boolean; withZ?: boolean; a?: Partial<SessionDraftExercise> } = {},
+  ) {
+    const element = (
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper
+              initialExercises={[
+                anActivity("A", "BEFORE_TOUR", { name: "Gainage", ...a }),
+                anActivity("B", "BEFORE_TOUR", { name: "Squats" }),
+                ...(withX ? [anActivity("X", "IN_TOUR", { name: "Pompes" })] : []),
+                ...(withZ ? [anActivity("Z", "AFTER_TOUR", { name: "Fentes" })] : []),
+              ]}
+              draftOverrides={overrides}
+            >
+              <CompositionScreen />
+              <DraftProbe />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>
+    );
+    render(element);
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
+    fireLayout(screen.getByTestId("composition-activity-A"), 0, 70);
+    fireLayout(screen.getByTestId("composition-activity-B"), 80, 70);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    if (withX) {
+      fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
+      fireLayout(screen.getByTestId("composition-activity-X"), 0, 70);
+    }
+    if (withZ) {
+      fireLayout(screen.getByTestId("composition-zone-after-tour"), 420, 70);
+      fireLayout(screen.getByTestId("composition-activity-Z"), 0, 70);
+    }
+  }
+
+  const container = (id: string) => screen.getByTestId(`composition-activity-${id}`);
+  function lift(id: string) {
+    fireEvent(container(id), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "longPress");
+  }
+  function moveTo(id: string, deltaY: number) {
+    fireEvent(container(id), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+  }
+  function release(id: string, deltaY: number) {
+    fireEvent(container(id), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 + deltaY } });
+  }
+  const settle = () =>
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+  const transformOf = (testID: string) =>
+    (StyleSheet.flatten(screen.getByTestId(testID, { includeHiddenElements: true }).props.style).transform ?? []) as Record<string, number>[];
+  const translateY = (testID: string) =>
+    transformOf(testID).reduce((sum, entry) => sum + (entry.translateY ?? 0), 0);
+  const scaleY = (testID: string) => transformOf(testID).find((entry) => entry.scaleY !== undefined)?.scaleY ?? 1;
+  const rowShift = (id: string) => translateY(`composition-activity-${id}`);
+  const order = () => probe.draft!.exercises.map((exercise) => `${exercise.id}:${exercise.structuralPosition}`);
+  const INITIAL_ORDER = ["A:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"];
+  /** Bande centrale du fond du Circuit : hauteur relevée (170) moins les deux rayons (10). */
+  const BAND = 170 - 2 * dimensions.compositionTourSection.radius;
+
+  /**
+   * Sous Jest, une animation sur le pilote natif ne remonte jamais ses valeurs dans les props
+   * observées : les transitions sont rejouées sur le pilote JS (mêmes durée et courbe), et le
+   * choix du pilote natif est vérifié sur les configurations demandées.
+   */
+  const realTiming = Animated.timing;
+  let timingConfigs: Animated.TimingAnimationConfig[] = [];
+  beforeEach(() => {
+    jest.useFakeTimers();
+    timingConfigs = [];
+    jest.spyOn(Animated, "timing").mockImplementation((value, config) => {
+      timingConfigs.push(config);
+      return realTiming(value, { ...config, useNativeDriver: false });
+    });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+  });
+
+  it("vers le bas : B remonte d'un pas dès que A dépasse son milieu, redescend au retour ; aucune mutation pendant le geste", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 40);
+    settle();
+    expect(rowShift("B")).toBe(0);
+
+    // Centre de A = 105 ; +100 → 205, au-delà du milieu de B (185).
+    moveTo("A", 100);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(rowShift("X")).toBe(0);
+    expect(translateY("composition-circuit-header")).toBe(0);
+    expect(order()).toEqual(INITIAL_ORDER);
+
+    moveTo("A", 40);
+    settle();
+    expect(rowShift("B")).toBe(0);
+    expect(order()).toEqual(INITIAL_ORDER);
+  });
+
+  it("le décalage est progressif (animation), pas immédiat", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    act(() => {
+      jest.advanceTimersByTime(16 * 3);
+    });
+    const midway = rowShift("B");
+    expect(midway).toBeLessThan(0);
+    expect(midway).toBeGreaterThan(-PITCH);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    // Pilote natif, 150–200 ms.
+    expect(timingConfigs.length).toBeGreaterThan(0);
+    for (const config of timingConfigs) {
+      expect(config.useNativeDriver).toBe(true);
+      expect(config.duration).toBeGreaterThanOrEqual(150);
+      expect(config.duration).toBeLessThanOrEqual(200);
+    }
+  });
+
+  it("vers le haut : B au-dessus de A → A descend d'un pas", () => {
+    renderLaidOut();
+    lift("B");
+    // Centre de B = 185 ; -100 → 85, au-dessus du milieu de A (105).
+    moveTo("B", -100);
+    settle();
+    expect(rowShift("A")).toBe(PITCH);
+  });
+
+  it("entrée dans le Circuit : il s'agrandit d'un pas (bord haut, en-tête et anneau remontent avec B), la suite reste en place", () => {
+    renderLaidOut();
+    lift("A");
+    // 105 + 200 = 305 : dans le Circuit (230–400), au-dessus du milieu de X (325).
+    moveTo("A", 200);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(rowShift("X")).toBe(0);
+    expect(rowShift("Z")).toBe(0);
+    expect(translateY("composition-circuit-header")).toBe(-PITCH);
+    expect(translateY("composition-sequence-marker-circuit-track")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
+    // Bande centrale : étirée de PITCH, centrée entre les deux bords.
+    expect(translateY("composition-tour-section-surface-band")).toBe(-PITCH / 2);
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + PITCH / BAND, 6);
+    expect(order()).toEqual(INITIAL_ORDER);
+  });
+
+  it("entrée dans le Circuit par le bas : le bas du Circuit et la ligne après le Circuit descendent d'un pas", () => {
+    renderLaidOut({ stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }] });
+    fireLayout(screen.getByTestId("composition-zone-after-tour"), 440, 70);
+    lift("Z");
+    // Centre de Z = 475 ; -100 → 375 : dans le Circuit, sous le milieu de X.
+    moveTo("Z", -100);
+    settle();
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(PITCH);
+    expect(translateY("composition-after-circuit-line-track")).toBe(PITCH);
+    expect(translateY("composition-circuit-header")).toBe(0);
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + PITCH / BAND, 6);
+    expect(order()).toEqual(INITIAL_ORDER);
+  });
+
+  it("sortie du Circuit : il se rétracte, ce qui le suit remonte", () => {
+    renderLaidOut();
+    lift("X");
+    // Centre de X = 325 ; +200 → 525 : après le Circuit, sous le milieu de Z (455).
+    moveTo("X", 200);
+    settle();
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    // Circuit vidé : la carte et l'écart en-tête / liste (12) disparaissent.
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(-(70 + spacing[12]));
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 - (70 + spacing[12]) / BAND, 6);
+    // X va sous Z : Z remonte de toute la hauteur libérée dans le Circuit.
+    expect(rowShift("Z")).toBe(-(70 + spacing[12]));
+  });
+
+  it("dépôt appliqué : nouvelle disposition, décalages remis à 0 sans animation", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 200);
+    settle();
+    release("A", 200);
+
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    // Sans avancer le temps : aucune transition vers la nouvelle disposition.
+    expect(rowShift("B")).toBe(0);
+    expect(translateY("composition-circuit-header")).toBe(0);
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    expect(scaleY("composition-tour-section-surface-band")).toBe(1);
+  });
+
+  it("geste interrompu : les cartes reviennent en douceur, brouillon inchangé", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    settle();
+    fireEvent(container("A"), "responderTerminate", {});
+    act(() => {
+      jest.advanceTimersByTime(16 * 3);
+    });
+    expect(rowShift("B")).toBeLessThan(0);
+    expect(rowShift("B")).toBeGreaterThan(-PITCH);
+    settle();
+    expect(rowShift("B")).toBe(0);
+    expect(order()).toEqual(INITIAL_ORDER);
+  });
+
+  it("dépôt refusé (point d'arrêt sur un emplacement interdit) : retour en douceur, ordre inchangé", () => {
+    renderLaidOut({ stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] }, { withX: false, withZ: false });
+    lift("A");
+    moveTo("A", 100);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    release("A", 100);
+    expect(rowShift("B")).toBe(-PITCH);
+    settle();
+    expect(rowShift("B")).toBe(0);
+    expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR"]);
+    expect(probe.draft!.stopPoints).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+  });
+
+  /** Séries, N = 2 : A (3 séries) entrant dans le Circuit perd une série → dialogue de perte. */
+  function dragAIntoSeriesCircuit() {
+    renderLaidOut({ circuitNature: "SERIES", tourRepeatCount: 2 }, { a: { executionParameters: durationParameters(30, 3) } });
+    lift("A");
+    moveTo("A", 200);
+    settle();
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    release("A", 200);
+    expect(screen.getByTestId("circuit-entry-confirm-card")).toBeTruthy();
+  }
+
+  it("confirmation de perte : l'aperçu reste affiché pendant le dialogue ; Annuler le ramène en douceur, brouillon inchangé", () => {
+    dragAIntoSeriesCircuit();
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    expect(order()).toEqual(INITIAL_ORDER);
+
+    fireEvent.press(screen.getByLabelText(composition.circuitEntryConfirmModal.cancel));
+    act(() => {
+      jest.advanceTimersByTime(16 * 3);
+    });
+    expect(rowShift("B")).toBeLessThan(0);
+    expect(rowShift("B")).toBeGreaterThan(-PITCH);
+    settle();
+    expect(rowShift("B")).toBe(0);
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    expect(order()).toEqual(INITIAL_ORDER);
+  });
+
+  it("confirmation de perte : Confirmer applique la nouvelle disposition et remet les décalages à 0 sans animation", () => {
+    dragAIntoSeriesCircuit();
+    fireEvent.press(screen.getByLabelText(composition.circuitEntryConfirmModal.confirm));
+
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    expect(rowShift("B")).toBe(0);
+    expect(translateY("composition-circuit-header")).toBe(0);
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+  });
+
+  it("géométrie figée : une mesure onLayout pendant le geste ne change ni l'aperçu ni le dépôt", () => {
+    renderLaidOut();
+    lift("A");
+    // B « re-mesurée » bien plus bas pendant le geste : sur la géométrie courante, A resterait en tête.
+    fireLayout(screen.getByTestId("composition-activity-B"), 300, 70);
+    moveTo("A", 100);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    release("A", 100);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+  });
+
+  it("la carte soulevée suit le doigt (dy) après un changement d'emplacement ; son bloc n'est pas décalé", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(rowShift("A")).toBe(0);
+    expect(translateY("composition-exercise-row-A")).toBe(100);
+    moveTo("A", 130);
+    expect(translateY("composition-exercise-row-A")).toBe(130);
+    expect(translateY("composition-sequence-marker-A")).toBe(130);
+    expect(rowShift("A")).toBe(0);
+  });
+
+  it("second glisser après un dépôt appliqué : les décalages sont de nouveau animés", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    settle();
+    release("A", 100);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    expect(rowShift("B")).toBe(0);
+
+    // Nouvelle disposition mesurée : B 70–140, A 150–220.
+    fireLayout(screen.getByTestId("composition-activity-B"), 0, 70);
+    fireLayout(screen.getByTestId("composition-activity-A"), 80, 70);
+    lift("B");
+    moveTo("B", 100);
+    act(() => {
+      jest.advanceTimersByTime(16 * 3);
+    });
+    expect(rowShift("A")).toBeLessThan(0);
+    expect(rowShift("A")).toBeGreaterThan(-PITCH);
+    settle();
+    expect(rowShift("A")).toBe(-PITCH);
+  });
+
+  it("Fin de séance : décalée du net des pas — hors Circuit vers un Circuit vide (écart 12 au lieu de 6)", () => {
+    renderLaidOut(undefined, { withX: false });
+    // Circuit vide : 230–284 ; Z après lui.
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 54);
+    fireLayout(screen.getByTestId("composition-zone-after-tour"), 290, 70);
+    lift("B");
+    // Centre de B = 185 ; +70 → 255, dans le Circuit.
+    moveTo("B", 70);
+    settle();
+    const net = 70 + spacing[12] - PITCH;
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(net);
+    expect(rowShift("Z")).toBe(net);
+    expect(translateY("composition-boundary-final-phase-track")).toBe(net);
+    // Pas égaux (entre deux cartes) : la Fin ne bouge pas.
+    moveTo("B", -100);
+    settle();
+    expect(translateY("composition-boundary-final-phase-track")).toBe(0);
+  });
+
+  it("hauteur prédite : une carte qui gagne la ligne « durée estimée » dans le Circuit de Séries élargit l'emplacement", () => {
+    // Répétitions avec cadence, séries [10, échec] : hors Circuit, durée non estimable (carte 64) ;
+    // en Circuit de Séries N = 1, seule la série 10 est jouée → durée estimée (carte 70, +6).
+    renderLaidOut(
+      { circuitNature: "SERIES", tourRepeatCount: 1 },
+      {
+        a: {
+          executionParameters: variableParameters({
+            mode: "REPETITIONS",
+            cadenceBeepIntervalSeconds: 2,
+            rows: [
+              [10, 0],
+              ["FAILURE", 0],
+            ],
+          }),
+        },
+      },
+    );
+    lift("A");
+    moveTo("A", 200);
+    settle();
+    const growth = 70 - 64;
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    expect(rowShift("X")).toBe(growth);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(growth);
+    expect(rowShift("Z")).toBe(growth);
+    expect(translateY("composition-boundary-final-phase-track")).toBe(growth);
+  });
+
+  it("aperçu périmé : l'occurrence glissée quitte le brouillon pendant le geste → décalages remis à 0, geste annulé", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    settle();
+    expect(rowShift("B")).toBe(-PITCH);
+    act(() => {
+      probe.updateDraft!((current) => ({
+        ...current,
+        exercises: current.exercises.filter((exercise) => exercise.id !== "A"),
+      }));
+    });
+    settle();
+    expect(rowShift("B")).toBe(0);
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+  });
+
+  it("« Réduire les animations » : décalages immédiats", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    renderLaidOut();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    lift("A");
+    moveTo("A", 200);
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    fireEvent(container("A"), "responderTerminate", {});
+    expect(rowShift("B")).toBe(0);
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
   });
 });

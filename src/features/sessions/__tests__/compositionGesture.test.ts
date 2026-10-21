@@ -5,6 +5,8 @@ import {
   clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
+  NO_DRAG_SHIFTS,
+  resolveDragShifts,
   resolveDropTarget,
   resolveDropZone,
   resolveStepTarget,
@@ -217,5 +219,160 @@ describe("resolveStepTarget (Monter / Descendre dans la séquence affichée)", (
     expect(resolveStepTarget(items, "b1", "UP")).toBeNull();
     expect(resolveStepTarget(items, "a1", "DOWN")).toBeNull();
     expect(resolveStepTarget(items, "x", "DOWN")).toBeNull();
+  });
+});
+
+/**
+ * PRE-6 (story 2.3b, amendement du 21/10/2026) : décalages de la réorganisation animée pendant le
+ * glisser. Trois cartes avant le Circuit (A 0–70, B 80–150, C 160–230 ; écart entre cartes 10 :
+ * pas = 80), Circuit 240–500 avec deux cartes (X 340–410, Y 420–490), une carte après le Circuit
+ * (Z 510–580). Écart d'une liste de zone dans le corps : 10 ; écart en-tête / liste du Circuit : 12.
+ */
+describe("resolveDragShifts (décalages pendant le glisser)", () => {
+  const GAPS = { row: 10, zone: 10, circuit: 12 };
+  const abc: CompositionDragLayout = {
+    tourTop: 240,
+    tourBottom: 500,
+    rows: [
+      { id: "A", zone: "BEFORE_TOUR", top: 0, height: 70 },
+      { id: "B", zone: "BEFORE_TOUR", top: 80, height: 70 },
+      { id: "C", zone: "BEFORE_TOUR", top: 160, height: 70 },
+      { id: "X", zone: "IN_TOUR", top: 340, height: 70 },
+      { id: "Y", zone: "IN_TOUR", top: 420, height: 70 },
+      { id: "Z", zone: "AFTER_TOUR", top: 510, height: 70 },
+    ],
+  };
+  type Zone = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
+  const shiftsOf = (layout: CompositionDragLayout, dragged: string, zone: Zone, index: number) => {
+    const result = resolveDragShifts(layout, dragged, { zone, index }, GAPS);
+    return {
+      rows: Object.fromEntries(result.rows),
+      circuitTop: result.circuitTop,
+      circuitBottom: result.circuitBottom,
+      afterCircuit: result.afterCircuit,
+    };
+  };
+  const shifts = (dragged: string, zone: Zone, index: number) => shiftsOf(abc, dragged, zone, index);
+  const still = { circuitTop: 0, circuitBottom: 0, afterCircuit: 0 };
+
+  it("aucun décalage tant que l'emplacement visé est celui d'origine", () => {
+    expect(shifts("A", "BEFORE_TOUR", 0)).toEqual({ rows: {}, ...still });
+    expect(shifts("X", "IN_TOUR", 0)).toEqual({ rows: {}, ...still });
+  });
+
+  it("vers le bas : A sous B → B remonte de la hauteur du bloc A plus l'écart ; le Circuit ne bouge pas", () => {
+    expect(shifts("A", "BEFORE_TOUR", 1)).toEqual({ rows: { B: -80 }, ...still });
+  });
+
+  it("plusieurs : A sous C → B puis C remontent ; revenir au-dessus de B les ramène", () => {
+    expect(shifts("A", "BEFORE_TOUR", 2).rows).toEqual({ B: -80, C: -80 });
+    expect(shifts("A", "BEFORE_TOUR", 0).rows).toEqual({});
+  });
+
+  it("vers le haut : C au-dessus de A → A et B descendent", () => {
+    expect(shifts("C", "BEFORE_TOUR", 0).rows).toEqual({ A: 80, B: 80 });
+    expect(shifts("C", "BEFORE_TOUR", 1).rows).toEqual({ B: 80 });
+  });
+
+  it("entrée dans le Circuit par le haut : il s'agrandit d'un pas (B, C et le bord haut remontent), la suite reste en place", () => {
+    const entering = shifts("A", "IN_TOUR", 0);
+    expect(entering).toEqual({ rows: { B: -80, C: -80 }, circuitTop: -80, circuitBottom: 0, afterCircuit: 0 });
+    // Hauteur du Circuit : + pas ; ses cartes descendent RELATIVEMENT à son en-tête.
+    expect(entering.circuitBottom - entering.circuitTop).toBe(80);
+    expect(shifts("A", "IN_TOUR", 1).rows).toEqual({ B: -80, C: -80, X: -80 });
+  });
+
+  it("entrée dans le Circuit par le bas : il s'agrandit, la ligne après le Circuit et les occurrences suivantes descendent", () => {
+    const tail: CompositionDragLayout = {
+      ...abc,
+      rows: [...abc.rows, { id: "W", zone: "AFTER_TOUR", top: 590, height: 70 }],
+    };
+    expect(shiftsOf(tail, "W", "IN_TOUR", 2)).toEqual({
+      rows: { Z: 80 },
+      circuitTop: 0,
+      circuitBottom: 80,
+      afterCircuit: 80,
+    });
+  });
+
+  it("sortie du Circuit : il se rétracte d'un pas, ce qui le suit remonte jusqu'à l'emplacement visé", () => {
+    expect(shifts("X", "AFTER_TOUR", 1)).toEqual({
+      rows: { Y: -80, Z: -80 },
+      circuitTop: 0,
+      circuitBottom: -80,
+      afterCircuit: -80,
+    });
+    expect(shifts("Y", "BEFORE_TOUR", 3)).toEqual({ rows: { X: 80 }, circuitTop: 80, circuitBottom: 0, afterCircuit: 0 });
+  });
+
+  it("Circuit vide : l'écart en-tête / liste apparaît et disparaît avec la carte", () => {
+    const emptyCircuit: CompositionDragLayout = {
+      tourTop: 240,
+      tourBottom: 294,
+      rows: [
+        { id: "A", zone: "BEFORE_TOUR", top: 0, height: 70 },
+        { id: "B", zone: "BEFORE_TOUR", top: 80, height: 70 },
+        { id: "Z", zone: "AFTER_TOUR", top: 304, height: 70 },
+      ],
+    };
+    // Retrait : 70 + 10 ; insertion dans le Circuit vide : 70 + 12.
+    expect(shiftsOf(emptyCircuit, "B", "IN_TOUR", 0)).toEqual({
+      rows: { Z: 2 },
+      circuitTop: -80,
+      circuitBottom: 2,
+      afterCircuit: 2,
+    });
+    const single: CompositionDragLayout = {
+      tourTop: 240,
+      tourBottom: 376,
+      rows: [
+        { id: "A", zone: "BEFORE_TOUR", top: 0, height: 70 },
+        { id: "X", zone: "IN_TOUR", top: 296, height: 70 },
+        { id: "Z", zone: "AFTER_TOUR", top: 386, height: 70 },
+      ],
+    };
+    expect(shiftsOf(single, "X", "AFTER_TOUR", 0)).toEqual({
+      rows: { Z: -2 },
+      circuitTop: 0,
+      circuitBottom: -82,
+      afterCircuit: -82,
+    });
+  });
+
+  it("le pas suit la hauteur mesurée du bloc glissé (ligne de récupération comprise)", () => {
+    const tall: CompositionDragLayout = {
+      ...abc,
+      rows: abc.rows.map((row) => (row.id === "A" ? { ...row, height: 100 } : row)),
+    };
+    expect(shiftsOf(tall, "A", "BEFORE_TOUR", 1).rows).toEqual({ B: -110 });
+  });
+
+  it("Fin de séance : décalage net nul à pas égaux, égal à la différence des pas sinon", () => {
+    expect(resolveDragShifts(abc, "A", { zone: "BEFORE_TOUR", index: 2 }, GAPS).end).toBe(0);
+    expect(resolveDragShifts(abc, "A", { zone: "IN_TOUR", index: 0 }, GAPS).end).toBe(0);
+    const emptyCircuit: CompositionDragLayout = {
+      tourTop: 240,
+      tourBottom: 294,
+      rows: [
+        { id: "A", zone: "BEFORE_TOUR", top: 0, height: 70 },
+        { id: "B", zone: "BEFORE_TOUR", top: 80, height: 70 },
+      ],
+    };
+    // Hors Circuit → Circuit vide : retrait 70 + 10, insertion 70 + 12 → la Fin descend de 2.
+    expect(resolveDragShifts(emptyCircuit, "B", { zone: "IN_TOUR", index: 0 }, GAPS).end).toBe(2);
+  });
+
+  it("hauteur prédite du bloc dans la zone visée : pas d’insertion différent du pas de retrait", () => {
+    // A (70) entre dans le Circuit avec une carte prédite de 76 : X descend de 6 relativement à
+    // l’origine (−80 + 86), le bas du Circuit et la Fin aussi.
+    const result = resolveDragShifts(abc, "A", { zone: "IN_TOUR", index: 0 }, GAPS, 76);
+    expect(Object.fromEntries(result.rows)).toEqual({ B: -80, C: -80, X: 6, Y: 6, Z: 6 });
+    expect(result.circuitTop).toBe(-80);
+    expect(result.circuitBottom).toBe(6);
+    expect(result.end).toBe(6);
+  });
+
+  it("carte glissée absente du relevé : aucun décalage", () => {
+    expect(resolveDragShifts(abc, "?", { zone: "BEFORE_TOUR", index: 0 }, GAPS)).toBe(NO_DRAG_SHIFTS);
   });
 });
