@@ -114,7 +114,7 @@ La règle vaut également :
 
 Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `Avec` (D-406). La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice reste exécutée mais n’est plus affichée sur la carte (D-238) ; le Point d’arrêt reste une action distincte.
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice reste exécutée et, dans la Composition v2, sa valeur affichable est intégrée à la troisième ligne de la carte (D-435) ; le Point d’arrêt reste une action distincte.
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
 
@@ -384,6 +384,10 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 ### Composer une séance / Modifier une séance
 
+**Révision du rendu du 21/10/2026 (D-435) :** source visuelle active [Composition Standard `8328:28605`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605) et [carte v2 `9798:44464`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9798-44464). Les cartes d’Exercice dans cette composition ont trois lignes (Nom et côté ; Catégorie et travail ; Zones corporelles et récupération). Le média est intégré au bloc, le rail vertical est segmenté entre les ancrages réels ; le Circuit est un aplat sans contour, ses cartes n’ont pas de bordure. Les récupérations n’occupent plus de ligne séparée ; les points d’arrêt restent entre les cartes. Le placement mixte est conservé, avec ajout de récupération dans la carte et défilement du contenu sous un pied d’actions protégé. Aucun changement de donnée ni de calcul. Voir [CE-T03-08](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-08--composer-une-séance--modifier-une-séance--brouillon-circuit-points-darrêt-et-validation), CE-FMT-03 et [DSF Cartes](../DSF-CARTES-ICONES-APPUIS-2026-09-30.md#exception-locale--cartes-de-composition-de-séance-v2-21102026).
+
+Les vues correspondantes ont été modifiées directement dans Figma le 21/10. Les liens de nœuds présents ci-après donnent accès à leur état courant. Les anciennes images exportées le 12/10 ne sont **plus une preuve visuelle à jour** et ne doivent pas servir de référence au développement ; leur réexport complet demeure non vérifié, sans conditionner l’utilisation des nœuds Figma actuels. Le rapport du 21/10 décrit 38 états de Composition (dont 14 compositions préremplies), et les nœuds des gestes et du placement : [swipe `8328:28863`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28863), [déplacement `8328:33546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33546), [placement `8328:29270`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270). Le rapport source propose deux évolutions fonctionnelles non incluses dans ce lot : changement de destination au toucher de récupération et suppression du défaut Profil (voir D-435).
+
 #### Paramètres du Circuit
 
 L’icône affichée à gauche de `Nombre de tours` est exclusivement une instance de `Icon / Tour` (`3066:4685`). Son dessin canonique est celui validé dans `Composition séance — Nom saisi` (`2028:12003`) ; l’ancienne sous-référence graphique supprimée n’est plus utilisée comme preuve active : cadre visuel `18 × 18`, quatre tracés, trait `1,35`, couleur `color.textPrimary` (`#141414`). Les copies vectorielles locales et l’ancien pictogramme Tour ne sont pas autorisés. L’actif exportable correspondant est uniquement `assets/icons/icon-tour.svg`, clé de registre `icon.tour`.
@@ -422,19 +426,16 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28863`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28863)
 
-![Composition séance — Actions glissées](images/circuits-2026-10-12/8328-28863.png)
 
 ##### Composition séance — Point d’arrêt
 
 [Source Figma — `8328:29428`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29428)
 
-![Composition séance — Point d’arrêt](images/circuits-2026-10-12/8328-29428.png)
 
 ##### Composition séance — Déplacement
 
 [Source Figma — `8328:33546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33546)
 
-![Composition séance — Déplacement](images/circuits-2026-10-12/8328-33546.png)
 
 ##### Composition séance — Étiquette sélectionnée
 
@@ -460,7 +461,6 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:29270`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270)
 
-![Composition séance — Placement d’une pause](images/circuits-2026-10-12/8328-29270.png)
 
 ##### Composition séance — Récupération (modale)
 
@@ -510,7 +510,6 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:33836`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33836)
 
-![Composition séance — Étiquettes](images/circuits-2026-10-12/8328-33836.png)
 
 ##### Composition séance — Étiquettes — Appui long — Confirmation suppression
 
@@ -522,7 +521,6 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:34107`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34107)
 
-![Composition séance — Nouvelle étiquette](images/circuits-2026-10-12/8328-34107.png)
 
 #### Circuit — popover, confirmation et volumes
 
@@ -544,7 +542,6 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 [Source Figma — `8328:34965`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34965)
 
-![Composition séance — Circuit — Volumes (de séries)](images/circuits-2026-10-12/8328-34965.png)
 
 ##### Composition séance — Circuit — Volumes (de tours)
 

@@ -446,6 +446,14 @@ La section [Exécution d'une séance — Bip de cadence, progression et sécurit
 
 ### Composition d'une séance
 
+#### Présentation des occurrences — révision du 21/10/2026
+
+Dans la Composition, chaque occurrence d’Exercice est représentée par la carte v2 à trois lignes : (1) nom, avec l’indicateur de changement de côté le cas échéant ; (2) Catégorie distincte et synthèse du travail ; (3) Zones corporelles et récupération après occurrence, lorsqu’elle est affichable. Les données Catégorie et Zones proviennent de champs structurés distincts, sans découpage d’une chaîne d’affichage. Le gabarit média intégré est un ancrage visuel pour le rail segmenté, et non une nouvelle propriété de l’Exercice.
+
+La récupération quitte la ligne visuelle séparée pour occuper la troisième ligne de la carte de l’occurrence qui la précède ; sa donnée reste portée par cette occurrence. Toucher la zone d’une récupération existante ouvre le réglage actuel de durée, sans déclencher l’ouverture de l’Exercice ; l’appui long conserve la bulle Retirer. L’ouverture de l’éditeur d’Exercice à la place du réglage et la suppression de la valeur par défaut du Profil sont différées hors de cette refonte visuelle. Les paramètres de récupération, calculs et sauvegardes restent inchangés (D-208, D-435).
+
+Le Circuit emploie un fond teinté derrière ses cartes sans contour, un en-tête alignant titre, compteur et durée ; les cartes hors Circuit gardent leur contour. Le rail relie les repères structurels et les bords des gabarits par segments dérivés des positions réelles. Les points d’arrêt sont centrés dans les intervalles entre cartes. Aucune poignée de déplacement n’est affichée au repos ; l’appui long sur toute la carte reste actif.
+
 #### Réorganisation
 
 Les exercices peuvent être :
@@ -461,6 +469,8 @@ La réorganisation modifie le brouillon de composition ; l’enregistrement de l
 
 <a id="pauses-composition"></a>
 #### Placement des récupérations et des points d’arrêt
+
+En mode placement, les points d’arrêt ont des emplacements entre les cartes, centrés et liés au rail ; les récupérations sont ajoutables dans une zone pointillée de la troisième ligne des seules cartes éligibles. Une récupération existante, y compris à `0 s`, interdit un second ajout au même endroit même si sa valeur n’est pas affichée. La liste doit défiler au-delà de la hauteur initiale pour rendre accessible la dernière position tout en conservant Annuler/Confirmer dans le pied protégé. Les positions admises et le sous-brouillon ne changent pas (D-435).
 
 ##### Brouillons, validation et annulation
 
