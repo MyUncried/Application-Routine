@@ -1437,7 +1437,7 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 #### 1. Identification
 
-Composition 2028:11137/11700/11808/12003,3518:4576,5271:5455. Placement unifié 7167:13503 ; durée 7173:13521 ; retrait récupération 7296:13696 ; point présent 3722:5061/retrait5301:5443. Ancien 4893:6675 supprimé, historique seulement. Étiquettes CE-T03-16, sélection CE-T03-07. Réglages 2028:11375/11457.
+Composition courante du 21/10 : Standard `8328:28605`, création vide `8328:28172`, nom saisi `8328:28238`, modification `5271:5455`, placement `8328:29270`, récupération `8328:28733`, retrait `8328:29133`, point `8328:29428`, déplacement `8328:33546`, actions glissées `8328:28863`, carte v2 `9798:44464`. Références antérieures : Composition 2028:11137/11700/11808/12003,3518:4576 ; placement 7167:13503, durée 7173:13521, retrait 7296:13696, point 3722:5061/retrait 5301:5443. Ancien 4893:6675 supprimé, historique seulement. Étiquettes CE-T03-16, sélection CE-T03-07. Réglages 2028:11375/11457.
 
 Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM-027, RM-028, RM-029, RM-030, RM-036, RM-038, RM-095, RM-129, RM-143, RM-147, RM-151, RM-152, RM-159, RM-191, RM-209, RM-210, RM-213, RM-215, RM-218, RM-219, RM-220, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-09, RM-FMT-41, RM-236, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -1465,21 +1465,21 @@ Titres statiques : `Composer une séance` en création, `Modifier une séance` e
 
 #### 7. Structure de l’écran
 
-Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit de tours ou de séries avec occurrences/points internes développés selon sa nature → occurrences/points après Circuit → Fin de séance → Continuer. Aucun Cycle visible ni étape finale Catégories.
+Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit de tours ou de séries avec occurrences/points internes développés selon sa nature → occurrences/points après Circuit → Fin de séance → Continuer. Chaque occurrence prend la forme d’une carte v2 à trois lignes (nom et indicateur de côté, Catégorie et travail, Zones corporelles et récupération), avec média intégré. Les points d’arrêt occupent des interstices centrés, raccordés au rail segmenté ; la récupération contextualisée s’intègre à la carte qui la précède et n’occupe plus de rangée autonome. Aucun Cycle visible ni étape finale Catégories.
 
 #### 8. Éléments obligatoires
 
 **Complément cible 12/10 :** Chiffre distinct de la pastille d’unité ; œil permanent ; volumes sur cartes. N× conservé même sous héritage.
 
-Compte à rebours/Fin non déplaçables ; Appui sur le chiffre pour révéler ± ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Carte sans texte de pause/récupération dans son corps. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du 12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
+Compte à rebours/Fin non déplaçables ; Appui sur le chiffre pour révéler ± ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Carte sans Pause intrinsèque affichée ; récupération contextuelle affichable sur la troisième ligne de la carte (D-435), jamais sur une rangée séparée. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du 12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
 
 #### 9. Layout déterministe
 
-Shell de Composition conservé. Commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. En placement, deux blocs de largeur égale et marges alignées aux cartes ; récupération à gauche, point à droite, selon 7167:13503. Trait masqué uniquement pendant le choix. La récupération ajoutée reste attachée au bloc de l’occurrence lors du déplacement ; carte levée selon 3518:4576. Annuler et Confirmer restent accessibles en bas. Captures à géométrie encore divergente sur le trait qualifiées au chapitre 06.
+Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. À la largeur Figma de 402 : cartes v2 370 × 80 dès x16, rayon12, fond blanc, bord1 `#E4E7EF` hors Circuit et sans bord dans Circuit ; média64 × 64 à x24, rayon12/bord1 `#7A7A80` ; texte dès x100, symboles x282, valeurs alignées sur x378. Les colonnes s’adaptent aux largeurs 360/402/440 et aux libellés. Catégorie et Zones sont deux propriétés distinctes ; deux valeurs éventuelles sur la ligne de travail ne repoussent pas la récupération de la ligne3. Rail `#7A7A80` 1,5, segmenté entre bords des repères et médias, calculé depuis le layout réel, jamais sur les gabarits. Circuit : aplat `#F3F4F9`, débord 8 de part et d’autre des cartes, sans rectangle de contour, cartes internes espacées de 9 ; cercle/titre/compteur centré sur page/durée à droite alignés en en-tête. En placement, point d’arrêt centré dans un espace dédié de 22 et raccordé au rail ; récupération proposée par cadre pointillé dans la zone de ligne3 des seules cartes éligibles. Les commandes de nature et de volumes sont conservées même absentes d’une maquette illustrative. Les états soulevé et swipe renvoient à `8328:33546` et `8328:28863`. Annuler et Confirmer restent accessibles dans le pied protégé. Le rail ne remplace pas les règles existantes sur le trait de démarcation (D-303).
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; scroll Composition ; actions contextuelles restent accessibles ; pas de clavier sauf champs de contexte déjà définis.
+360/402/440 ; largeur utile calculée, troncature du nom et des Zones sans chevauchement des symboles/valeurs, cibles tactiles indépendantes de la taille dessinée13. Scroll de toute la séquence, y compris en placement lorsque les rangées agrandissent le contenu, jusqu’au dernier emplacement sous le pied fixe protégé ; actions Annuler/Confirmer toujours accessibles et Safe Areas respectées. Pas de clavier sauf champs de contexte déjà définis.
 
 #### 11. États de l’écran
 
@@ -1491,11 +1491,11 @@ Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette
 
 **Complément cible 12/10 :** Choix de nature → CE-CIR-01 ; perte → CE-CIR-02 ; œil → CE-CIR-03. Diminution sans message ; restauration avant préremplissage. Ajout catalogue avec perte exige confirmation, Annuler abandonne ajout.
 
-Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement 30 s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Tap sur récupération positive ouvre son réglage ; appui long ouvre Retirer. L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage.
+Pause ouvre le sous-brouillon de placement. Sélection Point d’arrêt bascule l’ajout ; sélectionner Récupération ouvre immédiatement la durée proposée du Profil, initialement 30 s. Valider la roulette confirme au sous-brouillon, Annuler restitue l’état de cet emplacement. Confirmer N pauses ajoutées applique au parent ; Annuler le placement restitue tout l’état d’entrée. Décompte par objet nouvellement ajouté, récupération+point=2 ; désélection retranche, N0 sans confirmation active. Toucher la zone d’une récupération existante ouvre son réglage actuel de durée, sans ouvrir aussi l’Exercice parent ; appui long ouvre Retirer. Si une récupération à `0 s` ne montre pas sa valeur, l’objet existe néanmoins et reste éditable/retirable par les interactions déjà prévues ; ne pas créer de doublon à cet emplacement. L’ouverture de l’éditeur d’Exercice à ce toucher et la suppression du défaut Profil sont différées hors de ce lot (D-435). L’avertissement D-301 reste « Attention, les exercices vont s’enchaîner sans pause. » si aucune Pause terminale ni Rpositive entre deux Exercices ; informatif, aucune mutation ni blocage.
 
 #### 13. Gestes
 
-Swipe occurrence : Dupliquer/Supprimer ; appui long puis glisser : déplacer. Appui long récupération ou point : bulle Retirer ; tap hors bulle ferme sans mutation. Aucun second dialogue imposé par ces bulles. Compte à rebours/Fin non déplaçables.
+Swipe occurrence : Dupliquer/Supprimer, avec état visuel `8328:28863`. Appui long sur toute la carte, pas uniquement sur le média, puis glisser : déplacer, sans poignée permanente au repos ; rendu soulevé `8328:33546`. La récupération suit l’occurrence durant déplacement, duplication et suppression. Appui long récupération ou point : bulle Retirer ; tap hors bulle ferme sans mutation. Aucun second dialogue imposé par ces bulles. Compte à rebours/Fin non déplaçables.
 
 #### 14. Validation
 
@@ -2152,7 +2152,7 @@ Valeurs d’exemple ne font pas autorité sur durée calculée. Le 1 tour de rep
 
 #### 7. Structure de l’écran
 
-Shell composition existant : en-tête, circuit et cartes ordonnées, récupérations/points présents selon règles existantes, actions de composition.
+Shell de Composition existant ; carte v2 de CE-T03-08 à trois lignes, média intégré et récupération contextuelle en ligne 3 ; Circuit sur aplat et rail segmenté, points d’arrêt entre les cartes, sans modifier l’organisation fonctionnelle du format ni les commandes de composition.
 
 #### 8. Éléments obligatoires
 
@@ -2160,7 +2160,7 @@ Tabata par exercice : un tour dans la configuration de référence, cartes 8×20
 
 #### 9. Layout déterministe
 
-Conserver l’implantation des cartes du chapitre 06. Volume dans l’emplacement existant sans cadre ajouté. Pas de pause dans le libellé 8×20 s ; aucune récupération fictive pour montrer la pause.
+Conserver l’implantation v2 des cartes de CE-T03-08 et du chapitre 06 pour toutes les 14 compositions préremplies représentées dans Figma, y compris Tabata/EMOM/Progression et leurs variantes. Volume dans l’emplacement existant sans cadre ajouté ; la deuxième ligne peut porter Répétitions + cadence sans faire descendre la récupération. Pas de pause dans le libellé 8×20 s ; aucune récupération fictive pour montrer la pause. Compteurs, constantes, ordre, héritages et résultats de calcul inchangés.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2204,7 +2204,7 @@ Pas de récupération par défaut ajoutée pour Tabata ; phases propres d’exer
 
 #### 20. Recette déterministe
 
-REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegarde/réouverture et l’historique inchangé.
+REC-02–07, 11, 16–17, 25–26 ; vérifier le même résultat après sauvegarde/réouverture et l’historique inchangé. Vérifier en outre les 14 variantes préremplies du 21/10 : cartes v2, synthèses et récupérations affichées seulement pour les occurrences concernées, aucune modification d’ordre/compte, aucune constante déduite des démonstrations Figma.
 
 ### CE-FMT-04 — Paramètres d’exercice contextualisés par un format
 <a id="ce-fmt-04"></a>
