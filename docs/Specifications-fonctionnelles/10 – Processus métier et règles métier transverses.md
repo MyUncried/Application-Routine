@@ -599,7 +599,7 @@ Les modifications internes sont conservées au fur et à mesure dans le brouillo
 
 ### Composer une séance / Modifier une séance — Composition — Récupération après exercice — D-208 révisée sur l’affichage
 
-Les cartes ne présentent plus la ligne `Récupération {durée}`, y compris pour une valeur non nulle. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. La disparition de l’affichage ne supprime ni phase ni valeur.
+En Composition, la récupération après occurrence n’a plus de ligne structurelle propre : sa valeur, si elle est affichable, apparaît dans la troisième ligne de la carte de l’Exercice qui la précède, avec son sablier. Un sablier de présentation sans valeur sur une maquette ne crée aucune récupération ; une récupération absente est distincte d’une récupération existante à `0 s`, dont la valeur reste masquée. La donnée reste solidaire de chaque occurrence lors du déplacement, de la duplication et de la suppression. Son exécution après l’occurrence (y compris fin de Tour/Séance) et les calculs restent ceux de D-208. Changement de présentation uniquement, selon D-435.
 
 L’éditeur conserve `Pause entre les côtés`, exposée uniquement avec changement de côté (Avec, D-406) ; aucune récupération post-exercice n’est ajoutée à la synthèse intrinsèque.
 
@@ -623,6 +623,8 @@ La composition d'une séance repose sur les principes suivants :
 - toute séance peut être modifiée ultérieurement sans impact sur les exécutions déjà enregistrées.
 
 ### Placement des récupérations et des points d’arrêt — Positions, ordre et retrait
+
+Les points d’arrêt sont positionnés entre les cartes de Composition, au centre de la séquence et sur le rail ; les emplacements de récupération éligibles sont intégrés en zone pointillée à la troisième ligne de la carte. L’absence de valeur visible ne rend pas éligible une occurrence ayant déjà un objet récupération, même à zéro. Le mode placement doit permettre le défilement jusqu’à la dernière position sans recouvrir les actions de confirmation/annulation. Les gestes, contraintes de position, brouillons et calculs restent identiques (D-435).
 
 Récupération uniquement après une occurrence, y compris la dernière ; aucune récupération avant le premier Exercice. Point d’arrêt : frontières existantes conservées, interdit juste après le compte à rebours initial et juste avant Fin de séance, permis avant/après Circuit et entre ses Exercices. Les deux types ont donc un parcours commun sans devenir interchangeables à toutes les frontières.
 
@@ -1297,7 +1299,7 @@ T04 développe toutes les Séries, les répétitions de Tour et les passages de 
 
 Deux phases distinctes peuvent exister. `SIDE_RECOVERY` matérialise la Pause entre les côtés d’un Exercice bilatéral et intervient entre le premier et le second côté. `POST_ACTIVITY_RECOVERY` matérialise la Récupération après exercice portée par l’occurrence de Séance ; elle intervient après l’occurrence, y compris après le dernier Exercice avant `SESSION_END` et après chaque passage dans le Circuit à chaque Tour.
 
-La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations ne sont plus affichées sur les cartes de Composition (D-238), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la Pause entre les côtés de la récupération après occurrence.
+La valeur `postActivityRecoverySeconds = 0` ne crée pas de phase chronométrée positive. Les récupérations sont présentées dans la troisième ligne des cartes de Composition lorsqu’une valeur est affichable (D-435), quelle que soit leur valeur. La zone `À suivre` prépare l’élément qui succède à la phase courante. Les données de résultat distinguent la Pause entre les côtés de la récupération après occurrence.
 
 ### Règles générales d’interface — Clarification — Préparation et fin dans une Séance
 
