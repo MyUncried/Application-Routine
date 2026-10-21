@@ -327,9 +327,10 @@ export function formatExerciseBodyZones(
  * **PRE-6 (story 2.1, D-303, D-217, écart E5, Figma `8328:28657`)** : la
  * sous-carte devient l'information de la ligne structurelle de récupération
  * sous l'occurrence. `null` lorsque la Récupération est absente (`null`,
- * story 1.1) ou nulle : la ligne ne montre alors que son trait, jamais
- * « Récupération 0 s » (remplace la règle V2-PRE-1 d'une chaîne toujours
- * rendue).
+ * story 1.1) ou nulle : jamais « Récupération 0 s » (remplace la règle
+ * V2-PRE-1 d'une chaîne toujours rendue). Sans libellé ni point d'arrêt,
+ * la ligne elle-même n'est pas rendue hors placement (décision Hermann
+ * 21/10/2026, remplace D-303 « trait toujours présent »).
  *
  * La durée réutilise `formatCompactDuration` — exactement le format déjà
  * employé par la Pause dans la synthèse de la même carte (`30 s`, `1 min`,

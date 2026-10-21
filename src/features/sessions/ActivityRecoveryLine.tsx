@@ -62,9 +62,15 @@ export type ActivityRecoveryLineProps = {
 
 /**
  * Ligne structurelle sous une occurrence de la Composition (PRE-6 story 2.1, D-303, D-217, Figma
- * `8328:28657`) : hauteur 21, marges 14 / 4, trait `divider` sur toute la largeur restante —
- * TOUJOURS présent. Si R > 0 : sablier 13 et « Récupération {durée} » avant le trait ; R absente
- * ou 0 : trait seul, sans aucune information (remplace la sous-carte « Récupération 0 s », E5).
+ * `8328:28657`) : hauteur 21, marges 14 / 4, trait `divider` sur toute la largeur restante. Si
+ * R > 0 : sablier 13 et « Récupération {durée} » avant le trait (remplace la sous-carte
+ * « Récupération 0 s », E5).
+ *
+ * Présence (décision Hermann 21/10/2026, remplace D-303 « trait toujours présent ») : hors
+ * placement, la ligne n'existe que si l'occurrence porte une récupération positive (R > 0) ou un
+ * point d'arrêt ; R absente ou R = 0 sans point : l'appelant ne la monte pas (ni trait ni hauteur
+ * réservée, Figma `8328:28605`). Le composant suppose donc au moins l'un des deux ; la ligne
+ * « après le Circuit » n'est montée qu'avec son point.
  *
  * Story 4.2 (`8328:29428`, `8328:29133`, `8328:33689`) :
  * - une récupération positive est un bouton « Récupération {durée}, toucher pour modifier » : le
@@ -74,7 +80,8 @@ export type ActivityRecoveryLineProps = {
  *   aligné sur celui des cartes ; le trait occupe la largeur restante ; ligne de 30.
  *
  * Elle appartient au bloc de l'occurrence, dont elle suit le déplacement et le balayage
- * (`CompositionActivityRow`).
+ * (`CompositionActivityRow`). Quand un retrait vide la ligne, elle n'est plus montée : la rangée
+ * reporte elle-même le focus sur la carte (`onFocusUnavailable` reste le repli si elle l'est encore).
  */
 export function ActivityRecoveryLine({
   recoverySeconds,

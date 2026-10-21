@@ -2767,8 +2767,10 @@ describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
  */
 /**
  * PRE-6 story 2.1 (D-303, D-217, écart E5, Figma `8328:28657`) : la sous-carte Récupération
- * du bloc (T02-S02) est remplacée par une ligne structurelle SOUS la carte — trait toujours
- * présent, information seulement si R > 0 ; la carte reprend ses hauteurs sans sous-carte.
+ * du bloc (T02-S02) est remplacée par une ligne structurelle SOUS la carte, information seulement
+ * si R > 0 ; la carte reprend ses hauteurs sans sous-carte. Hors placement, la ligne n'existe que
+ * si R > 0 ou si un point d'arrêt est rattaché (décision Hermann 21/10/2026, remplace D-303
+ * « trait toujours présent » ; Figma `8328:28605`).
  */
 describe("CompositionScreen — ligne structurelle de récupération et géométries conditionnelles (T02-S02, révisé PRE-6 story 2.1)", () => {
   // V2-PRE-1 (plan §3.2, UI-CDBCCFD16078) : la sous-carte Récupération est
@@ -2786,16 +2788,66 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     );
   }
 
-  it("PRE6-2.1 — R = 0 ou R absente : trait seul, aucune information (jamais « Récupération 0 s »)", () => {
+  it("PRE6-2.1 — R = 0 ou R absente, sans point : aucune ligne ni emplacement (décision Hermann 21/10/2026, remplace D-303)", () => {
     for (const recovery of [0, null] as const) {
-      renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: recovery })]);
+      const view = renderScreenWithDraft([
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: recovery }),
+        anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
+      ]);
 
+      expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
+      expect(screen.queryAllByTestId("composition-recovery-line-rule")).toHaveLength(0);
+      expect(screen.queryByText(/Récupération/u)).toBeNull();
+      // Le conteneur de l'occurrence ne garde que la carte : aucune hauteur réservée.
+      const container = screen.getByTestId("composition-activity-ex-1");
+      expect(container.findAll((node) => typeof node.props.testID === "string" && /recovery/u.test(node.props.testID))).toHaveLength(0);
+      view.unmount();
+    }
+  });
+
+  it("PRE6-2.1 — ligne présente pour R > 0, pour un point seul et pour les deux", () => {
+    const pointAfter = (position: number) => ({ id: `p${position}`, scope: "BEFORE_TOUR" as const, position });
+    // R > 0 seul.
+    let view = renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
+    ]);
+    expect(within(screen.getByTestId("composition-activity-recovery-ex-1")).getByText("Récupération 20 s")).toBeTruthy();
+    expect(screen.queryByTestId("composition-activity-recovery-ex-1-stop-point")).toBeNull();
+    view.unmount();
+
+    // Point seul (R absente, puis R = 0).
+    for (const recovery of [null, 0] as const) {
+      view = renderScreenWithDraft(
+        [
+          anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: recovery }),
+          anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
+        ],
+        { stopPoints: [pointAfter(1)] },
+      );
       const line = screen.getByTestId("composition-activity-recovery-ex-1");
       expect(within(line).getByTestId("composition-recovery-line-rule")).toBeTruthy();
-      expect(within(line).queryByTestId("composition-recovery-line-icon")).toBeNull();
       expect(within(line).queryByTestId("composition-recovery-line-label")).toBeNull();
-      expect(screen.queryByText(/Récupération/u)).toBeNull();
+      expect(screen.getByTestId("composition-activity-recovery-ex-1-stop-point")).toBeTruthy();
+      expect(screen.getByTestId("composition-activity-recovery-slot-ex-1")).toBeTruthy();
+      view.unmount();
     }
+
+    // Les deux.
+    renderScreenWithDraft(
+      [
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
+        anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
+      ],
+      { stopPoints: [pointAfter(1)] },
+    );
+    const line = screen.getByTestId("composition-activity-recovery-ex-1");
+    expect(within(line).getByText("Récupération 20 s")).toBeTruthy();
+    expect(within(line).getByTestId("composition-recovery-line-rule")).toBeTruthy();
+    expect(screen.getByTestId("composition-activity-recovery-ex-1-stop-point")).toBeTruthy();
+    // ex-2 : ni récupération ni point, aucune ligne.
+    expect(screen.queryByTestId("composition-activity-recovery-slot-ex-2")).toBeNull();
   });
 
   it("PRE6-2.1 — R = 20 : sablier 13 + « Récupération 20 s » avant le trait, ligne de 21", () => {
@@ -3012,6 +3064,28 @@ describe("CompositionScreen — ligne structurelle de récupération et géomét
     const inTour = screen.getByTestId("composition-zone-in-tour");
     expect(within(inTour).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(inTour).getByTestId("composition-activity-recovery-ex-1")).toBeTruthy();
+  });
+
+  it("drag still works on a card without a line (R absente : décision Hermann 21/10/2026)", () => {
+    renderScreenWithDraft(withZeroRecovery);
+    expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
+
+    fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 100);
+    // Bloc sans ligne : la mesure du conteneur n'est que la carte.
+    fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 64);
+    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 300 } });
+    // La carte suit le doigt, sans ligne à entraîner.
+    expect(blockStyle().transform).toEqual([{ translateX: 0 }, { translateY: 200 }]);
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 300 } });
+
+    const inTour = screen.getByTestId("composition-zone-in-tour");
+    expect(within(inTour).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
+    expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
   });
 
   it("removes the Récupération with its Activity — `Supprimer` never leaves an orphan sub-card", () => {
@@ -4817,13 +4891,18 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   it("placement: « Continuer » is replaced by the bar, the rest is attenuated and inactive, the demarcation rule is hidden", () => {
-    renderPlacement(matrix());
-    expect(screen.getAllByTestId("composition-recovery-line-rule", anyNode).length).toBe(4);
+    // Hors placement, seule A (R > 0) porte une ligne (décision Hermann 21/10/2026, remplace D-303).
+    renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
+    expect(screen.getAllByTestId("composition-recovery-line-rule", anyNode).length).toBe(1);
     enter();
 
     expect(screen.queryByTestId("composition-save-action", anyNode)).toBeNull();
     expect(screen.getByTestId(BAR)).toBeTruthy();
     expect(screen.queryAllByTestId("composition-recovery-line-rule", anyNode)).toHaveLength(0);
+    // En placement, chaque occurrence garde son emplacement (règle inchangée).
+    for (const id of ["A", "B", "C", "D"]) {
+      expect(screen.getByTestId(`composition-activity-recovery-slot-${id}`, anyNode)).toBeTruthy();
+    }
     // « + », compteur / œil, cartes et bornes : atténués et inactifs.
     const add = screen.getByTestId("composition-add-activity-action");
     expect(add.props.accessibilityState).toMatchObject({ disabled: true });
@@ -5035,7 +5114,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     fireEvent.press(confirm());
 
     expect(probe.draft!.exercises.find((exercise) => exercise.id === "D")!.postActivityRecoverySeconds).toBe(0);
-    expect(within(screen.getByTestId("composition-activity-recovery-D")).queryByTestId("composition-recovery-line-label")).toBeNull();
+    // R = 0 sans point : aucune ligne hors placement (décision Hermann 21/10/2026, remplace D-303).
+    expect(screen.queryByTestId("composition-activity-recovery-D")).toBeNull();
+    expect(screen.queryByTestId("composition-activity-recovery-slot-D")).toBeNull();
     // Une nouvelle entrée la montre comme existante.
     enter();
     expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
@@ -5311,7 +5392,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         ]),
       ).toEqual(["composition-activity-recovery-A-recovery", "composition-activity-recovery-A-stop-point"]);
       expect(screen.queryByTestId("composition-activity-recovery-B-stop-point")).toBeNull();
-      expect(StyleSheet.flatten(line("B").props.style).height).toBe(21);
+      // B : ni récupération ni point, aucune ligne (décision Hermann 21/10/2026, remplace D-303).
+      expect(screen.queryByTestId("composition-activity-recovery-B")).toBeNull();
     });
 
     it("hit targets stay within the line: the recovery button wraps hourglass + label only, never the rule nor the card above", () => {
@@ -5372,14 +5454,28 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(within(line("A")).getByText("Récupération 20 s")).toBeTruthy();
     });
 
-    it("✓ 0: kept present at 0 (D-323), the line no longer shows any information nor any control", () => {
+    it("✓ 0: kept present at 0 (D-323); without a point the line disappears (décision Hermann 21/10/2026)", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       fireEvent.press(recoveryButton("A"));
       nativeChange("duration-wheel-seconds", 0);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       expect(recoveries()[0]).toBe(0);
-      expect(within(line("A")).queryByTestId("composition-recovery-line-label")).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-slot-A")).toBeNull();
       expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
+    });
+
+    it("✓ 0 with a point: the line stays for the point alone, without any recovery information", () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
+        overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
+      });
+      fireEvent.press(recoveryButton("A"));
+      nativeChange("duration-wheel-seconds", 0);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(recoveries()[0]).toBe(0);
+      expect(within(line("A")).queryByTestId("composition-recovery-line-label")).toBeNull();
+      expect(within(line("A")).getByTestId("composition-recovery-line-rule")).toBeTruthy();
+      expect(stopChip("A")).toBeTruthy();
     });
 
     it("off-grid legacy values (600 s, 7 s) open snapped (300, 5) and ✓ without moving the wheel changes nothing", () => {
@@ -5415,7 +5511,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 0 } }));
       expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
       expect(screen.queryByTestId("composition-activity-recovery-B-recovery")).toBeNull();
-      expect(within(line("B")).queryByRole("button")).toBeNull();
+      // Ni ligne ni emplacement : rien à toucher (décision Hermann 21/10/2026, remplace D-303).
+      expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-B")).toBeNull();
     });
 
     it("long press on R: bubble « Retirer la récupération »; Retirer → R absent, durations = terminal Pause restored (RM-038)", () => {
@@ -5597,6 +5695,52 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         // Plus rien d'accessible sur la ligne : le focus revient à l'occurrence qui la porte.
         await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
         expect(probe.updates).toBe(2);
+      } finally {
+        focus.mockRestore();
+      }
+    });
+
+    it("removing the last recovery (no point) removes the line, and focus goes to the card (bubble and VoiceOver)", async () => {
+      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+      try {
+        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+        const view = renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
+        focus.mockClear();
+        fireEvent(recoveryButton("A"), "longPress");
+        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
+        expect(recoveries()[0]).toBeNull();
+        expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
+        expect(screen.queryByTestId("composition-activity-recovery-slot-A")).toBeNull();
+        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
+        view.unmount();
+
+        renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
+        focus.mockClear();
+        removeAction(recoveryButton("B"));
+        expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
+        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-B"]));
+      } finally {
+        focus.mockRestore();
+      }
+    });
+
+    it("removing the last point (R absent or 0) removes the line, and focus goes to the card", async () => {
+      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+      try {
+        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+        renderPlacement(matrix({ B: { postActivityRecoverySeconds: 0 } }), {
+          overrides: { stopPoints: [{ id: "pB", scope: "IN_TOUR", position: 1 }] },
+        });
+        // Le point seul suffit à la ligne (R = 0 n'affiche rien).
+        expect(within(line("B")).queryByTestId("composition-recovery-line-label")).toBeNull();
+        expect(stopChip("B")).toBeTruthy();
+        focus.mockClear();
+        fireEvent(stopChip("B"), "longPress");
+        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
+        expect(probe.draft!.stopPoints).toEqual([]);
+        expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
+        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-B"]));
+        expect(recoveries()[1]).toBe(0);
       } finally {
         focus.mockRestore();
       }

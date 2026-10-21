@@ -240,4 +240,5 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
   5. ch11 API-COM-06 (« enregistrées » → brouillon, D-388) et API-COM-REC-02 (plage 0..300) ;
   6. ch10 L540 et L562 (Catégories, palette de 12 couleurs, devenus caducs).
   7. ch07 : D-124 (suffixe `(copie)`) porte encore « Révisée par D-138 » alors que D-138 ne traite que la récupération ; ch13 (Consultation et modification d'un Exercice) et la story 2.3 appliquent le suffixe.
+  8. ch07, ch10 L627 et L2216, ch13 L1474, L1530, L1575, L1678 : D-303 « trait de démarcation toujours présent » remplacé par la décision de Hermann du 21/10/2026 : hors placement, aucun trait sous une occurrence sans récupération positive ni point d'arrêt (conforme à Figma `8328:28605`).
 - **Interfaces impactées** : Composition, ExerciseScreen (contexte hérité), Feuille (option existante seulement), `KodjoIcon` (œil), `fr.ts`.

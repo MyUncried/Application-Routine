@@ -129,14 +129,18 @@ const stopLabel = (name: string) => placement.addStopPointAccessibilityLabel.rep
 const nativeChange = (testID: string, selection: number) =>
   fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
 
-/** Récupérations et points tels qu'affichés hors placement (story 4.2). */
+/**
+ * Récupérations et points tels qu'affichés hors placement (story 4.2). Sans récupération positive
+ * ni point, la ligne n'existe pas (décision Hermann 21/10/2026, remplace D-303).
+ */
 function displayedPauses() {
   return ["ex-a", "ex-b", "ex-c", "ex-d"].map((id) => {
-    const line = screen.getByTestId(`composition-activity-recovery-${id}`);
+    const line = screen.queryByTestId(`composition-activity-recovery-${id}`);
     return {
       id,
-      recovery: within(line).queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
-      stopPoint: within(line).queryByTestId(`composition-activity-recovery-${id}-stop-point`) !== null,
+      line: line !== null,
+      recovery: line !== null && within(line).queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
+      stopPoint: line !== null && within(line).queryByTestId(`composition-activity-recovery-${id}-stop-point`) !== null,
     };
   });
 }
@@ -200,10 +204,11 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       expect(displayedBeforeSave).toBe(formatEstimatedDuration(450, "exact"));
       const pausesBeforeSave = displayedPauses();
       expect(pausesBeforeSave).toEqual([
-        { id: "ex-a", recovery: false, stopPoint: true },
-        { id: "ex-b", recovery: true, stopPoint: true },
-        { id: "ex-c", recovery: false, stopPoint: false },
-        { id: "ex-d", recovery: false, stopPoint: false },
+        // A : R = 0 n'affiche rien, la ligne n'existe que par son point ; C, D : aucune ligne.
+        { id: "ex-a", line: true, recovery: false, stopPoint: true },
+        { id: "ex-b", line: true, recovery: true, stopPoint: true },
+        { id: "ex-c", line: false, recovery: false, stopPoint: false },
+        { id: "ex-d", line: false, recovery: false, stopPoint: false },
       ]);
       expect(screen.getByTestId("composition-after-circuit-line")).toBeTruthy();
       // D-301 : C (Tour 1) → B (Tour 2) reste sans pause ; le message n'empêche pas l'enregistrement.
