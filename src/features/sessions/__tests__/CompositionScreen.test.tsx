@@ -2229,6 +2229,29 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     expect(liftedStyle.marginHorizontal).toBe(-4);
   });
 
+  it("correctif 2.3b — la zone qui porte la carte soulevée passe au-dessus de ses sœurs, jamais les autres", () => {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
+      anActivity("core", "IN_TOUR", { name: "Pompes" }),
+      anActivity("ex-3", "AFTER_TOUR", { name: "Squats" }),
+    ]);
+    const zIndexOf = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).zIndex;
+
+    expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
+    expect(zIndexOf("composition-tour-section")).toBeUndefined();
+
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+    expect(zIndexOf("composition-zone-before-tour")).toBe(1);
+    expect(zIndexOf("composition-tour-section")).toBeUndefined();
+    expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
+    fireEvent(screen.getByTestId("composition-activity-ex-1"), "responderTerminate", {});
+
+    fireEvent(screen.getByTestId("composition-exercise-row-core"), "longPress");
+    expect(zIndexOf("composition-tour-section")).toBe(1);
+    expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
+    expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
+  });
+
   it("CE-T02-02 — the other cards, the Tour and the structural rows keep their exact style while a card is lifted", () => {
     renderScreenWithDraft(twoActivities);
 

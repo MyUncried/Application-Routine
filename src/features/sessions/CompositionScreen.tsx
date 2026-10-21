@@ -1690,6 +1690,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             styles.tourSectionContainer,
             // Story 2.3b : tant que le Circuit n'est pas mesuré, fond statique du conteneur.
             circuitMeasuredHeight > 0 ? null : styles.tourSectionStaticSurface,
+            // Correctif 2.3b : le Circuit qui porte la carte soulevée passe au-dessus de ses sœurs.
+            zones.inTour.some((activity) => activity.id === draggedActivityId) ? styles.dragElevated : null,
           ]}
           onLayout={handleTourLayout}
           testID="composition-tour-section"
@@ -2362,7 +2364,13 @@ function ActivityZoneList({
   }
   return (
     <View
-      style={styles.exerciseList}
+      style={[
+        styles.exerciseList,
+        // Correctif 2.3b (retour Hermann 21/10/2026) : la zone qui porte la carte soulevée passe
+        // au-dessus de ses sœurs (Circuit, autres zones, bornes) ; sinon, hors de sa zone, la carte
+        // glisse sous leur fond opaque (blanc ou couleur du Circuit).
+        activities.some((activity) => activity.id === draggedActivityId) ? styles.dragElevated : null,
+      ]}
       onLayout={(event) => onLayout(zone, event)}
       testID={testID}
     >
@@ -3552,6 +3560,11 @@ const styles = StyleSheet.create({
     height: PLACEMENT_SLOT_HEIGHT,
   },
   activityRowContainerDragged: {
+    zIndex: 1,
+  },
+  // Correctif 2.3b : zone (liste ou Circuit) qui porte la carte soulevée, au-dessus de ses sœurs
+  // du corps défilant.
+  dragElevated: {
     zIndex: 1,
   },
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
