@@ -5,7 +5,7 @@ import { Dimensions, StyleSheet } from "react-native";
 
 import { PlacementBar } from "@/features/sessions/PlacementBar";
 import { REMOVAL_BUBBLE_HEIGHT, RemovalBubble, type RemovalBubbleAnchor } from "@/features/sessions/RemovalBubble";
-import { STOP_POINT_CHIP_HEIGHT, STOP_POINT_CHIP_HIT_SLOP, StopPointChip } from "@/features/sessions/StopPointChip";
+import { STOP_POINT_CHIP_HEIGHT, STOP_POINT_CHIP_TOUCH_EXTENT, StopPointChip } from "@/features/sessions/StopPointChip";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
@@ -105,8 +105,13 @@ describe("StopPointChip (PRE-6 story 4.2)", () => {
     const chip = screen.getByTestId("chip");
     expect(STOP_POINT_CHIP_HEIGHT).toBe(22);
     // Ligne de 30 (marges 4 / 4) : la cible ne déborde pas sur la carte au-dessus.
-    expect(chip.props.hitSlop).toEqual(STOP_POINT_CHIP_HIT_SLOP);
-    expect(STOP_POINT_CHIP_HEIGHT + STOP_POINT_CHIP_HIT_SLOP.top + STOP_POINT_CHIP_HIT_SLOP.bottom).toBe(30);
+    // Revue 5.3 : cible réelle (boîte de 30, marges négatives de 4 : la ligne garde 22), sans hitSlop.
+    expect(chip.props.hitSlop).toBeUndefined();
+    expect(StyleSheet.flatten(chip.props.style)).toMatchObject({
+      height: STOP_POINT_CHIP_HEIGHT + 2 * STOP_POINT_CHIP_TOUCH_EXTENT,
+      marginVertical: -STOP_POINT_CHIP_TOUCH_EXTENT,
+    });
+    expect(STOP_POINT_CHIP_HEIGHT + 2 * STOP_POINT_CHIP_TOUCH_EXTENT).toBe(30);
     fireEvent(chip, "longPress");
     expect(onLongPress).toHaveBeenCalledTimes(1);
     fireEvent(chip, "accessibilityAction", { nativeEvent: { actionName: "other" } });

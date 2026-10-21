@@ -1,5 +1,5 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AccessibilityInfo, Animated, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
 
@@ -34,7 +34,8 @@ import {
   OCCURRENCE_CARD_BORDER_WIDTH,
   OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_TEXT_FRAME,
-  occurrenceRecoveryHitSlop,
+  OCCURRENCE_RECOVERY_FRAME,
+  occurrenceRecoveryTouchExtent,
 } from "@/features/sessions/OccurrenceCard";
 import { SessionDraftProvider } from "@/features/sessions/SessionDraftProvider";
 import type { SessionService } from "@/features/sessions/SessionService";
@@ -1160,7 +1161,9 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const digitTouch = screen.getByTestId("composition-circuit-header-counter-value-press");
     const digitTouchStyle = StyleSheet.flatten(digitTouch.props.style);
     expect(digitTouchStyle.minHeight).toBe(44);
-    expect((digitTouchStyle.minWidth as number) + (digitTouch.props.hitSlop?.left ?? 0)).toBeGreaterThanOrEqual(44);
+    // Revue 5.3 : boîte réelle de 44 (marge négative à gauche, l'encombrement reste 32), sans hitSlop.
+    expect(digitTouchStyle).toMatchObject({ minWidth: 44, marginLeft: -12 });
+    expect(digitTouch.props.hitSlop).toBeUndefined();
 
     const pill = screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true });
     expect(StyleSheet.flatten(pill.props.style)).toMatchObject({
@@ -1255,7 +1258,10 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       ["composition-boundary-final-phase", composition.finalPhase.label, "00 min 05 s", 24],
     ] as const) {
       const row = screen.getByTestId(testID);
-      expect(StyleSheet.flatten(row.props.style)).toMatchObject({ height, flexDirection: "row" });
+      // Revue 5.3 : boîte tactile réelle de 44, marges négatives : l'encombrement reste 27 / 24.
+      const rowStyle = StyleSheet.flatten(row.props.style);
+      expect(rowStyle).toMatchObject({ height: 44, flexDirection: "row" });
+      expect((rowStyle.height as number) + (rowStyle.marginTop as number) + (rowStyle.marginBottom as number)).toBe(height);
       expect(within(row).getByText(label)).toBeTruthy();
       // Toute la rangée (libellé + pastille) est le déclencheur de la roulette (acquis conservé).
       expect(screen.getByLabelText(label)).toBe(row);
@@ -1288,14 +1294,19 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       paddingHorizontal: 10,
       paddingVertical: 4,
     });
-    // Cible tactile : la rangée entière portée à 44 par `hitSlop` (story 5.2 : Compte à rebours de
-    // 27, Fin de 24), sans dépasser l'écart de 8 du côté de la carte voisine.
-    const row = screen.getByLabelText(composition.countdown.label);
-    expect(27 + row.props.hitSlop.top + row.props.hitSlop.bottom).toBe(44);
-    expect(row.props.hitSlop.bottom).toBeLessThanOrEqual(8);
-    const end = screen.getByLabelText(composition.finalPhase.label);
-    expect(24 + end.props.hitSlop.top + end.props.hitSlop.bottom).toBe(44);
-    expect(end.props.hitSlop.top).toBeLessThanOrEqual(8);
+    // Cible tactile : la rangée entière portée à 44 (story 5.2 : Compte à rebours de 27, Fin de 24),
+    // sans dépasser l'écart de 8 du côté de la carte voisine. Revue 5.3 : boîte réelle du `Pressable`
+    // (marges négatives : l'encombrement reste 27 / 24), jamais un hitSlop.
+    const row = StyleSheet.flatten(screen.getByLabelText(composition.countdown.label).props.style);
+    expect(row.height).toBe(44);
+    expect(-(row.marginTop as number) - (row.marginBottom as number)).toBe(44 - 27);
+    expect(-(row.marginBottom as number)).toBeLessThanOrEqual(8);
+    expect(row).toMatchObject({ paddingTop: -(row.marginTop as number), paddingBottom: 3 - (row.marginBottom as number) });
+    const end = StyleSheet.flatten(screen.getByLabelText(composition.finalPhase.label).props.style);
+    expect(end.height).toBe(44);
+    expect(-(end.marginTop as number) - (end.marginBottom as number)).toBe(44 - 24);
+    expect(-(end.marginTop as number)).toBeLessThanOrEqual(8);
+    expect(screen.getByLabelText(composition.finalPhase.label).props.hitSlop).toBeUndefined();
     expect(StyleSheet.flatten(within(pill).getByText("00 min 10 s").props.style)).toMatchObject({
       ...type.editableValue,
       color: colors.primary,
@@ -2090,8 +2101,13 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
     // PRE-6 story 2.1 : les bornes sont des étapes (Figma `8328:28636`), inchangées par la ligne.
     // PRE-6 story 5.2 (`9819:19907`, `9819:20050`) : Compte à rebours 27, Fin de séance 24.
-    expect(StyleSheet.flatten(countdown.props.style).height).toBe(27);
-    expect(StyleSheet.flatten(finalPhase.props.style).height).toBe(24);
+    // Revue 5.3 : encombrement = boîte tactile de 44 + marges négatives.
+    const footprint = (node: typeof countdown) => {
+      const style = StyleSheet.flatten(node.props.style);
+      return (style.height as number) + (style.marginTop as number) + (style.marginBottom as number);
+    };
+    expect(footprint(countdown)).toBe(27);
+    expect(footprint(finalPhase)).toBe(24);
   });
 });
 
@@ -2975,7 +2991,12 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
 
     const values = screen.getByTestId("composition-exercise-values-column");
     const recovery = within(values).getByTestId("composition-activity-recovery-ex-1-recovery");
-    expect(StyleSheet.flatten(recovery.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center", gap: 6 });
+    // Revue 5.3 : le `Pressable` porte la cible réelle ; la disposition est celle de son contenu.
+    expect(StyleSheet.flatten(within(values).getByTestId("composition-activity-recovery-ex-1-recovery-content").props.style)).toMatchObject({
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+    });
     expect(StyleSheet.flatten(within(recovery).getByTestId("composition-recovery-line-icon").props.style)).toMatchObject({
       width: 13,
       height: 13,
@@ -3148,8 +3169,13 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     renderScreenWithDraft([anActivity("ex-1", zone, { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
     const recovery = screen.getByTestId("composition-activity-recovery-ex-1-recovery");
-    const slop = occurrenceRecoveryHitSlop(bordered);
-    expect(recovery.props.hitSlop).toEqual(slop);
+    // Revue 5.3 : la cible est la boîte du `Pressable` (marges internes compensées par des marges
+    // négatives), jamais un hitSlop — sans effet hors des limites du parent sous Fabric iOS.
+    const box = StyleSheet.flatten(recovery.props.style);
+    const slop = { top: -(box.marginTop as number), bottom: -(box.marginBottom as number) };
+    expect(slop).toEqual(occurrenceRecoveryTouchExtent(bordered));
+    expect(box).toMatchObject({ paddingTop: slop.top, paddingBottom: slop.bottom });
+    expect(recovery.props.hitSlop).toBeUndefined();
     // Rectangle vertical dans la carte, depuis son bord extérieur haut.
     const frame = OCCURRENCE_CARD_TEXT_FRAME;
     const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
@@ -3164,15 +3190,17 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(target.top).toBeGreaterThanOrEqual(line2Bottom);
     expect(target.bottom).toBe(OCCURRENCE_CARD_HEIGHT - border);
     expect(target.bottom - target.top).toBe(bordered ? 29 : 30);
-    // Aucune marge latérale ; la ligne 3 de gauche (Zones) n'est pas dans la cible.
-    expect(Object.keys(recovery.props.hitSlop).sort()).toEqual(["bottom", "top"]);
+    // Aucune extension latérale ; la ligne 3 de gauche (Zones) n'est pas dans la cible.
+    expect(box.marginLeft ?? 0).toBe(0);
+    expect(box.marginRight ?? 0).toBe(0);
     expect(within(screen.getByTestId("composition-exercise-labels-column")).queryByTestId(
       "composition-activity-recovery-ex-1-recovery",
     )).toBeNull();
   });
 
   it("PRE6-5.1 — the recovery is inert while the card's actions are revealed, while another card is revealed, and while dragging", () => {
-    const pressable = () => screen.getByTestId("composition-activity-recovery-ex-1-recovery");
+    // Revue 5.3 : inerte, la récupération est retirée de l'accessibilité (d'où `includeHiddenElements`).
+    const pressable = () => screen.getByTestId("composition-activity-recovery-ex-1-recovery", { includeHiddenElements: true });
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
       anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
@@ -5279,36 +5307,46 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(StyleSheet.flatten(screen.getByTestId(ADD_STOP).props.style).backgroundColor).toBe("#F1F1FF");
   });
 
-  it("placement: « Continuer » is replaced by the bar, the rest is attenuated and inactive, the demarcation rule is hidden", () => {
+  it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
     // PRE-6 story 5.1 (D-435, choix D1) : aucun trait ; la récupération de A est en ligne 3 de sa carte.
     renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
     expect(screen.getByTestId("composition-activity-recovery-A-recovery").props.onStartShouldSetResponder).toBeDefined();
     enter();
-    // En placement, la valeur reste affichée dans la carte, sans interaction (rendu refait en 5.3).
-    const placedRecovery = screen.getByTestId("composition-activity-recovery-A-recovery", anyNode);
-    expect(placedRecovery.props.onStartShouldSetResponder).toBeUndefined();
+    // PRE-6 story 5.3 : en placement, la récupération existante reste modifiable en ligne 3 (story 4.2).
+    const placedRecovery = screen.getByTestId("composition-activity-recovery-A-recovery");
+    expect(placedRecovery.props.onStartShouldSetResponder).toBeDefined();
+    expect(placedRecovery.props.accessibilityLabel).toBe("Récupération 20 s après A, toucher pour modifier");
 
     expect(screen.queryByTestId("composition-save-action", anyNode)).toBeNull();
     expect(screen.getByTestId(BAR)).toBeTruthy();
-    // En placement, chaque occurrence garde son emplacement (règle inchangée).
-    for (const id of ["A", "B", "C", "D"]) {
-      expect(screen.getByTestId(`composition-activity-recovery-slot-${id}`, anyNode)).toBeTruthy();
+    // PRE-6 story 5.3 (D-435) : emplacements de point sous A, B, C (aucun avant la Fin, sous D) ;
+    // cadre « Récupération » dans la ligne 3 de B, C, D (A porte déjà la sienne).
+    for (const id of ["A", "B", "C"]) {
+      expect(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).toBeTruthy();
     }
-    // « + », compteur / œil, cartes et bornes : atténués et inactifs.
+    expect(screen.queryByTestId("composition-activity-recovery-slot-D", anyNode)).toBeNull();
+    for (const id of ["B", "C", "D"]) {
+      expect(
+        within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId(`composition-placement-slot-${id}-recovery`),
+      ).toBeTruthy();
+    }
+    expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
+    // « + » atténué et inactif ; revue 5.3 (Figma `8328:29270`) : compteur / œil, bornes et cartes
+    // inactifs, non atténués (D6).
     const add = screen.getByTestId("composition-add-activity-action");
     expect(add.props.accessibilityState).toMatchObject({ disabled: true });
     expect(StyleSheet.flatten(add.props.style).opacity).toBe(0.45);
     const header = screen.getByTestId("composition-circuit-header", anyNode);
     expect(header.props.pointerEvents ?? StyleSheet.flatten(header.props.style).pointerEvents).toBe("none");
-    expect(StyleSheet.flatten(header.props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(header.props.style).opacity).toBeUndefined();
     const card = screen.getByTestId("composition-exercise-row-A", anyNode);
-    expect(StyleSheet.flatten(card.props.style).opacity).toBe(0.45);
+    expect(StyleSheet.flatten(card.props.style).opacity).toBeUndefined();
     fireEvent.press(card);
     expect(mockPush).not.toHaveBeenCalled();
     for (const id of ["composition-boundary-countdown-placement", "composition-boundary-final-phase-placement"]) {
       const boundary = screen.getByTestId(id, anyNode);
       expect(boundary.props.pointerEvents).toBe("none");
-      expect(StyleSheet.flatten(boundary.props.style).opacity).toBe(0.45);
+      expect(StyleSheet.flatten(boundary.props.style)?.opacity).toBeUndefined();
     }
     expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
   });
@@ -5324,10 +5362,16 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     }
     expect(screen.getByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeTruthy();
     expect(screen.queryByLabelText(stopLabel("D"))).toBeNull();
-    // Ordre de focus : récupération puis point à chaque emplacement.
-    const slot = screen.getByTestId("composition-placement-slot-A");
+    // Ordre de focus : récupération puis point à chaque emplacement. PRE-6 story 5.3 : le cadre est
+    // dans la carte (ligne 3), la puce dessous ; la carte elle-même n'est plus un élément accessible.
+    const slot = screen.getByTestId("composition-activity-A");
     const labels = slot
-      .findAll((node) => node.props.accessibilityRole === "button" && typeof node.props.accessibilityLabel === "string")
+      .findAll(
+        (node) =>
+          node.props.accessible !== false &&
+          node.props.accessibilityRole === "button" &&
+          typeof node.props.accessibilityLabel === "string",
+      )
       .map((node) => node.props.accessibilityLabel as string);
     expect(labels.filter((label, index) => labels.indexOf(label) === index)).toEqual([recoveryLabel("A"), stopLabel("A")]);
   });
@@ -5346,7 +5390,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
     enter();
     expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
-    expect(screen.getByLabelText("Récupération 20 s, toucher pour modifier")).toBeTruthy();
+    expect(screen.getByLabelText("Récupération 20 s après B, toucher pour modifier")).toBeTruthy();
     expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
     expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeTruthy();
   });
@@ -5365,7 +5409,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 
     const chip = screen.getByLabelText(recoveryLabel("A"));
     expect(chip.props.accessibilityState).toMatchObject({ selected: true });
-    expect(within(chip).getByText("Récupération 30 s")).toBeTruthy();
+    // PRE-6 story 5.3 (D-435) : cadre de la ligne 3, durée seule (format de la ligne 3, story 5.1).
+    expect(within(chip).getByText("30 s")).toBeTruthy();
+    expect(chip.props.accessibilityValue).toEqual({ text: "30 s" });
     expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
     expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
     // Aucune écriture du brouillon de séance avant « Confirmer ».
@@ -5501,7 +5547,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     fireEvent.press(screen.getByLabelText(recoveryLabel("D")));
     nativeChange("duration-wheel-seconds", 0);
     fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-    expect(within(screen.getByLabelText(recoveryLabel("D"))).getByText("Récupération 0 s")).toBeTruthy();
+    expect(within(screen.getByLabelText(recoveryLabel("D"))).getByText("0 s")).toBeTruthy();
     fireEvent.press(confirm());
 
     expect(probe.draft!.exercises.find((exercise) => exercise.id === "D")!.postActivityRecoverySeconds).toBe(0);
@@ -5511,7 +5557,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     // Une nouvelle entrée la montre comme existante.
     enter();
     expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
-    expect(screen.getByLabelText("Récupération 0 s, toucher pour modifier")).toBeTruthy();
+    expect(screen.getByLabelText("Récupération 0 s après D, toucher pour modifier")).toBeTruthy();
   });
 
   it("session and Circuit durations are recalculated live during placement, restored by Annuler", () => {
@@ -5666,11 +5712,14 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(probe.draft).toBe(before);
   });
 
-  it("chips reach a 44-pt target and a selected chip says a tap removes it", () => {
+  it("chips: target bounded by the surrounding gaps (story 5.3) and a selected chip says a tap removes it", () => {
     renderPlacement(matrix());
     enter();
     const chip = screen.getByLabelText(stopLabel("A"));
-    expect(chip.props.hitSlop).toEqual({ top: 10, bottom: 10 });
+    // PRE-6 story 5.3 : rangée de 22 entre deux écarts de 8 (9 dans le Circuit) ; la cible (boîte réelle,
+    // revue 5.3) s'étend à ces écarts sans atteindre les cartes voisines (38 / 40, 44 n'étant pas atteignable).
+    expect(StyleSheet.flatten(chip.props.style)).toMatchObject({ height: 38, marginVertical: -8 });
+    expect(StyleSheet.flatten(screen.getByLabelText(stopLabel("B")).props.style)).toMatchObject({ height: 40, marginVertical: -9 });
     expect(chip.props.accessibilityHint).toBeUndefined();
     fireEvent.press(chip);
     expect(screen.getByLabelText(stopLabel("A")).props.accessibilityHint).toBe(p.selectedHint);
@@ -5711,7 +5760,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.queryByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeNull();
     const existing = screen.getByLabelText(p.existingStopPointAfterCircuitAccessibilityLabel);
     expect(existing.props.accessibilityRole).toBeUndefined();
-    expect(StyleSheet.flatten(existing.props.style).borderWidth).toBeUndefined();
+    expect(existing.props.onStartShouldSetResponder).toBeUndefined();
+    // PRE-6 story 5.3 (D-435, `9843:18974`) : point posé, puce de 22 (contour `#C8C8D7`) ; revue 5.3 : rangée de
+    // 22 comme hors placement (Figma : 24), sans saut à l'entrée.
+    expect(StyleSheet.flatten(screen.getByTestId("composition-placement-slot-after-circuit").props.style).height).toBe(22);
+    const face = existing.findAll((node) => typeof node.type === "string" && StyleSheet.flatten(node.props.style)?.borderWidth === 1);
+    expect(StyleSheet.flatten(face[0]!.props.style)).toMatchObject({ borderColor: "#C8C8D7", borderRadius: 12 });
   });
 
   it("names containing replacement patterns ($&, $1) are inserted verbatim in chip labels", () => {
@@ -5720,12 +5774,359 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.getByLabelText("Ajouter un point d’arrêt après Squat $& $1")).toBeTruthy();
   });
 
+  describe("placement mixte et défilement (PRE-6 story 5.3, D-435, `8328:29270`)", () => {
+    const pauses = strings.screens.composition.pauses;
+    const modifiable = (duration: string, exercise = "A") =>
+      pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration).replace("{exercise}", exercise);
+    const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
+    const face = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery-face`);
+    const box = (node: ReturnType<typeof screen.getByTestId>) => StyleSheet.flatten(node.props.style);
+    const PLACEMENT_SURFACE = "rgba(5, 8, 229, 0.05)";
+    /** Boîte de contenu de la ligne 3 (repère des cibles) : la cible s'étend de \`top\` au-dessus à \`bottom\` en dessous. */
+    const extentOf = (node: ReturnType<typeof screen.getByTestId>) => ({
+      top: -(box(node).marginTop as number),
+      bottom: -(box(node).marginBottom as number),
+    });
+
+    it("matrix — entry: A, B outside the Circuit, no pause: a « Récupération » frame in line 3 of A and B, a centred « Point d’arrêt » chip between A and B", () => {
+      renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" }), anActivity("B", "BEFORE_TOUR", { name: "B" })]);
+      enter();
+      for (const id of ["A", "B"]) {
+        // Le cadre est dans la ligne 3 de la colonne des valeurs de la carte, dans le flux.
+        const line3 = within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId("composition-exercise-recovery-slot");
+        expect(within(line3).getByTestId(`composition-placement-slot-${id}-recovery`)).toBeTruthy();
+        expect(within(frame(id)).getByText(p.recovery)).toBeTruthy();
+        expect(box(face(id))).toMatchObject({
+          height: OCCURRENCE_RECOVERY_FRAME.height,
+          borderWidth: 1.5,
+          borderStyle: "dashed",
+          borderColor: colors.primary,
+          borderRadius: 10,
+          backgroundColor: PLACEMENT_SURFACE,
+        });
+        expect(box(face(id)).position).toBeUndefined();
+        expect(StyleSheet.flatten(within(frame(id)).getByText(p.recovery).props.style)).toMatchObject({
+          fontSize: 11,
+          fontWeight: "600",
+          color: colors.primary,
+          textAlign: "right",
+        });
+      }
+      // Puce entre A et B (aucune après B : juste avant la Fin).
+      expect(box(screen.getByTestId("composition-placement-slot-A"))).toMatchObject({
+        height: 22,
+        justifyContent: "center",
+        alignItems: "center",
+      });
+      expect(box(screen.getByTestId("composition-activity-recovery-slot-A")).marginTop).toBe(8);
+      expect(box(screen.getByTestId("composition-placement-slot-A-stop-point-face"))).toMatchObject({
+        borderWidth: 1,
+        borderStyle: "dashed",
+        borderColor: colors.primary,
+        borderRadius: 10,
+        backgroundColor: PLACEMENT_SURFACE,
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        gap: 6,
+      });
+      expect(StyleSheet.flatten(within(screen.getByLabelText(stopLabel("A"))).getByText(p.stopPoint).props.style)).toMatchObject({
+        fontSize: 10,
+        fontWeight: "500",
+        color: colors.textLabel,
+      });
+      expect(screen.queryByLabelText(stopLabel("B"))).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
+    });
+
+    it("matrix — existing R = 0: no frame on A; its value stays modifiable in line 3 (story 4.2), named after the exercise", () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 0 } }));
+      enter();
+      expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
+      expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
+      const existing = screen.getByLabelText(modifiable("0 s"));
+      expect(existing.props.testID).toBe("composition-activity-recovery-A-recovery");
+      expect(within(existing).getByText("0 s")).toBeTruthy();
+    });
+
+    it("matrix — existing R = 20 s: « 20 s » in line 3, a button named after the exercise, touchable to modify (not counted in N); no frame", () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
+      enter();
+      expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
+      const existing = screen.getByLabelText("Récupération 20 s après A, toucher pour modifier");
+      expect(within(existing).getByText("20 s")).toBeTruthy();
+      expect(existing.props.accessibilityRole).toBe("button");
+      expect(extentOf(existing)).toEqual(occurrenceRecoveryTouchExtent(true));
+      fireEvent.press(existing);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
+      nativeChange("duration-wheel-seconds", 45);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(within(screen.getByLabelText(modifiable("45 s"))).getByText("45 s")).toBeTruthy();
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+      expect(probe.updates).toBe(0);
+    });
+
+    // Revue 5.3 : sans appui long en placement, un appui lent reste un toucher (roulette).
+    it("matrix — existing R: a slow press (long press) in placement still opens the wheel", async () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
+      enter();
+      const user = userEvent.setup();
+      await user.longPress(screen.getByLabelText(modifiable("20 s")), { duration: 700 });
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
+      expect(screen.queryByTestId("composition-removal-bubble-remove")).toBeNull();
+    });
+
+    it("matrix — choosing a recovery: the frame opens the wheel at the Profile default (45 s), ✓ selects it (value, hint), N + 1; a second touch removes it", async () => {
+      renderPlacement(matrix(), { profileRecoverySeconds: 45 });
+      enter();
+      await act(async () => {});
+      expect(frame("A").props.accessibilityHint).toBeUndefined();
+      expect(frame("A").props.accessibilityValue?.text).toBeUndefined();
+      fireEvent.press(frame("A"));
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: true });
+      expect(frame("A").props.accessibilityHint).toBe(p.selectedHint);
+      expect(frame("A").props.accessibilityValue).toEqual({ text: "45 s" });
+      expect(box(face("A"))).toMatchObject({ borderStyle: "solid", backgroundColor: colors.primary });
+      expect(StyleSheet.flatten(within(frame("A")).getByText("45 s").props.style).color).toBe(colors.background);
+      // Sablier de même taille (13) que le sablier gris, teinté en blanc : aucun décalage.
+      const icon = screen.getByTestId("composition-placement-slot-A-recovery-icon", anyNode);
+      expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 13, height: 13, tintColor: colors.background });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+      fireEvent.press(frame("A"));
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    });
+
+    it("matrix — choosing a point: the chip is selected, N + 1 ; touched again: deselected", () => {
+      renderPlacement(matrix());
+      enter();
+      fireEvent.press(screen.getByLabelText(stopLabel("A")));
+      expect(screen.getByLabelText(stopLabel("A")).props.accessibilityState).toMatchObject({ selected: true });
+      expect(box(screen.getByTestId("composition-placement-slot-A-stop-point-face"))).toMatchObject({
+        borderStyle: "solid",
+        backgroundColor: colors.primary,
+      });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 1 pause ajoutée");
+      fireEvent.press(screen.getByLabelText(stopLabel("A")));
+      expect(screen.getByLabelText(stopLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    });
+
+    it("matrix — in the Circuit: same presentation, gap 9 (frame in line 3, chip row under B and C)", () => {
+      renderPlacement(matrix());
+      enter();
+      for (const id of ["B", "C"]) {
+        expect(
+          within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId(`composition-placement-slot-${id}-recovery`),
+        ).toBeTruthy();
+        // Carte sans bord dans le Circuit : la cible du cadre descend jusqu'au bord de la carte.
+        expect(extentOf(frame(id))).toEqual(occurrenceRecoveryTouchExtent(false));
+        expect(box(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).marginTop).toBe(9);
+        expect(box(screen.getByTestId(`composition-placement-slot-${id}`)).height).toBe(22);
+      }
+      expect(extentOf(frame("A"))).toEqual(occurrenceRecoveryTouchExtent(true));
+    });
+
+    // Cible du cadre : la boîte du \`Pressable\` (revue 5.3), du bas de la ligne 2 au bord intérieur de
+    // la carte, le cadre de 24 dedans ; à gauche, jamais au-delà de l'écart entre les colonnes.
+    it.each<[string, "BEFORE_TOUR" | "IN_TOUR", boolean]>([
+      ["hors Circuit", "BEFORE_TOUR", true],
+      ["dans le Circuit", "IN_TOUR", false],
+    ])("the frame's touch box (%s) contains the frame, never line 2 nor the Zones, and stops at the card's inner edge", (_label, zone, bordered) => {
+      renderPlacement([anActivity("A", zone, { name: "A" }), anActivity("Z", "AFTER_TOUR", { name: "Z" })]);
+      enter();
+      const target = box(frame("A"));
+      const text = OCCURRENCE_CARD_TEXT_FRAME;
+      const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
+      const textTop = border + (OCCURRENCE_CARD_HEIGHT - 2 * border - text.height) / 2;
+      const line2Bottom = textTop + text.nameLineHeight + text.nameToWorkGap + text.workLineHeight;
+      const contentTop = line2Bottom + text.workToZonesGap + text.zonesLinePaddingTop;
+      const targetTop = contentTop + (target.marginTop as number);
+      const targetBottom = contentTop + OCCURRENCE_RECOVERY_FRAME.lineContentHeight - (target.marginBottom as number);
+      const faceTop = targetTop + (target.paddingTop as number);
+      const faceBottom = faceTop + (box(face("A")).height as number);
+      expect(targetTop).toBe(line2Bottom);
+      expect(faceTop).toBe(contentTop - OCCURRENCE_RECOVERY_FRAME.aboveContent);
+      expect(faceBottom + (target.paddingBottom as number)).toBe(targetBottom);
+      expect(targetBottom).toBe(OCCURRENCE_CARD_HEIGHT - border);
+      expect(targetBottom - targetTop).toBe(bordered ? 29 : 30);
+      // Débord gauche borné à l'écart entre colonnes (4) : ni recouvrement ni toucher des Zones.
+      expect(target.marginHorizontal).toBe(-4);
+      expect(target.position).toBeUndefined();
+      expect(target.hitSlop).toBeUndefined();
+    });
+
+    // Revue 5.3 : le cadre ne s'abrège pas — dans le flux, sa largeur suit son contenu et élargit la
+    // colonne des valeurs (au plus 60 %) ; les Zones cèdent (colonne de gauche \`flex: 1\`).
+    it("the frame sizes to its content and the Zones give way; touching the Zones never opens the wheel", () => {
+      renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", bodyZoneIds: ["knee"] }), anActivity("B", "AFTER_TOUR", { name: "B" })]);
+      enter();
+      const values = box(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-values-column"));
+      expect(values).toMatchObject({ flexShrink: 0, minWidth: "35%", maxWidth: "60%" });
+      expect(values.width).toBeUndefined();
+      const labels = box(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-labels-column", anyNode));
+      expect(labels).toMatchObject({ flex: 1, minWidth: 0 });
+      const label = within(frame("A")).getByText(p.recovery);
+      expect(label.props.numberOfLines).toBe(1);
+      expect(box(face("A")).width).toBeUndefined();
+      const zones = within(screen.getByTestId("composition-exercise-row-A")).queryByTestId("composition-exercise-body-zones", anyNode);
+      if (zones !== null) fireEvent.press(zones);
+      fireEvent.press(within(screen.getByTestId("composition-exercise-row-A")).getByTestId("composition-exercise-labels-column", anyNode));
+      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it("the chip's touch box spans its row and the gaps around it: disjoint from the neighbouring cards", () => {
+      renderPlacement(matrix());
+      enter();
+      // Rangée de 22 sous A (écart 8 au-dessus, 8 jusqu'au Circuit) et sous B (9 / 9) : la boîte de la
+      // puce s'étend sur ces écarts (marges négatives : la rangée garde 22) et s'arrête au bord des cartes.
+      for (const [id, gap] of [
+        ["A", 8],
+        ["B", 9],
+      ] as const) {
+        const target = box(screen.getByTestId(`composition-placement-slot-${id}-stop-point`));
+        expect(target).toMatchObject({ height: 22 + 2 * gap, marginVertical: -gap });
+        expect(target.hitSlop).toBeUndefined();
+        expect(box(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).marginTop).toBe(gap);
+      }
+      expect(box(screen.getByTestId("composition-placement-slot-after-circuit-stop-point"))).toMatchObject({
+        height: 38,
+        marginVertical: -8,
+      });
+    });
+
+    it("cards are not attenuated (D6) and stay inactive; boundaries and Circuit header are not attenuated either (Figma) but inactive", () => {
+      renderPlacement(matrix());
+      enter();
+      const card = screen.getByTestId("composition-exercise-row-A");
+      expect(box(card).opacity).toBeUndefined();
+      expect(card.props.accessible).toBe(false);
+      fireEvent.press(card);
+      fireEvent(card, "longPress");
+      expect(mockPush).not.toHaveBeenCalled();
+      expect(card.props.accessibilityState).toMatchObject({ selected: false });
+      // Contenu de la carte hors ligne 3 : masqué à l'accessibilité ; le cadre reste exposé.
+      expect(screen.queryByText("A")).toBeNull();
+      expect(screen.getByText("A", anyNode)).toBeTruthy();
+      expect(screen.getByLabelText(recoveryLabel("A"))).toBeTruthy();
+      for (const id of ["composition-boundary-countdown-placement", "composition-boundary-final-phase-placement"]) {
+        const boundary = screen.getByTestId(id, anyNode);
+        expect(boundary.props.pointerEvents).toBe("none");
+        expect(box(boundary)?.opacity).toBeUndefined();
+      }
+      const header = screen.getByTestId("composition-circuit-header", anyNode);
+      expect(header.props.pointerEvents).toBe("none");
+      expect(box(header).opacity).toBeUndefined();
+    });
+
+    it("in placement, swipe and drag on a card reveal no action and change nothing", () => {
+      renderPlacement(matrix());
+      const before = probe.draft;
+      enter();
+      fireSwipeLeft("A");
+      expect(screen.queryByTestId("composition-activity-actions-A", anyNode)).toBeNull();
+      const container = screen.getByTestId("composition-activity-A");
+      fireEvent(container, "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
+      fireEvent(container, "touchMove", { nativeEvent: { pageX: 100, pageY: 400 } });
+      fireEvent(container, "touchEnd", { nativeEvent: { pageX: 100, pageY: 400 } });
+      expect(screen.queryByTestId("composition-activity-actions-A", anyNode)).toBeNull();
+      expect(probe.draft).toBe(before);
+      expect(probe.updates).toBe(0);
+    });
+
+    it("an existing point attached to A: placed face, not interactive, no rail dot for A", () => {
+      renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] } });
+      enter();
+      const existing = screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "A"));
+      expect(existing.props.testID).toBe("composition-placement-slot-A-stop-point-existing");
+      expect(existing.props.accessibilityRole).toBeUndefined();
+      expect(existing.props.onStartShouldSetResponder).toBeUndefined();
+      expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
+      // Rangée de 22, comme hors placement (aucun saut à l'entrée).
+      expect(box(screen.getByTestId("composition-placement-slot-A")).height).toBe(22);
+      expect(screen.queryByTestId("composition-rail-dot-A", anyNode)).toBeNull();
+    });
+
+    it("a point at a position placement no longer offers (before the End) stays shown as a placed face, its row kept", () => {
+      renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "pD", scope: "AFTER_TOUR", position: 1 }] } });
+      expect(screen.getByTestId("composition-activity-recovery-D-stop-point")).toBeTruthy();
+      enter();
+      expect(screen.getByTestId("composition-activity-recovery-slot-D")).toBeTruthy();
+      expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "D"))).toBeTruthy();
+      expect(screen.queryByLabelText(stopLabel("D"))).toBeNull();
+    });
+
+    it("a non-interactive recovery shown in placement (no recovery slot) is hidden from accessibility", () => {
+      renderPlacement([
+        anActivity("A", "BEFORE_TOUR", { name: "A" }),
+        anActivity("R", "BEFORE_TOUR", { name: "R", type: "RECOVERY", postActivityRecoverySeconds: 20 }),
+      ]);
+      enter();
+      const shown = screen.getByTestId("composition-activity-recovery-R-recovery", anyNode);
+      expect(shown.props.onStartShouldSetResponder).toBeUndefined();
+      expect(shown.props.accessibilityElementsHidden).toBe(true);
+      expect(shown.props.importantForAccessibility).toBe("no-hide-descendants");
+      expect(screen.queryByTestId("composition-activity-recovery-R-recovery")).toBeNull();
+    });
+
+    it("rail: continuous through the slot rows (each block's tail runs to its bottom), no rail dot on a slot", () => {
+      renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "after", scope: "AFTER_TOUR", position: 0 }] } });
+      enter();
+      for (const id of ["A", "B", "C", "D"]) {
+        expect(box(screen.getByTestId(`composition-rail-tail-${id}`, anyNode))).toMatchObject({ bottom: 0 });
+        expect(screen.queryByTestId(`composition-rail-dot-${id}`, anyNode)).toBeNull();
+      }
+      expect(box(screen.getByTestId("composition-rail-tail-after-circuit", anyNode))).toMatchObject({ top: 0, bottom: 0 });
+      expect(screen.queryByTestId("composition-rail-dot-after-circuit", anyNode)).toBeNull();
+      // Un point posé garde la rangée de 22, puce centrée.
+      expect(box(screen.getByTestId("composition-placement-slot-after-circuit"))).toMatchObject({
+        height: 22,
+        justifyContent: "center",
+      });
+    });
+
+    it("matrix — long sequence: the whole list scrolls; the last slot is in the scrolled content, above the protected footer", () => {
+      const many = Array.from({ length: 12 }, (_, index) =>
+        anActivity(`E${index}`, index < 6 ? "BEFORE_TOUR" : "AFTER_TOUR", { name: `E${index}` }),
+      );
+      renderPlacement(many);
+      enter();
+      const body = screen.getByTestId("composition-body");
+      const footer = screen.getByTestId("composition-bottom-action");
+      // Le pied (barre de placement, avertissement D-301) est HORS du contenu défilant, après lui.
+      expect(within(footer).getByTestId(BAR)).toBeTruthy();
+      expect(within(body).queryByTestId(BAR)).toBeNull();
+      expect(within(footer).getByTestId("composition-unpaused-warning")).toBeTruthy();
+      expect(testIdOrder(screen.toJSON(), ["composition-body", "composition-bottom-action"])).toEqual([
+        "composition-body",
+        "composition-bottom-action",
+      ]);
+      // Le corps défile et occupe la place restante ; son contenu se termine par une marge basse.
+      expect(box(body).flex).toBe(1);
+      expect(body.props.scrollEnabled).toBe(true);
+      expect(StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom).toBe(spacing[16]);
+      // Derniers emplacements (cadre de la dernière occurrence, point après l'avant-dernière) : dans
+      // le contenu défilant, avant la Fin.
+      expect(within(body).getByTestId("composition-placement-slot-E11-recovery")).toBeTruthy();
+      expect(within(body).getByTestId("composition-placement-slot-E10-stop-point")).toBeTruthy();
+      expect(
+        testIdOrder(screen.toJSON(), ["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]),
+      ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
+      // Zone protégée : le pied s'arrête au-dessus de l'indicateur d'accueil (inset 34 + 16).
+      expect(box(footer).marginBottom).toBe(34 + spacing[16]);
+    });
+  });
+
   describe("durée, modification et retrait (PRE-6 story 4.2)", () => {
     const pauses = strings.screens.composition.pauses;
     const line = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}`);
     const recoveryButton = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-recovery`);
     const stopChip = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-stop-point`);
-    const modifiable = (duration: string) => pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration);
+    // Revue 5.3 : en placement, le nom désigne l'exercice (B dans ces tests).
+    const modifiable = (duration: string, exercise = "B") =>
+      pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration).replace("{exercise}", exercise);
     const BUBBLE = "composition-removal-bubble";
     const removeAction = (element: ReturnType<typeof screen.getByTestId>) =>
       fireEvent(element, "accessibilityAction", { nativeEvent: { actionName: "remove" } });
@@ -5762,7 +6163,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       const chip = stopChip("A");
       expect(chip.props.accessibilityLabel).toBe("Point d’arrêt après A");
       expect(chip.props.accessibilityRole).toBeUndefined();
-      expect(StyleSheet.flatten(chip.props.style)).toMatchObject({
+      // Revue 5.3 : la puce dessinée est la face ; le `Pressable` porte la cible réelle (30).
+      expect(StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-A-stop-point-face").props.style)).toMatchObject({
         backgroundColor: colors.background,
         borderWidth: 1,
         borderColor: "#C8C8D7",
@@ -5800,7 +6202,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(within(button).queryByTestId("composition-exercise-body-zones")).toBeNull();
       expect(within(button).queryByTestId("composition-exercise-summary")).toBeNull();
       expect(StyleSheet.flatten(button.props.style).flex).toBeUndefined();
-      expect(button.props.hitSlop).toEqual(occurrenceRecoveryHitSlop(true));
+      expect(StyleSheet.flatten(button.props.style)).toMatchObject({
+        marginTop: -occurrenceRecoveryTouchExtent(true).top,
+        marginBottom: -occurrenceRecoveryTouchExtent(true).bottom,
+      });
       // L'appui long sur la carte au-dessus engage toujours le glisser.
       fireEvent(screen.getByTestId("composition-exercise-row-A"), "longPress");
       expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: true });
@@ -6208,27 +6613,28 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
 
     // PRE-6 story 5.1 (revue) : en placement, la ligne 3 montre la valeur effective du sous-brouillon
-    // (ajout ou modification), sans interaction, et ne contredit jamais la puce de l'emplacement.
-    it("placement: line 3 shows the sub-draft's effective value (addition and modification), without interaction", () => {
+    // (ajout ou modification). Story 5.3 (D-435) : l'ajout est porté par le cadre « Récupération » de la
+    // ligne 3, la récupération existante y reste touchable pour être modifiée (story 4.2).
+    it("placement: line 3 shows the sub-draft's effective value (addition in the frame, modification in place)", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
       enter();
       const lineRecovery = (id: string) => screen.queryByTestId(`composition-activity-recovery-${id}-recovery`, anyNode);
-      // Ajout sur A : rien avant, la valeur choisie après validation.
+      const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
+      // Ajout sur A : cadre « Récupération » avant, la valeur choisie dans le cadre après validation.
       expect(lineRecovery("A")).toBeNull();
+      expect(within(frame("A")).getByText(p.recovery)).toBeTruthy();
       fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
       nativeChange("duration-wheel-seconds", 40);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(within(lineRecovery("A")!).getByText("40 s", anyNode)).toBeTruthy();
-      expect(lineRecovery("A")!.props.onStartShouldSetResponder).toBeUndefined();
-      // Modification de B : 20 → 45, la carte suit la puce.
+      expect(within(frame("A")).getByText("40 s")).toBeTruthy();
+      expect(lineRecovery("A")).toBeNull();
+      // Modification de B : 20 → 45, la ligne 3 suit le sous-brouillon et reste touchable.
       fireEvent.press(screen.getByLabelText(modifiable("20 s")));
       nativeChange("duration-wheel-seconds", 45);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       expect(screen.getByLabelText(modifiable("45 s"))).toBeTruthy();
-      expect(within(lineRecovery("B")!).getByText("45 s", anyNode)).toBeTruthy();
-      expect(lineRecovery("B")!.props.onStartShouldSetResponder).toBeUndefined();
-      // Le nom de la carte (masqué en placement) suit aussi la valeur effective.
-      expect(screen.getByTestId("composition-exercise-row-B", anyNode).props.accessibilityLabel).toMatch(/récupération 45 s$/u);
+      expect(within(lineRecovery("B")!).getByText("45 s")).toBeTruthy();
+      expect(lineRecovery("B")!.props.onStartShouldSetResponder).toBeDefined();
       // Annuler : retour aux valeurs du brouillon.
       fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
       expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
@@ -7071,10 +7477,11 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     // La queue de A traverse la rangée (jusqu'au bas du bloc) ; B n'a pas de point.
     expect(styleOf("composition-rail-tail-A")).toMatchObject({ top: 72, bottom: 0 });
     expect(screen.queryByTestId("composition-rail-dot-B", hidden)).toBeNull();
-    // Cible tactile de la puce limitée à l'écart (4 ≤ 8) : elle ne chevauche aucune carte.
-    const chip = screen.getByTestId("composition-activity-recovery-A-stop-point");
-    expect(chip.props.hitSlop.top).toBeLessThanOrEqual(8);
-    expect(chip.props.hitSlop.bottom).toBeLessThanOrEqual(8);
+    // Cible tactile de la puce limitée à l'écart (4 ≤ 8) : elle ne chevauche aucune carte. Revue 5.3 :
+    // boîte réelle de 30 (marges négatives de 4 : la rangée garde 22).
+    const chip = StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-A-stop-point").props.style);
+    expect(chip).toMatchObject({ height: 30, marginVertical: -4 });
+    expect(-(chip.marginVertical as number)).toBeLessThanOrEqual(8);
   });
 
   it("point après le Circuit : rangée centrée sous le Circuit, reliée au bas du Circuit, la suite reliée à elle", () => {
@@ -7128,7 +7535,8 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     });
   });
 
-  it("placement : le rail des bornes est hors de l'atténuation (opacité uniforme du rail)", () => {
+  // Revue 5.3 : les bornes ne sont plus atténuées en placement ; le rail reste hors du conteneur inactif.
+  it("placement : le rail des bornes est hors du conteneur inactif (opacité uniforme du rail)", () => {
     renderScreen();
     for (const boundary of ["composition-boundary-countdown", "composition-boundary-final-phase"]) {
       const attenuation = screen.getByTestId(`${boundary}-placement`);
@@ -7142,8 +7550,10 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   it("l'en-tête du Circuit et sa première carte : cibles tactiles disjointes", () => {
     renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" })]);
     const headerHeight = styleOf("composition-circuit-header").minHeight as number;
+    // Revue 5.3 : la cible de l'œil est sa boîte réelle (44 × 44, centrée sur la ligne).
     const eye = screen.getByTestId("composition-circuit-header-volumes");
-    const eyeBottom = headerHeight / 2 + (StyleSheet.flatten(eye.props.style).height as number) / 2 + (eye.props.hitSlop as number);
+    expect(eye.props.hitSlop).toBeUndefined();
+    const eyeBottom = headerHeight / 2 + (StyleSheet.flatten(eye.props.style).height as number) / 2;
     const digitBottom =
       headerHeight / 2 + (styleOf("composition-circuit-header-counter-value-press").minHeight as number) / 2;
     const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
@@ -7159,16 +7569,18 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     renderScreenWithDraft(exercises, { stopPoints: [stopPoint] });
     const chips = screen.getAllByTestId(/-stop-point$/u);
     expect(chips).toHaveLength(1);
-    const chipBottomSlop = chips[0]!.props.hitSlop.bottom as number;
-    const fin = screen.getByLabelText(composition.finalPhase.label);
-    expect(fin.props.hitSlop.top).toBe(8 - chipBottomSlop);
-    expect(chipBottomSlop + fin.props.hitSlop.top).toBeLessThanOrEqual(8);
-    expect(24 + fin.props.hitSlop.top + fin.props.hitSlop.bottom).toBe(44);
+    // Revue 5.3 : étendues lues sur les boîtes réelles (marges négatives).
+    const chipBottomSlop = -(StyleSheet.flatten(chips[0]!.props.style).marginVertical as number);
+    const fin = StyleSheet.flatten(screen.getByLabelText(composition.finalPhase.label).props.style);
+    const finTop = -(fin.marginTop as number);
+    expect(finTop).toBe(8 - chipBottomSlop);
+    expect(chipBottomSlop + finTop).toBeLessThanOrEqual(8);
+    expect(fin.height).toBe(44);
   });
 
   it("Fin de séance précédée d'une carte sans point : marge haute de l'écart (8)", () => {
     renderScreenWithDraft([anActivity("a", "AFTER_TOUR", { name: "Fentes" })]);
-    expect(screen.getByLabelText(composition.finalPhase.label).props.hitSlop.top).toBe(8);
+    expect(StyleSheet.flatten(screen.getByLabelText(composition.finalPhase.label).props.style).marginTop).toBe(-8);
   });
 
   it("aucun élément du rail n'est interactif ni exposé à l'accessibilité", () => {

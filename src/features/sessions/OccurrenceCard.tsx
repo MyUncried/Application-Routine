@@ -80,12 +80,20 @@ export const OCCURRENCE_CARD_TEXT_FRAME = {
 
 /**
  * Cible tactile de la récupération en ligne 3 (revue de la story 5.1, écart assumé au choix D7,
- * soumis à Hermann au jalon J4) : la ligne 2 n'est jamais couverte — vers le haut, la marge s'arrête
- * au bas de la ligne 2 (écart 2 entre les lignes + 2 de marge haute de la ligne 3) ; vers le bas,
- * elle descend jusqu'au bord intérieur de la carte, sans le franchir. Aucune marge latérale. Hauteur
- * obtenue : 15 + 4 + 10 = 29 avec bord, 30 sans bord, au lieu de 44.
+ * soumis à Hermann au jalon J4), au-delà de la boîte de contenu de la ligne 3 (15) : la ligne 2
+ * n'est jamais couverte — vers le haut, la cible s'arrête au bas de la ligne 2 (écart 2 entre les
+ * lignes + 2 de marge haute de la ligne 3) ; vers le bas, elle descend jusqu'au bord intérieur de la
+ * carte, sans le franchir. Aucune extension latérale. Hauteur obtenue : 15 + 4 + 10 = 29 avec bord,
+ * 30 sans bord, au lieu de 44.
+ *
+ * Revue 5.3 : cette étendue est portée par la BOÎTE du `Pressable` (marges internes compensées par
+ * des marges négatives : la mise en page ne change pas), jamais par `hitSlop`. Sous Fabric iOS,
+ * `RCTViewComponentView` écarte un toucher hors des limites d'un parent qui ne mesure aucun
+ * débordement (`overflowInset` nul) : un `hitSlop` qui dépasse le parent est sans effet. Une boîte
+ * réelle qui dépasse crée ce débordement chez tous ses ancêtres, et le toucher l'atteint. Ici la
+ * cible reste dans la carte (`overflow: hidden`), qui la contient.
  */
-export function occurrenceRecoveryHitSlop(bordered: boolean): { readonly top: number; readonly bottom: number } {
+export function occurrenceRecoveryTouchExtent(bordered: boolean): { readonly top: number; readonly bottom: number } {
   const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
   const innerHeight = OCCURRENCE_CARD_HEIGHT - 2 * border;
   return {
@@ -94,12 +102,33 @@ export function occurrenceRecoveryHitSlop(bordered: boolean): { readonly top: nu
   };
 }
 
+/** Écart entre la colonne de gauche (Catégorie, Zones) et la colonne des symboles. */
+const COLUMNS_GAP = spacing[4];
+
+/**
+ * PRE-6 story 5.3 (D-435, Figma `9848:18968`, `9839:19099`) : cadre « Récupération » du placement,
+ * dans la ligne 3 de la colonne des valeurs. Relevés à 402 (carte 370) : cadre y 51 à 75 (ligne 3 à
+ * y 52, son contenu à y 54), bord droit x 366 (colonne des valeurs jusqu'à x 362).
+ * - Vertical : le cadre commence 3 au-dessus du contenu de la ligne 3 (le sablier reste à sa place
+ *   hors placement) et mesure 24 ; sa cible est celle de la récupération
+ *   (`occurrenceRecoveryTouchExtent`), qui le contient (1 au-dessus, 4 ou 5 en dessous).
+ * - Horizontal (revue 5.3) : dans le flux, débordant de la colonne de 4 de chaque côté — à gauche,
+ *   jamais plus que l'écart entre les colonnes (aucun recouvrement des Zones, aucun toucher sur
+ *   elles) ; Figma déborde de 6 à gauche. Sa largeur suit son contenu : il élargit la colonne des
+ *   valeurs de la carte (au plus 60 %), les Zones cèdent la place ; « Récupération » ne s'abrège pas.
+ */
+export const OCCURRENCE_RECOVERY_FRAME = {
+  aboveContent: 3,
+  height: 24,
+  /** Boîte de contenu de la ligne 3 (17 − marge haute 2), repère des étendues tactiles. */
+  lineContentHeight: ZONES_LINE_HEIGHT - ZONES_LINE_PADDING_TOP,
+  horizontalOutset: COLUMNS_GAP,
+} as const;
+
 /** Pastilles et symboles dessinés à 13 (Figma `9798:19913`, `9798:19919`, `9798:19927`). */
 const SYMBOL_GAP = spacing[6];
 /** Écart entre le nom et l'icône de changement de côté. */
 const NAME_SIDE_CHANGE_GAP = spacing[12];
-/** Écart entre la colonne de gauche (Catégorie, Zones) et la colonne des symboles. */
-const COLUMNS_GAP = spacing[4];
 /**
  * Colonne des symboles et des valeurs, exprimée par rapport à la largeur utile du texte et au bord
  * droit (jamais un x d'exemple) : au moins 35 % de la largeur utile (Figma à 402 : 96 sur 277, du
@@ -156,8 +185,20 @@ export type OccurrenceCardProps = {
   readonly bordered: boolean;
   /** Récupération de la ligne 3 (`OccurrenceRecovery`), `null` si rien n'est affichable. */
   readonly recovery: ReactNode;
+  /**
+   * PRE-6 story 5.3 : en placement, la carte n'est plus masquée en bloc (sa ligne 3 porte un
+   * contrôle : cadre « Récupération » ou récupération existante modifiable) ; seul son contenu
+   * hors récupération est retiré de l'accessibilité. Absent : aucun effet.
+   */
+  readonly hideContentFromAccessibility?: boolean;
   readonly sideChangeTestID?: string;
 };
+
+/** Props qui retirent un élément (et ses descendants) de l'accessibilité, iOS et Android. */
+const HIDDEN_FROM_ACCESSIBILITY = {
+  accessibilityElementsHidden: true,
+  importantForAccessibility: "no-hide-descendants",
+} as const;
 
 /**
  * Contenu de la carte d'occurrence de la Composition, v2 (PRE-6 story 5.1, D-435, Figma
@@ -187,9 +228,11 @@ export function OccurrenceCard({
   hasSideChange,
   bordered,
   recovery,
+  hideContentFromAccessibility = false,
   sideChangeTestID,
 }: OccurrenceCardProps) {
   const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
+  const hidden = hideContentFromAccessibility ? HIDDEN_FROM_ACCESSIBILITY : null;
   return (
     <View
       style={[
@@ -207,11 +250,11 @@ export function OccurrenceCard({
       ]}
       testID="composition-activity-main-card"
     >
-      <View style={styles.media} testID="composition-exercise-media">
+      <View style={styles.media} {...hidden} testID="composition-exercise-media">
         <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />
       </View>
       <View style={styles.textColumn}>
-        <View style={styles.nameRow} testID="composition-exercise-name-row">
+        <View style={styles.nameRow} {...hidden} testID="composition-exercise-name-row">
           <Text style={styles.name} numberOfLines={1} testID="composition-exercise-name">
             {name}
           </Text>
@@ -222,7 +265,7 @@ export function OccurrenceCard({
           ) : null}
         </View>
         <View style={styles.body} testID="composition-exercise-secondary-row">
-          <View style={styles.labelsColumn} testID="composition-exercise-labels-column">
+          <View style={styles.labelsColumn} {...hidden} testID="composition-exercise-labels-column">
             <View style={styles.workLine} testID="composition-exercise-classification">
               {category !== null ? (
                 <>
@@ -245,7 +288,7 @@ export function OccurrenceCard({
             </View>
           </View>
           <View style={styles.valuesColumn} testID="composition-exercise-values-column">
-            <View style={[styles.workLine, styles.valueRow]}>
+            <View style={[styles.workLine, styles.valueRow]} {...hidden}>
               <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
               <View style={styles.work} testID="composition-exercise-work">
                 <Text style={[styles.value, styles.summary]} numberOfLines={1} testID="composition-exercise-summary">

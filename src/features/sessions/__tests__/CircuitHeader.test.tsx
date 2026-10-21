@@ -281,9 +281,14 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
   it.each([false, true])("the eye and the counter touch targets never overlap (counter open: %s)", (isCounterOpen) => {
     renderHeader({ isCounterOpen });
     const g = CIRCUIT_HEADER_TOUCH_GEOMETRY;
+    // Revue 5.3 : cibles réelles (boîtes du `Pressable`), plus de hitSlop.
     const eye = screen.getByTestId("header-volumes");
-    expect(StyleSheet.flatten(eye.props.style).width).toBe(g.volumesSize);
-    expect(eye.props.hitSlop).toBe(g.volumesHitSlop);
+    expect(StyleSheet.flatten(screen.getByTestId("header-volumes-circle").props.style).width).toBe(g.volumesSize);
+    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({
+      width: g.volumesSize + 2 * g.volumesHitSlop,
+      marginHorizontal: -g.volumesHitSlop,
+    });
+    expect(eye.props.hitSlop).toBeUndefined();
     const gap = StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style).marginLeft as number;
     // Repère : bord droit de l'œil = 0 ; le compteur commence à `gap`.
     const eyeTargetRight = g.volumesHitSlop;
@@ -296,8 +301,11 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
       counterTargetLeft = gap + g.openFieldPadding - g.stepHitSlop;
     } else {
       const digit = screen.getByTestId("header-counter-value-press");
-      expect(digit.props.hitSlop).toEqual({ left: g.digitHitSlopLeft });
-      expect(StyleSheet.flatten(digit.props.style).minWidth).toBe(g.digitMinWidth);
+      expect(digit.props.hitSlop).toBeUndefined();
+      expect(StyleSheet.flatten(digit.props.style)).toMatchObject({
+        minWidth: g.digitMinWidth + g.digitHitSlopLeft,
+        marginLeft: -g.digitHitSlopLeft,
+      });
       counterTargetLeft = gap - g.digitHitSlopLeft;
     }
     expect(counterTargetLeft).toBeGreaterThanOrEqual(eyeTargetRight);
@@ -337,7 +345,10 @@ describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () =
     const eye = screen.getByTestId("header-volumes");
     expect(eye.props.accessibilityRole).toBe("button");
     expect(eye.props.accessibilityLabel).toBe("Voir les volumes du circuit");
-    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({
+    // Revue 5.3 : cible réelle de 44 × 44 (plus de hitSlop), le cercle de 32 centré dedans.
+    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({ width: 44, height: 44, flexShrink: 0 });
+    expect(eye.props.hitSlop).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("header-volumes-circle").props.style)).toMatchObject({
       width: 32,
       height: 32,
       borderRadius: 16,
@@ -345,9 +356,7 @@ describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () =
       borderWidth: 1,
       borderColor: colors.background,
       shadowOpacity: 0.08,
-      flexShrink: 0,
     });
-    expect(eye.props.hitSlop).toBe(6);
     const icon = screen.getByTestId("header-volumes-icon", anyNode);
     expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 24, height: 24 });
   });
@@ -379,8 +388,9 @@ describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () =
       minWidth: 0,
       textAlign: "right",
     });
-    // L'œil (32) déborde de la ligne (19) sans en changer la hauteur : marges -6,5.
-    expect(StyleSheet.flatten(screen.getByTestId("header-volumes").props.style).marginVertical).toBe(-6.5);
+    // L'œil (32) déborde de la ligne (19) sans en changer la hauteur : marges -6,5 ; revue 5.3 : sa cible
+    // réelle de 44 ajoute 6 de chaque côté (-12,5), l'encombrement reste 19.
+    expect(StyleSheet.flatten(screen.getByTestId("header-volumes").props.style).marginVertical).toBe(-6.5 - 6);
   });
 
   it.each(["TOURS", "SERIES"] as const)("is present in %s, counter at rest or revealed, and asks to open the volumes", (nature) => {

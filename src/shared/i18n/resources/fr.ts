@@ -399,9 +399,9 @@ export const fr = {
       },
       // PRE-6 (story 4.2, Figma `8328:29428`, `8328:29133`, `8328:33689`) : modification et retrait
       // d’une récupération ou d’un point d’arrêt — nom du bouton « Récupération
-      // {durée}, toucher pour modifier », bulles « Retirer » et actions accessibles du même nom.
+      // {durée} après {exercice}, toucher pour modifier » (revue 5.3 : l’exercice est nommé, la carte n’étant plus lue en placement), bulles « Retirer » et actions accessibles du même nom.
       pauses: {
-        modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
+        modifiableRecoveryAccessibilityLabel: "Récupération {duration} après {exercise}, toucher pour modifier",
         removeRecovery: "Retirer la récupération",
         // PRE-6 (story 5.1, D-435) : action accessible de la carte qui ouvre le réglage de la récupération
         // de la ligne 3 (VoiceOver n’atteint pas un bouton imbriqué dans la carte).

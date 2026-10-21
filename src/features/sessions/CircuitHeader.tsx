@@ -7,7 +7,6 @@ import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { EXECUTION_UNIT_HOLD_POLICY, INLINE_STEPPER_STEP_HIT_SLOP, InlineStepper } from "@/shared/ui/ProfileStepper";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
@@ -18,10 +17,15 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 const CIRCUIT_COUNT_MIN = EXECUTION_BOUNDS.seriesCount.min;
 const CIRCUIT_COUNT_MAX = EXECUTION_BOUNDS.seriesCount.max;
 
-/** Cible tactile du chiffre au repos (Figma `8328:28667`) : 44 de haut, 44 de large avec la marge gauche. */
+/**
+ * Cible tactile du chiffre au repos (Figma `8328:28667`) : 44 de haut, 44 de large avec l'extension
+ * gauche. Revue 5.3 : extension portée par la BOÎTE du `Pressable` (marge négative à gauche), jamais
+ * par `hitSlop` — son parent (l'élément accessible du chiffre) a sa taille : sous Fabric iOS, un
+ * toucher hors de ses limites, sans débordement mesuré, n'atteindrait pas le chiffre.
+ */
 const COUNTER_TOUCH_TARGET = 44;
 const COUNTER_DIGIT_MIN_WIDTH = 32;
-const COUNTER_DIGIT_HIT_SLOP = { left: COUNTER_TOUCH_TARGET - COUNTER_DIGIT_MIN_WIDTH } as const;
+const COUNTER_DIGIT_TOUCH_EXTENT_LEFT = COUNTER_TOUCH_TARGET - COUNTER_DIGIT_MIN_WIDTH;
 
 /** Fond du stepper révélé (Figma `8328:28671`) : blanc, rayon 18 (pilule de 36). */
 const OPEN_COUNTER_RADIUS = 18;
@@ -83,8 +87,9 @@ export type CircuitHeaderProps = {
   /** Mesure de l'en-tête dans le conteneur Circuit : ancrage du panneau Android / web par l'écran. */
   readonly onLayout?: ViewProps["onLayout"];
   /**
-   * PRE-6 story 4.1 : mode placement — l'en-tête (compteur, pastille, œil) est atténué et non
-   * interactif, masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran.
+   * PRE-6 story 4.1 : mode placement — l'en-tête (compteur, pastille, œil) est non interactif et
+   * masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran. Revue 5.3 (Figma
+   * `8328:29270`) : il n'est plus atténué (le nom de la prop est conservé).
    */
   readonly isAttenuated?: boolean;
   /**
@@ -112,7 +117,11 @@ const VOLUMES_ACTION_BACKGROUND = "#FCFCFE";
 const VOLUMES_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.08, offsetY: 2, radius: 10 } as const;
 /** Débord vertical de l'œil (32) sur la ligne du titre (interligne 19), réparti en haut et en bas. */
 const VOLUMES_ACTION_ROW_OVERFLOW = (VOLUMES_ACTION_SIZE - TITLE_TEXT.lineHeight) / 2;
-/** Marge tactile de l'œil, de chaque côté (cible 44). */
+/**
+ * Extension tactile de l'œil, de chaque côté (cible 44). Revue 5.3 : le `Pressable` mesure 44 × 44
+ * (marges négatives : la ligne garde sa mise en page), le cercle de 32 y est centré — jamais un
+ * `hitSlop`, sans effet hors des limites d'un parent sans débordement mesuré (Fabric iOS).
+ */
 const VOLUMES_ACTION_HIT_SLOP = (VOLUMES_ACTION_TOUCH_TARGET - VOLUMES_ACTION_SIZE) / 2;
 /** Marge intérieure du stepper révélé (Figma `8328:28671`). */
 const OPEN_FIELD_PADDING = spacing[4];
@@ -127,8 +136,8 @@ export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
   volumesSize: VOLUMES_ACTION_SIZE,
   volumesHitSlop: VOLUMES_ACTION_HIT_SLOP,
   digitMinWidth: COUNTER_DIGIT_MIN_WIDTH,
-  digitHitSlopLeft: COUNTER_DIGIT_HIT_SLOP.left,
-  counterGapAtRest: VOLUMES_ACTION_HIT_SLOP + COUNTER_DIGIT_HIT_SLOP.left,
+  digitHitSlopLeft: COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
+  counterGapAtRest: VOLUMES_ACTION_HIT_SLOP + COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
   openFieldPadding: OPEN_FIELD_PADDING,
   stepHitSlop: INLINE_STEPPER_STEP_HIT_SLOP,
   counterGapOpen: VOLUMES_ACTION_HIT_SLOP + Math.max(0, INLINE_STEPPER_STEP_HIT_SLOP - OPEN_FIELD_PADDING),
@@ -183,7 +192,6 @@ export function CircuitHeader({
       style={[
         styles.row,
         { paddingLeft: titleInset },
-        isAttenuated ? styles.attenuated : null,
         translateY !== undefined ? { transform: [{ translateY }] } : null,
       ]}
       onLayout={onLayout}
@@ -271,11 +279,12 @@ function VolumesAction({ onPress, focusRequest, testID }: { onPress: () => void;
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={strings.screens.composition.circuit.volumes.openAccessibilityLabel}
-      hitSlop={VOLUMES_ACTION_HIT_SLOP}
-      style={styles.volumesAction}
+      style={styles.volumesTarget}
       testID={testID}
     >
-      <KodjoIcon name="view-volumes" testID={`${testID}-icon`} />
+      <View style={styles.volumesAction} testID={`${testID}-circle`}>
+        <KodjoIcon name="view-volumes" testID={`${testID}-icon`} />
+      </View>
     </Pressable>
   );
 }
@@ -370,7 +379,6 @@ function CircuitCounter({
         >
           <Pressable
             onPress={onToggle}
-            hitSlop={COUNTER_DIGIT_HIT_SLOP}
             style={styles.digitTouch}
             testID={`${testID}-value-press`}
           >
@@ -432,10 +440,6 @@ function CircuitCounter({
 }
 
 const styles = StyleSheet.create({
-  // PRE-6 story 4.1 : en-tête atténué pendant le placement.
-  attenuated: {
-    opacity: UNSELECTED_OPACITY,
-  },
   // Revue 5.2 : hauteur minimale (Dynamic Type) ; espacements portés par chaque enfant.
   row: {
     minHeight: CIRCUIT_HEADER_HEIGHT,
@@ -459,9 +463,18 @@ const styles = StyleSheet.create({
     gap: spacing[8],
     minWidth: 0,
   },
-  volumesAction: {
+  // Revue 5.3 : cible réelle de 44 × 44 centrée sur le cercle ; les marges négatives rendent à la ligne
+  // l'encombrement du cercle (32, débordant de la ligne du titre de `VOLUMES_ACTION_ROW_OVERFLOW`).
+  volumesTarget: {
     flexShrink: 0,
-    marginVertical: -VOLUMES_ACTION_ROW_OVERFLOW,
+    width: VOLUMES_ACTION_TOUCH_TARGET,
+    height: VOLUMES_ACTION_TOUCH_TARGET,
+    marginHorizontal: -VOLUMES_ACTION_HIT_SLOP,
+    marginVertical: -(VOLUMES_ACTION_ROW_OVERFLOW + VOLUMES_ACTION_HIT_SLOP),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  volumesAction: {
     width: VOLUMES_ACTION_SIZE,
     height: VOLUMES_ACTION_SIZE,
     borderRadius: VOLUMES_ACTION_SIZE / 2,
@@ -497,7 +510,8 @@ const styles = StyleSheet.create({
     gap: spacing[4],
   },
   digitTouch: {
-    minWidth: COUNTER_DIGIT_MIN_WIDTH,
+    minWidth: COUNTER_TOUCH_TARGET,
+    marginLeft: -COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
     minHeight: COUNTER_TOUCH_TARGET,
     alignItems: "flex-end",
     justifyContent: "center",

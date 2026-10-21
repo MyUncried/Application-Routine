@@ -268,7 +268,7 @@ describe("strings", () => {
 
   it("exposes the pause modification and removal texts (PRE-6 story 4.2, `8328:29133`, `8328:33689`)", () => {
     expect(strings.screens.composition.pauses).toEqual({
-      modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
+      modifiableRecoveryAccessibilityLabel: "Récupération {duration} après {exercise}, toucher pour modifier",
       removeRecovery: "Retirer la récupération",
       // PRE-6 (story 5.1) : action de la carte qui ouvre le réglage de la récupération de la ligne 3.
       modifyRecovery: "Modifier la récupération",

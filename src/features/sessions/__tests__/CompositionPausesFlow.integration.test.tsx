@@ -256,7 +256,11 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
         fireEvent.press(screen.getByTestId("composition-add-stop-action"));
       });
       expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
-      expect(screen.getByLabelText(composition.pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", "0 s"))).toBeTruthy();
+      expect(
+        screen.getByLabelText(
+          composition.pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", "0 s").replace("{exercise}", "A"),
+        ),
+      ).toBeTruthy();
       expect(screen.queryByLabelText(recoveryLabel("C"))).not.toBeNull();
       fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     } finally {

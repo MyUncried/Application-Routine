@@ -123,7 +123,7 @@ import {
   occurrenceCardHeight,
   occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
-  occurrenceRecoveryHitSlop,
+  occurrenceRecoveryTouchExtent,
 } from "@/features/sessions/OccurrenceCard";
 import {
   BOUNDARY_RING_TOP,
@@ -144,9 +144,13 @@ import {
   type RailLink as RailLinkGeometry,
 } from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
-import { STOP_POINT_CHIP_HIT_SLOP } from "@/features/sessions/StopPointChip";
+import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
 import { PlacementBar } from "@/features/sessions/PlacementBar";
-import { PLACEMENT_SLOT_HEIGHT, PlacementSlotRow } from "@/features/sessions/PlacementLayer";
+import {
+  PlacementRecoveryFrame,
+  PlacementStopPointRow,
+  type PlacementStopPointRowPoint,
+} from "@/features/sessions/PlacementLayer";
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { measureAnchor } from "@/features/sessions/measureAnchor";
 import { RemovalBubble, type RemovalBubbleAnchor } from "@/features/sessions/RemovalBubble";
@@ -157,7 +161,6 @@ import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitG
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
-import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -1400,8 +1403,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * (`returning`), sort de la chaîne avec sa hauteur relevée au début du geste ; carte non mesurée :
    * hauteur de la carte, rangée de son point d'arrêt comprise (écart de la zone + 22).
    */
+  // Revue 5.3 : en placement, rangée « après le Circuit » pour un point posé (même à un emplacement
+  // que le placement ne propose plus) ou pour la puce à ajouter.
+  const afterCircuitRowPoint: PlacementStopPointRowPoint | null =
+    placement === null
+      ? null
+      : displayedStopPoints.afterCircuit !== null || afterCircuitSlot?.stopPoint?.existing === true
+        ? { kind: "EXISTING" }
+        : afterCircuitSlot !== null && afterCircuitSlot.stopPoint !== null
+          ? { kind: "AVAILABLE", location: afterCircuitSlot.stopPoint.location }
+          : null;
   const hasAfterCircuitRail =
-    placement !== null ? afterCircuitSlot !== null : displayedStopPoints.afterCircuit !== null;
+    placement !== null ? afterCircuitRowPoint !== null : displayedStopPoints.afterCircuit !== null;
   // Revue 5.2 : en-tête du Circuit de hauteur minimale 40 (Dynamic Type) — l'anneau et ses segments
   // suivent sa hauteur mesurée ; son haut reste à la marge du Circuit (14), dans le flux.
   const circuitHeaderHeight =
@@ -1962,14 +1975,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               />
             ) : null}
             <RailSegment centerX={RAIL_CENTER_X_IN_COLUMN} top={0} bottom={0} testID="composition-rail-tail-after-circuit" />
-            {placement !== null && afterCircuitSlot !== null ? (
-              <PlacementSlotRow
-                slot={afterCircuitSlot}
+            {/* PRE-6 (story 5.3, `8328:29270`) : puce centrée, cible bornée aux écarts de la
+                séquence (Circuit au-dessus, première occurrence après le Circuit en dessous). */}
+            {placement !== null && afterCircuitRowPoint !== null ? (
+              <PlacementStopPointRow
+                point={afterCircuitRowPoint}
                 placement={placement}
                 exerciseName={null}
-                onPressRecovery={handlePlacementRecoveryPress}
-                onPressExistingRecovery={handlePlacementExistingRecoveryPress}
                 onToggleStopPoint={handlePlacementStopPointToggle}
+                touchExtent={SEQUENCE_GAP}
                 testID="composition-placement-slot-after-circuit"
               />
             ) : null}
@@ -2018,7 +2032,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               kind="end"
               railCenterX={RAIL_CENTER_X_IN_COLUMN}
               // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus déborde dans l'écart.
-              neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_HIT_SLOP.bottom : 0}
+              neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
               label={composition.finalPhase.label}
               value={formatDurationRowValue(draft.finalPhaseSeconds)}
               isOpen={openOverlay === "finalPhase"}
@@ -2493,8 +2507,9 @@ function AfterCircuitStopPointLine({ stopPoint, pauses }: { stopPoint: StopPoint
 }
 
 /**
- * PRE-6 (story 4.1) : en placement, contenu atténué, non interactif et masqué à l'accessibilité
- * (la lecture ne passe que par les puces). Hors placement, simple conteneur sans effet.
+ * PRE-6 (story 4.1) : en placement, contenu non interactif et masqué à l'accessibilité (la lecture
+ * ne passe que par les emplacements). Revue 5.3 (Figma `8328:29270`) : plus atténué. Hors placement,
+ * simple conteneur sans effet.
  */
 function PlacementAttenuation({
   active,
@@ -2511,7 +2526,6 @@ function PlacementAttenuation({
       pointerEvents={active ? "none" : "auto"}
       accessibilityElementsHidden={active}
       importantForAccessibility={active ? "no-hide-descendants" : "auto"}
-      style={active ? styles.placementAttenuated : null}
     >
       {children}
     </View>
@@ -3127,9 +3141,74 @@ function CompositionActivityRow({
    * Actions glissées révélées, carte bloquée par une autre révélation, glisser en cours ou
    * placement : simple affichage, le toucher revient à la carte (neutre ou inactive).
    */
-  const isRecoveryInteractive = placement === null && !areActionsRevealed && !isBlockedByOtherReveal && !isDragged;
   /** Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`). */
   const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged;
+  const isRecoveryInteractive = placement === null && !areActionsRevealed && !isBlockedByOtherReveal && !isDragged;
+  /**
+   * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`,
+   * inchangé) — récupération à ajouter (cadre en ligne 3), déjà présente (modifiable en ligne 3,
+   * story 4.2) ou non proposée ; point d'arrêt dans la rangée sous la carte.
+   */
+  const placementSlot = placement === null ? null : placement.slotFor(activity.id);
+  const placementRecovery = placementSlot?.recovery ?? null;
+  const placementStopPoint = placementSlot?.stopPoint ?? null;
+  /** Ligne 3 de la carte : cadre, récupération existante modifiable (placement) ou récupération (story 5.1). */
+  let recoveryNode: React.ReactNode;
+  if (placement !== null && placementRecovery?.kind === "AVAILABLE") {
+    recoveryNode = (
+      <PlacementRecoveryFrame
+        occurrenceId={activity.id}
+        exerciseName={activity.name}
+        placement={placement.draft}
+        onPress={placement.onPressRecovery}
+        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
+        testID={`composition-placement-slot-${activity.id}-recovery`}
+      />
+    );
+  } else if (placement !== null && placementRecovery?.kind === "EXISTING") {
+    // Story 4.2 reprise en ligne 3 : valeur effective du sous-brouillon (modification non comptée
+    // dans N), touchable pour rouvrir la roulette ; affichée même à 0 (sinon plus modifiable).
+    const seconds = placement.draft.recoveryChanges[activity.id] ?? placementRecovery.seconds;
+    recoveryNode = (
+      <OccurrenceRecovery
+        recoverySeconds={seconds}
+        showZero
+        onPress={() => placement.onPressExistingRecovery(activity.id)}
+        // Revue 5.3 : le nom désigne l'exercice, comme le cadre et la puce (la carte n'est plus lue).
+        accessibilityLabel={composition.pauses.modifiableRecoveryAccessibilityLabel
+          .replace("{duration}", () => formatCompactDuration(seconds))
+          .replace("{exercise}", () => activity.name)}
+        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
+        testID={`composition-activity-recovery-${activity.id}-recovery`}
+      />
+    );
+  } else {
+    recoveryNode = (
+      <OccurrenceRecovery
+        recoverySeconds={displayedRecoverySeconds}
+        {...(isRecoveryInteractive
+          ? {
+              onPress: () => pauses.onPressRecovery(activity.id),
+              onLongPress: (anchor: View | null) => pauses.onRequestRecoveryRemoval(activity.id, anchor),
+            }
+          : {})}
+        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
+        testID={`composition-activity-recovery-${activity.id}-recovery`}
+      />
+    );
+  }
+  /** Rangée sous la carte : point d'arrêt hors placement (story 4.2 / 5.2), emplacement de point en placement (5.3). */
+  // Revue 5.3 : en placement, un point déjà présent reste affiché (puce posée) même à un emplacement
+  // que le placement ne propose plus ; sinon, la puce à ajouter si l'emplacement en offre une.
+  const placementRowPoint: PlacementStopPointRowPoint | null =
+    placement === null
+      ? null
+      : stopPoint !== null || placementStopPoint?.existing === true
+        ? { kind: "EXISTING" }
+        : placementStopPoint !== null
+          ? { kind: "AVAILABLE", location: placementStopPoint.location }
+          : null;
+  const hasRowBelow = placement === null ? hasRecoveryLine : placementRowPoint !== null;
   // Même translation pour la carte et sa ligne de récupération : elles font bloc.
   const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
   /**
@@ -3278,10 +3357,13 @@ function CompositionActivityRow({
         onPress={handlePress}
         onLongPress={handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
-        // PRE-6 (story 4.1) : en placement, carte atténuée, inactive et masquée à l'accessibilité.
+        // PRE-6 (story 4.1) : en placement, carte inactive. Story 5.3 (D-435, choix D6) : plus
+        // atténuée ; elle n'est plus un élément accessible (son contenu est masqué par
+        // `OccurrenceCard`), pour que VoiceOver atteigne le contrôle de sa ligne 3 (cadre
+        // « Récupération » ou récupération existante modifiable).
         disabled={placement !== null}
-        accessibilityElementsHidden={placement !== null}
-        importantForAccessibility={placement !== null ? "no-hide-descendants" : "auto"}
+        accessible={placement === null}
+        importantForAccessibility={placement !== null ? "no" : "auto"}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
@@ -3304,7 +3386,6 @@ function CompositionActivityRow({
           // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
           // transformation est toujours appliquée pour rester continue.
           { transform: blockTransform },
-          placement !== null ? styles.placementAttenuated : null,
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
@@ -3316,7 +3397,8 @@ function CompositionActivityRow({
          *
          * Récupération en ligne 3 (story 4.2 reprise) : son `Pressable`, plus profond, prend le
          * toucher et l’appui long à la place de la carte (roulette, bulle Retirer), sans ouvrir
-         * l’Exercice. En placement, simple affichage : la carte est inactive (story 4.1).
+         * l’Exercice. En placement (story 5.3), cadre « Récupération » ou récupération existante
+         * modifiable ; le reste de la carte est inactif (story 4.1).
          */}
         <OccurrenceCard
           name={activity.name}
@@ -3326,19 +3408,9 @@ function CompositionActivityRow({
           estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
           bordered={isCardBordered}
-          recovery={
-            <OccurrenceRecovery
-              recoverySeconds={displayedRecoverySeconds}
-              {...(isRecoveryInteractive
-                ? {
-                    onPress: () => pauses.onPressRecovery(activity.id),
-                    onLongPress: (anchor: View | null) => pauses.onRequestRecoveryRemoval(activity.id, anchor),
-                  }
-                : {})}
-              hitSlop={occurrenceRecoveryHitSlop(isCardBordered)}
-              testID={`composition-activity-recovery-${activity.id}-recovery`}
-            />
-          }
+          recovery={recoveryNode}
+          // PRE-6 (story 5.3) : en placement, seul le contrôle de la ligne 3 reste accessible.
+          hideContentFromAccessibility={placement !== null}
           sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
         />
 
@@ -3346,8 +3418,10 @@ function CompositionActivityRow({
 
       {/*
        * PRE-6 (story 5.2, D-435) : rail de l'occurrence, peint APRÈS la carte (il passe sur ses
-       * marges, jusqu'aux bords du média, sans le traverser) et AVANT la rangée sous la carte (les
-       * puces du placement passent dessus). Il ne suit ni le balayage ni la carte soulevée : le
+       * marges, jusqu'aux bords du média, sans le traverser) et AVANT la rangée sous la carte. Story
+       * 5.3 : il traverse les rangées d'emplacement (22, point posé 24) sur l'axe des médias, à
+       * gauche des puces centrées, sans point de raccord (Figma `8328:29270`). Il ne suit ni le
+       * balayage ni la carte soulevée : le
        * rail ne glisse pas ; il suit les décalages du bloc (translation du conteneur).
        */}
       {railLink !== undefined ? (
@@ -3385,16 +3459,23 @@ function CompositionActivityRow({
        * (même translation) et reste dans le conteneur de l'occurrence : elle fait bloc pour le
        * déplacement, dont les mesures (`onLayout` du conteneur) intègrent ou non sa hauteur.
        */}
-      {placement !== null || hasRecoveryLine ? (
+      {hasRowBelow ? (
         <View
           style={[{ marginTop: slotGap }, { transform: blockTransform }]}
           testID={`composition-activity-recovery-slot-${activity.id}`}
         >
-          {placement !== null ? (
-            // PRE-6 (story 4.1, `8328:29270`) : en placement, l'emplacement porte les puces
-            // récupération / point d'arrêt (règle inchangée ; rendu refait en story 5.3).
-            <PlacementOccurrenceSlot activity={activity} placement={placement} />
-          ) : stopPoint !== null ? (
+          {placement !== null && placementRowPoint !== null ? (
+            // PRE-6 (story 5.3, D-435, `8328:29270`) : emplacement de point d'arrêt centré entre
+            // la carte et l'élément suivant, cible étendue aux deux écarts (8, 9 dans le Circuit).
+            <PlacementStopPointRow
+              point={placementRowPoint}
+              placement={placement.draft}
+              exerciseName={activity.name}
+              onToggleStopPoint={placement.onToggleStopPoint}
+              touchExtent={slotGap}
+              testID={`composition-placement-slot-${activity.id}`}
+            />
+          ) : placement === null && stopPoint !== null ? (
             // PRE-6 (story 4.2, `8328:29428`) : point d'arrêt de l'emplacement ; story 5.2 : centré.
             <ActivityRecoveryLine
               stopPoint={stopPoint}
@@ -3406,31 +3487,6 @@ function CompositionActivityRow({
       ) : null}
 
     </Animated.View>
-  );
-}
-
-/** PRE-6 (story 4.1) : emplacement d'une occurrence en placement ; sans élément proposé, un espace de même hauteur. */
-function PlacementOccurrenceSlot({
-  activity,
-  placement,
-}: {
-  activity: SessionDraftExercise;
-  placement: PlacementRowContext;
-}) {
-  const slot = placement.slotFor(activity.id);
-  if (slot === null) {
-    return <View style={styles.placementEmptySlot} testID={`composition-placement-slot-${activity.id}`} />;
-  }
-  return (
-    <PlacementSlotRow
-      slot={slot}
-      placement={placement.draft}
-      exerciseName={activity.name}
-      onPressRecovery={placement.onPressRecovery}
-      onPressExistingRecovery={placement.onPressExistingRecovery}
-      onToggleStopPoint={placement.onToggleStopPoint}
-      testID={`composition-placement-slot-${activity.id}`}
-    />
   );
 }
 
@@ -3935,13 +3991,6 @@ const styles = StyleSheet.create({
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
   // conteneurs frères : un `zIndex` sur la carte seule n'ordonnerait rien
   // au-delà du sien).
-  // PRE-6 (story 4.1) : contenu atténué pendant le placement (cartes, bornes).
-  placementAttenuated: {
-    opacity: UNSELECTED_OPACITY,
-  },
-  placementEmptySlot: {
-    height: PLACEMENT_SLOT_HEIGHT,
-  },
   activityRowContainerDragged: {
     zIndex: 1,
   },

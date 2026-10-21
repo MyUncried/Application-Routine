@@ -30,3 +30,12 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-2-rail-segmente-circuit-bornes-et-points-d-arret.md`
   summary: Retirer les jetons devenus orphelins `dimensions.compositionTourSection.radius` (10, remplacé par le rayon 18 du Circuit v2) et `closedHeight` (54, plus de hauteur minimale) ; `inset` reste utilisé par `SWIPE_REVEAL_OFFSET` jusqu'à la story 5.4.
   evidence: Revue 5.2 ; `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec les autres jetons orphelins de PRE-6.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-3-placement-mixte-et-defilement.md`
+  summary: Saut de défilement à l'entrée ou à la sortie du placement (rangées de point d'arrêt ajoutées ou retirées sous les cartes, cadre qui élargit la colonne des valeurs) — position conservée ou non à juger sur appareil.
+  evidence: Revue 5.3 ; non observable en Jest, jalon J4.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-3-placement-mixte-et-defilement.md`
+  summary: Récupération corrompue (NaN, négative) en placement : `placementSlots` la voit « présente » (pas de cadre) mais rien n'est affiché ni modifiable ; cas rare (données historiques).
+  evidence: Revue 5.3 ; aucune donnée connue, à traiter avec la validation des données si une source en produit.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-3-placement-mixte-et-defilement.md`
+  summary: Les ± du stepper révélé (`InlineStepper`, `ProfileStepper.tsx`, partagé avec la Feuille PRE-5) gardent un `hitSlop` qui peut dépasser leur parent (sans effet sous Fabric iOS) ; à convertir en boîtes réelles avec la Feuille.
+  evidence: Revue 5.3 (cibles réelles) ; composant partagé hors du périmètre de la story.

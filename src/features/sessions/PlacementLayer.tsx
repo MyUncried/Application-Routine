@@ -1,143 +1,109 @@
-import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import {
-  isPlacementStopPointAdded,
-  type PlacementDraft,
-  type PlacementSlot,
-} from "@/domain/sessions/placement";
+import { isPlacementStopPointAdded, type PlacementDraft } from "@/domain/sessions/placement";
 import type { StopPointLocation } from "@/domain/sessions/StopPoint";
 import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
+import { OCCURRENCE_RECOVERY_FRAME } from "@/features/sessions/OccurrenceCard";
+import { STOP_POINT_CHIP_HEIGHT, StopPointChipFace, StopPointSymbol } from "@/features/sessions/StopPointChip";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, spacing } from "@/shared/ui/tokens";
 
-/** Hauteur d'un emplacement du placement (Figma `8328:29323`, « Emplacement — pause »). */
-export const PLACEMENT_SLOT_HEIGHT = 24;
-
-/** Puces (Figma `8328:29383`, `8328:29328`) : hauteur 24, rayon 10, contour 1,5. */
-const CHIP = { radius: 10, borderWidth: 1.5 } as const;
-/** Fond de la puce à ajouter (pointillés) : `#0508E5` à 5 % (Figma `8328:29383`), sans jeton. */
-const CHIP_AVAILABLE_SURFACE = "rgba(5, 8, 229, 0.05)";
-/** Puce « Récupération » : sablier à 13 du bord (contour compris), écart 4 avec le texte. */
-const RECOVERY_CHIP = { paddingLeft: 13 - CHIP.borderWidth, gap: spacing[4] } as const;
 /**
- * Puce « Point d'arrêt » (ch13 L1258, PR #390) : bord droit aligné sur les cartes, symbole et
- * texte alignés à droite, marge interne 14, intervalle 6.
+ * PRE-6 story 5.3 (D-435, Figma `8328:29270`) : rangée d'un emplacement de point d'arrêt — celle
+ * de la puce, 22 (`9840:18981`, « Emplacement — pause »), centrée entre les deux éléments qu'elle
+ * sépare (écart 8, 9 dans le Circuit). Revue 5.3 : un point déjà présent garde aussi la rangée de
+ * 22 (comme hors placement), sans saut de 2 à l'entrée (Figma `9843:18974` : 24).
  */
-const STOP_POINT_CHIP = { paddingRight: spacing[14] - CHIP.borderWidth, gap: spacing[6] } as const;
-/** Symbole du point d'arrêt (Figma `8328:29329`) : deux barres 3 × 9, rayon 1, écartées de 4. */
-const STOP_POINT_BAR = { width: 3, height: 9, radius: 1, gap: spacing[4] } as const;
+export const PLACEMENT_STOP_POINT_ROW_HEIGHT = STOP_POINT_CHIP_HEIGHT;
 
-/** Libellé des puces : Inter Semi Bold 11, interligne Auto (Figma `8328:29384`). */
-const CHIP_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, lineHeight: 13 } as const;
-/** Récupération existante : Inter Medium 11, `text-tertiary` (Figma `8328:29327`, comme la ligne structurelle). */
-/** Cible tactile des puces (24 de haut) portée à 44. */
-const CHIP_HIT_SLOP = { top: (44 - 24) / 2, bottom: (44 - 24) / 2 } as const;
+/**
+ * Teintes du placement (ch13 CE-T03-08, Figma `9849:43089`, `9848:18968`) : contour pointillé et
+ * texte `#0508E5`, soit `colors.primary` (même valeur, registre ch12) ; fond `#0508E5` à 5 %, sans
+ * jeton (constante locale, `tokens.ts` verrouillé).
+ */
+const PLACEMENT_AVAILABLE_SURFACE = "rgba(5, 8, 229, 0.05)";
+/** Rayon commun de la puce et du cadre (Figma : 10). */
+const PLACEMENT_RADIUS = 10;
 
-const EXISTING_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 11, lineHeight: 13 } as const;
+/**
+ * Puce de point d'arrêt à ajouter (Figma `9849:43089`) : pointillé 1, rayon 10, marges 10 / 4,
+ * intervalle 6, deux barres 3 × 10 orange (`warning`), texte Inter Medium 10 `text-label`
+ * (« Point d'arrêt ») — mêmes mesures que la puce posée (`StopPointChip`), d'où 96 × 22.
+ */
+const STOP_POINT_PUCE = { borderWidth: 1, paddingHorizontal: spacing[10], paddingVertical: spacing[4], gap: spacing[6] } as const;
+const PUCE_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 10, lineHeight: 12 } as const;
+
+/**
+ * Cadre « Récupération » (Figma `9848:18968`) : pointillé 1,5, rayon 10, sablier dans la colonne des
+ * symboles (à 4 du bord gauche du cadre, contour compris : le débord gauche est borné à l'écart entre
+ * les colonnes), texte Inter Semi Bold 11 `#0508E5` calé à droite à 9,5 du bord droit (contour
+ * compris, Figma). Contenu sur la boîte de contenu de la ligne 3 (3 sous le haut du cadre, 15 de haut).
+ */
+const RECOVERY_FRAME = {
+  borderWidth: 1.5,
+  paddingLeft: OCCURRENCE_RECOVERY_FRAME.horizontalOutset - 1.5,
+  paddingRight: 9.5 - 1.5,
+  paddingTop: OCCURRENCE_RECOVERY_FRAME.aboveContent - 1.5,
+  // Écart minimal sablier → texte (calé à droite) : Figma laisse 5,5 entre le sablier et
+  // « Récupération ».
+  gap: spacing[4],
+} as const;
+const FRAME_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 11, lineHeight: 13 } as const;
 
 function fill(template: string, values: Record<string, string>): string {
   // Remplacement par fonction : un nom contenant `$&` ou `$1` est inséré tel quel.
   return Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, () => value), template);
 }
 
-export type PlacementSlotRowProps = {
-  readonly slot: PlacementSlot;
+/** Point d'arrêt d'une rangée de placement : posé (affiché, non interactif) ou à ajouter. */
+export type PlacementStopPointRowPoint =
+  | { readonly kind: "EXISTING" }
+  | { readonly kind: "AVAILABLE"; readonly location: StopPointLocation };
+
+export type PlacementStopPointRowProps = {
+  readonly point: PlacementStopPointRowPoint;
   readonly placement: PlacementDraft;
   /** Nom de l'exercice qui précède l'emplacement ; `null` pour l'emplacement « après le circuit ». */
   readonly exerciseName: string | null;
-  /** Toucher la récupération : roulette (à ajouter) ou désélection (déjà ajoutée). */
-  readonly onPressRecovery: (occurrenceId: string) => void;
-  /** Story 4.2 : toucher une récupération existante ouvre sa roulette (modification non comptée dans N). */
-  readonly onPressExistingRecovery: (occurrenceId: string) => void;
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
+  /**
+   * Étendue verticale de la cible de la puce au-delà de la rangée, de chaque côté : l'écart qui la
+   * sépare de ses voisins (8, 9 dans le Circuit) — la cible ne touche jamais une carte ni le Circuit.
+   */
+  readonly touchExtent: number;
   readonly testID: string;
 };
 
 /**
- * Emplacement du mode placement (PRE-6 story 4.1, Figma `8328:29270`), sur la ligne
- * structurelle sous l'occurrence (le trait de démarcation y est masqué, D-303) ou après le
- * Circuit : à gauche la récupération, à droite le point d'arrêt.
+ * Emplacement de point d'arrêt du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma
+ * `8328:29270`, demande de Hermann du 21/10 : points d'arrêt centrés entre les cartes). Rangée de 22
+ * centrée sur la page, traversée par le rail (dessiné par l'élément porteur, story 5.2) :
+ * - à ajouter : puce en pointillés (`9849:43089`), bouton nommé « Ajouter un point d'arrêt après
+ *   {exercice} » ; ajoutée : puce pleine `primary`, symbole et texte blancs, état sélectionné et
+ *   indice « Un toucher retire cet ajout. » ;
+ * - déjà présent (y compris à un emplacement que le placement ne propose plus) : puce posée
+ *   (`9843:18975`), non interactive (son retrait se fait hors placement, story 4.2), élément
+ *   accessible « Point d'arrêt après {exercice} ».
  *
- * - Récupération : puce en pointillés « Récupération » (ajout possible) ; puce pleine
- *   « Récupération {durée} » une fois ajoutée ; récupération déjà présente (0 ou positive)
- *   affichée comme existante, sans puce — story 4.2 : un bouton qui ouvre sa roulette, la
- *   nouvelle durée (sous-brouillon, non comptée dans N) étant affichée à sa place.
- * - Point d'arrêt : puce en pointillés (ajout possible), pleine une fois ajouté ; un point déjà
- *   présent est affiché comme existant (symbole et texte tertiaire, comme une récupération
- *   existante), non interactif (son retrait se fait hors placement, story 4.2).
- *
- * Chaque puce est un bouton nommé (cible 44) avec son état sélectionné ; sélectionnée, son indice
- * dit qu'un toucher la retire. L'ordre de lecture suit la ligne : récupération puis point.
+ * Revue 5.3 : la cible est une boîte réelle de 22 + 2 × écart (marges négatives : la rangée garde 22),
+ * jamais un `hitSlop` qui dépasserait la rangée (sans effet sous Fabric iOS).
  */
-export function PlacementSlotRow({
-  slot,
+export function PlacementStopPointRow({
+  point,
   placement,
   exerciseName,
-  onPressRecovery,
-  onPressExistingRecovery,
   onToggleStopPoint,
+  touchExtent,
   testID,
-}: PlacementSlotRowProps) {
+}: PlacementStopPointRowProps) {
   const t = strings.screens.composition.placement;
   const anchor = exerciseName === null ? null : { exercise: exerciseName };
-  const occurrenceId = slot.occurrenceId;
 
-  let recovery: ReactNode = <View style={styles.half} />;
-  if (slot.recovery !== null && occurrenceId !== null) {
-    if (slot.recovery.kind === "EXISTING") {
-      const seconds = placement.recoveryChanges[occurrenceId] ?? slot.recovery.seconds;
-      const label = `${t.recovery} ${formatCompactDuration(seconds)}`;
-      recovery = (
-        <Pressable
-          onPress={() => onPressExistingRecovery(occurrenceId)}
-          accessibilityRole="button"
-          accessibilityLabel={fill(strings.screens.composition.pauses.modifiableRecoveryAccessibilityLabel, {
-            duration: formatCompactDuration(seconds),
-          })}
-          hitSlop={CHIP_HIT_SLOP}
-          style={[styles.half, styles.existingRecovery]}
-          testID={`${testID}-recovery-existing`}
-        >
-          <KodjoIcon name="recovery-hourglass" />
-          <Text style={styles.existingText} numberOfLines={1}>
-            {label}
-          </Text>
-        </Pressable>
-      );
-    } else {
-      const seconds = placement.recoveries[occurrenceId];
-      const added = seconds !== undefined;
-      recovery = (
-        <Pressable
-          onPress={() => onPressRecovery(occurrenceId)}
-          accessibilityRole="button"
-          accessibilityLabel={fill(t.addRecoveryAccessibilityLabel, { exercise: exerciseName ?? "" })}
-          accessibilityValue={added ? { text: formatCompactDuration(seconds) } : undefined}
-          accessibilityState={{ selected: added }}
-          accessibilityHint={added ? t.selectedHint : undefined}
-          hitSlop={CHIP_HIT_SLOP}
-          style={[styles.half, styles.chip, styles.recoveryChip, added ? styles.chipAdded : styles.chipAvailable]}
-          testID={`${testID}-recovery`}
-        >
-          <KodjoIcon name={added ? "placement-recovery-added" : "placement-recovery"} />
-          <Text style={[styles.chipText, added ? styles.chipTextAdded : null]} numberOfLines={1}>
-            {added ? `${t.recovery} ${formatCompactDuration(seconds)}` : t.recovery}
-          </Text>
-        </Pressable>
-      );
-    }
-  }
-
-  let stopPoint: ReactNode = <View style={styles.half} />;
-  if (slot.stopPoint !== null) {
-    const location = slot.stopPoint.location;
-    if (slot.stopPoint.existing) {
-      stopPoint = (
+  if (point.kind === "EXISTING") {
+    return (
+      <View style={styles.row} testID={testID}>
         <View
-          style={[styles.half, styles.existingStopPoint]}
           accessible
           accessibilityLabel={
             anchor === null
@@ -146,126 +112,161 @@ export function PlacementSlotRow({
           }
           testID={`${testID}-stop-point-existing`}
         >
-          <StopPointSymbol added={false} />
-          <Text style={styles.existingText} numberOfLines={1}>
+          <StopPointChipFace />
+        </View>
+      </View>
+    );
+  }
+
+  const location = point.location;
+  const added = isPlacementStopPointAdded(placement, location);
+  return (
+    <View style={styles.row} testID={testID}>
+      <Pressable
+        onPress={() => onToggleStopPoint(location)}
+        accessibilityRole="button"
+        accessibilityLabel={
+          anchor === null ? t.addStopPointAfterCircuitAccessibilityLabel : fill(t.addStopPointAccessibilityLabel, anchor)
+        }
+        accessibilityState={{ selected: added }}
+        accessibilityHint={added ? t.selectedHint : undefined}
+        style={[
+          styles.puceTarget,
+          { height: PLACEMENT_STOP_POINT_ROW_HEIGHT + 2 * touchExtent, marginVertical: -touchExtent },
+        ]}
+        testID={`${testID}-stop-point`}
+      >
+        <View style={[styles.puce, added ? styles.added : styles.available]} testID={`${testID}-stop-point-face`}>
+          <StopPointSymbol color={added ? colors.background : colors.warning} />
+          <Text style={[styles.puceText, added ? styles.addedText : null]} numberOfLines={1}>
             {t.stopPoint}
           </Text>
         </View>
-      );
-    } else {
-      const added = isPlacementStopPointAdded(placement, location);
-      stopPoint = (
-        <Pressable
-          onPress={() => onToggleStopPoint(location)}
-          accessibilityRole="button"
-          accessibilityLabel={
-            anchor === null ? t.addStopPointAfterCircuitAccessibilityLabel : fill(t.addStopPointAccessibilityLabel, anchor)
-          }
-          accessibilityState={{ selected: added }}
-          accessibilityHint={added ? t.selectedHint : undefined}
-          hitSlop={CHIP_HIT_SLOP}
-          style={[styles.half, styles.chip, styles.stopPointChip, added ? styles.chipAdded : styles.chipAvailable]}
-          testID={`${testID}-stop-point`}
-        >
-          <StopPointSymbol added={added} />
-          <Text style={[styles.chipText, added ? styles.chipTextAdded : null]} numberOfLines={1}>
-            {t.stopPoint}
-          </Text>
-        </Pressable>
-      );
-    }
-  }
-
-  return (
-    <View style={styles.row} testID={testID}>
-      {recovery}
-      {stopPoint}
+      </Pressable>
     </View>
   );
 }
 
-/** Symbole du point d'arrêt : barres orange (`warning`) à ajouter, blanches sur la puce pleine. */
-function StopPointSymbol({ added }: { added: boolean }) {
-  const barStyle = [styles.stopPointBar, { backgroundColor: added ? colors.background : colors.warning }];
+export type PlacementRecoveryFrameProps = {
+  readonly occurrenceId: string;
+  readonly exerciseName: string;
+  readonly placement: PlacementDraft;
+  /** Toucher : roulette (à ajouter) ou désélection (déjà ajoutée), inchangé (story 4.1). */
+  readonly onPress: (occurrenceId: string) => void;
+  /** Étendue verticale de la cible au-delà du contenu de la ligne 3 (`occurrenceRecoveryTouchExtent`). */
+  readonly touchExtent: { readonly top: number; readonly bottom: number };
+  readonly testID: string;
+};
+
+/**
+ * Emplacement de récupération du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma
+ * `9848:18968`, ch13 L1486) : cadre en pointillés « Récupération » dans la ligne 3 de la carte
+ * (colonne des valeurs, `OCCURRENCE_RECOVERY_FRAME`), seulement sur une occurrence SANS
+ * récupération — une récupération présente, même à 0, interdit le cadre (`placementSlots`).
+ *
+ * Revue 5.3 : dans le flux, sa largeur suit son contenu (la colonne des valeurs s'élargit, les Zones
+ * cèdent) ; débord gauche borné à l'écart entre les colonnes. La cible est la boîte du `Pressable`
+ * (cadre + étendue verticale, marges négatives), jamais un `hitSlop`.
+ *
+ * Ajoutée (sous-brouillon) : cadre plein `primary`, sablier blanc de même taille (13, teinté) et durée
+ * choisie seule (« 30 s », format de la ligne 3, story 5.1). Bouton nommé « Ajouter une récupération
+ * après {exercice} », valeur et état sélectionné, indice de retrait.
+ */
+export function PlacementRecoveryFrame({
+  occurrenceId,
+  exerciseName,
+  placement,
+  onPress,
+  touchExtent,
+  testID,
+}: PlacementRecoveryFrameProps) {
+  const t = strings.screens.composition.placement;
+  const seconds = placement.recoveries[occurrenceId];
+  const added = seconds !== undefined;
+  const frame = OCCURRENCE_RECOVERY_FRAME;
   return (
-    <View style={styles.stopPointSymbol}>
-      <View style={barStyle} />
-      <View style={barStyle} />
-    </View>
+    <Pressable
+      onPress={() => onPress(occurrenceId)}
+      accessibilityRole="button"
+      accessibilityLabel={fill(t.addRecoveryAccessibilityLabel, { exercise: exerciseName })}
+      accessibilityValue={added ? { text: formatCompactDuration(seconds) } : undefined}
+      accessibilityState={{ selected: added }}
+      accessibilityHint={added ? t.selectedHint : undefined}
+      style={{
+        marginTop: -touchExtent.top,
+        marginBottom: -touchExtent.bottom,
+        marginHorizontal: -frame.horizontalOutset,
+        paddingTop: touchExtent.top - frame.aboveContent,
+        paddingBottom: touchExtent.bottom - (frame.height - frame.aboveContent - frame.lineContentHeight),
+      }}
+      testID={testID}
+    >
+      <View style={[styles.frame, added ? styles.added : styles.available]} testID={`${testID}-face`}>
+        <KodjoIcon name="card-recovery-hourglass" tintColor={added ? colors.background : undefined} testID={`${testID}-icon`} />
+        <Text style={[styles.frameText, added ? styles.addedText : null]} numberOfLines={1}>
+          {added ? formatCompactDuration(seconds) : t.recovery}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    height: PLACEMENT_SLOT_HEIGHT,
+    height: PLACEMENT_STOP_POINT_ROW_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[8],
+    justifyContent: "center",
   },
-  half: {
-    flex: 1,
-    height: PLACEMENT_SLOT_HEIGHT,
+  puceTarget: {
+    justifyContent: "center",
   },
-  chip: {
+  puce: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: CHIP.radius,
-    borderWidth: CHIP.borderWidth,
+    gap: STOP_POINT_PUCE.gap,
+    paddingHorizontal: STOP_POINT_PUCE.paddingHorizontal,
+    paddingVertical: STOP_POINT_PUCE.paddingVertical,
+    borderRadius: PLACEMENT_RADIUS,
+    borderWidth: STOP_POINT_PUCE.borderWidth,
     borderColor: colors.primary,
     overflow: "hidden",
   },
-  chipAvailable: {
+  available: {
     borderStyle: "dashed",
-    backgroundColor: CHIP_AVAILABLE_SURFACE,
+    backgroundColor: PLACEMENT_AVAILABLE_SURFACE,
   },
-  chipAdded: {
+  added: {
     borderStyle: "solid",
     backgroundColor: colors.primary,
   },
-  recoveryChip: {
-    justifyContent: "flex-start",
-    paddingLeft: RECOVERY_CHIP.paddingLeft,
-    gap: RECOVERY_CHIP.gap,
+  puceText: {
+    ...PUCE_TEXT,
+    color: colors.textLabel,
   },
-  stopPointChip: {
-    justifyContent: "flex-end",
-    paddingRight: STOP_POINT_CHIP.paddingRight,
-    gap: STOP_POINT_CHIP.gap,
-  },
-  chipText: {
-    ...CHIP_TEXT,
-    color: colors.primary,
-    flexShrink: 1,
-  },
-  chipTextAdded: {
+  addedText: {
     color: colors.background,
   },
-  existingRecovery: {
+  frame: {
+    height: OCCURRENCE_RECOVERY_FRAME.height,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[6],
-    paddingHorizontal: spacing[14],
+    alignSelf: "stretch",
+    gap: RECOVERY_FRAME.gap,
+    paddingLeft: RECOVERY_FRAME.paddingLeft,
+    paddingRight: RECOVERY_FRAME.paddingRight,
+    paddingTop: RECOVERY_FRAME.paddingTop,
+    paddingBottom: OCCURRENCE_RECOVERY_FRAME.height - OCCURRENCE_RECOVERY_FRAME.aboveContent - OCCURRENCE_RECOVERY_FRAME.lineContentHeight - RECOVERY_FRAME.borderWidth,
+    borderRadius: PLACEMENT_RADIUS,
+    borderWidth: RECOVERY_FRAME.borderWidth,
+    borderColor: colors.primary,
+    overflow: "hidden",
   },
-  // Point déjà présent : même rendu « existant » que la récupération, aligné à droite (marge 14, intervalle 6).
-  existingStopPoint: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: spacing[6],
-    paddingRight: spacing[14],
-  },
-  existingText: {
-    ...EXISTING_TEXT,
-    color: TEXT_TERTIARY,
+  frameText: {
+    ...FRAME_TEXT,
+    flexGrow: 1,
     flexShrink: 1,
-  },
-  stopPointSymbol: {
-    flexDirection: "row",
-    gap: STOP_POINT_BAR.gap,
-  },
-  stopPointBar: {
-    width: STOP_POINT_BAR.width,
-    height: STOP_POINT_BAR.height,
-    borderRadius: STOP_POINT_BAR.radius,
+    textAlign: "right",
+    color: colors.primary,
   },
 });

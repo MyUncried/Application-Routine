@@ -16,9 +16,11 @@ const CHIP_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 
 export const STOP_POINT_CHIP_HEIGHT = CHIP_TEXT.lineHeight + 2 * CHIP.paddingVertical + 2 * CHIP.borderWidth;
 /**
  * Cible tactile étendue aux seules marges verticales de sa ligne (4 / 4) : jamais sur la carte
- * au-dessus, qui porte son propre appui long (glisser).
+ * au-dessus, qui porte son propre appui long (glisser). Revue 5.3 : portée par la BOÎTE du
+ * `Pressable` (30 de haut, marges négatives : la rangée garde 22), jamais par `hitSlop` — sous
+ * Fabric iOS, un toucher hors des limites d'un parent sans débordement mesuré n'atteint pas l'enfant.
  */
-export const STOP_POINT_CHIP_HIT_SLOP = { top: spacing[4], bottom: spacing[4] } as const;
+export const STOP_POINT_CHIP_TOUCH_EXTENT = spacing[4];
 
 /** Action accessible de retrait (story 4.2). */
 const REMOVE_ACTION = "remove";
@@ -57,17 +59,34 @@ export const StopPointChip = forwardRef<View, StopPointChipProps>(function StopP
       onAccessibilityAction={(event) => {
         if (event.nativeEvent.actionName === REMOVE_ACTION) onRemove();
       }}
-      hitSlop={STOP_POINT_CHIP_HIT_SLOP}
-      style={styles.chip}
+      style={styles.target}
       testID={testID}
     >
+      <View style={styles.chip} testID={testID === undefined ? undefined : `${testID}-face`}>
+        <StopPointSymbol color={colors.warning} />
+        <Text style={styles.text} numberOfLines={1}>
+          {strings.screens.composition.placement.stopPoint}
+        </Text>
+      </View>
+    </Pressable>
+  );
+});
+
+/**
+ * PRE-6 story 5.3 (Figma `9843:18975`, « Bloc — Point d'arrêt » d'un emplacement posé) : même puce,
+ * sans interaction ni accessibilité propre — en placement, un point déjà présent est affiché, non
+ * modifiable (story 4.1) ; l'appelant porte son nom accessible.
+ */
+export function StopPointChipFace({ testID }: { testID?: string }) {
+  return (
+    <View style={styles.chip} accessible={false} importantForAccessibility="no" testID={testID}>
       <StopPointSymbol color={colors.warning} />
       <Text style={styles.text} numberOfLines={1}>
         {strings.screens.composition.placement.stopPoint}
       </Text>
-    </Pressable>
+    </View>
   );
-});
+}
 
 /** Symbole « ❚❚ » du point d'arrêt (Figma `8328:29534` ; blanc dans la bulle `8328:33832`). */
 export function StopPointSymbol({ color }: { color: string }) {
@@ -81,6 +100,11 @@ export function StopPointSymbol({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
+  target: {
+    height: STOP_POINT_CHIP_HEIGHT + 2 * STOP_POINT_CHIP_TOUCH_EXTENT,
+    marginVertical: -STOP_POINT_CHIP_TOUCH_EXTENT,
+    justifyContent: "center",
+  },
   chip: {
     flexDirection: "row",
     alignItems: "center",

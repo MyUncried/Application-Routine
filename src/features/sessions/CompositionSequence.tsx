@@ -65,12 +65,16 @@ export const BOUNDARY_RING_TOP = BOUNDARY_RING_CENTER_Y - RAIL_RING_DIAMETER / 2
 const BOUNDARY_RING_BOTTOM = BOUNDARY_RING_CENTER_Y + RAIL_RING_DIAMETER / 2;
 
 /**
- * Marges tactiles d'une borne, portées à 44 sans jamais empiéter sur l'élément voisin (zones
- * tactiles disjointes, story 5.2) : au plus l'écart de la séquence du côté d'une carte, moins la
- * marge tactile de l'élément voisin (`neighborSlop`) — revue 5.2 : la puce d'un point d'arrêt
- * juste au-dessus de la Fin déborde de 4 dans l'écart.
+ * Étendue tactile d'une borne au-delà de sa rangée, portée à 44 sans jamais empiéter sur l'élément
+ * voisin (zones tactiles disjointes, story 5.2) : au plus l'écart de la séquence du côté d'une carte,
+ * moins l'étendue tactile de l'élément voisin (`neighborSlop`) — revue 5.2 : la puce d'un point
+ * d'arrêt juste au-dessus de la Fin déborde de 4 dans l'écart.
+ *
+ * Revue 5.3 : portée par la BOÎTE du `Pressable` (44 de haut, marges négatives : la rangée garde
+ * 27 / 24), jamais par `hitSlop` — sous Fabric iOS, `RCTViewComponentView` écarte un toucher hors
+ * des limites d'un parent qui ne mesure aucun débordement ; une boîte réelle crée ce débordement.
  */
-export function boundaryHitSlop(kind: BoundaryKind, neighborSlop = 0): { readonly top: number; readonly bottom: number } {
+export function boundaryTouchExtent(kind: BoundaryKind, neighborSlop = 0): { readonly top: number; readonly bottom: number } {
   const height = boundaryStepHeight(kind);
   const half = (VALUE_TOUCH_TARGET - BOUNDARY_CONTENT_HEIGHT) / 2;
   const limit = Math.max(0, SEQUENCE_GAP - neighborSlop);
@@ -204,7 +208,7 @@ export function RailDot({ centerX, centerY, testID }: { centerX: number; centerY
  * queue sont dessinés à part (`BoundaryRail`), hors de l'atténuation du placement (revue 5.2 :
  * opacité uniforme du rail). `railCenterX` : centre du rail dans le repère de la rangée (colonne de
  * la séquence), dont le libellé laisse la colonne de l'anneau. `neighborSlop` : marge tactile de
- * l'élément voisin (`boundaryHitSlop`).
+ * l'élément voisin (`boundaryTouchExtent`).
  */
 export function BoundaryStep({
   kind,
@@ -227,7 +231,8 @@ export function BoundaryStep({
 }) {
   const height = boundaryStepHeight(kind);
   // Toute la rangée (libellé + pastille) ouvre la roulette, comme l'ancienne carte limite
-  // (acquis conservé) ; la cible tactile atteint 44 de haut par `hitSlop`.
+  // (acquis conservé) ; revue 5.3 : la cible est la boîte du `Pressable`, 44 de haut.
+  const extent = boundaryTouchExtent(kind, neighborSlop);
   return (
     <Pressable
       onPress={onPress}
@@ -235,8 +240,16 @@ export function BoundaryStep({
       accessibilityLabel={label}
       accessibilityValue={{ text: value }}
       accessibilityState={{ expanded: isOpen }}
-      hitSlop={boundaryHitSlop(kind, neighborSlop)}
-      style={[styles.boundary, { height, paddingBottom: height - BOUNDARY_CONTENT_HEIGHT }]}
+      style={[
+        styles.boundary,
+        {
+          height: height + extent.top + extent.bottom,
+          marginTop: -extent.top,
+          marginBottom: -extent.bottom,
+          paddingTop: extent.top,
+          paddingBottom: height - BOUNDARY_CONTENT_HEIGHT + extent.bottom,
+        },
+      ]}
       testID={testID}
     >
       {/* Colonne de l'anneau : le libellé commence à son bord droit plus l'écart. */}
