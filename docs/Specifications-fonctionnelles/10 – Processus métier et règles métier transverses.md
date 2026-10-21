@@ -624,6 +624,8 @@ La composition d'une séance repose sur les principes suivants :
 
 ### Placement des récupérations et des points d’arrêt — Positions, ordre et retrait
 
+En Composition v2, aucun trait de démarcation autonome ne subsiste entre les cartes : seul le rail segmenté et les connexions des points d’arrêt matérialisent l’enchaînement. Les références historiques à un trait maintenu hors placement (D-303) sont remplacées sur ce rendu par D-435, arbitrage D1 du 21/10. En mode placement, les cartes restent visuellement grisées afin d'indiquer leur indisponibilité au toucher (arbitrage D6), sans griser les zones d'insertion ni masquer les commandes accessibles.
+
 Les points d’arrêt sont positionnés entre les cartes de Composition, au centre de la séquence et sur le rail ; les emplacements de récupération éligibles sont intégrés en zone pointillée à la troisième ligne de la carte. L’absence de valeur visible ne rend pas éligible une occurrence ayant déjà un objet récupération, même à zéro. Le mode placement doit permettre le défilement jusqu’à la dernière position sans recouvrir les actions de confirmation/annulation. Les gestes, contraintes de position, brouillons et calculs restent identiques (D-435).
 
 Récupération uniquement après une occurrence, y compris la dernière ; aucune récupération avant le premier Exercice. Point d’arrêt : frontières existantes conservées, interdit juste après le compte à rebours initial et juste avant Fin de séance, permis avant/après Circuit et entre ses Exercices. Les deux types ont donc un parcours commun sans devenir interchangeables à toutes les frontières.
