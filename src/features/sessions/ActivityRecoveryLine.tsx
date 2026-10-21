@@ -8,10 +8,12 @@ import { STOP_POINT_CHIP_HEIGHT, StopPointChip } from "@/features/sessions/StopP
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { spacing } from "@/shared/ui/tokens";
 
-/** Marge verticale de la rangée du point d'arrêt (Figma `8328:29531`). */
-const LINE_PADDING_VERTICAL = spacing[4];
-/** Hauteur de la rangée qui porte un point d'arrêt : puce 22 + marges 4 / 4 (Figma `8328:29531`). */
-export const STOP_POINT_LINE_HEIGHT = STOP_POINT_CHIP_HEIGHT + 2 * LINE_PADDING_VERTICAL;
+/**
+ * Hauteur de la rangée qui porte un point d'arrêt hors placement : celle de la puce, 22 (PRE-6
+ * story 5.2, D-435, Figma `9819:20018` « Espace — Point d'arrêt » ; ch13 CE-T03-08 L1478). Les
+ * écarts de la séquence l'encadrent (8 hors Circuit, 9 dans le Circuit).
+ */
+export const STOP_POINT_LINE_HEIGHT = STOP_POINT_CHIP_HEIGHT;
 
 /**
  * Valeur de la récupération en ligne 3 de la carte v2 (Figma `9798:19934`) : Inter Regular 12,
@@ -117,12 +119,13 @@ export type ActivityRecoveryLineProps = {
 
 /**
  * Rangée du point d'arrêt sous une occurrence, ou sous le Circuit (PRE-6 story 4.2, Figma
- * `8328:29428`) : puce à droite, bord droit aligné sur celui des cartes, hauteur 30.
+ * `8328:29428`). PRE-6 story 5.2 (D-435, Figma `9819:20018`, `9819:20063` ; demande de Hermann
+ * du 21/10 : points d'arrêt centrés entre les cartes) : rangée de 22, puce existante centrée sur la
+ * page ; le point de raccord sur le rail est dessiné par l'élément porteur (`RailDot`).
  *
  * PRE-6 story 5.1 (D-435, choix D1 de l'epic 5) : la récupération a quitté cette rangée pour la
  * ligne 3 de la carte (`OccurrenceRecovery`) et le trait de démarcation est supprimé. La rangée
- * n'existe plus que pour un point d'arrêt, avec son rendu provisoire jusqu'à la story 5.2 (points
- * centrés entre les cartes). Elle appartient au bloc de l'occurrence, dont elle suit le
+ * n'existe plus que pour un point d'arrêt. Elle appartient au bloc de l'occurrence, dont elle suit le
  * déplacement et le balayage (`CompositionActivityRow`). Quand le retrait du point la vide,
  * l'appelant ne la monte plus et reporte lui-même le focus sur la carte.
  */
@@ -153,13 +156,13 @@ export function ActivityRecoveryLine({ stopPoint, focusRequest, testID }: Activi
 }
 
 const styles = StyleSheet.create({
-  // Point d'arrêt (ch13 L1258, PR #390) : bord droit de la puce aligné sur celui des cartes.
+  // PRE-6 story 5.2 (D-435) : puce centrée sur la page (la rangée a la largeur des cartes, ou de la
+  // colonne de la séquence sous le Circuit — même axe, x 201 à 402).
   line: {
     height: STOP_POINT_LINE_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingVertical: LINE_PADDING_VERTICAL,
+    justifyContent: "center",
   },
   // Sablier dans la colonne des symboles (sous le symbole de durée), valeur calée à droite.
   recovery: {

@@ -78,7 +78,7 @@ import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
-import { CircuitHeader } from "@/features/sessions/CircuitHeader";
+import { CIRCUIT_HEADER_HEIGHT, CircuitHeader } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import {
@@ -96,7 +96,12 @@ import {
   type DropTarget,
   type StepDirection,
 } from "@/features/sessions/compositionGesture";
-import { ActivityRecoveryLine, isDisplayableRecovery, OccurrenceRecovery } from "@/features/sessions/ActivityRecoveryLine";
+import {
+  ActivityRecoveryLine,
+  isDisplayableRecovery,
+  OccurrenceRecovery,
+  STOP_POINT_LINE_HEIGHT,
+} from "@/features/sessions/ActivityRecoveryLine";
 import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
 import {
   formatCompactDuration,
@@ -111,6 +116,8 @@ import {
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
 import {
+  OCCURRENCE_CARD_HEIGHT,
+  OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_RADIUS,
   OccurrenceCard,
   occurrenceCardHeight,
@@ -119,15 +126,25 @@ import {
   occurrenceRecoveryHitSlop,
 } from "@/features/sessions/OccurrenceCard";
 import {
-  BOUNDARY_MARKER_CENTER_Y,
+  BOUNDARY_RING_TOP,
+  BoundaryRail,
   BoundaryStep,
-  CIRCUIT_MARKER_CENTER_Y,
-  OCCURRENCE_MARKER_CENTER_Y,
-  SEQUENCE_CONTENT_OFFSET,
-  SequenceMarker,
-  SequenceRail,
+  RAIL_RING_DIAMETER,
+  RailDot,
+  RailLink,
+  RailRing,
+  RailSegment,
+  SEQUENCE_GAP,
 } from "@/features/sessions/CompositionSequence";
+import {
+  RAIL_KEYS,
+  railRowKey,
+  resolveRailLinks,
+  type RailGeometry,
+  type RailLink as RailLinkGeometry,
+} from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { STOP_POINT_CHIP_HIT_SLOP } from "@/features/sessions/StopPointChip";
 import { PlacementBar } from "@/features/sessions/PlacementBar";
 import { PLACEMENT_SLOT_HEIGHT, PlacementSlotRow } from "@/features/sessions/PlacementLayer";
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
@@ -135,7 +152,7 @@ import { measureAnchor } from "@/features/sessions/measureAnchor";
 import { RemovalBubble, type RemovalBubbleAnchor } from "@/features/sessions/RemovalBubble";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
-import { useAnimatedShift } from "@/features/sessions/useAnimatedShift";
+import { useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
@@ -1296,6 +1313,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           preview: { activityId, originLayout, slot: null },
           animated: true,
           circuitHeight: originLayout.tourBottom - originLayout.tourTop,
+          returning: null,
         });
       }
       handleDragStart(activityId);
@@ -1349,10 +1367,103 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     );
   }, [dragPreview, draft]);
   const animateDragShifts = dragSession.animated && !reduceMotion;
-  const circuitTopShift = useAnimatedShift(dragShifts.circuitTop, animateDragShifts);
-  const circuitBottomShift = useAnimatedShift(dragShifts.circuitBottom, animateDragShifts);
-  const afterCircuitShift = useAnimatedShift(dragShifts.afterCircuit, animateDragShifts);
-  const endShift = useAnimatedShift(dragShifts.end, animateDragShifts);
+  /**
+   * PRE-6 (story 5.2) : translations animées de la séquence, une par élément porteur de rail
+   * (`compositionRail.ts`), dans un registre PARTAGÉ : le lien de rail d'un élément s'étire de la
+   * différence entre sa translation et celle de son prédécesseur, mêmes objets animés que ceux qui
+   * translatent les éléments.
+   */
+  const railShiftTargets = useMemo(() => {
+    const targets = new Map<string, number>([[RAIL_KEYS.start, 0]]);
+    for (const exercise of draft.exercises) {
+      targets.set(railRowKey(exercise.id), dragShifts.rows.get(exercise.id) ?? 0);
+    }
+    targets.set(RAIL_KEYS.circuitHeader, dragShifts.circuitTop);
+    targets.set(RAIL_KEYS.circuitEnd, dragShifts.circuitBottom);
+    targets.set(RAIL_KEYS.afterCircuit, dragShifts.afterCircuit);
+    targets.set(RAIL_KEYS.end, dragShifts.end);
+    return targets;
+  }, [dragShifts, draft.exercises]);
+  const shiftRegistry = useAnimatedShiftRegistry(railShiftTargets, animateDragShifts);
+  const railShiftOf = useCallback(
+    (key: string) => shiftRegistry.value(key, railShiftTargets.get(key) ?? 0),
+    [railShiftTargets, shiftRegistry],
+  );
+  const circuitTopShift = railShiftOf(RAIL_KEYS.circuitHeader);
+  const circuitBottomShift = railShiftOf(RAIL_KEYS.circuitEnd);
+  const afterCircuitShift = railShiftOf(RAIL_KEYS.afterCircuit);
+  const endShift = railShiftOf(RAIL_KEYS.end);
+  /**
+   * PRE-6 (story 5.2) : liens du rail segmenté (`resolveRailLinks`, fonction pure) — ordre affiché et
+   * écarts de conception ; les translations du glisser sont appliquées par les valeurs animées du
+   * registre. L'occurrence glissée (aperçu en cours), puis jusqu'à la fin de son retour en douceur
+   * (`returning`), sort de la chaîne avec sa hauteur relevée au début du geste ; carte non mesurée :
+   * hauteur de la carte, rangée de son point d'arrêt comprise (écart de la zone + 22).
+   */
+  const hasAfterCircuitRail =
+    placement !== null ? afterCircuitSlot !== null : displayedStopPoints.afterCircuit !== null;
+  // Revue 5.2 : en-tête du Circuit de hauteur minimale 40 (Dynamic Type) — l'anneau et ses segments
+  // suivent sa hauteur mesurée ; son haut reste à la marge du Circuit (14), dans le flux.
+  const circuitHeaderHeight =
+    circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? circuitHeaderLayout.height : CIRCUIT_HEADER_HEIGHT;
+  const circuitHeaderRingTopY = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(circuitHeaderHeight);
+  const railGeometry = railGeometryFor(circuitHeaderHeight);
+  /**
+   * Revue 5.2 : la Fin suit-elle une rangée de point d'arrêt (dernière occurrence après le Circuit,
+   * ou, sans occurrence après, la rangée « après le Circuit ») ? Hors placement seulement (en
+   * placement, la Fin est inactive).
+   */
+  const lastAfterOccurrence = zones.afterTour[zones.afterTour.length - 1];
+  const finPrecededByStopPoint =
+    placement === null &&
+    (lastAfterOccurrence !== undefined
+      ? displayedStopPoints.byOccurrenceId.get(lastAfterOccurrence.id) !== undefined
+      : displayedStopPoints.afterCircuit !== null);
+  const returningOccurrence = dragSession.returning;
+  const railSkip =
+    dragPreview !== null
+      ? {
+          activityId: dragPreview.activityId,
+          measuredHeight: dragPreview.originLayout.rows.find((row) => row.id === dragPreview.activityId)?.height,
+        }
+      : returningOccurrence !== null && draft.exercises.some((exercise) => exercise.id === returningOccurrence.activityId)
+        ? returningOccurrence
+        : null;
+  const railSkippedId = railSkip?.activityId ?? null;
+  const fallbackBlockHeight = (activityId: string): number => {
+    const exercise = draft.exercises.find((candidate) => candidate.id === activityId);
+    const stopRow =
+      displayedStopPoints.byOccurrenceId.get(activityId) !== undefined
+        ? (exercise?.structuralPosition === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP) + STOP_POINT_LINE_HEIGHT
+        : 0;
+    return occurrenceCardHeight() + stopRow;
+  };
+  const railLinks = resolveRailLinks({
+    beforeTour: zones.beforeTour.map((activity) => activity.id),
+    inTour: zones.inTour.map((activity) => activity.id),
+    afterTour: zones.afterTour.map((activity) => activity.id),
+    hasAfterCircuit: hasAfterCircuitRail,
+    skipped:
+      railSkip === null
+        ? null
+        : { id: railSkip.activityId, height: railSkip.measuredHeight ?? fallbackBlockHeight(railSkip.activityId) },
+    geometry: railGeometry,
+  });
+  // Fin du retour en douceur : l'occurrence reprend sa place dans le rail une fois toutes les
+  // animations du registre terminées (immédiatement si elles sont posées sans animation).
+  useEffect(() => {
+    if (returningOccurrence === null) return undefined;
+    return shiftRegistry.whenSettled(() =>
+      setDragSession((current) => (current.returning === returningOccurrence ? { ...current, returning: null } : current)),
+    );
+  }, [returningOccurrence, shiftRegistry]);
+  const sequenceRail: SequenceRailContext = { links: railLinks, shiftOf: railShiftOf, skippedId: railSkippedId };
+  /** Lien d'un élément non occurrence (toujours présent : seule une occurrence sort de la chaîne). */
+  const railLinkOf = (key: string): RailLinkGeometry | null => railLinks.get(key) ?? null;
+  const headerRailLink = railLinkOf(RAIL_KEYS.circuitHeader);
+  const circuitEndRailLink = railLinkOf(RAIL_KEYS.circuitEnd);
+  const afterCircuitRailLink = railLinkOf(RAIL_KEYS.afterCircuit);
+  const endRailLink = railLinkOf(RAIL_KEYS.end);
 
   // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre » — une position dans la
   // séquence affichée, en franchissant les limites du Circuit, mêmes règles que le glisser.
@@ -1623,23 +1734,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {isCircuitControl(openOverlay) ? (
           <CounterOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-counter-outside" />
         ) : null}
-        {/* PRE-6 (story 2.1, Figma `8328:28634`) : rail de la Séquence, du centre de la
-            première borne à celui de la dernière ; repères posés par chaque étape. */}
-        <SequenceRail
-          left={spacing[24]}
-          top={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
-          bottom={spacing[16] + BOUNDARY_MARKER_CENTER_Y}
-        />
+        {/* PRE-6 (story 5.2, D-435) : plus de rail continu — chaque élément de la séquence porte ses
+            segments (`compositionRail.ts`) ; le Compte à rebours porte son anneau et sa queue. */}
         {/* PRE-6 (story 4.1) : en placement, les bornes sont atténuées et non interactives. */}
-        <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
-          <BoundaryStep
-            label={composition.countdown.label}
-            value={formatDurationRowValue(draft.initialCountdownSeconds)}
-            isOpen={openOverlay === "countdown"}
-            onPress={() => toggleOverlay("countdown")}
-            testID="composition-boundary-countdown"
-          />
-        </PlacementAttenuation>
+        {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
+            uniforme du rail), posés sur la rangée. */}
+        <View testID="composition-boundary-countdown-step">
+          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
+            <BoundaryStep
+              kind="start"
+              railCenterX={RAIL_CENTER_X_IN_COLUMN}
+              label={composition.countdown.label}
+              value={formatDurationRowValue(draft.initialCountdownSeconds)}
+              isOpen={openOverlay === "countdown"}
+              onPress={() => toggleOverlay("countdown")}
+              testID="composition-boundary-countdown"
+            />
+          </PlacementAttenuation>
+          <BoundaryRail kind="start" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-countdown" />
+        </View>
 
         {/*
          * UI-COMP-003 : une nouvelle Activité s'insère ICI — entre Compte à
@@ -1676,8 +1789,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragStart={handleRowDragStart}
           onDragMove={handleDragMove}
           onDragEnd={handleDropActivity}
-          dragShifts={dragShifts}
-          animateDragShifts={animateDragShifts}
+          rail={sequenceRail}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1717,18 +1829,35 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           {isCircuitControl(openOverlay) ? (
             <CounterOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-counter-outside-section" />
           ) : null}
-          {/* PRE-6 (story 2.1, Figma `8328:28665`) : anneau du Circuit sur le rail — la structure
-              déborde de `inset` à gauche du contenu, d'où le décalage réduit d'autant. */}
-          {/* PRE-6 (story 2.3b) : l'anneau suit le bord haut du Circuit pendant le glisser. */}
+          {/*
+           * PRE-6 (story 5.2, Figma `9819:20017`) : rail de l'en-tête du Circuit — lien vers l'élément
+           * précédent (marge haute du Circuit et écart de la séquence), anneau centré sur l'en-tête,
+           * queue jusqu'au bas de l'en-tête. Story 2.3b : il suit le bord haut du Circuit.
+           */}
           <Animated.View
             pointerEvents="none"
             style={[StyleSheet.absoluteFill, { transform: [{ translateY: circuitTopShift }] }]}
             testID="composition-sequence-marker-circuit-track"
           >
-            <SequenceMarker
-              kind="ring"
-              centerY={CIRCUIT_MARKER_CENTER_Y}
-              contentLeft={SEQUENCE_CONTENT_OFFSET - dimensions.compositionTourSection.inset}
+            {headerRailLink !== null ? (
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_CIRCUIT}
+                entryY={circuitHeaderRingTopY}
+                length={headerRailLink.length}
+                shift={circuitTopShift}
+                prevShift={railShiftOf(headerRailLink.prevKey)}
+                testID="composition-rail-link-circuit-header"
+              />
+            ) : null}
+            <RailSegment
+              centerX={RAIL_CENTER_X_IN_CIRCUIT}
+              top={circuitHeaderRingTopY + RAIL_RING_DIAMETER}
+              height={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight - circuitHeaderRingTopY - RAIL_RING_DIAMETER}
+              testID="composition-rail-tail-circuit-header"
+            />
+            <RailRing
+              centerX={RAIL_CENTER_X_IN_CIRCUIT}
+              centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight / 2}
               testID="composition-sequence-marker-circuit"
             />
           </Animated.View>
@@ -1752,6 +1881,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             isAttenuated={isPlacementActive}
             // PRE-6 (story 2.3b) : l'en-tête suit le bord haut du Circuit pendant le glisser.
             translateY={circuitTopShift}
+            // PRE-6 (story 5.2) : le titre laisse la colonne de l'anneau (x 69 à 402).
+            titleInset={SEQUENCE_LABEL_INSET}
             onLayout={(event) => {
               const { y, height } = event.nativeEvent.layout;
               setCircuitHeaderLayout((current) =>
@@ -1776,8 +1907,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onDragStart={handleRowDragStart}
             onDragMove={handleDragMove}
             onDragEnd={handleDropActivity}
-            dragShifts={dragShifts}
-            animateDragShifts={animateDragShifts}
+            rail={sequenceRail}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
             canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1785,32 +1915,74 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             placement={placementRowContext}
             pauses={pauseRowContext}
           />
+          {/*
+           * PRE-6 (story 5.2) : bas du Circuit — lien de la dernière ancre du Circuit (média ou anneau
+           * de l'en-tête) jusqu'au bord bas, qui suit le bas du Circuit pendant le glisser. Porté par
+           * le conteneur : il reste au-dessus de son fond, même quand le Circuit passe au premier plan.
+           */}
+          {circuitEndRailLink !== null ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFill, { transform: [{ translateY: circuitBottomShift }] }]}
+              testID="composition-rail-circuit-end-track"
+            >
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_CIRCUIT}
+                anchorBottom
+                length={circuitEndRailLink.length}
+                shift={circuitBottomShift}
+                prevShift={railShiftOf(circuitEndRailLink.prevKey)}
+                testID="composition-rail-link-circuit-end"
+              />
+            </Animated.View>
+          ) : null}
         </View>
 
-        {/* PRE-6 (story 4.1) : emplacement « après le Circuit » (point d'arrêt seul). */}
-        {placement !== null && afterCircuitSlot !== null ? (
-          <PlacementSlotRow
-            slot={afterCircuitSlot}
-            placement={placement}
-            exerciseName={null}
-            onPressRecovery={handlePlacementRecoveryPress}
-            onPressExistingRecovery={handlePlacementExistingRecoveryPress}
-            onToggleStopPoint={handlePlacementStopPointToggle}
-            testID="composition-placement-slot-after-circuit"
-          />
-        ) : null}
-        {/* PRE-6 (story 4.2, `8328:29428`) : hors placement, point « après le Circuit » sur une ligne
-            structurelle sous le conteneur du Circuit. */}
-        {placement === null && displayedStopPoints.afterCircuit !== null ? (
-          // PRE-6 (story 2.3b) : la ligne suit le bas du Circuit pendant le glisser.
+        {/*
+         * Rangée « après le Circuit » : en placement, l'emplacement (point d'arrêt seul, story 4.1) ;
+         * hors placement, le point « après le Circuit » (story 4.2, `8328:29428`), centré sous le
+         * Circuit (story 5.2, `9819:20018`). Story 2.3b : elle suit le bas du Circuit pendant le
+         * glisser. Story 5.2 : le rail la traverse (lien vers le bas du Circuit, queue sur toute sa
+         * hauteur, point de raccord au centre d'un point d'arrêt) ; dessiné AVANT son contenu, il
+         * passe sous les puces.
+         */}
+        {hasAfterCircuitRail ? (
           <Animated.View
             style={{ transform: [{ translateY: afterCircuitShift }] }}
             testID="composition-after-circuit-line-track"
           >
-            <AfterCircuitStopPointLine
-              stopPoint={displayedStopPoints.afterCircuit}
-              pauses={pauseRowContext}
-            />
+            {afterCircuitRailLink !== null ? (
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_COLUMN}
+                entryY={0}
+                length={afterCircuitRailLink.length}
+                shift={afterCircuitShift}
+                prevShift={railShiftOf(afterCircuitRailLink.prevKey)}
+                testID="composition-rail-link-after-circuit"
+              />
+            ) : null}
+            <RailSegment centerX={RAIL_CENTER_X_IN_COLUMN} top={0} bottom={0} testID="composition-rail-tail-after-circuit" />
+            {placement !== null && afterCircuitSlot !== null ? (
+              <PlacementSlotRow
+                slot={afterCircuitSlot}
+                placement={placement}
+                exerciseName={null}
+                onPressRecovery={handlePlacementRecoveryPress}
+                onPressExistingRecovery={handlePlacementExistingRecoveryPress}
+                onToggleStopPoint={handlePlacementStopPointToggle}
+                testID="composition-placement-slot-after-circuit"
+              />
+            ) : null}
+            {placement === null && displayedStopPoints.afterCircuit !== null ? (
+              <>
+                <AfterCircuitStopPointLine stopPoint={displayedStopPoints.afterCircuit} pauses={pauseRowContext} />
+                <RailDot
+                  centerX={RAIL_CENTER_X_IN_COLUMN}
+                  centerY={STOP_POINT_LINE_HEIGHT / 2}
+                  testID="composition-rail-dot-after-circuit"
+                />
+              </>
+            ) : null}
           </Animated.View>
         ) : null}
 
@@ -1830,8 +2002,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragStart={handleRowDragStart}
           onDragMove={handleDragMove}
           onDragEnd={handleDropActivity}
-          dragShifts={dragShifts}
-          animateDragShifts={animateDragShifts}
+          rail={sequenceRail}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={(activityId, direction) => stepTargetOf(activityId, direction) !== null}
@@ -1844,6 +2015,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         <Animated.View style={{ transform: [{ translateY: endShift }] }} testID="composition-boundary-final-phase-track">
           <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
             <BoundaryStep
+              kind="end"
+              railCenterX={RAIL_CENTER_X_IN_COLUMN}
+              // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus déborde dans l'écart.
+              neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_HIT_SLOP.bottom : 0}
               label={composition.finalPhase.label}
               value={formatDurationRowValue(draft.finalPhaseSeconds)}
               isOpen={openOverlay === "finalPhase"}
@@ -1851,6 +2026,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               testID="composition-boundary-final-phase"
             />
           </PlacementAttenuation>
+          <BoundaryRail kind="end" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-final-phase" />
+          {/* PRE-6 (story 5.2) : lien de Fin de séance, hors atténuation, jusqu'au haut de son anneau. */}
+          {endRailLink !== null ? (
+            <RailLink
+              centerX={RAIL_CENTER_X_IN_COLUMN}
+              entryY={BOUNDARY_RING_TOP}
+              length={endRailLink.length}
+              shift={endShift}
+              prevShift={railShiftOf(endRailLink.prevKey)}
+              testID="composition-rail-link-end"
+            />
+          ) : null}
         </Animated.View>
 
         {/*
@@ -2199,9 +2386,11 @@ type ActivityZoneListProps = {
   /** PRE-6 (story 2.3b) : position de la carte glissée, à chaque mouvement du doigt. */
   readonly onDragMove: (activity: SessionDraftExercise, translationY: number) => void;
   readonly onDragEnd: (activity: SessionDraftExercise, translationY: number) => void;
-  /** PRE-6 (story 2.3b) : décalage de chaque carte pendant le glisser (absente = 0). */
-  readonly dragShifts: DragShifts;
-  readonly animateDragShifts: boolean;
+  /**
+   * PRE-6 (story 2.3b, story 5.2) : translations animées partagées (décalage de chaque carte pendant
+   * le glisser) et liens du rail segmenté.
+   */
+  readonly rail: SequenceRailContext;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
   /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
@@ -2357,8 +2546,7 @@ function ActivityZoneList({
   onDragStart,
   onDragMove,
   onDragEnd,
-  dragShifts,
-  animateDragShifts,
+  rail,
   onDuplicate,
   onDelete,
   canStep,
@@ -2373,6 +2561,8 @@ function ActivityZoneList({
     <View
       style={[
         styles.exerciseList,
+        // PRE-6 (story 5.2, D-435) : écart 9 entre les cartes du Circuit, 8 au dehors.
+        zone === "IN_TOUR" ? styles.exerciseListInCircuit : null,
         // Correctif 2.3b (retour Hermann 21/10/2026) : la zone qui porte la carte soulevée passe
         // au-dessus de ses sœurs (Circuit, autres zones, bornes) ; sinon, hors de sa zone, la carte
         // glisse sous leur fond opaque (blanc ou couleur du Circuit).
@@ -2402,8 +2592,7 @@ function ActivityZoneList({
           // Story 2.3b : le dépôt (`handleDropActivity`) met lui-même fin à l'état soulevé, dans
           // un ordre explicite avec la session de décalage.
           onDragEnd={(translationY) => onDragEnd(activity, translationY)}
-          dragShift={dragShifts.rows.get(activity.id) ?? 0}
-          animateDragShift={animateDragShifts}
+          rail={rail}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
@@ -2445,12 +2634,11 @@ type CompositionActivityRowProps = {
   readonly onDragMove: (translationY: number) => void;
   readonly onDragEnd: (translationY: number) => void;
   /**
-   * PRE-6 (story 2.3b) : décalage vertical du bloc (carte, ligne de récupération, repère du rail)
-   * pour libérer l'emplacement visé par une AUTRE carte glissée ; `animateDragShift` : transition
-   * douce, sinon immédiate (dépôt appliqué, « Réduire les animations »).
+   * PRE-6 (story 2.3b) : décalage vertical du bloc (carte, rangée du point d'arrêt, rail) pour
+   * libérer l'emplacement visé par une AUTRE carte glissée — valeur animée du registre partagé
+   * (`rail.shiftOf`). PRE-6 (story 5.2) : lien du rail vers l'élément précédent.
    */
-  readonly dragShift: number;
-  readonly animateDragShift: boolean;
+  readonly rail: SequenceRailContext;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
@@ -2602,8 +2790,7 @@ function CompositionActivityRow({
   onDragCancel,
   onDragMove,
   onDragEnd,
-  dragShift,
-  animateDragShift,
+  rail,
   onDuplicate,
   onDelete,
   onMoveUp,
@@ -2895,10 +3082,19 @@ function CompositionActivityRow({
   }, [areActionsRevealed, onEdit]);
 
   /**
-   * PRE-6 (story 2.3b) : décalage animé du bloc pendant le glisser d'une autre carte
-   * (`useAnimatedShift` : translation seule, pilote natif, immédiat si `animateDragShift` est faux).
+   * PRE-6 (story 2.3b) : décalage animé du bloc pendant le glisser d'une autre carte (translation
+   * seule, pilote natif ; registre partagé de l'écran, story 5.2).
    */
-  const dragShiftValue = useAnimatedShift(dragShift, animateDragShift);
+  const railKey = railRowKey(activity.id);
+  const dragShiftValue = rail.shiftOf(railKey);
+  /**
+   * PRE-6 (story 5.2) : rail de l'occurrence — lien vers l'élément précédent, queue du bas du média
+   * au bas du bloc (rangée du point d'arrêt ou emplacement de placement compris), point de raccord
+   * au centre d'un point d'arrêt. L'occurrence glissée sort de la chaîne : aucun rail.
+   */
+  const railLink = rail.skippedId === activity.id ? undefined : rail.links.get(railKey);
+  /** Écart carte → rangée du point d'arrêt / emplacement : celui de la zone (9 dans le Circuit, 8 au dehors). */
+  const slotGap = activity.structuralPosition === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP;
 
   /** Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. */
   const handleLongPress = useCallback(() => {
@@ -3000,7 +3196,7 @@ function CompositionActivityRow({
           backgroundColor: isDragged
             ? "transparent"
             : activity.structuralPosition === "IN_TOUR"
-              ? colors.tourSurface
+              ? CIRCUIT_SURFACE_COLOR
               : colors.background,
         },
         isDragged ? styles.activityRowContainerDragged : null,
@@ -3030,20 +3226,6 @@ function CompositionActivityRow({
         : {})}
       testID={`composition-activity-${activity.id}`}
     >
-      {/*
-       * PRE-6 (story 2.1, Figma `8328:28644`) : repère d'une occurrence hors Circuit. Rendu EN
-       * PREMIER (sous les actions glissées et la carte, qui ne le recouvrent jamais : il est
-       * dans la colonne du rail) ; il suit la carte soulevée verticalement, jamais le balayage
-       * horizontal — le rail ne glisse pas.
-       */}
-      {activity.structuralPosition !== "IN_TOUR" ? (
-        <SequenceMarker
-          kind="dot"
-          centerY={OCCURRENCE_MARKER_CENTER_Y}
-          translateY={isDragged ? dragTranslationY : 0}
-          testID={`composition-sequence-marker-${activity.id}`}
-        />
-      ) : null}
       {/*
        * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : le groupe d'actions est
        * désormais un frère PRÉCÉDENT la carte (donc DERRIÈRE elle, un
@@ -3143,7 +3325,6 @@ function CompositionActivityRow({
           summary={formatOccurrenceSummary(activity)}
           estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
-          inCircuit={activity.structuralPosition === "IN_TOUR"}
           bordered={isCardBordered}
           recovery={
             <OccurrenceRecovery
@@ -3164,16 +3345,49 @@ function CompositionActivityRow({
       </Pressable>
 
       {/*
+       * PRE-6 (story 5.2, D-435) : rail de l'occurrence, peint APRÈS la carte (il passe sur ses
+       * marges, jusqu'aux bords du média, sans le traverser) et AVANT la rangée sous la carte (les
+       * puces du placement passent dessus). Il ne suit ni le balayage ni la carte soulevée : le
+       * rail ne glisse pas ; il suit les décalages du bloc (translation du conteneur).
+       */}
+      {railLink !== undefined ? (
+        <>
+          <RailLink
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            entryY={OCCURRENCE_CARD_MEDIA.top}
+            length={railLink.length}
+            shift={dragShiftValue}
+            prevShift={rail.shiftOf(railLink.prevKey)}
+            testID={`composition-rail-link-${activity.id}`}
+          />
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={OCCURRENCE_CARD_MEDIA.bottom}
+            bottom={0}
+            testID={`composition-rail-tail-${activity.id}`}
+          />
+          {placement === null && stopPoint !== null ? (
+            <RailDot
+              centerX={OCCURRENCE_CARD_MEDIA.centerX}
+              centerY={OCCURRENCE_CARD_HEIGHT + slotGap + STOP_POINT_LINE_HEIGHT / 2}
+              testID={`composition-rail-dot-${activity.id}`}
+            />
+          ) : null}
+        </>
+      ) : null}
+
+      {/*
        * Rangée sous l'occurrence. PRE-6 story 5.1 (D-435, choix D1) : la récupération est en
        * ligne 3 de la carte et le trait de démarcation est supprimé ; hors placement, la rangée
-       * n'existe que pour un point d'arrêt (rendu provisoire jusqu'à la story 5.2) : sinon aucun
+       * n'existe que pour un point d'arrêt (story 5.2 : rangée de 22 centrée, à l'écart de la zone
+       * sous la carte, `slotGap`) : sinon aucun
        * emplacement, l'élément suivant vient à l'écart normal de la séquence. Elle suit la carte
        * (même translation) et reste dans le conteneur de l'occurrence : elle fait bloc pour le
        * déplacement, dont les mesures (`onLayout` du conteneur) intègrent ou non sa hauteur.
        */}
       {placement !== null || hasRecoveryLine ? (
         <View
-          style={[styles.activityRecoveryLine, { transform: blockTransform }]}
+          style={[{ marginTop: slotGap }, { transform: blockTransform }]}
           testID={`composition-activity-recovery-slot-${activity.id}`}
         >
           {placement !== null ? (
@@ -3181,7 +3395,7 @@ function CompositionActivityRow({
             // récupération / point d'arrêt (règle inchangée ; rendu refait en story 5.3).
             <PlacementOccurrenceSlot activity={activity} placement={placement} />
           ) : stopPoint !== null ? (
-            // PRE-6 (story 4.2) : point d'arrêt de l'emplacement à droite (`8328:29428`).
+            // PRE-6 (story 4.2, `8328:29428`) : point d'arrêt de l'emplacement ; story 5.2 : centré.
             <ActivityRecoveryLine
               stopPoint={stopPoint}
               focusRequest={lineFocusToken}
@@ -3253,7 +3467,7 @@ function CircuitSurface({
 }) {
   // Base finie et non nulle : la hauteur relevée moins les deux rayons, au moins 1.
   const bandHeight = Number.isFinite(dragHeight)
-    ? Math.max(1, dragHeight - 2 * dimensions.compositionTourSection.radius)
+    ? Math.max(1, dragHeight - 2 * CIRCUIT_RADIUS)
     : 1;
   const bandTransform = useMemo(
     () => [
@@ -3394,8 +3608,73 @@ function CompositionEditState({
  * pour les cartes d'une même zone) — les faire dépendre d'un token partagé
  * est le seul moyen de garantir leur égalité autrement que par la vigilance
  * de relecture.
+ *
+ * PRE-6 (story 5.2, D-435, Figma `8328:28605`) : 8 (6 depuis T02-S02), l'écart de la séquence hors
+ * Circuit ; dans le Circuit, 9 (`CIRCUIT_GAP`).
  */
-const COMPOSITION_ROW_GAP = spacing[6];
+const COMPOSITION_ROW_GAP = SEQUENCE_GAP;
+
+/**
+ * PRE-6 (story 5.2, D-435, ch13 CE-T03-08 L1478-L1480, Figma Standard `8328:28605`) : géométrie de
+ * la séquence à 402 — colonne x 24 (354, marges du corps), cartes de 370 à x 16 (débord de 8 de
+ * chaque côté de la colonne), Circuit de 386 à x 8 (débord de 8 au-delà des cartes). Les marges
+ * sont constantes : à 360 ou 440, cartes et Circuit suivent la largeur, sans largeur codée en dur.
+ */
+const CARD_OUTSET = spacing[8];
+const CIRCUIT_OUTSET = CARD_OUTSET + spacing[8];
+/** Circuit (Figma `9819:19906`, `9819:19947`) : marge verticale 14, écart 9, rayon 18, aplat sans contour. */
+const CIRCUIT_PADDING_VERTICAL = spacing[14];
+const CIRCUIT_GAP = 9;
+const CIRCUIT_RADIUS = 18;
+/**
+ * Aplat du Circuit (Figma `9819:19906`, `#F3F4F9`) : couleur hors registre ch12, constante locale
+ * (choix D5 de l'epic 5 ; ch13 CE-T03-08 L1478). `colors.tourSurface` n'est pas modifié (partagé avec
+ * `SessionCard` et `DisclosureControl`) ; ajout au registre proposé au lot documentaire.
+ */
+const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
+/**
+ * Haut de l'anneau du Circuit, centré sur la hauteur de l'en-tête (Figma `9819:20017` : y 15 pour
+ * 40). Revue 5.2 : l'en-tête a une hauteur MINIMALE de 40 (Dynamic Type) ; l'anneau suit sa hauteur
+ * mesurée, 40 tant qu'il n'est pas mesuré.
+ */
+function circuitHeaderRingTop(headerHeight: number): number {
+  return (headerHeight - RAIL_RING_DIAMETER) / 2;
+}
+/**
+ * Axe du rail : centre du média des cartes (Figma : x 56 à 402), exprimé dans chaque repère — carte
+ * (`OCCURRENCE_CARD_MEDIA.centerX`), colonne de la séquence (bornes, rangée après le Circuit) et
+ * conteneur du Circuit.
+ */
+const RAIL_CENTER_X_IN_COLUMN = OCCURRENCE_CARD_MEDIA.centerX - CARD_OUTSET;
+const RAIL_CENTER_X_IN_CIRCUIT = RAIL_CENTER_X_IN_COLUMN + CIRCUIT_OUTSET;
+/** Début du titre du Circuit : bord droit de l'anneau plus 8 (Figma : x 69 à 402, comme les bornes). */
+const SEQUENCE_LABEL_INSET = RAIL_CENTER_X_IN_COLUMN + RAIL_RING_DIAMETER / 2 + spacing[8];
+
+/**
+ * PRE-6 (story 5.2) : écarts de conception dont dépend la longueur des liens du rail — les MÊMES
+ * constantes que les styles (`SEQUENCE_GAP`, `CIRCUIT_GAP`, `CIRCUIT_PADDING_VERTICAL`, ancres du
+ * média et des anneaux) ; l'anneau du Circuit suit la hauteur mesurée de l'en-tête.
+ */
+function railGeometryFor(circuitHeaderHeight: number): RailGeometry {
+  return {
+    sequenceGap: SEQUENCE_GAP,
+    circuitGap: CIRCUIT_GAP,
+    circuitPadding: CIRCUIT_PADDING_VERTICAL,
+    rowEntry: OCCURRENCE_CARD_MEDIA.top,
+    circuitHeaderEntry: circuitHeaderRingTop(circuitHeaderHeight),
+    endEntry: BOUNDARY_RING_TOP,
+  };
+}
+
+/**
+ * PRE-6 (story 5.2) : ce que chaque occurrence reçoit pour son rail — liens (`resolveRailLinks`),
+ * translations animées partagées (registre de l'écran) et occurrence sortie de la chaîne.
+ */
+type SequenceRailContext = {
+  readonly links: ReadonlyMap<string, RailLinkGeometry>;
+  readonly shiftOf: (key: string) => Animated.Value;
+  readonly skippedId: string | null;
+};
 
 /**
  * PRE-6 (story 2.3b) : session de la réorganisation animée.
@@ -3407,6 +3686,11 @@ const COMPOSITION_ROW_GAP = spacing[6];
  *   nouvelle disposition) ; `true` sinon (retour en douceur).
  * - `circuitHeight` : hauteur du Circuit relevée au début du dernier geste, base de l'étirement
  *   de son fond ; conservée après le geste, le retour en douceur s'en servant encore.
+ * - `returning` (PRE-6 story 5.2, revue) : occurrence de l'aperçu terminé EN DOUCEUR (dépôt
+ *   refusé, geste interrompu, « Annuler » d'une perte), gardée hors du rail jusqu'à la fin du retour
+ *   (`whenSettled` du registre) : sinon son lien et sa queue, rendus à leur place de repos pendant
+ *   que les voisines reviennent, laisseraient un trou ou chevaucheraient. Hauteur relevée au début
+ *   du geste (`undefined` si la carte n'était pas mesurée).
  */
 type DragShiftSession = {
   readonly preview: {
@@ -3416,13 +3700,32 @@ type DragShiftSession = {
   } | null;
   readonly animated: boolean;
   readonly circuitHeight: number;
+  readonly returning: { readonly activityId: string; readonly measuredHeight: number | undefined } | null;
 };
 
-const IDLE_DRAG_SESSION: DragShiftSession = { preview: null, animated: true, circuitHeight: 0 };
+const IDLE_DRAG_SESSION: DragShiftSession = { preview: null, animated: true, circuitHeight: 0, returning: null };
 
-/** Fin d'aperçu : décalages remis à 0, en douceur (`animated`) ou immédiatement. */
+/**
+ * Fin d'aperçu : décalages remis à 0, en douceur (`animated`) ou immédiatement. En douceur,
+ * l'occurrence de l'aperçu reste hors du rail jusqu'à la fin du retour (`returning`).
+ */
 function endDragSession(current: DragShiftSession, animated: boolean): DragShiftSession {
-  return current.preview === null && current.animated === animated ? current : { ...current, preview: null, animated };
+  if (current.preview === null && current.animated === animated) return current;
+  const preview = current.preview;
+  return {
+    ...current,
+    preview: null,
+    animated,
+    returning:
+      !animated
+        ? null
+        : preview !== null
+          ? {
+              activityId: preview.activityId,
+              measuredHeight: preview.originLayout.rows.find((row) => row.id === preview.activityId)?.height,
+            }
+          : current.returning,
+  };
 }
 
 /**
@@ -3468,8 +3771,6 @@ export function predictedInsertionHeight(
   return measuredHeight - cardHeightOf(current) + cardHeightOf(moved);
 }
 
-/** Écart entre l'en-tête du Circuit et sa liste d'occurrences (`tourSectionContainer`). */
-const CIRCUIT_SECTION_GAP = spacing[12];
 /**
  * Correctif 2.3b (retour Hermann 21/10/2026) : les arrondis haut et bas du fond du Circuit
  * débordent de 2 points sur la bande centrale. Sans ce chevauchement, l'étirement de la bande
@@ -3478,7 +3779,12 @@ const CIRCUIT_SECTION_GAP = spacing[12];
 const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
 
 /** PRE-6 (story 2.3b) : écarts qui apparaissent ou disparaissent avec un bloc déplacé. */
-const DRAG_SHIFT_GAPS = { row: COMPOSITION_ROW_GAP, zone: COMPOSITION_ROW_GAP, circuit: CIRCUIT_SECTION_GAP } as const;
+const DRAG_SHIFT_GAPS = {
+  row: COMPOSITION_ROW_GAP,
+  circuitRow: CIRCUIT_GAP,
+  zone: COMPOSITION_ROW_GAP,
+  circuit: CIRCUIT_GAP,
+} as const;
 
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
@@ -3542,9 +3848,9 @@ const styles = StyleSheet.create({
   // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
   // littéraux.
   bodyContent: {
-    // PRE-6 (story 2.1, Figma `8328:28634`) : les étapes commencent après la colonne des
-    // repères (16) et son écart (10) ; le rail et les repères occupent cette marge.
-    paddingLeft: spacing[24] + SEQUENCE_CONTENT_OFFSET,
+    // PRE-6 (story 5.2, D-435) : colonne de la séquence à x 24 ; le rail est dessiné par chaque
+    // élément (bornes, cartes, Circuit), plus aucune marge de repères.
+    paddingLeft: spacing[24],
     paddingRight: spacing[24],
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
@@ -3600,11 +3906,17 @@ const styles = StyleSheet.create({
   },
   // Correction compacte LOT_3_OF_3 : écart RÉDUIT entre deux cartes
   // Activité consécutives. T02-S02 (continuation) : porté de `8` à
-  // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6`) — légère réduction
+  // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6` ; 8 depuis la story 5.2) — légère réduction
   // demandée par la recette visuelle — et PARTAGÉ avec `bodyContent`, dont
   // il devient la source unique (voir la note de `bodyContent`).
+  // PRE-6 (story 5.2, D-435) : cartes de 370 à x 16 — la liste déborde de 8 de chaque côté de la
+  // colonne (dans le Circuit aussi : 8 en deçà de son aplat).
   exerciseList: {
     gap: COMPOSITION_ROW_GAP,
+    marginHorizontal: -CARD_OUTSET,
+  },
+  exerciseListInCircuit: {
+    gap: CIRCUIT_GAP,
   },
   // T02-S01, révisé V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : conteneur de
   // position d'une carte d'Activité — support du groupe d'actions glissées,
@@ -3623,10 +3935,6 @@ const styles = StyleSheet.create({
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
   // conteneurs frères : un `zIndex` sur la carte seule n'ordonnerait rien
   // au-delà du sien).
-  // PRE-6 (story 2.1, Figma `8328:28645`) : écart 6 entre la carte et sa ligne de récupération.
-  activityRecoveryLine: {
-    marginTop: spacing[6],
-  },
   // PRE-6 (story 4.1) : contenu atténué pendant le placement (cartes, bornes).
   placementAttenuated: {
     opacity: UNSELECTED_OPACITY,
@@ -3741,48 +4049,52 @@ const styles = StyleSheet.create({
   // hauteur minimale). T02-S01 : il héberge aussi les occurrences `IN_TOUR`
   // (CE-T02-01) — `gap` sépare l'en-tête du Circuit (`CircuitHeader`, PRE-6
   // story 3.1) de cette liste.
+  //
+  // PRE-6 (story 5.2, D-435, Figma `9819:19906`, `9819:19946`) : aplat `#F3F4F9` sans contour,
+  // rayon 18, débord de 8 au-delà des cartes (386 à x 8 : 16 de chaque côté de la colonne), marge
+  // verticale 14, écart 9 entre l'en-tête et les cartes. Plus de hauteur minimale : le Circuit vide
+  // mesure 14 + 40 + 14.
   tourSectionContainer: {
-    marginHorizontal: -dimensions.compositionTourSection.inset,
-    paddingHorizontal: dimensions.compositionTourSection.inset,
-    paddingVertical: spacing[12],
-    // PRE-6 (story 2.3b, amendement du 21/10/2026) : le fond bleu est porté par `CircuitSurface`
+    marginHorizontal: -CIRCUIT_OUTSET,
+    paddingHorizontal: CIRCUIT_OUTSET,
+    paddingVertical: CIRCUIT_PADDING_VERTICAL,
+    // PRE-6 (story 2.3b, amendement du 21/10/2026) : le fond est porté par `CircuitSurface`
     // (trois couches qui suivent les bords pendant le glisser) ; le rayon reste la géométrie de
     // référence de la structure.
-    borderRadius: dimensions.compositionTourSection.radius,
-    minHeight: dimensions.compositionTourSection.closedHeight,
-    gap: CIRCUIT_SECTION_GAP,
+    borderRadius: CIRCUIT_RADIUS,
+    gap: CIRCUIT_GAP,
   },
   // Story 2.3b : fond du conteneur tant qu'il n'est pas mesuré (sans les couches animées).
   tourSectionStaticSurface: {
-    backgroundColor: colors.tourSurface,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
   circuitSurfaceTop: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
-    height: dimensions.compositionTourSection.radius + CIRCUIT_SURFACE_SEAM_OVERLAP,
-    borderTopLeftRadius: dimensions.compositionTourSection.radius,
-    borderTopRightRadius: dimensions.compositionTourSection.radius,
-    backgroundColor: colors.tourSurface,
+    height: CIRCUIT_RADIUS + CIRCUIT_SURFACE_SEAM_OVERLAP,
+    borderTopLeftRadius: CIRCUIT_RADIUS,
+    borderTopRightRadius: CIRCUIT_RADIUS,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
   circuitSurfaceBand: {
     position: "absolute",
-    top: dimensions.compositionTourSection.radius,
-    bottom: dimensions.compositionTourSection.radius,
+    top: CIRCUIT_RADIUS,
+    bottom: CIRCUIT_RADIUS,
     left: 0,
     right: 0,
-    backgroundColor: colors.tourSurface,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
   circuitSurfaceBottom: {
     position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
-    height: dimensions.compositionTourSection.radius + CIRCUIT_SURFACE_SEAM_OVERLAP,
-    borderBottomLeftRadius: dimensions.compositionTourSection.radius,
-    borderBottomRightRadius: dimensions.compositionTourSection.radius,
-    backgroundColor: colors.tourSurface,
+    height: CIRCUIT_RADIUS + CIRCUIT_SURFACE_SEAM_OVERLAP,
+    borderBottomLeftRadius: CIRCUIT_RADIUS,
+    borderBottomRightRadius: CIRCUIT_RADIUS,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
   // PRE-6 (story 3.1, RC-4) : zone d'appui extérieur, sous le contenu, qui referme le compteur
   // révélé du Circuit. Positionnée en absolu : hors du flux et de l'écart (`gap`).

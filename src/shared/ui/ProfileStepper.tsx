@@ -15,6 +15,11 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  * tactile reste 48 × 48 via `hitSlop`.
  */
 const STEP_CIRCLE = 28;
+/**
+ * Marge tactile de chaque cercle ± (cible `minTouchTarget`). Exportée pour qu'un voisin du stepper
+ * garde sa propre cible disjointe (PRE-6 story 5.2 : en-tête du Circuit).
+ */
+export const INLINE_STEPPER_STEP_HIT_SLOP = (minTouchTarget - STEP_CIRCLE) / 2;
 const STEPPER_HEIGHT = 36;
 const STEPPER_VALUE_WIDTH = 50;
 /**
@@ -376,7 +381,7 @@ export function InlineStepper({
           atMin && !disabled ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel
         }
         accessibilityState={{ disabled: atMin }}
-        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+        hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
         style={[styles.stepButton, stepButtonStyle]}
         testID={`${testID}-decrement`}
       >
@@ -411,7 +416,7 @@ export function InlineStepper({
           atMax && !disabled ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel
         }
         accessibilityState={{ disabled: atMax }}
-        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+        hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
         style={[styles.stepButton, stepButtonStyle]}
         testID={`${testID}-increment`}
       >
@@ -553,7 +558,7 @@ export function ProfileStepper({
             accessibilityRole="button"
             accessibilityLabel={atMin ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel}
             accessibilityState={{ disabled: atMin }}
-            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
             style={styles.stepButton}
             testID={`${testID}-decrement`}
           >
@@ -578,7 +583,7 @@ export function ProfileStepper({
             accessibilityRole="button"
             accessibilityLabel={atMax ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel}
             accessibilityState={{ disabled: atMax }}
-            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
             style={styles.stepButton}
             testID={`${testID}-increment`}
           >

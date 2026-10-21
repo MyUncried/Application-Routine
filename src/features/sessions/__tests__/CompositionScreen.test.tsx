@@ -348,18 +348,21 @@ describe("CompositionScreen — état initial", () => {
 
   // PRE-6 story 2.1 (Figma `8328:28634`) : les bornes deviennent des étapes de la Séquence —
   // un anneau sur le rail remplace les anciennes icônes de rôle des cartes limites.
-  it("PRE6-2.1 — Séquence : rail, anneau pour Compte à rebours, Circuit et Fin ; aucune icône de rôle de carte limite", () => {
+  // PRE-6 story 5.2 (D-435, `8328:28605`) : plus de rail continu ; des segments relient les anneaux
+  // (cercle de 10, contour extérieur 1,5 `#7A7A80`, fond blanc).
+  it("PRE6-2.1 / 5.2 — Séquence : segments de rail, anneau pour Compte à rebours, Circuit et Fin ; aucune icône de rôle de carte limite", () => {
     renderScreen();
 
-    // Rail et repères sont décoratifs, masqués à l'accessibilité.
+    // Rail et anneaux sont décoratifs, masqués à l'accessibilité.
     const hidden = { includeHiddenElements: true };
-    expect(screen.getByTestId("composition-sequence-rail", hidden)).toBeTruthy();
+    expect(screen.queryByTestId("composition-sequence-rail", hidden)).toBeNull();
+    // Revue 5.2 : l'anneau des bornes est posé sur la rangée, hors de son atténuation de placement.
     for (const boundary of ["composition-boundary-countdown", "composition-boundary-final-phase"]) {
-      expect(within(screen.getByTestId(boundary)).getByTestId("composition-sequence-marker-ring", hidden)).toBeTruthy();
+      expect(screen.getByTestId(`${boundary}-rail-ring`, hidden)).toBeTruthy();
     }
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-sequence-marker-circuit", hidden).props.style),
-    ).toMatchObject({ borderWidth: 2, borderColor: colors.disabled, backgroundColor: colors.background });
+    ).toMatchObject({ width: 13, height: 13, borderWidth: 1.5, borderColor: TEXT_TERTIARY, backgroundColor: colors.background });
     expect(screen.queryByTestId("composition-row-icon-composition-initial-countdown")).toBeNull();
     expect(screen.queryByTestId("composition-row-icon-composition-end-session")).toBeNull();
   });
@@ -792,6 +795,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
 
   // PRE-6 (story 5.1, D-435, `9798:44464`) : fond blanc, bord 1 #E4E7EF hors Circuit, rayon 12 ;
   // marges 8 à gauche (jusqu'au média) et 8 du bord extérieur à droite (bord des valeurs).
+  // PRE-6 story 5.2 (Standard `8328:28605`) : le média est à 8 du bord EXTÉRIEUR (1 de bord + 7),
+  // sur l'axe du rail.
   it("PRE6-5.1 — outside the Circuit, the v2 card is white with a 1 pt #E4E7EF border and radius 12; media then text 12 apart", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
@@ -801,7 +806,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(exerciseCardStyle.borderRadius).toBe(12);
     expect(exerciseCardStyle.backgroundColor).toBe(colors.background);
     const contentStyle = StyleSheet.flatten(screen.getByTestId("composition-activity-main-card").props.style);
-    expect(contentStyle).toMatchObject({ flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 8 });
+    expect(contentStyle).toMatchObject({ flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 7 });
     // Bord des valeurs à 8 du bord EXTÉRIEUR : 1 de bord + 7.
     expect(contentStyle.paddingRight).toBe(7);
   });
@@ -1087,31 +1092,33 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary, then the Circuit duration Regular 12 tertiary; the counter on the right", () => {
     renderScreen();
 
-    // La seule surface visuelle est la structure extérieure (fond bleu, rayon 10). PRE-6 (story 2.3b,
+    // La seule surface visuelle est la structure extérieure (PRE-6 story 5.2, D-435, choix D5 :
+    // aplat `#F3F4F9` sans contour, rayon 18 ; `tourSurface` inchangé). PRE-6 (story 2.3b,
     // amendement du 21/10/2026) : non mesurée, elle porte un fond statique ; mesurée, le fond est
     // porté par les trois couches de `CircuitSurface` (haut et bas arrondis, bande centrale), qui
     // suivent les bords pendant le glisser.
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
-    expect(tourSectionStyle.backgroundColor).toBe(colors.tourSurface);
-    expect(tourSectionStyle.borderRadius).toBe(10);
+    expect(tourSectionStyle.backgroundColor).toBe("#F3F4F9");
+    expect(tourSectionStyle.borderRadius).toBe(18);
+    expect(tourSectionStyle.borderWidth).toBeUndefined();
     expect(screen.queryByTestId("composition-tour-section-surface", { includeHiddenElements: true })).toBeNull();
 
     fireLayout(tourSection, 230, 170);
     const measuredStyle = StyleSheet.flatten(screen.getByTestId("composition-tour-section").props.style);
     expect(measuredStyle.backgroundColor).toBeUndefined();
-    expect(measuredStyle.borderRadius).toBe(10);
+    expect(measuredStyle.borderRadius).toBe(18);
     const surface = (part: string) =>
       StyleSheet.flatten(
         within(tourSection).getByTestId(`composition-tour-section-surface-${part}`, { includeHiddenElements: true }).props
           .style,
       );
     for (const part of ["top", "band", "bottom"]) {
-      expect(surface(part).backgroundColor).toBe(colors.tourSurface);
+      expect(surface(part).backgroundColor).toBe("#F3F4F9");
     }
-    expect(surface("top")).toMatchObject({ top: 0, borderTopLeftRadius: 10, borderTopRightRadius: 10 });
-    expect(surface("bottom")).toMatchObject({ bottom: 0, borderBottomLeftRadius: 10, borderBottomRightRadius: 10 });
-    expect(surface("band")).toMatchObject({ top: 10, bottom: 10 });
+    expect(surface("top")).toMatchObject({ top: 0, borderTopLeftRadius: 18, borderTopRightRadius: 18 });
+    expect(surface("bottom")).toMatchObject({ bottom: 0, borderBottomLeftRadius: 18, borderBottomRightRadius: 18 });
+    expect(surface("band")).toMatchObject({ top: 18, bottom: 18 });
 
     const header = within(tourSection).getByTestId("composition-circuit-header");
     const headerStyle = StyleSheet.flatten(header.props.style);
@@ -1125,10 +1132,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const duration = within(header).getByTestId("composition-circuit-header-duration");
     expect(duration.props.children).toBe("— min");
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 12, fontWeight: "400", color: TEXT_TERTIARY });
-    // La durée se tronque (une ligne) ; le bloc texte cède la place, jamais le compteur.
+    // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau) ;
+    // la durée, calée à droite, se tronque (une ligne) ; ni le titre ni le compteur ne cèdent.
+    // Revue 5.2 : hauteur MINIMALE de 40 (Dynamic Type).
+    expect(headerStyle).toMatchObject({ minHeight: 40, alignItems: "center", paddingLeft: 45 });
     expect(duration.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flex: 1, minWidth: 0, textAlign: "right" });
+    // Revue 5.2 : le titre cède après la durée (ellipse) ; le compteur jamais.
     expect(StyleSheet.flatten(within(header).getByTestId("composition-circuit-header-text-block").props.style)).toMatchObject({
-      flex: 1,
+      flexShrink: 1,
       minWidth: 0,
     });
     const counter = within(header).getByTestId("composition-circuit-header-counter-rest");
@@ -1234,15 +1246,16 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
   // PRE-6 story 2.1 (Figma `8328:28636`) : borne = repère, libellé, pastille de valeur à droite
   // (remplace l'anatomie CMP-03/CMP-05 poignée / libellé + valeur / icône de rôle).
+  // PRE-6 story 5.2 (`9819:19907`, `9819:20050`) : Compte à rebours 27 (contenu 24 + 3), Fin 24.
   it("PRE6-2.1 — Boundary steps (Compte à rebours, Fin de séance): ring marker, label, then the value pill on the right; no handle, no role icon, no chevron", () => {
     renderScreen();
 
-    for (const [testID, label, value] of [
-      ["composition-boundary-countdown", composition.countdown.label, "00 min 10 s"],
-      ["composition-boundary-final-phase", composition.finalPhase.label, "00 min 05 s"],
+    for (const [testID, label, value, height] of [
+      ["composition-boundary-countdown", composition.countdown.label, "00 min 10 s", 27],
+      ["composition-boundary-final-phase", composition.finalPhase.label, "00 min 05 s", 24],
     ] as const) {
       const row = screen.getByTestId(testID);
-      expect(StyleSheet.flatten(row.props.style)).toMatchObject({ height: 24, flexDirection: "row" });
+      expect(StyleSheet.flatten(row.props.style)).toMatchObject({ height, flexDirection: "row" });
       expect(within(row).getByText(label)).toBeTruthy();
       // Toute la rangée (libellé + pastille) est le déclencheur de la roulette (acquis conservé).
       expect(screen.getByLabelText(label)).toBe(row);
@@ -1275,9 +1288,14 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       paddingHorizontal: 10,
       paddingVertical: 4,
     });
-    // Cible tactile : la rangée entière, 24 de haut portée à 44 par `hitSlop`.
+    // Cible tactile : la rangée entière portée à 44 par `hitSlop` (story 5.2 : Compte à rebours de
+    // 27, Fin de 24), sans dépasser l'écart de 8 du côté de la carte voisine.
     const row = screen.getByLabelText(composition.countdown.label);
-    expect(24 + row.props.hitSlop.top + row.props.hitSlop.bottom).toBe(44);
+    expect(27 + row.props.hitSlop.top + row.props.hitSlop.bottom).toBe(44);
+    expect(row.props.hitSlop.bottom).toBeLessThanOrEqual(8);
+    const end = screen.getByLabelText(composition.finalPhase.label);
+    expect(24 + end.props.hitSlop.top + end.props.hitSlop.bottom).toBe(44);
+    expect(end.props.hitSlop.top).toBeLessThanOrEqual(8);
     expect(StyleSheet.flatten(within(pill).getByText("00 min 10 s").props.style)).toMatchObject({
       ...type.editableValue,
       color: colors.primary,
@@ -1313,8 +1331,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // géométrie canonique, explicitement distincte de celle des cartes
     // limites (`limitCardBase`, rayon `12`, bordure grise `colors.border`).
     // PRE-6 story 2.1 : les bornes ne sont plus des cartes ; le rayon 12 des cartes reste
-    // celui de la carte d'Exercice.
-    expect(tourSectionStyle.borderRadius).toBe(10);
+    // celui de la carte d'Exercice. PRE-6 story 5.2 (D-435, `9819:19906`) : rayon 18.
+    expect(tourSectionStyle.borderRadius).toBe(18);
     expect(tourSectionStyle.borderRadius).not.toBe(12);
     expect(tourSectionStyle.borderWidth).toBeUndefined();
   });
@@ -1393,8 +1411,14 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
 
     const container = screen.getByTestId("composition-tour-section");
     const flattened = StyleSheet.flatten(container.props.style);
-    expect(flattened.marginHorizontal).toBe(-10);
-    expect(flattened.paddingHorizontal).toBe(10);
+    // PRE-6 story 5.2 (D-435, `9819:19906`) : Circuit de 386 à x 8 — 16 de chaque côté de la
+    // colonne, 8 au-delà des cartes (370 à x 16), dont le contenu revient à la colonne.
+    expect(flattened.marginHorizontal).toBe(-16);
+    expect(flattened.paddingHorizontal).toBe(16);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle)).toMatchObject({
+      paddingLeft: 24,
+      paddingRight: 24,
+    });
   });
 });
 
@@ -1821,12 +1845,14 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
     { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30) },
   ];
 
-  it("reduces the gap between two consecutive Activity cards to 6pt, carried by their own dedicated container", () => {
+  // PRE-6 story 5.2 (D-435, Standard `8328:28605`) : écart 8 hors Circuit (6 auparavant), cartes de
+  // 370 à x 16 — la liste déborde de 8 de chaque côté de la colonne.
+  it("PRE6-5.2 — the gap between two consecutive Activity cards is 8 outside the Circuit, carried by their own dedicated container (cards 370 at x 16)", () => {
     renderScreenWithDraft(twoActivities);
 
     const list = screen.getByTestId("composition-zone-before-tour");
-    expect(StyleSheet.flatten(list.props.style).gap).toBe(spacing[6]);
-    expect(StyleSheet.flatten(list.props.style).gap).toBeLessThan(spacing[8]);
+    expect(StyleSheet.flatten(list.props.style).gap).toBe(spacing[8]);
+    expect(StyleSheet.flatten(list.props.style).marginHorizontal).toBe(-8);
     expect(within(list).getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
     expect(within(list).getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
   });
@@ -1848,7 +1874,8 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
       screen.getByTestId("composition-zone-before-tour").props.style,
     );
     expect(content.gap).toBe(cards.gap);
-    expect(content.gap).toBe(spacing[6]);
+    // PRE-6 story 5.2 (D-435) : 8.
+    expect(content.gap).toBe(spacing[8]);
     expect(content.gap).not.toBe(16);
   });
 
@@ -2061,10 +2088,10 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
     // Une seule occurrence dans tout l'écran : celle de l'Activité.
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(1);
 
-    // PRE-6 story 2.1 : les bornes sont des étapes de 24 (Figma `8328:28636`), inchangées.
-    for (const row of [countdown, finalPhase]) {
-      expect(StyleSheet.flatten(row.props.style).height).toBe(24);
-    }
+    // PRE-6 story 2.1 : les bornes sont des étapes (Figma `8328:28636`), inchangées par la ligne.
+    // PRE-6 story 5.2 (`9819:19907`, `9819:20050`) : Compte à rebours 27, Fin de séance 24.
+    expect(StyleSheet.flatten(countdown.props.style).height).toBe(27);
+    expect(StyleSheet.flatten(finalPhase.props.style).height).toBe(24);
   });
 });
 
@@ -2183,7 +2210,8 @@ describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () 
   /**
    * VISUAL_CORRECTION (revue indépendante 5753653735, point 6) : une carte
    * hors Tour garde un fond BLANC (y compris le gap révélé par le
-   * balayage) — seule une carte DANS le Tour montre le fond `tourSurface`.
+   * balayage) — seule une carte DANS le Tour montre le fond du Circuit (PRE-6 story 5.2 : l'aplat
+   * `#F3F4F9`, D5 ; `tourSurface` inchangé).
    */
   it("keeps a white background outside the Tour, and only colours it inside the Tour", () => {
     renderScreenWithDraft(threeZones);
@@ -2199,7 +2227,7 @@ describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () 
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-core").props.style)
         .backgroundColor,
-    ).toBe(colors.tourSurface);
+    ).toBe("#F3F4F9");
   });
 
   it("AC-05 — the fixed structural rows carry no gesture recognizer, and therefore no revealable action", () => {
@@ -2278,7 +2306,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     const rowBackground = (testID: string) =>
       StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor;
     expect(rowBackground("composition-activity-ex-1")).toBe(colors.background);
-    expect(rowBackground("composition-activity-core")).toBe(colors.tourSurface);
+    expect(rowBackground("composition-activity-core")).toBe("#F3F4F9");
 
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
     // La rangée soulevée, restée à sa place, ne masque plus la voisine qui remonte dans la place libérée.
@@ -2842,10 +2870,9 @@ describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
     // Égalité stricte : `Compte à rebours` → première carte, carte → carte,
     // dernière carte → `Fin de séance` partagent le même interstice.
     expect(bodyContentGap).toBe(cardsGap);
-    // Écart RÉDUIT — `spacing/6`, en deçà du `8` précédent entre cartes et
-    // très en deçà du `16` structurel.
-    expect(cardsGap).toBe(spacing[6]);
-    expect(cardsGap).toBeLessThan(spacing[8]);
+    // PRE-6 story 5.2 (D-435, `8328:28605`) : écart 8 (6 depuis T02-S02), très en deçà du `16`
+    // structurel.
+    expect(cardsGap).toBe(spacing[8]);
     expect(bodyContentGap).toBeLessThan(spacing[16]);
   });
 });
@@ -3006,12 +3033,13 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     ).toEqual(["composition-exercise-row-ex-1", "composition-activity-recovery-ex-1"]);
     expect(screen.getAllByTestId(/^composition-activity-ex-1$/u)).toHaveLength(1);
     expect(card.props.accessibilityRole).toBe("button");
-    // Écart 6 entre la carte et la rangée, même transformation que la carte.
+    // Écart entre la carte et la rangée : celui de la séquence (PRE-6 story 5.2, D-435 : 8 hors
+    // Circuit ; 6 auparavant), même transformation que la carte.
     expect(line).toBeTruthy();
     const lineWrapper = StyleSheet.flatten(
       within(container).getByTestId("composition-activity-recovery-slot-ex-1").props.style,
     );
-    expect(lineWrapper.marginTop).toBe(6);
+    expect(lineWrapper.marginTop).toBe(8);
     expect(lineWrapper.transform).toEqual(StyleSheet.flatten(card.props.style).transform);
   });
 
@@ -4234,7 +4262,9 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
   });
 
   // PRE-6 story 5.1 : la récupération est dans la carte ; la rangée sous la carte ne porte plus qu'un point.
-  it("PRE6-2.1 — la rangée du point suit la carte : même translateX au balayage, même translateY au déplacement ; le repère ne suit que le déplacement", () => {
+  // PRE-6 story 5.2 (D-435) : plus de repère par occurrence ; le rail de l'occurrence ne suit pas le
+  // balayage (le rail ne glisse pas), et la carte soulevée sort du rail.
+  it("PRE6-2.1 / 5.2 — la rangée du point suit la carte : même translateX au balayage, même translateY au déplacement ; le rail ne suit ni l'un ni l'autre", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })], {
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
@@ -4247,7 +4277,9 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     fireSwipeLeft("ex-1");
     expect(cardTransform()[0]!.translateX).toBeLessThan(0);
     expect(lineTransform()).toEqual(cardTransform());
-    expect(transformOf("composition-sequence-marker-ex-1")).toEqual([{ translateY: 0 }]);
+    expect(screen.queryByTestId("composition-sequence-marker-ex-1", hidden)).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-rail-tail-ex-1", hidden).props.style).transform).toBeUndefined();
+    expect(transformOf("composition-rail-link-ex-1").some((entry) => entry.translateX !== undefined)).toBe(false);
     fireSwipeRight("ex-1");
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
@@ -4257,20 +4289,28 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
 
     expect(cardTransform()[1]!.translateY).toBe(50);
     expect(lineTransform()).toEqual(cardTransform());
-    expect(transformOf("composition-sequence-marker-ex-1")).toEqual([{ translateY: 50 }]);
+    expect(screen.queryByTestId("composition-rail-link-ex-1", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-rail-tail-ex-1", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-rail-dot-ex-1", hidden)).toBeNull();
   });
 
-  it("PRE6-2.1 — le repère d'une occurrence est rendu avant les actions glissées et la carte", () => {
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })]);
+  // PRE-6 story 5.2 (D-435) : le rail passe sur les marges de la carte (jusqu'aux bords du média) :
+  // il est peint après la carte, et avant la rangée sous la carte (les puces passent dessus).
+  it("PRE6-5.2 — le rail d'une occurrence est peint après les actions glissées et la carte, avant la rangée du point", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })], {
+      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+    });
     fireSwipeLeft("ex-1");
     const children = (screen.getByTestId("composition-activity-ex-1").children as { props: { testID?: string } }[]).map(
       (child) => child.props.testID,
     );
-    expect(children.indexOf("composition-sequence-marker-ex-1")).toBe(0);
-    expect(children.indexOf("composition-activity-actions-ex-1")).toBeGreaterThan(0);
-    expect(children.indexOf("composition-exercise-row-ex-1")).toBeGreaterThan(
-      children.indexOf("composition-activity-actions-ex-1"),
-    );
+    const at = (testID: string) => children.indexOf(testID);
+    expect(at("composition-activity-actions-ex-1")).toBeGreaterThanOrEqual(0);
+    expect(at("composition-exercise-row-ex-1")).toBeGreaterThan(at("composition-activity-actions-ex-1"));
+    for (const rail of ["composition-rail-link-ex-1", "composition-rail-tail-ex-1", "composition-rail-dot-ex-1"]) {
+      expect(at(rail)).toBeGreaterThan(at("composition-exercise-row-ex-1"));
+      expect(at(rail)).toBeLessThan(at("composition-activity-recovery-slot-ex-1"));
+    }
   });
 
   it("PRE6-2.1 — toute la rangée d'une borne ouvre la roulette, y compris un toucher sur le libellé", () => {
@@ -4300,20 +4340,27 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityLabel).toMatch(/, récupération 20 s$/u);
   });
 
-  it("PRE6-2.1 — repère point pour une occurrence hors Circuit, aucun pour une occurrence du Circuit", () => {
+  // PRE-6 story 5.2 (D-435, `8328:28605`) : plus de repère par occurrence — le média sert d'ancrage.
+  // Hors Circuit comme dans le Circuit, le rail (1,5, `#7A7A80`) arrive au haut du média (8) et
+  // repart de son bas (72), centré sur lui (x 40 dans la carte : x 56 à 402).
+  it("PRE6-5.2 — rail ancré sur le média, hors Circuit et dans le Circuit ; plus aucun repère par occurrence", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("out"), name: "Échauffement", structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(60) },
       { ...createExerciseDraft("in"), name: "Gainage", structuralPosition: "IN_TOUR", executionParameters: durationParameters(60) },
     ]);
     const hidden = { includeHiddenElements: true };
-    expect(StyleSheet.flatten(screen.getByTestId("composition-sequence-marker-out", hidden).props.style)).toMatchObject({
-      width: 14,
-      height: 14,
-      borderWidth: 3,
-      borderColor: colors.background,
-      backgroundColor: colors.disabled,
-    });
-    expect(screen.queryByTestId("composition-sequence-marker-in", hidden)).toBeNull();
+    for (const id of ["out", "in"]) {
+      expect(screen.queryByTestId(`composition-sequence-marker-${id}`, hidden)).toBeNull();
+      const link = StyleSheet.flatten(screen.getByTestId(`composition-rail-link-${id}`, hidden).props.style);
+      const tail = StyleSheet.flatten(screen.getByTestId(`composition-rail-tail-${id}`, hidden).props.style);
+      expect(link).toMatchObject({ position: "absolute", width: 1.5, left: 40 - 0.75, backgroundColor: TEXT_TERTIARY });
+      expect((link.top as number) + (link.height as number)).toBe(8);
+      expect(tail).toMatchObject({ width: 1.5, left: 40 - 0.75, top: 72, bottom: 0, backgroundColor: TEXT_TERTIARY });
+      expect(link.pointerEvents ?? screen.getByTestId(`composition-rail-link-${id}`, hidden).props.pointerEvents).toBe("none");
+    }
+    // Média à 8 du bord extérieur, avec ou sans bord : le rail passe par son centre.
+    expect(StyleSheet.flatten(within(screen.getByTestId("composition-exercise-row-out")).getByTestId("composition-activity-main-card").props.style).paddingLeft).toBe(7);
+    expect(StyleSheet.flatten(within(screen.getByTestId("composition-exercise-row-in")).getByTestId("composition-activity-main-card").props.style).paddingLeft).toBe(8);
   });
 });
 
@@ -5708,7 +5755,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       mockAnchor.value = { x: 60, y: 400, width: 100, height: 13 };
     });
 
-    it("a stop point after A is a right-aligned chip « ❚❚ Point d’arrêt » on A's structural line (8328:29428)", () => {
+    it("a stop point after A is a centred chip « ❚❚ Point d’arrêt » on A's structural line (8328:29428 ; story 5.2 : 9819:20018)", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
         overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
       });
@@ -5729,8 +5776,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         fontWeight: "500",
         color: colors.textLabel,
       });
-      // Bord droit de la puce aligné sur celui des cartes ; plus de trait (PRE-6 story 5.1, D1).
-      expect(StyleSheet.flatten(line("A").props.style)).toMatchObject({ height: 30, justifyContent: "flex-end" });
+      // Plus de trait (PRE-6 story 5.1, D1). PRE-6 story 5.2 (D-435, `9819:20018`) : rangée de 22,
+      // puce centrée (ch13 L1258 « aligné à droite » remplacé par la demande de Hermann du 21/10).
+      expect(StyleSheet.flatten(line("A").props.style)).toMatchObject({ height: 22, justifyContent: "center" });
       expect(within(line("A")).queryByTestId("composition-recovery-line-icon")).toBeNull();
       // Récupération (ligne 3 de la carte, story 5.1) avant le point, sous la carte.
       expect(
@@ -6415,7 +6463,12 @@ describe("CompositionScreen — avertissement d'enchaînement sans pause (PRE-6 
  */
 describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-6 story 2.3b)", () => {
   type Draft = SessionDraftContextValue["draft"];
-  const PITCH = 70 + spacing[6];
+  // PRE-6 story 5.2 (D-435) : écart 8 entre les cartes hors Circuit, 9 entre l'en-tête du Circuit et ses cartes.
+  const PITCH = 70 + spacing[8];
+  const CIRCUIT_GAP = 9;
+  /** Pas d'une carte dans le Circuit (écart 9) et différence avec le pas du dehors (8). */
+  const CIRCUIT_PITCH = 70 + CIRCUIT_GAP;
+  const CIRCUIT_EXTRA = CIRCUIT_PITCH - PITCH;
   const probe: { draft: Draft | null; updateDraft: SessionDraftContextValue["updateDraft"] | null } = {
     draft: null,
     updateDraft: null,
@@ -6491,8 +6544,9 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   const rowShift = (id: string) => translateY(`composition-activity-${id}`);
   const order = () => probe.draft!.exercises.map((exercise) => `${exercise.id}:${exercise.structuralPosition}`);
   const INITIAL_ORDER = ["A:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"];
-  /** Bande centrale du fond du Circuit : hauteur relevée (170) moins les deux rayons (10). */
-  const BAND = 170 - 2 * dimensions.compositionTourSection.radius;
+  /** Bande centrale du fond du Circuit : hauteur relevée (170) moins les deux rayons (18, story 5.2). */
+  const CIRCUIT_RADIUS = 18;
+  const BAND = 170 - 2 * CIRCUIT_RADIUS;
 
   /**
    * Sous Jest, une animation sur le pilote natif ne remonte jamais ses valeurs dans les props
@@ -6571,16 +6625,18 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     // 105 + 200 = 305 : dans le Circuit (230–400), au-dessus du milieu de X (325).
     moveTo("A", 200);
     settle();
+    // Story 5.2 (D-435) : A sort avec l'écart du dehors (8) et entre avec celui du Circuit (9) —
+    // la suite descend du net (1).
     expect(rowShift("B")).toBe(-PITCH);
-    expect(rowShift("X")).toBe(0);
-    expect(rowShift("Z")).toBe(0);
+    expect(rowShift("X")).toBe(CIRCUIT_EXTRA);
+    expect(rowShift("Z")).toBe(CIRCUIT_EXTRA);
     expect(translateY("composition-circuit-header")).toBe(-PITCH);
     expect(translateY("composition-sequence-marker-circuit-track")).toBe(-PITCH);
     expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
-    expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
-    // Bande centrale : étirée de PITCH, centrée entre les deux bords.
-    expect(translateY("composition-tour-section-surface-band")).toBe(-PITCH / 2);
-    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + PITCH / BAND, 6);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(CIRCUIT_EXTRA);
+    // Bande centrale : étirée de l'écart entre les deux bords, centrée entre eux.
+    expect(translateY("composition-tour-section-surface-band")).toBe((-PITCH + CIRCUIT_EXTRA) / 2);
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + CIRCUIT_PITCH / BAND, 6);
     expect(order()).toEqual(INITIAL_ORDER);
   });
 
@@ -6591,11 +6647,12 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     // Centre de Z = 475 ; -100 → 375 : dans le Circuit, sous le milieu de X.
     moveTo("Z", -100);
     settle();
+    // Story 5.2 : pas d'insertion dans le Circuit = carte + écart 9.
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
-    expect(translateY("composition-tour-section-surface-bottom")).toBe(PITCH);
-    expect(translateY("composition-after-circuit-line-track")).toBe(PITCH);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(CIRCUIT_PITCH);
+    expect(translateY("composition-after-circuit-line-track")).toBe(CIRCUIT_PITCH);
     expect(translateY("composition-circuit-header")).toBe(0);
-    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + PITCH / BAND, 6);
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + CIRCUIT_PITCH / BAND, 6);
     expect(order()).toEqual(INITIAL_ORDER);
   });
 
@@ -6607,10 +6664,10 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     settle();
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
     // Circuit vidé : la carte et l'écart en-tête / liste (12) disparaissent.
-    expect(translateY("composition-tour-section-surface-bottom")).toBe(-(70 + spacing[12]));
-    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 - (70 + spacing[12]) / BAND, 6);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(-(70 + CIRCUIT_GAP));
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 - (70 + CIRCUIT_GAP) / BAND, 6);
     // X va sous Z : Z remonte de toute la hauteur libérée dans le Circuit.
-    expect(rowShift("Z")).toBe(-(70 + spacing[12]));
+    expect(rowShift("Z")).toBe(-(70 + CIRCUIT_GAP));
   });
 
   it("dépôt appliqué : nouvelle disposition, décalages remis à 0 sans animation", () => {
@@ -6720,7 +6777,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(translateY("composition-exercise-row-A")).toBe(100);
     moveTo("A", 130);
     expect(translateY("composition-exercise-row-A")).toBe(130);
-    expect(translateY("composition-sequence-marker-A")).toBe(130);
+    // Story 5.2 (D-435) : plus de repère par occurrence ; la carte glissée sort du rail.
+    expect(screen.queryByTestId("composition-rail-link-A", { includeHiddenElements: true })).toBeNull();
     expect(rowShift("A")).toBe(0);
   });
 
@@ -6747,7 +6805,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(rowShift("A")).toBe(-PITCH);
   });
 
-  it("Fin de séance : décalée du net des pas — hors Circuit vers un Circuit vide (écart 12 au lieu de 6)", () => {
+  it("Fin de séance : décalée du net des pas — hors Circuit vers un Circuit vide (écart 9 au lieu de 8)", () => {
     renderLaidOut(undefined, { withX: false });
     // Circuit vide : 230–284 ; Z après lui.
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 54);
@@ -6756,7 +6814,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     // Centre de B = 185 ; +70 → 255, dans le Circuit.
     moveTo("B", 70);
     settle();
-    const net = 70 + spacing[12] - PITCH;
+    const net = 70 + CIRCUIT_GAP - PITCH;
     expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
     expect(translateY("composition-tour-section-surface-bottom")).toBe(net);
     expect(rowShift("Z")).toBe(net);
@@ -6790,7 +6848,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     lift("A");
     moveTo("A", 200);
     settle();
-    const growth = 0;
+    // Carte de 80 dans les deux zones : seul l'écart change (9 dans le Circuit, 8 au dehors).
+    const growth = CIRCUIT_EXTRA;
     expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
     expect(rowShift("X")).toBe(growth);
     expect(translateY("composition-tour-section-surface-bottom")).toBe(growth);
@@ -6846,5 +6905,287 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     fireEvent(container("A"), "responderTerminate", {});
     expect(rowShift("B")).toBe(0);
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
+  });
+
+  /**
+   * PRE-6 story 5.2 (D-435) : le rail segmenté suit les décalages du glisser sans recalcul de mise en
+   * page — chaque lien, porté par l'élément qu'il relie, s'étire de la différence entre la
+   * translation de son élément et celle de son prédécesseur (`scaleY`, bas fixe) ; la carte glissée
+   * sort de la chaîne. Au dépôt, tout revient à l'échelle 1.
+   */
+  describe("rail segmenté pendant le glisser (PRE-6 story 5.2)", () => {
+    const hidden = { includeHiddenElements: true };
+    const linkHeight = (testID: string) =>
+      StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style).height as number;
+    /** Hauteur visible d'un lien : sa hauteur au repos multipliée par son échelle. */
+    const visible = (testID: string) => linkHeight(testID) * scaleY(testID);
+
+    it("vers le bas : le lien de B traverse la place libérée par A et se rétracte avec B ; retour à 1 au dépôt", () => {
+      renderLaidOut();
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
+      lift("A");
+      // A sort de la chaîne : B se relie au Compte à rebours, à travers la place de A (8 + 70).
+      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
+      expect(screen.queryByTestId("composition-rail-tail-A", hidden)).toBeNull();
+      const restLength = 8 + 70 + 8 + 8;
+      expect(linkHeight("composition-rail-link-B")).toBe(restLength);
+      moveTo("A", 100);
+      settle();
+      // B remonte d'un pas, le Compte à rebours ne bouge pas : le lien perd un pas, bas fixe.
+      expect(rowShift("B")).toBe(-PITCH);
+      expect(visible("composition-rail-link-B")).toBeCloseTo(restLength - PITCH, 6);
+      expect(translateY("composition-rail-link-B")).toBeCloseTo(PITCH / 2, 6);
+      // L'emplacement visé s'ouvre entre B (remonté) et le Circuit (immobile) : le lien de l'en-tête
+      // le traverse, allongé d'un pas.
+      expect(visible("composition-rail-link-circuit-header")).toBeCloseTo(37 + PITCH, 6);
+      release("A", 100);
+      expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
+      expect(scaleY("composition-rail-link-B")).toBe(1);
+      expect(translateY("composition-rail-link-B")).toBe(0);
+      expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
+    });
+
+    it("entrée dans le Circuit par le bas : le bas du Circuit s'étire à travers l'emplacement ouvert ; la Fin se relie à la rangée après le Circuit", () => {
+      renderLaidOut({ stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }] });
+      fireLayout(screen.getByTestId("composition-zone-after-tour"), 440, 70);
+      lift("Z");
+      moveTo("Z", -100);
+      settle();
+      // Bas du Circuit : de X (immobile) au bord bas, qui descend d'un pas du Circuit.
+      expect(linkHeight("composition-rail-link-circuit-end")).toBe(14);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
+      // La rangée après le Circuit suit le bas du Circuit : son lien ne change pas.
+      expect(scaleY("composition-rail-link-after-circuit")).toBe(1);
+      // Fin : à travers la place de Z (8 + 70) ; elle descend du net, la rangée d'un pas du Circuit.
+      const endLength = 8 + 70 + 8 + 7;
+      expect(linkHeight("composition-rail-link-end")).toBe(endLength);
+      expect(visible("composition-rail-link-end")).toBeCloseTo(endLength + CIRCUIT_EXTRA - CIRCUIT_PITCH, 6);
+      fireEvent(container("Z"), "responderTerminate", {});
+      settle();
+      expect(scaleY("composition-rail-link-circuit-end")).toBe(1);
+      expect(scaleY("composition-rail-link-end")).toBe(1);
+    });
+
+    // Revue 5.2 : pendant le retour en douceur (geste interrompu, dépôt refusé, « Annuler » d'une
+    // perte), l'occurrence reste hors du rail ; elle y revient une fois le retour terminé.
+    it("retour en douceur : l'occurrence reste hors du rail pendant le retour, puis y revient", () => {
+      renderLaidOut();
+      lift("A");
+      moveTo("A", 100);
+      settle();
+      fireEvent(container("A"), "responderTerminate", {});
+      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + 70 + 8 + 8);
+      act(() => {
+        jest.advanceTimersByTime(16 * 3);
+      });
+      // À mi-retour : toujours hors du rail, B encore décalé.
+      expect(rowShift("B")).toBeLessThan(0);
+      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
+      settle();
+      expect(rowShift("B")).toBe(0);
+      expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
+      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
+      expect(scaleY("composition-rail-link-B")).toBe(1);
+    });
+
+    it("dépôt appliqué : l'occurrence reprend sa place dans le rail immédiatement", () => {
+      renderLaidOut();
+      lift("A");
+      moveTo("A", 100);
+      settle();
+      release("A", 100);
+      expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
+    });
+  });
+});
+
+/**
+ * PRE-6 story 5.2 (D-435, CE-T03-08 ch13 L1478-L1480, Figma Standard `8328:28605`) : rail segmenté,
+ * Circuit, bornes et points d'arrêt — matrice de la spec (rendu au repos).
+ */
+describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arrêt (PRE-6 story 5.2)", () => {
+  const hidden = { includeHiddenElements: true };
+  const styleOf = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style);
+  /** Haut et bas d'un lien au repos, dans le repère de son élément. */
+  const span = (testID: string) => {
+    const style = styleOf(testID);
+    return { top: style.top as number | undefined, height: style.height as number, bottom: style.bottom as number | undefined };
+  };
+
+  it("séquence vide : Compte à rebours → anneau du Circuit vide → bas du Circuit → Fin, sans aucun repère d'occurrence", () => {
+    renderScreen();
+    // Compte à rebours : queue du bas de l'anneau (12 + 5) au bas de la rangée de 27.
+    expect(styleOf("composition-boundary-countdown-rail-tail")).toMatchObject({ top: 17, height: 10, width: 1.5, left: 32 - 0.75 });
+    // En-tête : lien jusqu'au haut de l'anneau (14 + 15 dans le Circuit), 8 + 14 + 15 de long ;
+    // queue du bas de l'anneau au bas de l'en-tête (15) ; axe à 48 dans le Circuit (x 56 à 402).
+    expect(span("composition-rail-link-circuit-header")).toMatchObject({ top: 14 + 15 - 37, height: 37 });
+    expect(styleOf("composition-rail-link-circuit-header").left).toBe(48 - 0.75);
+    expect(styleOf("composition-rail-tail-circuit-header")).toMatchObject({ top: 14 + 25, height: 15 });
+    expect(styleOf("composition-sequence-marker-circuit")).toMatchObject({ left: 48 - 6.5, top: 14 + 20 - 6.5 });
+    // Bas du Circuit : 14 depuis le bas de l'en-tête, ancré au bord bas.
+    expect(span("composition-rail-link-circuit-end")).toMatchObject({ bottom: 0, height: 14 });
+    // Fin : 8 + 7, jusqu'au haut de son anneau.
+    expect(span("composition-rail-link-end")).toMatchObject({ top: 7 - 15, height: 15 });
+    expect(screen.queryByTestId(/^composition-rail-link-(?!circuit|end|after)/u, hidden)).toBeNull();
+  });
+
+  it("une carte avant, dans et après le Circuit : chaque lien rejoint le bord bas de l'élément précédent", () => {
+    renderScreenWithDraft([
+      anActivity("b", "BEFORE_TOUR", { name: "Gainage" }),
+      anActivity("i", "IN_TOUR", { name: "Pompes" }),
+      anActivity("a", "AFTER_TOUR", { name: "Fentes" }),
+    ]);
+    // Écart 8 + haut du média 8 ; dans le Circuit : écart 9 + 8.
+    expect(span("composition-rail-link-b").height).toBe(16);
+    expect(span("composition-rail-link-i").height).toBe(17);
+    expect(span("composition-rail-link-a").height).toBe(16);
+    expect(span("composition-rail-link-circuit-header").height).toBe(37);
+    expect(span("composition-rail-link-circuit-end").height).toBe(14);
+    expect(span("composition-rail-link-end").height).toBe(15);
+    // La queue de chaque carte part du bas du média et descend jusqu'au bas du bloc.
+    for (const id of ["b", "i", "a"]) {
+      expect(styleOf(`composition-rail-tail-${id}`)).toMatchObject({ top: 72, bottom: 0 });
+    }
+    // Circuit : écart 9 entre l'en-tête et les cartes, cartes du Circuit sur l'aplat du Circuit.
+    expect(styleOf("composition-zone-in-tour")).toMatchObject({ gap: 9, marginHorizontal: -8 });
+    expect(styleOf("composition-tour-section")).toMatchObject({ paddingVertical: 14, gap: 9 });
+  });
+
+  it("point d'arrêt après A : rangée de 22 centrée à 8 sous la carte, point de raccord sur le rail", () => {
+    renderScreenWithDraft([anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })], {
+      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+    });
+    expect(styleOf("composition-activity-recovery-slot-A").marginTop).toBe(8);
+    expect(styleOf("composition-activity-recovery-A")).toMatchObject({ height: 22, justifyContent: "center" });
+    // Point de 6 au centre de la rangée : 80 + 8 + 11, sur l'axe du média (40).
+    expect(styleOf("composition-rail-dot-A")).toMatchObject({
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      top: 80 + 8 + 11 - 3,
+      left: 40 - 3,
+      backgroundColor: TEXT_TERTIARY,
+    });
+    // La queue de A traverse la rangée (jusqu'au bas du bloc) ; B n'a pas de point.
+    expect(styleOf("composition-rail-tail-A")).toMatchObject({ top: 72, bottom: 0 });
+    expect(screen.queryByTestId("composition-rail-dot-B", hidden)).toBeNull();
+    // Cible tactile de la puce limitée à l'écart (4 ≤ 8) : elle ne chevauche aucune carte.
+    const chip = screen.getByTestId("composition-activity-recovery-A-stop-point");
+    expect(chip.props.hitSlop.top).toBeLessThanOrEqual(8);
+    expect(chip.props.hitSlop.bottom).toBeLessThanOrEqual(8);
+  });
+
+  it("point après le Circuit : rangée centrée sous le Circuit, reliée au bas du Circuit, la suite reliée à elle", () => {
+    renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" }), anActivity("a", "AFTER_TOUR", { name: "Fentes" })], {
+      stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }],
+    });
+    const track = screen.getByTestId("composition-after-circuit-line-track");
+    expect(within(track).getByTestId("composition-after-circuit-line")).toBeTruthy();
+    expect(styleOf("composition-after-circuit-line")).toMatchObject({ height: 22, justifyContent: "center" });
+    expect(span("composition-rail-link-after-circuit")).toMatchObject({ top: -8, height: 8 });
+    expect(styleOf("composition-rail-tail-after-circuit")).toMatchObject({ top: 0, bottom: 0, left: 32 - 0.75 });
+    expect(styleOf("composition-rail-dot-after-circuit")).toMatchObject({ top: 11 - 3, left: 32 - 3 });
+    expect(span("composition-rail-link-a").height).toBe(16);
+  });
+
+  it("largeurs : cartes à 8 et Circuit à 16 de part et d'autre de la colonne (marges constantes, aucune largeur codée)", () => {
+    renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" }), anActivity("i", "IN_TOUR", { name: "Pompes" })]);
+    expect(styleOf("composition-zone-before-tour").marginHorizontal).toBe(-8);
+    expect(styleOf("composition-zone-before-tour").width).toBeUndefined();
+    expect(styleOf("composition-tour-section")).toMatchObject({ marginHorizontal: -16, paddingHorizontal: 16 });
+    expect(styleOf("composition-tour-section").width).toBeUndefined();
+    for (const id of ["b", "i"]) {
+      expect(styleOf(`composition-exercise-row-${id}`).width).toBeUndefined();
+      expect(styleOf(`composition-activity-${id}`).width).toBeUndefined();
+    }
+  });
+
+  it("bornes : anneau (cercle de 10, contour extérieur 1,5 `#7A7A80`, fond blanc) sur l'axe, libellé Medium 14 `#46464C` à 45 de la colonne", () => {
+    renderScreen();
+    for (const boundary of ["composition-boundary-countdown", "composition-boundary-final-phase"]) {
+      expect(styleOf(`${boundary}-rail-ring`)).toMatchObject({
+        width: 13,
+        height: 13,
+        borderRadius: 6.5,
+        borderWidth: 1.5,
+        borderColor: TEXT_TERTIARY,
+        backgroundColor: colors.background,
+        left: 32 - 6.5,
+        top: 12 - 6.5,
+      });
+      // Colonne de l'anneau (32 + 5) puis écart 8 : libellé à 45 de la colonne (x 69 à 402).
+      expect(styleOf(`${boundary}-ring-column`).width).toBe(37);
+      expect(styleOf(boundary).gap).toBe(8);
+    }
+    const label = within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label);
+    expect(StyleSheet.flatten(label.props.style)).toMatchObject({
+      fontFamily: type.label.fontFamily,
+      fontSize: 14,
+      fontWeight: "500",
+      color: "#46464C",
+    });
+  });
+
+  it("placement : le rail des bornes est hors de l'atténuation (opacité uniforme du rail)", () => {
+    renderScreen();
+    for (const boundary of ["composition-boundary-countdown", "composition-boundary-final-phase"]) {
+      const attenuation = screen.getByTestId(`${boundary}-placement`);
+      expect(within(attenuation).queryByTestId(`${boundary}-rail-ring`, hidden)).toBeNull();
+      expect(within(attenuation).queryByTestId(`${boundary}-rail-tail`, hidden)).toBeNull();
+    }
+    expect(within(screen.getByTestId("composition-boundary-final-phase-placement")).queryByTestId("composition-rail-link-end", hidden)).toBeNull();
+  });
+
+  // Revue 5.2 : zones tactiles disjointes entre l'en-tête du Circuit et sa première carte.
+  it("l'en-tête du Circuit et sa première carte : cibles tactiles disjointes", () => {
+    renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" })]);
+    const headerHeight = styleOf("composition-circuit-header").minHeight as number;
+    const eye = screen.getByTestId("composition-circuit-header-volumes");
+    const eyeBottom = headerHeight / 2 + (StyleSheet.flatten(eye.props.style).height as number) / 2 + (eye.props.hitSlop as number);
+    const digitBottom =
+      headerHeight / 2 + (styleOf("composition-circuit-header-counter-value-press").minHeight as number) / 2;
+    const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
+    expect(Math.max(eyeBottom, digitBottom)).toBeLessThanOrEqual(firstCardTop);
+  });
+
+  // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus de la Fin déborde de 4 dans l'écart ;
+  // la marge haute de la Fin vaut alors l'écart moins ce débord.
+  it.each([
+    ["point après la dernière carte", [anActivity("a", "AFTER_TOUR", { name: "Fentes" })], { id: "pa", scope: "AFTER_TOUR" as const, position: 1 }],
+    ["point après le Circuit, sans carte après", [anActivity("i", "IN_TOUR", { name: "Pompes" })], { id: "pc", scope: "AFTER_TOUR" as const, position: 0 }],
+  ])("Fin de séance précédée d'une rangée de point (%s) : marges tactiles disjointes", (_case, exercises, stopPoint) => {
+    renderScreenWithDraft(exercises, { stopPoints: [stopPoint] });
+    const chips = screen.getAllByTestId(/-stop-point$/u);
+    expect(chips).toHaveLength(1);
+    const chipBottomSlop = chips[0]!.props.hitSlop.bottom as number;
+    const fin = screen.getByLabelText(composition.finalPhase.label);
+    expect(fin.props.hitSlop.top).toBe(8 - chipBottomSlop);
+    expect(chipBottomSlop + fin.props.hitSlop.top).toBeLessThanOrEqual(8);
+    expect(24 + fin.props.hitSlop.top + fin.props.hitSlop.bottom).toBe(44);
+  });
+
+  it("Fin de séance précédée d'une carte sans point : marge haute de l'écart (8)", () => {
+    renderScreenWithDraft([anActivity("a", "AFTER_TOUR", { name: "Fentes" })]);
+    expect(screen.getByLabelText(composition.finalPhase.label).props.hitSlop.top).toBe(8);
+  });
+
+  it("aucun élément du rail n'est interactif ni exposé à l'accessibilité", () => {
+    renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" })], {
+      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+    });
+    for (const testID of [
+      "composition-rail-link-b",
+      "composition-rail-tail-b",
+      "composition-rail-dot-b",
+      "composition-rail-link-circuit-header",
+      "composition-sequence-marker-circuit",
+      "composition-rail-link-end",
+    ]) {
+      const node = screen.getByTestId(testID, hidden);
+      expect(node.props.pointerEvents).toBe("none");
+      expect(node.props.importantForAccessibility).toBe("no-hide-descendants");
+    }
   });
 });

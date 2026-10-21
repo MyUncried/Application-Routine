@@ -205,12 +205,14 @@ export function resolveDropTarget(
 
 /**
  * PRE-6 (story 2.3b) : écarts de la Composition, pour le pas d'un décalage — entre deux cartes
- * d'une même zone (`row`), entre une liste de zone et ses voisines dans le corps (`zone` : une
- * liste vide n'est pas rendue, son apparition ajoute la carte et cet écart), entre l'en-tête du
- * Circuit et sa liste (`circuit`).
+ * d'une même zone hors Circuit (`row`), entre deux cartes du Circuit (`circuitRow` ; PRE-6 story
+ * 5.2, D-435 : 9 dans le Circuit, 8 au dehors), entre une liste de zone et ses voisines dans le
+ * corps (`zone` : une liste vide n'est pas rendue, son apparition ajoute la carte et cet écart),
+ * entre l'en-tête du Circuit et sa liste (`circuit`).
  */
 export type DragShiftGaps = {
   readonly row: number;
+  readonly circuitRow: number;
   readonly zone: number;
   readonly circuit: number;
 };
@@ -277,8 +279,12 @@ export function resolveDragShifts(
       .filter((row) => row.zone === zone && row.id !== draggedActivityId)
       .slice()
       .sort((a, b) => a.top - b.top);
-  const gapIn = (zone: StructuralPosition) =>
-    othersIn(zone).length > 0 ? gaps.row : zone === "IN_TOUR" ? gaps.circuit : gaps.zone;
+  const gapIn = (zone: StructuralPosition) => {
+    if (zone === "IN_TOUR") {
+      return othersIn(zone).length > 0 ? gaps.circuitRow : gaps.circuit;
+    }
+    return othersIn(zone).length > 0 ? gaps.row : gaps.zone;
+  };
 
   const origin: DropTarget = {
     zone: dragged.zone,

@@ -31,8 +31,19 @@ export const OCCURRENCE_CARD_HEIGHT = 80;
 /** Gabarit média (Figma `9798:19906`) : 64 × 64, rayon 12, bord 1 `#7A7A80`, icône 24 centrée. */
 const MEDIA_SIZE = 64;
 const MEDIA_RADIUS = fixedRadii[12];
-/** Marge gauche de la carte jusqu'au média (Figma : 8, à l'intérieur du bord). */
+/** Marge gauche de la carte jusqu'au média (Figma Standard `8328:28605` : 8 du bord extérieur). */
 const CARD_PADDING_LEFT = spacing[8];
+
+/**
+ * PRE-6 story 5.2 : position du média dans la carte (depuis ses bords extérieurs), ancre du rail
+ * segmenté — centré horizontalement sur le média, il s'arrête à ses bords haut et bas. Le média
+ * est centré verticalement dans la carte de 80.
+ */
+export const OCCURRENCE_CARD_MEDIA = {
+  top: (OCCURRENCE_CARD_HEIGHT - MEDIA_SIZE) / 2,
+  centerX: CARD_PADDING_LEFT + MEDIA_SIZE / 2,
+  bottom: (OCCURRENCE_CARD_HEIGHT + MEDIA_SIZE) / 2,
+} as const;
 /**
  * Bord droit des valeurs, du symbole de côté et de la récupération : 8 du bord extérieur de la carte
  * (Figma : x 362 dans une carte de 370, avec ou sans bord ; ch13 « valeurs alignées sur x378 » à 402).
@@ -136,12 +147,11 @@ export type OccurrenceCardProps = {
   readonly estimatedDuration: string | null;
   /** `true` seulement si l'exercice a un changement de côté (bilatéral). */
   readonly hasSideChange: boolean;
-  /** Carte dans le Circuit : le média est à 8 du bord extérieur (8 à l'intérieur du bord hors Circuit). */
-  readonly inCircuit: boolean;
   /**
    * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé. Les marges compensent ce bord,
-   * pour que ni le média ni le contenu ne bougent quand il apparaît ; le bord des valeurs reste à 8
-   * du bord extérieur.
+   * pour que ni le média ni le contenu ne bougent quand il apparaît : média et bord des valeurs
+   * restent à 8 du bord extérieur (PRE-6 story 5.2 : la position du média ne dépend plus de la zone,
+   * l'ancienne propriété `inCircuit` est retirée).
    */
   readonly bordered: boolean;
   /** Récupération de la ligne 3 (`OccurrenceRecovery`), `null` si rien n'est affichable. */
@@ -175,7 +185,6 @@ export function OccurrenceCard({
   summary,
   estimatedDuration,
   hasSideChange,
-  inCircuit,
   bordered,
   recovery,
   sideChangeTestID,
@@ -186,9 +195,12 @@ export function OccurrenceCard({
       style={[
         styles.content,
         {
-          // Hors Circuit, le média est à 8 À L'INTÉRIEUR du bord (Figma x 9) ; dans le Circuit, à 8
-          // du bord extérieur, bord de l'état soulevé compris.
-          paddingLeft: inCircuit ? CARD_PADDING_LEFT - border : CARD_PADDING_LEFT,
+          // PRE-6 story 5.2 : le média est à 8 du bord EXTÉRIEUR, avec ou sans bord (Standard
+          // `8328:28605` : `pl 7` + bord 1 hors Circuit, `pl 8` dans le Circuit), pour que le rail
+          // passe par son centre (x 56 à 402). La story 5.1 le posait à 8 à l'intérieur du bord
+          // (composant `9798:44464`, x 9) : 1 point d'écart entre les deux sources, tranché ici
+          // pour l'écran (soumis à Hermann, J4).
+          paddingLeft: CARD_PADDING_LEFT - border,
           // Le bord droit des valeurs est mesuré depuis le bord EXTÉRIEUR.
           paddingRight: CARD_VALUE_INSET - border,
         },

@@ -8,7 +8,7 @@ import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
-import { EXECUTION_UNIT_HOLD_POLICY, InlineStepper } from "@/shared/ui/ProfileStepper";
+import { EXECUTION_UNIT_HOLD_POLICY, INLINE_STEPPER_STEP_HIT_SLOP, InlineStepper } from "@/shared/ui/ProfileStepper";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -26,9 +26,16 @@ const COUNTER_DIGIT_HIT_SLOP = { left: COUNTER_TOUCH_TARGET - COUNTER_DIGIT_MIN_
 /** Fond du stepper révélé (Figma `8328:28671`) : blanc, rayon 18 (pilule de 36). */
 const OPEN_COUNTER_RADIUS = 18;
 
+/**
+ * PRE-6 story 5.2 (D-435, Figma `9819:19948`) : en-tête de 40 — hauteur MINIMALE (revue : Dynamic
+ * Type), contenu centré verticalement ; le titre commence après la colonne de l'anneau du rail
+ * (`titleInset`, x 69 à 402).
+ */
+export const CIRCUIT_HEADER_HEIGHT = 40;
+
 /** Titre « Circuit » : Inter Semi Bold 16, texte primaire. */
 const TITLE_TEXT = type.cardTitle;
-/** Durée du Circuit : Inter Regular 12, texte tertiaire. */
+/** Durée du Circuit : Inter Regular 12, texte tertiaire, calée à droite sur la ligne du titre (story 5.2). */
 const DURATION_TEXT = type.supporting;
 /** Chiffre et pastille : Inter Semi Bold 13. */
 const COUNTER_TEXT = type.editableValue;
@@ -85,6 +92,11 @@ export type CircuitHeaderProps = {
    * conteneur Circuit pendant le glisser d'une carte. Translation seule : `onLayout` est inchangé.
    */
   readonly translateY?: Animated.Value;
+  /**
+   * PRE-6 story 5.2 : retrait du titre, depuis le bord gauche de l'en-tête, qui laisse la colonne
+   * de l'anneau du rail (dessiné par l'écran) ; 0 par défaut.
+   */
+  readonly titleInset?: number;
   readonly testID: string;
 };
 
@@ -100,16 +112,39 @@ const VOLUMES_ACTION_BACKGROUND = "#FCFCFE";
 const VOLUMES_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.08, offsetY: 2, radius: 10 } as const;
 /** Débord vertical de l'œil (32) sur la ligne du titre (interligne 19), réparti en haut et en bas. */
 const VOLUMES_ACTION_ROW_OVERFLOW = (VOLUMES_ACTION_SIZE - TITLE_TEXT.lineHeight) / 2;
+/** Marge tactile de l'œil, de chaque côté (cible 44). */
+const VOLUMES_ACTION_HIT_SLOP = (VOLUMES_ACTION_TOUCH_TARGET - VOLUMES_ACTION_SIZE) / 2;
+/** Marge intérieure du stepper révélé (Figma `8328:28671`). */
+const OPEN_FIELD_PADDING = spacing[4];
+
+/**
+ * Revue 5.2 : écart entre l'œil et le compteur, calculé pour que leurs cibles tactiles restent
+ * DISJOINTES (un toucher sur le bord de l'œil n'ouvre jamais le compteur) — au repos, marge de
+ * l'œil + marge gauche du chiffre (6 + 12) ; révélé, marge de l'œil + débord de la cible du « − »
+ * hors du stepper (6 + 10 − 4).
+ */
+export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
+  volumesSize: VOLUMES_ACTION_SIZE,
+  volumesHitSlop: VOLUMES_ACTION_HIT_SLOP,
+  digitMinWidth: COUNTER_DIGIT_MIN_WIDTH,
+  digitHitSlopLeft: COUNTER_DIGIT_HIT_SLOP.left,
+  counterGapAtRest: VOLUMES_ACTION_HIT_SLOP + COUNTER_DIGIT_HIT_SLOP.left,
+  openFieldPadding: OPEN_FIELD_PADDING,
+  stepHitSlop: INLINE_STEPPER_STEP_HIT_SLOP,
+  counterGapOpen: VOLUMES_ACTION_HIT_SLOP + Math.max(0, INLINE_STEPPER_STEP_HIT_SLOP - OPEN_FIELD_PADDING),
+} as const;
 
 /**
  * En-tête du Circuit (PRE-6 story 3.1, CIR-10, AD-41, AD-42, Figma `8328:28667`), rendu dans
  * le conteneur Circuit existant ; remplace `TourCard` et sa roulette du compte.
  *
- * - À gauche : « Circuit » et, dessous, la seule durée du Circuit (D-382, D-390, D-399). La
- *   durée se tronque en premier ; le compteur garde sa taille.
+ * - PRE-6 story 5.2 (D-435, Figma `9819:19948`, choix D4) : une seule ligne de 40 — « Circuit »,
+ *   l'œil, puis le compteur à la suite (position Figma) ; la seule durée du Circuit (D-382, D-390,
+ *   D-399) est calée à droite sur la même ligne. La durée se tronque en premier ; titre, œil et
+ *   compteur gardent leur taille.
  * - PRE-6 story 3.4 : l'œil permanent suit le titre (bouton circulaire 32, cible 44) et ouvre
  *   la feuille « Volumes du circuit » (`CircuitVolumesSheet`), dans les deux natures.
- * - À droite, au repos : le chiffre (cible 44) puis la pastille d'unité (`Valeur modifiable`),
+ * - Compteur, au repos : le chiffre (cible 44) puis la pastille d'unité (`Valeur modifiable`),
  *   accordée selon la nature. PRE-6 story 3.2 : la pastille seule ouvre le choix de nature
  *   (`CircuitNatureMenu`, menu natif sur iOS) ; chiffre et pastille sont deux éléments
  *   accessibles distincts (« Nombre de tours » ajustable, « Nature du circuit » bouton).
@@ -139,6 +174,7 @@ export function CircuitHeader({
   onLayout,
   isAttenuated = false,
   translateY,
+  titleInset = 0,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
@@ -146,6 +182,7 @@ export function CircuitHeader({
     <Animated.View
       style={[
         styles.row,
+        { paddingLeft: titleInset },
         isAttenuated ? styles.attenuated : null,
         translateY !== undefined ? { transform: [{ translateY }] } : null,
       ]}
@@ -156,30 +193,61 @@ export function CircuitHeader({
       testID={testID}
     >
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
-        {/* Story 3.4 : l'œil est sur la ligne du titre, juste après lui ; la durée reste dessous. */}
+        {/* Story 3.4 : l'œil est sur la ligne du titre, juste après lui. */}
         <View style={styles.titleRow} testID={`${testID}-title-row`}>
-          <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
+          {/* Revue 5.2 : VoiceOver lit la durée juste après le titre (elle est affichée à droite). */}
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            accessibilityLabel={`${t.title}, ${duration}`}
+            testID={`${testID}-title`}
+          >
             {t.title}
           </Text>
           <VolumesAction onPress={onOpenVolumes} focusRequest={volumesFocusRequest} testID={`${testID}-volumes`} />
         </View>
-        <Text style={styles.duration} numberOfLines={1} testID={`${testID}-duration`}>
-          {duration}
-        </Text>
       </View>
-      <CircuitCounter
-        nature={nature}
-        count={count}
-        isOpen={isCounterOpen}
-        onToggle={onToggleCounter}
-        onChange={onChangeCount}
-        isNatureMenuOpen={isNatureMenuOpen}
-        onOpenNatureMenu={onOpenNatureMenu}
-        onCloseNatureMenu={onCloseNatureMenu}
-        onSelectNature={onSelectNature}
-        natureFocusRequest={natureFocusRequest}
-        testID={`${testID}-counter`}
-      />
+      {/* Revue 5.2 : le compteur ne rétrécit jamais ni ne quitte la ligne ; son écart avec l'œil
+          garde les cibles disjointes (`CIRCUIT_HEADER_TOUCH_GEOMETRY`). */}
+      <View
+        style={[
+          styles.counterSlot,
+          {
+            marginLeft: isCounterOpen
+              ? CIRCUIT_HEADER_TOUCH_GEOMETRY.counterGapOpen
+              : CIRCUIT_HEADER_TOUCH_GEOMETRY.counterGapAtRest,
+          },
+        ]}
+        testID={`${testID}-counter-slot`}
+      >
+        <CircuitCounter
+          nature={nature}
+          count={count}
+          isOpen={isCounterOpen}
+          onToggle={onToggleCounter}
+          onChange={onChangeCount}
+          isNatureMenuOpen={isNatureMenuOpen}
+          onOpenNatureMenu={onOpenNatureMenu}
+          onCloseNatureMenu={onCloseNatureMenu}
+          onSelectNature={onSelectNature}
+          natureFocusRequest={natureFocusRequest}
+          testID={`${testID}-counter`}
+        />
+      </View>
+      {/*
+       * Story 5.2 : durée calée à droite sur la ligne du titre. Revue : elle cède la place la
+       * première (base 0, `flex: 1`), puis le titre (ellipse). Lue avec le titre (VoiceOver), elle
+       * est retirée de l'accessibilité ici.
+       */}
+      <Text
+        style={styles.duration}
+        numberOfLines={1}
+        accessible={false}
+        importantForAccessibility="no"
+        testID={`${testID}-duration`}
+      >
+        {duration}
+      </Text>
     </Animated.View>
   );
 }
@@ -203,7 +271,7 @@ function VolumesAction({ onPress, focusRequest, testID }: { onPress: () => void;
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={strings.screens.composition.circuit.volumes.openAccessibilityLabel}
-      hitSlop={(VOLUMES_ACTION_TOUCH_TARGET - VOLUMES_ACTION_SIZE) / 2}
+      hitSlop={VOLUMES_ACTION_HIT_SLOP}
       style={styles.volumesAction}
       testID={testID}
     >
@@ -368,24 +436,28 @@ const styles = StyleSheet.create({
   attenuated: {
     opacity: UNSELECTED_OPACITY,
   },
+  // Revue 5.2 : hauteur minimale (Dynamic Type) ; espacements portés par chaque enfant.
   row: {
+    minHeight: CIRCUIT_HEADER_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[8],
   },
-  // La durée (et au besoin le titre) se tronque ; le compteur, lui, ne rétrécit jamais.
+  // Revue 5.2 : ordre de cession de la place — la durée d'abord (base 0), puis le titre (ellipse) ;
+  // l'œil et le compteur gardent leur taille.
   textBlock: {
-    flex: 1,
     flexShrink: 1,
     minWidth: 0,
-    gap: spacing[2],
+  },
+  counterSlot: {
+    flexShrink: 0,
   },
   // Story 3.4 : ligne du titre — « Circuit » puis l'œil. L'œil (32) déborde de la ligne (19)
-  // par des marges négatives : la durée reste à sa place sous le titre.
+  // par des marges négatives, sans agrandir la ligne.
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing[8],
+    minWidth: 0,
   },
   volumesAction: {
     flexShrink: 0,
@@ -404,14 +476,18 @@ const styles = StyleSheet.create({
     shadowRadius: VOLUMES_ACTION_SHADOW.radius,
     elevation: 2,
   },
-  // Le titre ne se tronque jamais avant la durée (`flexShrink: 0`).
+  // Revue 5.2 : le titre cède (ellipse) seulement une fois la durée effacée.
   title: {
-    flexShrink: 0,
+    flexShrink: 1,
+    minWidth: 0,
     ...TITLE_TEXT,
     color: colors.textPrimary,
   },
   duration: {
     ...DURATION_TEXT,
+    flex: 1,
+    minWidth: 0,
+    textAlign: "right",
     color: TEXT_TERTIARY,
   },
   counter: {
@@ -446,7 +522,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     backgroundColor: colors.background,
     borderRadius: OPEN_COUNTER_RADIUS,
-    padding: spacing[4],
+    padding: OPEN_FIELD_PADDING,
   },
   openDigit: {
     color: colors.textPrimary,

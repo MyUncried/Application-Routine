@@ -229,7 +229,7 @@ describe("resolveStepTarget (Monter / Descendre dans la séquence affichée)", (
  * (Z 510–580). Écart d'une liste de zone dans le corps : 10 ; écart en-tête / liste du Circuit : 12.
  */
 describe("resolveDragShifts (décalages pendant le glisser)", () => {
-  const GAPS = { row: 10, zone: 10, circuit: 12 };
+  const GAPS = { row: 10, circuitRow: 10, zone: 10, circuit: 12 };
   const abc: CompositionDragLayout = {
     tourTop: 240,
     tourBottom: 500,
@@ -370,6 +370,18 @@ describe("resolveDragShifts (décalages pendant le glisser)", () => {
     expect(result.circuitTop).toBe(-80);
     expect(result.circuitBottom).toBe(6);
     expect(result.end).toBe(6);
+  });
+
+  it("story 5.2 (D-435) : l'écart entre cartes du Circuit (9) diffère de celui du dehors (8) — chaque pas prend l'écart de sa zone", () => {
+    const gaps = { row: 10, circuitRow: 11, zone: 10, circuit: 12 };
+    // X sort du Circuit (retrait 70 + 11) vers la fin de la zone avant (insertion 70 + 10).
+    const leaving = resolveDragShifts(abc, "X", { zone: "BEFORE_TOUR", index: 3 }, gaps);
+    expect(Object.fromEntries(leaving.rows)).toEqual({ Y: -1, Z: -1 });
+    expect([leaving.circuitTop, leaving.circuitBottom, leaving.afterCircuit, leaving.end]).toEqual([80, -1, -1, -1]);
+    // A entre entre X et Y (retrait 70 + 10, insertion 70 + 11).
+    const entering = resolveDragShifts(abc, "A", { zone: "IN_TOUR", index: 1 }, gaps);
+    expect(Object.fromEntries(entering.rows)).toEqual({ B: -80, C: -80, X: -80, Y: 1, Z: 1 });
+    expect(entering.end).toBe(1);
   });
 
   it("carte glissée absente du relevé : aucun décalage", () => {

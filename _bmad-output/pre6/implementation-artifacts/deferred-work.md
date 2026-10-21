@@ -22,11 +22,11 @@
   summary: Retirer l'icône `composition-reorder` (KodjoIcon, `composition-reorder.svg`, manifeste) et le jeton `dimensions.structureMovableIcon` (`glyph`, `slot`), sans usage depuis la suppression de la poignée (carte v2, D-435).
   evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec les autres jetons orphelins de PRE-6.
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
-  summary: Carte à 370 de large et x 16 (écran 402) : élargir la rangée d'occurrence au-delà de la colonne des étapes, avec le rail sur le média et le débord 8 du Circuit.
-  evidence: Story 5.1 : la carte occupe la colonne actuelle (le rail et le fond du Circuit ne sont pas encore v2) ; à traiter avec la story 5.2.
-- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
   summary: Dynamic Type — la carte v2 a des hauteurs fixes (80, lignes 18 / 16 / 17) ; une taille de texte agrandie tronque ou déborde. Aucun écran de l'application ne gère aujourd'hui Dynamic Type.
   evidence: Revue 5.1 ; sujet transverse, à planifier avec Hermann.
-- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
-  summary: Recentrer le repère (point) d'une occurrence sur la carte de 80 (`OCCURRENCE_MARKER_CENTER_Y` vaut encore 24, calé sur l'ancienne carte).
-  evidence: Revue 5.1 ; rail segmenté et repères de la story 5.2.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-2-rail-segmente-circuit-bornes-et-points-d-arret.md`
+  summary: Panneau du choix de nature (Android / web, `CircuitNaturePanel`) : toujours ancré au bord droit du contenu, alors que la pastille de nature suit désormais le titre et l'œil (en-tête sur une ligne, durée à droite). Le menu natif iOS s'ancre lui-même.
+  evidence: Story 5.2 (D-435, choix D4) ; comportement inchangé, position du panneau à revoir avec Hermann (hors iOS).
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-2-rail-segmente-circuit-bornes-et-points-d-arret.md`
+  summary: Retirer les jetons devenus orphelins `dimensions.compositionTourSection.radius` (10, remplacé par le rayon 18 du Circuit v2) et `closedHeight` (54, plus de hauteur minimale) ; `inset` reste utilisé par `SWIPE_REVEAL_OFFSET` jusqu'à la story 5.4.
+  evidence: Revue 5.2 ; `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec les autres jetons orphelins de PRE-6.
