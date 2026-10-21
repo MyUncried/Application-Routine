@@ -363,8 +363,9 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     // Persistées dans l'ordre `dos, epaules` — restituées dans l'ordre du
     // référentiel (`Épaules` order 1, `Dos` order 4).
     expect(zones.props.children).toBe("Épaules · Dos");
-    // PRE-6 (story 2.2) : les zones sont la fin de la ligne de classement, sur une seule ligne.
-    expect(screen.getByTestId("composition-exercise-classification-line").props.numberOfLines).toBe(1);
+    // PRE-6 (story 5.1, D-435) : les zones occupent seules la ligne 3 de la carte, sur une seule ligne.
+    expect(zones.props.numberOfLines).toBe(1);
+    expect(screen.getByTestId("composition-exercise-zones-line")).toBeTruthy();
   });
 
   it("5. n'écrit jamais rien à la simple ouverture d'une Séance (lecture seule — `create`/`update` rejettent si appelées)", async () => {

@@ -2,7 +2,7 @@
 title: 'Story 5.1 — Carte v2 et récupération en troisième ligne'
 type: 'feature'
 created: '2026-10-21'
-status: 'in-progress'
+status: 'done'
 baseline_commit: '445457c8'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -69,10 +69,10 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] Icônes (média, pastilles, durée) exportées et déclarées.
-- [ ] Carte v2 (3 lignes, média, bord selon la zone, largeurs adaptatives, sans poignée) + tests.
-- [ ] Récupération en ligne 3 (toucher, appui long, bulle, accessibilité), suppression de la rangée et du trait + tests.
-- [ ] Hauteurs de bloc pour le glisser (story 2.3b) recalées sur la carte v2 + tests existants verts.
+- [x] Icônes (média, pastilles, durée) exportées et déclarées.
+- [x] Carte v2 (3 lignes, média, bord selon la zone, largeurs adaptatives, sans poignée) + tests.
+- [x] Récupération en ligne 3 (toucher, appui long, bulle, accessibilité), suppression de la rangée et du trait + tests.
+- [x] Hauteurs de bloc pour le glisser (story 2.3b) recalées sur la carte v2 + tests existants verts.
 
 **Acceptance Criteria:**
 - Given la suite complète, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit`, `npm run lint`, then tout est vert ; les attentes de test modifiées ne le sont que là où D-435 change le rendu.
@@ -80,9 +80,38 @@ context:
 
 ## Implementation Notes
 
+- **Figma (lecture seule, 21/10/2026).** `get_design_context` / `get_metadata` de `9798:44464` (variantes `9798:19935`, `9798:44368`, `9808:19905`), `9819:19961` et `8328:28605`. Mesures retenues (carte 370) : média x 9 (bord 1 + 8), texte x 85, cadre de texte 58 à y 11 (nom 18, écart 5, ligne 2 de 16, écart 2, ligne 3 de 17 dont 2 en haut), symboles x 266, bord des valeurs x 362 avec ou sans bord (8 du bord extérieur), icône de côté 16 à y 11 calée sur le même bord. « 10 rép. / 1 min » mesure 79 : la colonne des valeurs doit pouvoir dépasser 77.
+- **Icônes exportées** (`get_design_context` de `9798:19935`, attributs racine retirés, identifiant de groupe décodé ; `MCP_VECTOR_EXPORT`) : `icon-nature-exercice` (`9798:19907`, octets identiques à la variante Circuit `9819:19963`), `icon-pastille-categorie` (`9798:19913`), `icon-pastille-zone-corporelle` (`9798:19919`), `icon-symbole-duree` (`9798:19927`), `icon-sablier-recuperation-v2` (`9798:19932` : tracé plus grand que `recovery.hourglass` `8328:41087`, non réutilisé), `icon-changement-de-cote-v2` (`9798:19925` : même tracé que `side.change`, rempli `#7A7A80` au lieu de `#9499A8` ; la carte de sélection garde l'ancien). Clés `KodjoIcon` : `card-*`.
+- **Disposition.** Colonnes en flux : libellés `flex: 1` ; symboles et valeurs `minWidth: "35%"` (96 / 277 à 402), `maxWidth: "60%"`, largeur réelle donnée par la valeur la plus longue, symboles alignés d'une ligne à l'autre ; aucun positionnement absolu. Synthèse, séparateur « / » et durée estimée en textes distincts (la durée estimée garde son format « ≈ … »).
+- **Récupération.** `OccurrenceRecovery` (exporté de `ActivityRecoveryLine.tsx`) reprend le contrôle de la story 4.2 en ligne 3 ; `ActivityRecoveryLine` ne porte plus que le point d’arrêt, sans trait. Affichée seulement si `isDisplayableRecovery` (nombre fini > 0 ; NaN, ∞, 0 et absence : rien). Toucher et appui long seulement carte au repos : ni actions révélées, ni carte bloquée par une autre révélation, ni glisser, ni placement. En placement, la ligne 3 montre la valeur effective du sous-brouillon (`recoveryChanges` puis `recoveries`, puis la donnée), sans interaction.
+- **Cible tactile (revue 5.1, écart au choix D7, à soumettre à Hermann à J4).** `occurrenceRecoveryHitSlop(bordered)`, calculée depuis les constantes exportées par `OccurrenceCard` (`OCCURRENCE_CARD_TEXT_FRAME`, hauteur, bord) : haut 4 (écart 2 entre les lignes + 2 de marge haute de la ligne 3, la ligne 2 n’est jamais couverte), bas jusqu’au bord intérieur de la carte (10 avec bord, 11 sans), aucune marge latérale. Hauteur obtenue 29 (30 dans le Circuit) au lieu de 44 : 44 n’est pas atteignable sans couvrir la ligne 2 (dont le toucher ouvre l’Exercice et l’appui long engage le glisser). Horizontalement, le `Pressable` occupe la colonne des valeurs (sablier sous le symbole de durée, valeur calée à droite) : `alignSelf: flex-end` demandé par la revue aurait sorti le sablier de la colonne des symboles (Figma x 266, ch13 « symboles x282 ») ; la cible ne contient que le sablier, la valeur et l’espace vide entre eux, jamais les Zones. Point à arbitrer.
+- **Accessibilité.** Le contrôle imbriqué est retiré de l’accessibilité (`accessible={false}`, `importantForAccessibility="no"`) : VoiceOver ne traverse pas la carte et TalkBack l’aurait exposé deux fois. La carte porte « …, récupération {durée} » dans son nom (hors placement et en placement, valeur effective) et, quand R > 0 hors placement, les actions « Modifier la récupération » (texte nouveau, `composition.pauses.modifyRecovery`) et « Retirer la récupération ».
+- **Focus après retrait.** Récupération retirée (bulle ou action de la carte) : focus à la carte (`cardOnly`), jamais au point voisin. Point retiré : au point s’il en reste un sur la rangée — impossible aujourd’hui, un seul point par emplacement —, sinon à la carte.
+- **Ligne 2.** La durée estimée s’abrège d’abord (`flexShrink` 1000), la synthèse ensuite (1) ; le séparateur ne se réduit pas.
+- **Carte soulevée dans le Circuit.** Le bord revient ; les marges le compensent (média et valeurs à la même distance du bord extérieur).
+- **Hauteur prédite.** `occurrenceCardHeight()` n’a plus de paramètre ; `predictedInsertionHeight` est exportée en forme pure (hauteur mesurée et `cardHeightOf` injectés) et testée avec un écart non nul (64 / 70).
+- **Points soumis à Hermann à J4 (non traités ici, à sa demande de revue).** Format « ≈ » de la durée estimée (Figma « 10 rép. / 1 min ») ; pastille de Catégorie grise selon Figma (couleur de Catégorie absente de la carte) ; écart vertical nom → ligne 2 de 5 (Figma) contre 8 (DSF-CARTES L128) ; texte « Modifier la récupération » ; cible de récupération à 29 au lieu de 44 (D7) ; occupation horizontale de la cible (colonne des valeurs) ; format « 1 min 30 s » (Figma « 1 min 30 »).
+- **Écart assumé.** La carte occupe la colonne actuelle des étapes : la largeur 370 à x 16 demande le rail sur le média et le débord du Circuit (story 5.2) ; consigné dans `deferred-work.md`, comme le retrait de `composition-reorder` et de `dimensions.structureMovableIcon`, devenus orphelins (jetons verrouillés, non retirés).
+
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Constat | Verdict | Preuve / route |
+|---|---|---|---|---|
+| 1 | blind + edge + verification-gap | Cible de la récupération (marge haute 17) recouvrant la synthèse de la ligne 2 : toucher ou appui long détournés | high | patch : marge haute 4, bas jusqu'au bord intérieur, constantes exportées ; test géométrique. Hauteur 29 au lieu de 44 (D7) : J4. |
+| 2 | blind + edge | Récupération active avec actions révélées | medium | patch : inactive (révélé, autre carte révélée, glisser, placement) ; tests. |
+| 3 | blind + edge | Placement : valeur de la carte contraire à la puce | medium | patch : valeur effective du sous-brouillon, sans interaction ; test. |
+| 4 | blind + edge | VoiceOver n'annonce plus la récupération ; double exposition TalkBack ; focus après retrait sur le point | medium | patch : « récupération {durée} » dans le nom de la carte, contrôle imbriqué non accessible, focus sur la carte ; tests. |
+| 5 | blind + edge | Ligne 2 : la synthèse se réduit avant la durée estimée | medium | patch : priorité de réduction ; tests Séries variables et À l'échec. |
+| 6 | edge | Valeur non finie affichée | low | patch : `isDisplayableRecovery` ; test NaN. |
+| 7 | blind + edge | Carte soulevée dans le Circuit décalée de 1 | low | patch : compensation du bord ; test. |
+| 8 | blind + verification-gap | Code mort, tests toujours vrais, `predictedInsertionHeight` sans garde-fou | low | patch : nettoyage ; forme pure testée avec écart non nul. |
+| 9 | verification-gap | Cible étirée sur la colonne des valeurs (pas `flex-end`) | low, rejeté | Le sablier reste sous le symbole de durée (Figma, ch13 « symboles x282 ») ; la cible ne couvre ni Zones ni ligne 2. J4. |
+| 10 | edge | Dynamic Type sur hauteurs fixes | low, différé | `deferred-work.md` ; aucun écran ne le gère aujourd'hui. |
+| 11 | blind | Repère du rail non recalé sur la carte de 80 | low, différé | Story 5.2. |
+| 12 | verification-gap | Colonnes réelles à 360/402/440, non-propagation native du toucher | — | Appareil, J4. |
+| 13 | verification-gap | « ≈ 1 min », pastille grise, écart 5 contre 8, texte « Modifier la récupération », format « 1 min 30 s » | — | Soumis à Hermann (J4). |
 
 ## Verification
 

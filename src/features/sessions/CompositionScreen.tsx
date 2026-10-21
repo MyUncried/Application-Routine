@@ -96,10 +96,10 @@ import {
   type DropTarget,
   type StepDirection,
 } from "@/features/sessions/compositionGesture";
-import { ActivityRecoveryLine } from "@/features/sessions/ActivityRecoveryLine";
+import { ActivityRecoveryLine, isDisplayableRecovery, OccurrenceRecovery } from "@/features/sessions/ActivityRecoveryLine";
 import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
 import {
-  formatActivityRecoveryLabel,
+  formatCompactDuration,
   formatCompositionSessionDuration,
   formatCompositionSummary,
   formatDurationRowValue,
@@ -114,7 +114,9 @@ import {
   OCCURRENCE_CARD_RADIUS,
   OccurrenceCard,
   occurrenceCardHeight,
+  occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
+  occurrenceRecoveryHitSlop,
 } from "@/features/sessions/OccurrenceCard";
 import {
   BOUNDARY_MARKER_CENTER_Y,
@@ -920,8 +922,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /**
    * Story 4.2 — retrait d'une récupération positive (bulle ou action accessible) : absente
    * (`null`), la Pause terminale configurée est rétablie dans les durées (RM-038). Une récupération
-   * à 0 n'est jamais retirée (aucun élément visible, D-303). Focus rendu à la ligne, ou à la carte
-   * si la ligne disparaît (sans point d'arrêt : décision Hermann 21/10/2026).
+   * à 0 n'est jamais retirée (aucun élément visible, D-303). PRE-6 story 5.1 : la récupération est
+   * dans la carte ; le focus revient à la carte (`cardOnly`), jamais au point d'arrêt voisin, que le
+   * retrait vienne de la bulle ou de l'action accessible de la carte.
    */
   const removeRecovery = useCallback(
     (occurrenceId: string) => {
@@ -929,7 +932,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const seconds = draft.exercises.find((exercise) => exercise.id === occurrenceId)?.postActivityRecoverySeconds ?? null;
       if (seconds === null || seconds <= 0) return;
       updateDraft((current) => setOccurrenceRecovery(current, occurrenceId, null));
-      setPauseFocusRequest((current) => ({ occurrenceId, cardOnly: false, token: (current?.token ?? 0) + 1 }));
+      setPauseFocusRequest((current) => ({ occurrenceId, cardOnly: true, token: (current?.token ?? 0) + 1 }));
     },
     [draft.exercises, updateDraft],
   );
@@ -1324,15 +1327,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * fonction pure) : cartes, bords du Circuit (amendement Hermann du 21/10/2026 : il s'agrandit ou
    * se rétracte pendant le geste), ligne après le Circuit.
    */
-  const circuitNatureForShifts = draft.circuitNature;
   const dragShifts = useMemo<DragShifts>(() => {
     if (dragPreview === null || dragPreview.slot === null) {
       return NO_DRAG_SHIFTS;
     }
-    const insertionHeight = predictedInsertionHeight(draft, dragPreview, dragPreview.slot, {
-      circuitNature: circuitNatureForShifts,
-      tourRepeatCount,
-    });
+    const measured = dragPreview.originLayout.rows.find((row) => row.id === dragPreview.activityId)?.height;
+    const insertionHeight = predictedInsertionHeight(
+      draft,
+      dragPreview.activityId,
+      measured,
+      dragPreview.slot,
+      // Carte v2 (story 5.1) : 80 quelle que soit la zone ; l'écart de carte est nul.
+      () => occurrenceCardHeight(),
+    );
     return resolveDragShifts(
       dragPreview.originLayout,
       dragPreview.activityId,
@@ -1340,7 +1347,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       DRAG_SHIFT_GAPS,
       insertionHeight,
     );
-  }, [circuitNatureForShifts, dragPreview, draft, tourRepeatCount]);
+  }, [dragPreview, draft]);
   const animateDragShifts = dragSession.animated && !reduceMotion;
   const circuitTopShift = useAnimatedShift(dragShifts.circuitTop, animateDragShifts);
   const circuitBottomShift = useAnimatedShift(dragShifts.circuitBottom, animateDragShifts);
@@ -2455,8 +2462,19 @@ type CompositionActivityRowProps = {
   readonly pauses: PauseRowContext;
 };
 
-/** Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). */
-type OccurrenceAccessibilityActionName = "moveUp" | "moveDown" | "duplicate" | "delete";
+/**
+ * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 5.1 (D-435) :
+ * `modifyRecovery` / `removeRecovery` reprennent, sur la carte, le toucher et le retrait de la
+ * récupération de la ligne 3 — VoiceOver n'atteint pas un bouton imbriqué dans un élément
+ * accessible, et la carte en est un.
+ */
+type OccurrenceAccessibilityActionName =
+  | "moveUp"
+  | "moveDown"
+  | "duplicate"
+  | "delete"
+  | "modifyRecovery"
+  | "removeRecovery";
 
 /**
  * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : décalage horizontal MAXIMAL de la
@@ -2537,14 +2555,13 @@ const SWIPE_REVEAL_OFFSET =
  *    même conteneur gestuel et avec la même translation : « la Récupération
  *    appartient à l'Activité et forme avec elle un bloc indivisible pour la
  *    Composition, la copie, la duplication, le déplacement et la
- *    suppression » (D-138). Hors placement, elle n'existe que si R > 0 ou si
- *    un point d'arrêt est rattaché (décision Hermann 21/10/2026, remplace
- *    D-303 « trait toujours présent ») : sinon aucune ligne ni hauteur
- *    réservée. Elle n'est jamais une Activité de plus.
- * 2. **Géométries conditionnelles.** PRE-6 (story 2.2) : carte de `64`, ou `70` avec la
- *    ligne « durée estimée » (remplace `44` / `60` selon les Zones) ; actions glissées
- *    `72 × 64` / `72 × 70`, couvrant toute la hauteur de la carte. L'état soulevé applique
- *    un écart CONSTANT (`widthDelta 8`, `heightDelta 4`) : `68` / `74` de haut.
+ *    suppression » (D-138). PRE-6 story 5.1 (D-435) : elle s'affiche en ligne 3 de
+ *    la carte si R > 0 ; la rangée sous la carte ne porte plus qu'un point
+ *    d'arrêt. Elle n'est jamais une Activité de plus.
+ * 2. **Géométrie.** PRE-6 (story 5.1, D-435) : carte v2 de `80` dans toutes les variantes
+ *    (remplace `64` / `70`) ; actions glissées `72 × 80`, couvrant toute la hauteur de la
+ *    carte. L'état soulevé applique un écart CONSTANT (`widthDelta 8`, `heightDelta 4`) :
+ *    `84` de haut.
  * 3. **Balayage PROGRESSIF (V2-CAT-01, CE-T03-08 §§7-20, D-175/D-176).** La
  *    carte SUIT le doigt en temps réel (`swipeTranslateX`, même technique
  *    déjà éprouvée que `dragTranslationY` pour le déplacement vertical —
@@ -2596,24 +2613,21 @@ function CompositionActivityRow({
 }: CompositionActivityRowProps) {
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
-  // Story 4.2 : focus rendu à la carte quand la ligne n'a plus d'élément accessible après un retrait.
+  // Story 4.2 : focus rendu à la carte après un retrait qui ne laisse pas de point d'arrêt.
   const cardRef = useRef<View>(null);
-  const focusCard = useCallback(() => {
-    focusOnNextFrame(() => cardRef.current);
-  }, []);
   /**
-   * Ligne structurelle hors placement (décision Hermann 21/10/2026, remplace D-303 « trait toujours
-   * présent ») : rendue seulement si l'occurrence porte une récupération positive (R > 0) ou un point
-   * d'arrêt. R absente ou R = 0 sans point : ni trait ni emplacement, aucune hauteur réservée.
+   * Rangée sous la carte hors placement. PRE-6 story 5.1 (D-435, choix D1) : la récupération est
+   * en ligne 3 de la carte ; la rangée n'existe plus que pour un point d'arrêt (rendu provisoire
+   * jusqu'à la story 5.2), sans trait. Sans point : aucune rangée ni hauteur réservée.
    */
   const stopPoint = occurrenceStopPoint(activity, pauses);
-  const hasRecoveryLine = hasOccurrenceRecoveryLine(activity.postActivityRecoverySeconds, stopPoint);
+  const hasRecoveryLine = stopPoint !== null;
   const pauseFocus =
     pauses.focusRequest !== null && pauses.focusRequest.occurrenceId === activity.id ? pauses.focusRequest : null;
-  // Focus après un retrait (story 4.2) : à la ligne si elle subsiste ; sinon à la carte — repli
-  // après le retrait du point « après le Circuit » (`cardOnly`, première occurrence qui suit le
-  // Circuit) ou après le retrait du dernier élément de la ligne, qui n'est alors plus montée.
-  // Jamais au premier rendu.
+  // Focus après un retrait (story 4.2) : au point de la rangée s'il subsiste ; sinon à la carte —
+  // repli après le retrait du point « après le Circuit » (`cardOnly`, première occurrence qui suit
+  // le Circuit), après le retrait du point de la rangée, qui n'est alors plus montée, ou après le
+  // retrait de la récupération de la ligne 3 sans point (story 5.1). Jamais au premier rendu.
   const lineFocusToken = pauseFocus !== null && !pauseFocus.cardOnly && hasRecoveryLine ? pauseFocus.token : undefined;
   const cardFocusToken =
     pauseFocus !== null && (pauseFocus.cardOnly || (placement === null && !hasRecoveryLine))
@@ -2897,13 +2911,29 @@ function CompositionActivityRow({
   const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
   const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
   /**
-   * Hauteur de la CARTE seule (PRE-6 story 2.2) : `64`, ou `70` avec la ligne « durée
-   * estimée » ; la ligne de classement est toujours présente (vide au besoin). La
-   * Récupération est une ligne structurelle SOUS la carte (`ActivityRecoveryLine`), rendue hors
-   * placement seulement si R > 0 ou si un point d'arrêt est rattaché (décision Hermann 21/10/2026,
-   * remplace D-303 « trait toujours présent ») ; sa hauteur n'entre pas ici.
+   * Hauteur de la CARTE seule : 80 (carte v2, PRE-6 story 5.1, D-435), récupération comprise
+   * (ligne 3). La rangée du point d'arrêt, rendue SOUS la carte hors placement, n'entre pas ici.
    */
-  const blockHeight = blockHeightFor(estimatedDuration !== null, isDragged);
+  const blockHeight = blockHeightFor(isDragged);
+  /**
+   * PRE-6 (story 5.1) : récupération affichée en ligne 3 — hors placement, celle du brouillon ; en
+   * placement, la valeur effective du sous-brouillon (ajout ou modification), pour ne jamais
+   * contredire la puce de l'emplacement.
+   */
+  const displayedRecoverySeconds =
+    placement === null
+      ? activity.postActivityRecoverySeconds
+      : (placement.draft.recoveryChanges[activity.id] ??
+        placement.draft.recoveries[activity.id] ??
+        activity.postActivityRecoverySeconds);
+  /**
+   * Toucher et appui long de la récupération (revue 5.1) : seulement quand la carte est au repos.
+   * Actions glissées révélées, carte bloquée par une autre révélation, glisser en cours ou
+   * placement : simple affichage, le toucher revient à la carte (neutre ou inactive).
+   */
+  const isRecoveryInteractive = placement === null && !areActionsRevealed && !isBlockedByOtherReveal && !isDragged;
+  /** Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`). */
+  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged;
   // Même translation pour la carte et sa ligne de récupération : elles font bloc.
   const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
   /**
@@ -2916,14 +2946,41 @@ function CompositionActivityRow({
    * « Monter » / « Descendre » (absentes aux extrémités de la séquence), « Dupliquer »,
    * « Supprimer ». Le balayage et l'appui long restent inchangés.
    */
+  /**
+   * PRE-6 (story 5.1, D-435) : une récupération affichable (R > 0) hors placement ajoute
+   * « Modifier la récupération » et « Retirer la récupération », mêmes effets que le toucher et la
+   * bulle de la ligne 3.
+   */
+  const hasDisplayedRecovery = placement === null && isDisplayableRecovery(activity.postActivityRecoverySeconds);
+  /** Nom accessible : la récupération affichée y figure (« …, récupération 20 s »), hors placement et en placement. */
+  const accessibilityLabel = isDisplayableRecovery(displayedRecoverySeconds)
+    ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
+        "{duration}",
+        () => formatCompactDuration(displayedRecoverySeconds),
+      )}`
+    : formatOccurrenceAccessibilityLabel(activity, position, circuitContext);
   const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = {
     ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
     ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
     duplicate: onDuplicate,
     delete: onDelete,
+    ...(hasDisplayedRecovery
+      ? {
+          modifyRecovery: () => pauses.onPressRecovery(activity.id),
+          removeRecovery: () => pauses.onRemoveRecovery(activity.id),
+        }
+      : {}),
+  };
+  const accessibilityActionLabels: Record<OccurrenceAccessibilityActionName, string> = {
+    moveUp: composition.activityActions.moveUp,
+    moveDown: composition.activityActions.moveDown,
+    duplicate: composition.activityActions.duplicate,
+    delete: composition.activityActions.delete,
+    modifyRecovery: composition.pauses.modifyRecovery,
+    removeRecovery: composition.pauses.removeRecovery,
   };
   const accessibilityActions = (Object.keys(accessibilityActionHandlers) as OccurrenceAccessibilityActionName[]).map(
-    (name) => ({ name, label: composition.activityActions[name] }),
+    (name) => ({ name, label: accessibilityActionLabels[name] }),
   );
 
   return (
@@ -3044,7 +3101,7 @@ function CompositionActivityRow({
         accessibilityElementsHidden={placement !== null}
         importantForAccessibility={placement !== null ? "no-hide-descendants" : "auto"}
         accessibilityRole="button"
-        accessibilityLabel={formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}
+        accessibilityLabel={accessibilityLabel}
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
         accessibilityHint={`${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`}
         accessibilityState={{ selected: isDragged }}
@@ -3054,6 +3111,8 @@ function CompositionActivityRow({
         }
         style={[
           styles.activityBlock,
+          // PRE-6 (story 5.1, D-435) : dans le Circuit, carte sans bord ; l'état soulevé garde le sien.
+          activity.structuralPosition === "IN_TOUR" && !isDragged ? occurrenceCardInCircuitSurface : null,
           isDragged ? styles.activityBlockDragged : null,
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
@@ -3068,10 +3127,14 @@ function CompositionActivityRow({
         testID={`composition-exercise-row-${activity.id}`}
       >
         {/*
-         * PRE-6 (story 2.2, `DSF / Cards / Composition — exercice` `5544:6797`) : contenu de
-         * la carte d’occurrence (nom, classement, synthèse D-238, icône neutre de côté). La
-         * surface reste portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond
-         * remplace le blanc derrière le contenu, sans opacité appliquée aux textes.
+         * PRE-6 (story 5.1, D-435, carte v2 `9798:44464`) : contenu de la carte d’occurrence
+         * (média, nom et côté, Catégorie et travail, Zones et récupération). La surface reste
+         * portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc
+         * derrière le contenu, sans opacité appliquée aux textes.
+         *
+         * Récupération en ligne 3 (story 4.2 reprise) : son `Pressable`, plus profond, prend le
+         * toucher et l’appui long à la place de la carte (roulette, bulle Retirer), sans ouvrir
+         * l’Exercice. En placement, simple affichage : la carte est inactive (story 4.1).
          */}
         <OccurrenceCard
           name={activity.name}
@@ -3080,43 +3143,51 @@ function CompositionActivityRow({
           summary={formatOccurrenceSummary(activity)}
           estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
+          inCircuit={activity.structuralPosition === "IN_TOUR"}
+          bordered={isCardBordered}
+          recovery={
+            <OccurrenceRecovery
+              recoverySeconds={displayedRecoverySeconds}
+              {...(isRecoveryInteractive
+                ? {
+                    onPress: () => pauses.onPressRecovery(activity.id),
+                    onLongPress: (anchor: View | null) => pauses.onRequestRecoveryRemoval(activity.id, anchor),
+                  }
+                : {})}
+              hitSlop={occurrenceRecoveryHitSlop(isCardBordered)}
+              testID={`composition-activity-recovery-${activity.id}-recovery`}
+            />
+          }
           sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
         />
 
       </Pressable>
 
       {/*
-       * PRE-6 (story 2.1, D-217, Figma `8328:28657`) : ligne structurelle sous l'occurrence
-       * (remplace la sous-carte « Récupération X », écart E5). Hors placement, elle n'existe que
-       * si R > 0 ou si un point d'arrêt est rattaché (décision Hermann 21/10/2026, remplace D-303
-       * « trait toujours présent » ; Figma `8328:28605`) : sinon ni trait ni emplacement, l'élément
-       * suivant vient à l'écart normal de la séquence. Elle suit la carte (même translation) et
-       * reste dans le conteneur de l'occurrence : elle fait bloc pour le déplacement, dont les
-       * mesures (`onLayout` du conteneur) intègrent ou non sa hauteur.
+       * Rangée sous l'occurrence. PRE-6 story 5.1 (D-435, choix D1) : la récupération est en
+       * ligne 3 de la carte et le trait de démarcation est supprimé ; hors placement, la rangée
+       * n'existe que pour un point d'arrêt (rendu provisoire jusqu'à la story 5.2) : sinon aucun
+       * emplacement, l'élément suivant vient à l'écart normal de la séquence. Elle suit la carte
+       * (même translation) et reste dans le conteneur de l'occurrence : elle fait bloc pour le
+       * déplacement, dont les mesures (`onLayout` du conteneur) intègrent ou non sa hauteur.
        */}
       {placement !== null || hasRecoveryLine ? (
         <View
           style={[styles.activityRecoveryLine, { transform: blockTransform }]}
           testID={`composition-activity-recovery-slot-${activity.id}`}
         >
-          {placement === null ? (
-            // PRE-6 (story 4.2) : récupération modifiable (toucher) et retirable (appui long, action
-            // accessible) ; point d'arrêt de l'emplacement à droite (`8328:29428`).
+          {placement !== null ? (
+            // PRE-6 (story 4.1, `8328:29270`) : en placement, l'emplacement porte les puces
+            // récupération / point d'arrêt (règle inchangée ; rendu refait en story 5.3).
+            <PlacementOccurrenceSlot activity={activity} placement={placement} />
+          ) : stopPoint !== null ? (
+            // PRE-6 (story 4.2) : point d'arrêt de l'emplacement à droite (`8328:29428`).
             <ActivityRecoveryLine
-              recoverySeconds={activity.postActivityRecoverySeconds}
-              onPressRecovery={() => pauses.onPressRecovery(activity.id)}
-              onLongPressRecovery={(anchor) => pauses.onRequestRecoveryRemoval(activity.id, anchor)}
-              onRemoveRecovery={() => pauses.onRemoveRecovery(activity.id)}
               stopPoint={stopPoint}
               focusRequest={lineFocusToken}
-              onFocusUnavailable={focusCard}
               testID={`composition-activity-recovery-${activity.id}`}
             />
-          ) : (
-            // PRE-6 (story 4.1, `8328:29270`, D-303) : en placement, le trait est masqué et
-            // l'emplacement porte les puces récupération / point d'arrêt (règle inchangée).
-            <PlacementOccurrenceSlot activity={activity} placement={placement} />
-          )}
+          ) : null}
         </View>
       ) : null}
 
@@ -3147,15 +3218,6 @@ function PlacementOccurrenceSlot({
       testID={`composition-placement-slot-${activity.id}`}
     />
   );
-}
-
-/**
- * Présence de la ligne structurelle hors placement (décision Hermann 21/10/2026, remplace D-303
- * « trait toujours présent ») : récupération positive (R > 0) ou point d'arrêt rattaché. R = 0
- * compte comme « sans récupération » pour l'affichage ; la donnée n'est pas modifiée.
- */
-function hasOccurrenceRecoveryLine(recoverySeconds: number | null | undefined, stopPoint: object | null): boolean {
-  return formatActivityRecoveryLabel(recoverySeconds) !== null || stopPoint !== null;
 }
 
 /** PRE-6 (story 4.2) : point d'arrêt rattaché à une occurrence, prêt pour sa ligne structurelle. */
@@ -3242,16 +3304,14 @@ function CounterOutsideZone({ onPress, testID }: { onPress: () => void; testID: 
 }
 
 /**
- * Hauteur de la carte d'occurrence et de ses actions glissées. PRE-6 (story 2.2,
- * `5544:6797`) : `64`, ou `70` avec la ligne « durée estimée » (`occurrenceCardHeight`) ;
- * l'état soulevé garde son écart constant (`heightDelta`). La ligne structurelle de
- * récupération est rendue SOUS la carte (`ActivityRecoveryLine`, story 2.1), hors de cette
- * hauteur ; hors placement, elle n'existe que si R > 0 ou si un point d'arrêt est rattaché
- * (décision Hermann 21/10/2026, remplace D-303) — les mesures `onLayout` des rangées en tiennent
- * compte d'elles-mêmes.
+ * Hauteur de la carte d'occurrence et de ses actions glissées. PRE-6 (story 5.1, D-435) : 80 dans
+ * toutes les variantes (`occurrenceCardHeight`), récupération comprise (ligne 3) ; l'état soulevé
+ * garde son écart constant (`heightDelta`). La rangée du point d'arrêt est rendue SOUS la carte
+ * (`ActivityRecoveryLine`), hors de cette hauteur — les mesures `onLayout` des rangées en
+ * tiennent compte d'elles-mêmes.
  */
-function blockHeightFor(hasEstimatedDuration: boolean, isDragged: boolean): number {
-  const rest = occurrenceCardHeight(hasEstimatedDuration);
+function blockHeightFor(isDragged: boolean): number {
+  const rest = occurrenceCardHeight();
   return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
 
@@ -3379,32 +3439,33 @@ function frozenDropSlot(preview: NonNullable<DragShiftSession["preview"]>, trans
 }
 
 /**
- * Hauteur PRÉDITE du bloc glissé dans la zone visée (story 2.3b, point de revue 5) : la carte vaut
- * 64, ou 70 avec la ligne « durée estimée », qui dépend de la zone (Circuit de Séries : durée de
- * l'occurrence adaptée à N). L'occurrence telle que le dépôt la produirait est donnée par le même
- * plan que le dépôt (`planOccurrenceMove`) ; la hauteur mesurée au début du geste est corrigée de
- * l'écart de carte. La ligne de récupération ne change pas (récupération et point d'arrêt suivent
- * l'occurrence, ARB-3). Dépôt refusé : `undefined` (hauteur mesurée).
+ * Hauteur PRÉDITE du bloc glissé dans la zone visée (story 2.3b, point de revue 5) : l'occurrence
+ * telle que le dépôt la produirait est donnée par le même plan que le dépôt (`planOccurrenceMove`) ;
+ * la hauteur mesurée au début du geste (`measuredHeight`) est corrigée de l'écart de carte entre
+ * l'occurrence actuelle et l'occurrence déplacée (`cardHeightOf`, injectée). La ligne de
+ * récupération ne change pas (récupération et point d'arrêt suivent l'occurrence, ARB-3). Dépôt
+ * refusé ou bloc non mesuré : `undefined` (hauteur mesurée).
+ *
+ * PRE-6 story 5.1 : la carte v2 fait 80 dans toutes les variantes, l'écart est aujourd'hui nul ;
+ * le calcul est conservé, en forme pure, et protégé par un test unitaire à écart non nul.
  */
-function predictedInsertionHeight(
+export function predictedInsertionHeight(
   draft: SessionDraft,
-  preview: NonNullable<DragShiftSession["preview"]>,
+  activityId: string,
+  measuredHeight: number | undefined,
   slot: DropTarget,
-  context: OccurrenceCircuitContext,
+  cardHeightOf: (exercise: SessionDraftExercise) => number,
 ): number | undefined {
-  const row = preview.originLayout.rows.find((candidate) => candidate.id === preview.activityId);
-  const current = draft.exercises.find((exercise) => exercise.id === preview.activityId);
-  if (row === undefined || current === undefined) {
+  const current = draft.exercises.find((exercise) => exercise.id === activityId);
+  if (measuredHeight === undefined || current === undefined) {
     return undefined;
   }
-  const plan = planOccurrenceMove(draft, { activityId: preview.activityId, zone: slot.zone, index: slot.index });
-  const moved = plan?.patch.exercises?.find((exercise) => exercise.id === preview.activityId);
+  const plan = planOccurrenceMove(draft, { activityId, zone: slot.zone, index: slot.index });
+  const moved = plan?.patch.exercises?.find((exercise) => exercise.id === activityId);
   if (moved === undefined) {
     return undefined;
   }
-  const cardHeightOf = (exercise: SessionDraftExercise) =>
-    occurrenceCardHeight(formatOccurrenceEstimatedDuration(exercise, context) !== null);
-  return row.height - cardHeightOf(current) + cardHeightOf(moved);
+  return measuredHeight - cardHeightOf(current) + cardHeightOf(moved);
 }
 
 /** Écart entre l'en-tête du Circuit et sa liste d'occurrences (`tourSectionContainer`). */
@@ -3584,20 +3645,19 @@ const styles = StyleSheet.create({
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //
   // Le `Pressable` porte la surface de la carte ; `overflow: "hidden"` découpe son
-  // contenu au rayon. PRE-6 (story 2.1) : la Récupération n'y est plus une sous-carte
-  // (ligne structurelle sous la carte, `ActivityRecoveryLine`). PRE-6 (story 2.2,
-  // `5544:6797`) : fond blanc, bordure 1 `#E4E4EB`, rayon 14 (`occurrenceCardSurface`).
+  // contenu au rayon. PRE-6 (story 5.1, D-435, `9798:44464`) : fond blanc, bord 1 `#E4E7EF`
+  // hors Circuit (aucun dans le Circuit, `occurrenceCardInCircuitSurface`), rayon 12
+  // (`occurrenceCardSurface`) ; la récupération est en ligne 3 du contenu.
   //
-  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la ligne « durée
-  // estimée » et l'état soulevé.
+  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon l'état soulevé.
   activityBlock: {
     ...occurrenceCardSurface,
     overflow: "hidden",
   },
-  // D-129/CE-T02-02 : état soulevé — hauteur de repos + `4` (PRE-6 story 2.2 : `68` / `74`
-  // pour `64` / `70`), largeur + `8`, centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // D-129/CE-T02-02 : état soulevé — hauteur de repos + `4` (PRE-6 story 5.1 : `84` pour
+  // `80`), largeur + `8`, centré à `x = 6`, fond `#F7F7FF` repris du bandeau
   // supérieur, contour `1` point `#D1D1D6`, rayon de la carte (`OCCURRENCE_CARD_RADIUS`,
-  // 14, PRE-6 story 2.2 ; auparavant `12`), ombre périphérique
+  // 12 depuis la carte v2, story 5.1 ; 14 en story 2.2), ombre périphérique
   // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
   //
   // L'agrandissement horizontal est exprimé en ÉCART (marges négatives),
@@ -3618,13 +3678,13 @@ const styles = StyleSheet.create({
   // D-128, révisé V2-CAT-01 (UI-CAT-R-007/010) : groupe superposé à droite
   // (DERRIÈRE la carte, découvert par sa translation), deux actions `72 × H`
   // aux libellés centrés horizontalement et verticalement, `H` valant la
-  // hauteur de la CARTE (`64`, ou `70` avec la durée estimée — PRE-6 story 2.2) — « `Dupliquer` et
+  // hauteur de la CARTE (`80`, carte v2 — PRE-6 story 5.1) — « `Dupliquer` et
   // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
   // appliquée par l'écran (`blockHeightFor`), pas ici.
   //
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : les QUATRE
-  // coins suivent le même rayon que le bloc (`OCCURRENCE_CARD_RADIUS`, 14 depuis PRE-6
-  // story 2.2 ; auparavant `12`) — une correction
+  // coins suivent le même rayon que le bloc (`OCCURRENCE_CARD_RADIUS`, 12 depuis la carte v2,
+  // PRE-6 story 5.1) — une correction
   // antérieure ne rendait carrés QUE les coins droits de `Supprimer`
   // (rightmost, flush avec le bord droit du contenu défilant), rompant la
   // silhouette arrondie uniforme que porte, elle, TOUTE autre carte de

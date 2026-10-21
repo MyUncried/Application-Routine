@@ -270,6 +270,8 @@ describe("strings", () => {
     expect(strings.screens.composition.pauses).toEqual({
       modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
       removeRecovery: "Retirer la récupération",
+      // PRE-6 (story 5.1) : action de la carte qui ouvre le réglage de la récupération de la ligne 3.
+      modifyRecovery: "Modifier la récupération",
       removeStopPoint: "Retirer le point d’arrêt",
     });
   });

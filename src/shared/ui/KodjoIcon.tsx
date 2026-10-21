@@ -93,6 +93,22 @@ const sources = {
   // (export doublement encodé) ; tracé inchangé — même dessin que `8328:40907` à l’échelle 12/14,
   // dont le second sous-chemin reste ouvert comme dans Figma (sans effet sur le remplissage).
   "remove-recovery": require("../../../assets/icons/icon-retirer-recuperation.svg"),
+  // PRE-6 story 5.1 (D-435, carte v2 `9798:44464`) : icônes de la carte d’occurrence de la
+  // Composition, exports SVG de l’outil MCP Figma en lecture seule (attributs racine
+  // preserveAspectRatio/overflow/style retirés, identifiant de groupe décodé) :
+  // - gabarit média 24 (`9798:19907`, même tracé que la variante Circuit `9819:19963`) ;
+  // - pastilles 13 de Catégorie (`9798:19913`) et de Zone corporelle (`9798:19919`) ;
+  // - symbole 13 de la synthèse de travail (`9798:19927`) ;
+  // - sablier 13 de la récupération (`9798:19932`) : tracé plus grand que `recovery-hourglass`
+  //   (`8328:41087`), qui n’est donc pas réutilisé ;
+  // - changement de côté 16 (`9798:19925`) : même tracé que `side-change`, mais rempli
+  //   `#7A7A80` au lieu de `#9499A8` ; la carte de sélection garde `side-change`.
+  "card-media-exercise": require("../../../assets/icons/icon-nature-exercice.svg"),
+  "card-category-badge": require("../../../assets/icons/icon-pastille-categorie.svg"),
+  "card-body-zone-badge": require("../../../assets/icons/icon-pastille-zone-corporelle.svg"),
+  "card-work-duration": require("../../../assets/icons/icon-symbole-duree.svg"),
+  "card-recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation-v2.svg"),
+  "card-side-change": require("../../../assets/icons/icon-changement-de-cote-v2.svg"),
 } as const;
 
 const sizes = {
@@ -221,6 +237,12 @@ const sizes = {
   "placement-recovery-added": [14, 14],
   // Cadre 12 × 12 du `viewBox` exact (bulle « Retirer la récupération »).
   "remove-recovery": [12, 12],
+  "card-media-exercise": [24, 24],
+  "card-category-badge": [13, 13],
+  "card-body-zone-badge": [13, 13],
+  "card-work-duration": [13, 13],
+  "card-recovery-hourglass": [13, 13],
+  "card-side-change": [16, 16],
 } as const;
 
 /**

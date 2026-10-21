@@ -131,7 +131,9 @@ const nativeChange = (testID: string, selection: number) =>
 
 /**
  * Récupérations et points tels qu'affichés hors placement (story 4.2). Sans récupération positive
- * ni point, la ligne n'existe pas (décision Hermann 21/10/2026, remplace D-303).
+ * ni point, la ligne n'existe pas (décision Hermann 21/10/2026, remplace D-303). PRE-6 story 5.1
+ * (D-435) : la récupération est en ligne 3 de la carte ; la rangée sous la carte ne porte plus que
+ * le point.
  */
 function displayedPauses() {
   return ["ex-a", "ex-b", "ex-c", "ex-d"].map((id) => {
@@ -139,7 +141,7 @@ function displayedPauses() {
     return {
       id,
       line: line !== null,
-      recovery: line !== null && within(line).queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
+      recovery: screen.queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
       stopPoint: line !== null && within(line).queryByTestId(`composition-activity-recovery-${id}-stop-point`) !== null,
     };
   });
@@ -204,7 +206,8 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       expect(displayedBeforeSave).toBe(formatEstimatedDuration(450, "exact"));
       const pausesBeforeSave = displayedPauses();
       expect(pausesBeforeSave).toEqual([
-        // A : R = 0 n'affiche rien, la ligne n'existe que par son point ; C, D : aucune ligne.
+        // A : R = 0 n'affiche rien, la ligne n'existe que par son point ; B : R dans la carte, point
+        // dans la ligne ; C, D : aucune ligne.
         { id: "ex-a", line: true, recovery: false, stopPoint: true },
         { id: "ex-b", line: true, recovery: true, stopPoint: true },
         { id: "ex-c", line: false, recovery: false, stopPoint: false },

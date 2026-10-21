@@ -18,3 +18,15 @@
 - source_spec: `_bmad-output/pre6/implementation-artifacts/spec-2-3b-reorganisation-animee-au-glisser.md`
   summary: Test épinglant le nombre de rendus de `CompositionScreen` pendant un glisser (re-rendu seulement au changement d'emplacement).
   evidence: Revue 2.3b (verification-gap) ; comportement présent, non verrouillé par un test.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
+  summary: Retirer l'icône `composition-reorder` (KodjoIcon, `composition-reorder.svg`, manifeste) et le jeton `dimensions.structureMovableIcon` (`glyph`, `slot`), sans usage depuis la suppression de la poignée (carte v2, D-435).
+  evidence: `tokens.ts` verrouillé par `tokensSpecification.test.ts` ; à regrouper avec les autres jetons orphelins de PRE-6.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
+  summary: Carte à 370 de large et x 16 (écran 402) : élargir la rangée d'occurrence au-delà de la colonne des étapes, avec le rail sur le média et le débord 8 du Circuit.
+  evidence: Story 5.1 : la carte occupe la colonne actuelle (le rail et le fond du Circuit ne sont pas encore v2) ; à traiter avec la story 5.2.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
+  summary: Dynamic Type — la carte v2 a des hauteurs fixes (80, lignes 18 / 16 / 17) ; une taille de texte agrandie tronque ou déborde. Aucun écran de l'application ne gère aujourd'hui Dynamic Type.
+  evidence: Revue 5.1 ; sujet transverse, à planifier avec Hermann.
+- source_spec: `_bmad-output/pre6/implementation-artifacts/spec-5-1-carte-v2-et-recuperation-en-troisieme-ligne.md`
+  summary: Recentrer le repère (point) d'une occurrence sur la carte de 80 (`OCCURRENCE_MARKER_CENTER_Y` vaut encore 24, calé sur l'ancienne carte).
+  evidence: Revue 5.1 ; rail segmenté et repères de la story 5.2.

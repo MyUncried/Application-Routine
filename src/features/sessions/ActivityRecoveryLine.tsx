@@ -1,36 +1,101 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { formatActivityRecoveryLabel, formatCompactDuration } from "@/features/sessions/compositionPresentation";
+import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { STOP_POINT_CHIP_HEIGHT, StopPointChip } from "@/features/sessions/StopPointChip";
-import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, spacing } from "@/shared/ui/tokens";
+import { spacing } from "@/shared/ui/tokens";
 
-/** Hauteur de la ligne structurelle (Figma `8328:28657`). */
-export const ACTIVITY_RECOVERY_LINE_HEIGHT = 21;
-/** Marge verticale de la ligne (Figma `8328:28657`). */
+/** Marge verticale de la rangée du point d'arrêt (Figma `8328:29531`). */
 const LINE_PADDING_VERTICAL = spacing[4];
-/** Hauteur de la ligne qui porte un point d'arrêt : puce 22 + marges 4 / 4 (Figma `8328:29531`). */
+/** Hauteur de la rangée qui porte un point d'arrêt : puce 22 + marges 4 / 4 (Figma `8328:29531`). */
 export const STOP_POINT_LINE_HEIGHT = STOP_POINT_CHIP_HEIGHT + 2 * LINE_PADDING_VERTICAL;
 
-/** Libellé (Figma `8328:28660`) : Inter Medium 11, interligne Auto (D2). */
-const RECOVERY_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 11, lineHeight: 13 } as const;
-
-/** Trait (Figma `8328:28661`) : épaisseur 1. */
-const RULE_THICKNESS = 1;
+/**
+ * Valeur de la récupération en ligne 3 de la carte v2 (Figma `9798:19934`) : Inter Regular 12,
+ * `#7A7A80`, interligne « normal » d'Inter (15).
+ */
+export const RECOVERY_VALUE_TEXT = { fontFamily: "Inter_400Regular", fontWeight: "400", fontSize: 12, lineHeight: 15 } as const;
+/** Écart sablier → valeur, identique à celui du symbole de durée de la ligne 2 (Figma : 6). */
+const RECOVERY_ICON_GAP = spacing[6];
 
 /**
- * Cible tactile de la récupération (sablier + libellé, jamais le trait) : étendue aux seules
- * marges verticales de la ligne, pour ne jamais déborder sur la carte au-dessus, qui porte son
- * propre appui long (glisser).
+ * Récupération affichable sur la carte : un nombre fini strictement positif (choix D2 de l'epic 5).
+ * Absente, nulle, négative ou non finie (NaN, ∞, donnée corrompue) : rien n'est affiché ni proposé ;
+ * la donnée n'est pas modifiée.
  */
-export const RECOVERY_HIT_SLOP = { top: LINE_PADDING_VERTICAL, bottom: LINE_PADDING_VERTICAL } as const;
+export function isDisplayableRecovery(recoverySeconds: number | null | undefined): recoverySeconds is number {
+  return typeof recoverySeconds === "number" && Number.isFinite(recoverySeconds) && recoverySeconds > 0;
+}
 
-/** Action accessible de retrait de la récupération (story 4.2). */
-const REMOVE_ACTION = "remove";
+export type OccurrenceRecoveryProps = {
+  /** Récupération à afficher ; non affichable (`isDisplayableRecovery`) : rien n'est rendu. */
+  readonly recoverySeconds: number | null | undefined;
+  /**
+   * Toucher : roulette « Durée de récupération » (story 4.2). Absent — placement, actions glissées
+   * révélées, carte bloquée par une autre révélation, glisser en cours — : simple affichage, le
+   * toucher revient à la carte.
+   */
+  readonly onPress?: () => void;
+  /** Appui long : bulle « Retirer la récupération », ancrée sur la récupération (`measureAnchor`). */
+  readonly onLongPress?: (anchor: View | null) => void;
+  /** Marge tactile, calculée par la carte (`occurrenceRecoveryHitSlop`). */
+  readonly hitSlop?: { readonly top: number; readonly bottom: number };
+  readonly testID?: string;
+};
+
+/**
+ * Récupération contextuelle en troisième ligne de la carte v2 (PRE-6 story 5.1, D-435, Figma
+ * `9798:19931`, `9798:19932`, `9798:19934`) : sablier 13 dans la colonne des symboles puis valeur
+ * SANS préfixe, calée à droite (« 20 s »). Reprend le contrôle de la story 4.2, qui était porté par
+ * la ligne structurelle sous la carte :
+ * - toucher → roulette existante, sans ouvrir l'Exercice : ce `Pressable`, plus profond que celui
+ *   de la carte, prend le toucher à sa place ;
+ * - appui long → bulle « Retirer la récupération », ancrée sur ce contrôle.
+ *
+ * Accessibilité (revue 5.1) : le contrôle est imbriqué dans la carte, élément accessible que
+ * VoiceOver ne traverse pas ; il est donc retiré de l'arbre d'accessibilité (sans double exposition
+ * sous TalkBack). La carte porte la récupération dans son nom et les actions « Modifier la
+ * récupération » / « Retirer la récupération ».
+ */
+export function OccurrenceRecovery({ recoverySeconds, onPress, onLongPress, hitSlop, testID }: OccurrenceRecoveryProps) {
+  const recoveryRef = useRef<View>(null);
+  if (!isDisplayableRecovery(recoverySeconds)) {
+    return null;
+  }
+  const content = (
+    <>
+      <KodjoIcon name="card-recovery-hourglass" testID="composition-recovery-line-icon" />
+      <Text style={styles.value} numberOfLines={1} testID="composition-recovery-line-label">
+        {formatCompactDuration(recoverySeconds)}
+      </Text>
+    </>
+  );
+
+  if (onPress === undefined) {
+    return (
+      <View style={styles.recovery} accessible={false} importantForAccessibility="no" testID={testID}>
+        {content}
+      </View>
+    );
+  }
+  return (
+    <Pressable
+      ref={recoveryRef}
+      onPress={onPress}
+      onLongPress={() => onLongPress?.(recoveryRef.current)}
+      accessible={false}
+      importantForAccessibility="no"
+      hitSlop={hitSlop}
+      style={styles.recovery}
+      testID={testID}
+    >
+      {content}
+    </Pressable>
+  );
+}
 
 export type ActivityRecoveryLineStopPoint = {
   /** « Point d'arrêt après {exercice} » / « … après le circuit ». */
@@ -40,162 +105,73 @@ export type ActivityRecoveryLineStopPoint = {
 };
 
 export type ActivityRecoveryLineProps = {
-  /** `undefined` : ligne sans récupération (point « après le Circuit »). */
-  readonly recoverySeconds?: number | null;
-  /** Toucher une récupération positive : roulette « Durée de récupération » (story 4.2). */
-  readonly onPressRecovery?: () => void;
-  /** Appui long sur une récupération positive : bulle « Retirer la récupération ». */
-  readonly onLongPressRecovery?: (anchor: View | null) => void;
-  /** Alternative accessible : action « Retirer la récupération », même effet que la bulle. */
-  readonly onRemoveRecovery?: () => void;
-  /** Point d'arrêt de cet emplacement (story 4.2) ; `null` / absent : aucun. */
-  readonly stopPoint?: ActivityRecoveryLineStopPoint | null;
+  /** Point d'arrêt de cet emplacement (story 4.2). */
+  readonly stopPoint: ActivityRecoveryLineStopPoint;
   /**
    * Demande de focus (story 4.2, après un retrait) : chaque nouvelle valeur porte le focus
-   * d'accessibilité, à l'image suivante, sur la récupération, sinon sur le point ; sans élément
-   * accessible, `onFocusUnavailable`.
+   * d'accessibilité, à l'image suivante, sur le point.
    */
   readonly focusRequest?: number;
-  readonly onFocusUnavailable?: () => void;
   readonly testID?: string;
 };
 
 /**
- * Ligne structurelle sous une occurrence de la Composition (PRE-6 story 2.1, D-303, D-217, Figma
- * `8328:28657`) : hauteur 21, marges 14 / 4, trait `divider` sur toute la largeur restante. Si
- * R > 0 : sablier 13 et « Récupération {durée} » avant le trait (remplace la sous-carte
- * « Récupération 0 s », E5).
+ * Rangée du point d'arrêt sous une occurrence, ou sous le Circuit (PRE-6 story 4.2, Figma
+ * `8328:29428`) : puce à droite, bord droit aligné sur celui des cartes, hauteur 30.
  *
- * Présence (décision Hermann 21/10/2026, remplace D-303 « trait toujours présent ») : hors
- * placement, la ligne n'existe que si l'occurrence porte une récupération positive (R > 0) ou un
- * point d'arrêt ; R absente ou R = 0 sans point : l'appelant ne la monte pas (ni trait ni hauteur
- * réservée, Figma `8328:28605`). Le composant suppose donc au moins l'un des deux ; la ligne
- * « après le Circuit » n'est montée qu'avec son point.
- *
- * Story 4.2 (`8328:29428`, `8328:29133`, `8328:33689`) :
- * - une récupération positive est un bouton « Récupération {durée}, toucher pour modifier » : le
- *   toucher ouvre sa roulette, l'appui long la bulle « Retirer la récupération », l'action
- *   accessible du même nom retire directement. R = 0 n'offre rien (D-303) ;
- * - un point d'arrêt est une puce à droite (récupération à gauche, point à droite), bord droit
- *   aligné sur celui des cartes ; le trait occupe la largeur restante ; ligne de 30.
- *
- * Elle appartient au bloc de l'occurrence, dont elle suit le déplacement et le balayage
- * (`CompositionActivityRow`). Quand un retrait vide la ligne, elle n'est plus montée : la rangée
- * reporte elle-même le focus sur la carte (`onFocusUnavailable` reste le repli si elle l'est encore).
+ * PRE-6 story 5.1 (D-435, choix D1 de l'epic 5) : la récupération a quitté cette rangée pour la
+ * ligne 3 de la carte (`OccurrenceRecovery`) et le trait de démarcation est supprimé. La rangée
+ * n'existe plus que pour un point d'arrêt, avec son rendu provisoire jusqu'à la story 5.2 (points
+ * centrés entre les cartes). Elle appartient au bloc de l'occurrence, dont elle suit le
+ * déplacement et le balayage (`CompositionActivityRow`). Quand le retrait du point la vide,
+ * l'appelant ne la monte plus et reporte lui-même le focus sur la carte.
  */
-export function ActivityRecoveryLine({
-  recoverySeconds,
-  onPressRecovery,
-  onLongPressRecovery,
-  onRemoveRecovery,
-  stopPoint = null,
-  focusRequest,
-  onFocusUnavailable,
-  testID,
-}: ActivityRecoveryLineProps) {
-  const label = formatActivityRecoveryLabel(recoverySeconds);
-  const recoveryRef = useRef<View>(null);
+export function ActivityRecoveryLine({ stopPoint, focusRequest, testID }: ActivityRecoveryLineProps) {
   const stopPointRef = useRef<View>(null);
-  const t = strings.screens.composition.pauses;
 
-  // Focus rendu à la ligne après un retrait (story 4.2) : jamais au premier rendu ; à l'image
-  // suivante, la bulle (`Modal`) se démontant dans le même geste.
+  // Focus rendu au point après un retrait (story 4.2) : jamais au premier rendu ; à l'image
+  // suivante, la bulle (`Modal`) se démontant dans le même geste. La rangée n'est montée qu'avec
+  // son point : la puce existe toujours.
   const handledFocusRef = useRef(focusRequest);
   useEffect(() => {
     if (focusRequest === undefined || focusRequest === handledFocusRef.current) return undefined;
     handledFocusRef.current = focusRequest;
-    if (recoveryRef.current === null && stopPointRef.current === null) {
-      onFocusUnavailable?.();
-      return undefined;
-    }
-    return focusOnNextFrame(() => recoveryRef.current ?? stopPointRef.current);
-  }, [focusRequest, onFocusUnavailable]);
-
-  const content =
-    label === null ? null : (
-      <>
-        <KodjoIcon name="recovery-hourglass" testID="composition-recovery-line-icon" />
-        <Text style={styles.label} numberOfLines={1} testID="composition-recovery-line-label">
-          {label}
-        </Text>
-      </>
-    );
-
-  let recovery: ReactNode = null;
-  if (label !== null && onPressRecovery !== undefined && typeof recoverySeconds === "number") {
-    recovery = (
-      <Pressable
-        ref={recoveryRef}
-        onPress={onPressRecovery}
-        onLongPress={() => onLongPressRecovery?.(recoveryRef.current)}
-        accessibilityRole="button"
-        accessibilityLabel={t.modifiableRecoveryAccessibilityLabel.replace("{duration}", () =>
-          formatCompactDuration(recoverySeconds),
-        )}
-        accessibilityActions={onRemoveRecovery ? [{ name: REMOVE_ACTION, label: t.removeRecovery }] : undefined}
-        onAccessibilityAction={(event) => {
-          if (event.nativeEvent.actionName === REMOVE_ACTION) onRemoveRecovery?.();
-        }}
-        hitSlop={RECOVERY_HIT_SLOP}
-        style={styles.recovery}
-        testID={testID === undefined ? undefined : `${testID}-recovery`}
-      >
-        {content}
-      </Pressable>
-    );
-  } else if (label !== null) {
-    recovery = (
-      <View style={styles.recovery} accessible accessibilityLabel={label}>
-        {content}
-      </View>
-    );
-  }
+    return focusOnNextFrame(() => stopPointRef.current);
+  }, [focusRequest]);
 
   return (
-    <View style={[styles.line, stopPoint !== null ? styles.lineWithStopPoint : null]} testID={testID}>
-      {recovery}
-      <View style={styles.rule} testID="composition-recovery-line-rule" />
-      {stopPoint !== null ? (
-        <StopPointChip
-          ref={stopPointRef}
-          accessibilityLabel={stopPoint.accessibilityLabel}
-          onLongPress={() => stopPoint.onLongPress(stopPointRef.current)}
-          onRemove={stopPoint.onRemove}
-          testID={testID === undefined ? undefined : `${testID}-stop-point`}
-        />
-      ) : null}
+    <View style={styles.line} testID={testID}>
+      <StopPointChip
+        ref={stopPointRef}
+        accessibilityLabel={stopPoint.accessibilityLabel}
+        onLongPress={() => stopPoint.onLongPress(stopPointRef.current)}
+        onRemove={stopPoint.onRemove}
+        testID={testID === undefined ? undefined : `${testID}-stop-point`}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // Point d'arrêt (ch13 L1258, PR #390) : bord droit de la puce aligné sur celui des cartes.
   line: {
-    height: ACTIVITY_RECOVERY_LINE_HEIGHT,
+    height: STOP_POINT_LINE_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[6],
-    paddingHorizontal: spacing[14],
+    justifyContent: "flex-end",
     paddingVertical: LINE_PADDING_VERTICAL,
   },
-  // Point d'arrêt (ch13 L1258, PR #390) : bord droit de la puce aligné sur celui des cartes.
-  lineWithStopPoint: {
-    height: STOP_POINT_LINE_HEIGHT,
-    paddingRight: 0,
-  },
+  // Sablier dans la colonne des symboles (sous le symbole de durée), valeur calée à droite.
   recovery: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[6],
-    flexShrink: 1,
+    gap: RECOVERY_ICON_GAP,
   },
-  label: {
-    ...RECOVERY_TEXT,
+  value: {
+    ...RECOVERY_VALUE_TEXT,
     color: TEXT_TERTIARY,
+    flexGrow: 1,
     flexShrink: 1,
-  },
-  rule: {
-    flex: 1,
-    height: RULE_THICKNESS,
-    backgroundColor: colors.divider,
+    textAlign: "right",
   },
 });

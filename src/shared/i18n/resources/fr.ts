@@ -403,6 +403,9 @@ export const fr = {
       pauses: {
         modifiableRecoveryAccessibilityLabel: "Récupération {duration}, toucher pour modifier",
         removeRecovery: "Retirer la récupération",
+        // PRE-6 (story 5.1, D-435) : action accessible de la carte qui ouvre le réglage de la récupération
+        // de la ligne 3 (VoiceOver n’atteint pas un bouton imbriqué dans la carte).
+        modifyRecovery: "Modifier la récupération",
         removeStopPoint: "Retirer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
@@ -528,6 +531,12 @@ export const fr = {
         accessibilityPosition: "{position} sur {count}",
         // Ajouté au nom accessible d'une occurrence bilatérale (RM-243 : sans direction).
         accessibilitySideChange: "changement de côté",
+        // PRE-6 (story 5.1, revue) : ajouté au nom accessible d’une occurrence dont la récupération
+        // est affichée en ligne 3 (le contrôle imbriqué n’est pas exposé à l’accessibilité).
+        accessibilityRecovery: "récupération {duration}",
+        // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
+        // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
+        workEstimateSeparator: " / ",
       },
     },
     exercise: {
