@@ -182,7 +182,7 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 **Choix par défaut D1 à D8 (sources divergentes ou muettes) : validés par Hermann le 21/10/2026.**
 - D1 — Trait de démarcation : aucun trait en v2 (décision Hermann du 21/10 : pas de trait sans récupération ni point ; Figma sans trait ; D-435 supersède la représentation de D-303). ch13 L1474/L1530/L1573/L1585 conservent la phrase historique : lot documentaire.
 - D2 — Sablier sans valeur : rien n'est affiché si la récupération est absente ou à 0 (ch13 L1474, ch10 ; le sablier de `8328:28605` sans valeur est illustratif, ch10 L599 de la PR #391).
-- D3 — Média : gabarit 64 × 64 avec l'icône générique de `9798:19907` (couche photo masquée dans Figma ; D-435 exclut les photos de démonstration ; ch08 : « gabarit, non une nouvelle propriété »). Aucune photo de l'occurrence n'est affichée dans ce lot.
+- D3 — Média (remplacé par Hermann le 21/10/2026) : le gabarit 64 × 64 affiche la photo de l'exercice, ou l'image d'affiche de sa vidéo, quand elle existe (premier média de l'occurrence, mécanisme existant de la vignette du Catalogue : `CardThumbnail`, `VideoPoster`) ; sinon l'icône générique de `9798:19907`. Story 5.1b.
 - D4 — Compteur du Circuit : position Figma (`8328:28605`) ; l'œil des Volumes, exigé par ch13 L1474 et absent des nœuds, reste à côté du titre.
 - D5 — Couleurs Figma hors registre ch12 (`#F3F4F9` aplat du Circuit, `#E4E7EF` bord de carte, `#EEF0F6` fond du média, `#8C8C94` Dupliquer) : constantes locales citant ch13/DSF, sans modifier `tokens.ts` (registre verrouillé par ch12) ; ajout au registre proposé dans le lot documentaire. `tourSurface` n'est pas modifié (partagé avec `SessionCard`, `DisclosureControl`).
 - D6 — Placement : cartes non atténuées (Figma `8328:29270`), toujours inactives au toucher.
@@ -194,6 +194,11 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 - **AC1** : carte 370 × 80 à la largeur 402 (marges 16), rayon 12, fond blanc ; bord 1 hors Circuit, aucun bord dans le Circuit ; média 64 × 64 intégré (D3) ; trois lignes : nom (ellipse) + icône de côté ; pastille + Catégorie + symbole + synthèse calée à droite ; pastille + Zones (coupées) + sablier + récupération. Colonnes en proportion de la largeur utile (360, 402, 440), jamais de largeur codée en dur sur l'exemple. Catégorie et Zones depuis leurs propriétés structurées.
 - **AC2** : récupération positive en ligne 3 (valeur seule), absente ou à 0 : rien (D2) ; toucher : réglage existant, sans ouvrir l'Exercice ; appui long : bulle Retirer ; actions accessibles conservées ; plus de rangée séparée ni de trait (D1). Le point d'arrêt garde son rendu existant jusqu'à la story 5.2.
 - **AC3** : plus de poignée ; appui long sur toute la carte ; glisser, balayage, Dupliquer, Supprimer, récupération qui suit l'occurrence et animation de la story 2.3b inchangés.
+
+### Story 5.1b: Photo ou affiche vidéo dans le gabarit de la carte
+
+- **AC1** : quand l'occurrence a un média, son premier média (photo, ou image d'affiche d'une vidéo) remplit le gabarit 64 × 64 de la carte v2 (rayon 12, recadrage centré, texte alternatif = nom de l'exercice, place réservée au chargement et en erreur), par le mécanisme existant de la vignette du Catalogue ; sans média, icône générique (D3).
+- **AC2** : aucune lecture vidéo, aucun son, rien de persisté ; le média ne devient pas une cible tactile distincte (toucher et appui long de la carte inchangés).
 
 ### Story 5.2: Rail segmenté, Circuit, bornes et points d'arrêt
 
