@@ -178,7 +178,7 @@ Les réactions Figma utilisent ON_CLICK puis AFTER_TIMEOUT de 10 ms pour la dém
 | Zones corporelles | Ancienne icône body/man-outline | Famille silhouette Homme/Femme | Cartes, Profil, éditeur | Validé, RG-5/RG-10 |
 | Bilatéral | Texte « de chaque côté » | Miroir dans les variantes concernées | Exercice Catalogue/choix | Validé |
 | Prochaine planification | D-206 impose une ligne conditionnelle | Ligne retirée du rendu | Deux Catalogues | Validé ; D-206 révisée sur l’affichage seul |
-| Pause/récupération | Synthèses documentées et D-208 | Absentes de certaines synthèses graphiques | Catalogue, choix, Composition | Validé ; affichage révisé, données conservées ; calculs révisés par D-248/v13 |
+| Pause/récupération | Synthèses documentées et D-208 | Absentes du corps des cartes Catalogue/choix ; Récupération de Composition sur la ligne3 de la carte v2 (D-435) | Catalogue, choix ; exception Composition | Validé par contexte ; données conservées ; calculs régis par D-248/v13 |
 | Format de synthèse | Format métier existant | N séries de X / N séries de N rép. / N séries à l’échec | Exercice | Validé |
 | Heure / classement | Formats et agrégations existants | 08:00 en Semaine ; Suivi sans heure depuis D-262 ; étiquette sinon catégories hors Suivi | Cartes | Validé |
 | Appui | Non décrit dans le DSF documentaire courant | Démonstrations et variantes accessibilité identifiées | Contrôles | Spécification v2 du 29/09 reprise ; action immédiate au relâchement |
