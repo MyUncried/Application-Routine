@@ -5675,3 +5675,192 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
   });
 });
+
+/**
+ * PRE-6 story 4.3 (D-301, ch13 L1575) — avertissement non bloquant d'enchaînement sans pause :
+ * message unique, informatif, au-dessus de l'action finale et de la barre de placement ; il ne
+ * bloque ni « Continuer » ni l'enregistrement et disparaît dès qu'aucune frontière ne s'enchaîne
+ * sans pause. Le calcul des frontières est prouvé dans `unpausedTransitions.test.ts`.
+ */
+describe("CompositionScreen — avertissement d'enchaînement sans pause (PRE-6 story 4.3, D-301)", () => {
+  const WARNING = "composition-unpaused-warning";
+  const warning = () => screen.queryByTestId(WARNING);
+  const twoBefore = (overrides: Partial<SessionDraftExercise> = {}) => [
+    anActivity("A", "BEFORE_TOUR", { name: "A", ...overrides }),
+    anActivity("B", "BEFORE_TOUR", { name: "B" }),
+  ];
+
+  it("A puis B sans pause ni récupération : un seul message, texte exact, annoncé poliment, au-dessus de « Continuer »", () => {
+    renderScreenWithDraft(twoBefore());
+
+    expect(composition.unpausedWarning).toBe("Attention, les exercices vont s’enchaîner sans pause.");
+    expect(screen.getAllByText(composition.unpausedWarning)).toHaveLength(1);
+    expect(warning()?.props.accessibilityLiveRegion).toBe("polite");
+    expect(testIdOrder(screen.toJSON(), [WARNING, "composition-save-action"])).toEqual([WARNING, "composition-save-action"]);
+    // Information, pas une erreur : jamais la couleur d'échec.
+    expect(StyleSheet.flatten(warning()?.props.style).color).toBe(colors.textSecondary);
+    expect(StyleSheet.flatten(warning()?.props.style).color).not.toBe(colors.danger);
+    // Non bloquant : « Continuer » reste actif.
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+  });
+
+  it.each([
+    ["Pause terminale de A > 0", { executionParameters: durationParameters(30, 1, 10) }],
+    ["récupération positive après A", { postActivityRecoverySeconds: 20 }],
+  ])("%s : aucun message", (_label, overrides) => {
+    renderScreenWithDraft(twoBefore(overrides));
+    expect(warning()).toBeNull();
+  });
+
+  it("récupération à 0 après A : le message reste (0 ne remplace rien)", () => {
+    renderScreenWithDraft(twoBefore({ postActivityRecoverySeconds: 0 }));
+    expect(warning()).not.toBeNull();
+  });
+
+  it("point d'arrêt après A : aucun message", () => {
+    renderScreenWithDraft(twoBefore(), { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] });
+    expect(warning()).toBeNull();
+  });
+
+  it("un seul exercice, même répété par le Circuit : aucun message", () => {
+    renderScreenWithDraft([anActivity("B", "IN_TOUR", { name: "B" })], { tourRepeatCount: 3 });
+    expect(warning()).toBeNull();
+  });
+
+  it("Circuit de Tours N = 2 [B, C], PN(C) = 0 : message (frontière de Tour C1 → B2)", () => {
+    renderScreenWithDraft(
+      [
+        anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 30 }),
+        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 1, 10) }),
+        anActivity("C", "IN_TOUR", { name: "C" }),
+      ],
+      { tourRepeatCount: 2, circuitNature: "TOURS" },
+    );
+    expect(warning()).not.toBeNull();
+  });
+
+  it("Circuit de Tours N = 2 [B] avec A avant : B → B n'est pas une frontière, aucun message (à confirmer par Hermann, J3)", () => {
+    renderScreenWithDraft(
+      [
+        anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 30 }),
+        anActivity("B", "IN_TOUR", { name: "B" }),
+      ],
+      { tourRepeatCount: 2, circuitNature: "TOURS" },
+    );
+    expect(warning()).toBeNull();
+  });
+
+  it.each<["SERIES" | "TOURS", boolean]>([
+    ["SERIES", true],
+    ["TOURS", false],
+  ])("nature %s lue par l'écran : A [Pauses 0 puis 10], B 2 × Pause 5, N = 2 → message %p", (nature, expected) => {
+    renderScreenWithDraft(
+      [
+        anActivity("A", "IN_TOUR", {
+          name: "A",
+          executionParameters: variableParameters({ mode: "DURATION", rows: [[30, 0], [30, 10]] }),
+        }),
+        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 2, 5) }),
+      ],
+      { tourRepeatCount: 2, circuitNature: nature },
+    );
+    expect(warning() !== null).toBe(expected);
+  });
+
+  it("annonce le message à chaque apparition (absent → présent), une seule fois par apparition", () => {
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+    announce.mockClear();
+    try {
+      const warningAnnouncements = () =>
+        announce.mock.calls.filter(([message]) => message === composition.unpausedWarning).length;
+      renderScreenWithDraft(twoBefore());
+      expect(warningAnnouncements()).toBe(1);
+      fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      expect(warningAnnouncements()).toBe(1);
+      fireEvent.press(
+        screen.getByLabelText(composition.placement.addStopPointAccessibilityLabel.replace("{exercise}", "A")),
+      );
+      expect(warning()).toBeNull();
+      fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+      expect(warning()).not.toBeNull();
+      expect(warningAnnouncements()).toBe(2);
+    } finally {
+      announce.mockRestore();
+    }
+  });
+
+  it("aucune annonce sans message", () => {
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+    announce.mockClear();
+    try {
+      renderScreenWithDraft(twoBefore({ postActivityRecoverySeconds: 20 }));
+      expect(announce.mock.calls.filter(([message]) => message === composition.unpausedWarning)).toHaveLength(0);
+    } finally {
+      announce.mockRestore();
+    }
+  });
+
+  it("Circuit de Séries N = 2 [A, B], Pi = 0 : message", () => {
+    renderScreenWithDraft(
+      [
+        anActivity("A", "IN_TOUR", { name: "A", executionParameters: durationParameters(30, 2, 0) }),
+        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 2, 0) }),
+      ],
+      { tourRepeatCount: 2, circuitNature: "SERIES" },
+    );
+    expect(warning()).not.toBeNull();
+  });
+
+  it("disparaît dès que plus aucune frontière ne remplit la condition (suppression de B)", () => {
+    renderScreenWithDraft(twoBefore());
+    expect(warning()).not.toBeNull();
+    fireSwipeLeft("B");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-B"));
+    expect(warning()).toBeNull();
+  });
+
+  it("placement : au-dessus de la barre, recalculé en direct ; un point après A le fait disparaître, « Annuler » le rétablit", () => {
+    renderScreenWithDraft(twoBefore());
+    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    expect(testIdOrder(screen.toJSON(), [WARNING, "composition-placement-bar"])).toEqual([WARNING, "composition-placement-bar"]);
+
+    fireEvent.press(
+      screen.getByLabelText(composition.placement.addStopPointAccessibilityLabel.replace("{exercise}", "A")),
+    );
+    expect(warning()).toBeNull();
+
+    fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+    expect(warning()).not.toBeNull();
+  });
+
+  it("« Continuer » avec le message présent : enregistre normalement, sans modifier aucun paramètre", async () => {
+    const createSession = jest.fn(async (_input: unknown) => ({ ok: true, value: {} }));
+    const service = { createSession, updateSession: jest.fn() } as unknown as SessionService;
+    const exercises = twoBefore();
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper initialExercises={exercises}>
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    expect(warning()).not.toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    expect(createSession).toHaveBeenCalledTimes(1);
+    // Le brouillon enregistré est celui composé : ni Pause, ni récupération, ni point ajoutés.
+    const saved = createSession.mock.calls[0]![0] as SessionDraftContextValue["draft"];
+    expect(saved.exercises).toEqual(exercises);
+    expect(saved.stopPoints ?? []).toEqual([]);
+    await waitFor(() =>
+      expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/", params: { catalogueSegment: "sessions" } }),
+    );
+  });
+});

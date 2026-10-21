@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   ActivityIndicator,
   BackHandler,
   Keyboard,
@@ -67,6 +68,7 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
+import { hasUnpausedTransition } from "@/domain/sessions/unpausedTransitions";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
@@ -979,6 +981,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
     [draft, placement],
   );
+  // PRE-6 (story 4.3, D-301) : avertissement non bloquant d'enchaînement sans pause, lu sur le
+  // même brouillon que les durées (en placement : tel que « Confirmer » le produirait).
+  const hasUnpausedWarning = useMemo(
+    () =>
+      hasUnpausedTransition({
+        exercises: durationDraft.exercises,
+        stopPoints: durationDraft.stopPoints,
+        circuitNature: durationDraft.circuitNature,
+        tourRepeatCount: durationDraft.tourRepeatCount,
+      }),
+    [durationDraft],
+  );
+  // `accessibilityLiveRegion` n'existe que sous Android et n'annonce pas un nœud monté : le
+  // message est annoncé explicitement à chaque apparition (absent → présent).
+  const wasUnpausedWarningShown = useRef(false);
+  useEffect(() => {
+    if (hasUnpausedWarning && !wasUnpausedWarningShown.current) {
+      AccessibilityInfo.announceForAccessibility(strings.screens.composition.unpausedWarning);
+    }
+    wasUnpausedWarningShown.current = hasUnpausedWarning;
+  }, [hasUnpausedWarning]);
   const placementRowContext = useMemo<PlacementRowContext | null>(
     () =>
       placement === null
@@ -1699,6 +1722,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
          * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
+        {/*
+         * PRE-6 (story 4.3, D-301) : message unique, informatif, au-dessus de l'action finale et de
+         * la barre de placement ; il ne bloque ni « Continuer » ni l'enregistrement et disparaît dès
+         * qu'aucune frontière entre Exercices ne s'enchaîne sans pause.
+         */}
+        {hasUnpausedWarning ? (
+          <Text style={styles.unpausedWarningText} accessibilityLiveRegion="polite" testID="composition-unpaused-warning">
+            {composition.unpausedWarning}
+          </Text>
+        ) : null}
         {/* PRE-6 (story 4.1, `8328:29423`) : en placement, la barre remplace « Continuer ». */}
         {placement !== null ? (
           <PlacementBar
@@ -3316,6 +3349,13 @@ const styles = StyleSheet.create({
   // fond désactivé par défaut).
   continueActionEnabled: {
     backgroundColor: colors.primary,
+  },
+  // PRE-6 (story 4.3, D-301) : information, non une erreur — même style que l'information de
+  // `ActivityMediaList` (`type.body`, `colors.textSecondary`), centrée comme l'action finale.
+  unpausedWarningText: {
+    ...type.body,
+    color: colors.textSecondary,
+    textAlign: "center",
   },
   // Q54 : style de l'ancien message d'échec de `CategoriesScreen` (D-107).
   saveErrorText: {

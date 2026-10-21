@@ -406,6 +406,9 @@ export const fr = {
         removeStopPoint: "Retirer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
+      // PRE-6 (story 4.3, D-301, ch10 L556, ch13 L1575) : avertissement non bloquant d’enchaînement
+      // sans pause entre deux Exercices, mot pour mot.
+      unpausedWarning: "Attention, les exercices vont s’enchaîner sans pause.",
       summary: {
         // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
         empty: "— min",
