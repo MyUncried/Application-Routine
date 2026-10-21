@@ -179,7 +179,7 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 
 **Chevauchement avec la PR #390.** Aucun conflit textuel (ch06, ch13). Pour la Composition, le rendu de la PR #390 (synthèse en bas à droite, point d'arrêt aligné à droite) est remplacé par D-435 et par la demande de Hermann du 21/10 (points d'arrêt centrés entre les cartes). La PR #390 reste la référence pour la carte de sélection d'exercice (CE-T03-07), hors de cet epic.
 
-**Choix par défaut appliqués (sources divergentes ou muettes, soumis à Hermann au jalon J4) :**
+**Choix par défaut D1 à D8 (sources divergentes ou muettes) : validés par Hermann le 21/10/2026.**
 - D1 — Trait de démarcation : aucun trait en v2 (décision Hermann du 21/10 : pas de trait sans récupération ni point ; Figma sans trait ; D-435 supersède la représentation de D-303). ch13 L1474/L1530/L1573/L1585 conservent la phrase historique : lot documentaire.
 - D2 — Sablier sans valeur : rien n'est affiché si la récupération est absente ou à 0 (ch13 L1474, ch10 ; le sablier de `8328:28605` sans valeur est illustratif, ch10 L599 de la PR #391).
 - D3 — Média : gabarit 64 × 64 avec l'icône générique de `9798:19907` (couche photo masquée dans Figma ; D-435 exclut les photos de démonstration ; ch08 : « gabarit, non une nouvelle propriété »). Aucune photo de l'occurrence n'est affichée dans ce lot.
@@ -211,7 +211,7 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 - **AC1** : état soulevé selon `8328:33546` (taille inchangée, ombre) ; actions glissées selon `8328:28863` (deux actions sur toute la hauteur de la carte v2) ; seuils et mécanismes de geste inchangés.
 - **AC2** : CE-FMT-03 : aucune composition préremplie (Tabata, EMOM…) n'existe dans le code ; la story vérifie que le rendu v2 couvre les variantes de carte (Durée bilatérale, Séries identiques et variables, Répétitions, Répétitions + cadence, À l'échec) et consigne l'écart.
 
-**Jalon J4 (iPhone, après 5.4)** : largeurs 360 / 402 / 440, cartes hors Circuit et dans le Circuit, textes longs, récupération absente / 0 / positive, placement complet, retrait, glisser, balayage, duplication, VoiceOver ; décision de Hermann sur D1 à D8.
+**Jalon J4 (iPhone, après 5.4)** : largeurs 360 / 402 / 440, cartes hors Circuit et dans le Circuit, textes longs, récupération absente / 0 / positive, placement complet, retrait, glisser, balayage, duplication, VoiceOver.
 
 ## Ordre recommandé et dépendances
 
