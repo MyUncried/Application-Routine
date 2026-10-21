@@ -3216,8 +3216,9 @@ function CircuitSurface({
       style={StyleSheet.absoluteFill}
       testID={testID}
     >
-      <Animated.View style={[styles.circuitSurfaceTop, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
+      {/* Bande d'abord, arrondis ensuite : les arrondis recouvrent les jointures (`CIRCUIT_SURFACE_SEAM_OVERLAP`). */}
       <Animated.View style={[styles.circuitSurfaceBand, { transform: bandTransform }]} testID={`${testID}-band`} />
+      <Animated.View style={[styles.circuitSurfaceTop, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
       <Animated.View
         style={[styles.circuitSurfaceBottom, { transform: [{ translateY: bottom }] }]}
         testID={`${testID}-bottom`}
@@ -3408,6 +3409,12 @@ function predictedInsertionHeight(
 
 /** Écart entre l'en-tête du Circuit et sa liste d'occurrences (`tourSectionContainer`). */
 const CIRCUIT_SECTION_GAP = spacing[12];
+/**
+ * Correctif 2.3b (retour Hermann 21/10/2026) : les arrondis haut et bas du fond du Circuit
+ * débordent de 2 points sur la bande centrale. Sans ce chevauchement, l'étirement de la bande
+ * (`scaleY`, valeurs fractionnaires) laissait un liseré clair à chaque jointure pendant le glisser.
+ */
+const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
 
 /** PRE-6 (story 2.3b) : écarts qui apparaissent ou disparaissent avec un bloc déplacé. */
 const DRAG_SHIFT_GAPS = { row: COMPOSITION_ROW_GAP, zone: COMPOSITION_ROW_GAP, circuit: CIRCUIT_SECTION_GAP } as const;
@@ -3694,7 +3701,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: dimensions.compositionTourSection.radius,
+    height: dimensions.compositionTourSection.radius + CIRCUIT_SURFACE_SEAM_OVERLAP,
     borderTopLeftRadius: dimensions.compositionTourSection.radius,
     borderTopRightRadius: dimensions.compositionTourSection.radius,
     backgroundColor: colors.tourSurface,
@@ -3712,7 +3719,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    height: dimensions.compositionTourSection.radius,
+    height: dimensions.compositionTourSection.radius + CIRCUIT_SURFACE_SEAM_OVERLAP,
     borderBottomLeftRadius: dimensions.compositionTourSection.radius,
     borderBottomRightRadius: dimensions.compositionTourSection.radius,
     backgroundColor: colors.tourSurface,
