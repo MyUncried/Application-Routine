@@ -173,6 +173,46 @@ Dépendances : 1.1 → 1.2. 1.1 → 1.3 → 1.4. 1.2 et 1.3 peuvent se faire en 
 - **AC2** : dans le Circuit, récupérations et points sont répétés à chaque Tour ou passage. L'ordre est Exercice → R positive → Point d'arrêt (RM-219). Durées recalculées en direct (story 1.3).
 - **AC3** : avertissement D-301 informatif quand deux Exercices s'enchaînent sans Pause terminale ni R positive, sans mutation ni blocage.
 
+## Epic 5: Présentation de la Composition du 21/10/2026 (D-435)
+
+Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité avec Figma au 21/10, à fonctionnalités identiques. Documentation : PR #391 (`docs/composition-layout-20261021` @ `d9e56056`), intégrée telle quelle dans la branche PRE-6 (`445457c8`) ; D-435 (ch07), CE-T03-08 et CE-FMT-03 (ch13), ch08 « Présentation des occurrences — révision du 21/10/2026 », DSF-CARTES « Exception locale — Cartes de Composition de séance v2 ». Figma : Standard `8328:28605`, placement `8328:29270`, actions glissées `8328:28863`, déplacement `8328:33546`, point d'arrêt `8328:29428`, carte v2 `9798:44464`, modification `5271:5455`. Aucune nouvelle fonctionnalité ; modèle, API, calculs, formats, paramètres, enregistrement inchangés. Différés (D-435) : ouvrir l'éditeur d'Exercice au toucher de la récupération ; supprimer le défaut Profil.
+
+**Chevauchement avec la PR #390.** Aucun conflit textuel (ch06, ch13). Pour la Composition, le rendu de la PR #390 (synthèse en bas à droite, point d'arrêt aligné à droite) est remplacé par D-435 et par la demande de Hermann du 21/10 (points d'arrêt centrés entre les cartes). La PR #390 reste la référence pour la carte de sélection d'exercice (CE-T03-07), hors de cet epic.
+
+**Choix par défaut appliqués (sources divergentes ou muettes, soumis à Hermann au jalon J4) :**
+- D1 — Trait de démarcation : aucun trait en v2 (décision Hermann du 21/10 : pas de trait sans récupération ni point ; Figma sans trait ; D-435 supersède la représentation de D-303). ch13 L1474/L1530/L1573/L1585 conservent la phrase historique : lot documentaire.
+- D2 — Sablier sans valeur : rien n'est affiché si la récupération est absente ou à 0 (ch13 L1474, ch10 ; le sablier de `8328:28605` sans valeur est illustratif, ch10 L599 de la PR #391).
+- D3 — Média : gabarit 64 × 64 avec l'icône générique de `9798:19907` (couche photo masquée dans Figma ; D-435 exclut les photos de démonstration ; ch08 : « gabarit, non une nouvelle propriété »). Aucune photo de l'occurrence n'est affichée dans ce lot.
+- D4 — Compteur du Circuit : position Figma (`8328:28605`) ; l'œil des Volumes, exigé par ch13 L1474 et absent des nœuds, reste à côté du titre.
+- D5 — Couleurs Figma hors registre ch12 (`#F3F4F9` aplat du Circuit, `#E4E7EF` bord de carte, `#EEF0F6` fond du média, `#8C8C94` Dupliquer) : constantes locales citant ch13/DSF, sans modifier `tokens.ts` (registre verrouillé par ch12) ; ajout au registre proposé dans le lot documentaire. `tourSurface` n'est pas modifié (partagé avec `SessionCard`, `DisclosureControl`).
+- D6 — Placement : cartes non atténuées (Figma `8328:29270`), toujours inactives au toucher.
+- D7 — Cible de la récupération en ligne 3 : sablier et valeur, cible tactile ≥ 44, jamais la ligne entière (sinon conflit avec le toucher de la carte, qui ouvre l'Exercice).
+- D8 — Écran Modifier (`5271:5455`) : le stepper ouvert au repos est illustratif ; le comportement actuel (chiffre distinct, ± au toucher) est conservé.
+
+### Story 5.1: Carte v2 et récupération en troisième ligne
+
+- **AC1** : carte 370 × 80 à la largeur 402 (marges 16), rayon 12, fond blanc ; bord 1 hors Circuit, aucun bord dans le Circuit ; média 64 × 64 intégré (D3) ; trois lignes : nom (ellipse) + icône de côté ; pastille + Catégorie + symbole + synthèse calée à droite ; pastille + Zones (coupées) + sablier + récupération. Colonnes en proportion de la largeur utile (360, 402, 440), jamais de largeur codée en dur sur l'exemple. Catégorie et Zones depuis leurs propriétés structurées.
+- **AC2** : récupération positive en ligne 3 (valeur seule), absente ou à 0 : rien (D2) ; toucher : réglage existant, sans ouvrir l'Exercice ; appui long : bulle Retirer ; actions accessibles conservées ; plus de rangée séparée ni de trait (D1). Le point d'arrêt garde son rendu existant jusqu'à la story 5.2.
+- **AC3** : plus de poignée ; appui long sur toute la carte ; glisser, balayage, Dupliquer, Supprimer, récupération qui suit l'occurrence et animation de la story 2.3b inchangés.
+
+### Story 5.2: Rail segmenté, Circuit, bornes et points d'arrêt
+
+- **AC1** : rail 1,5 `#7A7A80` en segments calculés depuis les positions réelles (anneaux des bornes et du Circuit, médias), sans traverser médias ni anneaux ; aucun nombre de segments ni coordonnée d'exemple ; segments qui suivent les décalages animés du glisser.
+- **AC2** : Circuit en aplat sans contour (D5), débord 8, rayon et espacements Figma ; en-tête : anneau sur le rail, titre, œil (D4), compteur, durée alignée à droite sur la ligne du titre ; commandes de nature, compte et volumes inchangées ; le fond animé de la story 2.3b est conservé.
+- **AC3** : point d'arrêt hors placement dans une rangée centrée entre les cartes, raccordé au rail ; retrait par appui long inchangé ; bornes et écarts verticaux selon Figma.
+
+### Story 5.3: Placement mixte et défilement
+
+- **AC1** : emplacements de point d'arrêt centrés entre les cartes, raccordés au rail ; emplacement de récupération en cadre pointillé dans la ligne 3 des seules cartes éligibles (une récupération existante, même à 0, interdit un second ajout) ; cartes non atténuées (D6).
+- **AC2** : la liste défile jusqu'au dernier emplacement sous le pied protégé ; Annuler et Confirmer toujours accessibles ; sous-brouillon, positions autorisées, décompte, roulette et confirmation inchangés.
+
+### Story 5.4: États soulevé et actions glissées
+
+- **AC1** : état soulevé selon `8328:33546` (taille inchangée, ombre) ; actions glissées selon `8328:28863` (deux actions sur toute la hauteur de la carte v2) ; seuils et mécanismes de geste inchangés.
+- **AC2** : CE-FMT-03 : aucune composition préremplie (Tabata, EMOM…) n'existe dans le code ; la story vérifie que le rendu v2 couvre les variantes de carte (Durée bilatérale, Séries identiques et variables, Répétitions, Répétitions + cadence, À l'échec) et consigne l'écart.
+
+**Jalon J4 (iPhone, après 5.4)** : largeurs 360 / 402 / 440, cartes hors Circuit et dans le Circuit, textes longs, récupération absente / 0 / positive, placement complet, retrait, glisser, balayage, duplication, VoiceOver ; décision de Hermann sur D1 à D8.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -182,6 +222,7 @@ Epic 1 : 1.1 → 1.2 ┐       │
 Epic 2 : 2.1 (après 1.1) ; 2.2 (après 1.3) ; 2.3 (après 1.4)   → Jalon J1
 Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jalon J2
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
+Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.

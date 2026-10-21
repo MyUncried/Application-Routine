@@ -63,3 +63,10 @@ development_status:
   4-2-durée-modification-et-retrait: review
   4-3-pauses-dans-le-déroulement-et-la-composition: review
   epic-4-retrospective: optional
+
+  epic-5: in-progress
+  5-1-carte-v2-et-récupération-en-troisième-ligne: in-progress
+  5-2-rail-segmenté-circuit-bornes-et-points-d-arrêt: backlog
+  5-3-placement-mixte-et-défilement: backlog
+  5-4-états-soulevé-et-actions-glissées: backlog
+  epic-5-retrospective: optional
