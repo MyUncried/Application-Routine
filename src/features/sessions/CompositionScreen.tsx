@@ -175,6 +175,7 @@ import { SessionServiceContext } from "@/features/sessions/SessionServiceContext
 import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
 import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
+import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
@@ -765,6 +766,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [dragSession, setDragSession] = useState<DragShiftSession>(IDLE_DRAG_SESSION);
   /** Story 5.2b : registre des translations, pour le début d'un geste (déclaré plus bas). */
   const shiftRegistryRef = useRef<AnimatedShiftRegistry | null>(null);
+  /**
+   * Fin de l'aperçu (`endDragSession`). PRE-6 story 7.4 (commentaire 14) : sans animation — une
+   * nouvelle disposition est rendue (dépôt appliqué, confirmation, entrée en placement) —, les
+   * valeurs JS des translations passent à 0 AVANT les écritures d'état
+   * (`AnimatedShiftRegistry.prepareLayoutCommit`) : le rendu de la nouvelle disposition porte des
+   * translations nulles, au lieu de celles de l'aperçu remises à 0 seulement après lui (le Circuit
+   * agrandi ou rétracté s'affichait avec ses bords encore décalés).
+   */
+  const finishDragPreview = useCallback((animated: boolean, release: ShiftRelease | null = null) => {
+    if (!animated) shiftRegistryRef.current?.prepareLayoutCommit();
+    setDragSession((current) => endDragSession(current, animated, release));
+  }, []);
+  /**
+   * PRE-6 story 7.4 (D-437, commentaire 3) : défilement automatique pendant le glisser — le corps
+   * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
+   */
+  const bodyScrollRef = useRef<ScrollView>(null);
+  const autoScroll = useDragAutoScroll({
+    scrollTo: (offset) => bodyScrollRef.current?.scrollTo({ y: offset, animated: false }),
+    measure: (callback) => bodyScrollRef.current?.getNativeScrollRef()?.measureInWindow((_x, y, _width, height) => callback(y, height)),
+  });
   /** Hauteur mesurée du conteneur du Circuit ; `0` tant qu'il n'est pas mesuré (fond statique). */
   const [circuitMeasuredHeight, setCircuitMeasuredHeight] = useState(0);
   // « Réduire les animations » (D-7) : décalages immédiats.
@@ -1054,10 +1076,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // Story 4.2 : le glisser d'un point referme les actions glissées révélées.
         if (key.startsWith(RAIL_STOP_KEY_PREFIX)) setRevealedActionsId(null);
       }
+      // Story 7.4 : fin du geste (dépôt, annulation) — le défilement automatique s'arrête.
+      if (key === null) autoScroll.end();
       draggedKeyRef.current = key;
       setDraggedKey(key);
     },
-    [closeCircuitNatureMenu],
+    [autoScroll, closeCircuitNatureMenu],
   );
 
   /**
@@ -1077,7 +1101,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setPendingCircuitEntry(null);
     // Story 5.2b : un aperçu conservé pour le dialogue de perte, ou un retour en cours, se termine
     // aussitôt (translations posées à 0 sans animation).
-    setDragSession((current) => endDragSession(current, false));
+    finishDragPreview(false);
     setIsAddActivityTreeOpen(false);
     setRevealedActionsId(null);
     setRecoveryWheel(null);
@@ -1097,7 +1121,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (profileRequestRef.current === request) setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
       },
     );
-  }, [profileService]);
+  }, [finishDragPreview, profileService]);
   /** « Annuler » (et retour système) : l'état d'entrée est restitué, sans aucune mutation. */
   const cancelPlacement = useCallback(() => {
     leavePlacement();
@@ -1729,7 +1753,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       handleDragStart(null);
       if (destination === null) {
         // Revue 6.2 : géométrie incomplète, aucun emplacement fiable : retour, rien d'écrit.
-        setDragSession((current) => endDragSession(current, true, { key, from: translationY }));
+        finishDragPreview(true, { key, from: translationY });
         return;
       }
       // PRE-6 story 6.2 (D-436) : une occurrence est insérée au rang visé de la séquence mêlée
@@ -1756,10 +1780,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               },
         );
       } else {
-        setDragSession((current) => endDragSession(current, outcome === "REFUSED", outcome === "REFUSED" ? release : null));
+        finishDragPreview(outcome === "REFUSED", outcome === "REFUSED" ? release : null);
       }
     },
-    [buildDragLayout, dragPreview, handleDragStart, itemAbsoluteCenterY, moveActivityTo, moveStopPointTo],
+    [buildDragLayout, dragPreview, finishDragPreview, handleDragStart, itemAbsoluteCenterY, moveActivityTo, moveStopPointTo],
   );
 
   /**
@@ -1788,6 +1812,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // translations à 0, de façon synchrone, AVANT le relevé (la mise en page mesurée, que
         // `buildDragLayout` vient de lire, correspond alors à l'écran).
         shiftRegistryRef.current?.reset();
+        // Story 7.4 : origine du défilement accumulé pendant ce geste.
+        autoScroll.begin();
         setDragSession({
           preview: { key, originLayout, slot: null, heldTranslationY: null },
           animated: true,
@@ -1799,7 +1825,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       handleDragStart(key);
       return true;
     },
-    [buildDragLayout, handleDragStart],
+    [autoScroll, buildDragLayout, handleDragStart],
   );
 
   /**
@@ -2083,7 +2109,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           const focusKey = request.fromStep ? railRowKey(request.move.activityId) : undefined;
           const outcome = moveActivityTo({ ...request.move, tourChoice: choice }, focusKey);
           // Dialogue de perte ensuite (Séries) : l'élément reste tenu ; sinon fin de l'aperçu.
-          if (outcome !== "PENDING") setDragSession((current) => endDragSession(current, outcome === "REFUSED"));
+          if (outcome !== "PENDING") finishDragPreview(outcome === "REFUSED");
           return;
         }
         case "STOP_POINT_MOVE": {
@@ -2100,6 +2126,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             return outcome.status === "APPLIED" && outcome.state !== state ? { state: outcome.state, removed: [] } : null;
           };
           const rendered = resolve(compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount));
+          // Story 7.4 : translations JS à 0 avant les écritures d'une nouvelle disposition.
+          if (rendered !== null) shiftRegistryRef.current?.prepareLayoutCommit();
           updateDraft((current) => {
             const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
             const replayed = resolve(currentState);
@@ -2183,7 +2211,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         }
       }
     },
-    [draft, moveActivityTo, pendingTourChoice, placement, placementContext, reportRemovedStopPoints, requestItemFocus, updateDraft],
+    [draft, finishDragPreview, moveActivityTo, pendingTourChoice, placement, placementContext, reportRemovedStopPoints, requestItemFocus, updateDraft],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
@@ -2424,13 +2452,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * qu'aux sélecteurs numériques à roulette).
        */}
       <ScrollView
+        ref={bodyScrollRef}
         style={styles.body}
         contentContainerStyle={styles.bodyContent}
         keyboardShouldPersistTaps="handled"
         // T02-S01 (D-127/CE-T02-02) : pendant un déplacement de carte, le
-        // défilement est neutralisé — le geste vertical appartient alors
-        // exclusivement à la carte soulevée, jamais à la liste.
+        // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
+        // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
+        // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
         scrollEnabled={draggedKey === null}
+        // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
+        onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
+        // Revue 7.4 : sur iOS, le dernier `onScroll` d'un défilement peut être filtré (`scrollEventThrottle`).
+        onScrollEndDrag={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        onMomentumScrollEnd={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+        onLayout={(event) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
         // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le choix de nature du Circuit.
         onScrollBeginDrag={closeCircuitNatureMenu}
         testID="composition-body"
@@ -2501,6 +2539,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragMove={handleDragMove}
           onDragEnd={handleDropItem}
           rail={sequenceRail}
+          autoScroll={autoScroll}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={canStepActivity}
@@ -2624,6 +2663,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onDragMove={handleDragMove}
             onDragEnd={handleDropItem}
             rail={sequenceRail}
+            autoScroll={autoScroll}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
             canStep={canStepActivity}
@@ -2722,6 +2762,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragMove={handleDragMove}
           onDragEnd={handleDropItem}
           rail={sequenceRail}
+          autoScroll={autoScroll}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={canStepActivity}
@@ -2956,6 +2997,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             const plan = planOccurrenceMove(draft, pendingCircuitEntry);
             setPendingCircuitEntry(null);
             const applied = plan?.status === "PLAN";
+            // Story 7.4 : translations JS à 0 avant les écritures d'une nouvelle disposition.
+            if (applied) shiftRegistryRef.current?.prepareLayoutCommit();
             if (plan?.status === "PLAN") {
               updateDraft(plan.patch);
               // Story 7.2 (D-437) : points retirés par le déplacement tolérant (ou le choix de Tour).
@@ -3098,6 +3141,8 @@ type ActivityZoneListProps = {
    * le glisser) et liens du rail segmenté.
    */
   readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
   /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
@@ -3337,6 +3382,7 @@ function ActivityZoneList({
   onDragMove,
   onDragEnd,
   rail,
+  autoScroll,
   onDuplicate,
   onDelete,
   canStep,
@@ -3420,6 +3466,7 @@ function ActivityZoneList({
               isDragged={draggedKey === key}
               isRaised={raisedKey === key}
               rail={rail}
+              autoScroll={autoScroll}
               onLayout={(event) => onRowLayout(key, zone, event)}
               focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
               onFocusConsumed={onFocusConsumed}
@@ -3463,6 +3510,7 @@ function ActivityZoneList({
           // un ordre explicite avec la session de décalage.
           onDragEnd={(translationY) => onDragEnd(key, zone, translationY)}
           rail={rail}
+          autoScroll={autoScroll}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
@@ -3483,6 +3531,8 @@ type StopPointRowProps = {
   /** Story 5.2b : au premier plan (soulevée, maintenue ou en retour). */
   readonly isRaised: boolean;
   readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
   readonly onLayout: (event: LayoutChangeEvent) => void;
   /** Revue 6.2 : focus d'accessibilité demandé sur ce point (pas d'une zone à l'autre). */
   readonly focusRequest: ItemFocusRequest | null;
@@ -3521,6 +3571,7 @@ function StopPointRow({
   isDragged,
   isRaised,
   rail,
+  autoScroll,
   onLayout,
   focusRequest,
   onFocusConsumed,
@@ -3546,7 +3597,10 @@ function StopPointRow({
     return focusOnNextFrame(() => chipRef.current, focusRequest.announcement, () => onFocusConsumed(token));
   }, [focusRequest, onFocusConsumed]);
   const originRef = useRef<number | null>(null);
+  /** Translation de la puce : déplacement du doigt plus, story 7.4, défilement accumulé. */
   const translationYRef = useRef(0);
+  /** Story 7.4 : déplacement du doigt seul (depuis le début du toucher). */
+  const fingerDyRef = useRef(0);
   const isDraggingRef = useRef(false);
   const [dragTranslationY, setDragTranslationY] = useState(0);
   // Une rangée démontée pendant son glisser (point retiré du brouillon) annule le geste.
@@ -3554,6 +3608,16 @@ function StopPointRow({
   useEffect(() => {
     onDragCancelRef.current = onDragCancel;
   }, [onDragCancel]);
+  const onDragMoveRef = useRef(onDragMove);
+  useEffect(() => {
+    onDragMoveRef.current = onDragMove;
+  }, [onDragMove]);
+  /** Story 7.4 : translation de la puce soulevée (mouvement du doigt ou trame de défilement). */
+  const applyDragTranslation = useCallback((translationY: number) => {
+    translationYRef.current = translationY;
+    setDragTranslationY(translationY);
+    onDragMoveRef.current(translationY);
+  }, []);
   useEffect(() => {
     const dragging = isDraggingRef;
     const cancel = onDragCancelRef;
@@ -3569,18 +3633,25 @@ function StopPointRow({
     if (isDraggingRef.current) return;
     originRef.current = event.nativeEvent.pageY;
     translationYRef.current = 0;
+    fingerDyRef.current = 0;
   }, []);
   const track = useCallback((event: GestureResponderEvent) => {
     const start = originRef.current;
     const dy = start === null ? 0 : event.nativeEvent.pageY - start;
-    translationYRef.current = dy;
+    fingerDyRef.current = dy;
+    // Story 7.4 : pendant le glisser, la translation compte aussi le défilement accumulé.
+    if (!isDraggingRef.current) translationYRef.current = dy;
     return dy;
   }, []);
   const handleLongPress = useCallback(() => {
     // Revue 6.2 : refusé si un autre élément est soulevé ou si la géométrie est incomplète.
     if (originRef.current === null || !onDragStart()) return;
     isDraggingRef.current = true;
-  }, [onDragStart]);
+    // Story 7.4 : la puce suit le défilement automatique, même sans mouvement du doigt — et un doigt
+    // déjà immobile dans une bande de bord au soulèvement fait défiler (revue 7.4).
+    autoScroll.attach((scrollDelta) => applyDragTranslation(fingerDyRef.current + scrollDelta));
+    autoScroll.track(originRef.current + fingerDyRef.current);
+  }, [applyDragTranslation, autoScroll, onDragStart]);
   // Le glisser engagé capte le mouvement (phase de capture) ; sinon, le défilement reste au parent.
   const handleMoveShouldSetResponderCapture = useCallback(
     (event: GestureResponderEvent) => {
@@ -3593,10 +3664,9 @@ function StopPointRow({
     (event: GestureResponderEvent) => {
       const dy = track(event);
       if (!isDraggingRef.current) return;
-      setDragTranslationY(dy);
-      onDragMove(dy);
+      applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
     },
-    [onDragMove, track],
+    [applyDragTranslation, autoScroll, track],
   );
   const handleTouchEnd = useCallback(
     (event: GestureResponderEvent) => {
@@ -3792,6 +3862,8 @@ type CompositionActivityRowProps = {
    * (`rail.shiftOf`). PRE-6 (story 5.2) : lien du rail vers l'élément précédent.
    */
   readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
@@ -3938,6 +4010,7 @@ function CompositionActivityRow({
   onDragMove,
   onDragEnd,
   rail,
+  autoScroll,
   onDuplicate,
   onDelete,
   onMoveUp,
@@ -3957,7 +4030,10 @@ function CompositionActivityRow({
     const token = focusRequest.token;
     return focusOnNextFrame(() => cardRef.current, focusRequest.announcement, () => onFocusConsumed(token));
   }, [focusRequest, onFocusConsumed]);
+  /** Translation de la carte soulevée : déplacement du doigt plus, story 7.4, défilement accumulé. */
   const translationYRef = useRef(0);
+  /** Story 7.4 : déplacement vertical du doigt seul (depuis le début du toucher). */
+  const fingerDyRef = useRef(0);
   const isDraggingRef = useRef(false);
   /**
    * PRE-6 (story 2.3b) : une carte démontée pendant son glisser (occurrence retirée du brouillon)
@@ -3994,6 +4070,19 @@ function CompositionActivityRow({
    * sinon toutes les autres cartes, la structure Tour et la synthèse.
    */
   const [dragTranslationY, setDragTranslationY] = useState(0);
+  const onDragMoveRef = useRef(onDragMove);
+  useEffect(() => {
+    onDragMoveRef.current = onDragMove;
+  }, [onDragMove]);
+  /**
+   * PRE-6 story 7.4 : translation de la carte soulevée, à chaque mouvement du doigt et à chaque
+   * trame du défilement automatique (doigt immobile dans la bande de bord).
+   */
+  const applyDragTranslation = useCallback((translationY: number) => {
+    translationYRef.current = translationY;
+    setDragTranslationY(translationY);
+    onDragMoveRef.current(translationY);
+  }, []);
   /**
    * Décalage horizontal visuel de la carte (V2-CAT-01, CE-T03-08) — même
    * technique locale que `dragTranslationY` ci-dessus, étendue au balayage :
@@ -4043,7 +4132,9 @@ function CompositionActivityRow({
     }
     const dx = event.nativeEvent.pageX - start.x;
     const dy = event.nativeEvent.pageY - start.y;
-    translationYRef.current = dy;
+    fingerDyRef.current = dy;
+    // Story 7.4 : pendant le glisser, la translation compte aussi le défilement accumulé.
+    if (!isDraggingRef.current) translationYRef.current = dy;
     return { dx, dy };
   }, []);
 
@@ -4104,15 +4195,14 @@ function CompositionActivityRow({
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
       if (isDraggingRef.current) {
-        setDragTranslationY(dy);
-        onDragMove(dy);
+        applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
         return;
       }
       if (Math.abs(dx) > Math.abs(dy)) {
         applySwipeMovement(dx);
       }
     },
-    [applySwipeMovement, onDragMove, trackMovement],
+    [applyDragTranslation, applySwipeMovement, autoScroll, trackMovement],
   );
 
   /**
@@ -4249,7 +4339,12 @@ function CompositionActivityRow({
   const handleLongPress = useCallback(() => {
     if (!onDragStart()) return;
     isDraggingRef.current = true;
-  }, [onDragStart]);
+    // Story 7.4 : la carte suit le défilement automatique, même sans mouvement du doigt — et un doigt
+    // déjà immobile dans une bande de bord au soulèvement fait défiler (revue 7.4).
+    autoScroll.attach((scrollDelta) => applyDragTranslation(fingerDyRef.current + scrollDelta));
+    const origin = originRef.current;
+    if (origin !== null) autoScroll.track(origin.y + fingerDyRef.current);
+  }, [applyDragTranslation, autoScroll, onDragStart]);
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
   // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).

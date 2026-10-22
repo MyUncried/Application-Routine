@@ -7783,6 +7783,303 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   });
 
   /**
+   * PRE-6 story 7.4 (D-437, recette iPhone du 22/10, commentaires 3, 13 et 14).
+   */
+  describe("story 7.4 — défilement pendant le glisser, cohérence avec le pilote natif", () => {
+    type InternalValue = {
+      _updateValue: (value: number, flush: boolean) => void;
+      __onAnimatedValueUpdateReceived: (value: number) => void;
+      __getValue: () => number;
+      stopAnimation: () => void;
+    };
+    /**
+     * Pilote natif : `setValue` d'une valeur native ne rerend pas les vues (`AnimatedValue.setValue`,
+     * `flush` seulement hors pilote natif) — l'arbre garde la valeur JS lue au dernier rendu.
+     */
+    function nativeSetValue() {
+      jest.spyOn(Animated.Value.prototype, "setValue").mockImplementation(function (this: Animated.Value, value: number) {
+        const internal = this as unknown as InternalValue;
+        internal.stopAnimation();
+        internal._updateValue(value, false);
+      });
+    }
+    const circuitFrame = () => ({
+      top: translateY("composition-tour-section-surface-top"),
+      bottom: translateY("composition-tour-section-surface-bottom"),
+      band: translateY("composition-tour-section-surface-band"),
+      scale: scaleY("composition-tour-section-surface-band"),
+      header: translateY("composition-circuit-header"),
+      ring: translateY("composition-sequence-marker-circuit-track"),
+    });
+    const RESTING_FRAME = { top: 0, bottom: 0, band: 0, scale: 1, header: 0, ring: 0 };
+
+    it("commentaire 14 — entrée dans le Circuit déposée : la nouvelle disposition est rendue avec un cadre du Circuit sans décalage", () => {
+      nativeSetValue();
+      renderLaidOut();
+      lift("A");
+      moveTo("A", 200);
+      settle();
+      expect(circuitFrame().top).toBe(-PITCH);
+      release("A", 200);
+      expect(order()).toEqual(["B:BEFORE_TOUR", "A:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+      expect(circuitFrame()).toEqual(RESTING_FRAME);
+      expect(rowShift("B")).toBe(0);
+      expect(rowShift("X")).toBe(0);
+      expect(rowShift("Z")).toBe(0);
+    });
+
+    it("commentaire 14 — sortie du Circuit déposée : cadre du Circuit sans décalage avec la nouvelle disposition", () => {
+      nativeSetValue();
+      renderLaidOut();
+      lift("X");
+      moveTo("X", 200);
+      settle();
+      expect(circuitFrame().bottom).toBe(-(70 + CIRCUIT_GAP));
+      release("X", 200);
+      expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR", "X:AFTER_TOUR"]);
+      expect(circuitFrame()).toEqual(RESTING_FRAME);
+      expect(rowShift("Z")).toBe(0);
+    });
+
+    /**
+     * Pilote natif simulé : la valeur JS n'avance pas pendant l'animation ; à l'arrêt, le rappel de fin
+     * est appelé aussitôt, et la valeur atteinte (mi-course) arrive une tâche plus tard : React Native
+     * la recopie (`__onAnimatedValueUpdateReceived`) puis rerend les vues avec la valeur JS.
+     */
+    function nativeTiming() {
+      jest.spyOn(Animated, "timing").mockImplementation((value, config) => {
+        const internal = value as unknown as InternalValue;
+        const toValue = config.toValue as number;
+        let onEnd: Animated.EndCallback | undefined;
+        let timer: ReturnType<typeof setTimeout> | null = null;
+        let from = 0;
+        return {
+          start: (callback?: Animated.EndCallback) => {
+            onEnd = callback;
+            from = internal.__getValue();
+            timer = setTimeout(() => {
+              timer = null;
+              onEnd?.({ finished: true });
+              internal.__onAnimatedValueUpdateReceived(toValue);
+              internal._updateValue(internal.__getValue(), true);
+            }, config.duration ?? 0);
+          },
+          stop: () => {
+            if (timer === null) return;
+            clearTimeout(timer);
+            timer = null;
+            onEnd?.({ finished: false });
+            onEnd = undefined;
+            setTimeout(() => {
+              internal.__onAnimatedValueUpdateReceived((from + toValue) / 2);
+              internal._updateValue(internal.__getValue(), true);
+            }, 0);
+          },
+          reset: () => undefined,
+        };
+      });
+    }
+
+    it("commentaire 13 — dépôt pendant le décalage animé des voisines : rien ne reste figé à mi-course", () => {
+      nativeTiming();
+      renderLaidOut();
+      lift("A");
+      moveTo("A", 100);
+      // B commence à remonter (animation native en cours) quand A est déposée sous elle.
+      act(() => {
+        jest.advanceTimersByTime(40);
+      });
+      release("A", 100);
+      expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+      settle();
+      expect(rowShift("B")).toBe(0);
+      expect(rowShift("A")).toBe(0);
+    });
+
+    describe("commentaire 3 — défilement automatique", () => {
+      /** Zone visible de la liste : y 0 à 300 dans l'écran. */
+      const VIEWPORT = { top: 0, height: 300 };
+      let scrollTo: jest.Mock<(options: { y: number; animated: boolean }) => void>;
+      beforeEach(() => {
+        scrollTo = jest.fn();
+        const prototype = ScrollView.prototype as unknown as {
+          scrollTo: (options: { y: number; animated: boolean }) => void;
+          getNativeScrollRef: () => unknown;
+        };
+        jest.spyOn(prototype, "scrollTo").mockImplementation(scrollTo);
+        jest.spyOn(prototype, "getNativeScrollRef").mockReturnValue({
+          measureInWindow: (callback: (x: number, y: number, width: number, height: number) => void) =>
+            callback(0, VIEWPORT.top, 402, VIEWPORT.height),
+        });
+      });
+      function layOutBody(contentHeight = 900, offset = 0) {
+        const body = screen.getByTestId("composition-body");
+        fireEvent(body, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: VIEWPORT.height } } });
+        fireEvent(body, "contentSizeChange", 402, contentHeight);
+        fireEvent(body, "scroll", { nativeEvent: { contentOffset: { x: 0, y: offset } } });
+      }
+      const offsets = () => scrollTo.mock.calls.map(([options]) => options.y);
+      const lastOffset = () => offsets()[offsets().length - 1] ?? 0;
+      const frames = (ms: number) =>
+        act(() => {
+          jest.advanceTimersByTime(ms);
+        });
+
+      it("doigt dans la bande du bas : la liste défile sans animation, de plus en plus loin ; la carte reste sous le doigt et l'emplacement suit le défilement", () => {
+        renderLaidOut();
+        layOutBody();
+        lift("A");
+        // Doigt à 280 (bande du bas : 236 à 300) ; centre de A dans le contenu : 105 + 180 = 285,
+        // dans le Circuit au-dessus du milieu de X (325) → emplacement 0 du Circuit, sans défilement.
+        moveTo("A", 180);
+        settle();
+        expect(scrollTo).toHaveBeenCalled();
+        for (const [options] of scrollTo.mock.calls) expect(options.animated).toBe(false);
+        const values = offsets();
+        for (let index = 1; index < values.length; index += 1) expect(values[index]!).toBeGreaterThan(values[index - 1]!);
+        // La carte suit le doigt ET le défilement (repère du contenu).
+        expect(translateY("composition-exercise-row-A")).toBeCloseTo(180 + lastOffset(), 6);
+        // Le défilement a porté A au-delà du Circuit (bas à 400), doigt immobile : l'aperçu suit — A
+        // quitte la zone d'avant (B, le Circuit et Z remontent d'un pas) pour se placer après Z.
+        expect(lastOffset()).toBeGreaterThan(400 - 285);
+        // Sous `act` synchrone, les rendus du défilement sont appliqués à sa sortie : un second
+        // passage laisse les décalages de l'aperçu atteindre leur cible (l'emplacement ne change plus).
+        settle();
+        expect(rowShift("B")).toBe(-PITCH);
+        expect(rowShift("Z")).toBe(-PITCH);
+        expect(circuitFrame()).toEqual({ top: -PITCH, bottom: -PITCH, band: -PITCH, scale: 1, header: -PITCH, ring: -PITCH });
+        release("A", 180);
+        expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR", "A:AFTER_TOUR"]);
+      });
+
+      it("vitesse progressive : plus le doigt est profond dans la bande, plus le défilement est rapide ; hors de la bande, arrêt", () => {
+        renderLaidOut();
+        layOutBody();
+        lift("A");
+        moveTo("A", 150); // 250 : 14 dans la bande.
+        frames(160);
+        const shallow = lastOffset();
+        expect(shallow).toBeGreaterThan(0);
+        moveTo("A", 195); // 295 : 59 dans la bande.
+        frames(160);
+        const deep = lastOffset() - shallow;
+        expect(deep).toBeGreaterThan(shallow * 2);
+        moveTo("A", 100); // 200 : hors de la bande.
+        const calls = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(calls);
+        release("A", 100);
+      });
+
+      it("bande du haut : défilement vers le haut jusqu'au bord du contenu, puis arrêt ; l'emplacement suit", () => {
+        renderLaidOut();
+        layOutBody(900, 120);
+        lift("B");
+        // Doigt à 20 (bande du haut : 0 à 64).
+        moveTo("B", -80);
+        frames(2000);
+        expect(lastOffset()).toBe(0);
+        const calls = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(calls);
+        // Translation : -80 - 120 ; centre de B : 185 - 200 = -15 → avant A.
+        expect(translateY("composition-exercise-row-B")).toBe(-200);
+        release("B", -80);
+        expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+      });
+
+      it("bord bas du contenu : arrêt au décalage maximal", () => {
+        renderLaidOut();
+        layOutBody(400);
+        lift("A");
+        moveTo("A", 199);
+        frames(2000);
+        expect(lastOffset()).toBe(100);
+        const calls = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(calls);
+        release("A", 199);
+      });
+
+      it("dépôt ou annulation : le défilement s'arrête ; le défilement par l'utilisateur est rétabli", () => {
+        renderLaidOut();
+        layOutBody();
+        lift("A");
+        moveTo("A", 190);
+        frames(100);
+        release("A", 190);
+        const calls = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(calls);
+        expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+
+        // Annulation (responder repris) : arrêt aussi.
+        settle();
+        lift("B");
+        moveTo("B", 190);
+        frames(100);
+        fireEvent(container("B"), "responderTerminate");
+        const afterCancel = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(afterCancel);
+      });
+
+      it("revue 7.4 — doigt déjà immobile dans la bande au soulèvement : la liste défile sans mouvement", () => {
+        renderLaidOut();
+        layOutBody();
+        fireEvent(container("A"), "touchStart", { nativeEvent: { pageX: 200, pageY: 290 } });
+        fireEvent(screen.getByTestId("composition-exercise-row-A"), "longPress");
+        frames(200);
+        expect(lastOffset()).toBeGreaterThan(0);
+        expect(translateY("composition-exercise-row-A")).toBeCloseTo(lastOffset(), 6);
+        fireEvent(container("A"), "touchEnd", { nativeEvent: { pageX: 200, pageY: 290 } });
+      });
+
+      it("revue 7.4 — décalage de départ relevé aussi à la fin d'un défilement (`onScrollEndDrag`, `onMomentumScrollEnd`)", () => {
+        renderLaidOut();
+        layOutBody(900, 0);
+        const body = screen.getByTestId("composition-body");
+        fireEvent(body, "scrollEndDrag", { nativeEvent: { contentOffset: { x: 0, y: 40 } } });
+        fireEvent(body, "momentumScrollEnd", { nativeEvent: { contentOffset: { x: 0, y: 120 } } });
+        lift("A");
+        moveTo("A", 195);
+        frames(50);
+        expect(offsets()[0]!).toBeGreaterThan(120);
+        expect(offsets()[0]!).toBeLessThan(140);
+        release("A", 195);
+      });
+
+      it("liste plus courte que la zone visible : aucun défilement", () => {
+        renderLaidOut();
+        layOutBody(250);
+        lift("A");
+        moveTo("A", 195);
+        frames(500);
+        expect(scrollTo).not.toHaveBeenCalled();
+        release("A", 195);
+      });
+
+      it("glisser d'un Point d'arrêt : la liste défile aussi, et la puce reste sous le doigt", () => {
+        renderLaidOut({ stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }] });
+        layOutAfterCircuitPoint();
+        layOutBody(900, 300);
+        const row = screen.getByTestId("composition-stop-point-row-pc");
+        fireEvent(row, "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+        fireEvent(screen.getByTestId("composition-stop-point-pc-chip"), "longPress");
+        // Doigt à 10 (bande du haut).
+        fireEvent(row, "responderMove", { nativeEvent: { pageX: 200, pageY: 10 } });
+        frames(300);
+        expect(lastOffset()).toBeLessThan(300);
+        expect(translateY("composition-stop-point-pc")).toBeCloseTo(-90 + (lastOffset() - 300), 6);
+        fireEvent(row, "touchEnd", { nativeEvent: { pageX: 200, pageY: 10 } });
+        const calls = scrollTo.mock.calls.length;
+        frames(500);
+        expect(scrollTo.mock.calls.length).toBe(calls);
+      });
+    });
+  });
+
+  /**
    * PRE-6 story 5.2 (D-435) : le rail segmenté suit les décalages du glisser sans recalcul de mise en
    * page — chaque lien, porté par l'élément qu'il relie, s'étire de la différence entre la
    * translation de son élément et celle de son prédécesseur (`scaleY`, bas fixe) ; la carte glissée

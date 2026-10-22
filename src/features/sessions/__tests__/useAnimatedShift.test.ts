@@ -198,3 +198,152 @@ describe("AnimatedShiftRegistry (story 5.2)", () => {
     expect(idle).toHaveBeenCalledTimes(1);
   });
 });
+
+/**
+ * PRE-6 story 7.4 (commentaire 13 de la recette du 22/10) : sémantique du pilote NATIF reproduite.
+ * Sur le pilote natif, la valeur JS d'une `Animated.Value` n'avance pas pendant l'animation ; à
+ * l'arrêt (`stop`), le rappel de fin est appelé aussitôt (`TimingAnimation.stop`), mais le module
+ * natif renvoie PLUS TARD la valeur atteinte, que React Native recopie dans la valeur JS
+ * (`Animation.js` l. 144-151 → `AnimatedValue.__onAnimatedValueUpdateReceived`) avant de rerendre
+ * les vues (sous Fabric, ce rendu porte la valeur JS dans l'arbre). Une pose immédiate faite
+ * entre-temps (`setValue`) est donc écrasée par une valeur intermédiaire périmée.
+ */
+describe("AnimatedShiftRegistry — arrêt d'une animation native (PRE-6 story 7.4)", () => {
+  type NativeLike = {
+    readonly toValue: number;
+    readonly value: Animated.Value;
+    stopped: boolean;
+  };
+  let natives: NativeLike[] = [];
+  beforeEach(() => {
+    // Microtâches réelles : le registre diffère ses démarrages par `queueMicrotask`.
+    jest.useFakeTimers({ doNotFake: ["queueMicrotask"] });
+    natives = [];
+    jest.spyOn(Animated, "timing").mockImplementation((value, config) => {
+      const animatedValue = value as Animated.Value;
+      const from = valueOf(animatedValue);
+      const toValue = config.toValue as number;
+      let onEnd: Animated.EndCallback | undefined;
+      const native: NativeLike = { toValue, value: animatedValue, stopped: false };
+      natives.push(native);
+      return {
+        start: (callback?: Animated.EndCallback) => {
+          onEnd = callback;
+        },
+        stop: () => {
+          native.stopped = true;
+          // Rappel de fin aussitôt ; valeur atteinte (mi-course) renvoyée par le module natif plus tard.
+          const reached = (from + toValue) / 2;
+          onEnd?.({ finished: false });
+          onEnd = undefined;
+          setTimeout(() => {
+            (animatedValue as unknown as { __onAnimatedValueUpdateReceived: (value: number) => void }).__onAnimatedValueUpdateReceived(
+              reached,
+            );
+          }, 0);
+        },
+        reset: () => undefined,
+      };
+    });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("pose immédiate pendant une animation : la valeur reste à la cible après la fin native tardive", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const a = registry.value("a", 0);
+    registry.apply(new Map([["a", 88]]), true);
+    await flush();
+    expect(natives).toHaveLength(1);
+    // Dépôt appliqué à mi-animation : remise à 0 immédiate.
+    registry.apply(new Map([["a", 0]]), false);
+    expect(natives[0]!.stopped).toBe(true);
+    expect(valueOf(a)).toBe(0);
+    jest.runOnlyPendingTimers();
+    await flush();
+    expect(valueOf(a)).toBe(0);
+  });
+
+  it("reset pendant un retour animé : toutes les valeurs restent à 0 après la fin native tardive", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const a = registry.value("a", 0);
+    registry.apply(new Map([["a", 0]]), true, { key: "a", from: 120 });
+    await flush();
+    registry.reset();
+    jest.runOnlyPendingTimers();
+    await flush();
+    expect(valueOf(a)).toBe(0);
+  });
+
+  it("nouvelle cible animée : la fin tardive de l'animation arrêtée ne relance rien", async () => {
+    const registry = new AnimatedShiftRegistry();
+    registry.value("a", 0);
+    registry.apply(new Map([["a", 88]]), true);
+    await flush();
+    registry.apply(new Map([["a", -88]]), true);
+    await flush();
+    jest.runOnlyPendingTimers();
+    await flush();
+    expect(natives).toHaveLength(2);
+    expect(natives[1]!.stopped).toBe(false);
+  });
+});
+
+describe("AnimatedShiftRegistry.prepareLayoutCommit (PRE-6 story 7.4, commentaire 14)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers({ doNotFake: ["queueMicrotask"] });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("avant le rendu d'une nouvelle disposition : animations arrêtées, valeurs JS à 0 sans pose native ; pose native au `apply` suivant", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const a = registry.value("a", 0);
+    const b = registry.value("b", 0);
+    registry.apply(
+      new Map([
+        ["a", -88],
+        ["b", 0],
+      ]),
+      false,
+    );
+    registry.apply(
+      new Map([
+        ["a", -88],
+        ["b", 40],
+      ]),
+      true,
+    );
+    await flush();
+    const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
+    registry.prepareLayoutCommit();
+    expect(animations[0]!.stopped).toBe(true);
+    expect(valueOf(a)).toBe(0);
+    expect(valueOf(b)).toBe(0);
+    // Aucune pose native avant le rendu (le pilote natif garde l'aperçu affiché).
+    expect(setValue).not.toHaveBeenCalled();
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", 0],
+      ]),
+      false,
+    );
+    expect(setValue.mock.calls.map(([value]) => value)).toEqual([0, 0]);
+    await flush();
+    expect(animations).toHaveLength(1);
+  });
+
+  it("sans `apply` après le rendu : la pose native a lieu une tâche plus tard", () => {
+    const registry = new AnimatedShiftRegistry();
+    registry.value("a", 0);
+    registry.apply(new Map([["a", 30]]), false);
+    const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
+    registry.prepareLayoutCommit();
+    expect(setValue).not.toHaveBeenCalled();
+    jest.runOnlyPendingTimers();
+    expect(setValue.mock.calls.map(([value]) => value)).toEqual([0]);
+  });
+});

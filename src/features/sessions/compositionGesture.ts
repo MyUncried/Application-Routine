@@ -325,5 +325,57 @@ export function resolveDragShifts(
   };
 }
 
+/**
+ * PRE-6 story 7.4 (D-437, commentaire 3 de la recette du 22/10) : défilement automatique pendant un
+ * glisser. Bande de bord, en points depuis chaque bord de la zone visible de la liste, dans laquelle
+ * le doigt fait défiler la liste ; la vitesse croît linéairement avec la profondeur dans la bande,
+ * de 0 à sa limite intérieure jusqu'au maximum au bord (et au-delà, doigt hors de la liste). Valeurs
+ * de conception non dictées par la spécification (choix 7.4, réversibles).
+ */
+export const AUTO_SCROLL_EDGE = 64;
+/** Vitesse maximale du défilement automatique, en points par seconde (12 par trame à 60 Hz). */
+export const AUTO_SCROLL_MAX_SPEED = 720;
+
+/** Zone visible de la liste dans le repère de l'écran (`pageY`) : haut et hauteur. */
+export type AutoScrollViewport = {
+  readonly top: number;
+  readonly height: number;
+};
+
+/**
+ * PRE-6 story 7.4 : vitesse signée du défilement automatique (points par seconde ; négative vers le
+ * haut du contenu) pour un doigt en `pointerY` (repère de l'écran). Nulle hors des bandes de bord ou
+ * sans zone visible mesurée. Une zone plus basse que deux bandes les réduit chacune à sa moitié.
+ */
+export function autoScrollVelocity(
+  pointerY: number,
+  viewport: AutoScrollViewport,
+  edge: number = AUTO_SCROLL_EDGE,
+  maxSpeed: number = AUTO_SCROLL_MAX_SPEED,
+): number {
+  if (!(viewport.height > 0) || !Number.isFinite(pointerY)) {
+    return 0;
+  }
+  const band = Math.min(edge, viewport.height / 2);
+  if (!(band > 0)) {
+    return 0;
+  }
+  const fromTop = pointerY - viewport.top;
+  const fromBottom = viewport.top + viewport.height - pointerY;
+  if (fromTop < band) {
+    return -maxSpeed * Math.min(1, (band - fromTop) / band);
+  }
+  if (fromBottom < band) {
+    return maxSpeed * Math.min(1, (band - fromBottom) / band);
+  }
+  return 0;
+}
+
+/** PRE-6 story 7.4 : décalage de défilement borné au contenu (`0` à contenu moins zone visible). */
+export function clampScrollOffset(offset: number, contentHeight: number, viewportHeight: number): number {
+  const max = Math.max(0, contentHeight - viewportHeight);
+  return Math.min(max, Math.max(0, offset));
+}
+
 /** Sens d'une action accessible de déplacement (« Monter » / « Descendre »). */
 export type StepDirection = "UP" | "DOWN";

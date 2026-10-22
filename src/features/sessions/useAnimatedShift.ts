@@ -26,6 +26,24 @@ export const DRAG_SHIFT_DURATION_MS = 180;
  * component »). L'ordre des microtâches n'étant pas un contrat, le démarrage revérifie au moment
  * venu que la clé est toujours visée, à la même cible, avec la même valeur (jeton par clé) ; sinon
  * il est abandonné. Une pose immédiate (`animated` faux) reste synchrone, avant l'affichage.
+ *
+ * PRE-6 story 7.4 (commentaires 13 et 14 de la recette du 22/10) — cohérence avec le pilote natif.
+ * Sous Fabric, chaque rendu d'une vue animée porte dans l'arbre la valeur JS de ses valeurs animées
+ * (`AnimatedProps.__getValueWithStaticProps`) ; or, sur le pilote natif, la valeur JS n'avance pas
+ * pendant l'animation. À l'ARRÊT d'une animation, le rappel de fin est appelé aussitôt
+ * (`TimingAnimation.stop`), mais le module natif renvoie PLUS TARD la valeur atteinte, que React
+ * Native recopie dans la valeur JS (`Animation.js` l. 144-151 → `__onAnimatedValueUpdateReceived`)
+ * avant de rerendre les vues (`createAnimatedPropsHook.js` l. 135-143). Deux conséquences, corrigées :
+ * - une pose immédiate faite après l'arrêt (`setValue` d'un dépôt appliqué, `reset` d'un nouveau
+ *   geste) était écrasée par cette valeur intermédiaire : carte figée à mi-chemin, rail discontinu,
+ *   bords du Circuit décalés, jusqu'au `reset` du soulèvement suivant. Chaque valeur du registre
+ *   filtre donc cette recopie (`guardNativeEcho`) : reçue alors qu'aucune animation n'est en cours
+ *   ni en attente pour la clé, elle est ramenée à la cible posée, avant le rendu qu'elle déclenche ;
+ * - une nouvelle disposition (dépôt appliqué, confirmation) était rendue avec les translations de
+ *   l'aperçu, remises à 0 seulement après le rendu : le Circuit agrandi apparaissait avec ses bords
+ *   encore décalés. `prepareLayoutCommit`, appelé AVANT les écritures d'état, arrête les animations
+ *   et met les valeurs JS à 0 : le rendu de la nouvelle disposition porte des translations nulles ;
+ *   le pilote natif est mis à 0 juste après, par `apply`.
  */
 export class AnimatedShiftRegistry {
   private readonly values = new Map<string, Animated.Value>();
@@ -38,6 +56,9 @@ export class AnimatedShiftRegistry {
   /** Dernière pose de départ consommée (identité) : une pose n'est appliquée qu'une fois. */
   private lastRelease: ShiftRelease | null = null;
   private settledListeners: (() => void)[] = [];
+  /** Story 7.4 : clés dont la valeur JS a été posée sans le pilote natif (`prepareLayoutCommit`). */
+  private readonly nativeStale = new Set<string>();
+  private nativeSyncTimer: ReturnType<typeof setTimeout> | null = null;
 
   /**
    * Valeur animée d'une clé ; créée au besoin à `initial` (sa cible courante) — un élément qui
@@ -49,6 +70,7 @@ export class AnimatedShiftRegistry {
     let shift = this.values.get(key);
     if (shift === undefined) {
       shift = new Animated.Value(initial);
+      this.guardNativeEcho(key, shift);
       this.values.set(key, shift);
       this.applied.set(key, initial);
     }
@@ -77,6 +99,10 @@ export class AnimatedShiftRegistry {
     }
     for (const [key, target] of targets) {
       const shift = this.value(key, target);
+      if (this.nativeStale.delete(key)) {
+        // Story 7.4 : le pilote natif rejoint la valeur JS posée avant le rendu.
+        shift.setValue(this.applied.get(key) ?? target);
+      }
       const busy = this.running.has(key) || this.pending.has(key);
       if (this.applied.get(key) === target && (animated || !busy)) continue;
       this.applied.set(key, target);
@@ -95,6 +121,47 @@ export class AnimatedShiftRegistry {
       this.cancel(key);
       this.values.delete(key);
       this.applied.delete(key);
+      this.nativeStale.delete(key);
+    }
+    this.clearNativeSyncIfIdle();
+    this.notifyIfSettled();
+  }
+
+  private clearNativeSyncIfIdle(): void {
+    if (this.nativeStale.size === 0 && this.nativeSyncTimer !== null) {
+      clearTimeout(this.nativeSyncTimer);
+      this.nativeSyncTimer = null;
+    }
+  }
+
+  /**
+   * PRE-6 story 7.4 : à appeler AVANT les écritures d'état qui produisent une nouvelle disposition
+   * (dépôt appliqué, confirmation d'un dialogue, entrée en placement) avec toutes les translations
+   * à 0. Arrête les animations et met les valeurs JS à 0 sans passer par le pilote natif : le rendu
+   * de la nouvelle disposition porte des translations nulles (sous Fabric, la mise en page et les
+   * translations arrivent ensemble), et l'écran garde jusque-là l'aperçu affiché (le pilote natif
+   * reste à la position atteinte). Le pilote natif est mis à 0 par l'`apply` qui suit le rendu, à
+   * défaut au plus tard une tâche plus tard.
+   */
+  prepareLayoutCommit(): void {
+    for (const [key, shift] of this.values) {
+      // Revue 7.4 : seules les clés déplacées ou en mouvement (au repos, rien à poser).
+      if (this.applied.get(key) === 0 && !this.running.has(key) && !this.pending.has(key) && jsValueOf(shift) === 0) continue;
+      this.cancel(key);
+      shift.stopAnimation();
+      // Cible posée d'abord : la recopie filtrée (`guardNativeEcho`) la reconnaît.
+      this.applied.set(key, 0);
+      setJsValue(shift, 0);
+      this.nativeStale.add(key);
+    }
+    if (this.nativeSyncTimer === null && this.nativeStale.size > 0) {
+      this.nativeSyncTimer = setTimeout(() => {
+        this.nativeSyncTimer = null;
+        for (const key of [...this.nativeStale]) {
+          this.nativeStale.delete(key);
+          this.values.get(key)?.setValue(this.applied.get(key) ?? 0);
+        }
+      }, 0);
     }
     this.notifyIfSettled();
   }
@@ -110,7 +177,9 @@ export class AnimatedShiftRegistry {
       shift.stopAnimation();
       shift.setValue(0);
       this.applied.set(key, 0);
+      this.nativeStale.delete(key);
     }
+    this.clearNativeSyncIfIdle();
     this.notifyIfSettled();
   }
 
@@ -123,6 +192,9 @@ export class AnimatedShiftRegistry {
     this.running.clear();
     this.pending.clear();
     this.applied.clear();
+    this.nativeStale.clear();
+    if (this.nativeSyncTimer !== null) clearTimeout(this.nativeSyncTimer);
+    this.nativeSyncTimer = null;
     this.notifyIfSettled();
   }
 
@@ -157,6 +229,26 @@ export class AnimatedShiftRegistry {
     });
   }
 
+  /**
+   * PRE-6 story 7.4 (commentaire 13) : filtre de la recopie native d'une valeur atteinte. React
+   * Native appelle `__onAnimatedValueUpdateReceived` à la fin native d'une animation (achevée : la
+   * cible ; arrêtée : la valeur atteinte, plus tard que le rappel de fin) puis rerend les vues. Reçue
+   * quand aucune animation de la clé n'est en cours ni en attente, une valeur différente de la cible
+   * posée est périmée : la valeur JS est ramenée à cette cible (le module natif l'a déjà reçue par
+   * `setValue`), avant le rendu. Méthode interne de React Native : sans elle, rien n'est filtré.
+   */
+  private guardNativeEcho(key: string, shift: Animated.Value): void {
+    const internal = shift as unknown as { __onAnimatedValueUpdateReceived?: (value: number, offset?: number) => void };
+    const receive = internal.__onAnimatedValueUpdateReceived;
+    if (typeof receive !== "function") return;
+    internal.__onAnimatedValueUpdateReceived = (value: number, offset?: number) => {
+      receive.call(shift, value, offset);
+      if (this.values.get(key) !== shift || this.running.has(key) || this.pending.has(key)) return;
+      const target = this.applied.get(key);
+      if (target !== undefined && value !== target) receive.call(shift, target);
+    };
+  }
+
   private cancel(key: string): void {
     const animation = this.running.get(key);
     this.running.delete(key);
@@ -170,6 +262,27 @@ export class AnimatedShiftRegistry {
     this.settledListeners = [];
     for (const listener of listeners) listener();
   }
+}
+
+/**
+ * PRE-6 story 7.4 : valeur JS courante d'une valeur animée (`AnimatedValue.__getValue`, interne de
+ * React Native, aucune API publique ne la lit sans passer par le pilote natif). `null` si absente.
+ */
+function jsValueOf(value: Animated.Value): number | null {
+  const read = (value as unknown as { __getValue?: () => number }).__getValue;
+  return typeof read === "function" ? read.call(value) : null;
+}
+
+/**
+ * PRE-6 story 7.4 : pose la seule valeur JS (`AnimatedValue.__onAnimatedValueUpdateReceived`, le
+ * chemin interne par lequel React Native recopie une valeur native dans la valeur JS), sans opération
+ * native. À défaut, `setValue` (pose JS et native).
+ */
+function setJsValue(value: Animated.Value, next: number): void {
+  const receive = (value as unknown as { __onAnimatedValueUpdateReceived?: (value: number) => void })
+    .__onAnimatedValueUpdateReceived;
+  if (typeof receive === "function") receive.call(value, next);
+  else value.setValue(next);
 }
 
 /** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */
