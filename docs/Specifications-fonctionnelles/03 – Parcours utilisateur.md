@@ -574,7 +574,7 @@ En direct comme en Séance, la première répétition commence immédiatement, p
 
 #### Pauses et symboles
 
-Entrer en placement Pause depuis Composition → sélectionner plusieurs emplacements/types → renseigner immédiatement la durée des récupérations → Confirmer N pauses ajoutées ou Annuler → retour au brouillon. Retrait par bulle. Continuer seul persiste.
+Entrer en placement Pause depuis Composition → sélectionner plusieurs emplacements/types → renseigner immédiatement la durée des récupérations → Confirmer N pauses ajoutées ou Annuler → retour au brouillon. Retrait par bulle pour la récupération ; pour le Point d’arrêt, retrait par désélection en placement (« Confirmer les modifications ») et déplacement par appui long (D-436). Continuer seul persiste.
 
 #### Conception de planification
 

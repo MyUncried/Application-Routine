@@ -400,7 +400,7 @@ Exécuter une fois le Cycle technique :
 
 Cette organisation permet de construire des séances simples ou plus élaborées tout en conservant un nombre limité de concepts métier.
 
-Dans l’interface de Composition, un appui long sur la carte d’une **Exercice** amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Exercice en modification. Cette règle ne s’applique ni au Compte à rebours initial ni à la Fin de séance.
+Dans l’interface de Composition, un appui long sur la carte d’une **Exercice** amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Exercice en modification. Cette règle ne s’applique ni au Compte à rebours initial ni à la Fin de séance. La Récupération après exercice accompagne l’occurrence déplacée ; les Points d’arrêt ne la suivent pas et gardent leur position dans la séquence. Une dépose qui placerait un Point d’arrêt à une position interdite ou ferait se suivre deux Points d’arrêt est refusée et l’état initial est restauré, sans déplacement ni suppression automatique d’un Point (D-436, RM-251). Un Point d’arrêt se déplace lui-même par appui long puis glisser-déposer, vers une position autorisée.
 
 ### Composer une séance / Modifier une séance — Structure affichée
 
@@ -451,7 +451,7 @@ Pause est le terme d’interface commun à :
 
 Ces objets ne fusionnent pas avec la Pause après chaque série, la Pause entre les côtés ni la Pause manuelle d’exécution.
 
-Une nouvelle occurrence ne crée aucune récupération. Le bouton Pause ouvre le mode placement de la Composition. Chaque emplacement autorisé présente deux blocs côte à côte, de largeur identique : Récupération et Point d’arrêt. Plusieurs éléments peuvent être sélectionnés en une seule entrée ; une récupération et un point peuvent coexister à la même position.
+Une nouvelle occurrence ne crée aucune récupération. Le bouton Pause ouvre le mode placement de la Composition. Chaque emplacement autorisé présente deux blocs côte à côte, de largeur identique : Récupération et Point d’arrêt. Plusieurs éléments peuvent être sélectionnés en une seule entrée ; une récupération et un point peuvent coexister à la même position. Les Points d’arrêt existants y apparaissent sélectionnés : les désélectionner programme leur retrait, appliqué seulement par Confirmer (D-436). Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux, une Récupération n’étant pas un séparateur (RM-251).
 
 Sélectionner Récupération ouvre immédiatement la modale de durée. La valeur proposée provient du défaut Profil de récupération, initialement 0 min 30 s. Cette règle dérivée conserve le réglage existant en déplaçant son application de la création d’occurrence à l’ajout explicite. Une modification ultérieure du Profil n’altère pas les pauses déjà ajoutées.
 
