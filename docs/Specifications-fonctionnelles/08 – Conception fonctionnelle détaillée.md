@@ -470,7 +470,7 @@ La réorganisation modifie le brouillon de composition ; l’enregistrement de l
 <a id="pauses-composition"></a>
 #### Placement des récupérations et des points d’arrêt
 
-En mode placement, les points d’arrêt ont des emplacements entre les cartes, centrés et liés au rail ; les récupérations sont ajoutables dans une zone pointillée de la troisième ligne des seules cartes éligibles. Une récupération existante, y compris à `0 s`, interdit un second ajout au même endroit même si sa valeur n’est pas affichée. La liste doit défiler au-delà de la hauteur initiale pour rendre accessible la dernière position tout en conservant Annuler/Confirmer dans le pied protégé. Les positions admises et le sous-brouillon ne changent pas (D-435).
+En mode placement, les cartes d’Exercice restent visuellement grisées pour matérialiser leur indisponibilité à l’ouverture ; les zones d’insertion restent identifiables et actionnables. Le trait de démarcation autonome de l’ancien rendu est supprimé, sans supprimer le rail segmenté ni les liaisons des points d’arrêt. En mode placement, les points d’arrêt ont des emplacements entre les cartes, centrés et liés au rail ; les récupérations sont ajoutables dans une zone pointillée de la troisième ligne des seules cartes éligibles. Une récupération existante, y compris à `0 s`, interdit un second ajout au même endroit même si sa valeur n’est pas affichée. La liste doit défiler au-delà de la hauteur initiale pour rendre accessible la dernière position tout en conservant Annuler/Confirmer dans le pied protégé. Les positions admises et le sous-brouillon ne changent pas (D-435).
 
 ##### Brouillons, validation et annulation
 
