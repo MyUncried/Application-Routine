@@ -258,6 +258,46 @@ Demande de Hermann du 21/10/2026 (« Composition de séance — Autonomie des Po
 
 **Recette (Hermann, scénarios 1 à 15 de la demande)** : jalon J5 sur iPhone après 6.3.
 
+## Epic 7: Retours de la recette iPhone du 22/10/2026 (D-437)
+
+Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à 17). Décision documentaire **D-437** (ch07), propagée dans les chapitres concernés par le lot de l'epic. Aucune migration ni évolution d'API : `{ id, scope, position }` et `postActivityRecoverySeconds` suffisent.
+
+**Interprétations retenues (réversibles, signalées à Hermann) :**
+- Commentaire 5 : seule la règle du DÉPLACEMENT d'Exercice change (points en cause retirés sans message ; le premier d'une paire consécutive est conservé) ; la suppression garde le refus doux de D-436.
+- Commentaires 6 et 17 : tête de Circuit proposée ; à N ≥ 2, début + fin de Tour → dialogue « lequel conserver » (Début de tour, Fin de tour, Annuler) ; à N ≥ 2, RM-219 n'interdit pas ces deux emplacements même si le Circuit ouvre ou clôt la Séance (l'exécution omet l'arrêt de tête ou de queue) ; à N = 1, RM-219 s'applique et un point devenu interdit au passage à N = 1 est retiré.
+- Commentaire 7 : marque visuelle de l'état soulevé du Point d'arrêt (et état sélectionné du placement distinct).
+- Commentaires 10 et 11 : stepper toujours affiché (Figma `8328:28605` le montre ouvert) ; chiffre en « Valeur modifiable » (fond `surface`, texte `primary`) ; D8 remplacé.
+- Commentaire 12 : durée du Circuit > 3 min arrondie à la minute la plus proche, préfixe d'estimation conservé.
+- Commentaire 16 : roulette à la sélection d'une zone non sélectionnée (durée existante, sinon défaut du Profil) ; modifier = désélectionner puis resélectionner.
+
+### Story 7.1: Domaine — déplacement tolérant, début et fin de Tour, retrait de récupération en placement
+
+- **AC1** : `moveOccurrence*` / `stepOccurrence` : un déplacement qui rendrait un point interdit ou consécutif est APPLIQUÉ et retire les points en cause (interdits d'abord, puis le second de chaque paire consécutive) ; l'issue nomme les points retirés. Suppression inchangée (refus).
+- **AC2** : tête de Circuit autorisée et proposée (placement, déplacement autonome). À N ≥ 2 : conflit début/fin de Tour détecté (prédicat dédié) et rendu à l'appelant comme une issue « choix requis » portant les deux points, avec les deux résolutions possibles ; RM-219 levée pour ces deux emplacements ; plan d'exécution sans arrêt juste après le compte à rebours ni juste avant la Fin. Passage à N = 1 : points devenus interdits retirés ; passage à N ≥ 2 avec début + fin : choix requis.
+- **AC3** : placement : récupérations existantes sélectionnées ; retrait programmé par occurrence ; resélection à une durée (modification) ; `applyPlacementDraft` retire (récupération absente) ; `placementConfirmation` compte les retraits comme changements.
+
+### Story 7.2: Écran — récupération seulement en placement, Étiquette, fin de D-301, point soulevé
+
+- **AC1** : hors placement, la récupération de la ligne 3 n'est plus une cible (ni toucher, ni appui long, ni bulle, ni action accessible propre) ; le toucher de la carte n'est pas changé.
+- **AC2** : en placement, toutes les zones de récupération des Exercices sont sélectionnables (AC3 de 7.1), libellés et annonces ; libellé du bouton selon D-436.
+- **AC3** : plus de message d'enchaînement sans pause (D-301 retirée) ; code et textes associés retirés.
+- **AC4** : puce Étiquette : icône d'étiquette teintée de la couleur de l'Étiquette (sans Étiquette : inchangée).
+- **AC5** : Point d'arrêt soulevé visiblement marqué ; dialogues « lequel conserver » branchés (placement, dépose d'un point, dépose d'une carte, changement de N) ; déplacement de carte tolérant (AC1 de 7.1) sans message.
+
+### Story 7.3: En-tête du Circuit — stepper permanent et durée arrondie
+
+- **AC1** : − N unité + toujours affichés et actifs ; N en « Valeur modifiable » ; cibles ≥ 44 espacées, pastille d'unité comprise ; textes de la ligne à la taille du titre ; troncature à 375 : durée d'abord, jamais le compteur.
+- **AC2** : durée du Circuit > 3 min arrondie à la minute (préfixe d'estimation conservé).
+- **AC3** : accessibilité du réglage inchangée (ajustable, unité annoncée).
+
+### Story 7.4: Glisser — défilement automatique et cohérence après placement et changement de zone
+
+- **AC1** : pendant un glisser (carte ou point), près du bord haut ou bas de la zone visible, la liste défile ; la position de dépose suit le défilement ; arrêt au bord de la liste, à la dépose ou à l'annulation.
+- **AC2** (commentaire 13) : après la confirmation d'un placement, rail et cartes toujours à leur place (cause trouvée et corrigée, sans décalage arbitraire).
+- **AC3** (commentaire 14) : glisser une carte dans ou hors du Circuit : cadre du Circuit correct pendant et après le geste.
+
+**Jalon J6 (iPhone, après 7.4)** : commentaires 1 à 17 de la recette du 22/10 revus un par un.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -269,6 +309,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.

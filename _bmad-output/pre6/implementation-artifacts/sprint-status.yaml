@@ -78,3 +78,10 @@ development_status:
   6-2-glisser-déposer-d-un-point-d-arrêt: review
   6-3-retrait-en-placement-libellé-fin-de-la-bulle-des-points: review
   epic-6-retrospective: optional
+
+  epic-7: in-progress
+  7-1-domaine-déplacement-tolérant-début-et-fin-de-tour-retrait-de-récupération: backlog
+  7-2-écran-récupération-en-placement-étiquette-fin-de-d-301-point-soulevé: backlog
+  7-3-en-tête-du-circuit-stepper-permanent-et-durée-arrondie: backlog
+  7-4-glisser-défilement-automatique-et-cohérence: backlog
+  epic-7-retrospective: optional
