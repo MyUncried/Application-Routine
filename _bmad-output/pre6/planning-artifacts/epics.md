@@ -207,6 +207,13 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 - **AC2** : Circuit en aplat sans contour (D5), débord 8, rayon et espacements Figma ; en-tête : anneau sur le rail, titre, œil (D4), compteur, durée alignée à droite sur la ligne du titre ; commandes de nature, compte et volumes inchangées ; le fond animé de la story 2.3b est conservé.
 - **AC3** : point d'arrêt hors placement dans une rangée centrée entre les cartes, raccordé au rail ; retrait par appui long inchangé ; bornes et écarts verticaux selon Figma.
 
+### Story 5.2b: Correction du rail pendant le déplacement
+
+Demande de Hermann du 22/10/2026 (recette iPhone : rail discontinu, segments orphelins, traversée d'un gabarit photo après un déplacement). Causes prouvées : la carte soulevée grandissait de 4 dans la mise en page alors que rail et décalages la comptaient à sa hauteur de repos ; une carte revenue (dépôt refusé, annulation, dialogue de perte) restait exclue de la chaîne du rail pendant le retour.
+
+- **AC1** : le soulèvement est neutre pour la mise en page ; seuls les éléments soulevés sortent de la chaîne du rail ; chaque segment relie les bords des éléments et ne traverse jamais un gabarit, pendant et après le geste.
+- **AC2** : règles de déplacement, positions, RM-251, récupérations, calculs, données, styles et dimensions validés inchangés.
+
 ### Story 5.3: Placement mixte et défilement
 
 - **AC1** : emplacements de point d'arrêt centrés entre les cartes, raccordés au rail ; emplacement de récupération en cadre pointillé dans la ligne 3 des seules cartes éligibles (une récupération existante, même à 0, interdit un second ajout) ; cartes non atténuées (D6).
