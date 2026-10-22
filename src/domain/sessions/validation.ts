@@ -37,12 +37,12 @@ import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./c
 import { DEFAULT_SIDE_MODE } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
 import {
-  isStopPointPlacementValid,
+  isStopPointPlacementAllowed,
   isStopPointPositionInRange,
   occurrenceCountInScope,
   stopPointKey,
-  stopPointNeighbors,
   type SequenceOccurrence,
+  type StopPointRules,
 } from "./StopPoint";
 
 const NAME_MIN_LENGTH = 1;
@@ -642,11 +642,18 @@ function pre3Transport(
  * une Séance héritée portant deux points consécutifs reste enregistrable ;
  * les opérations de Composition imposent RM-251 et le développement
  * (`expandComposition`) n'exécute jamais deux arrêts successifs.
+ *
+ * Story 7.1 (D-437) : `rules` porte N du Circuit — à N ≥ 2, un point de
+ * début ou de fin de Tour est accepté même si le Circuit ouvre ou clôt la
+ * Séance (`isStopPointPlacementAllowed`). Un conflit de Tour (début et fin à
+ * N ≥ 2) n'est pas contrôlé non plus : une Séance qui le porte reste
+ * enregistrable, et l'exécution n'en fait qu'un arrêt.
  */
 function validateStopPoints(
   stopPoints: readonly CreateStopPointInput[] | undefined,
   unorderedOccurrences: readonly (SequenceOccurrence & { readonly position?: number })[],
   violations: ValidationViolation[],
+  rules: StopPointRules,
 ): CreateStopPointInput[] {
   const occurrences = inSequenceOrder(unorderedOccurrences);
   const normalized: CreateStopPointInput[] = [];
@@ -665,7 +672,7 @@ function validateStopPoints(
       violations.push({ code: "OUT_OF_RANGE", field: "session.stopPoints", details: { min: 0, max } });
       continue;
     }
-    if (!isStopPointPlacementValid(stopPointNeighbors(occurrences, point))) {
+    if (!isStopPointPlacementAllowed(occurrences, point, rules)) {
       violations.push({ code: "FORBIDDEN_PLACEMENT", field: "session.stopPoints" });
       continue;
     }
@@ -678,6 +685,11 @@ function validateStopPoints(
     normalized.push({ scope: point.scope, position: point.position });
   }
   return normalized;
+}
+
+/** Story 7.1 (D-437) : règles d'emplacement d'une entrée — N validé, sinon défaut (1). */
+function stopPointRulesOf(tourRepeatCount: number | undefined): StopPointRules {
+  return typeof tourRepeatCount === "number" ? { tourRepeatCount } : {};
 }
 
 /**
@@ -770,7 +782,7 @@ export function validateCreateSessionInput(
   // une occurrence rejetée fausserait les emplacements (échec déjà signalé).
   const stopPoints =
     exercises.length === input.exercises.length
-      ? validateStopPoints(input.stopPoints, exercises, violations)
+      ? validateStopPoints(input.stopPoints, exercises, violations, stopPointRulesOf(tourRepeatCount))
       : [];
 
   if (violations.length > 0) {
@@ -894,7 +906,7 @@ export function validateUpdateSessionInput(
   // PRE-6 (story 1.2) : même règle que la création (`validateStopPoints`).
   const stopPoints =
     activities.length === input.activities.length
-      ? validateStopPoints(input.stopPoints, activities, violations)
+      ? validateStopPoints(input.stopPoints, activities, violations, stopPointRulesOf(tourRepeatCount))
       : [];
 
   if (violations.length > 0) {

@@ -1304,6 +1304,24 @@ describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () 
     }
   });
 
+  // Story 7.1 (D-437) : à N ≥ 2, la fin de Tour en clôture de Séance (IN p=2 ici) est acceptée, et un
+  // conflit de Tour (début et fin) reste enregistrable ; l'exécution n'en fait qu'un arrêt.
+  it("D-437 — N ≥ 2 : fin de Tour juste avant la Fin acceptée ; conflit début + fin enregistrable", () => {
+    const points = [
+      { scope: "IN_TOUR" as const, position: 0 },
+      { scope: "IN_TOUR" as const, position: 2 },
+    ];
+    const created = validateCreateSessionInput({ ...createInput(points), tourRepeatCount: 2 });
+    expect(created.ok && created.value.stopPoints).toEqual(points);
+    const updated = validateUpdateSessionInput({ ...updateInput(points), tourRepeatCount: 3 });
+    expect(updated.ok).toBe(true);
+    // N = 1 : la fin de Tour juste avant la Fin reste interdite.
+    expect(validateCreateSessionInput(createInput(points)).ok).toBe(false);
+    // N invalide : défaut 1, la règle ne s'assouplit pas (seule la violation de N est en plus).
+    const invalid = validateCreateSessionInput({ ...createInput(points), tourRepeatCount: 0 });
+    expect(!invalid.ok && invalid.violations.some((violation) => violation.code === "FORBIDDEN_PLACEMENT")).toBe(true);
+  });
+
   it("un doublon (scope, position) : violation DUPLICATE", () => {
     const result = validateCreateSessionInput(
       createInput([

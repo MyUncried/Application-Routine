@@ -6,6 +6,7 @@ import {
   applyNatureChange,
   circuitBoundCount,
   circuitBoundOf,
+  circuitCountOutcome,
   circuitVolumes,
   enterCircuit,
   exitCircuit,
@@ -163,6 +164,53 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     };
     expect(expandComposition({ ...input, circuitNature: "SERIES" }).map(label)).toEqual(["W", "P:h", "A1", "P:h", "A2"]);
     expect(expandComposition({ ...input, circuitNature: "TOURS" }).map(label)).toEqual(["W", "P:h", "A", "P:h", "A"]);
+  });
+
+  // PRE-6 story 7.1 (D-437) : début et fin de Tour en ouverture ou clôture de Séance, conflit hérité.
+  it("D-437 — Circuit seul, N = 3 : le début de Tour n'est pas joué après le compte à rebours, la fin pas avant la Fin", () => {
+    const exercises = [occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR")];
+    const head = expandComposition({ exercises, stopPoints: [{ id: "h", scope: "IN_TOUR", position: 0 }], tourRepeatCount: 3 });
+    expect(head.map(label)).toEqual(["A", "B", "P:h", "A", "B", "P:h", "A", "B"]);
+    const tail = expandComposition({ exercises, stopPoints: [{ id: "t", scope: "IN_TOUR", position: 2 }], tourRepeatCount: 3 });
+    expect(tail.map(label)).toEqual(["A", "B", "P:t", "A", "B", "P:t", "A", "B"]);
+  });
+
+  it("D-437 — conflit de Tour hérité (début et fin, N ≥ 2) : un seul arrêt entre deux Tours, jamais en tête ni en fin", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR")],
+      stopPoints: [
+        { id: "h", scope: "IN_TOUR", position: 0 },
+        { id: "t", scope: "IN_TOUR", position: 2 },
+      ],
+      tourRepeatCount: 3,
+    });
+    expect(steps.map(label)).toEqual(["A", "B", "P:t", "A", "B", "P:t", "A", "B"]);
+    const kinds = steps.map((step) => step.kind);
+    expect(kinds.some((kind, index) => kind === "STOP_POINT" && kinds[index + 1] === "STOP_POINT")).toBe(false);
+    // Avec un Exercice avant le Circuit : le début du Tour 1 est joué.
+    const opened = expandComposition({
+      exercises: [occurrence("W", "BEFORE_TOUR"), occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR")],
+      stopPoints: [
+        { id: "h", scope: "IN_TOUR", position: 0 },
+        { id: "t", scope: "IN_TOUR", position: 2 },
+      ],
+      tourRepeatCount: 2,
+      circuitNature: "SERIES",
+    });
+    expect(opened.map(label)).toEqual(["W", "P:h", "A1", "B1", "P:t", "A2", "B2"]);
+  });
+
+  it("D-437 — Séries, Circuit seul, N = 3, début et fin de Tour : ni en tête, ni en fin, jamais deux arrêts de suite", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 3), occurrence("B", "IN_TOUR", 3)],
+      stopPoints: [
+        { id: "h", scope: "IN_TOUR", position: 0 },
+        { id: "t", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "SERIES",
+      tourRepeatCount: 3,
+    });
+    expect(steps.map(label)).toEqual(["A1", "B1", "P:t", "A2", "B2", "P:t", "A3", "B3"]);
   });
 
   it("Tours, N = 2 : un point IN_TOUR en position 1 apparaît dans chaque Tour, après son exercice", () => {
@@ -442,6 +490,61 @@ describe("circuit — compte et réserve (PRE-6, story 1.4, AD-38)", () => {
     expect(setCircuitCount(draft, 0).tourRepeatCount).toBe(1);
     expect(setCircuitCount(draft, 150).tourRepeatCount).toBe(99);
     expect(setCircuitCount(draft, 2)).toBe(draft);
+  });
+
+  describe("story 7.1 (D-437) : N et Points d'arrêt de début et de fin de Tour", () => {
+    const circuitOnly = () => [exercise("A", durationParameters(30, 2)), exercise("B", durationParameters(30, 2))];
+    const head = { id: "h", scope: "IN_TOUR" as const, position: 0 };
+    const tail = { id: "t", scope: "IN_TOUR" as const, position: 2 };
+
+    it("N ≥ 2 → 1 : un point devenu interdit (Circuit qui ouvre la Séance) est retiré sans message", () => {
+      const draft = deepFreeze({ ...draftOf("TOURS", 3, circuitOnly()), stopPoints: [head] });
+      const outcome = circuitCountOutcome(draft, 1);
+      expect(outcome).toEqual({
+        status: "APPLIED",
+        draft: { ...draft, tourRepeatCount: 1, stopPoints: [] },
+        removedStopPointIds: ["h"],
+      });
+      expect(setCircuitCount(draft, 1).stopPoints).toEqual([]);
+    });
+
+    it("N ≥ 2 → 1 : une fin de Tour en clôture de Séance est retirée", () => {
+      const draft = { ...draftOf("TOURS", 2, circuitOnly()), stopPoints: [tail] };
+      expect(circuitCountOutcome(draft, 1)).toMatchObject({ status: "APPLIED", removedStopPointIds: ["t"] });
+    });
+
+    it("N ≥ 2 → 1 : un point qui reste autorisé est conservé (même liste)", () => {
+      const draft = { ...draftOf("TOURS", 2, [exercise("W", durationParameters(30, 1), { structuralPosition: "BEFORE_TOUR" }), ...circuitOnly()]), stopPoints: [head] };
+      const outcome = circuitCountOutcome(draft, 1);
+      expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
+      expect(outcome.status === "APPLIED" && outcome.draft.stopPoints).toBe(draft.stopPoints);
+    });
+
+    it("1 → N ≥ 2 avec début et fin de Tour : choix requis ; chaque résolution applique N", () => {
+      const before = exercise("W", durationParameters(30, 1), { structuralPosition: "BEFORE_TOUR" });
+      const after = exercise("Z", durationParameters(30, 1), { structuralPosition: "AFTER_TOUR" });
+      const draft = deepFreeze({ ...draftOf("SERIES", 1, [before, ...circuitOnly(), after]), stopPoints: [head, tail] });
+      const outcome = circuitCountOutcome(draft, 2);
+      expect(outcome.status).toBe("CHOICE_REQUIRED");
+      if (outcome.status !== "CHOICE_REQUIRED") return;
+      expect(outcome.conflict).toEqual({ headStopPointId: "h", tailStopPointId: "t" });
+      expect(outcome.resolutions.HEAD.draft.stopPoints).toEqual([head]);
+      expect(outcome.resolutions.HEAD.removedStopPointIds).toEqual(["t"]);
+      expect(outcome.resolutions.TAIL.draft.stopPoints).toEqual([tail]);
+      expect(outcome.resolutions.TAIL.draft.tourRepeatCount).toBe(2);
+      // Séries : les exercices du Circuit suivent N dans chaque résolution.
+      expect(outcome.resolutions.HEAD.draft.exercises).toBe(outcome.unresolved.exercises);
+      // Forme historique : N appliqué, les deux points conservés (conflit laissé à l'état hérité).
+      expect(setCircuitCount(draft, 2)).toEqual(outcome.unresolved);
+      expect(outcome.unresolved.stopPoints).toEqual([head, tail]);
+    });
+
+    it("conflit déjà présent (N ≥ 2 → N ≥ 2) : pas de nouveau choix ; même N : l'entrée elle-même", () => {
+      const draft = { ...draftOf("TOURS", 2, circuitOnly()), stopPoints: [head, tail] };
+      expect(circuitCountOutcome(draft, 4)).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
+      expect(circuitCountOutcome(draft, 2)).toEqual({ status: "APPLIED", draft, removedStopPointIds: [] });
+      expect(circuitCountOutcome(draft, Number.NaN)).toEqual({ status: "APPLIED", draft, removedStopPointIds: [] });
+    });
   });
 
   it("Séries 4 → 3 → 4 : la ligne 4 passe en réserve puis est restaurée à l'identique", () => {

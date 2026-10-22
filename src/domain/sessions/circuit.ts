@@ -36,7 +36,17 @@ import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import type { ActivityType, StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
 import type { SideMode } from "./sideMode";
-import { isSequenceSeparator, orderStopPointsByScope, type StopPoint } from "./StopPoint";
+import {
+  isSequenceSeparator,
+  isStopPointAllowed,
+  orderStopPointsByScope,
+  tourBoundaryConflict,
+  tourBoundaryPoints,
+  withoutStopPoints,
+  type StopPoint,
+  type TourBoundaryChoice,
+  type TourBoundaryConflict,
+} from "./StopPoint";
 
 /** Organisation du Circuit (ch10 L686-693) : Tours ou Séries. */
 export type CircuitNature = "TOURS" | "SERIES";
@@ -168,11 +178,15 @@ export type CompositionExpansionInput = {
  * est omis comme un passage vide ; en Tours, le contenu interne est
  * identique à chaque Tour et n'est jamais omis.
  *
- * Tours : les opérations refusent d'amener un point en tête de Circuit
- * `(IN, 0)` ; un tel point ne peut être qu'une donnée héritée. S'il coexiste
- * avec un point en fin de Circuit `(IN, nI)`, le point de tête du Tour k + 1
- * suit directement le point de fin du Tour k : il est fusionné avec lui et
- * n'est donc joué qu'au Tour 1.
+ * Story 7.1 (D-437) — début et fin de Tour : un point en tête de Circuit
+ * `(IN, 0)` est autorisé ; à N ≥ 2, un point de début ou de fin de Tour reste
+ * autorisé même si le Circuit ouvre ou clôt la Séance, et la même règle
+ * d'omission s'applique : le point de début du Tour 1 qui suivrait le compte
+ * à rebours, et le point de fin du dernier Tour qui précéderait la Fin, ne
+ * sont pas produits. Un conflit de Tour hérité (début et fin à N ≥ 2) ne
+ * donne qu'un arrêt entre deux Tours : le point de début du Tour k + 1, qui
+ * suit le point de fin du Tour k, est omis (il n'est joué qu'au Tour 1, et
+ * seulement si un Exercice le précède).
  */
 export function expandComposition(input: CompositionExpansionInput): readonly CompositionStep[] {
   const nature = input.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
@@ -417,8 +431,88 @@ export function applyNatureChange(draft: SessionDraft, nature: CircuitNature): S
  * en réserve, sans message ; augmentation : restauration d'abord depuis la
  * réserve, puis copie de la dernière ligne active ; identiques : seul
  * `count` suit N. Même N : brouillon inchangé (même référence).
+ *
+ * Story 7.1 (D-437) : forme historique de `circuitCountOutcome` (appel
+ * actuel de l'écran). Les points devenus interdits au passage à N = 1 sont
+ * retirés ; un conflit de Tour CRÉÉ par le passage à N ≥ 2 n'est pas tranché
+ * ici : N est appliqué et les deux points sont conservés (état d'un conflit
+ * hérité : enregistrable, un seul arrêt à l'exécution). L'écran passera à
+ * `circuitCountOutcome` pour demander le choix (story 7.2).
  */
 export function setCircuitCount(draft: SessionDraft, requested: number): SessionDraft {
+  const outcome = circuitCountOutcome(draft, requested);
+  return outcome.status === "APPLIED" ? outcome.draft : outcome.unresolved;
+}
+
+/** Story 7.1 (D-437) : brouillon produit et points retirés pour l'obtenir. */
+export type CircuitCountResolution = {
+  readonly draft: SessionDraft;
+  readonly removedStopPointIds: readonly string[];
+};
+
+/**
+ * Story 7.1 (D-437) : issue d'un changement de N. `APPLIED` : brouillon
+ * produit (l'entrée elle-même si rien ne change) et points retirés sans
+ * message (devenus interdits au passage à N = 1). `CHOICE_REQUIRED` : le
+ * passage de N = 1 à N ≥ 2 ferait coexister un point de début et un point de
+ * fin de Tour ; `resolutions.HEAD` conserve le début, `resolutions.TAIL` la
+ * fin (brouillons complets, N appliqué) ; `unresolved` : N appliqué, les deux
+ * points conservés (forme historique). « Annuler » : garder l'entrée.
+ */
+export type CircuitCountOutcome =
+  | { readonly status: "APPLIED"; readonly draft: SessionDraft; readonly removedStopPointIds: readonly string[] }
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: TourBoundaryConflict;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, CircuitCountResolution>>;
+      readonly unresolved: SessionDraft;
+    };
+
+/**
+ * Story 7.1 (D-437) : change N (`setCircuitCount` historique, AD-38), puis
+ * ajuste les Points d'arrêt :
+ * - passage à N = 1 : les points autorisés à l'ancien N et plus au nouveau
+ *   (début ou fin de Tour en ouverture ou clôture de Séance, RM-219) sont
+ *   retirés sans message (`removedStopPointIds`) ;
+ * - passage de N = 1 à N ≥ 2 : un conflit de Tour (début et fin) qui
+ *   n'existait pas rend `CHOICE_REQUIRED`. Un passage de N ≥ 2 à N ≥ 2 ne
+ *   change aucune règle.
+ */
+export function circuitCountOutcome(draft: SessionDraft, requested: number): CircuitCountOutcome {
+  const counted = withCircuitCount(draft, requested);
+  if (counted === draft) {
+    return { status: "APPLIED", draft, removedStopPointIds: [] };
+  }
+  const points = draft.stopPoints ?? [];
+  const occurrences = counted.exercises;
+  const newlyDisallowed = points
+    .filter((point) => isStopPointAllowed(draft.exercises, point, draft) && !isStopPointAllowed(occurrences, point, counted))
+    .map((point) => point.id);
+  const settled: SessionDraft =
+    newlyDisallowed.length > 0 ? { ...counted, stopPoints: withoutStopPoints(points, newlyDisallowed) } : counted;
+  const conflict = tourBoundaryConflict(occurrences, settled.stopPoints ?? [], settled);
+  if (conflict === null || tourBoundaryConflict(draft.exercises, points, draft) !== null) {
+    return { status: "APPLIED", draft: settled, removedStopPointIds: newlyDisallowed };
+  }
+  const resolve = (keep: TourBoundaryChoice): CircuitCountResolution => {
+    // Revue 7.1 : tous les points de la limite écartée.
+    const remaining = settled.stopPoints ?? [];
+    const dropped = tourBoundaryPoints(occurrences, remaining, keep === "HEAD" ? "TAIL" : "HEAD").map((point) => point.id);
+    return {
+      draft: { ...settled, stopPoints: withoutStopPoints(remaining, dropped) },
+      removedStopPointIds: [...newlyDisallowed, ...dropped],
+    };
+  };
+  return {
+    status: "CHOICE_REQUIRED",
+    conflict: { headStopPointId: conflict.head.id, tailStopPointId: conflict.tail.id },
+    resolutions: { HEAD: resolve("HEAD"), TAIL: resolve("TAIL") },
+    unresolved: settled,
+  };
+}
+
+/** N appliqué au brouillon (AD-38), sans toucher aux points : corps historique de `setCircuitCount`. */
+function withCircuitCount(draft: SessionDraft, requested: number): SessionDraft {
   if (!Number.isFinite(requested)) {
     return draft;
   }

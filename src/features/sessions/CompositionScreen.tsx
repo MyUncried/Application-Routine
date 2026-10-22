@@ -312,12 +312,16 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
 
 const EMPTY_STOP_POINTS: CompositionState["stopPoints"] = [];
 
-/** PRE-6 (story 1.2) : occurrences et Points d'arrêt du brouillon, opérés ensemble. */
+/**
+ * PRE-6 (story 1.2) : occurrences et Points d'arrêt du brouillon, opérés ensemble. Story 7.1
+ * (D-437) : avec N du Circuit, contexte des règles de début et de fin de Tour.
+ */
 function compositionStateOf(
   exercises: SessionDraft["exercises"],
   stopPoints: SessionDraft["stopPoints"],
+  tourRepeatCount: SessionDraft["tourRepeatCount"],
 ): CompositionState {
-  return { exercises, stopPoints: stopPoints ?? EMPTY_STOP_POINTS };
+  return { exercises, stopPoints: stopPoints ?? EMPTY_STOP_POINTS, ...(tourRepeatCount !== undefined ? { tourRepeatCount } : {}) };
 }
 
 /** PRE-6 story 6.2 (D-436) : élément affiché d'une zone — une occurrence ou un Point d'arrêt. */
@@ -421,8 +425,11 @@ function stopPointStepOutcome(
   const step = direction === "UP" ? -1 : 1;
   for (let candidate = index + step; candidate >= 0 && candidate < locations.length; candidate += step) {
     const location = locations[candidate]!;
-    if (!isStopPointProposable(state.exercises, location)) continue;
+    if (!isStopPointProposable(state.exercises, location, state)) continue;
     const outcome = moveStopPoint(state, stopPointId, location);
+    // Story 7.1 (revue, D-437) : un choix de Tour requis à l'emplacement voisin arrête la recherche
+    // (le pas n'est pas offert) plutôt que de le franchir en silence ; dialogue : story 7.2.
+    if (outcome.status === "CHOICE_REQUIRED") return null;
     if (outcome.status === "APPLIED" && outcome.state !== state) return outcome.state;
   }
   return null;
@@ -480,7 +487,7 @@ function planOccurrenceMove(
   draft: SessionDraft,
   move: OccurrenceMove,
 ): { readonly patch: Partial<SessionDraft>; readonly losses: readonly CircuitLoss[]; readonly targetCount: number } | null {
-  const state = compositionStateOf(draft.exercises, draft.stopPoints);
+  const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
   const outcome =
     "direction" in move
       ? stepOccurrence(state, move.activityId, move.direction)
@@ -1019,8 +1026,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * `placementConfirmation`, `placementSlots`) : la forme historique sans contexte n'est plus appelée.
    */
   const placementContext = useMemo<PlacementContext>(
-    () => ({ exercises: draft.exercises, stopPoints: draft.stopPoints ?? EMPTY_STOP_POINTS }),
-    [draft.exercises, draft.stopPoints],
+    () => ({ exercises: draft.exercises, stopPoints: draft.stopPoints ?? EMPTY_STOP_POINTS, tourRepeatCount: draft.tourRepeatCount }),
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount],
   );
   /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
   const confirmation = useMemo(
@@ -1052,7 +1059,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const first = STOP_POINT_SCOPE_ORDER.flatMap((scope) =>
       preview.exercises.filter((exercise) => exercise.structuralPosition === scope),
     )[0];
-    if (placementOfferOf(placementSlots(preview.exercises, preview.stopPoints ?? EMPTY_STOP_POINTS)).any || first === undefined) {
+    if (placementOfferOf(placementSlots(preview.exercises, preview.stopPoints ?? EMPTY_STOP_POINTS, EMPTY_PLACEMENT_DRAFT, preview)).any || first === undefined) {
       setAddStopFocusRequest((current) => current + 1);
     } else {
       requestItemFocus(railRowKey(first.id));
@@ -1278,12 +1285,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // RM-251) : en placement, calculés sur l'état effectif (existants − retraits + ajouts du
   // sous-brouillon) — un retrait programmé libère les emplacements voisins.
   const entrySlots = useMemo(
-    () => placementSlots(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS),
-    [draft.exercises, draft.stopPoints],
+    () => placementSlots(placementContext.exercises, placementContext.stopPoints, EMPTY_PLACEMENT_DRAFT, placementContext),
+    [placementContext],
   );
   const draftSlots = useMemo(
-    () => (placement === null ? entrySlots : placementSlots(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, placement)),
-    [draft.exercises, draft.stopPoints, entrySlots, placement],
+    () => (placement === null ? entrySlots : placementSlots(placementContext.exercises, placementContext.stopPoints, placement, placementContext)),
+    [entrySlots, placement, placementContext],
   );
   // « Ajouter un arrêt » est indisponible quand le placement n'aurait rien à proposer (Composition
   // vide, tout est déjà présent). Story 6.3 (D-436, R3) : un point existant IDENTIFIÉ suffit à le
@@ -1313,8 +1320,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     placement === null
       ? null
       : JSON.stringify(
+          // Story 7.1 (D-437) : un point existant en tête de Circuit est désormais porté par l'emplacement
+          // `CIRCUIT_HEAD` ; tant que l'écran ne dessine pas cet emplacement (story 7.2), il reste rendu
+          // comme rangée autonome, comme avant.
           draftSlots.flatMap((slot) =>
-            slot.kind === "UNOFFERED_STOP_POINT" && slot.stopPoint?.stopPointId !== undefined ? [slot.stopPoint.stopPointId] : [],
+            (slot.kind === "UNOFFERED_STOP_POINT" || slot.kind === "CIRCUIT_HEAD") && slot.stopPoint?.stopPointId !== undefined
+              ? [slot.stopPoint.stopPointId]
+              : [],
           ),
         );
   const unofferedStopPointIds = useMemo(
@@ -1577,9 +1589,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   /**
    * Déplacement d'une occurrence (glisser, « Monter » / « Descendre ») — mêmes règles pour
-   * tous les chemins. PRE-6 (story 1.2, ARB-3) : les Points d'arrêt suivent leur occurrence ;
-   * un dépôt qui en amènerait un sur un emplacement interdit est invalide (état inchangé, la
-   * carte reprend sa place). PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
+   * tous les chemins. Story 7.1 (D-437, remplace ARB-3 et le refus de D-436) : les Points d'arrêt
+   * restent à leur place ; un dépôt qui en rendrait un interdit ou consécutif est appliqué et le
+   * Domaine retire les points en cause (`removedStopPointIds`, annonce et focus : story 7.2) ; un
+   * conflit de Tour (choix requis) laisse l'état inchangé, la carte reprend sa place, jusqu'au
+   * dialogue de la story 7.2. PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
    * adaptation à N, et si des séries sont perdues, confirmation AVANT toute mutation (Annuler
    * restitue la position) ; sortie du Circuit → réserve retirée, nombre et paramètres
    * conservés, sans message.
@@ -1615,7 +1629,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const moveStopPointTo = useCallback(
     (stopPointId: string, destination: DropTarget): "APPLIED" | "REFUSED" => {
-      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
       const location = stopPointLocationAt(zoneItems[destination.zone], stopPointId, destination.zone, destination.index);
       // Revue 6.2 : déposé sur son emplacement AFFICHÉ (position héritée ramenée), rien n'est écrit.
@@ -1628,7 +1642,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }
       // Rejoué sur le brouillon COURANT.
       updateDraft((current) => {
-        const currentState = compositionStateOf(current.exercises, current.stopPoints);
+        const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
         const replayed = moveStopPoint(currentState, stopPointId, location);
         return replayed.status === "APPLIED" && replayed.state !== currentState
           ? { ...current, ...compositionPatch(currentState, replayed.state) }
@@ -1636,7 +1650,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
       return "APPLIED";
     },
-    [draft.exercises, draft.stopPoints, updateDraft, zoneItems],
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, updateDraft, zoneItems],
   );
 
   /**
@@ -1913,7 +1927,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * à chaque rendu de chaque rangée.
    */
   const stepAvailability = useMemo(() => {
-    const state = compositionStateOf(draft.exercises, draft.stopPoints);
+    const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
     const both = (offered: (direction: StepDirection) => boolean) => ({ UP: offered("UP"), DOWN: offered("DOWN") });
     const cards = new Map(
       draft.exercises.map((exercise) => [
@@ -1955,12 +1969,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleStepStopPoint = useCallback(
     (stopPointId: string, direction: StepDirection) => {
       setRevealedActionsId(null);
-      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const fromScope = state.stopPoints.find((point) => point.id === stopPointId)?.scope;
       const toScope = stopPointStepOutcome(state, stopPointId, direction)?.stopPoints.find((point) => point.id === stopPointId)?.scope;
       // Rejoué sur le brouillon COURANT.
       updateDraft((current) => {
-        const currentState = compositionStateOf(current.exercises, current.stopPoints);
+        const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
         const next = stopPointStepOutcome(currentState, stopPointId, direction);
         return next === null ? current : { ...current, ...compositionPatch(currentState, next) };
       });
@@ -1969,7 +1983,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         requestItemFocus(railStopKey(stopPointId));
       }
     },
-    [draft.exercises, draft.stopPoints, requestItemFocus, updateDraft],
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, requestItemFocus, updateDraft],
   );
   const stopPointStepAction = useCallback(
     (stopPointId: string, direction: StepDirection): (() => void) | null =>
@@ -1982,7 +1996,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleDuplicateActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
-      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const newId = Crypto.randomUUID();
       // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : la copie n'emporte aucun point.
       updateDraft({
@@ -1997,7 +2011,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleDeleteActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
-      const state = compositionStateOf(draft.exercises, draft.stopPoints);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const outcome = removeOccurrenceOutcome(state, activityId);
       // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : suppression refusée (un point
       // deviendrait interdit, ou deux points se suivraient) — rien n'est supprimé, la carte se
@@ -2991,8 +3005,11 @@ function placementLabelerOf(
 
 /** Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié. */
 function placementOfferOf(slots: readonly PlacementSlot[]): { readonly any: boolean; readonly additions: boolean } {
+  // Story 7.1 (D-437) : l'emplacement libre `CIRCUIT_HEAD` n'est pas encore dessiné (story 7.2) : il
+  // n'ouvre pas le placement à lui seul.
   const additions = slots.some(
-    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
+    (slot) =>
+      slot.recovery?.kind === "AVAILABLE" || (slot.kind !== "CIRCUIT_HEAD" && slot.stopPoint !== null && !slot.stopPoint.existing),
   );
   const removals = slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
   return { any: additions || removals, additions };

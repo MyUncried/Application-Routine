@@ -4129,7 +4129,7 @@ describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affect
 /**
  * PRE-6 (story 1.2 ; D-436 / RM-251 depuis la story 6.1, remplace ARB-3) : Dupliquer,
  * Supprimer et déposer laissent les Points d'arrêt du brouillon à leur place dans la
- * séquence ; une opération qui rendrait un point interdit ou consécutif est refusée. Aucun rendu de point n'existe encore
+ * séquence ; une suppression qui rendrait un point interdit ou consécutif est refusée ; un dépôt est appliqué et retire les points en cause (story 7.1, D-437). Aucun rendu de point n'existe encore
  * (story 4.1) : une sonde lit `draft.stopPoints` dans le contexte.
  */
 describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)", () => {
@@ -4197,26 +4197,32 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
-  it("un dépôt qui amènerait le point juste avant la Fin est invalide : ordre et points inchangés", () => {
+  // Story 7.1 (D-437) : le déplacement d'un Exercice est tolérant — un dépôt qui rendrait le point
+  // interdit est appliqué et le point en cause retiré, sans message. La rangée du point est mesurée
+  // (revue 6.2 : sans géométrie complète, le soulèvement est refusé).
+  it("D-437 — un dépôt qui laisserait le point en tête de séquence est appliqué, le point retiré", () => {
     renderWithStopPoints(twoBefore());
     layoutTwoBeforeTour();
+    fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
     dragBy("ex-1", 100);
 
     expect(
       testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
-    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
-    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
+    expect(readStopPoints()).toEqual([]);
   });
 
-  it("D-436 — le point ne suit plus son occurrence : un dépôt qui le laisserait en tête de séquence est refusé, ordre et points inchangés", () => {
+  it("D-437 — le point ne suit plus son occurrence ; avec un Circuit après, même dépôt : appliqué, le point retiré", () => {
     renderWithStopPoints([...twoBefore(), anActivity("core", "IN_TOUR", { name: "Pompes" })]);
     layoutTwoBeforeTour();
+    fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
+    fireLayout(screen.getByTestId("composition-activity-core"), 0, 70);
     dragBy("ex-1", 100);
 
     expect(
       testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
-    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
-    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
+    expect(readStopPoints()).toEqual([]);
   });
 });
 
@@ -4653,16 +4659,17 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
-  it("dépôt amenant un point d'arrêt sur un emplacement interdit (dernière position) : action non offerte, position restituée", () => {
+  it("D-437 — « Descendre » qui rendrait un point interdit : offert et appliqué, le point en cause retiré", () => {
     renderWithProbe([anActivity("ex-1", "AFTER_TOUR"), anActivity("ex-2", "AFTER_TOUR")], {
       stopPoints: [{ id: "p1", scope: "AFTER_TOUR", position: 1 }],
     });
-    // « Descendre » amènerait le point juste avant la Fin : refusé, donc non offert.
-    expect(actionNames("ex-1")).toEqual(["moveUp", "duplicate", "delete"]);
+    // « Descendre » échange ex-1 avec le point, qui suivrait alors le Compte à rebours : déplacement
+    // tolérant (story 7.1), le point est retiré sans message.
+    expect(actionNames("ex-1")).toEqual(["moveUp", "moveDown", "duplicate", "delete"]);
     a11yAction("ex-1", "moveDown");
 
     expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-1", "ex-2"]);
-    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "AFTER_TOUR", position: 1 }]);
+    expect(probe.draft!.stopPoints).toEqual([]);
   });
 
   it("une action accessible de déplacement referme les actions glissées révélées", () => {
@@ -7665,7 +7672,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(order()).toEqual(INITIAL_ORDER);
   });
 
-  it("dépôt refusé (point d'arrêt sur un emplacement interdit) : retour en douceur, ordre inchangé", () => {
+  it("D-437 — dépôt qui rendrait un point interdit : appliqué, le point retiré, cartes à leur place", () => {
     renderLaidOut({ stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] }, { withX: false, withZ: false });
     // Story 6.2 : la rangée du point (entre A et B) est mesurée — sans quoi le soulèvement est refusé.
     fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
@@ -7673,12 +7680,12 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     moveTo("A", 100);
     settle();
     expect(rowShift("B")).toBe(-PITCH);
+    // [A, s-1, B] → [s-1, B, A] : s-1 suivrait le Compte à rebours, il est retiré (story 7.1).
     release("A", 100);
-    expect(rowShift("B")).toBe(-PITCH);
     settle();
     expect(rowShift("B")).toBe(0);
-    expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR"]);
-    expect(probe.draft!.stopPoints).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR"]);
+    expect(probe.draft!.stopPoints).toEqual([]);
   });
 
   /** Séries, N = 2 : A (3 séries) entrant dans le Circuit perd une série → dialogue de perte. */
@@ -8205,31 +8212,49 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expectRailJoined(elements, null);
       });
 
-      it("dépôt refusé, image par image : la carte revient depuis sa position de dépôt, au premier plan, rail continu", () => {
+      // Story 7.1 (D-437) : un déplacement de carte n'est plus refusé pour un point interdit ou
+      // consécutif ; le dépôt non appliqué est désormais celui qui demande un choix (conflit de Tour,
+      // dialogue branché en story 7.2) — jusque-là, l'écran le traite comme un refus.
+      it("dépôt non appliqué (choix de Tour requis), image par image : la carte revient depuis sa position de dépôt, au premier plan, rail continu", () => {
         const elements = renderRail(
-          [anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })],
-          { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] },
+          [
+            anActivity("A", "BEFORE_TOUR", { name: "Gainage" }),
+            anActivity("B", "IN_TOUR", { name: "Squats" }),
+            anActivity("C", "IN_TOUR", { name: "Pompes" }),
+          ],
+          {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "s-1", scope: "IN_TOUR", position: 1 },
+              { id: "s-2", scope: "IN_TOUR", position: 2 },
+            ],
+          },
         );
         expectRailJoined(elements, null);
-        const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
-        lift("A");
-        moveTo("A", dy);
+        // B sort du Circuit au-dessus de A : s-1 deviendrait début de Tour, s-2 est fin de Tour (N = 2).
+        const dy = centerOf(elements, "A") - 10 - centerOf(elements, "B");
+        lift("B");
+        moveTo("B", dy);
         settle();
-        expectRailJoined(elements, "A");
-        release("A", dy);
-        expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR"]);
-        // Prise là où le doigt l'a laissée, puis ramenée par le registre, synchronisée avec B.
-        expect(rowShift("A")).toBe(dy);
+        expectRailJoined(elements, "B");
+        release("B", dy);
+        expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "C:IN_TOUR"]);
+        expect(probe.draft!.stopPoints).toEqual([
+          { id: "s-1", scope: "IN_TOUR", position: 1 },
+          { id: "s-2", scope: "IN_TOUR", position: 2 },
+        ]);
+        // Prise là où le doigt l'a laissée, puis ramenée par le registre.
+        expect(rowShift("B")).toBe(dy);
         let previous = dy;
         for (let frame = 0; frame < 6; frame += 1) {
-          expectOwnSurfaceRail("A");
-          expectRailJoined(elements, "A");
+          expectOwnSurfaceRail("B");
+          expectRailJoined(elements, "B");
           frames(2);
-          expect(rowShift("A")).toBeLessThanOrEqual(previous);
-          previous = rowShift("A");
+          expect(rowShift("B")).toBeGreaterThanOrEqual(previous);
+          previous = rowShift("B");
         }
         settle();
-        expectBackInChain("A");
+        expectBackInChain("B");
         expectRailJoined(layOut(), null);
       });
 
@@ -8336,26 +8361,21 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           ]);
         });
 
-        it("R1 / RM-251 — [A, P, B, Q, C], B glissée après C : refus (P et Q se suivraient), retour animé, rien d'écrit", () => {
+        it("D-437 — [A, P, B, Q, C], B glissée après C : appliqué, Q retiré (P conservé), rail continu", () => {
           const elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
             stopPoints: [
               { id: "P", scope: "BEFORE_TOUR", position: 1 },
               { id: "Q", scope: "BEFORE_TOUR", position: 2 },
             ],
           });
-          const draftBefore = probe.draft;
           const dy = centerOf(elements, "C") + 10 - centerOf(elements, "B");
           lift("B");
           moveTo("B", dy);
           settle();
+          expectRailJoined(elements, "B");
           release("B", dy);
-          expect(probe.draft!.exercises).toBe(draftBefore!.exercises);
-          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1", "Q:BEFORE_TOUR:2"]);
-          expect(rowShift("B")).toBe(dy);
-          for (let frame = 0; frame < 4; frame += 1) {
-            expectRailJoined(elements, "B");
-            frames(2);
-          }
+          expect(order()).toEqual(["A:BEFORE_TOUR", "C:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
           settle();
           expect(rowShift("B")).toBe(0);
           expectRailJoined(layOut(), null);
@@ -8418,7 +8438,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             ],
           });
           // P : monter le mettrait juste après le compte à rebours (jamais proposable) → absente ;
-          // descendre → après B. Q (avant le Circuit) : descendre saute la tête du Circuit → après X.
+          // descendre → après B. Q (avant le Circuit) : descendre va en tête du Circuit (story 7.1, D-437), puis après X.
           expect(pointActions("P")).toEqual(["moveDown"]);
           expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
           expect(pointChip("P").props.accessibilityHint).toBe(composition.pauses.stopPointReorderAccessibilityHint);
@@ -8429,15 +8449,17 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
           fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:1"]);
-          // Redescendre : il franchit de nouveau P (après B, occupé) → après C ; puis il saute la tête
-          // du Circuit → après X.
+          // Redescendre : il franchit de nouveau P (après B, occupé) → après C ; puis — story 7.1, D-437 —
+          // en tête du Circuit (proposée), puis après X.
           fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:3"]);
+          fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:IN_TOUR:0"]);
           fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:IN_TOUR:1"]);
         });
 
-        it("« Monter » / « Descendre » d'une carte : échange avec l'élément voisin, point compris (stepOccurrence) ; absent si refusé", () => {
+        it("« Monter » / « Descendre » d'une carte : échange avec l'élément voisin, point compris (stepOccurrence) ; absent en début de Séance", () => {
           renderRail([...before(["W", "A", "B"]), circuitX()], {
             stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 2 }],
           });
@@ -8498,24 +8520,23 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           }
         });
 
-        it("R1 — carte glissée qui laisserait un point juste après le Compte à rebours : refus, retour animé, rien d'écrit", () => {
+        it("D-437 — carte glissée qui laisserait un point juste après le Compte à rebours : appliqué, le point retiré", () => {
           const elements = renderRail([...before(["A", "B"]), circuitX()], {
             stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
           });
-          const draftBefore = probe.draft;
           const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
           lift("A");
           moveTo("A", dy);
           settle();
           release("A", dy);
-          expect(probe.draft).toBe(draftBefore);
-          expect(rowShift("A")).toBe(dy);
+          expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual([]);
           settle();
           expect(rowShift("A")).toBe(0);
           expectRailJoined(layOut(), null);
         });
 
-        it("R2 entre zones — en tête du Circuit : refusé ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {
+        it("R2 entre zones — D-437 : en tête du Circuit, accepté ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {
           let elements = renderRail([...before(["A", "B"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
             stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
           });
@@ -8525,7 +8546,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           movePoint("P", dy);
           settle();
           releasePoint("P", dy);
-          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+          expect(pointsOf()).toEqual(["P:IN_TOUR:0"]);
           settle();
           // Juste au-dessus du milieu de Z : après le Circuit, avant Z.
           elements = layOut();
@@ -8633,9 +8654,9 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
             frames(1);
             expect(targets()).toEqual([]);
-            // Puis il saute la tête du Circuit → après X : autre liste, le focus le suit.
+            // Puis — story 7.1, D-437 — il descend en tête du Circuit : autre liste, le focus le suit.
             fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
-            expect(pointsOf()).toEqual(["P:IN_TOUR:1"]);
+            expect(pointsOf()).toEqual(["P:IN_TOUR:0"]);
             frames(1);
             expect(targets()).toEqual(["composition-stop-point-P-chip"]);
             // Une carte qui change de zone : B descend en tête du Circuit.

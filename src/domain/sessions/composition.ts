@@ -24,7 +24,6 @@ import type { SessionDraftExercise } from "./SessionDraft";
 import {
   consecutiveStopPointPairs,
   hasUniquePositionPerScope,
-  isCircuitHead,
   isStopPointAllowed,
   isStopPointPositionInRange,
   isStopPointProposable,
@@ -32,9 +31,15 @@ import {
   positionInSequence,
   scopeSequence,
   stopPointKey,
+  structuralSequence,
+  tourBoundaryConflict,
+  tourBoundaryPoints,
+  withoutStopPoints,
   type SequenceItem,
   type StopPoint,
   type StopPointLocation,
+  type TourBoundaryChoice,
+  type TourBoundaryConflict,
 } from "./StopPoint";
 import { NAME_MAX_LENGTH, normalizeName } from "./validation";
 
@@ -299,24 +304,43 @@ export function duplicateActivity(
  * séquence (il ne suit plus l'occurrence qui le précédait) et recalcule sa
  * `position`. La collection `exercises` reste produite par les opérations
  * historiques (`moveActivity`, `removeActivity`, `duplicateActivity`,
- * inchangées). Une opération invalide est REFUSÉE sans mutation : aucun
- * point n'est déplacé ni supprimé pour la rendre valide (`judge`).
+ * inchangées). Suppression, duplication et déplacement autonome d'un point :
+ * une opération invalide est REFUSÉE sans mutation (`judge`).
+ *
+ * **D-437 (story 7.1)** :
+ * - le DÉPLACEMENT d'une occurrence est TOLÉRANT (`settle`) : il est appliqué
+ *   et les points en cause sont retirés — d'abord ceux devenus interdits,
+ *   puis, itérativement, le second de chaque paire devenue consécutive (le
+ *   premier est conservé) ; l'issue nomme les points retirés ;
+ * - la tête de Circuit est autorisée et proposée ; à N ≥ 2
+ *   (`tourRepeatCount`), début et fin de Tour échappent à RM-219, et une
+ *   opération qui les ferait COEXISTER (conflit de Tour,
+ *   `tourBoundaryConflict`) rend `CHOICE_REQUIRED` avec les deux résolutions,
+ *   sans muter — sauf la suppression, qui garde le refus doux de D-436.
  */
 export type CompositionState = {
   readonly exercises: readonly SessionDraftExercise[];
   readonly stopPoints: readonly StopPoint[];
+  /**
+   * Story 7.1 (D-437) : N du Circuit (`SessionDraft.tourRepeatCount`), contexte des règles
+   * d'emplacement (`StopPointRules`) ; absent : 1. Jamais modifié par ces opérations : recopié tel
+   * quel dans l'état produit.
+   */
+  readonly tourRepeatCount?: number;
 };
 
 /**
  * Raison d'un refus (annonce d'accessibilité de l'écran, story 6.3) :
  * - `STOP_POINT_NOT_ALLOWED` : un point deviendrait interdit (juste après le
- *   compte à rebours, juste avant la Fin, RM-219), arriverait en tête de
- *   Circuit, ou le Circuit serait vidé alors qu'il porte un point — ou, pour
- *   un déplacement autonome, la cible n'est pas proposable ;
+ *   compte à rebours, juste avant la Fin, RM-219, N compris), ou le Circuit
+ *   serait vidé alors qu'il porte un point — ou, pour un déplacement
+ *   autonome, la cible n'est pas proposable ;
  * - `CONSECUTIVE_STOP_POINTS` : deux points se suivraient sans Exercice
- *   entre eux (RM-251) ;
+ *   entre eux (RM-251) — story 7.1 : y compris entre deux Tours (conflit de
+ *   Tour créé par une SUPPRESSION, D-437) ;
  * - `LOCATION_OCCUPIED` : deux points se retrouveraient sur le même
- *   emplacement `(scope, position)` ;
+ *   emplacement `(scope, position)` (suppression, déplacement autonome ;
+ *   jamais rendu par un déplacement d'occurrence depuis D-437) ;
  * - `AT_BOUNDARY` : « Monter » / « Descendre » sans élément voisin (début ou
  *   fin de la Séance).
  */
@@ -327,18 +351,47 @@ export type CompositionRefusalReason =
   | "AT_BOUNDARY";
 
 /**
+ * Story 7.1 (D-437) : état produit et points retirés pour l'obtenir (identifiants, ordre de
+ * retrait) — résolution d'un conflit de Tour.
+ */
+export type CompositionResolution = {
+  readonly state: CompositionState;
+  readonly removedStopPointIds: readonly string[];
+};
+
+/**
  * Résultat discriminé d'une opération de Composition (convention du Domaine,
  * `SessionRepository.ts`) : appliquée (nouvel état, ou l'entrée elle-même si
  * rien ne change), élément introuvable, ou refusée — avec les points en
  * cause. Aucune de ces issues n'est une exception.
+ *
+ * Story 7.1 (D-437) :
+ * - `APPLIED.removedStopPointIds` : points retirés par un déplacement
+ *   tolérant d'occurrence (vide sinon), pour que l'écran ajuste focus et
+ *   annonces ;
+ * - `CHOICE_REQUIRED` : l'opération créerait un conflit de Tour (N ≥ 2, début
+ *   et fin de Tour) ; rien n'est appliqué. `resolutions.HEAD` conserve le
+ *   point de début (« Début de tour »), `resolutions.TAIL` celui de fin
+ *   (« Fin de tour ») ; chacune est l'état complet À APPLIQUER, avec tous les
+ *   points retirés (ceux du déplacement tolérant compris). « Annuler » :
+ *   garder l'entrée.
  */
 export type CompositionOutcome =
-  | { readonly status: "APPLIED"; readonly state: CompositionState }
+  | {
+      readonly status: "APPLIED";
+      readonly state: CompositionState;
+      readonly removedStopPointIds: readonly string[];
+    }
   | { readonly status: "NOT_FOUND" }
   | {
       readonly status: "REFUSED";
       readonly reason: CompositionRefusalReason;
       readonly stopPointIds: readonly string[];
+    }
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: TourBoundaryConflict;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, CompositionResolution>>;
     };
 
 /** Sens d'un pas « Monter » / « Descendre » (`stepOccurrence`). */
@@ -406,57 +459,127 @@ function refused(reason: CompositionRefusalReason, points: readonly StopPoint[])
   return { status: "REFUSED", reason, stopPointIds: [...new Set(points.map((point) => point.id))] };
 }
 
+const NO_REMOVAL: readonly string[] = [];
+
+function applied(state: CompositionState, removedStopPointIds: readonly string[] = NO_REMOVAL): CompositionOutcome {
+  return { status: "APPLIED", state, removedStopPointIds };
+}
+
+/** Le Circuit, qui portait des occurrences, est vidé par l'opération. */
+function circuitEmptied(before: CompositionState, after: CompositionState): boolean {
+  return occurrenceCountInScope(before.exercises, "IN_TOUR") > 0 && occurrenceCountInScope(after.exercises, "IN_TOUR") === 0;
+}
+
 /**
- * Juge l'état produit par une opération (D-436, revue de la story 6.1), dans
- * cet ordre :
- * 1. le Circuit est vidé alors qu'il porte encore un point → refus ;
- * 2. un point devient interdit (RM-219 ; il ne l'était pas avant) → refus ;
- * 3. un point arrive en tête de Circuit `(IN, 0)` (il n'y était pas) → refus ;
- * 4. une paire consécutive (RM-251) apparaît → refus. Une paire déjà
- *    consécutive avant l'opération (mêmes identifiants, même si elle est
- *    renumérotée) est exemptée — donnée héritée ; aucune paire contenant
- *    `movedStopPointId` (déplacement autonome) ne l'est ;
- * 5. l'unicité `(scope, position)`, vraie avant, est perdue → refus
- *    (`LOCATION_OCCUPIED`) : deux points d'une paire héritée réunis sur un
- *    même emplacement sont refusés ici.
+ * Points de `after` devenus interdits (RM-219, N compris, `isStopPointAllowed`) : autorisés avant
+ * l'opération (ou nouveaux) et plus après. Un point déjà interdit avant (donnée héritée) n'est pas
+ * visé.
  */
-function judge(
-  before: CompositionState,
-  after: CompositionState,
-  movedStopPointId: string | null = null,
-): CompositionOutcome {
-  const circuitPoints = after.stopPoints.filter((point) => point.scope === "IN_TOUR");
-  if (
-    circuitPoints.length > 0 &&
-    occurrenceCountInScope(before.exercises, "IN_TOUR") > 0 &&
-    occurrenceCountInScope(after.exercises, "IN_TOUR") === 0
-  ) {
-    return refused("STOP_POINT_NOT_ALLOWED", circuitPoints);
-  }
-
+function newlyDisallowedPoints(before: CompositionState, after: CompositionState, points: readonly StopPoint[]): readonly StopPoint[] {
   const beforeById = new Map(before.stopPoints.map((point) => [point.id, point]));
-  const newlyDisallowed = after.stopPoints.filter((point) => {
+  return points.filter((point) => {
     const previous = beforeById.get(point.id);
-    const wasAllowed = previous === undefined || isStopPointAllowed(before.exercises, previous);
-    return wasAllowed && !isStopPointAllowed(after.exercises, point);
+    const wasAllowed = previous === undefined || isStopPointAllowed(before.exercises, previous, before);
+    return wasAllowed && !isStopPointAllowed(after.exercises, point, after);
   });
-  if (newlyDisallowed.length > 0) {
-    return refused("STOP_POINT_NOT_ALLOWED", newlyDisallowed);
-  }
+}
 
-  const newlyAtHead = after.stopPoints.filter((point) => {
-    const previous = beforeById.get(point.id);
-    return isCircuitHead(point) && (previous === undefined || !isCircuitHead(previous));
-  });
-  if (newlyAtHead.length > 0) {
-    return refused("STOP_POINT_NOT_ALLOWED", newlyAtHead);
-  }
-
-  const exempted = new Set(
+/**
+ * Paires consécutives exemptées (RM-251, revue 6.1) : celles déjà consécutives AVANT l'opération
+ * (mêmes identifiants, même renumérotées) — données héritées ; aucune paire contenant
+ * `movedStopPointId` (déplacement autonome) ne l'est.
+ */
+function exemptedPairs(before: CompositionState, movedStopPointId: string | null): ReadonlySet<string> {
+  return new Set(
     consecutiveStopPointPairs(before.exercises, before.stopPoints)
       .filter(([first, second]) => first.id !== movedStopPointId && second.id !== movedStopPointId)
       .map(([first, second]) => pairKey(first, second)),
   );
+}
+
+/**
+ * Story 7.1 (D-437) : conflit de Tour CRÉÉ par l'opération — présent après et absent avant.
+ * Revue 7.1 : dès que début et fin de Tour étaient déjà tous deux occupés avant l'opération, le
+ * conflit est hérité, quels que soient les points (p. ex. une fin de Tour déplacée vers une autre
+ * fin de Tour). `null` sinon.
+ */
+function newTourConflict(
+  before: CompositionState,
+  after: CompositionState,
+): { readonly head: StopPoint; readonly tail: StopPoint } | null {
+  const conflict = tourBoundaryConflict(after.exercises, after.stopPoints, after);
+  if (conflict === null) {
+    return null;
+  }
+  return tourBoundaryConflict(before.exercises, before.stopPoints, before) === null ? conflict : null;
+}
+
+/**
+ * Story 7.1 (D-437) : résout le conflit de Tour de `state` en conservant le point de début
+ * (`HEAD`) ou de fin (`TAIL`) de Tour ; l'autre point du conflit est retiré. Sans conflit (N = 1,
+ * l'un des deux absent) : l'entrée elle-même, rien de retiré. Fonction pure, utilisable sur tout
+ * état (p. ex. un conflit hérité que l'écran voudrait faire trancher).
+ */
+export function resolveTourBoundaryConflict(state: CompositionState, keep: TourBoundaryChoice): CompositionResolution {
+  const conflict = tourBoundaryConflict(state.exercises, state.stopPoints, state);
+  if (conflict === null) {
+    return { state, removedStopPointIds: NO_REMOVAL };
+  }
+  // Revue 7.1 : tous les points de la limite écartée (deux fins héritées, p. ex.), pas seulement celui du conflit.
+  const dropped = tourBoundaryPoints(state.exercises, state.stopPoints, keep === "HEAD" ? "TAIL" : "HEAD").map(
+    (point) => point.id,
+  );
+  return { state: { ...state, stopPoints: withoutStopPoints(state.stopPoints, dropped) }, removedStopPointIds: dropped };
+}
+
+/** Issue « choix requis » sur l'état `after` (non appliqué), points déjà retirés compris dans chaque résolution. */
+function choiceRequired(
+  after: CompositionState,
+  conflict: { readonly head: StopPoint; readonly tail: StopPoint },
+  removed: readonly string[],
+): CompositionOutcome {
+  const resolve = (keep: TourBoundaryChoice): CompositionResolution => {
+    const resolution = resolveTourBoundaryConflict(after, keep);
+    return { state: resolution.state, removedStopPointIds: [...removed, ...resolution.removedStopPointIds] };
+  };
+  return {
+    status: "CHOICE_REQUIRED",
+    conflict: { headStopPointId: conflict.head.id, tailStopPointId: conflict.tail.id },
+    resolutions: { HEAD: resolve("HEAD"), TAIL: resolve("TAIL") },
+  };
+}
+
+/**
+ * Juge STRICT de l'état produit par une suppression, une duplication ou un déplacement autonome
+ * de point (D-436, revue de la story 6.1 ; story 7.1, D-437), dans cet ordre :
+ * 1. le Circuit est vidé alors qu'il porte encore un point → refus ;
+ * 2. un point devient interdit (RM-219, N compris ; il ne l'était pas avant) → refus ;
+ * 3. une paire consécutive (RM-251) apparaît → refus (paires héritées exemptées,
+ *    `exemptedPairs`) ;
+ * 4. l'unicité `(scope, position)`, vraie avant, est perdue → refus (`LOCATION_OCCUPIED`) : deux
+ *    points d'une paire héritée réunis sur un même emplacement sont refusés ici ;
+ * 5. story 7.1 : un conflit de Tour est créé (`newTourConflict`) → `onTourConflict` : `REFUSE`
+ *    (suppression : refus doux de D-436, raison `CONSECUTIVE_STOP_POINTS` — les deux points se
+ *    suivraient entre deux Tours) ou `CHOOSE` (déplacement autonome : `CHOICE_REQUIRED`).
+ * Story 7.1 (D-437) : l'ancienne règle « un point arrive en tête de Circuit → refus » est retirée.
+ */
+function judge(
+  before: CompositionState,
+  after: CompositionState,
+  movedStopPointId: string | null,
+  onTourConflict: "REFUSE" | "CHOOSE",
+): CompositionOutcome {
+  const circuitPoints = after.stopPoints.filter((point) => point.scope === "IN_TOUR");
+  if (circuitPoints.length > 0 && circuitEmptied(before, after)) {
+    return refused("STOP_POINT_NOT_ALLOWED", circuitPoints);
+  }
+
+  const newlyDisallowed = newlyDisallowedPoints(before, after, after.stopPoints);
+  if (newlyDisallowed.length > 0) {
+    return refused("STOP_POINT_NOT_ALLOWED", newlyDisallowed);
+  }
+
+  const exempted = exemptedPairs(before, movedStopPointId);
   const newPairs = consecutiveStopPointPairs(after.exercises, after.stopPoints).filter(
     ([first, second]) => !exempted.has(pairKey(first, second)),
   );
@@ -474,10 +597,84 @@ function judge(
       after.stopPoints.filter((point) => (counts.get(stopPointKey(point)) ?? 0) > 1),
     );
   }
-  return { status: "APPLIED", state: after };
+
+  const conflict = newTourConflict(before, after);
+  if (conflict !== null) {
+    return onTourConflict === "REFUSE"
+      ? refused("CONSECUTIVE_STOP_POINTS", [conflict.tail, conflict.head])
+      : choiceRequired(after, conflict, NO_REMOVAL);
+  }
+  return applied(after);
 }
 
-/** Raccourci des formes historiques : l'état appliqué, ou l'entrée elle-même (refus, introuvable). */
+/**
+ * Story 7.1 (D-437) : règle TOLÉRANTE du déplacement d'une occurrence. L'état `after` (points
+ * laissés à leur place dans la séquence) est appliqué ; les points en cause sont retirés, dans cet
+ * ordre :
+ * 1. le Circuit est vidé alors qu'il porte des points → ses points (interdits : plus aucun
+ *    Exercice autour duquel s'arrêter dans le Circuit) ;
+ * 2. points devenus interdits (RM-219, N compris, `newlyDisallowedPoints`) ;
+ * 3. RM-251, itérativement : la première paire consécutive non exemptée de la séquence
+ *    structurelle perd son SECOND point (le premier est conservé), jusqu'à n'en plus trouver ;
+ *    les paires héritées (`exemptedPairs`) restent en place ;
+ * 4. emplacement partagé `(scope, position)`, l'unicité étant vraie avant (seul cas : une paire
+ *    héritée qu'une ancienne Récupération autonome séparait sur deux emplacements, réunie par le
+ *    déplacement de celle-ci) → le second, dans l'ordre de la séquence. `LOCATION_OCCUPIED` n'est
+ *    donc jamais rendu par un déplacement d'occurrence.
+ * Puis, si un conflit de Tour est créé : `CHOICE_REQUIRED` (rien appliqué) ; sinon `APPLIED` avec
+ * les identifiants retirés.
+ */
+function settle(before: CompositionState, after: CompositionState): CompositionOutcome {
+  const removed: string[] = [];
+  let points = after.stopPoints;
+  const drop = (ids: readonly string[]) => {
+    if (ids.length > 0) {
+      removed.push(...ids);
+      points = withoutStopPoints(points, ids);
+    }
+  };
+
+  if (circuitEmptied(before, after)) {
+    drop(points.filter((point) => point.scope === "IN_TOUR").map((point) => point.id));
+  }
+  drop(newlyDisallowedPoints(before, after, points).map((point) => point.id));
+
+  const exempted = exemptedPairs(before, null);
+  for (;;) {
+    const pair = consecutiveStopPointPairs(after.exercises, points).find(
+      ([first, second]) => !exempted.has(pairKey(first, second)),
+    );
+    if (pair === undefined) {
+      break;
+    }
+    drop([pair[1].id]);
+  }
+
+  if (hasUniquePositionPerScope(before.stopPoints) && !hasUniquePositionPerScope(points)) {
+    const seen = new Set<string>();
+    const duplicates: string[] = [];
+    for (const item of structuralSequence(after.exercises, points)) {
+      if (item.kind === "STOP_POINT") {
+        const key = stopPointKey(item.point);
+        if (seen.has(key)) {
+          duplicates.push(item.point.id);
+        } else {
+          seen.add(key);
+        }
+      }
+    }
+    drop(duplicates);
+  }
+
+  const state = points === after.stopPoints ? after : { ...after, stopPoints: points };
+  const conflict = newTourConflict(before, state);
+  return conflict === null ? applied(state, removed) : choiceRequired(state, conflict, removed);
+}
+
+/**
+ * Raccourci des formes historiques : l'état appliqué, ou l'entrée elle-même (refus, introuvable,
+ * et — story 7.1 — choix requis : rien n'est appliqué sans le choix de l'utilisateur).
+ */
 function stateOrUnchanged(outcome: CompositionOutcome, state: CompositionState): CompositionState {
   return outcome.status === "APPLIED" ? outcome.state : state;
 }
@@ -510,7 +707,12 @@ function locateInSequences(
  * Revenir à la même place (même portée, même rang qu'avant le retrait) est un
  * non-déplacement : `APPLIED` avec l'entrée elle-même — aucun point ne change
  * de côté. Les points gardent leur place ; la récupération suit l'occurrence.
- * Refus sans mutation selon `judge`.
+ *
+ * Story 7.1 (D-437, remplace le refus de D-436) : le déplacement est TOLÉRANT
+ * (`settle`) — jamais refusé pour un point interdit ou consécutif : il est
+ * appliqué et les points en cause sont retirés (`removedStopPointIds`). Ex. :
+ * `[A, P, B, Q, C]`, B déplacée après C → `[A, P, C, B]`, Q retiré (P
+ * conservé). Un conflit de Tour créé rend `CHOICE_REQUIRED`.
  */
 export function moveOccurrenceInSequence(
   state: CompositionState,
@@ -530,13 +732,13 @@ export function moveOccurrenceInSequence(
     ? Math.max(0, Math.min(Math.trunc(sequenceIndex), target.length))
     : target.length;
   if (targetZone === origin.zone && index === origin.index) {
-    return { status: "APPLIED", state };
+    return applied(state);
   }
   const occurrenceIndex = positionInSequence(target, index);
   const exercises = moveActivity(state.exercises, activityId, targetZone, occurrenceIndex);
   const moved = exercises.find((activity) => activity.id === activityId) ?? source;
   target.splice(index, 0, { kind: "OCCURRENCE", occurrence: moved });
-  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+  return settle(state, { ...state, exercises, stopPoints: stopPointsFromSequences(state, sequences) });
 }
 
 /**
@@ -590,7 +792,7 @@ export function moveOccurrenceOutcome(
   if (targetZone === source.structuralPosition) {
     const inZone = state.exercises.filter((activity) => activity.structuralPosition === targetZone);
     if (clampOccurrenceIndex(targetIndex, inZone.length - 1) === inZone.indexOf(source)) {
-      return { status: "APPLIED", state };
+      return applied(state);
     }
   }
   const sequences = sequencesOf(state);
@@ -625,8 +827,10 @@ export function moveOccurrence(
  * comme le faisait l'ancien pas de l'écran (story 2.3) : en montant, elle devient la
  * dernière de la portée précédente (après son éventuel point final) ; en
  * descendant, la première de la portée suivante (avant son éventuel point de
- * tête). Début ou fin de la Séance : refus `AT_BOUNDARY`. Mêmes refus que
- * `moveOccurrenceInSequence`. Branchement à l'écran : story 6.2.
+ * tête). Début ou fin de la Séance : refus `AT_BOUNDARY`. Mêmes issues que
+ * `moveOccurrenceInSequence` — story 7.1 (D-437) : tolérant, p. ex. `[A, P,
+ * B]`, B monte au-dessus de P → `[A, B]`, P retiré (il précéderait la Fin).
+ * Branchement à l'écran : story 6.2.
  */
 export function stepOccurrence(
   state: CompositionState,
@@ -663,7 +867,11 @@ export function stepOccurrence(
  * (aucun n'est retiré). Refus sans mutation selon `judge` — p. ex. `[A, P,
  * B]`, supprimer A (P suivrait le compte à rebours) ou B (P précéderait la
  * Fin) ; `[A, P, B, Q, C]`, supprimer B (P, Q consécutifs). La raison sert à
- * l'annonce d'accessibilité (story 6.3).
+ * l'annonce d'accessibilité (story 6.3). Story 7.1 (D-437) : la suppression
+ * GARDE ce refus doux (seul le déplacement devient tolérant) ; à N ≥ 2, une
+ * suppression qui ferait coexister début et fin de Tour (`[A, P, B, Q]` dans
+ * le Circuit, supprimer A) est refusée `CONSECUTIVE_STOP_POINTS` — les deux
+ * points se suivraient entre deux Tours.
  */
 export function removeOccurrenceOutcome(state: CompositionState, activityId: string): CompositionOutcome {
   const exercises = removeActivity(state.exercises, activityId);
@@ -673,7 +881,7 @@ export function removeOccurrenceOutcome(state: CompositionState, activityId: str
   const sequences = sequencesOf(state);
   const origin = locateInSequences(sequences, activityId)!;
   sequences[origin.zone].splice(origin.index, 1);
-  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+  return judge(state, { ...state, exercises, stopPoints: stopPointsFromSequences(state, sequences) }, null, "REFUSE");
 }
 
 /** Forme historique de `removeOccurrenceOutcome` : l'état appliqué, ou l'entrée elle-même (refus, inconnu). */
@@ -707,7 +915,7 @@ export function duplicateOccurrenceOutcome(
   const sequences = sequencesOf(state);
   const origin = locateInSequences(sequences, activityId)!;
   sequences[origin.zone].splice(origin.index + 1, 0, { kind: "OCCURRENCE", occurrence: copy });
-  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+  return judge(state, { ...state, exercises, stopPoints: stopPointsFromSequences(state, sequences) }, null, "REFUSE");
 }
 
 /**
@@ -724,10 +932,13 @@ export function duplicateOccurrence(state: CompositionState, activityId: string,
  * (`position` = occurrences de la portée cible qui le précèdent), identité
  * conservée. Refus sans mutation si la cible n'est pas proposable
  * (`isStopPointProposable` : hors bornes, juste après le compte à rebours,
- * juste avant la Fin, tête de Circuit), si elle porte déjà un autre point,
+ * juste avant la Fin — story 7.1, D-437 : la tête de Circuit est proposable et,
+ * à N ≥ 2, début et fin de Tour échappent à RM-219), si elle porte déjà un autre point,
  * ou si le point y serait consécutif à un autre (RM-251 ; aucune paire qui
  * le contient n'est exemptée). Cible égale à l'emplacement actuel : l'entrée
- * elle-même.
+ * elle-même. Story 7.1 (D-437) : une dépose qui ferait coexister début et fin
+ * de Tour à N ≥ 2 rend `CHOICE_REQUIRED` (`resolutions.HEAD` / `.TAIL`) ;
+ * conserver l'autre point retire donc le point déplacé.
  */
 export function moveStopPoint(
   state: CompositionState,
@@ -739,9 +950,9 @@ export function moveStopPoint(
     return { status: "NOT_FOUND" };
   }
   if (point.scope === target.scope && point.position === target.position) {
-    return { status: "APPLIED", state };
+    return applied(state);
   }
-  if (!isStopPointProposable(state.exercises, target)) {
+  if (!isStopPointProposable(state.exercises, target, state)) {
     return refused("STOP_POINT_NOT_ALLOWED", [point]);
   }
   const occupant = state.stopPoints.find(
@@ -753,5 +964,5 @@ export function moveStopPoint(
   const stopPoints = state.stopPoints.map((candidate) =>
     candidate === point ? { ...point, scope: target.scope, position: target.position } : candidate,
   );
-  return judge(state, { exercises: state.exercises, stopPoints }, stopPointId);
+  return judge(state, { ...state, stopPoints }, stopPointId, "CHOOSE");
 }

@@ -4,17 +4,24 @@ import type { StructuralPosition } from "../Session";
 import {
   areStopPointsNonConsecutive,
   consecutiveStopPointPairs,
+  hasTourBoundaryConflict,
   hasUniquePositionPerScope,
   isStopPointAllowed,
+  isStopPointPlacementAllowed,
   isStopPointPlacementValid,
   isStopPointPositionInRange,
   isStopPointProposable,
   orderStopPointsByScope,
   positionInSequence,
+  repeatsCircuit,
   scopeSequence,
   stopPointNeighbors,
   structuralSequence,
+  tourBoundaryConflict,
+  tourBoundaryOf,
+  tourBoundaryPoints,
   withoutStopPoint,
+  withoutStopPoints,
   wouldBeConsecutive,
   type SequenceItem,
   type StopPoint,
@@ -236,12 +243,12 @@ describe("RM-251 : non-consécutivité (D-436)", () => {
   });
 });
 
-describe("isStopPointProposable (D-436 : tête de Circuit non proposée)", () => {
+describe("isStopPointProposable (story 7.1, D-437 : tête de Circuit proposée)", () => {
   const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
 
-  it("refuse la tête de Circuit, autorisée par RM-219 mais jamais proposée", () => {
+  it("propose la tête de Circuit quand RM-219 l'autorise (remplace la non-proposition de D-436)", () => {
     expect(isStopPointAllowed(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(true);
-    expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(false);
+    expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(true);
   });
 
   it("suit isStopPointAllowed ailleurs", () => {
@@ -263,5 +270,90 @@ describe("withoutStopPoint (PRE-6 story 4.2)", () => {
 
   it("returns the same list (identity) for an unknown id", () => {
     expect(withoutStopPoint(points, "zz")).toBe(points);
+  });
+});
+
+/** PRE-6 story 7.1 (D-437) : début et fin de Tour, N du Circuit, conflit de Tour. */
+describe("début et fin de Tour (story 7.1, D-437)", () => {
+  /** Circuit seul [A, B] : il ouvre et clôt la Séance. */
+  const circuitOnly = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR")];
+  const head = { scope: "IN_TOUR" as const, position: 0 };
+  const tail = { scope: "IN_TOUR" as const, position: 2 };
+
+  it("repeatsCircuit : N ≥ 2 seulement (absent : 1)", () => {
+    expect(repeatsCircuit()).toBe(false);
+    expect(repeatsCircuit({ tourRepeatCount: 1 })).toBe(false);
+    expect(repeatsCircuit({ tourRepeatCount: 2 })).toBe(true);
+    expect(repeatsCircuit({ tourRepeatCount: Number.NaN })).toBe(false);
+  });
+
+  it("tourBoundaryOf : début, fin ou ni l'un ni l'autre ; seuls les Exercices comptent", () => {
+    expect(tourBoundaryOf(circuitOnly, head)).toBe("HEAD");
+    expect(tourBoundaryOf(circuitOnly, tail)).toBe("TAIL");
+    expect(tourBoundaryOf(circuitOnly, { scope: "IN_TOUR", position: 1 })).toBeNull();
+    expect(tourBoundaryOf(circuitOnly, { scope: "AFTER_TOUR", position: 0 })).toBeNull();
+    // Une ancienne Récupération autonome en tête ne sépare pas : (IN, 1) reste un début de Tour.
+    const legacy = [occ("R", "IN_TOUR", "RECOVERY"), occ("A", "IN_TOUR")];
+    expect(tourBoundaryOf(legacy, { scope: "IN_TOUR", position: 1 })).toBe("HEAD");
+    // Circuit sans Exercice : rien n'est répété, aucune limite de Tour.
+    expect(tourBoundaryOf([occ("R", "IN_TOUR", "RECOVERY")], head)).toBeNull();
+    expect(tourBoundaryOf([], head)).toBeNull();
+  });
+
+  it("N = 1 : RM-219 telle quelle ; N ≥ 2 : début et fin de Tour autorisés même en ouverture ou clôture de Séance", () => {
+    expect(isStopPointAllowed(circuitOnly, head)).toBe(false);
+    expect(isStopPointAllowed(circuitOnly, tail)).toBe(false);
+    expect(isStopPointPlacementAllowed(circuitOnly, head, { tourRepeatCount: 1 })).toBe(false);
+    expect(isStopPointAllowed(circuitOnly, head, { tourRepeatCount: 2 })).toBe(true);
+    expect(isStopPointAllowed(circuitOnly, tail, { tourRepeatCount: 2 })).toBe(true);
+    expect(isStopPointProposable(circuitOnly, head, { tourRepeatCount: 2 })).toBe(true);
+    // Hors Circuit, RM-219 n'est jamais levée.
+    const withOutside = [occ("W", "BEFORE_TOUR"), ...circuitOnly];
+    expect(isStopPointAllowed(withOutside, { scope: "BEFORE_TOUR", position: 0 }, { tourRepeatCount: 5 })).toBe(false);
+    // Hors bornes : refusé quel que soit N.
+    expect(isStopPointAllowed(circuitOnly, { scope: "IN_TOUR", position: 3 }, { tourRepeatCount: 2 })).toBe(false);
+  });
+
+  it("tourBoundaryConflict : début et fin à N ≥ 2 seulement ; premier début, dernier fin", () => {
+    const h: StopPoint = { id: "h", ...head };
+    const t: StopPoint = { id: "t", ...tail };
+    expect(tourBoundaryConflict(circuitOnly, [h, t])).toBeNull();
+    expect(tourBoundaryConflict(circuitOnly, [t, h], { tourRepeatCount: 2 })).toEqual({ head: h, tail: t });
+    expect(hasTourBoundaryConflict(circuitOnly, [h, t], { tourRepeatCount: 2 })).toBe(true);
+    expect(hasTourBoundaryConflict(circuitOnly, [h], { tourRepeatCount: 2 })).toBe(false);
+    expect(hasTourBoundaryConflict(circuitOnly, [h, { id: "m", scope: "IN_TOUR", position: 1 }], { tourRepeatCount: 2 })).toBe(false);
+    // Plusieurs débuts (ancienne Récupération en tête) : le premier ; plusieurs fins : la dernière.
+    const legacy = [occ("R", "IN_TOUR", "RECOVERY"), occ("A", "IN_TOUR"), occ("S", "IN_TOUR", "RECOVERY")];
+    const h0: StopPoint = { id: "h0", scope: "IN_TOUR", position: 0 };
+    const h1: StopPoint = { id: "h1", scope: "IN_TOUR", position: 1 };
+    const t2: StopPoint = { id: "t2", scope: "IN_TOUR", position: 2 };
+    const t3: StopPoint = { id: "t3", scope: "IN_TOUR", position: 3 };
+    expect(tourBoundaryConflict(legacy, [h1, t3, h0, t2], { tourRepeatCount: 2 })).toEqual({ head: h0, tail: t3 });
+  });
+
+  it("withoutStopPoints : retire par identifiants ; aucun visé : même liste", () => {
+    const points: StopPoint[] = [
+      { id: "a", scope: "BEFORE_TOUR", position: 1 },
+      { id: "b", scope: "IN_TOUR", position: 1 },
+      { id: "c", scope: "AFTER_TOUR", position: 0 },
+    ];
+    expect(withoutStopPoints(points, ["a", "c"])).toEqual([points[1]]);
+    expect(withoutStopPoints(points, ["x"])).toBe(points);
+    expect(withoutStopPoints(points, [])).toBe(points);
+  });
+});
+
+describe("tourBoundaryOf — revue 7.1 : positions invalides", () => {
+  it("un point hors bornes, non entier ou NaN n'est jamais une limite de Tour (aucun faux conflit)", () => {
+    const circuit = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR")];
+    for (const position of [Number.NaN, Number.NEGATIVE_INFINITY, -1, 0.5, 3]) {
+      expect(tourBoundaryOf(circuit, { scope: "IN_TOUR", position })).toBeNull();
+    }
+    const points: StopPoint[] = [
+      { id: "p", scope: "IN_TOUR", position: Number.NaN },
+      { id: "t", scope: "IN_TOUR", position: 2 },
+    ];
+    expect(tourBoundaryConflict(circuit, points, { tourRepeatCount: 2 })).toBeNull();
+    expect(tourBoundaryPoints(circuit, points, "TAIL")).toEqual([points[1]]);
   });
 });
