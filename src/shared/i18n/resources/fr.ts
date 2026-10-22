@@ -324,6 +324,16 @@ export const fr = {
           TOURS: "Nombre de tours",
           SERIES: "Nombre de séries",
         },
+        // PRE-6 (story 7.3, D-437) : boutons − et + du stepper toujours affiché, éléments
+        // accessibles distincts du réglage « Nombre de tours ».
+        decrementAccessibilityLabel: {
+          TOURS: "Retirer un tour",
+          SERIES: "Retirer une série",
+        },
+        incrementAccessibilityLabel: {
+          TOURS: "Ajouter un tour",
+          SERIES: "Ajouter une série",
+        },
         // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature par la pastille d’unité.
         nature: {
           accessibilityLabel: "Nature du circuit",

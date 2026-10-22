@@ -188,6 +188,9 @@ describe("strings", () => {
         SERIES: { singular: "série", plural: "séries" },
       },
       countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
+      // PRE-6 story 7.3 (D-437) : boutons − et + du stepper toujours affiché.
+      decrementAccessibilityLabel: { TOURS: "Retirer un tour", SERIES: "Retirer une série" },
+      incrementAccessibilityLabel: { TOURS: "Ajouter un tour", SERIES: "Ajouter une série" },
       // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
       nature: {
         accessibilityLabel: "Nature du circuit",

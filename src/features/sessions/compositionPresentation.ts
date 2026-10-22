@@ -70,6 +70,8 @@ export type CompositionSummaryFacts = {
  *   « ≥ 0 min » (P47) ; « ≈ » si une contribution est estimée (Répétitions
  *   avec bip) ; exact sinon. `exact` et `estimated` passent par
  *   `formatEstimatedDuration` (arrondi à la minute supérieure, RM-101, P41).
+ * - PRE-6 story 7.3 (D-437) : au-delà de 3 min, arrondi à la minute la plus
+ *   proche, préfixe conservé (`formatCircuitDurationResult`).
  */
 export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
   const inTourExercises = facts.exercises.filter(
@@ -94,8 +96,30 @@ export function formatCompositionSummary(facts: CompositionSummaryFacts): string
     circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
   });
   // PRE-6 (story 1.3, D-382, D-390) : la durée de ce seul Circuit, sans
-  // nombre d'exercices.
-  return formatSessionDurationResult(duration);
+  // nombre d'exercices. Story 7.3 (D-437) : arrondie à la minute au-delà de 3 min.
+  return formatCircuitDurationResult(duration);
+}
+
+/**
+ * PRE-6 story 7.3 (D-437, « Durée du Circuit » ; ch13 CE-T03-08) : seuil au-delà duquel la durée
+ * de l'en-tête du Circuit, une estimation, est arrondie à la minute la plus proche.
+ */
+export const CIRCUIT_DURATION_ROUNDING_THRESHOLD_SECONDS = 180;
+
+/**
+ * Durée de l'en-tête du Circuit (story 7.3, D-437) : au-delà de 3 min (strictement), arrondie à la
+ * minute la plus proche (`Math.round` : une demi-minute monte), préfixe d'estimation conservé
+ * (« ≈ », « ≥ », aucun pour un total exact) ; jusqu'à 3 min, format partagé inchangé. Réservée au
+ * résumé du Circuit : la durée de séance garde `formatSessionDurationResult`.
+ */
+function formatCircuitDurationResult(duration: SessionDurationResult): string {
+  if (duration.seconds <= CIRCUIT_DURATION_ROUNDING_THRESHOLD_SECONDS) {
+    return formatSessionDurationResult(duration);
+  }
+  const minutes = Math.round(duration.seconds / 60);
+  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+  const prefix = duration.kind === "estimated" ? estimatedPrefix : duration.kind === "lowerBound" ? lowerBoundPrefix : "";
+  return `${prefix}${minutes} ${strings.screens.sessions.card.durationUnit}`;
 }
 
 /**

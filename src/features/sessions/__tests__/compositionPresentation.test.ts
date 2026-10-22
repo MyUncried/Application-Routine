@@ -168,7 +168,7 @@ describe("formatCompositionSummary", () => {
   });
 
   describe("Séries et Pause après Série (T01-S08, revue PR #9 — RM-036/RM-037/RM-071/RM-072)", () => {
-    it("mode Durée, SANS Récupération : multiplie durationSeconds ET la Pause par seriesCount (90s, 3 Séries, pause 15s -> 315s -> 6 min)", () => {
+    it("mode Durée, SANS Récupération : multiplie durationSeconds ET la Pause par seriesCount (90s, 3 Séries, pause 15s -> 315s -> 5 min, story 7.3)", () => {
       expect(
         formatCompositionSummary({
           exercises: [
@@ -179,7 +179,7 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-      ).toBe("6 min"); // 3*90 + 3*15 = 315s -> ceil(315/60) = 6 min
+      ).toBe("5 min"); // 3*90 + 3*15 = 315s -> PRE-6 story 7.3 (D-437) : > 3 min, arrondi au plus proche (5,25) = 5 min
     });
 
     it("mode Durée, AVEC une Récupération ÉGALE à la Pause : total inchangé — elle REMPLACE la dernière Pause au lieu de s'y ajouter", () => {
@@ -196,7 +196,8 @@ describe("formatCompositionSummary", () => {
         }),
         // 3*90 + 2*15 + 15 = 315 s — strictement la même valeur que sans
         // Récupération (3*90 + 3*15). Un cumul aurait donné 330 s.
-      ).toBe("6 min");
+        // Story 7.3 (D-437) : 315 s → minute la plus proche, 5 min.
+      ).toBe("5 min");
     });
 
     it("mode Durée, AVEC une Récupération PLUS LONGUE que la Pause : le total augmente exactement de l'écart", () => {
@@ -211,8 +212,8 @@ describe("formatCompositionSummary", () => {
             },
           ],
         }),
-        // 3*90 + 2*15 + 75 = 375 s, soit `315 + (75 − 15)`.
-      ).toBe("7 min");
+        // 3*90 + 2*15 + 75 = 375 s, soit `315 + (75 − 15)` ; story 7.3 : 6,25 → 6 min.
+      ).toBe("6 min");
     });
 
     it("mode Répétitions : la Pause après Série reste comptée (déterminable) même si la durée de l'Exercice ne l'est pas (3 Séries, pause 20s -> 40s -> ≥ 1 min)", () => {
@@ -933,10 +934,10 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
     executionParameters: r01(),
   });
 
-  it("PRE4-2.4/AC5 — Composition `lowerBound` : « ≥ » en min s sans arrondi ; Circuit ×1 → ≥ 1 min 45 s, ×2 → ≥ 3 min 30 s", () => {
-    // (30 + 45) + 3 × 10 = 105 s ; × 2 = 210 s.
+  it("PRE4-2.4/AC5 — Composition `lowerBound` : « ≥ » en min s sans arrondi ; Circuit ×1 → ≥ 1 min 45 s, ×2 → ≥ 4 min (story 7.3)", () => {
+    // (30 + 45) + 3 × 10 = 105 s ; × 2 = 210 s, arrondi au plus proche au-delà de 3 min (story 7.3, D-437).
     expect(formatCompositionSummary({ exercises: [r01InTour()], tourRepeatCount: 1 })).toBe("≥ 1 min 45 s");
-    expect(formatCompositionSummary({ exercises: [r01InTour()], tourRepeatCount: 2 })).toBe("≥ 3 min 30 s");
+    expect(formatCompositionSummary({ exercises: [r01InTour()], tourRepeatCount: 2 })).toBe("≥ 4 min");
   });
 
   it("PRE4-2.4/AC5 — Composition : Cible à renseigner (Q30) et Exercice omis contribuent leurs secondes connues, en « ≥ » sans arrondi", () => {
@@ -1136,10 +1137,10 @@ describe("PRE6-1.3 — formatCompositionSummary selon la nature du Circuit", () 
     postActivityRecoverySeconds: 20,
   });
 
-  it("Séries : passages (255 s → 5 min), hors Circuit exclu, aucun nombre d'exercices", () => {
+  it("Séries : passages (255 s → 4 min, arrondi au plus proche de la story 7.3), hors Circuit exclu, aucun nombre d'exercices", () => {
     const outside = { ...createExerciseDraft("w"), structuralPosition: "BEFORE_TOUR" as const, executionParameters: durationParameters(600) };
     const summary = formatCompositionSummary({ exercises: [outside, fentes()], tourRepeatCount: 3, circuitNature: "SERIES" });
-    expect(summary).toBe("5 min");
+    expect(summary).toBe("4 min");
   });
 
   it("Séries, une seule série jouée : 85 s → 2 min", () => {
@@ -1313,5 +1314,57 @@ describe("resolveOccurrenceCategory (PRE-6 story 2.2)", () => {
     expect(resolveOccurrenceCategory(null, categories)).toBeNull();
     expect(resolveOccurrenceCategory(undefined, categories)).toBeNull();
     expect(resolveOccurrenceCategory("inconnue", categories)).toBeNull();
+  });
+});
+
+/**
+ * PRE-6 story 7.3 (D-437, « Durée du Circuit ») : la durée de l'en-tête du Circuit est une
+ * estimation — au-delà de 3 min, arrondie à la minute la plus proche, préfixe conservé ; jusqu'à
+ * 3 min, format inchangé. La durée de séance (`formatCompositionSessionDuration`) n'est pas touchée.
+ */
+describe("formatCompositionSummary — arrondi à la minute au-delà de 3 min (PRE-6 story 7.3)", () => {
+  const circuitOf = (executionParameters: ExecutionParameters): SessionDraftExercise[] => [
+    { ...inTourExercise("e"), postActivityRecoverySeconds: 0, executionParameters },
+  ];
+
+  it.each([
+    [120, "2 min"],
+    [121, "3 min"],
+    [180, "3 min"],
+    [181, "3 min"],
+    [209, "3 min"],
+    [210, "4 min"],
+    [1100, "18 min"],
+  ])("exact %i s → « %s »", (seconds, expected) => {
+    expect(formatCompositionSummary({ exercises: circuitOf(durationParameters(seconds)) })).toBe(expected);
+  });
+
+  it("développé par N : 181 s × 2 Tours = 362 s → « 6 min » (au lieu de « 7 min »)", () => {
+    expect(formatCompositionSummary({ exercises: circuitOf(durationParameters(181)), tourRepeatCount: 2 })).toBe("6 min");
+  });
+
+  it("borne minimale : secondes gardées jusqu'à 3 min, arrondie au-delà, préfixe « ≥ » conservé", () => {
+    // Répétitions sans bip, deux séries : seules les deux pauses comptent (2 × pause).
+    expect(formatCompositionSummary({ exercises: circuitOf(repetitionParameters(12, 2, 75)) })).toBe("≥ 2 min 30 s");
+    expect(formatCompositionSummary({ exercises: circuitOf(repetitionParameters(12, 2, 90)) })).toBe("≥ 3 min");
+    expect(formatCompositionSummary({ exercises: circuitOf(repetitionParameters(12, 2, 100)) })).toBe("≥ 3 min");
+    expect(formatCompositionSummary({ exercises: circuitOf(repetitionParameters(12, 2, 105)) })).toBe("≥ 4 min");
+  });
+
+  it("estimée : préfixe « ≈ » conservé, arrondie au plus proche au-delà de 3 min", () => {
+    // 2 × 25 rép. × 4 s = 200 s → « ≈ 3 min » (au lieu de « ≈ 4 min »).
+    expect(
+      formatCompositionSummary({ exercises: circuitOf(repetitionParameters(25, 2, 0, { cadenceBeepIntervalSeconds: 4 })) }),
+    ).toBe("≈ 3 min");
+    // 2 × 13 rép. × 4 s = 104 s : inchangée (« ≈ 2 min »).
+    expect(
+      formatCompositionSummary({ exercises: circuitOf(repetitionParameters(13, 2, 0, { cadenceBeepIntervalSeconds: 4 })) }),
+    ).toBe("≈ 2 min");
+  });
+
+  it("Circuit vide : « — min » inchangé ; la durée de séance garde son arrondi supérieur", () => {
+    expect(formatCompositionSummary({ exercises: [] })).toBe("— min");
+    expect(formatCompositionSessionDuration({ exercises: circuitOf(durationParameters(181)) })).toBe("4 min");
+    expect(formatCompositionSessionDuration({ exercises: circuitOf(repetitionParameters(12, 2, 105)) })).toBe("≥ 3 min 30 s");
   });
 });

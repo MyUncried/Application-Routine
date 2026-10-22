@@ -1167,7 +1167,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     const duration = within(header).getByTestId("composition-circuit-header-duration");
     expect(duration.props.children).toBe("— min");
-    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 12, fontWeight: "400", color: TEXT_TERTIARY });
+    // Story 7.3 (D-437) : la durée a la taille du titre (16), graisse Regular et couleur tertiaire conservées.
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 16, fontWeight: "400", color: TEXT_TERTIARY });
     // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau) ;
     // la durée, calée à droite, se tronque (une ligne) ; ni le titre ni le compteur ne cèdent.
     // Revue 5.2 : hauteur MINIMALE de 40 (Dynamic Type).
@@ -1179,7 +1180,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       flexShrink: 1,
       minWidth: 0,
     });
-    const counter = within(header).getByTestId("composition-circuit-header-counter-rest");
+    const counter = within(header).getByTestId("composition-circuit-header-counter-stepper");
     expect(StyleSheet.flatten(counter.props.style).flexShrink).toBe(0);
 
     // Plus de roulette du compte ni de « Nombre de tours » affiché, ni d'icône Tour.
@@ -1188,17 +1189,19 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(screen.queryByTestId("composition-tour-icon")).toBeNull();
   });
 
-  it("PRE6-3.1 — at rest: the digit (Semi Bold 13 primary text, 44 touch target) then the unit pill (surface, radius 10, padding 10/4, Semi Bold 13 primary)", () => {
+  it("PRE6-7.3 — the digit is a « Valeur modifiable » (Semi Bold 16 primary on surface), then the unit pill (surface, radius 10, padding 10/4, Semi Bold 16 primary)", () => {
     renderScreen();
 
     const digit = screen.getByTestId("composition-circuit-header-counter-value");
-    expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
-    const digitTouch = screen.getByTestId("composition-circuit-header-counter-value-press");
-    const digitTouchStyle = StyleSheet.flatten(digitTouch.props.style);
-    expect(digitTouchStyle.minHeight).toBe(44);
-    // Revue 5.3 : boîte réelle de 44 (marge négative à gauche, l'encombrement reste 32), sans hitSlop.
-    expect(digitTouchStyle).toMatchObject({ minWidth: 44, marginLeft: -12 });
-    expect(digitTouch.props.hitSlop).toBeUndefined();
+    expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 16, fontWeight: "600", color: colors.primary });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-circuit-header-counter").props.style)).toMatchObject({
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+    });
+    // Story 7.3 : le chiffre n'est plus une cible (aucune révélation) ; − et + sont des boîtes réelles de 44.
+    expect(screen.queryByTestId("composition-circuit-header-counter-value-press")).toBeNull();
 
     const pill = screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true });
     expect(StyleSheet.flatten(pill.props.style)).toMatchObject({
@@ -1208,7 +1211,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
       paddingVertical: 4,
     });
     const pillText = screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true });
-    expect(StyleSheet.flatten(pillText.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.primary });
+    expect(StyleSheet.flatten(pillText.props.style)).toMatchObject({ fontSize: 16, fontWeight: "600", color: colors.primary });
     // Story 3.2 : la pastille n'est que le dessin du déclencheur du choix de nature (menu natif
     // sur iOS), qui porte seul le rôle et l'action.
     expect(pill.props.onPress).toBeUndefined();
@@ -3557,9 +3560,8 @@ function stepCircuitCounter(direction: "increment" | "decrement", times = 1) {
   }
 }
 
-/** PRE-6 (story 3.1) : règle N depuis 1 par le + du stepper révélé (un appui par pas). */
+/** PRE-6 (story 3.1) : règle N depuis 1 par le + du stepper (story 7.3 : toujours affiché ; un appui par pas). */
 function setCircuitCountWithStepper(target: number) {
-  fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
   for (let i = 1; i < target; i += 1) {
     const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment");
     fireEvent(plus, "pressIn");
@@ -3567,19 +3569,20 @@ function setCircuitCountWithStepper(target: number) {
   }
 }
 
-describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10)", () => {
+describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10 ; story 7.3, D-437)", () => {
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
   const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
   const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
   const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
   const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
+  const stepper = () => screen.queryByTestId("composition-circuit-header-counter-stepper");
 
-  it("at rest: « 1 » + « tour » in Tours, « 3 » + « séries » in Series (N = 1 singular)", () => {
+  it("« 1 » + « tour » in Tours, « 3 » + « séries » in Series (N = 1 singular); the stepper is always shown", () => {
     renderScreenWithDraft(oneActivity);
     expect(counterValue()).toBe(1);
     expect(unitText()).toBe("tour");
-    // Aucun stepper au repos.
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    // Story 7.3 (D-437, remplace D8) : stepper toujours affiché, sans toucher préalable.
+    expect(stepper()).toBeTruthy();
 
     screen.unmount();
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 3, circuitNature: "SERIES" });
@@ -3595,41 +3598,51 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     expect(unitText()).toBe("tours");
   });
 
-  it("touching the digit reveals − and + around « digit + unit pill », on the white radius-18 field with surface circles", () => {
+  it("story 7.3 — − and + around « digit + unit pill », on the white radius-18 background with surface circles, digit as a « Valeur modifiable »", () => {
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 4 });
 
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-
-    const field = screen.getByTestId("composition-circuit-header-counter-field");
+    const field = screen.getByTestId("composition-circuit-header-counter-stepper");
     expect(StyleSheet.flatten(field.props.style)).toMatchObject({ backgroundColor: colors.background, borderRadius: 18 });
-    const minus = within(field).getByTestId("composition-circuit-header-counter-stepper-decrement");
-    const plus = within(field).getByTestId("composition-circuit-header-counter-stepper-increment");
-    for (const button of [minus, plus]) {
-      expect(StyleSheet.flatten(button.props.style)).toMatchObject({ width: 28, height: 28, backgroundColor: colors.surface });
+    for (const direction of ["decrement", "increment"]) {
+      const circle = within(field).getByTestId(`composition-circuit-header-counter-stepper-${direction}-circle`);
+      expect(StyleSheet.flatten(circle.props.style)).toMatchObject({ width: 28, height: 28, backgroundColor: colors.surface });
+      expect(StyleSheet.flatten(within(field).getByTestId(`composition-circuit-header-counter-stepper-${direction}`).props.style)).toMatchObject({
+        width: 44,
+        height: 44,
+      });
     }
     // Ordre : −, chiffre, pastille, +.
     expect(
       testIdOrder(screen.toJSON(), [
         "composition-circuit-header-counter-stepper-decrement",
-        "composition-circuit-header-counter-stepper-value",
+        "composition-circuit-header-counter-value",
         "composition-circuit-header-counter-unit",
         "composition-circuit-header-counter-stepper-increment",
       ]),
     ).toEqual([
       "composition-circuit-header-counter-stepper-decrement",
-      "composition-circuit-header-counter-stepper-value",
+      "composition-circuit-header-counter-value",
       "composition-circuit-header-counter-unit",
       "composition-circuit-header-counter-stepper-increment",
     ]);
-    const digit = screen.getByTestId("composition-circuit-header-counter-stepper-value");
-    expect(digit.props.children).toBe("4");
-    expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
-    expect(screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children).toBe("tours");
+    expect(counterValue()).toBe(4);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-circuit-header-counter-value").props.style)).toMatchObject({
+      fontSize: 16,
+      fontWeight: "600",
+      color: colors.primary,
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-circuit-header-counter").props.style)).toMatchObject({
+      backgroundColor: colors.surface,
+      borderRadius: 10,
+    });
+    expect(unitText()).toBe("tours");
+    // Plus de chiffre tactile ni de champ révélé.
+    expect(screen.queryByTestId("composition-circuit-header-counter-value-press")).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-header-counter-field")).toBeNull();
   });
 
   it("bounds: − unavailable at 1, + unavailable at 99", () => {
     renderScreenWithDraft(oneActivity);
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
     expect(
       screen.getByTestId("composition-circuit-header-counter-stepper-decrement").props.accessibilityState,
     ).toMatchObject({ disabled: true });
@@ -3639,7 +3652,6 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
 
     screen.unmount();
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 99 });
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
     expect(
       screen.getByTestId("composition-circuit-header-counter-stepper-increment").props.accessibilityState,
     ).toMatchObject({ disabled: true });
@@ -3655,7 +3667,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
 
     setCircuitCountWithStepper(3);
 
-    expect(screen.getByTestId("composition-circuit-header-counter-stepper-value").props.children).toBe("3");
+    expect(counterValue()).toBe(3);
     expect(unitText()).toBe("tours");
     expect(circuitDuration()).toBe("3 min");
     expect(sessionDuration()).toBe("3 min");
@@ -3666,6 +3678,16 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     fireEvent(minus, "pressIn");
     fireEvent(minus, "pressOut");
     expect(circuitDuration()).toBe("2 min");
+  });
+
+  it("story 7.3 — the Circuit duration is rounded to the nearest minute beyond 3 min; the session duration is not", () => {
+    // 2 × 95 s = 190 s : Circuit « 3 min » (arrondi au plus proche), séance « 4 min » (inchangée).
+    renderScreenWithDraft(
+      [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(95), postActivityRecoverySeconds: 0 })],
+      { tourRepeatCount: 2 },
+    );
+    expect(circuitDuration()).toBe("3 min");
+    expect(sessionDuration()).toBe("4 min");
   });
 
   it("Series 4 → 3 → 4 goes through setCircuitCount: the 4th row goes to the reserve, then is restored (original rows)", () => {
@@ -3684,7 +3706,6 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     );
     expect(circuitDuration()).toBe("10 min");
 
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
     const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
     fireEvent(minus, "pressIn");
     fireEvent(minus, "pressOut");
@@ -3698,35 +3719,15 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     expect(sessionDuration()).toBe("10 min");
   });
 
-  it("touching the value closes the stepper (RC-4)", () => {
+  it("story 7.3 — no revealed state: no outside zone, scrolling or touching elsewhere leaves the stepper in place", () => {
     renderScreenWithDraft(oneActivity);
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
-
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-stepper-value-press"));
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-    expect(screen.getByTestId("composition-circuit-header-counter")).toBeTruthy();
-  });
-
-  it("touching elsewhere closes the stepper (body, Circuit container, scroll)", () => {
-    renderScreenWithDraft(oneActivity);
-
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    fireEvent.press(screen.getByTestId("composition-circuit-counter-outside"));
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-    // Sans stepper ouvert, aucune zone d'appui extérieur.
-    expect(screen.queryByTestId("composition-circuit-counter-outside")).toBeNull();
-
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section"));
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
+    expect(screen.queryByTestId("composition-circuit-nature-outside", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-nature-outside-section", { includeHiddenElements: true })).toBeNull();
     fireEvent(screen.getByTestId("composition-body"), "scrollBeginDrag");
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    expect(stepper()).toBeTruthy();
   });
 
-  const counterClosers: [string, () => void][] = [
+  const stepperKeepers: [string, () => void][] = [
     ["a card press", () => {
       fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
     }],
@@ -3742,57 +3743,17 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     ["a swipe revealing the card actions", () => {
       fireSwipeLeft("ex-1");
     }],
+    ["a boundary wheel", () => {
+      fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    }],
   ];
-  it.each(counterClosers)("RC-4 — %s closes the revealed counter", (_label, trigger) => {
+  it.each(stepperKeepers)("story 7.3 — %s leaves the always-shown stepper in place", (_label, trigger) => {
     renderScreenWithDraft(oneActivity);
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
-
     trigger();
-
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+    expect(stepper()).toBeTruthy();
   });
 
-  it("RC-4 — the abandon dialog (exit guard) and « Continuer » close the revealed counter", () => {
-    const view = renderScreenWithDraft(oneActivity);
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    mockExitGuard.mockReturnValue({ ...defaultExitGuardResult(), isPendingExit: true });
-    view.rerender(
-      <TestSafeAreaProvider>
-        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
-            <StatefulDraftWrapper initialExercises={oneActivity}>
-              <CompositionScreen />
-            </StatefulDraftWrapper>
-          </ReferentialServiceContext.Provider>
-        </ActivityDefinitionServiceContext.Provider>
-      </TestSafeAreaProvider>,
-    );
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-
-    mockExitGuard.mockReturnValue(defaultExitGuardResult());
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    fireEvent.press(screen.getByTestId("composition-save-action"));
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-  });
-
-  it("one numeric field at a time: opening the counter closes a boundary wheel, and opening a boundary wheel closes the counter", () => {
-    renderScreenWithDraft(oneActivity);
-
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
-    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
-
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
-    expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
-  });
-
-  it("VoiceOver: adjustable « Nombre de tours » usable without revealing the stepper; increment announces « 4 tours »", () => {
+  it("VoiceOver: adjustable « Nombre de tours » between the − and + buttons; increment announces « 4 tours »", () => {
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 3 });
 
     const counter = () => screen.getByLabelText(composition.circuit.countAccessibilityLabel.TOURS);
@@ -3801,21 +3762,19 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
 
     stepCircuitCounter("increment");
     expect(counter().props.accessibilityValue).toMatchObject({ now: 4, text: "4 tours" });
-    expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
     expect(circuitDuration()).toBe("4 min");
 
     stepCircuitCounter("decrement", 3);
     expect(counter().props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
-    // À la borne basse, « décrémenter » n'est plus proposé.
+    // À la borne basse, « décrémenter » n'est plus proposé ; plus d'« activer » (rien à révéler).
     const actions = (counter().props.accessibilityActions as { name: string }[]).map((action) => action.name);
-    expect(actions).toEqual(["increment", "activate"]);
+    expect(actions).toEqual(["increment"]);
 
-    // « Activer » révèle le stepper, qui reste un réglage ajustable annonçant l'unité.
-    fireEvent(counter(), "accessibilityAction", { nativeEvent: { actionName: "activate" } });
-    const stepper = screen.getByTestId("composition-circuit-header-counter-stepper");
-    expect(stepper.props.accessibilityRole).toBe("adjustable");
-    expect(stepper.props.accessibilityLabel).toBe("Nombre de tours");
-    expect(stepper.props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
+    // − et + : boutons accessibles distincts, nommés selon la nature.
+    expect(screen.getByLabelText("Retirer un tour — minimum atteint").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent(screen.getByLabelText("Ajouter un tour"), "pressIn");
+    fireEvent(screen.getByLabelText("Ajouter un tour"), "pressOut");
+    expect(counter().props.accessibilityValue).toMatchObject({ now: 2, text: "2 tours" });
   });
 
   it("VoiceOver in Series: « Nombre de séries », value announced « 2 séries »", () => {
@@ -4692,7 +4651,6 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }) })],
         seriesDraft(4),
       );
-      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
 
       step("decrement");
       expect(probe.draft!.tourRepeatCount).toBe(3);
@@ -4710,7 +4668,6 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: [[25, 0]] }) })],
         seriesDraft(1),
       );
-      fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
 
       step("increment");
       expect(probe.draft!.tourRepeatCount).toBe(2);
@@ -4946,14 +4903,14 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         fireLayout(screen.getByTestId("composition-circuit-header"), 12, 44);
       };
 
-      it("révéler le compteur referme le choix et inversement ; toucher ailleurs ferme sans rien changer ; une option s'applique", () => {
+      it("un pas du stepper referme le choix (story 7.3) ; toucher ailleurs ferme sans rien changer ; une option s'applique", () => {
         renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: durationParameters(30, 2) })], toursDraft(3));
         const before = probe.draft;
 
         // Avant la mesure de l'en-tête : aucun panneau.
         fireEvent.press(screen.getByTestId(NATURE));
         expect(screen.queryByTestId(PANEL, anyNode)).toBeNull();
-        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside"));
+        fireEvent.press(screen.getByTestId("composition-circuit-nature-outside"));
 
         measureHeader();
         fireEvent.press(screen.getByTestId(NATURE));
@@ -4961,24 +4918,33 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         // Hébergé par le contenu défilant, sous l'en-tête, aligné sur le bord droit du contenu.
         expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ top: 230 + 12 + 44 + spacing[4], right: spacing[24] });
 
-        // Révéler le compteur referme le choix (un seul contrôle actif).
-        fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press", anyNode));
+        // Story 7.3 : le stepper reste affiché ; un pas referme le choix (un seul contrôle actif) puis
+        // s'applique ; le pas inverse rend le brouillon à N = 3.
+        // Panneau ouvert : le reste de l'écran est masqué à l'accessibilité (requêtes `anyNode`).
+        expect(screen.getByTestId("composition-circuit-header-counter-stepper", anyNode)).toBeTruthy();
+        const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment", anyNode);
+        fireEvent(plus, "pressIn");
+        fireEvent(plus, "pressOut");
         expect(screen.queryByTestId(PANEL)).toBeNull();
-        expect(screen.getByTestId("composition-circuit-header-counter-stepper")).toBeTruthy();
-        fireEvent.press(screen.getByTestId("composition-circuit-header-counter-stepper-value-press"));
-        expect(screen.queryByTestId("composition-circuit-header-counter-stepper")).toBeNull();
+        expect(probe.draft!.tourRepeatCount).toBe(4);
+        const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
+        fireEvent(minus, "pressIn");
+        fireEvent(minus, "pressOut");
+        expect(probe.draft!.tourRepeatCount).toBe(3);
+        const reverted = probe.draft;
 
         // Toucher ailleurs (corps, puis conteneur Circuit, puis hors du panneau) : sans mutation.
         fireEvent.press(screen.getByTestId(NATURE));
-        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside", anyNode));
+        fireEvent.press(screen.getByTestId("composition-circuit-nature-outside", anyNode));
         expect(screen.queryByTestId(PANEL)).toBeNull();
         fireEvent.press(screen.getByTestId(NATURE));
-        fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section", anyNode));
+        fireEvent.press(screen.getByTestId("composition-circuit-nature-outside-section", anyNode));
         expect(screen.queryByTestId(PANEL)).toBeNull();
         fireEvent.press(screen.getByTestId(NATURE));
         fireEvent.press(screen.getByTestId(`${PANEL}-outside`, anyNode));
         expect(screen.queryByTestId(PANEL)).toBeNull();
-        expect(probe.draft).toBe(before);
+        expect(probe.draft).toBe(reverted);
+        expect(probe.draft!.circuitNature).toBe(before!.circuitNature);
 
         fireEvent.press(screen.getByTestId(NATURE));
         fireEvent.press(screen.getByTestId(`${PANEL}-SERIES`));
@@ -4997,7 +4963,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
           focus.mockClear();
 
           fireEvent.press(screen.getByTestId(NATURE));
-          fireEvent.press(screen.getByTestId("composition-circuit-counter-outside-section", anyNode));
+          fireEvent.press(screen.getByTestId("composition-circuit-nature-outside-section", anyNode));
           expect(focusTargets()).toEqual([[NATURE, "focus"]]);
 
           // Sortie (abandon) pendant l'ouverture : panneau refermé, brouillon intact, aucun focus.
@@ -5174,15 +5140,12 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     expect(StyleSheet.flatten(screen.getByTestId(EYE).props.style).opacity).toBeUndefined();
   });
 
-  it("opening the sheet closes the revealed counter (one active control) and shows the Domain grid, occurrences outside the Circuit excluded", () => {
+  it("opening the sheet shows the Domain grid, occurrences outside the Circuit excluded (story 7.3: the stepper is never « revealed »)", () => {
     renderWithProbe(circuitExercises());
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-field")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId(EYE));
     expect(screen.getByTestId(SHEET)).toBeTruthy();
-    expect(screen.queryByTestId("composition-circuit-header-counter-field")).toBeNull();
-    expect(screen.queryByTestId("composition-circuit-counter-outside", anyNode)).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-nature-outside", anyNode)).toBeNull();
 
     const sheet = screen.getByTestId(SHEET);
     expect(within(sheet).getByLabelText(
@@ -5719,15 +5682,14 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
     expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(circuitBefore);
   });
-  it("entering placement closes every open surface (revealed counter, add tree)", () => {
+  it("entering placement closes every open surface (add tree); the Circuit stepper stays shown but inactive (story 7.3)", () => {
     renderPlacement(matrix());
-    fireEvent.press(screen.getByTestId("composition-circuit-header-counter-value-press"));
-    expect(screen.getByTestId("composition-circuit-header-counter-field")).toBeTruthy();
     fireEvent.press(screen.getByTestId("composition-add-activity-action"));
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
     enter();
-    expect(screen.queryByTestId("composition-circuit-header-counter-field", anyNode)).toBeNull();
     expect(screen.queryByTestId("composition-add-activity-tree", anyNode)).toBeNull();
+    expect(screen.getByTestId("composition-circuit-header-counter-stepper", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("composition-circuit-header", anyNode).props.pointerEvents).toBe("none");
     expect(screen.getByTestId(BAR)).toBeTruthy();
   });
 
@@ -7266,6 +7228,40 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       } finally {
         alert.mockRestore();
         announce.mockRestore();
+      }
+    });
+
+    it("story 7.3 — the same choice is asked from the always-shown + button; a hold across the dialog asks once and resumes nothing", () => {
+      const alert = tourChoiceAlert();
+      jest.useFakeTimers();
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            stopPoints: [
+              { id: "H", scope: "IN_TOUR", position: 0 },
+              { id: "T", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        const plus = () => screen.getByTestId("composition-circuit-header-counter-stepper-increment", { includeHiddenElements: true });
+        fireEvent(plus(), "pressIn");
+        expect(alert).toHaveBeenCalledTimes(1);
+        // Maintien : le dialogue arrête la répétition, aucun second dialogue.
+        act(() => {
+          jest.advanceTimersByTime(2000);
+        });
+        expect(alert).toHaveBeenCalledTimes(1);
+        answerTourChoice(alert, tc.cancel);
+        act(() => {
+          jest.advanceTimersByTime(2000);
+        });
+        fireEvent(plus(), "pressOut");
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(probe.draft!.tourRepeatCount ?? 1).toBe(1);
+        expect(points()).toEqual(["H:IN_TOUR:0", "T:IN_TOUR:2"]);
+      } finally {
+        jest.useRealTimers();
+        alert.mockRestore();
       }
     });
 
@@ -9017,14 +9013,17 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   it("l'en-tête du Circuit et sa première carte : cibles tactiles disjointes", () => {
     renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" })]);
     const headerHeight = styleOf("composition-circuit-header").minHeight as number;
-    // Story 5.1b : l'œil a quitté l'en-tête ; reste la cible réelle du chiffre (44, centrée sur la ligne).
+    // Story 5.1b : l'œil a quitté l'en-tête. Story 7.3 : restent les cibles réelles de 44 du −, du +
+    // et de la pastille, centrées sur la ligne (débord de 2 sous l'en-tête de 40).
     expect(screen.queryByTestId("composition-circuit-header-volumes", hidden)).toBeNull();
-    const digit = screen.getByTestId("composition-circuit-header-counter-value-press");
-    expect(digit.props.hitSlop).toBeUndefined();
-    const digitBottom =
-      headerHeight / 2 + (styleOf("composition-circuit-header-counter-value-press").minHeight as number) / 2;
-    const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
-    expect(digitBottom).toBeLessThanOrEqual(firstCardTop);
+    for (const id of ["composition-circuit-header-counter-stepper-decrement", "composition-circuit-header-counter-stepper-increment"]) {
+      expect(screen.getByTestId(id).props.hitSlop).toBeUndefined();
+      const targetBottom = headerHeight / 2 + (styleOf(id).height as number) / 2;
+      const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
+      expect(targetBottom).toBeLessThanOrEqual(firstCardTop);
+    }
+    const unitBottom = headerHeight / 2 + (styleOf("composition-circuit-header-counter-unit-target").minHeight as number) / 2;
+    expect(unitBottom).toBeLessThanOrEqual(headerHeight + (styleOf("composition-tour-section").gap as number));
   });
 
   // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus de la Fin déborde de 4 dans l'écart ;

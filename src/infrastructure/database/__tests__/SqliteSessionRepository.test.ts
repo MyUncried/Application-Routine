@@ -3056,10 +3056,11 @@ describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
     expect(summary?.estimatedDurationSeconds).toBe(60 + 255);
     expect(summary?.durationKind).toBe("exact");
     expect(toSessionDurationResult(reopened!)).toEqual({ kind: "exact", seconds: 60 + 255 });
-    // Composition : le résumé est celui du seul Circuit (255 s → 5 min, D-382).
+    // Composition : le résumé est celui du seul Circuit (255 s → 4 min, D-382 ; arrondi à la minute la
+    // plus proche au-delà de 3 min, story 7.3, D-437).
     const draft = toSessionDraft(reopened!);
     expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount, circuitNature: draft.circuitNature })).toBe(
-      "5 min",
+      "4 min",
     );
   });
 

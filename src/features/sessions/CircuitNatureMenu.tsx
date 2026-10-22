@@ -41,7 +41,7 @@ export type CircuitNatureMenuProps = {
   readonly trigger: ReactNode;
   /** Android / web : panneau ouvert (état `expanded` du déclencheur). */
   readonly isOpen: boolean;
-  /** Android / web : demande d'ouverture (l'écran referme alors le compteur révélé). */
+  /** Android / web : demande d'ouverture du panneau par l'écran. */
   readonly onOpen: () => void;
   /** Android / web : second toucher du déclencheur, fermeture sans choix. */
   readonly onClose: () => void;
@@ -66,8 +66,8 @@ export type CircuitNatureMenuProps = {
  *   `ExecutionParametersSheet.tsx`) : un `Button` SwiftUI par option, coche `checkmark` sur la
  *   courante. Le sous-texte est porté par le nom accessible de l'option (comme l'Enchaînement) :
  *   le `Button` d'`@expo/ui` n'expose pas de sous-titre avec une icône système. Un toucher
- *   extérieur ferme le menu sans rien choisir. Révélé, le compteur intègre la pastille à sa
- *   valeur : seule la pastille au repos est un déclencheur.
+ *   extérieur ferme le menu sans rien choisir. PRE-6 story 7.3 : la pastille reste le déclencheur,
+ *   entre le nombre et le + du stepper toujours affiché.
  * - Android et web : bouton « Nature du circuit » (cible 44) ; le panneau `CircuitNaturePanel`
  *   est hébergé par l'écran dans un parent qui le contient entièrement (sur Android, un toucher
  *   hors des limites du parent n'atteint pas ses enfants).
