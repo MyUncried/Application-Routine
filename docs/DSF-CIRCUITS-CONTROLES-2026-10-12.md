@@ -15,7 +15,7 @@ Figma définit le layout. [Circuits](Specifications-fonctionnelles/10%20%E2%80%9
 
 ## En-tête du circuit et choix de nature
 
-Le titre Circuit et l’œil sont sur la même ligne. La durée agrégée est sous le titre. À droite, le chiffre commande l’édition numérique ; la pastille porte seulement « tours » ou « séries » et ouvre le choix de nature. Les zones sont distinctes. Au repos, les ± ne sont pas permanents : ils apparaissent après appui sur la valeur, un seul champ actif. Les captures à ± visibles illustrent cet état ; elles ne redéfinissent pas le repos.
+Le titre Circuit et l’œil sont sur la même ligne. La durée agrégée est sous le titre. À droite, le chiffre commande l’édition numérique ; la pastille porte seulement « tours » ou « séries » et ouvre le choix de nature. Les zones sont distinctes. Au repos, les ± ne sont pas permanents : ils apparaissent après appui sur la valeur, un seul champ actif. Les captures à ± visibles illustrent cet état ; elles ne redéfinissent pas le repos. **Remplacé par D-437 (22/10/2026) :** le stepper du nombre de Tours ou de Séries est toujours affiché et actif (− et + autour du nombre), sans toucher préalable ; le nombre est au format « Valeur modifiable » ; les cibles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt ; nombre, unité et durée ont la taille du titre « Circuit » ; la durée affichée est arrondie à la minute la plus proche au-delà de 3 minutes.
 
 | Élément | Référence inspectée / mesure | Usage |
 |---|---|---|
