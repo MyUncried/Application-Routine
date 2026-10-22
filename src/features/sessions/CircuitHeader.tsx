@@ -11,7 +11,7 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Compte du Circuit (AD-38, D-058) : 1..99, la borne même de `clampSeriesCount` appliquée par
- * `setCircuitCount` — jamais une constante locale.
+ * `setCircuitCount` / `circuitCountOutcome` — jamais une constante locale.
  */
 const CIRCUIT_COUNT_MIN = EXECUTION_BOUNDS.seriesCount.min;
 const CIRCUIT_COUNT_MAX = EXECUTION_BOUNDS.seriesCount.max;
@@ -64,7 +64,7 @@ export type CircuitHeaderProps = {
   readonly isCounterOpen: boolean;
   /** Révèle ou referme le stepper. */
   readonly onToggleCounter: () => void;
-  /** Chaque pas (ou chaque action VoiceOver) : N demandé, appliqué par l'écran via `setCircuitCount`. */
+  /** Chaque pas (ou chaque action VoiceOver) : N demandé, appliqué par l'écran via `circuitCountOutcome` (story 7.2). */
   readonly onChangeCount: (count: number) => void;
   /** PRE-6 story 3.2 — Android / web : panneau du choix de nature ouvert (un seul contrôle actif). */
   readonly isNatureMenuOpen: boolean;

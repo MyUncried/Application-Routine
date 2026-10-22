@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
 import { strings } from "@/shared/i18n";
-import { colors, spacing } from "@/shared/ui/tokens";
+import { colors, dimensions, spacing } from "@/shared/ui/tokens";
 
 /** Puce (Figma `8328:29533`) : rayon 12, marges 10 / 4, intervalle 6, contour 1. */
 const CHIP = { radius: 12, paddingHorizontal: spacing[10], paddingVertical: spacing[4], gap: spacing[6], borderWidth: 1 } as const;
@@ -32,6 +32,14 @@ export type StopPointChipProps = {
   /** PRE-6 story 6.2 : actions accessibles « Monter » / « Descendre » (absentes si refusées). */
   readonly accessibilityActions: readonly { readonly name: string; readonly label: string }[];
   readonly onAccessibilityAction: (name: string) => void;
+  /**
+   * PRE-6 story 7.2 (D-437, « Point d'arrêt saisi ») : point saisi par appui long — puce au style
+   * sélectionné du placement (pleine `primary`, symbole et texte blancs) et ombre de la carte
+   * soulevée (CE-T02-02). Ni la taille de la puce ni celle de sa rangée ne changent (le rail et
+   * l'aperçu du glisser comptent la hauteur de repos, story 5.2b). NON VÉRIFIABLE : Figma ne
+   * dessine pas d'état soulevé de la puce.
+   */
+  readonly lifted?: boolean;
   readonly testID?: string;
 };
 
@@ -46,7 +54,7 @@ export type StopPointChipProps = {
  * retrait d'un point revient en placement, story 6.3) ; actions « Monter » / « Descendre ».
  */
 export const StopPointChip = forwardRef<View, StopPointChipProps>(function StopPointChip(
-  { accessibilityLabel, accessibilityHint, onLongPress, accessibilityActions, onAccessibilityAction, testID },
+  { accessibilityLabel, accessibilityHint, onLongPress, accessibilityActions, onAccessibilityAction, lifted = false, testID },
   ref,
 ) {
   return (
@@ -62,9 +70,9 @@ export const StopPointChip = forwardRef<View, StopPointChipProps>(function StopP
       style={styles.target}
       testID={testID}
     >
-      <View style={styles.chip} testID={testID === undefined ? undefined : `${testID}-face`}>
-        <StopPointSymbol color={colors.warning} />
-        <Text style={styles.text} numberOfLines={1}>
+      <View style={[styles.chip, lifted ? styles.lifted : null]} testID={testID === undefined ? undefined : `${testID}-face`}>
+        <StopPointSymbol color={lifted ? colors.background : colors.warning} />
+        <Text style={[styles.text, lifted ? styles.liftedText : null]} numberOfLines={1}>
           {strings.screens.composition.placement.stopPoint}
         </Text>
       </View>
@@ -104,6 +112,21 @@ const styles = StyleSheet.create({
   text: {
     ...CHIP_TEXT,
     color: colors.textLabel,
+  },
+  // Story 7.2 : puce saisie — style sélectionné du placement et ombre de la carte soulevée. Le
+  // découpage est levé (contenu sans débord) pour que l'ombre iOS ne soit pas rognée.
+  lifted: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+    overflow: "visible",
+    shadowColor: colors.compositionDraggedCardShadow,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: dimensions.compositionActivityRow.draggedShadowOpacity,
+    shadowRadius: dimensions.compositionActivityRow.draggedShadowRadius,
+    elevation: dimensions.compositionActivityRow.draggedElevation,
+  },
+  liftedText: {
+    color: colors.background,
   },
   symbol: {
     flexDirection: "row",

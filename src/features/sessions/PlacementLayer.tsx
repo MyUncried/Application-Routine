@@ -183,8 +183,15 @@ export function PlacementStopPointRow({
 export type PlacementRecoveryFrameProps = {
   readonly occurrenceId: string;
   readonly exerciseName: string;
-  readonly placement: PlacementDraft;
-  /** Toucher : roulette (à ajouter) ou désélection (déjà ajoutée), inchangé (story 4.1). */
+  /**
+   * PRE-6 story 7.2 (D-437) : durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout, ou
+   * récupération existante — 0 comprise — modifiée ou non et non retirée), `null` si la zone n'est
+   * pas sélectionnée.
+   */
+  readonly selectedSeconds: number | null;
+  /** La récupération existe dans le brouillon (présente avant le placement, 0 comprise). */
+  readonly existing: boolean;
+  /** Toucher : désélection (zone sélectionnée) ou roulette (zone non sélectionnée). */
   readonly onPress: (occurrenceId: string) => void;
   /** Étendue verticale de la cible au-delà du contenu de la ligne 3 (`occurrenceRecoveryTouchExtent`). */
   readonly touchExtent: { readonly top: number; readonly bottom: number };
@@ -192,39 +199,58 @@ export type PlacementRecoveryFrameProps = {
 };
 
 /**
- * Emplacement de récupération du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma
- * `9848:18968`, ch13 L1486) : cadre en pointillés « Récupération » dans la ligne 3 de la carte
- * (colonne des valeurs, `OCCURRENCE_RECOVERY_FRAME`), seulement sur une occurrence SANS
- * récupération — une récupération présente, même à 0, interdit le cadre (`placementSlots`).
+ * Zone de récupération du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma `9848:18968`,
+ * ch13 L1486) : cadre « Récupération » dans la ligne 3 de la carte (colonne des valeurs,
+ * `OCCURRENCE_RECOVERY_FRAME`).
+ *
+ * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : toutes les zones de récupération des Exercices
+ * sont sélectionnables, comme les Points d'arrêt.
+ * - Sélectionnée (ajoutée, ou récupération existante — 0 comprise — conservée) : cadre plein
+ *   `primary`, sablier blanc de même taille (13, teinté) et durée seule (« 30 s », format de la
+ *   ligne 3) ; toucher la désélectionne (ajout jeté, ou retrait programmé de l'existante).
+ * - Non sélectionnée : cadre en pointillés « Récupération » ; toucher ouvre la roulette (durée
+ *   existante, sinon défaut du Profil). Une récupération existante désélectionnée (« à retirer »)
+ *   garde aussi l'opacité réduite du point existant à retirer (story 6.3) — NON VÉRIFIABLE : Figma
+ *   ne dessine pas cet état.
+ *
+ * Accessibilité : bouton nommé « Ajouter une récupération après {exercice} » (zone sans récupération
+ * existante) ou « Récupération après {exercice} » (existante) ; valeur = durée sélectionnée ; état
+ * sélectionné ; indices selon l'effet du toucher.
  *
  * Revue 5.3 : dans le flux, sa largeur suit son contenu (la colonne des valeurs s'élargit, les Zones
  * cèdent) ; débord gauche borné à l'écart entre les colonnes. La cible est la boîte du `Pressable`
  * (cadre + étendue verticale, marges négatives), jamais un `hitSlop`.
- *
- * Ajoutée (sous-brouillon) : cadre plein `primary`, sablier blanc de même taille (13, teinté) et durée
- * choisie seule (« 30 s », format de la ligne 3, story 5.1). Bouton nommé « Ajouter une récupération
- * après {exercice} », valeur et état sélectionné, indice de retrait.
  */
 export function PlacementRecoveryFrame({
   occurrenceId,
   exerciseName,
-  placement,
+  selectedSeconds,
+  existing,
   onPress,
   touchExtent,
   testID,
 }: PlacementRecoveryFrameProps) {
   const t = strings.screens.composition.placement;
-  const seconds = placement.recoveries[occurrenceId];
-  const added = seconds !== undefined;
+  const selected = selectedSeconds !== null;
+  const toRemove = existing && !selected;
   const frame = OCCURRENCE_RECOVERY_FRAME;
+  const hint = existing
+    ? selected
+      ? t.existingRecoverySelectedHint
+      : t.existingRecoveryRemovedHint
+    : selected
+      ? t.selectedHint
+      : undefined;
   return (
     <Pressable
       onPress={() => onPress(occurrenceId)}
       accessibilityRole="button"
-      accessibilityLabel={fill(t.addRecoveryAccessibilityLabel, { exercise: exerciseName })}
-      accessibilityValue={added ? { text: formatCompactDuration(seconds) } : undefined}
-      accessibilityState={{ selected: added }}
-      accessibilityHint={added ? t.selectedHint : undefined}
+      accessibilityLabel={fill(existing ? t.existingRecoveryAccessibilityLabel : t.addRecoveryAccessibilityLabel, {
+        exercise: exerciseName,
+      })}
+      accessibilityValue={selected ? { text: formatCompactDuration(selectedSeconds) } : undefined}
+      accessibilityState={{ selected }}
+      accessibilityHint={hint}
       style={{
         marginTop: -touchExtent.top,
         marginBottom: -touchExtent.bottom,
@@ -234,10 +260,13 @@ export function PlacementRecoveryFrame({
       }}
       testID={testID}
     >
-      <View style={[styles.frame, added ? styles.added : styles.available]} testID={`${testID}-face`}>
-        <KodjoIcon name="card-recovery-hourglass" tintColor={added ? colors.background : undefined} testID={`${testID}-icon`} />
-        <Text style={[styles.frameText, added ? styles.addedText : null]} numberOfLines={1}>
-          {added ? formatCompactDuration(seconds) : t.recovery}
+      <View
+        style={[styles.frame, selected ? styles.added : styles.available, toRemove ? styles.toRemove : null]}
+        testID={`${testID}-face`}
+      >
+        <KodjoIcon name="card-recovery-hourglass" tintColor={selected ? colors.background : undefined} testID={`${testID}-icon`} />
+        <Text style={[styles.frameText, selected ? styles.addedText : null]} numberOfLines={1}>
+          {selected ? formatCompactDuration(selectedSeconds) : t.recovery}
         </Text>
       </View>
     </Pressable>

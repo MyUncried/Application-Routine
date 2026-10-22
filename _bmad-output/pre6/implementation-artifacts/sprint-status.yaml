@@ -81,7 +81,7 @@ development_status:
 
   epic-7: in-progress
   7-1-domaine-déplacement-tolérant-début-et-fin-de-tour-retrait-de-récupération: review
-  7-2-écran-récupération-en-placement-étiquette-fin-de-d-301-point-soulevé: backlog
+  7-2-écran-récupération-en-placement-étiquette-fin-de-d-301-point-soulevé: review
   7-3-en-tête-du-circuit-stepper-permanent-et-durée-arrondie: backlog
   7-4-glisser-défilement-automatique-et-cohérence: backlog
   epic-7-retrospective: optional

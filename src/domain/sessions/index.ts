@@ -16,4 +16,3 @@ export * from "./sideMode";
 export * from "./StopPoint";
 export * from "./circuit";
 export * from "./placement";
-export * from "./unpausedTransitions";

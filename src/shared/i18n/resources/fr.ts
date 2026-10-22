@@ -389,6 +389,8 @@ export const fr = {
         addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
         addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
         addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+        // PRE-6 story 7.2 (D-437) : emplacement de tête de Circuit (début de Tour).
+        addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
         existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
         existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
         // PRE-6 story 6.2 : point en tête de portée (données héritées), formulation à valider.
@@ -414,28 +416,46 @@ export const fr = {
         stopPointKeptAnnouncement: "Point d’arrêt conservé",
         stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
         addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+        // PRE-6 story 7.2 (D-437) : une récupération existante se modifie et se retire en placement.
+        addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
         // PRE-6 story 6.3 (revue, ch13 L1524) : effet d’un ajout ou de son annulation, suivi du
         // libellé de « Confirmer » (nombre d’ajouts).
         stopPointAddedAnnouncement: "Point d’arrêt ajouté",
         recoveryAddedAnnouncement: "Récupération ajoutée",
         additionCancelledAnnouncement: "Ajout annulé",
+        // PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : zone de récupération existante (0 comprise)
+        // en placement — nom, indices (sélectionnée : toucher la retire ; désélectionnée : toucher
+        // ouvre la roulette) et annonces. Formulations à valider.
+        existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
+        existingRecoverySelectedHint: "Toucher pour retirer cette récupération.",
+        existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
+        recoveryRemovedAnnouncement: "Récupération retirée",
+        recoverySelectedAnnouncement: "Récupération sélectionnée",
       },
-      // PRE-6 (story 4.2, Figma `8328:29428`, `8328:29133`, `8328:33689`) : modification et retrait
-      // d’une récupération ou d’un point d’arrêt — nom du bouton « Récupération
-      // {durée} après {exercice}, toucher pour modifier » (revue 5.3 : l’exercice est nommé, la carte n’étant plus lue en placement), bulles « Retirer » et actions accessibles du même nom.
+      // PRE-6 story 7.2 (D-437) : la récupération ne se règle plus hors placement — la bulle « Retirer
+      // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
+      // (stories 4.2, 5.1) sont retirées.
       pauses: {
-        modifiableRecoveryAccessibilityLabel: "Récupération {duration} après {exercise}, toucher pour modifier",
-        removeRecovery: "Retirer la récupération",
-        // PRE-6 (story 5.1, D-435) : action accessible de la carte qui ouvre le réglage de la récupération
-        // de la ligne 3 (VoiceOver n’atteint pas un bouton imbriqué dans la carte).
-        modifyRecovery: "Modifier la récupération",
         // PRE-6 story 6.2 (D-436) : l’appui long d’un point le saisit (glisser).
         stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
-      // PRE-6 (story 4.3, D-301, ch10 L556, ch13 L1575) : avertissement non bloquant d’enchaînement
-      // sans pause entre deux Exercices, mot pour mot.
-      unpausedWarning: "Attention, les exercices vont s’enchaîner sans pause.",
+      // PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
+      // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
+      // Formulations à valider.
+      tourBoundaryChoice: {
+        title: "Point d’arrêt en début et en fin de tour",
+        message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
+        head: "Début de tour",
+        tail: "Fin de tour",
+        cancel: "Annuler",
+      },
+      // PRE-6 story 7.2 (D-437) : points retirés sans message par un déplacement d’Exercice, un
+      // changement du nombre de Tours ou un choix de Tour — annonce d’accessibilité discrète.
+      stopPointsRemovedAnnouncement: {
+        singular: "Point d’arrêt retiré",
+        plural: "{n} points d’arrêt retirés",
+      },
       summary: {
         // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
         empty: "— min",

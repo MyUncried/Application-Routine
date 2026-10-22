@@ -1,5 +1,5 @@
-import { useRef, type Ref } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import type { Ref } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
@@ -35,118 +35,44 @@ export type OccurrenceRecoveryProps = {
   /** Récupération à afficher ; non affichable (`isDisplayableRecovery`) : rien n'est rendu. */
   readonly recoverySeconds: number | null | undefined;
   /**
-   * Toucher : roulette « Durée de récupération » (story 4.2). Absent — placement, actions glissées
-   * révélées, carte bloquée par une autre révélation, glisser en cours — : simple affichage, le
-   * toucher revient à la carte.
+   * Retirée de l'arbre d'accessibilité (revue 5.3) : en placement, la carte n'est plus un élément
+   * accessible et ne couvre plus cet affichage (occurrence sans zone de récupération).
    */
-  readonly onPress?: () => void;
-  /** Appui long : bulle « Retirer la récupération », ancrée sur la récupération (`measureAnchor`). */
-  readonly onLongPress?: (anchor: View | null) => void;
-  /**
-   * Étendue verticale de la cible tactile au-delà du contenu, calculée par la carte
-   * (`occurrenceRecoveryTouchExtent`). Revue 5.3 : portée par la BOÎTE du `Pressable` (marges
-   * internes compensées par des marges négatives, mise en page inchangée), jamais par `hitSlop` —
-   * sous Fabric iOS, un toucher hors des limites du parent (sans débordement mesuré) n'atteint pas
-   * l'enfant, et `hitSlop` ne crée aucun débordement.
-   */
-  readonly touchExtent?: { readonly top: number; readonly bottom: number };
-  /**
-   * PRE-6 story 5.3 : en placement, récupération DÉJÀ présente — affichée même à 0 (valeur finie
-   * positive ou nulle) pour rester modifiable, comme en story 4.2 (`Récupération 0 s, toucher pour
-   * modifier`). Hors placement : jamais (choix D2, rien à 0).
-   */
-  readonly showZero?: boolean;
-  /**
-   * PRE-6 story 5.3 : nom accessible du contrôle. Fourni en placement, où la carte n'est plus un
-   * élément accessible : le contrôle devient alors un bouton exposé (« Récupération 20 s, toucher
-   * pour modifier »). Absent (hors placement) : retiré de l'accessibilité, la carte porte la
-   * récupération dans son nom et ses actions (revue 5.1).
-   */
-  readonly accessibilityLabel?: string;
+  readonly hiddenFromAccessibility?: boolean;
   readonly testID?: string;
 };
 
 /**
  * Récupération contextuelle en troisième ligne de la carte v2 (PRE-6 story 5.1, D-435, Figma
  * `9798:19931`, `9798:19932`, `9798:19934`) : sablier 13 dans la colonne des symboles puis valeur
- * SANS préfixe, calée à droite (« 20 s »). Reprend le contrôle de la story 4.2, qui était porté par
- * la ligne structurelle sous la carte :
- * - toucher → roulette existante, sans ouvrir l'Exercice : ce `Pressable`, plus profond que celui
- *   de la carte, prend le toucher à sa place ;
- * - appui long → bulle « Retirer la récupération », ancrée sur ce contrôle.
+ * SANS préfixe, calée à droite (« 20 s »).
  *
- * Accessibilité (revue 5.1) : le contrôle est imbriqué dans la carte, élément accessible que
- * VoiceOver ne traverse pas ; il est donc retiré de l'arbre d'accessibilité (sans double exposition
- * sous TalkBack). La carte porte la récupération dans son nom et les actions « Modifier la
- * récupération » / « Retirer la récupération ».
- *
- * PRE-6 story 5.3 (D-435) : en placement, une récupération DÉJÀ présente reste ici, touchable pour
- * être modifiée (story 4.2 : sous-brouillon, non comptée dans N), même à 0 (`showZero`). La carte,
- * inactive, n'est alors plus un élément accessible : le contrôle est exposé comme bouton
- * (`accessibilityLabel`). Une occurrence sans récupération reçoit à la place le cadre
- * « Récupération » (`PlacementRecoveryFrame`).
+ * PRE-6 story 7.2 (D-437, qui remplace sur ce point D-435) : hors placement, la récupération n'est
+ * plus une cible — ni toucher (roulette), ni appui long (bulle « Retirer la récupération »), ni
+ * action accessible propre. C'est un simple affichage, sans élément accessible propre : le toucher
+ * et l'appui long reviennent à la carte (ouvrir l'Exercice, glisser), qui porte la valeur dans son
+ * nom (« …, récupération 20 s »). En placement, la zone de récupération est le cadre sélectionnable
+ * `PlacementRecoveryFrame` (story 7.2).
  */
-export function OccurrenceRecovery({
-  recoverySeconds,
-  onPress,
-  onLongPress,
-  touchExtent = { top: 0, bottom: 0 },
-  showZero = false,
-  accessibilityLabel,
-  testID,
-}: OccurrenceRecoveryProps) {
-  const recoveryRef = useRef<View>(null);
-  const isShownZero = showZero && recoverySeconds === 0;
-  if (!isDisplayableRecovery(recoverySeconds) && !isShownZero) {
+export function OccurrenceRecovery({ recoverySeconds, hiddenFromAccessibility = false, testID }: OccurrenceRecoveryProps) {
+  if (!isDisplayableRecovery(recoverySeconds)) {
     return null;
   }
-  const content = (
-    <>
-      <KodjoIcon name="card-recovery-hourglass" testID="composition-recovery-line-icon" />
-      <Text style={styles.value} numberOfLines={1} testID="composition-recovery-line-label">
-        {formatCompactDuration(recoverySeconds as number)}
-      </Text>
-    </>
-  );
-
-  if (onPress === undefined) {
-    // Revue 5.3 : simple affichage, retiré de l'accessibilité (en placement, la carte n'est plus un
-    // élément accessible et ne le couvre plus).
-    return (
-      <View
-        style={styles.recovery}
-        accessible={false}
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        testID={testID}
-      >
-        {content}
-      </View>
-    );
-  }
-  const accessibility =
-    accessibilityLabel === undefined
-      ? ({ accessible: false, importantForAccessibility: "no" } as const)
-      : ({ accessible: true, accessibilityRole: "button", accessibilityLabel } as const);
   return (
-    <Pressable
-      onPress={onPress}
-      // Revue 5.3 : sans appui long (placement), un appui lent reste un toucher (roulette).
-      onLongPress={onLongPress === undefined ? undefined : () => onLongPress(recoveryRef.current)}
-      {...accessibility}
-      style={{
-        marginTop: -touchExtent.top,
-        marginBottom: -touchExtent.bottom,
-        paddingTop: touchExtent.top,
-        paddingBottom: touchExtent.bottom,
-      }}
+    // Ni bouton ni élément propre : la carte (élément accessible) porte la valeur dans son nom, comme
+    // l'ancien contrôle hors placement (revue 5.1 : `accessible={false}`, `importantForAccessibility="no"`).
+    <View
+      accessible={false}
+      accessibilityElementsHidden={hiddenFromAccessibility}
+      importantForAccessibility={hiddenFromAccessibility ? "no-hide-descendants" : "no"}
+      style={[styles.recovery, styles.passThrough]}
       testID={testID}
     >
-      {/* Ancre de la bulle « Retirer » : le contenu seul (sablier et valeur), pas la cible. */}
-      <View ref={recoveryRef} collapsable={false} style={styles.recovery} testID={testID === undefined ? undefined : `${testID}-content`}>
-        {content}
-      </View>
-    </Pressable>
+      <KodjoIcon name="card-recovery-hourglass" testID="composition-recovery-line-icon" />
+      <Text style={styles.value} numberOfLines={1} testID="composition-recovery-line-label">
+        {formatCompactDuration(recoverySeconds)}
+      </Text>
+    </View>
   );
 }
 
@@ -165,6 +91,8 @@ export type StopPointLineProps = {
   readonly translateY: number;
   /** Revue 6.2 : la puce, cible du focus d'accessibilité. */
   readonly chipRef?: Ref<View>;
+  /** PRE-6 story 7.2 (D-437) : point saisi (glisser en cours), marqué soulevé (`StopPointChip.lifted`). */
+  readonly lifted?: boolean;
   readonly testID?: string;
 };
 
@@ -186,6 +114,7 @@ export function StopPointLine({
   onLongPress,
   translateY,
   chipRef,
+  lifted = false,
   testID,
 }: StopPointLineProps) {
   return (
@@ -197,6 +126,7 @@ export function StopPointLine({
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={onAccessibilityAction}
         onLongPress={onLongPress}
+        lifted={lifted}
         testID={testID === undefined ? undefined : `${testID}-chip`}
       />
     </View>
@@ -211,6 +141,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+  },
+  // Story 7.2 (D-437) : simple affichage, le toucher traverse jusqu'à la carte.
+  passThrough: {
+    pointerEvents: "none",
   },
   // Sablier dans la colonne des symboles (sous le symbole de durée), valeur calée à droite.
   recovery: {

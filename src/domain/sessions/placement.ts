@@ -613,9 +613,9 @@ function placementConflictOf(conflict: {
 }
 
 /**
- * Forme historique de `togglePlacementStopPointOutcome` (appel actuel de l'écran) : le
- * sous-brouillon appliqué, ou — story 7.1, choix requis — l'entrée elle-même (rien n'est ajouté
- * sans le choix de l'utilisateur ; branchement du dialogue : story 7.2).
+ * Forme historique de `togglePlacementStopPointOutcome` : le sous-brouillon appliqué, ou — story
+ * 7.1, choix requis — l'entrée elle-même (rien n'est ajouté sans le choix de l'utilisateur). Depuis
+ * la story 7.2, l'écran appelle `togglePlacementStopPointOutcome` (dialogue de choix).
  */
 export function togglePlacementStopPoint(
   placement: PlacementDraft,

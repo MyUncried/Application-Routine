@@ -432,12 +432,12 @@ export function applyNatureChange(draft: SessionDraft, nature: CircuitNature): S
  * réserve, puis copie de la dernière ligne active ; identiques : seul
  * `count` suit N. Même N : brouillon inchangé (même référence).
  *
- * Story 7.1 (D-437) : forme historique de `circuitCountOutcome` (appel
- * actuel de l'écran). Les points devenus interdits au passage à N = 1 sont
+ * Story 7.1 (D-437) : forme historique de `circuitCountOutcome` (l'écran
+ * appelle `circuitCountOutcome` depuis la story 7.2). Les points devenus interdits au passage à N = 1 sont
  * retirés ; un conflit de Tour CRÉÉ par le passage à N ≥ 2 n'est pas tranché
  * ici : N est appliqué et les deux points sont conservés (état d'un conflit
- * hérité : enregistrable, un seul arrêt à l'exécution). L'écran passera à
- * `circuitCountOutcome` pour demander le choix (story 7.2).
+ * hérité : enregistrable, un seul arrêt à l'exécution). Le choix est demandé
+ * par l'écran via `circuitCountOutcome` (story 7.2).
  */
 export function setCircuitCount(draft: SessionDraft, requested: number): SessionDraft {
   const outcome = circuitCountOutcome(draft, requested);

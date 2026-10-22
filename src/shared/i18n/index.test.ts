@@ -256,6 +256,8 @@ describe("strings", () => {
       addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
       addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
       addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+      // PRE-6 story 7.2 (D-437) : emplacement de tête de Circuit.
+      addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
       existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
       existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
       // PRE-6 story 6.2 : point en tête de portée (données héritées).
@@ -277,21 +279,41 @@ describe("strings", () => {
       stopPointKeptAnnouncement: "Point d’arrêt conservé",
       stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
       addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+      // PRE-6 story 7.2 (D-437) : une récupération existante se modifie et se retire en placement.
+      addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
       // PRE-6 story 6.3 (revue, ch13 L1524) : annonces d’ajout.
       stopPointAddedAnnouncement: "Point d’arrêt ajouté",
       recoveryAddedAnnouncement: "Récupération ajoutée",
       additionCancelledAnnouncement: "Ajout annulé",
+      // PRE-6 story 7.2 (D-437) : zone de récupération existante en placement.
+      existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
+      existingRecoverySelectedHint: "Toucher pour retirer cette récupération.",
+      existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
+      recoveryRemovedAnnouncement: "Récupération retirée",
+      recoverySelectedAnnouncement: "Récupération sélectionnée",
     });
   });
 
-  it("exposes the pause modification and removal texts (PRE-6 story 4.2, `8328:29133`, `8328:33689`)", () => {
+  it("exposes the pause texts (PRE-6 story 6.2 ; story 7.2, D-437 : plus de réglage de la récupération hors placement)", () => {
     expect(strings.screens.composition.pauses).toEqual({
-      modifiableRecoveryAccessibilityLabel: "Récupération {duration} après {exercise}, toucher pour modifier",
-      removeRecovery: "Retirer la récupération",
-      // PRE-6 (story 5.1) : action de la carte qui ouvre le réglage de la récupération de la ligne 3.
-      modifyRecovery: "Modifier la récupération",
       // PRE-6 story 6.2 (D-436) : plus de retrait d'un point par bulle ; l'appui long le déplace.
       stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
+    });
+    // Story 7.2 (D-437) : D-301 retirée, plus d’avertissement d’enchaînement sans pause.
+    expect(strings.screens.composition).not.toHaveProperty("unpausedWarning");
+  });
+
+  it("exposes the tour-boundary choice and removed-stop-point texts (PRE-6 story 7.2, D-437)", () => {
+    expect(strings.screens.composition.tourBoundaryChoice).toEqual({
+      title: "Point d’arrêt en début et en fin de tour",
+      message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
+      head: "Début de tour",
+      tail: "Fin de tour",
+      cancel: "Annuler",
+    });
+    expect(strings.screens.composition.stopPointsRemovedAnnouncement).toEqual({
+      singular: "Point d’arrêt retiré",
+      plural: "{n} points d’arrêt retirés",
     });
   });
 

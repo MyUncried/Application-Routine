@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, userEvent, waitFor, within } from "@testing-library/react-native";
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { AccessibilityInfo, Animated, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text } from "react-native";
+import { AccessibilityInfo, Alert, Animated, BackHandler, Keyboard, Platform, ScrollView, StyleSheet, Text, type AlertButton } from "react-native";
 
 import {
   allFailureParameters,
@@ -26,7 +26,7 @@ import {
   notifyBodyZonesReferentialChanged,
   ReferentialServiceContext,
 } from "@/features/reference-data/ReferentialServiceContext";
-import { RECOVERY_VALUE_TEXT, STOP_POINT_LINE_HEIGHT } from "@/features/sessions/ActivityRecoveryLine";
+import { STOP_POINT_LINE_HEIGHT } from "@/features/sessions/ActivityRecoveryLine";
 import { CIRCUIT_HEADER_HEIGHT } from "@/features/sessions/CircuitHeader";
 import { CompositionScreen, predictedInsertionHeight } from "@/features/sessions/CompositionScreen";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
@@ -136,14 +136,6 @@ jest.mock("expo-router", () => {
  */
 const mockExitGuard = jest.fn();
 
-// PRE-6 (story 4.2) : `measureInWindow` ne rappelle jamais sous Jest ; la mesure qui ancre la bulle
-// « Retirer » est fournie ici (`null` : mesure vide).
-const mockAnchor: { value: { x: number; y: number; width: number; height: number } | null } = {
-  value: { x: 60, y: 400, width: 100, height: 13 },
-};
-jest.mock("@/features/sessions/measureAnchor", () => ({
-  measureAnchor: (_view: unknown, onMeasured: (anchor: unknown) => void) => onMeasured(mockAnchor.value),
-}));
 jest.mock("@/features/sessions/useCompositionExitGuard", () => ({
   useCompositionExitGuard: (shouldBlock: boolean, onConfirmExit: () => void) =>
     mockExitGuard(shouldBlock, onConfirmExit),
@@ -706,8 +698,9 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreenWithDraft([], { labelId: "label-sport" });
 
     await waitFor(() => {
-      const swatch = screen.getByTestId("composition-session-color-swatch");
-      expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");
+      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      const swatch = screen.getByTestId("composition-session-label-icon");
+      expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
   });
 
@@ -721,15 +714,16 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreenWithDraft([], { labelId: null });
 
     expect(screen.getByTestId("composition-session-label-outline-icon")).toBeTruthy();
-    expect(screen.queryByTestId("composition-session-color-swatch")).toBeNull();
+    expect(screen.queryByTestId("composition-session-label-icon")).toBeNull();
   });
 
   it("never writes to draft.color when a Label is derived (no autonomous colour write)", async () => {
     renderScreenWithDraft([], { labelId: "label-sport" });
 
     await waitFor(() => {
-      const swatch = screen.getByTestId("composition-session-color-swatch");
-      expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");
+      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      const swatch = screen.getByTestId("composition-session-label-icon");
+      expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
 
     expect(screen.queryByLabelText(composition.colorPicker.label)).toBeNull();
@@ -757,8 +751,9 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     // secondes réelles (mesure de la recette 3 sur ExerciseScreen) — attente portée à 20 s.
     await waitFor(() => expect(screen.queryByTestId("label-picker-backdrop")).toBeNull(), { timeout: 20000 });
     await waitFor(() => {
-      const swatch = screen.getByTestId("composition-session-color-swatch");
-      expect(StyleSheet.flatten(swatch.props.style).backgroundColor).toBe("#2E9B62");
+      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      const swatch = screen.getByTestId("composition-session-label-icon");
+      expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
   });
 
@@ -2156,6 +2151,22 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
  * D-130, AC-01 à AC-11).
  * ------------------------------------------------------------------------ */
 
+/**
+ * PRE-6 story 7.2 (D-437) : dialogue natif « Début de tour / Fin de tour / Annuler » (`Alert.alert`,
+ * espionné). `tourChoiceAlert()` installe l'espion ; `answerTourChoice` presse un bouton du dernier
+ * dialogue affiché.
+ */
+function tourChoiceAlert() {
+  return jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
+}
+function answerTourChoice(alert: ReturnType<typeof tourChoiceAlert>, label: string) {
+  const call = alert.mock.calls.at(-1);
+  if (call === undefined) throw new Error("aucun dialogue de choix de Tour");
+  const button = (call[2] as AlertButton[]).find((candidate) => candidate.text === label);
+  if (button?.onPress === undefined) throw new Error(`bouton absent : ${label}`);
+  act(() => button.onPress!());
+}
+
 function anActivity(
   id: string,
   structuralPosition: SessionDraftExercise["structuralPosition"],
@@ -3030,8 +3041,8 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
 
     const values = screen.getByTestId("composition-exercise-values-column");
     const recovery = within(values).getByTestId("composition-activity-recovery-ex-1-recovery");
-    // Revue 5.3 : le `Pressable` porte la cible réelle ; la disposition est celle de son contenu.
-    expect(StyleSheet.flatten(within(values).getByTestId("composition-activity-recovery-ex-1-recovery-content").props.style)).toMatchObject({
+    // Story 7.2 (D-437) : simple affichage, la disposition est celle de la récupération elle-même.
+    expect(StyleSheet.flatten(recovery.props.style)).toMatchObject({
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
@@ -3178,83 +3189,28 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(absolute).toHaveLength(0);
   });
 
-  it("PRE6-5.1 — touching the recovery opens the existing wheel without opening the Exercise; the card still opens it", () => {
+  it("PRE6-7.2 (D-437) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
     const recovery = screen.getByTestId("composition-activity-recovery-ex-1-recovery");
-    fireEvent.press(recovery);
-    expect(screen.getByTestId("duration-wheel-title").props.children).toBe(composition.placement.recoveryWheelTitle);
-    expect(mockPush).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-
-    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-1"));
-    expect(mockPush).toHaveBeenCalledTimes(1);
-  });
-
-  // Revue 5.1 (écart assumé au choix D7, soumis à Hermann à J4) : la cible ne couvre jamais la
-  // ligne 2 et descend jusqu'au bord intérieur de la carte, sans le franchir.
-  it.each<[string, SessionDraftExercise["structuralPosition"], boolean]>([
-    ["hors Circuit", "BEFORE_TOUR", true],
-    ["dans le Circuit", "IN_TOUR", false],
-  ])("PRE6-5.1 — %s, the recovery hit target never intersects line 2 nor crosses the card's bottom edge", (_label, zone, bordered) => {
-    renderScreenWithDraft([anActivity("ex-1", zone, { name: "Gainage", postActivityRecoverySeconds: 20 })]);
-
-    const recovery = screen.getByTestId("composition-activity-recovery-ex-1-recovery");
-    // Revue 5.3 : la cible est la boîte du `Pressable` (marges internes compensées par des marges
-    // négatives), jamais un hitSlop — sans effet hors des limites du parent sous Fabric iOS.
-    const box = StyleSheet.flatten(recovery.props.style);
-    const slop = { top: -(box.marginTop as number), bottom: -(box.marginBottom as number) };
-    expect(slop).toEqual(occurrenceRecoveryTouchExtent(bordered));
-    expect(box).toMatchObject({ paddingTop: slop.top, paddingBottom: slop.bottom });
+    // Aucun répondeur propre, aucune cible étendue : le geste revient à la carte.
+    expect(recovery.props.onStartShouldSetResponder).toBeUndefined();
+    expect(recovery.props.onPress).toBeUndefined();
+    expect(recovery.props.onLongPress).toBeUndefined();
+    expect(StyleSheet.flatten(recovery.props.style).pointerEvents).toBe("none");
     expect(recovery.props.hitSlop).toBeUndefined();
-    // Rectangle vertical dans la carte, depuis son bord extérieur haut.
-    const frame = OCCURRENCE_CARD_TEXT_FRAME;
-    const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
-    const innerHeight = OCCURRENCE_CARD_HEIGHT - 2 * border;
-    const frameTop = border + (innerHeight - frame.height) / 2;
-    const line2Top = frameTop + frame.nameLineHeight + frame.nameToWorkGap;
-    const line2Bottom = line2Top + frame.workLineHeight;
-    const recoveryTop = line2Bottom + frame.workToZonesGap + frame.zonesLinePaddingTop;
-    const recoveryBottom = recoveryTop + RECOVERY_VALUE_TEXT.lineHeight;
-    expect(recoveryBottom).toBe(frameTop + frame.height);
-    const target = { top: recoveryTop - slop.top, bottom: recoveryBottom + slop.bottom };
-    expect(target.top).toBeGreaterThanOrEqual(line2Bottom);
-    expect(target.bottom).toBe(OCCURRENCE_CARD_HEIGHT - border);
-    expect(target.bottom - target.top).toBe(bordered ? 29 : 30);
-    // Aucune extension latérale ; la ligne 3 de gauche (Zones) n'est pas dans la cible.
-    expect(box.marginLeft ?? 0).toBe(0);
-    expect(box.marginRight ?? 0).toBe(0);
-    expect(within(screen.getByTestId("composition-exercise-labels-column")).queryByTestId(
-      "composition-activity-recovery-ex-1-recovery",
-    )).toBeNull();
-  });
+    expect(StyleSheet.flatten(recovery.props.style).marginTop).toBeUndefined();
 
-  it("PRE6-5.1 — the recovery is inert while the card's actions are revealed, while another card is revealed, and while dragging", () => {
-    // Revue 5.3 : inerte, la récupération est retirée de l'accessibilité (d'où `includeHiddenElements`).
-    const pressable = () => screen.getByTestId("composition-activity-recovery-ex-1-recovery", { includeHiddenElements: true });
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
-      anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" }),
-    ]);
-    expect(pressable().props.onStartShouldSetResponder).toBeDefined();
-
-    // Actions de la carte révélées : rien sur la récupération, la carte reste neutre.
-    fireSwipeLeft("ex-1");
-    expect(pressable().props.onStartShouldSetResponder).toBeUndefined();
-    fireEvent.press(pressable());
+    // Toucher la ligne 3 : la carte ouvre l'Exercice ; aucune roulette.
+    fireEvent.press(recovery);
     expect(screen.queryByTestId("duration-wheel-title")).toBeNull();
-    expect(mockPush).not.toHaveBeenCalled();
-    fireSwipeRight("ex-1");
-    expect(pressable().props.onStartShouldSetResponder).toBeDefined();
+    expect(mockPush).toHaveBeenCalledTimes(1);
 
-    // Une autre carte révélée : celle-ci est bloquée, sa récupération aussi.
-    fireSwipeLeft("ex-2");
-    expect(pressable().props.onStartShouldSetResponder).toBeUndefined();
-    fireSwipeRight("ex-2");
-
-    // Glisser en cours.
-    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
-    expect(pressable().props.onStartShouldSetResponder).toBeUndefined();
+    // Appui long sur la ligne 3 : la carte est saisie (état soulevé) ; aucune bulle « Retirer ».
+    fireEvent(recovery, "longPress");
+    expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.queryByTestId("composition-removal-bubble-remove")).toBeNull();
+    expect(screen.queryByText("Retirer la récupération")).toBeNull();
   });
 
   it("PRE6-5.1 — the nested recovery control is hidden from accessibility; the card's name carries « récupération 20 s »", () => {
@@ -3334,42 +3290,17 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   });
 
   // VoiceOver n'atteint pas un bouton imbriqué dans la carte : la carte reprend ses deux actions.
-  it("PRE6-5.1 — with a displayed recovery, the card offers « Modifier la récupération » and « Retirer la récupération »; removal focuses the card", async () => {
-    const view = renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
+  it("PRE6-7.2 (D-437) — the card offers no recovery action (no « Modifier » / « Retirer la récupération »), whatever its value", () => {
     const card = () => screen.getByTestId("composition-exercise-row-ex-1");
-    const actions = card().props.accessibilityActions as { name: string; label: string }[];
-    expect(actions.slice(-2)).toEqual([
-      { name: "modifyRecovery", label: composition.pauses.modifyRecovery },
-      { name: "removeRecovery", label: composition.pauses.removeRecovery },
-    ]);
-    fireEvent(card(), "accessibilityAction", { nativeEvent: { actionName: "modifyRecovery" } });
-    expect(screen.getByTestId("duration-wheel-title").props.children).toBe(composition.placement.recoveryWheelTitle);
-    expect(mockPush).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
-    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    try {
-      fireEvent(card(), "accessibilityAction", { nativeEvent: { actionName: "removeRecovery" } });
-      expect(screen.queryByTestId("composition-activity-recovery-ex-1-recovery")).toBeNull();
-      await waitFor(() =>
-        expect(focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID)).toEqual([
-          "composition-exercise-row-ex-1",
-        ]),
-      );
-    } finally {
-      focus.mockRestore();
+    for (const seconds of [20, 0, null]) {
+      const view = renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: seconds })]);
+      expect((card().props.accessibilityActions as { name: string }[]).map((action) => action.name)).toEqual([
+        "moveDown",
+        "duplicate",
+        "delete",
+      ]);
+      view.unmount();
     }
-    expect((card().props.accessibilityActions as { name: string }[]).map((action) => action.name)).not.toContain(
-      "removeRecovery",
-    );
-    view.unmount();
-
-    // R = 0 : aucune action de récupération sur la carte.
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 0 })]);
-    expect((card().props.accessibilityActions as { name: string }[]).map((action) => action.name)).toEqual([
-      "moveDown",
-      "duplicate",
-      "delete",
-    ]);
   });
 
   /**
@@ -4200,16 +4131,24 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
   // Story 7.1 (D-437) : le déplacement d'un Exercice est tolérant — un dépôt qui rendrait le point
   // interdit est appliqué et le point en cause retiré, sans message. La rangée du point est mesurée
   // (revue 6.2 : sans géométrie complète, le soulèvement est refusé).
-  it("D-437 — un dépôt qui laisserait le point en tête de séquence est appliqué, le point retiré", () => {
-    renderWithStopPoints(twoBefore());
-    layoutTwoBeforeTour();
-    fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
-    dragBy("ex-1", 100);
+  it("D-437 — un dépôt qui laisserait le point en tête de séquence est appliqué, le point retiré ; story 7.2 : annonce discrète, sans message visuel", () => {
+    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+    try {
+      renderWithStopPoints(twoBefore());
+      layoutTwoBeforeTour();
+      fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
+      dragBy("ex-1", 100);
 
-    expect(
-      testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
-    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
-    expect(readStopPoints()).toEqual([]);
+      expect(
+        testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
+      ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
+      expect(readStopPoints()).toEqual([]);
+      const removed = strings.screens.composition.stopPointsRemovedAnnouncement.singular;
+      expect(announce).toHaveBeenCalledWith(removed);
+      expect(screen.queryByText(removed)).toBeNull();
+    } finally {
+      announce.mockRestore();
+    }
   });
 
   it("D-437 — le point ne suit plus son occurrence ; avec un Circuit après, même dépôt : appliqué, le point retiré", () => {
@@ -4408,7 +4347,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
   });
 
-  it("PRE6-2.1 — la puce Étiquette ouvre LabelPickerModal ; avec une Étiquette, elle montre la pastille et le nom", async () => {
+  it("PRE6-2.1, révisé 7.2 — la puce Étiquette ouvre LabelPickerModal ; avec une Étiquette, elle montre l’icône teintée et le nom", async () => {
     renderScreenWithDraft([], { labelId: null });
     fireEvent.press(screen.getByLabelText(composition.label.accessibilityLabel));
     expect(await screen.findByTestId("label-picker-tag-label-sport")).toBeTruthy();
@@ -4416,7 +4355,10 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     renderScreenWithDraft([], { labelId: "label-sport" });
     await waitFor(() => {
       const chip = screen.getByLabelText(composition.label.accessibilityLabel);
-      expect(within(chip).getByTestId("composition-session-color-swatch")).toBeTruthy();
+      expect(StyleSheet.flatten(within(chip).getByTestId("composition-session-label-icon").props.style).tintColor).toBe("#2E9B62");
+      // Story 7.2 (D-437) : plus de pastille ronde ; l'icône est celle d'étiquette (contour), de la taille de la puce.
+      expect(within(chip).queryByTestId("composition-session-color-swatch")).toBeNull();
+      expect(within(chip).queryByTestId("composition-session-label-outline-icon")).toBeNull();
       expect(within(chip).getByTestId("composition-session-label-name").props.children).toBe("Sport");
       expect(within(chip).queryByTestId("composition-session-label-outline-icon")).toBeNull();
     });
@@ -5184,20 +5126,6 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     expect(screen.queryByTestId("composition-activity-actions-before")).toBeNull();
   });
 
-  it("story 5.1b — opening the volumes closes the « Retirer » bubble without any change", () => {
-    renderWithProbe([
-      anActivity("before", "BEFORE_TOUR", { name: "Échauffement", postActivityRecoverySeconds: 20 }),
-      ...circuitExercises().slice(1),
-    ]);
-    fireEvent(screen.getByTestId("composition-activity-recovery-before-recovery"), "longPress");
-    expect(screen.getByTestId("composition-removal-bubble-remove")).toBeTruthy();
-    const before = probe.draft;
-    fireEvent.press(screen.getByTestId(EYE, anyNode));
-    expect(screen.queryByTestId("composition-removal-bubble-remove", anyNode)).toBeNull();
-    expect(screen.getByTestId(SHEET)).toBeTruthy();
-    expect(probe.draft).toBe(before);
-  });
-
   it("story 5.1b — while a card is lifted (drag), the eye is disabled and opens nothing", () => {
     renderWithProbe(circuitExercises());
     measureDisplayedRows();
@@ -5518,27 +5446,30 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
     // PRE-6 story 5.1 (D-435, choix D1) : aucun trait ; la récupération de A est en ligne 3 de sa carte.
     renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-    expect(screen.getByTestId("composition-activity-recovery-A-recovery").props.onStartShouldSetResponder).toBeDefined();
+    // Story 7.2 (D-437) : hors placement, la récupération n'est pas une cible.
+    expect(screen.getByTestId("composition-activity-recovery-A-recovery").props.onStartShouldSetResponder).toBeUndefined();
     enter();
-    // PRE-6 story 5.3 : en placement, la récupération existante reste modifiable en ligne 3 (story 4.2).
-    const placedRecovery = screen.getByTestId("composition-activity-recovery-A-recovery");
+    // Story 7.2 (D-437) : en placement, la récupération existante est une zone SÉLECTIONNÉE (cadre).
+    const placedRecovery = screen.getByTestId("composition-placement-slot-A-recovery");
     expect(placedRecovery.props.onStartShouldSetResponder).toBeDefined();
-    expect(placedRecovery.props.accessibilityLabel).toBe("Récupération 20 s après A, toucher pour modifier");
+    expect(placedRecovery.props.accessibilityLabel).toBe("Récupération après A");
+    expect(placedRecovery.props.accessibilityState).toMatchObject({ selected: true });
+    expect(placedRecovery.props.accessibilityValue).toEqual({ text: "20 s" });
 
     expect(screen.queryByTestId("composition-save-action", anyNode)).toBeNull();
     expect(screen.getByTestId(BAR)).toBeTruthy();
     // PRE-6 story 5.3 (D-435) : emplacements de point sous A, B, C (aucun avant la Fin, sous D) ;
-    // cadre « Récupération » dans la ligne 3 de B, C, D (A porte déjà la sienne).
+    // cadre « Récupération » dans la ligne 3 de A, B, C, D (story 7.2 : celui de A, existante, est
+    // sélectionné).
     for (const id of ["A", "B", "C"]) {
       expect(screen.getByTestId(`composition-activity-recovery-slot-${id}`)).toBeTruthy();
     }
     expect(screen.queryByTestId("composition-activity-recovery-slot-D", anyNode)).toBeNull();
-    for (const id of ["B", "C", "D"]) {
+    for (const id of ["A", "B", "C", "D"]) {
       expect(
         within(screen.getByTestId(`composition-exercise-row-${id}`)).getByTestId(`composition-placement-slot-${id}-recovery`),
       ).toBeTruthy();
     }
-    expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
     // « + » atténué et inactif ; revue 5.3 (Figma `8328:29270`) : compteur / œil, bornes et cartes
     // inactifs, non atténués (D6).
     const add = screen.getByTestId("composition-add-activity-action");
@@ -5598,7 +5529,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
     enter();
     expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
-    expect(screen.getByLabelText("Récupération 20 s après B, toucher pour modifier")).toBeTruthy();
+    // Story 7.2 (D-437) : zone de récupération existante, sélectionnée avec sa durée.
+    const existing = screen.getByLabelText("Récupération après B");
+    expect(existing.props.accessibilityState).toMatchObject({ selected: true });
+    expect(existing.props.accessibilityValue).toEqual({ text: "20 s" });
+    expect(existing.props.accessibilityHint).toBe(p.existingRecoverySelectedHint);
     expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
     expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeTruthy();
   });
@@ -5762,10 +5697,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     // R = 0 sans point : aucune ligne hors placement (décision Hermann 21/10/2026, remplace D-303).
     expect(screen.queryByTestId("composition-activity-recovery-D")).toBeNull();
     expect(screen.queryByTestId("composition-activity-recovery-slot-D")).toBeNull();
-    // Une nouvelle entrée la montre comme existante.
+    // Une nouvelle entrée la montre comme existante, sélectionnée à 0 (story 7.2, D-437).
     enter();
     expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
-    expect(screen.getByLabelText("Récupération 0 s après D, toucher pour modifier")).toBeTruthy();
+    const zero = screen.getByLabelText("Récupération après D");
+    expect(zero.props.accessibilityState).toMatchObject({ selected: true });
+    expect(within(zero).getByText("0 s")).toBeTruthy();
   });
 
   it("session and Circuit durations are recalculated live during placement, restored by Annuler", () => {
@@ -5794,17 +5731,20 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(screen.getByTestId(BAR)).toBeTruthy();
   });
 
-  it("« Ajouter un arrêt » is unavailable when no slot offers an addition (empty Composition, everything already present)", () => {
+  it("« Ajouter un arrêt » is unavailable when no slot offers anything (empty Composition); story 7.2: an existing recovery alone makes it available (removal only)", () => {
     const view = renderPlacement([]);
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true, selected: false });
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     view.unmount();
+    // Story 7.2 (D-437) : la récupération existante ne se règle plus qu'en placement — elle suffit.
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })]);
-    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBe(p.addStopChangesOnlyHint);
     screen.unmount();
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A" })]);
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBeUndefined();
   });
 
   it("the header X during placement cancels the placement first (no mutation, no navigation)", () => {
@@ -5985,9 +5925,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   describe("placement mixte et défilement (PRE-6 story 5.3, D-435, `8328:29270`)", () => {
-    const pauses = strings.screens.composition.pauses;
-    const modifiable = (duration: string, exercise = "A") =>
-      pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration).replace("{exercise}", exercise);
+    // Story 7.2 (D-437) : nom de la zone de récupération existante.
+    const existingLabel = (exercise: string) => p.existingRecoveryAccessibilityLabel.replace("{exercise}", exercise);
     const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
     const face = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery-face`);
     const box = (node: ReturnType<typeof screen.getByTestId>) => StyleSheet.flatten(node.props.style);
@@ -6048,41 +5987,65 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
     });
 
-    it("matrix — existing R = 0: no frame on A; its value stays modifiable in line 3 (story 4.2), named after the exercise", () => {
+    it("matrix — existing R = 0 (story 7.2, D-437): a SELECTED frame « 0 s » on A, named after the exercise; touching it schedules its removal", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 0 } }));
       enter();
-      expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
       expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
-      const existing = screen.getByLabelText(modifiable("0 s"));
-      expect(existing.props.testID).toBe("composition-activity-recovery-A-recovery");
+      const existing = frame("A");
+      expect(existing.props.accessibilityLabel).toBe(existingLabel("A"));
+      expect(existing.props.accessibilityState).toMatchObject({ selected: true });
+      expect(existing.props.accessibilityValue).toEqual({ text: "0 s" });
       expect(within(existing).getByText("0 s")).toBeTruthy();
+      expect(box(face("A"))).toMatchObject({ borderStyle: "solid", backgroundColor: colors.primary });
+      fireEvent.press(existing);
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications");
+      fireEvent.press(confirm());
+      expect(probe.draft!.exercises.find((exercise) => exercise.id === "A")!.postActivityRecoverySeconds).toBeNull();
     });
 
-    it("matrix — existing R = 20 s: « 20 s » in line 3, a button named after the exercise, touchable to modify (not counted in N); no frame", () => {
+    it("matrix — existing R = 20 s (story 7.2, D-437): selected frame; touch → deselected (dashed, reduced opacity, hint); touch again → wheel at 20, ✓ 45 → selected at 45; never counted in N", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       enter();
-      expect(screen.queryByTestId("composition-placement-slot-A-recovery", anyNode)).toBeNull();
-      const existing = screen.getByLabelText("Récupération 20 s après A, toucher pour modifier");
-      expect(within(existing).getByText("20 s")).toBeTruthy();
-      expect(existing.props.accessibilityRole).toBe("button");
-      expect(extentOf(existing)).toEqual(occurrenceRecoveryTouchExtent(true));
-      fireEvent.press(existing);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(within(screen.getByLabelText(modifiable("45 s"))).getByText("45 s")).toBeTruthy();
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
-      expect(probe.updates).toBe(0);
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      try {
+        expect(frame("A").props.accessibilityRole).toBe("button");
+        expect(frame("A").props.accessibilityHint).toBe(p.existingRecoverySelectedHint);
+        expect(extentOf(frame("A"))).toEqual(occurrenceRecoveryTouchExtent(true));
+        expect(within(frame("A")).getByText("20 s")).toBeTruthy();
+        // Désélection : retrait programmé, rendu « à retirer ».
+        fireEvent.press(frame("A"));
+        expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+        expect(frame("A").props.accessibilityValue?.text).toBeUndefined();
+        expect(frame("A").props.accessibilityHint).toBe(p.existingRecoveryRemovedHint);
+        expect(box(face("A"))).toMatchObject({ borderStyle: "dashed", opacity: UNSELECTED_OPACITY });
+        expect(within(frame("A")).getByText(p.recovery)).toBeTruthy();
+        expect(announce).toHaveBeenLastCalledWith(`${p.recoveryRemovedAnnouncement}. Confirmer les modifications`);
+        // Zone non sélectionnée : roulette sur la durée existante.
+        fireEvent.press(frame("A"));
+        expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
+        nativeChange("duration-wheel-seconds", 45);
+        fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+        expect(frame("A").props.accessibilityState).toMatchObject({ selected: true });
+        expect(within(frame("A")).getByText("45 s")).toBeTruthy();
+        expect(announce).toHaveBeenLastCalledWith(`${p.recoverySelectedAnnouncement}. Confirmer les modifications`);
+        expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
+        expect(probe.updates).toBe(0);
+      } finally {
+        announce.mockRestore();
+      }
     });
 
     // Revue 5.3 : sans appui long en placement, un appui lent reste un toucher (roulette).
-    it("matrix — existing R: a slow press (long press) in placement still opens the wheel", async () => {
+    it("matrix — existing R (story 7.2): a slow press (long press) acts as a touch — it deselects, then reopens the wheel; never a bubble", async () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       enter();
       const user = userEvent.setup();
-      await user.longPress(screen.getByLabelText(modifiable("20 s")), { duration: 700 });
+      await user.longPress(frame("A"), { duration: 700 });
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+      await user.longPress(frame("A"), { duration: 700 });
       expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      expect(screen.queryByTestId("composition-removal-bubble-remove")).toBeNull();
+      expect(screen.queryByText("Retirer la récupération")).toBeNull();
     });
 
     it("matrix — choosing a recovery: the frame opens the wheel at the Profile default (45 s), ✓ selects it (value, hint), N + 1; a second touch removes it", async () => {
@@ -6320,10 +6283,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       enter();
       const body = screen.getByTestId("composition-body");
       const footer = screen.getByTestId("composition-bottom-action");
-      // Le pied (barre de placement, avertissement D-301) est HORS du contenu défilant, après lui.
+      // Le pied (barre de placement ; story 7.2 : plus d'avertissement D-301) est HORS du contenu
+      // défilant, après lui.
       expect(within(footer).getByTestId(BAR)).toBeTruthy();
       expect(within(body).queryByTestId(BAR)).toBeNull();
-      expect(within(footer).getByTestId("composition-unpaused-warning")).toBeTruthy();
+      expect(within(footer).queryByTestId("composition-unpaused-warning")).toBeNull();
       expect(testIdOrder(screen.toJSON(), ["composition-body", "composition-bottom-action"])).toEqual([
         "composition-body",
         "composition-bottom-action",
@@ -6344,19 +6308,19 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
   });
 
-  describe("durée, modification et retrait (PRE-6 story 4.2)", () => {
-    const pauses = strings.screens.composition.pauses;
+  /**
+   * PRE-6 story 4.2, révisée par la story 7.2 (D-437, ch13 CE-T03-08 L1496, complément D-437 point
+   * 4) : hors placement, la récupération n'est plus une cible (ni roulette, ni bulle « Retirer », ni
+   * action accessible) ; elle se modifie et se retire seulement en placement, où sa zone est
+   * sélectionnée — la désélectionner programme son retrait (Pause terminale rétablie, RM-038), la
+   * resélectionner à une durée la modifie. Les rangées de point (stories 4.2, 6.2) sont inchangées.
+   */
+  describe("durée, modification et retrait (PRE-6 story 4.2, révisée par la story 7.2, D-437)", () => {
     /** Story 6.2 : ligne et puce de la rangée autonome d'un point, par identifiant de point. */
     const line = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}`);
-    const recoveryButton = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-recovery`);
     const stopChip = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}-chip`);
-    // Revue 5.3 : en placement, le nom désigne l'exercice (B dans ces tests).
-    const modifiable = (duration: string, exercise = "B") =>
-      pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration).replace("{exercise}", exercise);
-    const BUBBLE = "composition-removal-bubble";
-    /** PRE-6 story 5.1 : actions de récupération portées par la carte (« modifyRecovery », « removeRecovery »). */
-    const cardAction = (id: string, actionName: string) =>
-      fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName } });
+    const displayed = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-recovery`);
+    const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
     const recoveries = () => probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds);
     const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children as string;
     const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration", anyNode).props.children as string;
@@ -6375,10 +6339,15 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       view.unmount();
       return durations;
     }
-
-    beforeEach(() => {
-      mockAnchor.value = { x: 60, y: 400, width: 100, height: 13 };
-    });
+    /** Zone désélectionnée puis roulette rouverte : resélection à \`seconds\` (✓). */
+    function reselect(id: string, seconds: number) {
+      fireEvent.press(frame(id));
+      expect(frame(id).props.accessibilityState).toMatchObject({ selected: false });
+      fireEvent.press(frame(id));
+      nativeChange("duration-wheel-minutes", Math.floor(seconds / 60));
+      nativeChange("duration-wheel-seconds", seconds % 60);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+    }
 
     it("a stop point after A is a centred chip « ❚❚ Point d’arrêt » on its own row after A's card (8328:29428 ; story 5.2 : 9819:20018 ; story 6.2 : autonomous row)", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
@@ -6419,24 +6388,6 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.getAllByTestId(/^composition-stop-point-row-/u)).toHaveLength(1);
     });
 
-    // PRE-6 story 5.1 (revue) : la cible couvre le sablier et la valeur de la ligne 3, sans la ligne 2
-    // ni le bas de la carte (géométrie vérifiée par « the recovery hit target never intersects line 2 »).
-    it("hit targets: the recovery button wraps hourglass + value only, never the Zones nor line 2", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      const button = recoveryButton("A");
-      expect(within(button).queryByTestId("composition-exercise-body-zones")).toBeNull();
-      expect(within(button).queryByTestId("composition-exercise-summary")).toBeNull();
-      expect(StyleSheet.flatten(button.props.style).flex).toBeUndefined();
-      expect(StyleSheet.flatten(button.props.style)).toMatchObject({
-        marginTop: -occurrenceRecoveryTouchExtent(true).top,
-        marginBottom: -occurrenceRecoveryTouchExtent(true).bottom,
-      });
-      // L'appui long sur la carte au-dessus engage toujours le glisser.
-      fireEvent(screen.getByTestId("composition-exercise-row-A"), "longPress");
-      expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: true });
-      expect(screen.queryByTestId(`${BUBBLE}-remove`)).toBeNull();
-    });
-
     it("story 6.2 — a point after the Circuit is the first row of the zone after the Circuit; in placement, the dedicated slot takes over", () => {
       renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR", position: 0 }] } });
       const ids = screen
@@ -6454,139 +6405,152 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.getByTestId("composition-after-circuit-line-track")).toBeTruthy();
     });
 
-    it("modifying R: R = 20, tap, ✓ 45 → « Récupération 45 s » in a single functional update", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      const button = recoveryButton("A");
-      fireEvent.press(button);
-      expect(screen.getByTestId("duration-wheel-title").props.children).toBe(p.recoveryWheelTitle);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(within(recoveryButton("A")).getByText("45 s")).toBeTruthy();
-      expect(probe.updates).toBe(1);
-      expect(recoveries()).toEqual([45, null, null, null]);
-    });
-
-    it("✕ leaves everything unchanged", () => {
+    it("story 7.2 — outside placement the recovery is display only: a touch opens the Exercise, a long press lifts the card; nothing changes", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       const before = probe.draft;
-      fireEvent.press(recoveryButton("A"));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
+      expect(within(displayed("A")).getByText("20 s")).toBeTruthy();
+      fireEvent.press(displayed("A"));
       expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+      expect(mockPush).toHaveBeenCalledTimes(1);
+      fireEvent(displayed("A"), "longPress");
+      expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: true });
+      expect(screen.queryByText("Retirer la récupération")).toBeNull();
       expect(probe.updates).toBe(0);
       expect(probe.draft).toBe(before);
-      expect(within(recoveryButton("A")).getByText("20 s")).toBeTruthy();
     });
 
-    it("✓ 0: kept present at 0 (D-323); without a point the line disappears (décision Hermann 21/10/2026)", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      fireEvent.press(recoveryButton("A"));
-      nativeChange("duration-wheel-seconds", 0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(recoveries()[0]).toBe(0);
-      expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
-      expect(screen.queryByTestId("composition-activity-recovery-slot-A")).toBeNull();
-      expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
-    });
-
-    it("✓ 0 with a point: the line stays for the point alone, without any recovery information", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
-        overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
-      });
-      fireEvent.press(recoveryButton("A"));
-      nativeChange("duration-wheel-seconds", 0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(recoveries()[0]).toBe(0);
-      // PRE-6 story 5.1 : la rangée ne porte que le point, sans trait ; la carte n'affiche rien pour R = 0.
-      expect(screen.queryByTestId("composition-recovery-line-label")).toBeNull();
-      expect(stopChip("pA")).toBeTruthy();
-    });
-
-    it("off-grid legacy values (600 s, 7 s) open snapped (300, 5) and ✓ without moving the wheel changes nothing", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 600 }, B: { postActivityRecoverySeconds: 7 } }));
-      const before = probe.draft;
-      fireEvent.press(recoveryButton("A"));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(recoveryButton("B"));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(probe.updates).toBe(0);
-      expect(probe.draft).toBe(before);
-      // Une roue déplacée applique la nouvelle valeur.
-      fireEvent.press(recoveryButton("B"));
-      nativeChange("duration-wheel-seconds", 10);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(recoveries().slice(0, 2)).toEqual([600, 10]);
-    });
-
-    it("placement: an off-grid existing value ✓ without moving records no change (Confirmer stays unavailable)", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 600 } }));
-      enter();
-      fireEvent.press(screen.getByLabelText(modifiable("10 min")));
-      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.getByLabelText(modifiable("10 min"))).toBeTruthy();
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
-    });
-
-    it("an absent or zero recovery offers neither tap nor long press (D-303)", () => {
+    it("an absent or zero recovery shows nothing outside placement (décision Hermann 21/10/2026, remplace D-303)", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 0 } }));
-      expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
-      expect(screen.queryByTestId("composition-activity-recovery-B-recovery")).toBeNull();
-      // Ni ligne ni emplacement : rien à toucher (décision Hermann 21/10/2026, remplace D-303).
+      expect(screen.queryByTestId("composition-activity-recovery-A-recovery", anyNode)).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-B-recovery", anyNode)).toBeNull();
       expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
       expect(screen.queryByTestId("composition-activity-recovery-B")).toBeNull();
     });
 
-    it("long press on R: bubble « Retirer la récupération »; Retirer → R absent, durations = terminal Pause restored (RM-038)", () => {
+    it("placement: deselecting R then Confirmer → R absent in one update, durations = terminal Pause restored (RM-038)", () => {
       const expected = durationsOf(timed());
       renderPlacement(timed({ A: { postActivityRecoverySeconds: 120 } }));
       const sessionBefore = sessionDuration();
-      fireEvent(recoveryButton("A"), "longPress");
-      const remove = screen.getByTestId(`${BUBBLE}-remove`);
-      expect(remove.props.accessibilityLabel).toBe(pauses.removeRecovery);
-      expect(within(remove).getByText(pauses.removeRecovery)).toBeTruthy();
-      expect(screen.getByTestId(`${BUBBLE}-icon`)).toBeTruthy();
-      fireEvent.press(remove);
-
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
+      enter();
+      fireEvent.press(frame("A"));
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+      // Aperçu en direct, avant Confirmer.
+      expect(sessionDuration()).toBe(expected.session);
+      expect(probe.updates).toBe(0);
+      fireEvent.press(confirm());
       expect(probe.updates).toBe(1);
       expect(recoveries()[0]).toBeNull();
       expect(sessionDuration()).not.toBe(sessionBefore);
       expect(sessionDuration()).toBe(expected.session);
+      expect(screen.queryByTestId("composition-activity-recovery-A-recovery", anyNode)).toBeNull();
     });
 
-    it("removing a recovery inside the Circuit recalculates the Circuit duration (terminal Pause restored)", () => {
+    it("placement: removing a recovery inside the Circuit recalculates the Circuit duration (terminal Pause restored)", () => {
       const expected = durationsOf(timed());
       renderPlacement(timed({ B: { postActivityRecoverySeconds: 120 } }));
       const circuitBefore = circuitDuration();
-      cardAction("B", "removeRecovery");
+      enter();
+      fireEvent.press(frame("B"));
+      fireEvent.press(confirm());
       expect(circuitDuration()).not.toBe(circuitBefore);
       expect(circuitDuration()).toBe(expected.circuit);
       expect(sessionDuration()).toBe(expected.session);
     });
 
-    it("modifying R outside placement recalculates the session duration", () => {
-      const expected = durationsOf(timed({ A: { postActivityRecoverySeconds: 120 } }));
-      renderPlacement(timed({ A: { postActivityRecoverySeconds: 20 } }));
-      const before = sessionDuration();
-      fireEvent.press(recoveryButton("A"));
-      nativeChange("duration-wheel-minutes", 2);
+    it("placement: modifying an existing R (20 → 45, deselect then reselect) is not counted in N, Annuler restores it", () => {
+      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
+      const before = probe.draft;
+      enter();
+      fireEvent.press(frame("B"));
+      fireEvent.press(frame("B"));
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
+      nativeChange("duration-wheel-seconds", 45);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(frame("B").props.accessibilityValue).toEqual({ text: "45 s" });
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
+      expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
+      expect(probe.updates).toBe(0);
+
+      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+      expect(probe.draft).toBe(before);
+      expect(within(displayed("B")).getByText("20 s")).toBeTruthy();
+    });
+
+    it("placement: Confirmer with only a modification (N = 0) applies it in one update and leaves placement", () => {
+      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
+      enter();
+      reselect("B", 45);
+      fireEvent.press(confirm());
+      expect(probe.updates).toBe(1);
+      expect(recoveries()).toEqual([null, 45, null, null]);
+      expect(screen.queryByTestId(BAR)).toBeNull();
+      expect(within(displayed("B")).getByText("45 s")).toBeTruthy();
+    });
+
+    it("placement: ✕ on the wheel of a deselected zone leaves it deselected; ✓ 0 keeps it present at 0 (D-323)", () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
+      enter();
+      fireEvent.press(frame("A"));
+      fireEvent.press(frame("A"));
+      nativeChange("duration-wheel-seconds", 45);
+      fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
+      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
+      expect(frame("A").props.accessibilityState).toMatchObject({ selected: false });
+      fireEvent.press(frame("A"));
       nativeChange("duration-wheel-seconds", 0);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(recoveries()[0]).toBe(120);
-      expect(sessionDuration()).not.toBe(before);
+      expect(within(frame("A")).getByText("0 s")).toBeTruthy();
+      fireEvent.press(confirm());
+      expect(recoveries()[0]).toBe(0);
+      // R = 0 sans point : rien hors placement.
+      expect(screen.queryByTestId("composition-recovery-line-label", anyNode)).toBeNull();
+    });
+
+    it("placement: off-grid legacy values (600 s, 7 s) reopen snapped (300, 5) and ✓ without moving keeps them as they are (no change)", () => {
+      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 600 }, B: { postActivityRecoverySeconds: 7 } }));
+      const before = probe.draft;
+      enter();
+      fireEvent.press(frame("A"));
+      fireEvent.press(frame("A"));
+      expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(5);
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(0);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      fireEvent.press(frame("B"));
+      fireEvent.press(frame("B"));
+      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      expect(frame("A").props.accessibilityValue).toEqual({ text: "10 min" });
+      expect(frame("B").props.accessibilityValue).toEqual({ text: "7 s" });
+      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+      expect(probe.draft).toBe(before);
+    });
+
+    it("placement: reselecting at the original value cancels the change (Confirmer unavailable)", () => {
+      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
+      enter();
+      reselect("B", 45);
+      reselect("B", 20);
+      expect(frame("B").props.accessibilityState).toMatchObject({ selected: true });
+      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+    });
+
+    it("placement: a modification is previewed in the durations before Confirmer", () => {
+      const expected = durationsOf(timed({ B: { postActivityRecoverySeconds: 120 } }));
+      renderPlacement(timed({ B: { postActivityRecoverySeconds: 20 } }));
+      const before = { session: sessionDuration(), circuit: circuitDuration() };
+      enter();
+      reselect("B", 120);
+      expect(probe.updates).toBe(0);
+      expect(sessionDuration()).not.toBe(before.session);
       expect(sessionDuration()).toBe(expected.session);
+      expect(circuitDuration()).toBe(expected.circuit);
     });
 
     // PRE-6 story 6.2 (D-436) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action
-    // de retrait (le retrait revient en placement, story 6.3). Choix documenté dans la spec 6.2.
-    it("story 6.2 — long press on a point grabs it: no bubble, no « remove » action, nothing removed (also after the Circuit)", () => {
+    // de retrait (le retrait revient en placement, story 6.3). Story 7.2 (D-437) : la puce saisie est
+    // marquée soulevée (style sélectionné, ombre de la carte soulevée), la rangée garde sa hauteur.
+    it("story 6.2 / 7.2 — long press on a point grabs it, marked lifted: no bubble, no « remove » action, nothing removed (also after the Circuit)", () => {
       renderPlacement(matrix(), {
         overrides: {
           stopPoints: [
@@ -6599,255 +6563,27 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       for (const id of ["pA", "t"]) {
         const actions = (stopChip(id).props.accessibilityActions ?? []) as { name: string }[];
         expect(actions.map((action) => action.name)).not.toContain("remove");
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-stop-point-${id}-chip-face`).props.style).backgroundColor).toBe(
+          colors.background,
+        );
         fireEvent(screen.getByTestId(`composition-stop-point-row-${id}`), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
         fireEvent(stopChip(id), "longPress");
-        expect(screen.queryByTestId(BUBBLE)).toBeNull();
-        // Le point est réellement soulevé : défilement neutralisé, rangée au premier plan.
+        expect(screen.queryByText("Retirer le point d’arrêt")).toBeNull();
+        // Le point est réellement soulevé : défilement neutralisé, rangée au premier plan, puce marquée.
         expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
         expect(StyleSheet.flatten(screen.getByTestId(`composition-stop-point-row-${id}`).props.style).zIndex).toBe(1);
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-stop-point-${id}-chip-face`).props.style)).toMatchObject({
+          backgroundColor: colors.primary,
+          shadowColor: colors.compositionDraggedCardShadow,
+        });
+        expect(StyleSheet.flatten(line(id).props.style)).toMatchObject({ height: 22 });
         fireEvent(screen.getByTestId(`composition-stop-point-row-${id}`), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
         expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-stop-point-${id}-chip-face`).props.style).backgroundColor).toBe(
+          colors.background,
+        );
       }
       expect(probe.draft!.stopPoints).toEqual(before!.stopPoints);
-    });
-
-
-    it("the bubble is shown only once the element is measured; an empty measurement shows nothing", () => {
-      mockAnchor.value = null;
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      fireEvent(recoveryButton("A"), "longPress");
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-      mockAnchor.value = { x: 60, y: 400, width: 100, height: 13 };
-      fireEvent(recoveryButton("A"), "longPress");
-      expect(screen.getByTestId(`${BUBBLE}-remove`)).toBeTruthy();
-    });
-
-    it("touching outside the bubble closes it without any change; no second dialog", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
-        overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
-      });
-      const before = probe.draft;
-      fireEvent(recoveryButton("A"), "longPress");
-      fireEvent.press(screen.getByTestId(`${BUBBLE}-backdrop`));
-      expect(screen.queryByTestId(`${BUBBLE}-remove`)).toBeNull();
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-      expect(probe.updates).toBe(0);
-      expect(probe.draft).toBe(before);
-    });
-
-    it("the bubble is dismissed without change by the system back, focus loss and entering placement", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      const before = probe.draft;
-      fireEvent(recoveryButton("A"), "longPress");
-      fireEvent(screen.getByTestId(BUBBLE), "requestClose");
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-
-      mockFocusHarness.callbacks = [];
-      screen.unmount();
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      fireEvent(recoveryButton("A"), "longPress");
-      act(() => {
-        mockFocusHarness.callbacks.forEach((callback) => (callback() as unknown as (() => void) | undefined)?.());
-      });
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-
-      fireEvent(recoveryButton("A"), "longPress");
-      enter();
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-      expect(screen.getByTestId(BAR)).toBeTruthy();
-      expect(probe.updates).toBe(0);
-      expect(probe.draft!.exercises).toEqual(before!.exercises);
-    });
-
-    it("a single surface at a time: bubble ↔ recovery wheel, and the list scroll closes the bubble", () => {
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
-        overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
-      });
-      fireEvent(recoveryButton("A"), "longPress");
-      expect(screen.getAllByTestId(`${BUBBLE}-remove`)).toHaveLength(1);
-      expect(screen.getByTestId(`${BUBBLE}-remove`).props.accessibilityLabel).toBe(pauses.removeRecovery);
-      // Ouvrir la roulette referme la bulle ; ouvrir la bulle referme la roulette.
-      fireEvent.press(recoveryButton("A"));
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-      expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-      fireEvent(recoveryButton("A"), "longPress");
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(screen.getByTestId(`${BUBBLE}-remove`)).toBeTruthy();
-      fireEvent(screen.getByTestId("composition-body"), "scrollBeginDrag");
-      expect(screen.queryByTestId(BUBBLE)).toBeNull();
-      expect(probe.updates).toBe(0);
-    });
-
-    it("an exit intercepted by the guard closes the recovery wheel (never the abandon dialog over it)", () => {
-      const guard = { pending: false };
-      mockExitGuard.mockImplementation(() => ({ isPendingExit: guard.pending, cancelExit: jest.fn(), confirmExit: jest.fn() }));
-      renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-      fireEvent.press(recoveryButton("A"));
-      expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-      guard.pending = true;
-      // Un rendu de l'écran (ici une saisie du nom) relit la garde.
-      fireEvent.changeText(screen.getByLabelText(composition.name, anyNode), "Séance du soir");
-      expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(recoveries()[0]).toBe(20);
-    });
-
-    // PRE-6 story 5.1 (revue) : la récupération est retirée par l'action de la carte ; le focus revient
-    // à la carte, jamais au point voisin ; le point garde son action et son focus.
-    it("VoiceOver: the « Retirer » actions have the bubble's effect; after the recovery, focus returns to the card", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
-          overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }, { id: "pB", scope: "IN_TOUR", position: 1 }] },
-        });
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        const cardActions = (screen.getByTestId("composition-exercise-row-A").props.accessibilityActions as { name: string; label: string }[]);
-        expect(cardActions).toContainEqual({ name: "removeRecovery", label: pauses.removeRecovery });
-        // Story 6.2 : la puce du point n'a plus d'action de retrait.
-        expect(((stopChip("pA").props.accessibilityActions ?? []) as { name: string }[]).map((action) => action.name)).not.toContain("remove");
-
-        focus.mockClear();
-        cardAction("A", "removeRecovery");
-        expect(recoveries()[0]).toBeNull();
-        expect(screen.queryByTestId(BUBBLE)).toBeNull();
-        // La rangée garde son point, mais le focus revient à la carte qui portait la récupération.
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
-        expect(probe.updates).toBe(1);
-      } finally {
-        focus.mockRestore();
-      }
-    });
-
-    it("bubble: removing a recovery next to a stop point focuses the card, not the point", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
-          overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
-        });
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        focus.mockClear();
-        fireEvent(recoveryButton("A"), "longPress");
-        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
-        expect(recoveries()[0]).toBeNull();
-        expect(stopChip("pA")).toBeTruthy();
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
-      } finally {
-        focus.mockRestore();
-      }
-    });
-
-    it("removing the last recovery (no point) removes the line, and focus goes to the card (bubble and VoiceOver)", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        const view = renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-        focus.mockClear();
-        fireEvent(recoveryButton("A"), "longPress");
-        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
-        expect(recoveries()[0]).toBeNull();
-        expect(screen.queryByTestId("composition-activity-recovery-A")).toBeNull();
-        expect(screen.queryByTestId("composition-activity-recovery-slot-A")).toBeNull();
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
-        view.unmount();
-
-        renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-        focus.mockClear();
-        cardAction("B", "removeRecovery");
-        expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-B"]));
-      } finally {
-        focus.mockRestore();
-      }
-    });
-
-
-
-
-    it("placement: modifying an existing R (20 → 45) is not counted in N, Annuler restores it", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      const before = probe.draft;
-      enter();
-      fireEvent.press(screen.getByLabelText(modifiable("20 s")));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(20);
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.getByLabelText(modifiable("45 s"))).toBeTruthy();
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
-      expect(probe.updates).toBe(0);
-
-      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-      expect(probe.draft).toBe(before);
-      expect(within(recoveryButton("B")).getByText("20 s")).toBeTruthy();
-    });
-
-    it("placement: Confirmer with only a modification (N = 0) applies it in one update and leaves placement", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      fireEvent.press(screen.getByLabelText(modifiable("20 s")));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(confirm());
-      expect(probe.updates).toBe(1);
-      expect(recoveries()).toEqual([null, 45, null, null]);
-      expect(screen.queryByTestId(BAR)).toBeNull();
-      expect(within(recoveryButton("B")).getByText("45 s")).toBeTruthy();
-    });
-
-    // PRE-6 story 5.1 (revue) : en placement, la ligne 3 montre la valeur effective du sous-brouillon
-    // (ajout ou modification). Story 5.3 (D-435) : l'ajout est porté par le cadre « Récupération » de la
-    // ligne 3, la récupération existante y reste touchable pour être modifiée (story 4.2).
-    it("placement: line 3 shows the sub-draft's effective value (addition in the frame, modification in place)", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      const lineRecovery = (id: string) => screen.queryByTestId(`composition-activity-recovery-${id}-recovery`, anyNode);
-      const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
-      // Ajout sur A : cadre « Récupération » avant, la valeur choisie dans le cadre après validation.
-      expect(lineRecovery("A")).toBeNull();
-      expect(within(frame("A")).getByText(p.recovery)).toBeTruthy();
-      fireEvent.press(screen.getByLabelText(recoveryLabel("A")));
-      nativeChange("duration-wheel-seconds", 40);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(within(frame("A")).getByText("40 s")).toBeTruthy();
-      expect(lineRecovery("A")).toBeNull();
-      // Modification de B : 20 → 45, la ligne 3 suit le sous-brouillon et reste touchable.
-      fireEvent.press(screen.getByLabelText(modifiable("20 s")));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(screen.getByLabelText(modifiable("45 s"))).toBeTruthy();
-      expect(within(lineRecovery("B")!).getByText("45 s")).toBeTruthy();
-      expect(lineRecovery("B")!.props.onStartShouldSetResponder).toBeDefined();
-      // Annuler : retour aux valeurs du brouillon.
-      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
-      expect(screen.queryByTestId("composition-activity-recovery-A-recovery")).toBeNull();
-      expect(within(recoveryButton("B")).getByText("20 s")).toBeTruthy();
-    });
-
-    it("placement: a modification is previewed in the durations before Confirmer", () => {
-      const expected = durationsOf(timed({ B: { postActivityRecoverySeconds: 120 } }));
-      renderPlacement(timed({ B: { postActivityRecoverySeconds: 20 } }));
-      const before = { session: sessionDuration(), circuit: circuitDuration() };
-      enter();
-      fireEvent.press(screen.getByLabelText(modifiable("20 s")));
-      nativeChange("duration-wheel-minutes", 2);
-      nativeChange("duration-wheel-seconds", 0);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(probe.updates).toBe(0);
-      expect(sessionDuration()).not.toBe(before.session);
-      expect(sessionDuration()).toBe(expected.session);
-      expect(circuitDuration()).toBe(expected.circuit);
-    });
-
-    it("placement: reopening a modified recovery starts at the chosen value; going back to the original disables Confirmer", () => {
-      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
-      enter();
-      fireEvent.press(screen.getByLabelText(modifiable("20 s")));
-      nativeChange("duration-wheel-seconds", 45);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(screen.getByLabelText(modifiable("45 s")));
-      expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(45);
-      nativeChange("duration-wheel-seconds", 20);
-      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
     });
   });
 
@@ -7186,7 +6922,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent.press(screen.getByLabelText(stopLabel("C")));
       fireEvent.press(screen.getByLabelText(recoveryLabel("C")));
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      fireEvent.press(screen.getByLabelText("Récupération 20 s après B, toucher pour modifier"));
+      // Story 7.2 (D-437) : modification de la récupération existante de B (désélection, roulette).
+      fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
+      fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
       nativeChange("duration-wheel-seconds", 45);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications");
@@ -7198,7 +6936,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     it("review: after Confirmer, if « Ajouter un arrêt » becomes unavailable, focus goes to the first card", async () => {
       const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
       try {
-        renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })], {
+        // Story 7.2 (D-437) : un Exercice offre toujours sa zone de récupération ; seule une ancienne
+        // Récupération autonome (type `RECOVERY`) n'offre rien après le retrait de son point.
+        renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", type: "RECOVERY", postActivityRecoverySeconds: 20 })], {
           overrides: { stopPoints: [{ id: "H", scope: "BEFORE_TOUR", position: 1 }] },
         });
         // Seul un retrait est possible (point avant la Fin, non proposé) : indice dédié.
@@ -7218,200 +6958,366 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
 
     it("review: an existing point without an id does not make « Ajouter un arrêt » available", () => {
-      renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 }), anActivity("B", "BEFORE_TOUR", { name: "B", postActivityRecoverySeconds: 20 })], {
+      // Story 7.2 (D-437) : une ancienne Récupération autonome (type `RECOVERY`) n'a pas de zone de
+      // récupération ; seul le point sans identifiant pourrait ouvrir le placement.
+      renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", type: "RECOVERY", postActivityRecoverySeconds: 20 })], {
         overrides: { stopPoints: [{ scope: "BEFORE_TOUR", position: 1 } as unknown as StopPoint] },
       });
       expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: true });
     });
   });
+  /**
+   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498, complément D-437 points 5 à 8) : tête de Circuit
+   * dessinée en placement, choix « Début de tour / Fin de tour / Annuler » (dialogue natif) pour le
+   * placement, le pas d'une carte ou d'un point et le passage de N = 1 à N ≥ 2, retraits annoncés.
+   */
+  describe("tête de Circuit, choix de Tour et points retirés (PRE-6 story 7.2, D-437)", () => {
+    const tc = strings.screens.composition.tourBoundaryChoice;
+    const removedOne = strings.screens.composition.stopPointsRemovedAnnouncement.singular;
+    const HEAD_SLOT = "composition-placement-slot-circuit-head";
+    const headTarget = () => screen.getByTestId(`${HEAD_SLOT}-stop-point`);
+    const points = () => (probe.draft!.stopPoints ?? []).map(({ id, scope, position }) => `${id}:${scope}:${position}`);
+    const cardAction = (id: string, actionName: string) =>
+      fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName } });
+    const pointAction = (id: string, actionName: string) =>
+      fireEvent(screen.getByTestId(`composition-stop-point-${id}-chip`), "accessibilityAction", { nativeEvent: { actionName } });
+    const counterAction = (actionName: string) =>
+      fireEvent(screen.getByTestId("composition-circuit-header-counter", anyNode), "accessibilityAction", { nativeEvent: { actionName } });
+
+    it("the free circuit-head slot is drawn inside the Circuit, between its header and its first card, centred, on the rail; named « … au début du circuit »; tapping adds (IN_TOUR, 0)", () => {
+      (jest.requireMock("expo-crypto") as { randomUUID: jest.Mock }).randomUUID.mockReturnValueOnce("head-1");
+      renderPlacement(matrix());
+      expect(screen.queryByTestId(HEAD_SLOT, anyNode)).toBeNull();
+      enter();
+      const row = screen.getByTestId(HEAD_SLOT);
+      expect(within(screen.getByTestId("composition-zone-in-tour")).getByTestId(HEAD_SLOT)).toBeTruthy();
+      expect(testIdOrder(screen.toJSON(), ["composition-circuit-header", `${HEAD_SLOT}-row`, "composition-activity-B"])).toEqual([
+        "composition-circuit-header",
+        `${HEAD_SLOT}-row`,
+        "composition-activity-B",
+      ]);
+      expect(StyleSheet.flatten(row.props.style)).toMatchObject({ height: 22, justifyContent: "center" });
+      // Raccordé au rail comme les rangées du placement : lien et queue, sans point de raccord.
+      expect(screen.getByTestId("composition-rail-link-rail:stop:placement-circuit-head", anyNode)).toBeTruthy();
+      expect(screen.getByTestId("composition-rail-tail-rail:stop:placement-circuit-head", anyNode)).toBeTruthy();
+      expect(headTarget().props.accessibilityLabel).toBe(p.addStopPointAtCircuitStartAccessibilityLabel);
+      expect(headTarget().props.accessibilityState).toMatchObject({ selected: false });
+      // Cible réelle bornée aux écarts du Circuit (9), sans hitSlop.
+      expect(headTarget().props.hitSlop).toBeUndefined();
+      expect(StyleSheet.flatten(headTarget().props.style)).toMatchObject({ height: 22 + 9 + 9, marginTop: -9, marginBottom: -9 });
+      fireEvent.press(headTarget());
+      expect(headTarget().props.accessibilityState).toMatchObject({ selected: true });
+      // N = 1, A avant le Circuit : « après A » deviendrait consécutif, il n'est plus proposé.
+      expect(screen.queryByLabelText(stopLabel("A"))).toBeNull();
+      fireEvent.press(confirm());
+      expect(points()).toEqual(["head-1:IN_TOUR:0"]);
+    });
+
+    it("placement, N = 2, existing end-of-Tour point: choosing the head asks which to keep — Annuler: nothing; « Fin de tour »: nothing added; « Début de tour »: head added, the end point's removal scheduled", () => {
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), { overrides: { tourRepeatCount: 2, stopPoints: [{ id: "T", scope: "IN_TOUR", position: 2 }] } });
+        enter();
+        const tail = () => screen.getByTestId("composition-placement-slot-C-stop-point-existing");
+        fireEvent.press(headTarget());
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(alert.mock.calls[0]![0]).toBe(tc.title);
+        expect(alert.mock.calls[0]![1]).toBe(tc.message);
+        expect((alert.mock.calls[0]![2] as AlertButton[]).map((button) => button.text)).toEqual([tc.head, tc.tail, tc.cancel]);
+        expect(headTarget().props.accessibilityState).toMatchObject({ selected: false });
+        answerTourChoice(alert, tc.cancel);
+        expect(headTarget().props.accessibilityState).toMatchObject({ selected: false });
+        expect(tail().props.accessibilityState).toMatchObject({ selected: true });
+        expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+
+        fireEvent.press(headTarget());
+        answerTourChoice(alert, tc.tail);
+        expect(headTarget().props.accessibilityState).toMatchObject({ selected: false });
+        expect(tail().props.accessibilityState).toMatchObject({ selected: true });
+
+        fireEvent.press(headTarget());
+        expect(alert).toHaveBeenCalledTimes(3);
+        answerTourChoice(alert, tc.head);
+        expect(headTarget().props.accessibilityState).toMatchObject({ selected: true });
+        expect(tail().props.accessibilityState).toMatchObject({ selected: false });
+        expect(confirm().props.accessibilityLabel).toBe(p.confirmChanges);
+        expect(probe.updates).toBe(0);
+        fireEvent.press(confirm());
+        expect(points()).toHaveLength(1);
+        expect(points()[0]).toMatch(/:IN_TOUR:0$/u);
+      } finally {
+        alert.mockRestore();
+      }
+    });
+
+    it("placement, N = 2: reselecting an existing head point against an added end point asks which to keep (« Début de tour » keeps the point, drops the addition)", () => {
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), { overrides: { tourRepeatCount: 2, stopPoints: [{ id: "H", scope: "IN_TOUR", position: 0 }] } });
+        enter();
+        const head = () => screen.getByTestId("composition-placement-slot-stop-H-stop-point-existing");
+        fireEvent.press(head());
+        expect(head().props.accessibilityState).toMatchObject({ selected: false });
+        fireEvent.press(screen.getByTestId("composition-placement-slot-C-stop-point"));
+        expect(alert).not.toHaveBeenCalled();
+        expect(screen.getByTestId("composition-placement-slot-C-stop-point").props.accessibilityState).toMatchObject({ selected: true });
+        // La resélection n'est pas « bloquée » : elle demande le choix.
+        expect(head().props.accessibilityState).toEqual({ selected: false });
+        fireEvent.press(head());
+        expect(alert).toHaveBeenCalledTimes(1);
+        answerTourChoice(alert, tc.head);
+        expect(head().props.accessibilityState).toMatchObject({ selected: true });
+        expect(screen.getByTestId("composition-placement-slot-C-stop-point").props.accessibilityState).toMatchObject({ selected: false });
+        expect(confirm().props.accessibilityState).toMatchObject({ disabled: true });
+      } finally {
+        alert.mockRestore();
+      }
+    });
+
+    it("placement, N = 2, reselection against an addition: Annuler and « Fin de tour » keep the addition and leave the point removed (announced)", () => {
+      const alert = tourChoiceAlert();
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      try {
+        renderPlacement(matrix(), { overrides: { tourRepeatCount: 2, stopPoints: [{ id: "H", scope: "IN_TOUR", position: 0 }] } });
+        enter();
+        const head = () => screen.getByTestId("composition-placement-slot-stop-H-stop-point-existing");
+        const tail = () => screen.getByTestId("composition-placement-slot-C-stop-point");
+        fireEvent.press(head());
+        fireEvent.press(tail());
+        fireEvent.press(head());
+        answerTourChoice(alert, tc.cancel);
+        expect(head().props.accessibilityState).toMatchObject({ selected: false });
+        expect(tail().props.accessibilityState).toMatchObject({ selected: true });
+        fireEvent.press(head());
+        announce.mockClear();
+        answerTourChoice(alert, tc.tail);
+        expect(head().props.accessibilityState).toMatchObject({ selected: false });
+        expect(tail().props.accessibilityState).toMatchObject({ selected: true });
+        expect(announce).toHaveBeenCalledWith(p.stopPointKeepRefusedAnnouncement);
+        fireEvent.press(confirm());
+        expect(points()).toHaveLength(1);
+        expect(points()[0]).toMatch(/:IN_TOUR:2$/u);
+      } finally {
+        alert.mockRestore();
+        announce.mockRestore();
+      }
+    });
+
+    it("D-437 point 8 — N = 2, Circuit alone (opens and closes the Session): start and end of Tour are both offered; at N = 1 neither is", () => {
+      const view = renderPlacement([anActivity("B", "IN_TOUR", { name: "B" }), anActivity("C", "IN_TOUR", { name: "C" })], {
+        overrides: { tourRepeatCount: 2 },
+      });
+      enter();
+      expect(headTarget().props.accessibilityLabel).toBe(p.addStopPointAtCircuitStartAccessibilityLabel);
+      expect(screen.getByLabelText(stopLabel("C"))).toBeTruthy();
+      view.unmount();
+      renderPlacement([anActivity("B", "IN_TOUR", { name: "B" }), anActivity("C", "IN_TOUR", { name: "C" })]);
+      enter();
+      expect(screen.queryByTestId(HEAD_SLOT, anyNode)).toBeNull();
+      expect(screen.queryByLabelText(stopLabel("C"))).toBeNull();
+    });
+
+    it("« Monter » of a card that would put a start and an end of Tour back to back (N = 2): offered; the choice is asked; « Fin de tour » keeps the end point, the other is removed and announced on the card", async () => {
+      const alert = tourChoiceAlert();
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "S1", scope: "IN_TOUR", position: 1 },
+              { id: "S2", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        cardAction("B", "moveUp");
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(probe.updates).toBe(0);
+        answerTourChoice(alert, tc.tail);
+        expect(probe.draft!.exercises.find((exercise) => exercise.id === "B")!.structuralPosition).toBe("BEFORE_TOUR");
+        expect(points()).toEqual(["S2:IN_TOUR:1"]);
+        await waitFor(() => expect(announce).toHaveBeenCalledWith(removedOne));
+        // Annuler (nouvelle situation) : rien ne change.
+      } finally {
+        alert.mockRestore();
+        announce.mockRestore();
+      }
+    });
+
+    it("the same card step, Annuler: nothing changes, nothing announced", () => {
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "S1", scope: "IN_TOUR", position: 1 },
+              { id: "S2", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        const before = probe.draft;
+        cardAction("B", "moveUp");
+        answerTourChoice(alert, tc.cancel);
+        expect(probe.draft).toBe(before);
+        expect(probe.updates).toBe(0);
+      } finally {
+        alert.mockRestore();
+      }
+    });
+
+    it("D-437 — a card step that removes a point: no visual message, focus on the card and a discreet « Point d'arrêt retiré »", async () => {
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+      try {
+        renderPlacement([anActivity("X", "AFTER_TOUR", { name: "X" }), anActivity("Y", "AFTER_TOUR", { name: "Y" })], {
+          overrides: { stopPoints: [{ id: "p1", scope: "AFTER_TOUR", position: 1 }] },
+        });
+        measureDisplayedRows();
+        cardAction("X", "moveDown");
+        expect(points()).toEqual([]);
+        expect(screen.queryByText(removedOne)).toBeNull();
+        await waitFor(() => expect(announce).toHaveBeenCalledWith(removedOne));
+        const targets = focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+        expect(targets).toContain("composition-exercise-row-X");
+        expect(screen.queryByTestId("composition-stop-point-row-p1", anyNode)).toBeNull();
+      } finally {
+        announce.mockRestore();
+        focus.mockRestore();
+      }
+    });
+
+    it("« Monter » of a point to the circuit head facing an end point (N = 2): offered, the choice is asked; « Début de tour » moves it and removes the end point", () => {
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "H", scope: "IN_TOUR", position: 1 },
+              { id: "T", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        const actions = (screen.getByTestId("composition-stop-point-H-chip").props.accessibilityActions as { name: string }[]).map(
+          (action) => action.name,
+        );
+        expect(actions).toContain("moveUp");
+        pointAction("H", "moveUp");
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(probe.updates).toBe(0);
+        answerTourChoice(alert, tc.head);
+        expect(points()).toEqual(["H:IN_TOUR:0"]);
+      } finally {
+        alert.mockRestore();
+      }
+    });
+
+    it("the same point step, « Fin de tour »: the moved point itself is removed (the end point is kept); Annuler: nothing", () => {
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "H", scope: "IN_TOUR", position: 1 },
+              { id: "T", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        const before = probe.draft;
+        pointAction("H", "moveUp");
+        answerTourChoice(alert, tc.cancel);
+        expect(probe.draft).toBe(before);
+        pointAction("H", "moveUp");
+        answerTourChoice(alert, tc.tail);
+        expect(points()).toEqual(["T:IN_TOUR:2"]);
+      } finally {
+        alert.mockRestore();
+      }
+    });
+
+    it("counter 1 → 2 with a start and an end of Tour: the choice is asked before any change — Annuler keeps N = 1; « Début de tour » sets N = 2 and removes the end point", async () => {
+      const alert = tourChoiceAlert();
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            stopPoints: [
+              { id: "H", scope: "IN_TOUR", position: 0 },
+              { id: "T", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        counterAction("increment");
+        expect(alert).toHaveBeenCalledTimes(1);
+        // Un second pas pendant le dialogue (maintien) est ignoré : un seul dialogue.
+        counterAction("increment");
+        expect(alert).toHaveBeenCalledTimes(1);
+        answerTourChoice(alert, tc.cancel);
+        expect(probe.draft!.tourRepeatCount ?? 1).toBe(1);
+        expect(points()).toEqual(["H:IN_TOUR:0", "T:IN_TOUR:2"]);
+        counterAction("increment");
+        expect(alert).toHaveBeenCalledTimes(2);
+        answerTourChoice(alert, tc.head);
+        expect(probe.draft!.tourRepeatCount).toBe(2);
+        expect(points()).toEqual(["H:IN_TOUR:0"]);
+        await waitFor(() => expect(announce).toHaveBeenCalledWith(removedOne));
+      } finally {
+        alert.mockRestore();
+        announce.mockRestore();
+      }
+    });
+
+    it("counter 2 → 1 on a Circuit that opens the Session: its start-of-Tour point is removed without message, announced", async () => {
+      const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+      try {
+        renderPlacement([anActivity("B", "IN_TOUR", { name: "B" }), anActivity("C", "IN_TOUR", { name: "C" })], {
+          overrides: { tourRepeatCount: 2, stopPoints: [{ id: "H", scope: "IN_TOUR", position: 0 }] },
+        });
+        counterAction("decrement");
+        expect(probe.draft!.tourRepeatCount).toBe(1);
+        expect(points()).toEqual([]);
+        expect(screen.queryByText(removedOne)).toBeNull();
+        await waitFor(() => expect(announce).toHaveBeenCalledWith(removedOne));
+      } finally {
+        announce.mockRestore();
+      }
+    });
+  });
 });
 
 /**
- * PRE-6 story 4.3 (D-301, ch13 L1575) — avertissement non bloquant d'enchaînement sans pause :
- * message unique, informatif, au-dessus de l'action finale et de la barre de placement ; il ne
- * bloque ni « Continuer » ni l'enregistrement et disparaît dès qu'aucune frontière ne s'enchaîne
- * sans pause. Le calcul des frontières est prouvé dans `unpausedTransitions.test.ts`.
+ * PRE-6 story 7.2 (D-437, qui retire D-301 ; ch13 CE-T03-08 L1583, complément D-437 point 1) : la
+ * Composition n'affiche plus aucun message lorsque deux Exercices s'enchaînent sans pause, et
+ * aucun autre avertissement ne le remplace — ni texte, ni annonce, hors placement comme en placement.
  */
-describe("CompositionScreen — avertissement d'enchaînement sans pause (PRE-6 story 4.3, D-301)", () => {
-  const WARNING = "composition-unpaused-warning";
-  const warning = () => screen.queryByTestId(WARNING);
-  const twoBefore = (overrides: Partial<SessionDraftExercise> = {}) => [
-    anActivity("A", "BEFORE_TOUR", { name: "A", ...overrides }),
-    anActivity("B", "BEFORE_TOUR", { name: "B" }),
-  ];
+describe("CompositionScreen — plus d'avertissement d'enchaînement sans pause (PRE-6 story 7.2, D-437 retire D-301)", () => {
+  const D301_TEXT = "Attention, les exercices vont s’enchaîner sans pause.";
+  const ADD_STOP = "composition-add-stop-action";
 
-  it("A puis B sans pause ni récupération : un seul message, texte exact, annoncé poliment, au-dessus de « Continuer »", () => {
-    renderScreenWithDraft(twoBefore());
-
-    expect(composition.unpausedWarning).toBe("Attention, les exercices vont s’enchaîner sans pause.");
-    expect(screen.getAllByText(composition.unpausedWarning)).toHaveLength(1);
-    expect(warning()?.props.accessibilityLiveRegion).toBe("polite");
-    expect(testIdOrder(screen.toJSON(), [WARNING, "composition-save-action"])).toEqual([WARNING, "composition-save-action"]);
-    // Information, pas une erreur : jamais la couleur d'échec.
-    expect(StyleSheet.flatten(warning()?.props.style).color).toBe(colors.textSecondary);
-    expect(StyleSheet.flatten(warning()?.props.style).color).not.toBe(colors.danger);
-    // Non bloquant : « Continuer » reste actif.
-    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
-  });
-
-  it.each([
-    ["Pause terminale de A > 0", { executionParameters: durationParameters(30, 1, 10) }],
-    ["récupération positive après A", { postActivityRecoverySeconds: 20 }],
-  ])("%s : aucun message", (_label, overrides) => {
-    renderScreenWithDraft(twoBefore(overrides));
-    expect(warning()).toBeNull();
-  });
-
-  it("récupération à 0 après A : le message reste (0 ne remplace rien)", () => {
-    renderScreenWithDraft(twoBefore({ postActivityRecoverySeconds: 0 }));
-    expect(warning()).not.toBeNull();
-  });
-
-  it("point d'arrêt après A : aucun message", () => {
-    renderScreenWithDraft(twoBefore(), { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] });
-    expect(warning()).toBeNull();
-  });
-
-  it("un seul exercice, même répété par le Circuit : aucun message", () => {
-    renderScreenWithDraft([anActivity("B", "IN_TOUR", { name: "B" })], { tourRepeatCount: 3 });
-    expect(warning()).toBeNull();
-  });
-
-  it("Circuit de Tours N = 2 [B, C], PN(C) = 0 : message (frontière de Tour C1 → B2)", () => {
-    renderScreenWithDraft(
-      [
-        anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 30 }),
-        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 1, 10) }),
-        anActivity("C", "IN_TOUR", { name: "C" }),
-      ],
-      { tourRepeatCount: 2, circuitNature: "TOURS" },
-    );
-    expect(warning()).not.toBeNull();
-  });
-
-  it("Circuit de Tours N = 2 [B] avec A avant : B → B n'est pas une frontière, aucun message (à confirmer par Hermann, J3)", () => {
-    renderScreenWithDraft(
-      [
-        anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 30 }),
-        anActivity("B", "IN_TOUR", { name: "B" }),
-      ],
-      { tourRepeatCount: 2, circuitNature: "TOURS" },
-    );
-    expect(warning()).toBeNull();
-  });
-
-  it.each<["SERIES" | "TOURS", boolean]>([
-    ["SERIES", true],
-    ["TOURS", false],
-  ])("nature %s lue par l'écran : A [Pauses 0 puis 10], B 2 × Pause 5, N = 2 → message %p", (nature, expected) => {
-    renderScreenWithDraft(
-      [
-        anActivity("A", "IN_TOUR", {
-          name: "A",
-          executionParameters: variableParameters({ mode: "DURATION", rows: [[30, 0], [30, 10]] }),
-        }),
-        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 2, 5) }),
-      ],
-      { tourRepeatCount: 2, circuitNature: nature },
-    );
-    expect(warning() !== null).toBe(expected);
-  });
-
-  it("annonce le message à chaque apparition (absent → présent), une seule fois par apparition", () => {
+  it("A puis B sans pause ni récupération : aucun message, aucune annonce, « Continuer » inchangé", () => {
     const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
-    announce.mockClear();
     try {
-      const warningAnnouncements = () =>
-        announce.mock.calls.filter(([message]) => message === composition.unpausedWarning).length;
-      renderScreenWithDraft(twoBefore());
-      expect(warningAnnouncements()).toBe(1);
-      fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-      expect(warningAnnouncements()).toBe(1);
-      fireEvent.press(
-        screen.getByLabelText(composition.placement.addStopPointAccessibilityLabel.replace("{exercise}", "A")),
-      );
-      expect(warning()).toBeNull();
-      fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
-      expect(warning()).not.toBeNull();
-      expect(warningAnnouncements()).toBe(2);
+      renderScreenWithDraft([anActivity("A", "BEFORE_TOUR", { name: "A" }), anActivity("B", "BEFORE_TOUR", { name: "B" })]);
+      expect(screen.queryByText(D301_TEXT)).toBeNull();
+      expect(screen.queryByTestId("composition-unpaused-warning")).toBeNull();
+      expect(announce).not.toHaveBeenCalledWith(D301_TEXT);
+      expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+      // En placement non plus.
+      fireEvent.press(screen.getByTestId(ADD_STOP));
+      expect(screen.queryByText(D301_TEXT)).toBeNull();
+      expect(announce).not.toHaveBeenCalledWith(D301_TEXT);
     } finally {
       announce.mockRestore();
     }
   });
 
-  it("aucune annonce sans message", () => {
-    const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
-    announce.mockClear();
-    try {
-      renderScreenWithDraft(twoBefore({ postActivityRecoverySeconds: 20 }));
-      expect(announce.mock.calls.filter(([message]) => message === composition.unpausedWarning)).toHaveLength(0);
-    } finally {
-      announce.mockRestore();
-    }
-  });
-
-  it("Circuit de Séries N = 2 [A, B], Pi = 0 : message", () => {
-    renderScreenWithDraft(
-      [
-        anActivity("A", "IN_TOUR", { name: "A", executionParameters: durationParameters(30, 2, 0) }),
-        anActivity("B", "IN_TOUR", { name: "B", executionParameters: durationParameters(30, 2, 0) }),
-      ],
-      { tourRepeatCount: 2, circuitNature: "SERIES" },
-    );
-    expect(warning()).not.toBeNull();
-  });
-
-  it("disparaît dès que plus aucune frontière ne remplit la condition (suppression de B)", () => {
-    renderScreenWithDraft(twoBefore());
-    expect(warning()).not.toBeNull();
-    fireSwipeLeft("B");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-B"));
-    expect(warning()).toBeNull();
-  });
-
-  it("placement : au-dessus de la barre, recalculé en direct ; un point après A le fait disparaître, « Annuler » le rétablit", () => {
-    renderScreenWithDraft(twoBefore());
-    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
-    expect(testIdOrder(screen.toJSON(), [WARNING, "composition-placement-bar"])).toEqual([WARNING, "composition-placement-bar"]);
-
-    fireEvent.press(
-      screen.getByLabelText(composition.placement.addStopPointAccessibilityLabel.replace("{exercise}", "A")),
-    );
-    expect(warning()).toBeNull();
-
-    fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
-    expect(warning()).not.toBeNull();
-  });
-
-  it("« Continuer » avec le message présent : enregistre normalement, sans modifier aucun paramètre", async () => {
-    const createSession = jest.fn(async (_input: unknown) => ({ ok: true, value: {} }));
-    const service = { createSession, updateSession: jest.fn() } as unknown as SessionService;
-    const exercises = twoBefore();
-    render(
-      <SessionServiceContext.Provider value={service}>
-        <TestSafeAreaProvider>
-          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
-            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
-              <StatefulDraftWrapper initialExercises={exercises}>
-                <CompositionScreen />
-              </StatefulDraftWrapper>
-            </ReferentialServiceContext.Provider>
-          </ActivityDefinitionServiceContext.Provider>
-        </TestSafeAreaProvider>
-      </SessionServiceContext.Provider>,
-    );
-    expect(warning()).not.toBeNull();
-    await act(async () => {
-      fireEvent.press(screen.getByLabelText(composition.saveAction));
+  it("Circuit de Tours N = 2 d'un seul exercice sans pause : aucun message", () => {
+    renderScreenWithDraft([anActivity("B", "IN_TOUR", { name: "B" }), anActivity("C", "IN_TOUR", { name: "C" })], {
+      tourRepeatCount: 2,
     });
-    expect(createSession).toHaveBeenCalledTimes(1);
-    // Le brouillon enregistré est celui composé : ni Pause, ni récupération, ni point ajoutés.
-    const saved = createSession.mock.calls[0]![0] as SessionDraftContextValue["draft"];
-    expect(saved.exercises).toEqual(exercises);
-    expect(saved.stopPoints ?? []).toEqual([]);
-    await waitFor(() =>
-      expect(mockDismissTo).toHaveBeenCalledWith({ pathname: "/", params: { catalogueSegment: "sessions" } }),
-    );
+    expect(screen.queryByText(D301_TEXT)).toBeNull();
   });
 });
 
@@ -8213,49 +8119,102 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       });
 
       // Story 7.1 (D-437) : un déplacement de carte n'est plus refusé pour un point interdit ou
-      // consécutif ; le dépôt non appliqué est désormais celui qui demande un choix (conflit de Tour,
-      // dialogue branché en story 7.2) — jusque-là, l'écran le traite comme un refus.
-      it("dépôt non appliqué (choix de Tour requis), image par image : la carte revient depuis sa position de dépôt, au premier plan, rail continu", () => {
-        const elements = renderRail(
-          [
-            anActivity("A", "BEFORE_TOUR", { name: "Gainage" }),
-            anActivity("B", "IN_TOUR", { name: "Squats" }),
-            anActivity("C", "IN_TOUR", { name: "Pompes" }),
-          ],
-          {
-            tourRepeatCount: 2,
-            stopPoints: [
-              { id: "s-1", scope: "IN_TOUR", position: 1 },
-              { id: "s-2", scope: "IN_TOUR", position: 2 },
+      // consécutif ; story 7.2 : le dépôt qui demande un choix (conflit de Tour) tient la carte pendant
+      // le dialogue natif, comme le dialogue de perte (story 5.2b).
+      it("dépôt en attente du choix de Tour (story 7.2) : la carte reste tenue pendant le dialogue ; Annuler la ramène depuis sa position de dépôt, image par image, au premier plan, rail continu", () => {
+        const alert = tourChoiceAlert();
+        try {
+          const elements = renderRail(
+            [
+              anActivity("A", "BEFORE_TOUR", { name: "Gainage" }),
+              anActivity("B", "IN_TOUR", { name: "Squats" }),
+              anActivity("C", "IN_TOUR", { name: "Pompes" }),
             ],
-          },
-        );
-        expectRailJoined(elements, null);
-        // B sort du Circuit au-dessus de A : s-1 deviendrait début de Tour, s-2 est fin de Tour (N = 2).
-        const dy = centerOf(elements, "A") - 10 - centerOf(elements, "B");
-        lift("B");
-        moveTo("B", dy);
-        settle();
-        expectRailJoined(elements, "B");
-        release("B", dy);
-        expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "C:IN_TOUR"]);
-        expect(probe.draft!.stopPoints).toEqual([
-          { id: "s-1", scope: "IN_TOUR", position: 1 },
-          { id: "s-2", scope: "IN_TOUR", position: 2 },
-        ]);
-        // Prise là où le doigt l'a laissée, puis ramenée par le registre.
-        expect(rowShift("B")).toBe(dy);
-        let previous = dy;
-        for (let frame = 0; frame < 6; frame += 1) {
-          expectOwnSurfaceRail("B");
+            {
+              tourRepeatCount: 2,
+              stopPoints: [
+                { id: "s-1", scope: "IN_TOUR", position: 1 },
+                { id: "s-2", scope: "IN_TOUR", position: 2 },
+              ],
+            },
+          );
+          expectRailJoined(elements, null);
+          // B sort du Circuit au-dessus de A : s-1 deviendrait début de Tour, s-2 est fin de Tour (N = 2).
+          const dy = centerOf(elements, "A") - 10 - centerOf(elements, "B");
+          lift("B");
+          moveTo("B", dy);
+          settle();
           expectRailJoined(elements, "B");
-          frames(2);
-          expect(rowShift("B")).toBeGreaterThanOrEqual(previous);
-          previous = rowShift("B");
+          release("B", dy);
+          // Dialogue natif ; rien n'est appliqué ; la carte reste là où elle a été lâchée.
+          expect(alert).toHaveBeenCalledTimes(1);
+          expect(alert.mock.calls[0]![0]).toBe(composition.tourBoundaryChoice.title);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "C:IN_TOUR"]);
+          frames(6);
+          expect(rowShift("B")).toBe(dy);
+          expectOwnSurfaceRail("B");
+          answerTourChoice(alert, composition.tourBoundaryChoice.cancel);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "C:IN_TOUR"]);
+          expect(probe.draft!.stopPoints).toEqual([
+            { id: "s-1", scope: "IN_TOUR", position: 1 },
+            { id: "s-2", scope: "IN_TOUR", position: 2 },
+          ]);
+          // Ramenée par le registre depuis sa position de dépôt.
+          expect(rowShift("B")).toBe(dy);
+          let previous = dy;
+          for (let frame = 0; frame < 6; frame += 1) {
+            expectOwnSurfaceRail("B");
+            expectRailJoined(elements, "B");
+            frames(2);
+            expect(rowShift("B")).toBeGreaterThanOrEqual(previous);
+            previous = rowShift("B");
+          }
+          settle();
+          expectBackInChain("B");
+          expectRailJoined(layOut(), null);
+        } finally {
+          alert.mockRestore();
         }
-        settle();
-        expectBackInChain("B");
-        expectRailJoined(layOut(), null);
+      });
+
+      it("dépôt en attente du choix de Tour (story 7.2) : « Début de tour » applique le déplacement, retire le point de fin et annonce le retrait ; carte posée sans saut, rail continu", async () => {
+        const alert = tourChoiceAlert();
+        const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+        try {
+          const elements = renderRail(
+            [
+              anActivity("A", "BEFORE_TOUR", { name: "Gainage" }),
+              anActivity("B", "IN_TOUR", { name: "Squats" }),
+              anActivity("C", "IN_TOUR", { name: "Pompes" }),
+            ],
+            {
+              tourRepeatCount: 2,
+              stopPoints: [
+                { id: "s-1", scope: "IN_TOUR", position: 1 },
+                { id: "s-2", scope: "IN_TOUR", position: 2 },
+              ],
+            },
+          );
+          const dy = centerOf(elements, "A") - 10 - centerOf(elements, "B");
+          lift("B");
+          moveTo("B", dy);
+          settle();
+          release("B", dy);
+          expect(alert).toHaveBeenCalledTimes(1);
+          answerTourChoice(alert, composition.tourBoundaryChoice.head);
+          expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "C:IN_TOUR"]);
+          expect(probe.draft!.stopPoints).toEqual([{ id: "s-1", scope: "IN_TOUR", position: 0 }]);
+          // Appliqué : décalages remis à 0 sans animation avec la nouvelle disposition.
+          expect(rowShift("B")).toBe(0);
+          await waitFor(() =>
+            expect(announce).toHaveBeenCalledWith(composition.stopPointsRemovedAnnouncement.singular),
+          );
+          settle();
+          expectRailJoined(layOut(), null);
+        } finally {
+          alert.mockRestore();
+          announce.mockRestore();
+        }
       });
 
       it("dernière carte du Circuit vers l'après, geste interrompu : retour animé, rail continu ; carte à rangée de point d'arrêt", () => {
@@ -8534,6 +8493,74 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           settle();
           expect(rowShift("A")).toBe(0);
           expectRailJoined(layOut(), null);
+        });
+
+        it("story 7.2 — point déposé en tête d'un Circuit répété face à une fin de Tour : choix demandé, point tenu ; Annuler : rien ; « Fin de tour » : le point déplacé est retiré", () => {
+          const alert = tourChoiceAlert();
+          try {
+            const elements = renderRail([...before(["A"]), circuitX(), anActivity("Y", "IN_TOUR", { name: "Fentes" })], {
+              tourRepeatCount: 2,
+              stopPoints: [
+                { id: "P", scope: "BEFORE_TOUR", position: 1 },
+                { id: "T", scope: "IN_TOUR", position: 2 },
+              ],
+            });
+            const dy = centerOf(elements, "X") - 10 - centerOf(elements, "stop:P");
+            liftPoint("P");
+            movePoint("P", dy);
+            settle();
+            releasePoint("P", dy);
+            expect(alert).toHaveBeenCalledTimes(1);
+            expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1", "T:IN_TOUR:2"]);
+            // Tenu là où il a été lâché pendant le dialogue.
+            frames(6);
+            expect(translateY("composition-stop-point-row-P")).toBe(dy);
+            answerTourChoice(alert, composition.tourBoundaryChoice.cancel);
+            expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1", "T:IN_TOUR:2"]);
+            settle();
+            expectRailJoined(layOut(), null);
+
+            const again = layOut();
+            const dy2 = centerOf(again, "X") - 10 - centerOf(again, "stop:P");
+            liftPoint("P");
+            movePoint("P", dy2);
+            settle();
+            releasePoint("P", dy2);
+            expect(alert).toHaveBeenCalledTimes(2);
+            answerTourChoice(alert, composition.tourBoundaryChoice.tail);
+            expect(pointsOf()).toEqual(["T:IN_TOUR:2"]);
+            settle();
+            expectRailJoined(layOut(), null);
+          } finally {
+            alert.mockRestore();
+          }
+        });
+
+        it("story 7.2 — même dépose, « Début de tour » : le point est déplacé en tête du Circuit, le point de fin retiré et annoncé", async () => {
+          const alert = tourChoiceAlert();
+          const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+          try {
+            const elements = renderRail([...before(["A"]), circuitX(), anActivity("Y", "IN_TOUR", { name: "Fentes" })], {
+              tourRepeatCount: 2,
+              stopPoints: [
+                { id: "P", scope: "BEFORE_TOUR", position: 1 },
+                { id: "T", scope: "IN_TOUR", position: 2 },
+              ],
+            });
+            const dy = centerOf(elements, "X") - 10 - centerOf(elements, "stop:P");
+            liftPoint("P");
+            movePoint("P", dy);
+            settle();
+            releasePoint("P", dy);
+            answerTourChoice(alert, composition.tourBoundaryChoice.head);
+            expect(pointsOf()).toEqual(["P:IN_TOUR:0"]);
+            await waitFor(() => expect(announce).toHaveBeenCalledWith(composition.stopPointsRemovedAnnouncement.singular));
+            settle();
+            expectRailJoined(layOut(), null);
+          } finally {
+            alert.mockRestore();
+            announce.mockRestore();
+          }
         });
 
         it("R2 entre zones — D-437 : en tête du Circuit, accepté ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {

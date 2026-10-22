@@ -87,7 +87,7 @@ export type CompositionContextHeaderProps = {
   readonly onNameFocus: () => void;
   /** Étiquette affectée (référentiel chargé), `null` sinon. */
   readonly sessionLabel: Label | null;
-  /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), affichée dans la pastille. */
+  /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-437). */
   readonly sessionColor: string;
   readonly onOpenLabelPicker: () => void;
   /** Durée de séance déjà formatée (`formatCompositionSessionDuration`). */
@@ -131,8 +131,9 @@ export type CompositionContextHeaderProps = {
  *
  * Comportements repris tels quels de la Composition : saisie du nom
  * (`NAME_MAX_LENGTH`, placeholder `text-primary`, R4-01), ouverture de
- * `LabelPickerModal` (V2-PRE-2, CE-T03-16) ; avec Étiquette, pastille de
- * couleur + nom (R7a) ; sans Étiquette, icône `label-outline` (r4).
+ * `LabelPickerModal` (V2-PRE-2, CE-T03-16) ; avec Étiquette, icône `label-outline` teintée de
+ * sa couleur + nom (R7a ; PRE-6 story 7.2, D-437, remplace la pastille ronde) ; sans Étiquette,
+ * icône `label-outline` (r4).
  */
 export function CompositionContextHeader({
   name,
@@ -201,9 +202,13 @@ export function CompositionContextHeader({
           >
             {sessionLabel ? (
               <>
-                <View
-                  style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
-                  testID="composition-session-color-swatch"
+                {/* PRE-6 story 7.2 (D-437, remplace la pastille ronde) : icône d'étiquette (contour)
+                    dans la couleur de l'Étiquette. */}
+                <KodjoIcon
+                  name="label-outline"
+                  size={LABEL_CHIP.icon}
+                  tintColor={sessionColor}
+                  testID="composition-session-label-icon"
                 />
                 <Text style={[styles.labelChipText, styles.labelChipName]} numberOfLines={1} testID="composition-session-label-name">
                   {sessionLabel.name}
@@ -360,14 +365,6 @@ const styles = StyleSheet.create({
   // Nom de l’Étiquette affectée : couleur `text-primary`, comme avant PRE-6 (R7a).
   labelChipName: {
     color: colors.textPrimary,
-  },
-  // Pastille de couleur DÉRIVÉE (R7a), à la taille de l'icône de la puce.
-  sessionColorSwatch: {
-    width: LABEL_CHIP.icon,
-    height: LABEL_CHIP.icon,
-    borderRadius: LABEL_CHIP.icon / 2,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   // Figma `8328:28618` : Inter Regular 14, `text-tertiary`. Revue 5.1b : s'abrège (ellipse) sur un
   // écran étroit plutôt que de passer sous les commandes.

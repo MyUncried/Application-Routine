@@ -29,8 +29,9 @@ import {
   DEFAULT_CIRCUIT_NATURE,
   applyNatureChange,
   circuitVolumes,
+  circuitCountOutcome,
   prepareNatureChange,
-  setCircuitCount,
+  type CircuitCountResolution,
   type CircuitLoss,
   type CircuitNature,
 } from "@/domain/sessions/circuit";
@@ -50,19 +51,19 @@ import {
 import {
   EMPTY_PLACEMENT_DRAFT,
   applyPlacementDraft,
+  deselectPlacementRecovery,
   placementConfirmation,
+  placementRecoverySeconds,
   placementSlots,
-  removePlacementRecovery,
-  setOccurrenceRecovery,
-  setPlacementRecovery,
-  setPlacementRecoveryChange,
+  selectPlacementRecovery,
   isPlacementStopPointAdded,
   isPlacementStopPointRemoved,
-  togglePlacementStopPoint,
+  togglePlacementStopPointOutcome,
   togglePlacementStopPointRemoval,
   type PlacementContext,
   type PlacementDraft,
   type PlacementSlot,
+  type PlacementStopPointOutcome,
   type PlacementStopPointSlot,
 } from "@/domain/sessions/placement";
 import {
@@ -76,6 +77,7 @@ import {
   type SequenceItem,
   type StopPoint,
   type StopPointLocation,
+  type TourBoundaryChoice,
 } from "@/domain/sessions/StopPoint";
 import {
   isSessionDraftDirty,
@@ -84,7 +86,6 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
-import { hasUnpausedTransition } from "@/domain/sessions/unpausedTransitions";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
@@ -169,10 +170,9 @@ import {
   type PlacementTouchExtent,
 } from "@/features/sessions/PlacementLayer";
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
-import { measureAnchor } from "@/features/sessions/measureAnchor";
-import { RemovalBubble, type RemovalBubbleAnchor } from "@/features/sessions/RemovalBubble";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
 import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
@@ -324,6 +324,14 @@ function compositionStateOf(
   return { exercises, stopPoints: stopPoints ?? EMPTY_STOP_POINTS, ...(tourRepeatCount !== undefined ? { tourRepeatCount } : {}) };
 }
 
+/**
+ * PRE-6 story 7.2 (D-437) : rangée de l'emplacement LIBRE de tête de Circuit en placement — élément de
+ * la séquence affichée (rail, écarts, mesures) qui n'est pas un point du brouillon. Identifiant
+ * réservé, jamais un UUID.
+ */
+const CIRCUIT_HEAD_SLOT_ID = "placement-circuit-head";
+const CIRCUIT_HEAD_SLOT_POINT: StopPoint = { id: CIRCUIT_HEAD_SLOT_ID, scope: "IN_TOUR", position: 0 };
+
 /** PRE-6 story 6.2 (D-436) : élément affiché d'une zone — une occurrence ou un Point d'arrêt. */
 type ZoneItem = SequenceItem<SessionDraftExercise, StopPoint>;
 type ZoneItems = Readonly<Record<StructuralPosition, readonly ZoneItem[]>>;
@@ -371,9 +379,13 @@ function displayedZoneItems(
   exercises: readonly SessionDraftExercise[],
   stopPoints: readonly StopPoint[],
   placementRowStopPointIds: ReadonlySet<string> | null,
+  withCircuitHeadSlot = false,
 ): ZoneItems {
-  const shown =
+  const kept =
     placementRowStopPointIds === null ? stopPoints : stopPoints.filter((point) => placementRowStopPointIds.has(point.id));
+  // Story 7.2 (D-437) : en placement, l'emplacement libre de tête de Circuit est une rangée en tête du
+  // Circuit (`CIRCUIT_HEAD_SLOT_POINT`, jamais un point du brouillon).
+  const shown = withCircuitHeadSlot ? [...kept, CIRCUIT_HEAD_SLOT_POINT] : kept;
   const itemsOf = (zone: StructuralPosition): readonly ZoneItem[] => scopeSequence(exercises, shown, zone);
   return { BEFORE_TOUR: itemsOf("BEFORE_TOUR"), IN_TOUR: itemsOf("IN_TOUR"), AFTER_TOUR: itemsOf("AFTER_TOUR") };
 }
@@ -408,12 +420,18 @@ function sameLocation(a: StopPointLocation, b: StopPointLocation): boolean {
  * structurel des emplacements (`(scope, 0..n)`, portées dans l'ordre) à partir de l'emplacement
  * affiché, que le Domaine ACCEPTE (`moveStopPoint` : proposable, libre, non consécutif) ; le point
  * peut donc en franchir un autre, comme au glisser. Rend l'état produit, ou `null` (action absente).
+ * Story 7.2 (D-437) : le premier emplacement atteint qui demande un choix de Tour (`CHOICE_REQUIRED`)
+ * offre le pas ; son action ouvre le dialogue « Début de tour / Fin de tour ».
  */
+type StopPointStep =
+  | { readonly status: "APPLIED"; readonly state: CompositionState }
+  | { readonly status: "CHOICE_REQUIRED"; readonly location: StopPointLocation };
+
 function stopPointStepOutcome(
   state: CompositionState,
   stopPointId: string,
   direction: OccurrenceStepDirection,
-): CompositionState | null {
+): StopPointStep | null {
   const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
   if (point === undefined) return null;
   const current = displayedStopPointLocation(state.exercises, point);
@@ -428,11 +446,54 @@ function stopPointStepOutcome(
     if (!isStopPointProposable(state.exercises, location, state)) continue;
     const outcome = moveStopPoint(state, stopPointId, location);
     // Story 7.1 (revue, D-437) : un choix de Tour requis à l'emplacement voisin arrête la recherche
-    // (le pas n'est pas offert) plutôt que de le franchir en silence ; dialogue : story 7.2.
-    if (outcome.status === "CHOICE_REQUIRED") return null;
-    if (outcome.status === "APPLIED" && outcome.state !== state) return outcome.state;
+    // plutôt que de le franchir en silence ; story 7.2 : le pas est offert et demande le choix.
+    if (outcome.status === "CHOICE_REQUIRED") return { status: "CHOICE_REQUIRED", location };
+    if (outcome.status === "APPLIED" && outcome.state !== state) return { status: "APPLIED", state: outcome.state };
   }
   return null;
+}
+
+/** Story 7.2 (D-437) : annonce discrète des Points d'arrêt retirés sans message (singulier / pluriel). */
+function removedStopPointsAnnouncement(count: number): string {
+  const t = strings.screens.composition.stopPointsRemovedAnnouncement;
+  return count === 1 ? t.singular : t.plural.replace("{n}", String(count));
+}
+
+/**
+ * Story 7.2 (D-437, ch13 CE-T03-08 L1498) : opération suspendue au choix « Début de tour / Fin de
+ * tour » — rejouée sur l'état COURANT avec la résolution choisie (« Annuler » : rien ne change).
+ * `fromStep` : action accessible « Monter » / « Descendre » (le focus suit l'élément).
+ */
+type TourChoiceRequest =
+  | { readonly kind: "OCCURRENCE_MOVE"; readonly move: OccurrenceMove; readonly fromStep: boolean }
+  | {
+      readonly kind: "STOP_POINT_MOVE";
+      readonly stopPointId: string;
+      readonly location: StopPointLocation;
+      readonly fromStep: boolean;
+    }
+  | { readonly kind: "PLACEMENT_STOP_POINT"; readonly location: StopPointLocation }
+  | { readonly kind: "PLACEMENT_EXISTING_STOP_POINT"; readonly stopPointId: string }
+  | { readonly kind: "CIRCUIT_COUNT"; readonly count: number };
+
+/**
+ * Story 7.2 (D-437) : resélection en placement du point existant `stopPointId`, refusée par
+ * `togglePlacementStopPointRemoval` parce qu'elle créerait un conflit de Tour avec un AJOUT — le
+ * choix requis (conserver le point, ou l'ajout) ; `null` si la resélection n'en demande pas.
+ */
+function placementReselectionChoice(
+  placement: PlacementDraft,
+  stopPointId: string,
+  context: PlacementContext,
+): Extract<PlacementStopPointOutcome, { status: "CHOICE_REQUIRED" }> | null {
+  if (!isPlacementStopPointRemoved(placement, stopPointId)) return null;
+  const point = (context.stopPoints ?? EMPTY_STOP_POINTS).find((candidate) => candidate.id === stopPointId);
+  if (point === undefined) return null;
+  const outcome = togglePlacementStopPointOutcome(placement, point, context);
+  return outcome.status === "CHOICE_REQUIRED" &&
+    (outcome.conflict.headStopPointId === stopPointId || outcome.conflict.tailStopPointId === stopPointId)
+    ? outcome
+    : null;
 }
 
 /**
@@ -469,41 +530,67 @@ function compositionPatch(previous: CompositionState, next: CompositionState): P
  * PRE-6 (story 2.3) : intention de déplacement d'une occurrence. PRE-6 story 6.2 (D-436) : glisser
  * — `index` est le rang dans la séquence MÊLÉE de `zone` (occurrences et points), source retirée
  * (`moveOccurrenceInSequence`) ; « Monter » / « Descendre » — échange avec l'élément voisin
- * (`stepOccurrence`).
+ * (`stepOccurrence`). Story 7.2 (D-437) : `tourChoice` — résolution choisie dans le dialogue
+ * « Début de tour / Fin de tour », appliquée si le déplacement demande ce choix.
  */
-type OccurrenceMove =
+type OccurrenceMove = (
   | { readonly activityId: string; readonly zone: StructuralPosition; readonly index: number }
-  | { readonly activityId: string; readonly direction: OccurrenceStepDirection };
+  | { readonly activityId: string; readonly direction: OccurrenceStepDirection }
+) & { readonly tourChoice?: TourBoundaryChoice };
 
 /** Déplacement en attente de confirmation de perte, avec le N affiché par le dialogue. */
-type PendingOccurrenceMove = OccurrenceMove & { readonly targetCount: number };
+type PendingOccurrenceMove = OccurrenceMove & {
+  readonly targetCount: number;
+  /** Revue 7.2 : pas « Monter » / « Descendre » — focus de la carte avec l'annonce des points retirés. */
+  readonly focusKey?: string;
+};
 
 /**
  * Plan d'un déplacement sur `draft` : correctif du brouillon (occurrences adaptées au Circuit,
- * points, réserve), pertes et N du Circuit ; `null` si le Domaine refuse le déplacement (D-436,
- * RM-251 : les points restent en place) ou s'il ne change rien.
+ * points, réserve), pertes et N du Circuit, et — story 7.2 (D-437) — points retirés sans message par
+ * le déplacement tolérant ; `CHOICE_REQUIRED` si le déplacement créerait un conflit de Tour et
+ * qu'aucun `tourChoice` n'est fourni ; `null` si le Domaine refuse le déplacement ou s'il ne change
+ * rien.
  */
-function planOccurrenceMove(
-  draft: SessionDraft,
-  move: OccurrenceMove,
-): { readonly patch: Partial<SessionDraft>; readonly losses: readonly CircuitLoss[]; readonly targetCount: number } | null {
+type OccurrenceMovePlan =
+  | {
+      readonly status: "PLAN";
+      readonly patch: Partial<SessionDraft>;
+      readonly losses: readonly CircuitLoss[];
+      readonly targetCount: number;
+      readonly removedStopPointIds: readonly string[];
+    }
+  | { readonly status: "CHOICE_REQUIRED" };
+
+function planOccurrenceMove(draft: SessionDraft, move: OccurrenceMove): OccurrenceMovePlan | null {
   const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
   const outcome =
     "direction" in move
       ? stepOccurrence(state, move.activityId, move.direction)
       : moveOccurrenceInSequence(state, move.activityId, move.zone, move.index);
-  if (outcome.status !== "APPLIED" || outcome.state === state) {
+  let next: CompositionState;
+  let removedStopPointIds: readonly string[];
+  if (outcome.status === "CHOICE_REQUIRED") {
+    if (move.tourChoice === undefined) return { status: "CHOICE_REQUIRED" };
+    const resolution = outcome.resolutions[move.tourChoice];
+    next = resolution.state;
+    removedStopPointIds = resolution.removedStopPointIds;
+  } else if (outcome.status === "APPLIED" && outcome.state !== state) {
+    next = outcome.state;
+    removedStopPointIds = outcome.removedStopPointIds;
+  } else {
     return null;
   }
-  const next = outcome.state;
   const settled = settleCircuitMembership(draft, next.exercises);
   return {
+    status: "PLAN",
     patch: {
       ...compositionPatch(state, { exercises: settled.exercises, stopPoints: next.stopPoints }),
       ...settled.reservePatch,
     },
     losses: settled.losses,
     targetCount: settled.targetCount,
+    removedStopPointIds,
   };
 }
 
@@ -689,6 +776,22 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
   /**
+   * Story 7.2 (D-437) : choix « Début de tour / Fin de tour » en attente (dialogue natif), et garde
+   * synchrone — un seul dialogue à la fois (un maintien du compteur rappelle le changement de N).
+   */
+  const [pendingTourChoice, setPendingTourChoice] = useState<TourChoiceRequest | null>(null);
+  const tourChoicePendingRef = useRef(false);
+  // Revue 7.2 : chaque demande monte un nouveau dialogue (clé), jamais une demande sans dialogue.
+  const [tourChoiceToken, setTourChoiceToken] = useState(0);
+  /** `false` : un choix est déjà en attente — la nouvelle opération est refusée (rien n'est tenu). */
+  const openTourChoice = useCallback((request: TourChoiceRequest): boolean => {
+    if (tourChoicePendingRef.current) return false;
+    tourChoicePendingRef.current = true;
+    setTourChoiceToken((current) => current + 1);
+    setPendingTourChoice(request);
+    return true;
+  }, []);
+  /**
    * Aperçu EFFECTIF (story 2.3b) : un aperçu périmé est ignoré au rendu — l'occurrence glissée a
    * quitté le brouillon, ou l'aperçu survit sans geste en cours ni dialogue de perte en attente.
    * Ses décalages reviennent alors en douceur (`animated` vaut `true` dans ces états). Dérivé au
@@ -699,7 +802,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const dragPreview =
     storedPreview !== null &&
     sequenceItemExists(draft, storedPreview.key) &&
-    (draggedKey !== null || pendingCircuitEntry !== null)
+    // Story 7.2 : aussi pendant le dialogue « Début de tour / Fin de tour » (élément tenu).
+    (draggedKey !== null || pendingCircuitEntry !== null || pendingTourChoice !== null)
       ? storedPreview
       : null;
   // PRE-6 (story 3.2, CE-CIR-02) : conversion Tours → Séries avec perte en attente de confirmation.
@@ -735,7 +839,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Revue 6.3 : effet du dernier toucher en placement, annoncé après le rendu (voir plus bas) ;
   // `withLabel` : suivi du nouveau libellé de « Confirmer » (ajouts, ch13 L1524).
   const placementAnnouncementRef = useRef<{ readonly text: string; readonly withLabel: boolean } | null>(null);
-  const [recoveryWheelOccurrenceId, setRecoveryWheelOccurrenceId] = useState<string | null>(null);
+  /**
+   * Story 7.2 (D-437) : roulette « Durée de récupération » d'une zone NON sélectionnée du placement —
+   * ouverte sur la durée existante (`seconds`), sinon (`null`) sur le défaut du Profil ; ✓ sélectionne
+   * la zone à la durée choisie (`selectPlacementRecovery`), ✕ ne change rien.
+   */
+  const [recoveryWheel, setRecoveryWheel] = useState<{ readonly occurrenceId: string; readonly seconds: number | null } | null>(
+    null,
+  );
   // D-307 / RM-209 : défaut de récupération du Profil (30 s initialement), relu à chaque entrée
   // en placement ; sans service Profil, la constante du Domaine. `null` tant qu'il n'est pas
   // résolu : la roulette ne s'ouvre qu'une fois la valeur connue. Une réponse tardive (après la
@@ -745,19 +856,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const profileRequestRef = useRef(0);
   // Demande de focus sur « Ajouter un arrêt », à la sortie du placement par Confirmer / Annuler.
   const [addStopFocusRequest, setAddStopFocusRequest] = useState(0);
-  // PRE-6 (story 4.2) : roulette « Durée de récupération » d'une récupération EXISTANTE, ouverte à
-  // sa valeur — hors placement (✓ met à jour le brouillon) ou en placement (✓ va dans le
-  // sous-brouillon, non compté dans N).
-  const [recoveryEdit, setRecoveryEdit] = useState<RecoveryEdit | null>(null);
-  // Story 4.2 : bulle « Retirer » ouverte (une seule à la fois) et focus rendu à la ligne après
-  // un retrait (`occurrenceId = null` : ligne « après le Circuit »).
-  const [removalTarget, setRemovalTarget] = useState<RemovalTarget | null>(null);
-  const [pauseFocusRequest, setPauseFocusRequest] = useState<PauseFocusRequest | null>(null);
-  const closeRemovalBubble = useCallback(() => setRemovalTarget(null), []);
+  /*
+   * PRE-6 story 7.2 (D-437, qui remplace sur ce point D-435) : la récupération ne se règle plus hors
+   * placement — la roulette de modification, la bulle « Retirer la récupération » et les actions
+   * accessibles de la carte (stories 4.2, 5.1) sont retirées ; tout passe par le placement.
+   */
   /** Sortie du placement sans mutation : sous-brouillon jeté, roulette fermée, défaut en cours ignoré. */
   const leavePlacement = useCallback(() => {
-    setRecoveryWheelOccurrenceId(null);
-    setRecoveryEdit(null);
+    setRecoveryWheel(null);
     setPlacement(null);
   }, []);
   // Toute sortie du placement (et le démontage) invalide la lecture du défaut en cours.
@@ -819,14 +925,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (isPendingExit && pendingNatureChange !== null) {
       setPendingNatureChange(null);
     }
-    // Story 4.2 : la bulle « Retirer » et la roulette de modification se referment sans mutation
-    // — jamais le dialogue d'abandon par-dessus.
-    if (isPendingExit && removalTarget !== null) {
-      setRemovalTarget(null);
-    }
-    if (isPendingExit && recoveryEdit !== null) {
-      setRecoveryEdit(null);
-    }
     // Story 4.1 : une sortie (retour, X, geste iOS) pendant le placement l'annule d'abord, sans
     // mutation et sans dialogue d'abandon par-dessus la barre ; la sortie elle-même est abandonnée.
     if (isPendingExit && placement !== null) {
@@ -885,9 +983,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   const toggleOverlay = useCallback((kind: OverlayKind) => {
     Keyboard.dismiss();
-    // Story 4.2 : une seule roulette à la fois, jamais sous la bulle « Retirer ».
-    setRecoveryEdit(null);
-    setRemovalTarget(null);
     setOpenOverlay((current) => (current === kind ? null : kind));
   }, []);
 
@@ -908,9 +1003,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
         // Story 4.1 : le placement est abandonné sans mutation.
         leavePlacement();
-        // Story 4.2 : bulle « Retirer » et roulette de modification refermées sans mutation.
-        setRemovalTarget(null);
-        setRecoveryEdit(null);
       },
       [closeCircuitCounter, leavePlacement],
     ),
@@ -920,14 +1012,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * PRE-6 (story 3.4, CE-CIR-03) : l'œil ouvre « Volumes du circuit » et referme, dans le même
    * geste, le compteur révélé et le choix de nature (un seul contrôle actif, CIR-10).
    * PRE-6 story 5.1b (revue) : l'œil étant dans la zone de contexte, hors de la liste, il referme
-   * aussi les actions glissées révélées et la bulle « Retirer » ; il n'ouvre rien pendant le glisser
-   * d'une carte (il y est aussi désactivé).
+   * aussi les actions glissées révélées ; il n'ouvre rien pendant le glisser d'une carte (il y est
+   * aussi désactivé).
    */
   const openCircuitVolumes = useCallback(() => {
     if (draggedKey !== null) return;
     Keyboard.dismiss();
     setRevealedActionsId(null);
-    setRemovalTarget(null);
     volumesClosedByUserRef.current = false;
     setIsVolumesSheetMounted(true);
     setOpenOverlay("circuitVolumes");
@@ -954,7 +1045,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (activityId: string | null) => {
       if (activityId !== null) {
         closeCircuitCounter();
-        setRemovalTarget(null);
       }
       setRevealedActionsId(activityId);
     },
@@ -964,9 +1054,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (key: string | null) => {
       if (key !== null) {
         closeCircuitCounter();
-        // Story 4.2 : le glisser d'une carte ou d'un point referme la bulle « Retirer » et les
-        // actions glissées révélées.
-        setRemovalTarget(null);
+        // Story 4.2 : le glisser d'un point referme les actions glissées révélées.
         if (key.startsWith(RAIL_STOP_KEY_PREFIX)) setRevealedActionsId(null);
       }
       draggedKeyRef.current = key;
@@ -995,9 +1083,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setDragSession((current) => endDragSession(current, false));
     setIsAddActivityTreeOpen(false);
     setRevealedActionsId(null);
-    setRecoveryWheelOccurrenceId(null);
-    setRecoveryEdit(null);
-    setRemovalTarget(null);
+    setRecoveryWheel(null);
     setPlacement(EMPTY_PLACEMENT_DRAFT);
     profileRequestRef.current += 1;
     const request = profileRequestRef.current;
@@ -1065,33 +1151,48 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       requestItemFocus(railRowKey(first.id));
     }
   }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
-  /** Récupération à ajouter : roulette ; déjà ajoutée : désélection (retirée du sous-brouillon). */
+  /**
+   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
+   * (ajout, ou récupération existante, 0 comprise, conservée) : désélection (`deselectPlacementRecovery` :
+   * ajout jeté, ou retrait programmé) ; non sélectionnée : roulette, sur la durée existante sinon
+   * sur le défaut du Profil.
+   */
   const handlePlacementRecoveryPress = useCallback(
     (occurrenceId: string) => {
       if (placement === null) return;
-      if (placement.recoveries[occurrenceId] !== undefined) {
-        // Revue 6.3 (ch13 L1524) : « Ajout annulé. Confirmer N … ».
+      const occurrence = draft.exercises.find((exercise) => exercise.id === occurrenceId);
+      if (occurrence === undefined || occurrence.type !== "EXERCISE") return;
+      if (placementRecoverySeconds(placement, occurrence) !== null) {
+        const t = strings.screens.composition.placement;
+        // Revue 6.3 (ch13 L1524) : effet, puis libellé de « Confirmer ».
         placementAnnouncementRef.current = {
-          text: strings.screens.composition.placement.additionCancelledAnnouncement,
+          text: occurrenceId in placement.recoveries ? t.additionCancelledAnnouncement : t.recoveryRemovedAnnouncement,
           withLabel: true,
         };
-        setPlacement(removePlacementRecovery(placement, occurrenceId));
+        // Revue 7.2 : une roulette en attente du défaut du Profil ne s'ouvre pas plus tard.
+        setRecoveryWheel(null);
+        setPlacement(deselectPlacementRecovery(placement, occurrenceId, placementContext));
         return;
       }
-      // Story 4.2 : une seule roulette à la fois.
-      setRecoveryEdit(null);
-      setRecoveryWheelOccurrenceId(occurrenceId);
+      setRecoveryWheel({ occurrenceId, seconds: occurrence.postActivityRecoverySeconds ?? null });
     },
-    [placement],
+    [draft.exercises, placement, placementContext],
   );
   /**
    * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-436) —
-   * ajout s'il est proposé, désélection s'il est ajouté.
+   * ajout s'il est proposé, désélection s'il est ajouté. Story 7.2 (D-437) : un ajout qui ferait se
+   * suivre un début et une fin de Tour (N ≥ 2) ouvre le choix « Début de tour / Fin de tour ».
    */
   const handlePlacementStopPointToggle = useCallback(
     (location: StopPointLocation) => {
       if (placement === null) return;
-      const next = togglePlacementStopPoint(placement, location, placementContext);
+      setRecoveryWheel(null);
+      const outcome = togglePlacementStopPointOutcome(placement, location, placementContext);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        openTourChoice({ kind: "PLACEMENT_STOP_POINT", location });
+        return;
+      }
+      const next = outcome.placement;
       if (next === placement) return;
       // Revue 6.3 (ch13 L1524) : effet, puis nombre d'ajouts (« Point d'arrêt ajouté. Confirmer 2 … »).
       const t = strings.screens.composition.placement;
@@ -1101,21 +1202,41 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       };
       setPlacement(next);
     },
-    [placement, placementContext],
+    [openTourChoice, placement, placementContext],
   );
-  /** ✓ de la roulette d'un emplacement de récupération : ajout au sous-brouillon, annoncé avec N (revue 6.3). */
-  const validatePlacementRecovery = useCallback((occurrenceId: string, totalSeconds: number) => {
-    placementAnnouncementRef.current = {
-      text: strings.screens.composition.placement.recoveryAddedAnnouncement,
-      withLabel: true,
-    };
-    setPlacement((current) => (current === null ? null : setPlacementRecovery(current, occurrenceId, totalSeconds)));
-    setRecoveryWheelOccurrenceId(null);
-  }, []);
+  /**
+   * ✓ de la roulette d'une zone de récupération (story 7.2, D-437) : la zone est sélectionnée à la
+   * durée choisie (`selectPlacementRecovery` : ajout, ou récupération existante conservée — retrait
+   * annulé — et modifiée si la durée diffère), annoncée avec le libellé de « Confirmer » (revue 6.3).
+   * Roue non déplacée sur une récupération existante hors grille (donnée historique au-delà de 300 s
+   * ou hors pas 1 / 5 / 30) : sa valeur est conservée telle quelle.
+   */
+  const validatePlacementRecovery = useCallback(
+    (totalSeconds: number) => {
+      const wheel = recoveryWheel;
+      setRecoveryWheel(null);
+      if (wheel === null || placement === null) return;
+      // Revue 7.2 : seule une valeur existante valide (entière, ≥ 0) est conservée telle quelle.
+      const existing = wheel.seconds !== null && Number.isInteger(wheel.seconds) && wheel.seconds >= 0 ? wheel.seconds : null;
+      const seconds = existing !== null && totalSeconds === snapToGrid(existing, RECOVERY_WHEEL_VALUES) ? existing : totalSeconds;
+      const next = selectPlacementRecovery(placement, wheel.occurrenceId, seconds, placementContext);
+      // Revue 7.2 : annoncé seulement si la zone est réellement sélectionnée.
+      if (next === placement) return;
+      const t = strings.screens.composition.placement;
+      placementAnnouncementRef.current = {
+        text: wheel.seconds === null ? t.recoveryAddedAnnouncement : t.recoverySelectedAnnouncement,
+        withLabel: true,
+      };
+      setPlacement(next);
+    },
+    [placement, placementContext, recoveryWheel],
+  );
   /**
    * Revue 6.3 (D-436 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
    * son identifiant (deux points hérités sur une même clé restent indépendants). Une annulation
    * refusée par le Domaine (un point ajouté le suivrait) ne change rien ; chaque issue est annoncée.
+   * Story 7.2 (D-437) : une resélection refusée parce qu'elle ferait se suivre un début et une fin
+   * de Tour avec un AJOUT ouvre le choix « Début de tour / Fin de tour ».
    */
   const handlePlacementExistingStopPointToggle = useCallback(
     (stopPointId: string) => {
@@ -1123,6 +1244,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const t = strings.screens.composition.placement;
       const next = togglePlacementStopPointRemoval(placement, stopPointId, placementContext);
       if (next === placement) {
+        if (placementReselectionChoice(placement, stopPointId, placementContext) !== null) {
+          openTourChoice({ kind: "PLACEMENT_EXISTING_STOP_POINT", stopPointId });
+          return;
+        }
         AccessibilityInfo.announceForAccessibility(t.stopPointKeepRefusedAnnouncement);
         return;
       }
@@ -1133,7 +1258,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       };
       setPlacement(next);
     },
-    [placement, placementContext],
+    [openTourChoice, placement, placementContext],
   );
   /**
    * Revue 6.3 : seule source des annonces du placement, en UN message pour ne pas s'interrompre —
@@ -1148,7 +1273,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     previousConfirmAvailableRef.current = isConfirmAvailable;
     const pending = placementAnnouncementRef.current;
     placementAnnouncementRef.current = null;
-    const parts = pending === null ? [] : [pending.text];
+    // Story 7.2 : un choix de Tour peut n'avoir aucun effet propre à nommer (texte vide).
+    const parts = pending === null || pending.text === "" ? [] : [pending.text];
     if (
       confirmation !== null &&
       ((pending !== null && pending.withLabel) || (previous !== null && previous !== isConfirmAvailable))
@@ -1157,120 +1283,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
     if (parts.length > 0) AccessibilityInfo.announceForAccessibility(parts.join(". "));
   }, [confirmation, isConfirmAvailable]);
-  /**
-   * PRE-6 (story 4.2) — en placement, toucher une récupération existante ouvre sa roulette à sa
-   * valeur (celle déjà choisie dans le sous-brouillon, sinon celle du brouillon).
-   */
-  const handlePlacementExistingRecoveryPress = useCallback(
-    (occurrenceId: string) => {
-      if (placement === null) return;
-      const seconds =
-        placement.recoveryChanges[occurrenceId] ??
-        draft.exercises.find((exercise) => exercise.id === occurrenceId)?.postActivityRecoverySeconds ??
-        null;
-      if (seconds === null) return;
-      setRecoveryWheelOccurrenceId(null);
-      setRemovalTarget(null);
-      setRecoveryEdit(recoveryEditOf(occurrenceId, seconds, true));
-    },
-    [draft.exercises, placement],
-  );
-  /** Story 4.2 — hors placement, toucher une récupération positive ouvre sa roulette à sa valeur. */
-  const handleRecoveryPress = useCallback(
-    (occurrenceId: string) => {
-      const seconds = draft.exercises.find((exercise) => exercise.id === occurrenceId)?.postActivityRecoverySeconds ?? null;
-      if (seconds === null || seconds <= 0) return;
-      Keyboard.dismiss();
-      // Toute autre roulette, le compteur ou le choix de nature et la bulle se referment.
-      setOpenOverlay(null);
-      setRecoveryWheelOccurrenceId(null);
-      setRemovalTarget(null);
-      setRecoveryEdit(recoveryEditOf(occurrenceId, seconds, false));
-    },
-    [draft.exercises],
-  );
-  /**
-   * ✓ de la roulette de modification : hors placement, mise à jour fonctionnelle du brouillon
-   * (0 conservé comme présent, D-323 : la ligne n'affiche plus d'information) ; en placement, la
-   * valeur va dans le sous-brouillon (`recoveryChanges`), appliquée par « Confirmer ».
-   */
-  const validateRecoveryEdit = useCallback(
-    (totalSeconds: number) => {
-      if (recoveryEdit === null) return;
-      const { occurrenceId, inPlacement, openedSeconds } = recoveryEdit;
-      setRecoveryEdit(null);
-      // Roue non déplacée : rien ne change, même pour une valeur hors grille ramenée sur la grille à
-      // l'ouverture (donnée historique au-delà de 300 s ou hors pas 1 / 5 / 30).
-      if (totalSeconds === openedSeconds) return;
-      if (inPlacement) {
-        const original = draft.exercises.find((exercise) => exercise.id === occurrenceId)?.postActivityRecoverySeconds ?? null;
-        setPlacement((current) =>
-          current === null ? null : setPlacementRecoveryChange(current, occurrenceId, totalSeconds, original),
-        );
-        return;
-      }
-      if (setOccurrenceRecovery(draft, occurrenceId, totalSeconds) !== draft) {
-        updateDraft((current) => setOccurrenceRecovery(current, occurrenceId, totalSeconds));
-      }
-    },
-    [draft, recoveryEdit, updateDraft],
-  );
-  /**
-   * Story 4.2 — appui long : bulle « Retirer » ancrée à l'élément touché, mesuré dans la fenêtre
-   * (la bulle s'affiche dès l'appui ; sa position suit la mesure).
-   */
-  const openRemovalBubble = useCallback((target: RemovalTargetKey, anchorView: View | null) => {
-    Keyboard.dismiss();
-    // Actions glissées, roulettes, compteur et choix de nature se referment.
-    setRevealedActionsId(null);
-    setOpenOverlay(null);
-    setRecoveryWheelOccurrenceId(null);
-    setRecoveryEdit(null);
-    setRemovalTarget({ ...target, anchor: null });
-    // La bulle n'est montée qu'une fois l'élément mesuré ; une mesure vide la referme.
-    measureAnchor(anchorView, (anchor) => {
-      setRemovalTarget((current) =>
-        current !== null && sameRemovalTarget(current, target) ? (anchor === null ? null : { ...current, anchor }) : current,
-      );
-    });
-  }, []);
-  /**
-   * Story 4.2 — retrait d'une récupération positive (bulle ou action accessible) : absente
-   * (`null`), la Pause terminale configurée est rétablie dans les durées (RM-038). Une récupération
-   * à 0 n'est jamais retirée (aucun élément visible, D-303). PRE-6 story 5.1 : la récupération est
-   * dans la carte ; le focus revient à la carte, jamais au point d'arrêt voisin, que le
-   * retrait vienne de la bulle ou de l'action accessible de la carte.
-   */
-  const removeRecovery = useCallback(
-    (occurrenceId: string) => {
-      setRemovalTarget(null);
-      const seconds = draft.exercises.find((exercise) => exercise.id === occurrenceId)?.postActivityRecoverySeconds ?? null;
-      if (seconds === null || seconds <= 0) return;
-      updateDraft((current) => setOccurrenceRecovery(current, occurrenceId, null));
-      setPauseFocusRequest((current) => ({ occurrenceId, token: (current?.token ?? 0) + 1 }));
-    },
-    [draft.exercises, updateDraft],
-  );
-  /*
-   * PRE-6 story 6.2 (D-436) : l'appui long d'un point est désormais son glisser ; sa bulle
-   * « Retirer » et son action accessible de retrait sont retirées dès cette story (choix documenté
-   * dans la spec 6.2) — le retrait d'un point revient en placement avec la story 6.3. La bulle de la
-   * récupération est inchangée.
-   */
-  /** Choisir « Retirer » dans la bulle ouverte (récupération). */
-  const confirmRemoval = useCallback(() => {
-    if (removalTarget === null) return;
-    removeRecovery(removalTarget.occurrenceId);
-  }, [removalTarget, removeRecovery]);
-  const pauseRowContext = useMemo<PauseRowContext>(
-    () => ({
-      onPressRecovery: handleRecoveryPress,
-      onRequestRecoveryRemoval: (occurrenceId, anchor) => openRemovalBubble({ occurrenceId }, anchor),
-      onRemoveRecovery: removeRecovery,
-      focusRequest: pauseFocusRequest,
-    }),
-    [handleRecoveryPress, openRemovalBubble, pauseFocusRequest, removeRecovery],
-  );
   // Android : le retour système annule le placement (comme « Annuler »).
   useEffect(() => {
     if (!isPlacementActive) return;
@@ -1299,7 +1311,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const entryOffer = placementOfferOf(entrySlots);
   const hasPlacementOffer = entryOffer.any;
   const addStopAccessibilityHint =
-    entryOffer.any && !entryOffer.additions ? strings.screens.composition.placement.addStopRemovalOnlyHint : undefined;
+    entryOffer.any && !entryOffer.additions
+      ? entryOffer.recoveries
+        ? strings.screens.composition.placement.addStopChangesOnlyHint
+        : strings.screens.composition.placement.addStopRemovalOnlyHint
+      : undefined;
   const slotByOccurrence = useMemo(
     () =>
       new Map(
@@ -1320,9 +1336,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     placement === null
       ? null
       : JSON.stringify(
-          // Story 7.1 (D-437) : un point existant en tête de Circuit est désormais porté par l'emplacement
-          // `CIRCUIT_HEAD` ; tant que l'écran ne dessine pas cet emplacement (story 7.2), il reste rendu
-          // comme rangée autonome, comme avant.
+          // Story 7.1 (D-437) : un point existant en tête de Circuit est porté par l'emplacement
+          // `CIRCUIT_HEAD` ; il reste rendu comme rangée autonome de la séquence (à sa place, en tête du
+          // Circuit), sélectionné et désélectionnable — story 7.2 : l'emplacement LIBRE de tête est
+          // rendu de même (`circuitHeadRowPoint`).
           draftSlots.flatMap((slot) =>
             (slot.kind === "UNOFFERED_STOP_POINT" || slot.kind === "CIRCUIT_HEAD") && slot.stopPoint?.stopPointId !== undefined
               ? [slot.stopPoint.stopPointId]
@@ -1361,32 +1378,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
     [draft, placement],
   );
-  // PRE-6 (story 4.3, D-301) : avertissement non bloquant d'enchaînement sans pause, lu sur le
-  // même brouillon que les durées (en placement : tel que « Confirmer » le produirait).
-  const hasUnpausedWarning = useMemo(
-    () =>
-      hasUnpausedTransition({
-        exercises: durationDraft.exercises,
-        stopPoints: durationDraft.stopPoints,
-        circuitNature: durationDraft.circuitNature,
-        tourRepeatCount: durationDraft.tourRepeatCount,
-      }),
-    [durationDraft],
-  );
-  // `accessibilityLiveRegion` n'existe que sous Android et n'annonce pas un nœud monté : le
-  // message est annoncé explicitement à chaque apparition (absent → présent).
-  const wasUnpausedWarningShown = useRef(false);
-  useEffect(() => {
-    if (hasUnpausedWarning && !wasUnpausedWarningShown.current) {
-      AccessibilityInfo.announceForAccessibility(strings.screens.composition.unpausedWarning);
-    }
-    wasUnpausedWarningShown.current = hasUnpausedWarning;
-  }, [hasUnpausedWarning]);
+  // PRE-6 story 7.2 (D-437) : D-301 est retirée — plus aucun message d'enchaînement sans pause.
   /** Story 6.3 : ce que `placementRowPointOf` lit (noms, sous-brouillon, contexte, emplacements masqués). */
   const placementRowEnvironment = useMemo<PlacementRowEnvironment>(
     () => ({ labels: placementLabels, placement: placement ?? EMPTY_PLACEMENT_DRAFT, context: placementContext, hiddenKeys: unofferedDisplayKeys }),
     [placement, placementContext, placementLabels, unofferedDisplayKeys],
   );
+  /**
+   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : emplacement LIBRE (ou ajouté) de tête de Circuit
+   * — début de Tour, `CIRCUIT_HEAD` du Domaine —, dessiné dans le Circuit entre son en-tête et sa
+   * première carte, centré et raccordé au rail comme les autres rangées du placement ; `null` hors
+   * placement, sans emplacement, ou quand un point existant l'occupe (rangée autonome de ce point).
+   */
+  const circuitHeadRowPoint = useMemo<PlacementStopPointRowPoint | null>(() => {
+    const circuitHeadSlot = draftSlots.find((slot) => slot.kind === "CIRCUIT_HEAD") ?? null;
+    return placement === null || circuitHeadSlot?.stopPoint == null || circuitHeadSlot.stopPoint.existing
+      ? null
+      : placementRowPointOf(circuitHeadSlot.stopPoint, placementRowEnvironment);
+  }, [draftSlots, placement, placementRowEnvironment]);
+  const hasCircuitHeadRow = circuitHeadRowPoint !== null;
   const placementRowContext = useMemo<PlacementRowContext | null>(
     () =>
       placement === null
@@ -1395,15 +1405,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             draft: placement,
             slotFor: (occurrenceId) => slotByOccurrence.get(occurrenceId) ?? null,
             rowPointOf: (stopPoint) => placementRowPointOf(stopPoint, placementRowEnvironment),
+            circuitHeadRowPoint,
             onPressRecovery: handlePlacementRecoveryPress,
-            onPressExistingRecovery: handlePlacementExistingRecoveryPress,
             onToggleStopPoint: handlePlacementStopPointToggle,
             onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
           },
     [
+      circuitHeadRowPoint,
       handlePlacementExistingStopPointToggle,
       placementRowEnvironment,
-      handlePlacementExistingRecoveryPress,
       handlePlacementRecoveryPress,
       handlePlacementStopPointToggle,
       placement,
@@ -1424,8 +1434,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const inPlacement = placement !== null;
   const zoneItems = useMemo(
-    () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, unofferedStopPointIds),
-    [draft.exercises, draft.stopPoints, unofferedStopPointIds],
+    () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, unofferedStopPointIds, hasCircuitHeadRow),
+    [draft.exercises, draft.stopPoints, hasCircuitHeadRow, unofferedStopPointIds],
   );
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
@@ -1436,17 +1446,53 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const circuitNature = draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
 
   /**
-   * PRE-6 (story 3.1, AD-38, report de l'epic 1) : tout changement de N passe par
-   * `setCircuitCount` — Tours : le compte seul ; Séries : les exercices du Circuit suivent N
-   * (diminution en réserve, augmentation par restauration puis copie), sans message.
+   * Story 7.2 (D-437) : points retirés sans message (déplacement tolérant d'un Exercice, passage à
+   * N = 1, choix de Tour) — leurs mesures de rangée sont oubliées (aucune géométrie de glisser ne
+   * les compte plus) et une annonce d'accessibilité discrète les signale ; `focusKey` : élément qui
+   * reçoit le focus avec l'annonce (pas « Monter » / « Descendre »), sinon annonce seule.
+   */
+  const reportRemovedStopPoints = useCallback(
+    (ids: readonly string[], focusKey?: string) => {
+      if (ids.length === 0) return;
+      for (const id of ids) rowLayoutsRef.current.delete(railStopKey(id));
+      const text = removedStopPointsAnnouncement(ids.length);
+      if (focusKey !== undefined) {
+        requestItemFocus(focusKey, text);
+      } else {
+        AccessibilityInfo.announceForAccessibility(text);
+      }
+    },
+    [requestItemFocus],
+  );
+
+  /**
+   * PRE-6 (story 3.1, AD-38, report de l'epic 1) : tout changement de N passe par le Domaine — Tours :
+   * le compte seul ; Séries : les exercices du Circuit suivent N (diminution en réserve,
+   * augmentation par restauration puis copie), sans message. Story 7.2 (D-437) :
+   * `circuitCountOutcome` — au passage à N = 1, les points devenus interdits sont retirés (annonce
+   * discrète) ; au passage de N = 1 à N ≥ 2 avec un début et une fin de Tour, le choix « Début de
+   * tour / Fin de tour » est demandé AVANT tout changement (Annuler : N inchangé). Pendant le
+   * dialogue, les pas suivants (maintien) sont ignorés.
    */
   // Forme fonctionnelle : chaque pas (maintien compris) part du brouillon COURANT, jamais de
-  // celui du rendu, et le résultat complet de `setCircuitCount` est appliqué.
+  // celui du rendu.
   const handleCircuitCountChange = useCallback(
     (count: number) => {
-      updateDraft((current) => setCircuitCount(current, count));
+      if (tourChoicePendingRef.current) return;
+      const outcome = circuitCountOutcome(draft, count);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        openTourChoice({ kind: "CIRCUIT_COUNT", count });
+        return;
+      }
+      // Revue 7.2 : aucun effet dans le calcul d'état — si le brouillon COURANT demande un choix
+      // (mise à jour concurrente), rien n'est appliqué ; un nouveau pas ouvrira le dialogue.
+      updateDraft((current) => {
+        const replayed = circuitCountOutcome(current, count);
+        return replayed.status === "CHOICE_REQUIRED" ? current : replayed.draft;
+      });
+      reportRemovedStopPoints(outcome.removedStopPointIds);
     },
-    [updateDraft],
+    [draft, openTourChoice, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -1592,34 +1638,43 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * tous les chemins. Story 7.1 (D-437, remplace ARB-3 et le refus de D-436) : les Points d'arrêt
    * restent à leur place ; un dépôt qui en rendrait un interdit ou consécutif est appliqué et le
    * Domaine retire les points en cause (`removedStopPointIds`, annonce et focus : story 7.2) ; un
-   * conflit de Tour (choix requis) laisse l'état inchangé, la carte reprend sa place, jusqu'au
-   * dialogue de la story 7.2. PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
+   * conflit de Tour (choix requis) n'applique rien et ouvre le dialogue « Début de tour / Fin de
+   * tour » (story 7.2), la carte lâchée restant tenue jusqu'à la réponse. PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
    * adaptation à N, et si des séries sont perdues, confirmation AVANT toute mutation (Annuler
    * restitue la position) ; sortie du Circuit → réserve retirée, nombre et paramètres
    * conservés, sans message.
    */
   const moveActivityTo = useCallback(
-    (move: OccurrenceMove): "APPLIED" | "REFUSED" | "PENDING" => {
+    (move: OccurrenceMove, focusKey?: string): "APPLIED" | "REFUSED" | "PENDING" => {
       const plan = planOccurrenceMove(draft, move);
       if (plan === null) {
         return "REFUSED";
+      }
+      if (plan.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-437) : conflit de Tour — rien n'est appliqué avant le choix ; la carte lâchée
+        // reste tenue là où elle a été lâchée, comme pendant le dialogue de perte (story 5.2b).
+        if (!openTourChoice({ kind: "OCCURRENCE_MOVE", move, fromStep: focusKey !== undefined })) return "REFUSED";
+        closeCircuitCounter();
+        return "PENDING";
       }
       if (plan.losses.length > 0) {
         // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
         // COURANT (aucun instantané rejoué).
         // PRE-6 (story 3.1, RC-4) : un dialogue de décision referme le compteur révélé.
         closeCircuitCounter();
-        setPendingCircuitEntry({ ...move, targetCount: plan.targetCount });
+        setPendingCircuitEntry({ ...move, targetCount: plan.targetCount, focusKey });
         return "PENDING";
       }
       // Revue 6.2 : rejoué sur le brouillon COURANT (jamais un état figé au rendu).
       updateDraft((current) => {
         const replayed = planOccurrenceMove(current, move);
-        return replayed === null ? current : { ...current, ...replayed.patch };
+        return replayed?.status === "PLAN" ? { ...current, ...replayed.patch } : current;
       });
+      // Story 7.2 (D-437) : points retirés par le déplacement tolérant, sans message visuel.
+      reportRemovedStopPoints(plan.removedStopPointIds, focusKey);
       return "APPLIED";
     },
-    [closeCircuitCounter, draft, updateDraft],
+    [closeCircuitCounter, draft, openTourChoice, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -1628,7 +1683,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * proposable, occupé, RM-251) ou même emplacement : rien n'est écrit.
    */
   const moveStopPointTo = useCallback(
-    (stopPointId: string, destination: DropTarget): "APPLIED" | "REFUSED" => {
+    (stopPointId: string, destination: DropTarget): "APPLIED" | "REFUSED" | "PENDING" => {
       const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
       const location = stopPointLocationAt(zoneItems[destination.zone], stopPointId, destination.zone, destination.index);
@@ -1637,6 +1692,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         return "REFUSED";
       }
       const outcome: CompositionOutcome = moveStopPoint(state, stopPointId, location);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-437) : tête ou fin de Tour face à l'autre limite (N ≥ 2) — choix demandé, le
+        // point lâché reste tenu (story 5.2b).
+        return openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location, fromStep: false }) ? "PENDING" : "REFUSED";
+      }
       if (outcome.status !== "APPLIED" || outcome.state === state) {
         return "REFUSED";
       }
@@ -1650,7 +1710,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
       return "APPLIED";
     },
-    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, updateDraft, zoneItems],
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, openTourChoice, updateDraft, zoneItems],
   );
 
   /**
@@ -1950,13 +2010,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (activityId: string, direction: StepDirection) => {
       // Comme Dupliquer / Supprimer : les actions glissées révélées se referment.
       setRevealedActionsId(null);
+      const key = railRowKey(activityId);
       const fromZone = draft.exercises.find((exercise) => exercise.id === activityId)?.structuralPosition;
-      const toZone = planOccurrenceMove(draft, { activityId, direction })?.patch.exercises?.find(
-        (exercise) => exercise.id === activityId,
-      )?.structuralPosition;
-      if (moveActivityTo({ activityId, direction }) === "APPLIED" && toZone !== undefined && toZone !== fromZone) {
+      const plan = planOccurrenceMove(draft, { activityId, direction });
+      const toZone =
+        plan?.status === "PLAN"
+          ? plan.patch.exercises?.find((exercise) => exercise.id === activityId)?.structuralPosition
+          : undefined;
+      // Story 7.2 (D-437) : un point retiré par le pas est annoncé avec le focus porté sur la carte
+      // (la clé de focus fait aussi reconnaître un pas après un choix de Tour).
+      const removesStopPoints = plan?.status === "PLAN" && plan.removedStopPointIds.length > 0;
+      const outcome = moveActivityTo({ activityId, direction }, key);
+      if (outcome === "APPLIED" && !removesStopPoints && toZone !== undefined && toZone !== fromZone) {
         // Revue 6.2 : la carte est remontée dans une autre liste — le focus la suit.
-        requestItemFocus(railRowKey(activityId));
+        requestItemFocus(key);
       }
     },
     [draft, moveActivityTo, requestItemFocus],
@@ -1971,24 +2038,156 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setRevealedActionsId(null);
       const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const fromScope = state.stopPoints.find((point) => point.id === stopPointId)?.scope;
-      const toScope = stopPointStepOutcome(state, stopPointId, direction)?.stopPoints.find((point) => point.id === stopPointId)?.scope;
+      const step = stopPointStepOutcome(state, stopPointId, direction);
+      if (step?.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-437) : le pas ferait se suivre un début et une fin de Tour — choix demandé.
+        openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location: step.location, fromStep: true });
+        return;
+      }
+      const toScope = step?.state.stopPoints.find((point) => point.id === stopPointId)?.scope;
       // Rejoué sur le brouillon COURANT.
       updateDraft((current) => {
         const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
         const next = stopPointStepOutcome(currentState, stopPointId, direction);
-        return next === null ? current : { ...current, ...compositionPatch(currentState, next) };
+        return next?.status === "APPLIED" ? { ...current, ...compositionPatch(currentState, next.state) } : current;
       });
       if (toScope !== undefined && toScope !== fromScope) {
         // Revue 6.2 : la rangée est remontée dans une autre liste — le focus la suit.
         requestItemFocus(railStopKey(stopPointId));
       }
     },
-    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, requestItemFocus, updateDraft],
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, openTourChoice, requestItemFocus, updateDraft],
   );
   const stopPointStepAction = useCallback(
     (stopPointId: string, direction: StepDirection): (() => void) | null =>
       stepAvailability.points.get(stopPointId)?.[direction] === true ? () => handleStepStopPoint(stopPointId, direction) : null,
     [handleStepStopPoint, stepAvailability],
+  );
+
+  /**
+   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : réponse au dialogue « Début de tour / Fin de
+   * tour » — `choice` : la résolution du Domaine (`resolutions.HEAD` / `.TAIL`) est appliquée, REJOUÉE
+   * sur l'état COURANT (sans conflit désormais, l'opération elle-même est appliquée) ; `null`
+   * (« Annuler ») : rien ne change — une carte ou un point lâché revient à sa place en douceur, comme
+   * après le dialogue de perte (story 5.2b). Les points retirés sont annoncés sans message visuel.
+   */
+  const resolveTourChoice = useCallback(
+    (choice: TourBoundaryChoice | null) => {
+      const request = pendingTourChoice;
+      tourChoicePendingRef.current = false;
+      setPendingTourChoice(null);
+      if (request === null) return;
+      const placementText = strings.screens.composition.placement;
+      switch (request.kind) {
+        case "OCCURRENCE_MOVE": {
+          if (choice === null) {
+            setDragSession((current) => endDragSession(current, true));
+            return;
+          }
+          const focusKey = request.fromStep ? railRowKey(request.move.activityId) : undefined;
+          const outcome = moveActivityTo({ ...request.move, tourChoice: choice }, focusKey);
+          // Dialogue de perte ensuite (Séries) : l'élément reste tenu ; sinon fin de l'aperçu.
+          if (outcome !== "PENDING") setDragSession((current) => endDragSession(current, outcome === "REFUSED"));
+          return;
+        }
+        case "STOP_POINT_MOVE": {
+          if (choice === null) {
+            setDragSession((current) => endDragSession(current, true));
+            return;
+          }
+          const resolve = (state: CompositionState): { readonly state: CompositionState; readonly removed: readonly string[] } | null => {
+            const outcome = moveStopPoint(state, request.stopPointId, request.location);
+            if (outcome.status === "CHOICE_REQUIRED") {
+              const resolution = outcome.resolutions[choice];
+              return { state: resolution.state, removed: resolution.removedStopPointIds };
+            }
+            return outcome.status === "APPLIED" && outcome.state !== state ? { state: outcome.state, removed: [] } : null;
+          };
+          const rendered = resolve(compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount));
+          updateDraft((current) => {
+            const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
+            const replayed = resolve(currentState);
+            return replayed === null ? current : { ...current, ...compositionPatch(currentState, replayed.state) };
+          });
+          setDragSession((current) => endDragSession(current, rendered === null));
+          const kept = rendered?.state.stopPoints.some((point) => point.id === request.stopPointId) ?? true;
+          // Pas « Monter » / « Descendre » : le focus suit le point s'il est conservé ; sinon (revue
+          // 7.2) la carte qui précède son emplacement, à défaut le compteur du Circuit.
+          let focusKey = request.fromStep && kept ? railStopKey(request.stopPointId) : undefined;
+          if (request.fromStep && !kept) {
+            const preceding = draft.exercises.filter((exercise) => exercise.structuralPosition === request.location.scope)[
+              request.location.position - 1
+            ];
+            if (preceding !== undefined) {
+              focusKey = railRowKey(preceding.id);
+            } else if (request.location.scope === "IN_TOUR" && rendered !== null) {
+              for (const id of rendered.removed) rowLayoutsRef.current.delete(railStopKey(id));
+              focusOnNextFrame(() => circuitCounterRef.current, removedStopPointsAnnouncement(rendered.removed.length));
+              return;
+            }
+          }
+          if (rendered !== null && rendered.removed.length > 0) {
+            reportRemovedStopPoints(rendered.removed, focusKey);
+          } else if (focusKey !== undefined) {
+            requestItemFocus(focusKey);
+          }
+          return;
+        }
+        case "PLACEMENT_STOP_POINT": {
+          if (choice === null || placement === null) return;
+          const resolve = (current: PlacementDraft): PlacementDraft => {
+            const outcome = togglePlacementStopPointOutcome(current, request.location, placementContext);
+            return outcome.status === "CHOICE_REQUIRED" ? outcome.resolutions[choice] : outcome.placement;
+          };
+          const next = resolve(placement);
+          // Effet nommé : l'ajout retenu, ou le retrait d'un point existant de l'autre limite.
+          // Revue 7.2 : l'effet est toujours nommé — ajout retenu, ou ajout abandonné (l'autre limite
+          // est conservée) ; un sous-brouillon inchangé ne rend rien : annonce directe.
+          const text = isPlacementStopPointAdded(next, request.location)
+            ? placementText.stopPointAddedAnnouncement
+            : placementText.additionCancelledAnnouncement;
+          if (next === placement) {
+            AccessibilityInfo.announceForAccessibility(text);
+            return;
+          }
+          placementAnnouncementRef.current = { text, withLabel: true };
+          setPlacement((current) => (current === null ? null : resolve(current)));
+          return;
+        }
+        case "PLACEMENT_EXISTING_STOP_POINT": {
+          if (choice === null || placement === null) return;
+          const resolve = (current: PlacementDraft): PlacementDraft =>
+            placementReselectionChoice(current, request.stopPointId, placementContext)?.resolutions[choice] ??
+            togglePlacementStopPointRemoval(current, request.stopPointId, placementContext);
+          const next = resolve(placement);
+          // Revue 7.2 : point conservé (l'ajout est jeté), ou point non conservé (l'ajout est gardé ;
+          // sous-brouillon inchangé : annonce directe).
+          if (isPlacementStopPointRemoved(next, request.stopPointId)) {
+            AccessibilityInfo.announceForAccessibility(placementText.stopPointKeepRefusedAnnouncement);
+            if (next === placement) return;
+            setPlacement((current) => (current === null ? null : resolve(current)));
+            return;
+          }
+          placementAnnouncementRef.current = { text: placementText.stopPointKeptAnnouncement, withLabel: true };
+          setPlacement((current) => (current === null ? null : resolve(current)));
+          return;
+        }
+        case "CIRCUIT_COUNT": {
+          if (choice === null) return;
+          const resolve = (current: SessionDraft): CircuitCountResolution => {
+            const outcome = circuitCountOutcome(current, request.count);
+            return outcome.status === "CHOICE_REQUIRED"
+              ? outcome.resolutions[choice]
+              : { draft: outcome.draft, removedStopPointIds: outcome.removedStopPointIds };
+          };
+          const rendered = resolve(draft);
+          updateDraft((current) => resolve(current).draft);
+          reportRemovedStopPoints(rendered.removedStopPointIds);
+          return;
+        }
+      }
+    },
+    [draft, moveActivityTo, pendingTourChoice, placement, placementContext, reportRemovedStopPoints, requestItemFocus, updateDraft],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
@@ -2237,11 +2436,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // exclusivement à la carte soulevée, jamais à la liste.
         scrollEnabled={draggedKey === null}
         // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le compteur révélé du Circuit.
-        // Story 4.2 : il referme aussi la bulle « Retirer ».
-        onScrollBeginDrag={() => {
-          closeCircuitCounter();
-          closeRemovalBubble();
-        }}
+        onScrollBeginDrag={closeCircuitCounter}
         testID="composition-body"
       >
         {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `CounterOutsideZone`. */}
@@ -2316,7 +2511,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onStep={handleStepActivity}
           stopPointStepAction={stopPointStepAction}
           placement={placementRowContext}
-          pauses={pauseRowContext}
         />
 
         {/*
@@ -2439,7 +2633,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onStep={handleStepActivity}
             stopPointStepAction={stopPointStepAction}
             placement={placementRowContext}
-            pauses={pauseRowContext}
           />
           {/*
            * PRE-6 (story 5.2) : bas du Circuit — lien de la dernière ancre du Circuit (média ou anneau
@@ -2538,7 +2731,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onStep={handleStepActivity}
           stopPointStepAction={stopPointStepAction}
           placement={placementRowContext}
-          pauses={pauseRowContext}
         />
 
         {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
@@ -2618,16 +2810,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
          * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
-        {/*
-         * PRE-6 (story 4.3, D-301) : message unique, informatif, au-dessus de l'action finale et de
-         * la barre de placement ; il ne bloque ni « Continuer » ni l'enregistrement et disparaît dès
-         * qu'aucune frontière entre Exercices ne s'enchaîne sans pause.
-         */}
-        {hasUnpausedWarning ? (
-          <Text style={styles.unpausedWarningText} accessibilityLiveRegion="polite" testID="composition-unpaused-warning">
-            {composition.unpausedWarning}
-          </Text>
-        ) : null}
         {/* PRE-6 (story 4.1, `8328:29423`) : en placement, la barre remplace « Continuer ». */}
         {confirmation !== null ? (
           <PlacementBar
@@ -2694,54 +2876,42 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       </WheelPickerOverlay>
 
       {/*
-       * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'un emplacement —
-       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14), ouverte sur le défaut du Profil une
-       * fois résolu (une récupération déjà ajoutée est retirée au toucher, jamais rouverte). ✓
-       * ajoute cet emplacement (0 conservé comme présent, D-323) ; ✕ le laisse tel qu'il était.
+       * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'une zone du placement —
+       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14). Story 7.2 (D-437) : ouverte par le
+       * toucher d'une zone NON sélectionnée, sur la durée existante, sinon sur le défaut du Profil une
+       * fois résolu. ✓ sélectionne la zone à la durée choisie (0 conservé comme présent, D-323) ; ✕ la
+       * laisse telle qu'elle était.
        */}
-      <WheelPickerOverlay
-        visible={placement !== null && recoveryWheelOccurrenceId !== null && recoveryDefaultSeconds !== null}
-      >
-        {placement !== null && recoveryWheelOccurrenceId !== null && recoveryDefaultSeconds !== null ? (
-          <DurationWheelPicker
-            totalSeconds={recoveryDefaultSeconds}
-            valueGrid={RECOVERY_WHEEL_VALUES}
-            title={composition.placement.recoveryWheelTitle}
-            onValidate={(totalSeconds) => validatePlacementRecovery(recoveryWheelOccurrenceId, totalSeconds)}
-            onCancel={() => setRecoveryWheelOccurrenceId(null)}
-            minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-          />
-        ) : null}
-      </WheelPickerOverlay>
-      {/*
-       * PRE-6 (story 4.2) : même roulette « Durée de récupération » (grille 0..300 de la story 4.1),
-       * ouverte à la valeur d'une récupération existante. ✕ ne change rien.
-       */}
-      <WheelPickerOverlay visible={recoveryEdit !== null}>
-        {recoveryEdit !== null ? (
-          <DurationWheelPicker
-            totalSeconds={recoveryEdit.seconds}
-            valueGrid={RECOVERY_WHEEL_VALUES}
-            title={composition.placement.recoveryWheelTitle}
-            onValidate={validateRecoveryEdit}
-            onCancel={() => setRecoveryEdit(null)}
-            minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-            secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
-            cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-            validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-          />
-        ) : null}
-      </WheelPickerOverlay>
+      {(() => {
+        // Revue 7.2 : une durée existante non finie (donnée corrompue) ouvre sur le défaut du Profil.
+        const existingSeconds = recoveryWheel !== null && Number.isFinite(recoveryWheel.seconds) ? recoveryWheel.seconds : null;
+        const wheelSeconds = recoveryWheel === null ? null : (existingSeconds ?? recoveryDefaultSeconds);
+        const isWheelOpen = placement !== null && wheelSeconds !== null;
+        return (
+          <WheelPickerOverlay visible={isWheelOpen}>
+            {isWheelOpen ? (
+              <DurationWheelPicker
+                totalSeconds={wheelSeconds}
+                valueGrid={RECOVERY_WHEEL_VALUES}
+                title={composition.placement.recoveryWheelTitle}
+                onValidate={validatePlacementRecovery}
+                onCancel={() => setRecoveryWheel(null)}
+                minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
+                secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+              />
+            ) : null}
+          </WheelPickerOverlay>
+        );
+      })()}
 
-      {/* PRE-6 (story 4.2, `8328:29133`, `8328:33689`) : bulle « Retirer », sans second dialogue. */}
-      {removalTarget !== null && removalTarget.anchor !== null ? (
-        <RemovalBubble
-          anchor={removalTarget.anchor}
-          onRemove={confirmRemoval}
-          onDismiss={closeRemovalBubble}
+      {/* PRE-6 story 7.2 (D-437) : choix « Début de tour / Fin de tour » (dialogue natif). */}
+      {pendingTourChoice !== null ? (
+        <TourBoundaryChoiceDialog
+          key={tourChoiceToken}
+          onChoose={(choice) => resolveTourChoice(choice)}
+          onCancel={() => resolveTourChoice(null)}
         />
       ) : null}
 
@@ -2788,11 +2958,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             // le dialogue n'est jamais écrasée.
             const plan = planOccurrenceMove(draft, pendingCircuitEntry);
             setPendingCircuitEntry(null);
-            if (plan !== null) {
+            const applied = plan?.status === "PLAN";
+            if (plan?.status === "PLAN") {
               updateDraft(plan.patch);
+              // Story 7.2 (D-437) : points retirés par le déplacement tolérant (ou le choix de Tour).
+              reportRemovedStopPoints(plan.removedStopPointIds, pendingCircuitEntry.focusKey);
             }
             // Story 2.3b : appliqué → remise à 0 sans animation avec la nouvelle disposition.
-            setDragSession((current) => endDragSession(current, plan === null));
+            setDragSession((current) => endDragSession(current, !applied));
           }}
         />
       ) : null}
@@ -2939,8 +3112,6 @@ type ActivityZoneListProps = {
   readonly placement: PlacementRowContext | null;
   /** Revue 6.3 : en placement, la rangée « après le Circuit » précède immédiatement cette zone. */
   readonly precededByPlacementRow?: boolean;
-  /** PRE-6 (story 4.2) : points d'arrêt, modification et retrait des pauses hors placement. */
-  readonly pauses: PauseRowContext;
 };
 
 /**
@@ -2952,9 +3123,10 @@ type PlacementRowContext = {
   readonly slotFor: (occurrenceId: string) => PlacementSlot | null;
   /** Story 6.3 : point d'arrêt rendu pour un emplacement (existant ou à ajouter), `null` sans point. */
   readonly rowPointOf: (stopPoint: PlacementStopPointSlot | null) => PlacementStopPointRowPoint | null;
+  /** Story 7.2 (D-437) : emplacement libre (ou ajouté) de tête de Circuit, `null` s'il n'est pas dessiné. */
+  readonly circuitHeadRowPoint: PlacementStopPointRowPoint | null;
+  /** Story 7.2 (D-437) : toucher d'une zone de récupération (désélection, ou roulette). */
   readonly onPressRecovery: (occurrenceId: string) => void;
-  /** Story 4.2 : modification d'une récupération existante (sous-brouillon, non comptée dans N). */
-  readonly onPressExistingRecovery: (occurrenceId: string) => void;
   /** Emplacement libre ou ajouté : bascule de l'ajout. */
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
   /** Revue 6.3 : point existant, bascule de son retrait programmé par identifiant (et annonce). */
@@ -2996,23 +3168,31 @@ function placementLabelerOf(
         items.findIndex((item) => item.kind === "STOP_POINT"),
         exercises,
       );
-      return anchor === null
-        ? t.addStopPointAfterCircuitAccessibilityLabel
-        : t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
+      if (anchor !== null) return t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
+      // Story 7.2 (D-437) : tête de Circuit (début de Tour) ; sinon « après le circuit ».
+      return location.scope === "IN_TOUR" ? t.addStopPointAtCircuitStartAccessibilityLabel : t.addStopPointAfterCircuitAccessibilityLabel;
     },
   };
 }
 
-/** Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié. */
-function placementOfferOf(slots: readonly PlacementSlot[]): { readonly any: boolean; readonly additions: boolean } {
-  // Story 7.1 (D-437) : l'emplacement libre `CIRCUIT_HEAD` n'est pas encore dessiné (story 7.2) : il
-  // n'ouvre pas le placement à lui seul.
+/**
+ * Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié.
+ * Story 7.2 (D-437) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre) ; une
+ * récupération existante (0 comprise) se modifie et se retire en placement, seul chemin de son
+ * réglage : elle suffit à l'ouvrir.
+ */
+function placementOfferOf(slots: readonly PlacementSlot[]): {
+  readonly any: boolean;
+  readonly additions: boolean;
+  /** Une récupération existante (modifiable ou retirable) est offerte. */
+  readonly recoveries: boolean;
+} {
   const additions = slots.some(
-    (slot) =>
-      slot.recovery?.kind === "AVAILABLE" || (slot.kind !== "CIRCUIT_HEAD" && slot.stopPoint !== null && !slot.stopPoint.existing),
+    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
   );
-  const removals = slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
-  return { any: additions || removals, additions };
+  const recoveries = slots.some((slot) => slot.recovery?.kind === "EXISTING");
+  const removals = recoveries || slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
+  return { any: additions || removals, additions, recoveries };
 }
 
 /** Ce dont `placementRowPointOf` a besoin (story 6.3). */
@@ -3045,52 +3225,13 @@ function placementRowPointOf(
   }
   const id = stopPoint.stopPointId;
   if (id === undefined) return null;
+  // Story 7.2 (D-437) : une resélection qui demande un choix de Tour n'est pas bloquée (dialogue).
   const blocked =
     isPlacementStopPointRemoved(env.placement, id) &&
-    togglePlacementStopPointRemoval(env.placement, id, env.context) === env.placement;
+    togglePlacementStopPointRemoval(env.placement, id, env.context) === env.placement &&
+    placementReselectionChoice(env.placement, id, env.context) === null;
   return { kind: "EXISTING", stopPointId: id, accessibilityLabel: env.labels.existing(id), blocked };
 }
-
-/** PRE-6 (story 4.2) : roulette de modification d'une récupération existante. */
-type RecoveryEdit = {
-  readonly occurrenceId: string;
-  /** Valeur de la récupération (peut être hors grille : donnée historique). */
-  readonly seconds: number;
-  /** Valeur affichée par la roue à l'ouverture (`seconds` ramenée sur la grille 0..300). */
-  readonly openedSeconds: number;
-  /** `true` : en placement, la valeur va dans le sous-brouillon. */
-  readonly inPlacement: boolean;
-};
-
-function recoveryEditOf(occurrenceId: string, seconds: number, inPlacement: boolean): RecoveryEdit {
-  return { occurrenceId, seconds, openedSeconds: snapToGrid(seconds, RECOVERY_WHEEL_VALUES), inPlacement };
-}
-
-/**
- * PRE-6 (story 4.2) : objet visé par la bulle « Retirer ». PRE-6 story 6.2 (D-436) : la récupération
- * seulement — l'appui long d'un point est son glisser.
- */
-type RemovalTargetKey = { readonly occurrenceId: string };
-type RemovalTarget = RemovalTargetKey & { readonly anchor: RemovalBubbleAnchor | null };
-
-function sameRemovalTarget(a: RemovalTargetKey, b: RemovalTargetKey): boolean {
-  return a.occurrenceId === b.occurrenceId;
-}
-
-/** Focus d'accessibilité rendu à la carte après le retrait de sa récupération (story 4.2 / 5.1). */
-type PauseFocusRequest = { readonly occurrenceId: string; readonly token: number };
-
-/**
- * PRE-6 (story 4.2) : ce que chaque carte reçoit pour ses pauses hors placement — modification et
- * retrait de la récupération, focus après retrait. Story 6.3 : le point d'arrêt d'un emplacement en
- * placement vient de l'emplacement lui-même (`PlacementRowContext.rowPointOf`).
- */
-type PauseRowContext = {
-  readonly onPressRecovery: (occurrenceId: string) => void;
-  readonly onRequestRecoveryRemoval: (occurrenceId: string, anchor: View | null) => void;
-  readonly onRemoveRecovery: (occurrenceId: string) => void;
-  readonly focusRequest: PauseFocusRequest | null;
-};
 
 /**
  * PRE-6 story 6.2 : repère du nom d'un point au rang `index` de la séquence mêlée `items` — le dernier
@@ -3206,7 +3347,6 @@ function ActivityZoneList({
   stopPointStepAction,
   placement,
   precededByPlacementRow = false,
-  pauses,
 }: ActivityZoneListProps) {
   if (items.length === 0) {
     return null;
@@ -3249,12 +3389,16 @@ function ActivityZoneList({
         if (item.kind === "STOP_POINT" && placement !== null) {
           // PRE-6 story 6.3 (D-436, R3) : en placement, seul un point non proposé est une rangée
           // autonome — puce de placement sélectionnée, désélectionnable, sans glisser.
+          // Story 7.2 (D-437) : l'emplacement libre de tête de Circuit est une rangée de même nature.
           const key = railStopKey(item.point.id);
-          const rowPoint = placement.rowPointOf({
-            location: { scope: item.point.scope, position: item.point.position },
-            existing: true,
-            stopPointId: item.point.id,
-          });
+          const isCircuitHeadSlot = item.point.id === CIRCUIT_HEAD_SLOT_ID;
+          const rowPoint = isCircuitHeadSlot
+            ? placement.circuitHeadRowPoint
+            : placement.rowPointOf({
+                location: { scope: item.point.scope, position: item.point.position },
+                existing: true,
+                stopPointId: item.point.id,
+              });
           return rowPoint === null ? null : (
             <PlacementStopPointItemRow
               key={key}
@@ -3264,6 +3408,7 @@ function ActivityZoneList({
               rail={rail}
               touchExtent={placementExtentAt(itemIndex)}
               onLayout={(event) => onRowLayout(key, zone, event)}
+              testID={isCircuitHeadSlot ? "composition-placement-slot-circuit-head" : undefined}
             />
           );
         }
@@ -3327,7 +3472,6 @@ function ActivityZoneList({
           onMoveDown={canStep(activity.id, "DOWN") ? () => onStep(activity.id, "DOWN") : null}
           placement={placement}
           placementRowFollowed={followedByPlacementRow(itemIndex)}
-          pauses={pauses}
         />
         );
       })}
@@ -3369,8 +3513,9 @@ type StopPointAccessibilityActionName = "moveUp" | "moveDown";
  * Geste : l'appui long sur la puce la soulève ; elle suit alors le doigt (translation locale, comme
  * la carte), ses voisines se décalent (aperçu 2.3b), et le dépôt passe par `moveStopPoint` ; refus
  * : retour animé (5.2b). Aucun balayage ; un toucher court ne fait rien hors placement. Le
- * soulèvement ne change ni la taille ni la mise en page de la rangée (aucun état soulevé dessiné :
- * Figma n'en donne pas pour la puce — NON VÉRIFIABLE). Accessibilité : « Monter » / « Descendre »
+ * soulèvement ne change ni la taille ni la mise en page de la rangée ; story 7.2 (D-437) : la puce
+ * saisie est marquée soulevée (`StopPointChip.lifted`, style sélectionné et ombre de la carte
+ * soulevée — NON VÉRIFIABLE, Figma n'en donne pas pour la puce). Accessibilité : « Monter » / « Descendre »
  * vers l'emplacement autorisé voisin, proposées seulement si le déplacement serait accepté.
  */
 function StopPointRow({
@@ -3538,6 +3683,8 @@ function StopPointRow({
         onAccessibilityAction={(name) => actionHandlers[name as StopPointAccessibilityActionName]?.()}
         onLongPress={handleLongPress}
         translateY={isDragged ? dragTranslationY : 0}
+        // Story 7.2 (D-437) : point saisi marqué soulevé, comme une carte.
+        lifted={isDragged}
         chipRef={chipRef}
         testID={`composition-stop-point-${point.id}`}
       />
@@ -3553,19 +3700,30 @@ type PlacementStopPointItemRowProps = {
   /** Écart de la zone (8, 9 dans le Circuit), ou sa moitié côté d'une rangée de placement adjacente (revue 6.3). */
   readonly touchExtent: PlacementTouchExtent;
   readonly onLayout: (event: LayoutChangeEvent) => void;
+  /** Story 7.2 : identifiant de test imposé (emplacement de tête de Circuit). */
+  readonly testID?: string;
 };
 
 /**
  * PRE-6 story 6.3 (D-436, R3) : en placement, rangée autonome d'un point existant qu'aucun
- * emplacement ne porte (`UNOFFERED_STOP_POINT` : tête de Circuit, hors bornes…), à sa place dans la
- * séquence mêlée. Même rangée de 22 et même puce que les emplacements (`PlacementStopPointRow`,
+ * emplacement ne porte (`UNOFFERED_STOP_POINT` : hors bornes…) ou en tête de Circuit, à sa place dans
+ * la séquence mêlée. Story 7.2 (D-437) : aussi l'emplacement LIBRE de tête de Circuit, entre l'en-tête
+ * du Circuit et sa première carte. Même rangée de 22 et même puce que les emplacements (`PlacementStopPointRow`,
  * sélectionnée, désélectionnable) ; nœud du rail (lien vers l'élément précédent, queue sur toute sa
  * hauteur), sans point de raccord, comme les rangées du placement (story 5.3). Aucun glisser.
  */
-function PlacementStopPointItemRow({ railKey, point, placement, rail, touchExtent, onLayout }: PlacementStopPointItemRowProps) {
+function PlacementStopPointItemRow({
+  railKey,
+  point,
+  placement,
+  rail,
+  touchExtent,
+  onLayout,
+  testID: forcedTestID,
+}: PlacementStopPointItemRowProps) {
   const shift = rail.shiftOf(railKey);
   const railLink = rail.links.get(railKey);
-  const testID = `composition-placement-slot-stop-${point.kind === "EXISTING" ? point.stopPointId : railKey}`;
+  const testID = forcedTestID ?? `composition-placement-slot-stop-${point.kind === "EXISTING" ? point.stopPointId : railKey}`;
   return (
     <Animated.View style={[styles.stopPointRow, { transform: [{ translateY: shift }] }]} onLayout={onLayout} testID={`${testID}-row`}>
       {railLink !== undefined ? (
@@ -3646,23 +3804,14 @@ type CompositionActivityRowProps = {
   readonly placement: PlacementRowContext | null;
   /** Revue 6.3 : la rangée sous la carte est suivie d'une rangée de point non proposé (écart partagé). */
   readonly placementRowFollowed?: boolean;
-  /** PRE-6 (story 4.2) : point d'arrêt de l'occurrence, modification et retrait des pauses. */
-  readonly pauses: PauseRowContext;
 };
 
 /**
- * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 5.1 (D-435) :
- * `modifyRecovery` / `removeRecovery` reprennent, sur la carte, le toucher et le retrait de la
- * récupération de la ligne 3 — VoiceOver n'atteint pas un bouton imbriqué dans un élément
- * accessible, et la carte en est un.
+ * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 7.2 (D-437) :
+ * plus d'actions propres à la récupération (« Modifier » / « Retirer la récupération », story 5.1) —
+ * elle se règle seulement en placement.
  */
-type OccurrenceAccessibilityActionName =
-  | "moveUp"
-  | "moveDown"
-  | "duplicate"
-  | "delete"
-  | "modifyRecovery"
-  | "removeRecovery";
+type OccurrenceAccessibilityActionName = "moveUp" | "moveDown" | "duplicate" | "delete";
 
 /**
  * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : décalage horizontal MAXIMAL de la
@@ -3798,24 +3947,12 @@ function CompositionActivityRow({
   onMoveDown,
   placement,
   placementRowFollowed = false,
-  pauses,
   focusRequest,
   onFocusConsumed,
 }: CompositionActivityRowProps) {
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
-  // Story 4.2 : focus rendu à la carte après un retrait qui ne laisse pas de point d'arrêt.
   const cardRef = useRef<View>(null);
-  // Focus après le retrait de la récupération de la ligne 3 (story 4.2 / 5.1) : à la carte, à
-  // l'image suivante ; jamais au premier rendu.
-  const cardFocusToken =
-    pauses.focusRequest !== null && pauses.focusRequest.occurrenceId === activity.id ? pauses.focusRequest.token : undefined;
-  const handledCardFocusRef = useRef(cardFocusToken);
-  useEffect(() => {
-    if (cardFocusToken === undefined || cardFocusToken === handledCardFocusRef.current) return undefined;
-    handledCardFocusRef.current = cardFocusToken;
-    return focusOnNextFrame(() => cardRef.current);
-  }, [cardFocusToken]);
   // Revue 6.2 : focus demandé sur la carte (pas d'une zone à l'autre — la carte peut avoir été
   // remontée dans une autre liste —, suppression refusée et son annonce) ; consommé une fois porté.
   useEffect(() => {
@@ -4128,72 +4265,46 @@ function CompositionActivityRow({
   const blockHeight = blockHeightFor(isDragged);
   /**
    * PRE-6 (story 5.1) : récupération affichée en ligne 3 — hors placement, celle du brouillon ; en
-   * placement, la valeur effective du sous-brouillon (ajout ou modification), pour ne jamais
-   * contredire la puce de l'emplacement.
+   * placement (story 7.2, D-437), la durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout,
+   * ou existante modifiée ou non, sauf retrait programmé), pour ne jamais contredire le cadre.
    */
   const displayedRecoverySeconds =
-    placement === null
+    placement === null || activity.type !== "EXERCISE"
       ? activity.postActivityRecoverySeconds
-      : (placement.draft.recoveryChanges[activity.id] ??
-        placement.draft.recoveries[activity.id] ??
-        activity.postActivityRecoverySeconds);
-  /**
-   * Toucher et appui long de la récupération (revue 5.1) : seulement quand la carte est au repos.
-   * Actions glissées révélées, carte bloquée par une autre révélation, glisser en cours ou
-   * placement : simple affichage, le toucher revient à la carte (neutre ou inactive).
-   */
+      : placementRecoverySeconds(placement.draft, activity);
   /** Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`). */
   const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged;
-  const isRecoveryInteractive = placement === null && !areActionsRevealed && !isBlockedByOtherReveal && !isDragged;
   /**
-   * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`,
-   * inchangé) — récupération à ajouter (cadre en ligne 3), déjà présente (modifiable en ligne 3,
-   * story 4.2) ou non proposée ; point d'arrêt dans la rangée sous la carte.
+   * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
+   * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
    */
   const placementSlot = placement === null ? null : placement.slotFor(activity.id);
   const placementRecovery = placementSlot?.recovery ?? null;
   const placementStopPoint = placementSlot?.stopPoint ?? null;
-  /** Ligne 3 de la carte : cadre, récupération existante modifiable (placement) ou récupération (story 5.1). */
+  /**
+   * Ligne 3 de la carte. PRE-6 story 7.2 (D-437) : en placement, toute zone de récupération d'un
+   * Exercice est le cadre sélectionnable (`PlacementRecoveryFrame` : sélectionnée — ajout, ou
+   * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
+   * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
+   */
   let recoveryNode: React.ReactNode;
-  if (placement !== null && placementRecovery?.kind === "AVAILABLE") {
+  if (placement !== null && placementRecovery !== null) {
     recoveryNode = (
       <PlacementRecoveryFrame
         occurrenceId={activity.id}
         exerciseName={activity.name}
-        placement={placement.draft}
+        selectedSeconds={displayedRecoverySeconds ?? null}
+        existing={placementRecovery.kind === "EXISTING"}
         onPress={placement.onPressRecovery}
         touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
         testID={`composition-placement-slot-${activity.id}-recovery`}
-      />
-    );
-  } else if (placement !== null && placementRecovery?.kind === "EXISTING") {
-    // Story 4.2 reprise en ligne 3 : valeur effective du sous-brouillon (modification non comptée
-    // dans N), touchable pour rouvrir la roulette ; affichée même à 0 (sinon plus modifiable).
-    const seconds = placement.draft.recoveryChanges[activity.id] ?? placementRecovery.seconds;
-    recoveryNode = (
-      <OccurrenceRecovery
-        recoverySeconds={seconds}
-        showZero
-        onPress={() => placement.onPressExistingRecovery(activity.id)}
-        // Revue 5.3 : le nom désigne l'exercice, comme le cadre et la puce (la carte n'est plus lue).
-        accessibilityLabel={composition.pauses.modifiableRecoveryAccessibilityLabel
-          .replace("{duration}", () => formatCompactDuration(seconds))
-          .replace("{exercise}", () => activity.name)}
-        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
-        testID={`composition-activity-recovery-${activity.id}-recovery`}
       />
     );
   } else {
     recoveryNode = (
       <OccurrenceRecovery
         recoverySeconds={displayedRecoverySeconds}
-        {...(isRecoveryInteractive
-          ? {
-              onPress: () => pauses.onPressRecovery(activity.id),
-              onLongPress: (anchor: View | null) => pauses.onRequestRecoveryRemoval(activity.id, anchor),
-            }
-          : {})}
-        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
+        hiddenFromAccessibility={placement !== null}
         testID={`composition-activity-recovery-${activity.id}-recovery`}
       />
     );
@@ -4219,12 +4330,6 @@ function CompositionActivityRow({
    * « Monter » / « Descendre » (absentes aux extrémités de la séquence), « Dupliquer »,
    * « Supprimer ». Le balayage et l'appui long restent inchangés.
    */
-  /**
-   * PRE-6 (story 5.1, D-435) : une récupération affichable (R > 0) hors placement ajoute
-   * « Modifier la récupération » et « Retirer la récupération », mêmes effets que le toucher et la
-   * bulle de la ligne 3.
-   */
-  const hasDisplayedRecovery = placement === null && isDisplayableRecovery(activity.postActivityRecoverySeconds);
   /** Nom accessible : la récupération affichée y figure (« …, récupération 20 s »), hors placement et en placement. */
   const accessibilityLabel = isDisplayableRecovery(displayedRecoverySeconds)
     ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
@@ -4237,20 +4342,12 @@ function CompositionActivityRow({
     ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
     duplicate: onDuplicate,
     delete: onDelete,
-    ...(hasDisplayedRecovery
-      ? {
-          modifyRecovery: () => pauses.onPressRecovery(activity.id),
-          removeRecovery: () => pauses.onRemoveRecovery(activity.id),
-        }
-      : {}),
   };
   const accessibilityActionLabels: Record<OccurrenceAccessibilityActionName, string> = {
     moveUp: composition.activityActions.moveUp,
     moveDown: composition.activityActions.moveDown,
     duplicate: composition.activityActions.duplicate,
     delete: composition.activityActions.delete,
-    modifyRecovery: composition.pauses.modifyRecovery,
-    removeRecovery: composition.pauses.removeRecovery,
   };
   const accessibilityActions = (Object.keys(accessibilityActionHandlers) as OccurrenceAccessibilityActionName[]).map(
     (name) => ({ name, label: accessibilityActionLabels[name] }),
@@ -4394,10 +4491,9 @@ function CompositionActivityRow({
          * portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc
          * derrière le contenu, sans opacité appliquée aux textes.
          *
-         * Récupération en ligne 3 (story 4.2 reprise) : son `Pressable`, plus profond, prend le
-         * toucher et l’appui long à la place de la carte (roulette, bulle Retirer), sans ouvrir
-         * l’Exercice. En placement (story 5.3), cadre « Récupération » ou récupération existante
-         * modifiable ; le reste de la carte est inactif (story 4.1).
+         * Récupération en ligne 3 : story 7.2 (D-437) — hors placement, simple affichage (le toucher
+         * ouvre l’Exercice, l’appui long saisit la carte) ; en placement (story 5.3), cadre
+         * sélectionnable ; le reste de la carte est inactif (story 4.1).
          */}
         <OccurrenceCard
           name={activity.name}
@@ -4825,7 +4921,7 @@ export function predictedInsertionHeight(
     return undefined;
   }
   const plan = planOccurrenceMove(draft, { activityId, zone: slot.zone, index: slot.index });
-  const moved = plan?.patch.exercises?.find((exercise) => exercise.id === activityId);
+  const moved = plan?.status === "PLAN" ? plan.patch.exercises?.find((exercise) => exercise.id === activityId) : undefined;
   if (moved === undefined) {
     return undefined;
   }
@@ -5236,13 +5332,6 @@ const styles = StyleSheet.create({
   // fond désactivé par défaut).
   continueActionEnabled: {
     backgroundColor: colors.primary,
-  },
-  // PRE-6 (story 4.3, D-301) : information, non une erreur — même style que l'information de
-  // `ActivityMediaList` (`type.body`, `colors.textSecondary`), centrée comme l'action finale.
-  unpausedWarningText: {
-    ...type.body,
-    color: colors.textSecondary,
-    textAlign: "center",
   },
   // Q54 : style de l'ancien message d'échec de `CategoriesScreen` (D-107).
   saveErrorText: {

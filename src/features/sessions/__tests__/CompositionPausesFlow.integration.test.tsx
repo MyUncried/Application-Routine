@@ -2,7 +2,7 @@ import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testi
 import { router as expoRouter } from "expo-router";
 import { afterAll, beforeAll, describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Session } from "@/domain/sessions/Session";
@@ -184,7 +184,8 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // 4 × 60 s, B et C répétés deux fois : 360 s, aucune pause entre les exercices.
       expect(sessionDuration()).toBe(formatEstimatedDuration(360, "exact"));
-      expect(screen.getByTestId("composition-unpaused-warning")).toBeTruthy();
+      // Story 7.2 (D-437) : D-301 retirée, aucun message d'enchaînement sans pause.
+      expect(screen.queryByText("Attention, les exercices vont s’enchaîner sans pause.")).toBeNull();
 
       // Placement : après A (hors Circuit) R = 0 et un point ; après B (dans le Circuit) R = 45 s et
       // un point ; un point « après le Circuit ».
@@ -226,9 +227,6 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
           placement.existingStopPointAfterCircuitAccessibilityLabel,
         ],
       });
-      // D-301 : C (Tour 1) → B (Tour 2) reste sans pause ; le message n'empêche pas l'enregistrement.
-      const warningBeforeSave = screen.queryByTestId("composition-unpaused-warning") !== null;
-      expect(warningBeforeSave).toBe(true);
 
       await act(async () => {
         fireEvent.press(screen.getByLabelText(composition.saveAction));
@@ -253,25 +251,23 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       // Durée de la séance relue = durée affichée avant enregistrement (R et point répétés à chaque Tour).
       expect(toSessionDurationResult(saved!)).toEqual({ kind: "exact", seconds: 450 });
 
-      // Réouverture : mêmes pauses, même point après le Circuit, même durée, même avertissement.
+      // Réouverture : mêmes pauses, même point après le Circuit, même durée.
       await act(async () => {
         expoRouter.push(`/composition?sessionId=${sessionId}`);
       });
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       expect(displayedPauses()).toEqual(pausesBeforeSave);
       expect(sessionDuration()).toBe(displayedBeforeSave);
-      expect(screen.queryByTestId("composition-unpaused-warning") !== null).toBe(warningBeforeSave);
 
-      // R = 0 de A est restée présente : une nouvelle entrée en placement la montre comme existante.
+      // R = 0 de A est restée présente : une nouvelle entrée en placement la montre comme existante,
+      // sélectionnée à 0 (story 7.2, D-437).
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-add-stop-action"));
       });
       expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
-      expect(
-        screen.getByLabelText(
-          composition.pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", "0 s").replace("{exercise}", "A"),
-        ),
-      ).toBeTruthy();
+      const zero = screen.getByLabelText(placement.existingRecoveryAccessibilityLabel.replace("{exercise}", "A"));
+      expect(zero.props.accessibilityState).toMatchObject({ selected: true });
+      expect(zero.props.accessibilityValue).toEqual({ text: "0 s" });
       expect(screen.queryByLabelText(recoveryLabel("C"))).not.toBeNull();
       fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     } finally {
@@ -329,6 +325,82 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
       expect(existing("B").props.accessibilityState).toMatchObject({ selected: true });
       expect(screen.queryByLabelText(placement.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeNull();
       expect(screen.getByLabelText(stopLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
+      fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+    } finally {
+      database.close();
+    }
+  }, 60000);
+});
+
+/**
+ * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 complément D-437 point 4) — retrait d'une récupération en
+ * placement : désélection de la zone, « Confirmer les modifications », rien d'écrit avant
+ * « Continuer » ; relecture de la base : récupération absente, Pause terminale rétablie (RM-038).
+ */
+describe("Retrait d'une récupération en placement → Continuer → réouverture (PRE-6 story 7.2)", () => {
+  it("la récupération désélectionnée n'est retirée qu'à « Continuer » ; à la réouverture sa zone est libre", async () => {
+    const { router, database, sessionRepository, sessionId } = await seedAndRender();
+    try {
+      await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
+      const confirm = () => screen.getByTestId("composition-placement-bar-confirm");
+      // Récupération de 45 s après B (ajout puis Confirmer, Continuer).
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      });
+      fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
+      await screen.findByTestId("duration-wheel-seconds");
+      nativeChange("duration-wheel-minutes", 0);
+      nativeChange("duration-wheel-seconds", 45);
+      fireEvent.press(screen.getByTestId("duration-wheel-validate"));
+      fireEvent.press(confirm());
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText(composition.saveAction));
+      });
+      await waitFor(() => expect(router.getPathname()).toBe("/"));
+      expect(persistedPauses((await sessionRepository.findById(sessionId))!).recoveries).toContainEqual(["B", 45]);
+
+      await act(async () => {
+        expoRouter.push(`/composition?sessionId=${sessionId}`);
+      });
+      await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
+      // Hors placement : simple affichage, aucune cible (le toucher traverse jusqu’à la carte).
+      expect(StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-b-recovery").props.style).pointerEvents).toBe("none");
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      });
+      const existingB = () => screen.getByLabelText(placement.existingRecoveryAccessibilityLabel.replace("{exercise}", "B"));
+      expect(existingB().props.accessibilityState).toMatchObject({ selected: true });
+      fireEvent.press(existingB());
+      expect(existingB().props.accessibilityState).toMatchObject({ selected: false });
+      expect(confirm().props.accessibilityLabel).toBe(placement.confirmChanges);
+      fireEvent.press(confirm());
+      // Confirmer n'écrit rien : la base porte encore la récupération.
+      expect(persistedPauses((await sessionRepository.findById(sessionId))!).recoveries).toContainEqual(["B", 45]);
+      expect(screen.queryByTestId("composition-activity-recovery-ex-b-recovery")).toBeNull();
+      // Durée sans la récupération (exercices sans Pause : RM-038 est prouvée par le test d’écran « timed »).
+      expect(sessionDuration()).toBe(formatEstimatedDuration(360, "exact"));
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText(composition.saveAction));
+      });
+      await waitFor(() => expect(router.getPathname()).toBe("/"));
+      const saved = await sessionRepository.findById(sessionId);
+      expect(persistedPauses(saved!).recoveries).toEqual([
+        ["A", null],
+        ["B", null],
+        ["C", null],
+        ["D", null],
+      ]);
+      expect(toSessionDurationResult(saved!)).toEqual({ kind: "exact", seconds: 360 });
+
+      await act(async () => {
+        expoRouter.push(`/composition?sessionId=${sessionId}`);
+      });
+      await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      });
+      expect(screen.getByLabelText(recoveryLabel("B")).props.accessibilityState).toMatchObject({ selected: false });
       fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     } finally {
       database.close();
