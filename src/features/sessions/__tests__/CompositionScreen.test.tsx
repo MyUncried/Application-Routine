@@ -15,6 +15,7 @@ import type { Label } from "@/domain/labels/Label";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, createExerciseDraft, sessionDraftsEqual, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import * as circuitModule from "@/domain/sessions/circuit";
+import { scopeSequence } from "@/domain/sessions/StopPoint";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
@@ -193,8 +194,23 @@ function fakeReferentialService(overrides: Partial<ReferentialService> = {}): Re
   } as unknown as ReferentialService;
 }
 
+/**
+ * Revue 6.2 : sous Jest, `onLayout` ne se déclenche jamais ; l'écran refuse alors tout soulèvement
+ * (géométrie incomplète). Mesure factice de chaque rangée affichée (cartes, points), dans sa liste —
+ * positions séquentielles, sans valeur de référence : les tests qui vérifient une géométrie
+ * l'injectent explicitement.
+ */
+function measureDisplayedRows() {
+  const rows = screen
+    .queryAllByTestId(/^composition-(activity-|stop-point-row-)/u, { includeHiddenElements: true })
+    .filter((node) => typeof node.props.onLayout === "function");
+  rows.forEach((row, index) =>
+    fireEvent(row, "layout", { nativeEvent: { layout: { x: 0, y: index * 100, width: 354, height: 80 } } }),
+  );
+}
+
 function renderScreen() {
-  return render(
+  const view = render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
         <ReferentialServiceContext.Provider value={fakeReferentialService()}>
@@ -205,6 +221,8 @@ function renderScreen() {
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
+  measureDisplayedRows();
+  return view;
 }
 
 /**
@@ -264,7 +282,7 @@ function renderScreenWithDraft(
   exercises: readonly SessionDraftExercise[],
   draftOverrides?: Partial<SessionDraftContextValue["draft"]>,
 ) {
-  return render(
+  const view = render(
     <TestSafeAreaProvider>
       <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
         <ReferentialServiceContext.Provider value={fakeReferentialService()}>
@@ -275,6 +293,8 @@ function renderScreenWithDraft(
       </ActivityDefinitionServiceContext.Provider>
     </TestSafeAreaProvider>,
   );
+  measureDisplayedRows();
+  return view;
 }
 
 const composition = strings.screens.composition;
@@ -2959,7 +2979,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     }
   });
 
-  it("PRE6-5.1 — R > 0 : sablier + valeur en ligne 3 de la carte ; un point seul garde sa rangée sous la carte, sans trait", () => {
+  it("PRE6-5.1 / 6.2 — R > 0 : sablier + valeur en ligne 3 de la carte ; un point a sa propre rangée après la carte, sans trait", () => {
     // R > 0 seul : dans la carte, aucune rangée.
     let view = renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
@@ -2968,11 +2988,11 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     const card = screen.getByTestId("composition-exercise-row-ex-1");
     const recovery = within(card).getByTestId("composition-activity-recovery-ex-1-recovery");
     expect(within(recovery).getByText("20 s")).toBeTruthy();
-    expect(screen.queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
+    expect(screen.queryByTestId(/^composition-stop-point-/u)).toBeNull();
     expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
     view.unmount();
 
-    // Point seul (R absente, puis R = 0) : rangée du point, sans trait ni récupération.
+    // Point (R absente, puis R = 0) : rangée autonome du point, sans trait ni récupération.
     for (const recovery of [null, 0] as const) {
       view = renderScreenWithDraft(
         [
@@ -2981,18 +3001,16 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
         ],
         { stopPoints: [pointAfter(1)] },
       );
-      // La rangée ne contient que la puce du point (aucun trait, aucune récupération).
-      const line = screen.getByTestId("composition-activity-recovery-ex-1");
+      const line = screen.getByTestId("composition-stop-point-p1");
       expect(line.findAll((node) => typeof node.type === "string" && node !== line && node.props.testID !== undefined).map((node) => node.props.testID)[0]).toBe(
-        "composition-activity-recovery-ex-1-stop-point",
+        "composition-stop-point-p1-chip",
       );
       expect(screen.queryByTestId("composition-recovery-line-label")).toBeNull();
-      expect(screen.getByTestId("composition-activity-recovery-ex-1-stop-point")).toBeTruthy();
-      expect(screen.getByTestId("composition-activity-recovery-slot-ex-1")).toBeTruthy();
+      expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
       view.unmount();
     }
 
-    // Les deux : la valeur dans la carte, le point dans la rangée.
+    // Les deux : la valeur dans la carte, le point dans sa rangée.
     renderScreenWithDraft(
       [
         anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }),
@@ -3000,13 +3018,10 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
       ],
       { stopPoints: [pointAfter(1)] },
     );
-    const line = screen.getByTestId("composition-activity-recovery-ex-1");
+    const line = screen.getByTestId("composition-stop-point-p1");
     expect(within(line).queryByText("20 s")).toBeNull();
     expect(within(line).queryByTestId("composition-recovery-line-icon")).toBeNull();
     expect(within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("20 s")).toBeTruthy();
-    expect(screen.getByTestId("composition-activity-recovery-ex-1-stop-point")).toBeTruthy();
-    // ex-2 : ni récupération ni point, aucune rangée.
-    expect(screen.queryByTestId("composition-activity-recovery-slot-ex-2")).toBeNull();
   });
 
   it("PRE6-5.1 — R = 20 : sablier 13 sous le symbole de durée, « 20 s » Regular 12 #7A7A80 calé à droite, sans préfixe", () => {
@@ -3064,27 +3079,19 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(blockStyle().height).toBe(80);
   });
 
-  it("PRE6-5.1 — la rangée du point fait bloc avec l'occurrence : même conteneur gestuel, sous la carte, même translation", () => {
+  // PRE-6 story 6.2 (D-436) : remplace « la rangée du point fait bloc avec l'occurrence » (ARB-3).
+  it("PRE6-6.2 — la rangée du point est une sœur des cartes, hors du conteneur gestuel de l'occurrence", () => {
     renderScreenWithDraft(withRecovery, { stopPoints: [pointAfter(1)] });
-
     const container = screen.getByTestId("composition-activity-ex-1");
-    const card = screen.getByTestId("composition-exercise-row-ex-1");
-    const line = within(container).getByTestId("composition-activity-recovery-ex-1");
-    // Hors de la surface de la carte, après elle, dans le même conteneur gestuel (D-138).
-    expect(within(card).queryByTestId("composition-activity-recovery-ex-1")).toBeNull();
-    expect(
-      testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-activity-recovery-ex-1"]),
-    ).toEqual(["composition-exercise-row-ex-1", "composition-activity-recovery-ex-1"]);
-    expect(screen.getAllByTestId(/^composition-activity-ex-1$/u)).toHaveLength(1);
-    expect(card.props.accessibilityRole).toBe("button");
-    // Écart entre la carte et la rangée : celui de la séquence (PRE-6 story 5.2, D-435 : 8 hors
-    // Circuit ; 6 auparavant), même transformation que la carte.
-    expect(line).toBeTruthy();
-    const lineWrapper = StyleSheet.flatten(
-      within(container).getByTestId("composition-activity-recovery-slot-ex-1").props.style,
-    );
-    expect(lineWrapper.marginTop).toBe(8);
-    expect(lineWrapper.transform).toEqual(StyleSheet.flatten(card.props.style).transform);
+    expect(within(container).queryByTestId("composition-stop-point-p1")).toBeNull();
+    const list = screen.getByTestId("composition-zone-before-tour");
+    expect(within(list).getByTestId("composition-stop-point-row-p1")).toBeTruthy();
+    expect(testIdOrder(screen.toJSON(), ["composition-activity-ex-1", "composition-stop-point-row-p1"])).toEqual([
+      "composition-activity-ex-1",
+      "composition-stop-point-row-p1",
+    ]);
+    // Écart entre la carte et la rangée : celui de la liste (8 hors Circuit).
+    expect(StyleSheet.flatten(list.props.style).gap).toBe(8);
   });
 
   it("PRE6-5.1 — the card is 80 with or without Zones, recovery or stop point", async () => {
@@ -3473,16 +3480,12 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   it("CE-T02-02 — the lifted card takes the blue surface; the stop point row has no surface of its own", () => {
     renderScreenWithDraft(withRecovery, { stopPoints: [pointAfter(1)] });
 
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style).backgroundColor,
-    ).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-p1").props.style).backgroundColor).toBeUndefined();
 
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
 
     expect(blockStyle().backgroundColor).toBe(colors.exerciseContextBandBackground);
-    expect(
-      StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-ex-1").props.style).backgroundColor,
-    ).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-p1").props.style).backgroundColor).toBeUndefined();
   });
 
   it("moves the Récupération WITH its Activity — it stays in line 3 of the card across zones", () => {
@@ -4332,20 +4335,22 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
   // PRE-6 story 5.1 : la récupération est dans la carte ; la rangée sous la carte ne porte plus qu'un point.
   // PRE-6 story 5.2 (D-435) : plus de repère par occurrence ; le rail de l'occurrence ne suit pas le
   // balayage (le rail ne glisse pas), et la carte soulevée sort du rail.
-  it("PRE6-2.1 / 5.2 — la rangée du point suit la carte : même translateX au balayage, même translateY au déplacement ; le rail ne suit ni l'un ni l'autre", () => {
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })], {
-      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
-    });
+  // PRE-6 story 6.2 (D-436) : la rangée du point est AUTONOME — elle ne suit ni le balayage ni le
+  // glisser de la carte qui la précède ; le rail de la carte ne suit ni l'un ni l'autre.
+  it("PRE6-6.2 — la rangée du point ne suit ni le balayage ni le glisser de la carte ; le rail de la carte non plus", () => {
+    renderScreenWithDraft(
+      [anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 }), anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" })],
+      { stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }] },
+    );
     const hidden = { includeHiddenElements: true };
     const transformOf = (testID: string) =>
-      StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style).transform as Record<string, number>[];
+      (StyleSheet.flatten(screen.getByTestId(testID, hidden).props.style).transform ?? []) as Record<string, number>[];
     const cardTransform = () => transformOf("composition-exercise-row-ex-1");
-    const lineTransform = () => transformOf("composition-activity-recovery-slot-ex-1");
+    const translation = (testID: string) => transformOf(testID).reduce((sum, entry) => sum + (entry.translateY ?? 0), 0);
 
     fireSwipeLeft("ex-1");
     expect(cardTransform()[0]!.translateX).toBeLessThan(0);
-    expect(lineTransform()).toEqual(cardTransform());
-    expect(screen.queryByTestId("composition-sequence-marker-ex-1", hidden)).toBeNull();
+    expect(transformOf("composition-stop-point-p1").some((entry) => (entry.translateX ?? 0) !== 0)).toBe(false);
     expect(StyleSheet.flatten(screen.getByTestId("composition-rail-tail-ex-1", hidden).props.style).transform).toBeUndefined();
     expect(transformOf("composition-rail-link-ex-1").some((entry) => entry.translateX !== undefined)).toBe(false);
     fireSwipeRight("ex-1");
@@ -4356,21 +4361,17 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 150 } });
 
     expect(cardTransform()[1]!.translateY).toBe(50);
-    // Story 5.2b : la rangée suit la carte et descend en plus du débord bas de la carte soulevée
-    // (`heightDelta / 2`), pour garder son écart sous elle.
-    expect(lineTransform()).toEqual([
-      cardTransform()[0],
-      { translateY: 50 + dimensions.compositionActivityRow.heightDelta / 2 },
-    ]);
+    // Le point reste à sa place (D-436, R1) : aucune translation de sa ligne ni de sa rangée.
+    expect(translation("composition-stop-point-p1")).toBe(0);
+    expect(screen.getByTestId("composition-rail-dot-stop-p1", hidden)).toBeTruthy();
     expect(screen.queryByTestId("composition-rail-link-ex-1", hidden)).toBeNull();
     expect(screen.queryByTestId("composition-rail-tail-ex-1", hidden)).toBeNull();
-    expect(screen.queryByTestId("composition-rail-dot-ex-1", hidden)).toBeNull();
   });
 
   // PRE-6 story 5.2 (D-435) : le rail passe sur les marges de la carte (jusqu'aux bords du média) :
   // il est peint après la carte, et avant la rangée sous la carte (les puces passent dessus).
-  it("PRE6-5.2 — le rail d'une occurrence est peint après les actions glissées et la carte, avant la rangée du point", () => {
-    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })], {
+  it("PRE6-5.2 — le rail d'une occurrence est peint après les actions glissées et la carte ; story 6.2 : la rangée du point est hors du bloc", () => {
+    renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }), anActivity("ex-2", "BEFORE_TOUR", { name: "Planche" })], {
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
     fireSwipeLeft("ex-1");
@@ -4380,10 +4381,17 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     const at = (testID: string) => children.indexOf(testID);
     expect(at("composition-activity-actions-ex-1")).toBeGreaterThanOrEqual(0);
     expect(at("composition-exercise-row-ex-1")).toBeGreaterThan(at("composition-activity-actions-ex-1"));
-    for (const rail of ["composition-rail-link-ex-1", "composition-rail-tail-ex-1", "composition-rail-dot-ex-1"]) {
+    for (const rail of ["composition-rail-link-ex-1", "composition-rail-tail-ex-1"]) {
       expect(at(rail)).toBeGreaterThan(at("composition-exercise-row-ex-1"));
-      expect(at(rail)).toBeLessThan(at("composition-activity-recovery-slot-ex-1"));
     }
+    // Ni rangée ni point de raccord dans le bloc de la carte.
+    expect(at("composition-activity-recovery-slot-ex-1")).toBe(-1);
+    expect(at("composition-rail-dot-ex-1")).toBe(-1);
+    // Dans la rangée du point : le rail est peint avant la puce (les puces passent dessus).
+    const row = (screen.getByTestId("composition-stop-point-row-p1").children as { props: { testID?: string } }[]).map(
+      (child) => child.props.testID,
+    );
+    expect(row.indexOf("composition-rail-dot-stop-p1")).toBeLessThan(row.indexOf("composition-stop-point-p1"));
   });
 
   it("PRE6-2.1 — toute la rangée d'une borne ouvre la roulette, y compris un toucher sur le libellé", () => {
@@ -5184,6 +5192,7 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
 
   it("story 5.1b — while a card is lifted (drag), the eye is disabled and opens nothing", () => {
     renderWithProbe(circuitExercises());
+    measureDisplayedRows();
     fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");
     expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
     const eye = screen.getByTestId(EYE);
@@ -5442,7 +5451,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
               postActivityRecoverySecondsDefault: profileRecoverySeconds,
             }),
           } as unknown as ProfileService);
-    return render(
+    const view = render(
       <TestSafeAreaProvider>
         <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
           <ReferentialServiceContext.Provider value={fakeReferentialService()}>
@@ -5455,6 +5464,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         </ActivityDefinitionServiceContext.Provider>
       </TestSafeAreaProvider>,
     );
+    measureDisplayedRows();
+    return view;
   }
 
   /** Matrice de la story : A (avant), Circuit [B, C], D (après). */
@@ -6251,7 +6262,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 
     it("a point at a position placement no longer offers (before the End) stays shown as a placed face, its row kept", () => {
       renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "pD", scope: "AFTER_TOUR", position: 1 }] } });
-      expect(screen.getByTestId("composition-activity-recovery-D-stop-point")).toBeTruthy();
+      expect(screen.getByTestId("composition-stop-point-pD-chip")).toBeTruthy();
       enter();
       expect(screen.getByTestId("composition-activity-recovery-slot-D")).toBeTruthy();
       expect(screen.getByLabelText(p.existingStopPointAccessibilityLabel.replace("{exercise}", "D"))).toBeTruthy();
@@ -6321,15 +6332,14 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 
   describe("durée, modification et retrait (PRE-6 story 4.2)", () => {
     const pauses = strings.screens.composition.pauses;
-    const line = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}`);
+    /** Story 6.2 : ligne et puce de la rangée autonome d'un point, par identifiant de point. */
+    const line = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}`);
     const recoveryButton = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-recovery`);
-    const stopChip = (id: string) => screen.getByTestId(`composition-activity-recovery-${id}-stop-point`);
+    const stopChip = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}-chip`);
     // Revue 5.3 : en placement, le nom désigne l'exercice (B dans ces tests).
     const modifiable = (duration: string, exercise = "B") =>
       pauses.modifiableRecoveryAccessibilityLabel.replace("{duration}", duration).replace("{exercise}", exercise);
     const BUBBLE = "composition-removal-bubble";
-    const removeAction = (element: ReturnType<typeof screen.getByTestId>) =>
-      fireEvent(element, "accessibilityAction", { nativeEvent: { actionName: "remove" } });
     /** PRE-6 story 5.1 : actions de récupération portées par la carte (« modifyRecovery », « removeRecovery »). */
     const cardAction = (id: string, actionName: string) =>
       fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName } });
@@ -6356,15 +6366,15 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       mockAnchor.value = { x: 60, y: 400, width: 100, height: 13 };
     });
 
-    it("a stop point after A is a centred chip « ❚❚ Point d’arrêt » on A's structural line (8328:29428 ; story 5.2 : 9819:20018)", () => {
+    it("a stop point after A is a centred chip « ❚❚ Point d’arrêt » on its own row after A's card (8328:29428 ; story 5.2 : 9819:20018 ; story 6.2 : autonomous row)", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }), {
         overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
       });
-      const chip = stopChip("A");
+      const chip = stopChip("pA");
       expect(chip.props.accessibilityLabel).toBe("Point d’arrêt après A");
       expect(chip.props.accessibilityRole).toBeUndefined();
       // Revue 5.3 : la puce dessinée est la face ; le `Pressable` porte la cible réelle (30).
-      expect(StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-A-stop-point-face").props.style)).toMatchObject({
+      expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-pA-chip-face").props.style)).toMatchObject({
         backgroundColor: colors.background,
         borderWidth: 1,
         borderColor: "#C8C8D7",
@@ -6378,20 +6388,21 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         fontWeight: "500",
         color: colors.textLabel,
       });
-      // Plus de trait (PRE-6 story 5.1, D1). PRE-6 story 5.2 (D-435, `9819:20018`) : rangée de 22,
-      // puce centrée (ch13 L1258 « aligné à droite » remplacé par la demande de Hermann du 21/10).
-      expect(StyleSheet.flatten(line("A").props.style)).toMatchObject({ height: 22, justifyContent: "center" });
-      expect(within(line("A")).queryByTestId("composition-recovery-line-icon")).toBeNull();
-      // Récupération (ligne 3 de la carte, story 5.1) avant le point, sous la carte.
+      // Plus de trait (story 5.1, D1) ; rangée de 22, puce centrée (story 5.2).
+      expect(StyleSheet.flatten(line("pA").props.style)).toMatchObject({ height: 22, justifyContent: "center" });
+      expect(within(line("pA")).queryByTestId("composition-recovery-line-icon")).toBeNull();
+      // Story 6.2 (D-436) : rangée autonome, entre A et B, hors du bloc de A ; la récupération de A
+      // reste dans la ligne 3 de sa carte.
+      expect(within(screen.getByTestId("composition-activity-A")).queryByTestId("composition-stop-point-pA-chip")).toBeNull();
       expect(
         testIdOrder(screen.toJSON(), [
           "composition-activity-recovery-A-recovery",
-          "composition-activity-recovery-A-stop-point",
+          "composition-stop-point-row-pA",
+          "composition-activity-B",
         ]),
-      ).toEqual(["composition-activity-recovery-A-recovery", "composition-activity-recovery-A-stop-point"]);
-      expect(screen.queryByTestId("composition-activity-recovery-B-stop-point")).toBeNull();
-      // B : ni récupération ni point, aucune ligne (décision Hermann 21/10/2026, remplace D-303).
-      expect(screen.queryByTestId("composition-activity-recovery-B")).toBeNull();
+      ).toEqual(["composition-activity-recovery-A-recovery", "composition-stop-point-row-pA", "composition-activity-B"]);
+      expect(screen.queryByTestId("composition-activity-recovery-slot-A")).toBeNull();
+      expect(screen.getAllByTestId(/^composition-stop-point-row-/u)).toHaveLength(1);
     });
 
     // PRE-6 story 5.1 (revue) : la cible couvre le sablier et la valeur de la ligne 3, sans la ligne 2
@@ -6412,20 +6423,21 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId(`${BUBBLE}-remove`)).toBeNull();
     });
 
-    it("a point after the Circuit sits on a structural line under the Circuit container", () => {
+    it("story 6.2 — a point after the Circuit is the first row of the zone after the Circuit; in placement, the dedicated slot takes over", () => {
       renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR", position: 0 }] } });
       const ids = screen
         .getByTestId("composition-body")
         .findAll((node) => typeof node.type === "string" && typeof node.props.testID === "string")
         .map((node) => node.props.testID as string);
       const at = (id: string) => ids.indexOf(id);
-      expect(at("composition-after-circuit-line")).toBeGreaterThan(at("composition-activity-C"));
-      expect(at("composition-after-circuit-line")).toBeLessThan(at("composition-zone-after-tour"));
-      expect(screen.getByTestId("composition-after-circuit-line-stop-point").props.accessibilityLabel).toBe(
-        "Point d’arrêt après le circuit",
-      );
+      expect(at("composition-stop-point-row-t")).toBeGreaterThan(at("composition-tour-section"));
+      expect(at("composition-stop-point-row-t")).toBeGreaterThan(at("composition-zone-after-tour"));
+      expect(at("composition-stop-point-row-t")).toBeLessThan(at("composition-activity-D"));
+      expect(screen.queryByTestId("composition-after-circuit-line-track")).toBeNull();
+      expect(stopChip("t").props.accessibilityLabel).toBe("Point d’arrêt après le circuit");
       enter();
-      expect(screen.queryByTestId("composition-after-circuit-line")).toBeNull();
+      expect(screen.queryByTestId("composition-stop-point-row-t")).toBeNull();
+      expect(screen.getByTestId("composition-after-circuit-line-track")).toBeTruthy();
     });
 
     it("modifying R: R = 20, tap, ✓ 45 → « Récupération 45 s » in a single functional update", () => {
@@ -6476,7 +6488,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(recoveries()[0]).toBe(0);
       // PRE-6 story 5.1 : la rangée ne porte que le point, sans trait ; la carte n'affiche rien pour R = 0.
       expect(screen.queryByTestId("composition-recovery-line-label")).toBeNull();
-      expect(stopChip("A")).toBeTruthy();
+      expect(stopChip("pA")).toBeTruthy();
     });
 
     it("off-grid legacy values (600 s, 7 s) open snapped (300, 5) and ✓ without moving the wheel changes nothing", () => {
@@ -6558,38 +6570,33 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(sessionDuration()).toBe(expected.session);
     });
 
-    it("long press on a point: bubble « Retirer le point d’arrêt »; Retirer → point removed from stopPoints", () => {
+    // PRE-6 story 6.2 (D-436) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action
+    // de retrait (le retrait revient en placement, story 6.3). Choix documenté dans la spec 6.2.
+    it("story 6.2 — long press on a point grabs it: no bubble, no « remove » action, nothing removed (also after the Circuit)", () => {
       renderPlacement(matrix(), {
         overrides: {
           stopPoints: [
             { id: "pA", scope: "BEFORE_TOUR", position: 1 },
-            { id: "pB", scope: "IN_TOUR", position: 1 },
+            { id: "t", scope: "AFTER_TOUR", position: 0 },
           ],
         },
       });
-      fireEvent(stopChip("B"), "longPress");
-      const remove = screen.getByTestId(`${BUBBLE}-remove`);
-      expect(remove.props.accessibilityLabel).toBe(pauses.removeStopPoint);
-      fireEvent.press(remove);
-      expect(probe.draft!.stopPoints).toEqual([{ id: "pA", scope: "BEFORE_TOUR", position: 1 }]);
-      expect(screen.queryByTestId("composition-activity-recovery-B-stop-point")).toBeNull();
-      expect(stopChip("A")).toBeTruthy();
+      const before = probe.draft;
+      for (const id of ["pA", "t"]) {
+        const actions = (stopChip(id).props.accessibilityActions ?? []) as { name: string }[];
+        expect(actions.map((action) => action.name)).not.toContain("remove");
+        fireEvent(screen.getByTestId(`composition-stop-point-row-${id}`), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+        fireEvent(stopChip(id), "longPress");
+        expect(screen.queryByTestId(BUBBLE)).toBeNull();
+        // Le point est réellement soulevé : défilement neutralisé, rangée au premier plan.
+        expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-stop-point-row-${id}`).props.style).zIndex).toBe(1);
+        fireEvent(screen.getByTestId(`composition-stop-point-row-${id}`), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+        expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+      }
+      expect(probe.draft!.stopPoints).toEqual(before!.stopPoints);
     });
 
-    it("the after-Circuit point is removed by the bubble and by the « remove » action; its line goes", () => {
-      const after = { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR" as const, position: 0 }] } };
-      const view = renderPlacement(matrix(), after);
-      fireEvent(screen.getByTestId("composition-after-circuit-line-stop-point"), "longPress");
-      fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
-      expect(probe.draft!.stopPoints).toEqual([]);
-      expect(screen.queryByTestId("composition-after-circuit-line")).toBeNull();
-      view.unmount();
-
-      renderPlacement(matrix(), after);
-      removeAction(screen.getByTestId("composition-after-circuit-line-stop-point"));
-      expect(probe.draft!.stopPoints).toEqual([]);
-      expect(screen.queryByTestId("composition-after-circuit-line")).toBeNull();
-    });
 
     it("the bubble is shown only once the element is measured; an empty measurement shows nothing", () => {
       mockAnchor.value = null;
@@ -6609,8 +6616,6 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent(recoveryButton("A"), "longPress");
       fireEvent.press(screen.getByTestId(`${BUBBLE}-backdrop`));
       expect(screen.queryByTestId(`${BUBBLE}-remove`)).toBeNull();
-      fireEvent(stopChip("A"), "longPress");
-      fireEvent.press(screen.getByTestId(`${BUBBLE}-backdrop`));
       expect(screen.queryByTestId(BUBBLE)).toBeNull();
       expect(probe.updates).toBe(0);
       expect(probe.draft).toBe(before);
@@ -6645,14 +6650,13 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         overrides: { stopPoints: [{ id: "pA", scope: "BEFORE_TOUR", position: 1 }] },
       });
       fireEvent(recoveryButton("A"), "longPress");
-      fireEvent(stopChip("A"), "longPress");
       expect(screen.getAllByTestId(`${BUBBLE}-remove`)).toHaveLength(1);
-      expect(screen.getByTestId(`${BUBBLE}-remove`).props.accessibilityLabel).toBe(pauses.removeStopPoint);
+      expect(screen.getByTestId(`${BUBBLE}-remove`).props.accessibilityLabel).toBe(pauses.removeRecovery);
       // Ouvrir la roulette referme la bulle ; ouvrir la bulle referme la roulette.
       fireEvent.press(recoveryButton("A"));
       expect(screen.queryByTestId(BUBBLE)).toBeNull();
       expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
-      fireEvent(stopChip("A"), "longPress");
+      fireEvent(recoveryButton("A"), "longPress");
       expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
       expect(screen.getByTestId(`${BUBBLE}-remove`)).toBeTruthy();
       fireEvent(screen.getByTestId("composition-body"), "scrollBeginDrag");
@@ -6684,7 +6688,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
         const cardActions = (screen.getByTestId("composition-exercise-row-A").props.accessibilityActions as { name: string; label: string }[]);
         expect(cardActions).toContainEqual({ name: "removeRecovery", label: pauses.removeRecovery });
-        expect(stopChip("A").props.accessibilityActions).toEqual([{ name: "remove", label: pauses.removeStopPoint }]);
+        // Story 6.2 : la puce du point n'a plus d'action de retrait.
+        expect(((stopChip("pA").props.accessibilityActions ?? []) as { name: string }[]).map((action) => action.name)).not.toContain("remove");
 
         focus.mockClear();
         cardAction("A", "removeRecovery");
@@ -6692,13 +6697,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         expect(screen.queryByTestId(BUBBLE)).toBeNull();
         // La rangée garde son point, mais le focus revient à la carte qui portait la récupération.
         await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
-
-        focus.mockClear();
-        removeAction(stopChip("A"));
-        expect(probe.draft!.stopPoints).toEqual([{ id: "pB", scope: "IN_TOUR", position: 1 }]);
-        // Plus de point : la rangée disparaît, le focus revient à l'occurrence qui la portait.
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
-        expect(probe.updates).toBe(2);
+        expect(probe.updates).toBe(1);
       } finally {
         focus.mockRestore();
       }
@@ -6715,7 +6714,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         fireEvent(recoveryButton("A"), "longPress");
         fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
         expect(recoveries()[0]).toBeNull();
-        expect(stopChip("A")).toBeTruthy();
+        expect(stopChip("pA")).toBeTruthy();
         await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-A"]));
       } finally {
         focus.mockRestore();
@@ -6746,58 +6745,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
-    it("removing the last point (R absent or 0) removes the line, and focus goes to the card", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        renderPlacement(matrix({ B: { postActivityRecoverySeconds: 0 } }), {
-          overrides: { stopPoints: [{ id: "pB", scope: "IN_TOUR", position: 1 }] },
-        });
-        // Le point seul suffit à la ligne (R = 0 n'affiche rien).
-        expect(within(line("B")).queryByTestId("composition-recovery-line-label")).toBeNull();
-        expect(stopChip("B")).toBeTruthy();
-        focus.mockClear();
-        fireEvent(stopChip("B"), "longPress");
-        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
-        expect(probe.draft!.stopPoints).toEqual([]);
-        expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-B"]));
-        expect(recoveries()[1]).toBe(0);
-      } finally {
-        focus.mockRestore();
-      }
-    });
 
-    it("after removing the after-Circuit point, focus goes to the first occurrence after the Circuit", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        renderPlacement(matrix(), { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR", position: 0 }] } });
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        focus.mockClear();
-        removeAction(screen.getByTestId("composition-after-circuit-line-stop-point"));
-        await waitFor(() => expect(targets()).toEqual(["composition-exercise-row-D"]));
-      } finally {
-        focus.mockRestore();
-      }
-    });
 
-    // Revue 5.1b : l'œil est désormais en haut de l'écran ; sans occurrence après le Circuit, le focus
-    // va au compteur de l'en-tête du Circuit (voisin du point retiré), jamais à l'œil.
-    it("after removing the after-Circuit point with no occurrence after the Circuit, focus goes to the Circuit counter, never to the eye", async () => {
-      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-      try {
-        renderPlacement(matrix().slice(0, 3), { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR", position: 0 }] } });
-        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
-        focus.mockClear();
-        fireEvent(screen.getByTestId("composition-after-circuit-line-stop-point"), "longPress");
-        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
-        expect(probe.draft!.stopPoints).toEqual([]);
-        await waitFor(() => expect(targets()).toEqual(["composition-circuit-header-counter"]));
-        expect(targets()).not.toContain("composition-volumes-action");
-      } finally {
-        focus.mockRestore();
-      }
-    });
 
     it("placement: modifying an existing R (20 → 45) is not counted in N, Annuler restores it", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
@@ -7146,6 +7095,15 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   }
 
   const container = (id: string) => screen.getByTestId(`composition-activity-${id}`);
+  /**
+   * PRE-6 story 6.2 : point « après le Circuit » `pc` = première rangée (22) de la zone après le
+   * Circuit ; Z garde son centre à 475 (zone à 410, rangée 0–22, Z à 30).
+   */
+  function layOutAfterCircuitPoint() {
+    fireLayout(screen.getByTestId("composition-zone-after-tour"), 410, 100);
+    fireLayout(screen.getByTestId("composition-stop-point-row-pc"), 0, 22);
+    fireLayout(container("Z"), 30, 70);
+  }
   function lift(id: string) {
     fireEvent(container(id), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
     fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "longPress");
@@ -7266,7 +7224,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
 
   it("entrée dans le Circuit par le bas : le bas du Circuit et la ligne après le Circuit descendent d'un pas", () => {
     renderLaidOut({ stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }] });
-    fireLayout(screen.getByTestId("composition-zone-after-tour"), 440, 70);
+    layOutAfterCircuitPoint();
     lift("Z");
     // Centre de Z = 475 ; -100 → 375 : dans le Circuit, sous le milieu de X.
     moveTo("Z", -100);
@@ -7274,7 +7232,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     // Story 5.2 : pas d'insertion dans le Circuit = carte + écart 9.
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
     expect(translateY("composition-tour-section-surface-bottom")).toBe(CIRCUIT_PITCH);
-    expect(translateY("composition-after-circuit-line-track")).toBe(CIRCUIT_PITCH);
+    // Story 6.2 : le point après le Circuit (rangée de la zone après) suit le bas du Circuit.
+    expect(translateY("composition-stop-point-row-pc")).toBe(CIRCUIT_PITCH);
     expect(translateY("composition-circuit-header")).toBe(0);
     expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + CIRCUIT_PITCH / BAND, 6);
     expect(order()).toEqual(INITIAL_ORDER);
@@ -7327,6 +7286,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
 
   it("dépôt refusé (point d'arrêt sur un emplacement interdit) : retour en douceur, ordre inchangé", () => {
     renderLaidOut({ stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] }, { withX: false, withZ: false });
+    // Story 6.2 : la rangée du point (entre A et B) est mesurée — sans quoi le soulèvement est refusé.
+    fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
     lift("A");
     moveTo("A", 100);
     settle();
@@ -7572,15 +7533,15 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
 
     it("entrée dans le Circuit par le bas : le bas du Circuit s'étire à travers l'emplacement ouvert ; la Fin se relie à la rangée après le Circuit", () => {
       renderLaidOut({ stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }] });
-      fireLayout(screen.getByTestId("composition-zone-after-tour"), 440, 70);
+      layOutAfterCircuitPoint();
       lift("Z");
       moveTo("Z", -100);
       settle();
       // Bas du Circuit : de X (immobile) au bord bas, qui descend d'un pas du Circuit.
       expect(linkHeight("composition-rail-link-circuit-end")).toBe(14);
       expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
-      // La rangée après le Circuit suit le bas du Circuit : son lien ne change pas.
-      expect(scaleY("composition-rail-link-after-circuit")).toBe(1);
+      // La rangée du point après le Circuit suit le bas du Circuit : son lien ne change pas.
+      expect(scaleY("composition-rail-link-stop-pc")).toBe(1);
       // Fin : à travers la place de Z (8 + 70) ; elle descend du net, la rangée d'un pas du Circuit.
       const endLength = 8 + 70 + 8 + 7;
       expect(linkHeight("composition-rail-link-end")).toBe(endLength);
@@ -7620,6 +7581,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         readonly entry: number;
         readonly minLength: number;
         readonly linkTestID: string | null;
+        /** Élément qui suit le doigt quand il est soulevé (carte, ligne du point). */
+        readonly liftTestID?: string;
         readonly shift: () => number;
         readonly media: { readonly top: number; readonly bottom: number } | null;
       };
@@ -7643,29 +7606,48 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       /** Mesure la mise en page (ordre courant du brouillon) et rend le modèle de la séquence. */
       function layOut() {
         const exercises = probe.draft!.exercises;
-        const ids = (zone: Zone) => exercises.filter((exercise) => exercise.structuralPosition === zone).map((exercise) => exercise.id);
-        const hasStopRow = (id: string) =>
-          screen.queryByTestId(`composition-activity-recovery-slot-${id}`, { includeHiddenElements: true }) !== null;
+        // Story 6.2 (D-436) : rangées de la zone dans l'ordre affiché — cartes et points.
+        const itemsOf = (zone: Zone) => scopeSequence(exercises, probe.draft!.stopPoints ?? [], zone);
+        const ids = (zone: Zone) => itemsOf(zone);
         const elements: Element[] = [];
         const rowsOf = (zone: Zone, gap: number, base: number, group: string) => {
           let y = 0;
-          ids(zone).forEach((id, index) => {
+          itemsOf(zone).forEach((item, index) => {
             if (index > 0) y += gap;
-            const height = CARD + (hasStopRow(id) ? gap + STOP_POINT_LINE_HEIGHT : 0);
-            fireLayout(container(id), y, height);
             const top = base + y;
+            if (item.kind === "STOP_POINT") {
+              const id = item.point.id;
+              fireLayout(screen.getByTestId(`composition-stop-point-row-${id}`), y, STOP_POINT_LINE_HEIGHT);
+              elements.push({
+                key: `stop:${id}`,
+                group,
+                top,
+                bottom: top + STOP_POINT_LINE_HEIGHT,
+                entry: top,
+                minLength: 0,
+                linkTestID: `composition-rail-link-stop-${id}`,
+                liftTestID: `composition-stop-point-${id}`,
+                shift: () => translateY(`composition-stop-point-row-${id}`),
+                media: null,
+              });
+              y += STOP_POINT_LINE_HEIGHT;
+              return;
+            }
+            const id = item.occurrence.id;
+            fireLayout(container(id), y, CARD);
             elements.push({
               key: id,
               group,
               top,
-              bottom: top + height,
+              bottom: top + CARD,
               entry: top + MEDIA.top,
               minLength: MEDIA.top,
               linkTestID: `composition-rail-link-${id}`,
+              liftTestID: `composition-exercise-row-${id}`,
               shift: () => rowShift(id),
               media: { top: top + MEDIA.top, bottom: top + MEDIA.bottom },
             });
-            y += height;
+            y += CARD;
           });
           return y;
         };
@@ -7721,12 +7703,23 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       function expectRailJoined(elements: readonly Element[], raisedId: string | null) {
         const raised = elements.find((element) => element.key === raisedId) ?? null;
         // Carte au premier plan : translation de sa rangée (registre) et de sa carte (doigt, soulevée).
-        const raisedShift = raised === null ? 0 : raised.shift() + translateY(`composition-exercise-row-${raised.key}`);
-        const cover = raised === null ? null : { top: raised.top + raisedShift, bottom: raised.bottom + raisedShift };
+        const raisedShift =
+          raised === null ? 0 : raised.shift() + (raised.liftTestID === undefined ? 0 : translateY(raised.liftTestID));
+        // Seule une carte recouvre l'axe du rail (la puce d'un point est centrée sur la page).
+        const cover =
+          raised === null || raised.media === null ? null : { top: raised.top + raisedShift, bottom: raised.bottom + raisedShift };
         const raisedGroup = raised?.group ?? null;
         const rank = (element: Element, index: number) =>
           element.key === raisedId ? 1e6 : element.group === raisedGroup ? 1e3 + index : index;
         const chain = elements.filter((element) => element.linkTestID === null || hasLink(element.linkTestID));
+        // Revue 6.2 : un point hors de la chaîne (soulevé, tenu, en retour) ne dessine AUCUN rail —
+        // ni queue ni point de raccord : le lien de ses voisines traverse déjà sa place.
+        for (const element of elements) {
+          if (element.media !== null || element.linkTestID === null || hasLink(element.linkTestID)) continue;
+          const id = element.key.slice("stop:".length);
+          expect(screen.queryByTestId(`composition-rail-tail-stop-${id}`, hidden)).toBeNull();
+          expect(screen.queryByTestId(`composition-rail-dot-stop-${id}`, hidden)).toBeNull();
+        }
         const defects: string[] = [];
         chain.forEach((element, index) => {
           if (index === 0 && element.key !== "header") return;
@@ -7784,7 +7777,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       const zIndexOf = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).zIndex;
       const centerOf = (elements: readonly Element[], id: string) => {
         const element = elements.find((candidate) => candidate.key === id)!;
-        return element.top + CARD / 2;
+        return (element.top + element.bottom) / 2;
       };
 
       it("dialogue de perte : la dernière carte avant le Circuit, relâchée dans le Circuit, y reste tenue ; « Annuler » la ramène, rail continu", () => {
@@ -7868,7 +7861,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           ],
           { stopPoints: [{ id: "s-1", scope: "IN_TOUR", position: 1 }] },
         );
-        expect(screen.getByTestId("composition-activity-recovery-slot-X", hidden)).toBeTruthy();
+        expect(screen.getByTestId("composition-stop-point-row-s-1", hidden)).toBeTruthy();
         expectRailJoined(elements, null);
         const dy = centerOf(elements, "Z") + 10 - centerOf(elements, "Y");
         lift("Y");
@@ -7888,19 +7881,6 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expectRailJoined(layOut(), null);
       });
 
-      it("carte soulevée à rangée de point d'arrêt : la rangée suit le débord bas de la carte (écart conservé)", () => {
-        renderRail(
-          [anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })],
-          { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] },
-        );
-        lift("A");
-        moveTo("A", 30);
-        const card = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-A").props.style);
-        const row = StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-slot-A").props.style);
-        const cardBottom = (card.height as number) + (card.marginVertical as number) + 30;
-        const rowTop = CARD + (row.marginTop as number) + translateY("composition-activity-recovery-slot-A");
-        expect(rowTop - cardBottom).toBe(GAP);
-      });
 
       it("nouveau geste pendant un retour : le retour s'arrête, tout est posé à 0 avant le relevé", () => {
         const elements = renderRail(
@@ -7926,6 +7906,421 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         release("B", -dy);
         expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
         expectRailJoined(layOut(), null);
+      });
+
+      /**
+       * PRE-6 story 6.2 (D-436, R1, R2, RM-251) : glisser à un rang de la séquence mêlée — la carte
+       * laisse les points en place (\`moveOccurrenceInSequence\`) ; le point se déplace seul
+       * (\`moveStopPoint\`) ; refus → retour animé, rien d'écrit. Rail continu (\`expectRailJoined\`).
+       */
+      describe("story 6.2 — Points d'arrêt autonomes", () => {
+        const circuitX = () => anActivity("X", "IN_TOUR", { name: "Pompes" });
+        const before = (ids: string[]) => ids.map((id) => anActivity(id, "BEFORE_TOUR", { name: `Ex ${id}` }));
+        const pointsOf = () => (probe.draft!.stopPoints ?? []).map(({ id, scope, position }) => `${id}:${scope}:${position}`);
+        const pointRow = (id: string) => screen.getByTestId(`composition-stop-point-row-${id}`);
+        const pointChip = (id: string) => screen.getByTestId(`composition-stop-point-${id}-chip`);
+        function liftPoint(id: string) {
+          fireEvent(pointRow(id), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+          fireEvent(pointChip(id), "longPress");
+        }
+        const movePoint = (id: string, dy: number) =>
+          fireEvent(pointRow(id), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 + dy } });
+        const releasePoint = (id: string, dy: number) =>
+          fireEvent(pointRow(id), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 + dy } });
+        const pointActions = (id: string) =>
+          ((pointChip(id).props.accessibilityActions ?? []) as { name: string }[]).map((action) => action.name);
+
+        it("R1 — [W, A, P, B], A glissée sous B → [W, P, B, A] : P reste en place, rail continu pendant le geste", () => {
+          let elements = renderRail([...before(["W", "A", "B"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 2 }],
+          });
+          expectRailJoined(elements, null);
+          const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
+          lift("A");
+          moveTo("A", dy);
+          settle();
+          // P (rangée) remonte d'un pas avec B : la place de A se referme, l'emplacement s'ouvre sous B.
+          expect(translateY("composition-stop-point-row-P")).toBeLessThan(0);
+          expectRailJoined(elements, "A");
+          release("A", dy);
+          expect(order()).toEqual(["W:BEFORE_TOUR", "B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+          elements = layOut();
+          expectRailJoined(elements, null);
+          expect(testIdOrder(screen.toJSON(), ["composition-activity-W", "composition-stop-point-row-P", "composition-activity-B", "composition-activity-A"])).toEqual([
+            "composition-activity-W",
+            "composition-stop-point-row-P",
+            "composition-activity-B",
+            "composition-activity-A",
+          ]);
+        });
+
+        it("R1 / RM-251 — [A, P, B, Q, C], B glissée après C : refus (P et Q se suivraient), retour animé, rien d'écrit", () => {
+          const elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
+            stopPoints: [
+              { id: "P", scope: "BEFORE_TOUR", position: 1 },
+              { id: "Q", scope: "BEFORE_TOUR", position: 2 },
+            ],
+          });
+          const draftBefore = probe.draft;
+          const dy = centerOf(elements, "C") + 10 - centerOf(elements, "B");
+          lift("B");
+          moveTo("B", dy);
+          settle();
+          release("B", dy);
+          expect(probe.draft!.exercises).toBe(draftBefore!.exercises);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1", "Q:BEFORE_TOUR:2"]);
+          expect(rowShift("B")).toBe(dy);
+          for (let frame = 0; frame < 4; frame += 1) {
+            expectRailJoined(elements, "B");
+            frames(2);
+          }
+          settle();
+          expect(rowShift("B")).toBe(0);
+          expectRailJoined(layOut(), null);
+        });
+
+        it("R2 — [A, P, B, C], P glissé sous B → [A, B, P, C] : identité conservée, la puce suit le doigt, voisines décalées, rail continu", () => {
+          let elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
+          });
+          const dy = centerOf(elements, "B") + 10 - centerOf(elements, "stop:P");
+          liftPoint("P");
+          // Soulevé : un seul élément au premier plan, aucun balayage, aucune mise en page changée.
+          expect(StyleSheet.flatten(pointRow("P").props.style).zIndex).toBe(1);
+          movePoint("P", dy);
+          settle();
+          expect(translateY("composition-stop-point-P")).toBe(dy);
+          // B remonte dans la place libérée par P.
+          expect(rowShift("B")).toBeLessThan(0);
+          expect(screen.queryByTestId("composition-rail-link-stop-P", hidden)).toBeNull();
+          expectRailJoined(elements, "stop:P");
+          releasePoint("P", dy);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2"]);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(rowShift("B")).toBe(0);
+          elements = layOut();
+          expectRailJoined(elements, null);
+        });
+
+        it("R2 / RM-251 — un point déposé contre un autre est refusé : retour animé, rien d'écrit", () => {
+          const elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
+            stopPoints: [
+              { id: "P", scope: "BEFORE_TOUR", position: 1 },
+              { id: "Q", scope: "BEFORE_TOUR", position: 2 },
+            ],
+          });
+          const draftBefore = probe.draft;
+          // Entre le milieu de B et celui de Q : même emplacement que Q.
+          const dy = centerOf(elements, "B") + 10 - centerOf(elements, "stop:P");
+          liftPoint("P");
+          movePoint("P", dy);
+          settle();
+          releasePoint("P", dy);
+          expect(probe.draft!.stopPoints).toBe(draftBefore!.stopPoints);
+          expect(translateY("composition-stop-point-row-P")).toBe(dy);
+          for (let frame = 0; frame < 4; frame += 1) {
+            expectRailJoined(elements, "stop:P");
+            frames(2);
+          }
+          settle();
+          expect(translateY("composition-stop-point-row-P")).toBe(0);
+          expect(hasLink("composition-rail-link-stop-P")).toBe(true);
+          expectRailJoined(layOut(), null);
+        });
+
+        it("AC3 — « Monter » / « Descendre » d'un point : vers l'emplacement autorisé voisin, proposés seulement si acceptés", () => {
+          renderRail([...before(["A", "B", "C"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
+            stopPoints: [
+              { id: "P", scope: "BEFORE_TOUR", position: 1 },
+              { id: "Q", scope: "BEFORE_TOUR", position: 3 },
+            ],
+          });
+          // P : monter le mettrait juste après le compte à rebours (jamais proposable) → absente ;
+          // descendre → après B. Q (avant le Circuit) : descendre saute la tête du Circuit → après X.
+          expect(pointActions("P")).toEqual(["moveDown"]);
+          expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
+          expect(pointChip("P").props.accessibilityHint).toBe(composition.pauses.stopPointReorderAccessibilityHint);
+          fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:3"]);
+          // Revue 6.2 : Q monte jusqu'au premier emplacement ACCEPTÉ — il franchit P (occupé), comme au
+          // glisser : après A.
+          expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
+          fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:1"]);
+          // Redescendre : il franchit de nouveau P (après B, occupé) → après C ; puis il saute la tête
+          // du Circuit → après X.
+          fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:3"]);
+          fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:IN_TOUR:1"]);
+        });
+
+        it("« Monter » / « Descendre » d'une carte : échange avec l'élément voisin, point compris (stepOccurrence) ; absent si refusé", () => {
+          renderRail([...before(["W", "A", "B"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 2 }],
+          });
+          const cardActions = (id: string) =>
+            ((screen.getByTestId(`composition-exercise-row-${id}`).props.accessibilityActions ?? []) as { name: string }[]).map(
+              (action) => action.name,
+            );
+          // W monter : début de la Séance → absent.
+          expect(cardActions("W")).not.toContain("moveUp");
+          fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          // A descend d'un élément : elle passe après P, qui ne bouge pas → [W, P, A, B].
+          expect(order()).toEqual(["W:BEFORE_TOUR", "A:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+        });
+
+        it("suppression refusée (arbitrage du 22/10) : rien n'est supprimé, la carte se referme, la raison est annoncée", () => {
+          const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+          try {
+            renderRail([...before(["A", "B"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }] });
+            const draftBefore = probe.draft;
+            const card = screen.getByTestId("composition-exercise-row-A");
+            expect(((card.props.accessibilityActions ?? []) as { name: string }[]).map((action) => action.name)).toContain("delete");
+            fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+            expect(probe.draft!.exercises).toBe(draftBefore!.exercises);
+            expect(probe.draft!.stopPoints).toBe(draftBefore!.stopPoints);
+            // Revue 6.2 : annoncée à l'image suivante, après le focus porté sur la carte.
+            expect(announce).not.toHaveBeenCalledWith(composition.activityActions.deleteRefusedStopPointNotAllowed);
+            frames(1);
+            expect(announce).toHaveBeenCalledWith(composition.activityActions.deleteRefusedStopPointNotAllowed);
+            expect(screen.queryByTestId("composition-activity-actions-A")).toBeNull();
+          } finally {
+            announce.mockRestore();
+          }
+        });
+
+        it("Dupliquer ne copie pas le point (arbitrage du 22/10) : [A, P, B] → [A, A′, P, B]", () => {
+          renderRail([...before(["A", "B"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }] });
+          fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+          expect(order()).toEqual(["A:BEFORE_TOUR", "generated-copy-id:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2"]);
+        });
+        it("suppression refusée, points consécutifs : [A, P, B, Q, C], supprimer B → rien, annonce de la raison", () => {
+          const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
+          try {
+            renderRail([...before(["A", "B", "C"]), circuitX()], {
+              stopPoints: [
+                { id: "P", scope: "BEFORE_TOUR", position: 1 },
+                { id: "Q", scope: "BEFORE_TOUR", position: 2 },
+              ],
+            });
+            const draftBefore = probe.draft;
+            fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+            frames(1);
+            expect(probe.draft).toBe(draftBefore);
+            expect(announce).toHaveBeenCalledWith(composition.activityActions.deleteRefusedConsecutiveStopPoints);
+          } finally {
+            announce.mockRestore();
+          }
+        });
+
+        it("R1 — carte glissée qui laisserait un point juste après le Compte à rebours : refus, retour animé, rien d'écrit", () => {
+          const elements = renderRail([...before(["A", "B"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
+          });
+          const draftBefore = probe.draft;
+          const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
+          lift("A");
+          moveTo("A", dy);
+          settle();
+          release("A", dy);
+          expect(probe.draft).toBe(draftBefore);
+          expect(rowShift("A")).toBe(dy);
+          settle();
+          expect(rowShift("A")).toBe(0);
+          expectRailJoined(layOut(), null);
+        });
+
+        it("R2 entre zones — en tête du Circuit : refusé ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {
+          let elements = renderRail([...before(["A", "B"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
+          });
+          // Juste au-dessus du milieu de X : tête du Circuit.
+          let dy = centerOf(elements, "X") - 10 - centerOf(elements, "stop:P");
+          liftPoint("P");
+          movePoint("P", dy);
+          settle();
+          releasePoint("P", dy);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+          settle();
+          // Juste au-dessus du milieu de Z : après le Circuit, avant Z.
+          elements = layOut();
+          dy = centerOf(elements, "Z") - 10 - centerOf(elements, "stop:P");
+          liftPoint("P");
+          movePoint("P", dy);
+          settle();
+          expectRailJoined(elements, "stop:P");
+          releasePoint("P", dy);
+          expect(pointsOf()).toEqual(["P:AFTER_TOUR:0"]);
+          expect(within(screen.getByTestId("composition-zone-after-tour")).getByTestId("composition-stop-point-row-P")).toBeTruthy();
+          expect(pointChip("P").props.accessibilityLabel).toBe(composition.placement.existingStopPointAfterCircuitAccessibilityLabel);
+          expectRailJoined(layOut(), null);
+        });
+
+        it("RM-251 entre portées : un point déposé « après le Circuit » quand un autre termine le Circuit est refusé", () => {
+          const elements = renderRail([...before(["A"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
+            stopPoints: [
+              { id: "P", scope: "BEFORE_TOUR", position: 1 },
+              { id: "Q", scope: "IN_TOUR", position: 1 },
+            ],
+          });
+          const draftBefore = probe.draft;
+          const dy = centerOf(elements, "Z") - 10 - centerOf(elements, "stop:P");
+          liftPoint("P");
+          movePoint("P", dy);
+          settle();
+          releasePoint("P", dy);
+          expect(probe.draft!.stopPoints).toBe(draftBefore!.stopPoints);
+        });
+
+        it("« Descendre » absent quand le seul emplacement suivant précède la Fin", () => {
+          renderRail([...before(["A"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
+            stopPoints: [{ id: "P", scope: "AFTER_TOUR", position: 0 }],
+          });
+          expect(pointActions("P")).toEqual(["moveUp"]);
+        });
+
+        it("toucher court et balayage sur la puce : aucun effet", () => {
+          renderRail([...before(["A", "B"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }] });
+          const draftBefore = probe.draft;
+          fireEvent.press(pointChip("P"));
+          fireEvent(pointRow("P"), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+          movePoint("P", 0);
+          fireEvent(pointRow("P"), "responderMove", { nativeEvent: { pageX: 60, pageY: 100 } });
+          releasePoint("P", 0);
+          expect(probe.draft).toBe(draftBefore);
+          expect(translateY("composition-stop-point-P")).toBe(0);
+          expect(transformOf("composition-stop-point-P").some((entry) => (entry.translateX ?? 0) !== 0)).toBe(false);
+          expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+          expect(screen.queryByTestId(/^composition-activity-actions-/u)).toBeNull();
+        });
+
+        it("soulèvement refusé : rangée non mesurée, ou mesurée dans une autre zone (montée ailleurs depuis)", () => {
+          renderRail([...before(["A", "B"]), circuitX()]);
+          // B descend dans le Circuit (Monter / Descendre) : sa rangée remonte dans une autre liste,
+          // non encore mesurée — l'ancienne mesure est celle de la zone d'avant.
+          fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "X:IN_TOUR"]);
+          lift("A");
+          expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+          expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: false });
+          // Une fois mesurée, le soulèvement est accepté.
+          layOut();
+          lift("A");
+          expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+        });
+
+        it("multitouche : un second appui long est ignoré ; le dépôt attend le dernier doigt levé ; toucher annulé = plus d'origine", () => {
+          const elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 2 }],
+          });
+          const dy = centerOf(elements, "C") + 10 - centerOf(elements, "A");
+          lift("A");
+          // Second doigt sur B, puis sur le point : ignorés, A reste seul soulevé.
+          lift("B");
+          liftPoint("P");
+          expect(screen.getByTestId("composition-exercise-row-B").props.accessibilityState).toMatchObject({ selected: false });
+          expect(StyleSheet.flatten(pointRow("P").props.style).zIndex).toBeUndefined();
+          moveTo("A", dy);
+          // Un doigt se lève, l'autre reste : rien n'est déposé.
+          fireEvent(container("A"), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 + dy, touches: [{}] } });
+          expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: true });
+          release("A", dy);
+          expect(order()).toEqual(["B:BEFORE_TOUR", "C:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
+          // Point : toucher annulé par le système, puis appui long → aucun soulèvement.
+          settle();
+          layOut();
+          fireEvent(pointRow("P"), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
+          fireEvent(pointRow("P"), "touchCancel", {});
+          fireEvent(pointChip("P"), "longPress");
+          expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+        });
+        it("VoiceOver : après un pas qui change de zone, le focus suit l'élément (point, carte) à l'image suivante", () => {
+          const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+          try {
+            renderRail([...before(["A", "B"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
+              stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
+            });
+            const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+            // Images en attente des tests précédents écoulées.
+            frames(1);
+            focus.mockClear();
+            // P descend : après B, même zone — aucun focus forcé.
+            fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+            frames(1);
+            expect(targets()).toEqual([]);
+            // Puis il saute la tête du Circuit → après X : autre liste, le focus le suit.
+            fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+            expect(pointsOf()).toEqual(["P:IN_TOUR:1"]);
+            frames(1);
+            expect(targets()).toEqual(["composition-stop-point-P-chip"]);
+            // Une carte qui change de zone : B descend en tête du Circuit.
+            focus.mockClear();
+            fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
+            expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+            frames(1);
+            expect(targets()).toEqual(["composition-exercise-row-B"]);
+          } finally {
+            focus.mockRestore();
+          }
+        });
+
+        it("bornes : le Compte à rebours suivi d'un point (tête de séquence héritée) réduit sa marge tactile basse de la marge de la puce", () => {
+          renderRail([...before(["A"]), circuitX()]);
+          const countdown = () => StyleSheet.flatten(screen.getByLabelText(composition.countdown.label).props.style);
+          const without = -(countdown().marginBottom as number);
+          screen.unmount();
+          renderRail([...before(["A"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 0 }] });
+          const withPoint = -(countdown().marginBottom as number);
+          const chipSlop = -(StyleSheet.flatten(pointChip("P").props.style).marginVertical as number);
+          expect(withPoint).toBe(Math.min(without, 8 - chipSlop));
+          expect(withPoint + chipSlop).toBeLessThanOrEqual(8);
+        });
+
+        it("nom du point : le dernier séparateur (Exercice) qui le précède ; des homonymes sont distingués par « n sur m »", () => {
+          renderRail(
+            [
+              anActivity("A", "BEFORE_TOUR", { name: "Squat" }),
+              anActivity("R", "BEFORE_TOUR", { name: "Pause", type: "RECOVERY" }),
+              anActivity("B", "BEFORE_TOUR", { name: "Squat" }),
+              anActivity("C", "BEFORE_TOUR", { name: "Gainage" }),
+              circuitX(),
+            ],
+            {
+              stopPoints: [
+                { id: "P", scope: "BEFORE_TOUR", position: 2 },
+                { id: "Q", scope: "BEFORE_TOUR", position: 4 },
+              ],
+            },
+          );
+          const label = (exercise: string) => composition.placement.existingStopPointAccessibilityLabel.replace("{exercise}", exercise);
+          // P suit R (ancienne Récupération autonome, pas un séparateur) : nommé d'après A, 1 sur 4.
+          expect(pointChip("P").props.accessibilityLabel).toBe(`${label("Squat")}, 1 sur 4`);
+          // Q suit C, sans homonyme.
+          expect(pointChip("Q").props.accessibilityLabel).toBe(label("Gainage"));
+        });
+        it("position héritée hors bornes : ramenée à l'emplacement affiché — déposée sur place, rien d'écrit ; « Monter » part de là", () => {
+          renderRail([...before(["A", "B"]), circuitX()], {
+            stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 99 }],
+          });
+          const draftBefore = probe.draft;
+          // Affiché en fin de zone (après B) ; glissé d'un rien puis déposé : même emplacement affiché.
+          expect(testIdOrder(screen.toJSON(), ["composition-activity-B", "composition-stop-point-row-P"])).toEqual([
+            "composition-activity-B",
+            "composition-stop-point-row-P",
+          ]);
+          liftPoint("P");
+          movePoint("P", 3);
+          settle();
+          releasePoint("P", 3);
+          expect(probe.draft).toBe(draftBefore);
+          settle();
+          fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+        });
       });
 
       it("entrée en placement pendant un retour : la session se termine aussitôt, translations à 0", () => {
@@ -8098,41 +8493,45 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     expect(styleOf("composition-tour-section")).toMatchObject({ paddingVertical: 14, gap: 9 });
   });
 
-  it("point d'arrêt après A : rangée de 22 centrée à 8 sous la carte, point de raccord sur le rail", () => {
+  it("point d'arrêt après A : rangée autonome de 22 à 8 sous la carte, point de raccord sur le rail (story 6.2 : nœud du rail)", () => {
     renderScreenWithDraft([anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })], {
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
-    expect(styleOf("composition-activity-recovery-slot-A").marginTop).toBe(8);
-    expect(styleOf("composition-activity-recovery-A")).toMatchObject({ height: 22, justifyContent: "center" });
-    // Point de 6 au centre de la rangée : 80 + 8 + 11, sur l'axe du média (40).
-    expect(styleOf("composition-rail-dot-A")).toMatchObject({
+    expect(styleOf("composition-zone-before-tour").gap).toBe(8);
+    expect(styleOf("composition-stop-point-p1")).toMatchObject({ height: 22, justifyContent: "center" });
+    // Point de 6 au centre de la rangée (11), sur l'axe du média (40).
+    expect(styleOf("composition-rail-dot-stop-p1")).toMatchObject({
       width: 6,
       height: 6,
       borderRadius: 3,
-      top: 80 + 8 + 11 - 3,
+      top: 11 - 3,
       left: 40 - 3,
       backgroundColor: TEXT_TERTIARY,
     });
-    // La queue de A traverse la rangée (jusqu'au bas du bloc) ; B n'a pas de point.
+    // La queue de A s'arrête au bas de la carte ; le lien du point remonte l'écart (8) jusqu'à A ;
+    // celui de B remonte l'écart jusqu'au bas de la rangée du point ; la queue du point la traverse.
     expect(styleOf("composition-rail-tail-A")).toMatchObject({ top: 72, bottom: 0 });
-    expect(screen.queryByTestId("composition-rail-dot-B", hidden)).toBeNull();
+    expect(span("composition-rail-link-stop-p1")).toMatchObject({ top: -8, height: 8 });
+    expect(styleOf("composition-rail-tail-stop-p1")).toMatchObject({ top: 0, bottom: 0 });
+    expect(span("composition-rail-link-B").height).toBe(16);
+    expect(screen.queryByTestId("composition-rail-dot-A", hidden)).toBeNull();
     // Cible tactile de la puce limitée à l'écart (4 ≤ 8) : elle ne chevauche aucune carte. Revue 5.3 :
     // boîte réelle de 30 (marges négatives de 4 : la rangée garde 22).
-    const chip = StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-A-stop-point").props.style);
+    const chip = StyleSheet.flatten(screen.getByTestId("composition-stop-point-p1-chip").props.style);
     expect(chip).toMatchObject({ height: 30, marginVertical: -4 });
     expect(-(chip.marginVertical as number)).toBeLessThanOrEqual(8);
   });
 
-  it("point après le Circuit : rangée centrée sous le Circuit, reliée au bas du Circuit, la suite reliée à elle", () => {
+  it("point après le Circuit (story 6.2 : première rangée de la zone après le Circuit) : reliée au bas du Circuit, la suite reliée à elle", () => {
     renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" }), anActivity("a", "AFTER_TOUR", { name: "Fentes" })], {
       stopPoints: [{ id: "pc", scope: "AFTER_TOUR", position: 0 }],
     });
-    const track = screen.getByTestId("composition-after-circuit-line-track");
-    expect(within(track).getByTestId("composition-after-circuit-line")).toBeTruthy();
-    expect(styleOf("composition-after-circuit-line")).toMatchObject({ height: 22, justifyContent: "center" });
-    expect(span("composition-rail-link-after-circuit")).toMatchObject({ top: -8, height: 8 });
-    expect(styleOf("composition-rail-tail-after-circuit")).toMatchObject({ top: 0, bottom: 0, left: 32 - 0.75 });
-    expect(styleOf("composition-rail-dot-after-circuit")).toMatchObject({ top: 11 - 3, left: 32 - 3 });
+    expect(within(screen.getByTestId("composition-zone-after-tour")).getByTestId("composition-stop-point-pc")).toBeTruthy();
+    expect(styleOf("composition-stop-point-pc")).toMatchObject({ height: 22, justifyContent: "center" });
+    // Lien jusqu'au bas du Circuit : l'écart de la séquence (8), ancre au haut de la rangée.
+    expect(span("composition-rail-link-stop-pc")).toMatchObject({ top: -8, height: 8 });
+    expect(styleOf("composition-rail-tail-stop-pc")).toMatchObject({ top: 0, bottom: 0, left: 40 - 0.75 });
+    expect(styleOf("composition-rail-dot-stop-pc")).toMatchObject({ top: 11 - 3, left: 40 - 3 });
     expect(span("composition-rail-link-a").height).toBe(16);
   });
 
@@ -8206,7 +8605,7 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     ["point après le Circuit, sans carte après", [anActivity("i", "IN_TOUR", { name: "Pompes" })], { id: "pc", scope: "AFTER_TOUR" as const, position: 0 }],
   ])("Fin de séance précédée d'une rangée de point (%s) : marges tactiles disjointes", (_case, exercises, stopPoint) => {
     renderScreenWithDraft(exercises, { stopPoints: [stopPoint] });
-    const chips = screen.getAllByTestId(/-stop-point$/u);
+    const chips = screen.getAllByTestId(/^composition-stop-point-.*-chip$/u);
     expect(chips).toHaveLength(1);
     // Revue 5.3 : étendues lues sur les boîtes réelles (marges négatives).
     const chipBottomSlop = -(StyleSheet.flatten(chips[0]!.props.style).marginVertical as number);
@@ -8229,7 +8628,9 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     for (const testID of [
       "composition-rail-link-b",
       "composition-rail-tail-b",
-      "composition-rail-dot-b",
+      "composition-rail-link-stop-p1",
+      "composition-rail-tail-stop-p1",
+      "composition-rail-dot-stop-p1",
       "composition-rail-link-circuit-header",
       "composition-sequence-marker-circuit",
       "composition-rail-link-end",
@@ -8291,6 +8692,7 @@ describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 s
     mockPush.mockClear();
     fireEvent.press(screen.getByTestId("composition-exercise-media-image", hidden));
     expect(mockPush).toHaveBeenCalledTimes(1);
+    measureDisplayedRows();
     fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");
     // État soulevé réel (surface soulevée, défilement neutralisé) ; le média reste dans la carte qui
     // se déplace (même `Pressable`).

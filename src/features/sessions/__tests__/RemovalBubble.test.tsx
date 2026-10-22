@@ -25,7 +25,7 @@ describe("RemovalBubble (PRE-6 story 4.2)", () => {
   const layout = (width: number) => fireEvent(bubble(), "layout", { nativeEvent: { layout: { x: 0, y: 0, width, height: 31 } } });
 
   it("recovery: red pill « Retirer la récupération » with the white hourglass, 31 high", () => {
-    renderWithInsets(<RemovalBubble kind="RECOVERY" anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
+    renderWithInsets(<RemovalBubble anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
     expect(bubble().props.accessibilityRole).toBe("button");
     expect(bubble().props.accessibilityLabel).toBe(pauses.removeRecovery);
     expect(screen.getByTestId(`${BUBBLE}-icon`)).toBeTruthy();
@@ -38,14 +38,8 @@ describe("RemovalBubble (PRE-6 story 4.2)", () => {
     });
   });
 
-  it("stop point: « Retirer le point d’arrêt » with the white ❚❚ symbol", () => {
-    renderWithInsets(<RemovalBubble kind="STOP_POINT" anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
-    expect(bubble().props.accessibilityLabel).toBe(pauses.removeStopPoint);
-    expect(screen.queryByTestId(`${BUBBLE}-icon`)).toBeNull();
-  });
-
   it("stays invisible until its width is known, then sits right above the anchor", () => {
-    renderWithInsets(<RemovalBubble kind="RECOVERY" anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
+    renderWithInsets(<RemovalBubble anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
     expect(bubbleStyle().opacity).toBe(0);
     layout(172);
     // Sablier de la bulle (12 du bord) sur celui de la ligne ; bas de la bulle sur le haut de l'ancre.
@@ -53,31 +47,23 @@ describe("RemovalBubble (PRE-6 story 4.2)", () => {
     expect(bubbleStyle().opacity).toBeUndefined();
   });
 
-  it("stop point: right edge on the chip's right edge", () => {
-    renderWithInsets(<RemovalBubble kind="STOP_POINT" anchor={ANCHOR} onRemove={jest.fn()} onDismiss={jest.fn()} />);
-    layout(166);
-    expect(bubbleStyle()).toMatchObject({ left: 74 + 120 - 166, top: 480 - 31 });
-  });
-
   it("goes below the anchor when there is no room above it", () => {
     renderWithInsets(
-      <RemovalBubble kind="RECOVERY" anchor={{ x: 74, y: 20, width: 120, height: 13 }} onRemove={jest.fn()} onDismiss={jest.fn()} />,
+      <RemovalBubble anchor={{ x: 74, y: 20, width: 120, height: 13 }} onRemove={jest.fn()} onDismiss={jest.fn()} />,
     );
     layout(172);
     expect(bubbleStyle().top).toBe(20 + 13);
   });
 
-  it("is clamped horizontally on both edges, for both kinds", () => {
+  it("is clamped horizontally on both edges", () => {
     const { width } = Dimensions.get("window");
     const view = renderWithInsets(
-      <RemovalBubble kind="RECOVERY" anchor={{ x: width - 20, y: 480, width: 10, height: 13 }} onRemove={jest.fn()} onDismiss={jest.fn()} />,
+      <RemovalBubble anchor={{ x: width - 20, y: 480, width: 10, height: 13 }} onRemove={jest.fn()} onDismiss={jest.fn()} />,
     );
     layout(172);
     expect(bubbleStyle().left).toBe(width - 8 - 172);
     view.unmount();
-    renderWithInsets(
-      <RemovalBubble kind="STOP_POINT" anchor={{ x: 0, y: 480, width: 40, height: 22 }} onRemove={jest.fn()} onDismiss={jest.fn()} />,
-    );
+    renderWithInsets(<RemovalBubble anchor={{ x: 0, y: 480, width: 40, height: 13 }} onRemove={jest.fn()} onDismiss={jest.fn()} />);
     layout(166);
     expect(bubbleStyle().left).toBe(8);
   });
@@ -85,7 +71,7 @@ describe("RemovalBubble (PRE-6 story 4.2)", () => {
   it("Retirer calls onRemove; the backdrop, the system back and the VoiceOver escape only dismiss", () => {
     const onRemove = jest.fn();
     const onDismiss = jest.fn();
-    renderWithInsets(<RemovalBubble kind="RECOVERY" anchor={ANCHOR} onRemove={onRemove} onDismiss={onDismiss} />);
+    renderWithInsets(<RemovalBubble anchor={ANCHOR} onRemove={onRemove} onDismiss={onDismiss} />);
     fireEvent.press(screen.getByTestId(`${BUBBLE}-backdrop`));
     fireEvent(screen.getByTestId(BUBBLE), "requestClose");
     fireEvent(bubble(), "accessibilityEscape");
@@ -96,15 +82,27 @@ describe("RemovalBubble (PRE-6 story 4.2)", () => {
   });
 });
 
-/** PRE-6 story 4.2 (`8328:29428`) : puce « Point d'arrêt » hors placement. */
-describe("StopPointChip (PRE-6 story 4.2)", () => {
-  it("is a 22-high chip whose slop stays within its line; long press and « Retirer » action are wired", () => {
+/**
+ * PRE-6 story 4.2 (`8328:29428`) : puce « Point d'arrêt » hors placement. PRE-6 story 6.2 (D-436) :
+ * l'appui long saisit le point (glisser) ; plus d'action de retrait, mais « Monter » / « Descendre ».
+ */
+describe("StopPointChip (PRE-6 stories 4.2, 6.2)", () => {
+  it("is a 22-high chip whose slop stays within its line; long press grabs it; its actions are the given ones, never « remove »", () => {
     const onLongPress = jest.fn();
-    const onRemove = jest.fn();
-    render(<StopPointChip accessibilityLabel="Point d’arrêt après A" onLongPress={onLongPress} onRemove={onRemove} testID="chip" />);
+    const onAccessibilityAction = jest.fn();
+    render(
+      <StopPointChip
+        accessibilityLabel="Point d’arrêt après A"
+        accessibilityHint="Appui long pour déplacer le point d’arrêt"
+        onLongPress={onLongPress}
+        accessibilityActions={[{ name: "moveUp", label: "Monter" }]}
+        onAccessibilityAction={onAccessibilityAction}
+        testID="chip"
+      />,
+    );
     const chip = screen.getByTestId("chip");
     expect(STOP_POINT_CHIP_HEIGHT).toBe(22);
-    // Ligne de 30 (marges 4 / 4) : la cible ne déborde pas sur la carte au-dessus.
+    // Ligne de 30 (marges 4 / 4) : la cible ne déborde pas sur les éléments voisins.
     // Revue 5.3 : cible réelle (boîte de 30, marges négatives de 4 : la ligne garde 22), sans hitSlop.
     expect(chip.props.hitSlop).toBeUndefined();
     expect(StyleSheet.flatten(chip.props.style)).toMatchObject({
@@ -112,12 +110,12 @@ describe("StopPointChip (PRE-6 story 4.2)", () => {
       marginVertical: -STOP_POINT_CHIP_TOUCH_EXTENT,
     });
     expect(STOP_POINT_CHIP_HEIGHT + 2 * STOP_POINT_CHIP_TOUCH_EXTENT).toBe(30);
+    expect(chip.props.accessibilityActions).toEqual([{ name: "moveUp", label: "Monter" }]);
+    expect(chip.props.accessibilityHint).toBe("Appui long pour déplacer le point d’arrêt");
     fireEvent(chip, "longPress");
     expect(onLongPress).toHaveBeenCalledTimes(1);
-    fireEvent(chip, "accessibilityAction", { nativeEvent: { actionName: "other" } });
-    expect(onRemove).not.toHaveBeenCalled();
-    fireEvent(chip, "accessibilityAction", { nativeEvent: { actionName: "remove" } });
-    expect(onRemove).toHaveBeenCalledTimes(1);
+    fireEvent(chip, "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    expect(onAccessibilityAction).toHaveBeenCalledWith("moveUp");
   });
 });
 

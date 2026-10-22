@@ -17,7 +17,11 @@
  *   s'étire ou se rétracte de la différence entre les deux translations (`shift - prevShift`),
  *   portée par transformations sur le pilote natif.
  *
- * L'occurrence glissée est sortie de la chaîne (son successeur se relie à son prédécesseur, sa
+ * Story 6.2 (D-436) : la rangée autonome d'un Point d'arrêt est un nœud de la chaîne (`stop`) :
+ * écart de sa zone au-dessus, ancre au haut de la rangée (lien jusqu'au bord bas de l'élément
+ * précédent), queue sur toute sa hauteur, point de raccord en son centre.
+ *
+ * L'élément glissé (occurrence ou point) est sorti de la chaîne (son successeur se relie à son prédécesseur, sa
  * hauteur relevée au début du geste comptée dans le lien) : le rail traverse sa place d'origine
  * pendant qu'elle se referme, et la place d'insertion pendant qu'elle s'ouvre.
  */
@@ -25,7 +29,7 @@
 import type { StructuralPosition } from "@/domain/sessions/Session";
 
 /** Nature d'un élément de la séquence porteur de rail. */
-type RailNodeKind = "start" | "row" | "circuitHeader" | "circuitEnd" | "afterCircuit" | "end";
+type RailNodeKind = "start" | "row" | "stop" | "circuitHeader" | "circuitEnd" | "afterCircuit" | "end";
 
 /**
  * Géométrie de conception dont dépend la longueur des liens au repos : les MÊMES constantes que
@@ -54,18 +58,24 @@ export type RailLink = {
   readonly length: number;
 };
 
+/**
+ * Élément d'une zone dans l'ordre affiché : une occurrence (son identifiant) ou, PRE-6 story 6.2
+ * (D-436), la rangée autonome d'un Point d'arrêt (`{ stopPointId }`).
+ */
+export type RailChainItem = string | { readonly stopPointId: string };
+
 export type RailChainInput = {
-  /** Occurrences de chaque zone, dans l'ordre affiché. */
-  readonly beforeTour: readonly string[];
-  readonly inTour: readonly string[];
-  readonly afterTour: readonly string[];
-  /** Rangée « après le Circuit » rendue (point d'arrêt hors placement, emplacement en placement). */
+  /** Éléments de chaque zone (occurrences et, hors placement, rangées de points), dans l'ordre affiché. */
+  readonly beforeTour: readonly RailChainItem[];
+  readonly inTour: readonly RailChainItem[];
+  readonly afterTour: readonly RailChainItem[];
+  /** Rangée « après le Circuit » rendue (story 6.2 : emplacement du placement seulement). */
   readonly hasAfterCircuit: boolean;
   /**
-   * Occurrence sortie de la chaîne — glissée, puis jusqu'à la fin de son retour animé — et sa
-   * hauteur relevée au début du geste.
+   * Élément sorti de la chaîne (clé de rail) — soulevé, tenu pendant le dialogue de perte ou en
+   * retour animé — et sa hauteur relevée au début du geste.
    */
-  readonly skipped: { readonly id: string; readonly height: number } | null;
+  readonly skipped: { readonly key: string; readonly height: number } | null;
   readonly geometry: RailGeometry;
 };
 
@@ -83,6 +93,15 @@ export function railRowKey(occurrenceId: string): string {
   return `rail:row:${occurrenceId}`;
 }
 
+/** PRE-6 story 6.2 : clé de la rangée autonome d'un Point d'arrêt (identifiant du point). */
+export function railStopKey(stopPointId: string): string {
+  return `rail:stop:${stopPointId}`;
+}
+
+function isStopItem(item: RailChainItem): item is { readonly stopPointId: string } {
+  return typeof item === "object" && item !== null;
+}
+
 type ChainNode = {
   readonly key: string;
   readonly kind: RailNodeKind;
@@ -98,7 +117,12 @@ type ChainNode = {
  */
 export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, RailLink> {
   const { geometry: g } = input;
-  const rowNode = (zone: StructuralPosition) => (id: string): ChainNode => ({ key: railRowKey(id), kind: "row", zone, id });
+  const rowNode =
+    (zone: StructuralPosition) =>
+    (item: RailChainItem): ChainNode =>
+      isStopItem(item)
+        ? { key: railStopKey(item.stopPointId), kind: "stop", zone, id: item.stopPointId }
+        : { key: railRowKey(item), kind: "row", zone, id: item };
   const chain: ChainNode[] = [
     { key: RAIL_KEYS.start, kind: "start", zone: null, id: null },
     ...input.beforeTour.map(rowNode("BEFORE_TOUR")),
@@ -116,6 +140,7 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
       case "start":
         return 0;
       case "row":
+      case "stop":
         return node.zone === "IN_TOUR" ? g.circuitGap : g.sequenceGap;
       case "circuitHeader":
         return g.sequenceGap + g.circuitPadding;
@@ -138,7 +163,7 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
         return 0;
     }
   };
-  const isSkipped = (node: ChainNode) => input.skipped !== null && node.kind === "row" && node.id === input.skipped.id;
+  const isSkipped = (node: ChainNode) => input.skipped !== null && node.key === input.skipped.key;
 
   const links = new Map<string, RailLink>();
   let previous: ChainNode = chain[0];

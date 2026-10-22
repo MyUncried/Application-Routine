@@ -4,7 +4,6 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import type { AnchorRect } from "@/features/sessions/measureAnchor";
-import { StopPointSymbol } from "@/features/sessions/StopPointChip";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, spacing } from "@/shared/ui/tokens";
@@ -21,10 +20,7 @@ const SCREEN_MARGIN = spacing[8];
 /** Rectangle d'ancrage en coordonnées de fenêtre (`measureAnchor`). */
 export type RemovalBubbleAnchor = AnchorRect;
 
-export type RemovalBubbleKind = "RECOVERY" | "STOP_POINT";
-
 export type RemovalBubbleProps = {
-  readonly kind: RemovalBubbleKind;
   /** Élément touché, mesuré (la bulle n'est montée qu'une fois la mesure connue et non vide). */
   readonly anchor: RemovalBubbleAnchor;
   readonly onRemove: () => void;
@@ -36,18 +32,18 @@ export type RemovalBubbleProps = {
 /**
  * Bulle contextuelle « Retirer » (PRE-6 story 4.2, ch13 : « Il ne s'agit pas de modales de
  * confirmation », ch10 L631 : aucun second dialogue) — « Retirer la récupération » (sablier,
- * `8328:29133`) ou « Retirer le point d'arrêt » (symbole ❚❚, `8328:33689`), juste au-dessus de
- * l'élément touché (dessous s'il manque la place en haut) : alignée à gauche sur la récupération
- * (sablier sur sablier), à droite sur la puce du point, toujours maintenue dans l'écran. Choisir Retirer exécute le retrait ; tout toucher ailleurs ferme sans mutation.
+ * `8328:29133`), juste au-dessus de l'élément touché (dessous s'il manque la place en haut),
+ * alignée à gauche sur la récupération (sablier sur sablier), toujours maintenue dans l'écran.
+ * Choisir Retirer exécute le retrait ; tout toucher ailleurs ferme sans mutation. PRE-6 story 6.2
+ * (D-436) : plus de variante « point d'arrêt » — l'appui long d'un point est son glisser.
  *
  * Rendue dans une `Modal` transparente (coordonnées de fenêtre, cible tactile complète sur
  * Android, où un toucher hors des limites du parent n'atteint pas l'enfant) : le voile invisible
  * capte le premier toucher hors bulle, si bien qu'aucun défilement, glisser de carte ou autre
  * contrôle ne peut s'ouvrir tant qu'elle est affichée — une seule bulle à la fois.
  */
-export function RemovalBubble({ kind, anchor, onRemove, onDismiss, testID = "composition-removal-bubble" }: RemovalBubbleProps) {
-  const t = strings.screens.composition.pauses;
-  const label = kind === "RECOVERY" ? t.removeRecovery : t.removeStopPoint;
+export function RemovalBubble({ anchor, onRemove, onDismiss, testID = "composition-removal-bubble" }: RemovalBubbleProps) {
+  const label = strings.screens.composition.pauses.removeRecovery;
   const windowSize = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const bubbleRef = useRef<View>(null);
@@ -59,8 +55,8 @@ export function RemovalBubble({ kind, anchor, onRemove, onDismiss, testID = "com
   useEffect(() => focusOnNextFrame(() => bubbleRef.current), []);
 
   const width = bubbleWidth ?? 0;
-  // Sablier de la bulle (12 du bord) aligné sur celui de la ligne ; bord droit sur la puce du point.
-  const desiredLeft = kind === "RECOVERY" ? anchor.x - BUBBLE.paddingHorizontal : anchor.x + anchor.width - width;
+  // Sablier de la bulle (12 du bord) aligné sur celui de la ligne.
+  const desiredLeft = anchor.x - BUBBLE.paddingHorizontal;
   const left = Math.max(SCREEN_MARGIN, Math.min(desiredLeft, windowSize.width - SCREEN_MARGIN - width));
   // Au-dessus de l'élément ; sous lui s'il n'y a pas la place sous la zone protégée du haut.
   const fitsAbove = anchor.y - REMOVAL_BUBBLE_HEIGHT >= insets.top + SCREEN_MARGIN;
@@ -82,11 +78,7 @@ export function RemovalBubble({ kind, anchor, onRemove, onDismiss, testID = "com
         style={[styles.bubble, { left, top }, bubbleWidth === null ? styles.unmeasured : null]}
         testID={`${testID}-remove`}
       >
-        {kind === "RECOVERY" ? (
-          <KodjoIcon name="remove-recovery" testID={`${testID}-icon`} />
-        ) : (
-          <StopPointSymbol color={colors.background} />
-        )}
+        <KodjoIcon name="remove-recovery" testID={`${testID}-icon`} />
         <Text style={styles.text} numberOfLines={1}>
           {label}
         </Text>

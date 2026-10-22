@@ -391,6 +391,9 @@ export const fr = {
         addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
         existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
         existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+        // PRE-6 story 6.2 : point en tête de portée (données héritées), formulation à valider.
+        stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
+        stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
         confirmSingular: "Confirmer {n} pause ajoutée",
         confirmPlural: "Confirmer {n} pauses ajoutées",
         cancel: "Annuler",
@@ -406,7 +409,8 @@ export const fr = {
         // PRE-6 (story 5.1, D-435) : action accessible de la carte qui ouvre le réglage de la récupération
         // de la ligne 3 (VoiceOver n’atteint pas un bouton imbriqué dans la carte).
         modifyRecovery: "Modifier la récupération",
-        removeStopPoint: "Retirer le point d’arrêt",
+        // PRE-6 story 6.2 (D-436) : l’appui long d’un point le saisit (glisser).
+        stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
       // PRE-6 (story 4.3, D-301, ch10 L556, ch13 L1575) : avertissement non bloquant d’enchaînement
@@ -472,6 +476,11 @@ export const fr = {
         // dans la séquence affichée, mêmes règles que le glisser.
         moveUp: "Monter",
         moveDown: "Descendre",
+        // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : suppression d’un exercice refusée —
+        // rien n’est supprimé, la carte se referme et la raison est annoncée (formulation à valider).
+        deleteRefusedStopPointNotAllowed:
+          "Suppression impossible : un point d’arrêt se retrouverait à une position interdite.",
+        deleteRefusedConsecutiveStopPoints: "Suppression impossible : deux points d’arrêt se suivraient.",
       },
       // PRE-6 (story 2.3) : confirmation de perte de séries à l’entrée d’un exercice dans un
       // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion

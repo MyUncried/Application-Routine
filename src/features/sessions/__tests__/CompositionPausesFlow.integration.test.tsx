@@ -1,4 +1,4 @@
-import { act, fireEvent, renderRouter, screen, waitFor, within } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { router as expoRouter } from "expo-router";
 import { afterAll, beforeAll, describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
@@ -130,21 +130,20 @@ const nativeChange = (testID: string, selection: number) =>
   fireEvent(screen.getByTestId(testID), "selectionChange", { nativeEvent: { selection } });
 
 /**
- * Récupérations et points tels qu'affichés hors placement (story 4.2). Sans récupération positive
- * ni point, la ligne n'existe pas (décision Hermann 21/10/2026, remplace D-303). PRE-6 story 5.1
- * (D-435) : la récupération est en ligne 3 de la carte ; la rangée sous la carte ne porte plus que
- * le point.
+ * Récupérations et points tels qu'affichés hors placement (story 4.2). PRE-6 story 5.1 (D-435) : la
+ * récupération est en ligne 3 de la carte. PRE-6 story 6.2 (D-436) : chaque point est une rangée
+ * autonome de la séquence, nommée par sa place (« Point d'arrêt après {exercice} »).
  */
 function displayedPauses() {
-  return ["ex-a", "ex-b", "ex-c", "ex-d"].map((id) => {
-    const line = screen.queryByTestId(`composition-activity-recovery-${id}`);
-    return {
+  return {
+    recoveries: ["ex-a", "ex-b", "ex-c", "ex-d"].map((id) => [
       id,
-      line: line !== null,
-      recovery: screen.queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
-      stopPoint: line !== null && within(line).queryByTestId(`composition-activity-recovery-${id}-stop-point`) !== null,
-    };
-  });
+      screen.queryByTestId(`composition-activity-recovery-${id}-recovery`) !== null,
+    ]),
+    stopPoints: screen
+      .queryAllByTestId(/^composition-stop-point-[^-]+.*-chip$/u)
+      .map((chip) => chip.props.accessibilityLabel as string),
+  };
 }
 
 /** Récupérations (absente / 0 / positive) et points d'une séance relue. */
@@ -205,15 +204,21 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       const displayedBeforeSave = sessionDuration();
       expect(displayedBeforeSave).toBe(formatEstimatedDuration(450, "exact"));
       const pausesBeforeSave = displayedPauses();
-      expect(pausesBeforeSave).toEqual([
-        // A : R = 0 n'affiche rien, la ligne n'existe que par son point ; B : R dans la carte, point
-        // dans la ligne ; C, D : aucune ligne.
-        { id: "ex-a", line: true, recovery: false, stopPoint: true },
-        { id: "ex-b", line: true, recovery: true, stopPoint: true },
-        { id: "ex-c", line: false, recovery: false, stopPoint: false },
-        { id: "ex-d", line: false, recovery: false, stopPoint: false },
-      ]);
-      expect(screen.getByTestId("composition-after-circuit-line")).toBeTruthy();
+      expect(pausesBeforeSave).toEqual({
+        // A : R = 0 n'affiche rien ; B : R dans la carte ; C, D : rien.
+        recoveries: [
+          ["ex-a", false],
+          ["ex-b", true],
+          ["ex-c", false],
+          ["ex-d", false],
+        ],
+        // Trois rangées de points, dans l'ordre de la séquence.
+        stopPoints: [
+          placement.existingStopPointAccessibilityLabel.replace("{exercise}", "A"),
+          placement.existingStopPointAccessibilityLabel.replace("{exercise}", "B"),
+          placement.existingStopPointAfterCircuitAccessibilityLabel,
+        ],
+      });
       // D-301 : C (Tour 1) → B (Tour 2) reste sans pause ; le message n'empêche pas l'enregistrement.
       const warningBeforeSave = screen.queryByTestId("composition-unpaused-warning") !== null;
       expect(warningBeforeSave).toBe(true);
@@ -247,7 +252,6 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       });
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       expect(displayedPauses()).toEqual(pausesBeforeSave);
-      expect(screen.getByTestId("composition-after-circuit-line")).toBeTruthy();
       expect(sessionDuration()).toBe(displayedBeforeSave);
       expect(screen.queryByTestId("composition-unpaused-warning") !== null).toBe(warningBeforeSave);
 

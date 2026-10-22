@@ -9,7 +9,6 @@ import {
   resolveDragShifts,
   resolveDropTarget,
   resolveDropZone,
-  resolveStepTarget,
   shouldRevealAfterSwipe,
   SWIPE_REVEAL_DISTANCE,
   TOUCH_SLOP,
@@ -128,6 +127,26 @@ describe("resolveDropZone", () => {
 });
 
 describe("resolveDropTarget", () => {
+  /**
+   * PRE-6 story 6.2 (D-436) : les rangées de points sont des lignes de la géométrie (clé de rail) ;
+   * le rang rendu compte donc la séquence MÊLÉE de la zone, élément glissé retiré — l'indice de
+   * `moveOccurrenceInSequence` (carte) et de l'emplacement d'un point (`moveStopPoint`).
+   */
+  it("story 6.2 — séquence mêlée : [A, P, B] en lignes ; A sous B → rang 2 ; P sous B → rang 2 ; A entre P et B → rang 1", () => {
+    const layout = {
+      tourTop: 500,
+      tourBottom: 700,
+      rows: [
+        { id: "rail:row:A", zone: "BEFORE_TOUR" as const, top: 0, height: 80 },
+        { id: "rail:stop:P", zone: "BEFORE_TOUR" as const, top: 88, height: 22 },
+        { id: "rail:row:B", zone: "BEFORE_TOUR" as const, top: 118, height: 80 },
+      ],
+    };
+    expect(resolveDropTarget(layout, "rail:row:A", 170)).toEqual({ zone: "BEFORE_TOUR", index: 2 });
+    expect(resolveDropTarget(layout, "rail:stop:P", 170)).toEqual({ zone: "BEFORE_TOUR", index: 2 });
+    expect(resolveDropTarget(layout, "rail:row:A", 120)).toEqual({ zone: "BEFORE_TOUR", index: 1 });
+  });
+
   it("places the Activity before a card whose midpoint has not been crossed", () => {
     expect(resolveDropTarget(layout, "after-1", 80)).toEqual({
       zone: "BEFORE_TOUR",
@@ -180,45 +199,6 @@ describe("resolveDropTarget", () => {
       zone: "BEFORE_TOUR",
       index: 2,
     });
-  });
-});
-
-/** PRE-6 (story 2.3, CE-T03-08 §18) : actions accessibles « Monter » / « Descendre ». */
-describe("resolveStepTarget (Monter / Descendre dans la séquence affichée)", () => {
-  const items = [
-    { id: "b1", structuralPosition: "BEFORE_TOUR" as const },
-    { id: "i1", structuralPosition: "IN_TOUR" as const },
-    { id: "b2", structuralPosition: "BEFORE_TOUR" as const },
-    { id: "i2", structuralPosition: "IN_TOUR" as const },
-    { id: "a1", structuralPosition: "AFTER_TOUR" as const },
-  ];
-
-  it("se déplace d'une position dans sa portée", () => {
-    expect(resolveStepTarget(items, "b2", "UP")).toEqual({ zone: "BEFORE_TOUR", index: 0 });
-    expect(resolveStepTarget(items, "b1", "DOWN")).toEqual({ zone: "BEFORE_TOUR", index: 1 });
-    expect(resolveStepTarget(items, "i2", "UP")).toEqual({ zone: "IN_TOUR", index: 0 });
-  });
-
-  it("franchit les limites du Circuit, dans les deux sens", () => {
-    expect(resolveStepTarget(items, "b2", "DOWN")).toEqual({ zone: "IN_TOUR", index: 0 });
-    expect(resolveStepTarget(items, "i1", "UP")).toEqual({ zone: "BEFORE_TOUR", index: 2 });
-    expect(resolveStepTarget(items, "i2", "DOWN")).toEqual({ zone: "AFTER_TOUR", index: 0 });
-    expect(resolveStepTarget(items, "a1", "UP")).toEqual({ zone: "IN_TOUR", index: 2 });
-  });
-
-  it("traverse un Circuit vide comme une étape", () => {
-    const empty = [
-      { id: "b1", structuralPosition: "BEFORE_TOUR" as const },
-      { id: "a1", structuralPosition: "AFTER_TOUR" as const },
-    ];
-    expect(resolveStepTarget(empty, "b1", "DOWN")).toEqual({ zone: "IN_TOUR", index: 0 });
-    expect(resolveStepTarget(empty, "a1", "UP")).toEqual({ zone: "IN_TOUR", index: 0 });
-  });
-
-  it("aucune destination aux extrémités ni pour un identifiant inconnu", () => {
-    expect(resolveStepTarget(items, "b1", "UP")).toBeNull();
-    expect(resolveStepTarget(items, "a1", "DOWN")).toBeNull();
-    expect(resolveStepTarget(items, "x", "DOWN")).toBeNull();
   });
 });
 

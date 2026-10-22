@@ -1,9 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useRef, type Ref } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
-import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { STOP_POINT_CHIP_HEIGHT, StopPointChip } from "@/features/sessions/StopPointChip";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { spacing } from "@/shared/ui/tokens";
@@ -151,57 +150,54 @@ export function OccurrenceRecovery({
   );
 }
 
-export type ActivityRecoveryLineStopPoint = {
-  /** « Point d'arrêt après {exercice} » / « … après le circuit ». */
-  readonly accessibilityLabel: string;
-  readonly onLongPress: (anchor: View | null) => void;
-  readonly onRemove: () => void;
-};
+/** PRE-6 story 6.2 : actions accessibles de la puce (« Monter » / « Descendre »). */
+export type StopPointLineAction = { readonly name: string; readonly label: string };
 
-export type ActivityRecoveryLineProps = {
-  /** Point d'arrêt de cet emplacement (story 4.2). */
-  readonly stopPoint: ActivityRecoveryLineStopPoint;
-  /**
-   * Demande de focus (story 4.2, après un retrait) : chaque nouvelle valeur porte le focus
-   * d'accessibilité, à l'image suivante, sur le point.
-   */
-  readonly focusRequest?: number;
+export type StopPointLineProps = {
+  /** « Point d'arrêt après {exercice} » / « … après le circuit » / tête de portée. */
+  readonly accessibilityLabel: string;
+  readonly accessibilityHint?: string;
+  readonly accessibilityActions: readonly StopPointLineAction[];
+  readonly onAccessibilityAction: (name: string) => void;
+  /** Appui long : saisie du point (glisser, story 6.2). */
+  readonly onLongPress: () => void;
+  /** Translation de la puce soulevée qui suit le doigt (la rangée, elle, reste en place). */
+  readonly translateY: number;
+  /** Revue 6.2 : la puce, cible du focus d'accessibilité. */
+  readonly chipRef?: Ref<View>;
   readonly testID?: string;
 };
 
 /**
- * Rangée du point d'arrêt sous une occurrence, ou sous le Circuit (PRE-6 story 4.2, Figma
- * `8328:29428`). PRE-6 story 5.2 (D-435, Figma `9819:20018`, `9819:20063` ; demande de Hermann
- * du 21/10 : points d'arrêt centrés entre les cartes) : rangée de 22, puce existante centrée sur la
- * page ; le point de raccord sur le rail est dessiné par l'élément porteur (`RailDot`).
+ * Ligne d'un Point d'arrêt hors placement (PRE-6 story 4.2, Figma `8328:29428`). PRE-6 story 5.2
+ * (D-435, Figma `9819:20018`, `9819:20063`) : rangée de 22, puce existante centrée sur la page ; le
+ * point de raccord sur le rail est dessiné par la rangée porteuse (`RailDot`).
  *
- * PRE-6 story 5.1 (D-435, choix D1 de l'epic 5) : la récupération a quitté cette rangée pour la
- * ligne 3 de la carte (`OccurrenceRecovery`) et le trait de démarcation est supprimé. La rangée
- * n'existe plus que pour un point d'arrêt. Elle appartient au bloc de l'occurrence, dont elle suit le
- * déplacement et le balayage (`CompositionActivityRow`). Quand le retrait du point la vide,
- * l'appelant ne la monte plus et reporte lui-même le focus sur la carte.
+ * PRE-6 story 6.2 (D-436) : la ligne appartient à la rangée AUTONOME du point (`StopPointRow` de
+ * l'écran), sœur des cartes — plus au bloc d'une occurrence. L'appui long saisit le point
+ * (glisser) ; la bulle « Retirer » et l'action de retrait sont retirées (le retrait revient en
+ * placement, story 6.3) ; les actions accessibles sont « Monter » / « Descendre ».
  */
-export function ActivityRecoveryLine({ stopPoint, focusRequest, testID }: ActivityRecoveryLineProps) {
-  const stopPointRef = useRef<View>(null);
-
-  // Focus rendu au point après un retrait (story 4.2) : jamais au premier rendu ; à l'image
-  // suivante, la bulle (`Modal`) se démontant dans le même geste. La rangée n'est montée qu'avec
-  // son point : la puce existe toujours.
-  const handledFocusRef = useRef(focusRequest);
-  useEffect(() => {
-    if (focusRequest === undefined || focusRequest === handledFocusRef.current) return undefined;
-    handledFocusRef.current = focusRequest;
-    return focusOnNextFrame(() => stopPointRef.current);
-  }, [focusRequest]);
-
+export function StopPointLine({
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityActions,
+  onAccessibilityAction,
+  onLongPress,
+  translateY,
+  chipRef,
+  testID,
+}: StopPointLineProps) {
   return (
-    <View style={styles.line} testID={testID}>
+    <View style={[styles.line, { transform: [{ translateY }] }]} testID={testID}>
       <StopPointChip
-        ref={stopPointRef}
-        accessibilityLabel={stopPoint.accessibilityLabel}
-        onLongPress={() => stopPoint.onLongPress(stopPointRef.current)}
-        onRemove={stopPoint.onRemove}
-        testID={testID === undefined ? undefined : `${testID}-stop-point`}
+        ref={chipRef}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={accessibilityHint}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={onAccessibilityAction}
+        onLongPress={onLongPress}
+        testID={testID === undefined ? undefined : `${testID}-chip`}
       />
     </View>
   );

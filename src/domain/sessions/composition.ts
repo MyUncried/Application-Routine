@@ -622,7 +622,7 @@ export function moveOccurrence(
  * Story 6.1 (D-436, CE-T03-08 §18) : « Monter » / « Descendre » d'une
  * occurrence — échange avec l'élément VOISIN de la séquence mêlée, point ou
  * occurrence. En limite de portée, l'occurrence franchit la limite comme
- * aujourd'hui (`resolveStepTarget` de l'écran) : en montant, elle devient la
+ * comme le faisait l'ancien pas de l'écran (story 2.3) : en montant, elle devient la
  * dernière de la portée précédente (après son éventuel point final) ; en
  * descendant, la première de la portée suivante (avant son éventuel point de
  * tête). Début ou fin de la Séance : refus `AT_BOUNDARY`. Mêmes refus que
@@ -711,17 +711,11 @@ export function duplicateOccurrenceOutcome(
 }
 
 /**
- * Forme historique de `duplicateOccurrenceOutcome`. `_newStopPointId` n'est
- * plus lu depuis D-436 (le point n'est plus copié) : il est conservé, en
- * type et en position, pour l'appel actuel de l'écran — à retirer avec lui
- * en story 6.2/6.3.
+ * Forme historique de `duplicateOccurrenceOutcome`. Story 6.2 : le 4e paramètre
+ * (identifiant du point copié, plus lu depuis D-436) est retiré avec l'appel de
+ * l'écran.
  */
-export function duplicateOccurrence(
-  state: CompositionState,
-  activityId: string,
-  newId: string,
-  _newStopPointId?: string,
-): CompositionState {
+export function duplicateOccurrence(state: CompositionState, activityId: string, newId: string): CompositionState {
   return stateOrUnchanged(duplicateOccurrenceOutcome(state, activityId, newId), state);
 }
 

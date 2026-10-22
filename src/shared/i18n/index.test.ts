@@ -258,6 +258,9 @@ describe("strings", () => {
       addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
       existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
       existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+      // PRE-6 story 6.2 : point en tête de portée (données héritées).
+      stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
+      stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
       confirmSingular: "Confirmer {n} pause ajoutée",
       confirmPlural: "Confirmer {n} pauses ajoutées",
       cancel: "Annuler",
@@ -272,7 +275,15 @@ describe("strings", () => {
       removeRecovery: "Retirer la récupération",
       // PRE-6 (story 5.1) : action de la carte qui ouvre le réglage de la récupération de la ligne 3.
       modifyRecovery: "Modifier la récupération",
-      removeStopPoint: "Retirer le point d’arrêt",
+      // PRE-6 story 6.2 (D-436) : plus de retrait d'un point par bulle ; l'appui long le déplace.
+      stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
+    });
+  });
+
+  it("exposes the refused-deletion announcements (PRE-6 story 6.2, arbitrage du 22/10/2026)", () => {
+    expect(strings.screens.composition.activityActions).toMatchObject({
+      deleteRefusedStopPointNotAllowed: "Suppression impossible : un point d’arrêt se retrouverait à une position interdite.",
+      deleteRefusedConsecutiveStopPoints: "Suppression impossible : deux points d’arrêt se suivraient.",
     });
   });
 

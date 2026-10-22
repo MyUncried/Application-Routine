@@ -793,7 +793,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
         [point("P", "IN_TOUR", 1)],
       );
       expect(duplicateOccurrenceOutcome(state, "A", "A2").status).toBe("APPLIED");
-      const next = duplicateOccurrence(state, "A", "A2", "inutilisé");
+      const next = duplicateOccurrence(state, "A", "A2");
       expect(ids(next.exercises)).toEqual(["A", "A2", "B"]);
       expect(next.exercises[1]!.postActivityRecoverySeconds).toBe(30);
       expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
@@ -878,7 +878,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
   it("identifiant inconnu : formes historiques à l'identique, résultats NOT_FOUND ; sans point, même référence de points", () => {
     const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
     expect(moveOccurrence(state, "inconnu", "IN_TOUR", 0)).toBe(state);
-    expect(duplicateOccurrence(state, "inconnu", "x", "y")).toBe(state);
+    expect(duplicateOccurrence(state, "inconnu", "x")).toBe(state);
     expect(removeOccurrence(state, "inconnu")).toBe(state);
     expect(moveOccurrenceOutcome(state, "inconnu", "IN_TOUR", 0)).toEqual({ status: "NOT_FOUND" });
     expect(removeOccurrenceOutcome(state, "inconnu")).toEqual({ status: "NOT_FOUND" });
