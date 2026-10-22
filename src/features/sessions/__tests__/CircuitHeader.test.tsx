@@ -21,7 +21,6 @@ type HeaderOverrides = Partial<{
   duration: string;
   isNatureMenuOpen: boolean;
   natureFocusRequest: number;
-  volumesFocusRequest: number;
 }>;
 
 function renderHeader(overrides: HeaderOverrides = {}) {
@@ -30,7 +29,6 @@ function renderHeader(overrides: HeaderOverrides = {}) {
   const onOpenNatureMenu = jest.fn();
   const onCloseNatureMenu = jest.fn();
   const onSelectNature = jest.fn<(nature: CircuitNature) => void>();
-  const onOpenVolumes = jest.fn();
   const element = (next: HeaderOverrides) => (
     <CircuitHeader
       nature={next.nature ?? "TOURS"}
@@ -44,8 +42,6 @@ function renderHeader(overrides: HeaderOverrides = {}) {
       onOpenNatureMenu={onOpenNatureMenu}
       onCloseNatureMenu={onCloseNatureMenu}
       onSelectNature={onSelectNature}
-      onOpenVolumes={onOpenVolumes}
-      volumesFocusRequest={next.volumesFocusRequest ?? 0}
       testID="header"
     />
   );
@@ -56,7 +52,6 @@ function renderHeader(overrides: HeaderOverrides = {}) {
     onOpenNatureMenu,
     onCloseNatureMenu,
     onSelectNature,
-    onOpenVolumes,
     rerender: (next: HeaderOverrides) => view.rerender(element({ ...overrides, ...next })),
   };
 }
@@ -253,9 +248,9 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
   });
 
   // Revue 5.2 (remplace « le titre ne rétrécit jamais ») : à court de place, la durée cède d'abord
-  // (base 0, `flex: 1`), puis le titre (ellipse) ; l'œil et le compteur (stepper, pastille de nature)
-  // ne rétrécissent jamais et ne quittent pas la ligne.
-  it.each([false, true])("narrow widths (counter open: %s): the duration gives way first, then the title; the eye and the counter never shrink", (isCounterOpen) => {
+  // (base 0, `flex: 1`), puis le titre (ellipse) ; le compteur (stepper, pastille de nature) ne
+  // rétrécit jamais et ne quittent pas la ligne.
+  it.each([false, true])("narrow widths (counter open: %s): the duration gives way first, then the title; the counter never shrinks", (isCounterOpen) => {
     renderHeader({ isCounterOpen, duration: "≈ 1 h 12 min" });
     const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
     // 1. La durée : aucune place réservée (base 0), elle ne prend que le reste et se tronque.
@@ -266,8 +261,7 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
     expect(style("header-title-row").minWidth).toBe(0);
     expect(style("header-title")).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(screen.getByTestId("header-title").props.numberOfLines).toBe(1);
-    // Jamais : l'œil, l'emplacement du compteur et le compteur lui-même.
-    expect(style("header-volumes").flexShrink).toBe(0);
+    // Jamais : l'emplacement du compteur et le compteur lui-même (story 5.1b : plus d'œil ici).
     expect(style("header-counter-slot").flexShrink).toBe(0);
     expect(style(isCounterOpen ? "header-counter-field" : "header-counter-rest").flexShrink).toBe(0);
     // Pas de retour à la ligne : une seule rangée, hauteur MINIMALE de 40 (Dynamic Type).
@@ -276,22 +270,17 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
     expect(style("header").flexWrap).toBeUndefined();
   });
 
-  // Revue 5.2 : les cibles de l'œil et du compteur sont disjointes (un toucher sur le bord de l'œil
-  // n'ouvre jamais le compteur) — rectangles calculés depuis les constantes et les styles rendus.
-  it.each([false, true])("the eye and the counter touch targets never overlap (counter open: %s)", (isCounterOpen) => {
+  // Revue 5.2, reprise par la story 5.1b : l'œil a quitté l'en-tête ; le compteur suit le titre à
+  // l'écart Figma (20) et sa cible réelle (boîte du chiffre au repos, débord du « − » révélé) ne
+  // remonte jamais sur le titre — rectangles calculés depuis les constantes et les styles rendus.
+  it.each([false, true])("the counter follows the title at the Figma gap; its touch target never reaches back over the title (counter open: %s)", (isCounterOpen) => {
     renderHeader({ isCounterOpen });
     const g = CIRCUIT_HEADER_TOUCH_GEOMETRY;
-    // Revue 5.3 : cibles réelles (boîtes du `Pressable`), plus de hitSlop.
-    const eye = screen.getByTestId("header-volumes");
-    expect(StyleSheet.flatten(screen.getByTestId("header-volumes-circle").props.style).width).toBe(g.volumesSize);
-    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({
-      width: g.volumesSize + 2 * g.volumesHitSlop,
-      marginHorizontal: -g.volumesHitSlop,
-    });
-    expect(eye.props.hitSlop).toBeUndefined();
     const gap = StyleSheet.flatten(screen.getByTestId("header-counter-slot").props.style).marginLeft as number;
-    // Repère : bord droit de l'œil = 0 ; le compteur commence à `gap`.
-    const eyeTargetRight = g.volumesHitSlop;
+    // Même écart au repos et révélé (le compteur ne saute pas).
+    expect(gap).toBe(g.titleToCounterGap);
+    expect(gap).toBe(20);
+    // Repère : bord droit du bloc du titre = 0.
     let counterTargetLeft: number;
     if (isCounterOpen) {
       const field = StyleSheet.flatten(screen.getByTestId("header-counter-field").props.style);
@@ -299,6 +288,7 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
       const minus = screen.getByTestId("header-counter-stepper-decrement");
       expect(minus.props.hitSlop).toBe(g.stepHitSlop);
       counterTargetLeft = gap + g.openFieldPadding - g.stepHitSlop;
+      expect(counterTargetLeft).toBe(g.counterTargetLeftOpen);
     } else {
       const digit = screen.getByTestId("header-counter-value-press");
       expect(digit.props.hitSlop).toBeUndefined();
@@ -307,8 +297,9 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
         marginLeft: -g.digitHitSlopLeft,
       });
       counterTargetLeft = gap - g.digitHitSlopLeft;
+      expect(counterTargetLeft).toBe(g.counterTargetLeftAtRest);
     }
-    expect(counterTargetLeft).toBeGreaterThanOrEqual(eyeTargetRight);
+    expect(counterTargetLeft).toBeGreaterThanOrEqual(0);
     // Au repos, le chiffre garde une cible de 44 de large.
     expect(g.digitMinWidth + g.digitHitSlopLeft).toBe(44);
   });
@@ -339,40 +330,28 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
   });
 });
 
-describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () => {
-  it("renders the eye between the title and the counter: DSF circle 32 (light fill, white rim, light shadow), icon 24, target 44", () => {
-    renderHeader();
-    const eye = screen.getByTestId("header-volumes");
-    expect(eye.props.accessibilityRole).toBe("button");
-    expect(eye.props.accessibilityLabel).toBe("Voir les volumes du circuit");
-    // Revue 5.3 : cible réelle de 44 × 44 (plus de hitSlop), le cercle de 32 centré dedans.
-    expect(StyleSheet.flatten(eye.props.style)).toMatchObject({ width: 44, height: 44, flexShrink: 0 });
-    expect(eye.props.hitSlop).toBeUndefined();
-    expect(StyleSheet.flatten(screen.getByTestId("header-volumes-circle").props.style)).toMatchObject({
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: "#FCFCFE",
-      borderWidth: 1,
-      borderColor: colors.background,
-      shadowOpacity: 0.08,
-    });
-    const icon = screen.getByTestId("header-volumes-icon", anyNode);
-    expect(StyleSheet.flatten(icon.props.style)).toMatchObject({ width: 24, height: 24 });
+// PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes est dans la zone de
+// contexte (`CompositionContextHeader.test.tsx`, `CompositionScreen.test.tsx`), plus dans l'en-tête.
+describe("CircuitHeader — sans l'œil des volumes (PRE-6 story 5.1b)", () => {
+  it.each([false, true])("no eye in the header, counter at rest or revealed (open: %s)", (isCounterOpen) => {
+    renderHeader({ isCounterOpen });
+    expect(screen.queryByTestId("header-volumes", anyNode)).toBeNull();
+    expect(screen.queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
+    expect(screen.queryByTestId("header-volumes-icon", anyNode)).toBeNull();
   });
 
-  // PRE-6 story 5.2 (D-435, `9819:19948`, choix D4) : une seule ligne de 40 — titre, œil, compteur,
-  // puis la durée calée à droite (elle n'est plus sous le titre).
-  it("sits on the title line, right after « Circuit »; story 5.2: the counter follows, the duration is right-aligned on the same line", () => {
+  // Story 5.2 (D-435, `9819:19948`) : une seule ligne de 40 — titre, compteur, puis la durée calée à
+  // droite ; story 5.1b : la ligne du titre ne porte plus que « Circuit ».
+  it("one line: « Circuit » alone on the title line, then the counter, then the right-aligned duration", () => {
     renderHeader({ duration: "≈ 1 h 12 min, durée très longue" });
     const titleRow = screen.getByTestId("header-title-row");
     expect(StyleSheet.flatten(titleRow.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center" });
-    // Ligne du titre : « Circuit » puis l'œil, rien d'autre (ni durée, ni compteur).
-    const children = (titleRow.props.children as { props: { testID: string } }[]).flat();
-    expect(children.map((child) => child.props.testID)).toEqual(["header-title", "header-volumes"]);
+    const children = ([] as unknown[])
+      .concat(titleRow.props.children)
+      .filter((child): child is { props: { testID: string } } => child !== null && typeof child === "object");
+    expect(children.map((child) => child.props.testID)).toEqual(["header-title"]);
     expect(within(titleRow).queryByTestId("header-duration")).toBeNull();
     expect(within(titleRow).queryByTestId("header-counter-rest")).toBeNull();
-    // Ligne de l'en-tête : bloc du titre, compteur, durée (calée à droite, seule à se tronquer).
     const header = screen.getByTestId("header");
     expect(StyleSheet.flatten(header.props.style)).toMatchObject({ minHeight: 40, flexDirection: "row", alignItems: "center" });
     const rowChildren = (header.props.children as ({ props: { testID: string } } | null)[])
@@ -388,32 +367,12 @@ describe("CircuitHeader — œil des volumes (PRE-6 story 3.4, CE-CIR-03)", () =
       minWidth: 0,
       textAlign: "right",
     });
-    // L'œil (32) déborde de la ligne (19) sans en changer la hauteur : marges -6,5 ; revue 5.3 : sa cible
-    // réelle de 44 ajoute 6 de chaque côté (-12,5), l'encombrement reste 19.
-    expect(StyleSheet.flatten(screen.getByTestId("header-volumes").props.style).marginVertical).toBe(-6.5 - 6);
   });
 
-  it.each(["TOURS", "SERIES"] as const)("is present in %s, counter at rest or revealed, and asks to open the volumes", (nature) => {
-    const { onOpenVolumes, onToggleCounter, onOpenNatureMenu, rerender } = renderHeader({ nature });
-    fireEvent.press(screen.getByTestId("header-volumes"));
-    expect(onOpenVolumes).toHaveBeenCalledTimes(1);
-    expect(onToggleCounter).not.toHaveBeenCalled();
+  it.each(["TOURS", "SERIES"] as const)("%s: the counter and the nature pill keep their own actions", (nature) => {
+    const { onToggleCounter, onOpenNatureMenu } = renderHeader({ nature });
+    fireEvent.press(screen.getByTestId("header-counter-value-press"));
+    expect(onToggleCounter).toHaveBeenCalledTimes(1);
     expect(onOpenNatureMenu).not.toHaveBeenCalled();
-    rerender({ isCounterOpen: true });
-    expect(screen.getByTestId("header-volumes")).toBeTruthy();
-  });
-
-  it("gives the focus back to the eye on a focus request, never on mount", () => {
-    const spy = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
-    spy.mockClear();
-    try {
-      const { rerender } = renderHeader();
-      expect(spy).not.toHaveBeenCalled();
-      act(() => rerender({ volumesFocusRequest: 1 }));
-      expect(spy).toHaveBeenCalledTimes(1);
-      expect(spy).toHaveBeenCalledWith(expect.anything(), "focus");
-    } finally {
-      spy.mockRestore();
-    }
   });
 });

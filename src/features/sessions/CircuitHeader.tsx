@@ -6,7 +6,6 @@ import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { EXECUTION_UNIT_HOLD_POLICY, INLINE_STEPPER_STEP_HIT_SLOP, InlineStepper } from "@/shared/ui/ProfileStepper";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
@@ -78,16 +77,15 @@ export type CircuitHeaderProps = {
   /** Demande de focus sur la pastille (voir `CircuitNatureMenu`). */
   readonly natureFocusRequest: number;
   /**
-   * PRE-6 story 3.4 (CE-CIR-03) : toucher de l'œil — l'écran ouvre « Volumes du circuit » et
-   * referme le compteur et le choix de nature (un seul contrôle actif).
+   * PRE-6 story 5.1b (revue) : référence vers l'élément accessible du compteur (au repos ou révélé),
+   * renseignée par l'en-tête, pour que l'écran y porte le focus (retrait du point d'arrêt « après
+   * le Circuit » sans occurrence après lui). `null` quand le compteur n'est pas monté.
    */
-  readonly onOpenVolumes: () => void;
-  /** Story 3.4 : demande de focus sur l'œil (fermeture de la feuille des volumes). */
-  readonly volumesFocusRequest?: number;
+  readonly counterRef?: { current: View | null };
   /** Mesure de l'en-tête dans le conteneur Circuit : ancrage du panneau Android / web par l'écran. */
   readonly onLayout?: ViewProps["onLayout"];
   /**
-   * PRE-6 story 4.1 : mode placement — l'en-tête (compteur, pastille, œil) est non interactif et
+   * PRE-6 story 4.1 : mode placement — l'en-tête (compteur, pastille) est non interactif et
    * masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran. Revue 5.3 (Figma
    * `8328:29270`) : il n'est plus atténué (le nom de la prop est conservé).
    */
@@ -105,42 +103,30 @@ export type CircuitHeaderProps = {
   readonly testID: string;
 };
 
-/**
- * Bouton d'action circulaire DSF 32 de l'œil (Figma `8328:35040`, `8328:28667`) : fond clair
- * `#FCFCFE`, liseré blanc 1, ombre légère « KODJO / DSF / Effet observé / 01 » (`#1A1A26` 8 %,
- * (0, 2), flou 10) — mêmes valeurs que les actions circulaires de l'Éditeur ; cible 44.
- * Valeurs sans jeton exact : constantes locales (`tokens.ts` inchangé).
- */
-const VOLUMES_ACTION_SIZE = 32;
-const VOLUMES_ACTION_TOUCH_TARGET = 44;
-const VOLUMES_ACTION_BACKGROUND = "#FCFCFE";
-const VOLUMES_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.08, offsetY: 2, radius: 10 } as const;
-/** Débord vertical de l'œil (32) sur la ligne du titre (interligne 19), réparti en haut et en bas. */
-const VOLUMES_ACTION_ROW_OVERFLOW = (VOLUMES_ACTION_SIZE - TITLE_TEXT.lineHeight) / 2;
-/**
- * Extension tactile de l'œil, de chaque côté (cible 44). Revue 5.3 : le `Pressable` mesure 44 × 44
- * (marges négatives : la ligne garde sa mise en page), le cercle de 32 y est centré — jamais un
- * `hitSlop`, sans effet hors des limites d'un parent sans débordement mesuré (Fabric iOS).
- */
-const VOLUMES_ACTION_HIT_SLOP = (VOLUMES_ACTION_TOUCH_TARGET - VOLUMES_ACTION_SIZE) / 2;
 /** Marge intérieure du stepper révélé (Figma `8328:28671`). */
 const OPEN_FIELD_PADDING = spacing[4];
 
 /**
- * Revue 5.2 : écart entre l'œil et le compteur, calculé pour que leurs cibles tactiles restent
- * DISJOINTES (un toucher sur le bord de l'œil n'ouvre jamais le compteur) — au repos, marge de
- * l'œil + marge gauche du chiffre (6 + 12) ; révélé, marge de l'œil + débord de la cible du « − »
- * hors du stepper (6 + 10 − 4).
+ * PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes quitte l'en-tête
+ * (zone de contexte, `CompositionContextHeader`) ; le compteur suit directement le titre.
+ *
+ * Écart titre → compteur : 20, celui de Figma `9819:19948` (Standard `8328:28605` ; « Circuit » de
+ * x 45 à 97, stepper révélé à x 117), le même au repos et révélé (Figma ne montre que le stepper
+ * révélé). Le titre n'étant pas une cible, la contrainte de la revue 5.2 devient : la cible du
+ * compteur (boîte réelle du chiffre au repos, débord du « − » révélé) ne remonte jamais sur le titre
+ * — au repos 20 − 12 = 8, révélé 20 + 4 − 10 = 14, toutes deux ≥ 0.
  */
+const TITLE_TO_COUNTER_GAP = 20;
 export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
-  volumesSize: VOLUMES_ACTION_SIZE,
-  volumesHitSlop: VOLUMES_ACTION_HIT_SLOP,
+  titleToCounterGap: TITLE_TO_COUNTER_GAP,
   digitMinWidth: COUNTER_DIGIT_MIN_WIDTH,
   digitHitSlopLeft: COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
-  counterGapAtRest: VOLUMES_ACTION_HIT_SLOP + COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
   openFieldPadding: OPEN_FIELD_PADDING,
   stepHitSlop: INLINE_STEPPER_STEP_HIT_SLOP,
-  counterGapOpen: VOLUMES_ACTION_HIT_SLOP + Math.max(0, INLINE_STEPPER_STEP_HIT_SLOP - OPEN_FIELD_PADDING),
+  /** Bord gauche de la cible du compteur, depuis le bord droit du titre (≥ 0 : aucun recouvrement). */
+  counterTargetLeftAtRest: TITLE_TO_COUNTER_GAP - COUNTER_DIGIT_TOUCH_EXTENT_LEFT,
+  counterTargetLeftOpen:
+    TITLE_TO_COUNTER_GAP + OPEN_FIELD_PADDING - Math.max(OPEN_FIELD_PADDING, INLINE_STEPPER_STEP_HIT_SLOP),
 } as const;
 
 /**
@@ -148,11 +134,11 @@ export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
  * le conteneur Circuit existant ; remplace `TourCard` et sa roulette du compte.
  *
  * - PRE-6 story 5.2 (D-435, Figma `9819:19948`, choix D4) : une seule ligne de 40 — « Circuit »,
- *   l'œil, puis le compteur à la suite (position Figma) ; la seule durée du Circuit (D-382, D-390,
- *   D-399) est calée à droite sur la même ligne. La durée se tronque en premier ; titre, œil et
- *   compteur gardent leur taille.
- * - PRE-6 story 3.4 : l'œil permanent suit le titre (bouton circulaire 32, cible 44) et ouvre
- *   la feuille « Volumes du circuit » (`CircuitVolumesSheet`), dans les deux natures.
+ *   puis le compteur à la suite (position Figma) ; la seule durée du Circuit (D-382, D-390,
+ *   D-399) est calée à droite sur la même ligne. La durée se tronque en premier, puis le titre ;
+ *   le compteur garde sa taille.
+ * - PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil de la story 3.4, qui ouvre
+ *   « Volumes du circuit », a quitté cet en-tête pour la zone de contexte (`CompositionContextHeader`).
  * - Compteur, au repos : le chiffre (cible 44) puis la pastille d'unité (`Valeur modifiable`),
  *   accordée selon la nature. PRE-6 story 3.2 : la pastille seule ouvre le choix de nature
  *   (`CircuitNatureMenu`, menu natif sur iOS) ; chiffre et pastille sont deux éléments
@@ -178,8 +164,7 @@ export function CircuitHeader({
   onCloseNatureMenu,
   onSelectNature,
   natureFocusRequest,
-  onOpenVolumes,
-  volumesFocusRequest = 0,
+  counterRef,
   onLayout,
   isAttenuated = false,
   translateY,
@@ -201,7 +186,7 @@ export function CircuitHeader({
       testID={testID}
     >
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
-        {/* Story 3.4 : l'œil est sur la ligne du titre, juste après lui. */}
+        {/* Story 5.1b : l'œil a quitté la ligne du titre (zone de contexte). */}
         <View style={styles.titleRow} testID={`${testID}-title-row`}>
           {/* Revue 5.2 : VoiceOver lit la durée juste après le titre (elle est affichée à droite). */}
           <Text
@@ -212,22 +197,11 @@ export function CircuitHeader({
           >
             {t.title}
           </Text>
-          <VolumesAction onPress={onOpenVolumes} focusRequest={volumesFocusRequest} testID={`${testID}-volumes`} />
         </View>
       </View>
-      {/* Revue 5.2 : le compteur ne rétrécit jamais ni ne quitte la ligne ; son écart avec l'œil
-          garde les cibles disjointes (`CIRCUIT_HEADER_TOUCH_GEOMETRY`). */}
-      <View
-        style={[
-          styles.counterSlot,
-          {
-            marginLeft: isCounterOpen
-              ? CIRCUIT_HEADER_TOUCH_GEOMETRY.counterGapOpen
-              : CIRCUIT_HEADER_TOUCH_GEOMETRY.counterGapAtRest,
-          },
-        ]}
-        testID={`${testID}-counter-slot`}
-      >
+      {/* Revue 5.2 : le compteur ne rétrécit jamais ni ne quitte la ligne. Story 5.1b : il suit le
+          titre à l'écart Figma ; sa cible ne remonte pas sur le titre (`CIRCUIT_HEADER_TOUCH_GEOMETRY`). */}
+      <View style={styles.counterSlot} testID={`${testID}-counter-slot`}>
         <CircuitCounter
           nature={nature}
           count={count}
@@ -239,6 +213,7 @@ export function CircuitHeader({
           onCloseNatureMenu={onCloseNatureMenu}
           onSelectNature={onSelectNature}
           natureFocusRequest={natureFocusRequest}
+          externalRef={counterRef}
           testID={`${testID}-counter`}
         />
       </View>
@@ -257,35 +232,6 @@ export function CircuitHeader({
         {duration}
       </Text>
     </Animated.View>
-  );
-}
-
-/**
- * Œil permanent de la ligne du titre (PRE-6 story 3.4, CIR-10, CE-CIR-03) : présent dans les deux
- * natures, Circuit vide compris. Le focus VoiceOver y revient à la fermeture de la feuille
- * (`focusRequest` incrémenté par l'écran, jamais au montage).
- */
-function VolumesAction({ onPress, focusRequest, testID }: { onPress: () => void; focusRequest: number; testID: string }) {
-  const ref = useRef<View>(null);
-  const lastRequestRef = useRef(focusRequest);
-  useEffect(() => {
-    if (focusRequest === lastRequestRef.current) return;
-    lastRequestRef.current = focusRequest;
-    if (ref.current) AccessibilityInfo.sendAccessibilityEvent(ref.current, "focus");
-  }, [focusRequest]);
-  return (
-    <Pressable
-      ref={ref}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={strings.screens.composition.circuit.volumes.openAccessibilityLabel}
-      style={styles.volumesTarget}
-      testID={testID}
-    >
-      <View style={styles.volumesAction} testID={`${testID}-circle`}>
-        <KodjoIcon name="view-volumes" testID={`${testID}-icon`} />
-      </View>
-    </Pressable>
   );
 }
 
@@ -331,6 +277,7 @@ function CircuitCounter({
   onCloseNatureMenu,
   onSelectNature,
   natureFocusRequest,
+  externalRef,
   testID,
 }: {
   nature: CircuitNature;
@@ -343,10 +290,20 @@ function CircuitCounter({
   onCloseNatureMenu: () => void;
   onSelectNature: (nature: CircuitNature) => void;
   natureFocusRequest: number;
+  externalRef?: { current: View | null };
   testID: string;
 }) {
   const t = strings.screens.composition.circuit;
   const { fieldRef, restRef, closeFromAccessibility } = useCounterFocus(isOpen, onToggle);
+  // Story 5.1b (revue) : l'élément accessible monté (repos ou révélé) est aussi exposé à l'écran.
+  const attachRest = (node: View | null) => {
+    restRef.current = node;
+    if (externalRef) externalRef.current = node;
+  };
+  const attachField = (node: View | null) => {
+    fieldRef.current = node;
+    if (externalRef) externalRef.current = node;
+  };
   const accessibilityLabel = t.countAccessibilityLabel[nature];
   const spoken = circuitCountSpokenValue(nature, count);
   const atMin = count <= CIRCUIT_COUNT_MIN;
@@ -358,7 +315,7 @@ function CircuitCounter({
     return (
       <View style={styles.counter} testID={`${testID}-rest`}>
         <View
-          ref={restRef}
+          ref={attachRest}
           accessible
           accessibilityRole="adjustable"
           accessibilityLabel={accessibilityLabel}
@@ -403,7 +360,7 @@ function CircuitCounter({
 
   return (
     <View
-      ref={fieldRef}
+      ref={attachField}
       // Le champ retient tout toucher qui n'atteint pas un ± actif (± à la borne, pastille) :
       // ce toucher ne remonte pas à l'appui extérieur de l'écran (même règle que la Feuille).
       // Échappement et Magic Tap remontent depuis l'élément focalisé jusqu'à ce conteneur ;
@@ -447,47 +404,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   // Revue 5.2 : ordre de cession de la place — la durée d'abord (base 0), puis le titre (ellipse) ;
-  // l'œil et le compteur gardent leur taille.
+  // le compteur garde sa taille.
   textBlock: {
     flexShrink: 1,
     minWidth: 0,
   },
+  // Story 5.1b : écart Figma titre → compteur, identique au repos et révélé.
   counterSlot: {
     flexShrink: 0,
+    marginLeft: TITLE_TO_COUNTER_GAP,
   },
-  // Story 3.4 : ligne du titre — « Circuit » puis l'œil. L'œil (32) déborde de la ligne (19)
-  // par des marges négatives, sans agrandir la ligne.
+  // Ligne du titre : « Circuit » seul depuis la story 5.1b.
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing[8],
     minWidth: 0,
-  },
-  // Revue 5.3 : cible réelle de 44 × 44 centrée sur le cercle ; les marges négatives rendent à la ligne
-  // l'encombrement du cercle (32, débordant de la ligne du titre de `VOLUMES_ACTION_ROW_OVERFLOW`).
-  volumesTarget: {
-    flexShrink: 0,
-    width: VOLUMES_ACTION_TOUCH_TARGET,
-    height: VOLUMES_ACTION_TOUCH_TARGET,
-    marginHorizontal: -VOLUMES_ACTION_HIT_SLOP,
-    marginVertical: -(VOLUMES_ACTION_ROW_OVERFLOW + VOLUMES_ACTION_HIT_SLOP),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  volumesAction: {
-    width: VOLUMES_ACTION_SIZE,
-    height: VOLUMES_ACTION_SIZE,
-    borderRadius: VOLUMES_ACTION_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: VOLUMES_ACTION_BACKGROUND,
-    borderWidth: 1,
-    borderColor: colors.background,
-    shadowColor: VOLUMES_ACTION_SHADOW.color,
-    shadowOpacity: VOLUMES_ACTION_SHADOW.opacity,
-    shadowOffset: { width: 0, height: VOLUMES_ACTION_SHADOW.offsetY },
-    shadowRadius: VOLUMES_ACTION_SHADOW.radius,
-    elevation: 2,
   },
   // Revue 5.2 : le titre cède (ellipse) seulement une fois la durée effacée.
   title: {

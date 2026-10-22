@@ -825,7 +825,7 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).borderWidth).toBe(1);
   });
 
-  it("PRE6-5.1 — the integrated media is a 64 × 64 placeholder (radius 12, 1 pt #7A7A80 border, #EEF0F6 fill) with the generic 24 icon, never a photo", () => {
+  it("PRE6-5.1 — the integrated media is a 64 × 64 placeholder (radius 12, 1 pt #7A7A80 border, #EEF0F6 fill) with the generic 24 icon when the occurrence has no media (story 5.1b: photo or video poster otherwise)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
     const media = screen.getByTestId("composition-exercise-media");
@@ -1051,13 +1051,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     const addActivity = screen.getByLabelText(composition.addActivity);
-    const flattened = StyleSheet.flatten(addActivity.props.style);
+    // Revue 5.1b : cible réelle — le `Pressable` est la boîte de 44, le cercle de 34 y est centré.
+    expect(StyleSheet.flatten(addActivity.props.style)).toMatchObject({ width: 44, height: 44 });
+    expect(addActivity.props.hitSlop).toBeUndefined();
+    const flattened = StyleSheet.flatten(screen.getByTestId("composition-add-activity-action-circle").props.style);
     expect(flattened.width).toBe(34);
     expect(flattened.height).toBe(34);
     expect(flattened.borderRadius).toBe(17);
     expect(flattened.borderColor).toBe(colors.primary);
     expect(flattened.backgroundColor).toBe(colors.background);
-    expect(flattened.height + 2 * (addActivity.props.hitSlop as number)).toBe(44);
     expect(within(addActivity).queryByText(composition.addActivity)).toBeNull();
     const bars = within(addActivity).getAllByTestId("composition-add-activity-icon-bar");
     expect(bars).toHaveLength(2);
@@ -1087,7 +1089,22 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const duration = screen.getByTestId("composition-session-duration");
     expect(duration.props.children).toBe("0 min");
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style).height).toBe(32);
+    // Revue 5.1b : la bande de 32 est une boîte de 44 (cibles contenues) aux marges verticales de −6 :
+    // encombrement 32 inchangé.
+    const infoRow = StyleSheet.flatten(screen.getByTestId("composition-info-row").props.style);
+    expect(infoRow).toMatchObject({ height: 44, marginVertical: -6 });
+    expect((infoRow.height as number) + 2 * (infoRow.marginVertical as number)).toBe(32);
+  });
+
+  // Revue 5.1b : écran étroit — la durée de séance s'abrège (ellipse) et le groupe d'informations
+  // cède sa place ; rien ne passe sous les commandes contextuelles, qui ne rétrécissent pas.
+  it("story 5.1b — narrow screens: the session duration and the information group may shrink, the contextual commands never do", () => {
+    renderScreen();
+    const duration = screen.getByTestId("composition-session-duration");
+    expect(duration.props.numberOfLines).toBe(1);
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flexShrink: 1, minWidth: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-info-group").props.style)).toMatchObject({ flex: 1, minWidth: 0 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-context-actions").props.style).flexShrink).toBe(0);
   });
 
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary, then the Circuit duration Regular 12 tertiary; the counter on the right", () => {
@@ -4081,8 +4098,9 @@ describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affect
 });
 
 /**
- * PRE-6 (story 1.2, ARB-3) : Dupliquer, Supprimer et déposer mettent à jour
- * les Points d'arrêt du brouillon. Aucun rendu de point n'existe encore
+ * PRE-6 (story 1.2 ; D-436 / RM-251 depuis la story 6.1, remplace ARB-3) : Dupliquer,
+ * Supprimer et déposer laissent les Points d'arrêt du brouillon à leur place dans la
+ * séquence ; une opération qui rendrait un point interdit ou consécutif est refusée. Aucun rendu de point n'existe encore
  * (story 4.1) : une sonde lit `draft.stopPoints` dans le contexte.
  */
 describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)", () => {
@@ -4133,24 +4151,21 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
   ];
 
-  it("Dupliquer copie le point de la source sur la copie, juste après elle", () => {
+  it("D-436 — Dupliquer ne copie pas le point : la copie suit la source, le point garde sa place ([A, P, B] → [A, A′, P, B])", () => {
     renderWithStopPoints(twoBefore());
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
 
-    expect(readStopPoints()).toEqual([
-      { id: "s-1", scope: "BEFORE_TOUR", position: 1 },
-      { id: "generated-copy-id", scope: "BEFORE_TOUR", position: 2 },
-    ]);
+    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
   });
 
-  it("Supprimer retire le point rattaché à l'occurrence", () => {
+  it("D-436 — Supprimer une occurrence qui laisserait le point juste après le Compte à rebours est refusé, sans mutation", () => {
     renderWithStopPoints(twoBefore());
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
-    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
-    expect(readStopPoints()).toEqual([]);
+    expect(screen.getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
+    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
   it("un dépôt qui amènerait le point juste avant la Fin est invalide : ordre et points inchangés", () => {
@@ -4164,15 +4179,15 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
-  it("un dépôt valide : le point suit son occurrence", () => {
+  it("D-436 — le point ne suit plus son occurrence : un dépôt qui le laisserait en tête de séquence est refusé, ordre et points inchangés", () => {
     renderWithStopPoints([...twoBefore(), anActivity("core", "IN_TOUR", { name: "Pompes" })]);
     layoutTwoBeforeTour();
     dragBy("ex-1", 100);
 
     expect(
       testIdOrder(screen.toJSON(), ["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]),
-    ).toEqual(["composition-exercise-row-ex-2", "composition-exercise-row-ex-1"]);
-    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
+    ).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
+    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 });
 
@@ -4567,6 +4582,10 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 
   it("actions accessibles Dupliquer / Supprimer : mêmes opérations que le balayage", () => {
+    // Deux copies successives : deux identifiants distincts (le Domaine refuse une collision).
+    (jest.requireMock("expo-crypto") as { randomUUID: jest.Mock }).randomUUID
+      .mockReturnValueOnce("copy-1")
+      .mockReturnValueOnce("copy-2");
     renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { name: "Squat" })]);
     a11yAction("ex-1", "duplicate");
     expect(screen.getByText("Squat (copie)")).toBeTruthy();
@@ -4574,14 +4593,25 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
   });
 
-  it("Supprimer une occurrence portant un point d'arrêt : le point part avec elle", () => {
+  it("D-436 — Supprimer une occurrence suivie d'un point : refusé si le point deviendrait premier (après le Compte à rebours)", () => {
     renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")], {
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
     a11yAction("ex-1", "delete");
 
-    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2"]);
-    expect(probe.draft!.stopPoints).toEqual([]);
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-1", "ex-2"]);
+    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
+  });
+
+  it("D-436 — Supprimer une occurrence : le point reste à sa place dans la séquence quand c'est permis", () => {
+    renderWithProbe(
+      [anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR"), anActivity("ex-3", "BEFORE_TOUR")],
+      { stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 2 }] },
+    );
+    a11yAction("ex-1", "delete");
+
+    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2", "ex-3"]);
+    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
   it("dépôt amenant un point d'arrêt sur un emplacement interdit (dernière position) : action non offerte, position restituée", () => {
@@ -5025,7 +5055,8 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
       </TestSafeAreaProvider>,
     );
   }
-  const EYE = "composition-circuit-header-volumes";
+  // PRE-6 story 5.1b (D4 remplacé) : l'œil est dans la zone de contexte.
+  const EYE = "composition-volumes-action";
   const SHEET = "composition-circuit-volumes-sheet";
   const circuitExercises = () => [
     anActivity("before", "BEFORE_TOUR", { name: "Échauffement", executionParameters: repetitionParameters(20, 6) }),
@@ -5033,13 +5064,139 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     anActivity("b", "IN_TOUR", { name: "Extension du genou", executionParameters: durationParameters(45, 4) }),
   ];
 
-  it("the eye sits in the Circuit header, in both natures and with an empty Circuit", () => {
+  // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil quitte l'en-tête du Circuit
+  // pour les commandes contextuelles de la zone de contexte ; même disponibilité (toujours présent,
+  // dans les deux natures, Circuit vide compris), même nom accessible.
+  it("story 5.1b — the eye sits in the context zone, first of the contextual commands, never in the Circuit header; in both natures and with an empty Circuit", () => {
     renderWithProbe([]);
-    const header = screen.getByTestId("composition-circuit-header");
-    expect(within(header).getByLabelText("Voir les volumes du circuit")).toBeTruthy();
+    const context = screen.getByTestId("composition-context-header");
+    const eye = within(context).getByLabelText("Voir les volumes du circuit");
+    expect(eye.props.testID).toBe(EYE);
+    expect(eye.props.accessibilityRole).toBe("button");
+    expect(eye.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(within(screen.getByTestId("composition-circuit-header")).queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
+    // Ordre des commandes contextuelles : œil, « Ajouter un arrêt », « + ».
+    const order = screen
+      .getByTestId("composition-info-row")
+      .findAll((node) => typeof node.props.testID === "string")
+      .map((node) => node.props.testID as string);
+    expect(order.indexOf(EYE)).toBeGreaterThanOrEqual(0);
+    expect(order.indexOf(EYE)).toBeLessThan(order.indexOf("composition-add-stop-action"));
+    expect(order.indexOf("composition-add-stop-action")).toBeLessThan(order.indexOf("composition-add-activity-action"));
     screen.unmount();
     renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 4 });
     expect(screen.getByTestId(EYE)).toBeTruthy();
+  });
+
+  // Gabarit des commandes contextuelles (ch13 L1480 / L1591 : 34 / dessin 20 / écart 10 / cibles 44).
+  // Revue 5.1b : les cibles sont des boîtes RÉELLES de 44 × 44, jointives, sans marge négative ni
+  // hitSlop, contenues par des parents dont les limites les englobent (rangée de 44, en-tête étendu).
+  it("story 5.1b — real touch boxes: eye, « Ajouter un arrêt » and « + » are adjoining 44 × 44 boxes inside parents that contain them; circles 34, eye drawn at 20", () => {
+    renderWithProbe([]);
+    const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID, anyNode).props.style);
+    const commands = [EYE, "composition-add-stop-action", "composition-add-activity-action"];
+    for (const testID of commands) {
+      const node = screen.getByTestId(testID);
+      expect(node.props.hitSlop).toBeUndefined();
+      const box = style(testID);
+      expect(box).toMatchObject({ width: 44, height: 44, alignItems: "center", justifyContent: "center" });
+      // Aucune marge : la boîte occupe sa place dans le flux, rien ne dépasse de son parent.
+      for (const key of ["margin", "marginHorizontal", "marginVertical", "marginLeft", "marginRight", "marginTop", "marginBottom"] as const) {
+        expect(box[key]).toBeUndefined();
+      }
+      expect(style(`${testID}-circle`)).toMatchObject({ width: 34, height: 34, borderRadius: 17, borderWidth: 1, borderColor: colors.primary });
+    }
+    // Cercles du « + » et de l'œil : même gabarit (fond blanc).
+    expect(style(`${EYE}-circle`).backgroundColor).toBe(colors.background);
+    expect(style("composition-add-activity-action-circle").backgroundColor).toBe(colors.background);
+    expect(style(`${EYE}-icon`)).toMatchObject({ width: 20, height: 20 });
+    // Groupe : boîtes jointives (aucun écart), hauteur 44 — l'écart visuel de 10 vient des marges des cercles.
+    const actions = style("composition-context-actions");
+    expect(actions).toMatchObject({ flexDirection: "row", height: 44, flexShrink: 0 });
+    expect(actions.gap ?? 0).toBe(0);
+    expect(44 - 34).toBe(10);
+    const order = screen
+      .getByTestId("composition-context-actions")
+      .findAll((node) => commands.includes(node.props.testID as string) && node.props.accessibilityRole === "button")
+      .map((node) => node.props.testID as string);
+    expect([...new Set(order)]).toEqual(commands);
+    // Parents : la rangée mesure 44 (marges −6, encombrement 32) ; l'en-tête s'étend de 5 à droite
+    // (dernière boîte, Figma : zone jusqu'à x 359) et de 6 en bas, compensés, le nom garde sa largeur.
+    expect(style("composition-info-row")).toMatchObject({ height: 44, marginVertical: -6 });
+    expect(style("composition-context-header")).toMatchObject({ marginRight: -5, paddingBottom: 6, marginBottom: -6 });
+    expect(style("composition-name-color-field").marginRight).toBe(5);
+  });
+
+  // Revue 5.1b : un seul contrôle actif (CIR-10) — l'œil, hors de la liste, referme aussi les
+  // actions glissées révélées et la bulle « Retirer ».
+  it("story 5.1b — opening the volumes closes the revealed swipe actions", () => {
+    renderWithProbe(circuitExercises());
+    fireSwipeLeft("before");
+    expect(screen.getByTestId("composition-activity-actions-before")).toBeTruthy();
+    fireEvent.press(screen.getByTestId(EYE));
+    expect(screen.getByTestId(SHEET)).toBeTruthy();
+    expect(screen.queryByTestId("composition-activity-actions-before")).toBeNull();
+  });
+
+  it("story 5.1b — opening the volumes closes the « Retirer » bubble without any change", () => {
+    renderWithProbe([
+      anActivity("before", "BEFORE_TOUR", { name: "Échauffement", postActivityRecoverySeconds: 20 }),
+      ...circuitExercises().slice(1),
+    ]);
+    fireEvent(screen.getByTestId("composition-activity-recovery-before-recovery"), "longPress");
+    expect(screen.getByTestId("composition-removal-bubble-remove")).toBeTruthy();
+    const before = probe.draft;
+    fireEvent.press(screen.getByTestId(EYE, anyNode));
+    expect(screen.queryByTestId("composition-removal-bubble-remove", anyNode)).toBeNull();
+    expect(screen.getByTestId(SHEET)).toBeTruthy();
+    expect(probe.draft).toBe(before);
+  });
+
+  it("story 5.1b — while a card is lifted (drag), the eye is disabled and opens nothing", () => {
+    renderWithProbe(circuitExercises());
+    fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+    const eye = screen.getByTestId(EYE);
+    expect(eye.props.accessibilityState).toMatchObject({ disabled: true });
+    // État passager : pas d'atténuation.
+    expect(StyleSheet.flatten(eye.props.style).opacity).toBeUndefined();
+    fireEvent.press(eye);
+    expect(screen.queryByTestId(SHEET)).toBeNull();
+  });
+
+  // Restauré de la story 3.4 (`CircuitHeader.test.tsx`) : aucun focus au montage, un seul à la fermeture.
+  it("story 5.1b — the eye never takes the focus on mount; exactly one focus event when the sheet closes", () => {
+    const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+    const targets = () =>
+      focus.mock.calls
+        .filter(([target]) => (target as unknown as { props: { testID?: string } }).props.testID === EYE)
+        .map(([, event]) => event);
+    try {
+      focus.mockClear();
+      renderWithProbe(circuitExercises());
+      expect(targets()).toEqual([]);
+      fireEvent.press(screen.getByTestId(EYE));
+      expect(targets()).toEqual([]);
+      const onDismiss = screen.getByTestId("composition-circuit-volumes-modal", anyNode).props.onDismiss as () => void;
+      act(() => fireEvent.press(screen.getByTestId("composition-circuit-volumes-close")));
+      act(() => onDismiss());
+      expect(targets()).toEqual(["focus"]);
+    } finally {
+      focus.mockRestore();
+    }
+  });
+
+  it("story 5.1b — placement: the eye is attenuated and inactive like « + » (unavailable), back to normal once the placement ends", () => {
+    renderWithProbe(circuitExercises());
+    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    const eye = screen.getByTestId(EYE);
+    expect(eye.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(eye.props.style).opacity).toBe(0.45);
+    fireEvent.press(eye);
+    expect(screen.queryByTestId(SHEET)).toBeNull();
+    fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+    expect(screen.getByTestId(EYE).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(StyleSheet.flatten(screen.getByTestId(EYE).props.style).opacity).toBeUndefined();
   });
 
   it("opening the sheet closes the revealed counter (one active control) and shows the Domain grid, occurrences outside the Circuit excluded", () => {
@@ -5290,8 +5447,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     renderPlacement(matrix());
     const action = screen.getByLabelText(p.addStopAccessibilityLabel);
     expect(action.props.testID).toBe(ADD_STOP);
-    expect(StyleSheet.flatten(action.props.style)).toMatchObject({ width: 34, height: 34, borderRadius: 17 });
-    expect(action.props.hitSlop).toBe(5);
+    // Revue 5.1b : boîte tactile réelle de 44 (plus de hitSlop), cercle de 34 centré.
+    expect(StyleSheet.flatten(action.props.style)).toMatchObject({ width: 44, height: 44 });
+    expect(action.props.hitSlop).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId(`${ADD_STOP}-circle`).props.style)).toMatchObject({ width: 34, height: 34, borderRadius: 17 });
     expect(action.props.accessibilityState).toMatchObject({ selected: false });
     expect(screen.getByTestId("composition-add-stop-icon")).toBeTruthy();
     const order = screen
@@ -5304,7 +5463,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     enter();
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId("composition-add-stop-icon-active")).toBeTruthy();
-    expect(StyleSheet.flatten(screen.getByTestId(ADD_STOP).props.style).backgroundColor).toBe("#F1F1FF");
+    expect(StyleSheet.flatten(screen.getByTestId(`${ADD_STOP}-circle`).props.style).backgroundColor).toBe("#F1F1FF");
   });
 
   it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
@@ -6592,6 +6751,24 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
+    // Revue 5.1b : l'œil est désormais en haut de l'écran ; sans occurrence après le Circuit, le focus
+    // va au compteur de l'en-tête du Circuit (voisin du point retiré), jamais à l'œil.
+    it("after removing the after-Circuit point with no occurrence after the Circuit, focus goes to the Circuit counter, never to the eye", async () => {
+      const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+      try {
+        renderPlacement(matrix().slice(0, 3), { overrides: { stopPoints: [{ id: "t", scope: "AFTER_TOUR", position: 0 }] } });
+        const targets = () => focus.mock.calls.map(([target]) => (target as unknown as { props: { testID?: string } }).props.testID);
+        focus.mockClear();
+        fireEvent(screen.getByTestId("composition-after-circuit-line-stop-point"), "longPress");
+        fireEvent.press(screen.getByTestId(`${BUBBLE}-remove`));
+        expect(probe.draft!.stopPoints).toEqual([]);
+        await waitFor(() => expect(targets()).toEqual(["composition-circuit-header-counter"]));
+        expect(targets()).not.toContain("composition-volumes-action");
+      } finally {
+        focus.mockRestore();
+      }
+    });
+
     it("placement: modifying an existing R (20 → 45) is not counted in N, Annuler restores it", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
       const before = probe.draft;
@@ -7561,14 +7738,14 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   it("l'en-tête du Circuit et sa première carte : cibles tactiles disjointes", () => {
     renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" })]);
     const headerHeight = styleOf("composition-circuit-header").minHeight as number;
-    // Revue 5.3 : la cible de l'œil est sa boîte réelle (44 × 44, centrée sur la ligne).
-    const eye = screen.getByTestId("composition-circuit-header-volumes");
-    expect(eye.props.hitSlop).toBeUndefined();
-    const eyeBottom = headerHeight / 2 + (StyleSheet.flatten(eye.props.style).height as number) / 2;
+    // Story 5.1b : l'œil a quitté l'en-tête ; reste la cible réelle du chiffre (44, centrée sur la ligne).
+    expect(screen.queryByTestId("composition-circuit-header-volumes", hidden)).toBeNull();
+    const digit = screen.getByTestId("composition-circuit-header-counter-value-press");
+    expect(digit.props.hitSlop).toBeUndefined();
     const digitBottom =
       headerHeight / 2 + (styleOf("composition-circuit-header-counter-value-press").minHeight as number) / 2;
     const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
-    expect(Math.max(eyeBottom, digitBottom)).toBeLessThanOrEqual(firstCardTop);
+    expect(digitBottom).toBeLessThanOrEqual(firstCardTop);
   });
 
   // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus de la Fin déborde de 4 dans l'écart ;
@@ -7610,5 +7787,98 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
       expect(node.props.pointerEvents).toBe("none");
       expect(node.props.importantForAccessibility).toBe("no-hide-descendants");
     }
+  });
+});
+
+/**
+ * PRE-6 story 5.1b (AC1, AC2 ; D3 remplacé par Hermann le 21/10/2026) : le premier média de
+ * l'occurrence, transporté par le brouillon (ajout depuis le Catalogue, Séance relue, duplication),
+ * arrive jusqu'au gabarit de la carte ; l'URI de stockage est résolue par le service des Exercices
+ * (même résolution que le Catalogue). Le rendu photo / affiche / erreur est couvert par
+ * `OccurrenceCardMedia.test.tsx`.
+ */
+describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 story 5.1b)", () => {
+  const photoMedia = (id: string) => [
+    { assetId: `asset-${id}`, asset: { id: `asset-${id}`, uri: `kodjo-media/${id}.jpg`, createdAt: "now", kind: "PHOTO" as const } },
+    { assetId: `asset-${id}-2`, asset: { id: `asset-${id}-2`, uri: `kodjo-media/${id}-2.mov`, createdAt: "now", kind: "VIDEO" as const } },
+  ];
+  const resolveMediaUri = jest.fn((uri: string) => `file:///documents/${uri}`);
+  function renderWithMedia(exercises: readonly SessionDraftExercise[]) {
+    return render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider
+          value={fakeActivityDefinitionService({ resolveMediaUri } as Partial<ActivityDefinitionService>)}
+        >
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper initialExercises={exercises}>
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+  }
+  const hidden = { includeHiddenElements: true } as const;
+  const imageOf = (id: string) =>
+    within(screen.getByTestId(`composition-exercise-row-${id}`, hidden)).queryByTestId("composition-exercise-media-image", hidden);
+
+  it("the first media of the occurrence fills the template (resolved URI; the card's name is the alternative text); without media, the generic icon", () => {
+    renderWithMedia([
+      anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") }),
+      anActivity("b", "IN_TOUR", { name: "Pompes" }),
+    ]);
+    const image = imageOf("a");
+    expect(image).not.toBeNull();
+    expect(image!.props.source).toEqual([expect.objectContaining({ uri: "file:///documents/kodjo-media/a.jpg" })]);
+    expect(within(screen.getByTestId("composition-exercise-row-a")).queryByTestId("composition-exercise-media-icon", hidden)).toBeNull();
+    expect(imageOf("b")).toBeNull();
+    expect(within(screen.getByTestId("composition-exercise-row-b")).getByTestId("composition-exercise-media-icon", hidden)).toBeTruthy();
+  });
+
+  it("the media is no target of its own: a touch opens the Exercise like the rest of the card, the long press lifts the card with its media", () => {
+    renderWithMedia([anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") })]);
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId("composition-exercise-media-image", hidden));
+    expect(mockPush).toHaveBeenCalledTimes(1);
+    fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");
+    // État soulevé réel (surface soulevée, défilement neutralisé) ; le média reste dans la carte qui
+    // se déplace (même `Pressable`).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-exercise-row-a").props.style)).toMatchObject({
+      backgroundColor: colors.exerciseContextBandBackground,
+      borderColor: colors.compositionDraggedCardBorder,
+    });
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(false);
+    expect(imageOf("a")).not.toBeNull();
+  });
+
+  it("swipe: the media stays in the card that slides (actions revealed)", () => {
+    renderWithMedia([anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") })]);
+    fireSwipeLeft("a");
+    expect(screen.getByTestId("composition-activity-actions-a")).toBeTruthy();
+    expect(imageOf("a")).not.toBeNull();
+  });
+
+  it("duplication: the copy shows the same first media", () => {
+    renderWithMedia([anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") })]);
+    fireSwipeLeft("a");
+    fireEvent.press(screen.getByTestId("composition-activity-duplicate-a"));
+    const copy = imageOf("generated-copy-id");
+    expect(copy).not.toBeNull();
+    expect(copy!.props.source).toEqual([expect.objectContaining({ uri: "file:///documents/kodjo-media/a.jpg" })]);
+  });
+
+  it("placement (arbitrage D6): the media is greyed with the card content, the card stays inactive", () => {
+    renderWithMedia([
+      anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") }),
+      anActivity("b", "BEFORE_TOUR", { name: "Pompes" }),
+    ]);
+    const media = () => within(screen.getByTestId("composition-exercise-row-a", hidden)).getByTestId("composition-exercise-media", hidden);
+    expect(StyleSheet.flatten(media().props.style).opacity).toBeUndefined();
+    fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+    expect(StyleSheet.flatten(media().props.style).opacity).toBe(0.45);
+    expect(imageOf("a")).not.toBeNull();
+    mockPush.mockClear();
+    fireEvent.press(screen.getByTestId("composition-exercise-media-image", hidden));
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

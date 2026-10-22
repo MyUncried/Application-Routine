@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, type Ref } from "react";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
@@ -218,6 +218,7 @@ export function BoundaryStep({
   onPress,
   railCenterX,
   neighborSlop = 0,
+  ref,
   testID,
 }: {
   kind: BoundaryKind;
@@ -227,6 +228,8 @@ export function BoundaryStep({
   onPress: () => void;
   railCenterX: number;
   neighborSlop?: number;
+  /** PRE-6 story 5.1b (revue) : élément accessible de la borne, cible de focus de l'écran. */
+  ref?: Ref<View>;
   testID?: string;
 }) {
   const height = boundaryStepHeight(kind);
@@ -235,6 +238,7 @@ export function BoundaryStep({
   const extent = boundaryTouchExtent(kind, neighborSlop);
   return (
     <Pressable
+      ref={ref}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}

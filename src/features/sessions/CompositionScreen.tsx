@@ -72,6 +72,7 @@ import {
 import { hasUnpausedTransition } from "@/domain/sessions/unpausedTransitions";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
@@ -533,6 +534,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const requestNatureFocus = useCallback(() => setNatureFocusRequest((current) => current + 1), []);
   // PRE-6 (story 3.4) : demande de focus sur l'œil, à la fermeture de la feuille des volumes.
   const [volumesFocusRequest, setVolumesFocusRequest] = useState(0);
+  // PRE-6 story 5.1b (revue) : cibles de focus après le retrait du point « après le Circuit » quand
+  // aucune occurrence ne le suit — compteur de l'en-tête du Circuit, à défaut la borne de Fin.
+  const circuitCounterRef = useRef<View | null>(null);
+  const finalBoundaryRef = useRef<View | null>(null);
   // Feuille montée jusqu'à la fin de sa disparition native (`onDismissed`), pour que le focus ne
   // soit rendu à l'œil qu'une fois la `Modal` réellement fermée.
   const [isVolumesSheetMounted, setIsVolumesSheetMounted] = useState(false);
@@ -733,13 +738,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /**
    * PRE-6 (story 3.4, CE-CIR-03) : l'œil ouvre « Volumes du circuit » et referme, dans le même
    * geste, le compteur révélé et le choix de nature (un seul contrôle actif, CIR-10).
+   * PRE-6 story 5.1b (revue) : l'œil étant dans la zone de contexte, hors de la liste, il referme
+   * aussi les actions glissées révélées et la bulle « Retirer » ; il n'ouvre rien pendant le glisser
+   * d'une carte (il y est aussi désactivé).
    */
   const openCircuitVolumes = useCallback(() => {
+    if (draggedActivityId !== null) return;
     Keyboard.dismiss();
+    setRevealedActionsId(null);
+    setRemovalTarget(null);
     volumesClosedByUserRef.current = false;
     setIsVolumesSheetMounted(true);
     setOpenOverlay("circuitVolumes");
-  }, []);
+  }, [draggedActivityId]);
   /**
    * Fermeture (X, voile, glisser, retour) : lecture seule, aucune écriture. Sans effet si la
    * feuille n'est plus ouverte (rappel tardif ou répété).
@@ -974,12 +985,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         return;
       }
       // Point « après le Circuit » : sa ligne disparaît. Focus sur la première occurrence qui suit
-      // le Circuit, sinon sur l'en-tête du Circuit (son œil).
+      // le Circuit ; sinon (PRE-6 story 5.1b, revue : l'œil est désormais en haut de l'écran, loin
+      // du point retiré) sur le compteur de l'en-tête du Circuit, à défaut sur la borne « Fin de
+      // séance » — les deux éléments voisins du point disparu. À l'image suivante (bulle refermée).
       const next = draft.exercises.find((exercise) => exercise.structuralPosition === "AFTER_TOUR");
       if (next !== undefined) {
         setPauseFocusRequest((current) => ({ occurrenceId: next.id, cardOnly: true, token: (current?.token ?? 0) + 1 }));
       } else {
-        setVolumesFocusRequest((current) => current + 1);
+        focusOnNextFrame(() => circuitCounterRef.current ?? finalBoundaryRef.current);
       }
     },
     [draft.exercises, draft.stopPoints, updateDraft],
@@ -1684,6 +1697,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             setIsAddActivityTreeOpen(true);
           }}
           onAddStop={enterPlacement}
+          // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
+          // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
+          onOpenVolumes={openCircuitVolumes}
+          volumesFocusRequest={volumesFocusRequest}
+          isVolumesDisabled={draggedActivityId !== null}
           isPlacementActive={isPlacementActive}
           isAddStopDisabled={!hasAddableSlot}
           addStopFocusRequest={addStopFocusRequest}
@@ -1888,9 +1906,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onCloseNatureMenu={dismissNatureMenu}
             onSelectNature={handleSelectNature}
             natureFocusRequest={natureFocusRequest}
-            onOpenVolumes={openCircuitVolumes}
-            volumesFocusRequest={volumesFocusRequest}
-            // PRE-6 (story 4.1) : compteur, pastille et œil atténués et inactifs en placement.
+            counterRef={circuitCounterRef}
+            // PRE-6 (story 4.1) : compteur et pastille inactifs en placement. Story 5.1b : l'œil des
+            // Volumes est passé dans la zone de contexte (`CompositionContextHeader`).
             isAttenuated={isPlacementActive}
             // PRE-6 (story 2.3b) : l'en-tête suit le bord haut du Circuit pendant le glisser.
             translateY={circuitTopShift}
@@ -2037,6 +2055,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               value={formatDurationRowValue(draft.finalPhaseSeconds)}
               isOpen={openOverlay === "finalPhase"}
               onPress={() => toggleOverlay("finalPhase")}
+              ref={finalBoundaryRef}
               testID="composition-boundary-final-phase"
             />
           </PlacementAttenuation>
@@ -3413,6 +3432,9 @@ function CompositionActivityRow({
           hideContentFromAccessibility={placement !== null}
           // Arbitrage D6 (PR #391) : en placement, carte grisée, sa récupération de ligne 3 non.
           attenuated={placement !== null}
+          // PRE-6 story 5.1b (D3 remplacé) : premier média de l'occurrence, transporté par le
+          // brouillon (Catalogue, Séance relue, duplication), sinon l'icône générique.
+          media={firstMediaPreviewSource(activity.media)}
           sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
         />
 

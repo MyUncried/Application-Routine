@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
+import { MediaPreview, type MediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
 import type { OccurrenceCategory } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
@@ -198,8 +199,42 @@ export type OccurrenceCardProps = {
    * « Récupération » ou récupération existante modifiable) ne l'est pas. Absent : aucun effet.
    */
   readonly attenuated?: boolean;
+  /**
+   * PRE-6 story 5.1b : premier média de l'occurrence (`firstMediaPreviewSource(activity.media)`),
+   * URI de stockage résolue ici ; `null` ou absent : icône générique.
+   */
+  readonly media?: MediaPreviewSource | null;
   readonly sideChangeTestID?: string;
 };
+
+/**
+ * PRE-6 story 5.1b (AC1, AC2) : photo, ou image d'affiche d'une vidéo, dans le gabarit 64 × 64, par
+ * le mécanisme de la vignette du Catalogue (`MediaPreview` : `expo-image` en `cover`, affiche du
+ * générateur existant, mise en cache mémoire) ; place réservée (fond du gabarit) pendant la
+ * génération de l'affiche seulement ; revue 5.1b : média définitivement indisponible (photo en
+ * erreur, vidéo sans affiche) → icône générique, comme sans média. Texte alternatif : le nom de
+ * l'exercice, porté par la carte (élément accessible) ; l'image n'a ni libellé ni arrêt propre.
+ * Aucune lecture vidéo, aucun son, rien de persisté.
+ */
+function OccurrenceMediaPreview({ source }: { source: MediaPreviewSource }) {
+  const resolveUri = useMediaUriResolver();
+  return (
+    <MediaPreview
+      uri={resolveUri(source.uri)}
+      isVideo={source.isVideo}
+      imageStyle={styles.mediaImage}
+      fallbackStyle={styles.mediaPlaceholder}
+      unavailable={<GenericMediaIcon />}
+      imageTestID="composition-exercise-media-image"
+      fallbackTestID="composition-exercise-media-placeholder"
+    />
+  );
+}
+
+/** Icône générique du gabarit (`9798:19907`) : sans média, ou média définitivement indisponible. */
+function GenericMediaIcon() {
+  return <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />;
+}
 
 /** Props qui retirent un élément (et ses descendants) de l'accessibilité, iOS et Android. */
 const HIDDEN_FROM_ACCESSIBILITY = {
@@ -211,7 +246,8 @@ const HIDDEN_FROM_ACCESSIBILITY = {
  * Contenu de la carte d'occurrence de la Composition, v2 (PRE-6 story 5.1, D-435, Figma
  * `9798:44464`, instances `9798:19935` hors Circuit et `9819:19961` dans le Circuit ; ch08
  * « Présentation des occurrences — révision du 21/10/2026 » ; ch13 CE-T03-08 §7-§10) :
- * - média : gabarit 64 × 64 avec l'icône générique (choix D3), jamais une photo ;
+ * - média : gabarit 64 × 64 ; story 5.1b (D3 remplacé) : premier média de l'occurrence (photo ou
+ *   affiche vidéo), sinon l'icône générique ;
  * - ligne 1 : nom (Inter Semi Bold 15, `#141414`, ellipse) et, à droite, l'icône neutre de
  *   changement de côté, absente sans changement de côté (RM-243, D-407, ARB-2) ;
  * - ligne 2 : pastille et Catégorie (Regular 12, `#7A7A80`, ellipse), puis, dans la colonne des
@@ -237,6 +273,7 @@ export function OccurrenceCard({
   recovery,
   hideContentFromAccessibility = false,
   attenuated = false,
+  media = null,
   sideChangeTestID,
 }: OccurrenceCardProps) {
   const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
@@ -259,8 +296,14 @@ export function OccurrenceCard({
       ]}
       testID="composition-activity-main-card"
     >
+      {/*
+       * PRE-6 story 5.1b (D3 remplacé par Hermann le 21/10/2026) : le premier média de l'occurrence
+       * remplit le gabarit (bord, rayon et fond conservés) ; sans média, l'icône générique. Le
+       * gabarit n'est pas une cible tactile (ni `Pressable`, ni répondeur ; l'image non plus) :
+       * toucher et appui long restent ceux de la carte.
+       */}
       <View style={[styles.media, dimmed]} {...hidden} testID="composition-exercise-media">
-        <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />
+        {media ? <OccurrenceMediaPreview source={media} /> : <GenericMediaIcon />}
       </View>
       <View style={styles.textColumn}>
         <View style={[styles.nameRow, dimmed]} {...hidden} testID="composition-exercise-name-row">
@@ -350,6 +393,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
+  },
+  // Story 5.1b : le média remplit l'intérieur du bord (62 × 62), recadré au centre (`cover`) ; rayon
+  // intérieur = rayon du gabarit moins le bord, pour suivre l'arrondi.
+  mediaImage: {
+    width: "100%",
+    height: "100%",
+    borderRadius: MEDIA_RADIUS - OCCURRENCE_CARD_BORDER_WIDTH,
+  },
+  // Place réservée : le fond du gabarit, sans icône (chargement, photo illisible, affiche absente).
+  mediaPlaceholder: {
+    width: "100%",
+    height: "100%",
+    backgroundColor: OCCURRENCE_CARD_MEDIA_BACKGROUND,
   },
   textColumn: {
     flex: 1,

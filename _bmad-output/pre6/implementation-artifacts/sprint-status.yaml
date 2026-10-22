@@ -66,14 +66,14 @@ development_status:
 
   epic-5: in-progress
   5-1-carte-v2-et-récupération-en-troisième-ligne: review
-  5-1b-photo-ou-affiche-vidéo-dans-le-gabarit: in-progress
+  5-1b-photo-ou-affiche-vidéo-dans-le-gabarit: review
   5-2-rail-segmenté-circuit-bornes-et-points-d-arrêt: review
   5-3-placement-mixte-et-défilement: review
   5-4-états-soulevé-et-actions-glissées: backlog
   epic-5-retrospective: optional
 
   epic-6: in-progress
-  6-1-domaine-points-d-arrêt-indépendants-et-non-consécutivité: backlog
+  6-1-domaine-points-d-arrêt-indépendants-et-non-consécutivité: review
   6-2-glisser-déposer-d-un-point-d-arrêt: backlog
   6-3-retrait-en-placement-libellé-fin-de-la-bulle-des-points: backlog
   epic-6-retrospective: optional
