@@ -146,9 +146,11 @@ export type ActivityRowLayout = {
  * TOUR — au-dessus, dedans, en dessous — et non par la hauteur des listes
  * d'Activités elles-mêmes : une zone VIDE reste donc une destination valide
  * sans qu'aucun réceptacle de hauteur minimale n'ait à être ajouté, ce qui
- * déplacerait les autres cartes (CE-T02-02 : « Les autres cartes, le Tour et
- * les éléments structurels ne changent ni de taille ni de position au
- * déclenchement »).
+ * déplacerait les autres cartes. Source (PRE-6 story 5.2b, citation vérifiée) :
+ * ch13, contrat CE-T03-08, section « Composer une séance / Modifier une
+ * séance — Réorganisation » (état soulevé) : « Les autres cartes et éléments
+ * structurels restent inchangés. » — l'ancienne paraphrase attribuée à CE-T02-02 n'existe pas
+ * telle quelle dans la spécification.
  */
 export type CompositionDragLayout = {
   readonly tourTop: number;

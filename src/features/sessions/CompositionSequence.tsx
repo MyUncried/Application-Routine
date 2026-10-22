@@ -124,14 +124,20 @@ export function RailSegment({
  * le précède. Pendant le glisser, l'élément est translaté de `shift` et son prédécesseur de
  * `prevShift` (valeurs animées partagées) : le segment garde son bas sur l'ancre et s'étire ou se
  * rétracte de `shift - prevShift` par transformations seules (pilote natif), sans recalcul de mise
- * en page. Une rétraction plus longue que le segment l'écrase à 0 sans le retourner.
- * `anchorBottom` : l'ancre est le bas du parent (bas du Circuit) au lieu de `entryY`.
+ * en page. `anchorBottom` : l'ancre est le bas du parent (bas du Circuit) au lieu de `entryY`.
+ *
+ * PRE-6 story 5.2b : une rétraction ne descend jamais sous `minLength`, la part du lien posée sur
+ * la surface même de l'élément (carte : du haut de la carte au haut du média, `entryY` ; en-tête
+ * du Circuit : marge du Circuit + décalage de l'anneau, `entryY` ; bas du Circuit : sa marge
+ * basse) — remplace l'écrasement à 0. Ce morceau, sur l'élément lui-même, ne peut traverser aucun
+ * autre média ; quand un voisin le chevauche, la jonction visible se fait à son bord.
  */
 export function RailLink({
   centerX,
   entryY = 0,
   anchorBottom = false,
   length,
+  minLength = anchorBottom ? 0 : entryY,
   shift,
   prevShift,
   testID,
@@ -140,27 +146,30 @@ export function RailLink({
   entryY?: number;
   anchorBottom?: boolean;
   length: number;
+  /** Longueur visible minimale (surface propre de l'élément) ; par défaut `entryY`. */
+  minLength?: number;
   shift: Animated.Value;
   prevShift: Animated.Value;
   testID?: string;
 }) {
   // Base finie et non nulle.
   const base = Number.isFinite(length) && length > 0 ? length : 1;
+  // Échelle minimale : la surface propre, jamais plus que la longueur au repos.
+  const minScale = Math.min(1, Math.max(0, minLength) / base);
   const transform = useMemo(() => {
     const stretch = Animated.subtract(shift, prevShift);
+    const scale = Animated.add(1, Animated.divide(stretch, base)).interpolate({
+      inputRange: [minScale, minScale + 1],
+      outputRange: [minScale, minScale + 1],
+      extrapolateLeft: "clamp",
+      extrapolateRight: "extend",
+    });
     return [
-      // Bas fixe : la mise à l'échelle autour du centre est compensée de la moitié de l'étirement.
-      { translateY: Animated.multiply(stretch, -0.5) },
-      {
-        scaleY: Animated.add(1, Animated.divide(stretch, base)).interpolate({
-          inputRange: [0, 1],
-          outputRange: [0, 1],
-          extrapolateLeft: "clamp",
-          extrapolateRight: "extend",
-        }),
-      },
+      // Bas fixe : la mise à l'échelle autour du centre est compensée de la moitié de la variation.
+      { translateY: Animated.multiply(Animated.subtract(1, scale), base / 2) },
+      { scaleY: scale },
     ];
-  }, [base, prevShift, shift]);
+  }, [base, minScale, prevShift, shift]);
   return (
     <Animated.View
       {...decorative}

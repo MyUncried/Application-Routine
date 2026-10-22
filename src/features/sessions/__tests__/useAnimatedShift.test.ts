@@ -130,7 +130,54 @@ describe("AnimatedShiftRegistry (story 5.2)", () => {
     expect(animations[1]).toMatchObject({ toValue: 5, started: true });
   });
 
-  it("whenSettled : appelé une fois les animations terminées, pas avant ; désinscription", async () => {
+  it("story 5.2b — pose de départ (`release`) : posée sans animation, une seule fois, puis retour animé", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const a = registry.value("a", 0);
+    const release = { key: "a", from: 120 };
+    registry.apply(new Map([["a", 0]]), true, release);
+    expect(valueOf(a)).toBe(120);
+    await flush();
+    expect(animations).toHaveLength(1);
+    expect(animations[0]).toMatchObject({ toValue: 0, started: true, useNativeDriver: true, duration: DRAG_SHIFT_DURATION_MS });
+    // Même pose rejouée (nouveau rendu) : ignorée.
+    registry.apply(new Map([["a", 0]]), true, release);
+    await flush();
+    expect(animations).toHaveLength(1);
+    // Maintien : pose de départ égale à la cible, aucune animation.
+    const held = { key: "a", from: 40 };
+    registry.apply(new Map([["a", 40]]), true, held);
+    expect(valueOf(a)).toBe(40);
+    await flush();
+    expect(animations).toHaveLength(1);
+  });
+
+  it("story 5.2b — reset : animations arrêtées et toutes les valeurs à 0, de façon synchrone", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const a = registry.value("a", 0);
+    const b = registry.value("b", 0);
+    registry.apply(
+      new Map([
+        ["a", 30],
+        ["b", -30],
+      ]),
+      false,
+    );
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", 0],
+      ]),
+      true,
+    );
+    await flush();
+    expect(animations).toHaveLength(2);
+    registry.reset();
+    expect(animations.every((animation) => animation.stopped)).toBe(true);
+    expect(valueOf(a)).toBe(0);
+    expect(valueOf(b)).toBe(0);
+  });
+
+  it("story 5.2b — whenSettled : appelé une fois les animations terminées, pas avant ; désinscription", async () => {
     const registry = new AnimatedShiftRegistry();
     registry.value("a", 0);
     registry.apply(new Map([["a", 5]]), true);
@@ -144,7 +191,6 @@ describe("AnimatedShiftRegistry (story 5.2)", () => {
     animations[0]!.finish();
     expect(settled).toHaveBeenCalledTimes(1);
     expect(ignored).not.toHaveBeenCalled();
-    // Déjà au repos : appelé dans une microtâche.
     const idle = jest.fn();
     registry.whenSettled(idle);
     expect(idle).not.toHaveBeenCalled();

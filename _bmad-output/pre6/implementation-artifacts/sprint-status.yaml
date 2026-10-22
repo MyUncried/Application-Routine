@@ -68,7 +68,7 @@ development_status:
   5-1-carte-v2-et-récupération-en-troisième-ligne: review
   5-1b-photo-ou-affiche-vidéo-dans-le-gabarit: review
   5-2-rail-segmenté-circuit-bornes-et-points-d-arrêt: review
-  5-2b-correction-du-rail-pendant-le-déplacement: in-progress
+  5-2b-correction-du-rail-pendant-le-déplacement: review
   5-3-placement-mixte-et-défilement: review
   5-4-états-soulevé-et-actions-glissées: backlog
   epic-5-retrospective: optional

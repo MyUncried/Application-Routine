@@ -1,13 +1,19 @@
 import { describe, expect, it } from "@jest/globals";
 
+import { CIRCUIT_HEADER_HEIGHT } from "@/features/sessions/CircuitHeader";
+import { STOP_POINT_LINE_HEIGHT } from "@/features/sessions/ActivityRecoveryLine";
+import { type DropTarget, resolveDragShifts } from "@/features/sessions/compositionGesture";
 import { RAIL_KEYS, railRowKey, resolveRailLinks, type RailChainInput } from "@/features/sessions/compositionRail";
+import { railGeometryFor } from "@/features/sessions/CompositionScreen";
+import { OCCURRENCE_CARD_HEIGHT, OCCURRENCE_CARD_MEDIA } from "@/features/sessions/OccurrenceCard";
 
 /**
  * PRE-6 (story 5.2, D-435, Figma `8328:28605`) : liens du rail segmenté. Géométrie de conception à
  * 402 : écart 8 hors Circuit, 9 dans le Circuit, marge du Circuit 14, ancres — haut du média 8,
  * haut de l'anneau du Circuit 15 (en-tête de 40), haut de l'anneau de Fin 7 (rangée de 24).
  */
-const GEOMETRY = { sequenceGap: 8, circuitGap: 9, circuitPadding: 14, rowEntry: 8, circuitHeaderEntry: 15, endEntry: 7 };
+// Story 5.2b : la géométrie même de l'écran (`railGeometryFor`), pas une copie.
+const GEOMETRY = railGeometryFor(CIRCUIT_HEADER_HEIGHT);
 const CARD = 80;
 
 function links(input: Partial<RailChainInput>) {
@@ -119,5 +125,239 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
       prevKey: RAIL_KEYS.circuitHeader,
       length: 9 + CARD + 9 + 22 + 14,
     });
+  });
+});
+
+/**
+ * PRE-6 story 5.2b : rail pendant le glisser et pendant le retour — \`resolveDragShifts\` (décalages)
+ * et \`resolveRailLinks\` (liens) combinés sur un modèle de la mise en page au repos (celle que relève
+ * \`originLayout\` ; le soulèvement est neutre pour la mise en page), avec la géométrie même de
+ * l'écran (\`railGeometryFor\`, \`OCCURRENCE_CARD_MEDIA\`, rangée de point d'arrêt, en-tête de 40).
+ *
+ * - Aperçu (fraction \`t\` de l'animation vers l'emplacement) : la carte glissée A est hors de la
+ *   chaîne, soulevée au premier plan.
+ * - Retour (dépôt refusé, geste interrompu, « Annuler ») : A part de sa position de dépôt et revient
+ *   à 0 avec ses voisines (même fraction \`t\`) ; hors de la chaîne et au premier plan jusqu'à la fin
+ *   du retour, elle porte le rail de sa propre surface.
+ *
+ * Invariants, à t = 1, ½ et 0 : (1) jonction visible — le haut de chaque lien est le bas visible de
+ * son prédécesseur, ou, quand celui-ci chevauche l'élément, le bord haut de l'élément lui-même (lien
+ * ramené à sa surface propre), ou un point recouvert par la carte A ; (2) jamais sous la surface
+ * propre ; (3) aucun lien ne traverse un média peint sous lui, hors de ce que A recouvre.
+ */
+describe("rail pendant le glisser et le retour : jonctions visibles, aucun média traversé (story 5.2b)", () => {
+  type Zone = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
+  type Occurrence = { readonly id: string; readonly zone: Zone; readonly stopPoint?: boolean };
+  type Element = {
+    readonly key: string;
+    readonly group: string;
+    readonly top: number;
+    readonly bottom: number;
+    readonly entry: number;
+    readonly minLength: number;
+    readonly media: { readonly top: number; readonly bottom: number } | null;
+  };
+  const G = railGeometryFor(CIRCUIT_HEADER_HEIGHT);
+  const START_ROW = 27;
+  const END_ROW = 24;
+  const GAPS = { row: G.sequenceGap, circuitRow: G.circuitGap, zone: G.sequenceGap, circuit: G.circuitGap };
+  const EPSILON = 1e-6;
+
+  /** Mise en page au repos : éléments du rail dans l'ordre de peinture, et relevé des cartes. */
+  function layOut(sequence: readonly Occurrence[]) {
+    const elements: Element[] = [];
+    const rows: { id: string; zone: Zone; top: number; height: number }[] = [];
+    let y = START_ROW;
+    elements.push({ key: RAIL_KEYS.start, group: "start", top: 0, bottom: START_ROW, entry: 0, minLength: 0, media: null });
+    const list = (zone: Zone, gap: number, group: string) =>
+      sequence
+        .filter((occurrence) => occurrence.zone === zone)
+        .forEach((occurrence, index) => {
+          if (index > 0) y += gap;
+          const height = OCCURRENCE_CARD_HEIGHT + (occurrence.stopPoint === true ? gap + STOP_POINT_LINE_HEIGHT : 0);
+          elements.push({
+            key: railRowKey(occurrence.id),
+            group,
+            top: y,
+            bottom: y + height,
+            entry: y + G.rowEntry,
+            minLength: G.rowEntry,
+            media: { top: y + OCCURRENCE_CARD_MEDIA.top, bottom: y + OCCURRENCE_CARD_MEDIA.bottom },
+          });
+          rows.push({ id: occurrence.id, zone, top: y, height });
+          y += height;
+        });
+    const has = (zone: Zone) => sequence.some((occurrence) => occurrence.zone === zone);
+    if (has("BEFORE_TOUR")) {
+      y += G.sequenceGap;
+      list("BEFORE_TOUR", G.sequenceGap, "before");
+    }
+    y += G.sequenceGap;
+    const tourTop = y;
+    elements.push({
+      key: RAIL_KEYS.circuitHeader,
+      group: "circuit",
+      top: tourTop,
+      bottom: tourTop + G.circuitPadding + CIRCUIT_HEADER_HEIGHT,
+      entry: tourTop + G.circuitPadding + G.circuitHeaderEntry,
+      minLength: G.circuitPadding + G.circuitHeaderEntry,
+      media: null,
+    });
+    y += G.circuitPadding + CIRCUIT_HEADER_HEIGHT;
+    if (has("IN_TOUR")) {
+      y += G.circuitGap;
+      list("IN_TOUR", G.circuitGap, "circuit");
+    }
+    y += G.circuitPadding;
+    const tourBottom = y;
+    elements.push({ key: RAIL_KEYS.circuitEnd, group: "circuit", top: tourBottom, bottom: tourBottom, entry: tourBottom, minLength: G.circuitPadding, media: null });
+    if (has("AFTER_TOUR")) {
+      y += G.sequenceGap;
+      list("AFTER_TOUR", G.sequenceGap, "after");
+    }
+    y += G.sequenceGap;
+    elements.push({ key: RAIL_KEYS.end, group: "end", top: y, bottom: y + END_ROW, entry: y + G.endEntry, minLength: G.endEntry, media: null });
+    return { elements, layout: { tourTop, tourBottom, rows } };
+  }
+
+  /** Séquence après le déplacement (règle de \`moveActivity\` : rang \`index\` dans la zone visée). */
+  function moved(sequence: readonly Occurrence[], id: string, target: DropTarget): Occurrence[] {
+    const source = sequence.find((occurrence) => occurrence.id === id)!;
+    const others = sequence.filter((occurrence) => occurrence.id !== id);
+    const order: Zone[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
+    return order.flatMap((zone) => {
+      const inZone = others.filter((occurrence) => occurrence.zone === zone);
+      if (zone === target.zone) inZone.splice(target.index, 0, { ...source, zone });
+      return inZone;
+    });
+  }
+
+  type Phase = "preview" | "return";
+  /** Défauts du rail à la fraction \`t\` (\`release\` : écart à la position de dépôt, retour seulement). */
+  function railDefects(sequence: readonly Occurrence[], id: string, target: DropTarget, phase: Phase, t: number, release = 0) {
+    const rest = layOut(sequence);
+    const after = layOut(moved(sequence, id, target));
+    const dragged = rest.layout.rows.find((row) => row.id === id)!;
+    const insertionHeight = after.layout.rows.find((row) => row.id === id)!.height;
+    const shifts = resolveDragShifts(rest.layout, id, target, GAPS, insertionHeight);
+    const draggedKey = railRowKey(id);
+    const shiftOf = (key: string): number => {
+      if (key === draggedKey) return phase === "return" ? t * release : 0;
+      const byKey: Record<string, number> = {
+        [RAIL_KEYS.circuitHeader]: shifts.circuitTop,
+        [RAIL_KEYS.circuitEnd]: shifts.circuitBottom,
+        [RAIL_KEYS.afterCircuit]: shifts.afterCircuit,
+        [RAIL_KEYS.end]: shifts.end,
+      };
+      return t * (key.startsWith("rail:row:") ? (shifts.rows.get(key.slice("rail:row:".length)) ?? 0) : (byKey[key] ?? 0));
+    };
+    const byKey = new Map(rest.elements.map((element) => [element.key, element]));
+    const draggedElement = byKey.get(draggedKey)!;
+    const draggedGroup = draggedElement.group;
+    // A au premier plan ; sa zone (le Circuit entier pour une carte du Circuit) au-dessus des autres.
+    const paintRank = (element: Element, index: number) =>
+      element.key === draggedKey ? 1e6 : element.group === draggedGroup ? 1e3 + index : index;
+    const ranks = new Map(rest.elements.map((element, index) => [element.key, paintRank(element, index)]));
+    const coverByA = { top: draggedElement.top + shiftOf(draggedKey), bottom: draggedElement.bottom + shiftOf(draggedKey) };
+    const zoneIds = (zone: Zone) => sequence.filter((occurrence) => occurrence.zone === zone).map((occurrence) => occurrence.id);
+    const result = links({
+      beforeTour: zoneIds("BEFORE_TOUR"),
+      inTour: zoneIds("IN_TOUR"),
+      afterTour: zoneIds("AFTER_TOUR"),
+      skipped: { id, height: dragged.height },
+      geometry: G,
+    });
+    const defects: string[] = [];
+    for (const [key, link] of result) {
+      const element = byKey.get(key)!;
+      const previous = byKey.get(link.prevKey)!;
+      const anchor = element.entry + shiftOf(key);
+      const visible = Math.max(element.minLength, link.length + shiftOf(key) - shiftOf(link.prevKey));
+      const top = anchor - visible;
+      const previousBottom = previous.bottom + shiftOf(link.prevKey);
+      const joined =
+        Math.abs(top - previousBottom) < EPSILON ||
+        (Math.abs(visible - element.minLength) < EPSILON && previousBottom >= top - EPSILON) ||
+        (top > coverByA.top - EPSILON && top < coverByA.bottom + EPSILON);
+      if (!joined) defects.push(`${key} : jonction ${(top - previousBottom).toFixed(2)}`);
+      if (visible < element.minLength - EPSILON) defects.push(`${key} : sous sa surface propre`);
+      for (const card of rest.elements) {
+        if (card.media === null || card.key === key || card.key === draggedKey) continue;
+        if (ranks.get(card.key)! > ranks.get(key)!) continue;
+        const mediaTop = card.media.top + shiftOf(card.key);
+        const mediaBottom = card.media.bottom + shiftOf(card.key);
+        let from = Math.max(top, mediaTop);
+        let to = Math.min(anchor, mediaBottom);
+        // Ce que la carte A, au premier plan, recouvre n'est pas visible.
+        if (from < coverByA.bottom && to > coverByA.top) {
+          if (coverByA.top <= from) from = Math.max(from, coverByA.bottom);
+          else to = Math.min(to, coverByA.top);
+        }
+        if (to - from > EPSILON) defects.push(`${key} : traverse le média de ${card.key}`);
+      }
+    }
+    return { defects, holeOffset: after.layout.rows.find((row) => row.id === id)!.top - dragged.top };
+  }
+
+  /** Aperçu puis retour, depuis l'emplacement ouvert et à 25 de part et d'autre. */
+  function expectSound(sequence: readonly Occurrence[], id: string, target: DropTarget) {
+    for (const t of [1, 0.5, 0]) {
+      const preview = railDefects(sequence, id, target, "preview", t);
+      expect([t, preview.defects]).toEqual([t, []]);
+      for (const offset of [0, 25, -25]) {
+        const release = preview.holeOffset + offset;
+        expect([t, release, railDefects(sequence, id, target, "return", t, release).defects]).toEqual([t, release, []]);
+      }
+    }
+  }
+
+  const circuit: Occurrence[] = [
+    { id: "A", zone: "IN_TOUR" },
+    { id: "B", zone: "IN_TOUR" },
+    { id: "C", zone: "IN_TOUR" },
+  ];
+
+  it("Circuit [A, B, C] : A glissée en dernier", () => {
+    expectSound(circuit, "A", { zone: "IN_TOUR", index: 2 });
+  });
+
+  it("Circuit [A, B, C] : C (la dernière) glissée en premier", () => {
+    expectSound(circuit, "C", { zone: "IN_TOUR", index: 0 });
+  });
+
+  it("voisine portant une rangée de point d'arrêt (B*), dans les deux sens", () => {
+    const withStop: Occurrence[] = [
+      { id: "P", zone: "BEFORE_TOUR" },
+      { id: "A", zone: "IN_TOUR" },
+      { id: "B", zone: "IN_TOUR", stopPoint: true },
+      { id: "C", zone: "IN_TOUR" },
+      { id: "Z", zone: "AFTER_TOUR" },
+    ];
+    expectSound(withStop, "A", { zone: "IN_TOUR", index: 2 });
+    expectSound(withStop, "C", { zone: "IN_TOUR", index: 0 });
+    expectSound(withStop, "P", { zone: "IN_TOUR", index: 3 });
+  });
+
+  it("hauteur d'insertion différente de la hauteur retirée : A* (rangée de point) quitte le Circuit (écart 9 → 8)", () => {
+    const withStop: Occurrence[] = [
+      { id: "P", zone: "BEFORE_TOUR" },
+      { id: "A", zone: "IN_TOUR", stopPoint: true },
+      { id: "B", zone: "IN_TOUR" },
+      { id: "Z", zone: "AFTER_TOUR" },
+    ];
+    expectSound(withStop, "A", { zone: "AFTER_TOUR", index: 1 });
+    expectSound(withStop, "A", { zone: "BEFORE_TOUR", index: 0 });
+  });
+
+  it("dernière carte avant le Circuit vers le Circuit, dernière du Circuit vers l'après", () => {
+    const sequence: Occurrence[] = [
+      { id: "B", zone: "BEFORE_TOUR" },
+      { id: "A", zone: "BEFORE_TOUR" },
+      { id: "X", zone: "IN_TOUR" },
+      { id: "Y", zone: "IN_TOUR" },
+      { id: "Z", zone: "AFTER_TOUR" },
+    ];
+    expectSound(sequence, "A", { zone: "IN_TOUR", index: 1 });
+    expectSound(sequence, "Y", { zone: "AFTER_TOUR", index: 1 });
   });
 });

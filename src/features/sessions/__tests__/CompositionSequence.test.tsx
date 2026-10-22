@@ -6,16 +6,18 @@ import { RailLink } from "@/features/sessions/CompositionSequence";
 
 /**
  * PRE-6 (story 5.2, revue) : lien du rail — il garde son bas sur l'ancre et s'étire ou se rétracte
- * de `shift - prevShift` ; une rétraction plus longue que lui l'écrase à 0 sans le retourner.
+ * de `shift - prevShift`. Story 5.2b : une rétraction ne descend jamais sous sa surface propre
+ * (`minLength`, par défaut `entryY` : du haut de la carte au haut du média), jamais retournée.
  */
 const hidden = { includeHiddenElements: true };
 
-function renderLink(length: number, shift: number, prevShift: number) {
+function renderLink(length: number, shift: number, prevShift: number, minLength?: number) {
   render(
     <RailLink
       centerX={40}
       entryY={8}
       length={length}
+      {...(minLength === undefined ? {} : { minLength })}
       shift={new Animated.Value(shift)}
       prevShift={new Animated.Value(prevShift)}
       testID="link"
@@ -45,12 +47,21 @@ describe("RailLink (story 5.2)", () => {
     expect(translateY).toBe(-5);
   });
 
-  it("rétracté au-delà de sa longueur : écrasé à 0, jamais retourné", () => {
-    const { scaleY } = renderLink(16, -30, 0);
-    expect(scaleY).toBe(0);
+  it("rétracté au-delà de sa longueur : jamais sous sa surface propre (entryY = 8), bas fixe", () => {
+    const { scaleY, translateY } = renderLink(16, -30, 0);
+    expect(16 * scaleY).toBeCloseTo(8, 6);
+    // Bas fixe sur l'ancre : la moitié de la longueur perdue.
+    expect(translateY).toBeCloseTo(4, 6);
   });
 
-  it("rétracté exactement de sa longueur : 0", () => {
-    expect(renderLink(16, 0, 16).scaleY).toBe(0);
+  it("rétracté jusqu'à sa surface propre exactement : 8 visibles", () => {
+    const { scaleY } = renderLink(16, 0, 8);
+    expect(16 * scaleY).toBeCloseTo(8, 6);
+  });
+
+  it("surface propre nulle (`minLength` 0) : écrasé à 0, jamais retourné", () => {
+    const { scaleY, translateY } = renderLink(16, -30, 0, 0);
+    expect(scaleY).toBe(0);
+    expect(translateY).toBeCloseTo(8, 6);
   });
 });

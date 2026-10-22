@@ -14,7 +14,9 @@ export const DRAG_SHIFT_DURATION_MS = 180;
  * et celle de son prédécesseur (`compositionRail.ts`). Il lui faut donc la valeur animée même de
  * son prédécesseur — l'objet qui translate ce prédécesseur —, pas une copie : une copie démarrée à
  * un autre instant, ou créée quand le prédécesseur change (retour d'un dépôt refusé, « Annuler »
- * d'une confirmation de perte), divergerait le temps de l'animation.
+ * d'une confirmation de perte), divergerait le temps de l'animation. Story 5.2b : la carte relâchée
+ * revient par ce même registre (pose de départ `release`, puis cible 0), synchronisée avec ses
+ * voisines, et reste dans la chaîne du rail.
  *
  * Démarrage différé d'une microtâche : React Native détache les propriétés animées d'un composant
  * démonté dans une microtâche (`createAnimatedPropsHook`). Les valeurs étant partagées, le graphe
@@ -33,6 +35,8 @@ export class AnimatedShiftRegistry {
   /** Démarrage différé en attente, par clé (jeton) : une pose ultérieure de la même clé l'annule. */
   private readonly pending = new Map<string, number>();
   private nextToken = 0;
+  /** Dernière pose de départ consommée (identité) : une pose n'est appliquée qu'une fois. */
+  private lastRelease: ShiftRelease | null = null;
   private settledListeners: (() => void)[] = [];
 
   /**
@@ -55,8 +59,22 @@ export class AnimatedShiftRegistry {
    * Pose les cibles : seule une clé dont la cible change est relancée, depuis sa position courante ;
    * `animated` faux la pose immédiatement (et fige une animation en cours vers la même cible). Les
    * clés disparues sont libérées.
+   *
+   * PRE-6 story 5.2b : `release` (consommée une seule fois, par identité) pose d'abord, sans
+   * animation, la translation de départ d'une clé — la carte relâchée, prise là où le doigt l'a
+   * laissée — ; sa cible est ensuite posée comme les autres (retour animé vers 0, ou maintien).
    */
-  apply(targets: ReadonlyMap<string, number>, animated: boolean): void {
+  apply(targets: ReadonlyMap<string, number>, animated: boolean, release: ShiftRelease | null = null): void {
+    if (release !== null && release !== this.lastRelease) {
+      this.lastRelease = release;
+      if (targets.has(release.key)) {
+        const shift = this.value(release.key, release.from);
+        this.cancel(release.key);
+        shift.stopAnimation();
+        shift.setValue(release.from);
+        this.applied.set(release.key, release.from);
+      }
+    }
     for (const [key, target] of targets) {
       const shift = this.value(key, target);
       const busy = this.running.has(key) || this.pending.has(key);
@@ -82,6 +100,21 @@ export class AnimatedShiftRegistry {
   }
 
   /**
+   * PRE-6 story 5.2b : nouveau geste pendant un retour — arrête toutes les animations et pose
+   * toutes les valeurs à 0, de façon synchrone : l'écran rejoint la mise en page mesurée avant le
+   * relevé du geste (`originLayout`).
+   */
+  reset(): void {
+    for (const [key, shift] of this.values) {
+      this.cancel(key);
+      shift.stopAnimation();
+      shift.setValue(0);
+      this.applied.set(key, 0);
+    }
+    this.notifyIfSettled();
+  }
+
+  /**
    * Arrête tout (démontage) : animations en cours et démarrages en attente. Les cibles posées sont
    * oubliées : un `apply` suivant relance chaque clé depuis sa position courante.
    */
@@ -94,8 +127,9 @@ export class AnimatedShiftRegistry {
   }
 
   /**
-   * PRE-6 (story 5.2, revue) : appelle `listener` une fois toutes les animations terminées (aucune
-   * en cours ni en attente) — au plus tôt dans une microtâche. Rend la désinscription.
+   * PRE-6 story 5.2b : appelle `listener` une fois toutes les animations terminées (aucune en
+   * cours ni en attente) — au plus tôt dans une microtâche. Sert seulement à garder au premier
+   * plan la carte qui revient, le temps de son retour. Rend la désinscription.
    */
   whenSettled(listener: () => void): () => void {
     this.settledListeners.push(listener);
@@ -138,15 +172,22 @@ export class AnimatedShiftRegistry {
   }
 }
 
+/** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */
+export type ShiftRelease = { readonly key: string; readonly from: number };
+
 /**
  * Registre des translations de la séquence, cibles posées dans un effet de mise en page : la remise
  * à 0 d'un dépôt appliqué précède l'affichage de la nouvelle disposition, sans saut.
  */
-export function useAnimatedShiftRegistry(targets: ReadonlyMap<string, number>, animated: boolean): AnimatedShiftRegistry {
+export function useAnimatedShiftRegistry(
+  targets: ReadonlyMap<string, number>,
+  animated: boolean,
+  release: ShiftRelease | null = null,
+): AnimatedShiftRegistry {
   const [registry] = useState(() => new AnimatedShiftRegistry());
   useLayoutEffect(() => {
-    registry.apply(targets, animated);
-  }, [animated, registry, targets]);
+    registry.apply(targets, animated, release);
+  }, [animated, registry, release, targets]);
   useLayoutEffect(() => () => registry.stopAll(), [registry]);
   return registry;
 }

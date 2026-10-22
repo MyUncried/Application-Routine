@@ -25,7 +25,8 @@ import {
   notifyBodyZonesReferentialChanged,
   ReferentialServiceContext,
 } from "@/features/reference-data/ReferentialServiceContext";
-import { RECOVERY_VALUE_TEXT } from "@/features/sessions/ActivityRecoveryLine";
+import { RECOVERY_VALUE_TEXT, STOP_POINT_LINE_HEIGHT } from "@/features/sessions/ActivityRecoveryLine";
+import { CIRCUIT_HEADER_HEIGHT } from "@/features/sessions/CircuitHeader";
 import { CompositionScreen, predictedInsertionHeight } from "@/features/sessions/CompositionScreen";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import type { SessionDraftContextValue, SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
@@ -33,6 +34,7 @@ import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import {
   OCCURRENCE_CARD_BORDER_WIDTH,
   OCCURRENCE_CARD_HEIGHT,
+  OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_TEXT_FRAME,
   OCCURRENCE_RECOVERY_FRAME,
   occurrenceRecoveryTouchExtent,
@@ -2325,7 +2327,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     expect(liftedStyle.marginHorizontal).toBe(-4);
   });
 
-  it("correctif 2.3b — la zone qui porte la carte soulevée passe au-dessus de ses sœurs, jamais les autres", () => {
+  it("correctif 2.3b — la zone qui porte la carte soulevée passe au-dessus de ses sœurs, jamais les autres", async () => {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
       anActivity("core", "IN_TOUR", { name: "Pompes" }),
@@ -2348,8 +2350,12 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     expect(zIndexOf("composition-tour-section")).toBeUndefined();
     expect(zIndexOf("composition-zone-after-tour")).toBeUndefined();
     fireEvent(screen.getByTestId("composition-activity-ex-1"), "responderTerminate", {});
+    // Story 5.2b : la carte reste au premier plan jusqu'à la fin de son retour (ici, rien à animer).
+    expect(rowBackground("composition-activity-ex-1")).toBe("transparent");
+    await act(async () => {});
 
     expect(rowBackground("composition-activity-ex-1")).toBe(colors.background);
+    expect(zIndexOf("composition-zone-before-tour")).toBeUndefined();
 
     fireEvent(screen.getByTestId("composition-exercise-row-core"), "longPress");
     expect(rowBackground("composition-activity-core")).toBe("transparent");
@@ -3433,6 +3439,25 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(lifted.marginHorizontal).toBe(-4);
   });
 
+  // PRE-6 story 5.2b (ch13, CE-T03-08, « Réorganisation » : « Les autres cartes et éléments structurels restent
+  // inchangés ») : l'agrandissement vertical est neutre pour la mise en page — −2 en haut et en bas,
+  // la carte reste centrée sur sa place et son conteneur garde la hauteur de repos. Ce test prouve les
+  // styles (hauteur et marges) ; la mise en page elle-même (Yoga) se vérifie sur iPhone.
+  it("PRE6-5.2b — styles of the lifted card: ±2 vertical margins, so its footprint in the flow stays the rest height (the layout itself is checked on iPhone)", () => {
+    renderScreenWithDraft(withZeroRecovery);
+    const rest = blockStyle();
+    const restFootprint = (rest.height as number) + ((rest.marginTop ?? rest.marginVertical ?? 0) as number) * 2;
+    fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
+
+    const lifted = blockStyle();
+    expect(lifted.height).toBe(84);
+    expect(lifted.marginVertical).toBe(-dimensions.compositionActivityRow.heightDelta / 2);
+    expect(lifted.marginVertical).toBe(-2);
+    // Encombrement dans le flux (hauteur + marges) identique au repos : rien ne bouge dessous.
+    expect((lifted.height as number) + 2 * (lifted.marginVertical as number)).toBe(restFootprint);
+    expect(restFootprint).toBe(80);
+  });
+
   // PRE-6 (story 5.1, D-435) : un seul rayon (12) pour la carte, les actions glissées et l'état soulevé.
   it("PRE6-5.1 — card, swipe actions group and lifted card share the radius 12", () => {
     renderScreenWithDraft(withZeroRecovery);
@@ -4331,7 +4356,12 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 150 } });
 
     expect(cardTransform()[1]!.translateY).toBe(50);
-    expect(lineTransform()).toEqual(cardTransform());
+    // Story 5.2b : la rangée suit la carte et descend en plus du débord bas de la carte soulevée
+    // (`heightDelta / 2`), pour garder son écart sous elle.
+    expect(lineTransform()).toEqual([
+      cardTransform()[0],
+      { translateY: 50 + dimensions.compositionActivityRow.heightDelta / 2 },
+    ]);
     expect(screen.queryByTestId("composition-rail-link-ex-1", hidden)).toBeNull();
     expect(screen.queryByTestId("composition-rail-tail-ex-1", hidden)).toBeNull();
     expect(screen.queryByTestId("composition-rail-dot-ex-1", hidden)).toBeNull();
@@ -7561,27 +7591,448 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(scaleY("composition-rail-link-end")).toBe(1);
     });
 
-    // Revue 5.2 : pendant le retour en douceur (geste interrompu, dépôt refusé, « Annuler » d'une
-    // perte), l'occurrence reste hors du rail ; elle y revient une fois le retour terminé.
-    it("retour en douceur : l'occurrence reste hors du rail pendant le retour, puis y revient", () => {
-      renderLaidOut();
-      lift("A");
-      moveTo("A", 100);
-      settle();
-      fireEvent(container("A"), "responderTerminate", {});
-      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
-      expect(linkHeight("composition-rail-link-B")).toBe(8 + 70 + 8 + 8);
-      act(() => {
-        jest.advanceTimersByTime(16 * 3);
+    /**
+     * PRE-6 story 5.2b (revue) : jonction VISIBLE du rail pendant le dialogue de perte et le retour.
+     * Géométrie injectée cohérente avec les constantes de l'écran : cartes de 80 (rangée du point
+     * d'arrêt : écart de la zone + 22), écart 8 hors Circuit, 9 dans le Circuit, marge 14, en-tête
+     * de 40 ; elle est re-mesurée à chaque appel de `layOut`.
+     *
+     * Invariant (`expectRailJoined`) : pour chaque élément de la chaîne, le haut visible de son lien
+     * est le bas visible de son prédécesseur — ou, quand le prédécesseur chevauche l'élément, le bord
+     * haut de l'élément (lien ramené à sa surface propre), ou un point recouvert par la carte au
+     * premier plan — ; jamais sous sa surface propre ; et aucun lien ne traverse le média d'une carte
+     * peinte sous lui, hors de ce que la carte au premier plan recouvre. Une carte hors de la chaîne
+     * qui n'est pas soulevée porte le rail de sa propre surface.
+     */
+    describe("jonction visible pendant le dialogue et le retour (PRE-6 story 5.2b)", () => {
+      const CARD = OCCURRENCE_CARD_HEIGHT;
+      const MEDIA = OCCURRENCE_CARD_MEDIA;
+      const HEADER = CIRCUIT_HEADER_HEIGHT;
+      const GAP = spacing[8];
+      const EPSILON = 1e-6;
+      const BODY_TOP = 40;
+      type Zone = "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR";
+      type Element = {
+        readonly key: string;
+        readonly group: string;
+        readonly top: number;
+        readonly bottom: number;
+        readonly entry: number;
+        readonly minLength: number;
+        readonly linkTestID: string | null;
+        readonly shift: () => number;
+        readonly media: { readonly top: number; readonly bottom: number } | null;
+      };
+
+      function renderRail(exercises: SessionDraftExercise[], overrides?: Partial<Draft>) {
+        render(
+          <TestSafeAreaProvider>
+            <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+              <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+                <StatefulDraftWrapper initialExercises={exercises} draftOverrides={overrides}>
+                  <CompositionScreen />
+                  <DraftProbe />
+                </StatefulDraftWrapper>
+              </ReferentialServiceContext.Provider>
+            </ActivityDefinitionServiceContext.Provider>
+          </TestSafeAreaProvider>,
+        );
+        return layOut();
+      }
+
+      /** Mesure la mise en page (ordre courant du brouillon) et rend le modèle de la séquence. */
+      function layOut() {
+        const exercises = probe.draft!.exercises;
+        const ids = (zone: Zone) => exercises.filter((exercise) => exercise.structuralPosition === zone).map((exercise) => exercise.id);
+        const hasStopRow = (id: string) =>
+          screen.queryByTestId(`composition-activity-recovery-slot-${id}`, { includeHiddenElements: true }) !== null;
+        const elements: Element[] = [];
+        const rowsOf = (zone: Zone, gap: number, base: number, group: string) => {
+          let y = 0;
+          ids(zone).forEach((id, index) => {
+            if (index > 0) y += gap;
+            const height = CARD + (hasStopRow(id) ? gap + STOP_POINT_LINE_HEIGHT : 0);
+            fireLayout(container(id), y, height);
+            const top = base + y;
+            elements.push({
+              key: id,
+              group,
+              top,
+              bottom: top + height,
+              entry: top + MEDIA.top,
+              minLength: MEDIA.top,
+              linkTestID: `composition-rail-link-${id}`,
+              shift: () => rowShift(id),
+              media: { top: top + MEDIA.top, bottom: top + MEDIA.bottom },
+            });
+            y += height;
+          });
+          return y;
+        };
+        let y = BODY_TOP;
+        if (ids("BEFORE_TOUR").length > 0) {
+          const height = rowsOf("BEFORE_TOUR", GAP, y, "before");
+          fireLayout(screen.getByTestId("composition-zone-before-tour"), y, height);
+          y += height + GAP;
+        }
+        const tourTop = y;
+        elements.push({
+          key: "header",
+          group: "circuit",
+          top: tourTop,
+          bottom: tourTop + 14 + HEADER,
+          entry: tourTop + 14 + (HEADER - 10) / 2,
+          minLength: 14 + (HEADER - 10) / 2,
+          linkTestID: "composition-rail-link-circuit-header",
+          shift: () => translateY("composition-sequence-marker-circuit-track"),
+          media: null,
+        });
+        const listTop = 14 + HEADER + CIRCUIT_GAP;
+        let tourHeight = 14 + HEADER + 14;
+        if (ids("IN_TOUR").length > 0) {
+          const height = rowsOf("IN_TOUR", CIRCUIT_GAP, tourTop + listTop, "circuit");
+          fireLayout(screen.getByTestId("composition-zone-in-tour"), listTop, height);
+          tourHeight = listTop + height + 14;
+        }
+        fireLayout(screen.getByTestId("composition-tour-section"), tourTop, tourHeight);
+        const tourBottom = tourTop + tourHeight;
+        elements.push({
+          key: "circuit-end",
+          group: "circuit",
+          top: tourBottom,
+          bottom: tourBottom,
+          entry: tourBottom,
+          minLength: 14,
+          linkTestID: "composition-rail-link-circuit-end",
+          shift: () => translateY("composition-rail-circuit-end-track"),
+          media: null,
+        });
+        y = tourBottom + GAP;
+        if (ids("AFTER_TOUR").length > 0) {
+          const height = rowsOf("AFTER_TOUR", GAP, y, "after");
+          fireLayout(screen.getByTestId("composition-zone-after-tour"), y, height);
+        }
+        return elements;
+      }
+
+      const hasLink = (testID: string) => screen.queryByTestId(testID, hidden) !== null;
+
+      /** Jonctions visibles, surface propre, aucun média traversé — voir l'en-tête du bloc. */
+      function expectRailJoined(elements: readonly Element[], raisedId: string | null) {
+        const raised = elements.find((element) => element.key === raisedId) ?? null;
+        // Carte au premier plan : translation de sa rangée (registre) et de sa carte (doigt, soulevée).
+        const raisedShift = raised === null ? 0 : raised.shift() + translateY(`composition-exercise-row-${raised.key}`);
+        const cover = raised === null ? null : { top: raised.top + raisedShift, bottom: raised.bottom + raisedShift };
+        const raisedGroup = raised?.group ?? null;
+        const rank = (element: Element, index: number) =>
+          element.key === raisedId ? 1e6 : element.group === raisedGroup ? 1e3 + index : index;
+        const chain = elements.filter((element) => element.linkTestID === null || hasLink(element.linkTestID));
+        const defects: string[] = [];
+        chain.forEach((element, index) => {
+          if (index === 0 && element.key !== "header") return;
+          const previous = index === 0 ? null : chain[index - 1]!;
+          const testID = element.linkTestID!;
+          const length = visible(testID);
+          const anchor = element.entry + element.shift();
+          const top = anchor - length;
+          if (length < element.minLength - EPSILON) defects.push(`${element.key} : sous sa surface propre`);
+          if (previous !== null) {
+            const previousBottom = previous.bottom + previous.shift();
+            const joined =
+              Math.abs(top - previousBottom) < 1e-4 ||
+              (Math.abs(length - element.minLength) < 1e-4 && previousBottom >= top - 1e-4) ||
+              (cover !== null && top > cover.top - EPSILON && top < cover.bottom + EPSILON);
+            if (!joined) defects.push(`${element.key} : jonction ${(top - previousBottom).toFixed(3)}`);
+          }
+          elements.forEach((card, cardIndex) => {
+            if (card.media === null || card === element || card.key === raisedId) return;
+            if (rank(card, cardIndex) > rank(element, elements.indexOf(element))) return;
+            let from = Math.max(top, card.media.top + card.shift());
+            let to = Math.min(anchor, card.media.bottom + card.shift());
+            if (cover !== null && from < cover.bottom && to > cover.top) {
+              if (cover.top <= from) from = Math.max(from, cover.bottom);
+              else to = Math.min(to, cover.top);
+            }
+            if (to - from > 1e-4) defects.push(`${element.key} : traverse le média de ${card.key}`);
+          });
+        });
+        expect(defects).toEqual([]);
+      }
+
+      /** Carte hors de la chaîne mais pas soulevée : rail de sa propre surface, et rien d'autre. */
+      function expectOwnSurfaceRail(id: string) {
+        expect(hasLink(`composition-rail-link-${id}`)).toBe(false);
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-rail-own-top-${id}`, hidden).props.style)).toMatchObject({
+          top: 0,
+          height: MEDIA.top,
+        });
+        expect(StyleSheet.flatten(screen.getByTestId(`composition-rail-tail-${id}`, hidden).props.style)).toMatchObject({
+          top: MEDIA.bottom,
+          bottom: 0,
+        });
+      }
+      /** Carte revenue, de nouveau dans la chaîne. */
+      function expectBackInChain(id: string) {
+        expect(rowShift(id)).toBe(0);
+        expect(hasLink(`composition-rail-link-${id}`)).toBe(true);
+        expect(screen.queryByTestId(`composition-rail-own-top-${id}`, hidden)).toBeNull();
+      }
+      const frames = (count: number) =>
+        act(() => {
+          jest.advanceTimersByTime(16 * count);
+        });
+      const zIndexOf = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style).zIndex;
+      const centerOf = (elements: readonly Element[], id: string) => {
+        const element = elements.find((candidate) => candidate.key === id)!;
+        return element.top + CARD / 2;
+      };
+
+      it("dialogue de perte : la dernière carte avant le Circuit, relâchée dans le Circuit, y reste tenue ; « Annuler » la ramène, rail continu", () => {
+        let elements = renderRail(
+          [
+            anActivity("B", "BEFORE_TOUR", { name: "Squats" }),
+            anActivity("A", "BEFORE_TOUR", { name: "Gainage", executionParameters: durationParameters(30, 3) }),
+            anActivity("X", "IN_TOUR", { name: "Pompes" }),
+          ],
+          { circuitNature: "SERIES", tourRepeatCount: 2 },
+        );
+        expectRailJoined(elements, null);
+        // Vise l'emplacement après X : centre de A sous le centre de X, dans le Circuit.
+        const dy = centerOf(elements, "X") + 10 - centerOf(elements, "A");
+        lift("A");
+        moveTo("A", dy);
+        settle();
+        expectRailJoined(elements, "A");
+        release("A", dy);
+        expect(screen.getByTestId("circuit-entry-confirm-card")).toBeTruthy();
+        // Tenue à sa position de dépôt (translation du registre), aspect au repos, hors de la chaîne.
+        expect(rowShift("A")).toBe(dy);
+        expect(translateY("composition-exercise-row-A")).toBe(0);
+        expectOwnSurfaceRail("A");
+        expect(zIndexOf("composition-activity-A")).toBe(1);
+        expect(zIndexOf("composition-zone-before-tour")).toBe(1);
+        expectRailJoined(elements, "A");
+        settle();
+        expect(rowShift("A")).toBe(dy);
+        expectRailJoined(elements, "A");
+
+        fireEvent.press(screen.getByLabelText(composition.circuitEntryConfirmModal.cancel));
+        for (let frame = 0; frame < 5; frame += 1) {
+          frames(2);
+          expect(rowShift("A")).toBeLessThan(dy);
+          expectOwnSurfaceRail("A");
+          expectRailJoined(elements, "A");
+        }
+        settle();
+        expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
+        expectBackInChain("A");
+        expect(zIndexOf("composition-activity-A")).toBeUndefined();
+        elements = layOut();
+        expectRailJoined(elements, null);
       });
-      // À mi-retour : toujours hors du rail, B encore décalé.
-      expect(rowShift("B")).toBeLessThan(0);
-      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
+
+      it("dépôt refusé, image par image : la carte revient depuis sa position de dépôt, au premier plan, rail continu", () => {
+        const elements = renderRail(
+          [anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })],
+          { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] },
+        );
+        expectRailJoined(elements, null);
+        const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
+        lift("A");
+        moveTo("A", dy);
+        settle();
+        expectRailJoined(elements, "A");
+        release("A", dy);
+        expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR"]);
+        // Prise là où le doigt l'a laissée, puis ramenée par le registre, synchronisée avec B.
+        expect(rowShift("A")).toBe(dy);
+        let previous = dy;
+        for (let frame = 0; frame < 6; frame += 1) {
+          expectOwnSurfaceRail("A");
+          expectRailJoined(elements, "A");
+          frames(2);
+          expect(rowShift("A")).toBeLessThanOrEqual(previous);
+          previous = rowShift("A");
+        }
+        settle();
+        expectBackInChain("A");
+        expectRailJoined(layOut(), null);
+      });
+
+      it("dernière carte du Circuit vers l'après, geste interrompu : retour animé, rail continu ; carte à rangée de point d'arrêt", () => {
+        const elements = renderRail(
+          [
+            anActivity("X", "IN_TOUR", { name: "Pompes" }),
+            anActivity("Y", "IN_TOUR", { name: "Fentes" }),
+            anActivity("Z", "AFTER_TOUR", { name: "Squats" }),
+          ],
+          { stopPoints: [{ id: "s-1", scope: "IN_TOUR", position: 1 }] },
+        );
+        expect(screen.getByTestId("composition-activity-recovery-slot-X", hidden)).toBeTruthy();
+        expectRailJoined(elements, null);
+        const dy = centerOf(elements, "Z") + 10 - centerOf(elements, "Y");
+        lift("Y");
+        moveTo("Y", dy);
+        settle();
+        expectRailJoined(elements, "Y");
+        fireEvent(container("Y"), "responderTerminate", {});
+        expect(rowShift("Y")).toBe(dy);
+        for (let frame = 0; frame < 6; frame += 1) {
+          expectOwnSurfaceRail("Y");
+          expect(zIndexOf("composition-tour-section")).toBe(1);
+          expectRailJoined(elements, "Y");
+          frames(2);
+        }
+        settle();
+        expectBackInChain("Y");
+        expectRailJoined(layOut(), null);
+      });
+
+      it("carte soulevée à rangée de point d'arrêt : la rangée suit le débord bas de la carte (écart conservé)", () => {
+        renderRail(
+          [anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" })],
+          { stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] },
+        );
+        lift("A");
+        moveTo("A", 30);
+        const card = StyleSheet.flatten(screen.getByTestId("composition-exercise-row-A").props.style);
+        const row = StyleSheet.flatten(screen.getByTestId("composition-activity-recovery-slot-A").props.style);
+        const cardBottom = (card.height as number) + (card.marginVertical as number) + 30;
+        const rowTop = CARD + (row.marginTop as number) + translateY("composition-activity-recovery-slot-A");
+        expect(rowTop - cardBottom).toBe(GAP);
+      });
+
+      it("nouveau geste pendant un retour : le retour s'arrête, tout est posé à 0 avant le relevé", () => {
+        const elements = renderRail(
+          [anActivity("A", "BEFORE_TOUR", { name: "Gainage" }), anActivity("B", "BEFORE_TOUR", { name: "Squats" }), anActivity("X", "IN_TOUR", { name: "Pompes" })],
+        );
+        const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
+        lift("A");
+        moveTo("A", dy);
+        settle();
+        fireEvent(container("A"), "responderTerminate", {});
+        frames(3);
+        expect(rowShift("A")).toBeGreaterThan(0);
+        expect(rowShift("B")).toBeLessThan(0);
+        lift("B");
+        // Synchrone, avant tout mouvement : l'écran rejoint la mise en page relevée.
+        expect(rowShift("A")).toBe(0);
+        expect(rowShift("B")).toBe(0);
+        expectBackInChain("A");
+        moveTo("B", -dy);
+        settle();
+        expect(rowShift("A")).toBeGreaterThan(0);
+        expectRailJoined(elements, "B");
+        release("B", -dy);
+        expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
+        expectRailJoined(layOut(), null);
+      });
+
+      it("entrée en placement pendant un retour : la session se termine aussitôt, translations à 0", () => {
+        const elements = renderRail([
+          anActivity("A", "BEFORE_TOUR", { name: "Gainage" }),
+          anActivity("B", "BEFORE_TOUR", { name: "Squats" }),
+          anActivity("X", "IN_TOUR", { name: "Pompes" }),
+        ]);
+        const dy = centerOf(elements, "B") + 10 - centerOf(elements, "A");
+        lift("A");
+        moveTo("A", dy);
+        settle();
+        fireEvent(container("A"), "responderTerminate", {});
+        frames(3);
+        expect(rowShift("A")).toBeGreaterThan(0);
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+        expect(rowShift("A")).toBe(0);
+        expect(rowShift("B")).toBe(0);
+        expectBackInChain("A");
+        expect(zIndexOf("composition-activity-A")).toBeUndefined();
+      });
+    });
+
+    /**
+     * PRE-6 story 5.2b : plusieurs déplacements successifs dans le Circuit sans quitter l'écran —
+     * Circuit [P, Q, R] : P en dernier, puis R en premier. Géométrie injectée : cartes de 70 à
+     * l'écart 9 du Circuit (liste à 60 dans le conteneur, à 230), re-mesurées après chaque dépôt.
+     */
+    it("déplacements successifs dans le Circuit : rail continu pendant chaque geste, au repos après chaque dépôt", () => {
+      render(
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[
+                  anActivity("P", "IN_TOUR", { name: "Pompes" }),
+                  anActivity("Q", "IN_TOUR", { name: "Squats" }),
+                  anActivity("R", "IN_TOUR", { name: "Fentes" }),
+                ]}
+              >
+                <CompositionScreen />
+                <DraftProbe />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>,
+      );
+      const layOutCircuit = (ids: readonly string[]) => {
+        fireLayout(screen.getByTestId("composition-tour-section"), 230, 60 + 3 * 70 + 2 * CIRCUIT_GAP + 14);
+        fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 3 * 70 + 2 * CIRCUIT_GAP);
+        ids.forEach((id, index) => fireLayout(container(id), index * CIRCUIT_PITCH, 70));
+      };
+      const IN_CIRCUIT_REST = CIRCUIT_GAP + 8;
+      /** Au repos : chaque carte reliée à la précédente (écart 9 + ancre 8), échelle 1, aucun décalage. */
+      const expectRest = (ids: readonly string[]) => {
+        expect(order()).toEqual(ids.map((id) => `${id}:IN_TOUR`));
+        for (const id of ids) {
+          expect(rowShift(id)).toBe(0);
+          expect(linkHeight(`composition-rail-link-${id}`)).toBe(IN_CIRCUIT_REST);
+          expect(scaleY(`composition-rail-link-${id}`)).toBe(1);
+          expect(translateY(`composition-rail-link-${id}`)).toBe(0);
+        }
+        expect(linkHeight("composition-rail-link-circuit-end")).toBe(14);
+        expect(scaleY("composition-rail-link-circuit-end")).toBe(1);
+        expect(translateY("composition-tour-section-surface-top")).toBe(0);
+        expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
+      };
+      /** Haut visible du lien d'une carte = bas visible de la carte qui la précède (repère de la liste). */
+      const expectJoined = (id: string, layoutTop: number, previous: { id: string; layoutTop: number }) => {
+        const top = layoutTop + 8 + rowShift(id) - visible(`composition-rail-link-${id}`);
+        expect(top).toBeCloseTo(previous.layoutTop + 70 + rowShift(previous.id), 6);
+      };
+
+      layOutCircuit(["P", "Q", "R"]);
+      expectRest(["P", "Q", "R"]);
+
+      // 1. P en dernier : Q et R remontent d'un pas ; Q se relie à l'en-tête à travers la place de P.
+      lift("P");
+      moveTo("P", 200);
       settle();
-      expect(rowShift("B")).toBe(0);
-      expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
-      expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
-      expect(scaleY("composition-rail-link-B")).toBe(1);
+      expect(screen.queryByTestId("composition-rail-link-P", hidden)).toBeNull();
+      expect(rowShift("Q")).toBe(-CIRCUIT_PITCH);
+      expect(linkHeight("composition-rail-link-Q")).toBe(CIRCUIT_GAP + 70 + IN_CIRCUIT_REST);
+      expect(visible("composition-rail-link-Q")).toBeCloseTo(IN_CIRCUIT_REST, 6);
+      expectJoined("R", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: CIRCUIT_PITCH });
+      // Le bas du Circuit traverse l'emplacement ouvert sous R.
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
+      release("P", 200);
+      expectRest(["Q", "R", "P"]);
+      layOutCircuit(["Q", "R", "P"]);
+      expectRest(["Q", "R", "P"]);
+
+      // 2. R (désormais au milieu) en premier : Q descend d'un pas, P ne bouge pas.
+      lift("R");
+      moveTo("R", -100);
+      settle();
+      expect(screen.queryByTestId("composition-rail-link-R", hidden)).toBeNull();
+      expect(rowShift("Q")).toBe(CIRCUIT_PITCH);
+      expect(rowShift("P")).toBe(0);
+      // Q traverse l'emplacement ouvert au-dessus d'elle ; P se relie à Q à travers la place de R.
+      expect(visible("composition-rail-link-Q")).toBeCloseTo(IN_CIRCUIT_REST + CIRCUIT_PITCH, 6);
+      expect(linkHeight("composition-rail-link-P")).toBe(CIRCUIT_GAP + 70 + IN_CIRCUIT_REST);
+      expectJoined("P", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: 0 });
+      release("R", -100);
+      expectRest(["R", "Q", "P"]);
+      layOutCircuit(["R", "Q", "P"]);
+      expectRest(["R", "Q", "P"]);
     });
 
     it("dépôt appliqué : l'occurrence reprend sa place dans le rail immédiatement", () => {
