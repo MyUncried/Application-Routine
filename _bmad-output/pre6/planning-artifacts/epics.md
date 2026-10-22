@@ -219,6 +219,38 @@ Demande de Hermann du 21/10/2026 : mettre l'écran de Composition en conformité
 
 **Jalon J4 (iPhone, après 5.4)** : largeurs 360 / 402 / 440, cartes hors Circuit et dans le Circuit, textes longs, récupération absente / 0 / positive, placement complet, retrait, glisser, balayage, duplication, VoiceOver.
 
+## Epic 6: Autonomie des Points d'arrêt (D-436)
+
+Demande de Hermann du 21/10/2026 (« Composition de séance — Autonomie des Points d'arrêt »), règles R1 à R4, et arbitrages du 22/10/2026. Décision documentaire **D-436**, règle **RM-251** (lot documentaire de l'epic). **Remplace ARB-3** (20/10) et le rattachement du Point d'arrêt à son occurrence encodé par les stories 1.2 (AC4), 2.3 (AC2-AC3) et 4.3 (AC1), ainsi que le retrait par bulle des stories 4.2 (AC2) et 5.2 (AC3). Aucune migration ni évolution d'API : `{ id, scope, position }` représente déjà un point indépendant (inspection du 21/10) ; seul le Domaine pur (`StopPoint.ts`, `composition.ts`, `placement.ts`, `circuit.ts`) et l'écran changent.
+
+**Arbitrages de Hermann du 22/10/2026 :**
+- Dupliquer un Exercice ne copie pas son Point d'arrêt : `[A, P, B]` → `[A, A′, P, B]` ; la récupération reste copiée.
+- Suppression d'un Exercice refusée (R4 ou position interdite) : « Supprimer » reste proposé ; au toucher, rien n'est supprimé, la carte se referme, annonce d'accessibilité de la raison.
+- Frontières du Circuit : R4 structurelle (« après le dernier Exercice du Circuit » et « après le Circuit » consécutifs ; « avant » et « après » un Circuit vide consécutifs ; tête de Circuit toujours non proposée). En Séries, un passage partiel qui ferait se suivre deux Points dans le plan développé n'en exécute qu'un, sans rien retirer de la Séance.
+- Libellé du placement : « Confirmer les modifications » dès qu'il y a un retrait, un mélange ou une seule modification de durée ; « Confirmer N pauses ajoutées » pour des ajouts seuls.
+
+### Story 6.1: Domaine — Points d'arrêt indépendants et non-consécutivité
+
+- **AC1** : déplacer, dupliquer ou supprimer une occurrence ne déplace, ne copie ni ne supprime aucun Point d'arrêt ; ils gardent leur place dans la séquence mêlée (occurrences et points de chaque portée) ; la récupération suit toujours l'occurrence.
+- **AC2** : prédicat RM-251 sur la séquence structurelle (frontières du Circuit comprises) ; une opération qui le viole, ou qui rend un point interdit, est refusée sans mutation (aucune suppression silencieuse).
+- **AC3** : déplacement autonome d'un point vers toute position autorisée et non consécutive ; refus sinon.
+- **AC4** : le placement ne propose jamais un emplacement qui créerait deux points consécutifs, compte tenu des ajouts et retraits du sous-brouillon ; le sous-brouillon porte les retraits programmés.
+- **AC5** : plan d'exécution : en Séries partielles, deux points successifs n'en produisent qu'un.
+
+### Story 6.2: Glisser-déposer d'un Point d'arrêt
+
+- **AC1** : la rangée du Point d'arrêt devient une rangée autonome de la séquence (hors bloc de l'occurrence) ; appui long → saisie et glisser, animation et rail de la story 2.3b et 5.2 réutilisés ; dépose valide appliquée, refus avec retour en douceur.
+- **AC2** : déplacer un Exercice laisse le point en place ; refus si R1/R4.
+- **AC3** : alternatives accessibles Monter / Descendre du point, proposées seulement si le déplacement est accepté.
+
+### Story 6.3: Retrait en placement, libellé, fin de la bulle des points
+
+- **AC1** : plus d'appui long ni de bulle « Retirer » pour un point ; la bulle de la récupération est inchangée.
+- **AC2** : en placement, points existants sélectionnés ; toucher = retrait programmé, retoucher = annulation ; Confirmer applique, Annuler restaure tout ; libellés selon l'arbitrage ; persistance à « Continuer ».
+- **AC3** : suppression d'un Exercice refusée selon l'arbitrage (carte refermée, annonce).
+
+**Recette (Hermann, scénarios 1 à 15 de la demande)** : jalon J5 sur iPhone après 6.3.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -229,6 +261,7 @@ Epic 2 : 2.1 (après 1.1) ; 2.2 (après 1.3) ; 2.3 (après 1.4)   → Jalon J1
 Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jalon J2
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
+Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.
@@ -266,7 +299,7 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
 
 **ARB-2 — Indicateur de changement de côté : CLOS, inclus dans PRE-6.** Icône seule quand la fonction s'applique, sans indicateur directionnel `D→G` / `G→D`. Présentation selon les composants Figma actualisés (`5544:6797`, `6214:7278`) et ch13 L1254-1260 (PR #390). Paramètres fonctionnels PRE-5 inchangés (story 2.2 AC3). Sujet non rouvert.
 
-**ARB-3 — Point d'arrêt : CLOS.** Le Point d'arrêt accompagne l'occurrence d'exercice à laquelle il est rattaché, comme la Récupération, lors des déplacements, duplications et suppressions (ch09 L682, PR #390). La représentation `{ id, scope, position }` est conservée : la position organise la séquence, elle ne fige pas le point. Les opérations de Composition actualisent les positions dans les emplacements autorisés (AD-36 ; stories 1.2 AC4, 2.3 AC2-AC3, 4.3 AC1).
+**Remplacé par D-436 (Hermann, 21-22/10/2026, epic 6) : le Point d'arrêt ne suit plus son occurrence.** **ARB-3 — Point d'arrêt : CLOS.** Le Point d'arrêt accompagne l'occurrence d'exercice à laquelle il est rattaché, comme la Récupération, lors des déplacements, duplications et suppressions (ch09 L682, PR #390). La représentation `{ id, scope, position }` est conservée : la position organise la séquence, elle ne fige pas le point. Les opérations de Composition actualisent les positions dans les emplacements autorisés (AD-36 ; stories 1.2 AC4, 2.3 AC2-AC3, 4.3 AC1).
 
 ### Points non bloquants (défaut appliqué, vérifié en recette)
 

@@ -71,3 +71,9 @@ development_status:
   5-3-placement-mixte-et-défilement: review
   5-4-états-soulevé-et-actions-glissées: backlog
   epic-5-retrospective: optional
+
+  epic-6: in-progress
+  6-1-domaine-points-d-arrêt-indépendants-et-non-consécutivité: backlog
+  6-2-glisser-déposer-d-un-point-d-arrêt: backlog
+  6-3-retrait-en-placement-libellé-fin-de-la-bulle-des-points: backlog
+  epic-6-retrospective: optional
