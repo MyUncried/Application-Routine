@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from "react-native";
 
+import type { PlacementConfirmation } from "@/domain/sessions/placement";
 import { strings } from "@/shared/i18n";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, spacing } from "@/shared/ui/tokens";
@@ -17,20 +18,25 @@ const CONFIRM_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSiz
 /** « Annuler » : Inter Semi Bold 14 (Figma `8328:29427`). */
 const CANCEL_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, lineHeight: 17 } as const;
 
-/** « Confirmer N pause(s) ajoutée(s) » — singulier à 0 et 1, comme en français. */
-export function formatPlacementConfirmLabel(count: number): string {
+/**
+ * Libellé du bouton Confirmer selon `placementConfirmation` (PRE-6 story 6.3, D-436, arbitrage du
+ * 22/10/2026) : ajouts seuls → « Confirmer N pause(s) ajoutée(s) » (singulier à 0 et 1, comme en
+ * français) ; retrait de point, mélange ou modification de durée seule → « Confirmer les
+ * modifications » ; rien à confirmer → « Confirmer 0 pause ajoutée », bouton indisponible.
+ */
+export function formatPlacementConfirmLabel(confirmation: PlacementConfirmation): string {
   const t = strings.screens.composition.placement;
+  if (confirmation.kind === "CHANGES") return t.confirmChanges;
+  const count = confirmation.kind === "ADDITIONS_ONLY" ? confirmation.count : 0;
   return (count > 1 ? t.confirmPlural : t.confirmSingular).replace("{n}", String(count));
 }
 
 export type PlacementBarProps = {
-  /** N : nombre d'objets nouvellement ajoutés dans le sous-brouillon. */
-  readonly count: number;
   /**
-   * Story 4.2 : « Confirmer » disponible — par défaut dès N > 0 ; aussi quand le sous-brouillon
-   * ne porte qu’une modification de récupération existante (non comptée dans N).
+   * Story 6.3 : nature de la confirmation (Domaine, `placementConfirmation` avec contexte) — elle
+   * fixe le libellé et la disponibilité de « Confirmer » (indisponible à `NONE`).
    */
-  readonly canConfirm?: boolean;
+  readonly confirmation: PlacementConfirmation;
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
   readonly testID?: string;
@@ -38,21 +44,17 @@ export type PlacementBarProps = {
 
 /**
  * Barre du mode placement (PRE-6 story 4.1, AD-43, Figma `8328:29423`), à la place de
- * « Continuer » : « Confirmer N pauses ajoutées » et « Annuler ». « Confirmer » est disponible dès
- * qu'il y a un ajout ou une modification de récupération existante (story 4.2 : même à N = 0,
- * `canConfirm`) ; sinon indisponible.
- * Chaque changement de N est annoncé (VoiceOver / TalkBack), jamais à l'apparition de la barre.
+ * « Continuer » : « Confirmer … » et « Annuler ». Story 6.3 (D-436) : libellé selon
+ * `formatPlacementConfirmLabel` ; « Confirmer » est disponible dès qu'il y a un changement
+ * applicable (ajout, retrait de point, modification de durée), indisponible sinon.
+ * Revue 6.3 : la barre n'annonce plus rien d'elle-même ; l'écran annonce, en un seul message,
+ * l'effet d'un toucher et le changement de disponibilité de « Confirmer » (son libellé), pour
+ * qu'aucune annonce n'en interrompe une autre. Le libellé reste lu au focus du bouton.
  */
-export function PlacementBar({
-  count,
-  canConfirm = count > 0,
-  onConfirm,
-  onCancel,
-  testID = "composition-placement-bar",
-}: PlacementBarProps) {
+export function PlacementBar({ confirmation, onConfirm, onCancel, testID = "composition-placement-bar" }: PlacementBarProps) {
   const t = strings.screens.composition.placement;
-  const label = formatPlacementConfirmLabel(count);
-  const disabled = !canConfirm;
+  const label = formatPlacementConfirmLabel(confirmation);
+  const disabled = confirmation.kind === "NONE";
 
   // À l'apparition de la barre, le focus d'accessibilité est porté sur « Confirmer ».
   const confirmRef = useRef<View>(null);
@@ -60,12 +62,6 @@ export function PlacementBar({
     if (confirmRef.current) AccessibilityInfo.sendAccessibilityEvent(confirmRef.current, "focus");
   }, []);
 
-  const previousCountRef = useRef(count);
-  useEffect(() => {
-    if (previousCountRef.current === count) return;
-    previousCountRef.current = count;
-    AccessibilityInfo.announceForAccessibility(label);
-  }, [count, label]);
 
   return (
     <View style={styles.bar} testID={testID}>

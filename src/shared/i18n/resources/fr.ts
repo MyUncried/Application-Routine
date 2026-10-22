@@ -396,9 +396,29 @@ export const fr = {
         stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
         confirmSingular: "Confirmer {n} pause ajoutée",
         confirmPlural: "Confirmer {n} pauses ajoutées",
+        // PRE-6 story 6.3 (D-436, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
+        // de durée seule.
+        confirmChanges: "Confirmer les modifications",
         cancel: "Annuler",
         recoveryWheelTitle: "Durée de récupération",
         selectedHint: "Un toucher retire cet ajout.",
+        // PRE-6 story 6.3 (D-436, ch13 CE-T03-08 accessibilité) : point existant sélectionné (conservé)
+        // ou désélectionné (retrait programmé).
+        existingStopPointSelectedHint: "Toucher pour retirer ce point d’arrêt.",
+        existingStopPointRemovedHint: "Toucher pour conserver ce point d’arrêt.",
+        // PRE-6 story 6.3 (revue) : resélection refusée (un point ajouté le suivrait, RM-251),
+        // annonces de la bascule d’un point existant et indice d’entrée quand seul un retrait est
+        // possible. Formulations à valider.
+        existingStopPointBlockedHint: "Ne peut pas être conservé : un point ajouté le suivrait.",
+        stopPointRemovedAnnouncement: "Point d’arrêt retiré",
+        stopPointKeptAnnouncement: "Point d’arrêt conservé",
+        stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
+        addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+        // PRE-6 story 6.3 (revue, ch13 L1524) : effet d’un ajout ou de son annulation, suivi du
+        // libellé de « Confirmer » (nombre d’ajouts).
+        stopPointAddedAnnouncement: "Point d’arrêt ajouté",
+        recoveryAddedAnnouncement: "Récupération ajoutée",
+        additionCancelledAnnouncement: "Ajout annulé",
       },
       // PRE-6 (story 4.2, Figma `8328:29428`, `8328:29133`, `8328:33689`) : modification et retrait
       // d’une récupération ou d’un point d’arrêt — nom du bouton « Récupération

@@ -263,9 +263,24 @@ describe("strings", () => {
       stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
       confirmSingular: "Confirmer {n} pause ajoutée",
       confirmPlural: "Confirmer {n} pauses ajoutées",
+      // PRE-6 story 6.3 (D-436) : libellé des changements autres que des ajouts seuls.
+      confirmChanges: "Confirmer les modifications",
       cancel: "Annuler",
       recoveryWheelTitle: "Durée de récupération",
       selectedHint: "Un toucher retire cet ajout.",
+      // PRE-6 story 6.3 : indices du point existant en placement.
+      existingStopPointSelectedHint: "Toucher pour retirer ce point d’arrêt.",
+      existingStopPointRemovedHint: "Toucher pour conserver ce point d’arrêt.",
+      // PRE-6 story 6.3 (revue) : resélection refusée, annonces, indice d’entrée.
+      existingStopPointBlockedHint: "Ne peut pas être conservé : un point ajouté le suivrait.",
+      stopPointRemovedAnnouncement: "Point d’arrêt retiré",
+      stopPointKeptAnnouncement: "Point d’arrêt conservé",
+      stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
+      addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+      // PRE-6 story 6.3 (revue, ch13 L1524) : annonces d’ajout.
+      stopPointAddedAnnouncement: "Point d’arrêt ajouté",
+      recoveryAddedAnnouncement: "Récupération ajoutée",
+      additionCancelledAnnouncement: "Ajout annulé",
     });
   });
 

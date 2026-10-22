@@ -72,22 +72,6 @@ export const StopPointChip = forwardRef<View, StopPointChipProps>(function StopP
   );
 });
 
-/**
- * PRE-6 story 5.3 (Figma `9843:18975`, « Bloc — Point d'arrêt » d'un emplacement posé) : même puce,
- * sans interaction ni accessibilité propre — en placement, un point déjà présent est affiché, non
- * modifiable (story 4.1) ; l'appelant porte son nom accessible.
- */
-export function StopPointChipFace({ testID }: { testID?: string }) {
-  return (
-    <View style={styles.chip} accessible={false} importantForAccessibility="no" testID={testID}>
-      <StopPointSymbol color={colors.warning} />
-      <Text style={styles.text} numberOfLines={1}>
-        {strings.screens.composition.placement.stopPoint}
-      </Text>
-    </View>
-  );
-}
-
 /** Symbole « ❚❚ » du point d'arrêt (Figma `8328:29534` ; blanc dans la bulle `8328:33832`). */
 export function StopPointSymbol({ color }: { color: string }) {
   const bar = [styles.bar, { backgroundColor: color }];

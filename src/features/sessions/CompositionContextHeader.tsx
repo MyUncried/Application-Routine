@@ -103,6 +103,11 @@ export type CompositionContextHeaderProps = {
   /** PRE-6 story 4.1 : demande de focus d'accessibilité sur « Ajouter un arrêt » (sortie du placement), jamais au montage. */
   readonly addStopFocusRequest?: number;
   /**
+   * PRE-6 story 6.3 (revue) : indice d'accessibilité de « Ajouter un arrêt » — quand le placement
+   * n'offre qu'un retrait (aucun ajout possible, des points existants).
+   */
+  readonly addStopAccessibilityHint?: string;
+  /**
    * PRE-6 story 5.1b (story 3.4, CE-CIR-03) : toucher de l'œil — l'écran ouvre « Volumes du
    * circuit » et referme le compteur et le choix de nature (un seul contrôle actif). Indisponible
    * en placement, comme le « + » (atténué et inactif).
@@ -142,6 +147,7 @@ export function CompositionContextHeader({
   isPlacementActive = false,
   isAddStopDisabled = false,
   addStopFocusRequest = 0,
+  addStopAccessibilityHint,
   onOpenVolumes,
   volumesFocusRequest = 0,
   isVolumesDisabled = false,
@@ -247,6 +253,7 @@ export function CompositionContextHeader({
             disabled={isPlacementActive || addStopUnavailable}
             accessibilityRole="button"
             accessibilityLabel={composition.placement.addStopAccessibilityLabel}
+            accessibilityHint={isPlacementActive ? undefined : addStopAccessibilityHint}
             accessibilityState={{ selected: isPlacementActive, disabled: isPlacementActive || addStopUnavailable }}
             style={[styles.commandTarget, addStopUnavailable ? styles.attenuated : null]}
             testID="composition-add-stop-action"

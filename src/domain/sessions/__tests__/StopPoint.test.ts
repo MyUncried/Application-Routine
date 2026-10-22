@@ -12,7 +12,6 @@ import {
   orderStopPointsByScope,
   positionInSequence,
   scopeSequence,
-  stopPointDisplay,
   stopPointNeighbors,
   structuralSequence,
   withoutStopPoint,
@@ -249,31 +248,6 @@ describe("isStopPointProposable (D-436 : tête de Circuit non proposée)", () =>
     expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 1 })).toBe(true);
     expect(isStopPointProposable(occurrences, { scope: "BEFORE_TOUR", position: 0 })).toBe(false);
     expect(isStopPointProposable(occurrences, { scope: "AFTER_TOUR", position: 1 })).toBe(false);
-  });
-});
-
-describe("stopPointDisplay (PRE-6 story 4.2, points hors placement)", () => {
-  const occurrences = [occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("D", "AFTER_TOUR")];
-
-  it("puts each point p ≥ 1 under the occurrence that precedes it (display only, D-436) and the AFTER_TOUR position 0 point after the Circuit", () => {
-    const afterA: StopPoint = { id: "a", scope: "BEFORE_TOUR", position: 1 };
-    const afterC: StopPoint = { id: "c", scope: "IN_TOUR", position: 2 };
-    const afterCircuit: StopPoint = { id: "t", scope: "AFTER_TOUR", position: 0 };
-    const display = stopPointDisplay(occurrences, [afterA, afterC, afterCircuit]);
-    expect([...display.byOccurrenceId.entries()]).toEqual([
-      ["A", afterA],
-      ["C", afterC],
-    ]);
-    expect(display.afterCircuit).toBe(afterCircuit);
-  });
-
-  it("renders no point for a head-of-scope or out-of-range location", () => {
-    const display = stopPointDisplay(occurrences, [
-      { id: "x", scope: "IN_TOUR", position: 0 },
-      { id: "y", scope: "BEFORE_TOUR", position: 3 },
-    ]);
-    expect(display.byOccurrenceId.size).toBe(0);
-    expect(display.afterCircuit).toBeNull();
   });
 });
 

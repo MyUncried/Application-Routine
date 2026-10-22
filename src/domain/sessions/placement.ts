@@ -104,7 +104,7 @@ function displayedOccurrences<T extends Pick<SessionDraftExercise, "structuralPo
  *   voisin le rend consécutif ;
  * - un emplacement libre n'est proposé que s'il est proposable (`isStopPointProposable`) et
  *   ne serait consécutif à aucun point de l'état effectif (`effectivePlacementStopPoints` :
- *   existants − retraits + ajouts de `placement`). Sans `placement` (appel historique) : par
+ *   existants − retraits + ajouts de `placement`). Sans `placement` (hors placement, applicabilité) : par
  *   rapport aux seuls points existants.
  */
 export function placementSlots(
@@ -250,19 +250,6 @@ export function setPlacementRecoveryChange(
   return { ...placement, recoveryChanges: { ...placement.recoveryChanges, [occurrenceId]: seconds } };
 }
 
-/**
- * Story 4.2 : le sous-brouillon porte-t-il quelque chose à appliquer (ajout, modification de
- * durée, ou — story 6.1, D-436 — retrait programmé d'un point) ? Lecture brute du
- * sous-brouillon ; `placementConfirmation` avec contexte ne compte que l'applicable.
- */
-export function hasPlacementChanges(placement: PlacementDraft): boolean {
-  return (
-    placementAdditionCount(placement) > 0 ||
-    Object.keys(placement.recoveryChanges).length > 0 ||
-    placement.stopPointRemovals.length > 0
-  );
-}
-
 /** Composition sur laquelle se jugent une bascule de point et l'applicabilité (story 6.1) ; un `SessionDraft` convient. */
 export type PlacementContext = {
   readonly exercises: readonly PlacementOccurrence[];
@@ -281,28 +268,18 @@ export type PlacementConfirmation =
   | { readonly kind: "CHANGES" };
 
 /**
- * Avec `context` (revue 6.1) : seuls les changements réellement APPLICABLES par
- * `applyPlacementDraft` sur ce contexte sont comptés (`applicablePlacement`). Sans contexte :
- * lecture brute du sous-brouillon (forme historique).
+ * Seuls les changements réellement APPLICABLES par `applyPlacementDraft` sur `context` sont
+ * comptés (`applicablePlacement`, revue 6.1). Story 6.3 (revue) : `context` obligatoire — la
+ * lecture brute du sous-brouillon (forme historique) est retirée.
  */
-export function placementConfirmation(placement: PlacementDraft, context?: PlacementContext): PlacementConfirmation {
-  const counts =
-    context === undefined
-      ? {
-          additions: placementAdditionCount(placement),
-          changes: Object.keys(placement.recoveryChanges).length + placement.stopPointRemovals.length,
-        }
-      : (() => {
-          const applicable = applicablePlacement(context, placement);
-          return {
-            additions: applicable.recoveries.size + applicable.stopPointAdditions.length,
-            changes: applicable.recoveryChanges.size + applicable.removedIds.size,
-          };
-        })();
-  if (counts.changes > 0) {
+export function placementConfirmation(placement: PlacementDraft, context: PlacementContext): PlacementConfirmation {
+  const applicable = applicablePlacement(context, placement);
+  const changes = applicable.recoveryChanges.size + applicable.removedIds.size;
+  if (changes > 0) {
     return { kind: "CHANGES" };
   }
-  return counts.additions > 0 ? { kind: "ADDITIONS_ONLY", count: counts.additions } : { kind: "NONE" };
+  const additions = applicable.recoveries.size + applicable.stopPointAdditions.length;
+  return additions > 0 ? { kind: "ADDITIONS_ONLY", count: additions } : { kind: "NONE" };
 }
 
 /** Retire la récupération ajoutée d'une occurrence (désélection). Sans ajout : inchangé. */
@@ -317,22 +294,26 @@ export function removePlacementRecovery(placement: PlacementDraft, occurrenceId:
 }
 
 /**
- * Story 6.1 (D-436, R3) : bascule le retrait programmé du point existant `stopPointId`. Avec
- * `context`, annuler un retrait est refusé (sous-brouillon rendu tel quel) si le point
- * redevenait consécutif à un point de l'état effectif — même ensemble que `placementSlots`.
+ * Story 6.1 (D-436, R3) : bascule le retrait programmé du point existant `stopPointId`. Annuler
+ * un retrait (resélection) est refusé — sous-brouillon rendu tel quel — si le point redevenait
+ * consécutif à un point AJOUTÉ par le sous-brouillon. Story 6.3 (revue) : seul un ajout bloque ;
+ * deux points existants déjà consécutifs avant le placement (données héritées) n'empêchent pas
+ * d'en resélectionner un, le placement ne créant ni n'aggravant rien. `context` obligatoire.
  */
 export function togglePlacementStopPointRemoval(
   placement: PlacementDraft,
   stopPointId: string,
-  context?: PlacementContext,
+  context: PlacementContext,
 ): PlacementDraft {
   if (!placement.stopPointRemovals.includes(stopPointId)) {
     return { ...placement, stopPointRemovals: [...placement.stopPointRemovals, stopPointId] };
   }
-  const point = context?.stopPoints?.find((candidate) => candidate.id === stopPointId);
-  if (context !== undefined && point !== undefined) {
-    const effective = effectivePlacementStopPoints(context.stopPoints ?? [], placement);
-    if (wouldBeConsecutive(displayedOccurrences(context.exercises), effective, point)) {
+  const existing = context.stopPoints ?? [];
+  const point = existing.find((candidate) => candidate.id === stopPointId);
+  if (point !== undefined) {
+    const existingKeys = new Set(existing.map(stopPointKey));
+    const additions = placement.stopPoints.filter((location) => !existingKeys.has(stopPointKey(location)));
+    if (wouldBeConsecutive(displayedOccurrences(context.exercises), additions, point)) {
       return placement;
     }
   }
@@ -340,40 +321,36 @@ export function togglePlacementStopPointRemoval(
 }
 
 /**
- * Bascule un point d'arrêt sur un emplacement.
- *
- * Avec `context` (story 6.1, D-436, RM-251 ; forme que la story 6.3 utilisera) — jugé contre
- * le même ensemble que `placementSlots(context.exercises, context.stopPoints, placement)` :
+ * Bascule un point d'arrêt sur un emplacement (story 6.1, D-436, RM-251), jugé contre le même
+ * ensemble que `placementSlots(context.exercises, context.stopPoints, placement)` :
  * - emplacement d'un point EXISTANT : bascule son retrait (`togglePlacementStopPointRemoval`) ;
  * - emplacement ajouté : retire l'ajout ;
  * - emplacement libre : l'ajoute seulement si `placementSlots` le propose ; sinon sous-brouillon
  *   rendu tel quel.
  *
- * Sans `context` : forme HISTORIQUE de la story 4.1, conservée pour l'appel actuel de l'écran —
- * bascule l'ajout sans contrôle ; `applyPlacementDraft` écarte ensuite l'inapplicable.
+ * Story 6.3 (revue) : `context` obligatoire — la forme historique sans contrôle de la story 4.1 est
+ * retirée. Deux points existants sur la même clé (données héritées) : seul le premier est visé par
+ * l'emplacement ; l'écran bascule un point existant par son identifiant
+ * (`togglePlacementStopPointRemoval`).
  */
 export function togglePlacementStopPoint(
   placement: PlacementDraft,
   location: StopPointLocation,
-  context?: PlacementContext,
+  context: PlacementContext,
 ): PlacementDraft {
   const key = stopPointKey(location);
-  if (context !== undefined) {
-    const existing = (context.stopPoints ?? []).find((point) => stopPointKey(point) === key);
-    if (existing !== undefined) {
-      return togglePlacementStopPointRemoval(placement, existing.id, context);
-    }
+  const existing = (context.stopPoints ?? []).find((point) => stopPointKey(point) === key);
+  if (existing !== undefined) {
+    return togglePlacementStopPointRemoval(placement, existing.id, context);
   }
   if (isPlacementStopPointAdded(placement, location)) {
     return { ...placement, stopPoints: placement.stopPoints.filter((point) => stopPointKey(point) !== key) };
   }
-  if (context !== undefined) {
-    const offered = placementSlots(context.exercises, context.stopPoints ?? [], placement).some(
-      (slot) => slot.stopPoint !== null && !slot.stopPoint.existing && stopPointKey(slot.stopPoint.location) === key,
-    );
-    if (!offered) {
-      return placement;
-    }
+  const offered = placementSlots(context.exercises, context.stopPoints ?? [], placement).some(
+    (slot) => slot.stopPoint !== null && !slot.stopPoint.existing && stopPointKey(slot.stopPoint.location) === key,
+  );
+  if (!offered) {
+    return placement;
   }
   return { ...placement, stopPoints: [...placement.stopPoints, { scope: location.scope, position: location.position }] };
 }
@@ -387,11 +364,6 @@ export function isPlacementStopPointRemoved(placement: PlacementDraft, stopPoint
 export function isPlacementStopPointAdded(placement: PlacementDraft, location: StopPointLocation): boolean {
   const key = stopPointKey(location);
   return placement.stopPoints.some((point) => stopPointKey(point) === key);
-}
-
-/** N de « Confirmer N pauses ajoutées » : récupérations et points nouvellement ajoutés (lecture brute). */
-export function placementAdditionCount(placement: PlacementDraft): number {
-  return Object.keys(placement.recoveries).length + placement.stopPoints.length;
 }
 
 /** Changements du sous-brouillon réellement applicables à un contexte (story 6.1, revue). */

@@ -6,7 +6,12 @@ import { Platform } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Session } from "@/domain/sessions/Session";
-import { createEmptyDraft, createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import {
+  createEmptyDraft,
+  createExerciseDraft,
+  type SessionDraft,
+  type SessionDraftExercise,
+} from "@/domain/sessions/SessionDraft";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
@@ -64,7 +69,8 @@ const exerciseAt = (id: string, name: string, structuralPosition: SessionDraftEx
   executionParameters: durationParameters(60, 1, 0),
 });
 
-async function seedAndRender() {
+/** `stopPoints` (story 6.3) : points d'arrêt de la séance persistée (par défaut aucun). */
+async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]> = []) {
   const database = NodeSqliteDatabase.openInMemory();
   await migrateDatabase(database);
   const sessionRepository = new SqliteSessionRepository(database);
@@ -80,6 +86,7 @@ async function seedAndRender() {
       exerciseAt("ex-c", "C", "IN_TOUR"),
       exerciseAt("ex-d", "D", "AFTER_TOUR"),
     ],
+    stopPoints,
   });
   if (!created.ok) {
     throw new Error(`seed failed: ${JSON.stringify(created.violations)}`);
@@ -266,6 +273,62 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
         ),
       ).toBeTruthy();
       expect(screen.queryByLabelText(recoveryLabel("C"))).not.toBeNull();
+      fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
+    } finally {
+      database.close();
+    }
+  }, 60000);
+});
+
+/**
+ * PRE-6 story 6.3 (D-436 R3, ch13 CE-T03-08 complément 8 à 11) — retrait d'un point en placement :
+ * désélection, « Confirmer les modifications », aucune écriture avant « Continuer », puis relecture
+ * de la base et réouverture : le point retiré a disparu, l'autre est intact et sélectionné.
+ */
+describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 story 6.3)", () => {
+  it("le point désélectionné n'est retiré qu'à « Continuer » ; à la réouverture il a disparu, l'autre reste sélectionné", async () => {
+    const { router, database, sessionRepository, sessionId } = await seedAndRender([
+      { id: "seed-p-a", scope: "BEFORE_TOUR", position: 1 },
+      { id: "seed-p-b", scope: "IN_TOUR", position: 1 },
+    ]);
+    try {
+      await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
+      const existing = (name: string) =>
+        screen.getByLabelText(placement.existingStopPointAccessibilityLabel.replace("{exercise}", name));
+      const confirm = () => screen.getByTestId("composition-placement-bar-confirm");
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      });
+      expect(existing("A").props.accessibilityState).toMatchObject({ selected: true });
+      expect(existing("B").props.accessibilityState).toMatchObject({ selected: true });
+      fireEvent.press(existing("A"));
+      expect(confirm().props.accessibilityLabel).toBe(placement.confirmChanges);
+      fireEvent.press(confirm());
+
+      // Confirmer n'écrit rien : la base porte encore les deux points.
+      const beforeSave = await sessionRepository.findById(sessionId);
+      expect(persistedPauses(beforeSave!).stopPoints).toHaveLength(2);
+      expect(displayedPauses().stopPoints).toEqual([placement.existingStopPointAccessibilityLabel.replace("{exercise}", "B")]);
+
+      await act(async () => {
+        fireEvent.press(screen.getByLabelText(composition.saveAction));
+      });
+      await waitFor(() => expect(router.getPathname()).toBe("/"));
+      const saved = await sessionRepository.findById(sessionId);
+      expect(persistedPauses(saved!).stopPoints).toEqual([{ scope: "IN_TOUR", position: 1 }]);
+
+      await act(async () => {
+        expoRouter.push(`/composition?sessionId=${sessionId}`);
+      });
+      await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
+      expect(displayedPauses().stopPoints).toEqual([placement.existingStopPointAccessibilityLabel.replace("{exercise}", "B")]);
+      await act(async () => {
+        fireEvent.press(screen.getByTestId("composition-add-stop-action"));
+      });
+      expect(existing("B").props.accessibilityState).toMatchObject({ selected: true });
+      expect(screen.queryByLabelText(placement.existingStopPointAccessibilityLabel.replace("{exercise}", "A"))).toBeNull();
+      expect(screen.getByLabelText(stopLabel("A")).props.accessibilityState).toMatchObject({ selected: false });
       fireEvent.press(screen.getByTestId("composition-placement-bar-cancel"));
     } finally {
       database.close();

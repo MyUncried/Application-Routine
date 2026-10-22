@@ -1,12 +1,13 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { isPlacementStopPointAdded, type PlacementDraft } from "@/domain/sessions/placement";
+import { isPlacementStopPointAdded, isPlacementStopPointRemoved, type PlacementDraft } from "@/domain/sessions/placement";
 import type { StopPointLocation } from "@/domain/sessions/StopPoint";
 import { formatCompactDuration } from "@/features/sessions/compositionPresentation";
 import { OCCURRENCE_RECOVERY_FRAME } from "@/features/sessions/OccurrenceCard";
-import { STOP_POINT_CHIP_HEIGHT, StopPointChipFace, StopPointSymbol } from "@/features/sessions/StopPointChip";
+import { STOP_POINT_CHIP_HEIGHT, StopPointSymbol } from "@/features/sessions/StopPointChip";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, spacing } from "@/shared/ui/tokens";
 
 /**
@@ -56,22 +57,40 @@ function fill(template: string, values: Record<string, string>): string {
   return Object.entries(values).reduce((text, [key, value]) => text.replace(`{${key}}`, () => value), template);
 }
 
-/** Point d'arrêt d'une rangée de placement : posé (affiché, non interactif) ou à ajouter. */
+/**
+ * Point d'arrêt d'une rangée de placement, préparé par l'écran (story 6.3) :
+ * - `EXISTING` : point existant (D-436, R3), visé par son IDENTIFIANT (deux points hérités sur la
+ *   même clé se retirent indépendamment) ; `blocked` : retrait programmé dont l'annulation est
+ *   refusée par le Domaine (un point ajouté le suivrait, RM-251) ;
+ * - `AVAILABLE` : emplacement libre ou ajouté, visé par son emplacement.
+ * Le nom accessible suit, pour les deux, la règle de la story 6.2 (dernier Exercice qui précède,
+ * homonymes « n sur m », « après le circuit », têtes de portée).
+ */
 export type PlacementStopPointRowPoint =
-  | { readonly kind: "EXISTING" }
-  | { readonly kind: "AVAILABLE"; readonly location: StopPointLocation };
+  | {
+      readonly kind: "EXISTING";
+      readonly stopPointId: string;
+      readonly accessibilityLabel: string;
+      readonly blocked: boolean;
+    }
+  | { readonly kind: "AVAILABLE"; readonly location: StopPointLocation; readonly accessibilityLabel: string };
+
+/** Étendue verticale de la cible au-delà de la rangée, au-dessus et au-dessous. */
+export type PlacementTouchExtent = { readonly top: number; readonly bottom: number };
 
 export type PlacementStopPointRowProps = {
   readonly point: PlacementStopPointRowPoint;
   readonly placement: PlacementDraft;
-  /** Nom de l'exercice qui précède l'emplacement ; `null` pour l'emplacement « après le circuit ». */
-  readonly exerciseName: string | null;
+  /** Emplacement libre ou ajouté : bascule de l'ajout. */
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
+  /** Point existant : bascule de son retrait programmé, par identifiant. */
+  readonly onToggleExistingStopPoint: (stopPointId: string) => void;
   /**
-   * Étendue verticale de la cible de la puce au-delà de la rangée, de chaque côté : l'écart qui la
-   * sépare de ses voisins (8, 9 dans le Circuit) — la cible ne touche jamais une carte ni le Circuit.
+   * Étendue de la cible au-delà de la rangée : l'écart qui la sépare de ses voisins (8, 9 dans le
+   * Circuit), ou sa moitié du côté d'une autre rangée de placement adjacente (revue 6.3 : deux cibles
+   * voisines se partagent l'écart, jamais ne se recouvrent). Un nombre vaut pour les deux côtés.
    */
-  readonly touchExtent: number;
+  readonly touchExtent: number | PlacementTouchExtent;
   readonly testID: string;
 };
 
@@ -79,66 +98,80 @@ export type PlacementStopPointRowProps = {
  * Emplacement de point d'arrêt du mode placement (PRE-6 story 4.1 ; story 5.3, D-435, Figma
  * `8328:29270`, demande de Hermann du 21/10 : points d'arrêt centrés entre les cartes). Rangée de 22
  * centrée sur la page, traversée par le rail (dessiné par l'élément porteur, story 5.2) :
- * - à ajouter : puce en pointillés (`9849:43089`), bouton nommé « Ajouter un point d'arrêt après
+ * - à ajouter : puce en pointillés (`9849:43089`), bouton « Ajouter un point d'arrêt après
  *   {exercice} » ; ajoutée : puce pleine `primary`, symbole et texte blancs, état sélectionné et
  *   indice « Un toucher retire cet ajout. » ;
- * - déjà présent (y compris à un emplacement que le placement ne propose plus) : puce posée
- *   (`9843:18975`), non interactive (son retrait se fait hors placement, story 4.2), élément
- *   accessible « Point d'arrêt après {exercice} ».
+ * - déjà présent (y compris à un emplacement que le placement ne propose pas) — story 6.3 (D-436,
+ *   R3) : bouton SÉLECTIONNÉ, même rendu que la puce ajoutée ; toucher le désélectionne (retrait
+ *   programmé), retoucher le resélectionne. Désélectionné (« à retirer ») : pointillés ET opacité
+ *   réduite (`UNSELECTED_OPACITY`), pour ne pas ressembler à un emplacement libre (revue 6.3).
+ *   NON VÉRIFIABLE : Figma ne dessine aucun état sélectionné / désélectionné d'un point existant
+ *   (`9843:18975` montre la puce posée d'avant D-436). Resélection refusée (`blocked`) : état
+ *   indisponible et indice dédié ; le toucher reste reçu, l'écran en annonce le refus.
  *
- * Revue 5.3 : la cible est une boîte réelle de 22 + 2 × écart (marges négatives : la rangée garde 22),
+ * Revue 5.3 : la cible est une boîte réelle de 22 + écarts (marges négatives : la rangée garde 22),
  * jamais un `hitSlop` qui dépasserait la rangée (sans effet sous Fabric iOS).
  */
 export function PlacementStopPointRow({
   point,
   placement,
-  exerciseName,
   onToggleStopPoint,
+  onToggleExistingStopPoint,
   touchExtent,
   testID,
 }: PlacementStopPointRowProps) {
   const t = strings.screens.composition.placement;
-  const anchor = exerciseName === null ? null : { exercise: exerciseName };
-
+  const extent = typeof touchExtent === "number" ? { top: touchExtent, bottom: touchExtent } : touchExtent;
+  let selected: boolean;
+  let toRemove = false;
+  let blocked = false;
+  let hint: string | undefined;
+  let targetTestID: string;
+  let onPress: () => void;
   if (point.kind === "EXISTING") {
-    return (
-      <View style={styles.row} testID={testID}>
-        <View
-          accessible
-          accessibilityLabel={
-            anchor === null
-              ? t.existingStopPointAfterCircuitAccessibilityLabel
-              : fill(t.existingStopPointAccessibilityLabel, anchor)
-          }
-          testID={`${testID}-stop-point-existing`}
-        >
-          <StopPointChipFace />
-        </View>
-      </View>
-    );
+    // Story 6.3 (D-436) : sélectionné tant que son retrait n'est pas programmé.
+    selected = !isPlacementStopPointRemoved(placement, point.stopPointId);
+    toRemove = !selected;
+    blocked = toRemove && point.blocked;
+    hint = selected
+      ? t.existingStopPointSelectedHint
+      : blocked
+        ? t.existingStopPointBlockedHint
+        : t.existingStopPointRemovedHint;
+    targetTestID = `${testID}-stop-point-existing`;
+    const id = point.stopPointId;
+    onPress = () => onToggleExistingStopPoint(id);
+  } else {
+    const location = point.location;
+    selected = isPlacementStopPointAdded(placement, location);
+    hint = selected ? t.selectedHint : undefined;
+    targetTestID = `${testID}-stop-point`;
+    onPress = () => onToggleStopPoint(location);
   }
-
-  const location = point.location;
-  const added = isPlacementStopPointAdded(placement, location);
   return (
     <View style={styles.row} testID={testID}>
       <Pressable
-        onPress={() => onToggleStopPoint(location)}
+        onPress={onPress}
         accessibilityRole="button"
-        accessibilityLabel={
-          anchor === null ? t.addStopPointAfterCircuitAccessibilityLabel : fill(t.addStopPointAccessibilityLabel, anchor)
-        }
-        accessibilityState={{ selected: added }}
-        accessibilityHint={added ? t.selectedHint : undefined}
+        accessibilityLabel={point.accessibilityLabel}
+        accessibilityState={blocked ? { selected, disabled: true } : { selected }}
+        accessibilityHint={hint}
         style={[
           styles.puceTarget,
-          { height: PLACEMENT_STOP_POINT_ROW_HEIGHT + 2 * touchExtent, marginVertical: -touchExtent },
+          {
+            height: PLACEMENT_STOP_POINT_ROW_HEIGHT + extent.top + extent.bottom,
+            marginTop: -extent.top,
+            marginBottom: -extent.bottom,
+          },
         ]}
-        testID={`${testID}-stop-point`}
+        testID={targetTestID}
       >
-        <View style={[styles.puce, added ? styles.added : styles.available]} testID={`${testID}-stop-point-face`}>
-          <StopPointSymbol color={added ? colors.background : colors.warning} />
-          <Text style={[styles.puceText, added ? styles.addedText : null]} numberOfLines={1}>
+        <View
+          style={[styles.puce, selected ? styles.added : styles.available, toRemove ? styles.toRemove : null]}
+          testID={`${targetTestID}-face`}
+        >
+          <StopPointSymbol color={selected ? colors.background : colors.warning} />
+          <Text style={[styles.puceText, selected ? styles.addedText : null]} numberOfLines={1}>
             {t.stopPoint}
           </Text>
         </View>
@@ -235,6 +268,10 @@ const styles = StyleSheet.create({
   available: {
     borderStyle: "dashed",
     backgroundColor: PLACEMENT_AVAILABLE_SURFACE,
+  },
+  // Revue 6.3 : point existant dont le retrait est programmé (NON VÉRIFIABLE, aucun état Figma).
+  toRemove: {
+    opacity: UNSELECTED_OPACITY,
   },
   added: {
     borderStyle: "solid",

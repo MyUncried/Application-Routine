@@ -50,16 +50,20 @@ import {
 import {
   EMPTY_PLACEMENT_DRAFT,
   applyPlacementDraft,
-  hasPlacementChanges,
-  placementAdditionCount,
+  placementConfirmation,
   placementSlots,
   removePlacementRecovery,
   setOccurrenceRecovery,
   setPlacementRecovery,
   setPlacementRecoveryChange,
+  isPlacementStopPointAdded,
+  isPlacementStopPointRemoved,
   togglePlacementStopPoint,
+  togglePlacementStopPointRemoval,
+  type PlacementContext,
   type PlacementDraft,
   type PlacementSlot,
+  type PlacementStopPointSlot,
 } from "@/domain/sessions/placement";
 import {
   STOP_POINT_SCOPE_ORDER,
@@ -68,7 +72,7 @@ import {
   occurrenceCountInScope,
   positionInSequence,
   scopeSequence,
-  stopPointDisplay,
+  stopPointKey,
   type SequenceItem,
   type StopPoint,
   type StopPointLocation,
@@ -157,11 +161,12 @@ import {
 } from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
-import { PlacementBar } from "@/features/sessions/PlacementBar";
+import { formatPlacementConfirmLabel, PlacementBar } from "@/features/sessions/PlacementBar";
 import {
   PlacementRecoveryFrame,
   PlacementStopPointRow,
   type PlacementStopPointRowPoint,
+  type PlacementTouchExtent,
 } from "@/features/sessions/PlacementLayer";
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { measureAnchor } from "@/features/sessions/measureAnchor";
@@ -351,20 +356,21 @@ function sequenceItemExists(draft: SessionDraft, key: string): boolean {
 }
 
 /**
- * PRE-6 story 6.2 : éléments affichés de chaque zone. Hors placement : séquence mêlée du Domaine
- * (`scopeSequence`, D-436 ; ses règles de bornage et d'ordre). En placement : occurrences seules.
+ * PRE-6 story 6.2 : éléments affichés de chaque zone. Hors placement (`placementRowStopPointIds =
+ * null`) : séquence mêlée du Domaine (`scopeSequence`, D-436 ; ses règles de bornage et d'ordre).
+ * En placement : occurrences, et — story 6.3 (D-436, R3) — les seuls points existants qu'aucun
+ * emplacement ne porte (`UNOFFERED_STOP_POINT` : tête de Circuit, hors bornes…), rangées
+ * autonomes à leur place dans la séquence mêlée, pour pouvoir être désélectionnés ; les autres
+ * points sont portés par les emplacements (story 5.3).
  */
 function displayedZoneItems(
   exercises: readonly SessionDraftExercise[],
   stopPoints: readonly StopPoint[],
-  inPlacement: boolean,
+  placementRowStopPointIds: ReadonlySet<string> | null,
 ): ZoneItems {
-  const itemsOf = (zone: StructuralPosition): readonly ZoneItem[] =>
-    inPlacement
-      ? exercises
-          .filter((exercise) => exercise.structuralPosition === zone)
-          .map((occurrence) => ({ kind: "OCCURRENCE" as const, occurrence }))
-      : scopeSequence(exercises, stopPoints, zone);
+  const shown =
+    placementRowStopPointIds === null ? stopPoints : stopPoints.filter((point) => placementRowStopPointIds.has(point.id));
+  const itemsOf = (zone: StructuralPosition): readonly ZoneItem[] => scopeSequence(exercises, shown, zone);
   return { BEFORE_TOUR: itemsOf("BEFORE_TOUR"), IN_TOUR: itemsOf("IN_TOUR"), AFTER_TOUR: itemsOf("AFTER_TOUR") };
 }
 
@@ -719,6 +725,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // placement). Seul « Confirmer » l'applique au brouillon de séance ; seul « Continuer » persiste
   // (D-388). Occurrence dont la roulette « Durée de récupération » est ouverte.
   const [placement, setPlacement] = useState<PlacementDraft | null>(null);
+  // Revue 6.3 : effet du dernier toucher en placement, annoncé après le rendu (voir plus bas) ;
+  // `withLabel` : suivi du nouveau libellé de « Confirmer » (ajouts, ch13 L1524).
+  const placementAnnouncementRef = useRef<{ readonly text: string; readonly withLabel: boolean } | null>(null);
   const [recoveryWheelOccurrenceId, setRecoveryWheelOccurrenceId] = useState<string | null>(null);
   // D-307 / RM-209 : défaut de récupération du Profil (30 s initialement), relu à chaque entrée
   // en placement ; sans service Profil, la constante du Domaine. `null` tant qu'il n'est pas
@@ -1005,18 +1014,32 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setAddStopFocusRequest((current) => current + 1);
   }, [leavePlacement]);
   /**
-   * « Confirmer N pauses ajoutées » : une seule mise à jour fonctionnelle du brouillon
-   * (`postActivityRecoverySeconds` et `stopPoints`, `applyPlacementDraft`), puis sortie du
-   * placement. Disponible dès que le sous-brouillon porte un ajout ou une modification de
-   * récupération existante (story 4.2, `hasPlacementChanges`), même à N = 0. Identifiants des
+   * PRE-6 story 6.3 (D-436, RM-251) : composition sur laquelle se jugent les bascules de point et
+   * l'applicabilité du sous-brouillon — toujours fournie au Domaine (`togglePlacementStopPoint`,
+   * `placementConfirmation`, `placementSlots`) : la forme historique sans contexte n'est plus appelée.
+   */
+  const placementContext = useMemo<PlacementContext>(
+    () => ({ exercises: draft.exercises, stopPoints: draft.stopPoints ?? EMPTY_STOP_POINTS }),
+    [draft.exercises, draft.stopPoints],
+  );
+  /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
+  const confirmation = useMemo(
+    () => (placement === null ? null : placementConfirmation(placement, placementContext)),
+    [placement, placementContext],
+  );
+  /**
+   * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`postActivityRecoverySeconds`
+   * et `stopPoints`, `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-436 —
+   * retraits programmés, en une fois, sans point consécutif), puis sortie du placement. Disponible
+   * dès qu'un changement est applicable (`placementConfirmation` ≠ `NONE`). Identifiants des
    * points tirés hors du calcul d'état.
    */
   const confirmPlacement = useCallback(() => {
-    // Story 4.2 : une modification seule (non comptée dans N) rend aussi « Confirmer » disponible.
-    if (placement === null || !hasPlacementChanges(placement)) return;
+    if (placement === null || confirmation === null || confirmation.kind === "NONE") return;
     const applied = placement;
     // Rien d'applicable sur le brouillon courant (même brouillon rendu) : aucune mise à jour.
-    if (applyPlacementDraft(draft, applied, () => "") !== draft) {
+    const preview = applyPlacementDraft(draft, applied, () => "");
+    if (preview !== draft) {
       const stopPointIds = applied.stopPoints.map(() => Crypto.randomUUID());
       updateDraft((current) => {
         let next = 0;
@@ -1024,14 +1047,28 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
     }
     leavePlacement();
-    setAddStopFocusRequest((current) => current + 1);
-  }, [draft, leavePlacement, placement, updateDraft]);
+    // Revue 6.3 : si « Ajouter un arrêt » devient indisponible (dernier point retiré sans autre
+    // ajout possible), le focus va à la première carte plutôt qu'à un bouton désactivé.
+    const first = STOP_POINT_SCOPE_ORDER.flatMap((scope) =>
+      preview.exercises.filter((exercise) => exercise.structuralPosition === scope),
+    )[0];
+    if (placementOfferOf(placementSlots(preview.exercises, preview.stopPoints ?? EMPTY_STOP_POINTS)).any || first === undefined) {
+      setAddStopFocusRequest((current) => current + 1);
+    } else {
+      requestItemFocus(railRowKey(first.id));
+    }
+  }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
   /** Récupération à ajouter : roulette ; déjà ajoutée : désélection (retirée du sous-brouillon). */
   const handlePlacementRecoveryPress = useCallback(
     (occurrenceId: string) => {
       if (placement === null) return;
       if (placement.recoveries[occurrenceId] !== undefined) {
-        setPlacement((current) => (current === null ? null : removePlacementRecovery(current, occurrenceId)));
+        // Revue 6.3 (ch13 L1524) : « Ajout annulé. Confirmer N … ».
+        placementAnnouncementRef.current = {
+          text: strings.screens.composition.placement.additionCancelledAnnouncement,
+          withLabel: true,
+        };
+        setPlacement(removePlacementRecovery(placement, occurrenceId));
         return;
       }
       // Story 4.2 : une seule roulette à la fois.
@@ -1040,10 +1077,79 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [placement],
   );
-  /** Toucher « Point d'arrêt » : bascule son ajout. */
-  const handlePlacementStopPointToggle = useCallback((location: StopPointLocation) => {
-    setPlacement((current) => (current === null ? null : togglePlacementStopPoint(current, location)));
+  /**
+   * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-436) —
+   * ajout s'il est proposé, désélection s'il est ajouté.
+   */
+  const handlePlacementStopPointToggle = useCallback(
+    (location: StopPointLocation) => {
+      if (placement === null) return;
+      const next = togglePlacementStopPoint(placement, location, placementContext);
+      if (next === placement) return;
+      // Revue 6.3 (ch13 L1524) : effet, puis nombre d'ajouts (« Point d'arrêt ajouté. Confirmer 2 … »).
+      const t = strings.screens.composition.placement;
+      placementAnnouncementRef.current = {
+        text: isPlacementStopPointAdded(next, location) ? t.stopPointAddedAnnouncement : t.additionCancelledAnnouncement,
+        withLabel: true,
+      };
+      setPlacement(next);
+    },
+    [placement, placementContext],
+  );
+  /** ✓ de la roulette d'un emplacement de récupération : ajout au sous-brouillon, annoncé avec N (revue 6.3). */
+  const validatePlacementRecovery = useCallback((occurrenceId: string, totalSeconds: number) => {
+    placementAnnouncementRef.current = {
+      text: strings.screens.composition.placement.recoveryAddedAnnouncement,
+      withLabel: true,
+    };
+    setPlacement((current) => (current === null ? null : setPlacementRecovery(current, occurrenceId, totalSeconds)));
+    setRecoveryWheelOccurrenceId(null);
   }, []);
+  /**
+   * Revue 6.3 (D-436 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
+   * son identifiant (deux points hérités sur une même clé restent indépendants). Une annulation
+   * refusée par le Domaine (un point ajouté le suivrait) ne change rien ; chaque issue est annoncée.
+   */
+  const handlePlacementExistingStopPointToggle = useCallback(
+    (stopPointId: string) => {
+      if (placement === null) return;
+      const t = strings.screens.composition.placement;
+      const next = togglePlacementStopPointRemoval(placement, stopPointId, placementContext);
+      if (next === placement) {
+        AccessibilityInfo.announceForAccessibility(t.stopPointKeepRefusedAnnouncement);
+        return;
+      }
+      // Annoncé après le rendu, avec l'éventuel changement de disponibilité de « Confirmer ».
+      placementAnnouncementRef.current = {
+        text: isPlacementStopPointRemoved(next, stopPointId) ? t.stopPointRemovedAnnouncement : t.stopPointKeptAnnouncement,
+        withLabel: false,
+      };
+      setPlacement(next);
+    },
+    [placement, placementContext],
+  );
+  /**
+   * Revue 6.3 : seule source des annonces du placement, en UN message pour ne pas s'interrompre —
+   * l'effet du dernier toucher, puis le libellé de « Confirmer » : toujours après un ajout ou une
+   * annulation d'ajout (nombre d'ajouts, ch13 L1524), et, pour un point existant, quand la
+   * disponibilité change (jamais à l'entrée). La barre n'annonce plus rien d'elle-même.
+   */
+  const isConfirmAvailable = confirmation === null ? null : confirmation.kind !== "NONE";
+  const previousConfirmAvailableRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const previous = previousConfirmAvailableRef.current;
+    previousConfirmAvailableRef.current = isConfirmAvailable;
+    const pending = placementAnnouncementRef.current;
+    placementAnnouncementRef.current = null;
+    const parts = pending === null ? [] : [pending.text];
+    if (
+      confirmation !== null &&
+      ((pending !== null && pending.withLabel) || (previous !== null && previous !== isConfirmAvailable))
+    ) {
+      parts.push(formatPlacementConfirmLabel(confirmation));
+    }
+    if (parts.length > 0) AccessibilityInfo.announceForAccessibility(parts.join(". "));
+  }, [confirmation, isConfirmAvailable]);
   /**
    * PRE-6 (story 4.2) — en placement, toucher une récupération existante ouvre sa roulette à sa
    * valeur (celle déjà choisie dans le sous-brouillon, sinon celle du brouillon).
@@ -1149,20 +1255,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (removalTarget === null) return;
     removeRecovery(removalTarget.occurrenceId);
   }, [removalTarget, removeRecovery]);
-  // Story 4.2 / 6.2 : points d'arrêt rattachés à leur emplacement, pour le placement (story 5.3).
-  const displayedStopPoints = useMemo(
-    () => stopPointDisplay(draft.exercises, draft.stopPoints ?? []),
-    [draft.exercises, draft.stopPoints],
-  );
   const pauseRowContext = useMemo<PauseRowContext>(
     () => ({
-      stopPointFor: (occurrenceId) => displayedStopPoints.byOccurrenceId.get(occurrenceId) ?? null,
       onPressRecovery: handleRecoveryPress,
       onRequestRecoveryRemoval: (occurrenceId, anchor) => openRemovalBubble({ occurrenceId }, anchor),
       onRemoveRecovery: removeRecovery,
       focusRequest: pauseFocusRequest,
     }),
-    [displayedStopPoints, handleRecoveryPress, openRemovalBubble, pauseFocusRequest, removeRecovery],
+    [handleRecoveryPress, openRemovalBubble, pauseFocusRequest, removeRecovery],
   );
   // Android : le retour système annule le placement (comme « Annuler »).
   useEffect(() => {
@@ -1174,20 +1274,75 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     return () => subscription.remove();
   }, [cancelPlacement, isPlacementActive]);
 
-  // Emplacements du placement (Domaine), par occurrence et après le Circuit ; « Ajouter un arrêt »
-  // est indisponible quand aucun n'offre d'ajout (Composition vide, tout est déjà présent).
-  const draftSlots = useMemo(
-    () => placementSlots(draft.exercises, draft.stopPoints ?? []),
+  // Emplacements du placement (Domaine), par occurrence et après le Circuit. Story 6.3 (D-436,
+  // RM-251) : en placement, calculés sur l'état effectif (existants − retraits + ajouts du
+  // sous-brouillon) — un retrait programmé libère les emplacements voisins.
+  const entrySlots = useMemo(
+    () => placementSlots(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS),
     [draft.exercises, draft.stopPoints],
   );
-  const hasAddableSlot = draftSlots.some(
-    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
+  const draftSlots = useMemo(
+    () => (placement === null ? entrySlots : placementSlots(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, placement)),
+    [draft.exercises, draft.stopPoints, entrySlots, placement],
   );
+  // « Ajouter un arrêt » est indisponible quand le placement n'aurait rien à proposer (Composition
+  // vide, tout est déjà présent). Story 6.3 (D-436, R3) : un point existant IDENTIFIÉ suffit à le
+  // rendre disponible — le placement est le seul chemin de son retrait ; un indice le dit quand
+  // aucun ajout n'est possible.
+  const entryOffer = placementOfferOf(entrySlots);
+  const hasPlacementOffer = entryOffer.any;
+  const addStopAccessibilityHint =
+    entryOffer.any && !entryOffer.additions ? strings.screens.composition.placement.addStopRemovalOnlyHint : undefined;
   const slotByOccurrence = useMemo(
-    () => new Map(draftSlots.flatMap((slot) => (slot.occurrenceId === null ? [] : [[slot.occurrenceId, slot] as const]))),
+    () =>
+      new Map(
+        draftSlots.flatMap((slot) =>
+          slot.kind === "OCCURRENCE" && slot.occurrenceId !== null ? [[slot.occurrenceId, slot] as const] : [],
+        ),
+      ),
     [draftSlots],
   );
-  const afterCircuitSlot = draftSlots.find((slot) => slot.occurrenceId === null) ?? null;
+  const afterCircuitSlot = draftSlots.find((slot) => slot.kind === "AFTER_CIRCUIT") ?? null;
+  /**
+   * Story 6.3 (D-436, R3) : points existants qu'aucun emplacement ne porte (`UNOFFERED_STOP_POINT` :
+   * tête de Circuit, hors bornes, position non entière…), rendus en placement comme rangées
+   * autonomes de la séquence (`displayedZoneItems`) ; `null` hors placement.
+   */
+  // Clé stable (les emplacements sont recalculés à chaque bascule ; l'ensemble, lui, n'en dépend pas).
+  const unofferedStopPointKey =
+    placement === null
+      ? null
+      : JSON.stringify(
+          draftSlots.flatMap((slot) =>
+            slot.kind === "UNOFFERED_STOP_POINT" && slot.stopPoint?.stopPointId !== undefined ? [slot.stopPoint.stopPointId] : [],
+          ),
+        );
+  const unofferedStopPointIds = useMemo(
+    () => (unofferedStopPointKey === null ? null : new Set<string>(JSON.parse(unofferedStopPointKey) as string[])),
+    [unofferedStopPointKey],
+  );
+  /**
+   * Revue 6.3 : emplacements où un point non proposé est DESSINÉ (position tronquée ou ramenée aux
+   * bornes, comme `scopeSequence`) — aucun emplacement libre n'y est proposé, même une fois ce point
+   * désélectionné : deux puces ne se superposent jamais.
+   */
+  const unofferedDisplayKeys = useMemo(() => {
+    if (unofferedStopPointIds === null) return null;
+    return new Set(
+      (draft.stopPoints ?? EMPTY_STOP_POINTS)
+        .filter((point) => unofferedStopPointIds.has(point.id))
+        .map((point) => stopPointKey(displayedStopPointLocation(draft.exercises, point))),
+    );
+  }, [draft.exercises, draft.stopPoints, unofferedStopPointIds]);
+  /**
+   * Story 6.3 : noms accessibles du placement, par la règle de la story 6.2 (dernier Exercice qui
+   * précède, homonymes « n sur m », « après le circuit », têtes de portée) — points existants et
+   * (revue 6.3) emplacements à ajouter.
+   */
+  const placementLabels = useMemo(
+    () => (isPlacementActive ? placementLabelerOf(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS) : null),
+    [draft.exercises, draft.stopPoints, isPlacementActive],
+  );
   // Pendant le placement, durées recalculées en direct sur le brouillon tel que « Confirmer » le
   // produirait (R positive remplace la Pause terminale, story 1.3).
   const durationDraft = useMemo(
@@ -1215,6 +1370,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
     wasUnpausedWarningShown.current = hasUnpausedWarning;
   }, [hasUnpausedWarning]);
+  /** Story 6.3 : ce que `placementRowPointOf` lit (noms, sous-brouillon, contexte, emplacements masqués). */
+  const placementRowEnvironment = useMemo<PlacementRowEnvironment>(
+    () => ({ labels: placementLabels, placement: placement ?? EMPTY_PLACEMENT_DRAFT, context: placementContext, hiddenKeys: unofferedDisplayKeys }),
+    [placement, placementContext, placementLabels, unofferedDisplayKeys],
+  );
   const placementRowContext = useMemo<PlacementRowContext | null>(
     () =>
       placement === null
@@ -1222,11 +1382,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         : {
             draft: placement,
             slotFor: (occurrenceId) => slotByOccurrence.get(occurrenceId) ?? null,
+            rowPointOf: (stopPoint) => placementRowPointOf(stopPoint, placementRowEnvironment),
             onPressRecovery: handlePlacementRecoveryPress,
             onPressExistingRecovery: handlePlacementExistingRecoveryPress,
             onToggleStopPoint: handlePlacementStopPointToggle,
+            onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
           },
     [
+      handlePlacementExistingStopPointToggle,
+      placementRowEnvironment,
       handlePlacementExistingRecoveryPress,
       handlePlacementRecoveryPress,
       handlePlacementStopPointToggle,
@@ -1243,12 +1407,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /**
    * PRE-6 story 6.2 (D-436) : éléments affichés de chaque zone — hors placement, la séquence mêlée
    * du Domaine (`scopeSequence` : occurrences et Points d'arrêt, chacun une rangée) ; en placement,
-   * les occurrences seules (les points y sont portés par les emplacements, story 5.3).
+   * les occurrences et les seuls points non proposés (story 6.3) — les autres sont portés par les
+   * emplacements (story 5.3).
    */
   const inPlacement = placement !== null;
   const zoneItems = useMemo(
-    () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, inPlacement),
-    [draft.exercises, draft.stopPoints, inPlacement],
+    () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, unofferedStopPointIds),
+    [draft.exercises, draft.stopPoints, unofferedStopPointIds],
   );
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
@@ -1678,16 +1843,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * 5.2b) ; carte non mesurée : hauteur de la carte, rangée de son point d'arrêt comprise (écart de
    * la zone + 22).
    */
-  // Revue 5.3 : en placement, rangée « après le Circuit » pour un point posé (même à un emplacement
-  // que le placement ne propose plus) ou pour la puce à ajouter.
+  // Revue 5.3 : en placement, rangée « après le Circuit » pour un point existant ou pour la puce à
+  // ajouter. Story 6.3 : seul l'emplacement `AFTER_CIRCUIT` la porte (un point « après le Circuit »
+  // d'un Circuit vide est non proposé : rangée autonome en tête de la zone après le Circuit).
   const afterCircuitRowPoint: PlacementStopPointRowPoint | null =
-    placement === null
-      ? null
-      : displayedStopPoints.afterCircuit !== null || afterCircuitSlot?.stopPoint?.existing === true
-        ? { kind: "EXISTING" }
-        : afterCircuitSlot !== null && afterCircuitSlot.stopPoint !== null
-          ? { kind: "AVAILABLE", location: afterCircuitSlot.stopPoint.location }
-          : null;
+    placement === null ? null : placementRowPointOf(afterCircuitSlot?.stopPoint ?? null, placementRowEnvironment);
   // Story 6.2 : hors placement, le point « après le Circuit » est la première rangée de la zone
   // après le Circuit ; la rangée dédiée ne sert plus qu'à l'emplacement du placement.
   const hasAfterCircuitRail = placement !== null && afterCircuitRowPoint !== null;
@@ -2011,8 +2171,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           volumesFocusRequest={volumesFocusRequest}
           isVolumesDisabled={draggedKey !== null}
           isPlacementActive={isPlacementActive}
-          isAddStopDisabled={!hasAddableSlot || draggedKey !== null}
+          isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
           addStopFocusRequest={addStopFocusRequest}
+          addStopAccessibilityHint={addStopAccessibilityHint}
           testID="composition-context-header"
         />
       </ContextBand>
@@ -2321,9 +2482,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               <PlacementStopPointRow
                 point={afterCircuitRowPoint}
                 placement={placement}
-                exerciseName={null}
                 onToggleStopPoint={handlePlacementStopPointToggle}
-                touchExtent={SEQUENCE_GAP}
+                onToggleExistingStopPoint={handlePlacementExistingStopPointToggle}
+                // Revue 6.3 : suivie d'une rangée de point non proposé (tête de la zone après le
+                // Circuit), la cible s'arrête au milieu de l'écart.
+                touchExtent={{
+                  top: SEQUENCE_GAP,
+                  bottom: zoneItems.AFTER_TOUR[0]?.kind === "STOP_POINT" ? SEQUENCE_GAP / 2 : SEQUENCE_GAP,
+                }}
                 testID="composition-placement-slot-after-circuit"
               />
             ) : null}
@@ -2332,6 +2498,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
         <ActivityZoneList
           zone="AFTER_TOUR"
+          precededByPlacementRow={hasAfterCircuitRail}
           testID="composition-zone-after-tour"
           items={zoneItems.AFTER_TOUR}
           allOccurrences={draft.exercises}
@@ -2448,10 +2615,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           </Text>
         ) : null}
         {/* PRE-6 (story 4.1, `8328:29423`) : en placement, la barre remplace « Continuer ». */}
-        {placement !== null ? (
+        {confirmation !== null ? (
           <PlacementBar
-            count={placementAdditionCount(placement)}
-            canConfirm={hasPlacementChanges(placement)}
+            confirmation={confirmation}
             onConfirm={confirmPlacement}
             onCancel={cancelPlacement}
             testID="composition-placement-bar"
@@ -2527,13 +2693,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             totalSeconds={recoveryDefaultSeconds}
             valueGrid={RECOVERY_WHEEL_VALUES}
             title={composition.placement.recoveryWheelTitle}
-            onValidate={(totalSeconds) => {
-              const occurrenceId = recoveryWheelOccurrenceId;
-              setPlacement((current) =>
-                current === null ? null : setPlacementRecovery(current, occurrenceId, totalSeconds),
-              );
-              setRecoveryWheelOccurrenceId(null);
-            }}
+            onValidate={(totalSeconds) => validatePlacementRecovery(recoveryWheelOccurrenceId, totalSeconds)}
             onCancel={() => setRecoveryWheelOccurrenceId(null)}
             minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
             secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
@@ -2763,6 +2923,8 @@ type ActivityZoneListProps = {
   readonly stopPointStepAction: (stopPointId: string, direction: StepDirection) => (() => void) | null;
   /** PRE-6 (story 4.1) : contexte du mode placement ; `null` hors placement. */
   readonly placement: PlacementRowContext | null;
+  /** Revue 6.3 : en placement, la rangée « après le Circuit » précède immédiatement cette zone. */
+  readonly precededByPlacementRow?: boolean;
   /** PRE-6 (story 4.2) : points d'arrêt, modification et retrait des pauses hors placement. */
   readonly pauses: PauseRowContext;
 };
@@ -2774,11 +2936,103 @@ type ActivityZoneListProps = {
 type PlacementRowContext = {
   readonly draft: PlacementDraft;
   readonly slotFor: (occurrenceId: string) => PlacementSlot | null;
+  /** Story 6.3 : point d'arrêt rendu pour un emplacement (existant ou à ajouter), `null` sans point. */
+  readonly rowPointOf: (stopPoint: PlacementStopPointSlot | null) => PlacementStopPointRowPoint | null;
   readonly onPressRecovery: (occurrenceId: string) => void;
   /** Story 4.2 : modification d'une récupération existante (sous-brouillon, non comptée dans N). */
   readonly onPressExistingRecovery: (occurrenceId: string) => void;
+  /** Emplacement libre ou ajouté : bascule de l'ajout. */
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
+  /** Revue 6.3 : point existant, bascule de son retrait programmé par identifiant (et annonce). */
+  readonly onToggleExistingStopPoint: (stopPointId: string) => void;
 };
+
+/** Noms accessibles du placement (story 6.3) : points existants (par identifiant) et emplacements à ajouter. */
+type PlacementLabeler = {
+  readonly existing: (stopPointId: string) => string;
+  readonly available: (location: StopPointLocation) => string;
+};
+
+/**
+ * PRE-6 story 6.3 : noms du placement par la règle de la story 6.2 (`stopPointAnchor` sur la séquence
+ * mêlée de la portée). Revue 6.3 : un emplacement à ajouter suit la même règle — « Ajouter un point
+ * d'arrêt après {dernier Exercice qui précède}[, n sur m] », « … après le circuit » sans Exercice.
+ */
+function placementLabelerOf(
+  exercises: readonly SessionDraftExercise[],
+  stopPoints: readonly StopPoint[],
+): PlacementLabeler {
+  const t = strings.screens.composition.placement;
+  const existing = new Map<string, string>();
+  for (const scope of STOP_POINT_SCOPE_ORDER) {
+    const items = scopeSequence(exercises, stopPoints, scope);
+    items.forEach((item, index) => {
+      if (item.kind === "STOP_POINT") {
+        existing.set(item.point.id, stopPointRowAccessibilityLabel(items, index, scope, exercises));
+      }
+    });
+  }
+  return {
+    existing: (stopPointId) => existing.get(stopPointId) ?? t.stopPoint,
+    available: (location) => {
+      const candidate: StopPoint = { id: "", scope: location.scope, position: location.position };
+      const items = scopeSequence(exercises, [candidate], location.scope);
+      const anchor = stopPointAnchor(
+        items,
+        items.findIndex((item) => item.kind === "STOP_POINT"),
+        exercises,
+      );
+      return anchor === null
+        ? t.addStopPointAfterCircuitAccessibilityLabel
+        : t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
+    },
+  };
+}
+
+/** Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié. */
+function placementOfferOf(slots: readonly PlacementSlot[]): { readonly any: boolean; readonly additions: boolean } {
+  const additions = slots.some(
+    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
+  );
+  const removals = slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
+  return { any: additions || removals, additions };
+}
+
+/** Ce dont `placementRowPointOf` a besoin (story 6.3). */
+type PlacementRowEnvironment = {
+  readonly labels: PlacementLabeler | null;
+  readonly placement: PlacementDraft;
+  readonly context: PlacementContext;
+  /** Emplacements occupés à l'écran par un point non proposé (`displayedStopPointLocation`). */
+  readonly hiddenKeys: ReadonlySet<string> | null;
+};
+
+/**
+ * PRE-6 story 6.3 (D-436, R3) : point d'arrêt rendu pour l'emplacement `stopPoint` en placement ;
+ * `null` sans point. Revue 6.3 :
+ * - existant : visé par son identifiant (un point sans identifiant, jamais dans un brouillon, n'est
+ *   pas rendu) ; `blocked` si son retrait est programmé et que le Domaine en refuserait l'annulation ;
+ * - libre : jamais proposé sur l'emplacement où est dessiné un point non proposé (`hiddenKeys`).
+ */
+function placementRowPointOf(
+  stopPoint: PlacementStopPointSlot | null,
+  env: PlacementRowEnvironment,
+): PlacementStopPointRowPoint | null {
+  if (stopPoint === null || env.labels === null) return null;
+  if (!stopPoint.existing) {
+    const location = stopPoint.location;
+    if (env.hiddenKeys?.has(stopPointKey(location)) === true && !isPlacementStopPointAdded(env.placement, location)) {
+      return null;
+    }
+    return { kind: "AVAILABLE", location, accessibilityLabel: env.labels.available(location) };
+  }
+  const id = stopPoint.stopPointId;
+  if (id === undefined) return null;
+  const blocked =
+    isPlacementStopPointRemoved(env.placement, id) &&
+    togglePlacementStopPointRemoval(env.placement, id, env.context) === env.placement;
+  return { kind: "EXISTING", stopPointId: id, accessibilityLabel: env.labels.existing(id), blocked };
+}
 
 /** PRE-6 (story 4.2) : roulette de modification d'une récupération existante. */
 type RecoveryEdit = {
@@ -2810,11 +3064,11 @@ function sameRemovalTarget(a: RemovalTargetKey, b: RemovalTargetKey): boolean {
 type PauseFocusRequest = { readonly occurrenceId: string; readonly token: number };
 
 /**
- * PRE-6 (story 4.2) : ce que chaque carte reçoit pour ses pauses — point d'arrêt de son emplacement
- * (placement, story 5.3), modification et retrait de la récupération, focus après retrait.
+ * PRE-6 (story 4.2) : ce que chaque carte reçoit pour ses pauses hors placement — modification et
+ * retrait de la récupération, focus après retrait. Story 6.3 : le point d'arrêt d'un emplacement en
+ * placement vient de l'emplacement lui-même (`PlacementRowContext.rowPointOf`).
  */
 type PauseRowContext = {
-  readonly stopPointFor: (occurrenceId: string) => StopPoint | null;
   readonly onPressRecovery: (occurrenceId: string) => void;
   readonly onRequestRecoveryRemoval: (occurrenceId: string, anchor: View | null) => void;
   readonly onRemoveRecovery: (occurrenceId: string) => void;
@@ -2822,10 +3076,39 @@ type PauseRowContext = {
 };
 
 /**
+ * PRE-6 story 6.2 : repère du nom d'un point au rang `index` de la séquence mêlée `items` — le dernier
+ * SÉPARATEUR qui le précède (un Exercice, RM-251 : `isSequenceSeparator`), suivi de sa position
+ * « n sur m » dans la zone quand un homonyme existe ; `null` en tête de portée. Revue 6.3 : partagé
+ * par les points existants et les emplacements à ajouter.
+ */
+function stopPointAnchor(
+  items: readonly ZoneItem[],
+  index: number,
+  allOccurrences: readonly SessionDraftExercise[],
+): string | null {
+  const preceding = items
+    .slice(0, Math.max(0, index))
+    .reverse()
+    .find(
+      (item): item is Extract<ZoneItem, { kind: "OCCURRENCE" }> => item.kind === "OCCURRENCE" && isSequenceSeparator(item.occurrence),
+    );
+  if (preceding === undefined) return null;
+  const name = preceding.occurrence.name;
+  // Homonymes : la notation de position des cartes (« n sur m » dans la zone) les distingue.
+  const homonyms = allOccurrences.filter((occurrence) => occurrence.name === name).length > 1;
+  if (!homonyms) return name;
+  const inZone = items.filter((item) => item.kind === "OCCURRENCE");
+  const position = strings.screens.composition.occurrenceCard.accessibilityPosition
+    .replace("{position}", String(inZone.indexOf(preceding) + 1))
+    .replace("{count}", String(inZone.length));
+  return `${name}, ${position}`;
+}
+
+/**
  * PRE-6 story 6.2 : nom accessible d'une rangée de point — « Point d'arrêt après {exercice} »
- * (dernière occurrence qui le précède dans sa portée), « … après le circuit » (tête de la portée
- * après le Circuit), « … au début du circuit » (tête du Circuit, donnée héritée) ou « … au début de
- * la séance » (tête de la portée avant le Circuit, donnée héritée).
+ * (`stopPointAnchor`), « … après le circuit » (tête de la portée après le Circuit), « … au début du
+ * circuit » (tête du Circuit, donnée héritée) ou « … au début de la séance » (tête de la portée
+ * avant le Circuit, donnée héritée).
  */
 function stopPointRowAccessibilityLabel(
   items: readonly ZoneItem[],
@@ -2834,24 +3117,8 @@ function stopPointRowAccessibilityLabel(
   allOccurrences: readonly SessionDraftExercise[],
 ): string {
   const t = strings.screens.composition.placement;
-  // Revue 6.2 : le dernier SÉPARATEUR qui le précède (un Exercice, RM-251 : `isSequenceSeparator`).
-  const preceding = items
-    .slice(0, index)
-    .reverse()
-    .find(
-      (item): item is Extract<ZoneItem, { kind: "OCCURRENCE" }> => item.kind === "OCCURRENCE" && isSequenceSeparator(item.occurrence),
-    );
-  if (preceding !== undefined) {
-    const name = preceding.occurrence.name;
-    // Homonymes : la notation de position des cartes (« n sur m » dans la zone) les distingue.
-    const homonyms = allOccurrences.filter((occurrence) => occurrence.name === name).length > 1;
-    if (!homonyms) return t.existingStopPointAccessibilityLabel.replace("{exercise}", () => name);
-    const inZone = items.filter((item) => item.kind === "OCCURRENCE");
-    const position = strings.screens.composition.occurrenceCard.accessibilityPosition
-      .replace("{position}", String(inZone.indexOf(preceding) + 1))
-      .replace("{count}", String(inZone.length));
-    return `${t.existingStopPointAccessibilityLabel.replace("{exercise}", () => name)}, ${position}`;
-  }
+  const anchor = stopPointAnchor(items, index, allOccurrences);
+  if (anchor !== null) return t.existingStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
   if (zone === "AFTER_TOUR") return t.existingStopPointAfterCircuitAccessibilityLabel;
   return zone === "IN_TOUR" ? t.stopPointAtCircuitStartAccessibilityLabel : t.stopPointAtSessionStartAccessibilityLabel;
 }
@@ -2921,6 +3188,7 @@ function ActivityZoneList({
   onStep,
   stopPointStepAction,
   placement,
+  precededByPlacementRow = false,
   pauses,
 }: ActivityZoneListProps) {
   if (items.length === 0) {
@@ -2928,6 +3196,23 @@ function ActivityZoneList({
   }
   // Nom accessible des cartes : « n sur m » parmi les occurrences de la zone (les points n'y comptent pas).
   const occurrences = items.filter((item) => item.kind === "OCCURRENCE");
+  /*
+   * Revue 6.3 : en placement, deux rangées de point adjacentes (rangée sous une carte, rangée d'un
+   * point non proposé, rangée « après le Circuit » au-dessus de la zone) se partagent l'écart qui
+   * les sépare — chaque cible s'arrête en son milieu, jamais l'une sur l'autre.
+   */
+  const gap = zone === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP;
+  const hasPlacementRowAt = (index: number): boolean => {
+    const neighbor = items[index];
+    if (placement === null || neighbor === undefined) return false;
+    if (neighbor.kind === "STOP_POINT") return true;
+    return placement.rowPointOf(placement.slotFor(neighbor.occurrence.id)?.stopPoint ?? null) !== null;
+  };
+  const followedByPlacementRow = (index: number): boolean => placement !== null && items[index + 1]?.kind === "STOP_POINT";
+  const placementExtentAt = (index: number) => ({
+    top: (index === 0 ? precededByPlacementRow : hasPlacementRowAt(index - 1)) ? gap / 2 : gap,
+    bottom: followedByPlacementRow(index) ? gap / 2 : gap,
+  });
   return (
     <View
       style={[
@@ -2944,6 +3229,27 @@ function ActivityZoneList({
       testID={testID}
     >
       {items.map((item, itemIndex) => {
+        if (item.kind === "STOP_POINT" && placement !== null) {
+          // PRE-6 story 6.3 (D-436, R3) : en placement, seul un point non proposé est une rangée
+          // autonome — puce de placement sélectionnée, désélectionnable, sans glisser.
+          const key = railStopKey(item.point.id);
+          const rowPoint = placement.rowPointOf({
+            location: { scope: item.point.scope, position: item.point.position },
+            existing: true,
+            stopPointId: item.point.id,
+          });
+          return rowPoint === null ? null : (
+            <PlacementStopPointItemRow
+              key={key}
+              railKey={key}
+              point={rowPoint}
+              placement={placement}
+              rail={rail}
+              touchExtent={placementExtentAt(itemIndex)}
+              onLayout={(event) => onRowLayout(key, zone, event)}
+            />
+          );
+        }
         if (item.kind === "STOP_POINT") {
           // PRE-6 story 6.2 (D-436) : rangée autonome du Point d'arrêt, sœur des cartes.
           const key = railStopKey(item.point.id);
@@ -3003,6 +3309,7 @@ function ActivityZoneList({
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
           onMoveDown={canStep(activity.id, "DOWN") ? () => onStep(activity.id, "DOWN") : null}
           placement={placement}
+          placementRowFollowed={followedByPlacementRow(itemIndex)}
           pauses={pauses}
         />
         );
@@ -3221,6 +3528,54 @@ function StopPointRow({
   );
 }
 
+type PlacementStopPointItemRowProps = {
+  readonly railKey: string;
+  readonly point: PlacementStopPointRowPoint;
+  readonly placement: PlacementRowContext;
+  readonly rail: SequenceRailContext;
+  /** Écart de la zone (8, 9 dans le Circuit), ou sa moitié côté d'une rangée de placement adjacente (revue 6.3). */
+  readonly touchExtent: PlacementTouchExtent;
+  readonly onLayout: (event: LayoutChangeEvent) => void;
+};
+
+/**
+ * PRE-6 story 6.3 (D-436, R3) : en placement, rangée autonome d'un point existant qu'aucun
+ * emplacement ne porte (`UNOFFERED_STOP_POINT` : tête de Circuit, hors bornes…), à sa place dans la
+ * séquence mêlée. Même rangée de 22 et même puce que les emplacements (`PlacementStopPointRow`,
+ * sélectionnée, désélectionnable) ; nœud du rail (lien vers l'élément précédent, queue sur toute sa
+ * hauteur), sans point de raccord, comme les rangées du placement (story 5.3). Aucun glisser.
+ */
+function PlacementStopPointItemRow({ railKey, point, placement, rail, touchExtent, onLayout }: PlacementStopPointItemRowProps) {
+  const shift = rail.shiftOf(railKey);
+  const railLink = rail.links.get(railKey);
+  const testID = `composition-placement-slot-stop-${point.kind === "EXISTING" ? point.stopPointId : railKey}`;
+  return (
+    <Animated.View style={[styles.stopPointRow, { transform: [{ translateY: shift }] }]} onLayout={onLayout} testID={`${testID}-row`}>
+      {railLink !== undefined ? (
+        <>
+          <RailLink
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            entryY={0}
+            length={railLink.length}
+            shift={shift}
+            prevShift={rail.shiftOf(railLink.prevKey)}
+            testID={`composition-rail-link-${railKey}`}
+          />
+          <RailSegment centerX={OCCURRENCE_CARD_MEDIA.centerX} top={0} bottom={0} testID={`composition-rail-tail-${railKey}`} />
+        </>
+      ) : null}
+      <PlacementStopPointRow
+        point={point}
+        placement={placement.draft}
+        onToggleStopPoint={placement.onToggleStopPoint}
+        onToggleExistingStopPoint={placement.onToggleExistingStopPoint}
+        touchExtent={touchExtent}
+        testID={testID}
+      />
+    </Animated.View>
+  );
+}
+
 type CompositionActivityRowProps = {
   readonly activity: SessionDraftExercise;
   readonly areActionsRevealed: boolean;
@@ -3272,6 +3627,8 @@ type CompositionActivityRowProps = {
   readonly onMoveDown: (() => void) | null;
   /** PRE-6 (story 4.1) : mode placement — carte atténuée et inactive, puces sous la carte. */
   readonly placement: PlacementRowContext | null;
+  /** Revue 6.3 : la rangée sous la carte est suivie d'une rangée de point non proposé (écart partagé). */
+  readonly placementRowFollowed?: boolean;
   /** PRE-6 (story 4.2) : point d'arrêt de l'occurrence, modification et retrait des pauses. */
   readonly pauses: PauseRowContext;
 };
@@ -3423,6 +3780,7 @@ function CompositionActivityRow({
   onMoveUp,
   onMoveDown,
   placement,
+  placementRowFollowed = false,
   pauses,
   focusRequest,
   onFocusConsumed,
@@ -3431,12 +3789,6 @@ function CompositionActivityRow({
   const originRef = useRef<{ x: number; y: number } | null>(null);
   // Story 4.2 : focus rendu à la carte après un retrait qui ne laisse pas de point d'arrêt.
   const cardRef = useRef<View>(null);
-  /**
-   * PRE-6 story 6.2 (D-436) : hors placement, le Point d'arrêt n'est plus dans le bloc de la carte
-   * — c'est une rangée autonome de la séquence (`StopPointRow`). En placement, la rangée sous la
-   * carte reste l'emplacement de la story 5.3 (point existant affiché, ou puce à ajouter).
-   */
-  const placementExistingStopPoint = placement !== null && pauses.stopPointFor(activity.id) !== null;
   // Focus après le retrait de la récupération de la ligne 3 (story 4.2 / 5.1) : à la carte, à
   // l'image suivante ; jamais au premier rendu.
   const cardFocusToken =
@@ -3829,17 +4181,14 @@ function CompositionActivityRow({
       />
     );
   }
-  /** Rangée sous la carte : point d'arrêt hors placement (story 4.2 / 5.2), emplacement de point en placement (5.3). */
-  // Revue 5.3 : en placement, un point déjà présent reste affiché (puce posée) même à un emplacement
-  // que le placement ne propose plus ; sinon, la puce à ajouter si l'emplacement en offre une.
+  /**
+   * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-436) : hors
+   * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
+   * Story 6.3 (D-436, R3) : un point existant sur l'emplacement de la carte (même devenu interdit)
+   * est rendu sélectionné, désélectionnable ; sinon, la puce à ajouter si l'emplacement en offre une.
+   */
   const placementRowPoint: PlacementStopPointRowPoint | null =
-    placement === null
-      ? null
-      : placementExistingStopPoint || placementStopPoint?.existing === true
-        ? { kind: "EXISTING" }
-        : placementStopPoint !== null
-          ? { kind: "AVAILABLE", location: placementStopPoint.location }
-          : null;
+    placement === null ? null : placement.rowPointOf(placementStopPoint);
   const hasRowBelow = placementRowPoint !== null;
   // Même translation pour la carte et sa ligne de récupération : elles font bloc.
   const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
@@ -4113,9 +4462,10 @@ function CompositionActivityRow({
             <PlacementStopPointRow
               point={placementRowPoint}
               placement={placement.draft}
-              exerciseName={activity.name}
               onToggleStopPoint={placement.onToggleStopPoint}
-              touchExtent={slotGap}
+              onToggleExistingStopPoint={placement.onToggleExistingStopPoint}
+              // Revue 6.3 : suivie d'une rangée de point non proposé, la cible s'arrête au milieu.
+              touchExtent={{ top: slotGap, bottom: placementRowFollowed ? slotGap / 2 : slotGap }}
               testID={`composition-placement-slot-${activity.id}`}
             />
           ) : null}

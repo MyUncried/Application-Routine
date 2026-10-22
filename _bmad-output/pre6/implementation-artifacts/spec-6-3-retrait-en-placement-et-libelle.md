@@ -2,7 +2,7 @@
 title: 'Story 6.3 — Retrait en placement, libellé, fin de la bulle des points'
 type: 'feature'
 created: '2026-10-22'
-status: 'in-progress'
+status: 'done'
 baseline_commit: '1057630a'
 route: 'dispatch'
 review_loop_iteration: 0
@@ -66,10 +66,10 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [ ] Points existants sélectionnés et retrait programmé en placement + tests.
-- [ ] Emplacements selon l'état effectif + tests.
-- [ ] Libellé du bouton + tests.
-- [ ] Confirmer / Annuler / persistance (intégration) + tests.
+- [x] Points existants sélectionnés et retrait programmé en placement + tests.
+- [x] Emplacements selon l'état effectif + tests.
+- [x] Libellé du bouton + tests.
+- [x] Confirmer / Annuler / persistance (intégration) + tests.
 
 **Acceptance Criteria:**
 - Given la suite complète, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit`, `npm run lint`, then tout est vert.
@@ -77,9 +77,55 @@ context:
 
 ## Implementation Notes
 
+*Première passe ci-dessous ; les corrections de la revue sont dans « Revue 6.3 » à la fin de cette section, qui l'emporte en cas d'écart.*
+
+Domaine inchangé en première passe (lecture seule de `placement.ts` et `StopPoint.ts` ; modifié par la revue, voir plus bas). Branchement seul, dans `CompositionScreen.tsx`, `PlacementLayer.tsx`, `PlacementBar.tsx`, `fr.ts`.
+
+**Contexte toujours fourni.** `placementContext` (exercices et points du brouillon) est passé à `togglePlacementStopPoint` et `placementConfirmation` ; les emplacements du placement sont `placementSlots(…, placement)` (état effectif : un retrait programmé libère ses voisins, RM-251). Plus aucun appel à la forme historique sans contexte dans l'application ; les surcharges sans contexte, `hasPlacementChanges`, `placementAdditionCount` et `stopPointDisplay` restent exportées par le Domaine (tests du Domaine), non appelées par l'écran — leur retrait est un nettoyage du Domaine, hors périmètre.
+
+**Points existants.**
+- Rendu : `PlacementStopPointRow` (variante `EXISTING` : `stopPointId`, `location`, `accessibilityLabel`) en bouton sélectionné, avec le style « sélectionné » existant de la puce de placement 5.3 (pleine `primary`, symbole et texte blancs) ; désélectionné : style « à ajouter » (pointillés, fond 5 %). **Figma** (`8328:29270`, lu le 22/10) : aucun état sélectionné / désélectionné d'un point existant ; le point existant y est la puce posée `9843:18975` (contour `#C8C8D7`, rayon 12) d'avant D-436. Choix noté, à valider par Hermann.
+- Position : emplacement de carte → rangée sous la carte ; `AFTER_CIRCUIT` → rangée dédiée (seul ce `kind` la porte désormais : `find(occurrenceId === null)` pouvait retenir un `UNOFFERED_STOP_POINT`) ; `UNOFFERED_STOP_POINT` → rangée autonome de la séquence mêlée en placement (`displayedZoneItems` avec l'ensemble des identifiants non proposés, `PlacementStopPointItemRow` : rail lien + queue sans point de raccord comme les rangées du placement, aucun glisser, cible bornée à l'écart de la zone, 8 ou 9). Un point « après le Circuit » d'un Circuit vide est non proposé : rangée en tête de la zone après le Circuit (même place que hors placement).
+- Toucher : `togglePlacementStopPoint(location, context)` → `togglePlacementStopPointRemoval`. Une resélection qui rendrait le point consécutif à un ajout est refusée par le Domaine (puce inchangée, aucune annonce : aucune règle d'annonce ici, non inventée).
+- Accessibilité : nom par la règle 6.2 (`stopPointRowAccessibilityLabel` sur `scopeSequence` de sa portée, homonymes « n sur m », « après le circuit », têtes de portée) ; `accessibilityState.selected` ; indices `existingStopPointSelectedHint` « Toucher pour retirer ce point d'arrêt. » / `existingStopPointRemovedHint` « Toucher pour conserver ce point d'arrêt. » (formulations à valider).
+- Cibles : boîtes réelles de 22 + 2 × écart (marges négatives), jamais de `hitSlop` ; disjointes des cartes voisines (écart exact).
+
+**Libellé.** `PlacementBar` reçoit `confirmation` (`PlacementConfirmation`) au lieu de `count` / `canConfirm` ; `formatPlacementConfirmLabel(confirmation)` ; clé `confirmChanges` « Confirmer les modifications ». `NONE` garde « Confirmer 0 pause ajoutée », indisponible. Annonce à chaque changement de libellé (et non plus de N). Le point J3 « Confirmer 0 pause ajoutée actif quand seule une durée existante a été modifiée » est remplacé par « Confirmer les modifications ».
+
+**Entrée en placement.** « Ajouter un arrêt » est désormais disponible dès qu'un point existe, même sans aucun ajout possible : le placement est le seul chemin de retrait (D-436 R3). Conséquence nécessaire, sans règle écrite sur ce bouton — à valider par Hermann.
+
+**Nettoyage.** Retirés : `PauseRowContext.stopPointFor` et l'usage de `stopPointDisplay` par l'écran, `placementExistingStopPoint`, la variante `EXISTING` sans identifiant, `StopPointChipFace` (`StopPointChip.tsx`), les props `count` / `canConfirm` de `PlacementBar`.
+
+**Tests.** `CompositionScreen.test.tsx` : deux tests 5.3 adaptés (point existant sélectionné, bouton) ; deux attentes 4.2 passées à « Confirmer les modifications » ; bloc « retrait en placement et libellé (story 6.3) » (sélection / désélection / resélection, indices et rendu ; Confirmer ; Annuler avec ajout + retrait ; ajouts seuls / mélange ; voisin libéré et resélection refusée ; point non proposé en tête de Circuit ; nom 6.2 avec homonymes ; entrée disponible avec un point seul ; aucun retrait hors placement). `PlacementBar.test.tsx` réécrit, `RemovalBubble.test.tsx` adapté, `index.test.ts` (trois clés). `CompositionPausesFlow.integration.test.tsx` : retrait en placement → Confirmer (base inchangée) → Continuer → relecture → réouverture.
+
+**Revue 6.3 (corrections appliquées).**
+- *Point existant par identifiant* : variante `EXISTING` sans `location` ; `onToggleExistingStopPoint(id)` → `togglePlacementStopPointRemoval(placement, id, context)`. Deux points hérités sur la même clé, ou à position NaN, se retirent indépendamment (Domaine et écran testés).
+- *Resélection refusée* : `blocked` calculé par l'écran (l'annulation rendrait le sous-brouillon inchangé) → `accessibilityState: { selected: false, disabled: true }`, indice « Ne peut pas être conservé : un point ajouté le suivrait. », toucher reçu et refus annoncé. **Domaine (correctif signalé)** : `togglePlacementStopPointRemoval` ne refuse plus que si un point AJOUTÉ suivrait le point ; deux points existants déjà consécutifs (hérités) ne bloquent plus la resélection de l'un d'eux.
+- *Superpositions* : aucun emplacement libre proposé là où est dessiné un point non proposé (position tronquée ou ramenée aux bornes : `displayedStopPointLocation`, déjà présent depuis 6.2) ; deux rangées de placement adjacentes se partagent l'écart (`{ top, bottom }`, moitié côté voisin) — rangée sous une carte / rangée non proposée, deux rangées non proposées, rangée « après le Circuit » / tête de la zone après le Circuit.
+- *Rendu « à retirer »* : pointillés + opacité `UNSELECTED_OPACITY`, nom propre du point (et non « Ajouter… »). NON VÉRIFIABLE (aucun état Figma).
+- *Annonces* : l'écran est seule source — un message « Point d'arrêt retiré / conservé » suivi, si la disponibilité de « Confirmer » change, de son libellé (« … . Confirmer les modifications ») ; refus annoncé seul. `PlacementBar` n'annonce plus rien : chaque ajout ou annulation d'ajout est annoncé par l'écran avec le nouveau libellé (ch13 L1524, ligne 11 du triage).
+- *Entrée* : point sans identifiant non compté ; indice « Permet de retirer des points d'arrêt existants. » quand seul un retrait est possible ; après Confirmer, si « Ajouter un arrêt » devient indisponible, focus sur la première carte.
+- *Noms* : puces à ajouter nommées par la même règle (`stopPointAnchor` : dernier Exercice, « n sur m » pour les homonymes) ; `exerciseName` retiré de `PlacementStopPointRow`.
+- *Domaine* : `context` obligatoire pour `togglePlacementStopPoint`, `togglePlacementStopPointRemoval` et `placementConfirmation` ; `hasPlacementChanges`, `placementAdditionCount`, `stopPointDisplay` (et le type `AnchorableOccurrence`) retirés avec leurs tests — aucun usage applicatif. Reste exporté sans usage applicatif : `withoutStopPoint` (hors demande, signalé). Tests du Domaine : sous-brouillons inapplicables construits directement (`withAddedStopPoints`).
+- *Saut de mise en page* (rangée libérée au-dessus de la puce touchée, ex. rangée « après le Circuit ») : inchangé, à vérifier en J5 sur iPhone.
+
 ## Spec Change Log
 
 ## Review Triage Log
+
+| # | Source | Constat | Gravité | Décision |
+|---|--------|---------|---------|----------|
+| 1 | revue 6.3 | Point existant basculé par emplacement : deux points sur la même clé indissociables | moyenne-haute | patch : bascule par identifiant ; tests clé dupliquée et NaN. |
+| 2 | revue 6.3 | Resélection refusée silencieuse ; paire héritée bloquante | moyenne | patch : état indisponible, indice, annonce ; Domaine : seul un ajout bloque (testé). |
+| 3 | revue 6.3 | Puces superposées (point tronqué libéré) ; cibles adjacentes qui se recouvrent | moyenne | patch : emplacement masqué ; écart partagé ; tests. |
+| 4 | revue 6.3 | Point « à retirer » identique à un emplacement libre | moyenne | patch : opacité réduite + nom propre ; NON VÉRIFIABLE. |
+| 5 | revue 6.3 | Annonces concurrentes (écran / barre) | basse | patch : écran seule source, message unique ; la barre n'annonce plus. |
+| 6 | revue 6.3 | Entrée : point sans identifiant compté ; pas d'indice ; focus sur un bouton désactivé | basse | patch : les trois. |
+| 7 | revue 6.3 | Noms des puces à ajouter (exercice de la carte, homonymes) | basse | patch : règle 6.2. |
+| 8 | revue 6.3 | Formes sans contexte et code mort au Domaine | basse | patch : `context` obligatoire, retraits, tests mis à jour. |
+| 9 | revue 6.3 | Cas manquants ; écarts de vérification (10) et (11) | — | patch : tests ajoutés. |
+| 10 | revue 6.3 | Saut de mise en page après une bascule | — | accepté, à vérifier en J5. |
+| 11 | revue 6.3 (point 5, ch13 L1524) | Nombre d'ajouts plus annoncé depuis le retrait des annonces de la barre | moyenne | patch : l'écran annonce l'effet puis le nouveau libellé à chaque ajout ou annulation d'ajout (point ou récupération : « Point d'arrêt ajouté / Récupération ajoutée / Ajout annulé. Confirmer N … ») ; la barre n'annonce toujours rien ; tests. |
 
 ## Verification
 

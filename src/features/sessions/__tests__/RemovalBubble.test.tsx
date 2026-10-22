@@ -119,13 +119,16 @@ describe("StopPointChip (PRE-6 stories 4.2, 6.2)", () => {
   });
 });
 
-/** PRE-6 story 4.2 : « Confirmer » disponible pour une modification seule (N = 0). */
-describe("PlacementBar canConfirm (PRE-6 story 4.2)", () => {
-  it("keeps the N label but enables Confirmer when canConfirm is set", () => {
+/**
+ * PRE-6 story 4.2 : « Confirmer » disponible pour une modification seule (N = 0). Story 6.3
+ * (D-436, arbitrage du 22/10/2026) : libellé « Confirmer les modifications ».
+ */
+describe("PlacementBar, modification seule (PRE-6 story 4.2, story 6.3)", () => {
+  it("reads « Confirmer les modifications » and enables Confirmer", () => {
     const onConfirm = jest.fn();
-    render(<PlacementBar count={0} canConfirm onConfirm={onConfirm} onCancel={jest.fn()} />);
+    render(<PlacementBar confirmation={{ kind: "CHANGES" }} onConfirm={onConfirm} onCancel={jest.fn()} />);
     const confirm = screen.getByTestId("composition-placement-bar-confirm");
-    expect(confirm.props.accessibilityLabel).toBe("Confirmer 0 pause ajoutée");
+    expect(confirm.props.accessibilityLabel).toBe("Confirmer les modifications");
     expect(confirm.props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(confirm);
     expect(onConfirm).toHaveBeenCalledTimes(1);

@@ -69,9 +69,6 @@ export function isSequenceSeparator(occurrence: { readonly type?: ActivityType }
   return (occurrence.type ?? "EXERCISE") === "EXERCISE";
 }
 
-/** Occurrence identifiée (affichage, séquence mêlée). */
-export type AnchorableOccurrence = StopPointOccurrence & { readonly id: string };
-
 export type StopPointNeighbors = {
   readonly isImmediatelyAfterInitialCountdown: boolean;
   readonly isImmediatelyBeforeSessionEnd: boolean;
@@ -304,45 +301,7 @@ export function wouldBeConsecutive(
   );
 }
 
-// --- Affichage ----------------------------------------------------------------
-
-/**
- * Points d'arrêt tels qu'affichés hors placement (PRE-6 story 4.2, `8328:29428`) : chaque point
- * `p ≥ 1` sous l'occurrence qui le PRÉCÈDE dans sa portée (la p-ième), et le point « après le
- * Circuit » (`AFTER_TOUR`, `position = 0`) sous le conteneur du Circuit. Un point sans
- * emplacement affichable (tête de portée avant ou dans le Circuit, hors bornes) n'est pas
- * rendu : le placement ne propose jamais ces emplacements.
- *
- * Story 6.1 (D-436) : sortie inchangée, mais l'occurrence n'est plus qu'un repère d'AFFICHAGE
- * (celle qui précède le point), plus une occurrence d'attache — déplacer, dupliquer ou
- * supprimer cette occurrence ne déplace ni ne copie ni ne retire le point. La story 6.2 rend
- * le point comme une rangée autonome de la séquence (`scopeSequence`).
- */
-export type StopPointDisplay = {
-  readonly byOccurrenceId: ReadonlyMap<string, StopPoint>;
-  readonly afterCircuit: StopPoint | null;
-};
-
-export function stopPointDisplay(
-  occurrences: readonly AnchorableOccurrence[],
-  points: readonly StopPoint[],
-): StopPointDisplay {
-  const byOccurrenceId = new Map<string, StopPoint>();
-  let afterCircuit: StopPoint | null = null;
-  for (const point of points) {
-    if (Number.isInteger(point.position) && point.position >= 1) {
-      const preceding = occurrences.filter((occurrence) => occurrence.structuralPosition === point.scope)[
-        point.position - 1
-      ];
-      if (preceding !== undefined && !byOccurrenceId.has(preceding.id)) {
-        byOccurrenceId.set(preceding.id, point);
-      }
-    } else if (point.scope === "AFTER_TOUR" && point.position === 0 && afterCircuit === null) {
-      afterCircuit = point;
-    }
-  }
-  return { byOccurrenceId, afterCircuit };
-}
+// --- Retrait ------------------------------------------------------------------
 
 /** Story 4.2 : retrait d'un point par son identifiant ; inconnu : liste rendue telle quelle (même identité). */
 export function withoutStopPoint<T extends StopPoint>(points: readonly T[], id: string): readonly T[] {

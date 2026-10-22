@@ -6,10 +6,8 @@ import {
   EMPTY_PLACEMENT_DRAFT,
   applyPlacementDraft,
   effectivePlacementStopPoints,
-  hasPlacementChanges,
   isPlacementStopPointAdded,
   isPlacementStopPointRemoved,
-  placementAdditionCount,
   placementConfirmation,
   placementSlots,
   removePlacementRecovery,
@@ -18,8 +16,9 @@ import {
   setPlacementRecoveryChange,
   togglePlacementStopPoint,
   togglePlacementStopPointRemoval,
+  type PlacementDraft,
 } from "../placement";
-import type { StopPoint } from "../StopPoint";
+import type { StopPoint, StopPointLocation } from "../StopPoint";
 
 function occ(
   id: string,
@@ -35,6 +34,17 @@ function draftOf(exercises: readonly SessionDraftExercise[], stopPoints?: readon
 
 /** A (avant), Circuit [B, C], D (après) — matrice de la story 4.1. */
 const MATRIX = [occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("D", "AFTER_TOUR")];
+/** Contexte de la matrice (story 6.3, revue : `context` obligatoire). */
+const MATRIX_CONTEXT = draftOf(MATRIX);
+
+/**
+ * Sous-brouillon construit SANS contrôle (ajouts éventuellement non proposés ou consécutifs) — la
+ * forme sans contexte de `togglePlacementStopPoint` étant retirée (story 6.3, revue), pour vérifier
+ * que l'applicabilité les écarte.
+ */
+function withAddedStopPoints(placement: PlacementDraft, ...locations: StopPointLocation[]): PlacementDraft {
+  return { ...placement, stopPoints: [...placement.stopPoints, ...locations] };
+}
 
 describe("placementSlots (PRE-6 story 4.1, emplacements autorisés)", () => {
   it("offers a recovery after A, B, C, D and stop points after A, B, C and after the Circuit — never after D (before the End)", () => {
@@ -113,21 +123,21 @@ describe("placementSlots (PRE-6 story 4.1, emplacements autorisés)", () => {
 describe("PlacementDraft (AD-43, sous-brouillon)", () => {
   it("counts a recovery + a stop point at the same location as 2, and a deselection subtracts", () => {
     let placement = setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "B", 30);
-    expect(placementAdditionCount(placement)).toBe(1);
-    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 });
-    expect(placementAdditionCount(placement)).toBe(2);
+    expect(placementConfirmation(placement, MATRIX_CONTEXT)).toEqual({ kind: "ADDITIONS_ONLY", count: 1 });
+    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 }, MATRIX_CONTEXT);
+    expect(placementConfirmation(placement, MATRIX_CONTEXT)).toEqual({ kind: "ADDITIONS_ONLY", count: 2 });
     expect(isPlacementStopPointAdded(placement, { scope: "IN_TOUR", position: 1 })).toBe(true);
-    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 });
+    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 }, MATRIX_CONTEXT);
     expect(isPlacementStopPointAdded(placement, { scope: "IN_TOUR", position: 1 })).toBe(false);
     placement = removePlacementRecovery(placement, "B");
-    expect(placementAdditionCount(placement)).toBe(0);
+    expect(placementConfirmation(placement, MATRIX_CONTEXT)).toEqual({ kind: "NONE" });
   });
 
   it("updates a recovery already chosen without counting it twice; 0 is kept as present", () => {
     let placement = setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "B", 30);
     placement = setPlacementRecovery(placement, "B", 0);
     expect(placement.recoveries).toEqual({ B: 0 });
-    expect(placementAdditionCount(placement)).toBe(1);
+    expect(placementConfirmation(placement, MATRIX_CONTEXT)).toEqual({ kind: "ADDITIONS_ONLY", count: 1 });
   });
 
   it("removing a recovery that was never added keeps the same sub-draft", () => {
@@ -140,8 +150,8 @@ describe("applyPlacementDraft (« Confirmer », AD-43)", () => {
     const draft = draftOf(MATRIX);
     let placement = setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "B", 30);
     placement = setPlacementRecovery(placement, "D", 0);
-    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 });
-    placement = togglePlacementStopPoint(placement, { scope: "AFTER_TOUR", position: 0 });
+    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 }, draft);
+    placement = togglePlacementStopPoint(placement, { scope: "AFTER_TOUR", position: 0 }, draft);
     let next = 0;
     const result = applyPlacementDraft(draft, placement, () => `sp-${++next}`);
 
@@ -157,9 +167,10 @@ describe("applyPlacementDraft (« Confirmer », AD-43)", () => {
 
   it("keeps the existing stop points and appends the new ones", () => {
     const existing: StopPoint = { id: "kept", scope: "BEFORE_TOUR", position: 1 };
+    const draft = draftOf(MATRIX, [existing]);
     const result = applyPlacementDraft(
-      draftOf(MATRIX, [existing]),
-      togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 2 }),
+      draft,
+      togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 2 }, draft),
       () => "new",
     );
     expect(result.stopPoints).toEqual([existing, { id: "new", scope: "IN_TOUR", position: 2 }]);
@@ -174,25 +185,24 @@ describe("applyPlacementDraft (« Confirmer », AD-43)", () => {
     const draft = draftOf([occ("A", "BEFORE_TOUR", 20), occ("B", "IN_TOUR")], [{ id: "p", scope: "BEFORE_TOUR", position: 1 }]);
     let placement = setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "A", 45);
     placement = setPlacementRecovery(placement, "gone", 30);
-    placement = togglePlacementStopPoint(placement, { scope: "BEFORE_TOUR", position: 1 });
-    placement = togglePlacementStopPoint(placement, { scope: "IN_TOUR", position: 1 });
+    placement = withAddedStopPoints(placement, { scope: "BEFORE_TOUR", position: 1 }, { scope: "IN_TOUR", position: 1 });
     expect(applyPlacementDraft(draft, placement, () => "x")).toBe(draft);
   });
 });
 
 describe("modification of an existing recovery in placement (PRE-6 story 4.2)", () => {
   it("is not counted in N but makes the sub-draft confirmable", () => {
+    const context = draftOf([occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR", 20)]);
     const placement = setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20);
-    expect(placementAdditionCount(placement)).toBe(0);
-    expect(hasPlacementChanges(placement)).toBe(true);
-    expect(hasPlacementChanges(EMPTY_PLACEMENT_DRAFT)).toBe(false);
+    expect(placementConfirmation(placement, context)).toEqual({ kind: "CHANGES" });
+    expect(placementConfirmation(EMPTY_PLACEMENT_DRAFT, context)).toEqual({ kind: "NONE" });
   });
 
   it("going back to the draft value clears the modification", () => {
     const changed = setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20);
     const back = setPlacementRecoveryChange(changed, "B", 20, 20);
     expect(back.recoveryChanges).toEqual({});
-    expect(hasPlacementChanges(back)).toBe(false);
+    expect(placementConfirmation(back, draftOf([occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR", 20)]))).toEqual({ kind: "NONE" });
     expect(setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 20, 20)).toBe(EMPTY_PLACEMENT_DRAFT);
   });
 
@@ -311,8 +321,7 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
   });
 
   it("un point ajouté reste rendu et désélectionnable même si un voisin le rend consécutif", () => {
-    let placement = togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 });
-    placement = togglePlacementStopPoint(placement, { scope: "AFTER_TOUR", position: 0 });
+    const placement = withAddedStopPoints(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 }, { scope: "AFTER_TOUR", position: 0 });
     expect(offered(placementSlots(ROW, [], placement))).toEqual([
       "BEFORE_TOUR:1",
       "IN_TOUR:1",
@@ -329,11 +338,10 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
     const context = { exercises: ROW, stopPoints: [point] };
     const removed = togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 1 }, context);
     expect(isPlacementStopPointRemoved(removed, "q")).toBe(true);
-    expect(placementAdditionCount(removed)).toBe(0);
-    expect(hasPlacementChanges(removed)).toBe(true);
+    expect(placementConfirmation(removed, context)).toEqual({ kind: "CHANGES" });
     const restored = togglePlacementStopPointRemoval(removed, "q", context);
     expect(isPlacementStopPointRemoved(restored, "q")).toBe(false);
-    expect(hasPlacementChanges(restored)).toBe(false);
+    expect(placementConfirmation(restored, context)).toEqual({ kind: "NONE" });
   });
 
   it("avec contexte, un ajout consécutif, interdit ou en tête de Circuit est refusé (sous-brouillon inchangé)", () => {
@@ -371,23 +379,23 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
   });
 
   it("placementConfirmation : rien, ajouts seuls (N), modification de durée seule ou mêlée", () => {
-    expect(placementConfirmation(EMPTY_PLACEMENT_DRAFT)).toEqual({ kind: "NONE" });
-    const additions = togglePlacementStopPoint(setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "A", 30), {
-      scope: "IN_TOUR",
-      position: 1,
-    });
-    expect(placementConfirmation(additions)).toEqual({ kind: "ADDITIONS_ONLY", count: 2 });
-    expect(placementConfirmation(setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "A", 45, 20))).toEqual({
+    const context = draftOf([occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR", 20), occ("C", "IN_TOUR")]);
+    expect(placementConfirmation(EMPTY_PLACEMENT_DRAFT, context)).toEqual({ kind: "NONE" });
+    const additions = togglePlacementStopPoint(
+      setPlacementRecovery(EMPTY_PLACEMENT_DRAFT, "A", 30),
+      { scope: "IN_TOUR", position: 1 },
+      context,
+    );
+    expect(placementConfirmation(additions, context)).toEqual({ kind: "ADDITIONS_ONLY", count: 2 });
+    expect(placementConfirmation(setPlacementRecoveryChange(EMPTY_PLACEMENT_DRAFT, "B", 45, 20), context)).toEqual({
       kind: "CHANGES",
     });
-    expect(placementConfirmation(setPlacementRecoveryChange(additions, "B", 45, 20))).toEqual({ kind: "CHANGES" });
+    expect(placementConfirmation(setPlacementRecoveryChange(additions, "B", 45, 20), context)).toEqual({ kind: "CHANGES" });
   });
 
   it("avec contexte, placementConfirmation ne compte que l'applicable", () => {
     const draft = draftOf(ROW);
-    let placement = togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 });
-    placement = togglePlacementStopPoint(placement, { scope: "AFTER_TOUR", position: 0 });
-    expect(placementConfirmation(placement)).toEqual({ kind: "ADDITIONS_ONLY", count: 2 });
+    const placement = withAddedStopPoints(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 }, { scope: "AFTER_TOUR", position: 0 });
     expect(placementConfirmation(placement, draft)).toEqual({ kind: "ADDITIONS_ONLY", count: 1 });
     const unknownRemoval = { ...EMPTY_PLACEMENT_DRAFT, stopPointRemovals: ["inconnu"] };
     expect(placementConfirmation(unknownRemoval, draft)).toEqual({ kind: "NONE" });
@@ -395,9 +403,8 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
     expect(placementConfirmation(sameDuration, draftOf([occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR", 45)]))).toEqual({ kind: "NONE" });
   });
 
-  it("Confirmer ne crée jamais deux points consécutifs, même si le sous-brouillon en porte (appel sans contexte)", () => {
-    let placement = togglePlacementStopPoint(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 });
-    placement = togglePlacementStopPoint(placement, { scope: "AFTER_TOUR", position: 0 });
+  it("Confirmer ne crée jamais deux points consécutifs, même si le sous-brouillon en porte (construit sans contrôle)", () => {
+    const placement = withAddedStopPoints(EMPTY_PLACEMENT_DRAFT, { scope: "IN_TOUR", position: 3 }, { scope: "AFTER_TOUR", position: 0 });
     let next = 0;
     expect(applyPlacementDraft(draftOf(ROW), placement, () => `sp-${++next}`).stopPoints).toEqual([
       { id: "sp-1", scope: "IN_TOUR", position: 3 },
@@ -414,6 +421,33 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
     const draft = draftOf(ROW, [head]);
     const placement = togglePlacementStopPointRemoval(EMPTY_PLACEMENT_DRAFT, "h", draft);
     expect(applyPlacementDraft(draft, placement, () => "x").stopPoints).toEqual([]);
+  });
+
+  it("story 6.3 (revue) : deux points existants déjà consécutifs (hérités) ne bloquent pas la resélection de l'un d'eux", () => {
+    const legacy: StopPoint[] = [atEnd, { id: "t", scope: "AFTER_TOUR", position: 0 }];
+    const context = draftOf(ROW, legacy);
+    const removed = togglePlacementStopPointRemoval(EMPTY_PLACEMENT_DRAFT, "t", context);
+    expect(isPlacementStopPointRemoved(removed, "t")).toBe(true);
+    const reselected = togglePlacementStopPointRemoval(removed, "t", context);
+    expect(isPlacementStopPointRemoved(reselected, "t")).toBe(false);
+    expect(placementConfirmation(reselected, context)).toEqual({ kind: "NONE" });
+  });
+
+  it("story 6.3 (revue) : deux points hérités sur la même clé se retirent indépendamment, par identifiant", () => {
+    const twins: StopPoint[] = [
+      { id: "x", scope: "BEFORE_TOUR", position: 1 },
+      { id: "y", scope: "BEFORE_TOUR", position: 1 },
+    ];
+    const draft = draftOf(ROW, twins);
+    const removed = togglePlacementStopPointRemoval(EMPTY_PLACEMENT_DRAFT, "y", draft);
+    expect(applyPlacementDraft(draft, removed, () => "n").stopPoints).toEqual([twins[0]]);
+    const nan: StopPoint[] = [
+      { id: "m", scope: "IN_TOUR", position: Number.NaN },
+      { id: "n", scope: "IN_TOUR", position: Number.NaN },
+    ];
+    const nanDraft = draftOf(ROW, nan);
+    const nanRemoved = togglePlacementStopPointRemoval(EMPTY_PLACEMENT_DRAFT, "m", nanDraft);
+    expect(applyPlacementDraft(nanDraft, nanRemoved, () => "z").stopPoints).toEqual([nan[1]]);
   });
 
   it("effectivePlacementStopPoints : existants − retraits (par identifiant) + ajouts", () => {
