@@ -5,6 +5,7 @@ import type { OccurrenceCategory } from "@/features/sessions/compositionPresenta
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -191,6 +192,12 @@ export type OccurrenceCardProps = {
    * hors récupération est retiré de l'accessibilité. Absent : aucun effet.
    */
   readonly hideContentFromAccessibility?: boolean;
+  /**
+   * Arbitrage D6 (PR #391, ch08 / ch10 / ch13, 21/10/2026) : en placement, la carte reste grisée
+   * pour signifier son indisponibilité au toucher ; la récupération de la ligne 3 (cadre
+   * « Récupération » ou récupération existante modifiable) ne l'est pas. Absent : aucun effet.
+   */
+  readonly attenuated?: boolean;
   readonly sideChangeTestID?: string;
 };
 
@@ -229,10 +236,12 @@ export function OccurrenceCard({
   bordered,
   recovery,
   hideContentFromAccessibility = false,
+  attenuated = false,
   sideChangeTestID,
 }: OccurrenceCardProps) {
   const border = bordered ? OCCURRENCE_CARD_BORDER_WIDTH : 0;
   const hidden = hideContentFromAccessibility ? HIDDEN_FROM_ACCESSIBILITY : null;
+  const dimmed = attenuated ? styles.attenuated : null;
   return (
     <View
       style={[
@@ -250,11 +259,11 @@ export function OccurrenceCard({
       ]}
       testID="composition-activity-main-card"
     >
-      <View style={styles.media} {...hidden} testID="composition-exercise-media">
+      <View style={[styles.media, dimmed]} {...hidden} testID="composition-exercise-media">
         <KodjoIcon name="card-media-exercise" testID="composition-exercise-media-icon" />
       </View>
       <View style={styles.textColumn}>
-        <View style={styles.nameRow} {...hidden} testID="composition-exercise-name-row">
+        <View style={[styles.nameRow, dimmed]} {...hidden} testID="composition-exercise-name-row">
           <Text style={styles.name} numberOfLines={1} testID="composition-exercise-name">
             {name}
           </Text>
@@ -265,7 +274,7 @@ export function OccurrenceCard({
           ) : null}
         </View>
         <View style={styles.body} testID="composition-exercise-secondary-row">
-          <View style={styles.labelsColumn} {...hidden} testID="composition-exercise-labels-column">
+          <View style={[styles.labelsColumn, dimmed]} {...hidden} testID="composition-exercise-labels-column">
             <View style={styles.workLine} testID="composition-exercise-classification">
               {category !== null ? (
                 <>
@@ -288,7 +297,7 @@ export function OccurrenceCard({
             </View>
           </View>
           <View style={styles.valuesColumn} testID="composition-exercise-values-column">
-            <View style={[styles.workLine, styles.valueRow]} {...hidden}>
+            <View style={[styles.workLine, styles.valueRow, dimmed]} {...hidden} testID="composition-exercise-work-row">
               <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
               <View style={styles.work} testID="composition-exercise-work">
                 <Text style={[styles.value, styles.summary]} numberOfLines={1} testID="composition-exercise-summary">
@@ -321,6 +330,10 @@ export function OccurrenceCard({
 }
 
 const styles = StyleSheet.create({
+  // Arbitrage D6 : grisé de la carte en placement, hors récupération de la ligne 3.
+  attenuated: {
+    opacity: UNSELECTED_OPACITY,
+  },
   content: {
     flex: 1,
     flexDirection: "row",

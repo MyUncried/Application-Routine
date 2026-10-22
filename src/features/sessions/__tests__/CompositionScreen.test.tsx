@@ -5997,11 +5997,22 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       });
     });
 
-    it("cards are not attenuated (D6) and stay inactive; boundaries and Circuit header are not attenuated either (Figma) but inactive", () => {
+    it("arbitrage D6 (PR #391) : card content is greyed except the line-3 recovery, cards stay inactive; boundaries and Circuit header are not greyed but inactive", () => {
       renderPlacement(matrix());
+      const row = () => screen.getByTestId("composition-exercise-row-A");
+      const dimmedParts = () => [
+        within(row()).getByTestId("composition-exercise-media", anyNode),
+        within(row()).getByTestId("composition-exercise-name-row", anyNode),
+        within(row()).getByTestId("composition-exercise-labels-column", anyNode),
+        within(row()).getByTestId("composition-exercise-work-row", anyNode),
+      ];
+      for (const part of dimmedParts()) expect(box(part).opacity).toBeUndefined();
       enter();
-      const card = screen.getByTestId("composition-exercise-row-A");
+      const card = row();
+      // Surface de la carte et ligne 3 (cadre « Récupération ») non grisées ; le reste l'est.
       expect(box(card).opacity).toBeUndefined();
+      for (const part of dimmedParts()) expect(box(part).opacity).toBe(0.45);
+      expect(box(within(card).getByTestId("composition-exercise-recovery-slot", anyNode))?.opacity).toBeUndefined();
       expect(card.props.accessible).toBe(false);
       fireEvent.press(card);
       fireEvent(card, "longPress");

@@ -3357,8 +3357,8 @@ function CompositionActivityRow({
         onPress={handlePress}
         onLongPress={handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
-        // PRE-6 (story 4.1) : en placement, carte inactive. Story 5.3 (D-435, choix D6) : plus
-        // atténuée ; elle n'est plus un élément accessible (son contenu est masqué par
+        // PRE-6 (story 4.1) : en placement, carte inactive. Arbitrage D6 (PR #391) : son contenu
+        // est grisé par `OccurrenceCard`, hors récupération de ligne 3 ; elle n'est plus un élément accessible (son contenu est masqué par
         // `OccurrenceCard`), pour que VoiceOver atteigne le contrôle de sa ligne 3 (cadre
         // « Récupération » ou récupération existante modifiable).
         disabled={placement !== null}
@@ -3411,6 +3411,8 @@ function CompositionActivityRow({
           recovery={recoveryNode}
           // PRE-6 (story 5.3) : en placement, seul le contrôle de la ligne 3 reste accessible.
           hideContentFromAccessibility={placement !== null}
+          // Arbitrage D6 (PR #391) : en placement, carte grisée, sa récupération de ligne 3 non.
+          attenuated={placement !== null}
           sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
         />
 
