@@ -157,12 +157,12 @@ describe("expandComposition (PRE-6, AD-40)", () => {
 
   it("point IN_TOUR en position 0 : en tête de chaque passage (Séries) et de chaque Tour (Tours)", () => {
     const input = {
-      exercises: [occurrence("A", "IN_TOUR", 2)],
+      exercises: [occurrence("W", "BEFORE_TOUR", 1), occurrence("A", "IN_TOUR", 2)],
       stopPoints: [{ id: "h", scope: "IN_TOUR" as const, position: 0 }],
       tourRepeatCount: 2,
     };
-    expect(expandComposition({ ...input, circuitNature: "SERIES" }).map(label)).toEqual(["P:h", "A1", "P:h", "A2"]);
-    expect(expandComposition({ ...input, circuitNature: "TOURS" }).map(label)).toEqual(["P:h", "A", "P:h", "A"]);
+    expect(expandComposition({ ...input, circuitNature: "SERIES" }).map(label)).toEqual(["W", "P:h", "A1", "P:h", "A2"]);
+    expect(expandComposition({ ...input, circuitNature: "TOURS" }).map(label)).toEqual(["W", "P:h", "A", "P:h", "A"]);
   });
 
   it("Tours, N = 2 : un point IN_TOUR en position 1 apparaît dans chaque Tour, après son exercice", () => {
@@ -203,12 +203,113 @@ describe("expandComposition (PRE-6, AD-40)", () => {
 
   it("un passage où aucune occurrence ne joue est omis en entier, point de tête compris", () => {
     const steps = expandComposition({
-      exercises: [occurrence("A", "IN_TOUR", 1)],
+      exercises: [occurrence("W", "BEFORE_TOUR", 1), occurrence("A", "IN_TOUR", 1)],
       stopPoints: [{ id: "h", scope: "IN_TOUR", position: 0 }],
       circuitNature: "SERIES",
       tourRepeatCount: 3,
     });
-    expect(steps.map(label)).toEqual(["P:h", "A1"]);
+    expect(steps.map(label)).toEqual(["W", "P:h", "A1"]);
+  });
+
+  // PRE-6 story 6.1 (D-436, RM-251, arbitrage du 22/10/2026).
+  it("Séries partielles : dernier exercice sans série au passage N, points avant et après → un seul point", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 2), occurrence("B", "IN_TOUR", 1), occurrence("Z", "AFTER_TOUR")],
+      stopPoints: [
+        { id: "p", scope: "IN_TOUR", position: 1 },
+        { id: "q", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "SERIES",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["A1", "P:p", "B1", "P:q", "A2", "P:p", "Z"]);
+  });
+
+  it("D-436 : un point est produit à sa place même si l'occurrence qui le précède ne joue pas", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 1), occurrence("B", "IN_TOUR", 2), occurrence("Z", "AFTER_TOUR")],
+      stopPoints: [{ id: "p", scope: "IN_TOUR", position: 1 }],
+      circuitNature: "SERIES",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["A1", "P:p", "B1", "P:p", "B2", "Z"]);
+  });
+
+  it("RM-251 : jamais deux étapes STOP_POINT successives, une récupération ne sépare pas", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 2, 15), occurrence("B", "IN_TOUR", 1), occurrence("Z", "AFTER_TOUR")],
+      stopPoints: [
+        { id: "p", scope: "IN_TOUR", position: 1 },
+        { id: "q", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "SERIES",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["A1", "R:A", "P:p", "B1", "P:q", "A2", "R:A", "P:p", "Z"]);
+    const kinds = steps.map((step) => step.kind).filter((kind) => kind !== "RECOVERY");
+    expect(kinds.some((kind, index) => kind === "STOP_POINT" && kinds[index + 1] === "STOP_POINT")).toBe(false);
+  });
+
+  it("Tours : inchangés pour des points non consécutifs", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR"), occurrence("Z", "AFTER_TOUR")],
+      stopPoints: [
+        { id: "p", scope: "IN_TOUR", position: 1 },
+        { id: "q", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "TOURS",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["A", "P:p", "B", "P:q", "A", "P:p", "B", "P:q", "Z"]);
+  });
+
+  // Revue de la story 6.1 (arbitrage de Hermann « supprimer le point en trop »).
+  it("un point qui serait en tête (après le compte à rebours) ou en fin (avant la Fin) est omis", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 2), occurrence("B", "IN_TOUR", 1)],
+      stopPoints: [
+        { id: "h", scope: "IN_TOUR", position: 0 },
+        { id: "q", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "SERIES",
+      tourRepeatCount: 2,
+    });
+    // h en tête de Séance (omis) ; au passage 2, h suit q (omis) ; B ne joue pas, q précéderait la Fin (omis).
+    expect(steps.map(label)).toEqual(["A1", "B1", "P:q", "A2"]);
+  });
+
+  it("une ancienne Récupération autonome ne sépare pas : un point précédé d'elle seule est omis (tête de Séance)", () => {
+    const legacy: ExpandableOccurrence = { ...occurrence("L", "BEFORE_TOUR", 1), type: "RECOVERY" };
+    const steps = expandComposition({
+      exercises: [legacy, occurrence("A", "IN_TOUR", 1), occurrence("Z", "AFTER_TOUR", 1)],
+      stopPoints: [{ id: "p", scope: "BEFORE_TOUR", position: 1 }],
+      circuitNature: "TOURS",
+      tourRepeatCount: 1,
+    });
+    expect(steps.map(label)).toEqual(["L", "A", "Z"]);
+  });
+
+  it("Séries : un passage où ne jouent que d'anciennes Récupérations autonomes est omis comme un passage vide", () => {
+    const legacy: ExpandableOccurrence = { ...occurrence("R", "IN_TOUR", 1), type: "RECOVERY" };
+    const steps = expandComposition({
+      exercises: [occurrence("A", "IN_TOUR", 1), legacy, occurrence("Z", "AFTER_TOUR", 1)],
+      circuitNature: "SERIES",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["A1", "R", "Z"]);
+  });
+
+  it("Tours : un point de tête hérité suit le point de fin du Tour précédent — fusionné, joué au Tour 1 seulement", () => {
+    const steps = expandComposition({
+      exercises: [occurrence("W", "BEFORE_TOUR"), occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR"), occurrence("Z", "AFTER_TOUR")],
+      stopPoints: [
+        { id: "h", scope: "IN_TOUR", position: 0 },
+        { id: "e", scope: "IN_TOUR", position: 2 },
+      ],
+      circuitNature: "TOURS",
+      tourRepeatCount: 2,
+    });
+    expect(steps.map(label)).toEqual(["W", "P:h", "A", "B", "P:e", "A", "B", "P:e", "Z"]);
   });
 });
 

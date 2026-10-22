@@ -2,21 +2,32 @@ import { describe, expect, it } from "@jest/globals";
 
 import type { StructuralPosition } from "../Session";
 import {
-  anchorStopPoints,
+  areStopPointsNonConsecutive,
+  consecutiveStopPointPairs,
   hasUniquePositionPerScope,
   isStopPointAllowed,
   isStopPointPlacementValid,
   isStopPointPositionInRange,
+  isStopPointProposable,
   orderStopPointsByScope,
-  reattachStopPoints,
+  positionInSequence,
+  scopeSequence,
   stopPointDisplay,
   stopPointNeighbors,
+  structuralSequence,
   withoutStopPoint,
+  wouldBeConsecutive,
+  type SequenceItem,
   type StopPoint,
 } from "../StopPoint";
 
-function occ(id: string, structuralPosition: StructuralPosition) {
-  return { id, structuralPosition };
+function occ(id: string, structuralPosition: StructuralPosition, type: "EXERCISE" | "RECOVERY" = "EXERCISE") {
+  return { id, structuralPosition, type };
+}
+
+/** Séquence lisible : identifiant de l'occurrence, ou `P:id` pour un point. */
+function labels(items: readonly SequenceItem<{ readonly id: string }, StopPoint>[]): string[] {
+  return items.map((item) => (item.kind === "OCCURRENCE" ? item.occurrence.id : `P:${item.point.id}`));
 }
 
 describe("isStopPointPlacementValid", () => {
@@ -128,37 +139,123 @@ describe("orderStopPointsByScope", () => {
   });
 });
 
-describe("anchorStopPoints / reattachStopPoints (ARB-3)", () => {
-  it("anchors p ≥ 1 to the p-th occurrence of the scope, p = 0 to nothing", () => {
-    const occurrences = [occ("b1", "BEFORE_TOUR"), occ("a", "IN_TOUR"), occ("b", "IN_TOUR")];
-    const anchored = anchorStopPoints(occurrences, [
-      { id: "s1", scope: "IN_TOUR", position: 2 },
-      { id: "s0", scope: "IN_TOUR", position: 0 },
-    ]);
-    expect(anchored.map((item) => item.anchorId)).toEqual(["b", null]);
+/**
+ * Story 6.1 (D-436, remplace ARB-3) : le point est un élément autonome de la
+ * séquence mêlée de sa portée ; plus de rattachement à une occurrence.
+ */
+describe("séquence mêlée (D-436)", () => {
+  const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+
+  it("scopeSequence : [pt(s,0)?, occ1, pt(s,1)?, …, occn, pt(s,n)?]", () => {
+    const points: StopPoint[] = [
+      { id: "end", scope: "IN_TOUR", position: 2 },
+      { id: "head", scope: "IN_TOUR", position: 0 },
+      { id: "mid", scope: "IN_TOUR", position: 1 },
+      { id: "out", scope: "AFTER_TOUR", position: 0 },
+    ];
+    expect(labels(scopeSequence(occurrences, points, "IN_TOUR"))).toEqual(["P:head", "A", "P:mid", "B", "P:end"]);
   });
 
-  it("recomputes scope and position from the anchor's current place, drops orphans", () => {
-    const before = [occ("a", "IN_TOUR"), occ("b", "IN_TOUR"), occ("c", "IN_TOUR")];
-    const anchored = anchorStopPoints(before, [
-      { id: "sa", scope: "IN_TOUR", position: 1 },
-      { id: "sb", scope: "IN_TOUR", position: 2 },
-      { id: "s0", scope: "IN_TOUR", position: 0 },
+  it("structuralSequence : BEFORE_TOUR, puis IN_TOUR, puis AFTER_TOUR", () => {
+    const points: StopPoint[] = [
+      { id: "w", scope: "BEFORE_TOUR", position: 1 },
+      { id: "c", scope: "AFTER_TOUR", position: 0 },
+    ];
+    expect(labels(structuralSequence(occurrences, points))).toEqual(["W", "P:w", "A", "B", "P:c", "Z"]);
+  });
+
+  it("un point hors bornes est ramené à la borne la plus proche", () => {
+    const points: StopPoint[] = [
+      { id: "far", scope: "IN_TOUR", position: 9 },
+      { id: "neg", scope: "IN_TOUR", position: -1 },
+    ];
+    expect(labels(scopeSequence(occurrences, points, "IN_TOUR"))).toEqual(["P:neg", "A", "B", "P:far"]);
+  });
+
+  it("positionInSequence : nombre d'occurrences qui précèdent un rang de la séquence", () => {
+    const items = scopeSequence(occurrences, [{ id: "mid", scope: "IN_TOUR", position: 1 }], "IN_TOUR");
+    expect([0, 1, 2, 3].map((index) => positionInSequence(items, index))).toEqual([0, 1, 1, 2]);
+  });
+});
+
+describe("RM-251 : non-consécutivité (D-436)", () => {
+  const point = (id: string, scope: StructuralPosition, position: number): StopPoint => ({ id, scope, position });
+  const pairIds = (pairs: readonly (readonly [StopPoint, StopPoint])[]) => pairs.map(([a, b]) => `${a.id}+${b.id}`);
+
+  it("deux points séparés par un Exercice ne sont pas consécutifs", () => {
+    const occurrences = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR")];
+    expect(areStopPointsNonConsecutive(occurrences, [point("p", "IN_TOUR", 1), point("q", "IN_TOUR", 2)])).toBe(true);
+  });
+
+  it("une ancienne Récupération autonome ne sépare pas deux points", () => {
+    const occurrences = [occ("A", "IN_TOUR"), occ("R", "IN_TOUR", "RECOVERY"), occ("C", "IN_TOUR")];
+    const pairs = consecutiveStopPointPairs(occurrences, [point("p", "IN_TOUR", 1), point("q", "IN_TOUR", 2)]);
+    expect(pairIds(pairs)).toEqual(["p+q"]);
+  });
+
+  it("un type absent est lu EXERCISE (sépare)", () => {
+    const occurrences = [{ structuralPosition: "IN_TOUR" as const }, { structuralPosition: "IN_TOUR" as const }, { structuralPosition: "IN_TOUR" as const }];
+    expect(areStopPointsNonConsecutive(occurrences, [point("p", "IN_TOUR", 1), point("q", "IN_TOUR", 2)])).toBe(true);
+  });
+
+  it("frontière : (BEFORE, nB) + (IN, 0)", () => {
+    const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+    expect(pairIds(consecutiveStopPointPairs(occurrences, [point("b", "BEFORE_TOUR", 1), point("h", "IN_TOUR", 0)]))).toEqual([
+      "b+h",
     ]);
-    const after = [occ("b", "IN_TOUR"), occ("c", "IN_TOUR"), occ("a", "AFTER_TOUR")];
-    expect(reattachStopPoints(after, anchored)).toEqual([
-      { id: "sa", scope: "AFTER_TOUR", position: 1 },
-      { id: "sb", scope: "IN_TOUR", position: 1 },
-      { id: "s0", scope: "IN_TOUR", position: 0 },
+  });
+
+  it("frontière : (IN, nI) + (AFTER, 0) — « après le dernier Exercice du Circuit » et « après le Circuit »", () => {
+    const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+    expect(pairIds(consecutiveStopPointPairs(occurrences, [point("c", "AFTER_TOUR", 0), point("l", "IN_TOUR", 2)]))).toEqual([
+      "l+c",
     ]);
-    expect(reattachStopPoints([occ("a", "IN_TOUR")], anchored).map((point) => point.id)).toEqual(["sa", "s0"]);
+  });
+
+  it("frontière, Circuit vide : (BEFORE, nB) + (AFTER, 0)", () => {
+    const occurrences = [occ("W", "BEFORE_TOUR"), occ("Z", "AFTER_TOUR")];
+    expect(areStopPointsNonConsecutive(occurrences, [point("b", "BEFORE_TOUR", 1), point("c", "AFTER_TOUR", 0)])).toBe(false);
+  });
+
+  it("trois points consécutifs donnent deux paires, dans l'ordre de la séquence", () => {
+    const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+    const pairs = consecutiveStopPointPairs(occurrences, [
+      point("c", "AFTER_TOUR", 0),
+      point("b", "BEFORE_TOUR", 1),
+      point("h", "IN_TOUR", 0),
+      point("l", "IN_TOUR", 1),
+    ]);
+    expect(pairIds(pairs)).toEqual(["b+h", "l+c"]);
+  });
+
+  it("wouldBeConsecutive : candidat jugé contre les autres points, emplacement identique ignoré", () => {
+    const occurrences = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+    const existing = [point("p", "IN_TOUR", 1)];
+    expect(wouldBeConsecutive(occurrences, existing, { scope: "IN_TOUR", position: 2 })).toBe(false);
+    expect(wouldBeConsecutive(occurrences, [point("q", "IN_TOUR", 3)], { scope: "AFTER_TOUR", position: 0 })).toBe(true);
+    expect(wouldBeConsecutive(occurrences, existing, { scope: "IN_TOUR", position: 1 })).toBe(false);
+  });
+});
+
+describe("isStopPointProposable (D-436 : tête de Circuit non proposée)", () => {
+  const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
+
+  it("refuse la tête de Circuit, autorisée par RM-219 mais jamais proposée", () => {
+    expect(isStopPointAllowed(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(true);
+    expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(false);
+  });
+
+  it("suit isStopPointAllowed ailleurs", () => {
+    expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 1 })).toBe(true);
+    expect(isStopPointProposable(occurrences, { scope: "BEFORE_TOUR", position: 0 })).toBe(false);
+    expect(isStopPointProposable(occurrences, { scope: "AFTER_TOUR", position: 1 })).toBe(false);
   });
 });
 
 describe("stopPointDisplay (PRE-6 story 4.2, points hors placement)", () => {
   const occurrences = [occ("A", "BEFORE_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("D", "AFTER_TOUR")];
 
-  it("puts each point p ≥ 1 under its anchor and the AFTER_TOUR position 0 point after the Circuit", () => {
+  it("puts each point p ≥ 1 under the occurrence that precedes it (display only, D-436) and the AFTER_TOUR position 0 point after the Circuit", () => {
     const afterA: StopPoint = { id: "a", scope: "BEFORE_TOUR", position: 1 };
     const afterC: StopPoint = { id: "c", scope: "IN_TOUR", position: 2 };
     const afterCircuit: StopPoint = { id: "t", scope: "AFTER_TOUR", position: 0 };

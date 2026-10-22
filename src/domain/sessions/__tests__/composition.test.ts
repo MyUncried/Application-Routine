@@ -5,13 +5,19 @@ import {
   appendActivityAfterLastDisplayed,
   duplicateActivity,
   duplicateOccurrence,
+  duplicateOccurrenceOutcome,
   groupActivitiesByZone,
   moveActivity,
   moveOccurrence,
+  moveOccurrenceInSequence,
+  moveOccurrenceOutcome,
+  moveStopPoint,
   nextCopyName,
   orderActivitiesByZone,
   removeActivity,
   removeOccurrence,
+  removeOccurrenceOutcome,
+  stepOccurrence,
   type CompositionState,
 } from "@/domain/sessions/composition";
 import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -442,114 +448,442 @@ describe("appendActivityAfterLastDisplayed — side mode (V2-PRE-1)", () => {
 });
 
 /**
- * PRE-6 (story 1.2, AD-36, ARB-3) : opérations de Composition conscientes
- * des Points d'arrêt — matrice I/O de la spec 1.2.
+ * PRE-6 story 6.1 (D-436, RM-251 ; remplace ARB-3 de la story 1.2) :
+ * opérations de Composition sur la séquence mêlée — les points gardent leur
+ * place, toute opération invalide est refusée sans mutation. Matrice I/O de
+ * la spec 6.1 et corrections de revue (tête de Circuit, Circuit vidé,
+ * unicité, paires héritées, non-déplacement, « Monter » / « Descendre »).
  */
-describe("moveOccurrence / duplicateOccurrence / removeOccurrence (Points d'arrêt, ARB-3)", () => {
+describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM-251)", () => {
   function stateOf(
     activities: readonly SessionDraftExercise[],
     stopPoints: CompositionState["stopPoints"],
   ): CompositionState {
     return { exercises: activities, stopPoints };
   }
-
-  const abc = () => [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR"), anActivity("C", "IN_TOUR")];
-
-  it("Déplacement : A(point) B C, A déposée après B → B A(point) C, point en p=2", () => {
-    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
-    const next = moveOccurrence(state, "A", "IN_TOUR", 1);
-    expect(ids(next.exercises)).toEqual(["B", "A", "C"]);
-    expect(next.stopPoints).toEqual([{ id: "s", scope: "IN_TOUR", position: 2 }]);
-  });
-
-  it("Déplacement inter-portées : le point suit son occurrence dans sa nouvelle portée", () => {
-    const state = stateOf([...abc(), anActivity("Z", "AFTER_TOUR")], [{ id: "s", scope: "IN_TOUR", position: 1 }]);
-    const next = moveOccurrence(state, "A", "AFTER_TOUR", 0);
-    expect(next.stopPoints).toEqual([{ id: "s", scope: "AFTER_TOUR", position: 1 }]);
-  });
-
-  it("les autres points suivent leur propre occurrence, un point en p=0 reste en tête", () => {
-    const state = stateOf(
-      [anActivity("P", "BEFORE_TOUR"), ...abc()],
-      [
-        { id: "sb", scope: "IN_TOUR", position: 2 },
-        { id: "s0", scope: "IN_TOUR", position: 0 },
-      ],
+  const inTour = (...names: string[]) => names.map((name) => anActivity(name, "IN_TOUR"));
+  const legacyRecovery = (name: string): SessionDraftExercise => ({ ...anActivity(name, "IN_TOUR"), type: "RECOVERY" });
+  const point = (id: string, scope: StructuralPosition, position: number) => ({ id, scope, position });
+  /** [W | A, P, B | Z] : P après A dans le Circuit. */
+  const withCircuitPoint = () =>
+    stateOf(
+      [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")],
+      [point("P", "IN_TOUR", 1)],
     );
-    const next = moveOccurrence(state, "A", "IN_TOUR", 2);
-    expect(ids(next.exercises)).toEqual(["P", "B", "C", "A"]);
-    expect(next.stopPoints).toEqual([
-      { id: "sb", scope: "IN_TOUR", position: 1 },
-      { id: "s0", scope: "IN_TOUR", position: 0 },
-    ]);
+
+  describe("déplacer une occurrence (R1)", () => {
+    it("[W, A, P, B] → A après B : [W, P, B, A], P reste à sa place", () => {
+      const state = stateOf(inTour("W", "A", "B"), [point("P", "IN_TOUR", 2)]);
+      const next = moveOccurrence(state, "A", "IN_TOUR", 2);
+      expect(ids(next.exercises)).toEqual(["W", "B", "A"]);
+      expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
+    });
+
+    it("[A, P, B, C] → A après B : P deviendrait premier (après le Compte à rebours) → refus, état inchangé", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      expect(moveOccurrenceOutcome(state, "A", "IN_TOUR", 1)).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+      expect(moveOccurrence(state, "A", "IN_TOUR", 1)).toBe(state);
+    });
+
+    it("[A, P, B] → B en tête : P deviendrait le dernier (juste avant la Fin) → refus", () => {
+      const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
+      expect(moveOccurrenceOutcome(state, "B", "IN_TOUR", 0)).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+    });
+
+    it("[A, P, B, Q, C] → B après C : P et Q deviendraient consécutifs → refus", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
+      expect(moveOccurrenceOutcome(state, "B", "IN_TOUR", 2)).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["P", "Q"],
+      });
+      expect(moveOccurrence(state, "B", "IN_TOUR", 2)).toBe(state);
+    });
+
+    it("tête de Circuit : [W | A, P, B | Z], « Descendre » A (forme historique) amènerait P en (IN, 0) → refus", () => {
+      const state = withCircuitPoint();
+      expect(moveOccurrenceOutcome(state, "A", "IN_TOUR", 1)).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+      expect(stepOccurrence(state, "A", "DOWN")).toMatchObject({ status: "REFUSED", reason: "STOP_POINT_NOT_ALLOWED" });
+    });
+
+    it("tête de Circuit : A sortie vers AFTER_TOUR → refus (P arriverait en tête)", () => {
+      expect(moveOccurrenceOutcome(withCircuitPoint(), "A", "AFTER_TOUR", 0)).toMatchObject({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+      });
+    });
+
+    it("inter-portées : un point hérité déjà en tête de Circuit y reste ; l'opération n'est pas refusée pour lui", () => {
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")],
+        [point("H", "IN_TOUR", 0)],
+      );
+      const outcome = moveOccurrenceOutcome(state, "A", "AFTER_TOUR", 0);
+      expect(outcome.status).toBe("APPLIED");
+      if (outcome.status === "APPLIED") {
+        expect(ids(outcome.state.exercises)).toEqual(["W", "B", "A", "Z"]);
+        expect(outcome.state.stopPoints).toBe(state.stopPoints);
+      }
+    });
+
+    it("Circuit vidé alors qu'il porte un point : déplacement refusé", () => {
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "IN_TOUR", 1)],
+      );
+      expect(moveOccurrenceOutcome(state, "A", "AFTER_TOUR", 1)).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+    });
+
+    it("Circuit vidé, « avant » + « après » le Circuit deviendraient consécutifs → refus", () => {
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
+        [point("B", "BEFORE_TOUR", 1), point("C", "AFTER_TOUR", 0)],
+      );
+      expect(moveOccurrenceOutcome(state, "A", "AFTER_TOUR", 2)).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["B", "C"],
+      });
+    });
+
+    it("convention de l'indice en occurrences : insérée AVANT le point qui occupe l'emplacement visé", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 2)]);
+      // Restent [B, P, C] : indice 1 = après B, donc avant P.
+      const beforePoint = moveOccurrence(state, "A", "IN_TOUR", 1);
+      expect(ids(beforePoint.exercises)).toEqual(["B", "A", "C"]);
+      expect(beforePoint.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
+      // Indice 2 = après C.
+      const atEnd = moveOccurrence(state, "A", "IN_TOUR", 2);
+      expect(ids(atEnd.exercises)).toEqual(["B", "C", "A"]);
+      expect(atEnd.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
+    });
+
+    it("convention : en tête d'AFTER_TOUR, l'occurrence passe avant le point « après le Circuit »", () => {
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A"), anActivity("Z", "AFTER_TOUR"), anActivity("Y", "AFTER_TOUR")],
+        [point("C", "AFTER_TOUR", 0)],
+      );
+      const next = moveOccurrence(state, "Y", "AFTER_TOUR", 0);
+      expect(ids(next.exercises)).toEqual(["W", "A", "Y", "Z"]);
+      expect(next.stopPoints).toEqual([point("C", "AFTER_TOUR", 1)]);
+    });
+
+    it("non-déplacement (même portée, même rang d'occurrence) : l'entrée elle-même, aucun point ne change de côté", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      expect(moveOccurrenceOutcome(state, "B", "IN_TOUR", 1)).toEqual({ status: "APPLIED", state });
+      expect(moveOccurrence(state, "B", "IN_TOUR", 1)).toBe(state);
+    });
   });
 
-  it("Déplacement interdit : A(point) déposée en dernière position, rien après → état inchangé", () => {
-    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
-    expect(moveOccurrence(state, "A", "IN_TOUR", 2)).toBe(state);
+  describe("moveOccurrenceInSequence (contrat de l'indice mêlé)", () => {
+    it("indice compté sur la séquence cible, source déjà retirée", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 2)]);
+      // [A, B, P, C] → restent [B, P, C] : rang 2 = après P.
+      const afterPoint = moveOccurrenceInSequence(state, "A", "IN_TOUR", 2);
+      expect(afterPoint.status).toBe("APPLIED");
+      if (afterPoint.status === "APPLIED") {
+        expect(ids(afterPoint.state.exercises)).toEqual(["B", "A", "C"]);
+        expect(afterPoint.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
+      }
+      // Rang 1 = entre B et P.
+      const beforePoint = moveOccurrenceInSequence(state, "A", "IN_TOUR", 1);
+      expect(beforePoint.status === "APPLIED" && beforePoint.state.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
+      expect(moveOccurrenceInSequence(state, "inconnu", "IN_TOUR", 0)).toEqual({ status: "NOT_FOUND" });
+    });
+
+    it("refus : [A, P, B, C], A au rang 1 de [P, B, C] → P deviendrait premier", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      expect(moveOccurrenceInSequence(state, "A", "IN_TOUR", 1)).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+    });
+
+    it("même place (rang d'origine) : l'entrée elle-même", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      // [A, P, B, C] : B est au rang 2 ; restent [A, P, C], le rang 2 est sa place.
+      expect(moveOccurrenceInSequence(state, "B", "IN_TOUR", 2)).toEqual({ status: "APPLIED", state });
+    });
   });
 
-  it("Déplacement interdit : un autre point deviendrait le premier élément de la Séance", () => {
-    const state = stateOf(
-      [anActivity("P", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
-      [{ id: "s0", scope: "IN_TOUR", position: 0 }],
-    );
-    expect(moveOccurrence(state, "P", "IN_TOUR", 2)).toBe(state);
+  describe("stepOccurrence (« Monter » / « Descendre » dans la séquence mêlée)", () => {
+    const state = () =>
+      stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B", "C"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "IN_TOUR", 1)],
+      );
+
+    it("échange avec le point voisin : B monte au-dessus de P", () => {
+      const outcome = stepOccurrence(state(), "B", "UP");
+      expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
+    });
+
+    it("échange avec l'occurrence voisine : B descend sous C, P ne bouge pas", () => {
+      const initial = state();
+      const outcome = stepOccurrence(initial, "B", "DOWN");
+      expect(outcome.status).toBe("APPLIED");
+      if (outcome.status === "APPLIED") {
+        expect(ids(outcome.state.exercises)).toEqual(["W", "A", "C", "B", "Z"]);
+        expect(outcome.state.stopPoints).toBe(initial.stopPoints);
+      }
+    });
+
+    it("franchit les limites de portée comme aujourd'hui ; début et fin de Séance : AT_BOUNDARY", () => {
+      const descended = stepOccurrence(state(), "C", "DOWN");
+      expect(descended.status === "APPLIED" && ids(descended.state.exercises)).toEqual(["W", "A", "B", "C", "Z"]);
+      expect(descended.status === "APPLIED" && descended.state.exercises[3]!.structuralPosition).toBe("AFTER_TOUR");
+      expect(stepOccurrence(state(), "W", "UP")).toEqual({ status: "REFUSED", reason: "AT_BOUNDARY", stopPointIds: [] });
+      expect(stepOccurrence(state(), "Z", "DOWN")).toEqual({ status: "REFUSED", reason: "AT_BOUNDARY", stopPointIds: [] });
+      expect(stepOccurrence(state(), "inconnu", "UP")).toEqual({ status: "NOT_FOUND" });
+    });
+
+    it("en montant hors du Circuit, l'occurrence passe après le point final de la portée précédente", () => {
+      const initial = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")],
+        [point("Q", "BEFORE_TOUR", 1)],
+      );
+      const outcome = stepOccurrence(initial, "A", "UP");
+      expect(outcome.status).toBe("APPLIED");
+      if (outcome.status === "APPLIED") {
+        expect(ids(outcome.state.exercises)).toEqual(["W", "A", "B", "Z"]);
+        expect(outcome.state.exercises[1]!.structuralPosition).toBe("BEFORE_TOUR");
+        expect(outcome.state.stopPoints).toBe(initial.stopPoints);
+      }
+    });
   });
 
-  it("identifiant inconnu : même référence ; sans point, les points restent la même référence", () => {
-    const state = stateOf(abc(), []);
+  describe("paires héritées et unicité", () => {
+    /** [A, P, R, Q, B, C, D] : P et Q consécutifs (R, ancienne Récupération, ne sépare pas). */
+    const legacyPair = () =>
+      stateOf(
+        [anActivity("A", "IN_TOUR"), legacyRecovery("R"), ...inTour("B", "C", "D")],
+        [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)],
+      );
+
+    it("une paire déjà consécutive, restée aux mêmes emplacements, n'est pas jugée", () => {
+      const state = legacyPair();
+      const next = moveOccurrence(state, "D", "IN_TOUR", 3);
+      expect(next).not.toBe(state);
+      expect(ids(next.exercises)).toEqual(["A", "R", "B", "D", "C"]);
+      expect(next.stopPoints).toBe(state.stopPoints);
+    });
+
+    it("une paire héritée seulement renumérotée (occurrence déplacée devant elle) reste autorisée", () => {
+      const state = legacyPair();
+      const outcome = moveOccurrenceOutcome(state, "D", "IN_TOUR", 0);
+      expect(outcome.status).toBe("APPLIED");
+      if (outcome.status === "APPLIED") {
+        expect(ids(outcome.state.exercises)).toEqual(["D", "A", "R", "B", "C"]);
+        expect(outcome.state.stopPoints).toEqual([
+          { id: "P", scope: "IN_TOUR", position: 2 },
+          { id: "Q", scope: "IN_TOUR", position: 3 },
+        ]);
+      }
+    });
+
+    it("retirer ou sortir l'ancienne Récupération entre P et Q les réunirait → refus", () => {
+      expect(removeOccurrenceOutcome(legacyPair(), "R")).toMatchObject({ status: "REFUSED" });
+      expect(moveOccurrenceOutcome(legacyPair(), "R", "IN_TOUR", 4)).toMatchObject({ status: "REFUSED" });
+    });
+
+    it("moveStopPoint : déplacer P de l'autre côté de Q, qui reste adjacent, est refusé (aucune exemption)", () => {
+      const state = stateOf(
+        [anActivity("A", "IN_TOUR"), legacyRecovery("R1"), legacyRecovery("R2"), ...inTour("B", "C")],
+        [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)],
+      );
+      // [A, P, R1, Q, R2, B, C] → P après R2 : [A, R1, Q, R2, P, B, C].
+      expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 3 })).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["Q", "P"],
+      });
+    });
+  });
+
+  describe("supprimer une occurrence", () => {
+    it("[A, P, B] : supprimer A → refus (P suivrait le Compte à rebours), raison fournie", () => {
+      const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
+      expect(removeOccurrenceOutcome(state, "A")).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+      expect(removeOccurrence(state, "A")).toBe(state);
+    });
+
+    it("[A, P, B] : supprimer B → refus (P précéderait la Fin) ; aucune suppression silencieuse", () => {
+      const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
+      expect(removeOccurrenceOutcome(state, "B")).toEqual({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+        stopPointIds: ["P"],
+      });
+      expect(removeOccurrence(state, "B")).toBe(state);
+    });
+
+    it("[A, P, B, Q, C] : supprimer B → refus (P, Q consécutifs)", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
+      expect(removeOccurrenceOutcome(state, "B")).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["P", "Q"],
+      });
+    });
+
+    it("[W | A, P, B | Z] : supprimer A amènerait P en tête de Circuit → refus", () => {
+      expect(removeOccurrenceOutcome(withCircuitPoint(), "A")).toMatchObject({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+      });
+    });
+
+    it("Circuit vidé par une suppression : refusé s'il porte un point ; « avant » + « après » consécutifs → refus", () => {
+      const withPoint = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "IN_TOUR", 1)],
+      );
+      expect(removeOccurrenceOutcome(withPoint, "A")).toMatchObject({ status: "REFUSED", reason: "STOP_POINT_NOT_ALLOWED" });
+      const borders = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
+        [point("B", "BEFORE_TOUR", 1), point("C", "AFTER_TOUR", 0)],
+      );
+      expect(removeOccurrenceOutcome(borders, "A")).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["B", "C"],
+      });
+    });
+
+    it("suppression acceptée : les points restent à leur place, leur position est recalculée", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 2)]);
+      const next = removeOccurrence(state, "A");
+      expect(ids(next.exercises)).toEqual(["B", "C"]);
+      expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
+    });
+
+    it("suppression sans effet sur les points : même référence de points", () => {
+      const state = stateOf(inTour("A", "B", "C", "D"), [point("P", "IN_TOUR", 1)]);
+      const next = removeOccurrence(state, "C");
+      expect(ids(next.exercises)).toEqual(["A", "B", "D"]);
+      expect(next.stopPoints).toBe(state.stopPoints);
+    });
+  });
+
+  describe("dupliquer une occurrence", () => {
+    it("[A, P, B] → [A, A′, P, B] : le point n'est pas copié, la récupération l'est", () => {
+      const state = stateOf(
+        [anActivity("A", "IN_TOUR", { postActivityRecoverySeconds: 30 }), anActivity("B", "IN_TOUR")],
+        [point("P", "IN_TOUR", 1)],
+      );
+      expect(duplicateOccurrenceOutcome(state, "A", "A2").status).toBe("APPLIED");
+      const next = duplicateOccurrence(state, "A", "A2", "inutilisé");
+      expect(ids(next.exercises)).toEqual(["A", "A2", "B"]);
+      expect(next.exercises[1]!.postActivityRecoverySeconds).toBe(30);
+      expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
+    });
+
+    it("les points qui précèdent la source ne bougent pas", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      expect(duplicateOccurrence(state, "B", "B2").stopPoints).toBe(state.stopPoints);
+    });
+
+    it("un point hérité hors bornes ou de position non entière est laissé intact", () => {
+      const far = point("X", "IN_TOUR", 9);
+      const fractional = point("Y", "BEFORE_TOUR", 0.5);
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B", "C"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "IN_TOUR", 1), far, fractional],
+      );
+      const next = duplicateOccurrence(state, "A", "A2");
+      expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 2), far, fractional]);
+      expect(next.stopPoints[1]).toBe(far);
+      expect(next.stopPoints[2]).toBe(fractional);
+    });
+
+    it("entrée invalide : un identifiant de copie déjà présent lève une exception", () => {
+      const state = stateOf(inTour("A", "B"), []);
+      expect(() => duplicateOccurrenceOutcome(state, "A", "B")).toThrow();
+    });
+  });
+
+  describe("déplacer un point (R2)", () => {
+    it("[A, P, B, C] → P après B : [A, B, P, C], identité conservée", () => {
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
+      const outcome = moveStopPoint(state, "P", { scope: "IN_TOUR", position: 2 });
+      expect(outcome).toEqual({
+        status: "APPLIED",
+        state: { exercises: state.exercises, stopPoints: [point("P", "IN_TOUR", 2)] },
+      });
+      expect(outcome.status === "APPLIED" && outcome.state.exercises).toBe(state.exercises);
+    });
+
+    it("[A, P, B, Q, C, Z] → P après C : autorisé (ni consécutif ni avant la Fin)", () => {
+      const state = stateOf(
+        [...inTour("A", "B", "C"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)],
+      );
+      expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 3 }).status).toBe("APPLIED");
+    });
+
+    it("refus : consécutif (frontière du Circuit), emplacement occupé, interdit, tête de Circuit", () => {
+      const state = stateOf(
+        [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")],
+        [point("P", "BEFORE_TOUR", 1), point("L", "IN_TOUR", 2)],
+      );
+      expect(moveStopPoint(state, "P", { scope: "AFTER_TOUR", position: 0 })).toEqual({
+        status: "REFUSED",
+        reason: "CONSECUTIVE_STOP_POINTS",
+        stopPointIds: ["L", "P"],
+      });
+      expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 2 })).toEqual({
+        status: "REFUSED",
+        reason: "LOCATION_OCCUPIED",
+        stopPointIds: ["P", "L"],
+      });
+      expect(moveStopPoint(state, "P", { scope: "AFTER_TOUR", position: 1 })).toMatchObject({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+      });
+      expect(moveStopPoint(state, "P", { scope: "BEFORE_TOUR", position: 0 })).toMatchObject({ status: "REFUSED" });
+      expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 0 })).toMatchObject({
+        status: "REFUSED",
+        reason: "STOP_POINT_NOT_ALLOWED",
+      });
+    });
+
+    it("même emplacement : l'entrée elle-même ; point inconnu : NOT_FOUND", () => {
+      const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
+      expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 1 })).toEqual({ status: "APPLIED", state });
+      expect(moveStopPoint(state, "X", { scope: "IN_TOUR", position: 1 })).toEqual({ status: "NOT_FOUND" });
+    });
+  });
+
+  it("identifiant inconnu : formes historiques à l'identique, résultats NOT_FOUND ; sans point, même référence de points", () => {
+    const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
     expect(moveOccurrence(state, "inconnu", "IN_TOUR", 0)).toBe(state);
-    expect(moveOccurrence(state, "A", "IN_TOUR", 1).stopPoints).toBe(state.stopPoints);
-  });
-
-  it("Duplication : A(point) B → A(point) A'(point copié) B", () => {
-    const state = stateOf(
-      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
-      [{ id: "s", scope: "IN_TOUR", position: 1 }],
-    );
-    const next = duplicateOccurrence(state, "A", "A2", "s2");
-    expect(ids(next.exercises)).toEqual(["A", "A2", "B"]);
-    expect(next.stopPoints).toEqual([
-      { id: "s", scope: "IN_TOUR", position: 1 },
-      { id: "s2", scope: "IN_TOUR", position: 2 },
-    ]);
-  });
-
-  it("Duplication d'une occurrence sans point : les points suivants se décalent, aucune copie", () => {
-    const state = stateOf(abc(), [{ id: "sb", scope: "IN_TOUR", position: 2 }]);
-    const next = duplicateOccurrence(state, "A", "A2", "unused");
-    expect(next.stopPoints).toEqual([{ id: "sb", scope: "IN_TOUR", position: 3 }]);
-  });
-
-  it("Suppression : A(point) B ; supprimer A → B, aucun point", () => {
-    const state = stateOf(
-      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
-      [{ id: "s", scope: "IN_TOUR", position: 1 }],
-    );
-    const next = removeOccurrence(state, "A");
-    expect(ids(next.exercises)).toEqual(["B"]);
-    expect(next.stopPoints).toEqual([]);
-  });
-
-  it("Suppression rendant interdit : A(point) B ; supprimer B → A, point retiré", () => {
-    const state = stateOf(
-      [anActivity("A", "IN_TOUR"), anActivity("B", "IN_TOUR")],
-      [{ id: "s", scope: "IN_TOUR", position: 1 }],
-    );
-    const next = removeOccurrence(state, "B");
-    expect(ids(next.exercises)).toEqual(["A"]);
-    expect(next.stopPoints).toEqual([]);
-  });
-
-  it("Suppression : les points des autres occurrences sont recalculés", () => {
-    const state = stateOf(abc(), [{ id: "sb", scope: "IN_TOUR", position: 2 }]);
-    expect(removeOccurrence(state, "A").stopPoints).toEqual([{ id: "sb", scope: "IN_TOUR", position: 1 }]);
-  });
-
-  it("identifiant inconnu : duplication et suppression retournent la même référence", () => {
-    const state = stateOf(abc(), [{ id: "s", scope: "IN_TOUR", position: 1 }]);
     expect(duplicateOccurrence(state, "inconnu", "x", "y")).toBe(state);
     expect(removeOccurrence(state, "inconnu")).toBe(state);
+    expect(moveOccurrenceOutcome(state, "inconnu", "IN_TOUR", 0)).toEqual({ status: "NOT_FOUND" });
+    expect(removeOccurrenceOutcome(state, "inconnu")).toEqual({ status: "NOT_FOUND" });
+    expect(duplicateOccurrenceOutcome(state, "inconnu", "x")).toEqual({ status: "NOT_FOUND" });
+    const empty = stateOf(inTour("A", "B"), []);
+    expect(moveOccurrence(empty, "A", "IN_TOUR", 1).stopPoints).toBe(empty.stopPoints);
   });
 });

@@ -8,6 +8,7 @@ import {
   uniformParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
+import { expandComposition } from "@/domain/sessions/circuit";
 import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
@@ -1266,6 +1267,24 @@ describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () 
     expect(created.ok && created.value.stopPoints).toEqual(points);
     const updated = validateUpdateSessionInput(updateInput(points));
     expect(updated.ok && updated.value.stopPoints).toEqual(points);
+  });
+
+  // Story 6.1 (revue, D-436) : RM-251 n'est pas contrôlée à l'enregistrement — une Séance
+  // héritée portant deux points consécutifs reste enregistrable ; le développement n'en
+  // exécute qu'un.
+  it("RM-251 : deux points consécutifs hérités restent enregistrables ; le plan ne porte qu'un arrêt", () => {
+    const points = [
+      { scope: "BEFORE_TOUR" as const, position: 1 },
+      { scope: "IN_TOUR" as const, position: 0 },
+    ];
+    expect(validateCreateSessionInput(createInput(points)).ok).toBe(true);
+    expect(validateUpdateSessionInput(updateInput(points)).ok).toBe(true);
+    const steps = expandComposition({
+      exercises: occurrences,
+      stopPoints: points.map((point, index) => ({ id: `s${index}`, ...point })),
+      tourRepeatCount: 1,
+    });
+    expect(steps.filter((step) => step.kind === "STOP_POINT")).toHaveLength(1);
   });
 
   it.each([

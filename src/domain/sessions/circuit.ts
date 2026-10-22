@@ -36,7 +36,7 @@ import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import type { ActivityType, StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
 import type { SideMode } from "./sideMode";
-import { orderStopPointsByScope, type StopPoint } from "./StopPoint";
+import { isSequenceSeparator, orderStopPointsByScope, type StopPoint } from "./StopPoint";
 
 /** Organisation du Circuit (ch10 L686-693) : Tours ou Séries. */
 export type CircuitNature = "TOURS" | "SERIES";
@@ -142,16 +142,37 @@ export type CompositionExpansionInput = {
  * - Tours : contenu interne × N, à l'identique à chaque Tour.
  * - Séries : pour i = 1..N, chaque exercice du Circuit dans l'ordre, sa
  *   seule série i ; un exercice qui a moins de N séries ne contribue que ses
- *   séries existantes, et ses éléments rattachés ne sont produits qu'avec
- *   lui. Une ancienne Récupération autonome ou un Mode inconnu est joué en
- *   entier à chaque passage (`series = null`), comme la durée le compte.
+ *   séries existantes (sa récupération n'est produite qu'avec lui). Une
+ *   ancienne Récupération autonome ou un Mode inconnu est joué en entier à
+ *   chaque passage (`series = null`), comme la durée le compte.
  * - Un Tour ou passage où aucune occurrence ne joue est omis en entier
- *   (points `position = 0` compris).
+ *   (points compris).
  *
- * À un emplacement : Exercice → Récupération positive → Point d'arrêt
- * (rattaché à l'occurrence qui le précède, `position = p`, ARB-3). Un point
- * `position = 0` est en tête de sa portée (répété en tête de chaque Tour ou
- * passage s'il est interne). R = 0 ou absente ne produit aucune étape.
+ * À un emplacement : Exercice → Récupération positive → Point d'arrêt. Story
+ * 6.1 (D-436, remplace ARB-3) : le point est un élément autonome de la
+ * séquence mêlée de sa portée (`position` = occurrences qui le précèdent) ;
+ * il est produit à sa place à chaque passage, que l'occurrence qui le
+ * précède joue ou non. Un point `position = 0` est en tête de sa portée
+ * (répété en tête de chaque Tour ou passage s'il est interne). R = 0 ou
+ * absente ne produit aucune étape.
+ *
+ * RM-251 et RM-219 dans le développement (story 6.1, D-436 ; arbitrage de
+ * Hermann « supprimer le point en trop ») : le développement ne produit
+ * jamais deux étapes `STOP_POINT` successives, ni un `STOP_POINT` en tête
+ * (juste après le compte à rebours) ou en fin (juste avant la Fin) — le
+ * point en trop est omis, sans rien retirer de la Séance (en Séries
+ * partielles : le second point). Seule une occurrence `EXERCISE` jouée
+ * sépare (`isSequenceSeparator`) : les étapes `RECOVERY` et les anciennes
+ * Récupérations autonomes ne comptent pas. En Séries, un passage où aucun
+ * `EXERCISE` ne joue (il ne reste que d'anciennes Récupérations autonomes)
+ * est omis comme un passage vide ; en Tours, le contenu interne est
+ * identique à chaque Tour et n'est jamais omis.
+ *
+ * Tours : les opérations refusent d'amener un point en tête de Circuit
+ * `(IN, 0)` ; un tel point ne peut être qu'une donnée héritée. S'il coexiste
+ * avec un point en fin de Circuit `(IN, nI)`, le point de tête du Tour k + 1
+ * suit directement le point de fin du Tour k : il est fusionné avec lui et
+ * n'est donc joué qu'au Tour 1.
  */
 export function expandComposition(input: CompositionExpansionInput): readonly CompositionStep[] {
   const nature = input.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
@@ -166,43 +187,40 @@ export function expandComposition(input: CompositionExpansionInput): readonly Co
       }
     }
   };
-  const occurrence = (
-    exercise: ExpandableOccurrence,
-    rank: number,
-    pass: number | null,
-    series: number | null,
-  ) => {
+  const occurrence = (exercise: ExpandableOccurrence, pass: number | null, series: number | null) => {
     const scope = exercise.structuralPosition;
     steps.push({ kind: "OCCURRENCE", occurrenceId: exercise.id, scope, pass, series });
     const recovery = exercise.postActivityRecoverySeconds ?? 0;
     if (recovery > 0) {
       steps.push({ kind: "RECOVERY", occurrenceId: exercise.id, scope, pass, seconds: recovery });
     }
-    pointsAt(scope, rank, pass);
   };
   const outside = (scope: StructuralPosition) => {
     pointsAt(scope, 0, null);
     input.exercises
       .filter((exercise) => exercise.structuralPosition === scope)
-      .forEach((exercise, index) => occurrence(exercise, index + 1, null, null));
+      .forEach((exercise, index) => {
+        occurrence(exercise, null, null);
+        pointsAt(scope, index + 1, null);
+      });
   };
 
   outside("BEFORE_TOUR");
   const inCircuit = input.exercises.filter((exercise) => exercise.structuralPosition === "IN_TOUR");
   for (let pass = 1; pass <= passes; pass += 1) {
-    // Occurrences jouées à ce passage : [occurrence, rang dans la portée, série jouée].
-    const plays: [ExpandableOccurrence, number, number | null][] = [];
+    // Série jouée à ce passage par chaque occurrence du Circuit (même rang) ; `undefined` : ne joue pas.
+    const plays: (number | null | undefined)[] = [];
     switch (nature) {
       case "TOURS":
-        inCircuit.forEach((exercise, index) => plays.push([exercise, index + 1, null]));
+        inCircuit.forEach(() => plays.push(null));
         break;
       case "SERIES":
-        inCircuit.forEach((exercise, index) => {
+        inCircuit.forEach((exercise) => {
           if (isLegacySeriesOccurrence(exercise)) {
             // Même lecture défensive que la durée (`calculations.ts`) : à chaque passage, en entier.
-            plays.push([exercise, index + 1, null]);
-          } else if (seriesCountOf(exercise.executionParameters) >= pass) {
-            plays.push([exercise, index + 1, pass]);
+            plays.push(null);
+          } else {
+            plays.push(seriesCountOf(exercise.executionParameters) >= pass ? pass : undefined);
           }
         });
         break;
@@ -211,17 +229,57 @@ export function expandComposition(input: CompositionExpansionInput): readonly Co
         return unreachable;
       }
     }
-    // Un passage où aucune occurrence ne joue est omis en entier, points de tête compris.
-    if (plays.length === 0) {
+    // Un passage où aucune occurrence ne joue est omis en entier, points compris ; en Séries,
+    // aussi un passage où aucun EXERCISE ne joue (story 6.1 : seules d'anciennes Récupérations).
+    const playsNothing = plays.every((series) => series === undefined);
+    const playsNoExercise =
+      nature === "SERIES" &&
+      !inCircuit.some((exercise, index) => plays[index] !== undefined && isSequenceSeparator(exercise));
+    if (playsNothing || playsNoExercise) {
       continue;
     }
     pointsAt("IN_TOUR", 0, pass);
-    for (const [exercise, rank, series] of plays) {
-      occurrence(exercise, rank, pass, series);
-    }
+    inCircuit.forEach((exercise, index) => {
+      const series = plays[index];
+      if (series !== undefined) {
+        occurrence(exercise, pass, series);
+      }
+      pointsAt("IN_TOUR", index + 1, pass);
+    });
   }
   outside("AFTER_TOUR");
-  return steps;
+  return withoutExtraStopPoints(steps, input.exercises);
+}
+
+/**
+ * RM-251 / RM-219 dans le développement (story 6.1, D-436) : omet tout point
+ * qui suit un autre point, ou qu'aucune occurrence `EXERCISE` jouée ne
+ * précède (tête) ou ne suit (fin) — étapes `RECOVERY` et anciennes
+ * Récupérations autonomes ignorées (`isSequenceSeparator`).
+ */
+function withoutExtraStopPoints(
+  steps: readonly CompositionStep[],
+  exercises: readonly ExpandableOccurrence[],
+): readonly CompositionStep[] {
+  const separatorIds = new Set(exercises.filter(isSequenceSeparator).map((exercise) => exercise.id));
+  const isSeparator = (step: CompositionStep) => step.kind === "OCCURRENCE" && separatorIds.has(step.occurrenceId);
+  const lastSeparator = steps.reduce((last, step, index) => (isSeparator(step) ? index : last), -1);
+  const result: CompositionStep[] = [];
+  let seenSeparator = false;
+  let afterStopPoint = false;
+  steps.forEach((step, index) => {
+    if (step.kind === "STOP_POINT") {
+      if (afterStopPoint || !seenSeparator || index > lastSeparator) {
+        return;
+      }
+      afterStopPoint = true;
+    } else if (isSeparator(step)) {
+      seenSeparator = true;
+      afterStopPoint = false;
+    }
+    result.push(step);
+  });
+  return result;
 }
 
 // --- Opérations de Circuit (story 1.4, AD-37, AD-38, AD-39) ------------------

@@ -22,11 +22,19 @@ import { cloneExecutionParameters } from "@/domain/activities/ExecutionParameter
 import type { StructuralPosition } from "./Session";
 import type { SessionDraftExercise } from "./SessionDraft";
 import {
-  anchorStopPoints,
+  consecutiveStopPointPairs,
+  hasUniquePositionPerScope,
+  isCircuitHead,
   isStopPointAllowed,
-  reattachStopPoints,
-  type AnchoredStopPoint,
+  isStopPointPositionInRange,
+  isStopPointProposable,
+  occurrenceCountInScope,
+  positionInSequence,
+  scopeSequence,
+  stopPointKey,
+  type SequenceItem,
   type StopPoint,
+  type StopPointLocation,
 } from "./StopPoint";
 import { NAME_MAX_LENGTH, normalizeName } from "./validation";
 
@@ -280,41 +288,326 @@ export function duplicateActivity(
 }
 
 /**
- * PRE-6 (story 1.2, AD-36, ARB-3) : état de Composition porté ENSEMBLE par
- * le brouillon — occurrences et Points d'arrêt. Les opérations ci-dessous
- * délèguent aux opérations historiques sur les occurrences
- * (`moveActivity`, `removeActivity`, `duplicateActivity`, inchangées) puis
- * recalculent les points d'après leur occurrence d'attache
- * (`anchorStopPoints` / `reattachStopPoints`). Aucune opération ne modifie
- * l'entrée ; un résultat inchangé est l'entrée elle-même (même référence).
+ * PRE-6 (story 1.2, AD-36 ; story 6.1, D-436, RM-251) : état de Composition
+ * porté ENSEMBLE par le brouillon — occurrences et Points d'arrêt. Aucune
+ * opération ne modifie l'entrée ; un état inchangé est l'entrée elle-même
+ * (même référence), et une liste de points inchangée garde sa référence.
+ *
+ * **D-436 (remplace ARB-3)** : les opérations raisonnent sur la séquence
+ * mêlée de chaque portée (`scopeSequence`) ; déplacer, dupliquer ou
+ * supprimer une occurrence laisse chaque point à SA place dans cette
+ * séquence (il ne suit plus l'occurrence qui le précédait) et recalcule sa
+ * `position`. La collection `exercises` reste produite par les opérations
+ * historiques (`moveActivity`, `removeActivity`, `duplicateActivity`,
+ * inchangées). Une opération invalide est REFUSÉE sans mutation : aucun
+ * point n'est déplacé ni supprimé pour la rendre valide (`judge`).
  */
 export type CompositionState = {
   readonly exercises: readonly SessionDraftExercise[];
   readonly stopPoints: readonly StopPoint[];
 };
 
-/** Identifiants des points déjà sur un emplacement interdit ou hors bornes : une opération ne les juge pas (elle ne les a pas créés). */
-function disallowedStopPointIds(state: CompositionState): ReadonlySet<string> {
-  return new Set(
-    state.stopPoints.filter((point) => !isStopPointAllowed(state.exercises, point)).map((point) => point.id),
-  );
-}
+/**
+ * Raison d'un refus (annonce d'accessibilité de l'écran, story 6.3) :
+ * - `STOP_POINT_NOT_ALLOWED` : un point deviendrait interdit (juste après le
+ *   compte à rebours, juste avant la Fin, RM-219), arriverait en tête de
+ *   Circuit, ou le Circuit serait vidé alors qu'il porte un point — ou, pour
+ *   un déplacement autonome, la cible n'est pas proposable ;
+ * - `CONSECUTIVE_STOP_POINTS` : deux points se suivraient sans Exercice
+ *   entre eux (RM-251) ;
+ * - `LOCATION_OCCUPIED` : deux points se retrouveraient sur le même
+ *   emplacement `(scope, position)` ;
+ * - `AT_BOUNDARY` : « Monter » / « Descendre » sans élément voisin (début ou
+ *   fin de la Séance).
+ */
+export type CompositionRefusalReason =
+  | "STOP_POINT_NOT_ALLOWED"
+  | "CONSECUTIVE_STOP_POINTS"
+  | "LOCATION_OCCUPIED"
+  | "AT_BOUNDARY";
 
-/** Points devenus interdits par l'opération (ils étaient autorisés avant). */
-function isNewlyDisallowed(
-  point: StopPoint,
-  exercises: readonly SessionDraftExercise[],
-  previouslyDisallowed: ReadonlySet<string>,
-): boolean {
-  return !previouslyDisallowed.has(point.id) && !isStopPointAllowed(exercises, point);
+/**
+ * Résultat discriminé d'une opération de Composition (convention du Domaine,
+ * `SessionRepository.ts`) : appliquée (nouvel état, ou l'entrée elle-même si
+ * rien ne change), élément introuvable, ou refusée — avec les points en
+ * cause. Aucune de ces issues n'est une exception.
+ */
+export type CompositionOutcome =
+  | { readonly status: "APPLIED"; readonly state: CompositionState }
+  | { readonly status: "NOT_FOUND" }
+  | {
+      readonly status: "REFUSED";
+      readonly reason: CompositionRefusalReason;
+      readonly stopPointIds: readonly string[];
+    };
+
+/** Sens d'un pas « Monter » / « Descendre » (`stepOccurrence`). */
+export type OccurrenceStepDirection = "UP" | "DOWN";
+
+type CompositionItem = SequenceItem<SessionDraftExercise, StopPoint>;
+type CompositionSequences = Record<StructuralPosition, CompositionItem[]>;
+
+/** Séquences mêlées (copies modifiables) des trois portées. */
+function sequencesOf(state: CompositionState): CompositionSequences {
+  return {
+    BEFORE_TOUR: [...scopeSequence(state.exercises, state.stopPoints, "BEFORE_TOUR")],
+    IN_TOUR: [...scopeSequence(state.exercises, state.stopPoints, "IN_TOUR")],
+    AFTER_TOUR: [...scopeSequence(state.exercises, state.stopPoints, "AFTER_TOUR")],
+  };
 }
 
 /**
- * Déplace une occurrence (voir `moveActivity`) ; ses points la suivent
- * (nouvelle portée, nouvel emplacement), les autres suivent leur propre
- * occurrence. Un déplacement qui amènerait un point sur un emplacement
- * interdit (RM-219) est un dépôt invalide : l'état est retourné inchangé
- * (même référence), comme toute dépose sans cible valide.
+ * Points relus sur les séquences : `scope` = portée de la séquence,
+ * `position` = occurrences qui les précèdent. Ordre et identité des points
+ * conservés ; liste inchangée → même référence. Un point hérité hors bornes
+ * ou de `position` non entière AVANT l'opération est laissé intact (valeur
+ * d'origine, jamais bornée).
+ */
+function stopPointsFromSequences(
+  before: CompositionState,
+  sequences: CompositionSequences,
+): readonly StopPoint[] {
+  const locationOf = new Map<StopPoint, StopPointLocation>();
+  for (const zone of STRUCTURAL_ZONES) {
+    let preceding = 0;
+    for (const item of sequences[zone]) {
+      if (item.kind === "OCCURRENCE") {
+        preceding += 1;
+      } else {
+        locationOf.set(item.point, { scope: zone, position: preceding });
+      }
+    }
+  }
+  let changed = false;
+  const next = before.stopPoints.map((point) => {
+    const location = locationOf.get(point);
+    if (
+      location === undefined ||
+      !isStopPointPositionInRange(before.exercises, point) ||
+      (location.scope === point.scope && location.position === point.position)
+    ) {
+      return point;
+    }
+    changed = true;
+    return { ...point, scope: location.scope, position: location.position };
+  });
+  return changed ? next : before.stopPoints;
+}
+
+/**
+ * Clé d'une paire consécutive : identifiants SEULS — une paire héritée simplement
+ * renumérotée par une opération sans rapport reste la même (revue 6.1, séances héritées).
+ */
+function pairKey(first: StopPoint, second: StopPoint): string {
+  return [first.id, second.id].sort().join("|");
+}
+
+function refused(reason: CompositionRefusalReason, points: readonly StopPoint[]): CompositionOutcome {
+  return { status: "REFUSED", reason, stopPointIds: [...new Set(points.map((point) => point.id))] };
+}
+
+/**
+ * Juge l'état produit par une opération (D-436, revue de la story 6.1), dans
+ * cet ordre :
+ * 1. le Circuit est vidé alors qu'il porte encore un point → refus ;
+ * 2. un point devient interdit (RM-219 ; il ne l'était pas avant) → refus ;
+ * 3. un point arrive en tête de Circuit `(IN, 0)` (il n'y était pas) → refus ;
+ * 4. une paire consécutive (RM-251) apparaît → refus. Une paire déjà
+ *    consécutive avant l'opération (mêmes identifiants, même si elle est
+ *    renumérotée) est exemptée — donnée héritée ; aucune paire contenant
+ *    `movedStopPointId` (déplacement autonome) ne l'est ;
+ * 5. l'unicité `(scope, position)`, vraie avant, est perdue → refus
+ *    (`LOCATION_OCCUPIED`) : deux points d'une paire héritée réunis sur un
+ *    même emplacement sont refusés ici.
+ */
+function judge(
+  before: CompositionState,
+  after: CompositionState,
+  movedStopPointId: string | null = null,
+): CompositionOutcome {
+  const circuitPoints = after.stopPoints.filter((point) => point.scope === "IN_TOUR");
+  if (
+    circuitPoints.length > 0 &&
+    occurrenceCountInScope(before.exercises, "IN_TOUR") > 0 &&
+    occurrenceCountInScope(after.exercises, "IN_TOUR") === 0
+  ) {
+    return refused("STOP_POINT_NOT_ALLOWED", circuitPoints);
+  }
+
+  const beforeById = new Map(before.stopPoints.map((point) => [point.id, point]));
+  const newlyDisallowed = after.stopPoints.filter((point) => {
+    const previous = beforeById.get(point.id);
+    const wasAllowed = previous === undefined || isStopPointAllowed(before.exercises, previous);
+    return wasAllowed && !isStopPointAllowed(after.exercises, point);
+  });
+  if (newlyDisallowed.length > 0) {
+    return refused("STOP_POINT_NOT_ALLOWED", newlyDisallowed);
+  }
+
+  const newlyAtHead = after.stopPoints.filter((point) => {
+    const previous = beforeById.get(point.id);
+    return isCircuitHead(point) && (previous === undefined || !isCircuitHead(previous));
+  });
+  if (newlyAtHead.length > 0) {
+    return refused("STOP_POINT_NOT_ALLOWED", newlyAtHead);
+  }
+
+  const exempted = new Set(
+    consecutiveStopPointPairs(before.exercises, before.stopPoints)
+      .filter(([first, second]) => first.id !== movedStopPointId && second.id !== movedStopPointId)
+      .map(([first, second]) => pairKey(first, second)),
+  );
+  const newPairs = consecutiveStopPointPairs(after.exercises, after.stopPoints).filter(
+    ([first, second]) => !exempted.has(pairKey(first, second)),
+  );
+  if (newPairs.length > 0) {
+    return refused("CONSECUTIVE_STOP_POINTS", newPairs.flat());
+  }
+
+  if (hasUniquePositionPerScope(before.stopPoints) && !hasUniquePositionPerScope(after.stopPoints)) {
+    const counts = new Map<string, number>();
+    for (const point of after.stopPoints) {
+      counts.set(stopPointKey(point), (counts.get(stopPointKey(point)) ?? 0) + 1);
+    }
+    return refused(
+      "LOCATION_OCCUPIED",
+      after.stopPoints.filter((point) => (counts.get(stopPointKey(point)) ?? 0) > 1),
+    );
+  }
+  return { status: "APPLIED", state: after };
+}
+
+/** Raccourci des formes historiques : l'état appliqué, ou l'entrée elle-même (refus, introuvable). */
+function stateOrUnchanged(outcome: CompositionOutcome, state: CompositionState): CompositionState {
+  return outcome.status === "APPLIED" ? outcome.state : state;
+}
+
+/** Portée et rang de l'occurrence `activityId` dans les séquences mêlées, ou `null`. */
+function locateInSequences(
+  sequences: CompositionSequences,
+  activityId: string,
+): { readonly zone: StructuralPosition; readonly index: number } | null {
+  for (const zone of STRUCTURAL_ZONES) {
+    const index = sequences[zone].findIndex(
+      (item) => item.kind === "OCCURRENCE" && item.occurrence.id === activityId,
+    );
+    if (index !== -1) {
+      return { zone, index };
+    }
+  }
+  return null;
+}
+
+/**
+ * Story 6.1 (D-436, R1) : déplace une occurrence vers `targetZone`, au rang
+ * `sequenceIndex` de la séquence MÊLÉE de cette portée (occurrences et
+ * points). **Contrat de l'indice** : il est compté sur la séquence de la
+ * portée cible DONT LA SOURCE EST DÉJÀ RETIRÉE (même convention que
+ * `moveActivity`) ; l'occurrence est insérée à ce rang, avant l'élément qui
+ * l'occupait. Borné à `0..longueur` (non fini : fin de portée). Ex. : `[A, P,
+ * B, C]`, déplacer A au rang 2 de `[P, B, C]` → `[P, B, A, C]`.
+ *
+ * Revenir à la même place (même portée, même rang qu'avant le retrait) est un
+ * non-déplacement : `APPLIED` avec l'entrée elle-même — aucun point ne change
+ * de côté. Les points gardent leur place ; la récupération suit l'occurrence.
+ * Refus sans mutation selon `judge`.
+ */
+export function moveOccurrenceInSequence(
+  state: CompositionState,
+  activityId: string,
+  targetZone: StructuralPosition,
+  sequenceIndex: number,
+): CompositionOutcome {
+  const source = state.exercises.find((activity) => activity.id === activityId);
+  const sequences = sequencesOf(state);
+  const origin = locateInSequences(sequences, activityId);
+  if (source === undefined || origin === null) {
+    return { status: "NOT_FOUND" };
+  }
+  sequences[origin.zone].splice(origin.index, 1);
+  const target = sequences[targetZone];
+  const index = Number.isFinite(sequenceIndex)
+    ? Math.max(0, Math.min(Math.trunc(sequenceIndex), target.length))
+    : target.length;
+  if (targetZone === origin.zone && index === origin.index) {
+    return { status: "APPLIED", state };
+  }
+  const occurrenceIndex = positionInSequence(target, index);
+  const exercises = moveActivity(state.exercises, activityId, targetZone, occurrenceIndex);
+  const moved = exercises.find((activity) => activity.id === activityId) ?? source;
+  target.splice(index, 0, { kind: "OCCURRENCE", occurrence: moved });
+  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+}
+
+/**
+ * Rang dans la séquence mêlée (source retirée) correspondant à l'indice
+ * `targetIndex` EN OCCURRENCES de `moveActivity` — convention documentée de
+ * la forme historique : l'occurrence est insérée juste après la
+ * `targetIndex`-ième occurrence restante de la portée, donc AVANT le point
+ * qui occupe l'emplacement visé (`targetIndex = 0` : en tête de portée,
+ * avant un éventuel point de position 0). Indice borné comme `moveActivity`.
+ */
+function sequenceIndexForOccurrenceIndex(items: readonly CompositionItem[], targetIndex: number): number {
+  const occurrenceCount = items.filter((item) => item.kind === "OCCURRENCE").length;
+  const wanted = clampOccurrenceIndex(targetIndex, occurrenceCount);
+  if (wanted === 0) {
+    return 0;
+  }
+  let seen = 0;
+  for (let index = 0; index < items.length; index += 1) {
+    if (items[index]!.kind === "OCCURRENCE") {
+      seen += 1;
+      if (seen === wanted) {
+        return index + 1;
+      }
+    }
+  }
+  return items.length;
+}
+
+function clampOccurrenceIndex(targetIndex: number, count: number): number {
+  return Number.isFinite(targetIndex) ? Math.max(0, Math.min(Math.trunc(targetIndex), count)) : count;
+}
+
+/**
+ * Story 6.1 (D-436) : `moveOccurrenceInSequence` exprimé avec l'indice EN
+ * OCCURRENCES de la portée cible (forme historique, appel actuel de l'écran :
+ * glisser et « Monter » / « Descendre ») — l'occurrence est insérée avant le
+ * point qui occupe l'emplacement visé (`sequenceIndexForOccurrenceIndex`).
+ * Même portée et même rang d'occurrence qu'avant : non-déplacement (`APPLIED`
+ * avec l'entrée elle-même, aucun point ne change de côté).
+ */
+export function moveOccurrenceOutcome(
+  state: CompositionState,
+  activityId: string,
+  targetZone: StructuralPosition,
+  targetIndex: number,
+): CompositionOutcome {
+  const source = state.exercises.find((activity) => activity.id === activityId);
+  if (source === undefined) {
+    return { status: "NOT_FOUND" };
+  }
+  if (targetZone === source.structuralPosition) {
+    const inZone = state.exercises.filter((activity) => activity.structuralPosition === targetZone);
+    if (clampOccurrenceIndex(targetIndex, inZone.length - 1) === inZone.indexOf(source)) {
+      return { status: "APPLIED", state };
+    }
+  }
+  const sequences = sequencesOf(state);
+  const origin = locateInSequences(sequences, activityId)!;
+  sequences[origin.zone].splice(origin.index, 1);
+  return moveOccurrenceInSequence(
+    state,
+    activityId,
+    targetZone,
+    sequenceIndexForOccurrenceIndex(sequences[targetZone], targetIndex),
+  );
+}
+
+/**
+ * Forme historique (story 1.2, appel actuel de l'écran) de
+ * `moveOccurrenceOutcome` : l'état appliqué, ou l'entrée elle-même (même
+ * référence) pour un refus ou un identifiant inconnu.
  */
 export function moveOccurrence(
   state: CompositionState,
@@ -322,71 +615,149 @@ export function moveOccurrence(
   targetZone: StructuralPosition,
   targetIndex: number,
 ): CompositionState {
-  const exercises = moveActivity(state.exercises, activityId, targetZone, targetIndex);
-  if (exercises === state.exercises) {
-    return state;
-  }
-  if (state.stopPoints.length === 0) {
-    return { exercises, stopPoints: state.stopPoints };
-  }
-  const previouslyDisallowed = disallowedStopPointIds(state);
-  const stopPoints = reattachStopPoints(exercises, anchorStopPoints(state.exercises, state.stopPoints));
-  if (stopPoints.some((point) => isNewlyDisallowed(point, exercises, previouslyDisallowed))) {
-    return state;
-  }
-  return { exercises, stopPoints };
+  return stateOrUnchanged(moveOccurrenceOutcome(state, activityId, targetZone, targetIndex), state);
 }
 
 /**
- * Supprime une occurrence (voir `removeActivity`) : les points qui lui sont
- * rattachés sont retirés avec elle ; un autre point que la suppression
- * laisserait sur un emplacement interdit est retiré aussi (ARB-3, aucun
- * blocage nouveau).
+ * Story 6.1 (D-436, CE-T03-08 §18) : « Monter » / « Descendre » d'une
+ * occurrence — échange avec l'élément VOISIN de la séquence mêlée, point ou
+ * occurrence. En limite de portée, l'occurrence franchit la limite comme
+ * aujourd'hui (`resolveStepTarget` de l'écran) : en montant, elle devient la
+ * dernière de la portée précédente (après son éventuel point final) ; en
+ * descendant, la première de la portée suivante (avant son éventuel point de
+ * tête). Début ou fin de la Séance : refus `AT_BOUNDARY`. Mêmes refus que
+ * `moveOccurrenceInSequence`. Branchement à l'écran : story 6.2.
  */
-export function removeOccurrence(state: CompositionState, activityId: string): CompositionState {
+export function stepOccurrence(
+  state: CompositionState,
+  activityId: string,
+  direction: OccurrenceStepDirection,
+): CompositionOutcome {
+  const sequences = sequencesOf(state);
+  const origin = locateInSequences(sequences, activityId);
+  if (origin === null) {
+    return { status: "NOT_FOUND" };
+  }
+  const zoneIndex = STRUCTURAL_ZONES.indexOf(origin.zone);
+  if (direction === "UP") {
+    if (origin.index > 0) {
+      return moveOccurrenceInSequence(state, activityId, origin.zone, origin.index - 1);
+    }
+    const previous = STRUCTURAL_ZONES[zoneIndex - 1];
+    return previous === undefined
+      ? { status: "REFUSED", reason: "AT_BOUNDARY", stopPointIds: [] }
+      : moveOccurrenceInSequence(state, activityId, previous, sequences[previous].length);
+  }
+  if (origin.index < sequences[origin.zone].length - 1) {
+    return moveOccurrenceInSequence(state, activityId, origin.zone, origin.index + 1);
+  }
+  const next = STRUCTURAL_ZONES[zoneIndex + 1];
+  return next === undefined
+    ? { status: "REFUSED", reason: "AT_BOUNDARY", stopPointIds: [] }
+    : moveOccurrenceInSequence(state, activityId, next, 0);
+}
+
+/**
+ * Story 6.1 (D-436) : supprime une occurrence (voir `removeActivity`) ; ses
+ * voisins se resserrent, les points restent à leur place dans la séquence
+ * (aucun n'est retiré). Refus sans mutation selon `judge` — p. ex. `[A, P,
+ * B]`, supprimer A (P suivrait le compte à rebours) ou B (P précéderait la
+ * Fin) ; `[A, P, B, Q, C]`, supprimer B (P, Q consécutifs). La raison sert à
+ * l'annonce d'accessibilité (story 6.3).
+ */
+export function removeOccurrenceOutcome(state: CompositionState, activityId: string): CompositionOutcome {
   const exercises = removeActivity(state.exercises, activityId);
   if (exercises === state.exercises) {
-    return state;
+    return { status: "NOT_FOUND" };
   }
-  if (state.stopPoints.length === 0) {
-    return { exercises, stopPoints: state.stopPoints };
-  }
-  const previouslyDisallowed = disallowedStopPointIds(state);
-  const stopPoints = reattachStopPoints(
-    exercises,
-    anchorStopPoints(state.exercises, state.stopPoints),
-  ).filter((point) => !isNewlyDisallowed(point, exercises, previouslyDisallowed));
-  return { exercises, stopPoints };
+  const sequences = sequencesOf(state);
+  const origin = locateInSequences(sequences, activityId)!;
+  sequences[origin.zone].splice(origin.index, 1);
+  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+}
+
+/** Forme historique de `removeOccurrenceOutcome` : l'état appliqué, ou l'entrée elle-même (refus, inconnu). */
+export function removeOccurrence(state: CompositionState, activityId: string): CompositionState {
+  return stateOrUnchanged(removeOccurrenceOutcome(state, activityId), state);
 }
 
 /**
- * Duplique une occurrence (voir `duplicateActivity`) : la copie reçoit une
- * copie du point rattaché à la source, d'identifiant `newStopPointId`
- * (fourni par l'appelant, ce module reste pur), juste après elle. L'unicité
- * par emplacement garantit au plus un point rattaché par occurrence ; un
- * éventuel second point (donnée déjà invalide) n'est pas copié.
+ * Story 6.1 (D-436, arbitrage du 22/10/2026) : duplique une occurrence (voir
+ * `duplicateActivity`, récupération copiée) ; la copie est insérée juste
+ * après la source, AVANT le point qui la suivait (`[A, P, B]` →
+ * `[A, A′, P, B]`) ; aucun point n'est copié. Insérer une occurrence juste
+ * après une autre ne peut ni rendre un point interdit ni rapprocher deux
+ * points : le refus est en pratique impossible, mais le jugement commun
+ * s'applique quand même. Entrée invalide — `newId` déjà présent dans la
+ * Composition : exception (convention du Domaine).
+ */
+export function duplicateOccurrenceOutcome(
+  state: CompositionState,
+  activityId: string,
+  newId: string,
+): CompositionOutcome {
+  if (state.exercises.some((activity) => activity.id === newId)) {
+    throw new Error(`duplicateOccurrenceOutcome : l'identifiant de copie « ${newId} » existe déjà dans la Composition.`);
+  }
+  const exercises = duplicateActivity(state.exercises, activityId, newId);
+  if (exercises === state.exercises) {
+    return { status: "NOT_FOUND" };
+  }
+  const copy = exercises.find((activity) => activity.id === newId)!;
+  const sequences = sequencesOf(state);
+  const origin = locateInSequences(sequences, activityId)!;
+  sequences[origin.zone].splice(origin.index + 1, 0, { kind: "OCCURRENCE", occurrence: copy });
+  return judge(state, { exercises, stopPoints: stopPointsFromSequences(state, sequences) });
+}
+
+/**
+ * Forme historique de `duplicateOccurrenceOutcome`. `_newStopPointId` n'est
+ * plus lu depuis D-436 (le point n'est plus copié) : il est conservé, en
+ * type et en position, pour l'appel actuel de l'écran — à retirer avec lui
+ * en story 6.2/6.3.
  */
 export function duplicateOccurrence(
   state: CompositionState,
   activityId: string,
   newId: string,
-  newStopPointId: string,
+  _newStopPointId?: string,
 ): CompositionState {
-  const exercises = duplicateActivity(state.exercises, activityId, newId);
-  if (exercises === state.exercises) {
-    return state;
+  return stateOrUnchanged(duplicateOccurrenceOutcome(state, activityId, newId), state);
+}
+
+/**
+ * Story 6.1 (D-436, R2) : déplacement autonome d'un point vers `target`
+ * (`position` = occurrences de la portée cible qui le précèdent), identité
+ * conservée. Refus sans mutation si la cible n'est pas proposable
+ * (`isStopPointProposable` : hors bornes, juste après le compte à rebours,
+ * juste avant la Fin, tête de Circuit), si elle porte déjà un autre point,
+ * ou si le point y serait consécutif à un autre (RM-251 ; aucune paire qui
+ * le contient n'est exemptée). Cible égale à l'emplacement actuel : l'entrée
+ * elle-même.
+ */
+export function moveStopPoint(
+  state: CompositionState,
+  stopPointId: string,
+  target: StopPointLocation,
+): CompositionOutcome {
+  const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
+  if (point === undefined) {
+    return { status: "NOT_FOUND" };
   }
-  if (state.stopPoints.length === 0) {
-    return { exercises, stopPoints: state.stopPoints };
+  if (point.scope === target.scope && point.position === target.position) {
+    return { status: "APPLIED", state };
   }
-  const anchored: AnchoredStopPoint[] = [];
-  let copied = false;
-  for (const item of anchorStopPoints(state.exercises, state.stopPoints)) {
-    anchored.push(item);
-    if (!copied && item.anchorId === activityId) {
-      anchored.push({ point: { ...item.point, id: newStopPointId }, anchorId: newId });
-      copied = true;
-    }
+  if (!isStopPointProposable(state.exercises, target)) {
+    return refused("STOP_POINT_NOT_ALLOWED", [point]);
   }
-  return { exercises, stopPoints: reattachStopPoints(exercises, anchored) };
+  const occupant = state.stopPoints.find(
+    (candidate) => candidate.id !== stopPointId && stopPointKey(candidate) === stopPointKey(target),
+  );
+  if (occupant !== undefined) {
+    return refused("LOCATION_OCCUPIED", [point, occupant]);
+  }
+  const stopPoints = state.stopPoints.map((candidate) =>
+    candidate === point ? { ...point, scope: target.scope, position: target.position } : candidate,
+  );
+  return judge(state, { exercises: state.exercises, stopPoints }, stopPointId);
 }

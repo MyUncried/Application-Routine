@@ -42,7 +42,7 @@ import {
   occurrenceCountInScope,
   stopPointKey,
   stopPointNeighbors,
-  type StopPointOccurrence,
+  type SequenceOccurrence,
 } from "./StopPoint";
 
 const NAME_MIN_LENGTH = 1;
@@ -635,12 +635,20 @@ function pre3Transport(
  * affichée) et un emplacement unique `(scope, position)`. Violations sur
  * `session.stopPoints`, jamais d'exception. Retourne les points normalisés
  * `{ scope, position }`, dans l'ordre reçu.
+ *
+ * Story 6.1 (D-436, revue) : les voisins sont lus sur la séquence triée
+ * (`inSequenceOrder`) et seules les occurrences `EXERCISE` comptent. RM-251
+ * (non-consécutivité) n'est volontairement PAS contrôlée à l'enregistrement :
+ * une Séance héritée portant deux points consécutifs reste enregistrable ;
+ * les opérations de Composition imposent RM-251 et le développement
+ * (`expandComposition`) n'exécute jamais deux arrêts successifs.
  */
 function validateStopPoints(
   stopPoints: readonly CreateStopPointInput[] | undefined,
-  occurrences: readonly StopPointOccurrence[],
+  unorderedOccurrences: readonly (SequenceOccurrence & { readonly position?: number })[],
   violations: ValidationViolation[],
 ): CreateStopPointInput[] {
+  const occurrences = inSequenceOrder(unorderedOccurrences);
   const normalized: CreateStopPointInput[] = [];
   const seen = new Set<string>();
   for (const point of stopPoints ?? []) {
@@ -670,6 +678,28 @@ function validateStopPoints(
     normalized.push({ scope: point.scope, position: point.position });
   }
   return normalized;
+}
+
+/**
+ * Story 6.1 (revue) : occurrences dans l'ordre de la séquence structurelle —
+ * par zone (avant → dans → après le Circuit), puis par `position` dans la
+ * zone quand elle est fournie (modification), sinon dans l'ordre reçu.
+ * L'ordre compte depuis que seules les occurrences `EXERCISE` sont des
+ * voisins (`isSequenceSeparator`, RM-219).
+ */
+function inSequenceOrder<T extends SequenceOccurrence & { readonly position?: number }>(
+  occurrences: readonly T[],
+): readonly T[] {
+  return occurrences
+    .map((occurrence, index) => ({ occurrence, index }))
+    .sort(
+      (a, b) =>
+        STRUCTURAL_POSITIONS.indexOf(a.occurrence.structuralPosition) -
+          STRUCTURAL_POSITIONS.indexOf(b.occurrence.structuralPosition) ||
+        (a.occurrence.position ?? 0) - (b.occurrence.position ?? 0) ||
+        a.index - b.index,
+    )
+    .map(({ occurrence }) => occurrence);
 }
 
 /**
