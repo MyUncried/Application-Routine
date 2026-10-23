@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
 
 import type { ActivityDefinition } from "@/domain/activities";
 import * as Crypto from "expo-crypto";
@@ -12,13 +13,15 @@ import {
 } from "@/domain/activities/testing/executionParametersFixtures";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
-import { createEmptyDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { createEmptyDraft, createExerciseDraft, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import { catalogueDuration } from "@/features/activities/ActivityCard";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivitySelectionScreen } from "@/features/activities/ActivitySelectionScreen";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
+import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 import { colors } from "@/shared/ui/tokens";
 
@@ -103,6 +106,8 @@ function makeDefinition(
 function renderScreen(
   definitions: readonly ActivityDefinition[],
   updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>(),
+  serviceOverrides: Partial<ActivityDefinitionService> = {},
+  draft: SessionDraft = createEmptyDraft(),
 ) {
   const service: Partial<ActivityDefinitionService> = {
     listActivityDefinitions: jest
@@ -111,9 +116,10 @@ function renderScreen(
     listBodyZones: jest
       .fn<ActivityDefinitionService["listBodyZones"]>()
       .mockResolvedValue(BODY_ZONE_FIXTURES),
+    ...serviceOverrides,
   };
   const draftValue = {
-    draft: createEmptyDraft(),
+    draft,
     updateDraft,
     resetDraft: jest.fn(),
   };
@@ -134,6 +140,27 @@ function renderScreen(
 describe("ActivitySelectionScreen", () => {
   beforeEach(() => {
     mockBack.mockClear();
+  });
+
+  // PRE-6 story 7.10 (D-444) : barre Annuler / Ajouter dans la zone d'action principale fixe.
+  it("story 7.10 — Annuler / Ajouter in the fixed action zone above the safe area (34 + 8); Ajouter in the format of « Terminer », both 48 high; the list reserves the zone", async () => {
+    renderScreen([makeDefinition("a", "Squat")]);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    const zone = StyleSheet.flatten(screen.getByTestId("activity-selection-bottom-action").props.style);
+    // Correctif J6f (D-444) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    expect(zone).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
+    expect(StyleSheet.flatten(screen.getByTestId("activity-selection-add").props.style)).toMatchObject({
+      flex: 1,
+      minHeight: 48,
+      borderRadius: 24,
+      shadowColor: "#1A1A26",
+      backgroundColor: colors.disabled,
+    });
+    // Annuler garde son style neutre (choix de la story 7.10), à la hauteur 48, sans ombre.
+    const cancel = StyleSheet.flatten(screen.getByTestId("activity-selection-cancel").props.style);
+    expect(cancel).toMatchObject({ flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: colors.dialogNeutralActionBackground });
+    expect(cancel.shadowColor).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("activity-selection-list").props.contentContainerStyle).paddingBottom).toBe(114);
   });
 
   it("disables Ajouter when nothing is selected", async () => {
@@ -190,6 +217,58 @@ describe("ActivitySelectionScreen", () => {
     fireEvent.press(screen.getByTestId("activity-selection-row-a"));
     expect(screen.getByTestId("activity-selection-row-checkbox-a")).toBeTruthy();
     expect(screen.getByTestId("activity-selection-row-checked-a")).toBeTruthy();
+  });
+
+  /**
+   * PRE-6 (story 2.2, contexte « Choix composition » `8328:28445`, ch13 PR #390) :
+   * Catégorie et Zones sur une seule ligne (zones tronquées), icône neutre de changement
+   * de côté 8 après le texte si l'exercice en a un, durée totale à 8 du sablier dans une
+   * réserve de 68 alignée à gauche.
+   */
+  it("PRE6-2.2 — Choix composition: Category · zones on one line, side-change icon, hourglass + duration in a 68 reserve", async () => {
+    const listCategories = jest.fn<ActivityDefinitionService["listCategories"]>().mockResolvedValue([
+      {
+        id: "cardio",
+        name: "Cardio",
+        canonicalKey: "cardio",
+        color: "#2E9B62",
+        isPredefined: true,
+        displayOrder: 1,
+        isActive: true,
+        createdAt: "2026-01-01T00:00:00.000Z",
+      },
+    ]);
+    const fentes = makeDefinition("a", "Fentes", { bodyZoneIds: ["cuisses", "dos"], sideMode: "RIGHT_LEFT" });
+    renderScreen(
+      [
+        fentes,
+        makeDefinition("b", "Squat", { categoryId: undefined, bodyZoneIds: [] }),
+      ],
+      undefined,
+      { listCategories },
+    );
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+
+    const zones = await screen.findByTestId("activity-selection-row-body-zones-a");
+    expect(zones.props.children).toBe("Cuisses · Dos");
+    await waitFor(() => expect(screen.getByText("Cardio")).toBeTruthy());
+    const classification = screen.getByTestId("activity-selection-row-classification-a");
+    expect(StyleSheet.flatten(classification.props.style)).toMatchObject({ flexDirection: "row", gap: 8 });
+    expect(screen.getByTestId("activity-selection-row-category-dot-a")).toBeTruthy();
+    const sideChange = screen.getByTestId("activity-selection-row-side-change-a");
+    expect(StyleSheet.flatten(sideChange.props.style)).toMatchObject({ width: 16, height: 16 });
+    expect(screen.queryByTestId("activity-selection-row-side-change-b")).toBeNull();
+    expect(screen.queryByText(/D→G|G→D/)).toBeNull();
+    // Aucune Catégorie, aucune zone, unilatéral : aucune ligne de classement (hauteur inchangée).
+    expect(screen.queryByTestId("activity-selection-row-classification-b")).toBeNull();
+
+    const duration = screen.getByTestId("activity-selection-row-duration-a");
+    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flexDirection: "row", gap: 8 });
+    // Même durée que le Catalogue (`catalogueDuration`).
+    const durationText = within(duration).getByText(catalogueDuration(fentes)!);
+    // Réserve d'au moins 68, jamais une largeur fixe qui tronquerait une durée plus longue.
+    expect(StyleSheet.flatten(durationText.props.style)).toMatchObject({ minWidth: 68, textAlign: "left" });
+    expect(StyleSheet.flatten(durationText.props.style).width).toBeUndefined();
   });
 
   /**
@@ -356,7 +435,8 @@ describe("ActivitySelectionScreen", () => {
 
     expect(updateDraft).toHaveBeenCalledTimes(1);
     const exercises = updateDraft.mock.calls[0][0].exercises ?? [];
-    expect(exercises[0]?.postActivityRecoverySeconds).toBe(0);
+    // PRE-6 (story 1.1, AD-35) : aucune récupération automatique = absente (`null`).
+    expect(exercises[0]?.postActivityRecoverySeconds).toBeNull();
     expect(exercises[0]?.executionParameters).toEqual(
       expect.objectContaining({ version: 3, mode: "DURATION" }),
     );
@@ -427,5 +507,188 @@ describe("ActivitySelectionScreen — PRE-4 story 1.3", () => {
     expect(thrown).toEqual(new Error("Injected failure"));
     expect(updateDraft).not.toHaveBeenCalled();
     expect(mockBack).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * PRE-6 (story 2.3, AD-39) : copies arrivées dans un Circuit de Séries — adaptation à N,
+ * confirmation unique de perte avant toute mutation, Catalogue jamais modifié.
+ */
+describe("ActivitySelectionScreen — ajout dans un Circuit de Séries (PRE-6, story 2.3)", () => {
+  const modal = strings.screens.composition.circuitEntryConfirmModal;
+
+  beforeEach(() => {
+    mockBack.mockClear();
+  });
+
+  /** Brouillon dont la dernière carte affichée est dans le Circuit : les copies y arrivent. */
+  function circuitDraft(nature: "TOURS" | "SERIES", count: number): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      circuitNature: nature,
+      tourRepeatCount: count,
+      exercises: [
+        {
+          ...createExerciseDraft("in-1"),
+          name: "Gainage",
+          structuralPosition: "IN_TOUR",
+          executionParameters: durationParameters(30, count),
+        },
+      ],
+    };
+  }
+
+  function seriesCountIn(patch: Partial<SessionDraft>, id: string): number {
+    const series = patch.exercises!.find((exercise) => exercise.id === id)!.executionParameters.series;
+    return series.kind === "UNIFORM" ? series.count : series.rows.length;
+  }
+
+  async function selectAndAdd(ids: readonly string[]) {
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    for (const id of ids) {
+      fireEvent.press(screen.getByTestId(`activity-selection-row-${id}`));
+    }
+    fireEvent.press(screen.getByTestId("activity-selection-add"));
+  }
+
+  it("avec perte (N = 2, exercice 3 séries) : dialogue avant toute mutation ; Annuler conserve la sélection", async () => {
+    const definition = makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) });
+    const { updateDraft } = renderScreen([definition], undefined, {}, circuitDraft("SERIES", 2));
+    await selectAndAdd(["a"]);
+
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+    expect(
+      screen.getByText(
+        "L’exercice ajouté aura 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+    expect(updateDraft).not.toHaveBeenCalled();
+
+    // L'écran porte déjà son propre « Annuler » : celui du dialogue est pris dans sa carte.
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.cancel));
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    expect(updateDraft).not.toHaveBeenCalled();
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(screen.getByTestId("activity-selection-row-a").props.accessibilityState.checked).toBe(true);
+    // Le Catalogue n'est jamais modifié.
+    expect(definition.executionParameters).toEqual(durationParameters(30, 3));
+  });
+
+  it("avec perte : Confirmer ajoute les copies adaptées à N puis revient à la Composition", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("SERIES", 2),
+    );
+    await selectAndAdd(["a"]);
+    fireEvent.press(screen.getByLabelText(modal.confirm));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(copy.structuralPosition).toBe("IN_TOUR");
+    expect(seriesCountIn(patch, copy.id)).toBe(2);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("plusieurs copies, une seule confirmation, message au pluriel", async () => {
+    renderScreen(
+      [
+        makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) }),
+        makeDefinition("b", "Fente", { executionParameters: durationParameters(30, 1) }),
+      ],
+      undefined,
+      {},
+      circuitDraft("SERIES", 2),
+    );
+    await selectAndAdd(["a", "b"]);
+
+    expect(screen.getAllByText(modal.addTitle)).toHaveLength(1);
+    expect(
+      screen.getByText(
+        "Les exercices ajoutés auront 2 séries. Les séries au-delà de la 2e seront supprimées, avec les valeurs qu’elles portent.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("sans perte (N = 4, exercice 3 séries) : ajouté avec 4 séries, sans dialogue", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("SERIES", 4),
+    );
+    await selectAndAdd(["a"]);
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountIn(patch, copy.id)).toBe(4);
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("Confirmer rejoue l'ajout sur le brouillon courant : une modification faite pendant le dialogue est conservée", async () => {
+    const holder: { setDraft: ((update: (draft: SessionDraft) => SessionDraft) => void) | null } = { setDraft: null };
+    const updateDraft = jest.fn<(patch: Partial<SessionDraft>) => void>();
+    function StatefulDraft({ children }: { children: React.ReactNode }) {
+      const [draft, setDraft] = useState<SessionDraft>(() => circuitDraft("SERIES", 2));
+      useEffect(() => {
+        holder.setDraft = setDraft;
+      }, []);
+      return (
+        <SessionDraftContext.Provider value={{ draft, updateDraft, resetDraft: jest.fn() }}>
+          {children}
+        </SessionDraftContext.Provider>
+      );
+    }
+    const service: Partial<ActivityDefinitionService> = {
+      listActivityDefinitions: jest
+        .fn<ActivityDefinitionService["listActivityDefinitions"]>()
+        .mockResolvedValue([makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })]),
+      listBodyZones: jest.fn<ActivityDefinitionService["listBodyZones"]>().mockResolvedValue(BODY_ZONE_FIXTURES),
+    };
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={service as ActivityDefinitionService}>
+          <ProfileServiceContext.Provider value={fakeProfileService()}>
+            <StatefulDraft>
+              <ActivitySelectionScreen />
+            </StatefulDraft>
+          </ProfileServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await selectAndAdd(["a"]);
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+
+    act(() => {
+      holder.setDraft!((draft) => ({
+        ...draft,
+        exercises: [...draft.exercises, { ...createExerciseDraft("other"), structuralPosition: "BEFORE_TOUR" }],
+      }));
+    });
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.confirm));
+
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const ids = updateDraft.mock.calls[0]![0].exercises!.map((exercise) => exercise.id);
+    expect(ids).toContain("other");
+    expect(ids).toContain("in-1");
+    expect(ids).toHaveLength(3);
+  });
+
+  it("Circuit de Tours : ajout inchangé (séries conservées, sans dialogue)", async () => {
+    const { updateDraft } = renderScreen(
+      [makeDefinition("a", "Squat", { executionParameters: durationParameters(30, 3) })],
+      undefined,
+      {},
+      circuitDraft("TOURS", 2),
+    );
+    await selectAndAdd(["a"]);
+
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const patch = updateDraft.mock.calls[0]![0];
+    const copy = patch.exercises!.find((exercise) => exercise.id !== "in-1")!;
+    expect(seriesCountIn(patch, copy.id)).toBe(3);
   });
 });

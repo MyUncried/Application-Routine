@@ -161,6 +161,7 @@ import {
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * PRE-3 (CE-UI-10, SPECIFICATION-PARAMETRES-MODALE-v13, DSF Séries
@@ -307,11 +308,21 @@ export type ExecutionParametersSheetProps = {
    * Brouillon sont conservées telles quelles.
    */
   readonly exerciseSignals?: "present" | "absent";
+  /**
+   * PRE-6 story 3.3 (AD-37, AD-44, P42) : N hérité d'un Circuit de Séries, lu à l'ouverture
+   * (`openSheetDraft(parent, { inheritedSeriesCount })`). Vrai : le nombre de séries est affiché
+   * indisponible et aucune commande ne le change (stepper du nombre, croix de retrait) ; le
+   * Régime et les autres réglages restent libres. Faux (défaut) : Feuille de PRE-5 inchangée.
+   * Lu au montage de la Feuille (ouverture) seulement : un changement pendant l'ouverture est ignoré.
+   */
+  readonly inheritedSeriesCount?: boolean;
   readonly onApply: (parameters: ExecutionParameters) => void;
   readonly onCancel: () => void;
 };
 
 const t = strings.executionParameters.sheet;
+/** PRE-6 story 3.3 : nombre de séries imposé par le Circuit de Séries (hors du lexique `sheet`, voir `index.ts`). */
+const circuitText = strings.executionParameters.circuit;
 
 /** Type de série affiché par la ligne « Type de série » (FR-27) ; le Brouillon garde son booléen `variable`. */
 type SeriesType = "VARIABLE" | "UNIFORM";
@@ -355,27 +366,8 @@ const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "ste
  */
 export const SELECTOR_SETTLE_MS = SHEET_MOTION_MS;
 
-/**
- * Réglage iOS « Réduire les animations » (D-4, D-7, D-8). Lu au montage puis
- * suivi en direct ; `false` tant que la lecture n'a pas répondu.
- */
-export function useReduceMotion(): boolean {
-  const [reduceMotion, setReduceMotion] = useState(false);
-  useEffect(() => {
-    let active = true;
-    Promise.resolve(AccessibilityInfo.isReduceMotionEnabled())
-      .then((enabled) => {
-        if (active) setReduceMotion(enabled);
-      })
-      .catch(() => undefined);
-    const subscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
-    return () => {
-      active = false;
-      subscription.remove();
-    };
-  }, []);
-  return reduceMotion;
-}
+/** Réglage « Réduire les animations » : hook partagé (`@/shared/ui/useReduceMotion`), réexporté ici pour les consommateurs existants. */
+export { useReduceMotion };
 
 /**
  * PRE-5 story 2.6 (AD-27, FR-4) : briques du tableau extraites dans `sheetTable.tsx`,
@@ -503,12 +495,13 @@ export function ExecutionParametersSheet({
   baseline = null,
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
+  inheritedSeriesCount = false,
   onApply,
   onCancel,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-  const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent));
+  const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent, { inheritedSeriesCount }));
   // Story 3.3 (AD-15) : surface ouverte unique — roue (panneau sur iOS), champ ± ou clavier.
   const [surface, dispatchSurface] = useReducer(sheetSurfaceReducer, INITIAL_SHEET_SURFACE_STATE);
   const openSurface = surface.open;
@@ -1244,7 +1237,8 @@ export function ExecutionParametersSheet({
   // ouvert, le chevron du tableau est grisé et indisponible (jamais stepper et chevron actifs en
   // même temps) ; activer une cellule du tableau ouvre sa surface clavier, ce qui ferme le stepper
   // (une seule surface ouverte) et rend le chevron actif.
-  const seriesCountOpen = isOpen(stepperSurface("count"));
+  // PRE-6 story 3.3 (AD-37) : sous N hérité, le stepper du nombre n'est jamais ouvert.
+  const seriesCountOpen = !draft.inheritedSeriesCount && isOpen(stepperSurface("count"));
   const seriesChevron = seriesTypeValue === "VARIABLE";
   const seriesSelectedWidth = seriesSelectedOptionWidth({
     label: seriesTypeCountLabel(draft.count, seriesTypeValue),
@@ -1268,6 +1262,10 @@ export function ExecutionParametersSheet({
       closedLabel={seriesTypeCountLabel(draft.count, seriesTypeValue)}
       formatValue={seriesLabel}
       onChange={(count) => update(setSeriesCount(draft, count))}
+      // PRE-6 story 3.3 (AD-37) : N imposé par le Circuit de Séries — valeur affichée, indisponible.
+      disabled={draft.inheritedSeriesCount}
+      disabledSuffix={circuitText.inheritedSeriesCountSuffix}
+      disabledHint={circuitText.inheritedSeriesCount}
       accessibilityLabel={t.series}
       valueStyle={styles.seriesStepperValue}
       fieldStyle={styles.seriesStepperField}
@@ -1489,6 +1487,14 @@ export function ExecutionParametersSheet({
     // ferme le stepper du nombre de séries, comme le toucher de la valeur (même logique que
     // l'option Avec des phases) ; Brouillon et repli du tableau inchangés.
     if (seriesType === seriesTypeValue) {
+      // PRE-6 story 3.3 (AD-37) : sous N hérité, aucun stepper du nombre ; le geste range
+      // seulement la surface ouverte (saisie appliquée), comme un toucher ailleurs.
+      if (draft.inheritedSeriesCount) {
+        const base = keyboard.flush(draft);
+        if (base !== draft) commitKeyboard(() => base);
+        dispatchSurface({ type: "closeAll" });
+        return;
+      }
       toggleSeriesCount();
       return;
     }
@@ -2419,6 +2425,7 @@ function VariableTable({
               clip={!unclipped}
               cell={(kind) => (rowId === null ? <View style={tableStyles.emptyCell} /> : cell(kind, rowId, index + 1))}
               loadColumn={loadColumn}
+              inheritedSeriesCount={draft.inheritedSeriesCount}
             />
           </Fragment>
         );
@@ -2448,6 +2455,7 @@ function SeriesTableRow({
   clip,
   cell,
   loadColumn,
+  inheritedSeriesCount,
 }: {
   index: number;
   rowId: number | null;
@@ -2465,6 +2473,8 @@ function SeriesTableRow({
   cell: (kind: RowCellKind) => ReactNode;
   /** PRE-5 story 2.2 : colonne Charge (après la Pause, écart de 7). */
   loadColumn: boolean;
+  /** PRE-6 story 3.3 (AD-37) : N hérité d'un Circuit de Séries — croix indisponible. */
+  inheritedSeriesCount: boolean;
 }) {
   const number = index + 1;
   const testID = `${SERIES_ROW_TEST_ID}-${number}`;
@@ -2511,7 +2521,9 @@ function SeriesTableRow({
         <RemoveRowButton
           accessibilityLabel={t.removeRow.replace("{n}", String(number))}
           closesFieldHint={t.removeRowClosesFieldHint}
-          disabled={count <= 1 || rowId === null}
+          // PRE-6 story 3.3 (AD-37) : un retrait changerait N, imposé par le Circuit de Séries.
+          disabled={count <= 1 || rowId === null || inheritedSeriesCount}
+          disabledHint={inheritedSeriesCount ? circuitText.inheritedSeriesCount : undefined}
           active={removalActive}
           onPress={() => {
             if (rowId !== null) onRemove(rowId);
@@ -2828,6 +2840,9 @@ function SegmentCountField({
   openAccessory,
   openHint,
   closedHitSlop,
+  disabled = false,
+  disabledSuffix,
+  disabledHint,
 }: {
   isOpen: boolean;
   onToggle: () => void;
@@ -2851,18 +2866,34 @@ function SegmentCountField({
   openHint?: string;
   /** RC-16 : marge de toucher du libellé fermé (par défaut 44 de haut). */
   closedHitSlop?: Insets;
+  /**
+   * PRE-6 story 3.3 (AD-37, RM-247) : nombre imposé (N hérité d'un Circuit de Séries) — le
+   * libellé reste affiché avec l'état indisponible existant (`unselected`), sans réglage ;
+   * le nom accessible se termine par `disabledSuffix` (comme l'option Variables indisponible) et
+   * `disabledHint` l'explique. Absent (défaut) : comportement de PRE-5 inchangé.
+   */
+  disabled?: boolean;
+  disabledSuffix?: string;
+  disabledHint?: string;
 }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
-  if (!isOpen) {
+  if (!isOpen || disabled) {
     const toggleButton = (
       <Pressable
         ref={toggleRef}
         onPress={onToggle}
+        // Hors nombre imposé, aucune prop `disabled` : arbre de PRE-5 inchangé.
+        disabled={disabled ? true : undefined}
         accessibilityRole="button"
-        accessibilityLabel={`${accessibilityLabel}, ${closedLabel}`}
-        accessibilityState={{ expanded: false }}
+        accessibilityLabel={
+          disabled && disabledSuffix !== undefined
+            ? `${accessibilityLabel}, ${closedLabel}, ${disabledSuffix}`
+            : `${accessibilityLabel}, ${closedLabel}`
+        }
+        accessibilityHint={disabled ? disabledHint : undefined}
+        accessibilityState={disabled ? { expanded: false, disabled: true } : { expanded: false }}
         hitSlop={closedHitSlop ?? SEGMENT_COUNT_HIT_SLOP}
-        style={style}
+        style={disabled ? [style, styles.unselected] : style}
         testID={`${testID}-toggle`}
       >
         <Text style={inlineSelectedLabelStyle} testID={textTestID}>

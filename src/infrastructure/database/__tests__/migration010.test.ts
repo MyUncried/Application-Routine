@@ -21,7 +21,6 @@ import {
 } from "@/domain/activities/testing/executionParametersFixtures";
 import { toSessionDraft } from "@/domain/sessions/SessionDraft";
 import { SessionValidationError } from "@/domain/sessions/errors";
-import { formatCompositionSummary } from "@/features/sessions/compositionPresentation";
 import { SessionService } from "@/features/sessions/SessionService";
 import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -32,6 +31,7 @@ import {
   assertSessionAggregateRow,
 } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion9 as buildSharedVersion9 } from "@/infrastructure/database/testing/buildVersion9";
+import { withoutMigration011Columns, withoutMigration011TableInfo } from "@/infrastructure/database/testing/migration011Columns";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import type { SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
 
@@ -330,7 +330,7 @@ describe("PRE4-1.1/AC9 — prédicat d'illisibilité fermé, un test par cas", (
 
     await migrateDatabase(database, clock);
 
-    expect(await version()).toBe(10);
+    expect(await version()).toBe(11);
     expect(await exists("activity_definitions", "def-unreadable")).toBe(false);
     expect(await exists("activities", "copy-unreadable")).toBe(false);
     expect(await exists("activity_definitions", "def-readable")).toBe(true);
@@ -570,7 +570,7 @@ describe("PRE4-1.1/AC12 — écart des illisibles : intégrité, Séances et Mé
 
     await migrateDatabase(database, clock);
 
-    expect(await version()).toBe(10);
+    expect(await version()).toBe(11);
     const after = await snapshot();
     expect(await exists("activity_definitions", "def-bad")).toBe(false);
     expect(await exists("activity_definitions", "def-ok-1")).toBe(true);
@@ -589,7 +589,8 @@ describe("PRE4-1.1/AC12 — écart des illisibles : intégrité, Séances et Mé
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
     // Catégories, Zones, Étiquettes et media_assets inchangés, y compris l'asset dont l'Exercice écarté était le seul utilisateur.
     for (const table of ["categories", "body_zones", "labels", "media_assets", "sessions", "cycles", "tours", "users", "profiles"]) {
-      expect({ table, rows: after[table] }).toEqual({ table, rows: before[table] });
+      // PRE-6 : colonnes additives de `migration011` hors objet de cette preuve.
+      expect({ table, rows: withoutMigration011Columns(table, after[table]) }).toEqual({ table, rows: before[table] });
     }
     expect(await database.getAllAsync("SELECT activity_definition_id, asset_id, position FROM activity_media ORDER BY id")).toEqual([
       { activity_definition_id: "def-ok-1", asset_id: "asset-shared", position: 0 },
@@ -786,8 +787,10 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
 
     await migrateDatabase(database, clock);
 
+    // PRE-6 : la colonne additive de `migration011` est hors objet de cette preuve.
+    const activitiesAfter = await shape("activities");
     expect({
-      activities: await shape("activities"),
+      activities: { ...activitiesAfter, columns: withoutMigration011TableInfo("activities", activitiesAfter.columns) },
       activity_body_zones: await shape("activity_body_zones"),
       session_activity_media: await shape("session_activity_media"),
     }).toEqual(before);
@@ -1089,7 +1092,7 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
     }
 
     await migrateDatabase(database, clock);
-    expect(await version()).toBe(10);
+    expect(await version()).toBe(11);
     expect(await notices()).toEqual([expect.objectContaining({ count: 5 })]);
   });
 
@@ -1109,7 +1112,7 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
     await database.execAsync("DROP TABLE activity_notes");
 
     await migrateDatabase(database, clock);
-    expect(await version()).toBe(10);
+    expect(await version()).toBe(11);
   });
 });
 
@@ -1282,7 +1285,8 @@ describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
         id: "cycle-b",
         position: 1,
         repeatCount: 1,
-        tour: { id: "tour-b", position: 1, repeatCount: 2, exercises: [] },
+        // PRE-6 (story 1.1) : la nature reprise par `migration011` est relue.
+        tour: { id: "tour-b", position: 1, repeatCount: 2, nature: "TOURS", exercises: [] },
       },
     });
     expect(await repository.findSessionStatus("session-b")).toBe("ACTIVE");
@@ -1291,7 +1295,6 @@ describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
     expect(opened.status).toBe("OK");
     const draft = toSessionDraft((opened as { session: NonNullable<typeof session> }).session);
     expect(draft.exercises).toEqual([]);
-    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount })).toBe("0 exercice · 0 min");
     // Une Séance dont il ne reste qu'une zone (C : Circuit vidé) reste lue avec ses occurrences restantes.
     const sessionC = await repository.findById("session-c");
     expect(sessionC?.cycle.beforeTour?.map((activity) => activity.id)).toEqual(["c-before"]);

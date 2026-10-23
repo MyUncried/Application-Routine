@@ -114,7 +114,7 @@ La règle vaut également :
 
 Dans l’éditeur d’Exercice, le contrôle générique `Récupération` est remplacé par `Pause entre les côtés` et n’est exposé que lorsque `Changement de côté` vaut `Avec` (D-406). La récupération après exercice ne figure ni dans l’éditeur ni dans la synthèse intrinsèque de l’Exercice.
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant ouvre une bulle de retrait ; un appui ailleurs referme la bulle sans modification. La Récupération après exercice reste exécutée et, dans la Composition v2, sa valeur affichable est intégrée à la troisième ligne de la carte (D-435) ; le Point d’arrêt reste une action distincte.
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant le saisit pour le déplacer par glisser-déposer vers une position autorisée ; une dépose interdite est refusée sans modification. Son retrait se fait uniquement en mode Placement, où les Points existants apparaissent sélectionnés et se désélectionnent pour être retirés à la confirmation (D-441, remplace la bulle de retrait du Point). Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux (RM-251). Depuis D-442 (22/10/2026) : le Point saisi est marqué visuellement par un état soulevé, comme une carte ; pendant le glisser d’une carte ou d’un Point, l’approche du bord haut ou bas de la zone visible fait défiler la liste ; la tête de Circuit (début de Tour) est une position autorisée et proposée ; un déplacement d’Exercice qui laisserait un Point à une position non autorisée est appliqué et retire sans message le ou les Points en cause, le premier de deux Points devenus consécutifs étant conservé ; la suppression d’un Exercice suit la même règle, au lieu du refus doux de D-441, et sa carte disparaît en fondu ; à N ≥ 2 Tours ou Séries, un Point de début de Tour et un Point de fin de Tour qui se suivraient donnent lieu au choix de celui à conserver. La Récupération après exercice reste exécutée et, dans la Composition v2, sa valeur affichable est intégrée à la troisième ligne de la carte (D-435) ; hors placement, cette valeur n’est plus une cible : la récupération s’ajoute, se modifie et se retire uniquement en mode Placement (D-442). Le point d’arrêt reste une action distincte. La Composition n’affiche aucun avertissement d’enchaînement sans pause (D-301 retirée par D-442).
 
 **Contexte d’Exécution (D-220).** La ligne immédiatement sous le nom de l’Exercice est toujours renseignée : nom de Séance et Catégorie de l’Exercice lors d’une Exécution de Séance, Catégorie de l’Exercice seule en Exécution directe. L’indication du côté courant, lorsqu’elle existe, reste distincte.
 
@@ -126,7 +126,7 @@ Les espaces de contexte et de section, les pieds d’action et les surfaces de m
 
 ### Évolution des vues de composition
 
-Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et CE-CIR-03 (volumes), ajoutés au chapitre 13, complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ±, pastille d’unité pour nature, œil permanent sur la ligne du titre pour la grille. Les cartes affichent les volumes, pas seulement N séries variables.
+Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et CE-CIR-03 (volumes), ajoutés au chapitre 13, complètent CE-T03-08 et CE-UI-10. En-tête : chiffre pour ± (remplacé par D-442 : stepper − / + toujours affiché et actif autour du nombre), pastille d’unité pour nature, œil permanent sur la ligne du titre pour la grille. Les cartes affichent les volumes, pas seulement N séries variables.
 
 **Alignement documentaire du 12/10 :** 54 captures réexportées, [DSF courant](../DSF-CIRCUITS-CONTROLES-2026-10-12.md) et . Les écarts visuels résiduels y sont explicites ; aucune conformité complète de Figma ou de l’application n’est revendiquée. La page modèles `8334:28437` et le parcours Tabata `8388:28362`, `8388:28484`, `8388:32052`, `8388:32181` sont dans la page Figma Conception — Hors MVP ; ce nom de page ne définit pas le périmètre : les six formats d’entraînement et les départs rapides appartiennent au MVP (D-378).
 
@@ -400,7 +400,7 @@ L’icône affichée à gauche de `Nombre de tours` est exclusivement une instan
 
 Le Circuit porte une nature tours (défaut) ou séries et un compte de 1 à 99, initialisé à 1.
 
-Le chiffre du compteur ouvre les boutons −/+ ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil permanent, sur la ligne du titre, ouvre les volumes. Les captures actuelles et les mesures figurent dans le DSF du 12/10 ; les ± visibles dans ces exemples illustrent l’édition, pas le repos.
+Le chiffre du compteur ouvre les boutons −/+ (remplacé par D-442 du 22/10/2026 : le stepper − / + est toujours affiché et actif autour du nombre, présenté au format « Valeur modifiable » ; les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt ; nombre, unité et durée ont la taille du titre « Circuit ») ; la pastille portant uniquement tours/séries ouvre le choix de nature. Le bouton œil permanent, sur la ligne du titre, ouvre les volumes. La durée affichée du Circuit est une estimation, arrondie à la minute la plus proche au-delà de 3 minutes (D-442 ; remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite). Les captures actuelles et les mesures figurent dans le DSF du 12/10 ; les ± visibles dans ces exemples illustrent l’édition, pas le repos (remplacé par D-442 : les ± sont visibles au repos).
 
 La synthèse n’est plus affichée isolément au bas de l’écran. Elle est recalculée uniquement après une modification validée qui affecte les Exercices ou le nombre de Tours. La confirmation du `Compte à rebours initial` ou de la `Fin de séance` actualise seulement le jalon structurel concerné et ne modifie jamais cette synthèse. Celle-ci reste attachée au conteneur Circuit dans ses états applicables.
 
@@ -445,6 +445,8 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 ##### Composition séance — Étiquette sélectionnée
 
+Dans la zone de contexte, la puce Étiquette porte l’icône d’étiquette (contour de l’étiquette), dans la couleur de l’Étiquette quand elle est choisie, et non une pastille ronde (D-442).
+
 [Source Figma — `8328:34377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34377)
 
 
@@ -476,11 +478,15 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 ##### Composition séance — Retirer une récupération
 
+Remplacé par D-442 ; capture historique. Hors placement, la récupération n’est plus une cible et n’ouvre plus de bulle ; son retrait se fait par désélection en mode Placement, appliquée par « Confirmer les modifications ».
+
 [Source Figma — `8328:29133`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29133)
 
 
 
 ##### Composition séance — Retirer un point d’arrêt
+
+Remplacé par D-441 ; capture historique pour le Point d’arrêt. Le retrait du Point d’arrêt se fait désormais par désélection en mode Placement ; la bulle reste valable pour la récupération (« Composition séance — Retirer une récupération ») (remplacé par D-442 : la récupération se retire elle aussi par désélection en mode Placement).
 
 [Source Figma — `8328:33689`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33689)
 
@@ -1853,6 +1859,7 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 #### Boutons et zones tactiles
 
 - Un bouton principal occupe la largeur utile, possède une hauteur minimale de `48` points et un rayon de `24` points.
+- Depuis D-444 (23/10/2026), le bouton d’action principal a un format unique sur tous les écrans, celui du bouton « Terminer » de l’écran Exercice (dimensions, marges latérales, typographie, couleurs, arrondis, ombre) ; seuls le libellé, l’état et l’action varient. Il reste fixe en bas de l’écran, centré verticalement dans une zone protégée (marge supérieure, bouton, marge inférieure et zone de sécurité) avant laquelle le contenu défilant s’arrête, sans qu’aucun élément soit masqué ni rendu inaccessible ; un dégradé vertical blanc, de 0 % d’opacité en haut à 100 % en bas, couvre toute la largeur de cette zone. Les barres d’action de mode (Composition, placement ✓ / Annuler) respectent la zone de sécurité inférieure d’iOS sans chevaucher la zone du geste d’accueil et gardent le même positionnement vertical que les autres barres d’action, sans saut au changement de mode.
 - Un bouton secondaire compact peut avoir une hauteur visuelle de `32` points et un rayon de `16` points, mais il est placé dans une cible tactile de `48 × 48` points logiques, dimension spécifique conservée au-dessus du minimum commun de `44 × 44` (D-087, D-234).
 - Une icône seule possède la cible tactile minimale commune de `44 × 44`, même si son dessin est plus petit (D-087).
 - Un champ, un contrôle segmenté ou une autre commande visuelle de `32` à `42` points conserve sa hauteur visuelle lorsqu’elle est intentionnelle. Son composant interactif utilise néanmoins un conteneur tactile ou un `hitSlop` portant sa cible effective à `44 × 44` au minimum (D-087, D-234), sans chevauchement avec une cible voisine.
@@ -2158,7 +2165,7 @@ La raison est la **stabilité à l'édition** : sous une règle qui regarderait 
 
 #### Le modèle d'interaction des valeurs réglables
 
-Cette section décrit les contrôles numériques à boutons contextuels, lorsque ce comportement est applicable. Elle ne remplace pas les steppers permanents explicitement prévus pour Nombre de séries ou Pauses, les roulettes ni le sélecteur propre à chaque cellule de séries variables (D-413, D-417).
+Cette section décrit les contrôles numériques à boutons contextuels, lorsque ce comportement est applicable. Elle ne remplace pas les steppers permanents explicitement prévus pour Nombre de séries ou Pauses, ni, depuis D-442 (22/10/2026), le stepper toujours actif du nombre de Tours ou de Séries de l’en-tête du Circuit, les roulettes ni le sélecteur propre à chaque cellule de séries variables (D-413, D-417).
 
 ##### Au repos, seule la valeur est visible
 

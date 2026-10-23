@@ -587,7 +587,7 @@ cadenceBeepIntervalSeconds entier 0..10 dans les deux modes ; 0=Aucun, défaut 0
 
 #### Précision de modèle — source, v15
 
-Une récupération explicite de 0 s est un objet conservé, distinct de l’absence ; seul Retirer la supprime. Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
+Une récupération explicite de 0 s est un objet conservé, distinct de l’absence ; seul Retirer la supprime (depuis D-442, par désélection en mode Placement appliquée par Confirmer). Elle ne crée aucune phase positive ni suppression dePN. Le scalaire historique ActivityDefinition.pauseSeconds ne devient pas une récupération : sa valeur est portée dans SeriesParameters.pauseSeconds lors de la refonte. Les pauses recovery/breakpoint de Composition restent une collection distincte. Aucun schéma physique ou migration exécutée dans ce lot.
 
 **Compatibilité D-214 — 12/10/2026.** Si un ancien champ d’activation est déjà persisté, il est obsolète et ne peut réactiver les phases propres lors de la construction d’un nouveau plan SESSION, quelle que soit sa valeur. L’inventaire du schéma réel détermine sa migration physique ; aucune suppression SQL n’est livrée par cette correction documentaire. Conserver les paramètres propres des Exercices et les instantanés/résultats historiques, sans réécriture des temps réalisés.
 

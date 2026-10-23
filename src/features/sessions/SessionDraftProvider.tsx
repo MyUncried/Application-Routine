@@ -20,6 +20,7 @@ import {
   SessionDraftContext,
   type SessionDraftContextValue,
   type SessionDraftEditStatus,
+  type SessionDraftUpdate,
 } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 
@@ -84,8 +85,9 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
     setEditStatusState(next);
   }, []);
 
-  const updateDraft = useCallback((patch: Partial<SessionDraft>) => {
-    setDraft((current) => ({ ...current, ...patch }));
+  const updateDraft = useCallback((update: SessionDraftUpdate) => {
+    // PRE-6 (story 3.1) : forme fonctionnelle — le correctif est calculé sur le brouillon courant.
+    setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
   }, []);
 
   const resetDraft = useCallback(() => {

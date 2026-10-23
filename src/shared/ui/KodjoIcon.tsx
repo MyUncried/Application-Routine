@@ -61,6 +61,54 @@ const sources = {
   // glyphes (`SVG_STRING`, `svgOutlineText`), jamais redessinés.
   "stepper-minus": require("../../../assets/icons/stepper-minus.svg"),
   "stepper-plus": require("../../../assets/icons/stepper-plus.svg"),
+  // PRE-6 story 2.1 (D-303, Figma `8328:41087` « Sablier — Récupération ») : couche
+  // vectorielle servie par l’outil MCP Figma en lecture seule (`download_assets`, svgAssets),
+  // attributs racine preserveAspectRatio/overflow/style retirés, identifiant de groupe réparé.
+  "recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation.svg"),
+  // PRE-6 story 2.2 (RM-243, D-407, ARB-2) : indicateur NEUTRE de changement de côté, sans
+  // direction — Figma `9522:20651` (carte d'occurrence), tracé identique à `6238:8587`
+  // (carte de sélection) : un seul fichier. Même procédé d'export que `recovery-hourglass`.
+  "side-change": require("../../../assets/icons/icon-changement-de-cote.svg"),
+  // PRE-6 story 2.2 : sablier de la durée totale, carte de sélection « Choix composition »
+  // (`DSF / Cards / Exercice`, `6214:4410`). Distinct du sablier de récupération (autre tracé).
+  "duration-hourglass": require("../../../assets/icons/icon-duree-sablier.svg"),
+  // PRE-6 story 3.4 (CE-CIR-03) : `icon/oeil` (`8165:13756`), œil de l’en-tête du Circuit qui
+  // ouvre « Volumes du circuit ». Export SVG de l’outil MCP Figma en lecture seule ; le fond de
+  // canevas ajouté par l’export est retiré, l’identifiant doublement encodé réparé.
+  "view-volumes": require("../../../assets/icons/icon-oeil.svg"),
+  // PRE-6 story 4.1 : action d’en-tête « Ajouter un arrêt » (`8328:28622`) — icône standard
+  // `8328:28624` et icône pleine de l’état actif pendant le placement (`8328:29289`). Exports SVG
+  // de l’outil MCP Figma en lecture seule (boîte 25 × 25 de l’export : le halo blanc déborde d’un
+  // point le cadre 24 × 24).
+  "add-stop": require("../../../assets/icons/icon-ajouter-un-arret.svg"),
+  "add-stop-active": require("../../../assets/icons/icon-ajouter-un-arret-actif.svg"),
+  // PRE-6 story 4.1 : sablier des puces « Récupération » du placement (`8328:40909` sur la puce à
+  // ajouter, `8328:40907` en blanc sur la puce ajoutée). Tracé distinct du sablier 13 de la ligne
+  // structurelle (`recovery-hourglass`).
+  "placement-recovery": require("../../../assets/icons/icon-recuperation-placement.svg"),
+  "placement-recovery-added": require("../../../assets/icons/icon-recuperation-placement-ajoutee.svg"),
+  // PRE-6 story 4.2 : sablier blanc 12 de la bulle « Retirer la récupération » (`8328:41025`,
+  // dans `8328:29267`). Ressource servie par `get_design_context` (outil MCP Figma, lecture seule) :
+  // attributs racine preserveAspectRatio/overflow/style retirés, identifiant de groupe décodé
+  // (export doublement encodé) ; tracé inchangé — même dessin que `8328:40907` à l’échelle 12/14,
+  // dont le second sous-chemin reste ouvert comme dans Figma (sans effet sur le remplissage).
+  "remove-recovery": require("../../../assets/icons/icon-retirer-recuperation.svg"),
+  // PRE-6 story 5.1 (D-435, carte v2 `9798:44464`) : icônes de la carte d’occurrence de la
+  // Composition, exports SVG de l’outil MCP Figma en lecture seule (attributs racine
+  // preserveAspectRatio/overflow/style retirés, identifiant de groupe décodé) :
+  // - gabarit média 24 (`9798:19907`, même tracé que la variante Circuit `9819:19963`) ;
+  // - pastilles 13 de Catégorie (`9798:19913`) et de Zone corporelle (`9798:19919`) ;
+  // - symbole 13 de la synthèse de travail (`9798:19927`) ;
+  // - sablier 13 de la récupération (`9798:19932`) : tracé plus grand que `recovery-hourglass`
+  //   (`8328:41087`), qui n’est donc pas réutilisé ;
+  // - changement de côté 16 (`9798:19925`) : même tracé que `side-change`, mais rempli
+  //   `#7A7A80` au lieu de `#9499A8` ; la carte de sélection garde `side-change`.
+  "card-media-exercise": require("../../../assets/icons/icon-nature-exercice.svg"),
+  "card-category-badge": require("../../../assets/icons/icon-pastille-categorie.svg"),
+  "card-body-zone-badge": require("../../../assets/icons/icon-pastille-zone-corporelle.svg"),
+  "card-work-duration": require("../../../assets/icons/icon-symbole-duree.svg"),
+  "card-recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation-v2.svg"),
+  "card-side-change": require("../../../assets/icons/icon-changement-de-cote-v2.svg"),
 } as const;
 
 const sizes = {
@@ -174,6 +222,27 @@ const sizes = {
   // le cercle `28 × 28` du stepper).
   "stepper-minus": [8, 2],
   "stepper-plus": [8, 8],
+  // Cadre 13 × 13 du `viewBox` exact (ligne structurelle de récupération).
+  "recovery-hourglass": [13, 13],
+  // Cadres 16 × 16 des `viewBox` exacts.
+  "side-change": [16, 16],
+  "duration-hourglass": [16, 16],
+  // Cadre 24 × 24 du `viewBox` exact ; cercle 32 et cible 44 portés par `CircuitHeader`.
+  "view-volumes": [24, 24],
+  // Boîtes 25 × 25 des exports ; cercle 34 et cible 44 portés par `CompositionContextHeader`.
+  "add-stop": [25, 25],
+  "add-stop-active": [25, 25],
+  // Cadres 14 × 14 des `viewBox` exacts (puces du placement).
+  "placement-recovery": [14, 14],
+  "placement-recovery-added": [14, 14],
+  // Cadre 12 × 12 du `viewBox` exact (bulle « Retirer la récupération »).
+  "remove-recovery": [12, 12],
+  "card-media-exercise": [24, 24],
+  "card-category-badge": [13, 13],
+  "card-body-zone-badge": [13, 13],
+  "card-work-duration": [13, 13],
+  "card-recovery-hourglass": [13, 13],
+  "card-side-change": [16, 16],
 } as const;
 
 /**

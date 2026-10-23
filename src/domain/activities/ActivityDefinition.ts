@@ -339,7 +339,8 @@ export function sideRecoveryOnSideModeChange(
 export function activityDefinitionToDraftExercise(
   definition: ActivityDefinition,
   newId: string,
-  postActivityRecoverySeconds: number,
+  /** PRE-6 (story 1.1, AD-35) : `null` = occurrence sans récupération (ajout depuis le Catalogue). */
+  postActivityRecoverySeconds: number | null,
 ): SessionDraftExercise {
   // PRE-3 (P3-18) / PRE-4 (AD-9) : copie COMPLÈTE et indépendante — paramètres
   // typés clonés en profondeur (Cibles `FAILURE` et `UNSET` comprises),

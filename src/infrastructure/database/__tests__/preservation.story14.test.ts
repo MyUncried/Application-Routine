@@ -35,6 +35,7 @@ import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repos
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion9 } from "@/infrastructure/database/testing/buildVersion9";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
+import { withoutMigration011Columns } from "@/infrastructure/database/testing/migration011Columns";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 
 /**
@@ -627,7 +628,9 @@ function expectConverted(before: Row[], after: Row[], definition: boolean): Map<
       pause: projection.pauseSeconds,
       side: projection.sideMode,
     });
-    expect({ id, others: withoutConverted(target!) }).toEqual({ id, others: withoutConverted(source) });
+    // PRE-6 : la présence de récupération (`migration011`, additive) est hors objet de cette preuve.
+    const [targetOthers] = withoutMigration011Columns(definition ? "activity_definitions" : "activities", [target!]) as Row[];
+    expect({ id, others: withoutConverted(targetOthers!) }).toEqual({ id, others: withoutConverted(source) });
     expect({ id, allFailure: allTargetsFailure(parameters) }).toEqual({ id, allFailure: source.execution_mode === "TO_FAILURE" });
     expect(output).not.toContain('"value":0');
     converted.set(id, parameters);
@@ -831,7 +834,7 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     await migrateLikeStartup(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(10);
+    expect(await version(database)).toBe(11);
     const after = await inventory(database);
     // Comptes et identifiants égaux pour chaque table de la v9 ; seule migration_notices s'ajoute, vide.
     expect(Object.keys(after).sort()).toEqual([...Object.keys(before), "migration_notices"].sort());
@@ -842,7 +845,8 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     // Tables hors Exercice : contenu identique ligne pour ligne (Médias, liens et ordre compris : FR-21-57).
     const dumpAfter = await dump(database);
     for (const table of Object.keys(before).filter((name) => name !== "activity_definitions" && name !== "activities")) {
-      expect({ table, rows: dumpAfter[table] }).toEqual({ table, rows: dumpBefore[table] });
+      // PRE-6 : colonnes additives de `migration011` hors objet de cette preuve.
+      expect({ table, rows: withoutMigration011Columns(table, dumpAfter[table]) }).toEqual({ table, rows: dumpBefore[table] });
     }
     // Chaque Exercice : Mode et Cibles convertis selon 1.1, tout le reste identique.
     const rowsAfter = await exerciseRows(database);
@@ -884,7 +888,7 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     await migrateLikeStartup(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(10);
+    expect(await version(database)).toBe(11);
     const after = await inventory(database);
     const dumpAfter = await dump(database);
     // Comptes ET identifiants attendus : avant, moins exactement les Exercices écartés et leurs liens.
@@ -919,7 +923,8 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     expect(after.activities!.keys).toEqual(COPIES.map((item) => item.id).sort());
     // Catégories, Zones, media_assets (y compris l'asset dont seul un illisible se servait) et toutes les Séances présents, inchangés.
     for (const table of ["categories", "body_zones", "media_assets", "sessions", "cycles", "tours", "session_stop_points", "users", "profiles", "labels"]) {
-      expect({ table, rows: dumpAfter[table] }).toEqual({ table, rows: dumpBefore[table] });
+      // PRE-6 : colonnes additives de `migration011` hors objet de cette preuve.
+      expect({ table, rows: withoutMigration011Columns(table, dumpAfter[table]) }).toEqual({ table, rows: dumpBefore[table] });
     }
     expect(after.media_assets!.keys).toContain("asset-only-unreadable");
     expect(after.sessions!.keys).toEqual(["session-a", "session-b", "session-c", "session-d"]);
@@ -1021,7 +1026,7 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
 
     await migrateLikeStartup(database);
     database = reopen(database);
-    expect(await version(database)).toBe(10);
+    expect(await version(database)).toBe(11);
     expect(await database.getAllAsync("SELECT count FROM migration_notices")).toEqual([{ count: 4 }]);
   });
 
@@ -1148,7 +1153,7 @@ describe("PRE-4 story 1.4 — report E7 : foreign_key_check de migration010 face
     await migrateLikeStartup(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(10);
+    expect(await version(database)).toBe(11);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual(violationsBefore);
     for (const table of ["activities", "activity_body_zones", "session_activity_media"]) {
       expect(await database.getAllAsync(`PRAGMA foreign_key_check(${table})`)).toEqual([]);
@@ -1206,6 +1211,6 @@ describe("PRE-4 story 1.4 — report E7 : foreign_key_check de migration010 face
     expect(await dump(database)).toEqual(initial);
     // Sans la violation nouvelle, la même base migre (E7-a).
     await migrateLikeStartup(database);
-    expect(await version(database)).toBe(10);
+    expect(await version(database)).toBe(11);
   });
 });

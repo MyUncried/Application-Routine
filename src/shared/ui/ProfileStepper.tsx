@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type ViewStyle } from "react-native";
 
 import { stepWithinBounds } from "@/domain/activities/ExecutionParameters";
 import { nextGridValue, previousGridValue } from "@/domain/preferences/Profile";
@@ -15,6 +15,11 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  * tactile reste 48 × 48 via `hitSlop`.
  */
 const STEP_CIRCLE = 28;
+/**
+ * Marge tactile de chaque cercle ± (cible `minTouchTarget`). Exportée pour qu'un voisin du stepper
+ * garde sa propre cible disjointe (PRE-6 story 5.2 : en-tête du Circuit).
+ */
+export const INLINE_STEPPER_STEP_HIT_SLOP = (minTouchTarget - STEP_CIRCLE) / 2;
 const STEPPER_HEIGHT = 36;
 const STEPPER_VALUE_WIDTH = 50;
 /**
@@ -211,6 +216,23 @@ export type InlineStepperProps = {
   readonly accessory?: ReactNode;
   /** RC-16 : indice annoncé hors valeur signalée (`invalid` garde `invalidHint`). */
   readonly hint?: string;
+  /**
+   * PRE-6 story 3.1 — ajout additif, absent par défaut : fond des cercles − et + (cercles
+   * `color/surface` du compteur du Circuit, sur fond blanc). Seul le fond est réglable : taille
+   * et marge de toucher restent celles de `STEP_CIRCLE` ; mécanisme et accessibilité inchangés.
+   */
+  readonly stepButtonStyle?: Pick<ViewStyle, "backgroundColor">;
+  /**
+   * PRE-6 story 3.1 — ajout additif, absent par défaut : action accessible nommée « close »
+   * (libellé fourni) portée par le réglage ajustable lui-même, seul élément focalisé par
+   * VoiceOver ; elle appelle `onClose`. Absente : actions inchangées.
+   */
+  readonly closeAction?: { readonly label: string; readonly onClose: () => void };
+  /**
+   * PRE-6 story 3.1 — ajout additif : appelé par l'action VoiceOver « activer » à la place de
+   * `onValuePress` (qui reste celui du toucher). Absent : « activer » appelle `onValuePress`.
+   */
+  readonly onValueActivate?: () => void;
   readonly testID: string;
 };
 
@@ -242,6 +264,9 @@ export function InlineStepper({
   valueStyle,
   accessory,
   hint,
+  stepButtonStyle,
+  closeAction,
+  onValueActivate,
   testID,
 }: InlineStepperProps) {
   const t = strings.screens.profile.stepper;
@@ -333,12 +358,17 @@ export function InlineStepper({
       accessibilityValue={value === null ? { text: valueText } : { min, max, now: value, text: valueText }}
       accessibilityState={{ disabled }}
       accessibilityHint={invalid ? invalidHint : hint}
-      accessibilityActions={[...stepActions, ...(valuePressable ? [{ name: "activate" }] : [])]}
+      accessibilityActions={[
+        ...stepActions,
+        ...(valuePressable ? [{ name: "activate" }] : []),
+        ...(closeAction ? [{ name: "close", label: closeAction.label }] : []),
+      ]}
       onAccessibilityAction={(event) => {
         if (disabled) return;
         if (event.nativeEvent.actionName === "increment" && !atMax) applyStep(1, 1);
         if (event.nativeEvent.actionName === "decrement" && !atMin) applyStep(-1, 1);
-        if (event.nativeEvent.actionName === "activate" && valuePressable) onValuePress?.();
+        if (event.nativeEvent.actionName === "activate" && valuePressable) (onValueActivate ?? onValuePress)?.();
+        if (event.nativeEvent.actionName === "close") closeAction?.onClose();
       }}
       testID={testID}
     >
@@ -351,8 +381,8 @@ export function InlineStepper({
           atMin && !disabled ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel
         }
         accessibilityState={{ disabled: atMin }}
-        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
-        style={styles.stepButton}
+        hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
+        style={[styles.stepButton, stepButtonStyle]}
         testID={`${testID}-decrement`}
       >
         <KodjoIcon name="stepper-minus" tintColor={atMin ? colors.disabled : colors.primary} />
@@ -386,8 +416,8 @@ export function InlineStepper({
           atMax && !disabled ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel
         }
         accessibilityState={{ disabled: atMax }}
-        hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
-        style={styles.stepButton}
+        hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
+        style={[styles.stepButton, stepButtonStyle]}
         testID={`${testID}-increment`}
       >
         <KodjoIcon name="stepper-plus" tintColor={atMax ? colors.disabled : colors.primary} />
@@ -528,7 +558,7 @@ export function ProfileStepper({
             accessibilityRole="button"
             accessibilityLabel={atMin ? `${t.decrementAccessibilityLabel} — ${t.minimumReachedSuffix}` : t.decrementAccessibilityLabel}
             accessibilityState={{ disabled: atMin }}
-            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
             style={styles.stepButton}
             testID={`${testID}-decrement`}
           >
@@ -553,7 +583,7 @@ export function ProfileStepper({
             accessibilityRole="button"
             accessibilityLabel={atMax ? `${t.incrementAccessibilityLabel} — ${t.maximumReachedSuffix}` : t.incrementAccessibilityLabel}
             accessibilityState={{ disabled: atMax }}
-            hitSlop={(minTouchTarget - STEP_CIRCLE) / 2}
+            hitSlop={INLINE_STEPPER_STEP_HIT_SLOP}
             style={styles.stepButton}
             testID={`${testID}-increment`}
           >

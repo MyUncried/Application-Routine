@@ -59,8 +59,11 @@ export type ExerciseExitConfirmModalProps = {
  * `onRequestClose` (bouton matériel Android) traité comme Annuler par
  * `DecisionDialog` — comportement inchangé.
  */
-/** G-9 : couleur du message du dialogue d'abandon (`8328:36781`), sans jeton exact. */
-const EXIT_DIALOG_MESSAGE_COLOR = "#474D57";
+/**
+ * G-9 : couleur du message des dialogues `8328:*` (abandon `8328:36781`, perte de séries
+ * `8328:34964`, PRE-6 story 2.3), sans jeton exact — constante unique partagée.
+ */
+export const DIALOG_8328_MESSAGE_COLOR = "#474D57";
 
 export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = false }: ExerciseExitConfirmModalProps) {
   const modalStrings = strings.screens.exercise.exitConfirmModal;
@@ -76,7 +79,7 @@ export function ExerciseExitConfirmModal({ onCancel, onConfirm, isCreation = fal
       // Compléments G-9 (conformité au Figma actuel, `8328:36781`) : message `#474D57` (constante
       // locale), libellés d'action en 16 — « Annuler » Semi Bold `#292E38`, « Confirmer » Medium —
       // et liseré de « Confirmer » (jetons Séance existants) ; structure et interactions inchangées.
-      messageStyle={{ ...type.dialogMessage, color: EXIT_DIALOG_MESSAGE_COLOR }}
+      messageStyle={{ ...type.dialogMessage, color: DIALOG_8328_MESSAGE_COLOR }}
       cancelLabel={modalStrings.continueEditing}
       cancelLabelStyle={{ ...type.dialogNeutralActionLabel, color: colors.dialogNeutralActionText }}
       confirmLabel={modalStrings.abandon}

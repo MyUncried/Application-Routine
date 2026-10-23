@@ -261,3 +261,39 @@ export function formatTwoDigits(value: number): string {
  */
 export const WHEEL_NUMBER_MIN = 1;
 export const WHEEL_NUMBER_MAX = 99;
+
+/**
+ * PRE-6 story 4.1 (CE-T03-08 §14, E12) — grille de la roulette « Durée de récupération » :
+ * 0..300 s, pas de 1 s jusqu'à 5 s, de 5 s jusqu'à 120 s, de 30 s jusqu'à 300 s. Valeurs
+ * totales en secondes, croissantes ; `DurationWheelPicker` les répartit en minutes et secondes
+ * (`valueGrid`).
+ */
+export const RECOVERY_WHEEL_VALUES: readonly number[] = [
+  ...Array.from({ length: 6 }, (_, index) => index),
+  ...Array.from({ length: (120 - 10) / 5 + 1 }, (_, index) => 10 + index * 5),
+  ...Array.from({ length: (300 - 150) / 30 + 1 }, (_, index) => 150 + index * 30),
+];
+
+/** Minutes proposées par une grille de valeurs totales (`floor(valeur / 60)`, sans doublon, croissantes). */
+export function gridMinutesValues(grid: readonly number[]): number[] {
+  return Array.from(new Set(grid.map((value) => Math.floor(value / 60)))).sort((a, b) => a - b);
+}
+
+/** Secondes proposées pour une minute donnée par une grille de valeurs totales (croissantes). */
+export function gridSecondsValues(grid: readonly number[], minutes: number): number[] {
+  return grid
+    .filter((value) => Math.floor(value / 60) === minutes)
+    .map((value) => value % 60)
+    .sort((a, b) => a - b);
+}
+
+/** Valeur de la grille la plus proche d'une durée (à égalité, la plus grande). Grille vide : `0`. */
+export function snapToGrid(totalSeconds: number, grid: readonly number[]): number {
+  return grid.length === 0 ? 0 : nearestWheelValue(totalSeconds, grid);
+}
+
+/** Seconde de la grille la plus proche pour une minute donnée (changement de minute de la roue). */
+export function snapGridSeconds(seconds: number, minutes: number, grid: readonly number[]): number {
+  const values = gridSecondsValues(grid, minutes);
+  return values.length === 0 ? 0 : nearestWheelValue(seconds, values);
+}

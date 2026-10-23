@@ -1,14 +1,17 @@
 import * as Crypto from "expo-crypto";
-import { useRouter } from "expo-router";
-import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  AccessibilityInfo,
   ActivityIndicator,
+  Animated,
+  BackHandler,
   Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
@@ -16,55 +19,191 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
-import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { isBilateral } from "@/domain/activities/ExecutionParameters";
+import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
+import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
-  duplicateActivity,
-  groupActivitiesByZone,
-  moveActivity,
-  removeActivity,
+  DEFAULT_CIRCUIT_NATURE,
+  applyNatureChange,
+  circuitVolumes,
+  circuitCountOutcome,
+  prepareNatureChange,
+  type CircuitCountResolution,
+  type CircuitLoss,
+  type CircuitNature,
+} from "@/domain/sessions/circuit";
+import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
+import {
+  STRUCTURAL_ZONES,
+  duplicateOccurrence,
+  moveOccurrenceInSequence,
+  moveStopPoint,
+  removeOccurrenceOutcome,
+  stepOccurrence,
+  type CompositionOutcome,
+  type CompositionState,
+  type OccurrenceStepDirection,
 } from "@/domain/sessions/composition";
+import {
+  EMPTY_PLACEMENT_DRAFT,
+  applyPlacementDraft,
+  deselectPlacementRecovery,
+  placementConfirmation,
+  placementRecoverySeconds,
+  placementSlots,
+  selectPlacementRecovery,
+  isPlacementStopPointAdded,
+  isPlacementStopPointRemoved,
+  togglePlacementStopPointOutcome,
+  togglePlacementStopPointRemoval,
+  type PlacementContext,
+  type PlacementDraft,
+  type PlacementSlot,
+  type PlacementStopPointOutcome,
+  type PlacementStopPointSlot,
+} from "@/domain/sessions/placement";
+import {
+  STOP_POINT_SCOPE_ORDER,
+  isSequenceSeparator,
+  isStopPointProposable,
+  occurrenceCountInScope,
+  positionInSequence,
+  scopeSequence,
+  stopPointKey,
+  type SequenceItem,
+  type StopPoint,
+  type StopPointLocation,
+  type TourBoundaryChoice,
+} from "@/domain/sessions/StopPoint";
 import {
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
+  type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
+import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
+import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
+import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
+import { CIRCUIT_HEADER_HEIGHT, CircuitHeader } from "@/features/sessions/CircuitHeader";
+import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
+import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import {
   clampSwipeTranslateX,
   isTap,
   LONG_PRESS_DELAY_MS,
+  NO_DRAG_SHIFTS,
+  resolveDragShifts,
+  resolveDropSettleOffset,
   resolveDropTarget,
+  resolveInsertionPoses,
+  resolveRemovalShifts,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
+  type DragShifts,
+  type DropTarget,
+  type StepDirection,
 } from "@/features/sessions/compositionGesture";
 import {
-  formatActivityRecoveryLabel,
-  formatCompositionSummary,
-  formatDurationRowValue,
+  isDisplayableRecovery,
+  OccurrenceRecovery,
+  STOP_POINT_LINE_HEIGHT,
+  StopPointLine,
+} from "@/features/sessions/ActivityRecoveryLine";
+import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
+import {
+  formatCompactDuration,
+  formatBoundarySecondsValue,
+  formatCompositionSessionDuration,
   formatExerciseBodyZones,
-  formatExerciseRowSummary,
+  formatOccurrenceAccessibilityLabel,
+  formatOccurrenceEstimatedDuration,
+  formatOccurrenceSummary,
+  resolveOccurrenceCategory,
+  type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
+import {
+  OCCURRENCE_CARD_MEDIA,
+  OCCURRENCE_CARD_RADIUS,
+  OccurrenceCard,
+  occurrenceCardHeight,
+  occurrenceCardInCircuitSurface,
+  occurrenceCardSurface,
+  occurrenceRecoveryTouchExtent,
+} from "@/features/sessions/OccurrenceCard";
+import {
+  BOUNDARY_RING_TOP,
+  BoundaryRail,
+  BoundaryStep,
+  RAIL_RING_DIAMETER,
+  RailDot,
+  RailLink,
+  RailRing,
+  RailSegment,
+  SEQUENCE_GAP,
+} from "@/features/sessions/CompositionSequence";
+import {
+  RAIL_KEYS,
+  railRowKey,
+  railStopKey,
+  resolveRailLinks,
+  type RailChainItem,
+  type RailGeometry,
+  type RailSkippedItem,
+  type RailLink as RailLinkGeometry,
+} from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
+import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
+import { formatPlacementConfirmLabel, PlacementBar } from "@/features/sessions/PlacementBar";
+import {
+  PlacementRecoveryFrame,
+  PlacementStopPointRow,
+  type PlacementStopPointRowPoint,
+  type PlacementTouchExtent,
+} from "@/features/sessions/PlacementLayer";
+import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
+import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
+import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
+import {
+  MOTION_APPEAR_DURATION_MS,
+  MOTION_EASING,
+  MOTION_FADE_DURATION_MS,
+  MOTION_FADE_EASING,
+  MOTION_FADE_TO_SLIDE_DELAY_MS,
+  MOTION_SHIFT_DURATION_MS,
+} from "@/features/sessions/compositionMotion";
+import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { KodjoIcon, type KodjoIconName } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
-type OverlayKind = "countdown" | "finalPhase" | "tour";
+/**
+ * Champ numérique actif — un seul à la fois (CIR-10) : roulettes des bornes, ou panneau du choix
+ * de nature du Circuit (story 3.2,
+ * Android / web ; sur iOS le menu natif porte seul son ouverture). PRE-6 story 3.4 : feuille
+ * « Volumes du circuit » (`circuitVolumes`), ouverte par l'œil — l'ouvrir referme les autres.
+ * PRE-6 story 7.3 (D-442) : le stepper du compte du Circuit est toujours affiché et actif ; il
+ * n'est plus un champ « révélé » (ancien `circuitCount`, choix D8 remplacé).
+ */
+type OverlayKind = "countdown" | "finalPhase" | "circuitNature" | "circuitVolumes";
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -163,7 +302,6 @@ function useLabelsReferential(
   return labels;
 }
 
-
 /**
  * Recette 3 (T-49, EXT-R3-2) : valeurs reprises de la zone de contexte de l’éditeur
  * (`ActivityEditorForm.tsx`, D-348) — halo figé « Halo blanc — bouton Annuler »
@@ -181,6 +319,326 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
     opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
   };
 });
+
+const EMPTY_STOP_POINTS: CompositionState["stopPoints"] = [];
+
+/**
+ * PRE-6 (story 1.2) : occurrences et Points d'arrêt du brouillon, opérés ensemble. Story 7.1
+ * (D-442) : avec N du Circuit, contexte des règles de début et de fin de Tour.
+ */
+function compositionStateOf(
+  exercises: SessionDraft["exercises"],
+  stopPoints: SessionDraft["stopPoints"],
+  tourRepeatCount: SessionDraft["tourRepeatCount"],
+): CompositionState {
+  return { exercises, stopPoints: stopPoints ?? EMPTY_STOP_POINTS, ...(tourRepeatCount !== undefined ? { tourRepeatCount } : {}) };
+}
+
+/**
+ * PRE-6 story 7.2 (D-442) : rangée de l'emplacement LIBRE de tête de Circuit en placement — élément de
+ * la séquence affichée (rail, écarts, mesures) qui n'est pas un point du brouillon. Identifiant
+ * réservé, jamais un UUID.
+ */
+const CIRCUIT_HEAD_SLOT_ID = "placement-circuit-head";
+const CIRCUIT_HEAD_SLOT_POINT: StopPoint = { id: CIRCUIT_HEAD_SLOT_ID, scope: "IN_TOUR", position: 0 };
+
+/** PRE-6 story 6.2 (D-441) : élément affiché d'une zone — une occurrence ou un Point d'arrêt. */
+type ZoneItem = SequenceItem<SessionDraftExercise, StopPoint>;
+type ZoneItems = Readonly<Record<StructuralPosition, readonly ZoneItem[]>>;
+
+/** Préfixe des clés de rail des rangées de points (`railStopKey`). */
+const RAIL_STOP_KEY_PREFIX = railStopKey("");
+const RAIL_ROW_KEY_PREFIX = railRowKey("");
+
+/** Clé d'un élément de zone : sa clé de rail (mesures, décalages, chaîne du rail). */
+function zoneItemKey(item: ZoneItem): string {
+  return item.kind === "OCCURRENCE" ? railRowKey(item.occurrence.id) : railStopKey(item.point.id);
+}
+
+function railChainItemOf(item: ZoneItem): RailChainItem {
+  return item.kind === "OCCURRENCE" ? item.occurrence.id : { stopPointId: item.point.id };
+}
+
+/** Identifiant du point d'une clé de rangée de point, sinon `null`. */
+function stopPointIdOfKey(key: string): string | null {
+  return key.startsWith(RAIL_STOP_KEY_PREFIX) ? key.slice(RAIL_STOP_KEY_PREFIX.length) : null;
+}
+
+/** Identifiant de l'occurrence d'une clé de carte. */
+function occurrenceIdOfKey(key: string): string {
+  return key.startsWith(RAIL_ROW_KEY_PREFIX) ? key.slice(RAIL_ROW_KEY_PREFIX.length) : key;
+}
+
+/** L'élément d'une clé existe-t-il encore dans le brouillon ? */
+function sequenceItemExists(draft: SessionDraft, key: string): boolean {
+  const stopPointId = stopPointIdOfKey(key);
+  return stopPointId !== null
+    ? (draft.stopPoints ?? []).some((point) => point.id === stopPointId)
+    : draft.exercises.some((exercise) => exercise.id === occurrenceIdOfKey(key));
+}
+
+/**
+ * PRE-6 story 6.2 : éléments affichés de chaque zone. Hors placement (`placementRowStopPointIds =
+ * null`) : séquence mêlée du Domaine (`scopeSequence`, D-441 ; ses règles de bornage et d'ordre).
+ * En placement : occurrences, et — story 6.3 (D-441, R3) — les seuls points existants qu'aucun
+ * emplacement ne porte (`UNOFFERED_STOP_POINT` : tête de Circuit, hors bornes…), rangées
+ * autonomes à leur place dans la séquence mêlée, pour pouvoir être désélectionnés ; les autres
+ * points sont portés par les emplacements (story 5.3).
+ */
+function displayedZoneItems(
+  exercises: readonly SessionDraftExercise[],
+  stopPoints: readonly StopPoint[],
+  placementRowStopPointIds: ReadonlySet<string> | null,
+  withCircuitHeadSlot = false,
+): ZoneItems {
+  const kept =
+    placementRowStopPointIds === null ? stopPoints : stopPoints.filter((point) => placementRowStopPointIds.has(point.id));
+  // Story 7.2 (D-442) : en placement, l'emplacement libre de tête de Circuit est une rangée en tête du
+  // Circuit (`CIRCUIT_HEAD_SLOT_POINT`, jamais un point du brouillon).
+  const shown = withCircuitHeadSlot ? [...kept, CIRCUIT_HEAD_SLOT_POINT] : kept;
+  const itemsOf = (zone: StructuralPosition): readonly ZoneItem[] => scopeSequence(exercises, shown, zone);
+  return { BEFORE_TOUR: itemsOf("BEFORE_TOUR"), IN_TOUR: itemsOf("IN_TOUR"), AFTER_TOUR: itemsOf("AFTER_TOUR") };
+}
+
+/**
+ * PRE-6 story 6.2 (R2) : emplacement `(scope, position)` d'un point déposé au rang `index` de la
+ * séquence mêlée de `zone`, le point lui-même retiré (même compte que le glisser d'une carte).
+ */
+function stopPointLocationAt(items: readonly ZoneItem[], stopPointId: string, zone: StructuralPosition, index: number): StopPointLocation {
+  const others = items.filter((item) => !(item.kind === "STOP_POINT" && item.point.id === stopPointId));
+  return { scope: zone, position: positionInSequence(others, index) };
+}
+
+/**
+ * PRE-6 story 6.2 (revue) : emplacement AFFICHÉ d'un point — celui où `scopeSequence` le dessine :
+ * une position héritée hors bornes ou non entière est ramenée à la borne la plus proche (`0..n`,
+ * partie entière ; non finie : fin de portée). Sert de point de départ des pas et de référence du
+ * « même emplacement » au dépôt.
+ */
+function displayedStopPointLocation(exercises: readonly SessionDraftExercise[], point: StopPointLocation): StopPointLocation {
+  const count = occurrenceCountInScope(exercises, point.scope);
+  const raw = Number.isFinite(point.position) ? Math.trunc(point.position) : count;
+  return { scope: point.scope, position: Math.max(0, Math.min(raw, count)) };
+}
+
+function sameLocation(a: StopPointLocation, b: StopPointLocation): boolean {
+  return a.scope === b.scope && a.position === b.position;
+}
+
+/**
+ * PRE-6 story 6.2 : « Monter » / « Descendre » d'un point — premier emplacement, dans l'ordre
+ * structurel des emplacements (`(scope, 0..n)`, portées dans l'ordre) à partir de l'emplacement
+ * affiché, que le Domaine ACCEPTE (`moveStopPoint` : proposable, libre, non consécutif) ; le point
+ * peut donc en franchir un autre, comme au glisser. Rend l'état produit, ou `null` (action absente).
+ * Story 7.2 (D-442) : le premier emplacement atteint qui demande un choix de Tour (`CHOICE_REQUIRED`)
+ * offre le pas ; son action ouvre le dialogue « Début de tour / Fin de tour ».
+ */
+type StopPointStep =
+  | { readonly status: "APPLIED"; readonly state: CompositionState }
+  | { readonly status: "CHOICE_REQUIRED"; readonly location: StopPointLocation };
+
+function stopPointStepOutcome(
+  state: CompositionState,
+  stopPointId: string,
+  direction: OccurrenceStepDirection,
+): StopPointStep | null {
+  const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
+  if (point === undefined) return null;
+  const current = displayedStopPointLocation(state.exercises, point);
+  const locations = STOP_POINT_SCOPE_ORDER.flatMap((scope) =>
+    Array.from({ length: occurrenceCountInScope(state.exercises, scope) + 1 }, (_, position) => ({ scope, position })),
+  );
+  const index = locations.findIndex((location) => sameLocation(location, current));
+  if (index === -1) return null;
+  const step = direction === "UP" ? -1 : 1;
+  for (let candidate = index + step; candidate >= 0 && candidate < locations.length; candidate += step) {
+    const location = locations[candidate]!;
+    if (!isStopPointProposable(state.exercises, location, state)) continue;
+    const outcome = moveStopPoint(state, stopPointId, location);
+    // Story 7.1 (revue, D-442) : un choix de Tour requis à l'emplacement voisin arrête la recherche
+    // plutôt que de le franchir en silence ; story 7.2 : le pas est offert et demande le choix.
+    if (outcome.status === "CHOICE_REQUIRED") return { status: "CHOICE_REQUIRED", location };
+    if (outcome.status === "APPLIED" && outcome.state !== state) return { status: "APPLIED", state: outcome.state };
+  }
+  return null;
+}
+
+/** Story 7.2 (D-442) : annonce discrète des Points d'arrêt retirés sans message (singulier / pluriel). */
+function removedStopPointsAnnouncement(count: number): string {
+  const t = strings.screens.composition.stopPointsRemovedAnnouncement;
+  return count === 1 ? t.singular : t.plural.replace("{n}", String(count));
+}
+
+/**
+ * Story 7.2 (D-442, ch13 CE-T03-08 L1498) : opération suspendue au choix « Début de tour / Fin de
+ * tour » — rejouée sur l'état COURANT avec la résolution choisie (« Annuler » : rien ne change).
+ * `fromStep` : action accessible « Monter » / « Descendre » (le focus suit l'élément).
+ */
+type TourChoiceRequest =
+  | { readonly kind: "OCCURRENCE_MOVE"; readonly move: OccurrenceMove; readonly fromStep: boolean }
+  | {
+      readonly kind: "STOP_POINT_MOVE";
+      readonly stopPointId: string;
+      readonly location: StopPointLocation;
+      readonly fromStep: boolean;
+    }
+  | { readonly kind: "PLACEMENT_STOP_POINT"; readonly location: StopPointLocation }
+  | { readonly kind: "PLACEMENT_EXISTING_STOP_POINT"; readonly stopPointId: string }
+  | { readonly kind: "CIRCUIT_COUNT"; readonly count: number }
+  // Story 7.5 (D-442 amendée) : suppression qui créerait un conflit de Tour.
+  | { readonly kind: "OCCURRENCE_DELETE"; readonly activityId: string };
+
+/**
+ * Story 7.2 (D-442) : resélection en placement du point existant `stopPointId`, refusée par
+ * `togglePlacementStopPointRemoval` parce qu'elle créerait un conflit de Tour avec un AJOUT — le
+ * choix requis (conserver le point, ou l'ajout) ; `null` si la resélection n'en demande pas.
+ */
+function placementReselectionChoice(
+  placement: PlacementDraft,
+  stopPointId: string,
+  context: PlacementContext,
+): Extract<PlacementStopPointOutcome, { status: "CHOICE_REQUIRED" }> | null {
+  if (!isPlacementStopPointRemoved(placement, stopPointId)) return null;
+  const point = (context.stopPoints ?? EMPTY_STOP_POINTS).find((candidate) => candidate.id === stopPointId);
+  if (point === undefined) return null;
+  const outcome = togglePlacementStopPointOutcome(placement, point, context);
+  return outcome.status === "CHOICE_REQUIRED" &&
+    (outcome.conflict.headStopPointId === stopPointId || outcome.conflict.tailStopPointId === stopPointId)
+    ? outcome
+    : null;
+}
+
+/**
+ * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : résultat de la suppression de l'occurrence
+ * `activityId` sur `draft` — tolérante (`removeOccurrenceOutcome`) : le patch du brouillon (réserve de
+ * Circuit comprise) et les Points d'arrêt retirés ; `"CHOICE"` si un conflit de Tour demande le choix
+ * « Début de tour / Fin de tour » (`choice` le tranche) ; `null` si rien n'est supprimé.
+ */
+function deletionResult(
+  draft: SessionDraft,
+  activityId: string,
+  choice: TourBoundaryChoice | null,
+): { readonly patch: Partial<SessionDraft>; readonly removed: readonly string[] } | "CHOICE" | null {
+  const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+  const outcome = removeOccurrenceOutcome(state, activityId);
+  let next: CompositionState;
+  let removed: readonly string[];
+  if (outcome.status === "APPLIED") {
+    next = outcome.state;
+    removed = outcome.removedStopPointIds;
+  } else if (outcome.status === "CHOICE_REQUIRED") {
+    if (choice === null) return "CHOICE";
+    next = outcome.resolutions[choice].state;
+    removed = outcome.resolutions[choice].removedStopPointIds;
+  } else {
+    return null;
+  }
+  // PRE-6 (story 2.3) : la réserve de Circuit de l'occurrence retirée part avec elle.
+  const settled = settleCircuitMembership(draft, next.exercises);
+  return { patch: { ...compositionPatch(state, next), ...settled.reservePatch }, removed };
+}
+
+/**
+ * PRE-6 story 7.5 (recette J6 d-9) : suppression animée en cours — la carte (et les points que la
+ * suppression retire) s'efface en fondu (`opacity`), puis ce qui suit glisse pour combler la place
+ * (`resolveRemovalShifts` sur `layout`, registre des translations) ; le brouillon n'est écrit qu'à la
+ * fin (`commit`, idempotent, aussi appelé pour terminer aussitôt).
+ */
+type PendingDeletion = {
+  readonly key: string;
+  readonly fadingKeys: ReadonlySet<string>;
+  readonly opacity: Animated.Value;
+  readonly layout: CompositionDragLayout;
+  readonly phase: "fade" | "slide";
+  readonly commit: () => void;
+  /** Revue 7.6 : fondu et glissement terminés (commun aux phases ; l'écriture attend les deux). */
+  readonly progress: { fadeDone: boolean; slideDone: boolean };
+};
+
+/**
+ * PRE-6 story 7.5 : durée du fondu de la carte supprimée. Story 7.6 : celle du jeu de mouvements
+ * partagé (`compositionMotion.ts`) ; le glissement commence pendant le fondu.
+ */
+export const DELETE_FADE_DURATION_MS = MOTION_FADE_DURATION_MS;
+
+/** PRE-6 story 6.2 (revue) : focus d'accessibilité demandé sur un élément (clé de rail), et annonce. */
+type ItemFocusRequest = { readonly key: string; readonly token: number; readonly announcement?: string };
+
+/** Patch du brouillon : les points ne sont écrits que s'ils ont changé (un brouillon sans point reste sans champ `stopPoints`). */
+function compositionPatch(previous: CompositionState, next: CompositionState): Partial<SessionDraft> {
+  return {
+    exercises: next.exercises,
+    ...(next.stopPoints !== previous.stopPoints ? { stopPoints: next.stopPoints } : {}),
+  };
+}
+
+/**
+ * PRE-6 (story 2.3) : intention de déplacement d'une occurrence. PRE-6 story 6.2 (D-441) : glisser
+ * — `index` est le rang dans la séquence MÊLÉE de `zone` (occurrences et points), source retirée
+ * (`moveOccurrenceInSequence`) ; « Monter » / « Descendre » — échange avec l'élément voisin
+ * (`stepOccurrence`). Story 7.2 (D-442) : `tourChoice` — résolution choisie dans le dialogue
+ * « Début de tour / Fin de tour », appliquée si le déplacement demande ce choix.
+ */
+type OccurrenceMove = (
+  | { readonly activityId: string; readonly zone: StructuralPosition; readonly index: number }
+  | { readonly activityId: string; readonly direction: OccurrenceStepDirection }
+) & { readonly tourChoice?: TourBoundaryChoice };
+
+/** Déplacement en attente de confirmation de perte, avec le N affiché par le dialogue. */
+type PendingOccurrenceMove = OccurrenceMove & {
+  readonly targetCount: number;
+  /** Revue 7.2 : pas « Monter » / « Descendre » — focus de la carte avec l'annonce des points retirés. */
+  readonly focusKey?: string;
+};
+
+/**
+ * Plan d'un déplacement sur `draft` : correctif du brouillon (occurrences adaptées au Circuit,
+ * points, réserve), pertes et N du Circuit, et — story 7.2 (D-442) — points retirés sans message par
+ * le déplacement tolérant ; `CHOICE_REQUIRED` si le déplacement créerait un conflit de Tour et
+ * qu'aucun `tourChoice` n'est fourni ; `null` si le Domaine refuse le déplacement ou s'il ne change
+ * rien.
+ */
+type OccurrenceMovePlan =
+  | {
+      readonly status: "PLAN";
+      readonly patch: Partial<SessionDraft>;
+      readonly losses: readonly CircuitLoss[];
+      readonly targetCount: number;
+      readonly removedStopPointIds: readonly string[];
+    }
+  | { readonly status: "CHOICE_REQUIRED" };
+
+function planOccurrenceMove(draft: SessionDraft, move: OccurrenceMove): OccurrenceMovePlan | null {
+  const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+  const outcome =
+    "direction" in move
+      ? stepOccurrence(state, move.activityId, move.direction)
+      : moveOccurrenceInSequence(state, move.activityId, move.zone, move.index);
+  let next: CompositionState;
+  let removedStopPointIds: readonly string[];
+  if (outcome.status === "CHOICE_REQUIRED") {
+    if (move.tourChoice === undefined) return { status: "CHOICE_REQUIRED" };
+    const resolution = outcome.resolutions[move.tourChoice];
+    next = resolution.state;
+    removedStopPointIds = resolution.removedStopPointIds;
+  } else if (outcome.status === "APPLIED" && outcome.state !== state) {
+    next = outcome.state;
+    removedStopPointIds = outcome.removedStopPointIds;
+  } else {
+    return null;
+  }
+  const settled = settleCircuitMembership(draft, next.exercises);
+  return {
+    status: "PLAN",
+    patch: {
+      ...compositionPatch(state, { exercises: settled.exercises, stopPoints: next.stopPoints }),
+      ...settled.reservePatch,
+    },
+    losses: settled.losses,
+    targetCount: settled.targetCount,
+    removedStopPointIds,
+  };
+}
 
 export type CompositionScreenProps = {
   /**
@@ -270,6 +728,13 @@ export type CompositionScreenProps = {
 export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // PRE-6 story 7.10 (D-444) : zone d'action principale fixe (Continuer / barre de placement) ; le
+  // corps défilant réserve sa hauteur en fin de défilement.
+  const actionZone = usePrimaryActionZone();
+  const actionZoneReserveRef = useRef(actionZone.scrollReserve);
+  useEffect(() => {
+    actionZoneReserveRef.current = actionZone.scrollReserve;
+  }, [actionZone.scrollReserve]);
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline, creationBaseline } =
     useSessionDraft();
   const activityDefinitionService = useActivityDefinitionService();
@@ -277,6 +742,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const bodyZonesReferential = useBodyZonesReferential(
     activityDefinitionService,
     bodyZonesReferentialVersion,
+  );
+  // PRE-6 (story 2.2) : Catégories des cartes d'occurrence, relues quand l'ensemble des
+  // Catégories portées par le brouillon change.
+  const draftCategoryKey = Array.from(
+    new Set(draft.exercises.map((exercise) => exercise.categoryId ?? "")),
+  )
+    .sort()
+    .join("|");
+  // Retour au premier plan (retour de l'éditeur d'Exercice) : relecture, pour refléter une
+  // Catégorie créée, renommée ou recolorée ailleurs.
+  const [categoriesFocusToken, setCategoriesFocusToken] = useState(0);
+  useFocusEffect(
+    useCallback(() => {
+      setCategoriesFocusToken((current) => current + 1);
+    }, []),
+  );
+  const categoriesReferential = useCategoriesReferential(
+    activityDefinitionService,
+    `${draftCategoryKey}#${categoriesFocusToken}`,
   );
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
@@ -313,14 +797,218 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // T02-S01 : une seule carte à la fois révèle ses actions glissées, et une
   // seule carte à la fois est soulevée (CE-T02-01/CE-T02-02).
   const [revealedActionsId, setRevealedActionsId] = useState<string | null>(null);
-  const [draggedActivityId, setDraggedActivityId] = useState<string | null>(null);
+  /**
+   * Élément soulevé (clé de rail : occurrence `railRowKey`, ou, story 6.2, Point d'arrêt
+   * `railStopKey`) ; un seul à la fois (CE-T02-01/CE-T02-02).
+   */
+  const [draggedKey, setDraggedKey] = useState<string | null>(null);
+  /** Revue 6.2 : élément soulevé, lu de façon synchrone (deux doigts, deux appuis longs). */
+  const draggedKeyRef = useRef<string | null>(null);
+  /** Revue 6.2 : focus d'accessibilité après un pas qui change de zone, ou une suppression refusée. */
+  const [itemFocusRequest, setItemFocusRequest] = useState<ItemFocusRequest | null>(null);
+  const requestItemFocus = useCallback((key: string, announcement?: string) => {
+    setItemFocusRequest((current) => ({ key, announcement, token: (current?.token ?? 0) + 1 }));
+  }, []);
+  /** La demande est consommée par l'élément visé, une fois le focus porté (il peut avoir été remonté). */
+  const consumeItemFocus = useCallback((token: number) => {
+    setItemFocusRequest((current) => (current !== null && current.token === token ? null : current));
+  }, []);
+  /**
+   * PRE-6 (story 2.3b) : réorganisation animée pendant le glisser, en UN seul état mis à jour par
+   * une seule écriture à chaque transition (début, changement d'emplacement, dépôt, annulation) —
+   * aucun ordre implicite entre plusieurs `setState`. Voir `DragShiftSession`.
+   */
+  const [dragSession, setDragSession] = useState<DragShiftSession>(IDLE_DRAG_SESSION);
+  /** Story 5.2b : registre des translations, pour le début d'un geste (déclaré plus bas). */
+  const shiftRegistryRef = useRef<AnimatedShiftRegistry | null>(null);
+  /**
+   * Fin de l'aperçu (`endDragSession`). PRE-6 story 7.4 (commentaire 14) : sans animation — une
+   * nouvelle disposition est rendue (dépôt appliqué, confirmation, entrée en placement) —, les
+   * valeurs JS des translations passent à 0 AVANT les écritures d'état
+   * (`AnimatedShiftRegistry.prepareLayoutCommit`) : le rendu de la nouvelle disposition porte des
+   * translations nulles, au lieu de celles de l'aperçu remises à 0 seulement après lui (le Circuit
+   * agrandi ou rétracté s'affichait avec ses bords encore décalés).
+   */
+  const finishDragPreview = useCallback((animated: boolean, release: ShiftRelease | null = null) => {
+    if (!animated) shiftRegistryRef.current?.prepareLayoutCommit();
+    setDragSession((current) => endDragSession(current, animated, release));
+  }, []);
+  /**
+   * PRE-6 story 7.6 (recette J6b : « on a l'impression qu'elle saute dans sa position cible ») : fin
+   * d'un aperçu par un déplacement APPLIQUÉ (dépôt, « Confirmer », choix de Tour). Avant, l'élément
+   * déposé passait sans transition de l'endroit du lâcher à sa place dans la nouvelle disposition
+   * (translation remise à 0 avec elle). Désormais il y est posé à la translation qui le garde sous
+   * le lâcher (`pose`, `resolveDropSettleOffset`), puis glisse jusqu'à sa place (retour animé du
+   * registre, au premier plan et hors de la chaîne du rail le temps du mouvement, comme le retour
+   * d'une dépose refusée) ; les autres éléments, déjà à leur place, ne bougent pas. Sans pose (aucun
+   * aperçu relevé) : comme avant.
+   */
+  const finishAppliedDrop = useCallback((pose: ShiftRelease | null) => {
+    // Revue 7.6 : les éléments encore en mouvement achèvent leur chemin seulement si la suite est
+    // animée (une pose) ; les bords du Circuit, dont la bande s'étire sur la hauteur relevée au début
+    // du geste, sont posés à leur place.
+    shiftRegistryRef.current?.prepareLayoutCommit(pose, pose === null ? null : CIRCUIT_EDGE_KEYS);
+    setDragSession((current) => endDragSession(current, pose !== null));
+  }, []);
+  /** Story 7.5 : suppression animée en cours (fondu, puis glissement) ; une seule à la fois. */
+  const [deletion, setDeletion] = useState<PendingDeletion | null>(null);
+  const deletionRef = useRef<PendingDeletion | null>(null);
+  /**
+   * PRE-6 story 7.7 (D-443) : copie de Dupliquer en cours d'apparition (fondu lent) ; les éléments
+   * suivants glissent pendant ce temps pour lui faire place.
+   */
+  const [appearance, setAppearance] = useState<{ readonly key: string; readonly opacity: Animated.Value } | null>(null);
+  /** Revue 7.7 : apparition en cours, lue de façon synchrone (suppression, seconde copie). */
+  const appearanceRef = useRef(appearance);
+  useLayoutEffect(() => {
+    appearanceRef.current = appearance;
+  });
+  /** Revue 7.7 : termine aussitôt une apparition en cours (copie pleinement affichée). */
+  const finishAppearance = useCallback(() => {
+    const current = appearanceRef.current;
+    if (current === null) return;
+    current.opacity.stopAnimation();
+    current.opacity.setValue(1);
+    appearanceRef.current = null;
+    setAppearance(null);
+  }, []);
+  /** Story 7.5 : termine aussitôt une suppression animée en cours (brouillon écrit). */
+  const flushDeletion = useCallback(() => deletionRef.current?.commit(), []);
+  /** Revue 7.5 : dernier brouillon rendu, pour rejouer une suppression à son écriture. */
+  const draftRef = useRef(draft);
+  useLayoutEffect(() => {
+    draftRef.current = draft;
+  });
+  /**
+   * PRE-6 story 7.4 (D-442, commentaire 3) : défilement automatique pendant le glisser — le corps
+   * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
+   */
+  const bodyScrollRef = useRef<ScrollView>(null);
+  const autoScroll = useDragAutoScroll({
+    scrollTo: (offset) => bodyScrollRef.current?.scrollTo({ y: offset, animated: false }),
+    measure: (callback) => bodyScrollRef.current?.getNativeScrollRef()?.measureInWindow((_x, y, _width, height) => callback(y, height)),
+    // Story 7.10 (D-444) : la zone d'action fixe recouvre le bas du corps — la bande du bas du
+    // défilement automatique remonte au haut de cette zone (dégradé compris) ; le décalage maximal
+    // reste celui du conteneur entier (la réserve est déjà dans la hauteur du contenu).
+    bottomObstruction: () => actionZoneReserveRef.current,
+  });
+  /** Hauteur mesurée du conteneur du Circuit ; `0` tant qu'il n'est pas mesuré (fond statique). */
+  const [circuitMeasuredHeight, setCircuitMeasuredHeight] = useState(0);
+  // « Réduire les animations » (D-7) : décalages immédiats.
+  const reduceMotion = useReduceMotion();
+  // PRE-6 (story 2.3) : déplacement vers un Circuit de Séries en attente de confirmation de perte
+  // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
+  const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
+  /**
+   * Story 7.2 (D-442) : choix « Début de tour / Fin de tour » en attente (dialogue natif), et garde
+   * synchrone — un seul dialogue à la fois (un maintien du compteur rappelle le changement de N).
+   */
+  const [pendingTourChoice, setPendingTourChoice] = useState<TourChoiceRequest | null>(null);
+  const tourChoicePendingRef = useRef(false);
+  // Revue 7.2 : chaque demande monte un nouveau dialogue (clé), jamais une demande sans dialogue.
+  const [tourChoiceToken, setTourChoiceToken] = useState(0);
+  /** `false` : un choix est déjà en attente — la nouvelle opération est refusée (rien n'est tenu). */
+  const openTourChoice = useCallback((request: TourChoiceRequest): boolean => {
+    if (tourChoicePendingRef.current) return false;
+    tourChoicePendingRef.current = true;
+    setTourChoiceToken((current) => current + 1);
+    setPendingTourChoice(request);
+    return true;
+  }, []);
+  /**
+   * Aperçu EFFECTIF (story 2.3b) : un aperçu périmé est ignoré au rendu — l'occurrence glissée a
+   * quitté le brouillon, ou l'aperçu survit sans geste en cours ni dialogue de perte en attente.
+   * Ses décalages reviennent alors en douceur (`animated` vaut `true` dans ces états). Dérivé au
+   * rendu plutôt que réinitialisé par un effet ; l'état est remplacé au prochain glisser, et une
+   * carte démontée pendant son glisser annule le geste (`onDragCancel`), ce qui le vide.
+   */
+  const storedPreview = dragSession.preview;
+  const dragPreview =
+    storedPreview !== null &&
+    sequenceItemExists(draft, storedPreview.key) &&
+    // Story 7.2 : aussi pendant le dialogue « Début de tour / Fin de tour » (élément tenu).
+    (draggedKey !== null || pendingCircuitEntry !== null || pendingTourChoice !== null)
+      ? storedPreview
+      : null;
+  // PRE-6 (story 3.2, CE-CIR-02) : conversion Tours → Séries avec perte en attente de confirmation.
+  // Le garde-fou `ref` n'applique qu'une conversion, même sur un double appui de « Confirmer ».
+  const [pendingNatureChange, setPendingNatureChange] = useState<CircuitNature | null>(null);
+  const natureChangeConfirmedRef = useRef(false);
+  // Demande de focus sur la pastille, seulement quand l'utilisateur ferme le choix ou le dialogue
+  // de perte (jamais à l'ouverture d'un dialogue, au début d'une sortie ni à la perte du focus).
+  const [natureFocusRequest, setNatureFocusRequest] = useState(0);
+  const requestNatureFocus = useCallback(() => setNatureFocusRequest((current) => current + 1), []);
+  // PRE-6 (story 3.4) : demande de focus sur l'œil, à la fermeture de la feuille des volumes.
+  const [volumesFocusRequest, setVolumesFocusRequest] = useState(0);
+  // PRE-6 story 5.1b (revue) : cibles de focus après le retrait du point « après le Circuit » quand
+  // aucune occurrence ne le suit — compteur de l'en-tête du Circuit, à défaut la borne de Fin.
+  const circuitCounterRef = useRef<View | null>(null);
+  const finalBoundaryRef = useRef<View | null>(null);
+  // Feuille montée jusqu'à la fin de sa disparition native (`onDismissed`), pour que le focus ne
+  // soit rendu à l'œil qu'une fois la `Modal` réellement fermée.
+  const [isVolumesSheetMounted, setIsVolumesSheetMounted] = useState(false);
+  // Vrai seulement pour une fermeture par l'utilisateur (X, voile, glisser, retour) : une sortie
+  // ou la perte du premier plan referme la feuille sans déplacer le focus.
+  const volumesClosedByUserRef = useRef(false);
+  // Grille du Domaine recalculée seulement quand le brouillon change (la feuille la mémorise).
+  const volumes = useMemo(() => circuitVolumes(draft), [draft]);
+  // Android / web : position de l'en-tête dans le conteneur Circuit, pour ancrer le panneau du
+  // choix dans le corps défilant (un parent qui le contient entièrement).
+  const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
+  const [circuitSectionTop, setCircuitSectionTop] = useState(0);
+  // PRE-6 (story 4.1, AD-43) : mode placement — sous-brouillon LOCAL des ajouts (`null` hors
+  // placement). Seul « Confirmer » l'applique au brouillon de séance ; seul « Continuer » persiste
+  // (D-388). Occurrence dont la roulette « Durée de récupération » est ouverte.
+  const [placement, setPlacement] = useState<PlacementDraft | null>(null);
+  // Revue 6.3 : effet du dernier toucher en placement, annoncé après le rendu (voir plus bas) ;
+  // `withLabel` : suivi du nouveau libellé de « Confirmer » (ajouts, ch13 L1524).
+  const placementAnnouncementRef = useRef<{ readonly text: string; readonly withLabel: boolean } | null>(null);
+  /**
+   * Story 7.2 (D-442) : roulette « Durée de récupération » d'une zone NON sélectionnée du placement —
+   * ouverte sur la durée existante (`seconds`), sinon (`null`) sur le défaut du Profil ; ✓ sélectionne
+   * la zone à la durée choisie (`selectPlacementRecovery`), ✕ ne change rien.
+   */
+  const [recoveryWheel, setRecoveryWheel] = useState<{ readonly occurrenceId: string; readonly seconds: number | null } | null>(
+    null,
+  );
+  // D-307 / RM-209 : défaut de récupération du Profil (30 s initialement), relu à chaque entrée
+  // en placement ; sans service Profil, la constante du Domaine. `null` tant qu'il n'est pas
+  // résolu : la roulette ne s'ouvre qu'une fois la valeur connue. Une réponse tardive (après la
+  // sortie du placement, une nouvelle entrée ou le démontage) est ignorée (`profileRequestRef`).
+  const profileService = useContext(ProfileServiceContext);
+  const [recoveryDefaultSeconds, setRecoveryDefaultSeconds] = useState<number | null>(null);
+  const profileRequestRef = useRef(0);
+  // Demande de focus sur « Ajouter un arrêt », à la sortie du placement par Confirmer / Annuler.
+  const [addStopFocusRequest, setAddStopFocusRequest] = useState(0);
+  /*
+   * PRE-6 story 7.2 (D-442, qui remplace sur ce point D-435) : la récupération ne se règle plus hors
+   * placement — la roulette de modification, la bulle « Retirer la récupération » et les actions
+   * accessibles de la carte (stories 4.2, 5.1) sont retirées ; tout passe par le placement.
+   */
+  /** Sortie du placement sans mutation : sous-brouillon jeté, roulette fermée, défaut en cours ignoré. */
+  const leavePlacement = useCallback(() => {
+    setRecoveryWheel(null);
+    setPlacement(null);
+  }, []);
+  // Toute sortie du placement (et le démontage) invalide la lecture du défaut en cours.
+  useEffect(() => {
+    if (placement !== null) return undefined;
+    profileRequestRef.current += 1;
+    return undefined;
+  }, [placement]);
+  useEffect(
+    () => () => {
+      profileRequestRef.current += 1;
+    },
+    [],
+  );
 
   // Géométrie mesurée du contenu défilant, nécessaire à la résolution d'une
   // dépose (`compositionGesture.ts`). Conservée en `ref` : elle ne doit
   // JAMAIS provoquer de rendu — la mesurer via un état re-déclencherait
   // `onLayout` en boucle.
   const zoneTopsRef = useRef<Partial<Record<StructuralPosition, number>>>({});
-  const rowLayoutsRef = useRef(new Map<string, { top: number; height: number }>());
+  const rowLayoutsRef = useRef(new Map<string, { top: number; height: number; zone: StructuralPosition }>());
   const tourLayoutRef = useRef<{ top: number; height: number }>({ top: 0, height: 0 });
 
   // T01-S10 (CE-T01-S10-06) : en MODIFICATION, la garde de sortie compare le
@@ -328,8 +1016,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // quelque chose a changé) ; en création, V2-PRE-2 (T18) la compare au
   // brouillon RÉELLEMENT créé (valeurs du Profil au moment de la création),
   // jamais aux seules constantes du Domaine si le Profil en diffère.
-  // PRE-4, décision Q54 de Hermann (2026-10-18) : « Enregistrer la séance » enregistre depuis
-  // la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
+  // PRE-4, décision Q54 de Hermann (2026-10-18) : l'action finale (« Continuer » depuis PRE-6
+  // story 2.1, ex-« Enregistrer la séance ») enregistre depuis la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
   // lu sans exigence de fournisseur : sans lui, l'enregistrement échoue avec le message D-107.
   const sessionService = useContext(SessionServiceContext);
   const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
@@ -337,13 +1025,39 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Enregistrement réussi : la garde de sortie est levée avant la fermeture (effet ci-dessous),
   // pour que `dismissTo` ne soit jamais intercepté comme un abandon.
   const [hasSaved, setHasSaved] = useState(false);
+  // PRE-6 (story 4.1) : pendant le placement, toute sortie est interceptée pour annuler d'abord le
+  // placement (ci-dessous), même sur un brouillon inchangé.
   const shouldBlockExit =
     !hasSaved &&
-    (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline));
+    // Revue 7.5 : une suppression animée en cours n'est pas encore écrite dans le brouillon.
+    (deletion !== null ||
+      placement !== null ||
+      (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
     resetDraft,
   );
+  // PRE-6 (story 3.1, RC-4) : le dialogue d'abandon (garde de sortie) referme le choix de nature
+  // du Circuit (Android / web) — ajustement pendant le rendu, au changement de `isPendingExit` (patron React
+  // « ajuster un état sur un changement de prop », sans effet).
+  const [observedPendingExit, setObservedPendingExit] = useState(isPendingExit);
+  if (isPendingExit !== observedPendingExit) {
+    setObservedPendingExit(isPendingExit);
+    // Story 3.4 : la feuille des volumes aussi — jamais deux modales empilées.
+    if (isPendingExit && (openOverlay === "circuitNature" || openOverlay === "circuitVolumes")) {
+      setOpenOverlay(null);
+    }
+    // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
+    if (isPendingExit && pendingNatureChange !== null) {
+      setPendingNatureChange(null);
+    }
+    // Story 4.1 : une sortie (retour, X, geste iOS) pendant le placement l'annule d'abord, sans
+    // mutation et sans dialogue d'abandon par-dessus la barre ; la sortie elle-même est abandonnée.
+    if (isPendingExit && placement !== null) {
+      leavePlacement();
+      cancelExit();
+    }
+  }
 
   useEffect(() => {
     if (!hasSaved) return;
@@ -361,6 +1075,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * affiché, message D-107, action réactivée (D-107 / CE-T01-S10-09).
    */
   async function handleSave() {
+    // PRE-6 (story 3.1, RC-4) : « Continuer » referme le choix de nature du Circuit.
+    closeCircuitNatureMenu();
+    // Story 7.5 : pendant une suppression animée, le brouillon n'est pas encore écrit — elle est
+    // terminée aussitôt, et l'enregistrement demande un nouveau toucher (choix 7.5).
+    if (deletionRef.current !== null) {
+      flushDeletion();
+      return;
+    }
     if (isSavingRef.current) {
       return;
     }
@@ -396,26 +1118,617 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setOpenOverlay((current) => (current === kind ? null : kind));
   }, []);
 
+  // PRE-6 (story 3.1, RC-4 ; story 3.2) : un toucher ailleurs referme le panneau du choix de nature
+  // (Android / web), sans rien appliquer ; une roulette de borne éventuellement ouverte n'est pas
+  // concernée. Story 7.3 (D-442) : le stepper du compte, toujours affiché, n'a rien à refermer.
+  const closeCircuitNatureMenu = useCallback(() => {
+    setOpenOverlay((current) => (current === "circuitNature" ? null : current));
+  }, []);
+  // Écran quitté (perte du premier plan) : le choix de nature se referme.
+  // Story 3.2 : une conversion en attente de confirmation est aussi abandonnée (aucune mutation).
+  useFocusEffect(
+    useCallback(
+      () => () => {
+        closeCircuitNatureMenu();
+        setPendingNatureChange(null);
+        // Story 3.4 : la feuille des volumes se referme aussi (aucune mutation).
+        setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
+        // Story 4.1 : le placement est abandonné sans mutation.
+        leavePlacement();
+        // Story 7.5 : une suppression animée en cours est écrite.
+        flushDeletion();
+      },
+      [closeCircuitNatureMenu, flushDeletion, leavePlacement],
+    ),
+  );
+
+  /**
+   * PRE-6 (story 3.4, CE-CIR-03) : l'œil ouvre « Volumes du circuit » et referme, dans le même
+   * geste, le choix de nature (un seul contrôle actif, CIR-10).
+   * PRE-6 story 5.1b (revue) : l'œil étant dans la zone de contexte, hors de la liste, il referme
+   * aussi les actions glissées révélées ; il n'ouvre rien pendant le glisser d'une carte (il y est
+   * aussi désactivé).
+   */
+  const openCircuitVolumes = useCallback(() => {
+    if (draggedKey !== null) return;
+    Keyboard.dismiss();
+    setRevealedActionsId(null);
+    volumesClosedByUserRef.current = false;
+    setIsVolumesSheetMounted(true);
+    setOpenOverlay("circuitVolumes");
+  }, [draggedKey]);
+  /**
+   * Fermeture (X, voile, glisser, retour) : lecture seule, aucune écriture. Sans effet si la
+   * feuille n'est plus ouverte (rappel tardif ou répété).
+   */
+  const closeCircuitVolumes = useCallback(() => {
+    if (openOverlay !== "circuitVolumes") return;
+    volumesClosedByUserRef.current = true;
+    setOpenOverlay(null);
+  }, [openOverlay]);
+  /** Disparition native terminée : la feuille est démontée ; focus rendu à l'œil après une fermeture par l'utilisateur. */
+  const handleCircuitVolumesDismissed = useCallback(() => {
+    setIsVolumesSheetMounted(false);
+    if (volumesClosedByUserRef.current) {
+      volumesClosedByUserRef.current = false;
+      setVolumesFocusRequest((current) => current + 1);
+    }
+  }, []);
+  // Glisser (appui long) ou révéler les actions d'une carte referme aussi le choix de nature.
+  const handleRevealActions = useCallback(
+    (activityId: string | null) => {
+      if (activityId !== null) {
+        closeCircuitNatureMenu();
+      }
+      setRevealedActionsId(activityId);
+    },
+    [closeCircuitNatureMenu],
+  );
+  const handleDragStart = useCallback(
+    (key: string | null) => {
+      if (key !== null) {
+        closeCircuitNatureMenu();
+        // Story 4.2 : le glisser d'un point referme les actions glissées révélées.
+        if (key.startsWith(RAIL_STOP_KEY_PREFIX)) setRevealedActionsId(null);
+      }
+      // Story 7.4 : fin du geste (dépôt, annulation) — le défilement automatique s'arrête.
+      if (key === null) autoScroll.end();
+      draggedKeyRef.current = key;
+      setDraggedKey(key);
+    },
+    [autoScroll, closeCircuitNatureMenu],
+  );
+
+  /**
+   * PRE-6 (story 4.1, AD-43, `8328:29270`) — « Ajouter un arrêt » : entrée en placement sur un
+   * sous-brouillon vide. Le choix de nature et les actions glissées se referment ; le défaut de
+   * récupération du Profil est relu (valeur courante, D-307).
+   */
+  const isPlacementActive = placement !== null;
+  const enterPlacement = useCallback(() => {
+    // Revue 6.2 : aucune entrée en placement pendant le glisser d'une carte ou d'un point.
+    if (draggedKeyRef.current !== null) return;
+    // Story 7.5 : une suppression animée en cours est écrite d'abord.
+    flushDeletion();
+    Keyboard.dismiss();
+    // Toute surface ouverte se referme, comme à la perte du premier plan : roulettes des bornes,
+    // compteur et choix de nature, feuille des volumes, dialogues en attente, arbre d'ajout.
+    setOpenOverlay(null);
+    setPendingNatureChange(null);
+    setPendingCircuitEntry(null);
+    // Story 5.2b : un aperçu conservé pour le dialogue de perte, ou un retour en cours, se termine
+    // aussitôt (translations posées à 0 sans animation).
+    finishDragPreview(false);
+    setIsAddActivityTreeOpen(false);
+    setRevealedActionsId(null);
+    setRecoveryWheel(null);
+    setPlacement(EMPTY_PLACEMENT_DRAFT);
+    profileRequestRef.current += 1;
+    const request = profileRequestRef.current;
+    if (!profileService) {
+      setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+      return;
+    }
+    setRecoveryDefaultSeconds(null);
+    profileService.getProfile().then(
+      (profile) => {
+        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(profile.postActivityRecoverySecondsDefault);
+      },
+      () => {
+        if (profileRequestRef.current === request) setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
+      },
+    );
+  }, [finishDragPreview, flushDeletion, profileService]);
+  /** « Annuler » (et retour système) : l'état d'entrée est restitué, sans aucune mutation. */
+  const cancelPlacement = useCallback(() => {
+    leavePlacement();
+    setAddStopFocusRequest((current) => current + 1);
+  }, [leavePlacement]);
+  /**
+   * PRE-6 story 6.3 (D-441, RM-251) : composition sur laquelle se jugent les bascules de point et
+   * l'applicabilité du sous-brouillon — toujours fournie au Domaine (`togglePlacementStopPoint`,
+   * `placementConfirmation`, `placementSlots`) : la forme historique sans contexte n'est plus appelée.
+   */
+  const placementContext = useMemo<PlacementContext>(
+    () => ({ exercises: draft.exercises, stopPoints: draft.stopPoints ?? EMPTY_STOP_POINTS, tourRepeatCount: draft.tourRepeatCount }),
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount],
+  );
+  /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
+  const confirmation = useMemo(
+    () => (placement === null ? null : placementConfirmation(placement, placementContext)),
+    [placement, placementContext],
+  );
+  /**
+   * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`postActivityRecoverySeconds`
+   * et `stopPoints`, `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-441 —
+   * retraits programmés, en une fois, sans point consécutif), puis sortie du placement. Disponible
+   * dès qu'un changement est applicable (`placementConfirmation` ≠ `NONE`). Identifiants des
+   * points tirés hors du calcul d'état.
+   */
+  const confirmPlacement = useCallback(() => {
+    if (placement === null || confirmation === null || confirmation.kind === "NONE") return;
+    const applied = placement;
+    // Rien d'applicable sur le brouillon courant (même brouillon rendu) : aucune mise à jour.
+    const preview = applyPlacementDraft(draft, applied, () => "");
+    if (preview !== draft) {
+      const stopPointIds = applied.stopPoints.map(() => Crypto.randomUUID());
+      updateDraft((current) => {
+        let next = 0;
+        return applyPlacementDraft(current, applied, () => stopPointIds[next++] ?? Crypto.randomUUID());
+      });
+    }
+    leavePlacement();
+    // Revue 6.3 : si « Ajouter un arrêt » devient indisponible (dernier point retiré sans autre
+    // ajout possible), le focus va à la première carte plutôt qu'à un bouton désactivé.
+    const first = STOP_POINT_SCOPE_ORDER.flatMap((scope) =>
+      preview.exercises.filter((exercise) => exercise.structuralPosition === scope),
+    )[0];
+    if (placementOfferOf(placementSlots(preview.exercises, preview.stopPoints ?? EMPTY_STOP_POINTS, EMPTY_PLACEMENT_DRAFT, preview)).any || first === undefined) {
+      setAddStopFocusRequest((current) => current + 1);
+    } else {
+      requestItemFocus(railRowKey(first.id));
+    }
+  }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
+  /**
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
+   * (ajout, ou récupération existante, 0 comprise, conservée) : désélection (`deselectPlacementRecovery` :
+   * ajout jeté, ou retrait programmé) ; non sélectionnée : roulette, sur la durée existante sinon
+   * sur le défaut du Profil.
+   */
+  const handlePlacementRecoveryPress = useCallback(
+    (occurrenceId: string) => {
+      if (placement === null) return;
+      const occurrence = draft.exercises.find((exercise) => exercise.id === occurrenceId);
+      if (occurrence === undefined || occurrence.type !== "EXERCISE") return;
+      if (placementRecoverySeconds(placement, occurrence) !== null) {
+        const t = strings.screens.composition.placement;
+        // Revue 6.3 (ch13 L1524) : effet, puis libellé de « Confirmer ».
+        placementAnnouncementRef.current = {
+          text: occurrenceId in placement.recoveries ? t.additionCancelledAnnouncement : t.recoveryRemovedAnnouncement,
+          withLabel: true,
+        };
+        // Revue 7.2 : une roulette en attente du défaut du Profil ne s'ouvre pas plus tard.
+        setRecoveryWheel(null);
+        setPlacement(deselectPlacementRecovery(placement, occurrenceId, placementContext));
+        return;
+      }
+      setRecoveryWheel({ occurrenceId, seconds: occurrence.postActivityRecoverySeconds ?? null });
+    },
+    [draft.exercises, placement, placementContext],
+  );
+  /**
+   * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-441) —
+   * ajout s'il est proposé, désélection s'il est ajouté. Story 7.2 (D-442) : un ajout qui ferait se
+   * suivre un début et une fin de Tour (N ≥ 2) ouvre le choix « Début de tour / Fin de tour ».
+   */
+  const handlePlacementStopPointToggle = useCallback(
+    (location: StopPointLocation) => {
+      if (placement === null) return;
+      setRecoveryWheel(null);
+      const outcome = togglePlacementStopPointOutcome(placement, location, placementContext);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        openTourChoice({ kind: "PLACEMENT_STOP_POINT", location });
+        return;
+      }
+      const next = outcome.placement;
+      if (next === placement) return;
+      // Revue 6.3 (ch13 L1524) : effet, puis nombre d'ajouts (« Point d'arrêt ajouté. Confirmer 2 … »).
+      const t = strings.screens.composition.placement;
+      placementAnnouncementRef.current = {
+        text: isPlacementStopPointAdded(next, location) ? t.stopPointAddedAnnouncement : t.additionCancelledAnnouncement,
+        withLabel: true,
+      };
+      setPlacement(next);
+    },
+    [openTourChoice, placement, placementContext],
+  );
+  /**
+   * ✓ de la roulette d'une zone de récupération (story 7.2, D-442) : la zone est sélectionnée à la
+   * durée choisie (`selectPlacementRecovery` : ajout, ou récupération existante conservée — retrait
+   * annulé — et modifiée si la durée diffère), annoncée avec le libellé de « Confirmer » (revue 6.3).
+   * Roue non déplacée sur une récupération existante hors grille (donnée historique au-delà de 300 s
+   * ou hors pas 1 / 5 / 30) : sa valeur est conservée telle quelle.
+   */
+  const validatePlacementRecovery = useCallback(
+    (totalSeconds: number) => {
+      const wheel = recoveryWheel;
+      setRecoveryWheel(null);
+      if (wheel === null || placement === null) return;
+      // Revue 7.2 : seule une valeur existante valide (entière, ≥ 0) est conservée telle quelle.
+      const existing = wheel.seconds !== null && Number.isInteger(wheel.seconds) && wheel.seconds >= 0 ? wheel.seconds : null;
+      const seconds = existing !== null && totalSeconds === snapToGrid(existing, RECOVERY_WHEEL_VALUES) ? existing : totalSeconds;
+      const next = selectPlacementRecovery(placement, wheel.occurrenceId, seconds, placementContext);
+      // Revue 7.2 : annoncé seulement si la zone est réellement sélectionnée.
+      if (next === placement) return;
+      const t = strings.screens.composition.placement;
+      placementAnnouncementRef.current = {
+        text: wheel.seconds === null ? t.recoveryAddedAnnouncement : t.recoverySelectedAnnouncement,
+        withLabel: true,
+      };
+      setPlacement(next);
+    },
+    [placement, placementContext, recoveryWheel],
+  );
+  /**
+   * Revue 6.3 (D-441 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
+   * son identifiant (deux points hérités sur une même clé restent indépendants). Une annulation
+   * refusée par le Domaine (un point ajouté le suivrait) ne change rien ; chaque issue est annoncée.
+   * Story 7.2 (D-442) : une resélection refusée parce qu'elle ferait se suivre un début et une fin
+   * de Tour avec un AJOUT ouvre le choix « Début de tour / Fin de tour ».
+   */
+  const handlePlacementExistingStopPointToggle = useCallback(
+    (stopPointId: string) => {
+      if (placement === null) return;
+      const t = strings.screens.composition.placement;
+      const next = togglePlacementStopPointRemoval(placement, stopPointId, placementContext);
+      if (next === placement) {
+        if (placementReselectionChoice(placement, stopPointId, placementContext) !== null) {
+          openTourChoice({ kind: "PLACEMENT_EXISTING_STOP_POINT", stopPointId });
+          return;
+        }
+        AccessibilityInfo.announceForAccessibility(t.stopPointKeepRefusedAnnouncement);
+        return;
+      }
+      // Annoncé après le rendu, avec l'éventuel changement de disponibilité de « Confirmer ».
+      placementAnnouncementRef.current = {
+        text: isPlacementStopPointRemoved(next, stopPointId) ? t.stopPointRemovedAnnouncement : t.stopPointKeptAnnouncement,
+        withLabel: false,
+      };
+      setPlacement(next);
+    },
+    [openTourChoice, placement, placementContext],
+  );
+  /**
+   * Revue 6.3 : seule source des annonces du placement, en UN message pour ne pas s'interrompre —
+   * l'effet du dernier toucher, puis le libellé de « Confirmer » : toujours après un ajout ou une
+   * annulation d'ajout (nombre d'ajouts, ch13 L1524), et, pour un point existant, quand la
+   * disponibilité change (jamais à l'entrée). La barre n'annonce plus rien d'elle-même.
+   */
+  const isConfirmAvailable = confirmation === null ? null : confirmation.kind !== "NONE";
+  const previousConfirmAvailableRef = useRef<boolean | null>(null);
+  useEffect(() => {
+    const previous = previousConfirmAvailableRef.current;
+    previousConfirmAvailableRef.current = isConfirmAvailable;
+    const pending = placementAnnouncementRef.current;
+    placementAnnouncementRef.current = null;
+    // Story 7.2 : un choix de Tour peut n'avoir aucun effet propre à nommer (texte vide).
+    const parts = pending === null || pending.text === "" ? [] : [pending.text];
+    if (
+      confirmation !== null &&
+      ((pending !== null && pending.withLabel) || (previous !== null && previous !== isConfirmAvailable))
+    ) {
+      parts.push(formatPlacementConfirmLabel(confirmation));
+    }
+    if (parts.length > 0) AccessibilityInfo.announceForAccessibility(parts.join(". "));
+  }, [confirmation, isConfirmAvailable]);
+  // Android : le retour système annule le placement (comme « Annuler »).
+  useEffect(() => {
+    if (!isPlacementActive) return;
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      cancelPlacement();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [cancelPlacement, isPlacementActive]);
+
+  // Emplacements du placement (Domaine), par occurrence et après le Circuit. Story 6.3 (D-441,
+  // RM-251) : en placement, calculés sur l'état effectif (existants − retraits + ajouts du
+  // sous-brouillon) — un retrait programmé libère les emplacements voisins.
+  const entrySlots = useMemo(
+    () => placementSlots(placementContext.exercises, placementContext.stopPoints, EMPTY_PLACEMENT_DRAFT, placementContext),
+    [placementContext],
+  );
+  const draftSlots = useMemo(
+    () => (placement === null ? entrySlots : placementSlots(placementContext.exercises, placementContext.stopPoints, placement, placementContext)),
+    [entrySlots, placement, placementContext],
+  );
+  // « Ajouter un arrêt » est indisponible quand le placement n'aurait rien à proposer (Composition
+  // vide, tout est déjà présent). Story 6.3 (D-441, R3) : un point existant IDENTIFIÉ suffit à le
+  // rendre disponible — le placement est le seul chemin de son retrait ; un indice le dit quand
+  // aucun ajout n'est possible.
+  const entryOffer = placementOfferOf(entrySlots);
+  const hasPlacementOffer = entryOffer.any;
+  const addStopAccessibilityHint =
+    entryOffer.any && !entryOffer.additions
+      ? entryOffer.recoveries
+        ? strings.screens.composition.placement.addStopChangesOnlyHint
+        : strings.screens.composition.placement.addStopRemovalOnlyHint
+      : undefined;
+  const slotByOccurrence = useMemo(
+    () =>
+      new Map(
+        draftSlots.flatMap((slot) =>
+          slot.kind === "OCCURRENCE" && slot.occurrenceId !== null ? [[slot.occurrenceId, slot] as const] : [],
+        ),
+      ),
+    [draftSlots],
+  );
+  const afterCircuitSlot = draftSlots.find((slot) => slot.kind === "AFTER_CIRCUIT") ?? null;
+  /**
+   * Story 6.3 (D-441, R3) : points existants qu'aucun emplacement ne porte (`UNOFFERED_STOP_POINT` :
+   * tête de Circuit, hors bornes, position non entière…), rendus en placement comme rangées
+   * autonomes de la séquence (`displayedZoneItems`) ; `null` hors placement.
+   */
+  // Clé stable (les emplacements sont recalculés à chaque bascule ; l'ensemble, lui, n'en dépend pas).
+  const unofferedStopPointKey =
+    placement === null
+      ? null
+      : JSON.stringify(
+          // Story 7.1 (D-442) : un point existant en tête de Circuit est porté par l'emplacement
+          // `CIRCUIT_HEAD` ; il reste rendu comme rangée autonome de la séquence (à sa place, en tête du
+          // Circuit), sélectionné et désélectionnable — story 7.2 : l'emplacement LIBRE de tête est
+          // rendu de même (`circuitHeadRowPoint`).
+          draftSlots.flatMap((slot) =>
+            (slot.kind === "UNOFFERED_STOP_POINT" || slot.kind === "CIRCUIT_HEAD") && slot.stopPoint?.stopPointId !== undefined
+              ? [slot.stopPoint.stopPointId]
+              : [],
+          ),
+        );
+  const unofferedStopPointIds = useMemo(
+    () => (unofferedStopPointKey === null ? null : new Set<string>(JSON.parse(unofferedStopPointKey) as string[])),
+    [unofferedStopPointKey],
+  );
+  /**
+   * Revue 6.3 : emplacements où un point non proposé est DESSINÉ (position tronquée ou ramenée aux
+   * bornes, comme `scopeSequence`) — aucun emplacement libre n'y est proposé, même une fois ce point
+   * désélectionné : deux puces ne se superposent jamais.
+   */
+  const unofferedDisplayKeys = useMemo(() => {
+    if (unofferedStopPointIds === null) return null;
+    return new Set(
+      (draft.stopPoints ?? EMPTY_STOP_POINTS)
+        .filter((point) => unofferedStopPointIds.has(point.id))
+        .map((point) => stopPointKey(displayedStopPointLocation(draft.exercises, point))),
+    );
+  }, [draft.exercises, draft.stopPoints, unofferedStopPointIds]);
+  /**
+   * Story 6.3 : noms accessibles du placement, par la règle de la story 6.2 (dernier Exercice qui
+   * précède, homonymes « n sur m », « après le circuit », têtes de portée) — points existants et
+   * (revue 6.3) emplacements à ajouter.
+   */
+  const placementLabels = useMemo(
+    () => (isPlacementActive ? placementLabelerOf(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS) : null),
+    [draft.exercises, draft.stopPoints, isPlacementActive],
+  );
+  // Pendant le placement, durées recalculées en direct sur le brouillon tel que « Confirmer » le
+  // produirait (R positive remplace la Pause terminale, story 1.3).
+  const durationDraft = useMemo(
+    () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
+    [draft, placement],
+  );
+  // PRE-6 story 7.2 (D-442) : D-301 est retirée — plus aucun message d'enchaînement sans pause.
+  /** Story 6.3 : ce que `placementRowPointOf` lit (noms, sous-brouillon, contexte, emplacements masqués). */
+  const placementRowEnvironment = useMemo<PlacementRowEnvironment>(
+    () => ({ labels: placementLabels, placement: placement ?? EMPTY_PLACEMENT_DRAFT, context: placementContext, hiddenKeys: unofferedDisplayKeys }),
+    [placement, placementContext, placementLabels, unofferedDisplayKeys],
+  );
+  /**
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : emplacement LIBRE (ou ajouté) de tête de Circuit
+   * — début de Tour, `CIRCUIT_HEAD` du Domaine —, dessiné dans le Circuit entre son en-tête et sa
+   * première carte, centré et raccordé au rail comme les autres rangées du placement ; `null` hors
+   * placement, sans emplacement, ou quand un point existant l'occupe (rangée autonome de ce point).
+   */
+  const circuitHeadRowPoint = useMemo<PlacementStopPointRowPoint | null>(() => {
+    const circuitHeadSlot = draftSlots.find((slot) => slot.kind === "CIRCUIT_HEAD") ?? null;
+    return placement === null || circuitHeadSlot?.stopPoint == null || circuitHeadSlot.stopPoint.existing
+      ? null
+      : placementRowPointOf(circuitHeadSlot.stopPoint, placementRowEnvironment);
+  }, [draftSlots, placement, placementRowEnvironment]);
+  const hasCircuitHeadRow = circuitHeadRowPoint !== null;
+  const placementRowContext = useMemo<PlacementRowContext | null>(
+    () =>
+      placement === null
+        ? null
+        : {
+            draft: placement,
+            slotFor: (occurrenceId) => slotByOccurrence.get(occurrenceId) ?? null,
+            rowPointOf: (stopPoint) => placementRowPointOf(stopPoint, placementRowEnvironment),
+            circuitHeadRowPoint,
+            onPressRecovery: handlePlacementRecoveryPress,
+            onToggleStopPoint: handlePlacementStopPointToggle,
+            onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
+          },
+    [
+      circuitHeadRowPoint,
+      handlePlacementExistingStopPointToggle,
+      placementRowEnvironment,
+      handlePlacementRecoveryPress,
+      handlePlacementStopPointToggle,
+      placement,
+      slotByOccurrence,
+    ],
+  );
+
   const composition = strings.screens.composition;
 
   // T02-S01 (CE-T02-01) : la Composition restitue le brouillon réel dans
   // l'ordre structurel — Compte à rebours ; Activités AVANT le Tour ; Tour et
   // ses Activités ; Activités APRÈS le Tour ; Fin de séance.
-  const zones = groupActivitiesByZone(draft.exercises);
+  /**
+   * PRE-6 story 6.2 (D-441) : éléments affichés de chaque zone — hors placement, la séquence mêlée
+   * du Domaine (`scopeSequence` : occurrences et Points d'arrêt, chacun une rangée) ; en placement,
+   * les occurrences et les seuls points non proposés (story 6.3) — les autres sont portés par les
+   * emplacements (story 5.3).
+   */
+  const inPlacement = placement !== null;
+  const zoneItems = useMemo(
+    () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, unofferedStopPointIds, hasCircuitHeadRow),
+    [draft.exercises, draft.stopPoints, hasCircuitHeadRow, unofferedStopPointIds],
+  );
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
+  // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
+  const occurrenceCircuitContext: OccurrenceCircuitContext = {
+    circuitNature: draft.circuitNature,
+    tourRepeatCount,
+  };
+  const circuitNature = draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+
+  /**
+   * Story 7.2 (D-442) : points retirés sans message (déplacement tolérant d'un Exercice, passage à
+   * N = 1, choix de Tour) — leurs mesures de rangée sont oubliées (aucune géométrie de glisser ne
+   * les compte plus) et une annonce d'accessibilité discrète les signale ; `focusKey` : élément qui
+   * reçoit le focus avec l'annonce (pas « Monter » / « Descendre »), sinon annonce seule.
+   */
+  const reportRemovedStopPoints = useCallback(
+    (ids: readonly string[], focusKey?: string) => {
+      if (ids.length === 0) return;
+      for (const id of ids) rowLayoutsRef.current.delete(railStopKey(id));
+      const text = removedStopPointsAnnouncement(ids.length);
+      if (focusKey !== undefined) {
+        requestItemFocus(focusKey, text);
+      } else {
+        AccessibilityInfo.announceForAccessibility(text);
+      }
+    },
+    [requestItemFocus],
+  );
+
+  /**
+   * PRE-6 (story 3.1, AD-38, report de l'epic 1) : tout changement de N passe par le Domaine — Tours :
+   * le compte seul ; Séries : les exercices du Circuit suivent N (diminution en réserve,
+   * augmentation par restauration puis copie), sans message. Story 7.2 (D-442) :
+   * `circuitCountOutcome` — au passage à N = 1, les points devenus interdits sont retirés (annonce
+   * discrète) ; au passage de N = 1 à N ≥ 2 avec un début et une fin de Tour, le choix « Début de
+   * tour / Fin de tour » est demandé AVANT tout changement (Annuler : N inchangé). Pendant le
+   * dialogue, les pas suivants (maintien) sont ignorés. Story 7.3 (D-442) : le stepper étant toujours
+   * affiché, un pas referme le choix de nature éventuellement ouvert (un seul contrôle actif, CIR-10).
+   */
+  // Forme fonctionnelle : chaque pas (maintien compris) part du brouillon COURANT, jamais de
+  // celui du rendu.
+  const handleCircuitCountChange = useCallback(
+    (count: number) => {
+      closeCircuitNatureMenu();
+      if (tourChoicePendingRef.current) return;
+      // Revue 7.5 : une suppression animée en cours est écrite d'abord (N peut changer ses retraits).
+      flushDeletion();
+      const outcome = circuitCountOutcome(draft, count);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        openTourChoice({ kind: "CIRCUIT_COUNT", count });
+        return;
+      }
+      // Revue 7.2 : aucun effet dans le calcul d'état — si le brouillon COURANT demande un choix
+      // (mise à jour concurrente), rien n'est appliqué ; un nouveau pas ouvrira le dialogue.
+      updateDraft((current) => {
+        const replayed = circuitCountOutcome(current, count);
+        return replayed.status === "CHOICE_REQUIRED" ? current : replayed.draft;
+      });
+      reportRemovedStopPoints(outcome.removedStopPointIds);
+    },
+    [closeCircuitNatureMenu, draft, flushDeletion, openTourChoice, reportRemovedStopPoints, updateDraft],
+  );
+
+  /**
+   * PRE-6 (story 3.2, CE-CIR-01, CE-CIR-02, AD-37) : nature choisie depuis la pastille. Même
+   * nature : rien. Sans perte (`prepareNatureChange(...).losses` vide, dont Séries → Tours) :
+   * `applyNatureChange` immédiat, sans message. Avec perte (Tours → Séries, un exercice au-delà
+   * de N) : dialogue de confirmation, rien n'est appliqué avant « Confirmer ».
+   */
+  const openNatureConfirmation = useCallback((nature: CircuitNature) => {
+    natureChangeConfirmedRef.current = false;
+    setPendingNatureChange(nature);
+  }, []);
+  const handleSelectNature = useCallback(
+    (nature: CircuitNature) => {
+      closeCircuitNatureMenu();
+      // Sur iOS, le menu natif rend lui-même le focus à son déclencheur.
+      const focusPillAfterChoice = Platform.OS !== "ios";
+      if (nature === (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE)) {
+        if (focusPillAfterChoice) requestNatureFocus();
+        return;
+      }
+      if (prepareNatureChange(draft, nature).losses.length > 0) {
+        openNatureConfirmation(nature);
+        return;
+      }
+      // Story 7.9 (revue) : la nature change, donc le texte de l'unité — sur iOS, le menu natif est
+      // remonté (`triggerLayoutKey`) et ne peut plus rendre le focus à son déclencheur : le focus est
+      // demandé au conteneur stable de la pastille, sur toutes les plateformes.
+      requestNatureFocus();
+      // Forme fonctionnelle : appliquée au brouillon COURANT. Si celui-ci porte une perte (mise
+      // à jour concurrente), rien n'est appliqué et la confirmation s'ouvre — hors du calcul
+      // d'état, qui doit rester pur.
+      updateDraft((current) => {
+        if (prepareNatureChange(current, nature).losses.length > 0) {
+          queueMicrotask(() => openNatureConfirmation(nature));
+          return current;
+        }
+        return applyNatureChange(current, nature);
+      });
+    },
+    [closeCircuitNatureMenu, draft, openNatureConfirmation, requestNatureFocus, updateDraft],
+  );
+
+  /** Fermeture du choix par l'utilisateur (Android / web) : rien n'est appliqué, focus à la pastille. */
+  const dismissNatureMenu = useCallback(() => {
+    closeCircuitNatureMenu();
+    requestNatureFocus();
+  }, [closeCircuitNatureMenu, requestNatureFocus]);
+
+  /** « Annuler » (ou retour système) du dialogue de perte : rien n'est appliqué. */
+  const cancelNatureChange = useCallback(() => {
+    setPendingNatureChange(null);
+    requestNatureFocus();
+  }, [requestNatureFocus]);
+
+  /**
+   * « Confirmer » de la conversion avec perte : une seule fois (double appui ignoré), sur le
+   * brouillon COURANT — la perte est recalculée par `applyNatureChange` à partir de l'état
+   * réel, jamais de celui de l'ouverture du dialogue.
+   */
+  const confirmNatureChange = useCallback(() => {
+    if (pendingNatureChange === null || natureChangeConfirmedRef.current) {
+      return;
+    }
+    natureChangeConfirmedRef.current = true;
+    const nature = pendingNatureChange;
+    setPendingNatureChange(null);
+    updateDraft((current) => applyNatureChange(current, nature));
+    requestNatureFocus();
+  }, [pendingNatureChange, requestNatureFocus, updateDraft]);
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
   }, []);
 
-  const handleRowLayout = useCallback((activityId: string, event: LayoutChangeEvent) => {
+  /** Mesure d'une rangée de zone (carte ou point), par clé d'élément. */
+  const handleRowLayout = useCallback((key: string, zone: StructuralPosition, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
-    rowLayoutsRef.current.set(activityId, { top: y, height });
+    const previous = rowLayoutsRef.current.get(key);
+    rowLayoutsRef.current.set(key, { top: y, height, zone });
+    // Story 7.5 (d-17) : taille changée — la translation native de la rangée est renvoyée.
+    if (previous !== undefined && previous.height !== height) shiftRegistryRef.current?.resyncNative([key]);
   }, []);
 
   const handleTourLayout = useCallback((event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
+    const resized = tourLayoutRef.current.height !== height;
     tourLayoutRef.current = { top: y, height };
+    // Story 7.5 (d-17) : le Circuit a changé de taille (dépôt d'une carte entrée ou sortie, suppression,
+    // placement) — Fabric recalcule alors la translation de son fond étiré à partir de propriétés
+    // gardées, peut-être périmées : les bords du Circuit sont renvoyés au pilote natif.
+    if (resized) shiftRegistryRef.current?.resyncNative([RAIL_KEYS.circuitHeader, RAIL_KEYS.circuitEnd]);
+    setCircuitSectionTop(y);
+    setCircuitMeasuredHeight(height);
   }, []);
 
   /**
@@ -432,107 +1745,906 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   }, []);
 
   /**
-   * Géométrie absolue (repère du contenu défilant) de toutes les cartes et
-   * de la structure Tour — l'entrée de `resolveDropTarget`.
+   * Géométrie absolue (repère du contenu défilant) de toutes les rangées affichées et de la
+   * structure Tour — l'entrée de `resolveDropTarget`. PRE-6 story 6.2 : chaque rangée de Point
+   * d'arrêt est une ligne, avec sa hauteur mesurée ; l'identifiant d'une ligne est la clé de rail
+   * de l'élément. Le rang d'un emplacement compte donc la séquence MÊLÉE de la zone, élément glissé
+   * retiré — l'indice attendu par `moveOccurrenceInSequence`.
    */
-  const buildDragLayout = useCallback((): CompositionDragLayout => {
+  const buildDragLayout = useCallback((): CompositionDragLayout | null => {
     const rows: ActivityRowLayout[] = [];
-    for (const activity of draft.exercises) {
-      const rowLayout = rowLayoutsRef.current.get(activity.id);
-      if (rowLayout === undefined) {
-        continue;
+    for (const zone of STRUCTURAL_ZONES) {
+      for (const item of zoneItems[zone]) {
+        const key = zoneItemKey(item);
+        const rowLayout = rowLayoutsRef.current.get(key);
+        // Revue 6.2 : une rangée affichée sans mesure, ou mesurée dans une autre zone (montée
+        // ailleurs depuis), rendrait la géométrie fausse : aucun relevé, le geste est refusé.
+        if (rowLayout === undefined || rowLayout.zone !== zone) {
+          return null;
+        }
+        rows.push({ id: key, zone, top: zoneBaseTop(zone) + rowLayout.top, height: rowLayout.height });
       }
-      rows.push({
-        id: activity.id,
-        zone: activity.structuralPosition,
-        top: zoneBaseTop(activity.structuralPosition) + rowLayout.top,
-        height: rowLayout.height,
-      });
     }
     return {
       tourTop: tourLayoutRef.current.top,
       tourBottom: tourLayoutRef.current.top + tourLayoutRef.current.height,
       rows,
     };
-  }, [draft.exercises, zoneBaseTop]);
+  }, [zoneItems, zoneBaseTop]);
 
-  const activityAbsoluteCenterY = useCallback(
-    (activity: SessionDraftExercise): number => {
-      const rowLayout = rowLayoutsRef.current.get(activity.id);
+  const itemAbsoluteCenterY = useCallback(
+    (key: string, zone: StructuralPosition): number => {
+      const rowLayout = rowLayoutsRef.current.get(key);
       if (rowLayout === undefined) {
         return 0;
       }
-      return zoneBaseTop(activity.structuralPosition) + rowLayout.top + rowLayout.height / 2;
+      return zoneBaseTop(zone) + rowLayout.top + rowLayout.height / 2;
     },
     [zoneBaseTop],
   );
 
-  const handleDropActivity = useCallback(
-    (activity: SessionDraftExercise, translationY: number) => {
-      const target = resolveDropTarget(
-        buildDragLayout(),
-        activity.id,
-        activityAbsoluteCenterY(activity) + translationY,
-      );
-      const next = moveActivity(draft.exercises, activity.id, target.zone, target.index);
-      if (next !== draft.exercises) {
-        updateDraft({ exercises: next });
+  /**
+   * Déplacement d'une occurrence (glisser, « Monter » / « Descendre ») — mêmes règles pour
+   * tous les chemins. Story 7.1 (D-442, remplace ARB-3 et le refus de D-441) : les Points d'arrêt
+   * restent à leur place ; un dépôt qui en rendrait un interdit ou consécutif est appliqué et le
+   * Domaine retire les points en cause (`removedStopPointIds`, annonce et focus : story 7.2) ; un
+   * conflit de Tour (choix requis) n'applique rien et ouvre le dialogue « Début de tour / Fin de
+   * tour » (story 7.2), la carte lâchée restant tenue jusqu'à la réponse. PRE-6 (story 2.3, AD-39) : entrée dans un Circuit de Séries →
+   * adaptation à N, et si des séries sont perdues, confirmation AVANT toute mutation (Annuler
+   * restitue la position) ; sortie du Circuit → réserve retirée, nombre et paramètres
+   * conservés, sans message.
+   */
+  const moveActivityTo = useCallback(
+    (move: OccurrenceMove, focusKey?: string): "APPLIED" | "REFUSED" | "PENDING" => {
+      const plan = planOccurrenceMove(draft, move);
+      if (plan === null) {
+        return "REFUSED";
+      }
+      if (plan.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-442) : conflit de Tour — rien n'est appliqué avant le choix ; la carte lâchée
+        // reste tenue là où elle a été lâchée, comme pendant le dialogue de perte (story 5.2b).
+        if (!openTourChoice({ kind: "OCCURRENCE_MOVE", move, fromStep: focusKey !== undefined })) return "REFUSED";
+        closeCircuitNatureMenu();
+        return "PENDING";
+      }
+      if (plan.losses.length > 0) {
+        // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
+        // COURANT (aucun instantané rejoué).
+        // PRE-6 (story 3.1, RC-4) : un dialogue de décision referme le choix de nature.
+        closeCircuitNatureMenu();
+        setPendingCircuitEntry({ ...move, targetCount: plan.targetCount, focusKey });
+        return "PENDING";
+      }
+      // Revue 6.2 : rejoué sur le brouillon COURANT (jamais un état figé au rendu).
+      updateDraft((current) => {
+        const replayed = planOccurrenceMove(current, move);
+        return replayed?.status === "PLAN" ? { ...current, ...replayed.patch } : current;
+      });
+      // Story 7.2 (D-442) : points retirés par le déplacement tolérant, sans message visuel.
+      reportRemovedStopPoints(plan.removedStopPointIds, focusKey);
+      return "APPLIED";
+    },
+    [closeCircuitNatureMenu, draft, openTourChoice, reportRemovedStopPoints, updateDraft],
+  );
+
+  /**
+   * PRE-6 story 6.2 (D-441, R2) : déplacement autonome d'un Point d'arrêt vers l'emplacement
+   * `(scope, position)` du rang visé (`moveStopPoint`, identité conservée). Refus (emplacement non
+   * proposable, occupé, RM-251) ou même emplacement : rien n'est écrit.
+   */
+  const moveStopPointTo = useCallback(
+    (stopPointId: string, destination: DropTarget): "APPLIED" | "REFUSED" | "PENDING" => {
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+      const point = state.stopPoints.find((candidate) => candidate.id === stopPointId);
+      const location = stopPointLocationAt(zoneItems[destination.zone], stopPointId, destination.zone, destination.index);
+      // Revue 6.2 : déposé sur son emplacement AFFICHÉ (position héritée ramenée), rien n'est écrit.
+      if (point === undefined || sameLocation(displayedStopPointLocation(state.exercises, point), location)) {
+        return "REFUSED";
+      }
+      const outcome: CompositionOutcome = moveStopPoint(state, stopPointId, location);
+      if (outcome.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-442) : tête ou fin de Tour face à l'autre limite (N ≥ 2) — choix demandé, le
+        // point lâché reste tenu (story 5.2b).
+        return openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location, fromStep: false }) ? "PENDING" : "REFUSED";
+      }
+      if (outcome.status !== "APPLIED" || outcome.state === state) {
+        return "REFUSED";
+      }
+      // Rejoué sur le brouillon COURANT.
+      updateDraft((current) => {
+        const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
+        const replayed = moveStopPoint(currentState, stopPointId, location);
+        return replayed.status === "APPLIED" && replayed.state !== currentState
+          ? { ...current, ...compositionPatch(currentState, replayed.state) }
+          : current;
+      });
+      return "APPLIED";
+    },
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, openTourChoice, updateDraft, zoneItems],
+  );
+
+  /**
+   * Dépôt. PRE-6 (story 2.3b) : l'emplacement est calculé sur la géométrie FIGÉE au début du geste
+   * (`frozenDropSlot`), exactement comme l'aperçu — le dépôt applique donc l'emplacement montré,
+   * même si une mesure `onLayout` a changé pendant le geste. Repli sur la géométrie courante
+   * seulement sans aperçu (aucun relevé de début de geste).
+   *
+   * Ordre explicite : fin de l'état soulevé, déplacement, puis UNE écriture de la session —
+   * appliqué : décalages remis à 0 sans animation dans le rendu de la nouvelle disposition (aucun
+   * saut) ; refusé : retour en douceur ; confirmation de perte : l'aperçu est CONSERVÉ pendant le
+   * dialogue (« Annuler » le ramène en douceur, « Confirmer » le remet à 0 avec la disposition).
+   */
+  const handleDropItem = useCallback(
+    (key: string, zone: StructuralPosition, translationY: number) => {
+      const frozen = dragPreview !== null && dragPreview.key === key ? frozenDropSlot(dragPreview, translationY) : null;
+      const currentLayout = frozen === null ? buildDragLayout() : null;
+      const destination =
+        frozen ?? (currentLayout === null ? null : resolveDropTarget(currentLayout, key, itemAbsoluteCenterY(key, zone) + translationY));
+      handleDragStart(null);
+      if (destination === null) {
+        // Revue 6.2 : géométrie incomplète, aucun emplacement fiable : retour, rien d'écrit.
+        finishDragPreview(true, { key, from: translationY });
+        return;
+      }
+      // PRE-6 story 6.2 (D-441) : une occurrence est insérée au rang visé de la séquence mêlée
+      // (`moveOccurrenceInSequence`, R1 : les points restent en place) ; un point est déplacé seul
+      // (`moveStopPoint`, R2) vers l'emplacement `(scope, position)` de ce rang. Refus : retour animé.
+      const stopPointId = stopPointIdOfKey(key);
+      // Revue 7.6 : points que le dépôt retirera (calculés avant l'écriture, sur le brouillon du rendu).
+      const removedAtDrop =
+        stopPointId !== null
+          ? []
+          : removedByMove(draft, { activityId: occurrenceIdOfKey(key), zone: destination.zone, index: destination.index });
+      const outcome =
+        stopPointId !== null
+          ? moveStopPointTo(stopPointId, destination)
+          : moveActivityTo({ activityId: occurrenceIdOfKey(key), zone: destination.zone, index: destination.index });
+      // Story 5.2b : l'élément relâché est pris là où le doigt l'a laissé (pose de départ de sa
+      // translation dans le registre, sans animation) — maintenu pendant le dialogue de perte,
+      // ramené à sa place en douceur après un refus.
+      const release: ShiftRelease = { key, from: translationY };
+      if (outcome === "PENDING") {
+        setDragSession((current) =>
+          current.preview === null
+            ? current
+            : {
+                ...current,
+                preview: { ...current.preview, slot: destination, heldTranslationY: translationY },
+                animated: true,
+                release,
+              },
+        );
+      } else if (outcome === "REFUSED") {
+        finishDragPreview(true, release);
+      } else {
+        // Story 7.6 : l'élément déposé glisse de l'endroit du lâcher jusqu'à sa place.
+        finishAppliedDrop(
+          dragPreview === null || dragPreview.key !== key
+            ? null
+            : dropSettlePose(dragPreview, destination, translationY, draft, removedAtDrop),
+        );
       }
     },
-    [activityAbsoluteCenterY, buildDragLayout, draft.exercises, updateDraft],
+    [
+      buildDragLayout,
+      dragPreview,
+      draft,
+      finishAppliedDrop,
+      finishDragPreview,
+      handleDragStart,
+      itemAbsoluteCenterY,
+      moveActivityTo,
+      moveStopPointTo,
+    ],
+  );
+
+  /**
+   * PRE-6 (story 2.3b) : début (relevé des positions, sans décalage) et fin (`null` : décalages
+   * remis à 0, en douceur sauf dépôt appliqué) du glisser d'une carte.
+   */
+  const handleRowDragStart = useCallback(
+    (key: string | null, translationY = 0): boolean => {
+      if (key === null) {
+        // Geste interrompu : retour en douceur depuis la position atteinte (story 5.2b).
+        setDragSession((current) =>
+          endDragSession(
+            current,
+            true,
+            current.preview === null ? null : { key: current.preview.key, from: translationY },
+          ),
+        );
+      } else {
+        // Revue 6.2 : un second soulèvement (autre doigt) pendant qu'un élément est soulevé est
+        // ignoré ; une géométrie incomplète (rangée non mesurée, ou mesurée dans une autre zone)
+        // refuse le soulèvement — l'élément reste au repos.
+        if (draggedKeyRef.current !== null) return false;
+        // Story 7.5 : aucun soulèvement pendant une suppression animée (disposition en mouvement).
+        if (deletionRef.current !== null) return false;
+        const originLayout = buildDragLayout();
+        if (originLayout === null) return false;
+        // Story 5.2b : un nouveau geste pendant un retour arrête ce retour et pose toutes les
+        // translations à 0, de façon synchrone, AVANT le relevé (la mise en page mesurée, que
+        // `buildDragLayout` vient de lire, correspond alors à l'écran).
+        shiftRegistryRef.current?.reset();
+        // Story 7.4 : origine du défilement accumulé pendant ce geste.
+        autoScroll.begin();
+        setDragSession({
+          preview: { key, originLayout, slot: null, heldTranslationY: null },
+          animated: true,
+          circuitHeight: originLayout.tourBottom - originLayout.tourTop,
+          release: null,
+          settling: null,
+        });
+      }
+      handleDragStart(key);
+      return true;
+    },
+    [autoScroll, buildDragLayout, handleDragStart],
+  );
+
+  /**
+   * PRE-6 (story 2.3b) : emplacement d'insertion visé pendant le glisser — `frozenDropSlot`, sur
+   * la géométrie figée au début du geste, le même calcul que le dépôt (`handleDropActivity`).
+   * Aucune mutation du brouillon ; l'état ne change que si l'emplacement change.
+   */
+  const handleDragMove = useCallback((key: string, translationY: number) => {
+    setDragSession((current) => {
+      const preview = current.preview;
+      if (preview === null || preview.key !== key) {
+        return current;
+      }
+      const slot = frozenDropSlot(preview, translationY);
+      if (slot === null || (preview.slot !== null && preview.slot.zone === slot.zone && preview.slot.index === slot.index)) {
+        return current;
+      }
+      return { ...current, preview: { ...preview, slot } };
+    });
+  }, []);
+
+  /**
+   * Décalages qui montrent la disposition du dépôt à l'emplacement visé (`resolveDragShifts`,
+   * fonction pure) : cartes, bords du Circuit (amendement Hermann du 21/10/2026 : il s'agrandit ou
+   * se rétracte pendant le geste), ligne après le Circuit.
+   */
+  const dragShifts = useMemo<DragShifts>(() => {
+    if (dragPreview === null || dragPreview.slot === null) {
+      return NO_DRAG_SHIFTS;
+    }
+    const measured = dragPreview.originLayout.rows.find((row) => row.id === dragPreview.key)?.height;
+    // Story 6.2 : un point garde sa hauteur mesurée ; une carte, celle que le dépôt produirait.
+    const draggedOccurrenceId = stopPointIdOfKey(dragPreview.key) === null ? occurrenceIdOfKey(dragPreview.key) : null;
+    const insertionHeight =
+      draggedOccurrenceId === null
+        ? measured
+        : predictedInsertionHeight(
+            draft,
+            draggedOccurrenceId,
+            measured,
+            dragPreview.slot,
+            // Carte v2 (story 5.1) : 80 quelle que soit la zone ; l'écart de carte est nul.
+            () => occurrenceCardHeight(),
+          );
+    return resolveDragShifts(
+      dragPreview.originLayout,
+      dragPreview.key,
+      dragPreview.slot,
+      DRAG_SHIFT_GAPS,
+      insertionHeight,
+    );
+  }, [dragPreview, draft]);
+  // Story 7.5 : le glissement d'une suppression est toujours animé (sauf « Réduire les animations »).
+  // Story 7.7 : de même pour le glissement qui fait place à une copie.
+  const animateDragShifts = (deletion !== null || appearance !== null || dragSession.animated) && !reduceMotion;
+  /** Story 7.5 : décalages du glissement qui suit le fondu d'une suppression. */
+  const deletionShifts = useMemo<DragShifts | null>(
+    () =>
+      deletion === null || deletion.phase !== "slide"
+        ? null
+        : resolveRemovalShifts(deletion.layout, deletion.fadingKeys, DRAG_SHIFT_GAPS),
+    [deletion],
+  );
+  /**
+   * PRE-6 (story 5.2) : translations animées de la séquence, une par élément porteur de rail
+   * (`compositionRail.ts`), dans un registre PARTAGÉ : le lien de rail d'un élément s'étire de la
+   * différence entre sa translation et celle de son prédécesseur, mêmes objets animés que ceux qui
+   * translatent les éléments.
+   */
+  const railShiftTargets = useMemo(() => {
+    const targets = new Map<string, number>([[RAIL_KEYS.start, 0]]);
+    for (const zone of STRUCTURAL_ZONES) {
+      for (const item of zoneItems[zone]) {
+        const key = zoneItemKey(item);
+        targets.set(key, (deletionShifts ?? dragShifts).rows.get(key) ?? 0);
+      }
+    }
+    // Story 5.2b : pendant le dialogue de perte, la carte relâchée reste où le doigt l'a laissée.
+    if (dragPreview !== null && dragPreview.heldTranslationY !== null) {
+      targets.set(dragPreview.key, dragPreview.heldTranslationY);
+    }
+    const shifts = deletionShifts ?? dragShifts;
+    targets.set(RAIL_KEYS.circuitHeader, shifts.circuitTop);
+    targets.set(RAIL_KEYS.circuitEnd, shifts.circuitBottom);
+    targets.set(RAIL_KEYS.afterCircuit, shifts.afterCircuit);
+    targets.set(RAIL_KEYS.end, shifts.end);
+    return targets;
+  }, [deletionShifts, dragPreview, dragShifts, zoneItems]);
+  const shiftRegistry = useAnimatedShiftRegistry(railShiftTargets, animateDragShifts, dragSession.release);
+  // Story 5.2b : accès du début de geste (`handleRowDragStart`, déclaré plus haut) au registre.
+  useLayoutEffect(() => {
+    shiftRegistryRef.current = shiftRegistry;
+  }, [shiftRegistry]);
+  /**
+   * Story 5.2b : carte au premier plan (zone, Circuit et rangée relevés) — soulevée, maintenue
+   * pendant le dialogue de perte, puis jusqu'à la fin de son retour animé (`settling`, levé par
+   * `whenSettled` du registre) : sa carte recouvre le rail qu'elle croise en revenant.
+   */
+  const settling =
+    dragSession.settling !== null && sequenceItemExists(draft, dragSession.settling.key) ? dragSession.settling : null;
+  const raisedKey = draggedKey ?? dragPreview?.key ?? settling?.key ?? null;
+  const settlingSession = dragSession.settling;
+  useEffect(() => {
+    if (settlingSession === null) return undefined;
+    return shiftRegistry.whenSettled(() =>
+      setDragSession((current) => (current.settling === settlingSession ? { ...current, settling: null } : current)),
+    );
+  }, [settlingSession, shiftRegistry]);
+  /**
+   * Story 7.5 : fondu de la suppression, démarré après le rendu, une microtâche plus tard (comme le
+   * registre : une animation native démarrée dans le rendu d'un démontage — les actions glissées
+   * refermées — atteindrait des propriétés encore attachées d'un composant démonté) ; puis glissement.
+   */
+  useEffect(() => {
+    if (deletion === null || deletion.phase !== "fade") return undefined;
+    const fading = deletion;
+    let cancelled = false;
+    let slideTimer: ReturnType<typeof setTimeout> | null = null;
+    const startSlide = () => {
+      if (deletionRef.current !== fading) return;
+      const sliding: PendingDeletion = { ...fading, phase: "slide" };
+      deletionRef.current = sliding;
+      setDeletion(sliding);
+    };
+    queueMicrotask(() => {
+      if (cancelled || deletionRef.current !== fading) return;
+      // Story 7.6 : le glissement commence pendant le fondu (chevauchement) ; l'écriture attend la
+      // fin du glissement, plus tardive que celle du fondu.
+      slideTimer = setTimeout(startSlide, MOTION_FADE_TO_SLIDE_DELAY_MS);
+      Animated.timing(fading.opacity, {
+        toValue: 0,
+        duration: DELETE_FADE_DURATION_MS,
+        easing: MOTION_FADE_EASING,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        fading.progress.fadeDone = true;
+        // Fondu interrompu (vue détachée) : la suppression est écrite ; sinon, à la fin du glissement.
+        if ((!finished || fading.progress.slideDone) && deletionRef.current?.commit === fading.commit) fading.commit();
+      });
+    });
+    return () => {
+      cancelled = true;
+      if (slideTimer !== null) clearTimeout(slideTimer);
+    };
+  }, [deletion]);
+  /**
+   * Story 7.7 : fondu d'apparition de la copie, démarré après le rendu (une microtâche plus tard,
+   * comme le fondu de suppression) ; fin : la copie redevient une carte ordinaire.
+   */
+  useEffect(() => {
+    if (appearance === null) return undefined;
+    const current = appearance;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      Animated.timing(current.opacity, {
+        toValue: 1,
+        duration: MOTION_APPEAR_DURATION_MS,
+        easing: MOTION_FADE_EASING,
+        useNativeDriver: true,
+      }).start(() => {
+        setAppearance((latest) => (latest === current ? null : latest));
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [appearance]);
+  // Story 7.5 : fin du glissement d'une suppression — le brouillon est écrit.
+  useEffect(() => {
+    if (deletion === null || deletion.phase !== "slide") return undefined;
+    return shiftRegistry.whenSettled(() => {
+      deletion.progress.slideDone = true;
+      // Revue 7.6 : l'écriture attend aussi la fin du fondu.
+      if (deletion.progress.fadeDone) deletion.commit();
+    });
+  }, [deletion, shiftRegistry]);
+  const railShiftOf = useCallback(
+    (key: string) => shiftRegistry.value(key, railShiftTargets.get(key) ?? 0),
+    [railShiftTargets, shiftRegistry],
+  );
+  const circuitTopShift = railShiftOf(RAIL_KEYS.circuitHeader);
+  const circuitBottomShift = railShiftOf(RAIL_KEYS.circuitEnd);
+  const afterCircuitShift = railShiftOf(RAIL_KEYS.afterCircuit);
+  const endShift = railShiftOf(RAIL_KEYS.end);
+  /**
+   * PRE-6 (story 5.2) : liens du rail segmenté (`resolveRailLinks`, fonction pure) — ordre affiché et
+   * écarts de conception ; les translations du glisser sont appliquées par les valeurs animées du
+   * registre. L'occurrence soulevée (aperçu en cours) sort seule de la chaîne, avec sa hauteur
+   * relevée au début du geste — exacte, le soulèvement ne changeant pas la mise en page (story
+   * 5.2b) ; carte non mesurée : hauteur de la carte, rangée de son point d'arrêt comprise (écart de
+   * la zone + 22).
+   */
+  // Revue 5.3 : en placement, rangée « après le Circuit » pour un point existant ou pour la puce à
+  // ajouter. Story 6.3 : seul l'emplacement `AFTER_CIRCUIT` la porte (un point « après le Circuit »
+  // d'un Circuit vide est non proposé : rangée autonome en tête de la zone après le Circuit).
+  const afterCircuitRowPoint: PlacementStopPointRowPoint | null =
+    placement === null ? null : placementRowPointOf(afterCircuitSlot?.stopPoint ?? null, placementRowEnvironment);
+  // Story 6.2 : hors placement, le point « après le Circuit » est la première rangée de la zone
+  // après le Circuit ; la rangée dédiée ne sert plus qu'à l'emplacement du placement.
+  const hasAfterCircuitRail = placement !== null && afterCircuitRowPoint !== null;
+  // Revue 5.2 : en-tête du Circuit de hauteur minimale 40 (Dynamic Type) — l'anneau et ses segments
+  // suivent sa hauteur mesurée ; son haut reste à la marge du Circuit (14), dans le flux.
+  const circuitHeaderHeight =
+    circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? circuitHeaderLayout.height : CIRCUIT_HEADER_HEIGHT;
+  const circuitHeaderRingTopY = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(circuitHeaderHeight);
+  const railGeometry = railGeometryFor(circuitHeaderHeight);
+  /**
+   * Revue 5.2 : la Fin suit-elle une rangée de point d'arrêt ? Story 6.2 : dernière rangée de la
+   * zone après le Circuit. Hors placement seulement (en placement, la Fin est inactive).
+   */
+  const finPrecededByStopPoint = placement === null && zoneItems.AFTER_TOUR[zoneItems.AFTER_TOUR.length - 1]?.kind === "STOP_POINT";
+  /**
+   * Revue 6.2 : le Compte à rebours est-il suivi d'une rangée de point (première rangée de la zone
+   * avant le Circuit) ? Seules ces rangées touchent une borne : une rangée du Circuit en est séparée
+   * par sa marge (14), une rangée après le Circuit par le Circuit lui-même.
+   */
+  const countdownFollowedByStopPoint = placement === null && zoneItems.BEFORE_TOUR[0]?.kind === "STOP_POINT";
+  // Story 5.2b : sort de la chaîne la carte qui n'est pas à sa place — soulevée, maintenue à sa
+  // position de dépôt pendant le dialogue de perte (elle comble l'emplacement ouvert, comme pendant
+  // le geste), puis en retour animé (translation du registre vers 0, synchronisée avec ses voisines)
+  // jusqu'à ce qu'elle soit revenue. Ses voisines restent reliées entre elles à travers sa place ;
+  // elle, au premier plan, recouvre ce qu'elle croise et porte le rail de sa propre surface (voir
+  // `CompositionActivityRow`). La garder dans la chaîne pendant le retour étirerait son lien, peint
+  // au premier plan, à travers les médias des cartes passées entre elle et son prédécesseur.
+  const railSkip =
+    dragPreview !== null
+      ? {
+          key: dragPreview.key,
+          measuredHeight: dragPreview.originLayout.rows.find((row) => row.id === dragPreview.key)?.height,
+        }
+      : settling;
+  // Élément non mesuré : hauteur de sa rangée (story 6.2 : la rangée du point n'est plus dans le
+  // bloc de la carte).
+  const fallbackBlockHeight = (key: string): number =>
+    stopPointIdOfKey(key) !== null ? STOP_POINT_LINE_HEIGHT : occurrenceCardHeight();
+  /**
+   * Éléments sortis de la chaîne du rail. Story 7.5 : pendant une suppression animée, la carte et les
+   * points retirés (leurs voisins se relient à travers leur place, qui se referme).
+   */
+  // Revue 7.5 : une carte en retour animé reste hors de la chaîne pendant une suppression.
+  const railSkipped: RailSkippedItem[] = [
+    ...(railSkip === null || deletion?.fadingKeys.has(railSkip.key) === true
+      ? []
+      : [{ key: railSkip.key, height: railSkip.measuredHeight ?? fallbackBlockHeight(railSkip.key) }]),
+    ...(deletion === null
+      ? []
+      : [...deletion.fadingKeys].map((key) => ({
+          key,
+          height: deletion.layout.rows.find((row) => row.id === key)?.height ?? fallbackBlockHeight(key),
+        }))),
+  ];
+  const railSkippedKeys = new Set(railSkipped.map((item) => item.key));
+  const railLinks = resolveRailLinks({
+    beforeTour: zoneItems.BEFORE_TOUR.map(railChainItemOf),
+    inTour: zoneItems.IN_TOUR.map(railChainItemOf),
+    afterTour: zoneItems.AFTER_TOUR.map(railChainItemOf),
+    hasAfterCircuit: hasAfterCircuitRail,
+    skipped: railSkipped,
+    geometry: railGeometry,
+  });
+  /** Story 7.5 : éléments en cours d'effacement et leur opacité. */
+  // Story 7.7 : ou la copie de Dupliquer en cours d'apparition.
+  const deletionFading =
+    deletion !== null
+      ? { keys: deletion.fadingKeys, opacity: deletion.opacity, leaving: true }
+      : appearance !== null
+        ? { keys: new Set([appearance.key]), opacity: appearance.opacity, leaving: false }
+        : null;
+  const sequenceRail: SequenceRailContext = { links: railLinks, shiftOf: railShiftOf, skippedKeys: railSkippedKeys };
+  /** Lien d'un élément non occurrence (toujours présent : seule une occurrence sort de la chaîne). */
+  const railLinkOf = (key: string): RailLinkGeometry | null => railLinks.get(key) ?? null;
+  const headerRailLink = railLinkOf(RAIL_KEYS.circuitHeader);
+  const circuitEndRailLink = railLinkOf(RAIL_KEYS.circuitEnd);
+  const afterCircuitRailLink = railLinkOf(RAIL_KEYS.afterCircuit);
+  const endRailLink = railLinkOf(RAIL_KEYS.end);
+
+  // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre ». PRE-6 story 6.2 (D-441) :
+  // échange avec l'élément voisin de la séquence mêlée, point ou occurrence (`stepOccurrence`),
+  // en franchissant les limites du Circuit ; même plan que le glisser (adaptation au Circuit de
+  // Séries, confirmation de perte). Une action n'est offerte que si le Domaine l'accepte.
+  /**
+   * Revue 6.2 : table des pas offerts (cartes et points), calculée une fois par brouillon — et non
+   * à chaque rendu de chaque rangée.
+   */
+  const stepAvailability = useMemo(() => {
+    const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+    const both = (offered: (direction: StepDirection) => boolean) => ({ UP: offered("UP"), DOWN: offered("DOWN") });
+    const cards = new Map(
+      draft.exercises.map((exercise) => [
+        exercise.id,
+        both((direction) => planOccurrenceMove(draft, { activityId: exercise.id, direction }) !== null),
+      ]),
+    );
+    const points = new Map(
+      inPlacement
+        ? []
+        : state.stopPoints.map((point) => [point.id, both((direction) => stopPointStepOutcome(state, point.id, direction) !== null)]),
+    );
+    return { cards, points };
+  }, [draft, inPlacement]);
+  const canStepActivity = useCallback(
+    (activityId: string, direction: StepDirection) => stepAvailability.cards.get(activityId)?.[direction] ?? false,
+    [stepAvailability],
+  );
+  const handleStepActivity = useCallback(
+    (activityId: string, direction: StepDirection) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      if (deletionRef.current !== null) return;
+      // Comme Dupliquer / Supprimer : les actions glissées révélées se referment.
+      setRevealedActionsId(null);
+      const key = railRowKey(activityId);
+      const fromZone = draft.exercises.find((exercise) => exercise.id === activityId)?.structuralPosition;
+      const plan = planOccurrenceMove(draft, { activityId, direction });
+      const toZone =
+        plan?.status === "PLAN"
+          ? plan.patch.exercises?.find((exercise) => exercise.id === activityId)?.structuralPosition
+          : undefined;
+      // Story 7.2 (D-442) : un point retiré par le pas est annoncé avec le focus porté sur la carte
+      // (la clé de focus fait aussi reconnaître un pas après un choix de Tour).
+      const removesStopPoints = plan?.status === "PLAN" && plan.removedStopPointIds.length > 0;
+      const outcome = moveActivityTo({ activityId, direction }, key);
+      if (outcome === "APPLIED" && !removesStopPoints && toZone !== undefined && toZone !== fromZone) {
+        // Revue 6.2 : la carte est remontée dans une autre liste — le focus la suit.
+        requestItemFocus(key);
+      }
+    },
+    [draft, moveActivityTo, requestItemFocus],
+  );
+  /**
+   * PRE-6 story 6.2 (D-441, AC3) : « Monter » / « Descendre » d'un Point d'arrêt — vers
+   * l'emplacement autorisé voisin (`stopPointStepTarget`), proposé seulement si `moveStopPoint`
+   * l'accepte (non consécutif, libre) ; `null` sinon (action absente).
+   */
+  const handleStepStopPoint = useCallback(
+    (stopPointId: string, direction: StepDirection) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      if (deletionRef.current !== null) return;
+      setRevealedActionsId(null);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+      const fromScope = state.stopPoints.find((point) => point.id === stopPointId)?.scope;
+      const step = stopPointStepOutcome(state, stopPointId, direction);
+      if (step?.status === "CHOICE_REQUIRED") {
+        // Story 7.2 (D-442) : le pas ferait se suivre un début et une fin de Tour — choix demandé.
+        openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location: step.location, fromStep: true });
+        return;
+      }
+      const toScope = step?.state.stopPoints.find((point) => point.id === stopPointId)?.scope;
+      // Rejoué sur le brouillon COURANT.
+      updateDraft((current) => {
+        const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
+        const next = stopPointStepOutcome(currentState, stopPointId, direction);
+        return next?.status === "APPLIED" ? { ...current, ...compositionPatch(currentState, next.state) } : current;
+      });
+      if (toScope !== undefined && toScope !== fromScope) {
+        // Revue 6.2 : la rangée est remontée dans une autre liste — le focus la suit.
+        requestItemFocus(railStopKey(stopPointId));
+      }
+    },
+    [draft.exercises, draft.stopPoints, draft.tourRepeatCount, openTourChoice, requestItemFocus, updateDraft],
+  );
+  const stopPointStepAction = useCallback(
+    (stopPointId: string, direction: StepDirection): (() => void) | null =>
+      stepAvailability.points.get(stopPointId)?.[direction] === true ? () => handleStepStopPoint(stopPointId, direction) : null,
+    [handleStepStopPoint, stepAvailability],
+  );
+
+  /**
+   * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : suppression animée — fondu de la carte (et des
+   * points retirés), puis glissement de ce qui suit (registre des translations, comme l'aperçu du
+   * glisser), puis écriture du brouillon, REJOUÉE sur le brouillon courant. « Réduire les
+   * animations », ou une disposition non mesurée : écrite aussitôt.
+   */
+  const startDeletion = useCallback(
+    (activityId: string, choice: TourBoundaryChoice | null) => {
+      // Revue 7.5 : une seule suppression animée à la fois.
+      if (deletionRef.current !== null) return;
+      const result = deletionResult(draft, activityId, choice);
+      if (result === null || result === "CHOICE") return;
+      // Story 7.7 : une copie encore en apparition est affichée pleinement (revue : seulement une fois
+      // la suppression lancée).
+      finishAppearance();
+      const key = railRowKey(activityId);
+      const opacity = new Animated.Value(1);
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        deletionRef.current = null;
+        // Revue 7.5 : rejouée sur le dernier brouillon ; si elle ne supprime plus rien (brouillon
+        // changé entre-temps), la carte réapparaît et rien n'est annoncé.
+        const replayed = deletionResult(draftRef.current, activityId, choice);
+        if (replayed === null || replayed === "CHOICE") {
+          opacity.setValue(1);
+          setDeletion(null);
+          return;
+        }
+        // Story 7.4 : translations JS à 0 avant les écritures de la nouvelle disposition.
+        shiftRegistryRef.current?.prepareLayoutCommit();
+        rowLayoutsRef.current.delete(key);
+        updateDraft((current) => {
+          const latest = deletionResult(current, activityId, choice);
+          return latest === null || latest === "CHOICE" ? current : { ...current, ...latest.patch };
+        });
+        // Story 7.2 : points retirés, sans message visuel (annonce discrète).
+        reportRemovedStopPoints(replayed.removed);
+        setDeletion(null);
+      };
+      const layout = reduceMotion ? null : buildDragLayout();
+      if (layout === null) {
+        commit();
+        return;
+      }
+      const fading: PendingDeletion = {
+        key,
+        fadingKeys: new Set([key, ...result.removed.map(railStopKey)]),
+        opacity,
+        layout,
+        phase: "fade",
+        commit,
+        progress: { fadeDone: false, slideDone: false },
+      };
+      deletionRef.current = fading;
+      setDeletion(fading);
+    },
+    [buildDragLayout, draft, finishAppearance, reduceMotion, reportRemovedStopPoints, updateDraft],
+  );
+
+  /**
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : réponse au dialogue « Début de tour / Fin de
+   * tour » — `choice` : la résolution du Domaine (`resolutions.HEAD` / `.TAIL`) est appliquée, REJOUÉE
+   * sur l'état COURANT (sans conflit désormais, l'opération elle-même est appliquée) ; `null`
+   * (« Annuler ») : rien ne change — une carte ou un point lâché revient à sa place en douceur, comme
+   * après le dialogue de perte (story 5.2b). Les points retirés sont annoncés sans message visuel.
+   */
+  const resolveTourChoice = useCallback(
+    (choice: TourBoundaryChoice | null) => {
+      const request = pendingTourChoice;
+      tourChoicePendingRef.current = false;
+      setPendingTourChoice(null);
+      if (request === null) return;
+      const placementText = strings.screens.composition.placement;
+      switch (request.kind) {
+        case "OCCURRENCE_DELETE": {
+          // Story 7.5 : « Annuler » ne supprime rien.
+          if (choice !== null) startDeletion(request.activityId, choice);
+          return;
+        }
+        case "OCCURRENCE_MOVE": {
+          if (choice === null) {
+            setDragSession((current) => endDragSession(current, true));
+            return;
+          }
+          const focusKey = request.fromStep ? railRowKey(request.move.activityId) : undefined;
+          const outcome = moveActivityTo({ ...request.move, tourChoice: choice }, focusKey);
+          // Dialogue de perte ensuite (Séries) : l'élément reste tenu ; sinon fin de l'aperçu.
+          if (outcome === "REFUSED") finishDragPreview(true);
+          // Story 7.6 : appliqué — l'élément tenu glisse jusqu'à sa place.
+          else if (outcome === "APPLIED") {
+            finishAppliedDrop(heldDropSettlePose(dragPreview, draft, removedByMove(draft, { ...request.move, tourChoice: choice })));
+          }
+          return;
+        }
+        case "STOP_POINT_MOVE": {
+          if (choice === null) {
+            setDragSession((current) => endDragSession(current, true));
+            return;
+          }
+          const resolve = (state: CompositionState): { readonly state: CompositionState; readonly removed: readonly string[] } | null => {
+            const outcome = moveStopPoint(state, request.stopPointId, request.location);
+            if (outcome.status === "CHOICE_REQUIRED") {
+              const resolution = outcome.resolutions[choice];
+              return { state: resolution.state, removed: resolution.removedStopPointIds };
+            }
+            return outcome.status === "APPLIED" && outcome.state !== state ? { state: outcome.state, removed: [] } : null;
+          };
+          const rendered = resolve(compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount));
+          updateDraft((current) => {
+            const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
+            const replayed = resolve(currentState);
+            return replayed === null ? current : { ...current, ...compositionPatch(currentState, replayed.state) };
+          });
+          // Story 7.4 : translations JS à 0 (regroupées avec les écritures ci-dessus). Revue 7.6 : le choix
+          // peut placer le point ailleurs que l'emplacement lâché — aucune pose de mise en place.
+          if (rendered !== null) finishAppliedDrop(null);
+          else finishDragPreview(true);
+          const kept = rendered?.state.stopPoints.some((point) => point.id === request.stopPointId) ?? true;
+          // Pas « Monter » / « Descendre » : le focus suit le point s'il est conservé ; sinon (revue
+          // 7.2) la carte qui précède son emplacement, à défaut le compteur du Circuit.
+          let focusKey = request.fromStep && kept ? railStopKey(request.stopPointId) : undefined;
+          if (request.fromStep && !kept) {
+            const preceding = draft.exercises.filter((exercise) => exercise.structuralPosition === request.location.scope)[
+              request.location.position - 1
+            ];
+            if (preceding !== undefined) {
+              focusKey = railRowKey(preceding.id);
+            } else if (request.location.scope === "IN_TOUR" && rendered !== null) {
+              for (const id of rendered.removed) rowLayoutsRef.current.delete(railStopKey(id));
+              focusOnNextFrame(() => circuitCounterRef.current, removedStopPointsAnnouncement(rendered.removed.length));
+              return;
+            }
+          }
+          if (rendered !== null && rendered.removed.length > 0) {
+            reportRemovedStopPoints(rendered.removed, focusKey);
+          } else if (focusKey !== undefined) {
+            requestItemFocus(focusKey);
+          }
+          return;
+        }
+        case "PLACEMENT_STOP_POINT": {
+          if (choice === null || placement === null) return;
+          const resolve = (current: PlacementDraft): PlacementDraft => {
+            const outcome = togglePlacementStopPointOutcome(current, request.location, placementContext);
+            return outcome.status === "CHOICE_REQUIRED" ? outcome.resolutions[choice] : outcome.placement;
+          };
+          const next = resolve(placement);
+          // Effet nommé : l'ajout retenu, ou le retrait d'un point existant de l'autre limite.
+          // Revue 7.2 : l'effet est toujours nommé — ajout retenu, ou ajout abandonné (l'autre limite
+          // est conservée) ; un sous-brouillon inchangé ne rend rien : annonce directe.
+          const text = isPlacementStopPointAdded(next, request.location)
+            ? placementText.stopPointAddedAnnouncement
+            : placementText.additionCancelledAnnouncement;
+          if (next === placement) {
+            AccessibilityInfo.announceForAccessibility(text);
+            return;
+          }
+          placementAnnouncementRef.current = { text, withLabel: true };
+          setPlacement((current) => (current === null ? null : resolve(current)));
+          return;
+        }
+        case "PLACEMENT_EXISTING_STOP_POINT": {
+          if (choice === null || placement === null) return;
+          const resolve = (current: PlacementDraft): PlacementDraft =>
+            placementReselectionChoice(current, request.stopPointId, placementContext)?.resolutions[choice] ??
+            togglePlacementStopPointRemoval(current, request.stopPointId, placementContext);
+          const next = resolve(placement);
+          // Revue 7.2 : point conservé (l'ajout est jeté), ou point non conservé (l'ajout est gardé ;
+          // sous-brouillon inchangé : annonce directe).
+          if (isPlacementStopPointRemoved(next, request.stopPointId)) {
+            AccessibilityInfo.announceForAccessibility(placementText.stopPointKeepRefusedAnnouncement);
+            if (next === placement) return;
+            setPlacement((current) => (current === null ? null : resolve(current)));
+            return;
+          }
+          placementAnnouncementRef.current = { text: placementText.stopPointKeptAnnouncement, withLabel: true };
+          setPlacement((current) => (current === null ? null : resolve(current)));
+          return;
+        }
+        case "CIRCUIT_COUNT": {
+          if (choice === null) return;
+          const resolve = (current: SessionDraft): CircuitCountResolution => {
+            const outcome = circuitCountOutcome(current, request.count);
+            return outcome.status === "CHOICE_REQUIRED"
+              ? outcome.resolutions[choice]
+              : { draft: outcome.draft, removedStopPointIds: outcome.removedStopPointIds };
+          };
+          const rendered = resolve(draft);
+          updateDraft((current) => resolve(current).draft);
+          reportRemovedStopPoints(rendered.removedStopPointIds);
+          return;
+        }
+      }
+    },
+    [
+      dragPreview,
+      draft,
+      finishAppliedDrop,
+      finishDragPreview,
+      moveActivityTo,
+      pendingTourChoice,
+      placement,
+      placementContext,
+      reportRemovedStopPoints,
+      requestItemFocus,
+      startDeletion,
+      updateDraft,
+    ],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
   // BROUILLON — aucune écriture persistante avant l'enregistrement final.
   const handleDuplicateActivity = useCallback(
     (activityId: string) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      // Revue 7.7 : ni pendant le glisser d'un élément, son aperçu tenu ou sa mise en place.
+      if (deletionRef.current !== null || draggedKeyRef.current !== null || dragPreview !== null || dragSession.settling !== null) {
+        return;
+      }
       setRevealedActionsId(null);
+      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+      const newId = Crypto.randomUUID();
+      // Revue 7.7 : le Domaine d'abord — rien n'est animé si la copie n'est pas créée.
+      const duplicated = duplicateOccurrence(state, activityId, newId);
+      if (duplicated === state) return;
+      // Revue 7.7 : une copie précédente encore en apparition est affichée pleinement.
+      finishAppearance();
+      /*
+       * PRE-6 story 7.7 (D-443) : la copie apparaît en fondu lent et les éléments suivants glissent
+       * pour lui faire place. Le brouillon est écrit AUSSITÔT (contrairement à la suppression, écrite
+       * à la fin) : la copie doit être dans la mise en page pour être affichée, et l'enregistrement,
+       * la garde de sortie et les autres actions voient d'emblée le brouillon final. Avant le rendu,
+       * les éléments suivants sont posés là où ils étaient (décalés de la copie), puis glissent vers
+       * leur place ; « Réduire les animations » ou disposition non mesurée : sans mouvement.
+       */
+      const layout = reduceMotion ? null : buildDragLayout();
+      const sourceKey = railRowKey(activityId);
+      const sourceHeight = layout?.rows.find((row) => row.id === sourceKey)?.height;
+      const insertion =
+        layout === null || sourceHeight === undefined ? null : resolveInsertionPoses(layout, sourceKey, sourceHeight, DRAG_SHIFT_GAPS);
+      if (insertion !== null) {
+        const poses = new Map<string, number>(insertion.rows);
+        poses.set(RAIL_KEYS.circuitHeader, insertion.circuitTop);
+        poses.set(RAIL_KEYS.circuitEnd, insertion.circuitBottom);
+        poses.set(RAIL_KEYS.afterCircuit, insertion.afterCircuit);
+        poses.set(RAIL_KEYS.end, insertion.end);
+        // Revue 7.7 : un élément encore en mouvement (copie précédente) part du reste de son chemin.
+        shiftRegistryRef.current?.prepareLayoutCommit(poses, NO_CONTINUATION_EXCEPTIONS);
+        setAppearance({ key: railRowKey(newId), opacity: new Animated.Value(0) });
+      }
+      // PRE-6 story 6.2 (D-441, arbitrage du 22/10/2026) : la copie n'emporte aucun point.
       updateDraft({
-        exercises: duplicateActivity(draft.exercises, activityId, Crypto.randomUUID()),
+        ...compositionPatch(state, duplicated),
+        // PRE-6 (story 2.3) : la copie reçoit la réserve de Circuit de sa source (Séries).
+        ...copyCircuitReserveEntry(draft, activityId, newId),
       });
     },
-    [draft.exercises, updateDraft],
+    [buildDragLayout, dragPreview, dragSession.settling, draft, finishAppearance, reduceMotion, updateDraft],
   );
 
+  /**
+   * Suppression d'une occurrence. PRE-6 story 7.5 (D-442 amendée, remplace le refus doux de la story
+   * 6.2) : toujours appliquée — les points qu'elle rendrait interdits ou consécutifs sont retirés sans
+   * message ; un conflit de Tour ouvre le choix « Début de tour / Fin de tour » (comme le
+   * déplacement). Une seule suppression animée à la fois.
+   */
   const handleDeleteActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
-      rowLayoutsRef.current.delete(activityId);
-      updateDraft({ exercises: removeActivity(draft.exercises, activityId) });
+      // Revue 7.5 : ni pendant une autre suppression animée, ni pendant le glisser d'un élément.
+      if (deletionRef.current !== null || draggedKeyRef.current !== null) return;
+      const result = deletionResult(draft, activityId, null);
+      if (result === null) return;
+      if (result === "CHOICE") {
+        if (openTourChoice({ kind: "OCCURRENCE_DELETE", activityId })) closeCircuitNatureMenu();
+        return;
+      }
+      startDeletion(activityId, null);
     },
-    [draft.exercises, updateDraft],
+    [closeCircuitNatureMenu, draft, openTourChoice, startDeletion],
   );
 
   const handleEditActivity = useCallback(
     (activityId: string) => {
+      closeCircuitNatureMenu();
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
-    [router],
+    [closeCircuitNatureMenu, router],
   );
-  // REWORK08-C (`[ChatGPT] CHANGES_REQUESTED — REWORK08 — roulette native +
-  // synthèse Tour`, 2026-09-04, addendum précédemment `QUEUED_FOR_NEXT_
-  // COMPOSITION_REWORK` désormais explicitement autorisé) : calculée UNE
-  // SEULE FOIS, réutilisée à la fois par `TourCard` (nouvelle synthèse sous
-  // `Nombre de tours`) et par `bottomAction` (synthèse déjà existante) —
-  // même contenu canonique (`formatCompositionSummary`), jamais recalculé
-  // ni reformulé localement pour l'un ou l'autre emplacement.
-  //
-  // REWORK13 (R13-02) : `initialCountdownSeconds`/`finalPhaseSeconds` ne
-  // sont plus transmis — `Compte à rebours initial`/`Fin de séance` sont
-  // des éléments structurels hors Tour, désormais toujours exclus de cette
-  // synthèse (voir `compositionPresentation.ts`). Confirmer l'un ou
-  // l'autre sélecteur n'actualise donc plus jamais `compositionSummary`,
-  // par construction (ces deux champs du brouillon ne sont plus lus par
-  // cette fonction).
-  //
-  // T02-S01 (CE-T02-01 « Calculs ») : la durée développe désormais les
-  // répétitions du Tour — `tourRepeatCount` est donc transmis, et confirmer
-  // la roulette du Tour actualise immédiatement cette synthèse. Le NOMBRE
-  // affiché reste celui des Activités réellement composées, chacune une
-  // seule fois.
-  const compositionSummary = formatCompositionSummary({
-    exercises: draft.exercises,
+  // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
+  // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
+  // durée du Circuit n'est plus affichée (en-tête du Circuit).
+  const sessionDuration = formatCompositionSessionDuration({
+    exercises: durationDraft.exercises,
     tourRepeatCount,
+    circuitNature: draft.circuitNature,
   });
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
@@ -587,8 +2699,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     <ScreenShell>
       <FixedHeader
         title={composition.title}
-        onBack={() => router.back()}
-        backAccessibilityLabel={composition.backAccessibilityLabel}
+        // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
+        onBack={() => (placement !== null ? cancelPlacement() : router.back())}
+        backAccessibilityLabel={composition.closeAccessibilityLabel}
+        // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) — même action et même
+        // garde d’abandon (`useCompositionExitGuard`) que le retour précédent.
+        closeIcon
       />
       {/* Recette 3 (T-49, EXT-R3-2, D-353) : plus de trait gris entre l’en-tête et la
           zone de contexte — la courbe blanche sous Retour s’y raccorde directement. */}
@@ -616,106 +2732,37 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <View style={styles.backHalo} testID="composition-context-band-halo" />
         </View>
         {/*
-         * CMP-02 : le champ Nom occupe seul le champ blanc arrondi
-         * (`nameColorField`) posé sur la bande Context. V2-PRE-1 (plan
-         * §3.3, UI-74BBA70BF09F) : le sélecteur de couleur autonome
-         * (`ColorPalette`/`draft.color`) est retiré — la couleur de la
-         * Séance est désormais exclusivement DÉRIVÉE de son Étiquette
-         * (aucune interaction de couleur sur cet écran).
+         * PRE-6 (story 2.1, AD-41, Figma `8328:28608`) : nom, puce Étiquette, durée de séance
+         * et bouton « + » (arbre d’ajout existant) — voir `CompositionContextHeader`. La couleur
+         * de la Séance reste DÉRIVÉE de son Étiquette (V2-PRE-1), jamais écrite ici.
          */}
-        <View style={styles.nameColorField} testID="composition-name-color-field">
-          <TextInput
-            value={draft.name}
-            onChangeText={(text) => updateDraft({ name: text })}
-            onFocus={closeOverlay}
-            placeholder={composition.name}
-            // R4-01 (`[ChatGPT] CHANGES_REQUESTED — Composition d'une
-            // séance — audit indépendant REWORK04`, 2026-09-03) : le
-            // placeholder lui-même utilise désormais `text-primary`
-            // (`#141414`), pas seulement le texte réellement saisi —
-            // corrige `placeholderTextColor`, précédemment
-            // `colors.textSecondary`.
-            placeholderTextColor={colors.textPrimary}
-            accessibilityLabel={composition.name}
-            maxLength={NAME_MAX_LENGTH}
-            style={styles.nameInput}
-          />
-          {/*
-           * V2-PRE-2 (plan §6.5, CE-T03-16) : pastille devenue interactive —
-           * ouvre `LabelPickerModal` (zéro ou une Étiquette, administration
-           * du référentiel avec couleur). Libellé d'accessibilité DISTINCT
-           * de l'ancien `colorPicker.label` (retiré, jamais réintroduit : le
-           * test « never renders an autonomous color picker » reste vert).
-           * Toujours la couleur DÉRIVÉE de l'Étiquette associée — aucune
-           * écriture directe de `draft.color`, retiré du contrat cible.
-           *
-           * R7a (CE-T03-16 L1609, §18 L1677) : une Étiquette affectée
-           * affiche son NOM à côté de la pastille (pilule). Sans Étiquette,
-           * l'icône d'étiquette au trait (`label-outline`, révision r4,
-           * Figma 4916:6386/2028:11204) remplace la pastille — jamais de
-           * remplissage de couleur. `sessionColor` (R7b, inchangé) ne reste
-           * utile qu'à la pastille elle-même, affichée seulement quand une
-           * Étiquette est choisie.
-           */}
-          <Pressable
-            onPress={() => setIsLabelPickerOpen(true)}
-            accessibilityRole="button"
-            accessibilityLabel={composition.label.accessibilityLabel}
-            style={sessionLabel ? styles.sessionLabelPill : undefined}
-            testID="composition-session-color-trigger"
-          >
-            {sessionLabel ? (
-              <>
-                <View
-                  style={[styles.sessionColorSwatch, { backgroundColor: sessionColor }]}
-                  testID="composition-session-color-swatch"
-                />
-                <Text style={styles.sessionLabelPillText} testID="composition-session-label-name">
-                  {sessionLabel.name}
-                </Text>
-              </>
-            ) : (
-              <KodjoIcon name="label-outline" testID="composition-session-label-outline-icon" />
-            )}
-          </Pressable>
-        </View>
-
-        {/*
-         * CMP-02 : `+ Ajouter une activité` centré (auparavant
-         * `alignSelf: "flex-start"`). Boîte visuelle compacte issue du
-         * composant DS (`dimensions.compactSecondaryButton`, même token que
-         * le bouton Créer du Catalogue) — fond blanc, bordure/icône/texte
-         * primaires, cible tactile `≥48` via `hitSlop` indépendante de la
-         * boîte visuelle.
-         *
-         * **Complétion REWORK12 (COMP-03)** (`[ChatGPT] Applique
-         * impérativement le protocole KODJO actif...`, 2026-09-04) : reste
-         * désormais TOUJOURS visible et utilisable, y compris après l'ajout
-         * d'une ou plusieurs Activités — abroge la restriction précédente
-         * (« Masqué dès qu'un Exercice existe », modèle T01 à Exercice
-         * unique) : `draft.exercises` est désormais une collection ordonnée
-         * (`SessionDraft.ts`), et ce bouton navigue systématiquement vers
-         * `/exercise` SANS paramètre `exerciseId` — un identifiant frais y
-         * est généré, ajoutant toujours une NOUVELLE Activité en fin de
-         * collection, jamais en remplacement d'une existante.
-         */}
-        <Pressable
-          onPress={() => setIsAddActivityTreeOpen(true)}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: false }}
-          accessibilityLabel={composition.addActivity}
-          hitSlop={{
-            top: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-            bottom: (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-            left: spacing[8],
-            right: spacing[8],
+        <CompositionContextHeader
+          name={draft.name}
+          onChangeName={(text) => updateDraft({ name: text })}
+          onNameFocus={closeOverlay}
+          sessionLabel={sessionLabel}
+          sessionColor={sessionColor}
+          onOpenLabelPicker={() => {
+            closeCircuitNatureMenu();
+            setIsLabelPickerOpen(true);
           }}
-          style={styles.addActivityAction}
-          testID="composition-add-activity-action"
-        >
-          <KodjoIcon name="action-add" testID="composition-add-activity-icon" />
-          <Text style={styles.addActivityLabel}>{composition.addActivity}</Text>
-        </Pressable>
+          sessionDuration={sessionDuration}
+          onAdd={() => {
+            closeCircuitNatureMenu();
+            setIsAddActivityTreeOpen(true);
+          }}
+          onAddStop={enterPlacement}
+          // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
+          // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
+          onOpenVolumes={openCircuitVolumes}
+          volumesFocusRequest={volumesFocusRequest}
+          isVolumesDisabled={draggedKey !== null}
+          isPlacementActive={isPlacementActive}
+          isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
+          addStopFocusRequest={addStopFocusRequest}
+          addStopAccessibilityHint={addStopAccessibilityHint}
+          testID="composition-context-header"
+        />
       </ContextBand>
 
       {/*
@@ -755,22 +2802,55 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * qu'aux sélecteurs numériques à roulette).
        */}
       <ScrollView
+        ref={bodyScrollRef}
         style={styles.body}
-        contentContainerStyle={styles.bodyContent}
+        contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
+        // Story 7.10 (revue) : l'indicateur de défilement s'arrête au haut de la zone d'action.
+        scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
         keyboardShouldPersistTaps="handled"
         // T02-S01 (D-127/CE-T02-02) : pendant un déplacement de carte, le
-        // défilement est neutralisé — le geste vertical appartient alors
-        // exclusivement à la carte soulevée, jamais à la liste.
-        scrollEnabled={draggedActivityId === null}
+        // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
+        // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
+        // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
+        scrollEnabled={draggedKey === null}
+        // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
+        onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
+        // Revue 7.4 : sur iOS, le dernier `onScroll` d'un défilement peut être filtré (`scrollEventThrottle`).
+        onScrollEndDrag={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        onMomentumScrollEnd={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
+        onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+        onLayout={(event) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
+        // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le choix de nature du Circuit.
+        onScrollBeginDrag={closeCircuitNatureMenu}
         testID="composition-body"
       >
-        <BoundaryActivityRow
-          icon="composition-initial-countdown"
-          label={composition.countdown.label}
-          value={formatDurationRowValue(draft.initialCountdownSeconds)}
-          isOpen={openOverlay === "countdown"}
-          onPress={() => toggleOverlay("countdown")}
-        />
+        {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `NatureOutsideZone`. */}
+        {openOverlay === "circuitNature" ? (
+          <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside" />
+        ) : null}
+        {/* PRE-6 (story 5.2, D-435) : plus de rail continu — chaque élément de la séquence porte ses
+            segments (`compositionRail.ts`) ; le Compte à rebours porte son anneau et sa queue. */}
+        {/* PRE-6 (story 4.1) : en placement, les bornes sont atténuées et non interactives. */}
+        {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
+            uniforme du rail), posés sur la rangée. */}
+        {/* Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
+        <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
+          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
+            <BoundaryStep
+              kind="start"
+              railCenterX={RAIL_CENTER_X_IN_COLUMN}
+              // Revue 6.2 : la puce d'un point en tête de séquence déborde dans l'écart.
+              neighborSlop={countdownFollowedByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
+              label={composition.countdown.label}
+              value={formatBoundarySecondsValue(draft.initialCountdownSeconds)}
+              isOpen={openOverlay === "countdown"}
+              onPress={() => toggleOverlay("countdown")}
+              testID="composition-boundary-countdown"
+            />
+          </PlacementAttenuation>
+          <BoundaryRail kind="start" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-countdown" />
+        </View>
 
         {/*
          * UI-COMP-003 : une nouvelle Activité s'insère ICI — entre Compte à
@@ -794,113 +2874,369 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         <ActivityZoneList
           zone="BEFORE_TOUR"
           testID="composition-zone-before-tour"
-          activities={zones.beforeTour}
+          items={zoneItems.BEFORE_TOUR}
+          allOccurrences={draft.exercises}
           revealedActionsId={revealedActionsId}
-          draggedActivityId={draggedActivityId}
+          draggedKey={draggedKey}
+          raisedKey={raisedKey}
           bodyZonesReferential={bodyZonesReferential}
+          categoriesReferential={categoriesReferential}
+          circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
+          focusRequest={itemFocusRequest}
+          onFocusConsumed={consumeItemFocus}
           onEdit={handleEditActivity}
-          onRevealActions={setRevealedActionsId}
-          onDragStart={setDraggedActivityId}
-          onDragEnd={handleDropActivity}
+          onRevealActions={handleRevealActions}
+          onDragStart={handleRowDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDropItem}
+          rail={sequenceRail}
+          autoScroll={autoScroll}
+          fading={deletionFading}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
+          canStep={canStepActivity}
+          onStep={handleStepActivity}
+          stopPointStepAction={stopPointStepAction}
+          placement={placementRowContext}
         />
 
-        <TourCard
-          label={composition.tour.label}
-          summary={compositionSummary}
-          repeatCount={tourRepeatCount}
-          isOpen={openOverlay === "tour"}
-          onPress={() => toggleOverlay("tour")}
+        {/*
+         * Conteneur Circuit (`Composition / Tour Section`, R4-12, REWORK07B) : seule surface du
+         * bloc, déborde de `inset` de chaque côté ; il héberge l'en-tête du Circuit puis les
+         * occurrences `IN_TOUR` (CE-T02-01). PRE-6 (story 3.1, AD-41, Figma `8328:28667`) :
+         * `CircuitHeader` remplace `TourCard` et sa roulette du compte.
+         */}
+        <View
+          style={[
+            styles.tourSectionContainer,
+            // Story 2.3b : tant que le Circuit n'est pas mesuré, fond statique du conteneur.
+            circuitMeasuredHeight > 0 ? null : styles.tourSectionStaticSurface,
+            // Correctif 2.3b : le Circuit qui porte la carte soulevée passe au-dessus de ses sœurs.
+            zoneItems.IN_TOUR.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
+          ]}
           onLayout={handleTourLayout}
+          testID="composition-tour-section"
         >
+          {/* PRE-6 (story 2.3b, amendement du 21/10/2026) : fond du conteneur mesuré, qui suit ses
+              bords pendant le glisser — voir `CircuitSurface`. */}
+          {circuitMeasuredHeight > 0 ? (
+            <CircuitSurface
+              top={circuitTopShift}
+              bottom={circuitBottomShift}
+              // Revue 7.5 : pendant une suppression, hauteur du Circuit relevée à son début.
+              dragHeight={deletion !== null ? deletion.layout.tourBottom - deletion.layout.tourTop : dragSession.circuitHeight}
+              testID="composition-tour-section-surface"
+            />
+          ) : null}
+          {/* Zone propre au conteneur Circuit — voir `NatureOutsideZone`. */}
+          {openOverlay === "circuitNature" ? (
+            <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside-section" />
+          ) : null}
+          {/*
+           * PRE-6 (story 5.2, Figma `9819:20017`) : rail de l'en-tête du Circuit — lien vers l'élément
+           * précédent (marge haute du Circuit et écart de la séquence), anneau centré sur l'en-tête,
+           * queue jusqu'au bas de l'en-tête. Story 2.3b : il suit le bord haut du Circuit.
+           */}
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, { transform: [{ translateY: circuitTopShift }] }]}
+            testID="composition-sequence-marker-circuit-track"
+          >
+            {headerRailLink !== null ? (
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_CIRCUIT}
+                entryY={circuitHeaderRingTopY}
+                length={headerRailLink.length}
+                shift={circuitTopShift}
+                prevShift={railShiftOf(headerRailLink.prevKey)}
+                testID="composition-rail-link-circuit-header"
+              />
+            ) : null}
+            <RailSegment
+              centerX={RAIL_CENTER_X_IN_CIRCUIT}
+              top={circuitHeaderRingTopY + RAIL_RING_DIAMETER}
+              height={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight - circuitHeaderRingTopY - RAIL_RING_DIAMETER}
+              testID="composition-rail-tail-circuit-header"
+            />
+            <RailRing
+              centerX={RAIL_CENTER_X_IN_CIRCUIT}
+              centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight / 2}
+              testID="composition-sequence-marker-circuit"
+            />
+          </Animated.View>
+          <CircuitHeader
+            nature={circuitNature}
+            count={tourRepeatCount}
+            // PRE-6 story 7.3 (D-442) : stepper toujours affiché ; chaque pas passe par
+            // `circuitCountOutcome` (dialogue de Tour, story 7.2).
+            onChangeCount={handleCircuitCountChange}
+            // PRE-6 (story 3.2) : un seul contrôle ouvert à la fois (CIR-10).
+            isNatureMenuOpen={openOverlay === "circuitNature"}
+            onOpenNatureMenu={() => toggleOverlay("circuitNature")}
+            onCloseNatureMenu={dismissNatureMenu}
+            onSelectNature={handleSelectNature}
+            natureFocusRequest={natureFocusRequest}
+            counterRef={circuitCounterRef}
+            // PRE-6 (story 4.1) : stepper et pastille inactifs en placement. Story 5.1b : l'œil des
+            // Volumes est passé dans la zone de contexte (`CompositionContextHeader`).
+            isAttenuated={isPlacementActive}
+            // Story 7.3 (revue) : un dialogue de Tour en attente arrête un maintien de − / +.
+            isChoicePending={pendingTourChoice !== null}
+            // PRE-6 (story 2.3b) : l'en-tête suit le bord haut du Circuit pendant le glisser.
+            translateY={circuitTopShift}
+            // PRE-6 (story 5.2) : le titre laisse la colonne de l'anneau (x 69 à 402).
+            titleInset={SEQUENCE_LABEL_INSET}
+            onLayout={(event) => {
+              const { y, height } = event.nativeEvent.layout;
+              setCircuitHeaderLayout((current) =>
+                current !== null && current.y === y && current.height === height ? current : { y, height },
+              );
+            }}
+            testID="composition-circuit-header"
+          />
           <ActivityZoneList
             zone="IN_TOUR"
             testID="composition-zone-in-tour"
-            activities={zones.inTour}
+            items={zoneItems.IN_TOUR}
+            allOccurrences={draft.exercises}
             revealedActionsId={revealedActionsId}
-            draggedActivityId={draggedActivityId}
+            draggedKey={draggedKey}
+            raisedKey={raisedKey}
             bodyZonesReferential={bodyZonesReferential}
+            categoriesReferential={categoriesReferential}
+            circuitContext={occurrenceCircuitContext}
             onLayout={handleZoneLayout}
             onRowLayout={handleRowLayout}
+            focusRequest={itemFocusRequest}
+            onFocusConsumed={consumeItemFocus}
             onEdit={handleEditActivity}
-            onRevealActions={setRevealedActionsId}
-            onDragStart={setDraggedActivityId}
-            onDragEnd={handleDropActivity}
+            onRevealActions={handleRevealActions}
+            onDragStart={handleRowDragStart}
+            onDragMove={handleDragMove}
+            onDragEnd={handleDropItem}
+            rail={sequenceRail}
+            autoScroll={autoScroll}
+            fading={deletionFading}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
+            canStep={canStepActivity}
+            onStep={handleStepActivity}
+            stopPointStepAction={stopPointStepAction}
+            placement={placementRowContext}
           />
-        </TourCard>
+          {/*
+           * PRE-6 (story 5.2) : bas du Circuit — lien de la dernière ancre du Circuit (média ou anneau
+           * de l'en-tête) jusqu'au bord bas, qui suit le bas du Circuit pendant le glisser. Porté par
+           * le conteneur : il reste au-dessus de son fond, même quand le Circuit passe au premier plan.
+           */}
+          {circuitEndRailLink !== null ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[StyleSheet.absoluteFill, { transform: [{ translateY: circuitBottomShift }] }]}
+              testID="composition-rail-circuit-end-track"
+            >
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_CIRCUIT}
+                anchorBottom
+                length={circuitEndRailLink.length}
+                // Story 5.2b : la marge basse du Circuit est la surface propre de son bas.
+                minLength={CIRCUIT_PADDING_VERTICAL}
+                shift={circuitBottomShift}
+                prevShift={railShiftOf(circuitEndRailLink.prevKey)}
+                testID="composition-rail-link-circuit-end"
+              />
+            </Animated.View>
+          ) : null}
+        </View>
+
+        {/*
+         * Rangée « après le Circuit » : en placement, l'emplacement (point d'arrêt seul, story 4.1) ;
+         * hors placement, le point « après le Circuit » (story 4.2, `8328:29428`), centré sous le
+         * Circuit (story 5.2, `9819:20018`). Story 2.3b : elle suit le bas du Circuit pendant le
+         * glisser. Story 5.2 : le rail la traverse (lien vers le bas du Circuit, queue sur toute sa
+         * hauteur, point de raccord au centre d'un point d'arrêt) ; dessiné AVANT son contenu, il
+         * passe sous les puces.
+         */}
+        {hasAfterCircuitRail ? (
+          <Animated.View
+            style={{ transform: [{ translateY: afterCircuitShift }] }}
+            testID="composition-after-circuit-line-track"
+          >
+            {afterCircuitRailLink !== null ? (
+              <RailLink
+                centerX={RAIL_CENTER_X_IN_COLUMN}
+                entryY={0}
+                length={afterCircuitRailLink.length}
+                shift={afterCircuitShift}
+                prevShift={railShiftOf(afterCircuitRailLink.prevKey)}
+                testID="composition-rail-link-after-circuit"
+              />
+            ) : null}
+            <RailSegment centerX={RAIL_CENTER_X_IN_COLUMN} top={0} bottom={0} testID="composition-rail-tail-after-circuit" />
+            {/* PRE-6 (story 5.3, `8328:29270`) : puce centrée, cible bornée aux écarts de la
+                séquence (Circuit au-dessus, première occurrence après le Circuit en dessous). */}
+            {placement !== null && afterCircuitRowPoint !== null ? (
+              <PlacementStopPointRow
+                point={afterCircuitRowPoint}
+                placement={placement}
+                onToggleStopPoint={handlePlacementStopPointToggle}
+                onToggleExistingStopPoint={handlePlacementExistingStopPointToggle}
+                // Revue 6.3 : suivie d'une rangée de point non proposé (tête de la zone après le
+                // Circuit), la cible s'arrête au milieu de l'écart.
+                touchExtent={{
+                  top: SEQUENCE_GAP,
+                  bottom: zoneItems.AFTER_TOUR[0]?.kind === "STOP_POINT" ? SEQUENCE_GAP / 2 : SEQUENCE_GAP,
+                }}
+                testID="composition-placement-slot-after-circuit"
+              />
+            ) : null}
+          </Animated.View>
+        ) : null}
 
         <ActivityZoneList
           zone="AFTER_TOUR"
+          precededByPlacementRow={hasAfterCircuitRail}
           testID="composition-zone-after-tour"
-          activities={zones.afterTour}
+          items={zoneItems.AFTER_TOUR}
+          allOccurrences={draft.exercises}
           revealedActionsId={revealedActionsId}
-          draggedActivityId={draggedActivityId}
+          draggedKey={draggedKey}
+          raisedKey={raisedKey}
           bodyZonesReferential={bodyZonesReferential}
+          categoriesReferential={categoriesReferential}
+          circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
+          focusRequest={itemFocusRequest}
+          onFocusConsumed={consumeItemFocus}
           onEdit={handleEditActivity}
-          onRevealActions={setRevealedActionsId}
-          onDragStart={setDraggedActivityId}
-          onDragEnd={handleDropActivity}
+          onRevealActions={handleRevealActions}
+          onDragStart={handleRowDragStart}
+          onDragMove={handleDragMove}
+          onDragEnd={handleDropItem}
+          rail={sequenceRail}
+          autoScroll={autoScroll}
+          fading={deletionFading}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
+          canStep={canStepActivity}
+          onStep={handleStepActivity}
+          stopPointStepAction={stopPointStepAction}
+          placement={placementRowContext}
         />
 
-        <BoundaryActivityRow
-          icon="composition-end-session"
-          label={composition.finalPhase.label}
-          value={formatDurationRowValue(draft.finalPhaseSeconds)}
-          isOpen={openOverlay === "finalPhase"}
-          onPress={() => toggleOverlay("finalPhase")}
-        />
+        {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
+        <Animated.View
+          // Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice.
+          style={[styles.boundaryTrailingOutset, { transform: [{ translateY: endShift }] }]}
+          testID="composition-boundary-final-phase-track"
+        >
+          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
+            <BoundaryStep
+              kind="end"
+              railCenterX={RAIL_CENTER_X_IN_COLUMN}
+              // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus déborde dans l'écart.
+              neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
+              label={composition.finalPhase.label}
+              value={formatBoundarySecondsValue(draft.finalPhaseSeconds)}
+              isOpen={openOverlay === "finalPhase"}
+              onPress={() => toggleOverlay("finalPhase")}
+              ref={finalBoundaryRef}
+              testID="composition-boundary-final-phase"
+            />
+          </PlacementAttenuation>
+          <BoundaryRail kind="end" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-final-phase" />
+          {/* PRE-6 (story 5.2) : lien de Fin de séance, hors atténuation, jusqu'au haut de son anneau. */}
+          {endRailLink !== null ? (
+            <RailLink
+              centerX={RAIL_CENTER_X_IN_COLUMN}
+              entryY={BOUNDARY_RING_TOP}
+              length={endRailLink.length}
+              shift={endShift}
+              prevShift={railShiftOf(endRailLink.prevKey)}
+              testID="composition-rail-link-end"
+            />
+          ) : null}
+        </Animated.View>
+
+        {/*
+         * PRE-6 (story 3.2) — Android / web : panneau du choix de nature, hébergé par le contenu
+         * défilant (qui le contient entièrement : sur Android, un toucher hors des limites d'un
+         * parent n'atteint pas ses enfants), rendu en dernier pour passer au-dessus des étapes.
+         * Aligné à droite sur le bord droit du contenu (story 7.8 : le stepper y est calé), sous
+         * l'en-tête du Circuit ;
+         * jamais rendu avant la mesure de l'en-tête.
+         */}
+        {openOverlay === "circuitNature" && circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? (
+          <CircuitNaturePanel
+            nature={circuitNature}
+            placement={{
+              top:
+                circuitSectionTop + circuitHeaderLayout.y + circuitHeaderLayout.height + CIRCUIT_NATURE_PANEL_GAP,
+              right: styles.bodyContent.paddingRight,
+            }}
+            onDismiss={dismissNatureMenu}
+            onSelect={handleSelectNature}
+            testID="composition-circuit-header-counter-nature-panel"
+          />
+        ) : null}
       </ScrollView>
 
       {/*
        * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
-       * zone d'action basse (`bottomAction`), poussée en bas
-       * (`marginTop: "auto"`).
+       * zone d'action basse (`bottomAction`) — fixe depuis PRE-6 story 7.10.
        *
        * REWORK09 (mission directe utilisateur, 2026-09-04, point 2
        * « CORRECTIONS CONNEXES — COMPOSITION ») : la ligne de synthèse
        * `0 activité · 0 min` précédemment affichée ICI est **supprimée** —
-       * devenue redondante depuis REWORK08-C, qui affiche désormais la même
-       * synthèse canonique (`compositionSummary`) directement sous le
-       * libellé `Nombre de tours` (voir `TourCard` ci-dessus). `Continuer`
+       * devenue redondante depuis REWORK08-C (synthèse affichée sous le titre
+       * du Circuit, elle-même retirée par PRE-6 story 7.8 : seule la durée de
+       * la Séance, dans la zone de contexte, demeure). `Continuer`
        * reste seul dans cette zone ; le style `summary` (devenu sans
        * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
-      <View
+      {/*
+       * PRE-6 story 7.10 (D-444, remplace le pied de la story 7.9) : zone d'action principale fixe
+       * et standard — « Continuer » et la barre de placement au même emplacement, au-dessus de la
+       * zone de sécurité, sur le dégradé blanc ; aucun saut au changement de mode (même hauteur 48).
+       */}
+      <PrimaryActionZone
+        onContentHeightChange={actionZone.onContentHeightChange}
+        contentStyle={styles.bottomAction}
         testID="composition-bottom-action"
-        style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
       >
         {/*
-         * PRE-4, décision Q54 de Hermann (2026-10-18) : `Enregistrer la séance` remplace
-         * `Continuer`, qui ouvrait l'écran vestige `Catégories de la séance` (supprimé).
+         * PRE-4, décision Q54 de Hermann (2026-10-18) : l'action enregistre depuis la Composition
+         * (l'écran vestige `Catégories de la séance` est supprimé). PRE-6 (story 2.1, D-388,
+         * Figma `8328:28732`) : libellé « Continuer », même flux `handleSave`.
          * Activation conditionnelle inchangée (Composition valide, `isCompositionValid`),
          * inactif pendant l'enregistrement ; échec : message D-107 au-dessus de l'action.
          */}
-        {saveState === "error" ? (
+        {/* PRE-6 (story 4.1, `8328:29423`) : en placement, la barre remplace « Continuer ». */}
+        {confirmation !== null ? (
+          <PlacementBar
+            confirmation={confirmation}
+            onConfirm={confirmPlacement}
+            onCancel={cancelPlacement}
+            testID="composition-placement-bar"
+          />
+        ) : null}
+        {placement === null && saveState === "error" ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
             {composition.saveError}
           </Text>
         ) : null}
-        <Pressable
-          disabled={!isCompositionValid || saveState === "saving"}
-          onPress={handleSave}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
-          accessibilityLabel={composition.saveAction}
-          style={[styles.continueAction, !isCompositionValid || saveState === "saving" ? null : styles.continueActionEnabled]}
-          testID="composition-save-action"
-        >
-          <Text style={styles.continueLabel}>{composition.saveAction}</Text>
-        </Pressable>
-      </View>
+        {placement === null ? (
+          <PrimaryActionButton
+            label={composition.saveAction}
+            onPress={handleSave}
+            disabled={!isCompositionValid || saveState === "saving"}
+            testID="composition-save-action"
+          />
+        ) : null}
+      </PrimaryActionZone>
 
       {/*
        * T01-S09, correction VISUAL (point D) : chaque roulette numérique
@@ -910,63 +3246,134 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * déclenchrice — voir ce composant pour la justification complète.
        */}
       <WheelPickerOverlay visible={openOverlay === "countdown"}>
-        <DurationWheelPicker
-          totalSeconds={draft.initialCountdownSeconds}
-          onValidate={(totalSeconds) => {
-            updateDraft({ initialCountdownSeconds: totalSeconds });
+        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        <NumberWheelPicker
+          value={draft.initialCountdownSeconds}
+          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
+          onValidate={(seconds) => {
+            updateDraft({ initialCountdownSeconds: seconds });
             closeOverlay();
           }}
           onCancel={closeOverlay}
-          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          // Revue 7.8 : la roulette (une seule colonne) porte le nom de sa borne.
+          accessibilityLabel={composition.countdown.label}
+          valueAccessibilityLabel={formatBoundarySecondsValue}
           cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
       </WheelPickerOverlay>
       <WheelPickerOverlay visible={openOverlay === "finalPhase"}>
-        <DurationWheelPicker
-          totalSeconds={draft.finalPhaseSeconds}
-          onValidate={(totalSeconds) => {
-            updateDraft({ finalPhaseSeconds: totalSeconds });
+        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        <NumberWheelPicker
+          value={draft.finalPhaseSeconds}
+          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
+          onValidate={(seconds) => {
+            updateDraft({ finalPhaseSeconds: seconds });
             closeOverlay();
           }}
           onCancel={closeOverlay}
-          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          accessibilityLabel={composition.finalPhase.label}
+          valueAccessibilityLabel={formatBoundarySecondsValue}
           cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
       </WheelPickerOverlay>
 
       {/*
-       * T02-S01 (CE-T02-01 « Nombre de Tours », AC-08/AC-09) : le contrôle
-       * `Nombre de tours` devient fonctionnel et ouvre `Picker / Popover —
-       * Source exact`, variante `Type=Numeric wheel` (`3210:49`) — la MÊME
-       * primitive `NumberWheelPicker` que Séries/Répétitions (roulette
-       * native iOS `@expo/ui/swift-ui`, `pickerStyle('wheel')`), dans le MÊME
-       * overlay centré au voile bloquant que les deux roulettes de durée. Ses
-       * bornes `1..99` sont celles du composant (`WHEEL_NUMBER_MIN`/
-       * `WHEEL_NUMBER_MAX`, D-058) : aucune valeur invalide n'est atteignable.
-       * `Annuler` ferme sans rien modifier ; `Confirmer` applique exactement
-       * la valeur centrée AU BROUILLON (jamais d'écriture persistante ici —
-       * la valeur n'est enregistrée qu'à l'enregistrement final).
+       * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'une zone du placement —
+       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14). Story 7.2 (D-442) : ouverte par le
+       * toucher d'une zone NON sélectionnée, sur la durée existante, sinon sur le défaut du Profil une
+       * fois résolu. ✓ sélectionne la zone à la durée choisie (0 conservé comme présent, D-323) ; ✕ la
+       * laisse telle qu'elle était.
        */}
-      <WheelPickerOverlay visible={openOverlay === "tour"}>
-        <NumberWheelPicker
-          value={tourRepeatCount}
-          onValidate={(value) => {
-            updateDraft({ tourRepeatCount: value });
-            closeOverlay();
-          }}
-          onCancel={closeOverlay}
-          accessibilityLabel={composition.tour.valueAccessibilityLabel}
-          cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
-          validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
-          testID="composition-tour-wheel-picker"
-        />
-      </WheelPickerOverlay>
+      {(() => {
+        // Revue 7.2 : une durée existante non finie (donnée corrompue) ouvre sur le défaut du Profil.
+        const existingSeconds = recoveryWheel !== null && Number.isFinite(recoveryWheel.seconds) ? recoveryWheel.seconds : null;
+        const wheelSeconds = recoveryWheel === null ? null : (existingSeconds ?? recoveryDefaultSeconds);
+        const isWheelOpen = placement !== null && wheelSeconds !== null;
+        return (
+          <WheelPickerOverlay visible={isWheelOpen}>
+            {isWheelOpen ? (
+              <DurationWheelPicker
+                totalSeconds={wheelSeconds}
+                valueGrid={RECOVERY_WHEEL_VALUES}
+                title={composition.placement.recoveryWheelTitle}
+                onValidate={validatePlacementRecovery}
+                onCancel={() => setRecoveryWheel(null)}
+                minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
+                secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+                cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
+                validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
+              />
+            ) : null}
+          </WheelPickerOverlay>
+        );
+      })()}
 
-      {isPendingExit ? <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} /> : null}
+      {/* PRE-6 story 7.2 (D-442) : choix « Début de tour / Fin de tour » (dialogue natif). */}
+      {pendingTourChoice !== null ? (
+        <TourBoundaryChoiceDialog
+          key={tourChoiceToken}
+          onChoose={(choice) => resolveTourChoice(choice)}
+          onCancel={() => resolveTourChoice(null)}
+        />
+      ) : null}
+
+      {/* PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : feuille en lecture
+          seule, alimentée par la seule grille du Domaine ; sa fermeture n'écrit rien. */}
+      {isVolumesSheetMounted ? (
+        <CircuitVolumesSheet
+          visible={openOverlay === "circuitVolumes"}
+          volumes={volumes}
+          onClose={closeCircuitVolumes}
+          onDismissed={handleCircuitVolumesDismissed}
+          testID="composition-circuit-volumes"
+        />
+      ) : null}
+
+      {isPendingExit && placement === null ? (
+        <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
+
+      {/* PRE-6 (story 3.2, Figma `8328:34964`) : conversion Tours → Séries avec perte. Annuler (ou
+          le retour système) : nature, compte et valeurs inchangés ; le voile ne confirme pas. */}
+      {pendingNatureChange !== null ? (
+        <CircuitEntryConfirmModal
+          kind="NATURE"
+          seriesCount={tourRepeatCount}
+          onCancel={cancelNatureChange}
+          onConfirm={confirmNatureChange}
+        />
+      ) : null}
+
+      {/* PRE-6 (story 2.3) : perte de séries d'un déplacement dans le Circuit de Séries. */}
+      {pendingCircuitEntry !== null ? (
+        <CircuitEntryConfirmModal
+          kind="MOVE"
+          seriesCount={pendingCircuitEntry.targetCount}
+          exerciseCount={1}
+          onCancel={() => {
+            setPendingCircuitEntry(null);
+            // Story 2.3b : l'aperçu conservé pendant le dialogue revient en douceur.
+            setDragSession((current) => endDragSession(current, true));
+          }}
+          onConfirm={() => {
+            // Déplacement rejoué sur le brouillon courant : une modification survenue pendant
+            // le dialogue n'est jamais écrasée.
+            const plan = planOccurrenceMove(draft, pendingCircuitEntry);
+            setPendingCircuitEntry(null);
+            const applied = plan?.status === "PLAN";
+            if (plan?.status === "PLAN") {
+              updateDraft(plan.patch);
+              // Story 7.2 (D-442) : points retirés par le déplacement tolérant (ou le choix de Tour).
+              reportRemovedStopPoints(plan.removedStopPointIds, pendingCircuitEntry.focusKey);
+            }
+            // Story 2.3b, 7.6 : appliqué → la carte tenue glisse jusqu'à sa place ; sinon, retour.
+            if (applied) finishAppliedDrop(heldDropSettlePose(dragPreview, draft, plan.removedStopPointIds));
+            else finishDragPreview(true);
+          }}
+        />
+      ) : null}
 
       {/*
        * V2-CAT-01 (plan §4.4), VISUAL_CORRECTION (revue indépendante
@@ -1063,188 +3470,251 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 }
 
-/**
- * `Boundary Activity` (Compte à rebours initial / Fin de séance) —
- * correction CMP-03/CMP-05 (contre-recette iPhone, correction consolidée,
- * `[ChatGPT] DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`,
- * 2026-09-03) : nouvel ordre de slots, explicitement demandé par cette
- * revue et qui **remplace** la disposition `LAY-05` précédente (gauche
- * icône / centre libellé / droite valeur+chevron) — pas une ambiguïté
- * résolue localement, une instruction directe et autorisée.
- *
- * Slots : gauche = poignée/structure (`handleSlot`) ; centre = libellé puis,
- * sur une seconde ligne, la valeur de durée déjà formatée
- * (`formatDurationRowValue`, format `MM min SS s` — inchangé, c'est la
- * valeur réellement engagée par la roulette, voir D-06) ; droite = icône de
- * rôle (déplacée depuis le slot gauche).
- *
- * **C-01/C-02** (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
- * REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : fond désormais blanc avec
- * un liseré gris visible (`limitCardBase`, partagé avec `TourCard` — voir
- * T-01) — auparavant `colors.surface` (gris), jugé non conforme au rendu
- * réel. Le slot gauche porte désormais un pictogramme
- * (`structureIcon`, prop dédiée, défaut `composition-reorder` — même
- * pictogramme « déplacement/structure » que `Composition / Activity Row`,
- * réutilisation désormais explicitement demandée par cette revue, qui
- * abroge la restriction posée au cycle précédent) ; la prop permet son
- * remplacement ultérieur par un pictogramme « carte fixe/non déplaçable »
- * sans toucher au layout (CMP-03/05 initial, cycle précédent, avait laissé
- * ce slot vide faute d'instruction explicite de réutilisation).
- *
- * **Chevron définitivement retiré** (`[ChatGPT] PLAN_APPROVED — REWORK06 —
- * RESTAURATION CIBLÉE DE LA ROULETTE + VERROU DE CAPITALISATION`,
- * 2026-09-04, addendum « écarts visuels encore ouverts ») : le cycle
- * précédent conservait un chevron (`control-chevron-up`) uniquement à
- * l'état ouvert — cet élément supplémentaire, ajouté à droite de l'icône de
- * rôle, faisait varier le nombre d'enfants de la rangée entre les états
- * fermé/ouvert, donc la position de l'icône de rôle elle-même (« l'icône
- * fonctionnelle de la carte... doit garder exactement la même position
- * ouverte et fermée »). Le chevron est désormais entièrement supprimé, à
- * l'état ouvert comme fermé — `accessibilityState.expanded` porte déjà
- * cette information pour l'accessibilité, sans dépendre d'un indice visuel
- * qui décale la mise en page.
- *
- * **REWORK07-A** (`[ChatGPT] CHANGES_REQUESTED — REWORK07-A — ICON /
- * STRUCTURE / MOVABLE UNIQUEMENT`, 2026-09-04) : le slot gauche
- * (`boundaryRowHandleSlot`) revient de `32×32` (REWORK06) à `28×28`
- * (`dimensions.structureMovableIcon.slot`) — la valeur canonique du
- * composant Figma/DSF `Icon / Structure / Movable` (`3066:4676`), pas un
- * abandon de la correction REWORK06 : l'asset affiché a lui-même été
- * remplacé par son export canonique (voir `KodjoIcon.tsx`), qui occupe
- * réellement son canevas — l'agrandissement précédent du conteneur
- * compensait un glyphe sous-dimensionné, plus nécessaire une fois l'asset
- * corrigé. L'opacité `0.5` du pictogramme n'est plus passée localement
- * (`opacity={0.5}` supprimé) — portée par défaut dans `KodjoIcon.tsx`
- * (`defaultOpacities`), automatiquement appliquée sans paramètre d'écran.
- *
- * **REWORK12 (COMP-01)** (`[ChatGPT] CHANGES_REQUESTED — REWORK12 —
- * Activité + intégration dans Composition`, 2026-09-04) : `icon` devient
- * nullable — vérifié directement sur les nœuds Figma actuels (`2028:11723`
- * pour `Composition / Boundary Activity — Source exact`, `2028:11733` pour
- * `Composition / Activity Row`, `2588:2679`) que ces deux composants
- * partagent EXACTEMENT la même anatomie de carte (fond, liseré, rayon,
- * hauteur, slot structure `28×28` à gauche) à une seule différence près :
- * `Boundary Activity` porte une icône de rôle supplémentaire dans un
- * troisième slot à droite (`icon`), que `Activity Row` n'a jamais —
- * `icon={null}` omet entièrement ce troisième slot plutôt que de le rendre
- * vide, pour rester fidèle à la structure Figma réelle de `Activity Row`
- * (aucun troisième slot du tout, pas un slot présent mais inoccupé).
- * `accessibilityLabel`/`testID` deviennent des props optionnelles
- * (`accessibilityLabel` par défaut = `label`, comportement inchangé pour
- * les deux appelants `Boundary Activity` existants) — nécessaires à la
- * ligne Exercice, dont le nom accessible (`Modifier l'exercice`) diffère du
- * titre affiché (nom réel de l'Activité) et dont les tests doivent pouvoir
- * cibler cette rangée précisément (les trois appels de ce composant
- * partagent sinon les mêmes `testID` internes, jamais uniques par défaut).
- *
- * **T02-S01** : ce composant ne sert plus qu'aux DEUX cartes structurelles
- * fixes (`Compte à rebours initial`/`Fin de séance`) — non déplaçables, non
- * duplicables, non supprimables et sans actions glissées (AC-05). Les cartes
- * d'Activité sont désormais rendues par `CompositionActivityRow` ci-dessus,
- * qui RÉUTILISE exactement la même anatomie (`limitCardBase`/`boundaryRow`,
- * slot structure `28 × 28`, titre, ligne de Zones corporelles, synthèse) et
- * y ajoute la seule chose qui les distingue : la gestuelle. `icon`,
- * `bodyZones`, `accessibilityLabel` et `testID` restent des props du contrat
- * public de ce composant, désormais non employées par ses deux seuls
- * appelants.
- */
-function BoundaryActivityRow({
-  icon,
-  label,
-  bodyZones = null,
-  value,
-  isOpen,
-  onPress,
-  structureIcon = "composition-reorder",
-  accessibilityLabel = label,
-  testID,
-}: {
-  /** `null` omet entièrement le troisième slot (droite) — anatomie exacte de `Composition / Activity Row`, qui n'en a jamais. */
-  icon: KodjoIconName | null;
-  label: string;
-  /**
-   * Correction compacte LOT_3_OF_3 : Zones corporelles de l'Activité déjà
-   * formatées (`formatExerciseBodyZones`), insérées ENTRE le titre et la
-   * synthèse. `null` (défaut) omet entièrement la ligne — les deux cartes
-   * limites (`Compte à rebours initial`/`Fin de séance`) n'ont pas de Zones
-   * et restent donc rigoureusement inchangées.
-   */
-  bodyZones?: string | null;
-  value: string;
-  isOpen: boolean;
-  onPress: () => void;
-  /** C-02 : pictogramme du slot gauche — remplaçable sans changer le layout (ex. futur pictogramme « carte fixe »). */
-  structureIcon?: KodjoIconName;
-  /** REWORK12 : nom accessible distinct du titre affiché — par défaut `label` (comportement inchangé des deux appelants `Boundary Activity`). */
-  accessibilityLabel?: string;
-  /** REWORK12 : identifiant de la rangée elle-même, pour un ciblage de test sans ambiguïté entre les appels de ce composant. */
-  testID?: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityState={{ expanded: isOpen }}
-      style={[styles.limitCardBase, styles.boundaryRow]}
-      testID={testID}
-    >
-      <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-        <KodjoIcon name={structureIcon} testID="composition-boundary-handle-icon" />
-      </View>
-      <View style={styles.boundaryRowTitleSlot}>
-        <Text style={styles.rowLabel} numberOfLines={1}>
-          {label}
-        </Text>
-        {/*
-         * Correction compacte LOT_3_OF_3 — Zones corporelles de l'ACTIVITÉ
-         * uniquement (jamais une Catégorie de Séance, qui n'appartient pas
-         * à l'Activité), placées entre le titre et la synthèse. Style
-         * `boundaryRowSecondaryLine` RÉUTILISÉ TEL QUEL — donc exactement la
-         * même taille et la même couleur neutre (`type.caption` 11/14,
-         * `colors.textSecondary`) que la synthèse juste en dessous, par
-         * construction plutôt que par ressemblance. `numberOfLines={1}` :
-         * une seule ligne, tronquée si nécessaire. Séparateur ` · `
-         * (`COMPACT_LIST_SEPARATOR`, partagé avec la synthèse).
-         */}
-        {bodyZones !== null ? (
-          <Text
-            style={styles.boundaryRowSecondaryLine}
-            numberOfLines={1}
-            testID="composition-exercise-body-zones"
-          >
-            {bodyZones}
-          </Text>
-        ) : null}
-        <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-          {value}
-        </Text>
-      </View>
-      {icon !== null ? (
-        <View style={styles.boundaryRowIconSlot}>
-          <KodjoIcon name={icon} testID={`composition-row-icon-${icon}`} />
-        </View>
-      ) : null}
-    </Pressable>
-  );
-}
-
 type ActivityZoneListProps = {
   readonly zone: StructuralPosition;
   readonly testID: string;
-  readonly activities: readonly SessionDraftExercise[];
+  /** PRE-6 story 6.2 (D-441) : éléments de la zone — occurrences et, hors placement, points. */
+  readonly items: readonly ZoneItem[];
+  /** Revue 6.2 : toutes les occurrences de la Séance (homonymes dans le nom d'un point). */
+  readonly allOccurrences: readonly SessionDraftExercise[];
   readonly revealedActionsId: string | null;
-  readonly draggedActivityId: string | null;
+  /** Clé de l'élément soulevé (carte ou point). */
+  readonly draggedKey: string | null;
+  /** Story 5.2b : élément au premier plan (soulevé, maintenu ou en retour). */
+  readonly raisedKey: string | null;
   readonly bodyZonesReferential: readonly BodyZone[];
+  readonly categoriesReferential: readonly Category[];
+  readonly circuitContext: OccurrenceCircuitContext;
   readonly onLayout: (zone: StructuralPosition, event: LayoutChangeEvent) => void;
-  readonly onRowLayout: (activityId: string, event: LayoutChangeEvent) => void;
+  /** Mesure d'une rangée, par clé d'élément et zone (revue 6.2). */
+  readonly onRowLayout: (key: string, zone: StructuralPosition, event: LayoutChangeEvent) => void;
+  /** Revue 6.2 : focus d'accessibilité demandé sur un élément (clé de rail), consommé une fois porté. */
+  readonly focusRequest: ItemFocusRequest | null;
+  readonly onFocusConsumed: (token: number) => void;
   readonly onEdit: (activityId: string) => void;
   readonly onRevealActions: (activityId: string | null) => void;
-  readonly onDragStart: (activityId: string | null) => void;
-  readonly onDragEnd: (activity: SessionDraftExercise, translationY: number) => void;
+  /**
+   * Début (clé) ou interruption (`null`, position atteinte) du glisser d'une carte ou d'un point ;
+   * `false` : soulèvement refusé (un autre élément est soulevé, géométrie incomplète).
+   */
+  readonly onDragStart: (key: string | null, translationY?: number) => boolean;
+  /** PRE-6 (story 2.3b) : position de l'élément glissé, à chaque mouvement du doigt. */
+  readonly onDragMove: (key: string, translationY: number) => void;
+  readonly onDragEnd: (key: string, zone: StructuralPosition, translationY: number) => void;
+  /**
+   * PRE-6 (story 2.3b, story 5.2) : translations animées partagées (décalage de chaque carte pendant
+   * le glisser) et liens du rail segmenté.
+   */
+  readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : éléments supprimés en cours d'effacement (fondu), ou `null`. */
+  readonly fading: DeletionFading | null;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
+  /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
+  readonly canStep: (activityId: string, direction: StepDirection) => boolean;
+  readonly onStep: (activityId: string, direction: StepDirection) => void;
+  /** PRE-6 story 6.2 : « Monter » / « Descendre » d'un point, `null` si refusé. */
+  readonly stopPointStepAction: (stopPointId: string, direction: StepDirection) => (() => void) | null;
+  /** PRE-6 (story 4.1) : contexte du mode placement ; `null` hors placement. */
+  readonly placement: PlacementRowContext | null;
+  /** Revue 6.3 : en placement, la rangée « après le Circuit » précède immédiatement cette zone. */
+  readonly precededByPlacementRow?: boolean;
 };
+
+/**
+ * PRE-6 (story 4.1, AD-43) : ce que chaque occurrence reçoit en placement — sous-brouillon,
+ * emplacement de l'occurrence (Domaine, `placementSlots`) et actions des puces.
+ */
+type PlacementRowContext = {
+  readonly draft: PlacementDraft;
+  readonly slotFor: (occurrenceId: string) => PlacementSlot | null;
+  /** Story 6.3 : point d'arrêt rendu pour un emplacement (existant ou à ajouter), `null` sans point. */
+  readonly rowPointOf: (stopPoint: PlacementStopPointSlot | null) => PlacementStopPointRowPoint | null;
+  /** Story 7.2 (D-442) : emplacement libre (ou ajouté) de tête de Circuit, `null` s'il n'est pas dessiné. */
+  readonly circuitHeadRowPoint: PlacementStopPointRowPoint | null;
+  /** Story 7.2 (D-442) : toucher d'une zone de récupération (désélection, ou roulette). */
+  readonly onPressRecovery: (occurrenceId: string) => void;
+  /** Emplacement libre ou ajouté : bascule de l'ajout. */
+  readonly onToggleStopPoint: (location: StopPointLocation) => void;
+  /** Revue 6.3 : point existant, bascule de son retrait programmé par identifiant (et annonce). */
+  readonly onToggleExistingStopPoint: (stopPointId: string) => void;
+};
+
+/** Noms accessibles du placement (story 6.3) : points existants (par identifiant) et emplacements à ajouter. */
+type PlacementLabeler = {
+  readonly existing: (stopPointId: string) => string;
+  readonly available: (location: StopPointLocation) => string;
+};
+
+/**
+ * PRE-6 story 6.3 : noms du placement par la règle de la story 6.2 (`stopPointAnchor` sur la séquence
+ * mêlée de la portée). Revue 6.3 : un emplacement à ajouter suit la même règle — « Ajouter un point
+ * d'arrêt après {dernier Exercice qui précède}[, n sur m] », « … après le circuit » sans Exercice.
+ */
+function placementLabelerOf(
+  exercises: readonly SessionDraftExercise[],
+  stopPoints: readonly StopPoint[],
+): PlacementLabeler {
+  const t = strings.screens.composition.placement;
+  const existing = new Map<string, string>();
+  for (const scope of STOP_POINT_SCOPE_ORDER) {
+    const items = scopeSequence(exercises, stopPoints, scope);
+    items.forEach((item, index) => {
+      if (item.kind === "STOP_POINT") {
+        existing.set(item.point.id, stopPointRowAccessibilityLabel(items, index, scope, exercises));
+      }
+    });
+  }
+  return {
+    existing: (stopPointId) => existing.get(stopPointId) ?? t.stopPoint,
+    available: (location) => {
+      const candidate: StopPoint = { id: "", scope: location.scope, position: location.position };
+      const items = scopeSequence(exercises, [candidate], location.scope);
+      const anchor = stopPointAnchor(
+        items,
+        items.findIndex((item) => item.kind === "STOP_POINT"),
+        exercises,
+      );
+      if (anchor !== null) return t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
+      // Story 7.2 (D-442) : tête de Circuit (début de Tour) ; sinon « après le circuit ».
+      return location.scope === "IN_TOUR" ? t.addStopPointAtCircuitStartAccessibilityLabel : t.addStopPointAfterCircuitAccessibilityLabel;
+    },
+  };
+}
+
+/**
+ * Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié.
+ * Story 7.2 (D-442) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre) ; une
+ * récupération existante (0 comprise) se modifie et se retire en placement, seul chemin de son
+ * réglage : elle suffit à l'ouvrir.
+ */
+function placementOfferOf(slots: readonly PlacementSlot[]): {
+  readonly any: boolean;
+  readonly additions: boolean;
+  /** Une récupération existante (modifiable ou retirable) est offerte. */
+  readonly recoveries: boolean;
+} {
+  const additions = slots.some(
+    (slot) => slot.recovery?.kind === "AVAILABLE" || (slot.stopPoint !== null && !slot.stopPoint.existing),
+  );
+  const recoveries = slots.some((slot) => slot.recovery?.kind === "EXISTING");
+  const removals = recoveries || slots.some((slot) => slot.stopPoint?.existing === true && slot.stopPoint.stopPointId !== undefined);
+  return { any: additions || removals, additions, recoveries };
+}
+
+/** Ce dont `placementRowPointOf` a besoin (story 6.3). */
+type PlacementRowEnvironment = {
+  readonly labels: PlacementLabeler | null;
+  readonly placement: PlacementDraft;
+  readonly context: PlacementContext;
+  /** Emplacements occupés à l'écran par un point non proposé (`displayedStopPointLocation`). */
+  readonly hiddenKeys: ReadonlySet<string> | null;
+};
+
+/**
+ * PRE-6 story 6.3 (D-441, R3) : point d'arrêt rendu pour l'emplacement `stopPoint` en placement ;
+ * `null` sans point. Revue 6.3 :
+ * - existant : visé par son identifiant (un point sans identifiant, jamais dans un brouillon, n'est
+ *   pas rendu) ; `blocked` si son retrait est programmé et que le Domaine en refuserait l'annulation ;
+ * - libre : jamais proposé sur l'emplacement où est dessiné un point non proposé (`hiddenKeys`).
+ */
+function placementRowPointOf(
+  stopPoint: PlacementStopPointSlot | null,
+  env: PlacementRowEnvironment,
+): PlacementStopPointRowPoint | null {
+  if (stopPoint === null || env.labels === null) return null;
+  if (!stopPoint.existing) {
+    const location = stopPoint.location;
+    if (env.hiddenKeys?.has(stopPointKey(location)) === true && !isPlacementStopPointAdded(env.placement, location)) {
+      return null;
+    }
+    return { kind: "AVAILABLE", location, accessibilityLabel: env.labels.available(location) };
+  }
+  const id = stopPoint.stopPointId;
+  if (id === undefined) return null;
+  // Story 7.2 (D-442) : une resélection qui demande un choix de Tour n'est pas bloquée (dialogue).
+  const blocked =
+    isPlacementStopPointRemoved(env.placement, id) &&
+    togglePlacementStopPointRemoval(env.placement, id, env.context) === env.placement &&
+    placementReselectionChoice(env.placement, id, env.context) === null;
+  return { kind: "EXISTING", stopPointId: id, accessibilityLabel: env.labels.existing(id), blocked };
+}
+
+/**
+ * PRE-6 story 6.2 : repère du nom d'un point au rang `index` de la séquence mêlée `items` — le dernier
+ * SÉPARATEUR qui le précède (un Exercice, RM-251 : `isSequenceSeparator`), suivi de sa position
+ * « n sur m » dans la zone quand un homonyme existe ; `null` en tête de portée. Revue 6.3 : partagé
+ * par les points existants et les emplacements à ajouter.
+ */
+function stopPointAnchor(
+  items: readonly ZoneItem[],
+  index: number,
+  allOccurrences: readonly SessionDraftExercise[],
+): string | null {
+  const preceding = items
+    .slice(0, Math.max(0, index))
+    .reverse()
+    .find(
+      (item): item is Extract<ZoneItem, { kind: "OCCURRENCE" }> => item.kind === "OCCURRENCE" && isSequenceSeparator(item.occurrence),
+    );
+  if (preceding === undefined) return null;
+  const name = preceding.occurrence.name;
+  // Homonymes : la notation de position des cartes (« n sur m » dans la zone) les distingue.
+  const homonyms = allOccurrences.filter((occurrence) => occurrence.name === name).length > 1;
+  if (!homonyms) return name;
+  const inZone = items.filter((item) => item.kind === "OCCURRENCE");
+  const position = strings.screens.composition.occurrenceCard.accessibilityPosition
+    .replace("{position}", String(inZone.indexOf(preceding) + 1))
+    .replace("{count}", String(inZone.length));
+  return `${name}, ${position}`;
+}
+
+/**
+ * PRE-6 story 6.2 : nom accessible d'une rangée de point — « Point d'arrêt après {exercice} »
+ * (`stopPointAnchor`), « … après le circuit » (tête de la portée après le Circuit), « … au début du
+ * circuit » (tête du Circuit, donnée héritée) ou « … au début de la séance » (tête de la portée
+ * avant le Circuit, donnée héritée).
+ */
+function stopPointRowAccessibilityLabel(
+  items: readonly ZoneItem[],
+  index: number,
+  zone: StructuralPosition,
+  allOccurrences: readonly SessionDraftExercise[],
+): string {
+  const t = strings.screens.composition.placement;
+  const anchor = stopPointAnchor(items, index, allOccurrences);
+  if (anchor !== null) return t.existingStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
+  if (zone === "AFTER_TOUR") return t.existingStopPointAfterCircuitAccessibilityLabel;
+  return zone === "IN_TOUR" ? t.stopPointAtCircuitStartAccessibilityLabel : t.stopPointAtSessionStartAccessibilityLabel;
+}
+
+/**
+ * PRE-6 (story 4.1) : en placement, contenu non interactif et masqué à l'accessibilité (la lecture
+ * ne passe que par les emplacements). Revue 5.3 (Figma `8328:29270`) : plus atténué. Hors placement,
+ * simple conteneur sans effet.
+ */
+function PlacementAttenuation({
+  active,
+  children,
+  testID,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  testID?: string;
+}) {
+  return (
+    <View
+      testID={testID}
+      pointerEvents={active ? "none" : "auto"}
+      accessibilityElementsHidden={active}
+      importantForAccessibility={active ? "no-hide-descendants" : "auto"}
+    >
+      {children}
+    </View>
+  );
+}
 
 /**
  * Liste des Activités d'UNE zone structurelle (T02-S01, CE-T02-01).
@@ -1261,51 +3731,473 @@ type ActivityZoneListProps = {
 function ActivityZoneList({
   zone,
   testID,
-  activities,
+  items,
+  allOccurrences,
   revealedActionsId,
-  draggedActivityId,
+  draggedKey,
+  raisedKey,
   bodyZonesReferential,
+  categoriesReferential,
+  circuitContext,
   onLayout,
   onRowLayout,
+  focusRequest,
+  onFocusConsumed,
   onEdit,
   onRevealActions,
   onDragStart,
+  onDragMove,
   onDragEnd,
+  rail,
+  autoScroll,
+  fading,
   onDuplicate,
   onDelete,
+  canStep,
+  onStep,
+  stopPointStepAction,
+  placement,
+  precededByPlacementRow = false,
 }: ActivityZoneListProps) {
-  if (activities.length === 0) {
+  if (items.length === 0) {
     return null;
   }
+  // Nom accessible des cartes : « n sur m » parmi les occurrences de la zone (les points n'y comptent pas).
+  const occurrences = items.filter((item) => item.kind === "OCCURRENCE");
+  /*
+   * Revue 6.3 : en placement, deux rangées de point adjacentes (rangée sous une carte, rangée d'un
+   * point non proposé, rangée « après le Circuit » au-dessus de la zone) se partagent l'écart qui
+   * les sépare — chaque cible s'arrête en son milieu, jamais l'une sur l'autre.
+   */
+  const gap = zone === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP;
+  const hasPlacementRowAt = (index: number): boolean => {
+    const neighbor = items[index];
+    if (placement === null || neighbor === undefined) return false;
+    if (neighbor.kind === "STOP_POINT") return true;
+    return placement.rowPointOf(placement.slotFor(neighbor.occurrence.id)?.stopPoint ?? null) !== null;
+  };
+  const followedByPlacementRow = (index: number): boolean => placement !== null && items[index + 1]?.kind === "STOP_POINT";
+  const placementExtentAt = (index: number) => ({
+    top: (index === 0 ? precededByPlacementRow : hasPlacementRowAt(index - 1)) ? gap / 2 : gap,
+    bottom: followedByPlacementRow(index) ? gap / 2 : gap,
+  });
   return (
     <View
-      style={styles.exerciseList}
+      style={[
+        styles.exerciseList,
+        // PRE-6 (story 5.2, D-435) : écart 9 entre les cartes du Circuit, 8 au dehors.
+        zone === "IN_TOUR" ? styles.exerciseListInCircuit : null,
+        // Correctif 2.3b (retour Hermann 21/10/2026) : la zone qui porte la carte soulevée passe
+        // au-dessus de ses sœurs (Circuit, autres zones, bornes) ; sinon, hors de sa zone, la carte
+        // glisse sous leur fond opaque (blanc ou couleur du Circuit).
+        // Story 5.2b : aussi pendant le dialogue de perte et le retour animé de la carte.
+        items.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
+      ]}
       onLayout={(event) => onLayout(zone, event)}
       testID={testID}
     >
-      {activities.map((activity) => (
+      {items.map((item, itemIndex) => {
+        if (item.kind === "STOP_POINT" && placement !== null) {
+          // PRE-6 story 6.3 (D-441, R3) : en placement, seul un point non proposé est une rangée
+          // autonome — puce de placement sélectionnée, désélectionnable, sans glisser.
+          // Story 7.2 (D-442) : l'emplacement libre de tête de Circuit est une rangée de même nature.
+          const key = railStopKey(item.point.id);
+          const isCircuitHeadSlot = item.point.id === CIRCUIT_HEAD_SLOT_ID;
+          const rowPoint = isCircuitHeadSlot
+            ? placement.circuitHeadRowPoint
+            : placement.rowPointOf({
+                location: { scope: item.point.scope, position: item.point.position },
+                existing: true,
+                stopPointId: item.point.id,
+              });
+          return rowPoint === null ? null : (
+            <PlacementStopPointItemRow
+              key={key}
+              railKey={key}
+              point={rowPoint}
+              placement={placement}
+              rail={rail}
+              touchExtent={placementExtentAt(itemIndex)}
+              onLayout={(event) => onRowLayout(key, zone, event)}
+              testID={isCircuitHeadSlot ? "composition-placement-slot-circuit-head" : undefined}
+            />
+          );
+        }
+        if (item.kind === "STOP_POINT") {
+          // PRE-6 story 6.2 (D-441) : rangée autonome du Point d'arrêt, sœur des cartes.
+          const key = railStopKey(item.point.id);
+          return (
+            <StopPointRow
+              key={key}
+              point={item.point}
+              accessibilityLabel={stopPointRowAccessibilityLabel(items, itemIndex, zone, allOccurrences)}
+              isDragged={draggedKey === key}
+              isRaised={raisedKey === key}
+              rail={rail}
+              autoScroll={autoScroll}
+              fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
+          fadeLeaving={fading !== null && fading.keys.has(key) && fading.leaving}
+              onLayout={(event) => onRowLayout(key, zone, event)}
+              focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
+              onFocusConsumed={onFocusConsumed}
+              onDragStart={() => onDragStart(key)}
+              onDragCancel={(translationY) => {
+                onDragStart(null, translationY);
+              }}
+              onDragMove={(translationY) => onDragMove(key, translationY)}
+              onDragEnd={(translationY) => onDragEnd(key, zone, translationY)}
+              onMoveUp={stopPointStepAction(item.point.id, "UP")}
+              onMoveDown={stopPointStepAction(item.point.id, "DOWN")}
+            />
+          );
+        }
+        const activity = item.occurrence;
+        const key = railRowKey(activity.id);
+        return (
         <CompositionActivityRow
           key={activity.id}
           activity={activity}
+          position={{ index: occurrences.indexOf(item), count: occurrences.length }}
           areActionsRevealed={revealedActionsId === activity.id}
-          isDragged={draggedActivityId === activity.id}
+          isDragged={draggedKey === key}
+          isRaised={raisedKey === key}
           isBlockedByOtherReveal={revealedActionsId !== null && revealedActionsId !== activity.id}
           bodyZonesReferential={bodyZonesReferential}
-          onLayout={(event) => onRowLayout(activity.id, event)}
+          categoriesReferential={categoriesReferential}
+          circuitContext={circuitContext}
+          onLayout={(event) => onRowLayout(key, zone, event)}
+          focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
+          onFocusConsumed={onFocusConsumed}
           onEdit={() => onEdit(activity.id)}
           onRevealActions={() => onRevealActions(activity.id)}
           onHideActions={() => onRevealActions(null)}
-          onDragStart={() => onDragStart(activity.id)}
-          onDragCancel={() => onDragStart(null)}
-          onDragEnd={(translationY) => {
-            onDragStart(null);
-            onDragEnd(activity, translationY);
+          onDragStart={() => onDragStart(key)}
+          onDragCancel={(translationY) => {
+            onDragStart(null, translationY);
           }}
+          onDragMove={(translationY) => onDragMove(key, translationY)}
+          // Story 2.3b : le dépôt (`handleDropItem`) met lui-même fin à l'état soulevé, dans
+          // un ordre explicite avec la session de décalage.
+          onDragEnd={(translationY) => onDragEnd(key, zone, translationY)}
+          rail={rail}
+          autoScroll={autoScroll}
+          fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
+              fadeLeaving={fading !== null && fading.keys.has(key) && fading.leaving}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
+          onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
+          onMoveDown={canStep(activity.id, "DOWN") ? () => onStep(activity.id, "DOWN") : null}
+          placement={placement}
+          placementRowFollowed={followedByPlacementRow(itemIndex)}
         />
-      ))}
+        );
+      })}
     </View>
+  );
+}
+
+type StopPointRowProps = {
+  readonly point: StopPoint;
+  readonly accessibilityLabel: string;
+  readonly isDragged: boolean;
+  /** Story 5.2b : au premier plan (soulevée, maintenue ou en retour). */
+  readonly isRaised: boolean;
+  readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : opacité du fondu quand la suppression d'une carte retire ce point. */
+  readonly fadeOpacity: Animated.Value | null;
+  /** Story 7.7 : le fondu est une disparition (sans toucher ni accessibilité). */
+  readonly fadeLeaving: boolean;
+  readonly onLayout: (event: LayoutChangeEvent) => void;
+  /** Revue 6.2 : focus d'accessibilité demandé sur ce point (pas d'une zone à l'autre). */
+  readonly focusRequest: ItemFocusRequest | null;
+  readonly onFocusConsumed: (token: number) => void;
+  /** `false` : soulèvement refusé (un autre élément est soulevé, géométrie incomplète). */
+  readonly onDragStart: () => boolean;
+  readonly onDragCancel: (translationY: number) => void;
+  readonly onDragMove: (translationY: number) => void;
+  readonly onDragEnd: (translationY: number) => void;
+  /** « Monter » / « Descendre » ; `null` : action absente (déplacement refusé). */
+  readonly onMoveUp: (() => void) | null;
+  readonly onMoveDown: (() => void) | null;
+};
+
+/** Actions accessibles d'un point (story 6.2). */
+type StopPointAccessibilityActionName = "moveUp" | "moveDown";
+
+/**
+ * PRE-6 story 6.2 (D-441, R2, CE-T03-08) : rangée AUTONOME d'un Point d'arrêt hors placement, sœur
+ * des cartes dans la liste de sa zone, entre les cartes selon `{scope, position}` (séquence mêlée).
+ * Rendu de la story 5.2 inchangé : rangée de 22, puce centrée, écart de la zone au-dessus et
+ * au-dessous (celui de la liste) ; nœud du rail (`railStopKey`) — lien vers l'élément précédent
+ * (ancre au haut de la rangée), queue sur toute sa hauteur, point de raccord en son centre.
+ *
+ * Geste : l'appui long sur la puce la soulève ; elle suit alors le doigt (translation locale, comme
+ * la carte), ses voisines se décalent (aperçu 2.3b), et le dépôt passe par `moveStopPoint` ; refus
+ * : retour animé (5.2b). Aucun balayage ; un toucher court ne fait rien hors placement. Le
+ * soulèvement ne change ni la taille ni la mise en page de la rangée ; story 7.2 (D-442) : la puce
+ * saisie est marquée soulevée (`StopPointChip.lifted`, style sélectionné et ombre de la carte
+ * soulevée — NON VÉRIFIABLE, Figma n'en donne pas pour la puce). Accessibilité : « Monter » / « Descendre »
+ * vers l'emplacement autorisé voisin, proposées seulement si le déplacement serait accepté.
+ */
+function StopPointRow({
+  point,
+  accessibilityLabel,
+  isDragged,
+  isRaised,
+  rail,
+  autoScroll,
+  fadeOpacity,
+  fadeLeaving,
+  onLayout,
+  focusRequest,
+  onFocusConsumed,
+  onDragStart,
+  onDragCancel,
+  onDragMove,
+  onDragEnd,
+  onMoveUp,
+  onMoveDown,
+}: StopPointRowProps) {
+  const composition = strings.screens.composition;
+  const railKey = railStopKey(point.id);
+  const shift = rail.shiftOf(railKey);
+  // Revue 6.2 : hors de la chaîne (soulevé, tenu, en retour), un point ne dessine AUCUN rail — ni
+  // segment ni point de raccord : le lien de ses voisines traverse déjà sa place, et sa puce, centrée
+  // sur la page, ne recouvre pas l'axe du rail (contrairement à une carte).
+  const railLink = rail.skippedKeys.has(railKey) ? undefined : rail.links.get(railKey);
+  const chipRef = useRef<View>(null);
+  // Focus demandé (pas d'une zone à l'autre : la rangée vient d'être remontée) ; consommé une fois porté.
+  useEffect(() => {
+    if (focusRequest === null) return undefined;
+    const token = focusRequest.token;
+    return focusOnNextFrame(() => chipRef.current, focusRequest.announcement, () => onFocusConsumed(token));
+  }, [focusRequest, onFocusConsumed]);
+  const originRef = useRef<number | null>(null);
+  /** Translation de la puce : déplacement du doigt plus, story 7.4, défilement accumulé. */
+  const translationYRef = useRef(0);
+  /** Story 7.4 : déplacement du doigt seul (depuis le début du toucher). */
+  const fingerDyRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const [dragTranslationY, setDragTranslationY] = useState(0);
+  // Une rangée démontée pendant son glisser (point retiré du brouillon) annule le geste.
+  const onDragCancelRef = useRef(onDragCancel);
+  useEffect(() => {
+    onDragCancelRef.current = onDragCancel;
+  }, [onDragCancel]);
+  const onDragMoveRef = useRef(onDragMove);
+  useEffect(() => {
+    onDragMoveRef.current = onDragMove;
+  }, [onDragMove]);
+  /** Story 7.4 : translation de la puce soulevée (mouvement du doigt ou trame de défilement). */
+  const applyDragTranslation = useCallback((translationY: number) => {
+    translationYRef.current = translationY;
+    setDragTranslationY(translationY);
+    onDragMoveRef.current(translationY);
+  }, []);
+  useEffect(() => {
+    const dragging = isDraggingRef;
+    const cancel = onDragCancelRef;
+    return () => {
+      if (dragging.current) {
+        dragging.current = false;
+        cancel.current(0);
+      }
+    };
+  }, []);
+  const handleTouchStart = useCallback((event: GestureResponderEvent) => {
+    // Revue 6.2 : un second doigt pendant le glisser ne redéfinit pas l'origine du geste.
+    if (isDraggingRef.current) return;
+    originRef.current = event.nativeEvent.pageY;
+    translationYRef.current = 0;
+    fingerDyRef.current = 0;
+  }, []);
+  const track = useCallback((event: GestureResponderEvent) => {
+    const start = originRef.current;
+    const dy = start === null ? 0 : event.nativeEvent.pageY - start;
+    fingerDyRef.current = dy;
+    // Story 7.4 : pendant le glisser, la translation compte aussi le défilement accumulé.
+    if (!isDraggingRef.current) translationYRef.current = dy;
+    return dy;
+  }, []);
+  const handleLongPress = useCallback(() => {
+    // Revue 6.2 : refusé si un autre élément est soulevé ou si la géométrie est incomplète.
+    if (originRef.current === null || !onDragStart()) return;
+    isDraggingRef.current = true;
+    // Story 7.4 : la puce suit le défilement automatique, même sans mouvement du doigt — et un doigt
+    // déjà immobile dans une bande de bord au soulèvement fait défiler (revue 7.4).
+    autoScroll.attach((scrollDelta) => applyDragTranslation(fingerDyRef.current + scrollDelta));
+    autoScroll.track(originRef.current + fingerDyRef.current);
+  }, [applyDragTranslation, autoScroll, onDragStart]);
+  // Le glisser engagé capte le mouvement (phase de capture) ; sinon, le défilement reste au parent.
+  const handleMoveShouldSetResponderCapture = useCallback(
+    (event: GestureResponderEvent) => {
+      track(event);
+      return isDraggingRef.current;
+    },
+    [track],
+  );
+  const handleResponderMove = useCallback(
+    (event: GestureResponderEvent) => {
+      const dy = track(event);
+      if (!isDraggingRef.current) return;
+      applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
+    },
+    [applyDragTranslation, autoScroll, track],
+  );
+  const handleTouchEnd = useCallback(
+    (event: GestureResponderEvent) => {
+      // Revue 6.2 : le geste ne se termine qu'au dernier doigt levé.
+      if ((event.nativeEvent.touches?.length ?? 0) > 0) return;
+      originRef.current = null;
+      setDragTranslationY(0);
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      onDragEnd(translationYRef.current);
+    },
+    [onDragEnd],
+  );
+  const handleResponderTerminate = useCallback(() => {
+    setDragTranslationY(0);
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    onDragCancel(translationYRef.current);
+  }, [onDragCancel]);
+  /** Revue 6.2 : toucher annulé par le système — plus d'origine ; un glisser engagé est interrompu. */
+  const handleTouchCancel = useCallback(() => {
+    originRef.current = null;
+    handleResponderTerminate();
+  }, [handleResponderTerminate]);
+  const handleResponderTerminationRequest = useCallback(() => !isDraggingRef.current, []);
+  const actionHandlers: Partial<Record<StopPointAccessibilityActionName, () => void>> = {
+    ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
+    ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+  };
+  const actionLabels: Record<StopPointAccessibilityActionName, string> = {
+    moveUp: composition.activityActions.moveUp,
+    moveDown: composition.activityActions.moveDown,
+  };
+  const accessibilityActions = (Object.keys(actionHandlers) as StopPointAccessibilityActionName[]).map((name) => ({
+    name,
+    label: actionLabels[name],
+  }));
+  return (
+    <Animated.View
+      style={[
+        styles.stopPointRow,
+        isRaised ? styles.activityRowContainerDragged : null,
+        // Décalage de la rangée (aperçu du glisser d'un autre élément, retour 5.2b) : registre partagé.
+        { transform: [{ translateY: shift }] },
+        // Story 7.5 : fondu quand la suppression d'une carte retire ce point.
+        fadeOpacity !== null ? { opacity: fadeOpacity } : null,
+      ]}
+      pointerEvents={fadeLeaving ? "none" : "auto"}
+      accessibilityElementsHidden={fadeLeaving}
+      importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
+      onLayout={onLayout}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+      onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
+      onResponderMove={handleResponderMove}
+      onResponderRelease={handleTouchEnd}
+      onResponderTerminate={handleResponderTerminate}
+      onResponderTerminationRequest={handleResponderTerminationRequest}
+      testID={`composition-stop-point-row-${point.id}`}
+    >
+      {railLink !== undefined ? (
+        <>
+          <RailLink
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            entryY={0}
+            length={railLink.length}
+            shift={shift}
+            prevShift={rail.shiftOf(railLink.prevKey)}
+            testID={`composition-rail-link-stop-${point.id}`}
+          />
+          <RailSegment centerX={OCCURRENCE_CARD_MEDIA.centerX} top={0} bottom={0} testID={`composition-rail-tail-stop-${point.id}`} />
+        </>
+      ) : null}
+      {railLink !== undefined ? (
+        <RailDot
+          centerX={OCCURRENCE_CARD_MEDIA.centerX}
+          centerY={STOP_POINT_LINE_HEIGHT / 2}
+          testID={`composition-rail-dot-stop-${point.id}`}
+        />
+      ) : null}
+      <StopPointLine
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint={composition.pauses.stopPointReorderAccessibilityHint}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={(name) => actionHandlers[name as StopPointAccessibilityActionName]?.()}
+        onLongPress={handleLongPress}
+        translateY={isDragged ? dragTranslationY : 0}
+        // Story 7.2 (D-442) : point saisi marqué soulevé, comme une carte.
+        lifted={isDragged}
+        chipRef={chipRef}
+        testID={`composition-stop-point-${point.id}`}
+      />
+    </Animated.View>
+  );
+}
+
+type PlacementStopPointItemRowProps = {
+  readonly railKey: string;
+  readonly point: PlacementStopPointRowPoint;
+  readonly placement: PlacementRowContext;
+  readonly rail: SequenceRailContext;
+  /** Écart de la zone (8, 9 dans le Circuit), ou sa moitié côté d'une rangée de placement adjacente (revue 6.3). */
+  readonly touchExtent: PlacementTouchExtent;
+  readonly onLayout: (event: LayoutChangeEvent) => void;
+  /** Story 7.2 : identifiant de test imposé (emplacement de tête de Circuit). */
+  readonly testID?: string;
+};
+
+/**
+ * PRE-6 story 6.3 (D-441, R3) : en placement, rangée autonome d'un point existant qu'aucun
+ * emplacement ne porte (`UNOFFERED_STOP_POINT` : hors bornes…) ou en tête de Circuit, à sa place dans
+ * la séquence mêlée. Story 7.2 (D-442) : aussi l'emplacement LIBRE de tête de Circuit, entre l'en-tête
+ * du Circuit et sa première carte. Même rangée de 22 et même puce que les emplacements (`PlacementStopPointRow`,
+ * sélectionnée, désélectionnable) ; nœud du rail (lien vers l'élément précédent, queue sur toute sa
+ * hauteur), sans point de raccord, comme les rangées du placement (story 5.3). Aucun glisser.
+ */
+function PlacementStopPointItemRow({
+  railKey,
+  point,
+  placement,
+  rail,
+  touchExtent,
+  onLayout,
+  testID: forcedTestID,
+}: PlacementStopPointItemRowProps) {
+  const shift = rail.shiftOf(railKey);
+  const railLink = rail.links.get(railKey);
+  const testID = forcedTestID ?? `composition-placement-slot-stop-${point.kind === "EXISTING" ? point.stopPointId : railKey}`;
+  return (
+    <Animated.View style={[styles.stopPointRow, { transform: [{ translateY: shift }] }]} onLayout={onLayout} testID={`${testID}-row`}>
+      {railLink !== undefined ? (
+        <>
+          <RailLink
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            entryY={0}
+            length={railLink.length}
+            shift={shift}
+            prevShift={rail.shiftOf(railLink.prevKey)}
+            testID={`composition-rail-link-${railKey}`}
+          />
+          <RailSegment centerX={OCCURRENCE_CARD_MEDIA.centerX} top={0} bottom={0} testID={`composition-rail-tail-${railKey}`} />
+        </>
+      ) : null}
+      <PlacementStopPointRow
+        point={point}
+        placement={placement.draft}
+        onToggleStopPoint={placement.onToggleStopPoint}
+        onToggleExistingStopPoint={placement.onToggleExistingStopPoint}
+        touchExtent={touchExtent}
+        testID={testID}
+      />
+    </Animated.View>
   );
 }
 
@@ -1313,6 +4205,11 @@ type CompositionActivityRowProps = {
   readonly activity: SessionDraftExercise;
   readonly areActionsRevealed: boolean;
   readonly isDragged: boolean;
+  /**
+   * PRE-6 story 5.2b : carte au premier plan de ses sœurs — soulevée, maintenue pendant le dialogue
+   * de perte ou en retour animé (fond transparent, `zIndex`).
+   */
+  readonly isRaised: boolean;
   /**
    * VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : `true`
    * lorsqu'UNE AUTRE carte de la Composition a ses actions révélées —
@@ -1323,16 +4220,54 @@ type CompositionActivityRowProps = {
    */
   readonly isBlockedByOtherReveal: boolean;
   readonly bodyZonesReferential: readonly BodyZone[];
+  /** PRE-6 (story 2.2) : Catégories (ligne de classement) et contexte de Circuit (durées). */
+  readonly categoriesReferential: readonly Category[];
+  readonly circuitContext: OccurrenceCircuitContext;
+  /** Position de l'occurrence dans sa zone, pour son nom accessible (« n sur m »). */
+  readonly position: { readonly index: number; readonly count: number };
   readonly onLayout: (event: LayoutChangeEvent) => void;
   readonly onEdit: () => void;
   readonly onRevealActions: () => void;
   readonly onHideActions: () => void;
-  readonly onDragStart: () => void;
-  readonly onDragCancel: () => void;
+  /** `false` : soulèvement refusé (revue 6.2 : un autre élément est soulevé, géométrie incomplète). */
+  readonly onDragStart: () => boolean;
+  /** Revue 6.2 : focus d'accessibilité demandé sur cette carte (pas d'une zone à l'autre, suppression refusée). */
+  readonly focusRequest: ItemFocusRequest | null;
+  readonly onFocusConsumed: (token: number) => void;
+  /** Interruption du glisser, avec la position atteinte (retour animé depuis elle, story 5.2b). */
+  readonly onDragCancel: (translationY: number) => void;
+  /** PRE-6 (story 2.3b) : déplacement vertical courant de la carte glissée. */
+  readonly onDragMove: (translationY: number) => void;
   readonly onDragEnd: (translationY: number) => void;
+  /**
+   * PRE-6 (story 2.3b) : décalage vertical du bloc (carte, rangée du point d'arrêt, rail) pour
+   * libérer l'emplacement visé par une AUTRE carte glissée — valeur animée du registre partagé
+   * (`rail.shiftOf`). PRE-6 (story 5.2) : lien du rail vers l'élément précédent.
+   */
+  readonly rail: SequenceRailContext;
+  /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
+  readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : opacité du fondu de la carte supprimée (story 7.7 : ou de la copie qui apparaît), ou `null`. */
+  readonly fadeOpacity?: Animated.Value | null;
+  /** Story 7.7 : le fondu est une disparition (sans toucher ni accessibilité). */
+  readonly fadeLeaving?: boolean;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
+  /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
+  readonly onMoveUp: (() => void) | null;
+  readonly onMoveDown: (() => void) | null;
+  /** PRE-6 (story 4.1) : mode placement — carte atténuée et inactive, puces sous la carte. */
+  readonly placement: PlacementRowContext | null;
+  /** Revue 6.3 : la rangée sous la carte est suivie d'une rangée de point non proposé (écart partagé). */
+  readonly placementRowFollowed?: boolean;
 };
+
+/**
+ * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 7.2 (D-442) :
+ * plus d'actions propres à la récupération (« Modifier » / « Retirer la récupération », story 5.1) —
+ * elle se règle seulement en placement.
+ */
+type OccurrenceAccessibilityActionName = "moveUp" | "moveDown" | "duplicate" | "delete";
 
 /**
  * V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : décalage horizontal MAXIMAL de la
@@ -1346,6 +4281,13 @@ type CompositionActivityRowProps = {
  */
 const SWIPE_REVEAL_OFFSET =
   dimensions.compositionSwipeActions.groupWidth + dimensions.compositionTourSection.inset;
+
+/**
+ * PRE-6 story 7.7 (D-443) : la carte d'occurrence reste le même `Pressable` (mécanisme de geste
+ * inchangé) ; seule sa translation horizontale devient une valeur animée, pour que l'ouverture, la
+ * fermeture et le retour des actions glissées se terminent en douceur (pilote natif).
+ */
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /**
  * `Composition / Activity Row` (`2588:2679`, D-128) et ses deux états T02 —
@@ -1408,20 +4350,18 @@ const SWIPE_REVEAL_OFFSET =
  * **T02-S02, révisé par V2-CAT-01 (D-095/D-128/D-138, CE-T01-09,
  * CE-T02-01/CE-T02-02, CE-T03-08).**
  *
- * 1. **Sous-carte attachée.** Lorsque `recoverySeconds > 0`, une sous-carte
- *    `Récupération X min Y s` de `24` points est attachée sous la carte
- *    principale. Les deux ne forment qu'UN SEUL `Pressable` : le bloc est
- *    donc pressable et déplaçable comme un tout — « la Récupération
+ * 1. **Ligne structurelle de récupération (PRE-6 story 2.1, D-303, D-217 ;
+ *    remplace la sous-carte attachée de T02-S02).** Sous la carte, dans le
+ *    même conteneur gestuel et avec la même translation : « la Récupération
  *    appartient à l'Activité et forme avec elle un bloc indivisible pour la
  *    Composition, la copie, la duplication, le déplacement et la
- *    suppression » (D-138). Elle n'est jamais une Activité de plus.
- * 2. **Géométries conditionnelles.** Bloc `354 × 60` sans Récupération,
- *    `354 × 84` avec ; actions glissées `72 × 60` / `72 × 84`, couvrant
- *    toute la hauteur du bloc. L'état soulevé applique un écart CONSTANT
- *    (`widthDelta 8`, `heightDelta 4`) : `362 × 88` avec Récupération —
- *    et `362 × 64` sans elle. `362 × 88`
- *    sans Récupération est donc structurellement impossible, jamais interdit
- *    par une simple convention de relecture.
+ *    suppression » (D-138). PRE-6 story 5.1 (D-435) : elle s'affiche en ligne 3 de
+ *    la carte si R > 0 ; la rangée sous la carte ne porte plus qu'un point
+ *    d'arrêt. Elle n'est jamais une Activité de plus.
+ * 2. **Géométrie.** PRE-6 (story 5.1, D-435) : carte v2 de `80` dans toutes les variantes
+ *    (remplace `64` / `70`) ; actions glissées `72 × 80`, couvrant toute la hauteur de la
+ *    carte. L'état soulevé applique un écart CONSTANT (`widthDelta 8`, `heightDelta 4`) :
+ *    `84` de haut.
  * 3. **Balayage PROGRESSIF (V2-CAT-01, CE-T03-08 §§7-20, D-175/D-176).** La
  *    carte SUIT le doigt en temps réel (`swipeTranslateX`, même technique
  *    déjà éprouvée que `dragTranslationY` pour le déplacement vertical —
@@ -1449,22 +4389,66 @@ function CompositionActivityRow({
   activity,
   areActionsRevealed,
   isDragged,
+  isRaised,
   isBlockedByOtherReveal,
   bodyZonesReferential,
+  categoriesReferential,
+  circuitContext,
+  position,
   onLayout,
   onEdit,
   onRevealActions,
   onHideActions,
   onDragStart,
   onDragCancel,
+  onDragMove,
   onDragEnd,
+  rail,
+  autoScroll,
+  fadeOpacity = null,
+  fadeLeaving = false,
   onDuplicate,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  placement,
+  placementRowFollowed = false,
+  focusRequest,
+  onFocusConsumed,
 }: CompositionActivityRowProps) {
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
+  const cardRef = useRef<View>(null);
+  // Revue 6.2 : focus demandé sur la carte (pas d'une zone à l'autre — la carte peut avoir été
+  // remontée dans une autre liste —, suppression refusée et son annonce) ; consommé une fois porté.
+  useEffect(() => {
+    if (focusRequest === null) return undefined;
+    const token = focusRequest.token;
+    return focusOnNextFrame(() => cardRef.current, focusRequest.announcement, () => onFocusConsumed(token));
+  }, [focusRequest, onFocusConsumed]);
+  /** Translation de la carte soulevée : déplacement du doigt plus, story 7.4, défilement accumulé. */
   const translationYRef = useRef(0);
+  /** Story 7.4 : déplacement vertical du doigt seul (depuis le début du toucher). */
+  const fingerDyRef = useRef(0);
   const isDraggingRef = useRef(false);
+  /**
+   * PRE-6 (story 2.3b) : une carte démontée pendant son glisser (occurrence retirée du brouillon)
+   * annule le geste — sans quoi l'écran garderait un état soulevé et un aperçu périmés.
+   */
+  const onDragCancelRef = useRef(onDragCancel);
+  useEffect(() => {
+    onDragCancelRef.current = onDragCancel;
+  }, [onDragCancel]);
+  useEffect(() => {
+    const dragging = isDraggingRef;
+    const cancel = onDragCancelRef;
+    return () => {
+      if (dragging.current) {
+        dragging.current = false;
+        cancel.current(0);
+      }
+    };
+  }, []);
   /**
    * `true` dès qu'un balayage horizontal est engagé pendant le geste
    * courant (V2-CAT-01, CE-T03-08) — tant qu'il l'est, le responder n'est
@@ -1482,6 +4466,19 @@ function CompositionActivityRow({
    * sinon toutes les autres cartes, la structure Tour et la synthèse.
    */
   const [dragTranslationY, setDragTranslationY] = useState(0);
+  const onDragMoveRef = useRef(onDragMove);
+  useEffect(() => {
+    onDragMoveRef.current = onDragMove;
+  }, [onDragMove]);
+  /**
+   * PRE-6 story 7.4 : translation de la carte soulevée, à chaque mouvement du doigt et à chaque
+   * trame du défilement automatique (doigt immobile dans la bande de bord).
+   */
+  const applyDragTranslation = useCallback((translationY: number) => {
+    translationYRef.current = translationY;
+    setDragTranslationY(translationY);
+    onDragMoveRef.current(translationY);
+  }, []);
   /**
    * Décalage horizontal visuel de la carte (V2-CAT-01, CE-T03-08) — même
    * technique locale que `dragTranslationY` ci-dessus, étendue au balayage :
@@ -1491,6 +4488,43 @@ function CompositionActivityRow({
   const [swipeTranslateX, setSwipeTranslateX] = useState(
     areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0,
   );
+  /**
+   * PRE-6 story 7.7 (D-443, j6c-4 : « pas d'arrêt brutal ») : translation horizontale AFFICHÉE de la
+   * carte — elle suit le doigt pendant le balayage (`setValue`) puis rejoint la position de repos
+   * (ouverte ou fermée) par le mouvement partagé (`compositionMotion.ts`, décélération), au lieu d'y
+   * être posée d'un coup. `swipeTranslateX` reste la position LOGIQUE (seuils, actions révélées).
+   * Le groupe d'actions reste monté jusqu'à la fin d'une fermeture (`isSwipeSettling`).
+   */
+  const reduceMotion = useReduceMotion();
+  const [swipeX] = useState(() => new Animated.Value(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0));
+  const [dragY] = useState(() => new Animated.Value(0));
+  const cardDragY = isDragged ? dragTranslationY : 0;
+  useLayoutEffect(() => {
+    dragY.setValue(cardDragY);
+  }, [cardDragY, dragY]);
+  const [isSwipeSettling, setIsSwipeSettling] = useState(false);
+  const swipeSettleTokenRef = useRef(0);
+  const settleSwipe = useCallback(
+    (target: number) => {
+      setSwipeTranslateX(target);
+      const token = ++swipeSettleTokenRef.current;
+      if (reduceMotion) {
+        swipeX.setValue(target);
+        setIsSwipeSettling(false);
+        return;
+      }
+      setIsSwipeSettling(true);
+      Animated.timing(swipeX, {
+        toValue: target,
+        duration: MOTION_SHIFT_DURATION_MS,
+        easing: MOTION_EASING,
+        useNativeDriver: true,
+      }).start(() => {
+        if (swipeSettleTokenRef.current === token) setIsSwipeSettling(false);
+      });
+    },
+    [reduceMotion, swipeX],
+  );
 
   /**
    * Resynchronise la position de repos lorsque l'état RÉVÉLÉ change pour une
@@ -1498,11 +4532,18 @@ function CompositionActivityRow({
    * s'ouvre, `Dupliquer`/`Supprimer` referme celle-ci) — jamais pendant le
    * balayage lui-même, qui pilote déjà `swipeTranslateX` en temps réel.
    */
+  /** Story 7.7 : position logique lue par l'effet de resynchronisation. */
+  const swipeTranslateXRef = useRef(swipeTranslateX);
+  useEffect(() => {
+    swipeTranslateXRef.current = swipeTranslateX;
+  }, [swipeTranslateX]);
   useEffect(() => {
     if (!isSwipingRef.current) {
-      setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
+      const rest = areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0;
+      // Story 7.7 : seulement si la position change (pas de mouvement au montage).
+      if (rest !== swipeTranslateXRef.current) settleSwipe(rest);
     }
-  }, [areActionsRevealed]);
+  }, [areActionsRevealed, settleSwipe]);
 
   /**
    * Enregistre l'origine du toucher ET la position de repos courante — c'est
@@ -1514,6 +4555,8 @@ function CompositionActivityRow({
    */
   const handleTouchStart = useCallback(
     (event: GestureResponderEvent) => {
+      // Revue 6.2 : un second doigt pendant le glisser ne redéfinit pas l'origine du geste.
+      if (isDraggingRef.current) return;
       originRef.current = { x: event.nativeEvent.pageX, y: event.nativeEvent.pageY };
       translationYRef.current = 0;
       isSwipingRef.current = false;
@@ -1529,15 +4572,24 @@ function CompositionActivityRow({
     }
     const dx = event.nativeEvent.pageX - start.x;
     const dy = event.nativeEvent.pageY - start.y;
-    translationYRef.current = dy;
+    fingerDyRef.current = dy;
+    // Story 7.4 : pendant le glisser, la translation compte aussi le défilement accumulé.
+    if (!isDraggingRef.current) translationYRef.current = dy;
     return { dx, dy };
   }, []);
 
   /** Applique `dx` à la position de repos, borné à `[-SWIPE_REVEAL_OFFSET, 0]` — la fermeture ne peut donc jamais progresser au-delà de `0`, ni l'ouverture au-delà de `-SWIPE_REVEAL_OFFSET`. */
-  const applySwipeMovement = useCallback((dx: number) => {
-    isSwipingRef.current = true;
-    setSwipeTranslateX(clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET));
-  }, []);
+  const applySwipeMovement = useCallback(
+    (dx: number) => {
+      isSwipingRef.current = true;
+      const x = clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET);
+      setSwipeTranslateX(x);
+      // Story 7.7 : la carte suit le doigt (une animation de repos en cours est arrêtée).
+      swipeSettleTokenRef.current += 1;
+      swipeX.setValue(x);
+    },
+    [swipeX],
+  );
 
   /**
    * Arbitrage du geste, en phase de CAPTURE — donc avant le `Pressable`
@@ -1590,14 +4642,14 @@ function CompositionActivityRow({
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
       if (isDraggingRef.current) {
-        setDragTranslationY(dy);
+        applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
         return;
       }
       if (Math.abs(dx) > Math.abs(dy)) {
         applySwipeMovement(dx);
       }
     },
-    [applySwipeMovement, trackMovement],
+    [applyDragTranslation, applySwipeMovement, autoScroll, trackMovement],
   );
 
   /**
@@ -1610,7 +4662,9 @@ function CompositionActivityRow({
    * - tout autre relâchement laisse le brouillon rigoureusement inchangé
    *   (CE-T02-02 : « l'entrée dans cet état ne persiste rien »).
    */
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((event?: GestureResponderEvent) => {
+    // Revue 6.2 : le geste ne se termine qu'au dernier doigt levé.
+    if ((event?.nativeEvent.touches?.length ?? 0) > 0) return;
     originRef.current = null;
     setDragTranslationY(0);
     if (isDraggingRef.current) {
@@ -1624,13 +4678,14 @@ function CompositionActivityRow({
     }
     isSwipingRef.current = false;
     const shouldReveal = shouldRevealAfterSwipe(swipeTranslateX, SWIPE_REVEAL_OFFSET);
-    setSwipeTranslateX(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
+    // Story 7.7 : la carte rejoint sa position de repos en douceur.
+    settleSwipe(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
     if (shouldReveal && !areActionsRevealed) {
       onRevealActions();
     } else if (!shouldReveal && areActionsRevealed) {
       onHideActions();
     }
-  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, swipeTranslateX]);
+  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, settleSwipe, swipeTranslateX]);
 
   /**
    * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
@@ -1640,9 +4695,12 @@ function CompositionActivityRow({
    * reste IDEMPOTENTE — jamais appliquée deux fois si les deux événements
    * arrivent.
    */
-  const handleResponderRelease = useCallback(() => {
-    handleTouchEnd();
-  }, [handleTouchEnd]);
+  const handleResponderRelease = useCallback(
+    (event: GestureResponderEvent) => {
+      handleTouchEnd(event);
+    },
+    [handleTouchEnd],
+  );
 
   /**
    * Le responder n'est cédé ni pendant un déplacement engagé (acquis
@@ -1667,7 +4725,7 @@ function CompositionActivityRow({
     setDragTranslationY(0);
     if (isDraggingRef.current) {
       isDraggingRef.current = false;
-      onDragCancel();
+      onDragCancel(translationYRef.current);
     }
   }, [onDragCancel]);
 
@@ -1680,9 +4738,9 @@ function CompositionActivityRow({
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
     isSwipingRef.current = false;
-    setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
+    settleSwipe(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
     handleResponderTerminate();
-  }, [areActionsRevealed, handleResponderTerminate]);
+  }, [areActionsRevealed, handleResponderTerminate, settleSwipe]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
@@ -1699,30 +4757,151 @@ function CompositionActivityRow({
     onEdit();
   }, [areActionsRevealed, onEdit]);
 
-  /** Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. */
+  /**
+   * PRE-6 (story 2.3b) : décalage animé du bloc pendant le glisser d'une autre carte (translation
+   * seule, pilote natif ; registre partagé de l'écran, story 5.2).
+   */
+  const railKey = railRowKey(activity.id);
+  const dragShiftValue = rail.shiftOf(railKey);
+  /**
+   * PRE-6 (story 5.2) : rail de l'occurrence — lien vers l'élément précédent, queue du bas du média
+   * au bas du bloc (rangée du point d'arrêt ou emplacement de placement compris), point de raccord
+   * au centre d'un point d'arrêt. L'occurrence glissée sort de la chaîne : aucun rail.
+   */
+  const railLink = rail.skippedKeys.has(railKey) ? undefined : rail.links.get(railKey);
+  /**
+   * Story 5.2b : carte hors de la chaîne mais pas soulevée (maintenue pendant le dialogue de perte,
+   * ou en retour animé) — au premier plan, elle recouvre le lien de ses voisines qui traverse sa
+   * place ; elle porte donc le rail de sa propre surface : du haut de la carte au haut du média, puis
+   * du bas du média au bas du bloc (rangée du point d'arrêt et son point compris). Ces segments sont
+   * sur la carte elle-même : ils ne traversent aucun autre média.
+   */
+  const hasOwnSurfaceRail = railLink === undefined && rail.skippedKeys.has(railKey) && isRaised && !isDragged;
+  /** Écart carte → rangée du point d'arrêt / emplacement : celui de la zone (9 dans le Circuit, 8 au dehors). */
+  const slotGap = activity.structuralPosition === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP;
+
+  /**
+   * Appui LONG sur TOUTE la carte (D-127/AC-03) : engage la réorganisation. Revue 6.2 : refusé
+   * (aucun état soulevé) si un autre élément est déjà soulevé ou si la géométrie est incomplète.
+   */
   const handleLongPress = useCallback(() => {
+    if (!onDragStart()) return;
     isDraggingRef.current = true;
-    onDragStart();
-  }, [onDragStart]);
+    // Story 7.4 : la carte suit le défilement automatique, même sans mouvement du doigt — et un doigt
+    // déjà immobile dans une bande de bord au soulèvement fait défiler (revue 7.4).
+    autoScroll.attach((scrollDelta) => applyDragTranslation(fingerDyRef.current + scrollDelta));
+    const origin = originRef.current;
+    if (origin !== null) autoScroll.track(origin.y + fingerDyRef.current);
+  }, [applyDragTranslation, autoScroll, onDragStart]);
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
+  // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
+  const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
+  const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
   /**
-   * La hauteur est dérivée des deux éléments réellement optionnels : la ligne
-   * de Zones corporelles (`44` sans / `60` avec) et la Récupération attachée
-   * (`+24`, strictement inchangée).
+   * Hauteur de la CARTE seule : 80 (carte v2, PRE-6 story 5.1, D-435), récupération comprise
+   * (ligne 3). La rangée du point d'arrêt, rendue SOUS la carte hors placement, n'entre pas ici.
    */
-  const recoveryLabel = formatActivityRecoveryLabel(activity.postActivityRecoverySeconds);
-  const blockHeight = blockHeightFor(bodyZones !== null, recoveryLabel !== null, isDragged);
+  const blockHeight = blockHeightFor(isDragged);
   /**
-   * V2-PRE-1 (plan §3.3) : direction PROPRE et bilatérale — portée
-   * exclusivement par l'Exercice, le Circuit n'ayant plus aucune direction
-   * dont elle pourrait être héritée.
+   * PRE-6 (story 5.1) : récupération affichée en ligne 3 — hors placement, celle du brouillon ; en
+   * placement (story 7.2, D-442), la durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout,
+   * ou existante modifiée ou non, sauf retrait programmé), pour ne jamais contredire le cadre.
    */
-  const isOwnBilateral = activity.sideMode !== "UNILATERAL";
-  const sideModeStrings = strings.shared.sideMode;
+  const displayedRecoverySeconds =
+    placement === null || activity.type !== "EXERCISE"
+      ? activity.postActivityRecoverySeconds
+      : placementRecoverySeconds(placement.draft, activity);
+  /** Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`). */
+  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged;
+  /**
+   * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
+   * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
+   */
+  const placementSlot = placement === null ? null : placement.slotFor(activity.id);
+  const placementRecovery = placementSlot?.recovery ?? null;
+  const placementStopPoint = placementSlot?.stopPoint ?? null;
+  /**
+   * Ligne 3 de la carte. PRE-6 story 7.2 (D-442) : en placement, toute zone de récupération d'un
+   * Exercice est le cadre sélectionnable (`PlacementRecoveryFrame` : sélectionnée — ajout, ou
+   * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
+   * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
+   */
+  let recoveryNode: React.ReactNode;
+  if (placement !== null && placementRecovery !== null) {
+    recoveryNode = (
+      <PlacementRecoveryFrame
+        occurrenceId={activity.id}
+        exerciseName={activity.name}
+        selectedSeconds={displayedRecoverySeconds ?? null}
+        existing={placementRecovery.kind === "EXISTING"}
+        onPress={placement.onPressRecovery}
+        touchExtent={occurrenceRecoveryTouchExtent(isCardBordered)}
+        testID={`composition-placement-slot-${activity.id}-recovery`}
+      />
+    );
+  } else {
+    recoveryNode = (
+      <OccurrenceRecovery
+        recoverySeconds={displayedRecoverySeconds}
+        hiddenFromAccessibility={placement !== null}
+        testID={`composition-activity-recovery-${activity.id}-recovery`}
+      />
+    );
+  }
+  /**
+   * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-441) : hors
+   * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
+   * Story 6.3 (D-441, R3) : un point existant sur l'emplacement de la carte (même devenu interdit)
+   * est rendu sélectionné, désélectionnable ; sinon, la puce à ajouter si l'emplacement en offre une.
+   */
+  const placementRowPoint: PlacementStopPointRowPoint | null =
+    placement === null ? null : placement.rowPointOf(placementStopPoint);
+  const hasRowBelow = placementRowPoint !== null;
+  // Même translation pour la carte et sa ligne de récupération : elles font bloc.
+  const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
+  /**
+   * Story 7.7 : transformation de la carte — translations horizontale (`swipeX`) ET verticale
+   * (`dragY`) animées. Revue 7.7 : une fois une animation native passée sur `transform`, Fabric iOS
+   * n'applique plus cette propriété depuis les commits (`propKeysManagedByAnimated`) ; le suivi
+   * vertical du doigt pendant le glisser passe donc lui aussi par une valeur animée (`setValue`).
+   */
+  const cardTransform = [{ translateX: swipeX }, { translateY: dragY }];
+  /**
+   * V2-PRE-1 (plan §3.3) : changement de côté PROPRE à l'Exercice. PRE-6 (story 2.2,
+   * RM-243, D-407, ARB-2) : icône neutre seulement, jamais pour un exercice unilatéral.
+   */
+  const hasSideChange = isBilateral(activity.sideMode);
+  /**
+   * PRE-6 (story 2.3, CE-T03-08 §18) : alternatives accessibles au glisser et au balayage —
+   * « Monter » / « Descendre » (absentes aux extrémités de la séquence), « Dupliquer »,
+   * « Supprimer ». Le balayage et l'appui long restent inchangés.
+   */
+  /** Nom accessible : la récupération affichée y figure (« …, récupération 20 s »), hors placement et en placement. */
+  const accessibilityLabel = isDisplayableRecovery(displayedRecoverySeconds)
+    ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
+        "{duration}",
+        () => formatCompactDuration(displayedRecoverySeconds),
+      )}`
+    : formatOccurrenceAccessibilityLabel(activity, position, circuitContext);
+  const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = {
+    ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
+    ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+    duplicate: onDuplicate,
+    delete: onDelete,
+  };
+  const accessibilityActionLabels: Record<OccurrenceAccessibilityActionName, string> = {
+    moveUp: composition.activityActions.moveUp,
+    moveDown: composition.activityActions.moveDown,
+    duplicate: composition.activityActions.duplicate,
+    delete: composition.activityActions.delete,
+  };
+  const accessibilityActions = (Object.keys(accessibilityActionHandlers) as OccurrenceAccessibilityActionName[]).map(
+    (name) => ({ name, label: accessibilityActionLabels[name] }),
+  );
 
   return (
-    <View
+    <Animated.View
       style={[
         styles.activityRowContainer,
         // VISUAL_CORRECTION (revue indépendante 5753653735, point 6) : le
@@ -1731,26 +4910,48 @@ function CompositionActivityRow({
         // Activité `BEFORE_TOUR`/`AFTER_TOUR`, qui repose elle-même sur un
         // fond blanc.
         {
-          backgroundColor:
-            activity.structuralPosition === "IN_TOUR" ? colors.tourSurface : colors.background,
+          // Correctif 2.3b (retour Hermann 21/10/2026) : la rangée soulevée, au premier plan
+          // (`zIndex`) mais restée à sa place d'origine (seuls carte, ligne et repère suivent le
+          // doigt), devient transparente ; sinon son fond opaque masque la voisine qui remonte dans
+          // la place libérée. Aucun balayage n'est possible pendant le glisser.
+          // Story 5.2b : de même pendant le dialogue de perte et le retour animé (`isRaised`).
+          backgroundColor: isRaised
+            ? "transparent"
+            : activity.structuralPosition === "IN_TOUR"
+              ? CIRCUIT_SURFACE_COLOR
+              : colors.background,
         },
-        isDragged ? styles.activityRowContainerDragged : null,
+        isRaised ? styles.activityRowContainerDragged : null,
+        // PRE-6 (story 2.3b) : le bloc entier (carte, ligne, repère du rail) libère la place visée.
+        { transform: [{ translateY: dragShiftValue }] },
+        // PRE-6 story 7.5 : fondu de la carte supprimée.
+        fadeOpacity !== null ? { opacity: fadeOpacity } : null,
       ]}
       onLayout={onLayout}
       // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : une
       // AUTRE carte a ses actions révélées — cette carte reste bloquée
       // (aucun appui, appui long ni balayage) jusqu'à la fermeture de
       // l'autre, conformément au contrat existant (CE-T02-02).
-      pointerEvents={isBlockedByOtherReveal ? "none" : "auto"}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchCancel}
-      onMoveShouldSetResponderCapture={handleMoveShouldSetResponderCapture}
-      onResponderMove={handleResponderMove}
-      onResponderRelease={handleResponderRelease}
-      onResponderTerminate={handleResponderTerminate}
-      onResponderTerminationRequest={handleResponderTerminationRequest}
+      // Story 7.5 : la carte en cours de suppression ne répond plus.
+      pointerEvents={isBlockedByOtherReveal || fadeLeaving ? "none" : "auto"}
+      // Revue 7.5 : la carte qui s'efface n'est plus proposée à VoiceOver (ni actions ni activation).
+      accessibilityElementsHidden={fadeLeaving}
+      importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
+      // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
+      // les puces de l'emplacement répondent.
+      {...(placement === null
+        ? {
+            onTouchStart: handleTouchStart,
+            onTouchMove: handleTouchMove,
+            onTouchEnd: handleTouchEnd,
+            onTouchCancel: handleTouchCancel,
+            onMoveShouldSetResponderCapture: handleMoveShouldSetResponderCapture,
+            onResponderMove: handleResponderMove,
+            onResponderRelease: handleResponderRelease,
+            onResponderTerminate: handleResponderTerminate,
+            onResponderTerminationRequest: handleResponderTerminationRequest,
+          }
+        : {})}
       testID={`composition-activity-${activity.id}`}
     >
       {/*
@@ -1763,8 +4964,12 @@ function CompositionActivityRow({
        * pendant le geste est elle-même observable, pas seulement son
        * aboutissement.
        */}
-      {swipeTranslateX < 0 ? (
+      {swipeTranslateX < 0 || isSwipeSettling ? (
         <View
+          // Revue 7.7 : pendant le retour d'une fermeture, les actions ne répondent plus.
+          pointerEvents={swipeTranslateX < 0 ? "auto" : "none"}
+          accessibilityElementsHidden={swipeTranslateX >= 0}
+          importantForAccessibility={swipeTranslateX < 0 ? "auto" : "no-hide-descendants"}
           style={[styles.activityRowActions, { height: blockHeight }]}
           accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
           testID={`composition-activity-actions-${activity.id}`}
@@ -1800,16 +5005,31 @@ function CompositionActivityRow({
         </View>
       ) : null}
 
-      <Pressable
+      <AnimatedPressable
+        ref={cardRef}
         onPress={handlePress}
         onLongPress={handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
+        // PRE-6 (story 4.1) : en placement, carte inactive. Arbitrage D6 (PR #391) : son contenu
+        // est grisé par `OccurrenceCard`, hors récupération de ligne 3 ; elle n'est plus un élément accessible (son contenu est masqué par
+        // `OccurrenceCard`), pour que VoiceOver atteigne le contrôle de sa ligne 3 (cadre
+        // « Récupération » ou récupération existante modifiable).
+        disabled={placement !== null}
+        accessible={placement === null}
+        importantForAccessibility={placement !== null ? "no" : "auto"}
         accessibilityRole="button"
-        accessibilityLabel={composition.exerciseRow.editAccessibilityLabel}
-        accessibilityHint={composition.activityActions.reorderAccessibilityHint}
+        accessibilityLabel={accessibilityLabel}
+        // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
+        accessibilityHint={`${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`}
         accessibilityState={{ selected: isDragged }}
+        accessibilityActions={accessibilityActions}
+        onAccessibilityAction={(event) =>
+          accessibilityActionHandlers[event.nativeEvent.actionName as OccurrenceAccessibilityActionName]?.()
+        }
         style={[
           styles.activityBlock,
+          // PRE-6 (story 5.1, D-435) : dans le Circuit, carte sans bord ; l'état soulevé garde le sien.
+          activity.structuralPosition === "IN_TOUR" && !isDragged ? occurrenceCardInCircuitSurface : null,
           isDragged ? styles.activityBlockDragged : null,
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
@@ -1818,325 +5038,197 @@ function CompositionActivityRow({
           // verticalement (déplacement soulevé) — les deux restent
           // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
           // transformation est toujours appliquée pour rester continue.
-          { transform: [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }] },
+          { transform: cardTransform },
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
         {/*
-         * Carte principale — anatomie strictement conservée depuis T02-S01
-         * (slot structure `28 × 28`, titre, ligne de Zones corporelles,
-         * synthèse). CE-T02-02 : son fond devient TRANSPARENT à l'état
-         * soulevé, « le bleu reste donc visible derrière le nom, les Zones
-         * corporelles et la synthèse » — jamais une opacité appliquée
-         * séparément aux textes.
+         * PRE-6 (story 5.1, D-435, carte v2 `9798:44464`) : contenu de la carte d’occurrence
+         * (média, nom et côté, Catégorie et travail, Zones et récupération). La surface reste
+         * portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc
+         * derrière le contenu, sans opacité appliquée aux textes.
+         *
+         * Récupération en ligne 3 : story 7.2 (D-442) — hors placement, simple affichage (le toucher
+         * ouvre l’Exercice, l’appui long saisit la carte) ; en placement (story 5.3), cadre
+         * sélectionnable ; le reste de la carte est inactif (story 4.1).
          */}
-        <View style={styles.activityMainCard} testID="composition-activity-main-card">
-          <View style={styles.boundaryRowHandleSlot} testID="composition-boundary-handle-slot">
-            <KodjoIcon name="composition-reorder" testID="composition-boundary-handle-icon" />
-          </View>
-          <View style={styles.boundaryRowTitleSlot}>
-            <Text style={styles.rowLabel} numberOfLines={1}>
-              {activity.name}
-            </Text>
-            {bodyZones !== null ? (
-              <Text
-                style={styles.boundaryRowSecondaryLine}
-                numberOfLines={1}
-                testID="composition-exercise-body-zones"
-              >
-                {bodyZones}
-              </Text>
-            ) : null}
-            <Text style={styles.boundaryRowSecondaryLine} numberOfLines={1}>
-              {formatExerciseRowSummary(activity)}
-            </Text>
-          </View>
-          {/*
-           * Correction bornée (plan `## 4.4`, BIL-065) : indicateur `D→G`/
-           * `G→D`, géométrie locale `42 × 20 pt`, position absolue `x=311,
-           * y=24,5` — affiché UNIQUEMENT pour une direction PROPRE
-           * bilatérale hors héritage d'un Tour bilatéral. Non interactif —
-           * jamais un `Pressable`, aucun `onPress` — mais ACCESSIBLE :
-           * `accessible` + `accessibilityLabel` développé (les mêmes
-           * libellés exacts que le contrôle `Côté` de l'Activité,
-           * `shared.sideMode.activity.accessibilityLabels`) regroupent le
-           * texte visuel court sous UN SEUL nom accessible complet, sans le
-           * masquer de l'arbre — l'ancien `accessibilityElementsHidden` /
-           * `importantForAccessibility="no-hide-descendants"` était le
-           * masquage incorrect signalé par le plan, retiré ici.
-           */}
-          {isOwnBilateral ? (
-            <View
-              style={[
-                styles.activitySideModeIndicator,
-                { width: ACTIVITY_SIDE_MODE_INDICATOR_SIZE.width, height: ACTIVITY_SIDE_MODE_INDICATOR_SIZE.height },
-              ]}
-              accessible
-              accessibilityLabel={sideModeStrings.activity.accessibilityLabels[activity.sideMode]}
-              testID={`composition-activity-side-mode-${activity.id}`}
-            >
-              <Text style={styles.activitySideModeIndicatorLabel} numberOfLines={1}>
-                {sideModeStrings.valueLabels[activity.sideMode]}
-              </Text>
-            </View>
+        <OccurrenceCard
+          name={activity.name}
+          category={category}
+          bodyZones={bodyZones}
+          summary={formatOccurrenceSummary(activity)}
+          estimatedDuration={estimatedDuration}
+          hasSideChange={hasSideChange}
+          bordered={isCardBordered}
+          recovery={recoveryNode}
+          // PRE-6 (story 5.3) : en placement, seul le contrôle de la ligne 3 reste accessible.
+          hideContentFromAccessibility={placement !== null}
+          // Arbitrage D6 (PR #391) : en placement, carte grisée, sa récupération de ligne 3 non.
+          attenuated={placement !== null}
+          // PRE-6 story 5.1b (D3 remplacé) : premier média de l'occurrence, transporté par le
+          // brouillon (Catalogue, Séance relue, duplication), sinon l'icône générique.
+          media={firstMediaPreviewSource(activity.media)}
+          sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
+        />
+
+      </AnimatedPressable>
+
+      {/*
+       * PRE-6 (story 5.2, D-435) : rail de l'occurrence, peint APRÈS la carte (il passe sur ses
+       * marges, jusqu'aux bords du média, sans le traverser) et AVANT la rangée sous la carte. Story
+       * 5.3 : il traverse les rangées d'emplacement (22, point posé 24) sur l'axe des médias, à
+       * gauche des puces centrées, sans point de raccord (Figma `8328:29270`). Il ne suit ni le
+       * balayage ni la carte soulevée : le
+       * rail ne glisse pas ; il suit les décalages du bloc (translation du conteneur).
+       */}
+      {railLink !== undefined ? (
+        <>
+          <RailLink
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            entryY={OCCURRENCE_CARD_MEDIA.top}
+            length={railLink.length}
+            shift={dragShiftValue}
+            prevShift={rail.shiftOf(railLink.prevKey)}
+            testID={`composition-rail-link-${activity.id}`}
+          />
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={OCCURRENCE_CARD_MEDIA.bottom}
+            bottom={0}
+            testID={`composition-rail-tail-${activity.id}`}
+          />
+        </>
+      ) : null}
+      {hasOwnSurfaceRail ? (
+        <>
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={0}
+            height={OCCURRENCE_CARD_MEDIA.top}
+            testID={`composition-rail-own-top-${activity.id}`}
+          />
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={OCCURRENCE_CARD_MEDIA.bottom}
+            bottom={0}
+            testID={`composition-rail-tail-${activity.id}`}
+          />
+        </>
+      ) : null}
+
+      {/*
+       * Rangée sous l'occurrence, en placement seulement (story 5.3) : emplacement de point d'arrêt
+       * à l'écart de la zone sous la carte (`slotGap`). PRE-6 story 6.2 (D-441) : hors placement,
+       * le Point d'arrêt est une rangée autonome de la séquence (`StopPointRow`), hors du bloc.
+       */}
+      {hasRowBelow ? (
+        <View
+          style={[{ marginTop: slotGap }, { transform: blockTransform }]}
+          testID={`composition-activity-recovery-slot-${activity.id}`}
+        >
+          {placement !== null && placementRowPoint !== null ? (
+            // PRE-6 (story 5.3, D-435, `8328:29270`) : emplacement de point d'arrêt centré entre
+            // la carte et l'élément suivant, cible étendue aux deux écarts (8, 9 dans le Circuit).
+            <PlacementStopPointRow
+              point={placementRowPoint}
+              placement={placement.draft}
+              onToggleStopPoint={placement.onToggleStopPoint}
+              onToggleExistingStopPoint={placement.onToggleExistingStopPoint}
+              // Revue 6.3 : suivie d'une rangée de point non proposé, la cible s'arrête au milieu.
+              touchExtent={{ top: slotGap, bottom: placementRowFollowed ? slotGap / 2 : slotGap }}
+              testID={`composition-placement-slot-${activity.id}`}
+            />
           ) : null}
         </View>
+      ) : null}
 
-        {recoveryLabel !== null ? (
-          <View
-            style={[
-              styles.activityRecoveryCard,
-              isDragged ? styles.activityRecoveryCardDragged : null,
-            ]}
-            accessibilityLabel={composition.activityRecovery.accessibilityLabel}
-            testID={`composition-activity-recovery-${activity.id}`}
-          >
-            <Text style={styles.activityRecoveryLabel} numberOfLines={1}>
-              {recoveryLabel}
-            </Text>
-          </View>
-        ) : null}
-      </Pressable>
-    </View>
+    </Animated.View>
   );
 }
 
 /**
- * Hauteur du bloc Activité selon les deux lignes toujours présentes
- * (titre + synthèse), la ligne optionnelle de Zones corporelles, la
- * Récupération attachée et l'état soulevé :
- *
- * | Zones | Récupération | repos | soulevé |
- * | --- | --- | --- | --- |
- * | absentes | absente | `44` | `48` |
- * | absentes | présente | `68` | `72` |
- * | présentes | absente | `60` | `64` |
- * | présentes | présente | `84` | `88` |
- *
- * La sous-carte Récupération reste toujours à `24` points.
+ * PRE-6 (story 2.3b, amendement Hermann du 21/10/2026) — fond du conteneur du Circuit, en trois
+ * couches absolues : haut arrondi, bande centrale sans rayon, bas arrondi. Pendant le glisser, la
+ * mise en page reste figée et le Circuit s'agrandit ou se rétracte par translations seules, sur le
+ * pilote natif : le haut suit `top`, le bas suit `bottom`, et la bande est étirée (`scaleY`,
+ * centrée entre les deux bords) de `bottom - top` rapporté à sa hauteur relevée au début du
+ * glisser (`dragHeight` du conteneur moins les deux rayons). Au repos, décalages nuls : la bande
+ * couvre exactement le conteneur entre ses deux arrondis, quelle que soit sa hauteur.
  */
-function blockHeightFor(
-  hasBodyZones: boolean,
-  hasRecovery: boolean,
-  isDragged: boolean,
-): number {
-  const mainCardHeight = hasBodyZones
-    ? dimensions.compositionActivityRow.restHeight
-    : dimensions.compositionActivityRow.compactRestHeight;
-  const rest =
-    mainCardHeight +
-    (hasRecovery ? dimensions.compositionActivityRow.recoveryCardHeight : 0);
-  return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
-}
-
-/**
- * `Composition / Tour Section` — corrections cumulatives :
- *
- * - **CMP-04** (cycle `REWORK02`) : contrôle présenté dans un conteneur
- *   dédié (`tourCardControl`) avec une affordance de disclosure (chevron)
- *   — la carte Tour n'est toujours pas interactive en T01
- *   (`accessibilityState.disabled`), ce chevron reste donc purement visuel.
- * - **T-01** (cycle `REWORK03`) : géométrie de la carte interne
- *   (padding/bordure/rayon) partagée avec `BoundaryActivityRow` via
- *   `limitCardBase` — seul le fond (`colors.selectionSurface`) reste
- *   spécifique.
- * - **T-02/R4-11** (`[ChatGPT] REWORK04 IMPLEMENTATION AUTHORIZED — DESIGN
- *   COMPLEMENTS REVIEWED`, 2026-09-03) : **icône Tour canonique intégrée**
- *   — `icon-tour.svg` (`3066:4685`, `20×20`), octets exacts téléchargés
- *   depuis l'asset MCP fourni par l'autorisation, jamais redessinée ni
- *   substituée. Ferme le blocage reconduit depuis `REWORK02`.
- * - **REWORK12 (COMP-02), première tentative** (`[ChatGPT] CHANGES_REQUESTED
- *   — REWORK12`, 2026-09-04) : `icon-tour.svg` avait été temporairement
- *   remplacé par `composition-main-content` après avoir constaté, sur le
- *   Figma alors en vigueur, que l'icône réellement affichée dans l'en-tête
- *   de la structure Tour (`icon/contenu-principal`) ne correspondait pas à
- *   l'ancien export `icon-tour.svg` — écart disclosé dans le rapport de
- *   mission de ce cycle.
- * - **REWORK12-bis — correction canonique définitive** (`[ChatGPT] Applique
- *   impérativement le protocole KODJO actif...`, 2026-09-04 ; `.github/
- *   orchestration/reports/2026-09-04_icon-tour-canonical-source-alignment
- *   .md`, `DESIGN_ICON_TOUR_CANONICAL_SOURCE_ALIGNED`) : le composant DSF
- *   `Icon / Tour` (`3066:4685`) a depuis été **reconstruit** sur le dessin
- *   validé (celui de `Nouvelle séance — Nom renseigné`, `2028:12003`) et
- *   republié à `18×18` (contre `20×20` auparavant) ; `assets/icons/icon-
- *   tour.svg` a été remplacé par le nouvel export (octets exacts). `icon-
- *   tour` (`KodjoIcon.tsx`) redevient donc la source canonique correcte —
- *   revenue ici depuis `composition-main-content`, désormais retiré du
- *   registre (`KodjoIcon.tsx`) et du manifeste Figma (`assets/icons/
- *   manifest.json` ne porte plus aucune entrée `composition.mainContent`).
- *   Ce n'est pas un aller-retour arbitraire : la première tentative avait
- *   correctement diagnostiqué que l'ancien `icon-tour.svg` (`20×20`) ne
- *   correspondait pas à la source canonique — la correction définitive
- *   porte sur LEQUEL export résout ce défaut (le même composant DSF
- *   reconstruit, pas un composant concurrent).
- * - **T-03/R4-03** : libellé `strings.screens.composition.tour.label` =
- *   `"Nombre de tours"` ; titre en style `KODJO / Card / Title` (voir
- *   `rowLabel`/`tourCardLabel`).
- * - **T-04a/b/c** (audit indépendant REWORK04, 2026-09-03) : anatomie du
- *   contrôle **refaite**, inversant `T-04/R4-10` du cycle précédent —
- *   cadre parent clair (`tourCardControl`, fond `colors.background`)
- *   contenant DEUX éléments distincts côte à côte : la valeur `1` en texte
- *   nu (`tourCardControlValue`, jamais sur fond violet) et un carré violet
- *   `28×28` (`tourCardControlChevronBox`, `colors.selection`) contenant
- *   UNIQUEMENT le chevron blanc — le cycle précédent plaçait `1` et le
- *   chevron ensemble dans le même carré violet, explicitement interdit.
- *   **REWORK06** (`[ChatGPT] PLAN_APPROVED — REWORK06`, 2026-09-04,
- *   addendum) : cadre porté de `66×30` à `78×44` — le `1` est désormais
- *   centré horizontalement ET verticalement (auparavant aligné à gauche),
- *   en `type.cardTitle` (`16/20` Semi Bold, auparavant `type.label` `14/18`
- *   Medium) ; le carré violet dispose de marges visibles identiques en
- *   haut/bas/droite (`8pt` chacune, dérivées par construction — voir
- *   `tourCardControl` ci-dessous).
- * - **T-05** : contenu `1` seul — le signe `×` retiré.
- * - **R4-12** : le conteneur Tour (`tourSectionContainer`, `374`) est
- *   désormais plus large que la carte interne qu'il héberge (`354`,
- *   inset `10`/côté) — INVERSE explicitement `T-01` (qui avait unifié la
- *   largeur de Tour avec celle des cartes limites) : `T-01` unifiait la
- *   GÉOMÉTRIE DE BOÎTE (padding/bordure/rayon, toujours vrai à l'époque) ;
- *   R4-12 distingue la LARGEUR EXTÉRIEURE du conteneur (rôle de conteneur,
- *   pas une carte elle-même) de celle, alors inchangée, de la carte
- *   interne. `marginHorizontal: -inset` fait « déborder » le conteneur de
- *   `10pt` de chaque côté au-delà du padding de `body` (`24`), portant sa
- *   largeur extérieure réelle à `374` sur le canevas de référence
- *   (`402pt`) sans aucune constante de largeur codée en dur — dérivée par
- *   construction, comme pour la marge basse de la navigation (`N-03`).
- *
- * - **REWORK07B — structure extérieure / en-tête transparent** (`[ChatGPT]
- *   PLAN_APPROVED — REWORK07B — contrôles canoniques + structure Tour`,
- *   2026-09-04 ; `12 – Architecture technique.md`, « Anatomie canonique —
- *   Nombre de tours » ; `13 – Contrats d'écran.md`, CE-T01-08/09) : **T-01
- *   est ici explicitement révisé, pas silencieusement contredit** — la
- *   documentation canonique établit que la SEULE surface visuelle du bloc
- *   Tour est la **structure extérieure** (`tourSectionContainer`, `374 pt`,
- *   fond `colors.tourSurface` = `#CDCEFA`, rayon canonique `10`, distinct
- *   du rayon `12` de `limitCardBase`/cartes limites), jamais la carte
- *   interne. L'**en-tête technique intérieur** (`tourHeader`, testID
- *   inchangé `composition-tour-card` — seule sa signification visuelle
- *   change, pas son identifiant) redevient un simple conteneur de mise en
- *   page **transparent** : ni fond, ni bordure, ni rayon, ni apparence de
- *   carte autonome — `limitCardBase` (fond/bordure/padding partagés avec
- *   `BoundaryActivityRow`) ne s'applique donc plus ici. Le `paddingVertical`
- *   et le `minHeight` que portait auparavant la carte interne (via
- *   `limitCardBase`/`tourCard`) sont **relocalisés** sur la structure
- *   extérieure (mêmes valeurs numériques, seul le propriétaire change) :
- *   `tourSectionContainer` disposait déjà, depuis R4-12, exactement de la
- *   géométrie `374 large / inset 10 / contenu 354` requise pour porter
- *   cette surface — aucun nouveau conteneur n'était nécessaire. Absence
- *   d'activité : une seule structure bleue reste visible (aucune carte
- *   intérieure ne dessine plus sa propre surface).
- *
- * - **REWORK08-C — synthèse sous « Nombre de tours »** (`[ChatGPT]
- *   CHANGES_REQUESTED — REWORK08 — roulette native + synthèse Tour`,
- *   2026-09-04) : l'addendum précédemment `QUEUED_FOR_NEXT_COMPOSITION_
- *   REWORK` est désormais implémenté. Titre + synthèse forment un seul
- *   bloc textuel (`tourCardTextBlock`, colonne — même patron que
- *   `boundaryRowTitleSlot`), centré verticalement avec `tourCardControl`
- *   par le `alignItems: "center"` déjà porté par `tourHeader` (hérité,
- *   inchangé). La synthèse (`composition-tour-summary`) réutilise
- *   exactement `formatCompositionSummary` (même contenu canonique que
- *   `bottomAction`, calculé une seule fois dans `CompositionScreen`) et
- *   exactement le style `boundaryRowSecondaryLine` (même typographie que
- *   la ligne secondaire des cartes `Compte à rebours initial`/`Fin de
- *   séance`, réutilisé tel quel, jamais dupliqué). Structure extérieure
- *   bleue et contrôle blanc/violet du nombre de tours : non touchés.
- */
-function TourCard({
-  label,
-  summary,
-  repeatCount,
-  isOpen,
-  onPress,
-  onLayout,
-  children,
+function CircuitSurface({
+  top,
+  bottom,
+  dragHeight,
+  testID,
 }: {
-  label: string;
-  summary: string;
-  /** T02-S01 : valeur CONFIRMÉE du brouillon (`1..99`, D-058) — jamais un littéral figé. */
-  repeatCount: number;
-  isOpen: boolean;
-  onPress: () => void;
-  onLayout: (event: LayoutChangeEvent) => void;
-  /** T02-S01 (CE-T02-01) : les Activités `IN_TOUR` sont rendues DANS la structure Tour. */
-  children?: ReactNode;
+  top: Animated.Value;
+  bottom: Animated.Value;
+  dragHeight: number;
+  testID: string;
 }) {
+  // Base finie et non nulle : la hauteur relevée moins les deux rayons, au moins 1.
+  const bandHeight = Number.isFinite(dragHeight)
+    ? Math.max(1, dragHeight - 2 * CIRCUIT_RADIUS)
+    : 1;
+  const bandTransform = useMemo(
+    () => [
+      { translateY: Animated.multiply(Animated.add(top, bottom), 0.5) },
+      {
+        // Jamais négatif : un retrait plus haut que la bande l'écrase à 0 sans la retourner.
+        scaleY: Animated.add(1, Animated.divide(Animated.subtract(bottom, top), bandHeight)).interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 1],
+          extrapolateLeft: "clamp",
+          extrapolateRight: "extend",
+        }),
+      },
+    ],
+    [bandHeight, bottom, top],
+  );
   return (
-    <View style={styles.tourSectionContainer} onLayout={onLayout} testID="composition-tour-section">
-      <View style={styles.tourHeader} testID="composition-tour-card">
-        <View style={styles.tourCardIconSlot} testID="composition-tour-icon-slot">
-          <KodjoIcon name="icon-tour" testID="composition-tour-icon" />
-        </View>
-        {/*
-         * REWORK08-C : titre + synthèse forment désormais UN SEUL bloc
-         * textuel (`tourCardTextBlock`, colonne — même patron que
-         * `boundaryRowTitleSlot`), centré verticalement avec le cadre du
-         * contrôle grâce à `tourHeader.alignItems: "center"` (hérité,
-         * inchangé). La synthèse réutilise exactement le même contenu
-         * canonique (`formatCompositionSummary`, calculé une seule fois
-         * dans `CompositionScreen`) et exactement le même style
-         * typographique que la ligne secondaire des cartes limites —
-         * `styles.boundaryRowSecondaryLine` est réutilisé tel quel
-         * ci-dessous, jamais dupliqué localement, pour garantir l'identité
-         * exacte demandée plutôt qu'une simple ressemblance.
-         */}
-        <View style={styles.tourCardTextBlock} testID="composition-tour-text-block">
-          <Text style={styles.tourCardLabel}>{label}</Text>
-          <Text style={styles.boundaryRowSecondaryLine} testID="composition-tour-summary">
-            {summary}
-          </Text>
-        </View>
-        {/*
-         * **T02-S01 (D-130/CE-T02-01/CE-T02-02)** — le contrôle devient
-         * FONCTIONNEL et sa géométrie canonique est publiée : `66 × 34`,
-         * valeur numérique SEULE (jamais `x` ni `×`), bord droit aligné sur
-         * celui des cartes, et **aucun chevron de repli**.
-         *
-         * **T02-S02 — cadre et chevron d'OUVERTURE rétablis.** `12 –
-         * Architecture technique.md` (« Sélecteur du nombre de tours »)
-         * publie l'anatomie complète : « carré violet `28 × 28` avec `3`
-         * points de marge en haut, à droite et en bas ; icône `#CDCEFA`
-         * issue de la référence `2028:12051` ; aucun chevron de repli ». Les
-         * deux règles ne se contredisent pas — ce carré porte le chevron
-         * d'OUVERTURE de la roulette (le contrôle est un déclencheur), le
-         * chevron proscrit étant celui de REPLI (haut/bas) d'un conteneur
-         * dépliable, que ce contrôle n'est pas. T02-S01 avait supprimé le
-         * carré ENTIER en même temps que le chevron de repli, laissant un
-         * déclencheur sans aucune affordance d'ouverture.
-         *
-         * `accessibilityState.disabled` disparaît : le contrôle n'est plus
-         * inerte, il ouvre la roulette `1..99`.
-         */}
-        <Pressable
-          onPress={onPress}
-          accessibilityRole="button"
-          accessibilityLabel={label}
-          accessibilityValue={{ text: String(repeatCount) }}
-          accessibilityState={{ disabled: false, expanded: isOpen }}
-          // T02-S02 (continuation) : cadre visible `66 × 34` INCHANGÉ
-          // (D-130), mais cible tactile portée à `48` — ce contrôle ouvre la
-          // roulette `Nombre de tours`, il doit donc respecter
-          // `size/touch-target-min` comme toute action du DSF.
-          hitSlop={TOUR_CONTROL_HIT_SLOP}
-          style={styles.tourCardControl}
-          testID="composition-tour-control"
-        >
-          <Text style={styles.tourCardControlValue} testID="composition-tour-control-value">
-            {repeatCount}
-          </Text>
-          <View
-            style={styles.tourCardControlChevronBox}
-            testID="composition-tour-control-chevron-box"
-          >
-            <KodjoIcon
-              name="select-field-chevron"
-              tintColor={colors.tourSurface}
-              testID="composition-tour-control-chevron"
-            />
-          </View>
-        </Pressable>
-      </View>
-      {children}
+    <View
+      pointerEvents="none"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={StyleSheet.absoluteFill}
+      testID={testID}
+    >
+      {/* Bande d'abord, arrondis ensuite : les arrondis recouvrent les jointures (`CIRCUIT_SURFACE_SEAM_OVERLAP`). */}
+      <Animated.View style={[styles.circuitSurfaceBand, { transform: bandTransform }]} testID={`${testID}-band`} />
+      <Animated.View style={[styles.circuitSurfaceTop, { transform: [{ translateY: top }] }]} testID={`${testID}-top`} />
+      <Animated.View
+        style={[styles.circuitSurfaceBottom, { transform: [{ translateY: bottom }] }]}
+        testID={`${testID}-bottom`}
+      />
     </View>
   );
+}
+
+/**
+ * PRE-6 (story 3.1, RC-4) — zone d'appui extérieur qui referme le choix de nature du Circuit
+ * (panneau Android / web, story 3.2 ; story 7.3 : le stepper du compte n'est plus révélé), montée
+ * seulement pendant l'ouverture, en absolu SOUS le contenu de son parent (hors du flux et
+ * de l'écart `gap`) et non accessible (le panneau porte sa propre fermeture accessible).
+ *
+ * Deux instances, une par parent : le corps défilant (marges et écarts entre étapes) et le
+ * conteneur Circuit. Un toucher n'est proposé qu'à la vue touchée puis à ses ANCÊTRES : un appui
+ * sur le fond bleu du conteneur Circuit (vue sans répondeur) remonte au conteneur, jamais à la
+ * zone du corps, qui en est une sœur placée dessous. Le conteneur porte donc sa propre zone.
+ */
+function NatureOutsideZone({ onPress, testID }: { onPress: () => void; testID: string }) {
+  return <Pressable onPress={onPress} accessible={false} style={styles.natureOutside} testID={testID} />;
+}
+
+/**
+ * Hauteur de la carte d'occurrence et de ses actions glissées. PRE-6 (story 5.1, D-435) : 80 dans
+ * toutes les variantes (`occurrenceCardHeight`), récupération comprise (ligne 3) ; l'état soulevé
+ * garde son écart constant (`heightDelta`). La rangée du point d'arrêt est rendue SOUS la carte
+ * (`ActivityRecoveryLine`), hors de cette hauteur — les mesures `onLayout` des rangées en
+ * tiennent compte d'elles-mêmes.
+ */
+function blockHeightFor(isDragged: boolean): number {
+  const rest = occurrenceCardHeight();
+  return isDragged ? rest + dimensions.compositionActivityRow.heightDelta : rest;
 }
 
 /**
@@ -2218,55 +5310,261 @@ function CompositionEditState({
  * pour les cartes d'une même zone) — les faire dépendre d'un token partagé
  * est le seul moyen de garantir leur égalité autrement que par la vigilance
  * de relecture.
- */
-const COMPOSITION_ROW_GAP = spacing[6];
-
-/**
- * Marge intérieure verticale LIVRÉE par la seconde recette visuelle (point 7)
- * — `spacing/8` réduit d'un tiers, arrondi au point entier (`8 × 2/3 = 5,33
- * → 5`). Conservée nommée pour que la réduction suivante s'y enchaîne
- * visiblement.
- */
-const PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL = Math.round((spacing[8] * 2) / 3);
-
-/**
- * **Marge intérieure verticale d'une carte d'Activité** (T02-S02, troisième
- * recette visuelle, point 3) — la valeur précédente RÉDUITE D'UN TIERS à son
- * tour, arrondie au point entier le plus proche (`5 × 2/3 = 3,33 → 3`).
  *
- * Le tiers se retranche de la valeur RÉELLEMENT LIVRÉE, pas une seconde fois
- * de `spacing/8` : ré-appliquer la règle à la valeur d'origine aurait redonné
- * `5`, donc AUCUN changement — contraire à l'exigence « réduire
- * EFFECTIVEMENT ».
- *
- * Valeur DÉRIVÉE, jamais un littéral : la règle demandée reste lisible dans le
- * code. Ni `5` ni `3` ne sont des échelons de `spacing` — écart disclosé dans
- * le rapport de mission, l'échelle DSF n'offrant aucun palier égal au tiers
- * demandé.
+ * PRE-6 (story 5.2, D-435, Figma `8328:28605`) : 8 (6 depuis T02-S02), l'écart de la séquence hors
+ * Circuit ; dans le Circuit, 9 (`CIRCUIT_GAP`).
  */
-const ACTIVITY_CARD_PADDING_VERTICAL = Math.round(
-  (PREVIOUS_ACTIVITY_CARD_PADDING_VERTICAL * 2) / 3,
-);
+const COMPOSITION_ROW_GAP = SEQUENCE_GAP;
 
 /**
- * Complément vertical portant la cible tactile du contrôle `Nombre de tours`
- * de sa hauteur visible canonique (`34`, D-130) à `minTouchTarget` (`48`).
- * Dérivé des deux constantes, jamais codé en dur.
+ * PRE-6 (story 5.2, D-435, ch13 CE-T03-08 L1478-L1480, Figma Standard `8328:28605`) : géométrie de
+ * la séquence à 402 — colonne x 24 (354, marges du corps), cartes de 370 à x 16 (débord de 8 de
+ * chaque côté de la colonne), Circuit de 386 à x 8 (débord de 8 au-delà des cartes). Les marges
+ * sont constantes : à 360 ou 440, cartes et Circuit suivent la largeur, sans largeur codée en dur.
  */
-const TOUR_CONTROL_HIT_SLOP = {
-  top: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
-  bottom: (minTouchTarget - dimensions.compositionTourControl.height) / 2,
-  left: 0,
-  right: 0,
+const CARD_OUTSET = spacing[8];
+const CIRCUIT_OUTSET = CARD_OUTSET + spacing[8];
+/** Circuit (Figma `9819:19906`, `9819:19947`) : marge verticale 14, écart 9, rayon 18, aplat sans contour. */
+const CIRCUIT_PADDING_VERTICAL = spacing[14];
+const CIRCUIT_GAP = 9;
+const CIRCUIT_RADIUS = 18;
+/**
+ * Aplat du Circuit (Figma `9819:19906`, `#F3F4F9`) : couleur hors registre ch12, constante locale
+ * (choix D5 de l'epic 5 ; ch13 CE-T03-08 L1478). `colors.tourSurface` n'est pas modifié (partagé avec
+ * `SessionCard` et `DisclosureControl`) ; ajout au registre proposé au lot documentaire.
+ */
+const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
+/**
+ * Haut de l'anneau du Circuit, centré sur la hauteur de l'en-tête (Figma `9819:20017` : y 15 pour
+ * 40). Revue 5.2 : l'en-tête a une hauteur MINIMALE de 40 (Dynamic Type) ; l'anneau suit sa hauteur
+ * mesurée, 40 tant qu'il n'est pas mesuré.
+ */
+function circuitHeaderRingTop(headerHeight: number): number {
+  return (headerHeight - RAIL_RING_DIAMETER) / 2;
+}
+/**
+ * Axe du rail : centre du média des cartes (Figma : x 56 à 402), exprimé dans chaque repère — carte
+ * (`OCCURRENCE_CARD_MEDIA.centerX`), colonne de la séquence (bornes, rangée après le Circuit) et
+ * conteneur du Circuit.
+ */
+const RAIL_CENTER_X_IN_COLUMN = OCCURRENCE_CARD_MEDIA.centerX - CARD_OUTSET;
+const RAIL_CENTER_X_IN_CIRCUIT = RAIL_CENTER_X_IN_COLUMN + CIRCUIT_OUTSET;
+/** Début du titre du Circuit : bord droit de l'anneau plus 8 (Figma : x 69 à 402, comme les bornes). */
+const SEQUENCE_LABEL_INSET = RAIL_CENTER_X_IN_COLUMN + RAIL_RING_DIAMETER / 2 + spacing[8];
+
+/**
+ * PRE-6 (story 5.2) : écarts de conception dont dépend la longueur des liens du rail — les MÊMES
+ * constantes que les styles (`SEQUENCE_GAP`, `CIRCUIT_GAP`, `CIRCUIT_PADDING_VERTICAL`, ancres du
+ * média et des anneaux) ; l'anneau du Circuit suit la hauteur mesurée de l'en-tête.
+ */
+export function railGeometryFor(circuitHeaderHeight: number): RailGeometry {
+  return {
+    sequenceGap: SEQUENCE_GAP,
+    circuitGap: CIRCUIT_GAP,
+    circuitPadding: CIRCUIT_PADDING_VERTICAL,
+    rowEntry: OCCURRENCE_CARD_MEDIA.top,
+    circuitHeaderEntry: circuitHeaderRingTop(circuitHeaderHeight),
+    endEntry: BOUNDARY_RING_TOP,
+  };
+}
+
+/**
+ * PRE-6 (story 5.2) : ce que chaque occurrence reçoit pour son rail — liens (`resolveRailLinks`),
+ * translations animées partagées (registre de l'écran) et occurrence sortie de la chaîne.
+ */
+/** PRE-6 story 7.5 : éléments en cours d'effacement (suppression) et leur opacité partagée. */
+type DeletionFading = {
+  readonly keys: ReadonlySet<string>;
+  readonly opacity: Animated.Value;
+  /** Story 7.7 : éléments qui s'effacent (suppression) — sans toucher ni accessibilité ; faux pour une copie qui apparaît. */
+  readonly leaving: boolean;
+};
+
+type SequenceRailContext = {
+  readonly links: ReadonlyMap<string, RailLinkGeometry>;
+  readonly shiftOf: (key: string) => Animated.Value;
+  /** Clés des éléments sortis de la chaîne (soulevé, tenu ou en retour ; story 7.5 : supprimés). */
+  readonly skippedKeys: ReadonlySet<string>;
+};
+
+/**
+ * PRE-6 (story 2.3b) : session de la réorganisation animée.
+ *
+ * - `preview` : relevé des positions au début du geste (`originLayout`, figé : aucune mesure
+ *   ultérieure n'y entre) et emplacement visé (`slot`, `null` avant le premier mouvement). Il
+ *   survit au geste pendant un dialogue de confirmation de perte.
+ * - `animated` : `false` après un dépôt appliqué (remise à 0 immédiate, dans le rendu de la
+ *   nouvelle disposition) ; `true` sinon (retour en douceur).
+ * - `circuitHeight` : hauteur du Circuit relevée au début du dernier geste, base de l'étirement
+ *   de son fond ; conservée après le geste, le retour en douceur s'en servant encore.
+ *
+ * PRE-6 story 5.2b :
+ * - `preview.heldTranslationY` : pendant le dialogue de perte, la carte relâchée reste à sa
+ *   position de dépôt (translation du doigt, portée par le registre ; aspect au repos) et hors de
+ *   la chaîne du rail, comme pendant le geste ; `null` pendant le geste.
+ * - `release` : translation de départ de la carte relâchée, posée sans animation par le registre
+ *   (une fois) — la carte quitte sa translation locale de doigt pour celle du registre, puis
+ *   revient à 0 en douceur, synchronisée avec ses voisines, en restant dans la chaîne du rail.
+ * - `settling` : carte en retour animé (hauteur relevée au début du geste), au premier plan et
+ *   hors de la chaîne du rail jusqu'à la fin de ce retour (`whenSettled` du registre).
+ */
+type DragShiftSession = {
+  readonly preview: {
+    /** Clé de rail de l'élément soulevé (carte ou, story 6.2, point d'arrêt). */
+    readonly key: string;
+    readonly originLayout: CompositionDragLayout;
+    readonly slot: DropTarget | null;
+    readonly heldTranslationY: number | null;
+  } | null;
+  readonly animated: boolean;
+  readonly circuitHeight: number;
+  readonly release: ShiftRelease | null;
+  readonly settling: { readonly key: string; readonly measuredHeight: number | undefined } | null;
+};
+
+const IDLE_DRAG_SESSION: DragShiftSession = {
+  preview: null,
+  animated: true,
+  circuitHeight: 0,
+  release: null,
+  settling: null,
+};
+
+/**
+ * Fin d'aperçu : décalages remis à 0, en douceur (`animated`) ou immédiatement. En douceur, la
+ * carte de l'aperçu (ou celle d'un retour déjà en cours) reste au premier plan jusqu'à la fin du
+ * retour ; `release` : sa position de départ, si elle quitte la translation du doigt.
+ */
+function endDragSession(current: DragShiftSession, animated: boolean, release: ShiftRelease | null = null): DragShiftSession {
+  const preview = current.preview;
+  if (preview === null && current.animated === animated && release === null && (animated || current.settling === null)) {
+    return current;
+  }
+  const settling = !animated
+    ? null
+    : preview !== null
+      ? {
+          key: preview.key,
+          measuredHeight: preview.originLayout.rows.find((row) => row.id === preview.key)?.height,
+        }
+      : current.settling;
+  return { ...current, preview: null, animated, release: release ?? current.release, settling };
+}
+
+/**
+ * PRE-6 story 7.6 : pose de départ de l'élément déposé à l'emplacement `slot` (translation qui le
+ * garde sous le lâcher dans la nouvelle disposition), d'après la disposition de l'aperçu ; `null`
+ * si elle ne peut être calculée.
+ */
+function dropSettlePose(
+  preview: NonNullable<DragShiftSession["preview"]>,
+  slot: DropTarget,
+  translationY: number,
+  draft: SessionDraft,
+  removedStopPointIds: readonly string[],
+): ShiftRelease | null {
+  // Revue 7.6 : même hauteur d'insertion que l'aperçu (`dragShifts`), points retirés pris en compte.
+  const measured = preview.originLayout.rows.find((row) => row.id === preview.key)?.height;
+  const occurrenceId = stopPointIdOfKey(preview.key) === null ? occurrenceIdOfKey(preview.key) : null;
+  const insertionHeight =
+    occurrenceId === null ? measured : predictedInsertionHeight(draft, occurrenceId, measured, slot, () => occurrenceCardHeight());
+  const shifts = resolveDragShifts(preview.originLayout, preview.key, slot, DRAG_SHIFT_GAPS, insertionHeight);
+  const from = resolveDropSettleOffset(
+    preview.originLayout,
+    preview.key,
+    slot,
+    translationY,
+    DRAG_SHIFT_GAPS,
+    shifts,
+    CIRCUIT_PADDING_VERTICAL,
+    insertionHeight,
+    new Set(removedStopPointIds.map(railStopKey)),
+  );
+  return from === null ? null : { key: preview.key, from };
+}
+
+/** Story 7.6 : pose de l'élément tenu pendant un dialogue (perte, choix de Tour), à son emplacement. */
+function heldDropSettlePose(
+  preview: DragShiftSession["preview"],
+  draft: SessionDraft,
+  removedStopPointIds: readonly string[],
+): ShiftRelease | null {
+  if (preview === null || preview.slot === null || preview.heldTranslationY === null) return null;
+  return dropSettlePose(preview, preview.slot, preview.heldTranslationY, draft, removedStopPointIds);
+}
+
+/** Revue 7.6 : Points d'arrêt que le déplacement d'une occurrence retirerait (déplacement tolérant). */
+function removedByMove(draft: SessionDraft, move: OccurrenceMove): readonly string[] {
+  const plan = planOccurrenceMove(draft, move);
+  return plan?.status === "PLAN" ? plan.removedStopPointIds : [];
+}
+
+/**
+ * Emplacement visé sur la géométrie FIGÉE au début du geste : centre relevé de la carte glissée
+ * plus son déplacement vertical, résolu par `resolveDropTarget`. Seule source de l'aperçu ET du
+ * dépôt. `null` si la carte n'avait pas été mesurée.
+ */
+function frozenDropSlot(preview: NonNullable<DragShiftSession["preview"]>, translationY: number): DropTarget | null {
+  const row = preview.originLayout.rows.find((candidate) => candidate.id === preview.key);
+  if (row === undefined) {
+    return null;
+  }
+  return resolveDropTarget(preview.originLayout, preview.key, row.top + row.height / 2 + translationY);
+}
+
+/**
+ * Hauteur PRÉDITE du bloc glissé dans la zone visée (story 2.3b, point de revue 5) : l'occurrence
+ * telle que le dépôt la produirait est donnée par le même plan que le dépôt (`planOccurrenceMove`) ;
+ * la hauteur mesurée au début du geste (`measuredHeight`) est corrigée de l'écart de carte entre
+ * l'occurrence actuelle et l'occurrence déplacée (`cardHeightOf`, injectée). La ligne de
+ * récupération ne change pas (récupération et point d'arrêt suivent l'occurrence, ARB-3). Dépôt
+ * refusé ou bloc non mesuré : `undefined` (hauteur mesurée).
+ *
+ * PRE-6 story 5.1 : la carte v2 fait 80 dans toutes les variantes, l'écart est aujourd'hui nul ;
+ * le calcul est conservé, en forme pure, et protégé par un test unitaire à écart non nul.
+ */
+export function predictedInsertionHeight(
+  draft: SessionDraft,
+  activityId: string,
+  measuredHeight: number | undefined,
+  slot: DropTarget,
+  cardHeightOf: (exercise: SessionDraftExercise) => number,
+): number | undefined {
+  const current = draft.exercises.find((exercise) => exercise.id === activityId);
+  if (measuredHeight === undefined || current === undefined) {
+    return undefined;
+  }
+  const plan = planOccurrenceMove(draft, { activityId, zone: slot.zone, index: slot.index });
+  const moved = plan?.status === "PLAN" ? plan.patch.exercises?.find((exercise) => exercise.id === activityId) : undefined;
+  if (moved === undefined) {
+    return undefined;
+  }
+  return measuredHeight - cardHeightOf(current) + cardHeightOf(moved);
+}
+
+/**
+ * Correctif 2.3b (retour Hermann 21/10/2026) : les arrondis haut et bas du fond du Circuit
+ * débordent de 2 points sur la bande centrale. Sans ce chevauchement, l'étirement de la bande
+ * (`scaleY`, valeurs fractionnaires) laissait un liseré clair à chaque jointure pendant le glisser.
+ */
+const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
+
+/** Story 7.8 (D-443) : bornes de la roulette du Compte à rebours et de la Fin de séance. */
+const SESSION_BOUNDARY_WHEEL_BOUNDS = { min: 0, max: SESSION_BOUNDARY_SECONDS_MAX } as const;
+
+/** Revue 7.7 : continuation de tous les éléments en mouvement (copie de Dupliquer). */
+const NO_CONTINUATION_EXCEPTIONS: ReadonlySet<string> = new Set();
+
+/** Revue 7.6 : bords du Circuit, jamais continués au dépôt (voir `finishAppliedDrop`). */
+const CIRCUIT_EDGE_KEYS: ReadonlySet<string> = new Set([RAIL_KEYS.circuitHeader, RAIL_KEYS.circuitEnd]);
+
+/** PRE-6 (story 2.3b) : écarts qui apparaissent ou disparaissent avec un bloc déplacé. */
+const DRAG_SHIFT_GAPS = {
+  row: COMPOSITION_ROW_GAP,
+  circuitRow: CIRCUIT_GAP,
+  zone: COMPOSITION_ROW_GAP,
+  circuit: CIRCUIT_GAP,
 } as const;
-
-/**
- * V2-BILAT-01 (plan `## UI`, « Composition cards and summaries ») :
- * géométrie locale `42 × 20 pt` de l'indicateur de direction PROPRE d'une
- * carte Activité — même disclosure que `TOUR_SIDE_MODE_CONTROL_SIZE`
- * ci-dessus, aucun token DSF existant ne couvrant cette taille.
- */
-const ACTIVITY_SIDE_MODE_INDICATOR_SIZE = { width: 42, height: 20 } as const;
 
 const styles = StyleSheet.create({
   // T01-S10 : corps des états de réhydratation en modification.
@@ -2330,35 +5628,13 @@ const styles = StyleSheet.create({
   // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
   // littéraux.
   bodyContent: {
-    paddingHorizontal: spacing[24],
+    // PRE-6 (story 5.2, D-435) : colonne de la séquence à x 24 ; le rail est dessiné par chaque
+    // élément (bornes, cartes, Circuit), plus aucune marge de repères.
+    paddingLeft: spacing[24],
+    paddingRight: spacing[24],
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
     gap: COMPOSITION_ROW_GAP,
-  },
-  // CMP-02 : champ unique regroupant Nom et Sélecteur de couleur — acquis
-  // préservé (fusion, géométrie, gap, padding, rayon inchangés).
-  //
-  // REWORK09 (mission directe utilisateur, 2026-09-04, point 1 « Champ Nom
-  // de la séance ») : `Session / Name Field — Source exact` (`2537:1480`)
-  // documente un fond TRANSPARENT (laissant apparaître la bande Context
-  // colorée sous-jacente, jamais un fond blanc opaque) et un liseré blanc
-  // intérieur de `1pt` via le token canonique `color.sessionNameBorder`
-  // (`#FFFFFF`, variable Figma `color/session-name-border`,
-  // `VariableID:3163:4015`) — remplace `colors.background` (fond opaque),
-  // seule propriété modifiée par cette correction ; ce champ reste le seul
-  // représentant visuel concret du « Nom de la séance » dans cet écran
-  // (fusionné avec le sélecteur de couleur depuis CMP-02, acquis
-  // explicitement préservé), la transparence s'applique donc à l'ensemble
-  // du champ fusionné plutôt qu'à un sous-élément désormais inexistant.
-  // Recette 3 (T-49, EXT-R3-2, D-352) : contour blanc du champ Nom de séance retiré.
-  nameColorField: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[12],
-    backgroundColor: "transparent",
-    borderRadius: 12,
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[4],
   },
   // Recette 3 (T-49, EXT-R3-2) : effets de la zone de contexte, découpés à la bande.
   contextBandEffects: {
@@ -2394,36 +5670,6 @@ const styles = StyleSheet.create({
     left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
-  nameInput: {
-    ...type.screenTitle,
-    flex: 1,
-    color: colors.textPrimary,
-    paddingVertical: spacing[8],
-  },
-  // V2-PRE-1 (UI-74BBA70BF09F-AC8AD824374E8) : pastille de couleur DÉRIVÉE,
-  // même géométrie que l'ancien déclencheur `ColorPalette.swatch` (32×32,
-  // cercle) — jamais interactive, `backgroundColor` fourni inline.
-  sessionColorSwatch: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: colors.border,
-  },
-  // R7a (CE-T03-16 L1609) : pilule pastille + nom quand une Étiquette est affectée.
-  sessionLabelPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-    paddingHorizontal: spacing[8],
-    paddingVertical: spacing[4],
-    borderRadius: 20,
-    backgroundColor: colors.surface,
-  },
-  sessionLabelPillText: {
-    ...type.label,
-    color: colors.textPrimary,
-  },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
   // roulette ancrés en popover, `AnchoredRow`/`PopoverAnchor`,
   // `bodyElevated`) est retiré — ces mécanismes n'ont plus de consommateur,
@@ -2438,55 +5684,19 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
   },
-  // T-01 : géométrie commune aux cartes `Boundary Activity` et `Tour` —
-  // seul le fond diverge (voir `boundaryRow`/`tourCard` ci-dessous),
-  // garantissant des bords gauche/droit strictement alignés par
-  // construction (même padding/bordure/rayon), plutôt que deux définitions
-  // séparées pouvant diverger.
-  limitCardBase: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing[8],
-  },
-  // C-01 — `Boundary Activity` : fond blanc avec liseré gris visible
-  // (`limitCardBase.borderColor`), auparavant `colors.surface` (gris).
-  boundaryRow: {
-    height: dimensions.compositionActivityRow.compactRestHeight,
-    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
-    backgroundColor: colors.background,
-  },
-  // R4-04 (slot `28×28`, icône `20×20`, cycle REWORK04). REWORK06 (addendum
-  // « poignées encore trop petites », 2026-09-04) : porté à `32×32` pour
-  // compenser un glyphe sous-dimensionné. REWORK07-A (`[ChatGPT]
-  // CHANGES_REQUESTED — REWORK07-A — ICON / STRUCTURE / MOVABLE
-  // UNIQUEMENT`, 2026-09-04) : diagnostic établi — le glyphe lui-même était
-  // en cause, pas le slot ; l'asset canonique remplacé (`KodjoIcon.tsx`),
-  // le slot revient à `28×28`
-  // (`dimensions.structureMovableIcon.slot`), valeur canonique DSF,
-  // partagée avec `KodjoIcon.tsx` (source unique, plus de littéral local
-  // dupliqué).
-  boundaryRowHandleSlot: {
-    width: dimensions.structureMovableIcon.slot,
-    height: dimensions.structureMovableIcon.slot,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  boundaryRowTitleSlot: {
-    flex: 1,
-    gap: spacing[2],
-  },
   // Correction compacte LOT_3_OF_3 : écart RÉDUIT entre deux cartes
   // Activité consécutives. T02-S02 (continuation) : porté de `8` à
-  // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6`) — légère réduction
+  // `COMPOSITION_ROW_GAP` (`6`, token DSF `spacing/6` ; 8 depuis la story 5.2) — légère réduction
   // demandée par la recette visuelle — et PARTAGÉ avec `bodyContent`, dont
   // il devient la source unique (voir la note de `bodyContent`).
+  // PRE-6 (story 5.2, D-435) : cartes de 370 à x 16 — la liste déborde de 8 de chaque côté de la
+  // colonne (dans le Circuit aussi : 8 en deçà de son aplat).
   exerciseList: {
     gap: COMPOSITION_ROW_GAP,
+    marginHorizontal: -CARD_OUTSET,
+  },
+  exerciseListInCircuit: {
+    gap: CIRCUIT_GAP,
   },
   // T02-S01, révisé V2-CAT-01 (CE-T03-08, UI-CAT-R-007/010) : conteneur de
   // position d'une carte d'Activité — support du groupe d'actions glissées,
@@ -2505,172 +5715,79 @@ const styles = StyleSheet.create({
   // déplacement — porté par le CONTENEUR (les cartes sont dans des
   // conteneurs frères : un `zIndex` sur la carte seule n'ordonnerait rien
   // au-delà du sien).
+  // PRE-6 story 6.2 : rangée autonome d'un point (22 : hauteur de sa ligne), repère du rail.
+  stopPointRow: {
+    position: "relative",
+  },
   activityRowContainerDragged: {
     zIndex: 1,
   },
-  // T02-S02 — BLOC Activité (+ Récupération), D-095/D-128/D-138.
+  // PRE-6 story 7.8 (D-443) : Compte à rebours et Fin de séance débordent de la colonne de la
+  // séquence comme les cartes (8 à droite), pour que leur cadre s'aligne sur le bord droit des cartes.
+  boundaryTrailingOutset: {
+    marginRight: -CARD_OUTSET,
+  },
+  // Correctif 2.3b : zone (liste ou Circuit) qui porte la carte soulevée, au-dessus de ses sœurs
+  // du corps défilant.
+  dragElevated: {
+    zIndex: 1,
+  },
+  // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //
-  // Le `Pressable` porte désormais la surface du BLOC ENTIER (fond, liseré,
-  // rayon), la carte principale et la sous-carte n'étant que ses deux
-  // enfants : c'est ce qui rend le bloc indivisible pour l'appui, l'appui
-  // long et le balayage. Les valeurs visuelles sont EXACTEMENT celles de
-  // `limitCardBase`/`boundaryRow` (fond blanc, liseré `colors.border`, rayon
-  // `12`) — l'anatomie des cartes limites reste donc la référence, seule sa
-  // localisation dans l'arbre change. `overflow: "hidden"` fait suivre au
-  // coin bas de la sous-carte le rayon du bloc.
+  // Le `Pressable` porte la surface de la carte ; `overflow: "hidden"` découpe son
+  // contenu au rayon. PRE-6 (story 5.1, D-435, `9798:44464`) : fond blanc, bord 1 `#E4E7EF`
+  // hors Circuit (aucun dans le Circuit, `occurrenceCardInCircuitSurface`), rayon 12
+  // (`occurrenceCardSurface`) ; la récupération est en ligne 3 du contenu.
   //
-  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon la présence
-  // des Zones, de la Récupération et de l'état soulevé.
+  // La HAUTEUR est appliquée par l'écran (`blockHeightFor`) selon l'état soulevé.
   activityBlock: {
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    ...occurrenceCardSurface,
     overflow: "hidden",
   },
-  // Carte principale du bloc — `flex: 1` : elle occupe tout ce que la
-  // sous-carte (`24`, hauteur fixe) laisse, ce qui reproduit exactement la
-  // décomposition `60 + 24 = 84` de D-128 sans jamais coder `69` une
-  // seconde fois. `paddingVertical` réduit de `12` à `8` par rapport à
-  // `limitCardBase` : les trois lignes (`16/20` + `11/13` + `11/13`, écarts
-  // `2`) ne tiennent pas dans une carte de `69` avec `12` de padding — la
-  // hauteur canonique prime, elle est publiée par CE-T01-09.
-  //
-  // **T02-S02 (seconde puis troisième recette visuelle)** : marges
-  // intérieures HAUTE et BASSE réduites d'un tiers, deux fois
-  // (`ACTIVITY_CARD_PADDING_VERTICAL`, `8 → 5 → 3`). Le bloc ayant une
-  // hauteur FIXE (`60`/`84`), ces marges ne changent pas sa taille — elles
-  // rendent au contenu la place qui lui manquait : nom (`16/20`) + Zones
-  // corporelles (`11/14`) + synthèse (`11/14`) et leurs deux écarts de `2`
-  // totalisent `52`, contre `58` de hauteur utile ; avec `8` de marge haute
-  // et basse, l'ensemble atteignait `68` et débordait d'un point.
-  //
-  // CORRECTION DIRECTE POST-RECETTE : avec `alignItems: "center"` dans un
-  // bloc fixe, réduire seulement le padding ne modifiait pas le blanc perçu.
-  // La première réduction de `69` à `65` étant restée imperceptible en recette,
-  // la hauteur principale passe à `60`. La sous-carte Récupération reste à
-  // `24` points ; le bloc complet passe mécaniquement de `89` à `84`.
-  //
-  // Les marges HORIZONTALES et toutes les autres géométries validées restent
-  // strictement inchangées.
-  activityMainCard: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: spacing[16],
-    paddingVertical: ACTIVITY_CARD_PADDING_VERTICAL,
-    gap: spacing[8],
-    // Correction bornée (plan `## 4.4`, position `x=311, y=24,5`) : porte
-    // désormais l'ancrage de l'indicateur de direction, positionné en
-    // superposition ABSOLUE plutôt qu'en enfant de flux — il ne dispute donc
-    // plus jamais d'espace au nom/à la synthèse (`boundaryRowTitleSlot`).
-    position: "relative",
-  },
-  // Correction bornée (plan `## 4.4`, BIL-065) : indicateur `D→G`/`G→D` non
-  // interactif d'une carte Activité dont la direction est PROPRE et
-  // bilatérale — géométrie locale `42 × 20 pt`
-  // (`ACTIVITY_SIDE_MODE_INDICATOR_SIZE`, aucun token DSF existant) en
-  // position ABSOLUE `x=311, y=24,5` (valeurs publiées par le plan,
-  // ancrées sur `activityMainCard`, désormais `position: "relative"`).
-  activitySideModeIndicator: {
-    position: "absolute",
-    right: spacing[16],
-    top: spacing[4],
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 4,
-    backgroundColor: colors.tourSurface,
-  },
-  activitySideModeIndicatorLabel: {
-    ...type.caption,
-    color: colors.textPrimary,
-  },
-  // Sous-carte `Récupération X min Y s` — `24` points attachés sous la carte
-  // principale (D-095/D-128). Séparée par un simple liseré supérieur, jamais
-  // par un second bloc détaché : le bord bas et les coins arrondis restent
-  // ceux du bloc.
-  //
-  // NON VÉRIFIÉ sur Figma (`3572:64`) : l'accès MCP Figma n'était pas
-  // disponible dans cette session — même limite que celle déjà disclosée
-  // pour `2028:11808` (actions glissées). Seules des valeurs DÉJÀ CANONIQUES
-  // du DSF sont employées (`colors.surface` pour la surface secondaire,
-  // `colors.border` pour le liseré, `colors.textSecondary` pour le libellé) :
-  // aucune couleur locale n'est introduite.
-  //
-  // **T02-S02 (continuation après recette visuelle)** : le libellé
-  // s'alignait sur le bord gauche du bloc (`paddingHorizontal: 16`), alors
-  // que le nom de l'Activité, ses Zones corporelles et sa synthèse
-  // commencent APRÈS le slot de la poignée. `paddingLeft` est donc dérivé de
-  // la géométrie réelle de la carte principale — padding + slot `28` + écart
-  // `8` — plutôt que recopié en littéral : déplacer la poignée réalignerait
-  // automatiquement la sous-carte.
-  activityRecoveryCard: {
-    height: dimensions.compositionActivityRow.recoveryCardHeight,
-    justifyContent: "center",
-    paddingLeft:
-      spacing[16] + dimensions.structureMovableIcon.slot + spacing[8],
-    paddingRight: spacing[16],
-    backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  // Graisse SEMI BOLD, pour distinguer le libellé `Récupération` des deux
-  // lignes secondaires régulières de la carte principale.
-  //
-  // **T02-S02 (seconde recette visuelle, point 8)** : taille AUGMENTÉE de
-  // `11/14` à `14/18` — `type.compactCardTitle`, token DSF déjà canonique
-  // (`KODJO / Card / Title`, `14/18` Semi Bold), plutôt qu'un nouveau token
-  // local. La graisse (`600`) et l'alignement à gauche sont strictement
-  // conservés ; seule la taille change. `18` de hauteur de ligne tient dans
-  // la sous-carte de `24` points, dont la géométrie est inchangée.
-  // `type.captionStrong`, introduit à la continuation précédente pour ce
-  // seul usage, est supprimé avec lui plutôt que laissé mort.
-  activityRecoveryLabel: {
-    ...type.compactCardTitle,
-    color: colors.textSecondary,
-  },
-  // D-129/CE-T02-02 : état soulevé — `362 × 88` avec Récupération (contre
-  // `354 × 84` au repos), centré à `x = 6`, fond `#F7F7FF` repris du bandeau
-  // supérieur, contour `1` point `#D1D1D6`, rayon `12`, ombre périphérique
+  // D-129/CE-T02-02 : état soulevé — hauteur de repos + `4` (PRE-6 story 5.1 : `84` pour
+  // `80`), largeur + `8`, centré à `x = 6`, fond `#F7F7FF` repris du bandeau
+  // supérieur, contour `1` point `#D1D1D6`, rayon de la carte (`OCCURRENCE_CARD_RADIUS`,
+  // 12 depuis la carte v2, story 5.1 ; 14 en story 2.2), ombre périphérique
   // `#14171F` à `22 %` (`0 / 0`, flou `10`, étalement `2`).
   //
   // L'agrandissement horizontal est exprimé en ÉCART (marges négatives),
   // jamais en largeur absolue : le bloc au repos occupe la largeur utile
   // réelle de l'écran, pas une constante de canevas. L'écart vertical, lui,
   // est porté par `blockHeightFor` (voir ci-dessus).
+  //
+  // PRE-6 story 5.2b : l'agrandissement vertical est neutre pour la mise en page — marges
+  // négatives de la moitié de l'écart en haut et en bas (`tokens.ts`, « heightDelta / 2 »). La
+  // carte reste à 84, centrée sur sa place, mais son conteneur garde la hauteur mesurée au repos :
+  // « Les autres cartes et éléments structurels restent inchangés » (ch13, CE-T03-08, section
+  // « Composer une séance / Modifier une séance — Réorganisation »). Sans cela, tout ce qui suit descendait de 4 alors que la géométrie figée du geste
+  // (`originLayout`), les décalages (`resolveDragShifts`), le rail (`resolveRailLinks`) et le fond
+  // du Circuit comptent la hauteur de repos : trou de 4 dans le rail pendant le glisser.
   activityBlockDragged: {
     marginHorizontal: -dimensions.compositionActivityRow.widthDelta / 2,
+    marginVertical: -dimensions.compositionActivityRow.heightDelta / 2,
     backgroundColor: colors.exerciseContextBandBackground,
     borderColor: colors.compositionDraggedCardBorder,
-    borderRadius: dimensions.compositionActivityRow.draggedRadius,
+    borderRadius: OCCURRENCE_CARD_RADIUS,
     shadowColor: colors.compositionDraggedCardShadow,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: dimensions.compositionActivityRow.draggedShadowOpacity,
     shadowRadius: dimensions.compositionActivityRow.draggedShadowRadius,
     elevation: dimensions.compositionActivityRow.draggedElevation,
   },
-  // CE-T02-02 : « Le fond interne `Informations` est transparent : le bleu
-  // reste donc visible derrière le nom, les Zones corporelles et la
-  // synthèse ». La sous-carte perd donc sa surface grise et son liseré au
-  // profit du bleu du bloc soulevé — jamais une opacité appliquée aux
-  // textes.
-  activityRecoveryCardDragged: {
-    backgroundColor: "transparent",
-    borderTopColor: colors.compositionDraggedCardBorder,
-  },
   // D-128, révisé V2-CAT-01 (UI-CAT-R-007/010) : groupe superposé à droite
   // (DERRIÈRE la carte, découvert par sa translation), deux actions `72 × H`
   // aux libellés centrés horizontalement et verticalement, `H` valant la
-  // hauteur du BLOC (`60` sans Récupération, `84` avec) — « `Dupliquer` et
+  // hauteur de la CARTE (`80`, carte v2 — PRE-6 story 5.1) — « `Dupliquer` et
   // `Supprimer` couvrent toute la hauteur du bloc ». La hauteur est
   // appliquée par l'écran (`blockHeightFor`), pas ici.
   //
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : les QUATRE
-  // coins suivent le même rayon `12` que le bloc — une correction
+  // coins suivent le même rayon que le bloc (`OCCURRENCE_CARD_RADIUS`, 12 depuis la carte v2,
+  // PRE-6 story 5.1) — une correction
   // antérieure ne rendait carrés QUE les coins droits de `Supprimer`
   // (rightmost, flush avec le bord droit du contenu défilant), rompant la
   // silhouette arrondie uniforme que porte, elle, TOUTE autre carte de
-  // cette même liste (`activityBlock.borderRadius: 12`, sur ses quatre
+  // cette même liste (`activityBlock`, sur ses quatre
   // coins). Le groupe entièrement révélé DEVIENT visuellement le bord droit
   // de la rangée : il doit donc reprendre exactement le même rayon partout,
   // jamais un rayon local inventé.
@@ -2680,7 +5797,7 @@ const styles = StyleSheet.create({
     right: 0,
     width: dimensions.compositionSwipeActions.groupWidth,
     flexDirection: "row",
-    borderRadius: 12,
+    borderRadius: OCCURRENCE_CARD_RADIUS,
     overflow: "hidden",
   },
   activityRowAction: {
@@ -2717,154 +5834,67 @@ const styles = StyleSheet.create({
     ...type.caption,
     color: colors.textSecondary,
   },
-  boundaryRowIconSlot: {
-    width: 24,
-    height: 24,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // R4-12 : conteneur Tour, plus large que la carte interne qu'il héberge
-  // — voir `TourCard` ci-dessus pour la justification complète du calcul.
-  // REWORK07B : porte désormais la surface visuelle elle-même (fond,
-  // rayon, padding vertical, hauteur minimale) — relocalisés depuis
-  // l'ancien style `tourCard` (voir `tourHeader` ci-dessous), qui ne
-  // portait pas encore la bonne largeur (`374`) pour cette surface.
-  // T02-S01 : la structure Tour héberge désormais AUSSI les Activités
-  // `IN_TOUR` (CE-T02-01) — `gap` sépare son en-tête technique de cette
-  // liste, sans effet lorsque la zone est vide (le conteneur n'a alors qu'un
-  // seul enfant). Largeur, fond, rayon et hauteur minimale sont inchangés.
+  // R4-12 : conteneur Circuit, déborde de `inset` de chaque côté du contenu
+  // (`marginHorizontal: -inset`), sans largeur codée en dur. REWORK07B : il
+  // porte la seule surface visuelle du bloc (fond, rayon, padding vertical,
+  // hauteur minimale). T02-S01 : il héberge aussi les occurrences `IN_TOUR`
+  // (CE-T02-01) — `gap` sépare l'en-tête du Circuit (`CircuitHeader`, PRE-6
+  // story 3.1) de cette liste.
+  //
+  // PRE-6 (story 5.2, D-435, Figma `9819:19906`, `9819:19946`) : aplat `#F3F4F9` sans contour,
+  // rayon 18, débord de 8 au-delà des cartes (386 à x 8 : 16 de chaque côté de la colonne), marge
+  // verticale 14, écart 9 entre l'en-tête et les cartes. Plus de hauteur minimale : le Circuit vide
+  // mesure 14 + 40 + 14.
   tourSectionContainer: {
-    marginHorizontal: -dimensions.compositionTourSection.inset,
-    paddingHorizontal: dimensions.compositionTourSection.inset,
-    paddingVertical: spacing[12],
-    borderRadius: dimensions.compositionTourSection.radius,
-    backgroundColor: colors.tourSurface,
-    minHeight: dimensions.compositionTourSection.closedHeight,
-    gap: spacing[12],
+    marginHorizontal: -CIRCUIT_OUTSET,
+    paddingHorizontal: CIRCUIT_OUTSET,
+    paddingVertical: CIRCUIT_PADDING_VERTICAL,
+    // PRE-6 (story 2.3b, amendement du 21/10/2026) : le fond est porté par `CircuitSurface`
+    // (trois couches qui suivent les bords pendant le glisser) ; le rayon reste la géométrie de
+    // référence de la structure.
+    borderRadius: CIRCUIT_RADIUS,
+    gap: CIRCUIT_GAP,
   },
-  // En-tête technique intérieur de `TourCard`, voir la documentation
-  // REWORK07B ci-dessus pour la justification complète : simple rangée de
-  // mise en page (icône/titre/contrôle), **transparente** — ni fond, ni
-  // bordure, ni rayon, ni padding propres (portés par `tourSectionContainer`
-  // désormais). N'utilise plus `limitCardBase` (fond/bordure partagés avec
-  // `BoundaryActivityRow`, non conformes ici depuis la révision REWORK07B).
-  tourHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
+  // Story 2.3b : fond du conteneur tant qu'il n'est pas mesuré (sans les couches animées).
+  tourSectionStaticSurface: {
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
-  // R4-04 : même slot que `boundaryRowHandleSlot` (`28×28`) — icône Tour
-  // désormais réellement affichée dedans (R4-11), plus un espace vide.
-  tourCardIconSlot: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
+  circuitSurfaceTop: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: CIRCUIT_RADIUS + CIRCUIT_SURFACE_SEAM_OVERLAP,
+    borderTopLeftRadius: CIRCUIT_RADIUS,
+    borderTopRightRadius: CIRCUIT_RADIUS,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
-  // REWORK08-C : bloc unique titre + synthèse (même patron que
-  // `boundaryRowTitleSlot`) — `flex: 1` (auparavant sur `tourCardLabel`
-  // directement, quand le titre était seul dans la rangée) porte
-  // désormais l'espace disponible du bloc entier, poussant
-  // `tourCardControl` à droite ; `gap` identique à `boundaryRowTitleSlot`.
-  tourCardTextBlock: {
-    flex: 1,
-    gap: spacing[2],
+  circuitSurfaceBand: {
+    position: "absolute",
+    top: CIRCUIT_RADIUS,
+    bottom: CIRCUIT_RADIUS,
+    left: 0,
+    right: 0,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
-  // R4-03/REWORK06 : même style de titre que les cartes limites (voir `rowLabel`).
-  tourCardLabel: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
+  circuitSurfaceBottom: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: CIRCUIT_RADIUS + CIRCUIT_SURFACE_SEAM_OVERLAP,
+    borderBottomLeftRadius: CIRCUIT_RADIUS,
+    borderBottomRightRadius: CIRCUIT_RADIUS,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
-  // T-04a/b/c (cycle REWORK04) : cadre parent clair contenant la valeur `1`
-  // (texte nu, jamais sur fond violet) et le carré violet dédié au chevron
-  // (`tourCardControlChevronBox`) comme deux éléments frères distincts.
-  //
-  // REWORK06 (addendum « écarts visuels encore ouverts », 2026-09-04) :
-  // hauteur portée de `30` à `44` — `alignItems: "center"` centre
-  // mécaniquement le carré violet (`28`) dans cette hauteur, dégageant une
-  // marge haut/bas de `(44-28)/2 = 8` ; `paddingRight: spacing[8]` (`8`)
-  // égale cette même marge à droite du carré, comme demandé (« marges
-  // visibles identiques en haut, en bas et à droite »). Largeur portée de
-  // `66` à `78` pour dégager l'espace nécessaire au centrage du chiffre.
-  // T02-S01 (D-130) : `66 × 34`, fond blanc, rayon inchangé, valeur seule et
-  // centrée — le carré violet du chevron (`tourCardControlChevronBox`,
-  // REWORK06/T-04c) est supprimé avec son style plutôt que laissé mort,
-  // D-130 posant explicitement que « le chevron historique de repli n'est
-  // pas affiché ». Le bord droit reste aligné sur celui des cartes par
-  // construction (dernier enfant de `tourHeader`, dont le padding horizontal
-  // est celui de la structure Tour).
-  //
-  // T02-S02 : le cadre redevient une RANGÉE (`row`) — valeur à gauche, carré
-  // violet du chevron d'ouverture à droite, avec `3` points de marge en
-  // haut, à droite et en bas (`12 – Architecture technique.md`). La hauteur
-  // `34` est exactement `28 + 3 + 3`, obtenue ici par `alignItems: "center"`
-  // (marges haut/bas mécaniques) et `paddingRight` (marge droite explicite)
-  // — jamais par un second littéral.
-  tourCardControl: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: dimensions.compositionTourControl.width,
-    height: dimensions.compositionTourControl.height,
-    backgroundColor: colors.background,
-    borderRadius: dimensions.compositionTourControl.radius,
-    paddingLeft: spacing[8],
-    paddingRight: dimensions.compositionTourControl.chevronBoxMargin,
-  },
-  // Valeur numérique seule (jamais `x` ni `×`), centrée verticalement, en
-  // `type.cardTitle` (`16/20` Semi Bold — graisse et taille conservées de
-  // REWORK06).
-  tourCardControlValue: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
-    textAlign: "center",
-  },
-  // Carré violet `28 × 28`, rayon `6` — même anatomie canonique que le carré
-  // de chevron de `Forms / Select Field` (`exerciseParameterRow.chevronBox`,
-  // `ExerciseScreen.tsx`). L'icône est teintée `#CDCEFA` (`colors
-  // .tourSurface`, référence `2028:12051`) plutôt que blanche : c'est la
-  // seule différence documentée entre les deux occurrences.
-  tourCardControlChevronBox: {
-    width: dimensions.compositionTourControl.chevronBox,
-    height: dimensions.compositionTourControl.chevronBox,
-    borderRadius: dimensions.compositionTourControl.chevronBoxRadius,
-    backgroundColor: colors.selection,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  // R4-03 (cycle REWORK04) : `type.compactCardTitle` (`14/18` Semi Bold),
-  // auparavant `type.body` (`14/20` Regular). REWORK06 (addendum « titres
-  // des cartes... encore trop petits », 2026-09-04) : porté à
-  // `type.cardTitle` (`16/20` Semi Bold) — token DSF déjà canonique,
-  // partagé avec `SessionCard.tsx` (Catalogue), plutôt qu'une nouvelle
-  // taille locale inventée. Effet de bord accepté : la ligne Exercice de
-  // cet écran (non explicitement citée par l'addendum) partage `rowLabel`
-  // et grandit donc identiquement.
-  rowLabel: {
-    ...type.cardTitle,
-    color: colors.textPrimary,
-  },
-  // LAY-03 : hauteur/rayon issus du composant DS
-  // (`dimensions.compactSecondaryButton`, même token que le bouton Créer
-  // du Catalogue) ; fond blanc explicite (la bande Context est teintée) ;
-  // bordure/icône/texte primaires ; largeur libre. CMP-02 : centré
-  // (`alignSelf: "center"`, auparavant `flex-start`).
-  addActivityAction: {
-    alignSelf: "center",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    height: dimensions.compactSecondaryButton.visualHeight,
-    paddingHorizontal: spacing[16],
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
-  },
-  addActivityLabel: {
-    ...type.button,
-    color: colors.primary,
+  // PRE-6 (story 3.1, RC-4) : zone d'appui extérieur, sous le contenu, qui referme le choix de
+  // nature du Circuit. Positionnée en absolu : hors du flux et de l'écart (`gap`).
+  natureOutside: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
   // V2-CAT-01, VISUAL_CORRECTION (revue indépendante 5753653735, point 7) :
   // arbre `Ajouter une activité` — même géométrie de carte que
@@ -2913,32 +5943,14 @@ const styles = StyleSheet.create({
   // `(tabs)`), le critère « centré sur l'axe du cadre de navigation » de
   // cette revue ne s'applique donc pas ici (condition explicitement posée
   // par la revue elle-même, « lorsqu'il est présent »).
+  // PRE-6 story 7.10 : contenu de la zone d'action (message d'échec au-dessus de « Continuer »).
   bottomAction: {
-    marginHorizontal: spacing[24],
     gap: spacing[12],
-  },
-  continueAction: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: spacing[12],
-    borderRadius: 24,
-    backgroundColor: colors.disabled,
-  },
-  // T01-S09 : même patron que `primaryAction`/`primaryActionDisabled`
-  // (`ExerciseScreen.tsx`) — fond `colors.primary` uniquement pour l'état
-  // activé, jamais l'inverse (`continueAction.backgroundColor` reste le
-  // fond désactivé par défaut).
-  continueActionEnabled: {
-    backgroundColor: colors.primary,
   },
   // Q54 : style de l'ancien message d'échec de `CategoriesScreen` (D-107).
   saveErrorText: {
     ...type.body,
     color: colors.danger,
     textAlign: "center",
-  },
-  continueLabel: {
-    ...type.button,
-    color: colors.background,
   },
 });

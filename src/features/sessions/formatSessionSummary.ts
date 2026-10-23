@@ -46,7 +46,7 @@ export function formatTourCount(count: number): string {
  *
  * `isApproximate` (T01-S09, RM-072) : préfixe `≥` dès qu'au moins une
  * Activité de la Composition est en mode Répétitions — même convention déjà
- * établie côté brouillon par `formatCompositionSummary`
+ * établie côté brouillon par `formatCompositionSummary` (supprimé par PRE-6 story 7.8)
  * (`compositionPresentation.ts`), désormais également appliquée à une
  * Séance persistée (`SessionSummary.isEstimatedDurationApproximate`).
  */

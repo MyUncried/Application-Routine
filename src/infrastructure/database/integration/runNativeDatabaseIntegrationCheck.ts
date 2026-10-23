@@ -19,6 +19,8 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
+      // PRE-6 (story 1.1, AD-34) : la nature du Circuit traverse le contrôle natif (`tours.nature`, `migration011`).
+      circuitNature: "SERIES",
       exercises: [
         {
           type: "EXERCISE",
@@ -87,6 +89,10 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
         "1:Descente:20|2:Maintien:10"
     ) {
       throw new Error("Execution parameters v3 were not persisted natively.");
+    }
+    // PRE-6 (story 1.1, AD-34) : nature du Circuit relue depuis `tours.nature`.
+    if (reopened.cycle.tour.nature !== "SERIES") {
+      throw new Error("Circuit nature was not persisted natively.");
     }
     if (listed[0].estimatedDurationSeconds !== 140) {
       throw new Error("Native SQL duration does not match the domain formula.");

@@ -12,6 +12,7 @@ import {
   type ActivityType,
   type CreateSessionActivityInput,
   type CreateSessionInput,
+  type CreateStopPointInput,
   type ExerciseExecutionMode,
   type StructuralPosition,
   type UpdateSessionActivityInput,
@@ -32,8 +33,17 @@ import {
   type ExecutionParametersViolation,
 } from "@/domain/activities/ExecutionParameters";
 
-import { DEFAULT_SIDE_MODE } from "./defaults";
+import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./circuit";
+import { DEFAULT_SIDE_MODE, SESSION_BOUNDARY_SECONDS_MAX } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
+import {
+  isStopPointPlacementAllowed,
+  isStopPointPositionInRange,
+  occurrenceCountInScope,
+  stopPointKey,
+  type SequenceOccurrence,
+  type StopPointRules,
+} from "./StopPoint";
 
 const NAME_MIN_LENGTH = 1;
 /** Exportée pour être réutilisée telle quelle comme `maxLength` d'un `TextInput` (Composition, T01-S07) — jamais dupliquée en dur. */
@@ -197,10 +207,17 @@ export function validatePauseSeconds(raw: number): ValidationResult<number> {
  * V2-PRE-1 (plan §3.2) : récupération post-exercice de l'occurrence (RM-129).
  * Entier de 0 à 5999 secondes — `0` signifie « aucune récupération » et reste
  * parfaitement valide (CE-T01-13). Remplace l'ancien `validateRecoverySeconds`.
+ *
+ * PRE-6 (story 1.1, AD-35) : `null` = récupération ABSENTE, distincte de `0`
+ * (présente à 0) — toujours valide, conservée telle quelle. La plage
+ * `0..5999` est inchangée (story 4.2).
  */
-export function validatePostActivityRecoverySeconds(raw: number): ValidationResult<number> {
+export function validatePostActivityRecoverySeconds(raw: number | null): ValidationResult<number | null> {
   const field: ValidationField = "exercise.postActivityRecoverySeconds";
 
+  if (raw === null) {
+    return ok(null);
+  }
   if (!Number.isInteger(raw)) {
     return fail([{ code: "NOT_INTEGER", field }]);
   }
@@ -250,6 +267,21 @@ export function validateRecoveryDurationSeconds(raw: number): ValidationResult<n
         details: { min: RECOVERY_DURATION_MIN_SECONDS, max: RECOVERY_DURATION_MAX_SECONDS },
       },
     ]);
+  }
+  return ok(raw);
+}
+
+/**
+ * PRE-6 (story 1.1, AD-34) : nature du Circuit reconnue (`TOURS` / `SERIES`).
+ * `undefined` (champ de transition absent) vaut `DEFAULT_CIRCUIT_NATURE` ;
+ * toute autre valeur est `UNRECOGNIZED` sur `session.circuitNature`.
+ */
+export function validateCircuitNature(raw: unknown): ValidationResult<CircuitNature> {
+  if (raw === undefined) {
+    return ok(DEFAULT_CIRCUIT_NATURE);
+  }
+  if (!isCircuitNature(raw)) {
+    return fail([{ code: "UNRECOGNIZED", field: "session.circuitNature" }]);
   }
   return ok(raw);
 }
@@ -361,12 +393,26 @@ function validateNonNegativeSeconds(
   return ok(raw);
 }
 
+/**
+ * PRE-6 story 7.8 (D-443, remplace la borne 0..3599 s de D-089 amendée par D-265) : Compte à rebours
+ * initial et Fin de séance bornés à 0..`SESSION_BOUNDARY_SECONDS_MAX` (60 s) à l'écriture. Aucune
+ * migration : une valeur héritée au-delà est relue à 60 s (`toSessionDraft`).
+ */
+function validateSessionBoundarySeconds(raw: number, field: ValidationField): ValidationResult<number> {
+  const base = validateNonNegativeSeconds(raw, field);
+  if (!base.ok) return base;
+  if (raw > SESSION_BOUNDARY_SECONDS_MAX) {
+    return fail([{ code: "OUT_OF_RANGE", field, details: { min: 0, max: SESSION_BOUNDARY_SECONDS_MAX } }]);
+  }
+  return base;
+}
+
 export function validateInitialCountdownSeconds(raw: number): ValidationResult<number> {
-  return validateNonNegativeSeconds(raw, "session.initialCountdownSeconds");
+  return validateSessionBoundarySeconds(raw, "session.initialCountdownSeconds");
 }
 
 export function validateFinalPhaseSeconds(raw: number): ValidationResult<number> {
-  return validateNonNegativeSeconds(raw, "session.finalPhaseSeconds");
+  return validateSessionBoundarySeconds(raw, "session.finalPhaseSeconds");
 }
 
 export function validateInstruction(
@@ -429,15 +475,15 @@ function unwrap<T>(
  * (`UpdateSessionActivityInput`).
  */
 type ActivityParameterInput = {
-  /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`). */
-  readonly postActivityRecoverySeconds: number;
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`) ; PRE-6 (AD-35) : `null` = absente. */
+  readonly postActivityRecoverySeconds: number | null;
   readonly bodyZoneIds: readonly string[];
   /** PRE-4 (story 1.1) : paramètres typés obligatoires — seule source du Mode, des Cibles, de N et des Pauses. */
   readonly executionParameters: ExecutionParametersInput;
 };
 
 type ActivityParameterValues = {
-  readonly postActivityRecoverySeconds: number;
+  readonly postActivityRecoverySeconds: number | null;
   readonly bodyZoneIds: readonly string[];
   /** Paramètres validés au niveau structurel et normalisés (N=1 effectif) ; absents si invalides. */
   readonly executionParameters?: ExecutionParameters;
@@ -472,7 +518,9 @@ function validateActivityParameters(
   violations: ValidationViolation[],
 ): ActivityParameterValues {
   if (type === "RECOVERY") {
-    if (activity.postActivityRecoverySeconds !== 0) {
+    // PRE-6 (story 1.1, AD-35) : `null` ou `0` admis, normalisés en `null`
+    // (aucune Récupération attachée à une ancienne Récupération autonome).
+    if (activity.postActivityRecoverySeconds !== 0 && activity.postActivityRecoverySeconds !== null) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.postActivityRecoverySeconds" });
     }
     if (activity.bodyZoneIds.length > 0) {
@@ -483,20 +531,24 @@ function validateActivityParameters(
       violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
     }
     return {
-      postActivityRecoverySeconds: 0,
+      postActivityRecoverySeconds: null,
       bodyZoneIds: [],
       ...(recovery.ok ? { executionParameters: recovery.value } : {}),
     };
   }
 
   if (type !== "EXERCISE") {
-    return { postActivityRecoverySeconds: 0, bodyZoneIds: [] };
+    return { postActivityRecoverySeconds: null, bodyZoneIds: [] };
   }
 
   // V2-PRE-1 : la récupération post-exercice est portée par l'occurrence,
-  // jamais par les paramètres d'exécution — validée à part.
-  const postActivityRecoverySeconds =
-    unwrap(validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds), violations) ?? 0;
+  // jamais par les paramètres d'exécution — validée à part. PRE-6 (AD-35) :
+  // `null` (absente) est conservé, jamais ramené à `0`.
+  const recovery = validatePostActivityRecoverySeconds(activity.postActivityRecoverySeconds);
+  const postActivityRecoverySeconds = recovery.ok ? recovery.value : null;
+  if (!recovery.ok) {
+    violations.push(...recovery.violations);
+  }
 
   const parameters = validateForSave(activity.executionParameters, "STORAGE");
   if (!parameters.ok) {
@@ -589,6 +641,94 @@ function pre3Transport(
 }
 
 /**
+ * PRE-6 (story 1.2, AD-36, RM-219, CE-T03-08 §14) : valide les Points
+ * d'arrêt d'un agrégat au regard de ses occurrences validées. Chaque point
+ * doit avoir une portée reconnue, une `position` entière dans `0..n` (n =
+ * occurrences de sa portée), un emplacement autorisé (ni juste après le
+ * compte à rebours initial, ni juste avant la Fin, lus sur la liste
+ * affichée) et un emplacement unique `(scope, position)`. Violations sur
+ * `session.stopPoints`, jamais d'exception. Retourne les points normalisés
+ * `{ scope, position }`, dans l'ordre reçu.
+ *
+ * Story 6.1 (D-441, revue) : les voisins sont lus sur la séquence triée
+ * (`inSequenceOrder`) et seules les occurrences `EXERCISE` comptent. RM-251
+ * (non-consécutivité) n'est volontairement PAS contrôlée à l'enregistrement :
+ * une Séance héritée portant deux points consécutifs reste enregistrable ;
+ * les opérations de Composition imposent RM-251 et le développement
+ * (`expandComposition`) n'exécute jamais deux arrêts successifs.
+ *
+ * Story 7.1 (D-442) : `rules` porte N du Circuit — à N ≥ 2, un point de
+ * début ou de fin de Tour est accepté même si le Circuit ouvre ou clôt la
+ * Séance (`isStopPointPlacementAllowed`). Un conflit de Tour (début et fin à
+ * N ≥ 2) n'est pas contrôlé non plus : une Séance qui le porte reste
+ * enregistrable, et l'exécution n'en fait qu'un arrêt.
+ */
+function validateStopPoints(
+  stopPoints: readonly CreateStopPointInput[] | undefined,
+  unorderedOccurrences: readonly (SequenceOccurrence & { readonly position?: number })[],
+  violations: ValidationViolation[],
+  rules: StopPointRules,
+): CreateStopPointInput[] {
+  const occurrences = inSequenceOrder(unorderedOccurrences);
+  const normalized: CreateStopPointInput[] = [];
+  const seen = new Set<string>();
+  for (const point of stopPoints ?? []) {
+    if (!STRUCTURAL_POSITIONS.includes(point.scope)) {
+      violations.push({ code: "UNRECOGNIZED", field: "session.stopPoints" });
+      continue;
+    }
+    if (!Number.isInteger(point.position)) {
+      violations.push({ code: "NOT_INTEGER", field: "session.stopPoints" });
+      continue;
+    }
+    if (!isStopPointPositionInRange(occurrences, point)) {
+      const max = occurrenceCountInScope(occurrences, point.scope);
+      violations.push({ code: "OUT_OF_RANGE", field: "session.stopPoints", details: { min: 0, max } });
+      continue;
+    }
+    if (!isStopPointPlacementAllowed(occurrences, point, rules)) {
+      violations.push({ code: "FORBIDDEN_PLACEMENT", field: "session.stopPoints" });
+      continue;
+    }
+    const key = stopPointKey(point);
+    if (seen.has(key)) {
+      violations.push({ code: "DUPLICATE", field: "session.stopPoints" });
+      continue;
+    }
+    seen.add(key);
+    normalized.push({ scope: point.scope, position: point.position });
+  }
+  return normalized;
+}
+
+/** Story 7.1 (D-442) : règles d'emplacement d'une entrée — N validé, sinon défaut (1). */
+function stopPointRulesOf(tourRepeatCount: number | undefined): StopPointRules {
+  return typeof tourRepeatCount === "number" ? { tourRepeatCount } : {};
+}
+
+/**
+ * Story 6.1 (revue) : occurrences dans l'ordre de la séquence structurelle —
+ * par zone (avant → dans → après le Circuit), puis par `position` dans la
+ * zone quand elle est fournie (modification), sinon dans l'ordre reçu.
+ * L'ordre compte depuis que seules les occurrences `EXERCISE` sont des
+ * voisins (`isSequenceSeparator`, RM-219).
+ */
+function inSequenceOrder<T extends SequenceOccurrence & { readonly position?: number }>(
+  occurrences: readonly T[],
+): readonly T[] {
+  return occurrences
+    .map((occurrence, index) => ({ occurrence, index }))
+    .sort(
+      (a, b) =>
+        STRUCTURAL_POSITIONS.indexOf(a.occurrence.structuralPosition) -
+          STRUCTURAL_POSITIONS.indexOf(b.occurrence.structuralPosition) ||
+        (a.occurrence.position ?? 0) - (b.occurrence.position ?? 0) ||
+        a.index - b.index,
+    )
+    .map(({ occurrence }) => occurrence);
+}
+
+/**
  * Valide et normalise un `CreateSessionInput` complet (T01-S09 : collection
  * ordonnée d'Activités + Catégories). Retourne un succès portant l'entrée
  * normalisée, ou un échec listant l'intégralité des violations rencontrées
@@ -624,6 +764,7 @@ export function validateCreateSessionInput(
     violations,
   );
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
+  const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
   const exercises: CreateSessionActivityInput[] = [];
   if (input.exercises.length === 0) {
@@ -651,6 +792,13 @@ export function validateCreateSessionInput(
     }
   }
 
+  // PRE-6 (story 1.2) : les points se lisent sur les occurrences validées ;
+  // une occurrence rejetée fausserait les emplacements (échec déjà signalé).
+  const stopPoints =
+    exercises.length === input.exercises.length
+      ? validateStopPoints(input.stopPoints, exercises, violations, stopPointRulesOf(tourRepeatCount))
+      : [];
+
   if (violations.length > 0) {
     return fail(violations);
   }
@@ -661,11 +809,12 @@ export function validateCreateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    // PRE-6 (story 1.1, AD-34) : transmise seulement si fournie (champ de
+    // transition) ; absente, le Repository écrit `DEFAULT_CIRCUIT_NATURE`.
+    ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     exercises,
-    // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : transmis tel quel —
-    // la position DANS sa portée est dérivée de l'ordre du tableau par le
-    // Repository, jamais revalidée ici (même patron que `exercises`).
-    stopPoints: input.stopPoints ?? [],
+    // PRE-6 (story 1.2, AD-36) : emplacements validés, enregistrés tels quels.
+    stopPoints,
   });
 }
 
@@ -743,6 +892,7 @@ export function validateUpdateSessionInput(
   );
   const finalPhaseSeconds = unwrap(validateFinalPhaseSeconds(input.finalPhaseSeconds), violations);
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
+  const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
   const activities: UpdateSessionActivityInput[] = [];
   if (input.activities.length === 0) {
@@ -767,6 +917,12 @@ export function validateUpdateSessionInput(
     }
   }
 
+  // PRE-6 (story 1.2) : même règle que la création (`validateStopPoints`).
+  const stopPoints =
+    activities.length === input.activities.length
+      ? validateStopPoints(input.stopPoints, activities, violations, stopPointRulesOf(tourRepeatCount))
+      : [];
+
   if (violations.length > 0) {
     return fail(violations);
   }
@@ -778,8 +934,9 @@ export function validateUpdateSessionInput(
     initialCountdownSeconds: initialCountdownSeconds as number,
     finalPhaseSeconds: finalPhaseSeconds as number,
     tourRepeatCount: tourRepeatCount as number,
+    ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     activities,
-    stopPoints: input.stopPoints ?? [],
+    stopPoints,
     ...(input.persistedActivityIds !== undefined ? { persistedActivityIds: [...input.persistedActivityIds] } : {}),
   });
 }

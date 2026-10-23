@@ -32,6 +32,9 @@ const HISTORICAL_MIGRATION_SOURCE_SHA256: Readonly<Record<string, string>> = {
   "migration007.ts": "1126dbff866459d286d4914d2ff3561ac342f3cd9aa791165597d9530f7b96db",
   "migration008.ts": "2e008e798eea0a831c33ca9e4aa902613cc882c5a930f3d3cecb5f72322ca72e",
   "migration009.ts": "e07082bff40a31015bda906ee46defd9eab03186ace38465fc82409c48365081",
+  // PRE-6 (story 1.1) : 010 gelée à son tour, empreinte LF du code de départ
+  // (`d3604841`) — `migration011` ne la modifie pas.
+  "migration010.ts": "c3cd951c7bcff53f0a65e010df0681b080ce9392cb43919ae0387cff0149987d",
 };
 
 /**
@@ -627,7 +630,7 @@ const HISTORICAL_MIGRATION_SQL_BASELINE: readonly (readonly [string, string, str
  * `activities.recovery_seconds` en `post_activity_recovery_seconds`.
  */
 describe("targetSchema — préservation historique et référentiels additifs (V2-PRE-1)", () => {
-  it("freezes migration001..009's source text byte-for-byte against the baseline snapshot (FILE_UNCHANGED ; PRE4-1.1/AC15)", () => {
+  it("freezes migration001..010's source text byte-for-byte against the baseline snapshot (FILE_UNCHANGED ; PRE4-1.1/AC15, PRE6-1.1)", () => {
     for (const [fileName, expectedSha256] of Object.entries(HISTORICAL_MIGRATION_SOURCE_SHA256)) {
       expect(sha256sOfFile(fileName)).toContain(expectedSha256);
     }

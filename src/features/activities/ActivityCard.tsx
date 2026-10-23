@@ -1,4 +1,3 @@
-import { Image } from "expo-image";
 import { useContext, useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -7,7 +6,7 @@ import { computeIntrinsicDuration } from "@/domain/activities/executionCalculati
 import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
-import { useCatalogueVideoCover } from "@/features/activities/catalogueVideoCover";
+import { MediaPreview, useMediaUriResolver } from "@/features/activities/MediaPreview";
 import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
@@ -200,41 +199,18 @@ function CardThumbnail({
   uri: string;
   onOpen?: () => void;
 }) {
-  // Échec rattaché à l'URI : une autre photo en tête repart sans repli, sans effet de remise à zéro.
-  const [failedUri, setFailedUri] = useState<string | null>(null);
-  const photoFailed = failedUri === uri;
-  const cover = useCatalogueVideoCover(isVideo ? uri : null);
-  const fallback = (
-    <View style={[styles.thumbnailImage, styles.thumbnailFallback]} testID={`activity-card-thumbnail-fallback-${definitionId}`} />
+  // PRE-6 story 5.1b : choix photo / affiche / place réservée extrait dans `MediaPreview`, partagé
+  // avec le gabarit de la carte d'occurrence de la Composition ; rendu du Catalogue inchangé.
+  const content = (
+    <MediaPreview
+      uri={uri}
+      isVideo={isVideo}
+      imageStyle={styles.thumbnailImage}
+      fallbackStyle={[styles.thumbnailImage, styles.thumbnailFallback]}
+      imageTestID={`activity-card-thumbnail-image-${definitionId}`}
+      fallbackTestID={`activity-card-thumbnail-fallback-${definitionId}`}
+    />
   );
-  let content: ReactNode;
-  if (isVideo) {
-    content =
-      cover.status === "ready" ? (
-        <Image
-          source={cover.image as never}
-          style={styles.thumbnailImage}
-          contentFit="cover"
-          accessible={false}
-          testID={`activity-card-thumbnail-image-${definitionId}`}
-        />
-      ) : (
-        fallback
-      );
-  } else {
-    content = photoFailed ? (
-      fallback
-    ) : (
-      <Image
-        source={{ uri }}
-        style={styles.thumbnailImage}
-        contentFit="cover"
-        accessible={false}
-        onError={() => setFailedUri(uri)}
-        testID={`activity-card-thumbnail-image-${definitionId}`}
-      />
-    );
-  }
   const hidden = {
     accessible: false,
     accessibilityElementsHidden: true,
@@ -259,20 +235,6 @@ function CardThumbnail({
       {square}
     </View>
   );
-}
-
-/**
- * Résolution d'URI d'affichage d'un Média (URI interne relative → absolue) par
- * `ActivityDefinitionService.resolveMediaUri`, même service et même dégradation
- * silencieuse que `useBodyZonesReferential` (service absent ou partiel : URI
- * inchangée, jamais d'exception).
- */
-function useMediaUriResolver(): (uri: string) => string {
-  const activityDefinitionService = useContext(ActivityDefinitionServiceContext);
-  if (!activityDefinitionService || typeof activityDefinitionService.resolveMediaUri !== "function") {
-    return (uri) => uri;
-  }
-  return (uri) => activityDefinitionService.resolveMediaUri(uri);
 }
 
 function ActivityCardMainArea({

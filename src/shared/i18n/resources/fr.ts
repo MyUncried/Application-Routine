@@ -276,6 +276,8 @@ export const fr = {
       // Complément d'alignement du 07/10 (ajout D) : titre d'écran.
       title: "Composer une séance",
       backAccessibilityLabel: "Retour",
+      // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) de l’en-tête de la Composition.
+      closeAccessibilityLabel: "Fermer",
       name: "Nom de la séance",
       colorPicker: {
         label: "Couleur",
@@ -289,6 +291,8 @@ export const fr = {
       // picker » reste probant.
       label: {
         accessibilityLabel: "Étiquette de la séance",
+        // PRE-6 (story 2.1, Figma `8328:28617`) : libellé de la puce sans Étiquette affectée.
+        placeholder: "Étiquette",
       },
       countdown: {
         label: "Compte à rebours initial",
@@ -307,14 +311,66 @@ export const fr = {
         archivedMessage: "Cette séance est archivée et ne peut pas être modifiée.",
         backToCatalogue: "Revenir au catalogue",
       },
-      tour: {
-        // T-03 (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO — PHASE02
-        // REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : libellé exact
-        // remplacé, auparavant "Tour" seul.
-        label: "Nombre de tours",
-        // T02-S01 (CE-T02-01, « Nombre de Tours ») : le contrôle devient
-        // réellement pressable et ouvre la roulette numérique `1..99`.
-        valueAccessibilityLabel: "Nombre de tours",
+      // PRE-6 (story 3.1, CIR-10, Figma `8328:28667`) : en-tête du Circuit — titre, unité du
+      // compteur accordée selon la nature (N = 1 singulier) et nom VoiceOver du réglage.
+      // Remplace l’ancien jeu `tour` (« Nombre de tours », roulette du compte retirée).
+      circuit: {
+        title: "Circuit",
+        unit: {
+          TOURS: { singular: "tour", plural: "tours" },
+          SERIES: { singular: "série", plural: "séries" },
+        },
+        countAccessibilityLabel: {
+          TOURS: "Nombre de tours",
+          SERIES: "Nombre de séries",
+        },
+        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper toujours affiché, éléments
+        // accessibles distincts du réglage « Nombre de tours ».
+        decrementAccessibilityLabel: {
+          TOURS: "Retirer un tour",
+          SERIES: "Retirer une série",
+        },
+        incrementAccessibilityLabel: {
+          TOURS: "Ajouter un tour",
+          SERIES: "Ajouter une série",
+        },
+        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature par la pastille d’unité.
+        nature: {
+          accessibilityLabel: "Nature du circuit",
+          options: {
+            TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
+            SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+          },
+        },
+        // PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : œil de l’en-tête et
+        // feuille « Volumes du circuit », en lecture seule. « ✓ » = cible à l’échec ; « — » = série
+        // inexistante ou cible à renseigner (jamais 0), distingués à l’annonce VoiceOver.
+        volumes: {
+          openAccessibilityLabel: "Voir les volumes du circuit",
+          title: "Volumes du circuit",
+          closeAccessibilityLabel: "Fermer les volumes du circuit",
+          empty: "Aucun exercice dans le circuit",
+          columns: {
+            exercise: "Exercice",
+            series: "S{n}",
+            unit: "Unité",
+          },
+          units: {
+            REPETITIONS: "rép.",
+            DURATION: "durée",
+            FAILURE: "À l’échec",
+          },
+          failureValue: "✓",
+          missingValue: "—",
+          spoken: {
+            series: "série {n} : {value}",
+            repetitionsSingular: "{n} répétition",
+            repetitionsPlural: "{n} répétitions",
+            failure: "à l’échec",
+            noSeries: "pas de série",
+            unset: "à renseigner",
+          },
+        },
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -328,11 +384,91 @@ export const fr = {
       addActivity: "Ajouter un exercice",
       // PRE-4, décision Q54 : l'action finale de la Composition enregistre la Séance (repris de
       // l'écran « Catégories de la séance », supprimé). D-107 : message d'échec mot pour mot.
-      saveAction: "Enregistrer la séance",
-      saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
-      summary: {
-        empty: "0 exercice · 0 min",
+      // PRE-6 (story 2.1, CE-T03-08, D-388, Figma `8328:28732`) : libellé « Continuer » ; même
+      // composant, mêmes règles d'activation et même enregistrement (Q54).
+      saveAction: "Continuer",
+      // PRE-6 (story 2.1) : durée de séance de l'en-tête (toutes les occurrences, RM-159).
+      sessionDurationAccessibilityLabel: "Durée de la séance",
+      // PRE-6 (story 4.1, AD-43, Figma `8328:28622`, `8328:29270`, `8328:28733`) : action
+      // « Ajouter un arrêt » et mode placement — puces des emplacements, barre « Confirmer N
+      // pauses ajoutées » / « Annuler » et roulette « Durée de récupération ».
+      placement: {
+        addStopAccessibilityLabel: "Ajouter un arrêt",
+        recovery: "Récupération",
+        stopPoint: "Point d’arrêt",
+        addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
+        addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
+        addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+        // PRE-6 story 7.2 (D-442) : emplacement de tête de Circuit (début de Tour).
+        addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
+        existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
+        existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+        // PRE-6 story 6.2 : point en tête de portée (données héritées), formulation à valider.
+        stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
+        stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
+        confirmSingular: "Confirmer {n} pause ajoutée",
+        confirmPlural: "Confirmer {n} pauses ajoutées",
+        // PRE-6 story 6.3 (D-441, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
+        // de durée seule.
+        confirmChanges: "Confirmer les modifications",
+        cancel: "Annuler",
+        recoveryWheelTitle: "Durée de récupération",
+        selectedHint: "Un toucher retire cet ajout.",
+        // PRE-6 story 6.3 (D-441, ch13 CE-T03-08 accessibilité) : point existant sélectionné (conservé)
+        // ou désélectionné (retrait programmé).
+        existingStopPointSelectedHint: "Toucher pour retirer ce point d’arrêt.",
+        existingStopPointRemovedHint: "Toucher pour conserver ce point d’arrêt.",
+        // PRE-6 story 6.3 (revue) : resélection refusée (un point ajouté le suivrait, RM-251),
+        // annonces de la bascule d’un point existant et indice d’entrée quand seul un retrait est
+        // possible. Formulations à valider.
+        existingStopPointBlockedHint: "Ne peut pas être conservé : un point ajouté le suivrait.",
+        stopPointRemovedAnnouncement: "Point d’arrêt retiré",
+        stopPointKeptAnnouncement: "Point d’arrêt conservé",
+        stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
+        addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+        // PRE-6 story 7.2 (D-442) : une récupération existante se modifie et se retire en placement.
+        addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
+        // PRE-6 story 6.3 (revue, ch13 L1524) : effet d’un ajout ou de son annulation, suivi du
+        // libellé de « Confirmer » (nombre d’ajouts).
+        stopPointAddedAnnouncement: "Point d’arrêt ajouté",
+        recoveryAddedAnnouncement: "Récupération ajoutée",
+        additionCancelledAnnouncement: "Ajout annulé",
+        // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : zone de récupération existante (0 comprise)
+        // en placement — nom, indices (sélectionnée : toucher la retire ; désélectionnée : toucher
+        // ouvre la roulette) et annonces. Formulations à valider.
+        existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
+        existingRecoverySelectedHint: "Toucher pour retirer cette récupération.",
+        existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
+        recoveryRemovedAnnouncement: "Récupération retirée",
+        recoverySelectedAnnouncement: "Récupération sélectionnée",
       },
+      // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
+      // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
+      // (stories 4.2, 5.1) sont retirées.
+      pauses: {
+        // PRE-6 story 6.2 (D-441) : l’appui long d’un point le saisit (glisser).
+        stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
+      },
+      saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
+      // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
+      // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
+      // Formulations à valider.
+      tourBoundaryChoice: {
+        title: "Point d’arrêt en début et en fin de tour",
+        message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
+        head: "Début de tour",
+        tail: "Fin de tour",
+        cancel: "Annuler",
+      },
+      // PRE-6 story 7.2 (D-442) : points retirés sans message par un déplacement d’Exercice, un
+      // changement du nombre de Tours ou un choix de Tour — annonce d’accessibilité discrète.
+      stopPointsRemovedAnnouncement: {
+        singular: "Point d’arrêt retiré",
+        plural: "{n} points d’arrêt retirés",
+      },
+      // PRE-6 story 7.8 (D-443) : Compte à rebours et Fin de séance affichés en secondes seulement
+      // (« 45 s ») ; la durée du Circuit (et son « — min ») n’est plus affichée.
+      boundarySecondsUnit: "s",
       abandonModal: {
         title: "Abandonner la création ?",
         message: "Les informations saisies seront perdues et la séance ne sera pas créée.",
@@ -371,12 +507,12 @@ export const fr = {
       // glissées d'une carte Activité. Les deux libellés `Dupliquer` et
       // `Supprimer` sont ceux, exacts, du groupe `144 × 69` de la frame
       // `2028:11808`.
-      // T02-S02 (D-095/D-128/D-138) : sous-carte `Récupération X min Y s`
-      // attachée à la carte d'Activité — jamais une Activité, jamais une
-      // ligne de plus dans le compte (`computeActivityCount` inchangé).
+      // T02-S02 (D-095/D-128/D-138) : Récupération de l'occurrence — jamais une Activité, jamais
+      // une ligne de plus dans le compte (`computeActivityCount` inchangé). PRE-6 (story 2.1) :
+      // affichée par la ligne structurelle sous l'occurrence, dont le nom accessible est le
+      // libellé visible (« Récupération 20 s ») ; l'ancienne clé « Récupération attachée » est retirée.
       activityRecovery: {
         label: "Récupération",
-        accessibilityLabel: "Récupération attachée",
       },
       activityActions: {
         duplicate: "Dupliquer",
@@ -385,6 +521,35 @@ export const fr = {
         revealAccessibilityLabel: "Actions de l’exercice",
         reorderAccessibilityHint:
           "Appui long pour déplacer l’exercice, glissement vers la gauche pour afficher les actions",
+        // PRE-6 (story 2.3, CE-T03-08 §18) : alternatives accessibles au glisser — une position
+        // dans la séquence affichée, mêmes règles que le glisser.
+        moveUp: "Monter",
+        moveDown: "Descendre",
+        // PRE-6 story 7.5 (D-442 amendée) : la suppression d’un exercice n’est plus refusée — les
+        // annonces de refus de la story 6.2 sont retirées.
+      },
+      // PRE-6 (story 2.3) : confirmation de perte de séries à l’entrée d’un exercice dans un
+      // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion
+      // (ch13), à valider par Hermann. `{series}` = « N série(s) », `{ordinal}` = N-ième.
+      circuitEntryConfirmModal: {
+        addTitle: "Ajouter au circuit de séries ?",
+        moveTitle: "Déplacer dans le circuit de séries ?",
+        // PRE-6 (story 3.2, CE-CIR-02, Figma `8328:34964`) : conversion Tours → Séries avec perte.
+        natureTitle: "Passer en circuit de séries ?",
+        natureMessage:
+          "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        addMessagePlural:
+          "Les exercices ajoutés auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        addMessageSingular:
+          "L’exercice ajouté aura {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        moveMessage:
+          "L’exercice déplacé aura {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+        seriesSingular: "{n} série",
+        seriesPlural: "{n} séries",
+        ordinalFirst: "1re",
+        ordinalOther: "{n}e",
+        cancel: "Annuler",
+        confirm: "Confirmer",
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
@@ -410,6 +575,23 @@ export const fr = {
         // Activité unilatérale ni pour une direction héritée du Tour.
         sideDirectionSuffixRightLeft: ", à droite, puis à gauche",
         sideDirectionSuffixLeftRight: ", à gauche, puis à droite",
+      },
+      // PRE-6 story 2.2 (D-238, Figma `5544:6797`) : carte d'occurrence de la Composition.
+      // Synthèse « N × cible » des séries identiques, « … » après trois cibles variables ;
+      // nom accessible « Exercice, {nom}, {n} sur {m}, {durée} » (CE-T03-08 §18).
+      occurrenceCard: {
+        seriesTimes: "{n} × {target}",
+        valuesOverflow: "…",
+        accessibilityType: "Exercice",
+        accessibilityPosition: "{position} sur {count}",
+        // Ajouté au nom accessible d'une occurrence bilatérale (RM-243 : sans direction).
+        accessibilitySideChange: "changement de côté",
+        // PRE-6 (story 5.1, revue) : ajouté au nom accessible d’une occurrence dont la récupération
+        // est affichée en ligne 3 (le contrôle imbriqué n’est pas exposé à l’accessibilité).
+        accessibilityRecovery: "récupération {duration}",
+        // PRE-6 (story 5.1, D-435, Figma `9808:19924`) : séparateur entre la synthèse et la durée
+        // estimée des Répétitions avec bip, sur la ligne 2 de la carte v2 (« 10 rép. / ≈ 1 min »).
+        workEstimateSeparator: " / ",
       },
     },
     exercise: {

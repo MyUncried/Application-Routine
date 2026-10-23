@@ -849,3 +849,96 @@ describe("PRE-4 story 2.2 — agrégation de Séance et Durée estimée d'exécu
     expect(toSessionExecutionDurationResult(lowerBound)).toEqual({ kind: "lowerBound", seconds: 135 + 10 + 5 });
   });
 });
+
+/** PRE-6 (story 1.3, AD-40) : durée de Séance selon la nature du Circuit. */
+describe("PRE6-1.3 — computeStructuredSessionDuration selon la nature du Circuit", () => {
+  const bilateral: ActivityDurationFacts = {
+    type: "EXERCISE",
+    executionParameters: uniformParameters({
+      mode: "DURATION",
+      count: 3,
+      target: 30,
+      pauseSeconds: 10,
+      sideMode: "LEFT_RIGHT",
+      sideRecoverySeconds: 5,
+    }),
+    postActivityRecoverySeconds: 0,
+  };
+  const outside: ActivityDurationFacts = { type: "EXERCISE", executionParameters: durationParameters(60), postActivityRecoverySeconds: null };
+
+  it("Séries : chaque exercice du Circuit contribue ses passages (225 s ; 255 s avec R 20), hors Circuit une fois", () => {
+    expect(
+      computeStructuredSessionDuration({ beforeTour: [outside], inTour: [bilateral], afterTour: [], tourRepeatCount: 3, circuitNature: "SERIES" }),
+    ).toEqual({ kind: "exact", seconds: 60 + 225 });
+    expect(
+      computeStructuredSessionDuration({
+        beforeTour: [],
+        inTour: [{ ...bilateral, postActivityRecoverySeconds: 20 }],
+        afterTour: [],
+        tourRepeatCount: 3,
+        circuitNature: "SERIES",
+      }),
+    ).toEqual({ kind: "exact", seconds: 255 });
+  });
+
+  it("Tours : inchangé (contenu interne × N), nature absente lue Tours", () => {
+    const occurrence = computeActivityDurationResult(bilateral).knownSeconds;
+    const tours = { beforeTour: [outside], inTour: [bilateral], afterTour: [], tourRepeatCount: 2 };
+    expect(computeStructuredSessionDuration(tours)).toEqual({ kind: "exact", seconds: 60 + 2 * occurrence });
+    expect(computeStructuredSessionDuration({ ...tours, circuitNature: "TOURS" })).toEqual(computeStructuredSessionDuration(tours));
+  });
+
+  it("nature du total : ≥ l'emporte sur ≈, qui l'emporte sur exact", () => {
+    const failure: ActivityDurationFacts = { type: "EXERCISE", executionParameters: allFailureParameters(2, 15), postActivityRecoverySeconds: 0 };
+    const beep: ActivityDurationFacts = {
+      type: "EXERCISE",
+      executionParameters: uniformParameters({ mode: "REPETITIONS", count: 2, target: 10, pauseSeconds: 10, cadenceBeepIntervalSeconds: 2 }),
+      postActivityRecoverySeconds: 0,
+    };
+    const series = { beforeTour: [], afterTour: [], tourRepeatCount: 2, circuitNature: "SERIES" as const };
+    expect(computeStructuredSessionDuration({ ...series, inTour: [bilateral, beep] }).kind).toBe("estimated");
+    expect(computeStructuredSessionDuration({ ...series, inTour: [bilateral, beep, failure] }).kind).toBe("lowerBound");
+  });
+
+  it("Séries : un exercice au Mode inconnu ne lève pas, rend le total ≥ et laisse le total connu des passages", () => {
+    const unknownMode: ActivityDurationFacts = {
+      type: "EXERCISE",
+      executionParameters: { ...durationParameters(30, 2, 10), mode: null },
+      postActivityRecoverySeconds: 0,
+    };
+    expect(
+      computeStructuredSessionDuration({ beforeTour: [], inTour: [bilateral, unknownMode], afterTour: [], tourRepeatCount: 3, circuitNature: "SERIES" }),
+    ).toEqual({ kind: "lowerBound", seconds: 225 });
+  });
+
+  it("Séries : une ancienne Récupération autonome est comptée N fois, en entier", () => {
+    const legacy: ActivityDurationFacts = { type: "RECOVERY", executionParameters: durationParameters(45), postActivityRecoverySeconds: 0 };
+    expect(
+      computeStructuredSessionDuration({ beforeTour: [], inTour: [bilateral, legacy], afterTour: [], tourRepeatCount: 3, circuitNature: "SERIES" }),
+    ).toEqual({ kind: "exact", seconds: 225 + 3 * 45 });
+  });
+
+  it("la durée d'exécution (P31) garde son ajout du compte à rebours et de la Fin", () => {
+    const structure = { beforeTour: [], inTour: [bilateral], afterTour: [], tourRepeatCount: 3, circuitNature: "SERIES" as const };
+    expect(computeSessionExecutionDuration(structure, { initialCountdownSeconds: 10, finalPhaseSeconds: 5 })).toEqual({
+      kind: "exact",
+      seconds: 225 + 15,
+    });
+  });
+
+  it("toSessionDurationResult lit cycle.tour.nature", () => {
+    const session = {
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      cycle: {
+        tour: {
+          repeatCount: 3,
+          nature: "SERIES",
+          exercises: [{ ...bilateral, id: "a", structuralPosition: "IN_TOUR", position: 0 }],
+        },
+      },
+    } as unknown as Session;
+    expect(toSessionDurationResult(session)).toEqual({ kind: "exact", seconds: 225 });
+    expect(toSessionExecutionDurationResult(session)).toEqual({ kind: "exact", seconds: 240 });
+  });
+});

@@ -22,11 +22,15 @@ import {
   boundedSecondsValues,
   formatTwoDigits,
   fromTotalSeconds,
+  gridMinutesValues,
+  gridSecondsValues,
   indexToOffset,
   minutesMaxIndexFor,
   offsetToIndex,
   secondsIndexToValue,
   snapBoundedSeconds,
+  snapGridSeconds,
+  snapToGrid,
   toTotalSeconds,
   type WheelTargetBounds,
 } from "@/features/sessions/wheelPickerMath";
@@ -120,6 +124,9 @@ const NATIVE_DIGIT_UNIT_GAP = 4;
 const FAILURE_OPTION_HEIGHT = 30;
 const FAILURE_OPTION_HIT_SLOP = { top: 7, bottom: 7 };
 
+/** PRE-6 story 4.1 : titre de la barre (Figma `8328:28862`, Inter Semi Bold 18, interligne Auto). */
+const WHEEL_TITLE_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 18, lineHeight: 22 } as const;
+
 type DurationWheelPickerBaseProps = {
   totalSeconds: number;
   /** Valide exactement les valeurs actuellement centrées (R4-09) — jamais appelé pendant le défilement, ni par Annuler. */
@@ -132,6 +139,19 @@ type DurationWheelPickerBaseProps = {
   validateAccessibilityLabel: string;
   /** Borne haute de `totalSeconds`, en secondes. Par défaut `WHEEL_TOTAL_SECONDS_MAX` (3599, V1, Composition). */
   maxTotalSeconds?: number;
+  /**
+   * PRE-6 story 4.1 (CE-T03-08 §14, E12) — grille de valeurs totales proposées, en secondes,
+   * croissantes (ex. `RECOVERY_WHEEL_VALUES`). Les minutes et, pour chaque minute, les secondes
+   * de la roue sont celles de la grille ; l'ouverture se fait sur la valeur la plus proche ; la
+   * borne haute est la plus grande valeur. Sans elle, comportement inchangé. Non combinée avec
+   * `targetBounds` / `failureOption` (aucun appelant ne les associe).
+   */
+  valueGrid?: readonly number[];
+  /**
+   * PRE-6 story 4.1 (Figma `8328:28862`) — titre centré entre ✕ et ✓ (« Durée de récupération »),
+   * Inter Semi Bold 18. Sans lui, barre inchangée.
+   */
+  title?: string;
 };
 
 /**
@@ -183,12 +203,24 @@ export type DurationWheelFailureOption = {
 const FAILURE_TARGET: FailureSeriesTarget = { kind: "FAILURE" };
 
 /** Secondes proposées pour une minute : liste fixe 00..59 sans bornes de Cible (inchangé). */
-function secondsValuesFor(minutes: number, targetBounds: WheelTargetBounds | undefined): readonly number[] {
+function secondsValuesFor(
+  minutes: number,
+  targetBounds: WheelTargetBounds | undefined,
+  valueGrid?: readonly number[],
+): readonly number[] {
+  // PRE-6 story 4.1 : grille de valeurs (récupération) — secondes de la grille pour cette minute.
+  if (valueGrid !== undefined) return gridSecondsValues(valueGrid, minutes);
   return targetBounds === undefined ? SECONDS_VALUES : boundedSecondsValues(minutes, targetBounds);
 }
 
 /** Story 3.4 : recalage d'une seconde hors de la liste de sa minute (`snapBoundedSeconds`) ; sans bornes, inchangée. */
-function snapSeconds(seconds: number, minutes: number, targetBounds: WheelTargetBounds | undefined): number {
+function snapSeconds(
+  seconds: number,
+  minutes: number,
+  targetBounds: WheelTargetBounds | undefined,
+  valueGrid?: readonly number[],
+): number {
+  if (valueGrid !== undefined) return snapGridSeconds(seconds, minutes, valueGrid);
   return targetBounds === undefined ? seconds : snapBoundedSeconds(seconds, minutes, targetBounds);
 }
 
@@ -196,7 +228,12 @@ function snapSeconds(seconds: number, minutes: number, targetBounds: WheelTarget
  * Minutes proposées : 0..`floor(max / 60)` sans bornes (inchangé) ; sous bornes,
  * `boundedMinutesValues` (story 3.7 : à partir de `floor(min / 60)` si `min ≥ 60`).
  */
-function minutesValuesFor(maxTotalSeconds: number, targetBounds: WheelTargetBounds | undefined): readonly number[] {
+function minutesValuesFor(
+  maxTotalSeconds: number,
+  targetBounds: WheelTargetBounds | undefined,
+  valueGrid?: readonly number[],
+): readonly number[] {
+  if (valueGrid !== undefined) return gridMinutesValues(valueGrid);
   return targetBounds === undefined
     ? Array.from({ length: minutesMaxIndexFor(maxTotalSeconds) + 1 }, (_, index) => index)
     : boundedMinutesValues(targetBounds);
@@ -208,7 +245,13 @@ function openingPosition(
   maxTotalSeconds: number,
   targetBounds: WheelTargetBounds | undefined,
   failureSelected: boolean,
+  valueGrid?: readonly number[],
 ): { minutes: number; seconds: number } {
+  // PRE-6 story 4.1 : sous une grille, ouverture sur la valeur de la grille la plus proche.
+  if (valueGrid !== undefined) {
+    const snapped = snapToGrid(totalSeconds, valueGrid);
+    return { minutes: Math.floor(snapped / 60), seconds: snapped % 60 };
+  }
   // Story 3.7 : défense — sous une borne basse d'au moins 60 s, aucune minute 0 n'est
   // proposée ; une valeur reçue sous la borne s'ouvre sur la borne (l'appelant passe une
   // valeur déjà bornée, AD-16). Sous 60 s (story 3.4), comportement inchangé.
@@ -219,6 +262,16 @@ function openingPosition(
     return position;
   }
   return { minutes: position.minutes, seconds: snapSeconds(position.seconds, position.minutes, targetBounds) };
+}
+
+/** PRE-6 story 4.1 : grille vide ou absente → `undefined` (comportement sans grille). */
+function normalizedGrid(valueGrid: readonly number[] | undefined): readonly number[] | undefined {
+  return valueGrid !== undefined && valueGrid.length > 0 ? valueGrid : undefined;
+}
+
+/** PRE-6 story 4.1 : borne haute d'une grille (sa plus grande valeur) ; sans grille, `undefined`. */
+function gridMax(valueGrid: readonly number[] | undefined): number | undefined {
+  return valueGrid === undefined || valueGrid.length === 0 ? undefined : Math.max(...valueGrid);
 }
 
 /** AC7 (FR-08-04, Q15) : sous la borne basse (`00:00`), en sélection numérique, le ✓ est indisponible. */
@@ -299,18 +352,22 @@ function NativeAppleDurationWheelPicker({
   maxTotalSeconds: maxTotalSecondsProp = WHEEL_TOTAL_SECONDS_MAX,
   targetBounds,
   failureOption,
+  valueGrid: valueGridProp,
+  title,
 }: DurationWheelPickerProps) {
-  const maxTotalSeconds = targetBounds?.max ?? maxTotalSecondsProp;
-  const minutesValues = minutesValuesFor(maxTotalSeconds, targetBounds);
+  // PRE-6 story 4.1 : une grille vide vaut absence de grille.
+  const valueGrid = normalizedGrid(valueGridProp);
+  const maxTotalSeconds = targetBounds?.max ?? gridMax(valueGrid) ?? maxTotalSecondsProp;
+  const minutesValues = minutesValuesFor(maxTotalSeconds, targetBounds, valueGrid);
   // `useState(() => ...)` : initialisé UNE SEULE FOIS au montage — jamais
   // recalculé depuis `totalSeconds` à un rendu ultérieur (brouillon local).
   const [initialFailure] = useState(() => failureOption?.initiallySelected === true);
-  const [initial] = useState(() => openingPosition(totalSeconds, maxTotalSeconds, targetBounds, initialFailure));
+  const [initial] = useState(() => openingPosition(totalSeconds, maxTotalSeconds, targetBounds, initialFailure, valueGrid));
   const [draftMinutes, setDraftMinutes] = useState(initial.minutes);
   const [draftSeconds, setDraftSeconds] = useState(initial.seconds);
   const [failureSelected, setFailureSelected] = useState(initialFailure);
   const draftRef = useRef({ minutes: initial.minutes, seconds: initial.seconds, failure: initialFailure });
-  const secondsValues = secondsValuesFor(draftMinutes, targetBounds);
+  const secondsValues = secondsValuesFor(draftMinutes, targetBounds, valueGrid);
 
   /** Story 3.4 (P5) : faire tourner la roue revient au numérique, sans déverrouillage. */
   function leaveFailure() {
@@ -328,7 +385,7 @@ function NativeAppleDurationWheelPicker({
     setDraftMinutes(value);
     // Story 3.4 (AC2) : à la minute maximale (ou à 0), les secondes hors bornes
     // rejoignent la plus proche valeur proposée (58:57 → 58:55 ; sous une borne basse de 5 s, 01:02 → 00:05 ; jamais 00:00).
-    const seconds = snapSeconds(draftRef.current.seconds, value, targetBounds);
+    const seconds = snapSeconds(draftRef.current.seconds, value, targetBounds, valueGrid);
     if (seconds !== draftRef.current.seconds) {
       draftRef.current.seconds = seconds;
       setDraftSeconds(seconds);
@@ -340,7 +397,7 @@ function NativeAppleDurationWheelPicker({
   function handleSecondsChange(received: number) {
     // Story 3.4 : une valeur native absente de la liste courante (57 à 58 min) est
     // ramenée à la plus proche proposée : le brouillon reste une valeur affichée.
-    const value = snapSeconds(received, draftRef.current.minutes, targetBounds);
+    const value = snapSeconds(received, draftRef.current.minutes, targetBounds, valueGrid);
     if (value === draftRef.current.seconds) {
       return;
     }
@@ -444,6 +501,7 @@ function NativeAppleDurationWheelPicker({
         cancelAccessibilityLabel={cancelAccessibilityLabel}
         validateAccessibilityLabel={validateAccessibilityLabel}
         validateDisabled={validateDisabled || undefined}
+        title={title}
       />
       {failureOption ? (
         <>
@@ -519,6 +577,7 @@ function PickerToolbar({
   cancelAccessibilityLabel,
   validateAccessibilityLabel,
   validateDisabled,
+  title,
 }: {
   onCancel: () => void;
   onValidate: () => void;
@@ -530,6 +589,8 @@ function PickerToolbar({
    * opacité `UNSELECTED_OPACITY`) ; ✕ reste disponible. Sans elle, inchangé.
    */
   validateDisabled?: boolean;
+  /** PRE-6 story 4.1 : titre facultatif, centré entre les deux actions. */
+  title?: string;
 }) {
   return (
     <View style={styles.toolbar} testID="duration-wheel-toolbar">
@@ -547,6 +608,11 @@ function PickerToolbar({
           testID="duration-wheel-cancel-icon"
         />
       </Pressable>
+      {title !== undefined ? (
+        <Text style={styles.toolbarTitle} numberOfLines={1} accessibilityRole="header" testID="duration-wheel-title">
+          {title}
+        </Text>
+      ) : null}
       <Pressable
         onPress={onValidate}
         accessibilityRole="button"
@@ -590,20 +656,24 @@ function LegacyDurationWheelPicker({
   maxTotalSeconds: maxTotalSecondsProp = WHEEL_TOTAL_SECONDS_MAX,
   targetBounds,
   failureOption,
+  valueGrid: valueGridProp,
+  title,
 }: DurationWheelPickerProps) {
-  const maxTotalSeconds = targetBounds?.max ?? maxTotalSecondsProp;
+  // PRE-6 story 4.1 : une grille vide vaut absence de grille.
+  const valueGrid = normalizedGrid(valueGridProp);
+  const maxTotalSeconds = targetBounds?.max ?? gridMax(valueGrid) ?? maxTotalSecondsProp;
   // Story 3.7 : la colonne des minutes peut commencer après 0 (borne basse ≥ 60 s) ;
   // `minutesIndexRef` est un INDEX dans `minutesValues`, la minute est `minuteAt(index)`.
   // Sans bornes, ou sous 60 s (story 3.4), index et minute coïncident (inchangé).
-  const minutesValues = minutesValuesFor(maxTotalSeconds, targetBounds);
+  const minutesValues = minutesValuesFor(maxTotalSeconds, targetBounds, valueGrid);
   const minutesMaxIndex = minutesValues.length - 1;
   const minuteAt = (index: number) => minutesValues[index] ?? minutesValues[0] ?? 0;
   const [initialFailure] = useState(() => failureOption?.initiallySelected === true);
-  const [initial] = useState(() => openingPosition(totalSeconds, maxTotalSeconds, targetBounds, initialFailure));
+  const [initial] = useState(() => openingPosition(totalSeconds, maxTotalSeconds, targetBounds, initialFailure, valueGrid));
 
   const minutesIndexRef = useRef(Math.max(0, minutesValues.indexOf(initial.minutes)));
   // Index dans la liste des secondes courante (identique à la valeur sans bornes de Cible).
-  const secondsIndexRef = useRef(secondsValuesFor(initial.minutes, targetBounds).indexOf(initial.seconds));
+  const secondsIndexRef = useRef(secondsValuesFor(initial.minutes, targetBounds, valueGrid).indexOf(initial.seconds));
   const minutesScrollRef = useRef<ScrollView>(null);
   const secondsScrollRef = useRef<ScrollView>(null);
   // Story 3.4 : minutes et secondes courantes (liste des secondes, ✓ indisponible) et option échec.
@@ -611,9 +681,9 @@ function LegacyDurationWheelPicker({
   const [draftSeconds, setDraftSeconds] = useState(initial.seconds);
   const [failureSelected, setFailureSelected] = useState(initialFailure);
   const failureRef = useRef(initialFailure);
-  const secondsValues = secondsValuesFor(draftMinutes, targetBounds);
+  const secondsValues = secondsValuesFor(draftMinutes, targetBounds, valueGrid);
   /** Secondes proposées pour la minute courante (lue dans les refs, au moment de l'événement). */
-  const currentSecondsValues = () => secondsValuesFor(minuteAt(minutesIndexRef.current), targetBounds);
+  const currentSecondsValues = () => secondsValuesFor(minuteAt(minutesIndexRef.current), targetBounds, valueGrid);
   // Story 3.4 : réalignement de la colonne des secondes en attente (liste changée avec la
   // minute) ; ses `onScroll` sont ignorés tant que la colonne garde l'ancien décalage.
   const secondsRealignPendingRef = useRef(false);
@@ -624,7 +694,7 @@ function LegacyDurationWheelPicker({
     // (index déjà recalculé dans `applyColumnIndex`), sans animation. Dépendance
     // volontairement réduite à `draftMinutes` : l'effet ne doit jouer qu'au changement
     // de minute, et ne lit que des refs et des valeurs stables.
-    if (targetBounds === undefined) return;
+    if (targetBounds === undefined && valueGrid === undefined) return;
     alignColumn("seconds", false);
     secondsRealignPendingRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -657,9 +727,9 @@ function LegacyDurationWheelPicker({
       // Story 3.4 (AC2) : seconde hors de la nouvelle liste → la plus proche proposée
       // (jamais 00:00 par recalage) ; l'index est remappé dans la nouvelle liste.
       const minute = minuteAt(index);
-      const seconds = snapSeconds(previousSeconds, minute, targetBounds);
-      secondsIndexRef.current = secondsValuesFor(minute, targetBounds).indexOf(seconds);
-      if (targetBounds !== undefined) secondsRealignPendingRef.current = true;
+      const seconds = snapSeconds(previousSeconds, minute, targetBounds, valueGrid);
+      secondsIndexRef.current = secondsValuesFor(minute, targetBounds, valueGrid).indexOf(seconds);
+      if (targetBounds !== undefined || valueGrid !== undefined) secondsRealignPendingRef.current = true;
       setDraftMinutes(minute);
       setDraftSeconds(seconds);
     } else {
@@ -734,6 +804,7 @@ function LegacyDurationWheelPicker({
         cancelAccessibilityLabel={cancelAccessibilityLabel}
         validateAccessibilityLabel={validateAccessibilityLabel}
         validateDisabled={validateDisabled || undefined}
+        title={title}
       />
       {failureOption ? (
         <FailureOptionRow option={failureOption} selected={failureSelected} onPress={handleFailurePress} />
@@ -920,6 +991,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     height: WHEEL_TOOLBAR_HEIGHT,
+  },
+  // PRE-6 story 4.1 (Figma `8328:28862`) : Inter Semi Bold 18, `text-primary`, centré.
+  toolbarTitle: {
+    ...WHEEL_TITLE_TEXT,
+    flex: 1,
+    textAlign: "center",
+    color: colors.textPrimary,
   },
   actionCancel: {
     width: WHEEL_ACTION_VISUAL_CIRCLE,

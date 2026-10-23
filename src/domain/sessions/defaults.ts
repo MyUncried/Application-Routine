@@ -28,6 +28,21 @@ export const FIXED_ACTIVITY_POSITION = 0 as const;
 
 export const DEFAULT_INITIAL_COUNTDOWN_SECONDS = 10 as const;
 export const DEFAULT_FINAL_PHASE_SECONDS = 5 as const;
+/**
+ * PRE-6 story 7.8 (D-443, remplace la borne 0..3599 s de D-089 amendée par D-265) : Compte à rebours
+ * initial et Fin de séance d'une Séance bornés à 0..60 s, comme les valeurs par défaut du Profil.
+ */
+export const SESSION_BOUNDARY_SECONDS_MAX = 60 as const;
+
+/**
+ * Story 7.8 : valeur d'une borne de séance ramenée à 0..60 s (valeur héritée au-delà : 60 ; valeur
+ * non finie : 0 ; non entière : arrondie). La lecture de la base (`mapSessionRow`) n'est PAS bornée :
+ * tout futur lecteur d'exécution d'une Séance doit appliquer cette fonction (D-443).
+ */
+export function clampSessionBoundarySeconds(seconds: number): number {
+  if (!Number.isFinite(seconds)) return 0;
+  return Math.max(0, Math.min(SESSION_BOUNDARY_SECONDS_MAX, Math.round(seconds)));
+}
 export const DEFAULT_EXERCISE_DURATION_SECONDS = 30 as const;
 
 /**
@@ -61,6 +76,12 @@ export const DEFAULT_RECOVERY_DURATION_SECONDS = 30 as const;
  * substitue la valeur par défaut du Profil (`postActivityRecoverySecondsDefault`)
  * lors de la création réelle d'une occurrence — ce module reste pur, sans
  * accès Profil/SQL.
+ *
+ * **PRE-6 (story 1.1, AD-35)** : nom conservé, mais une nouvelle occurrence
+ * ne naît plus à `0` : elle naît SANS récupération (`null`, « aucune
+ * récupération automatique » — `createExerciseDraft`, ajout depuis le
+ * Catalogue). `0` désigne désormais une récupération PRÉSENTE à 0 s, distincte
+ * de l'absence ; cette constante n'est plus lue par la création d'occurrence.
  */
 export const DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS = 0 as const;
 

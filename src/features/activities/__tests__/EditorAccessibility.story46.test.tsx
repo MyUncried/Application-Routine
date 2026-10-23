@@ -380,8 +380,10 @@ describe("Éditeur — PRE-4 story 4.6", () => {
         const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
         expect({ width, band: style("exercise-context-band").paddingHorizontal }).toEqual({ width, band: margin });
         expect({ width, body: StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingHorizontal }).toEqual({ width, body: margin });
-        expect({ width, finish: style("test-finish-slot").marginHorizontal }).toEqual({ width, finish: margin });
-        for (const testID of ["exercise-context-band", "exercise-reference-row", "exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-slot"]) {
+        expect({ width, finish: style("test-finish-slot").paddingHorizontal }).toEqual({ width, finish: margin });
+        // PRE-6 story 7.10 (D-444) : la zone d'action de `Terminer` est fixe (absolue) au bas de l'écran.
+        expect(style("test-finish-slot").position).toBe("absolute");
+        for (const testID of ["exercise-context-band", "exercise-reference-row", "exercise-section-description", "exercise-section-parameters", "activity-editor-section-media"]) {
           expect({ width, testID, absolute: style(testID).position === "absolute" }).toEqual({ width, testID, absolute: false });
         }
         // Les accès passent à la ligne plutôt que de déborder ; la pilule ne dépasse jamais la rangée.

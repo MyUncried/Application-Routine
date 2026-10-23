@@ -1,16 +1,28 @@
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { Category } from "@/domain/categories/Category";
 import {
   allTargetsFailure,
   hasUnsetTarget,
+  isBilateral,
   seriesCountOf,
+  seriesRowsOf,
   type ExecutionParametersInput,
+  type SeriesTarget,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
-import { computeEstimatedDurationSeconds, computeZoneDurationFacts } from "@/domain/sessions/calculations";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import {
+  computeSeriesCircuitOccurrenceDuration,
+  hasDurationAmount,
+  type ExerciseDurationKind,
+  type SessionDurationResult,
+} from "@/domain/activities/executionCalculations";
+import { computeActivityDurationResult, computeStructuredSessionDuration } from "@/domain/sessions/calculations";
+import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
+import { groupActivitiesByZone } from "@/domain/sessions/composition";
+import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
-import { formatActivityCount, formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
+import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { formatTwoDigits, fromTotalSeconds } from "@/features/sessions/wheelPickerMath";
 import { strings } from "@/shared/i18n";
 
@@ -31,130 +43,87 @@ export type CompositionSummaryFacts = {
    * Activités du Tour ne sont alors multipliées par rien).
    */
   readonly tourRepeatCount?: number;
+  /** PRE-6 (story 1.3) : nature du Circuit du brouillon, lue `?? "TOURS"`. */
+  readonly circuitNature?: CircuitNature;
 };
 
 /**
- * Résumé `N activités · durée estimée` sous `Nombre de tours` (§9 du plan
- * T01-S07 ; mode Répétitions ajouté en T01-S08, arbitrage B ; Séries/Pause
- * après Série corrigées en T01-S08, revue PR #9 —
- * https://github.com/MyUncried/Application-Routine/pull/9#pullrequestreview-5043917736 ;
- * généralisée à plusieurs Activités — complétion REWORK12, 2026-09-04).
- *
- * **REWORK13 (R13-02, `[ChatGPT] CHANGES_REQUESTED — REWORK13 —
- * typographie Nom d'activité + périmètre synthèse Tour`, 2026-09-04 ;
- * `.github/orchestration/reports/2026-09-04_activity-name-typography-tour-
- * summary-scope.md`)** : `initialCountdownSeconds`/`finalPhaseSeconds`
- * retirés de `CompositionSummaryFacts` et de la formule — cette synthèse
- * compte et totalise EXCLUSIVEMENT les Activités du Tour ; `Compte à
- * rebours initial` et `Fin de séance` sont des éléments STRUCTURELS hors
- * Tour, toujours exclus de sa durée (confirmer l'un ou l'autre
- * sélecteur n'actualise donc plus jamais cette synthèse, seulement sa
- * propre carte — par construction, ces champs n'étant plus lus ici). Les
- * autres règles de calcul (durée estimée globale du plan, chapitres 09/10)
- * ne sont pas concernées par ce changement : elles décrivent un total
- * différent, jamais cette synthèse locale.
- *
- * État vide (aucun Exercice dans le Tour) : chaîne locale et complète
- * `"0 exercice · 0 min"` (arbitrage V2) — n'appelle jamais
- * `formatActivityCount(0)`, qui produisait alors le pluriel pour le
- * Catalogue. Depuis PRE-4 (story 1.2, décision Q32), zéro y prend aussi le
- * singulier (« 0 exercice »).
- *
- * État non vide : chaque Activité contribue sa propre durée estimée, SOMMÉE
- * — mode Durée (RM-036/RM-037/RM-071), une Série répète la durée de
- * l'Exercice puis sa Pause après Série éventuelle (RM-036) ; chaque Pause
- * après Série génère une Récupération technique comptée dans la durée
- * estimée (RM-037/RM-071) — d'où, par Activité,
- * `seriesCount × durationSeconds + seriesCount × pauseSeconds`. Mode
- * Répétitions (RM-072) : aucune durée conventionnelle n'est attribuée à
- * l'Exercice lui-même, mais ses Pauses après Série restent comptées
- * (`seriesCount × pauseSeconds`) — dès qu'AU MOINS UNE Activité de la
- * collection est en mode Répétitions, la durée totale devient une borne
- * minimale, précédée de `≥` (jamais présentée comme une valeur exacte, même
- * si d'autres Activités de la même Composition sont en mode Durée). Arrondi
- * à la minute supérieure via `formatEstimatedDuration` (`Math.ceil`,
- * RM-101, inchangé), appliqué une seule fois à la somme totale des
- * Activités. **PRE-4 (story 2.4, AC5, Q20, P41)** : cet arrondi ne vaut
- * plus que pour les natures `exact` et `estimated` ; une borne minimale
- * (`lowerBound`) s'écrit « ≥ » (lexique) suivi des minutes et secondes du
- * formateur du domaine (`formatPhraseDuration`), sans arrondi — sauf une
- * borne de 0 s, qui garde « ≥ 0 min » (P47).
- *
- * **T02-S01 (CE-T02-01 « Calculs », AC-10/AC-11)**, puis **correctif T02
- * post-test-utilisateur** (2026-09-08) — quatre évolutions, la formule par
- * Activité restant inchangée :
- *
- * 1. **Cette synthèse est celle du Tour lui-même**, pas celle de la
- *    Composition entière : seules les Activités `IN_TOUR` y contribuent,
- *    aussi bien pour le NOMBRE que pour la DURÉE. Les Activités
- *    `BEFORE_TOUR`/`AFTER_TOUR` en sont exclues à la source du calcul (elles
- *    restent comptées dans le Catalogue par `computeActivityCount`,
- *    `calculations.ts`, qui lui couvre bien les trois zones — métrique
- *    distincte, jamais réutilisée ici). Le correctif remplace la version
- *    T02-S01 de cette fonction, qui sommait par erreur `facts.exercises`
- *    (les trois zones) pour le nombre et pour la part `BEFORE_TOUR`/
- *    `AFTER_TOUR` de la durée ;
- * 2. la durée `IN_TOUR` est multipliée par `tourRepeatCount` (« développe les
- *    répétitions du Tour ») ;
- * 3. le NOMBRE affiché reste celui des Activités `IN_TOUR` réellement
- *    composées — chacune une seule fois, jamais multipliée par
- *    `tourRepeatCount` (clarification n° 2 du verdict de revue T02-S01,
- *    désormais bornée à la zone du Tour) ;
- * 4. le mode « À l'échec » déclenche désormais la borne minimale `≥` au même
- *    titre que le mode Répétitions (AC-11/D-112) — il ne la déclenchait pas,
- *    alors qu'il ne porte lui non plus aucune durée conventionnelle ; une
- *    Récupération contribue sa seule durée (D-041), sans Séries ni pause.
- *
- * `Compte à rebours initial` et `Fin de séance` restent exclus (REWORK13,
- * R13-02, inchangé).
+ * PRE-6 story 7.8 (D-443, « Durée de la Séance ») : pas d'arrondi (15 s) de la durée de la Séance
+ * affichée dans la zone de contexte.
  */
-export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
-  const inTourExercises = facts.exercises.filter(
-    (exercise) => exercise.structuralPosition === "IN_TOUR",
+export const SESSION_DURATION_ROUNDING_SECONDS = 15;
+
+/**
+ * Durée de séance de la zone de contexte de la Composition (PRE-6 story 2.1, CE-T03-08, RM-159) :
+ * TOUTES les occurrences, développées selon la nature du Circuit (`computeStructuredSessionDuration`,
+ * autorité unique du Domaine), sans Compte à rebours initial ni Fin de séance.
+ *
+ * PRE-6 story 7.8 (D-443, remplace l'arrondi à la minute supérieure de cet affichage) : une
+ * ESTIMATION arrondie aux 15 secondes les plus proches (`Math.round`, une demi-tranche monte),
+ * précédée de « ≥ » si un travail est inconnu (borne minimale) et de « ≈ » sinon — même règle de
+ * choix que l'estimation existante (`SessionDurationResult.kind`), la durée affichée n'étant
+ * jamais exacte une fois arrondie. Format en minutes et secondes, sans minute nulle ni seconde
+ * nulle (« ≈ 12 min 15 s », « ≈ 45 s », « ≈ 3 min ») ; une séance vide (exactement 0) : « 0 s ».
+ * Le calcul de la durée et les autres affichages sont inchangés.
+ */
+export function formatCompositionSessionDuration(facts: CompositionSummaryFacts): string {
+  // Même répartition en zones que l'affichage de la Composition.
+  const zones = groupActivitiesByZone(facts.exercises);
+  return formatSessionDurationEstimate(
+    computeStructuredSessionDuration({
+      beforeTour: zones.beforeTour,
+      inTour: zones.inTour,
+      afterTour: zones.afterTour,
+      tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+      circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
+    }),
   );
-
-  if (inTourExercises.length === 0) {
-    return strings.screens.composition.summary.empty;
-  }
-
-  // **T02-S02** : la durée d'UNE occurrence du Tour est calculée par la
-  // fonction du Domaine (`computeZoneDurationFacts`), jamais par une boucle
-  // équivalente locale — c'est elle qui porte la formule canonique
-  // canonique CONDITIONNELLE (voir `computePauseOccurrences` : la
-  // Récupération remplace la dernière Pause) et la détection de borne
-  // minimale. La parité
-  // Domaine / présentation est ainsi vraie PAR CONSTRUCTION, plus seulement
-  // par ressemblance de deux implémentations.
-  const inTourOccurrence = computeZoneDurationFacts(inTourExercises);
-
-  const totalSeconds = computeEstimatedDurationSeconds({
-    beforeTourDurationSeconds: 0,
-    inTourDurationSeconds: inTourOccurrence.seconds,
-    afterTourDurationSeconds: 0,
-    tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    isLowerBoundEstimate: inTourOccurrence.isLowerBoundEstimate,
-  });
-
-  // PRE-3 : symbole issu de l'autorité Domaine — « ≥ » si un travail est
-  // inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
-  // aucun symbole sinon. PRE-4 (story 2.4, AC5) : la borne minimale garde
-  // ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
-  // `formatEstimatedDuration` et son arrondi à la minute supérieure (P41).
-  // Une borne de 0 s garde le rendu PRE-3 « ≥ 0 min », jamais « 0 s »
-  // (règle P47, `docs/preparation/PRE-4/bmad/questions-ouvertes.md`).
-  const durationLabel =
-    inTourOccurrence.isLowerBoundEstimate && totalSeconds > 0
-      ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(totalSeconds)}`
-      : formatEstimatedDuration(
-          totalSeconds,
-          inTourOccurrence.isLowerBoundEstimate ? "lowerBound" : inTourOccurrence.isEstimated ? "estimated" : "exact",
-        );
-
-  return `${formatActivityCount(inTourExercises.length)}${COMPACT_LIST_SEPARATOR}${durationLabel}`;
 }
 
 /**
- * Valeur affichée sur une ligne `Compte à rebours initial`/`Fin de séance`
+ * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail est inconnu, « ≈ » si une
+ * contribution est estimée (Répétitions avec bip), aucun symbole sinon. PRE-4 (story 2.4, AC5) : la
+ * borne minimale garde ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
+ * `formatEstimatedDuration` et son arrondi à la minute supérieure (P41). Une borne de 0 s garde
+ * « ≥ 0 min », jamais « 0 s » (règle P47). Story 7.8 : sert encore au nom accessible d'une carte
+ * (la durée de séance a son propre format, `formatSessionDurationEstimate`).
+ */
+function formatSessionDurationResult(duration: SessionDurationResult): string {
+  return duration.kind === "lowerBound" && duration.seconds > 0
+    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(duration.seconds)}`
+    : formatEstimatedDuration(duration.seconds, duration.kind);
+}
+
+/**
+ * Story 7.8 : estimation par tranches de 15 s (voir `formatCompositionSessionDuration`).
+ * - « ≈ » (exacte ou estimée) : tranche la plus proche (`Math.round`) ; une durée positive ne
+ *   s'affiche jamais « ≈ 0 s » (au moins une tranche, 15 s).
+ * - « ≥ » (borne minimale) : tranche inférieure (`Math.floor`), pour que le minimum affiché reste
+ *   vrai (98 s → « ≥ 1 min 30 s ») ; une borne nulle reste « ≥ 0 s ».
+ * - Séance vide (exactement 0) : « 0 s », sans préfixe. Durée non finie : traitée comme 0.
+ */
+export function formatSessionDurationEstimate(duration: SessionDurationResult): string {
+  const seconds = Number.isFinite(duration.seconds) ? Math.max(0, duration.seconds) : 0;
+  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+  const step = SESSION_DURATION_ROUNDING_SECONDS;
+  if (duration.kind === "lowerBound") {
+    return `${lowerBoundPrefix}${formatPhraseDuration(Math.floor(seconds / step) * step)}`;
+  }
+  if (seconds === 0) {
+    return formatPhraseDuration(0);
+  }
+  return `${estimatedPrefix}${formatPhraseDuration(Math.max(step, Math.round(seconds / step) * step))}`;
+}
+
+/** Story 7.8 : valeur d'une borne de séance, en secondes seulement, bornée à 0..60 (« 45 s »). */
+export function formatBoundarySecondsValue(totalSeconds: number): string {
+  const seconds = Number.isFinite(totalSeconds) ? Math.min(SESSION_BOUNDARY_SECONDS_MAX, Math.max(0, Math.round(totalSeconds))) : 0;
+  return `${seconds} ${strings.screens.composition.boundarySecondsUnit}`;
+}
+
+/**
+ * Historique (story 7.8 : plus aucun consommateur ; les bornes de séance utilisent
+ * `formatBoundarySecondsValue`). Valeur affichée sur une ligne `Compte à rebours initial`/`Fin de séance`
  * (Composition) ou `Durée`/`Pause après Série` (Exercice, T01-S08) avant
  * ouverture du sélecteur, ex. `"00 min 10 s"`. `maxTotalSeconds` par défaut
  * inchangé (3599, V1, Composition) ; l'écran Exercice passe explicitement
@@ -293,8 +262,8 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
 
 /**
  * Séparateur canonique des listes compactes de cette famille d'écrans —
- * exactement celui déjà employé par `formatCompositionSummary` ci-dessus
- * (`N activités · durée`), extrait ici en constante partagée pour garantir
+ * historiquement celui de `formatCompositionSummary` (`N activités · durée`,
+ * avant PRE-6 story 1.3), extrait ici en constante partagée pour garantir
  * la cohérence demandée entre la synthèse d'une ligne Activité et sa ligne
  * de Zones corporelles, plutôt que deux littéraux pouvant diverger.
  */
@@ -338,18 +307,16 @@ export function formatExerciseBodyZones(
 }
 
 /**
- * Libellé de la SOUS-CARTE `Récupération X min Y s` attachée à une carte
- * d'Activité dans la Composition (T02-S02, D-095/D-128/D-138 ; CE-T01-09
- * « carte au repos `354 × 69` sans Récupération ou bloc `354 × 93` avec
- * Récupération »).
+ * Libellé de la Récupération d'une occurrence dans la Composition (historique :
+ * sous-carte attachée de T02-S02, D-095/D-128/D-138, retirée en PRE-6 story 2.1).
  *
- * **V2-PRE-1 (plan §3.2, UI-CDBCCFD16078)** : `postActivityRecoverySeconds`
- * est désormais un champ OBLIGATOIRE de l'occurrence (`Activity`), jamais
- * absent — y compris lorsqu'il vaut `0`. Cette fonction retourne donc
- * toujours une chaîne non vide (`"Récupération 0 s"` incluse), jamais `null`
- * : son seul usage métier restant est la Récupération de l'OCCURRENCE
- * (Composition) — plus aucun appel depuis une carte de Définition Catalogue
- * (`ActivityCard.tsx`), qui ne porte plus cette notion.
+ * **PRE-6 (story 2.1, D-303, D-217, écart E5, Figma `8328:28657`)** : la
+ * sous-carte devient l'information de la ligne structurelle de récupération
+ * sous l'occurrence. `null` lorsque la Récupération est absente (`null`,
+ * story 1.1) ou nulle : jamais « Récupération 0 s » (remplace la règle
+ * V2-PRE-1 d'une chaîne toujours rendue). Sans libellé ni point d'arrêt,
+ * la ligne elle-même n'est pas rendue hors placement (décision Hermann
+ * 21/10/2026, remplace D-303 « trait toujours présent »).
  *
  * La durée réutilise `formatCompactDuration` — exactement le format déjà
  * employé par la Pause dans la synthèse de la même carte (`30 s`, `1 min`,
@@ -357,6 +324,193 @@ export function formatExerciseBodyZones(
  * `formatDurationRowValue`) juxtaposerait deux écritures différentes de la
  * même grandeur dans une même carte.
  */
-export function formatActivityRecoveryLabel(postActivityRecoverySeconds: number): string {
+export function formatActivityRecoveryLabel(
+  postActivityRecoverySeconds: number | null | undefined,
+): string | null {
+  if (postActivityRecoverySeconds === null || postActivityRecoverySeconds === undefined || postActivityRecoverySeconds <= 0) {
+    return null;
+  }
   return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(postActivityRecoverySeconds)}`;
+}
+
+/** PRE-6 (story 2.2, D-238) : nombre maximal de cibles listées d'une série variable avant « … ». */
+export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
+
+/**
+ * Synthèse de la carte d'occurrence de la Composition (PRE-6 story 2.2,
+ * D-238 révisant D-095, ch13 « Résumé de la ligne d'un Exercice »,
+ * composant Figma `5544:6797`). Fonction pure :
+ * - séries identiques : `N × cible` avec unité (« 3 × 1 min 30 s »,
+ *   « 3 × 10 rép. ») ; une seule série : la cible seule (« 45 s »,
+ *   « 10 rép. ») ;
+ * - séries variables : cibles séparées par « · », unité des Répétitions à la
+ *   fin, au plus trois valeurs puis « … » (« 10 · 12 · 14 … rép. ») ;
+ * - toutes les cibles à l'échec : libellé métier existant (« 1 série à l’échec »,
+ *   « 3 séries à l’échec ») ; une cible à l'échec parmi des cibles chiffrées en
+ *   variables est écrite « à l’échec » à sa place (rendu des lignes mixtes
+ *   encore à aligner, ch13) ;
+ * - Mode non renseigné ou cible à renseigner : « Paramètres à compléter. ».
+ *
+ * Durées au format `formatCompactDuration`. Le nom et le Mode ne sont pas
+ * répétés ; aucun texte de pause ni de récupération. En Circuit de Séries, N
+ * est celui des paramètres déjà adaptés par la story 1.4 : aucune règle propre.
+ */
+export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
+  const parameters = facts.executionParameters;
+  const card = strings.screens.composition.occurrenceCard;
+  const failure = strings.screens.composition.exerciseRow.toFailure;
+  const count = seriesCountOf(parameters);
+
+  // Aucune série : paramètres à compléter (`[].every()` rendrait sinon « tout à l'échec »).
+  if (count === 0) {
+    return strings.executionParameters.card.incomplete;
+  }
+  // Toutes les cibles à l'échec : libellé métier existant, celui de `formatExerciseRowSummary`
+  // (« 1 série à l’échec », « 3 séries à l’échec »), sans pause ni clause de côté.
+  if (allTargetsFailure(parameters)) {
+    const exerciseRow = strings.screens.composition.exerciseRow;
+    return `${formatCountWithUnit(count, exerciseRow.seriesSingular, exerciseRow.seriesPlural)} ${failure}`;
+  }
+  if (parameters.mode === null || hasUnsetTarget(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+
+  const mode = parameters.mode;
+  const unit = mode === "REPETITIONS" ? ` ${strings.executionParameters.sheet.repetitionsUnit}` : "";
+  const formatTarget = (target: SeriesTarget): string => {
+    if (target.kind === "NUMBER") {
+      return mode === "DURATION" ? formatCompactDuration(target.value) : String(target.value);
+    }
+    return failure;
+  };
+
+  const rows = seriesRowsOf(parameters);
+  if (parameters.series.kind === "UNIFORM" || rows.length === 1) {
+    const target = `${formatTarget(rows[0].target)}${unit}`;
+    return count > 1 ? card.seriesTimes.replace("{n}", String(count)).replace("{target}", target) : target;
+  }
+
+  const values = rows.slice(0, OCCURRENCE_SUMMARY_MAX_VALUES).map((row) => formatTarget(row.target));
+  const overflow = rows.length > OCCURRENCE_SUMMARY_MAX_VALUES ? ` ${card.valuesOverflow}` : "";
+  return `${values.join(COMPACT_LIST_SEPARATOR)}${overflow}${unit}`;
+}
+
+/** Contexte de Circuit nécessaire à la durée d'UNE occurrence (PRE-6 story 2.2). */
+export type OccurrenceCircuitContext = {
+  readonly circuitNature?: CircuitNature;
+  readonly tourRepeatCount?: number;
+};
+
+/**
+ * Durée d'UNE occurrence (PRE-6 story 2.2), par l'autorité du Domaine :
+ * `computeStructuredSessionDuration` sur cette seule occurrence. Hors
+ * Circuit ou en Circuit de Tours : durée d'occurrence simple (To, un seul
+ * passage, jamais × N tours) ; en Circuit de Séries : total de ses passages
+ * (story 1.3). Aucune formule locale.
+ */
+function occurrenceDurationResult(
+  exercise: SessionDraftExercise,
+  context: OccurrenceCircuitContext,
+): SessionDurationResult {
+  const nature = context.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+  const inSeriesCircuit = exercise.structuralPosition === "IN_TOUR" && nature === "SERIES";
+  return computeStructuredSessionDuration({
+    beforeTour: inSeriesCircuit ? [] : [exercise],
+    inTour: inSeriesCircuit ? [exercise] : [],
+    afterTour: [],
+    tourRepeatCount: context.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    circuitNature: nature,
+  });
+}
+
+/**
+ * Seconde ligne « durée estimée » de la carte d'occurrence (PRE-6 story 2.2,
+ * variante Figma « Répétitions + cadence » `9522:43875`) : présente
+ * seulement lorsque la durée de l'occurrence est estimée (Répétitions avec
+ * bip) ; `null` sinon. Montant au format `formatCompactDuration`, précédé du
+ * symbole « ≈ » du lexique (même règle de nature que partout ailleurs).
+ */
+export function formatOccurrenceEstimatedDuration(
+  exercise: SessionDraftExercise,
+  context: OccurrenceCircuitContext = {},
+): string | null {
+  const duration = occurrenceDurationResult(exercise, context);
+  return duration.kind === "estimated"
+    ? `${strings.shared.durationNature.estimatedPrefix}${formatCompactDuration(duration.seconds)}`
+    : null;
+}
+
+/**
+ * Nature de la durée d'UNE occurrence avant agrégation (`omitted`, `incomplete`…),
+ * par les mêmes fonctions du Domaine que `computeStructuredSessionDuration`.
+ */
+function occurrenceDurationKind(
+  exercise: SessionDraftExercise,
+  context: OccurrenceCircuitContext,
+): ExerciseDurationKind {
+  const nature = context.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
+  const parameters = exercise.executionParameters;
+  if (
+    exercise.structuralPosition === "IN_TOUR" &&
+    nature === "SERIES" &&
+    parameters.mode !== null &&
+    exercise.type !== "RECOVERY"
+  ) {
+    return computeSeriesCircuitOccurrenceDuration(
+      parameters,
+      exercise.postActivityRecoverySeconds ?? 0,
+      context.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+    ).kind;
+  }
+  return computeActivityDurationResult(exercise).kind;
+}
+
+/**
+ * Nom accessible de la carte d'occurrence (PRE-6 story 2.2, CE-T03-08 §18) :
+ * type (« Exercice »), nom, position dans sa zone (« n sur m »), durée
+ * d'occurrence (`formatSessionDurationResult` ; story 7.8 : la durée de séance a son propre format
+ * par tranches de 15 s) — omise si elle n'a pas de montant
+ * (`omitted`, `incomplete` : jamais « ≥ 0 min ») —, puis « changement de côté »
+ * si l'occurrence est bilatérale (RM-243, sans direction).
+ */
+export function formatOccurrenceAccessibilityLabel(
+  exercise: SessionDraftExercise,
+  position: { readonly index: number; readonly count: number },
+  context: OccurrenceCircuitContext = {},
+): string {
+  const card = strings.screens.composition.occurrenceCard;
+  const parts = [
+    card.accessibilityType,
+    exercise.name,
+    card.accessibilityPosition
+      .replace("{position}", String(position.index + 1))
+      .replace("{count}", String(position.count)),
+  ];
+  if (hasDurationAmount(occurrenceDurationKind(exercise, context))) {
+    parts.push(formatSessionDurationResult(occurrenceDurationResult(exercise, context)));
+  }
+  if (isBilateral(exercise.sideMode)) {
+    parts.push(card.accessibilitySideChange);
+  }
+  return parts.join(", ");
+}
+
+/** Catégorie affichée sur la ligne de classement d'une carte (nom et couleur de pastille). */
+export type OccurrenceCategory = { readonly name: string; readonly color: string };
+
+/**
+ * PRE-6 (story 2.2) : Catégorie d'une occurrence, résolue dans le référentiel
+ * persistant (`Category`, même source que le Catalogue). `null` si l'occurrence
+ * n'en porte pas ou si l'identifiant est inconnu du référentiel transmis : la
+ * carte n'affiche alors ni pastille ni nom de Catégorie (jamais l'identifiant brut).
+ */
+export function resolveOccurrenceCategory(
+  categoryId: string | null | undefined,
+  categories: readonly Category[],
+): OccurrenceCategory | null {
+  if (!categoryId) {
+    return null;
+  }
+  const category = categories.find((candidate) => candidate.id === categoryId);
+  return category ? { name: category.name, color: category.color } : null;
 }

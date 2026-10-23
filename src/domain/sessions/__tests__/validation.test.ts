@@ -8,6 +8,7 @@ import {
   uniformParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
+import { expandComposition } from "@/domain/sessions/circuit";
 import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
@@ -28,7 +29,9 @@ import {
   validateSessionName,
   validateTourRepeatCount,
   validateUpdateSessionInput,
+  validateCircuitNature,
 } from "@/domain/sessions/validation";
+import { clampSessionBoundarySeconds } from "@/domain/sessions/defaults";
 
 describe("validateSessionName / validateExerciseName", () => {
   it("accepts 1 character after normalization", () => {
@@ -281,6 +284,29 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
     expect(validateInitialCountdownSeconds(1.5)).toEqual({
       ok: false,
       violations: [{ code: "NOT_INTEGER", field: "session.initialCountdownSeconds" }],
+    });
+  });
+
+  it("story 7.8 — clampSessionBoundarySeconds: 0..60, integer, non-finite → 0", () => {
+    expect(clampSessionBoundarySeconds(600)).toBe(60);
+    expect(clampSessionBoundarySeconds(60)).toBe(60);
+    expect(clampSessionBoundarySeconds(0)).toBe(0);
+    expect(clampSessionBoundarySeconds(-5)).toBe(0);
+    expect(clampSessionBoundarySeconds(30.4)).toBe(30);
+    expect(clampSessionBoundarySeconds(Number.NaN)).toBe(0);
+  });
+
+  // PRE-6 story 7.8 (D-443) : bornes de séance limitées à 0..60 s à l'écriture.
+  it("story 7.8 — accepts 60, rejects 61 and beyond with OUT_OF_RANGE 0..60", () => {
+    expect(validateInitialCountdownSeconds(60)).toEqual({ ok: true, value: 60 });
+    expect(validateFinalPhaseSeconds(60)).toEqual({ ok: true, value: 60 });
+    expect(validateInitialCountdownSeconds(61)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.initialCountdownSeconds", details: { min: 0, max: 60 } }],
+    });
+    expect(validateFinalPhaseSeconds(3599)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.finalPhaseSeconds", details: { min: 0, max: 60 } }],
     });
   });
 });
@@ -1126,5 +1152,214 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
         activities: [],
       }),
     ).not.toThrow();
+  });
+});
+
+/**
+ * PRE-6 story 1.1 (AD-34, AD-35) : nature du Circuit validée et récupération
+ * à trois états (absente `null`, présente à 0, positive).
+ */
+describe("PRE6-1.1 — nature du Circuit et récupération nullable", () => {
+  type CreateInput = Parameters<typeof validateCreateSessionInput>[0];
+  const exercise = (postActivityRecoverySeconds: number | null) => ({
+    id: "ex-1",
+    type: "EXERCISE" as const,
+    structuralPosition: "IN_TOUR" as const,
+    name: "Gainage",
+    executionParameters: durationParameters(30),
+    postActivityRecoverySeconds,
+    bodyZoneIds: [] as string[],
+  });
+  const createInput = (overrides: Record<string, unknown> = {}): CreateInput =>
+    ({
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 4,
+      exercises: [exercise(null)],
+      ...overrides,
+    }) as CreateInput;
+  const updateInput = (overrides: Record<string, unknown> = {}): UpdateSessionInput =>
+    ({
+      sourceSessionId: "s-1",
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 4,
+      activities: [{ ...exercise(null), position: 0 }],
+      ...overrides,
+    }) as UpdateSessionInput;
+
+  it("validateCircuitNature : TOURS et SERIES reconnus ; absent = TOURS ; toute autre valeur UNRECOGNIZED", () => {
+    expect(validateCircuitNature("TOURS")).toEqual({ ok: true, value: "TOURS" });
+    expect(validateCircuitNature("SERIES")).toEqual({ ok: true, value: "SERIES" });
+    expect(validateCircuitNature(undefined)).toEqual({ ok: true, value: "TOURS" });
+    for (const raw of ["FOO", "", null, 1]) {
+      expect(validateCircuitNature(raw)).toEqual({ ok: false, violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }] });
+    }
+  });
+
+  it("une nature invalide fait échouer la création et la modification sur session.circuitNature", () => {
+    expect(validateCreateSessionInput(createInput({ circuitNature: "FOO" }))).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }],
+    });
+    expect(validateUpdateSessionInput(updateInput({ circuitNature: "FOO" }))).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }],
+    });
+  });
+
+  it("une nature valide est transmise par les deux agrégats ; absente, elle reste absente (Tours implicite)", () => {
+    const created = validateCreateSessionInput(createInput({ circuitNature: "SERIES" }));
+    expect(created.ok && created.value.circuitNature).toBe("SERIES");
+    const updated = validateUpdateSessionInput(updateInput({ circuitNature: "SERIES" }));
+    expect(updated.ok && updated.value.circuitNature).toBe("SERIES");
+    const implicit = validateCreateSessionInput(createInput());
+    expect(implicit.ok && "circuitNature" in implicit.value).toBe(false);
+  });
+
+  it.each([null, 0, 30])("validatePostActivityRecoverySeconds(%p) est conservée telle quelle", (value) => {
+    expect(validatePostActivityRecoverySeconds(value)).toEqual({ ok: true, value });
+  });
+
+  it("récupération null, 0 et 30 : identiques après validation (création et modification)", () => {
+    for (const value of [null, 0, 30]) {
+      const created = validateCreateSessionInput(createInput({ exercises: [exercise(value)] }));
+      expect(created.ok && created.value.exercises[0]?.postActivityRecoverySeconds).toBe(value);
+      const updated = validateUpdateSessionInput(updateInput({ activities: [{ ...exercise(value), position: 0 }] }));
+      expect(updated.ok && updated.value.activities[0]?.postActivityRecoverySeconds).toBe(value);
+    }
+  });
+
+  it("récupération -1 et 1,5 : violations existantes OUT_OF_RANGE et NOT_INTEGER", () => {
+    expect(validateCreateSessionInput(createInput({ exercises: [exercise(-1)] }))).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "exercise.postActivityRecoverySeconds", details: { min: 0, max: 5999 } }],
+    });
+    expect(validateCreateSessionInput(createInput({ exercises: [exercise(1.5)] }))).toEqual({
+      ok: false,
+      violations: [{ code: "NOT_INTEGER", field: "exercise.postActivityRecoverySeconds" }],
+    });
+  });
+});
+
+describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () => {
+  type CreateInput = Parameters<typeof validateCreateSessionInput>[0];
+  const exercise = (id: string, structuralPosition: "BEFORE_TOUR" | "IN_TOUR" | "AFTER_TOUR") => ({
+    id,
+    type: "EXERCISE" as const,
+    structuralPosition,
+    name: id,
+    executionParameters: durationParameters(30),
+    postActivityRecoverySeconds: null,
+    bodyZoneIds: [] as string[],
+  });
+  /** Avant : P ; Circuit : A, B. */
+  const occurrences = [exercise("P", "BEFORE_TOUR"), exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR")];
+  const createInput = (stopPoints: unknown): CreateInput =>
+    ({
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: occurrences,
+      stopPoints,
+    }) as CreateInput;
+  const updateInput = (stopPoints: unknown): UpdateSessionInput =>
+    ({
+      sourceSessionId: "s-1",
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      activities: occurrences.map((item, index) => ({ ...item, position: index === 0 ? 0 : index - 1 })),
+      stopPoints,
+    }) as UpdateSessionInput;
+
+  it("des emplacements autorisés et uniques sont transmis tels quels (création et modification)", () => {
+    const points = [
+      { scope: "BEFORE_TOUR", position: 1 },
+      { scope: "IN_TOUR", position: 0 },
+      { scope: "IN_TOUR", position: 1 },
+    ];
+    const created = validateCreateSessionInput(createInput(points));
+    expect(created.ok && created.value.stopPoints).toEqual(points);
+    const updated = validateUpdateSessionInput(updateInput(points));
+    expect(updated.ok && updated.value.stopPoints).toEqual(points);
+  });
+
+  // Story 6.1 (revue, D-441) : RM-251 n'est pas contrôlée à l'enregistrement — une Séance
+  // héritée portant deux points consécutifs reste enregistrable ; le développement n'en
+  // exécute qu'un.
+  it("RM-251 : deux points consécutifs hérités restent enregistrables ; le plan ne porte qu'un arrêt", () => {
+    const points = [
+      { scope: "BEFORE_TOUR" as const, position: 1 },
+      { scope: "IN_TOUR" as const, position: 0 },
+    ];
+    expect(validateCreateSessionInput(createInput(points)).ok).toBe(true);
+    expect(validateUpdateSessionInput(updateInput(points)).ok).toBe(true);
+    const steps = expandComposition({
+      exercises: occurrences,
+      stopPoints: points.map((point, index) => ({ id: `s${index}`, ...point })),
+      tourRepeatCount: 1,
+    });
+    expect(steps.filter((step) => step.kind === "STOP_POINT")).toHaveLength(1);
+  });
+
+  it.each([
+    ["BEFORE_TOUR p=0 (juste après le compte à rebours)", { scope: "BEFORE_TOUR", position: 0 }, "FORBIDDEN_PLACEMENT"],
+    ["IN_TOUR p=2 (juste avant la Fin)", { scope: "IN_TOUR", position: 2 }, "FORBIDDEN_PLACEMENT"],
+    ["AFTER_TOUR p=0 sans rien après", { scope: "AFTER_TOUR", position: 0 }, "FORBIDDEN_PLACEMENT"],
+    ["p hors bornes", { scope: "IN_TOUR", position: 3 }, "OUT_OF_RANGE"],
+    ["p négative", { scope: "IN_TOUR", position: -1 }, "OUT_OF_RANGE"],
+    ["p non entière", { scope: "IN_TOUR", position: 0.5 }, "NOT_INTEGER"],
+    ["portée inconnue", { scope: "AILLEURS", position: 0 }, "UNRECOGNIZED"],
+  ])("%s : violation %s sur session.stopPoints", (_label, point, code) => {
+    for (const result of [validateCreateSessionInput(createInput([point])), validateUpdateSessionInput(updateInput([point]))]) {
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.violations.map((violation) => [violation.code, violation.field])).toEqual([[code, "session.stopPoints"]]);
+      }
+    }
+  });
+
+  // Story 7.1 (D-442) : à N ≥ 2, la fin de Tour en clôture de Séance (IN p=2 ici) est acceptée, et un
+  // conflit de Tour (début et fin) reste enregistrable ; l'exécution n'en fait qu'un arrêt.
+  it("D-442 — N ≥ 2 : fin de Tour juste avant la Fin acceptée ; conflit début + fin enregistrable", () => {
+    const points = [
+      { scope: "IN_TOUR" as const, position: 0 },
+      { scope: "IN_TOUR" as const, position: 2 },
+    ];
+    const created = validateCreateSessionInput({ ...createInput(points), tourRepeatCount: 2 });
+    expect(created.ok && created.value.stopPoints).toEqual(points);
+    const updated = validateUpdateSessionInput({ ...updateInput(points), tourRepeatCount: 3 });
+    expect(updated.ok).toBe(true);
+    // N = 1 : la fin de Tour juste avant la Fin reste interdite.
+    expect(validateCreateSessionInput(createInput(points)).ok).toBe(false);
+    // N invalide : défaut 1, la règle ne s'assouplit pas (seule la violation de N est en plus).
+    const invalid = validateCreateSessionInput({ ...createInput(points), tourRepeatCount: 0 });
+    expect(!invalid.ok && invalid.violations.some((violation) => violation.code === "FORBIDDEN_PLACEMENT")).toBe(true);
+  });
+
+  it("un doublon (scope, position) : violation DUPLICATE", () => {
+    const result = validateCreateSessionInput(
+      createInput([
+        { scope: "IN_TOUR", position: 1 },
+        { scope: "IN_TOUR", position: 1 },
+      ]),
+    );
+    expect(result).toEqual({ ok: false, violations: [{ code: "DUPLICATE", field: "session.stopPoints" }] });
+  });
+
+  it("hors bornes : détails min 0 / max = nombre d'occurrences de la portée", () => {
+    expect(validateCreateSessionInput(createInput([{ scope: "IN_TOUR", position: 3 }]))).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.stopPoints", details: { min: 0, max: 2 } }],
+    });
   });
 });

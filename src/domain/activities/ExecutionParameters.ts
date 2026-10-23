@@ -110,6 +110,15 @@ export const EXECUTION_BOUNDS = {
 } as const;
 
 /**
+ * Nombre de Séries borné à `EXECUTION_BOUNDS.seriesCount` (1..99), tronqué à
+ * l'entier — partagé par la Feuille (`setSeriesCount`) et le Circuit
+ * (`setCircuitCount`, PRE-6 story 1.4).
+ */
+export function clampSeriesCount(count: number): number {
+  return Math.min(Math.max(Math.trunc(count), EXECUTION_BOUNDS.seriesCount.min), EXECUTION_BOUNDS.seriesCount.max);
+}
+
+/**
  * Bornes du CHECK composite d'`activities` (bornes de `migration004`
  * reprises à l'identique par `migration010`, AD-4) : contrainte de la base,
  * appliquée par le repository des Séances, jamais par le niveau structurel.
@@ -271,6 +280,76 @@ export function seriesRowsOf(parameters: { readonly series: ExecutionSeries }): 
     pauseSeconds: series.pauseSeconds,
     loadKg: series.loadKg,
   }));
+}
+
+/**
+ * PRE-6 (story 1.4, AD-38, AD-39) — règle UNIQUE « le tableau suit N »,
+ * partagée par la Feuille (`setSeriesCount`, P3-06) et le Circuit de Séries
+ * (`circuit.ts`) :
+ * - réduire : les éléments au-delà de `count` passent EN TÊTE de la réserve,
+ *   dans leur ordre relatif d'origine ;
+ * - augmenter : restauration d'abord depuis la tête de la réserve, puis
+ *   `copyLast(dernier actif)` (`undefined` si aucun actif) ;
+ * - `count` égal à la longueur : rien ne change.
+ * Fonction pure : les tableaux reçus ne sont jamais modifiés ; un élément
+ * restauré est rendu tel quel (à l'appelant de le copier s'il le faut).
+ *
+ * Contrat de `copyLast` : appelé une fois par élément AJOUTÉ, dans l'ordre,
+ * et seulement après épuisement de la réserve (jamais lors d'une réduction
+ * ni d'une restauration) ; il reçoit le dernier actif courant, y compris
+ * l'élément qu'il vient de produire. La Feuille s'appuie sur cet ordre pour
+ * attribuer ses identités (`nextId`).
+ */
+export function resizeWithReserve<T>(
+  active: readonly T[],
+  reserve: readonly T[],
+  count: number,
+  copyLast: (last: T | undefined) => T,
+): { readonly active: readonly T[]; readonly reserve: readonly T[] } {
+  if (count < active.length) {
+    return { active: active.slice(0, count), reserve: [...active.slice(count), ...reserve] };
+  }
+  const nextActive = [...active];
+  const nextReserve = [...reserve];
+  while (nextActive.length < count) {
+    if (nextReserve.length > 0) {
+      nextActive.push(nextReserve.shift() as T);
+    } else {
+      nextActive.push(copyLast(nextActive[nextActive.length - 1]));
+    }
+  }
+  return { active: nextActive, reserve: nextReserve };
+}
+
+/** Copie d'une Série sans partage d'objet (Cible comprise, AD-9). */
+function copySeriesRow(row: SeriesRow): SeriesRow {
+  return { ...row, target: { ...row.target } };
+}
+
+/**
+ * PRE-6 (story 1.4, AD-37, AD-38) — adaptation d'une `ExecutionSeries` à N
+ * par `resizeWithReserve`. Identiques : seul `count` suit N, réserve rendue
+ * inchangée. Variables : lignes ramenées à N, lignes retirées en réserve,
+ * restauration puis copie de la dernière ligne active (Cible, Pause, charge ;
+ * objets non partagés). Le régime ne change jamais. `count` doit être déjà
+ * borné par l'appelant (`EXECUTION_BOUNDS.seriesCount`).
+ */
+export function resizeSeriesWithReserve(
+  series: ExecutionSeries,
+  reserve: readonly SeriesRow[],
+  count: number,
+): { readonly series: ExecutionSeries; readonly reserve: readonly SeriesRow[] } {
+  if (series.kind === "UNIFORM") {
+    return { series: series.count === count ? series : { ...series, count }, reserve };
+  }
+  if (series.rows.length === count) {
+    return { series, reserve };
+  }
+  const resized = resizeWithReserve(series.rows, reserve, count, (last) =>
+    // Régime variables sans ligne (forme invalide, lue défensivement) : Série à renseigner.
+    last === undefined ? { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 } : copySeriesRow(last),
+  );
+  return { series: { kind: "VARIABLE", rows: resized.active }, reserve: resized.reserve };
 }
 
 /** Vrai si toutes les Cibles effectives sont à l'échec (gabarit « tout échec », P26). */

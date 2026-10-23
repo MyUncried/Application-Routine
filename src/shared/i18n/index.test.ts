@@ -177,10 +177,56 @@ describe("strings", () => {
     });
     expect(strings.screens.composition.label).toEqual({
       accessibilityLabel: "Étiquette de la séance",
+      placeholder: "Étiquette",
     });
     expect(strings.screens.composition.countdown.label).toBe("Compte à rebours initial");
     expect(strings.screens.composition.finalPhase.label).toBe("Fin de séance");
-    expect(strings.screens.composition.tour.label).toBe("Nombre de tours");
+    expect(strings.screens.composition.circuit).toEqual({
+      title: "Circuit",
+      unit: {
+        TOURS: { singular: "tour", plural: "tours" },
+        SERIES: { singular: "série", plural: "séries" },
+      },
+      countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
+      // PRE-6 story 7.3 (D-442) : boutons − et + du stepper toujours affiché.
+      decrementAccessibilityLabel: { TOURS: "Retirer un tour", SERIES: "Retirer une série" },
+      incrementAccessibilityLabel: { TOURS: "Ajouter un tour", SERIES: "Ajouter une série" },
+      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
+      nature: {
+        accessibilityLabel: "Nature du circuit",
+        options: {
+          TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
+          SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+        },
+      },
+      // PRE-6 story 3.4 (CE-CIR-03, `8328:34965`) : œil et feuille « Volumes du circuit ».
+      volumes: {
+        openAccessibilityLabel: "Voir les volumes du circuit",
+        title: "Volumes du circuit",
+        closeAccessibilityLabel: "Fermer les volumes du circuit",
+        empty: "Aucun exercice dans le circuit",
+        columns: { exercise: "Exercice", series: "S{n}", unit: "Unité" },
+        units: { REPETITIONS: "rép.", DURATION: "durée", FAILURE: "À l’échec" },
+        failureValue: "✓",
+        missingValue: "—",
+        spoken: {
+          series: "série {n} : {value}",
+          repetitionsSingular: "{n} répétition",
+          repetitionsPlural: "{n} répétitions",
+          failure: "à l’échec",
+          noSeries: "pas de série",
+          unset: "à renseigner",
+        },
+      },
+    });
+  });
+
+  it("exposes the Circuit conversion loss dialog texts (PRE-6 story 3.2, CE-CIR-02, `8328:34964`)", () => {
+    const t = strings.screens.composition.circuitEntryConfirmModal;
+    expect(t.natureTitle).toBe("Passer en circuit de séries ?");
+    expect(t.natureMessage).toBe(
+      "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
+    );
   });
 
   it("exposes the Composition edit-mode rehydration state texts (T01-S10, CE-T01-S10-09)", () => {
@@ -199,13 +245,89 @@ describe("strings", () => {
       validateAccessibilityLabel: "Valider",
     });
     expect(strings.screens.composition.addActivity).toBe("Ajouter un exercice");
-    // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance.
-    expect(strings.screens.composition.saveAction).toBe("Enregistrer la séance");
+    // PRE-4 Q54 : l’action finale de la Composition enregistre la Séance ; PRE-6 story 2.1
+    // (CE-T03-08, D-388) : son libellé est « Continuer ».
+    expect(strings.screens.composition.saveAction).toBe("Continuer");
     expect(strings.screens.composition.saveError).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
   });
 
-  it("exposes the exact local Composition empty-summary label (V2 — singular, like formatActivityCount(0) since Q32)", () => {
-    expect(strings.screens.composition.summary.empty).toBe("0 exercice · 0 min");
+  it("exposes the placement mode texts (PRE-6 story 4.1, `8328:28622`, `8328:29270`, `8328:28733`)", () => {
+    expect(strings.screens.composition.placement).toEqual({
+      addStopAccessibilityLabel: "Ajouter un arrêt",
+      recovery: "Récupération",
+      stopPoint: "Point d’arrêt",
+      addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
+      addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
+      addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
+      // PRE-6 story 7.2 (D-442) : emplacement de tête de Circuit.
+      addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
+      existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
+      existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
+      // PRE-6 story 6.2 : point en tête de portée (données héritées).
+      stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
+      stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
+      confirmSingular: "Confirmer {n} pause ajoutée",
+      confirmPlural: "Confirmer {n} pauses ajoutées",
+      // PRE-6 story 6.3 (D-441) : libellé des changements autres que des ajouts seuls.
+      confirmChanges: "Confirmer les modifications",
+      cancel: "Annuler",
+      recoveryWheelTitle: "Durée de récupération",
+      selectedHint: "Un toucher retire cet ajout.",
+      // PRE-6 story 6.3 : indices du point existant en placement.
+      existingStopPointSelectedHint: "Toucher pour retirer ce point d’arrêt.",
+      existingStopPointRemovedHint: "Toucher pour conserver ce point d’arrêt.",
+      // PRE-6 story 6.3 (revue) : resélection refusée, annonces, indice d’entrée.
+      existingStopPointBlockedHint: "Ne peut pas être conservé : un point ajouté le suivrait.",
+      stopPointRemovedAnnouncement: "Point d’arrêt retiré",
+      stopPointKeptAnnouncement: "Point d’arrêt conservé",
+      stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
+      addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
+      // PRE-6 story 7.2 (D-442) : une récupération existante se modifie et se retire en placement.
+      addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
+      // PRE-6 story 6.3 (revue, ch13 L1524) : annonces d’ajout.
+      stopPointAddedAnnouncement: "Point d’arrêt ajouté",
+      recoveryAddedAnnouncement: "Récupération ajoutée",
+      additionCancelledAnnouncement: "Ajout annulé",
+      // PRE-6 story 7.2 (D-442) : zone de récupération existante en placement.
+      existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
+      existingRecoverySelectedHint: "Toucher pour retirer cette récupération.",
+      existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
+      recoveryRemovedAnnouncement: "Récupération retirée",
+      recoverySelectedAnnouncement: "Récupération sélectionnée",
+    });
+  });
+
+  it("exposes the pause texts (PRE-6 story 6.2 ; story 7.2, D-442 : plus de réglage de la récupération hors placement)", () => {
+    expect(strings.screens.composition.pauses).toEqual({
+      // PRE-6 story 6.2 (D-441) : plus de retrait d'un point par bulle ; l'appui long le déplace.
+      stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
+    });
+    // Story 7.2 (D-442) : D-301 retirée, plus d’avertissement d’enchaînement sans pause.
+    expect(strings.screens.composition).not.toHaveProperty("unpausedWarning");
+  });
+
+  it("exposes the tour-boundary choice and removed-stop-point texts (PRE-6 story 7.2, D-442)", () => {
+    expect(strings.screens.composition.tourBoundaryChoice).toEqual({
+      title: "Point d’arrêt en début et en fin de tour",
+      message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
+      head: "Début de tour",
+      tail: "Fin de tour",
+      cancel: "Annuler",
+    });
+    expect(strings.screens.composition.stopPointsRemovedAnnouncement).toEqual({
+      singular: "Point d’arrêt retiré",
+      plural: "{n} points d’arrêt retirés",
+    });
+  });
+
+  it("no longer exposes refused-deletion announcements (PRE-6 story 7.5, D-442 amendée)", () => {
+    expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedStopPointNotAllowed");
+    expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedConsecutiveStopPoints");
+  });
+
+  it("exposes the seconds unit of the session boundaries; no Circuit duration label any more (PRE-6 story 7.8, D-443)", () => {
+    expect(strings.screens.composition.boundarySecondsUnit).toBe("s");
+    expect(strings.screens.composition).not.toHaveProperty("summary");
   });
 
   it("exposes the exact abandon-creation modal texts (docs §06, « Les modales » ; REWORK10, 2026-09-04 — 'Continuer la création'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {
@@ -243,10 +365,9 @@ describe("strings", () => {
     });
   });
 
-  it("T02-S02 — exposes the attached-Récupération sub-card label of a Composition card (D-095/D-128/D-138)", () => {
+  it("T02-S02, révisé PRE-6 story 2.1 — exposes the Récupération label of a Composition occurrence (D-095/D-128/D-138)", () => {
     expect(strings.screens.composition.activityRecovery).toEqual({
       label: "Récupération",
-      accessibilityLabel: "Récupération attachée",
     });
   });
 
@@ -406,6 +527,7 @@ describe("strings", () => {
 
   it("exposes the Composition Retour accessibility label (AUD-03)", () => {
     expect(strings.screens.composition.backAccessibilityLabel).toBe("Retour");
+    expect(strings.screens.composition.closeAccessibilityLabel).toBe("Fermer");
   });
 
   it("exposes a Durée row accessibility label distinct from the Durée/Répétition mode tab (T01-S08)", () => {
@@ -532,6 +654,11 @@ describe("strings — PRE-4 story 1.1", () => {
     expect(strings.executionParameters.sheet.invalidHint).toBe("Valeur à renseigner");
     expect(strings.executionParameters.sheet.invalidValueHint).toBe("Valeur non admise");
     expect(strings.executionParameters.sheet.validateUnavailableSuffix).toBe("indisponible tant qu’une valeur est invalide");
+  });
+
+  it("PRE-6 story 3.3 — nombre de séries imposé par le Circuit de Séries (nom accessible et indice)", () => {
+    expect(strings.executionParameters.circuit.inheritedSeriesCountSuffix).toBe("imposé par le circuit");
+    expect(strings.executionParameters.circuit.inheritedSeriesCount).toBe("Nombre de séries imposé par le circuit");
   });
 });
 

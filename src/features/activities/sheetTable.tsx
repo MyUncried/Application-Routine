@@ -368,6 +368,7 @@ export function RemoveRowButton({
   accessibilityLabel,
   closesFieldHint,
   disabled,
+  disabledHint,
   active,
   onPress,
   testID,
@@ -375,6 +376,8 @@ export function RemoveRowButton({
   accessibilityLabel: string;
   closesFieldHint: string;
   disabled: boolean;
+  /** PRE-6 story 3.3 : raison annoncée d'une croix indisponible (N imposé par le Circuit). */
+  disabledHint?: string;
   active: boolean;
   onPress: () => void;
   testID: string;
@@ -386,7 +389,7 @@ export function RemoveRowButton({
         disabled={disabled}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        accessibilityHint={active || disabled ? undefined : closesFieldHint}
+        accessibilityHint={disabled ? disabledHint : active ? undefined : closesFieldHint}
         accessibilityState={{ disabled }}
         hitSlop={REMOVE_HIT_SLOP}
         style={[styles.removeDisc, disabled ? styles.unselected : null]}

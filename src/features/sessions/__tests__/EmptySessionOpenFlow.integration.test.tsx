@@ -206,11 +206,11 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(router.getPathname()).toBe("/composition");
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
-      expect(screen.getByText(composition.summary.empty)).toBeTruthy();
-      expect(screen.getByText("0 exercice · 0 min")).toBeTruthy();
+      // Story 7.8 (D-443) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
+      expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0 s");
       expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
 
-      // `Enregistrer la séance` (Q54, ex-`Continuer`) : règle existante — sans Exercice, le
+      // Action finale « Continuer » (Q54 ; libellé PRE-6 story 2.1) : règle existante — sans Exercice, le
       // bouton est désactivé ; l'appui ne navigue pas, n'écrit rien et ne lève pas.
       const continueAction = screen.getByLabelText(composition.saveAction);
       expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
@@ -219,8 +219,8 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(router.getPathname()).toBe("/composition");
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
 
-      // Sortie par `Retour` : retour propre à la liste, la Séance y figure toujours.
-      fireEvent.press(screen.getByLabelText(composition.backAccessibilityLabel));
+      // Sortie par le X « Fermer » (PRE-6 story 2.1) : retour propre à la liste, la Séance y figure toujours.
+      fireEvent.press(screen.getByLabelText(composition.closeAccessibilityLabel));
       await flush();
       await flush();
       expect(router.getPathname()).toBe("/");

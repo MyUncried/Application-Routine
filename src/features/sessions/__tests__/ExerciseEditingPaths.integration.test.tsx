@@ -391,7 +391,7 @@ async function openSessionFromCatalogue() {
   await settle();
 }
 
-/** Q54 : `Enregistrer la séance` depuis la Composition (écran « Catégories de la séance » supprimé). */
+/** Q54 : `Continuer` (PRE-6 story 2.1) depuis la Composition (écran « Catégories de la séance » supprimé). */
 async function continueAndSave() {
   await act(async () => {
     fireEvent.press(screen.getByLabelText(composition.saveAction));
@@ -571,6 +571,14 @@ describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
     const router = renderApp();
     await openSessionFromCatalogue();
 
+    // Revue 6.2 : sous Jest, `onLayout` ne se déclenche pas ; l'écran refuse un soulèvement sans
+    // géométrie complète — chaque rangée affichée reçoit une mesure factice.
+    screen
+      .queryAllByTestId(/^composition-(activity-|stop-point-row-)/u, { includeHiddenElements: true })
+      .filter((node) => typeof node.props.onLayout === "function")
+      .forEach((row, index) =>
+        fireEvent(row, "layout", { nativeEvent: { layout: { x: 0, y: index * 100, width: 354, height: 80 } } }),
+      );
     fireEvent(screen.getByTestId(`composition-exercise-row-${copy.id}`), "longPress");
     await settle();
     expect(router.getPathname()).toBe("/composition");
@@ -632,7 +640,8 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     await settle();
     expect(router.getPathname()).toBe("/composition");
     // À la suite des Exercices affichés : dernière carte de Composition.
-    const rows = screen.getAllByLabelText(composition.exerciseRow.editAccessibilityLabel);
+    // PRE-6 (story 2.2) : nom accessible « Exercice, {nom}, {n} sur {m}, {durée} ».
+    const rows = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
     expect(rows).toHaveLength(2);
     expect(within(rows[0]!).getByText("Fentes")).toBeTruthy();
     expect(within(rows[1]!).getByText("Pompes")).toBeTruthy();
@@ -1297,7 +1306,7 @@ describe("PRE4-4.2/AC10 — Séance : appuis répétés", () => {
     await settle();
     expect(router.getPathname()).toBe("/composition");
     expect(screen.getAllByText("Gainage")).toHaveLength(1);
-    // Q54 : double appui sur `Enregistrer la séance` (Composition) — un seul enregistrement.
+    // Q54 : double appui sur `Continuer` (Composition, PRE-6 story 2.1) — un seul enregistrement.
     await act(async () => {
       fireEvent.press(screen.getByLabelText(composition.saveAction));
       fireEvent.press(screen.getByLabelText(composition.saveAction));

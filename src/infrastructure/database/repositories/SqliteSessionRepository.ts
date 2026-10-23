@@ -16,6 +16,7 @@ import {
   computeStructuredSessionDuration,
   type ActivityDurationFacts,
 } from "@/domain/sessions/calculations";
+import { DEFAULT_CIRCUIT_NATURE, isCircuitNature } from "@/domain/sessions/circuit";
 import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
@@ -236,15 +237,19 @@ async function getInheritableBodyZoneIds(transaction: Database): Promise<Readonl
   return new Set(rows.map((row) => row.body_zone_id));
 }
 
-/** Ordre canonique de restitution des zones structurelles (D-061). */
-const STRUCTURAL_ORDER_SQL = `
-  CASE activities.structural_position
+/** Ordre canonique de restitution des zones structurelles (D-061), pour la colonne donnée. */
+function structuralOrderSql(column: string): string {
+  return `
+  CASE ${column}
     WHEN 'BEFORE_TOUR' THEN 0
     WHEN 'IN_TOUR' THEN 1
     WHEN 'AFTER_TOUR' THEN 2
     ELSE 3
   END
 `;
+}
+
+const STRUCTURAL_ORDER_SQL = structuralOrderSql("activities.structural_position");
 
 /**
  * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles,
@@ -279,6 +284,7 @@ SELECT
   tours.position AS tour_position,
   tours.repeat_count AS tour_repeat_count,
   tours.side_mode AS tour_side_mode,
+  tours.nature AS tour_nature,
   activities.id AS activity_id,
   activities.type AS activity_type,
   activities.name AS activity_name,
@@ -290,6 +296,7 @@ SELECT
   activities.series_count,
   activities.pause_seconds,
   activities.post_activity_recovery_seconds,
+  activities.post_activity_recovery_present,
   activities.instruction,
   activities.side_mode AS activity_side_mode,
   activities.execution_parameters AS activity_execution_parameters,
@@ -385,10 +392,11 @@ export class SqliteSessionRepository implements SessionRepository {
 
       // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058). V2-PRE-1 : le
       // Tour n'a plus de direction propre — toujours `'UNILATERAL'` en base.
+      // PRE-6 (story 1.1, AD-34) : nature du Circuit ; la borne `COUNT` est `repeat_count`.
       await transaction.runAsync(
-        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode)
-         VALUES (?, ?, ?, 1, ?, 'UNILATERAL')`,
-        [tourId, cycleId, sessionId, normalized.tourRepeatCount],
+        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode, nature)
+         VALUES (?, ?, ?, 1, ?, 'UNILATERAL', ?)`,
+        [tourId, cycleId, sessionId, normalized.tourRepeatCount, normalized.circuitNature ?? DEFAULT_CIRCUIT_NATURE],
       );
 
       await insertActivities(
@@ -484,8 +492,9 @@ export class SqliteSessionRepository implements SessionRepository {
       }
 
       await transaction.runAsync(
-        `UPDATE tours SET repeat_count = ? WHERE id = ? AND session_id = ?`,
-        [normalized.tourRepeatCount, existingRow.tour_id, sessionId],
+        // PRE-6 (story 1.1) : nature absente de l'entrée → nature persistée conservée (jamais ramenée à `TOURS`).
+        `UPDATE tours SET repeat_count = ?, nature = COALESCE(?, nature) WHERE id = ? AND session_id = ?`,
+        [normalized.tourRepeatCount, normalized.circuitNature ?? null, existingRow.tour_id, sessionId],
       );
 
       await mergeActivities(
@@ -502,8 +511,10 @@ export class SqliteSessionRepository implements SessionRepository {
 
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
       // n'exposent aucune identité à l'appelant (contrairement aux
-      // Activités, fusionnées par `id`) — remplacés intégralement, même
-      // politique que les Zones corporelles d'un Exercice.
+      // Activités, fusionnées par `id`) — remplacés intégralement par ceux
+      // du brouillon (PRE-6 story 1.2 : le brouillon les porte désormais,
+      // une modification ne les efface donc plus), même politique que les
+      // Zones corporelles d'un Exercice.
       await transaction.runAsync(`DELETE FROM session_stop_points WHERE session_id = ?`, [
         sessionId,
       ]);
@@ -545,6 +556,7 @@ export class SqliteSessionRepository implements SessionRepository {
         ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
         ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
         tours.repeat_count AS tour_repeat_count,
+        tours.nature AS tour_nature,
         sessions.updated_at
       FROM sessions
       LEFT JOIN labels ON labels.id = sessions.label_id
@@ -651,6 +663,7 @@ async function insertActivities(
         values.seriesCount,
         values.pauseSeconds,
         values.postActivityRecoverySeconds,
+        values.postActivityRecoveryPresent,
         activity.instruction ?? null,
         timestamp,
         timestamp,
@@ -685,11 +698,12 @@ async function replaceOccurrenceMedia(
 
 /**
  * Insère les Points d'arrêt de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C) — `position` est renumérotée SÉPARÉMENT DANS CHAQUE
- * portée (0-indexée, même politique que `insertActivities`), seule façon de
- * respecter `UNIQUE(session_id, scope, position)` sans dépendre de l'ordre
- * relatif entre portées. `session_stop_points` référence `sessions(id)`
- * directement (jamais le Cycle/Circuit).
+ * REQ-001108DC7F67664C). PRE-6 (story 1.2, AD-36) : `position` est
+ * l'emplacement reçu, enregistré tel quel (plus aucune renumérotation) —
+ * déjà validé (bornes, emplacement autorisé, unicité par `(scope,
+ * position)`, ce qui respecte `UNIQUE(session_id, scope, position)`).
+ * `session_stop_points` référence `sessions(id)` directement (jamais le
+ * Cycle/Circuit).
  */
 async function insertStopPoints(
   transaction: Database,
@@ -697,16 +711,10 @@ async function insertStopPoints(
   stopPoints: readonly CreateStopPointInput[],
   uuidFactory: UuidFactory,
 ): Promise<void> {
-  const positionByScope = new Map<StructuralPosition, number>();
-
   for (const stopPoint of stopPoints) {
-    const scope = stopPoint.scope;
-    const position = positionByScope.get(scope) ?? 0;
-    positionByScope.set(scope, position + 1);
-
     await transaction.runAsync(
       `INSERT INTO session_stop_points (id, session_id, scope, position) VALUES (?, ?, ?, ?)`,
-      [uuidFactory(), sessionId, scope, position],
+      [uuidFactory(), sessionId, stopPoint.scope, stopPoint.position],
     );
   }
 }
@@ -715,6 +723,7 @@ const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
   position, name, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
+  post_activity_recovery_present,
   instruction, created_at, updated_at, side_mode, execution_parameters, category_id
 `;
 
@@ -738,7 +747,10 @@ type ActivitySqlValues = {
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
   readonly pauseSeconds: number;
+  /** PRE-6 (AD-35) : `value ?? 0` — 0 quand la récupération est absente. */
   readonly postActivityRecoverySeconds: number;
+  /** PRE-6 (AD-35) : `value === null ? 0 : 1`. */
+  readonly postActivityRecoveryPresent: 0 | 1;
   readonly bodyZoneIds: readonly string[];
   readonly sideMode: SideMode;
   readonly executionParameters: string | null;
@@ -791,7 +803,7 @@ function recoveryExecutionParameters(durationSeconds: number | null): ExecutionP
 function toActivitySqlValues(activity: {
   readonly type: ActivityType;
   readonly executionParameters: CreateSessionActivityInput["executionParameters"];
-  readonly postActivityRecoverySeconds: number;
+  readonly postActivityRecoverySeconds: number | null;
   readonly bodyZoneIds: readonly string[];
 }): ActivitySqlValues {
   const parameters = activity.executionParameters as ExecutionParameters;
@@ -805,6 +817,7 @@ function toActivitySqlValues(activity: {
       seriesCount: null,
       pauseSeconds: 0,
       postActivityRecoverySeconds: 0,
+      postActivityRecoveryPresent: 0,
       bodyZoneIds: [],
       sideMode: "UNILATERAL",
       executionParameters: null,
@@ -817,7 +830,9 @@ function toActivitySqlValues(activity: {
       repetitionCount: projection.repetitionCount,
       seriesCount: projection.seriesCount,
       pauseSeconds: projection.pauseSeconds,
-      postActivityRecoverySeconds: activity.postActivityRecoverySeconds,
+      // PRE-6 (story 1.1, AD-35) : absente → secondes 0, présence 0.
+      postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? 0,
+      postActivityRecoveryPresent: activity.postActivityRecoverySeconds === null ? 0 : 1,
       bodyZoneIds: activity.bodyZoneIds,
       sideMode: projection.sideMode,
       executionParameters: serializeExecutionParameters(parameters),
@@ -927,7 +942,8 @@ async function mergeActivities(
         `UPDATE activities SET
            type = ?, structural_position = ?, position = ?, name = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
-           series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?, instruction = ?,
+           series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
+           post_activity_recovery_present = ?, instruction = ?,
            tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?,
            execution_parameters = ?, category_id = ?
          WHERE id = ? AND session_id = ?`,
@@ -942,6 +958,7 @@ async function mergeActivities(
           values.seriesCount,
           values.pauseSeconds,
           values.postActivityRecoverySeconds,
+          values.postActivityRecoveryPresent,
           instruction,
           activityTourId,
           cycleId,
@@ -975,6 +992,7 @@ async function mergeActivities(
           values.seriesCount,
           values.pauseSeconds,
           values.postActivityRecoverySeconds,
+          values.postActivityRecoveryPresent,
           instruction,
           timestamp,
           timestamp,
@@ -1034,8 +1052,9 @@ async function readSession(
 
 /**
  * Points d'arrêt persistés de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C), ordonnés par portée PUIS par position — même
- * convention de tri que `AGGREGATE_QUERY` pour les Activités.
+ * REQ-001108DC7F67664C), ordonnés par portée dans l'ordre affiché (D-061 :
+ * avant, dans, après le Circuit) PUIS par position — même convention de tri
+ * que `AGGREGATE_QUERY` pour les Activités.
  */
 async function getStopPoints(
   database: Database,
@@ -1043,10 +1062,10 @@ async function getStopPoints(
 ): Promise<readonly StopPoint[]> {
   const rows = await database.getAllAsync<{ id: string; scope: StructuralPosition; position: number }>(
     `SELECT id, scope, position FROM session_stop_points
-     WHERE session_id = ? ORDER BY scope ASC, position ASC`,
+     WHERE session_id = ? ORDER BY ${structuralOrderSql("scope")} ASC, position ASC`,
     [sessionId],
   );
-  return rows.map((row) => ({ id: row.id, scope: row.scope, order: row.position }));
+  return rows.map((row) => ({ id: row.id, scope: row.scope, position: row.position }));
 }
 
 /** T16 (D-210) : Zones déjà affectées à chacune des Activités données, avant toute modification — même requête que `getBodyZonesForActivities`, regroupée par Activité pour `assertBodyZonesAssignable`. */
@@ -1160,9 +1179,11 @@ function toActivity(
     position: row.activity_position,
     name: row.activity_name,
     // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`).
-    // Une ancienne ligne `RECOVERY` n'en porte jamais (`CHECK` SQL) — le
-    // `?? 0` couvre une projection partielle de test antérieure à cette colonne.
-    postActivityRecoverySeconds: isRecovery ? 0 : (row.post_activity_recovery_seconds ?? 0),
+    // PRE-6 (story 1.1, AD-35) : `null` quand elle est absente
+    // (`post_activity_recovery_present = 0`, `migration011`) ; une ancienne
+    // ligne `RECOVERY` n'en porte jamais (`CHECK` SQL).
+    postActivityRecoverySeconds:
+      !isRecovery && row.post_activity_recovery_present === 1 ? row.post_activity_recovery_seconds : null,
     instruction: row.instruction,
     bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
     // V2-BILAT-01 : direction relue des paramètres (AD-3) ; une Récupération
@@ -1203,8 +1224,10 @@ export function assembleSession(
     throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
   assertSessionHeaderRow(first);
+  assertCircuitNatureColumn(first);
   for (const row of occurrenceRows) {
     assertSessionAggregateRow(row);
+    assertRecoveryPresenceColumns(row);
   }
 
   const beforeTour: Activity[] = [];
@@ -1249,6 +1272,8 @@ export function assembleSession(
         id: first.tour_id,
         position: 1,
         repeatCount: first.tour_repeat_count,
+        // PRE-6 (story 1.1, AD-34) : nature persistée (`migration011`).
+        nature: first.tour_nature,
         exercises: inTour,
       },
     },
@@ -1339,7 +1364,12 @@ function mapSummaryRow(
     afterTourActivityCount: row.after_tour_activity_count,
     tourRepeatCount: row.tour_repeat_count,
   });
-  const duration = computeStructuredSessionDuration({ ...zones, tourRepeatCount: row.tour_repeat_count });
+  // PRE-6 (story 1.3, AD-40) : durée selon la nature du Circuit, lue `?? "TOURS"`.
+  const duration = computeStructuredSessionDuration({
+    ...zones,
+    tourRepeatCount: row.tour_repeat_count,
+    circuitNature: isCircuitNature(row.tour_nature) ? row.tour_nature : DEFAULT_CIRCUIT_NATURE,
+  });
 
   return {
     id: row.id,
@@ -1442,6 +1472,30 @@ function assertSessionHeaderRow(row: SessionAggregateQueryRow): void {
     // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`.
     !SIDE_MODES.includes(row.tour_side_mode)
   ) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+}
+
+/**
+ * PRE-6 (story 1.1, AD-34) : reflète le `CHECK` de `migration011` sur
+ * `tours.nature` — une nature inconnue n'est jamais lue comme `TOURS`.
+ * Distinct de `assertSessionHeaderRow`, dont la parité porte sur les CHECK
+ * antérieurs.
+ */
+function assertCircuitNatureColumn(row: SessionAggregateQueryRow): void {
+  if (!isCircuitNature(row.tour_nature)) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+}
+
+/**
+ * PRE-6 (story 1.1, AD-35) : reflète le `CHECK` de `migration011`
+ * (`post_activity_recovery_present ∈ {0, 1}`) et l'invariant d'écriture :
+ * une récupération absente (`present = 0`) a toujours 0 seconde.
+ */
+function assertRecoveryPresenceColumns(row: SessionAggregateRow): void {
+  const present = row.post_activity_recovery_present;
+  if ((present !== 0 && present !== 1) || (present === 0 && row.post_activity_recovery_seconds !== 0)) {
     throw new Error("Persisted session does not satisfy the aggregate contract.");
   }
 }

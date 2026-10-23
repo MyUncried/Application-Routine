@@ -13,7 +13,6 @@ import {
   findNodeHandle,
   useWindowDimensions,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   validateForSave,
@@ -40,6 +39,8 @@ import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerMod
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { strings } from "@/shared/i18n";
 import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
+import { FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH, finalActionSideMargin } from "@/shared/ui/finalAction";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -115,6 +116,12 @@ export type ActivityEditorFormProps = {
    */
   exerciseSignals?: "present" | "absent";
   /**
+   * PRE-6 story 3.3 (AD-37, AD-44) : occurrence d'un Circuit de Séries — N hérité, transmis
+   * à la Feuille (`openSheetDraft(parent, { inheritedSeriesCount })`). Défaut `false`. Lu par la
+   * Feuille à son montage (chaque ouverture) ; l'appelant le fige pour la vie de l'éditeur.
+   */
+  inheritedSeriesCount?: boolean;
+  /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
    * Feuille pour la validation unique `validateForSave` (H25).
@@ -173,9 +180,10 @@ const card = strings.executionParameters.card;
  * l'en-tête (prop de `FixedHeader`), la zone de contexte, le corps, `Terminer`
  * et le halo. Valeurs de la règle écrite, jamais une coordonnée Figma.
  */
-export const EDITOR_SIDE_MARGIN_MIN_WIDTH = 390;
+export const EDITOR_SIDE_MARGIN_MIN_WIDTH = FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH;
+/** PRE-6 story 7.10 (D-444) : même règle que la zone d'action principale (`shared/ui/finalAction`). */
 export function editorSideMargin(windowWidth: number): number {
-  return windowWidth >= EDITOR_SIDE_MARGIN_MIN_WIDTH ? spacing[24] : spacing[16];
+  return finalActionSideMargin(windowWidth);
 }
 
 /**
@@ -260,6 +268,7 @@ export function ActivityEditorForm({
   categoryAccessRef,
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
+  inheritedSeriesCount = false,
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -272,10 +281,9 @@ export function ActivityEditorForm({
   errorTestID,
 }: ActivityEditorFormProps) {
   const sideMargin = editorSideMargin(useWindowDimensions().width);
-  // Revue PRE-5 3.2 : Android (bord à bord sous Expo 57) n'est pas couvert par les frames
-  // iPhone de Figma — `Terminer` y reste au-dessus de la barre de navigation système.
-  const insets = useSafeAreaInsets();
-  const finishBottom = Platform.OS === "android" ? Math.max(FINISH_BOTTOM_OFFSET, insets.bottom) : FINISH_BOTTOM_OFFSET;
+  // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
+  // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
+  const actionZone = usePrimaryActionZone();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const parametersCardRef = useRef<View>(null);
   // PRE-4 story 4.6 (FR-22-10, AC9) : à la fermeture d'une feuille de référentiel, le focus
@@ -465,7 +473,8 @@ export function ActivityEditorForm({
         <ScrollView
           ref={bodyScrollRef}
           style={styles.body}
-          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin }]}
+          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: actionZone.scrollReserve }]}
+          scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
           keyboardShouldPersistTaps="handled"
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
@@ -576,31 +585,18 @@ export function ActivityEditorForm({
       </KeyboardAvoidingView>
 
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
-          jamais avec le clavier ; il redevient accessible dès sa fermeture (D-349).
-          PRE-5 story 3.2 (FR-37) : bas du bouton à 24 du bord bas de l'écran, indépendamment
-          de `insets.bottom` sur iOS (`FINISH_BOTTOM_OFFSET`) ; sur Android, jamais sous l'encart
-          bas (barre de navigation). */}
-      <View
-        style={[styles.finishActionSlot, { marginHorizontal: sideMargin, marginBottom: finishBottom }]}
-        testID={finishSlotTestID}
-      >
-          {errorMessage ? (
-            <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
-              {errorMessage}
-            </Text>
-          ) : null}
-          <Pressable
-            disabled={finishDisabled}
-            onPress={onFinish}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: finishDisabled }}
-            accessibilityLabel={finishLabel}
-            style={[styles.primaryAction, finishDisabled ? styles.primaryActionDisabled : null]}
-            testID={finishActionTestID}
-          >
-            <Text style={styles.primaryActionLabel}>{finishLabel}</Text>
-          </Pressable>
-      </View>
+          jamais avec le clavier (Android : zone masquée clavier ouvert, revue 7.10) ; il redevient
+          accessible dès sa fermeture (D-349).
+          PRE-6 story 7.10 (D-444, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
+          principale fixe (zone protégée, bouton centré, correctif J6f), dégradé blanc. */}
+      <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
+        {errorMessage ? (
+          <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>
+            {errorMessage}
+          </Text>
+        ) : null}
+        <PrimaryActionButton label={finishLabel} onPress={onFinish} disabled={finishDisabled} testID={finishActionTestID} />
+      </PrimaryActionZone>
 
       {isSheetOpen ? (
         <ExecutionParametersSheet
@@ -608,6 +604,7 @@ export function ActivityEditorForm({
           baseline={baselineParameters}
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
           exerciseSignals={exerciseSignals}
+          inheritedSeriesCount={inheritedSeriesCount}
           onApply={applyParameters}
           onCancel={closeSheet}
         />
@@ -801,19 +798,6 @@ const ACCESS_TARGET_OVERFLOW_BELOW_ROW = ACCESS_HIT_SLOP.bottom - (ACCESS_ROW_HE
 /** Rangée repliée sur deux lignes : l’écart couvre le débord bas de la ligne du dessus. */
 const ACCESS_ROW_GAP = ACCESS_TARGET_OVERFLOW_BELOW_ROW;
 
-/**
- * PRE-5 story 3.2 (FR-37 ; frame `Action finale` : `pb` 24, bouton à y802 sur 874) : bas de
- * `Terminer` à 24 du bord bas de l’écran, indépendamment de `insets.bottom` sur iOS ; sur
- * Android, au moins l’encart bas (revue 3.2).
- */
-const FINISH_BOTTOM_OFFSET = spacing[24];
-/**
- * PRE-5 story 3.2 (FR-37, D-327 bloc → `Terminer`) : réserve de défilement sous le dernier
- * bloc, au-dessus de `Terminer` — le dernier contenu n’est jamais masqué, clavier ouvert ou fermé.
- */
-const FINISH_SCROLL_RESERVE = EDITOR_VERTICAL_GRID.blockToBlock;
-/** G-8 : ombre de `Terminer` (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */
-const FINISH_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
 /** G-4 : interligne du Nom (Figma `6981:14889`). */
 const NAME_LINE_HEIGHT = 22;
 /** G-6 : interligne de la Phrase (Figma « Phrase — texte »). */
@@ -924,13 +908,12 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
   },
-  // Story 4.2 (AC4, AC5) ; PRE-5 3.2 (G-2) : 14 du bas du dégradé à la première section,
-  // 12 du dernier bloc (Médias) à `Terminer` (réserve de défilement nommée) ;
-  // marge latérale appliquée au rendu.
+  // Story 4.2 (AC4, AC5) ; PRE-5 3.2 (G-2) : 14 du bas du dégradé à la première section.
+  // PRE-6 story 7.10 (D-444, remplace la réserve de 12 au-dessus de `Terminer`) : réserve de
+  // défilement = hauteur de la zone d'action fixe, appliquée au rendu avec la marge latérale.
   bodyContent: {
     flexGrow: 1,
     paddingTop: EDITOR_VERTICAL_GRID.contextToFirstText,
-    paddingBottom: FINISH_SCROLL_RESERVE,
   },
   // PRE-5 story 3.2 (FR-38) : titres de section en Regular 11 secondaire.
   sectionTitle: {
@@ -997,33 +980,8 @@ const styles = StyleSheet.create({
     ...type.button,
     color: colors.background,
   },
-  // Story 4.2 : 12 (bloc → bloc, D-327) portés par le bas du corps ; marge latérale au rendu.
-  // PRE-5 story 3.2 (FR-37) : marge basse appliquée au rendu (`finishBottom`).
-  finishActionSlot: {
-    position: "relative",
-  },
-  // PRE-5 story 3.2, arbitrages G-8 et G-10 de Hermann du 19/10 (Figma `8328:35738`) :
-  // hauteur `dimensions.finalAction.buttonHeight`, ombre locale `#1A1A26` 18 %, (0, 2), flou 10,
-  // dans les deux états.
-  primaryAction: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: dimensions.finalAction.buttonHeight,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    shadowColor: FINISH_SHADOW.color,
-    shadowOpacity: FINISH_SHADOW.opacity,
-    shadowOffset: { width: 0, height: FINISH_SHADOW.offsetY },
-    shadowRadius: FINISH_SHADOW.radius,
-    elevation: FINISH_SHADOW.elevation,
-  },
-  primaryActionDisabled: {
-    backgroundColor: colors.disabled,
-  },
-  primaryActionLabel: {
-    ...type.button,
-    color: colors.background,
-  },
+  // PRE-5 story 3.2, arbitrages G-8 et G-10 (Figma `8328:35738`) : gabarit de `Terminer`, devenu
+  // celui de tous les boutons d'action principaux (`shared/ui/finalAction`, D-444, story 7.10).
   saveErrorText: {
     ...type.body,
     color: colors.danger,

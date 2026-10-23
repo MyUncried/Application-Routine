@@ -14,6 +14,7 @@ import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -58,6 +59,7 @@ export function ProfileEditScreen() {
   const router = useRouter();
   const profileService = useProfileService();
   const t = strings.screens.profileEdit;
+  const actionZone = usePrimaryActionZone();
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initialSnapshot, setInitialSnapshot] = useState<IdentityDraft | null>(null);
@@ -180,7 +182,9 @@ export function ProfileEditScreen() {
         // (`ScrollView` + `keyboardShouldPersistTaps="handled"`).
         <ScrollView
           style={styles.body}
-          contentContainerStyle={styles.bodyContent}
+          // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe.
+          contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
+          scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
           keyboardShouldPersistTaps="handled"
           testID="profile-edit-body"
         >
@@ -272,25 +276,29 @@ export function ProfileEditScreen() {
               </Pressable>
             </View>
           </View>
+        </ScrollView>
+      ) : null}
 
+      {/* PRE-6 story 7.10 (D-444) : « Enregistrer » dans la zone d'action principale fixe (format
+          `Terminer`, zone protégée, bouton centré, dégradé) ; le message d'échec au-dessus. */}
+      {draft ? (
+        <PrimaryActionZone
+          onContentHeightChange={actionZone.onContentHeightChange}
+          contentStyle={styles.actionContent}
+          testID="profile-edit-action-zone"
+        >
           {saveError ? (
             <Text style={styles.errorText} testID="profile-edit-save-error">
               {t.saveError}
             </Text>
           ) : null}
-
-          <Pressable
+          <PrimaryActionButton
+            label={t.saveAction}
             onPress={handleSave}
             disabled={isSaving}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: isSaving }}
-            accessibilityLabel={t.saveAction}
-            style={styles.saveAction}
             testID="profile-edit-save-action"
-          >
-            <Text style={styles.saveActionLabel}>{t.saveAction}</Text>
-          </Pressable>
-        </ScrollView>
+          />
+        </PrimaryActionZone>
       ) : null}
 
       {isPendingExit ? (
@@ -320,7 +328,6 @@ const styles = StyleSheet.create({
   bodyContent: {
     paddingHorizontal: spacing[24],
     paddingTop: spacing[16],
-    paddingBottom: spacing[24],
     gap: spacing[24],
   },
   photoSection: {
@@ -394,15 +401,8 @@ const styles = StyleSheet.create({
   silhouetteCircleSelected: {
     borderColor: colors.primary,
   },
-  saveAction: {
-    minHeight: minTouchTarget,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  saveActionLabel: {
-    ...type.button,
-    color: colors.background,
+  // PRE-6 story 7.10 : contenu de la zone d'action (message d'échec au-dessus du bouton).
+  actionContent: {
+    gap: spacing[8],
   },
 });

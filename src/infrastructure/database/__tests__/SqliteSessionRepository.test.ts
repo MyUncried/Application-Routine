@@ -51,7 +51,16 @@ import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { duplicateActivity } from "@/domain/sessions/composition";
 
-import { isSessionDraftDirty, sessionDraftsEqual, toSessionDraft, toUpdateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
+import {
+  createEmptyDraft,
+  createExerciseDraft,
+  isSessionDraftDirty,
+  sessionDraftsEqual,
+  toCreateSessionInput,
+  toSessionDraft,
+  toUpdateSessionInput,
+  type SessionDraft,
+} from "@/domain/sessions/SessionDraft";
 
 import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 // Exceptionnellement, ce fichier d'infrastructure importe un composant de
@@ -305,6 +314,23 @@ describe("SqliteSessionRepository", () => {
     const count = await database.getFirstAsync<{ count: number }>(
       "SELECT COUNT(*) AS count FROM sessions",
     );
+    expect(count?.count).toBe(0);
+  });
+
+  // PRE-6 story 7.8 (D-443) : Compte à rebours initial et Fin de séance bornés à 0..60 s à l'écriture.
+  it("story 7.8 — rejects a session boundary above 60 s with OUT_OF_RANGE 0..60, nothing written", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+
+    try {
+      await repository.create({ ...validInput(), initialCountdownSeconds: 61, finalPhaseSeconds: 60 });
+      throw new Error("expected repository.create to reject");
+    } catch (error) {
+      expect(error).toBeInstanceOf(SessionValidationError);
+      expect((error as SessionValidationError).violations).toEqual([
+        { code: "OUT_OF_RANGE", field: "session.initialCountdownSeconds", details: { min: 0, max: 60 } },
+      ]);
+    }
+    const count = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM sessions");
     expect(count?.count).toBe(0);
   });
 
@@ -884,29 +910,43 @@ describe("SqliteSessionRepository", () => {
 
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : `session_stop_points`
-   * référence la Séance directement — `position` est renumérotée SÉPARÉMENT
-   * PAR portée, même politique que les Activités.
+   * référence la Séance directement. PRE-6 (story 1.2, AD-36) : `position`
+   * est l'emplacement reçu, enregistré tel quel (plus de renumérotation), et
+   * une modification remplace les points par ceux du brouillon.
    */
   describe("Points d'arrêt (V2-PRE-1, plan §3.3/§7, REQ-001108DC7F67664C)", () => {
+    /** Avant : Échauffement ; Circuit : Gainage, Pompes ; après : Étirement. */
+    function structuredInput(): CreateSessionInput {
+      return {
+        ...validInput(),
+        exercises: [
+          anExercise({ structuralPosition: "BEFORE_TOUR", name: "Échauffement" }),
+          anExercise(),
+          anExercise({ name: "Pompes" }),
+          anExercise({ structuralPosition: "AFTER_TOUR", name: "Étirement" }),
+        ],
+      };
+    }
+
     // `randomUUID` plutôt que `uuidFactory()` (liste `IDS` finie, consommée
     // par session/cycle/tour/activités) : ces scénarios persistent aussi des
     // Points d'arrêt, chacun consommant son propre identifiant.
-    it("create(): persists stop points with a position stable per scope, and rereads them in scope then position order", async () => {
+    it("create(): persists stop points at the received position, and rereads them in displayed scope order (D-061) then position", async () => {
       const repository = new SqliteSessionRepository(database, randomUUID);
 
       const created = await repository.create({
-        ...validInput(),
+        ...structuredInput(),
         stopPoints: [
-          { scope: "IN_TOUR" },
-          { scope: "BEFORE_TOUR" },
-          { scope: "IN_TOUR" },
+          { scope: "IN_TOUR", position: 1 },
+          { scope: "BEFORE_TOUR", position: 1 },
+          { scope: "AFTER_TOUR", position: 0 },
         ],
       });
 
       expect(created.stopPoints).toEqual([
-        { id: expect.any(String), scope: "BEFORE_TOUR", order: 0 },
-        { id: expect.any(String), scope: "IN_TOUR", order: 0 },
-        { id: expect.any(String), scope: "IN_TOUR", order: 1 },
+        { id: expect.any(String), scope: "BEFORE_TOUR", position: 1 },
+        { id: expect.any(String), scope: "IN_TOUR", position: 1 },
+        { id: expect.any(String), scope: "AFTER_TOUR", position: 0 },
       ]);
 
       const reread = await repository.findById(created.id);
@@ -921,31 +961,70 @@ describe("SqliteSessionRepository", () => {
       expect(created.stopPoints).toBeUndefined();
     });
 
-    it("update(): replaces the previous stop points entirely, with the new array's own per-scope order", async () => {
+    it("create(): rejects a forbidden, out-of-range or duplicate stop point and writes nothing", async () => {
+      const repository = new SqliteSessionRepository(database, randomUUID);
+
+      for (const stopPoints of [
+        [{ scope: "BEFORE_TOUR" as const, position: 0 }],
+        [{ scope: "IN_TOUR" as const, position: 3 }],
+        [
+          { scope: "IN_TOUR" as const, position: 1 },
+          { scope: "IN_TOUR" as const, position: 1 },
+        ],
+      ]) {
+        await expect(repository.create({ ...structuredInput(), stopPoints })).rejects.toBeInstanceOf(
+          SessionValidationError,
+        );
+      }
+      expect(await repository.listActive()).toEqual([]);
+    });
+
+    it("update(): replaces the previous stop points with the draft's own", async () => {
       const repository = new SqliteSessionRepository(database, randomUUID);
       const created = await repository.create({
-        ...validInput(),
-        stopPoints: [{ scope: "IN_TOUR" }],
+        ...structuredInput(),
+        stopPoints: [{ scope: "IN_TOUR", position: 1 }],
       });
 
-      const outcome = await repository.update(created.id, {
-        sourceSessionId: created.id,
-        name: created.name,
-        labelId: null,
-        initialCountdownSeconds: created.initialCountdownSeconds,
-        finalPhaseSeconds: created.finalPhaseSeconds,
-        tourRepeatCount: created.cycle.tour.repeatCount,
-        activities: [anUpdateActivity({ id: created.cycle.tour.exercises[0]!.id })],
-        stopPoints: [{ scope: "AFTER_TOUR" }, { scope: "AFTER_TOUR" }],
+      const input = toUpdateSessionInput({
+        ...toSessionDraft(created),
+        stopPoints: [{ id: "draft-point", scope: "AFTER_TOUR", position: 0 }],
       });
+      expect(input.ok).toBe(true);
+      if (!input.ok) return;
+      const outcome = await repository.update(created.id, input.value);
 
       expect(outcome.status).toBe("UPDATED");
       if (outcome.status === "UPDATED") {
         expect(outcome.session.stopPoints).toEqual([
-          { id: expect.any(String), scope: "AFTER_TOUR", order: 0 },
-          { id: expect.any(String), scope: "AFTER_TOUR", order: 1 },
+          { id: expect.any(String), scope: "AFTER_TOUR", position: 0 },
         ]);
       }
+    });
+
+    it("update(): a reopened, renamed then saved session keeps its stop points at the same places (R2)", async () => {
+      const repository = new SqliteSessionRepository(database, randomUUID);
+      const created = await repository.create({
+        ...structuredInput(),
+        stopPoints: [
+          { scope: "IN_TOUR", position: 1 },
+          { scope: "AFTER_TOUR", position: 0 },
+        ],
+      });
+
+      const reopened = await repository.findById(created.id);
+      const draft: SessionDraft = { ...toSessionDraft(reopened!), name: "Renommée" };
+      const input = toUpdateSessionInput(draft);
+      expect(input.ok).toBe(true);
+      if (!input.ok) return;
+      await repository.update(created.id, input.value);
+
+      const reread = await repository.findById(created.id);
+      expect(reread?.name).toBe("Renommée");
+      expect(reread?.stopPoints?.map(({ scope, position }) => ({ scope, position }))).toEqual([
+        { scope: "IN_TOUR", position: 1 },
+        { scope: "AFTER_TOUR", position: 0 },
+      ]);
     });
   });
 
@@ -2053,6 +2132,8 @@ function validRow(): SessionAggregateRow {
     // Colonne SQL technique, conservée mais sans influence fonctionnelle
     // (V2-PRE-1, plan §3.3) — le Tour n'expose plus de direction propre.
     tour_side_mode: "UNILATERAL",
+    // PRE-6 (story 1.1) : nature du Circuit (`migration011`).
+    tour_nature: "TOURS",
     activity_id: IDS[3]!,
     activity_type: "EXERCISE",
     activity_name: "Gainage",
@@ -2064,6 +2145,7 @@ function validRow(): SessionAggregateRow {
     series_count: 1,
     pause_seconds: 0,
     post_activity_recovery_seconds: 0,
+    post_activity_recovery_present: 0,
     instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
@@ -2762,6 +2844,7 @@ function headerOnlyRow(): SessionAggregateQueryRow {
     series_count: null,
     pause_seconds: null,
     post_activity_recovery_seconds: null,
+    post_activity_recovery_present: null,
     instruction: null,
     activity_side_mode: null,
     activity_execution_parameters: null,
@@ -2772,7 +2855,8 @@ function headerOnlyRow(): SessionAggregateQueryRow {
 describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () => {
   it("assemble une Séance vide avec ses paramètres et une composition vide", () => {
     const session = assembleSession([{ ...headerOnlyRow(), tour_repeat_count: 2 }], new Map());
-    expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, exercises: [] });
+    // PRE-6 (story 1.1) : la nature persistée est relue avec le Tour.
+    expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, nature: "TOURS", exercises: [] });
     expect(session.cycle.beforeTour).toBeUndefined();
     expect(session.cycle.afterTour).toBeUndefined();
     expect(session).toMatchObject({ id: IDS[0]!, name: "Séance", initialCountdownSeconds: 10, finalPhaseSeconds: 5 });
@@ -2794,5 +2878,209 @@ describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () =
 
   it("lève sur un agrégat sans aucune ligne", () => {
     expect(() => assembleSession([], new Map())).toThrow();
+  });
+});
+
+/**
+ * PRE-6 story 1.1 (AC3, AD-34, AD-35) — aller-retour complet brouillon →
+ * entrée → SQLite réelle (`node:sqlite`) → lecture : nature du Circuit et
+ * récupération à trois états (absente, présente à 0, positive).
+ */
+describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupération nullable (NodeSqliteDatabase REAL)", () => {
+  let database: NodeSqliteDatabase;
+  let sequence = 0;
+  const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const repository = () => new SqliteSessionRepository(database, ids("ses"));
+
+  function draft(recoveries: readonly (number | null)[], overrides: Partial<SessionDraft> = {}, idPrefix = "ex"): SessionDraft {
+    return {
+      ...createEmptyDraft(),
+      name: "Circuit",
+      tourRepeatCount: 4,
+      exercises: recoveries.map((recovery, index) => ({
+        ...createExerciseDraft(`${idPrefix}-${index}`, recovery),
+        structuralPosition: "IN_TOUR" as const,
+        name: `Exercice ${index}`,
+        executionParameters: durationParameters(30, 4, 10),
+      })),
+      ...overrides,
+    };
+  }
+
+  async function create(source: SessionDraft): Promise<Session> {
+    const input = toCreateSessionInput(source);
+    if (!input.ok) throw new Error(`invalid draft: ${JSON.stringify(input.violations)}`);
+    return repository().create(input.value);
+  }
+
+  const storedRecoveries = () =>
+    database.getAllAsync("SELECT id, post_activity_recovery_seconds AS seconds, post_activity_recovery_present AS present FROM activities ORDER BY id");
+
+  it("aller-retour nature : brouillon SERIES, N = 4 → relu SERIES, N = 4 ; brouillon relu égal au brouillon d'origine", async () => {
+    const created = await create(draft([null], { circuitNature: "SERIES" }));
+    const reread = await repository().findById(created.id);
+
+    expect(reread?.cycle.tour.nature).toBe("SERIES");
+    expect(reread?.cycle.tour.repeatCount).toBe(4);
+    expect(await database.getAllAsync("SELECT nature, repeat_count FROM tours")).toEqual([{ nature: "SERIES", repeat_count: 4 }]);
+    const redrafted = toSessionDraft(reread!);
+    expect(redrafted.circuitNature).toBe("SERIES");
+    expect(sessionDraftsEqual(redrafted, draft([null], { circuitNature: "SERIES" }))).toBe(true);
+  });
+
+  it("sans nature explicite, la Séance est un Circuit de Tours", async () => {
+    const created = await create(draft([null]));
+    expect(created.cycle.tour.nature).toBe("TOURS");
+  });
+
+  it("aller-retour récupération : null, 0 et 30 relus null, 0 et 30 (présence 0, 1, 1)", async () => {
+    const created = await create(draft([null, 0, 30]));
+    const reread = await repository().findById(created.id);
+
+    expect(reread?.cycle.tour.exercises.map((activity) => activity.postActivityRecoverySeconds)).toEqual([null, 0, 30]);
+    expect(await storedRecoveries()).toEqual([
+      { id: "ex-0", seconds: 0, present: 0 },
+      { id: "ex-1", seconds: 0, present: 1 },
+      { id: "ex-2", seconds: 30, present: 1 },
+    ]);
+  });
+
+  it("modification : nature et récupérations (null ↔ 0) mises à jour en place, puis relues", async () => {
+    const created = await create(draft([null, 0, 30]));
+    const opened = toSessionDraft(created);
+    const edited: SessionDraft = {
+      ...opened,
+      circuitNature: "SERIES",
+      exercises: opened.exercises.map((exercise, index) => ({ ...exercise, postActivityRecoverySeconds: [0, null, 45][index]! })),
+    };
+    expect(isSessionDraftDirty(edited, opened)).toBe(true);
+    const input = toUpdateSessionInput(edited);
+    if (!input.ok) throw new Error("invalid draft");
+
+    const outcome = await repository().update(created.id, input.value);
+
+    expect(outcome.status).toBe("UPDATED");
+    const reread = await repository().findById(created.id);
+    expect(reread?.cycle.tour.nature).toBe("SERIES");
+    expect(reread?.cycle.tour.exercises.map((activity) => activity.postActivityRecoverySeconds)).toEqual([0, null, 45]);
+    expect(await storedRecoveries()).toEqual([
+      { id: "ex-0", seconds: 0, present: 1 },
+      { id: "ex-1", seconds: 0, present: 0 },
+      { id: "ex-2", seconds: 45, present: 1 },
+    ]);
+  });
+
+  it("modification sans nature dans l'entrée : la nature persistée est conservée, jamais ramenée à TOURS", async () => {
+    const created = await create(draft([null], { circuitNature: "SERIES" }));
+    const { circuitNature: _omitted, ...withoutNature } = toSessionDraft(created);
+    const input = toUpdateSessionInput({ ...withoutNature, name: "Renommée" });
+    if (!input.ok) throw new Error("invalid draft");
+    expect(input.value.circuitNature).toBeUndefined();
+
+    expect((await repository().update(created.id, input.value)).status).toBe("UPDATED");
+    expect((await repository().findById(created.id))?.cycle.tour.nature).toBe("SERIES");
+  });
+
+  it("calculs inchangés : une récupération absente ou à 0 ne remplace aucune Pause ; seule une valeur positive la remplace", async () => {
+    const absent = await create(draft([null], {}, "absent"));
+    const zero = await create(draft([0], {}, "zero"));
+    const positive = await create(draft([45], {}, "positive"));
+    const durations = new Map((await repository().listActive()).map((summary) => [summary.id, summary.estimatedDurationSeconds]));
+
+    expect(durations.get(absent.id)).toBe(durations.get(zero.id));
+    // 4 Séries de 30 s, 3 Pauses de 10 s, Pause terminale 10 s remplacée par 45 s ; × 4 Tours.
+    expect(durations.get(zero.id)).toBe(4 * (4 * 30 + 4 * 10));
+    expect(durations.get(positive.id)).toBe(4 * (4 * 30 + 3 * 10 + 45));
+  });
+
+  it("nature invalide : SessionValidationError (UNRECOGNIZED sur session.circuitNature), rien n'est écrit", async () => {
+    const input = toCreateSessionInput(draft([null], { circuitNature: "SERIES" }));
+    if (!input.ok) throw new Error("invalid draft");
+
+    await expect(
+      repository().create({ ...input.value, circuitNature: "FOO" as unknown as "TOURS" }),
+    ).rejects.toMatchObject({ violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }] });
+    expect(await database.getAllAsync("SELECT id FROM sessions")).toEqual([]);
+    expect(await database.getAllAsync("SELECT id FROM tours")).toEqual([]);
+  });
+
+  it("relecture défensive : nature inconnue ou présence incohérente en base → contrat d'agrégat refusé", async () => {
+    const created = await create(draft([null]));
+    // Le CHECK interdit ces valeurs ; on simule une ligne corrompue en le contournant.
+    await database.execAsync("PRAGMA ignore_check_constraints = ON");
+    await database.runAsync("UPDATE tours SET nature = 'FOO'");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+    await database.runAsync("UPDATE tours SET nature = 'TOURS'");
+    await database.runAsync("UPDATE activities SET post_activity_recovery_seconds = 30, post_activity_recovery_present = 0");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+    await database.runAsync("UPDATE activities SET post_activity_recovery_seconds = 0, post_activity_recovery_present = 2");
+    await expect(repository().findById(created.id)).rejects.toThrow("does not satisfy");
+  });
+});
+
+/** PRE-6 (story 1.3, AD-40) : la liste, la lecture complète et la Composition suivent la nature du Circuit. */
+describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
+  let database: NodeSqliteDatabase;
+
+  beforeEach(async () => {
+    database = NodeSqliteDatabase.openInMemory();
+    await migrateDatabase(database);
+  });
+
+  afterEach(() => {
+    database.close();
+  });
+
+  const seriesInput = (circuitNature: "TOURS" | "SERIES"): CreateSessionInput => ({
+    ...validInput(),
+    tourRepeatCount: 3,
+    circuitNature,
+    exercises: [
+      anExercise({ structuralPosition: "BEFORE_TOUR", name: "Échauffement", executionParameters: durationParameters(60) }),
+      anExercise({
+        name: "Fentes",
+        executionParameters: uniformParameters({
+          mode: "DURATION",
+          count: 3,
+          target: 30,
+          pauseSeconds: 10,
+          sideMode: "LEFT_RIGHT",
+          sideRecoverySeconds: 5,
+        }),
+        postActivityRecoverySeconds: 20,
+      }),
+    ],
+  });
+
+  it("Séries : liste, lecture complète et Composition donnent la même durée (passages : 255 s + 60 s hors Circuit)", async () => {
+    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const created = await repository.create(seriesInput("SERIES"));
+
+    const summary = (await repository.listActive()).find((item) => item.id === created.id);
+    const reopened = await repository.findById(created.id);
+
+    expect(summary?.estimatedDurationSeconds).toBe(60 + 255);
+    expect(summary?.durationKind).toBe("exact");
+    expect(toSessionDurationResult(reopened!)).toEqual({ kind: "exact", seconds: 60 + 255 });
+  });
+
+  it("Tours : durée de liste inchangée (contenu interne × N)", async () => {
+    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const created = await repository.create(seriesInput("TOURS"));
+    const summary = (await repository.listActive()).find((item) => item.id === created.id);
+    const reopened = await repository.findById(created.id);
+    expect(summary?.estimatedDurationSeconds).toBe(toSessionDurationResult(reopened!).seconds);
+    // Tours, BY_SIDE : (30+10)×3 ×2 côtés + PC 5 − dernière Pause 10 + R 20 = 255 par Tour.
+    expect(summary?.estimatedDurationSeconds).toBe(60 + 3 * 255);
   });
 });

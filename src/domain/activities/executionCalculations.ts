@@ -28,6 +28,7 @@ import {
   seriesRowsOf,
   type ExecutionParameters,
   type ExecutionParametersInput,
+  type SeriesRow,
   type SeriesTarget,
 } from "./ExecutionParameters";
 
@@ -177,7 +178,19 @@ export function buildExecutionLedger(
  */
 function summarize(input: ExecutionParametersInput, events: readonly LedgerEvent[]): ExerciseDurationResult {
   const parameters = normalizeEffective(requireMode(input));
-  const targets = seriesRowsOf(parameters).map((row) => row.target);
+  return summarizeTargets(parameters, seriesRowsOf(parameters).map((row) => row.target), events);
+}
+
+/**
+ * Qualification commune : `targets` = Cibles effectivement parcourues par le
+ * registre (toutes les Séries pour une occurrence ; les seules séries jouées
+ * pour un Circuit de Séries, PRE-6 story 1.3).
+ */
+function summarizeTargets(
+  parameters: CalculableParameters,
+  targets: readonly SeriesTarget[],
+  events: readonly LedgerEvent[],
+): ExerciseDurationResult {
   let knownSeconds = 0;
   let unknown = false;
   for (const event of events) {
@@ -214,6 +227,85 @@ export function computeOccurrenceDuration(
   recoverySeconds: number,
 ): ExerciseDurationResult {
   return summarize(parameters, buildExecutionLedger(parameters, recoverySeconds));
+}
+
+/**
+ * PRE-6 (story 1.3, AD-40, ch10 L651) — registre d'UN exercice dans un
+ * Circuit de Séries : pour i = 1..`passages`, sa seule série i (un exercice
+ * qui a moins de `passages` séries ne contribue que ses séries existantes).
+ * Chaque passage se termine par Pi, remplacée par R si R > 0 :
+ * - unilatéral : Ti + Pi (ou Ti + R) ;
+ * - bilatéral : côté de départ → PC → autre côté → Pi, soit 2Ti + PC + Pi
+ *   (ou 2Ti + PC + R), aucun Pi avant PC — aussi pour N = 1 et quel que soit
+ *   l'ordre des côtés réglé, qui n'est pas réécrit.
+ * R = 0 ou absente ne remplace rien. `buildExecutionLedger` n'est pas touché.
+ *
+ * `normalizeEffective` n'est volontairement PAS appliqué : il réécrirait
+ * l'ordre des côtés à N = 1, alors qu'un passage joue toujours ses deux
+ * côtés à la suite et que le réglage doit rester tel quel.
+ */
+export function buildSeriesCircuitLedger(
+  input: ExecutionParametersInput,
+  recoverySeconds: number,
+  passages: number,
+): readonly LedgerEvent[] {
+  const parameters = requireMode(input);
+  return seriesCircuitLedger(parameters, playedSeriesRows(parameters, passages), recoverySeconds);
+}
+
+/** Séries jouées en Circuit de Séries : les `passages` premières lignes existantes. */
+function playedSeriesRows(parameters: CalculableParameters, passages: number): readonly SeriesRow[] {
+  return seriesRowsOf(parameters).slice(0, Math.max(0, passages));
+}
+
+function seriesCircuitLedger(
+  parameters: CalculableParameters,
+  rows: readonly SeriesRow[],
+  recoverySeconds: number,
+): readonly LedgerEvent[] {
+  const bilateral = isBilateral(parameters.sideMode);
+  const sides: readonly LedgerSide[] = !bilateral
+    ? ["NONE"]
+    : parameters.sideMode === "RIGHT_LEFT"
+      ? ["RIGHT", "LEFT"]
+      : ["LEFT", "RIGHT"];
+  const events: LedgerEvent[] = [];
+  rows.forEach((row, index) => {
+    const series = index + 1;
+    const seconds = workSeconds(parameters, row.target);
+    events.push({ kind: "WORK", series, side: sides[0]!, seconds });
+    if (bilateral) {
+      events.push({ kind: "SIDE_PAUSE", series, seconds: parameters.sideRecoverySeconds });
+      events.push({ kind: "WORK", series, side: sides[1]!, seconds });
+    }
+    events.push(
+      recoverySeconds > 0
+        ? { kind: "RECOVERY", seconds: recoverySeconds }
+        : { kind: "SERIES_PAUSE", series, side: sides[sides.length - 1]!, seconds: row.pauseSeconds },
+    );
+  });
+  return events;
+}
+
+/**
+ * PRE-6 (story 1.3) — total des passages d'UN exercice dans un Circuit de
+ * Séries (`buildSeriesCircuitLedger`), qualifié sur les seules séries jouées
+ * (exact / ≈ / ≥, mêmes règles que `summarize`). Multiplicité 1 dans
+ * l'agrégat de Séance : les passages y sont déjà développés.
+ */
+export function computeSeriesCircuitOccurrenceDuration(
+  input: ExecutionParametersInput,
+  recoverySeconds: number,
+  passages: number,
+): ExerciseDurationResult {
+  const parameters = requireMode(input);
+  const rows = playedSeriesRows(parameters, passages);
+  const events = seriesCircuitLedger(parameters, rows, recoverySeconds);
+  return summarizeTargets(
+    parameters,
+    rows.map((row) => row.target),
+    events,
+  );
 }
 
 /** Vrai si le mode est connu (aucun calcul n'est possible sur un mode « — »). */

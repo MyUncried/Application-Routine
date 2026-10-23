@@ -38,6 +38,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { finalActionZoneHeight } from "@/shared/ui/finalAction";
 import { colors, dimensions } from "@/shared/ui/tokens";
 
 /**
@@ -260,7 +261,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, à 24 du bas (PRE-5 3.2) ; description sans hauteur figée", () => {
+  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, dans la zone d'action fixe au-dessus de la zone de sécurité (D-444, story 7.10) ; description sans hauteur figée", () => {
     render(<Harness />);
     expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
     // PRE-5 story 3.1 : étapes sans contenant ni hauteur figée (la cible tactile d'une ligne
@@ -269,7 +270,8 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(instruction.height).toBeUndefined();
     expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
-    expect(slot.marginBottom).toBe(24);
+    // PRE-6 story 7.10 (D-444, remplace « 24 du bas » de PRE-5 3.2). Correctif J6f (D-444) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    expect(slot).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
 
@@ -1026,11 +1028,12 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         expect(style("exercise-context-band").paddingHorizontal).toBe(margin);
         const content = StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle);
         expect(content.paddingHorizontal).toBe(margin);
-        expect(style("test-finish-slot").marginHorizontal).toBe(margin);
+        expect(style("test-finish-slot").paddingHorizontal).toBe(margin);
         // Centre du halo comparé au padding réellement reçu par `FixedHeader` : `ExerciseScreen.test.tsx`, `PRE4-4.2/AC4 AC5`.
         // PRE-5 3.2, arbitrage G-2 (à la place de D-327 pour cet écran) : 14 du bas du dégradé à
         // la première section ; 10 titre → contenu ; 16 entre sections ; 12 dernier bloc → Terminer.
-        expect(content).toMatchObject({ paddingTop: 14, paddingBottom: 12 });
+        // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe (24 + 48 + 34 + 8).
+        expect(content).toMatchObject({ paddingTop: 14, paddingBottom: finalActionZoneHeight(34) });
         expect(content.gap).toBeUndefined();
         expect(style("exercise-section-description")).toMatchObject({ gap: 10 });
         expect(style("exercise-section-description").marginTop).toBeUndefined();
@@ -1038,9 +1041,11 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
           expect(style(section)).toMatchObject({ gap: 10, marginTop: 16 });
         }
         expect(style("test-finish-slot").marginTop).toBeUndefined();
-        for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-slot", "test-finish-action"]) {
+        for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-action"]) {
           expect(style(testID).position === "absolute").toBe(false);
         }
+        // PRE-6 story 7.10 (D-444) : seule la zone d'action est en absolu, fixe au bas de l'écran.
+        expect(style("test-finish-slot")).toMatchObject({ position: "absolute", bottom: 0 });
       } finally {
         view.restore();
       }
@@ -1177,7 +1182,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       // la borne ; la mesure 354 × 48 est contrôlée sur appareil (R-4.2-06).
       expect(style("test-finish-action").width).toBeUndefined();
       expect(style("test-finish-action").position).toBeUndefined();
-      expect(style("test-finish-slot")).toMatchObject({ marginHorizontal: 24 });
+      expect(style("test-finish-slot")).toMatchObject({ paddingHorizontal: 24 });
       expect(style("test-finish-slot").width).toBeUndefined();
     } finally {
       view.restore();
@@ -2010,12 +2015,16 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     expect(card.borderColor).toBeUndefined();
   });
 
-  it("AC2 — `Terminer` : marginBottom 24 avec `insets.bottom` 34 puis 0, hors du `KeyboardAvoidingView` ; réserve de défilement 12", () => {
-    for (const bottom of [34, 0]) {
+  // PRE-6 story 7.10 (D-444, remplace « 24 du bord de l'écran » et la réserve de 12 de PRE-5 3.2) :
+  // zone protégée de 24 + 48 + encart + 8 (16 sans encart) ; réserve = hauteur de la zone.
+  // Correctif J6f (D-444) : zone de 114 (encart 34) ou 88 (sans encart), bouton centré (33 / 20).
+  it("AC2, story 7.10 (correctif J6f) — `Terminer` centré dans la zone : 33 au-dessus et au-dessous avec `insets.bottom` 34, 20 sans encart ; hors du `KeyboardAvoidingView` ; réserve de défilement = hauteur de la zone (114 / 88)", () => {
+    for (const [bottom, padding, zone] of [[34, 33, 114], [0, 20, 88]] as const) {
       const view = render(<Harness safeAreaBottom={bottom} />);
-      expect(style("test-finish-slot").marginBottom).toBe(24);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: padding, paddingBottom: padding });
+      expect(padding * 2 + 48).toBe(zone);
       expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
-      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(12);
+      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(zone);
       // Couleurs actif / inactif inchangées.
       expect(style("test-finish-action").backgroundColor).toBe("#0508E5");
       view.unmount();
@@ -2040,14 +2049,14 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     }
   });
 
-  it("AC2 (revue) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : `Terminer` reste au-dessus (marginBottom 48) ; encart 0 : 24", () => {
+  it("AC2 (revue), story 7.10 (correctif J6f) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : zone 24 + 48 + 56 = 128 ; centré, `Terminer` couvrirait 8 points de la barre : bas à 48 (jamais sous l'encart), 32 au-dessus ; encart 0 : centré 20 / 20", () => {
     const os = jest.replaceProperty(Platform, "OS", "android");
     try {
       const view = render(<Harness safeAreaBottom={48} />);
-      expect(style("test-finish-slot").marginBottom).toBe(48);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: 32, paddingBottom: 48 });
       view.unmount();
       render(<Harness safeAreaBottom={0} />);
-      expect(style("test-finish-slot").marginBottom).toBe(24);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: 20, paddingBottom: 20 });
     } finally {
       os.restore();
     }

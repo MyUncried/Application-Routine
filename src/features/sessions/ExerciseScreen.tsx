@@ -20,6 +20,8 @@ import {
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
+import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
+import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import {
@@ -36,6 +38,7 @@ import { useProfileService } from "@/features/preferences/ProfileServiceContext"
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
+import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -502,6 +505,40 @@ function occurrenceEquals(
 }
 
 /**
+ * PRE-6 (story 3.3) : mêmes séries (Régime, nombre, Cibles, Pauses, charges, phases), les
+ * autres paramètres étant ignorés.
+ */
+function seriesEqual(a: ExecutionParametersInput, b: ExecutionParametersInput): boolean {
+  return executionParametersEqual(a, { ...a, series: b.series });
+}
+
+/**
+ * PRE-6 (story 3.3) : contexte d'une occurrence existante à l'ouverture de l'éditeur — N hérité
+ * (AD-37, AD-44) et séries ouvertes, sous leur forme lue et sous celle que produit le ✓ de la
+ * Feuille (`validateForSave` avec la ligne de base), pour que ✓ sans modification ne compte pas
+ * comme un changement. `null` sans occurrence existante.
+ */
+type OpenedOccurrence = {
+  readonly inheritedSeriesCount: boolean;
+  readonly openedParameters: readonly ExecutionParametersInput[];
+};
+
+function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: CircuitNature | undefined): OpenedOccurrence | null {
+  if (exercise === null) {
+    return null;
+  }
+  const opened = cloneExecutionParameters(exercise.executionParameters);
+  const validated = validateForSave(opened, opened);
+  return {
+    inheritedSeriesCount:
+      exercise.structuralPosition === "IN_TOUR" &&
+      exercise.type === "EXERCISE" &&
+      (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
+    openedParameters: validated.ok ? [opened, validated.value] : [opened],
+  };
+}
+
+/**
  * Copie de Séance (D-137) — écrit exclusivement dans le brouillon de
  * Composition (`SessionDraftContext`), jamais dans une définition Catalogue.
  * Une nouvelle occurrence ne reçoit AUCUNE Récupération automatique
@@ -533,12 +570,25 @@ function CompositionExerciseEditor() {
   const [baselineParameters] = useState<ExecutionParametersInput | null>(() =>
     existingExercise ? cloneExecutionParameters(existingExercise.executionParameters) : null,
   );
+  // PRE-6 (story 3.3, AD-37, AD-44) : contexte de l'occurrence existante, figé dès qu'elle est
+  // lue sur le brouillon (au montage, ou dès sa résolution si le brouillon n'est pas encore
+  // hydraté), puis pour toute la vie de l'éditeur :
+  // - N hérité : occurrence `IN_TOUR`, de type `EXERCISE`, d'un Circuit de Séries. Une occurrence
+  //   sortie du Circuit (ou passée en Tours) est donc libre à sa prochaine ouverture. Une nouvelle
+  //   occurrence n'est pas encore dans le Circuit : elle y est adaptée à `Terminer` (story 2.3) ;
+  // - paramètres à l'ouverture, référence de la règle de réserve (`commitFinished`).
+  const [openedOccurrence, setOpenedOccurrence] = useState(() => openedOccurrenceOf(existingExercise, draft.circuitNature));
+  if (openedOccurrence === null && existingExercise !== null) {
+    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature));
+  }
+  const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
   const [initialSnapshot, setInitialSnapshot] = useState<SessionDraftExercise>(() =>
     existingExercise
       ? existingExercise
       : {
-          // Nouvelle occurrence : AUCUNE Récupération automatique (R = 0).
-          ...createExerciseDraft(Crypto.randomUUID(), 0),
+          // Nouvelle occurrence : AUCUNE Récupération automatique — PRE-6
+          // (story 1.1, AD-35) : absente (`null`), distincte de « présente à 0 ».
+          ...createExerciseDraft(Crypto.randomUUID(), null),
           executionParameters: createEmptyFormValue().executionParameters,
           categoryId: null,
           media: [],
@@ -559,6 +609,8 @@ function CompositionExerciseEditor() {
   const categorySheet = useReferenceSheet(categoryAccessRef);
   const [isFinishing, setIsFinishing] = useState(false);
   const finishingRef = useRef(false);
+  // PRE-6 (story 2.3) : ajout adapté au Circuit de Séries, en attente de confirmation de perte.
+  const [pendingCircuitEntry, setPendingCircuitEntry] = useState<{ readonly targetCount: number } | null>(null);
 
   // Nouvelle occurrence : défauts CR/Fin du Profil appliqués à leur lecture
   // si le brouillon est intact — ajustement d'état pendant le rendu, une fois.
@@ -578,6 +630,11 @@ function CompositionExerciseEditor() {
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
+  // PRE-6 (story 2.3) : la sortie l'emporte — le dialogue de Circuit en attente est retiré
+  // (ajustement d'état pendant le rendu ; `finishingRef` n'est jamais engagé tant qu'il attend).
+  if (isPendingExit && pendingCircuitEntry !== null) {
+    setPendingCircuitEntry(null);
+  }
 
   useEffect(() => {
     if (isFinishing && !shouldBlockExit) {
@@ -614,18 +671,60 @@ function CompositionExerciseEditor() {
     });
   }
 
+  /**
+   * Occurrences du brouillon COURANT après `Terminer`. PRE-6 (story 2.3, AD-39) : une nouvelle
+   * occurrence qui arrive dans un Circuit de Séries est adaptée à N ; ses pertes éventuelles
+   * sont rendues pour confirmation AVANT toute mutation.
+   */
+  function planFinish(current: SessionDraftExercise) {
+    // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    if (draft.exercises.some((exercise) => exercise.id === finished.id)) {
+      return {
+        exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
+        losses: [],
+        targetCount: 0,
+      };
+    }
+    return settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+  }
+
   function handleTerminer() {
     if (finishingRef.current || local === null) {
       return;
     }
+    const plan = planFinish(local);
+    if (plan.losses.length > 0) {
+      // Annuler : reste sur l'écran, rien n'est ajouté ; `finishingRef` n'est pas engagé.
+      setPendingCircuitEntry({ targetCount: plan.targetCount });
+      return;
+    }
     finishingRef.current = true;
-    // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
-    const finished: SessionDraftExercise = { ...local, instruction: encodeInstructionSteps(instructionSteps) };
-    const alreadyPresent = draft.exercises.some((exercise) => exercise.id === finished.id);
-    const nextExercises = alreadyPresent
-      ? draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise))
-      : appendActivityAfterLastDisplayed(draft.exercises, finished);
-    updateDraft({ exercises: nextExercises });
+    commitFinished(plan.exercises);
+  }
+
+  function commitFinished(nextExercises: readonly SessionDraftExercise[]) {
+    // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
+    // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
+    // retrait que sa sortie du Circuit, `exitCircuit`), dans la MÊME mise à jour, fonctionnelle,
+    // que les occurrences. Sans entrée de réserve, mise à jour simple inchangée.
+    const occurrence = local;
+    const seriesChanged =
+      occurrence !== null &&
+      openedOccurrence !== null &&
+      !openedOccurrence.openedParameters.some((opened) => seriesEqual(occurrence.executionParameters, opened));
+    const hasReserveEntry =
+      occurrence !== null &&
+      draft.circuitSeriesReserve !== undefined &&
+      Object.prototype.hasOwnProperty.call(draft.circuitSeriesReserve, occurrence.id);
+    if (seriesChanged && hasReserveEntry) {
+      updateDraft((current) => ({
+        exercises: nextExercises,
+        circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve,
+      }));
+    } else {
+      updateDraft({ exercises: nextExercises });
+    }
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
     activityDefinitionService.commitMediaDraft(mediaDraftId);
@@ -676,6 +775,7 @@ function CompositionExerciseEditor() {
           // PRE-5 story 2.5 (AC4, D-409, RM-218) : Exercice ouvert depuis une Séance — la
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
+          inheritedSeriesCount={inheritedSeriesCount}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -710,6 +810,24 @@ function CompositionExerciseEditor() {
       {/* Q18 (FR-02-12) : textes de création en CS, de modification en MS (intention de la route). */}
       {isPendingExit ? (
         <ExerciseExitConfirmModal isCreation={isCreationRoute} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
+
+      {pendingCircuitEntry !== null ? (
+        <CircuitEntryConfirmModal
+          kind="ADD"
+          seriesCount={pendingCircuitEntry.targetCount}
+          exerciseCount={1}
+          onCancel={() => setPendingCircuitEntry(null)}
+          onConfirm={() => {
+            setPendingCircuitEntry(null);
+            if (finishingRef.current || local === null) {
+              return;
+            }
+            // Ajout rejoué sur le brouillon courant (aucun instantané rejoué).
+            finishingRef.current = true;
+            commitFinished(planFinish(local).exercises);
+          }}
+        />
       ) : null}
     </ScreenShell>
   );

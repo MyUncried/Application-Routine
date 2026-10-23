@@ -50,7 +50,14 @@ export const DATABASE_NAME = "kodjo.db";
  * (CHECK sans l'ancien troisième mode, cible scalaire NULL admise) et table
  * `migration_notices` ; 001..009 inchangées.
  */
-export const DATABASE_VERSION = 10;
+/**
+ * **PRE-6 (version 11, `migration011`, story 1.1)** : nature du Circuit
+ * (`tours.nature`, `TOURS` par défaut) et présence de la récupération
+ * post-exercice (`activities.post_activity_recovery_present`, reprise à 1
+ * pour toute valeur > 0) — `ADD COLUMN` seulement, idempotente ; 001..010
+ * inchangées.
+ */
+export const DATABASE_VERSION = 11;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

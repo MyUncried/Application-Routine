@@ -37,8 +37,8 @@ import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activitie
  * attendus : `Terminer` enregistre atomiquement l'Activité ; elle s'insère
  * entre Compte à rebours et Tour ; le retour ramène sur Composition ; le
  * résumé `N activité(s) · durée` est recalculé ; un double-appui sur
- * `Terminer` ne crée pas de doublon ; le bouton `Enregistrer la séance` (ex-`Continuer`,
- * PRE-4 Q54) reste désactivé tant que le Nom de la séance est vide, et s'active puis
+ * `Terminer` ne crée pas de doublon ; le bouton `Continuer` (libellé PRE-6 story 2.1 ;
+ * action d'enregistrement PRE-4 Q54) reste désactivé tant que le Nom de la séance est vide, et s'active puis
  * enregistre depuis la Composition une fois celle-ci complète (T01-S09, résolution de
  * l'ARBITRAGE précédemment documenté par l'audit).
  *
@@ -68,7 +68,7 @@ const exercise = strings.screens.exercise;
 
 /**
  * Contexte `SessionService` factice minimal (aucune dépendance SQLite réelle). PRE-4, décision
- * Q54 : `Enregistrer la séance` enregistre depuis la Composition (écran « Catégories de la
+ * Q54 : l'action finale `Continuer` (PRE-6 story 2.1) enregistre depuis la Composition (écran « Catégories de la
  * séance » supprimé) ; ce dépôt refuse toute écriture, ce qui permet au test n°8 de prouver
  * l'appel et le traitement d'un échec sans quitter la Composition. L'enregistrement réel est
  * prouvé sur SQLite par `CompositionSaveFlow.integration.test.tsx`.
@@ -331,22 +331,17 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     expect(exerciseRowTestId).not.toBeNull();
 
     const order = testIdOrder(screen.toJSON(), [
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       exerciseRowTestId as string,
     ]);
     expect(order).toEqual([
-      "composition-row-icon-composition-initial-countdown",
+      "composition-boundary-countdown",
       exerciseRowTestId,
     ]);
 
-    // 5. Résumé du TOUR inchangé (correctif T02, 2026-09-08, point 1) :
-    // cette Activité est insérée `BEFORE_TOUR` (D-078/RM-020, « entre Compte
-    // à rebours et Tour », vérifié ci-dessus), donc hors de la zone
-    // `IN_TOUR` — la synthèse propre au Tour, qui n'agrège plus QUE cette
-    // zone, reste par conséquent l'état vide `"0 activité · 0 min"`. Avant
-    // ce correctif, une Activité `BEFORE_TOUR` contribuait encore (à tort)
-    // au nombre affiché par cette synthèse.
-    expect(screen.getByText(composition.summary.empty)).toBeTruthy();
+    // 5. Story 7.8 (D-443) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
+    // Tour, qui restait vide pour une Activité `BEFORE_TOUR`, a disparu avec elle).
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {
@@ -380,7 +375,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     );
   });
 
-  it("8. Q54 — Enregistrer la séance s'active pour une Composition complète (Nom + Activité valide) et enregistre depuis la Composition, sans écran intermédiaire ; échec : message D-107, Composition conservée", async () => {
+  it("8. Q54 — Continuer s'active pour une Composition complète (Nom + Activité valide) et enregistre depuis la Composition, sans écran intermédiaire ; échec : message D-107, Composition conservée", async () => {
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
     const router = renderCreationRouter();
 
