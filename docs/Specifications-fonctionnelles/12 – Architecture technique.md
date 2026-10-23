@@ -924,8 +924,14 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 
 Le catalogue courant et les exceptions sont détaillés dans [DSF-CADENCE](../DSF-CADENCE-2026-10-06.md), §7. Les anciens noms Source exact et leurs variantes ne constituent plus le catalogue cible.
 
+Complément du 23/10 : [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Les nouveaux écrans ne sont pas tous des composants ; ne pas inventer de composant partagé sur la seule foi d’une frame.
+
 | Famille | Référence courante | Variantes / portée |
 |---|---|---|
+| Niveau | `icon/niveau` `9932:44044` | Niveau 1 / 2 / 3, tranches non atteintes à 28 % ; aucune limite métier à trois niveaux |
+| Modifier le geste | `icon/modifier` `9925:41240` | Crayon au trait bleu KODJO, création sur geste repris ; pas de déverrouillage d’occurrence |
+| Classification | `Sélecteur classification` `9925:41506`, `9925:41515` | Rôle Niveau, états Vide / Renseigné ; Rôle = Catégorie / Zone / Niveau |
+| Contexte exercice | `Zone bleue — Nom et média` `9029:18368`, rangée `9029:18363` | Niveau troisième ; espacement 12, marges latérales 6 ; zones élastiques tronquées |
 | Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
 | En-tête | DSF / Navigation / En-tête fixe `5544:4504` | Standard / Retour / Fermer ; Titre, Démarcation ; exceptions anciennes identifiées dans DSF §7 |
 | En-tête de modale | DSF / Overlays / En-tête de modale `5544:5567` | Classification / Roulette / Sélection |

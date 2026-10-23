@@ -728,7 +728,7 @@ Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archiv
 
 #### 12. Contrôles et interactions
 
-Créer une variante/un niveau est accessible depuis la fiche ou l’action du Catalogue. Nouveau niveau immédiatement après l’origine, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
+Créer une variante/un niveau est accessible depuis le popover de niveau de la fiche : « Changer de niveau / Ajouter un niveau » (`9577:19843`). Aucun Nouveau niveau dans les actions glissées : conserver Planifier / Dupliquer / Archiver (D-196). Nouveau niveau immédiatement après l’origine, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
 
 Surface carte = ouvrir/modifier ; Lecture = exécution directe. Aucun contrôle Déployer, visible ou invisible, quel que soit le média. La gouttière existe toujours ; le booléen Photo ne change que son contenu. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
 
@@ -772,6 +772,8 @@ Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèq
 
 ### CE-T03-04 — Éditeur Exercice — créer / modifier
 
+**Actualisation Figma du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) ; captures au chapitre 06. Les états `9882:19049`, `9891:39982`, `9952:44349`, `9959:19518`, `9959:19623` et le popover `9577:19843` complètent ce contrat, sans créer de nouvelles destinations.
+
 #### 1. Identification
 
 Formulaire créer/modifier :3943:6064,4217:6980,5088:6398,3542:4656,4734:6342. Carte vide 6407:9458, résumé uniforme 6407:9702, variables 6665:27862/28050. Abandon 4714:6241. Feuille CE-UI-10 et référentiels CE-UI-09 ; inventaire courant du 03/10.
@@ -786,7 +788,7 @@ Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le r�
 
 #### 3. Contexte d’entrée
 
-D-437/D-438 : ouverture Catalogue directement en édition. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
+D-437/D-438 : ouverture Catalogue directement en édition. En création sur geste repris, contenu initialement en lecture seule, paramètres modifiables et crayon « Modifier le geste » ouvrant le brouillon de contenu. Aucun crayon de déverrouillage d’une occurrence. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
 
 Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillon ou copie de travail. Le même motif s’applique à une copie de Composition lorsque son édition est exposée, sans synchronisation vers la référence.
 
@@ -825,7 +827,7 @@ Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Descrip
 
 #### 9. Layout déterministe
 
-Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
+Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. Complément du 23/10 : rangée Catégorie / Zones / Niveau, espacement 12 pt et marges latérales 6 pt ; zones élastiques tronquées, valeur intégrale accessible. Pastille « Niveau X », total dans le choix ; pas de rang pour un singleton ou un geste sans groupe. Confirmation en feuille basse `9952:44349` ; cibles tactiles ≥ 44 × 44, indépendantes des boîtes d’icônes. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
 
 Phrase : Inter 13, interligne 20, texte sombre et valeurs en gras ; largeur 324/x39 dans la référence 402. *Remplacé par les arbitrages G-1 à G-10 de Hermann du 19/10 (G-6) : Inter Regular 14, interligne 20, dans un bloc `#F9FAFC` de rayon 12 sans liseré, sans Compte à rebours ni Fin (R-14).* Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
@@ -841,7 +843,7 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
-États MFN : recherche de gestes incluant les créations locales ; choix même geste/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. La réalisation visuelle de ces nouveaux états reste à spécifier, sans remettre en cause leurs comportements validés.
+États MFN : recherche de gestes incluant les créations locales ; choix même geste/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. Les cinq états de création/reprise/recherche/confirmation sont illustrés au chapitre 06. La complétion des durées manquantes et l’état de frère incomplet restent sans frame dédiée ; les écarts de câblage et de rang sont consignés dans le relevé Figma du 23/10.
 
 Vide, nom seul, catégorie renseignée, nom/description en étapes/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
@@ -857,7 +859,7 @@ Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte :
 
 #### 14. Validation
 
-D-438 : si geste utilisé et nom, description, média ou structure des phases modifié, proposer exactement **Corriger cet exercice / Créer un nouvel exercice / Annuler**. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
+D-438 : si geste utilisé et nom, description, média ou structure des phases modifié, proposer **Corriger cet exercice / Créer un nouvel exercice / Annuler** en modification Catalogue ; en création sur geste repris, **Corriger ce geste / En faire un geste distinct / Annuler**, dans la feuille basse `9952:44349`. Aucune confirmation pour une variante explicitement choisie ou une reprise inchangée. Annuler conserve le brouillon appelant. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
 
 Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider. Pour les états incomplets du formulaire, son fond est lié au token Figma `color/disabled` (`#BEC2CC`) à opacité 100 % ; pour un état valide, le bouton d’action actif est lié à `color/primary` (`#0508E5`). Le rendu gris matérialise l’inactivité sans définir à lui seul la validité métier (évidences Figma `8328:35698`, `8328:35740`, `8328:36278`, `8328:36853` ; état actif `8328:37022`).
 
@@ -889,7 +891,7 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 #### 20. Recette déterministe
 
-Recette complémentaire : MFN/AC01 à MFN/AC37 du chapitre 10 ; vérifier notamment comptage des frères, annulation sans résidu, absence de fusion et exclusion des frères incomplets du lancement. Recette applicative à exécuter lors de l’implémentation.
+Recette complémentaire : scénarios du [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) (reprise, variante sans dialogue, recherche locale, comptes dynamiques, annulation, rangs, responsive), puis MFN/AC01 à MFN/AC37 du chapitre 10 ; vérifier notamment comptage des frères, annulation sans résidu, absence de fusion et exclusion des frères incomplets du lancement. Recette applicative à exécuter lors de l’implémentation.
 
 Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de 8328:38848 est une réserve Figma, pas une autorité métier.
 

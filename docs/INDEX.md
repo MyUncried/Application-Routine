@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+**Actualisation Figma du 23/10/2026 :** [Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) — cinq nouveaux états et popover illustrés au chapitre 06, captures existantes actualisées, contrats et composants réconciliés ; écarts de prototype explicités.
+
 La documentation de référence forme un ensemble de treize chapitres, complété par quatre annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.
 
 | Chapitre | Titre | Contenu |

@@ -397,7 +397,7 @@ Un rattachement ultérieur à un groupe est possible. Une correction d’identit
 
 #### MFN-07 — Créer un niveau
 
-Accès depuis un exercice utilisant le mouvement, depuis la fiche ou l’action du Catalogue. L’opération crée un mouvement distinct et un exercice associé, avec des paramètres éventuellement repris de l’original.
+Accès depuis un exercice utilisant le mouvement, par le popover de niveau de sa fiche : **Changer de niveau / Ajouter un niveau**. L’ancienne action glissée Nouveau niveau est retirée ; les actions Catalogue de D-196 sont conservées. L’opération crée un mouvement distinct et un exercice associé, avec des paramètres éventuellement repris de l’original.
 
 La description, les médias et les zones sont initialisés depuis l’original puis peuvent être adaptés. Ne pas imposer un média distinct ni une modification de tous les champs. La différence fonctionnelle est celle du geste ; la détection automatique de cette différence n’est pas demandée.
 
@@ -419,7 +419,9 @@ L’utilisation écrit cette métadonnée durable sur le mouvement source sans m
 | **Créer un nouvel exercice** | Créer un mouvement distinct et un exercice portant les paramètres saisis ; conserver intacts l’exercice, le mouvement d’origine et les autres exercices qui le partagent |
 | **Annuler** | Revenir au brouillon d’édition sans enregistrer |
 
-Le libellé **Créer un nouvel exercice** est conservé tel quel, sans supersession. Le rattachement au groupe est proposé sans présélection lors de la création du nouveau geste.
+En modification d’une définition Catalogue, les libellés du tableau sont conservés. En **création sur geste repris**, ils deviennent **Corriger ce geste / En faire un geste distinct / Annuler** (Figma `9952:44349`) : même décision d’identité, sans créer un exercice supplémentaire au brouillon de création. Le rattachement au groupe est proposé sans présélection lors de la création du nouveau geste. Annuler retrouve le brouillon appelant intact.
+
+La reprise d’un geste ouvre son contenu en lecture seule avec crayon, les paramètres restant modifiables. Le crayon ne persiste rien et n’existe pas pour déverrouiller une occurrence enregistrée. Une variante explicitement choisie crée déjà une nouvelle identité : sa validation n’affiche pas ce dialogue. Une reprise inchangée ou des paramètres seuls non plus. Le câblage démonstratif systématique vers la confirmation ne remplace pas ces conditions. Voir le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md).
 
 **Portée obligatoire du dialogue :** au-delà d’un exercice concerné par la correction, le dialogue indique leur nombre. Les copies déjà posées et les instantanés restent inchangés. La correction partagée ne constitue jamais une synchronisation des occurrences.
 
