@@ -692,6 +692,8 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 #### 5. Données affichées et source de vérité
 
+D-437/D-439 : la liste regroupe les définitions par geste ; chaque définition garde son identité et son résumé de paramètres, sans alias. La ligne de regroupement ne se lance ni ne s’insère sans sélection d’une définition précise. Deux duplicatas identiques peuvent être indiscernables jusqu’à modification. Les relations entre niveaux se naviguent depuis la fiche, séparément de ce regroupement.
+
 Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la Pause entre les côtés éventuelle relève de la définition.
 
 Exercice variable : indicateur N séries variables et total intrinsèque selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases) ; pas de détail exhaustif des cibles sur la carte.
@@ -725,6 +727,8 @@ Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intér
 Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archives ; Trier désactivé ; carte glissée ; gouttière sans média/avec photo, sans Déployer ; chargement/erreur média ; retour restauré ; relance sans filtre. 4738:6355 illustre l’ancien assemblage média déployé, pas la cible Photo.
 
 #### 12. Contrôles et interactions
+
+Créer une variante/un niveau est accessible depuis la fiche ou l’action du Catalogue. Nouveau niveau immédiatement après l’origine, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
 
 Surface carte = ouvrir/modifier ; Lecture = exécution directe. Aucun contrôle Déployer, visible ou invisible, quel que soit le média. La gouttière existe toujours ; le booléen Photo ne change que son contenu. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
 
@@ -782,6 +786,8 @@ Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le r�
 
 #### 3. Contexte d’entrée
 
+D-437/D-438 : ouverture Catalogue directement en édition. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
+
 Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillon ou copie de travail. Le même motif s’applique à une copie de Composition lorsque son édition est exposée, sans synchronisation vers la référence.
 
 #### 4. Contexte de sortie / destinations
@@ -814,6 +820,7 @@ En-tête fixe → bandeau de contexte (nom, Catégorie, Zones corporelles) → c
 
 #### 8. Éléments obligatoires
 
+
 Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Description à étapes numérotées avec première invite « 1. Décrivez la première étape », puis invite « Étape suivante » ; zone Média ; carte Paramètres vide ou résumée ; action Terminer dont la disponibilité suit la validité du brouillon. Après ✓ de la feuille, la carte affiche une phrase unique avec valeurs en gras, énumération jusqu’à 3 puis min/max selon [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres). La zone Paramètres entière ouvre CE-UI-10 ; aucun segment/raccourci autonome dans la phrase. Les réglages Compte à rebours et Fin se trouvent dans CE-UI-10 (D-413).
 
 #### 9. Layout déterministe
@@ -834,6 +841,8 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
+États MFN : recherche de gestes incluant les créations locales ; choix même geste/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. La réalisation visuelle de ces nouveaux états reste à spécifier, sans remettre en cause leurs comportements validés.
+
 Vide, nom seul, catégorie renseignée, nom/description en étapes/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de 7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas.
@@ -848,11 +857,15 @@ Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte :
 
 #### 14. Validation
 
+D-438 : si geste utilisé et nom, description, média ou structure des phases modifié, proposer exactement **Corriger cet exercice / Créer un nouvel exercice / Annuler**. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
+
 Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider. Pour les états incomplets du formulaire, son fond est lié au token Figma `color/disabled` (`#BEC2CC`) à opacité 100 % ; pour un état valide, le bouton d’action actif est lié à `color/primary` (`#0508E5`). Le rendu gris matérialise l’inactivité sans définir à lui seul la validité métier (évidences Figma `8328:35698`, `8328:35740`, `8328:36278`, `8328:36853` ; état actif `8328:37022`).
 
 Toutes les Séries actives doivent être valides ; Total variable en lecture seule, aucune cible uniforme utilisée à sa place.
 
 #### 15. Brouillon et persistance
+
+D-437/D-438 : contenu Catalogue partagé et paramètres par définition. Correction atomique ; copies et historiques inchangés. Création locale et mouvement enregistrés avec la séance, sans publication Catalogue ; annulation sans résidu ni marque d’utilisation. Usage durable irréversible dès enregistrement de séance ou lancement direct.
 
 Aucune phrase ni aucun segment en base, occurrence ou snapshot. Régénération à chaque affichage depuis les paramètres ; ✓ applique, ✕ annule, Terminer persiste les paramètres. Une règle rédactionnelle amendée s’applique au prochain affichage des objets existants.
 
@@ -876,6 +889,8 @@ Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ;
 
 #### 20. Recette déterministe
 
+Recette complémentaire : MFN/AC01 à MFN/AC37 du chapitre 10 ; vérifier notamment comptage des frères, annulation sans résidu, absence de fusion et exclusion des frères incomplets du lancement. Recette applicative à exécuter lors de l’implémentation.
+
 Après✓ tester mélange chiffré/échec et ≥, puis annulation et édition d’une copie ; tout échec reste sans total. La formulation de fond divergente de 8328:38848 est une réserve Figma, pas une autorité métier.
 
 Recette rédactionnelle :276 gabarits v15 avec total métier injecté, gras sur occurrences répétées d’une valeur, N1 avec pause mentionnée et total non redondant ; absence de troncature. Français au MVP ; i18n nécessite des gabarits et accords par locale, pas une traduction de fragments isolés. Phrase avec charge : « (charge : 10 kg) » et « (charge : 1,25 kg) », « (charges : 20, 12, 13 kg) », « (charges : 20, 12 kg, ...) » au-delà de trois séries, « (charges : 0, 10, 15 kg) » avec une série à zéro, mention après la valeur par série, Sans sans mention, Sans puis Avec restaurant la valeur (RM-240, D-414, RM-236).
@@ -890,7 +905,7 @@ Vérifier état repos/activé à ouverture/fermeture du panneau et symbole du to
 
 Corpus v15 :276gabarits, total métier injecté ; aucun changement grammatical vs v14. Tester virgule jamais isolée en début de ligne, cas 144 long et ordre des cibles après déplacement. Les cas de brouillon incomplet restent hors des 276sorties validées.
 
-Recette phases : création/repli ; ajout libre6→6+6 ; format20→20+0→12+8 ; suppression5+7+8→5+15 ; déplacement sans modification du total ; dernière supprimée→durée simple ; six phases ; libellé20/vide ; zéro retiré ; annulation complète ; adaptation15+15→10+10 et6+3→13+7 avec message ; total3×(6+3+15)=72s ; ancien objet inchangé. Recette applicative non exécutée par la présente mise à jour documentaire.
+Recette phases : création/repli ; ajout libre6→6+6 ; format20→20+0→12+8 ; suppression5+7+8→5+15 ; déplacement sans modification du total ; dernière supprimée→durée simple ; six phases ; libellé20/vide ; zéro conservé comme durée manquante, enregistrement bloqué ; annulation complète ; adaptation15+15→10+10 et6+3→13+7 avec message ; total3×(6+3+15)=72s ; ancien objet inchangé. Recette applicative non exécutée par la présente mise à jour documentaire.
 
 
 ### CE-T03-05 — ActivityDefinition — archiver / restaurer / supprimer
@@ -974,6 +989,8 @@ Archivage avec Routines ACTIVITY : confirmation avant suppression des planificat
 Actions nommées ; Supprimer annoncé destructif ; dialogue focusé ; filtre Archives annoncé actif ; équivalents aux gestes disponibles.
 
 #### 19. Invariants
+
+D-437 : supprimer une définition ne supprime pas automatiquement son mouvement. Un mouvement encore référencé par une définition ne peut être supprimé. L’archivage n’annule pas cette intégrité. Copies et instantanés restent autonomes, même si leur filiation devient orpheline après une suppression autorisée.
 
 Suppression seulement Archives ; aucune suppression de SessionActivity, snapshot, Result ou Execution ; accès Archives via Filtrer ; Trier disabled.
 
@@ -1102,6 +1119,8 @@ Sans phases ; phases ouvertes/repliées ; incompatibilité ; une/six phases ; z�
 
 #### 12. Contrôles et interactions
 
+D-438 : les contrôles de structure (Avec/Sans, nombre, retrait, déplacement, libellé) sont disponibles au Catalogue et verrouillés dans une occurrence. Les durées restent modifiables. Le retrait explicite au Catalogue est permis à deux phases : 2 → 1 devient Sans avec la durée restante ; aucune suppression à partir d’une cellule vide.
+
 Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ; libellé « Aucune durée, à l’échec » ou « Aucune répétition, à l’échec ». En Répétitions, « Aucune répétition, à l’échec » est la ligne de tête de la roulette à une colonne ; aucun bloc horaire 00:00 n’y est transposé. Aucune coche dans la liste ; ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette. Conserver le type À l’échec lors d’une bascule de mode. À tout instant, exactement une cible est sélectionnée. À l’ouverture : cible numérique → roulette active sur la valeur courante et libellé échec à45% ; cible échec → libellé actif et bloc numérique grisé à45%, affiché à00:00 en mode Durée uniquement. Faire tourner la roulette sélectionne la valeur numérique et grise le libellé. Toucher le libellé sélectionne l’échec et ramène le bloc numérique grisé à00:00 en mode Durée. Le grisé exprime la non-sélection, pas une interdiction de manipuler la roulette. Aucun geste supplémentaire de déverrouillage, aucune coche. ✓ de la roulette applique la sélection au brouillon de la feuille ; ✕ de la roulette restaure la valeur à son ouverture. ✓ de la feuille applique l’ensemble au parent ; ✕ de la feuille annule toutes les modifications depuis son ouverture, y compris celles validées dans une roulette. Aucune persistance définitive à la validation de la roulette.00:00 n’est jamais une cible valide ; pause0 reste valide.
 
 **Révision 18/10 (D-411, D-412) :** en séries identiques, la Condition d’arrêt choisit À l’échec ou À la cible pour toutes les séries (RM-248) ; la roulette Durée d’une série ne propose plus « Aucune durée, à l’échec » (RM-250). L’option en tête « Aucune durée, à l’échec » et les règles ci-dessus de sélection, de grisé et de 00:00 valent pour la roulette d’une cellule de série variable en mode Durée, pour cette seule série ; chaque modification actualise la Condition d’arrêt, sans modifier les pauses (RM-249, RM-250). À l’échec n’est pas une durée nulle. En séries identiques, la roulette Répétitions ne propose plus « Aucune répétition, à l’échec » (D-418) et la saisie de durée est masquée lorsque la condition commune est À l’échec (D-419) ; dans une cellule de séries variables, la roulette Répétitions garde cette option en tête.
@@ -1121,7 +1140,7 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
 - Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
 - omitted reste absent.
 
-Hors durée imposée, Avec crée deux phases : la première à la durée actuelle si elle existe, la seconde à renseigner, sans durée inventée (D-432, remplace « Avec crée Phase1 », D-410). Ajout libre (stepper +) copie la dernière durée ; − retire la dernière avec annulation ; croix indisponible à 2 phases, retrait par Sans ; une seule phase restante après normalisation → Sans à sa durée (QR-1 et QR-2 validées par Hermann le 19/10/2026) ; ajout sous format crée0 et rend la précédente modifiable. La dernière reçoit le restant. Déplacement conserve valeurs et transfère le calcul à la dernière position. Suppression sous format transfère le temps libéré à la dernière restante ; supprimer l’unique phase conserve sa durée comme durée simple. Message informatif lors de l’adaptation proportionnelle à l’intégration, catalogue intact.
+Hors durée imposée, Avec crée deux phases : la première à la durée actuelle si elle existe, la seconde à renseigner, sans durée inventée (D-432, remplace « Avec crée Phase1 », D-410). Ajout libre (stepper +) copie la dernière durée ; − retire la dernière avec annulation ; croix disponible à 2 phases au Catalogue ; retrait explicite 2 → 1 → Sans à la durée restante (D-438) ; ajout sous format crée0 et rend la précédente modifiable. La dernière reçoit le restant. Déplacement conserve valeurs et transfère le calcul à la dernière position. Suppression sous format transfère le temps libéré à la dernière restante ; supprimer l’unique phase conserve sa durée comme durée simple. Message informatif lors de l’adaptation proportionnelle à l’intégration, catalogue intact.
 
 Avec phases et N libre, Durée totale conserve le calcul inverse de R-02 : seul N est ajusté, les durées des phases restent inchangées. N imposé : total en lecture seule.
 
@@ -1135,7 +1154,7 @@ Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie te
 
 Mode et cibles typées actives requis ; une cible À l’échec est valide sans nombre. R06 close : maximum 58 min 55 s (3535 s) confirmé ; roulette de cible par pas de 1 s dès 1 s (D-430, 19/10/2026 ; auparavant 5 s). Cibles chiffrées : N1..99,Ri1..100,Ti1..3535 s,somme des phases 1..3535 s (D-430),Pauses 0..300 s,Bip entier 0..10 dans deux modes. −1,11,fraction invalides, aucune correction silencieuse. Exception propre à la charge (D-405) : valeur positive hors pas arrondie au multiple de 0,25 kg supérieur, sans message, à la sortie du champ ou à la validation ; valeur négative refusée ; zéro = sans charge (RM-239). La Condition d’arrêt dérivée n’est pas validée à part (RM-249). Repli ne contourne pas la validation ; le champ ou la cellule invalide est indiqué visuellement selon D-337 et D-389, sans message en ligne nommant la Série. La valeur 0 (Sans) du Bip reste valide. Nom/Catégorie/Zones contrôlés au parent.
 
-À ✓, phases de saisie à0 retirées silencieusement, libellés vides remplacés par Phase n. Les phases persistées sont positives. La somme calculée de6+3=9s conserve sa valeur exacte sans arrondi lié au sélecteur de série. Les bornes/pas spécifiques, le cas initial sans durée et les arrondis extrêmes restent à préciser au chapitre08 ; ne pas choisir une nouvelle borne implicitement.
+À ✓, une durée de phase nulle ou vide reste à renseigner, sans supprimer la phase ; l’exercice édité ne peut être enregistré incomplet (D-438). Le nommage par défaut des phases ajoutées est conservé au Catalogue. Les durées positives gardent leur valeur exacte, dont 6 + 3 = 9 s. La structure d’une occurrence reste verrouillée.
 
 #### 15. Brouillon et persistance
 
@@ -1216,7 +1235,7 @@ Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge 
 | Séries | 1..99 | 1 |
 | Répétitions par Série | 1..100 | 1 |
 | Durée par Série | 1..3535 s (minimum porté de 5 à 1 s par D-430, 19/10/2026) | Roulette par pas de 1 s ; 00:00 interdit comme cible |
-| Phase d’exercice | Chaque phase validée ≥ 1 s ; somme des phases 1..3535 s (D-430) | Pas de 1 s ; 0 s reste un état temporaire de saisie, retiré à la validation (D-373) |
+| Phase d’exercice | Chaque phase validée ≥ 1 s ; somme des phases 1..3535 s (D-430) | Pas de 1 s ; 0 s ou vide reste à renseigner, sans retrait ; enregistrement de l’exercice édité bloqué (D-438) |
 | Pause après chaque série / Pause entre les côtés | 0..300 s | Tap 1 s ; maintien accéléré 1/5/10 selon DSF Bip |
 | Bip de cadence (ligne Cadence) | 0..10 s | 1 s, aucune accélération ; 5 s, 2 s, 1 s et Sans sont des choix directs (RM-245) |
 | Compte à rebours / Fin d’exercice | 0..60 s | 1 s  |
@@ -1363,6 +1382,8 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 #### 5. Données affichées et source de vérité
 
+D-437/D-439 : regroupement par geste, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
+
 Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
@@ -1490,6 +1511,8 @@ Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cible
 Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; réglages initial/fin ; glissé/déplacement ; placement multiple sans/avec sélection ; roulette récupération ; confirmation décomptée ; retour/annulation ; bulle retrait récupération/point ; abandon/sauvegarde/erreur. Rabsente/R0/Rpositive croisés avec point absent/présent et trait hors/en placement.
 
 #### 12. Contrôles et interactions
+
+D-437 : l’édition d’une occurrence conserve le nom, la description, les médias, la catégorie, les zones et la structure des phases verrouillés. Paramètres modifiables sous les contraintes existantes, mode verrouillé en présence de phases, côtés modifiables. Changer de geste exige remplacement/variante ; duplication conserve filiation et suffixe système D-124 sans renommage du mouvement.
 
 **Complément cible 12/10 :** Choix de nature → CE-CIR-01 ; perte → CE-CIR-02 ; œil → CE-CIR-03. Diminution sans message ; restauration avant préremplissage. Ajout catalogue avec perte exige confirmation, Annuler abandonne ajout.
 
@@ -4117,6 +4140,8 @@ Enregistrer avec Ressenti valide sauvegarde puis restaure le Catalogue ou le Cal
 
 #### 5. Données affichées et source de vérité
 
+D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
+
 Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
 Instantané Exercice, statut et durée réelle issus de l’Exécution ACTIVITY ; Ressenti et Commentaire issus du brouillon de finalisation. Les statistiques ne comptent pas de Séance. Les résultats partiels sont conservés sans inventer un compteur de Tours.
@@ -4206,6 +4231,8 @@ Navigation Suivi ; retour d’autres écrans Suivi.
 Navigation globale ; aucun déploiement de carte. Pas de dépendance à l’ActivityDefinition source pour lire l’historique.
 
 #### 5. Données affichées et source de vérité
+
+D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
@@ -4302,6 +4329,8 @@ Fin normale du plan SESSION ou arrêt volontaire confirmé ; pas obligatoire à 
 Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni sortie normale sans Ressenti.
 
 #### 5. Données affichées et source de vérité
+
+D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
