@@ -831,3 +831,15 @@ CERTAIN : le contrat énonce, pour cet écran, la même condition et le même r�
 | [REC-26](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
 | [REC-27](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
 | [REC-28](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
+
+## Traçabilité MFN — 23/10/2026
+
+| Décision | Règles | Modèle / réalisation | Contrats / vérification |
+|---|---|---|---|
+| D-436 | Orientation fitness first indépendante | PRODUCT ; registre 07 | Ajustement de formulation |
+| D-437 | MFN-01, 03, 04, 09, 10, 11 | 01, 04, 09, 11, 12 | CE-T03-04, CE-T03-07, CE-T03-08 ; copies et historique |
+| D-438 | MFN-02, 08 | 08, 09, 11, 12 | CE-T03-04, CE-UI-10 ; durées manquantes et partage |
+| D-439 | MFN-05, 06, 07, 10 | 03, 04, 08, 09 | 06, CE-T03-04, CE-T03-07 ; sélection et niveaux |
+| D-440 | MFN-12, 13 | 05, 09, 11, 12 | Initialisation ponctuelle et conservation au redémarrage |
+
+Recettes normatives : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux), section Scénarios d’acceptation MFN. Aucun résultat de test applicatif n’est déclaré par cette propagation.
