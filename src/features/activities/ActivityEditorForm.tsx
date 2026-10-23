@@ -40,6 +40,7 @@ import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerMod
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { strings } from "@/shared/i18n";
 import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
+import { FINAL_ACTION_BUTTON, finalActionBottomMargin } from "@/shared/ui/finalAction";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -282,7 +283,11 @@ export function ActivityEditorForm({
   // Revue PRE-5 3.2 : Android (bord à bord sous Expo 57) n'est pas couvert par les frames
   // iPhone de Figma — `Terminer` y reste au-dessus de la barre de navigation système.
   const insets = useSafeAreaInsets();
-  const finishBottom = Platform.OS === "android" ? Math.max(FINISH_BOTTOM_OFFSET, insets.bottom) : FINISH_BOTTOM_OFFSET;
+  // PRE-5 story 3.2 (FR-37 ; frame `Action finale` : `pb` 24, bouton à y802 sur 874) : bas de
+  // `Terminer` à 24 du bord bas de l’écran sur iOS, au moins l’encart bas sur Android. PRE-6
+  // story 7.9 : règle et gabarit déplacés, inchangés, dans `shared/ui/finalAction.ts`, partagés avec
+  // « Continuer » de la Composition.
+  const finishBottom = finalActionBottomMargin(Platform.OS, insets.bottom);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const parametersCardRef = useRef<View>(null);
   // PRE-4 story 4.6 (FR-22-10, AC9) : à la fermeture d'une feuille de référentiel, le focus
@@ -585,7 +590,7 @@ export function ActivityEditorForm({
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
           jamais avec le clavier ; il redevient accessible dès sa fermeture (D-349).
           PRE-5 story 3.2 (FR-37) : bas du bouton à 24 du bord bas de l'écran, indépendamment
-          de `insets.bottom` sur iOS (`FINISH_BOTTOM_OFFSET`) ; sur Android, jamais sous l'encart
+          de `insets.bottom` sur iOS (`finalActionBottomMargin`, `shared/ui/finalAction.ts`) ; sur Android, jamais sous l'encart
           bas (barre de navigation). */}
       <View
         style={[styles.finishActionSlot, { marginHorizontal: sideMargin, marginBottom: finishBottom }]}
@@ -810,18 +815,10 @@ const ACCESS_TARGET_OVERFLOW_BELOW_ROW = ACCESS_HIT_SLOP.bottom - (ACCESS_ROW_HE
 const ACCESS_ROW_GAP = ACCESS_TARGET_OVERFLOW_BELOW_ROW;
 
 /**
- * PRE-5 story 3.2 (FR-37 ; frame `Action finale` : `pb` 24, bouton à y802 sur 874) : bas de
- * `Terminer` à 24 du bord bas de l’écran, indépendamment de `insets.bottom` sur iOS ; sur
- * Android, au moins l’encart bas (revue 3.2).
- */
-const FINISH_BOTTOM_OFFSET = spacing[24];
-/**
  * PRE-5 story 3.2 (FR-37, D-327 bloc → `Terminer`) : réserve de défilement sous le dernier
  * bloc, au-dessus de `Terminer` — le dernier contenu n’est jamais masqué, clavier ouvert ou fermé.
  */
 const FINISH_SCROLL_RESERVE = EDITOR_VERTICAL_GRID.blockToBlock;
-/** G-8 : ombre de `Terminer` (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */
-const FINISH_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
 /** G-4 : interligne du Nom (Figma `6981:14889`). */
 const NAME_LINE_HEIGHT = 22;
 /** G-6 : interligne de la Phrase (Figma « Phrase — texte »). */
@@ -1013,18 +1010,7 @@ const styles = StyleSheet.create({
   // PRE-5 story 3.2, arbitrages G-8 et G-10 de Hermann du 19/10 (Figma `8328:35738`) :
   // hauteur `dimensions.finalAction.buttonHeight`, ombre locale `#1A1A26` 18 %, (0, 2), flou 10,
   // dans les deux états.
-  primaryAction: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: dimensions.finalAction.buttonHeight,
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-    shadowColor: FINISH_SHADOW.color,
-    shadowOpacity: FINISH_SHADOW.opacity,
-    shadowOffset: { width: 0, height: FINISH_SHADOW.offsetY },
-    shadowRadius: FINISH_SHADOW.radius,
-    elevation: FINISH_SHADOW.elevation,
-  },
+  primaryAction: FINAL_ACTION_BUTTON,
   primaryActionDisabled: {
     backgroundColor: colors.disabled,
   },

@@ -48,6 +48,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { FINAL_ACTION_BUTTON, finalActionBottomMargin } from "@/shared/ui/finalAction";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
@@ -1577,7 +1578,33 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(scrollContent.paddingBottom).toBe(16); // spacing[16] fixe, aucun insets.bottom ici.
 
     const bottomAction = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
-    expect(bottomAction.marginBottom).toBeGreaterThanOrEqual(16); // insets.bottom + spacing[16], seul point d'application.
+    // Story 7.9 : pied de l'écran Exercice (`finalActionBottomMargin`), seul point d'application.
+    expect(bottomAction.marginBottom).toBe(spacing[24]);
+  });
+
+  // PRE-6 story 7.9 (recette J6d) : « Continuer » à la même hauteur que `Terminer` de l'écran de
+  // création d'un Exercice — même gabarit et même marge basse (`shared/ui/finalAction`).
+  it("story 7.9 — « Continuer » has the Exercise screen's final action: 48 high, radius 24, shadow G-8, bottom 24 from the screen edge on iOS", () => {
+    renderScreen();
+    const button = StyleSheet.flatten(screen.getByTestId("composition-save-action").props.style);
+    expect(button).toMatchObject({ ...FINAL_ACTION_BUTTON, backgroundColor: colors.disabled });
+    expect(button).toMatchObject({ minHeight: 48, borderRadius: 24, shadowColor: "#1A1A26", shadowOpacity: 0.18, shadowRadius: 10 });
+    expect(button.paddingVertical).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).marginBottom).toBe(24);
+  });
+
+  it("story 7.9 — Android: the footer never goes under the bottom inset (same rule as the Exercise screen)", () => {
+    const before = Platform.OS;
+    Platform.OS = "android";
+    try {
+      // Encart bas de test : 34 — sur Android, le pied reste au-dessus (34), jamais à 24.
+      renderScreen();
+      expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).marginBottom).toBe(34);
+      expect(finalActionBottomMargin("android", 48)).toBe(48);
+      expect(finalActionBottomMargin("android", 0)).toBe(24);
+    } finally {
+      Platform.OS = before;
+    }
   });
 });
 
@@ -5093,6 +5120,25 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         }
       });
 
+      // Story 7.9 (revue) : le menu natif est remonté quand l'unité change ; il ne peut plus rendre le
+      // focus — la pastille le reçoit, même sur iOS, quand la nature change sans dialogue.
+      it("story 7.9 — iOS: a nature change without loss gives the focus back to the pill; choosing the current nature does not", () => {
+        const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
+        const focusTargets = () =>
+          focus.mock.calls.map(([target, event]) => [(target as unknown as { props: { testID?: string } }).props.testID, event]);
+        try {
+          renderWithProbe([anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20]) }) })], toursDraft(2));
+          focus.mockClear();
+          chooseNature("TOURS");
+          expect(focusTargets()).toEqual([]);
+          chooseNature("SERIES");
+          expect(probe.draft!.circuitNature).toBe("SERIES");
+          expect(focusTargets()).toEqual([[`${NATURE}-focus`, "focus"]]);
+        } finally {
+          focus.mockRestore();
+        }
+      });
+
       it("une sortie (abandon) pendant le dialogue de perte le referme sans rien appliquer", () => {
         renderWithProbe(
           [anActivity("ex-1", "IN_TOUR", { executionParameters: variableParameters({ rows: rowsOf([10, 20, 30]) }) })],
@@ -6488,8 +6534,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(
         testIdOrder(screen.toJSON(), ["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]),
       ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
-      // Zone protégée : le pied s'arrête au-dessus de l'indicateur d'accueil (inset 34 + 16).
-      expect(box(footer).marginBottom).toBe(34 + spacing[16]);
+      // Story 7.9 (recette J6d) : même pied que l'écran Exercice — bas à 24 du bord de l'écran
+      // (iOS, inset 34 ignoré), le contenu défilant s'arrête au-dessus du pied.
+      expect(box(footer).marginBottom).toBe(spacing[24]);
     });
   });
 

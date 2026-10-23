@@ -538,3 +538,48 @@ describe("CircuitHeader — sans l'œil des volumes (PRE-6 story 5.1b)", () => {
     expect(style("header").justifyContent).toBeUndefined();
   });
 });
+
+/**
+ * PRE-6 story 7.9 (recette J6d, j6d-5 : « Quand on sélectionne Séries, le libellé Série est tronqué
+ * dans le stepper ») : sur iOS, la pastille est le libellé d'un `Menu` natif hébergé
+ * (`RNHostView matchContents`), mesuré une fois — un texte qui s'allonge y était mis en page dans
+ * l'ancienne largeur. L'hôte natif est remonté (remesuré) à chaque changement du texte de l'unité.
+ */
+describe("CircuitHeader — unité jamais tronquée (PRE-6 story 7.9)", () => {
+  const host = () => screen.getByTestId("header-counter-nature", anyNode);
+
+  it("iOS: the native menu host is remounted when the unit text changes (tours → séries, série → séries, tour → tours), kept otherwise", () =>
+    withPlatform("ios", () => {
+      const { rerender } = renderHeader({ nature: "TOURS", count: 3 });
+      const tours = host();
+      rerender({ count: 12 });
+      // Même texte (« tours ») : même hôte, pas de remontage inutile.
+      expect(host()).toBe(tours);
+      rerender({ nature: "SERIES", count: 12 });
+      const series = host();
+      expect(series).not.toBe(tours);
+      expect(screen.getByTestId("header-counter-unit-text", anyNode).props.children).toBe("séries");
+      rerender({ nature: "SERIES", count: 1 });
+      const single = host();
+      expect(single).not.toBe(series);
+      rerender({ nature: "SERIES", count: 2 });
+      expect(host()).not.toBe(single);
+      rerender({ nature: "TOURS", count: 1 });
+      const tour = host();
+      rerender({ nature: "TOURS", count: 2 });
+      expect(host()).not.toBe(tour);
+    }));
+
+  it("the unit pill has no fixed width and never shrinks; the title is the only element that gives way", () => {
+    renderHeader({ nature: "SERIES", count: 99 });
+    for (const id of ["header-counter-unit", "header-counter-unit-target", "header-counter-unit-slot"]) {
+      const box = style(id);
+      expect(box.width).toBeUndefined();
+      expect(box.maxWidth).toBeUndefined();
+    }
+    expect(style("header-counter-unit-slot").flexShrink).toBe(0);
+    expect(style("header-counter-stepper").flexShrink).toBe(0);
+    expect(style("header-counter-slot").flexShrink).toBe(0);
+    expect(style("header-text-block")).toMatchObject({ flexShrink: 1, minWidth: 0 });
+  });
+});

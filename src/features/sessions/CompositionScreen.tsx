@@ -190,6 +190,7 @@ import {
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
+import { FINAL_ACTION_BUTTON, finalActionBottomMargin } from "@/shared/ui/finalAction";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -1648,7 +1649,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         openNatureConfirmation(nature);
         return;
       }
-      if (focusPillAfterChoice) requestNatureFocus();
+      // Story 7.9 (revue) : la nature change, donc le texte de l'unité — sur iOS, le menu natif est
+      // remonté (`triggerLayoutKey`) et ne peut plus rendre le focus à son déclencheur : le focus est
+      // demandé au conteneur stable de la pastille, sur toutes les plateformes.
+      requestNatureFocus();
       // Forme fonctionnelle : appliquée au brouillon COURANT. Si celui-ci porte une perte (mise
       // à jour concurrente), rien n'est appliqué et la confirmation s'ouvre — hors du calcul
       // d'état, qui doit rester pur.
@@ -3183,7 +3187,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        */}
       <View
         testID="composition-bottom-action"
-        style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
+        // PRE-6 story 7.9 (recette J6d) : même pied que `Terminer` de l'écran Exercice — bas du
+        // bouton à 24 du bord bas de l'écran sur iOS (au moins l'encart bas sur Android).
+        style={[styles.bottomAction, { marginBottom: finalActionBottomMargin(Platform.OS, insets.bottom) }]}
       >
         {/*
          * PRE-4, décision Q54 de Hermann (2026-10-18) : l'action enregistre depuis la Composition
@@ -5930,11 +5936,10 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing[24],
     gap: spacing[12],
   },
+  // PRE-6 story 7.9 (recette J6d) : gabarit de `Terminer` (écran Exercice) — hauteur 48, rayon 24,
+  // ombre G-8 ; inactif par défaut (`colors.disabled`), `continueActionEnabled` pose le primaire.
   continueAction: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: spacing[12],
-    borderRadius: 24,
+    ...FINAL_ACTION_BUTTON,
     backgroundColor: colors.disabled,
   },
   // T01-S09 : même patron que `primaryAction`/`primaryActionDisabled`

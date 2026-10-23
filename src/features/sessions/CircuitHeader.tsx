@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
+import { Animated, Pressable, StyleSheet, Text, View, useWindowDimensions, type ViewProps } from "react-native";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
@@ -350,6 +350,8 @@ function CircuitCounter({
     [externalRef],
   );
   const stepTestID = `${testID}-stepper`;
+  // Story 7.9 (revue) : la taille du texte (Dynamic Type) change aussi la largeur de la pastille.
+  const { fontScale } = useWindowDimensions();
 
   return (
     <View style={styles.stepper} testID={stepTestID}>
@@ -394,6 +396,9 @@ function CircuitCounter({
         <CircuitNatureMenu
           nature={nature}
           trigger={<UnitPill nature={nature} count={count} testID={`${testID}-unit`} />}
+          // Story 7.9 (j6d-5) : la pastille suit son texte — l'hôte natif est remesuré à chaque
+          // changement d'unité (« séries » n'est plus tronqué après le choix de la nature).
+          triggerLayoutKey={`${circuitUnitLabel(nature, count)}@${fontScale}`}
           isOpen={isNatureMenuOpen}
           onOpen={onOpenNatureMenu}
           onClose={onCloseNatureMenu}

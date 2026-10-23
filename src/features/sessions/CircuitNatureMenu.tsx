@@ -39,6 +39,17 @@ export type CircuitNatureMenuProps = {
   readonly nature: CircuitNature;
   /** Rendu du déclencheur : la pastille d'unité (dessin seul, sans rôle accessible). */
   readonly trigger: ReactNode;
+  /**
+   * PRE-6 story 7.9 (j6d-5) — iOS : texte du déclencheur (« tours », « série »…). Le libellé du
+   * `Menu` natif est une vue React Native hébergée (`RNHostView matchContents` dans `Host
+   * matchContents`) : le `Host` impose à Yoga la taille de son contenu SwiftUI, et ce contenu suit la
+   * taille de la vue hébergée — une boucle circulaire. Un texte qui S'ALLONGE (« tours » → « séries »,
+   * « tour » → « tours », police agrandie) est mis en page dans l'ancienne largeur et tronqué
+   * (« sér… ») : la vue ne grandit pas, l'hôte non plus ; un texte qui raccourcit se réduit. À chaque
+   * changement de cette clé (texte de l'unité et échelle de police), l'hôte natif est remonté
+   * (`key`) et remesuré au nouveau contenu, comme au premier affichage.
+   */
+  readonly triggerLayoutKey?: string;
   /** Android / web : panneau ouvert (état `expanded` du déclencheur). */
   readonly isOpen: boolean;
   /** Android / web : demande d'ouverture du panneau par l'écran. */
@@ -89,12 +100,13 @@ export function CircuitNatureMenu(props: CircuitNatureMenuProps) {
 
 type WithFocusRef = CircuitNatureMenuProps & { readonly focusRef: RefObject<View | null> };
 
-function NativeNatureMenu({ nature, trigger, onSelect, testID, focusRef }: WithFocusRef) {
+function NativeNatureMenu({ nature, trigger, triggerLayoutKey, onSelect, testID, focusRef }: WithFocusRef) {
   const t = strings.screens.composition.circuit.nature;
   return (
     // Cible du focus rendu : le conteneur du menu natif (VoiceOver se pose sur son élément).
     <View ref={focusRef} collapsable={false} testID={`${testID}-focus`}>
-      <Host matchContents testID={testID}>
+      {/* Story 7.9 : hôte remonté quand le texte du déclencheur change (voir `triggerLayoutKey`). */}
+      <Host key={triggerLayoutKey} matchContents testID={testID}>
         <Menu
           label={
             <RNHostView matchContents>
