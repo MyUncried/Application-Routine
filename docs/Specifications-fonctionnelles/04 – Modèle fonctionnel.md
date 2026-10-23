@@ -10,6 +10,7 @@
   - [Cycle de vie d'une séance — Principe général](#cycle-de-vie-dune-séance--principe-général)
   - [Cycle de vie d'une séance — État persistant et qualificatifs d'une séance](#cycle-de-vie-dune-séance--état-persistant-et-qualificatifs-dune-séance)
 - [Exercices](#exercices)
+  - [Exercice](#exercice)
   - [Concepts métier](#concepts-métier)
   - [Structure d'un Exercice](#structure-dun-exercice)
   - [Composition d'une séance — Les exercices](#composition-dune-séance--les-exercices)
@@ -148,6 +149,11 @@ Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle techni
 
 #### Exercice
 
+**Modèle cible D-437 (23/10/2026).** L’Exercice associe un Mouvement et des paramètres d’exécution. Le contenu énuméré ci-dessous est porté par le mouvement pour une définition Catalogue et copié pour une occurrence. Les définitions partageant le mouvement voient ses corrections ; les occurrences et instantanés restent autonomes. La structure Séance → Cycle technique → Circuit → Exercice ne change pas. Définitions : glossaire du chapitre 01 ; comportements : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+Le mouvement porte nom, étapes, médias, catégorie, zones et structure ordonnée des phases ; les valeurs temporelles, répétitions et autres réglages restent des paramètres. Chaque définition Catalogue référence exactement un mouvement existant ; aucune suppression de mouvement tant qu’une définition le référence. Le mouvement est créé avec un exercice Catalogue ou local, jamais seul ; une fois enregistré il peut subsister sans exercice, sans collecte automatique. Son groupe éventuel est linéaire, unique et invisible comme objet autonome.
+
+
 Un **Exercice** représente un Exercice élémentaire défini par l’utilisateur. À partir de T03, il peut exister comme définition persistante autonome du Catalogue des exercices (`ActivityDefinition`) ou comme copie appartenant à une Séance (`SessionActivity`). Le modèle ne possède plus de type `Exercice / Récupération`. Il distingue désormais la **Pause entre les côtés**, propriété intrinsèque éventuelle d’un Exercice bilatéral, et la **Récupération après exercice**, propriété contextuelle d’une occurrence `SessionActivity`.
 
 Un Exercice possède un nombre de **Séries** propre, entier et supérieur ou égal à 1.
@@ -181,7 +187,7 @@ Dans le MVP T03, une **Exercice de référence** (`ActivityDefinition`) est une 
 
 Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description facultative structurée en étapes ordonnées (D-425), mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
 
-Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. La migration T03 ne promeut pas les `SessionActivity` historiques en `ActivityDefinition`.
+Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. D-440 dispense de toute reprise des données antérieures pour la transition MFN ; la création locale produit un mouvement et sa copie sans publier de définition Catalogue.
 
 La suppression définitive d’une `ActivityDefinition` ne cascade pas vers les `SessionActivity` déjà copiées ni vers les Instantanés, Exécutions et résultats historiques.
 
@@ -278,7 +284,7 @@ Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une 
 
 ## Phases internes d’une série
 
-Un exercice peut porter une liste ordonnée de zéro à six phases, chacune avec un libellé de 20 caractères maximum et une durée. Elles sont communes aux séries identiques, uniquement en mode Durée à cible chiffrée. Une série exécute exactement une fois cette liste ; sa durée en est la somme, et non une seconde valeur indépendante. L’absence de phases conserve le comportement existant.
+Un exercice présente une liste résolue de phases : aucune, ou 2 à 6 (D-438). La structure et les libellés, de 20 caractères maximum, appartiennent au mouvement ; les durées appartiennent aux paramètres. Le retrait explicite 2 → 1 au Catalogue revient à Sans avec la durée restante. Elles sont communes aux séries identiques, uniquement en mode Durée à cible chiffrée. Une série exécute exactement une fois cette liste ; sa durée en est la somme, et non une seconde valeur indépendante. L’absence de phases conserve le comportement existant.
 
 Les phases s’enchaînent sans pause. Les pauses après série, les côtés, les circuits et la récupération contextuelle conservent leur portée. Chaque passage de travail d’un côté déroule le motif complet ; une phase ne devient pas un passage de circuit. Les phases de geste ne doivent pas être confondues avec les phases structurelles du plan. Voir [règles d’édition et de format](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
