@@ -6,8 +6,8 @@ project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/pre7/implementation-artifacts
 development_status:
-  epic-0: in-progress
-  0-1-décisions-et-réconciliation-documentaire: review
+  epic-0: done
+  0-1-décisions-et-réconciliation-documentaire: done
   epic-b: backlog
   b-1-harmonisation-visuelle-de-la-feuille-des-paramètres: backlog
   b-2-libellés-valeurs-et-description: backlog
