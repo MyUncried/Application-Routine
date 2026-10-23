@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Animated,
   BackHandler,
-  Easing,
   Keyboard,
   Platform,
   Pressable,
@@ -104,6 +103,7 @@ import {
   LONG_PRESS_DELAY_MS,
   NO_DRAG_SHIFTS,
   resolveDragShifts,
+  resolveDropSettleOffset,
   resolveDropTarget,
   resolveRemovalShifts,
   shouldRevealAfterSwipe,
@@ -178,6 +178,11 @@ import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoice
 import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
+import {
+  MOTION_FADE_DURATION_MS,
+  MOTION_FADE_EASING,
+  MOTION_FADE_TO_SLIDE_DELAY_MS,
+} from "@/features/sessions/compositionMotion";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
@@ -541,10 +546,15 @@ type PendingDeletion = {
   readonly layout: CompositionDragLayout;
   readonly phase: "fade" | "slide";
   readonly commit: () => void;
+  /** Revue 7.6 : fondu et glissement terminés (commun aux phases ; l'écriture attend les deux). */
+  readonly progress: { fadeDone: boolean; slideDone: boolean };
 };
 
-/** PRE-6 story 7.5 : durée du fondu de la carte supprimée (le glissement suit, `DRAG_SHIFT_DURATION_MS`). */
-export const DELETE_FADE_DURATION_MS = 150;
+/**
+ * PRE-6 story 7.5 : durée du fondu de la carte supprimée. Story 7.6 : celle du jeu de mouvements
+ * partagé (`compositionMotion.ts`) ; le glissement commence pendant le fondu.
+ */
+export const DELETE_FADE_DURATION_MS = MOTION_FADE_DURATION_MS;
 
 /** PRE-6 story 6.2 (revue) : focus d'accessibilité demandé sur un élément (clé de rail), et annonce. */
 type ItemFocusRequest = { readonly key: string; readonly token: number; readonly announcement?: string };
@@ -810,6 +820,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const finishDragPreview = useCallback((animated: boolean, release: ShiftRelease | null = null) => {
     if (!animated) shiftRegistryRef.current?.prepareLayoutCommit();
     setDragSession((current) => endDragSession(current, animated, release));
+  }, []);
+  /**
+   * PRE-6 story 7.6 (recette J6b : « on a l'impression qu'elle saute dans sa position cible ») : fin
+   * d'un aperçu par un déplacement APPLIQUÉ (dépôt, « Confirmer », choix de Tour). Avant, l'élément
+   * déposé passait sans transition de l'endroit du lâcher à sa place dans la nouvelle disposition
+   * (translation remise à 0 avec elle). Désormais il y est posé à la translation qui le garde sous
+   * le lâcher (`pose`, `resolveDropSettleOffset`), puis glisse jusqu'à sa place (retour animé du
+   * registre, au premier plan et hors de la chaîne du rail le temps du mouvement, comme le retour
+   * d'une dépose refusée) ; les autres éléments, déjà à leur place, ne bougent pas. Sans pose (aucun
+   * aperçu relevé) : comme avant.
+   */
+  const finishAppliedDrop = useCallback((pose: ShiftRelease | null) => {
+    // Revue 7.6 : les éléments encore en mouvement achèvent leur chemin seulement si la suite est
+    // animée (une pose) ; les bords du Circuit, dont la bande s'étire sur la hauteur relevée au début
+    // du geste, sont posés à leur place.
+    shiftRegistryRef.current?.prepareLayoutCommit(pose, pose === null ? null : CIRCUIT_EDGE_KEYS);
+    setDragSession((current) => endDragSession(current, pose !== null));
   }, []);
   /** Story 7.5 : suppression animée en cours (fondu, puis glissement) ; une seule à la fois. */
   const [deletion, setDeletion] = useState<PendingDeletion | null>(null);
@@ -1825,6 +1852,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // (`moveOccurrenceInSequence`, R1 : les points restent en place) ; un point est déplacé seul
       // (`moveStopPoint`, R2) vers l'emplacement `(scope, position)` de ce rang. Refus : retour animé.
       const stopPointId = stopPointIdOfKey(key);
+      // Revue 7.6 : points que le dépôt retirera (calculés avant l'écriture, sur le brouillon du rendu).
+      const removedAtDrop =
+        stopPointId !== null
+          ? []
+          : removedByMove(draft, { activityId: occurrenceIdOfKey(key), zone: destination.zone, index: destination.index });
       const outcome =
         stopPointId !== null
           ? moveStopPointTo(stopPointId, destination)
@@ -1844,11 +1876,28 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 release,
               },
         );
+      } else if (outcome === "REFUSED") {
+        finishDragPreview(true, release);
       } else {
-        finishDragPreview(outcome === "REFUSED", outcome === "REFUSED" ? release : null);
+        // Story 7.6 : l'élément déposé glisse de l'endroit du lâcher jusqu'à sa place.
+        finishAppliedDrop(
+          dragPreview === null || dragPreview.key !== key
+            ? null
+            : dropSettlePose(dragPreview, destination, translationY, draft, removedAtDrop),
+        );
       }
     },
-    [buildDragLayout, dragPreview, finishDragPreview, handleDragStart, itemAbsoluteCenterY, moveActivityTo, moveStopPointTo],
+    [
+      buildDragLayout,
+      dragPreview,
+      draft,
+      finishAppliedDrop,
+      finishDragPreview,
+      handleDragStart,
+      itemAbsoluteCenterY,
+      moveActivityTo,
+      moveStopPointTo,
+    ],
   );
 
   /**
@@ -2009,32 +2058,42 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (deletion === null || deletion.phase !== "fade") return undefined;
     const fading = deletion;
     let cancelled = false;
+    let slideTimer: ReturnType<typeof setTimeout> | null = null;
+    const startSlide = () => {
+      if (deletionRef.current !== fading) return;
+      const sliding: PendingDeletion = { ...fading, phase: "slide" };
+      deletionRef.current = sliding;
+      setDeletion(sliding);
+    };
     queueMicrotask(() => {
       if (cancelled || deletionRef.current !== fading) return;
+      // Story 7.6 : le glissement commence pendant le fondu (chevauchement) ; l'écriture attend la
+      // fin du glissement, plus tardive que celle du fondu.
+      slideTimer = setTimeout(startSlide, MOTION_FADE_TO_SLIDE_DELAY_MS);
       Animated.timing(fading.opacity, {
         toValue: 0,
         duration: DELETE_FADE_DURATION_MS,
-        easing: Easing.out(Easing.quad),
+        easing: MOTION_FADE_EASING,
         useNativeDriver: true,
       }).start(({ finished }) => {
-        if (deletionRef.current !== fading) return;
-        if (!finished) {
-          fading.commit();
-          return;
-        }
-        const sliding: PendingDeletion = { ...fading, phase: "slide" };
-        deletionRef.current = sliding;
-        setDeletion(sliding);
+        fading.progress.fadeDone = true;
+        // Fondu interrompu (vue détachée) : la suppression est écrite ; sinon, à la fin du glissement.
+        if ((!finished || fading.progress.slideDone) && deletionRef.current?.commit === fading.commit) fading.commit();
       });
     });
     return () => {
       cancelled = true;
+      if (slideTimer !== null) clearTimeout(slideTimer);
     };
   }, [deletion]);
   // Story 7.5 : fin du glissement d'une suppression — le brouillon est écrit.
   useEffect(() => {
     if (deletion === null || deletion.phase !== "slide") return undefined;
-    return shiftRegistry.whenSettled(() => deletion.commit());
+    return shiftRegistry.whenSettled(() => {
+      deletion.progress.slideDone = true;
+      // Revue 7.6 : l'écriture attend aussi la fin du fondu.
+      if (deletion.progress.fadeDone) deletion.commit();
+    });
   }, [deletion, shiftRegistry]);
   const railShiftOf = useCallback(
     (key: string) => shiftRegistry.value(key, railShiftTargets.get(key) ?? 0),
@@ -2270,6 +2329,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         layout,
         phase: "fade",
         commit,
+        progress: { fadeDone: false, slideDone: false },
       };
       deletionRef.current = fading;
       setDeletion(fading);
@@ -2305,7 +2365,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           const focusKey = request.fromStep ? railRowKey(request.move.activityId) : undefined;
           const outcome = moveActivityTo({ ...request.move, tourChoice: choice }, focusKey);
           // Dialogue de perte ensuite (Séries) : l'élément reste tenu ; sinon fin de l'aperçu.
-          if (outcome !== "PENDING") finishDragPreview(outcome === "REFUSED");
+          if (outcome === "REFUSED") finishDragPreview(true);
+          // Story 7.6 : appliqué — l'élément tenu glisse jusqu'à sa place.
+          else if (outcome === "APPLIED") {
+            finishAppliedDrop(heldDropSettlePose(dragPreview, draft, removedByMove(draft, { ...request.move, tourChoice: choice })));
+          }
           return;
         }
         case "STOP_POINT_MOVE": {
@@ -2322,14 +2386,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             return outcome.status === "APPLIED" && outcome.state !== state ? { state: outcome.state, removed: [] } : null;
           };
           const rendered = resolve(compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount));
-          // Story 7.4 : translations JS à 0 avant les écritures d'une nouvelle disposition.
-          if (rendered !== null) shiftRegistryRef.current?.prepareLayoutCommit();
           updateDraft((current) => {
             const currentState = compositionStateOf(current.exercises, current.stopPoints, current.tourRepeatCount);
             const replayed = resolve(currentState);
             return replayed === null ? current : { ...current, ...compositionPatch(currentState, replayed.state) };
           });
-          setDragSession((current) => endDragSession(current, rendered === null));
+          // Story 7.4 : translations JS à 0 (regroupées avec les écritures ci-dessus). Revue 7.6 : le choix
+          // peut placer le point ailleurs que l'emplacement lâché — aucune pose de mise en place.
+          if (rendered !== null) finishAppliedDrop(null);
+          else finishDragPreview(true);
           const kept = rendered?.state.stopPoints.some((point) => point.id === request.stopPointId) ?? true;
           // Pas « Monter » / « Descendre » : le focus suit le point s'il est conservé ; sinon (revue
           // 7.2) la carte qui précède son emplacement, à défaut le compteur du Circuit.
@@ -2408,7 +2473,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }
     },
     [
+      dragPreview,
       draft,
+      finishAppliedDrop,
       finishDragPreview,
       moveActivityTo,
       pendingTourChoice,
@@ -3208,15 +3275,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             const plan = planOccurrenceMove(draft, pendingCircuitEntry);
             setPendingCircuitEntry(null);
             const applied = plan?.status === "PLAN";
-            // Story 7.4 : translations JS à 0 avant les écritures d'une nouvelle disposition.
-            if (applied) shiftRegistryRef.current?.prepareLayoutCommit();
             if (plan?.status === "PLAN") {
               updateDraft(plan.patch);
               // Story 7.2 (D-437) : points retirés par le déplacement tolérant (ou le choix de Tour).
               reportRemovedStopPoints(plan.removedStopPointIds, pendingCircuitEntry.focusKey);
             }
-            // Story 2.3b : appliqué → remise à 0 sans animation avec la nouvelle disposition.
-            setDragSession((current) => endDragSession(current, !applied));
+            // Story 2.3b, 7.6 : appliqué → la carte tenue glisse jusqu'à sa place ; sinon, retour.
+            if (applied) finishAppliedDrop(heldDropSettlePose(dragPreview, draft, plan.removedStopPointIds));
+            else finishDragPreview(true);
           }}
         />
       ) : null}
@@ -5215,6 +5281,54 @@ function endDragSession(current: DragShiftSession, animated: boolean, release: S
 }
 
 /**
+ * PRE-6 story 7.6 : pose de départ de l'élément déposé à l'emplacement `slot` (translation qui le
+ * garde sous le lâcher dans la nouvelle disposition), d'après la disposition de l'aperçu ; `null`
+ * si elle ne peut être calculée.
+ */
+function dropSettlePose(
+  preview: NonNullable<DragShiftSession["preview"]>,
+  slot: DropTarget,
+  translationY: number,
+  draft: SessionDraft,
+  removedStopPointIds: readonly string[],
+): ShiftRelease | null {
+  // Revue 7.6 : même hauteur d'insertion que l'aperçu (`dragShifts`), points retirés pris en compte.
+  const measured = preview.originLayout.rows.find((row) => row.id === preview.key)?.height;
+  const occurrenceId = stopPointIdOfKey(preview.key) === null ? occurrenceIdOfKey(preview.key) : null;
+  const insertionHeight =
+    occurrenceId === null ? measured : predictedInsertionHeight(draft, occurrenceId, measured, slot, () => occurrenceCardHeight());
+  const shifts = resolveDragShifts(preview.originLayout, preview.key, slot, DRAG_SHIFT_GAPS, insertionHeight);
+  const from = resolveDropSettleOffset(
+    preview.originLayout,
+    preview.key,
+    slot,
+    translationY,
+    DRAG_SHIFT_GAPS,
+    shifts,
+    CIRCUIT_PADDING_VERTICAL,
+    insertionHeight,
+    new Set(removedStopPointIds.map(railStopKey)),
+  );
+  return from === null ? null : { key: preview.key, from };
+}
+
+/** Story 7.6 : pose de l'élément tenu pendant un dialogue (perte, choix de Tour), à son emplacement. */
+function heldDropSettlePose(
+  preview: DragShiftSession["preview"],
+  draft: SessionDraft,
+  removedStopPointIds: readonly string[],
+): ShiftRelease | null {
+  if (preview === null || preview.slot === null || preview.heldTranslationY === null) return null;
+  return dropSettlePose(preview, preview.slot, preview.heldTranslationY, draft, removedStopPointIds);
+}
+
+/** Revue 7.6 : Points d'arrêt que le déplacement d'une occurrence retirerait (déplacement tolérant). */
+function removedByMove(draft: SessionDraft, move: OccurrenceMove): readonly string[] {
+  const plan = planOccurrenceMove(draft, move);
+  return plan?.status === "PLAN" ? plan.removedStopPointIds : [];
+}
+
+/**
  * Emplacement visé sur la géométrie FIGÉE au début du geste : centre relevé de la carte glissée
  * plus son déplacement vertical, résolu par `resolveDropTarget`. Seule source de l'aperçu ET du
  * dépôt. `null` si la carte n'avait pas été mesurée.
@@ -5263,6 +5377,9 @@ export function predictedInsertionHeight(
  * (`scaleY`, valeurs fractionnaires) laissait un liseré clair à chaque jointure pendant le glisser.
  */
 const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
+
+/** Revue 7.6 : bords du Circuit, jamais continués au dépôt (voir `finishAppliedDrop`). */
+const CIRCUIT_EDGE_KEYS: ReadonlySet<string> = new Set([RAIL_KEYS.circuitHeader, RAIL_KEYS.circuitEnd]);
 
 /** PRE-6 (story 2.3b) : écarts qui apparaissent ou disparaissent avec un bloc déplacé. */
 const DRAG_SHIFT_GAPS = {

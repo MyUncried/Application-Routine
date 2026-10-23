@@ -326,6 +326,66 @@ export function resolveDragShifts(
 }
 
 /**
+ * PRE-6 story 7.6 (recette J6b : « on a l'impression qu'elle saute dans sa position cible ») :
+ * translation, dans la NOUVELLE disposition, qui garde l'élément déposé là où le doigt l'a lâché
+ * (`translationY` depuis sa place relevée au début du geste). Le registre la pose au rendu de la
+ * nouvelle disposition puis l'anime vers 0 : l'élément glisse jusqu'à sa place.
+ *
+ * Sa place finale se lit sur la disposition de l'aperçu (`shifts`, celle que le dépôt produit,
+ * chaque élément étant déjà à sa position finale) : juste au-dessus de l'élément qui le suit dans la
+ * zone visée, à défaut juste au-dessous de celui qui le précède ; zone vide : contre le bord du
+ * Circuit (avant / après le Circuit : écart de la zone ; dans le Circuit : au-dessus de sa marge
+ * basse `circuitPaddingBottom`). `null` si l'élément n'a pas été relevé.
+ *
+ * Revue 7.6 : `removedIds` — rangées (Points d'arrêt) que le dépôt retire (déplacement tolérant,
+ * D-437) : chacune située au-dessus de la place finale la fait remonter de sa hauteur et de l'écart
+ * de sa zone.
+ */
+export function resolveDropSettleOffset(
+  layout: CompositionDragLayout,
+  draggedId: string,
+  target: DropTarget,
+  translationY: number,
+  gaps: DragShiftGaps,
+  shifts: DragShifts,
+  circuitPaddingBottom: number,
+  insertionHeight?: number,
+  removedIds: ReadonlySet<string> = new Set(),
+): number | null {
+  const dragged = layout.rows.find((row) => row.id === draggedId);
+  if (dragged === undefined || !Number.isFinite(translationY)) {
+    return null;
+  }
+  const height = insertionHeight ?? dragged.height;
+  const others = layout.rows
+    .filter((row) => row.zone === target.zone && row.id !== draggedId)
+    .slice()
+    .sort((a, b) => a.top - b.top);
+  const rowGap = target.zone === "IN_TOUR" ? gaps.circuitRow : gaps.row;
+  const shiftOf = (row: ActivityRowLayout) => shifts.rows.get(row.id) ?? 0;
+  const next = others[target.index];
+  const previous = others[target.index - 1];
+  let finalTop: number;
+  if (next !== undefined) {
+    finalTop = next.top + shiftOf(next) - rowGap - height;
+  } else if (previous !== undefined) {
+    finalTop = previous.top + shiftOf(previous) + previous.height + rowGap;
+  } else if (target.zone === "BEFORE_TOUR") {
+    finalTop = layout.tourTop + shifts.circuitTop - gaps.zone - height;
+  } else if (target.zone === "IN_TOUR") {
+    finalTop = layout.tourBottom + shifts.circuitBottom - circuitPaddingBottom - height;
+  } else {
+    finalTop = layout.tourBottom + shifts.circuitBottom + gaps.zone;
+  }
+  const above = finalTop;
+  for (const row of layout.rows) {
+    if (!removedIds.has(row.id) || row.id === draggedId || row.top + (shifts.rows.get(row.id) ?? 0) >= above) continue;
+    finalTop -= row.height + (row.zone === "IN_TOUR" ? gaps.circuitRow : gaps.row);
+  }
+  return dragged.top + translationY - finalTop;
+}
+
+/**
  * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : décalages qui montrent, avant qu'elle soit
  * écrite, la disposition produite par la SUPPRESSION des éléments `removedIds` (la carte supprimée
  * et les Points d'arrêt que la suppression retire) — même modèle que le retrait du glisser

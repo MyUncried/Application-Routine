@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Animated } from "react-native";
 
+import { MOTION_EASING } from "@/features/sessions/compositionMotion";
 import { AnimatedShiftRegistry, DRAG_SHIFT_DURATION_MS } from "@/features/sessions/useAnimatedShift";
 
 /**
@@ -372,5 +373,75 @@ describe("AnimatedShiftRegistry.resyncNative (PRE-6 story 7.5, d-17)", () => {
     registry.resyncNative(["a", "b", "inconnue"]);
     expect(setValue.mock.calls.map(([value]) => value)).toEqual([0]);
     expect(animations[0]!.stopped).toBe(false);
+  });
+});
+
+describe("AnimatedShiftRegistry.prepareLayoutCommit(pose) (PRE-6 story 7.6)", () => {
+  it("l'élément déposé est posé à sa translation de lâcher (JS, sans pose native), puis animé vers 0 ; les autres à 0", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const dropped = registry.value("a", 0);
+    const other = registry.value("b", 0);
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", -80],
+      ]),
+      false,
+    );
+    const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
+    registry.prepareLayoutCommit({ key: "a", from: 58 });
+    expect(valueOf(dropped)).toBe(58);
+    expect(valueOf(other)).toBe(0);
+    expect(setValue).not.toHaveBeenCalled();
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", 0],
+      ]),
+      true,
+    );
+    // Pose native de départ, puis une seule animation : celle de l'élément déposé, vers 0.
+    expect(setValue.mock.calls.map(([value]) => value)).toEqual([58, 0]);
+    await flush();
+    expect(animations.filter((animation) => animation.started).map((animation) => animation.toValue)).toEqual([0]);
+  });
+});
+
+describe("AnimatedShiftRegistry — reste du chemin au dépôt (PRE-6 story 7.6)", () => {
+  beforeEach(() => {
+    jest.useFakeTimers({ doNotFake: ["queueMicrotask"] });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it("une clé en mouvement est posée au reste de son chemin (position estimée sur la courbe), sauf les clés exclues", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const b = registry.value("b", 0);
+    const edge = registry.value("edge", 0);
+    registry.apply(
+      new Map([
+        ["b", -80],
+        ["edge", -80],
+      ]),
+      true,
+    );
+    await flush();
+    // Moitié de la course natif (départ estimé une image plus tard).
+    jest.advanceTimersByTime(16 + DRAG_SHIFT_DURATION_MS / 2);
+    registry.prepareLayoutCommit(null, new Set(["edge"]));
+    const reached = -80 * MOTION_EASING(0.5);
+    expect(valueOf(b)).toBeCloseTo(reached - -80, 6);
+    expect(valueOf(edge)).toBe(0);
+  });
+
+  it("sans exclusions fournies (suite non animée) : tout à 0, comme la story 7.4", async () => {
+    const registry = new AnimatedShiftRegistry();
+    const b = registry.value("b", 0);
+    registry.apply(new Map([["b", -80]]), true);
+    await flush();
+    jest.advanceTimersByTime(100);
+    registry.prepareLayoutCommit();
+    expect(valueOf(b)).toBe(0);
   });
 });

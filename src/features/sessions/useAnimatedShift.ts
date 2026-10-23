@@ -1,13 +1,22 @@
 import { useLayoutEffect, useState } from "react";
-import { Animated, Easing } from "react-native";
+import { Animated } from "react-native";
 
-/** PRE-6 (story 2.3b) : durée d'un décalage animé pendant le glisser (fourchette 150–200 ms). */
-export const DRAG_SHIFT_DURATION_MS = 180;
+import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
+
+/**
+ * PRE-6 (story 2.3b) : durée d'un décalage animé pendant le glisser. Story 7.6 : celle du jeu de
+ * mouvements partagé (`compositionMotion.ts`, 320 ms, courbe à décélération marquée).
+ */
+export const DRAG_SHIFT_DURATION_MS = MOTION_SHIFT_DURATION_MS;
+
+/** Revue 7.6 : retard estimé du départ natif d'une animation (une image). */
+const NATIVE_START_LAG_MS = 16;
 
 /**
  * PRE-6 (story 2.3b, story 5.2) : translations animées PARTAGÉES de la séquence de la Composition,
  * une par élément (clé stable : occurrence, en-tête et bas du Circuit, rangée « après le Circuit »,
- * Fin de séance). Translation seule — aucun recalcul de mise en page —, 180 ms, courbe douce,
+ * Fin de séance). Translation seule — aucun recalcul de mise en page —, durée et courbe partagées
+ * (story 7.6, `compositionMotion.ts`),
  * pilote natif. Remplace le décalage par élément de la story 2.3b (`useAnimatedShift`, retiré).
  *
  * Pourquoi un registre : le lien de rail d'un élément s'étire de la différence entre SA translation
@@ -59,6 +68,15 @@ export class AnimatedShiftRegistry {
   /** Story 7.4 : clés dont la valeur JS a été posée sans le pilote natif (`prepareLayoutCommit`). */
   private readonly nativeStale = new Set<string>();
   private nativeSyncTimer: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * Story 7.6 : mouvement en cours par clé (départ, cible, instant), pour ESTIMER la position atteinte
+   * — la valeur JS n'avance pas sur le pilote natif — et position de départ reportée d'une clé dont
+   * l'animation, relancée, n'a pas encore démarré.
+   */
+  private readonly motions = new Map<string, { readonly from: number; readonly to: number; readonly start: number }>();
+  private readonly carried = new Map<string, number>();
+  /** Revue 7.6 : clés dont l'animation arrêtée doit encore renvoyer sa valeur atteinte. */
+  private readonly echoExpected = new Set<string>();
 
   /**
    * Valeur animée d'une clé ; créée au besoin à `initial` (sa cible courante) — un élément qui
@@ -95,6 +113,7 @@ export class AnimatedShiftRegistry {
         shift.stopAnimation();
         shift.setValue(release.from);
         this.applied.set(release.key, release.from);
+        this.carried.set(release.key, release.from);
       }
     }
     for (const [key, target] of targets) {
@@ -105,13 +124,17 @@ export class AnimatedShiftRegistry {
       }
       const busy = this.running.has(key) || this.pending.has(key);
       if (this.applied.get(key) === target && (animated || !busy)) continue;
+      // Story 7.6 : position atteinte, d'où repart l'animation suivante.
+      const at = this.position(key);
       this.applied.set(key, target);
       this.cancel(key);
       if (!animated) {
         shift.stopAnimation();
         shift.setValue(target);
+        this.carried.delete(key);
         continue;
       }
+      this.carried.set(key, at);
       const token = ++this.nextToken;
       this.pending.set(key, token);
       queueMicrotask(() => this.start(key, token, shift, target));
@@ -122,6 +145,8 @@ export class AnimatedShiftRegistry {
       this.values.delete(key);
       this.applied.delete(key);
       this.nativeStale.delete(key);
+      this.carried.delete(key);
+      this.motions.delete(key);
     }
     this.clearNativeSyncIfIdle();
     this.notifyIfSettled();
@@ -142,16 +167,30 @@ export class AnimatedShiftRegistry {
    * translations arrivent ensemble), et l'écran garde jusque-là l'aperçu affiché (le pilote natif
    * reste à la position atteinte). Le pilote natif est mis à 0 par l'`apply` qui suit le rendu, à
    * défaut au plus tard une tâche plus tard.
+   *
+   * PRE-6 story 7.6 : `pose` — l'élément déposé n'est pas posé à 0 mais à la translation qui le
+   * garde là où le doigt l'a lâché dans la NOUVELLE disposition (`from`) ; l'`apply` animé qui suit
+   * le ramène à 0 : il glisse jusqu'à sa place au lieu d'y sauter. Story 7.6 encore : avec
+   * `continueExcept` (non nul : l'`apply` qui suit est animé), une clé encore en mouvement (dépôt
+   * pendant le décalage des voisines) est posée au reste de son chemin (position atteinte estimée
+   * moins sa cible) au lieu de sauter à sa place — sauf les clés de `continueExcept` ; l'`apply`
+   * animé suivant achève ce chemin. Sans `continueExcept` : tout à 0 (story 7.4).
    */
-  prepareLayoutCommit(): void {
+  prepareLayoutCommit(pose: ShiftRelease | null = null, continueExcept: ReadonlySet<string> | null = null): void {
     for (const [key, shift] of this.values) {
+      const remaining =
+        continueExcept === null || continueExcept.has(key) ? 0 : this.position(key) - (this.applied.get(key) ?? 0);
+      const posed = pose !== null && pose.key === key ? pose.from : Math.abs(remaining) < 0.5 ? 0 : remaining;
       // Revue 7.4 : seules les clés déplacées ou en mouvement (au repos, rien à poser).
-      if (this.applied.get(key) === 0 && !this.running.has(key) && !this.pending.has(key) && jsValueOf(shift) === 0) continue;
+      if (posed === 0 && this.applied.get(key) === 0 && !this.running.has(key) && !this.pending.has(key) && jsValueOf(shift) === 0) {
+        continue;
+      }
       this.cancel(key);
       shift.stopAnimation();
       // Cible posée d'abord : la recopie filtrée (`guardNativeEcho`) la reconnaît.
-      this.applied.set(key, 0);
-      setJsValue(shift, 0);
+      this.applied.set(key, posed);
+      setJsValue(shift, posed);
+      this.carried.set(key, posed);
       this.nativeStale.add(key);
     }
     if (this.nativeSyncTimer === null && this.nativeStale.size > 0) {
@@ -201,6 +240,7 @@ export class AnimatedShiftRegistry {
       shift.setValue(0);
       this.applied.set(key, 0);
       this.nativeStale.delete(key);
+      this.carried.delete(key);
     }
     this.clearNativeSyncIfIdle();
     this.notifyIfSettled();
@@ -216,6 +256,9 @@ export class AnimatedShiftRegistry {
     this.pending.clear();
     this.applied.clear();
     this.nativeStale.clear();
+    this.carried.clear();
+    this.motions.clear();
+    this.echoExpected.clear();
     if (this.nativeSyncTimer !== null) clearTimeout(this.nativeSyncTimer);
     this.nativeSyncTimer = null;
     this.notifyIfSettled();
@@ -239,17 +282,39 @@ export class AnimatedShiftRegistry {
       return;
     }
     this.pending.delete(key);
+    const from = this.carried.get(key) ?? jsValueOf(shift) ?? target;
+    this.carried.delete(key);
+    // Revue 7.6 : l'animation native ne part qu'à l'image suivante — l'estimation en tient compte.
+    this.motions.set(key, { from, to: target, start: Date.now() + NATIVE_START_LAG_MS });
     const animation = Animated.timing(shift, {
       toValue: target,
       duration: DRAG_SHIFT_DURATION_MS,
-      easing: Easing.out(Easing.cubic),
+      // Story 7.6 : arrêt progressif, sans rebond (`compositionMotion.ts`).
+      easing: MOTION_EASING,
       useNativeDriver: true,
     });
     this.running.set(key, animation);
     animation.start(() => {
-      if (this.running.get(key) === animation) this.running.delete(key);
+      if (this.running.get(key) === animation) {
+        this.running.delete(key);
+        this.motions.delete(key);
+      }
       this.notifyIfSettled();
     });
+  }
+
+  /**
+   * Story 7.6 : position estimée d'une clé — en mouvement : d'après sa courbe et le temps écoulé
+   * (le pilote natif ne renvoie pas la position en continu) ; relancée sans avoir démarré : la
+   * position reportée ; au repos : sa cible posée.
+   */
+  private position(key: string): number {
+    const motion = this.motions.get(key);
+    if (this.running.has(key) && motion !== undefined) {
+      const progress = Math.min(1, Math.max(0, (Date.now() - motion.start) / DRAG_SHIFT_DURATION_MS));
+      return motion.from + (motion.to - motion.from) * MOTION_EASING(progress);
+    }
+    return this.carried.get(key) ?? this.applied.get(key) ?? 0;
   }
 
   /**
@@ -266,7 +331,17 @@ export class AnimatedShiftRegistry {
     if (typeof receive !== "function") return;
     internal.__onAnimatedValueUpdateReceived = (value: number, offset?: number) => {
       receive.call(shift, value, offset);
-      if (this.values.get(key) !== shift || this.running.has(key) || this.pending.has(key)) return;
+      if (this.values.get(key) !== shift) return;
+      const moving = this.running.has(key) || this.pending.has(key);
+      if (moving && this.echoExpected.delete(key)) {
+        // Revue 7.6 : recopie d'une animation arrêtée pendant qu'une autre a repris la clé — valeur
+        // de l'ancienne course ; la valeur JS est ramenée au départ de la nouvelle.
+        const restart = this.motions.get(key)?.from ?? this.carried.get(key);
+        if (restart !== undefined && value !== this.applied.get(key)) receive.call(shift, restart);
+        return;
+      }
+      this.echoExpected.delete(key);
+      if (moving) return;
       const target = this.applied.get(key);
       if (target !== undefined && value !== target) receive.call(shift, target);
     };
@@ -276,6 +351,8 @@ export class AnimatedShiftRegistry {
     const animation = this.running.get(key);
     this.running.delete(key);
     this.pending.delete(key);
+    // Revue 7.6 : la recopie native de l'animation arrêtée arrivera plus tard (`guardNativeEcho`).
+    if (animation !== undefined) this.echoExpected.add(key);
     animation?.stop();
   }
 

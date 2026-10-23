@@ -30,6 +30,7 @@ import { STOP_POINT_LINE_HEIGHT } from "@/features/sessions/ActivityRecoveryLine
 import { CIRCUIT_HEADER_HEIGHT } from "@/features/sessions/CircuitHeader";
 import { CompositionScreen, predictedInsertionHeight } from "@/features/sessions/CompositionScreen";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
+import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import type { SessionDraftContextValue, SessionDraftUpdate } from "@/features/sessions/SessionDraftContext";
 import { SessionDraftContext } from "@/features/sessions/SessionDraftContext";
 import {
@@ -7567,12 +7568,12 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(midway).toBeGreaterThan(-PITCH);
     settle();
     expect(rowShift("B")).toBe(-PITCH);
-    // Pilote natif, 150–200 ms.
+    // Pilote natif ; story 7.6 : durée et courbe du jeu de mouvements partagé (320 ms, décélération).
     expect(timingConfigs.length).toBeGreaterThan(0);
     for (const config of timingConfigs) {
       expect(config.useNativeDriver).toBe(true);
-      expect(config.duration).toBeGreaterThanOrEqual(150);
-      expect(config.duration).toBeLessThanOrEqual(200);
+      expect(config.duration).toBe(MOTION_SHIFT_DURATION_MS);
+      expect(config.easing).toBe(MOTION_EASING);
     }
   });
 
@@ -7714,7 +7715,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(order()).toEqual(INITIAL_ORDER);
   });
 
-  it("confirmation de perte : Confirmer applique la nouvelle disposition et remet les décalages à 0 sans animation", () => {
+  it("confirmation de perte : Confirmer applique la nouvelle disposition, les voisines sont à leur place ; story 7.6 : la carte tenue glisse jusqu'à la sienne", () => {
     dragAIntoSeriesCircuit();
     fireEvent.press(screen.getByLabelText(composition.circuitEntryConfirmModal.confirm));
 
@@ -7722,6 +7723,10 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(rowShift("B")).toBe(0);
     expect(translateY("composition-circuit-header")).toBe(0);
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    // Tenue à 70 + 200 pendant le dialogue ; sa place : 290 + 1 − 9 − 70 = 212.
+    expect(rowShift("A")).toBe(70 + 200 - 212);
+    settle();
+    expect(rowShift("A")).toBe(0);
   });
 
   it("géométrie figée : une mesure onLayout pendant le geste ne change ni l'aperçu ni le dépôt", () => {
@@ -7876,6 +7881,77 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
   });
 
+  /**
+   * PRE-6 story 7.6 (recette J6b : « on a l'impression qu'elle saute dans sa position cible »).
+   * Cause : au dépôt appliqué, la translation de la carte déposée (suivi du doigt) et toutes les
+   * translations de l'aperçu étaient remises à 0 dans le rendu même de la nouvelle disposition : la
+   * carte passait sans transition de l'endroit du lâcher à sa place.
+   */
+  it("story 7.6 — dépôt appliqué : la carte part de l'endroit du lâcher et glisse jusqu'à sa place (décélération, 320 ms)", () => {
+    renderLaidOut();
+    lift("A");
+    // Centre de A : 105 + 200 = 305 → première place du Circuit ; haut de A sous le doigt : 70 + 200.
+    moveTo("A", 200);
+    settle();
+    release("A", 200);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    // Place finale de A : juste au-dessus de X (290, décalé de +1), écart 9 → 290 + 1 − 9 − 70 = 212.
+    const atRelease = 70 + 200 - 212;
+    expect(rowShift("A")).toBe(atRelease);
+    // Les autres sont déjà à leur place : rien ne bouge.
+    expect(rowShift("B")).toBe(0);
+    expect(rowShift("X")).toBe(0);
+    expect(translateY("composition-tour-section-surface-top")).toBe(0);
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    const early = rowShift("A");
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    const later = rowShift("A");
+    // Décélération : la première moitié du temps couvre bien plus que la moitié du chemin.
+    expect(early).toBeGreaterThan(0);
+    expect(atRelease - early).toBeGreaterThan(early - later);
+    expect(later).toBeGreaterThan(0);
+    settle();
+    expect(rowShift("A")).toBe(0);
+  });
+
+  it("story 7.6 — dépôt pendant le décalage des voisines : elles achèvent leur chemin au lieu de sauter à leur place", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 100);
+    // B remonte d'un pas (320 ms) ; dépôt au quart du mouvement.
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    release("A", 100);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    // Dans la nouvelle disposition, B reste où elle était (au-dessous de sa place) puis la rejoint.
+    const remaining = rowShift("B");
+    expect(remaining).toBeGreaterThan(0);
+    expect(remaining).toBeLessThan(PITCH);
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    expect(rowShift("B")).toBeLessThan(remaining);
+    settle();
+    expect(rowShift("B")).toBe(0);
+  });
+
+  it("story 7.6 — « Réduire les animations » : la carte déposée est posée à sa place sans mouvement", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    renderLaidOut();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    lift("A");
+    moveTo("A", 200);
+    release("A", 200);
+    expect(rowShift("A")).toBe(0);
+  });
+
   const deleteCard = (id: string) =>
     fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
   const advance = (ms: number) =>
@@ -7886,7 +7962,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   it("story 7.5 (revue) — suppression d'une carte du Circuit : pendant le glissement, la bande du fond se rétracte sans s'écraser", () => {
     renderLaidOut();
     deleteCard("X");
-    // Fin du fondu (rendu du glissement à la sortie de `act`), puis milieu du glissement.
+    // Glissement lancé pendant le fondu (rendu à la sortie de `act`), puis en cours.
     advance(160);
     advance(60);
     const bottom = translateY("composition-tour-section-surface-bottom");
@@ -8321,6 +8397,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(visible("composition-rail-link-circuit-header")).toBeCloseTo(37 + PITCH, 6);
       release("A", 100);
       expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+      // Story 7.6 : A glisse jusqu'à sa place (hors de la chaîne le temps du mouvement), puis la rejoint.
+      settle();
       expect(linkHeight("composition-rail-link-B")).toBe(8 + 8);
       expect(scaleY("composition-rail-link-B")).toBe(1);
       expect(translateY("composition-rail-link-B")).toBe(0);
@@ -8706,7 +8784,9 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           answerTourChoice(alert, composition.tourBoundaryChoice.head);
           expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "C:IN_TOUR"]);
           expect(probe.draft!.stopPoints).toEqual([{ id: "s-1", scope: "IN_TOUR", position: 0 }]);
-          // Appliqué : décalages remis à 0 sans animation avec la nouvelle disposition.
+          // Appliqué ; story 7.6 : la carte tenue part de l'endroit du lâcher et glisse jusqu'à sa place.
+          expect(rowShift("B")).not.toBe(0);
+          settle();
           expect(rowShift("B")).toBe(0);
           await waitFor(() =>
             expect(announce).toHaveBeenCalledWith(composition.stopPointsRemovedAnnouncement.singular),
@@ -8812,6 +8892,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           release("A", dy);
           expect(order()).toEqual(["W:BEFORE_TOUR", "B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+          // Story 7.6 : fin de la mise en place de A.
+          settle();
           elements = layOut();
           expectRailJoined(elements, null);
           expect(testIdOrder(screen.toJSON(), ["composition-activity-W", "composition-stop-point-row-P", "composition-activity-B", "composition-activity-A"])).toEqual([
@@ -8861,6 +8943,12 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2"]);
           expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(rowShift("B")).toBe(0);
+          // Story 7.6 : la rangée du point part de l'endroit du lâcher (10 sous le milieu de B) et
+          // glisse jusqu'à sa place, sous B.
+          const settleFrom = translateY("composition-stop-point-row-P");
+          expect(settleFrom).not.toBe(0);
+          settle();
+          expect(translateY("composition-stop-point-row-P")).toBe(0);
           elements = layOut();
           expectRailJoined(elements, null);
         });
@@ -8949,7 +9037,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             const fading = StyleSheet.flatten(screen.getByTestId("composition-activity-A", { includeHiddenElements: true }).props.style).opacity as number;
             expect(fading).toBeLessThan(1);
             expect(fading).toBeGreaterThan(0);
-            // Fin du fondu, puis glissement (rendus appliqués à la sortie de chaque `act`).
+            // Fondu et glissement (chevauchés), rendus appliqués à la sortie de chaque `act`.
             frames(12);
             frames(30);
             expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR"]);
@@ -8975,17 +9063,24 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             ],
           });
           fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-          // Fin du fondu (150 ms) : la carte B et le point Q sont effacés, rien ne glisse encore.
-          frames(11);
-          expect(StyleSheet.flatten(screen.getByTestId("composition-activity-B", { includeHiddenElements: true }).props.style).opacity).toBe(0);
-          expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-row-Q", { includeHiddenElements: true }).props.style).opacity).toBe(0);
+          // Story 7.6 : fondu en cours (260 ms), rien ne glisse encore avant 120 ms.
+          frames(5);
+          const fadingB = StyleSheet.flatten(screen.getByTestId("composition-activity-B", { includeHiddenElements: true }).props.style).opacity as number;
+          expect(fadingB).toBeLessThan(1);
+          expect(fadingB).toBeGreaterThan(0);
+          expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-row-Q", { includeHiddenElements: true }).props.style).opacity).toBe(fadingB);
           expect(rowShift("C")).toBe(0);
-          // Glissement : C, le Circuit et la suite remontent ; rien n'est encore écrit.
+          // Le glissement commence pendant le fondu (chevauchement) : C, le Circuit et la suite
+          // remontent ; rien n'est encore écrit.
+          frames(5);
           frames(4);
           expect(rowShift("C")).toBeLessThan(0);
+          // Fin du fondu (260 ms) passée, glissement en cours : rien n'est encore écrit.
+          frames(3);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(translateY("composition-tour-section-surface-top")).toBeLessThan(0);
           expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
-          frames(30);
+          frames(40);
           expect(order()).toEqual(["A:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
           expect(rowShift("C")).toBe(0);
@@ -9351,6 +9446,9 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       // Le bas du Circuit traverse l'emplacement ouvert sous R.
       expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
       release("P", 200);
+      // Story 7.6 : P part de l'endroit du lâcher et glisse jusqu'à sa place.
+      expect(rowShift("P")).toBeGreaterThan(0);
+      settle();
       expectRest(["Q", "R", "P"]);
       layOutCircuit(["Q", "R", "P"]);
       expectRest(["Q", "R", "P"]);
@@ -9367,17 +9465,21 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(linkHeight("composition-rail-link-P")).toBe(CIRCUIT_GAP + 70 + IN_CIRCUIT_REST);
       expectJoined("P", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: 0 });
       release("R", -100);
+      settle();
       expectRest(["R", "Q", "P"]);
       layOutCircuit(["R", "Q", "P"]);
       expectRest(["R", "Q", "P"]);
     });
 
-    it("dépôt appliqué : l'occurrence reprend sa place dans le rail immédiatement", () => {
+    it("dépôt appliqué : l'occurrence reprend sa place dans le rail à la fin de sa mise en place (story 7.6)", () => {
       renderLaidOut();
       lift("A");
       moveTo("A", 100);
       settle();
       release("A", 100);
+      // Story 7.6 : pendant qu'elle glisse jusqu'à sa place, elle reste hors de la chaîne.
+      expect(screen.queryByTestId("composition-rail-link-A", hidden)).toBeNull();
+      settle();
       expect(screen.getByTestId("composition-rail-link-A", hidden)).toBeTruthy();
     });
   });
