@@ -298,6 +298,16 @@ Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à
 
 **Jalon J6 (iPhone, après 7.4)** : commentaires 1 à 17 de la recette du 22/10 revus un par un.
 
+### Story 7.5: Retours J6 — suppression tolérante et animée, cadre du Circuit au changement de zone
+
+Recette différentielle J6 de Hermann du 22/10/2026 : 21 points OK sur 23, d-17 en problème, d-12 non testable (exécution), demande nouvelle sur d-9.
+
+- **AC1** (d-9, D-437 amendée) : supprimer un Exercice qui laisserait un Point interdit ou consécutif est APPLIQUÉ ; les points en cause sont retirés sans message (mêmes règles que le déplacement : interdits d'abord, le premier d'une paire consécutive conservé). Plus de refus doux ni d'annonce de refus.
+- **AC2** (d-9) : la carte supprimée disparaît en fondu ; les éléments suivants (cartes, points, cadre du Circuit) glissent pour combler sa place.
+- **AC3** (d-17) : carte sortie du haut du Circuit puis redéposée dedans, ou première carte du Circuit sortie vers le haut : aucune zone grise ni rectangle blanc résiduel, sans appui long ni réouverture ; cause trouvée et corrigée.
+
+**Jalon J6b (iPhone, après 7.5)** : d-9 et d-17 revus ; d-12 reste ouvert jusqu'à l'exécution.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -309,7 +319,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
-Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.
