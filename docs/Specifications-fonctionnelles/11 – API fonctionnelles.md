@@ -7,6 +7,7 @@
 - [Séances](#séances)
   - [API Séances](#api-séances)
 - [Exercices](#exercices)
+  - [Contrats MFN — évolution des opérations existantes](#contrats-mfn--évolution-des-opérations-existantes)
   - [API Exercices](#api-exercices)
   - [API du Catalogue des Exercices, des Médias et des Parcours](#api-du-catalogue-des-exercices-des-médias-et-des-parcours)
 - [Paramètres d’exécution](#paramètres-dexécution)
@@ -93,6 +94,24 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 ## Exercices
 
+### Contrats MFN — évolution des opérations existantes
+
+Ces contrats remplacent la propriété aplatie du contenu Catalogue et précisent les API ci-dessous ; ils n’imposent pas de service distant.
+
+| Opération | Contrat cible |
+|---|---|
+| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même geste / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
+| Lire une définition | Résoudre sa relation active obligatoire vers le mouvement ; retourner contenu et paramètres propres |
+| Enregistrer une correction | Vérifier usage durable et champs sensibles ; transmettre le choix et le nombre de définitions touchées ; appliquer atomiquement contenu partagé et durées par identifiant ; distinguer exercice édité complet et frères incomplets explicitement acceptés |
+| Créer une variante | Nouveau mouvement et nouvelle définition ; original conservé ; proposition de groupe sans présélection |
+| Copier / dupliquer | Nouveaux identifiants d’objets ; filiation copiée à l’identique ; contenu de l’occurrence autonome et verrouillé ; paramètres modifiables |
+| Enregistrer une séance / démarrer en direct | Marquer durablement l’utilisation du mouvement dans la transaction de succès ; aucune création Catalogue ; absence de source orpheline tolérée pour une copie existante |
+| Exécuter | Refuser les exercices incomplets ; instantané autonome avec filiation, sans rang ; même identité en ACTIVITY et SESSION |
+| Supprimer | Refuser suppression d’un mouvement encore référencé par une définition ; ne jamais invalider une copie ni collecter automatiquement un mouvement inutilisé |
+
+Invariants détaillés : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). D-440 dispense de lire ou convertir les anciens formats pendant la transition MFN ; aucune perte silencieuse de données du nouveau modèle n’est permise.
+
+
 ### API Exercices
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
@@ -108,21 +127,21 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 Les opérations de création, modification, copie et duplication transportent la liste ordonnée de phases avec les paramètres canoniques. Aucun endpoint ni service distant supplémentaire n’est requis. Contrat de données : chapitre 09, Phases de l’exercice ; comportement : [chapitre 08](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
-- Normalisation du brouillon : retire les phases de saisie à 0 s et remplace les libellés vides par Phase n ; résultat appliqué atomiquement à ✓, annulé à ✕.
+- Validation du brouillon (D-438) : une durée de phase nulle ou vide reste à renseigner, sans suppression ; l’exercice édité ne peut être enregistré incomplet. Le nommage par défaut des phases ajoutées reste conservé. Retrait de structure uniquement explicite au Catalogue ; aucune transformation structurelle dans une copie verrouillée.
 - Validation : éligibilité, six phases maximum, libellés 20 caractères, chaque phase validée ≥ 1 s et somme des phases comprise entre 1 et 3 535 s (D-430), cohérence avec la durée imposée ; les données corrompues ne bénéficient pas d’un effacement silencieux.
 - Calcul : somme des phases comme durée de série ; projections et agrégats issus des mêmes paramètres, sans double comptage.
 - Adaptation au format : reçoit la liste et la durée de travail imposée ; renvoie la liste adaptée et les valeurs avant/après nécessaires au message informatif. Source Catalogue inchangée. Les arrondis extrêmes attendent la règle du chapitre 08.
 - Génération du plan : conserve la série comme unité logique et expose les sous-étapes chronométrées et leur identité à la reprise/audio.
 - Génération de phrase : segments `{texte, gras}` depuis les paramètres effectifs, sans chaîne persistée. Les formulations exactes avec phases restent à intégrer au corpus ; ne pas appliquer les seuls 276 cas historiques comme couverture de cette extension.
 
-Conserver les contrats d’annulation, copie indépendante et lecture d’anciennes versions ; ne pas supprimer une liste de phases lors d’un aller-retour par un DTO historique.
+Conserver les contrats d’annulation et de copie indépendante ; D-440 dispense de lecture des versions antérieures pour la transition MFN ; ne pas supprimer une liste de phases lors d’un aller-retour par un DTO historique.
 
 ### API du Catalogue des Exercices, des Médias et des Parcours
 
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
-| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, y compris les étapes ordonnées de description (D-425), charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune association fonctionnelle durable à la référence. |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, y compris les étapes ordonnées de description (D-425), charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune synchronisation avec la référence ; `sourceMovementId` conserve la filiation statistique immuable (D-437). |
 | `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |

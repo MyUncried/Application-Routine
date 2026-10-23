@@ -234,6 +234,19 @@ Ils ne correspondent pas à des serveurs ou microservices distincts.
 
 ## 12.5 Domaine métier
 
+### Architecture cible MFN — D-437 à D-440
+
+Évolution à implémenter, distincte de l’état livré : mouvement partagé avec relation active intègre depuis ActivityDefinition ; contenu résolu autonome dans SessionActivity et instantané. La filiation non nulle des copies n’a ni clé étrangère obligatoire ni chargement de source. Une source absente n’empêche ni affichage ni exécution d’une copie complète.
+
+Le découpage touche modèles, repositories, DTO, brouillons, validateurs et sérialiseurs : structure `(id, label)` sur mouvement, valeurs Catalogue `(phaseId, durationSeconds)`, phases résolues dans les copies. Les JSON v3 actuels doivent évoluer ; ne pas conserver les parseurs actuels en supposant qu’ils transportent de nouveaux champs. D-440 permet un schéma neuf sans conversion ni compatibilité ancienne. L’initialisation ne réinitialise jamais les données à chaque lancement.
+
+Réutiliser WorkPhase.id avec un compteur monotone persisté par mouvement ; ne pas recalculer le prochain identifiant depuis le maximum de la liste courante. Les exercices frères incomplets nécessitent un état persistant de durée absente et un refus d’exécution ; la nullabilité actuelle du seul brouillon ne suffit pas.
+
+Les transactions couvrent création locale avec la séance, annulation sans résidu, correction partagée et associations de durées, ainsi que marquage durable d’utilisation au succès. Aucun journal d’utilisation ni collecte automatique de mouvement n’est requis. Les références médias du mouvement entrent dans le comptage avant nettoyage physique ; les copies gardent leurs propres associations. Suppression d’une définition ne supprime pas le mouvement.
+
+Le moteur consomme une représentation résolue ; aucun accès au Catalogue ou au groupe pendant l’exécution. La filiation traverse tous les convertisseurs, snapshots et stockages ; elle ne remplace pas l’identité des résultats. Aucun rang historique. Détail : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+
 La couche Domaine contient :
 - les entités définies dans le chapitre 09 ;
 - les règles métier ;
@@ -911,8 +924,14 @@ Pour l’Exécution, les composants textuels du contenu utilisent **Roboto Conde
 
 Le catalogue courant et les exceptions sont détaillés dans [DSF-CADENCE](../DSF-CADENCE-2026-10-06.md), §7. Les anciens noms Source exact et leurs variantes ne constituent plus le catalogue cible.
 
+Complément du 23/10 : [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Les nouveaux écrans ne sont pas tous des composants ; ne pas inventer de composant partagé sur la seule foi d’une frame.
+
 | Famille | Référence courante | Variantes / portée |
 |---|---|---|
+| Niveau | `icon/niveau` `9932:44044` | Niveau 1 / 2 / 3, tranches non atteintes à 28 % ; aucune limite métier à trois niveaux |
+| Modifier le geste | `icon/modifier` `9925:41240` | Crayon au trait bleu KODJO, création sur geste repris ; pas de déverrouillage d’occurrence |
+| Classification | `Sélecteur classification` `9925:41506`, `9925:41515` | Rôle Niveau, états Vide / Renseigné ; Rôle = Catégorie / Zone / Niveau |
+| Contexte exercice | `Zone bleue — Nom et média` `9029:18368`, rangée `9029:18363` | Niveau troisième ; espacement 12, marges latérales 6 ; zones élastiques tronquées |
 | Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
 | En-tête | DSF / Navigation / En-tête fixe `5544:4504` | Standard / Retour / Fermer ; Titre, Démarcation ; exceptions anciennes identifiées dans DSF §7 |
 | En-tête de modale | DSF / Overlays / En-tête de modale `5544:5567` | Classification / Roulette / Sélection |
@@ -1558,7 +1577,7 @@ Séparer `durationDeterminable` de `autoComplete` dans l’adaptateur du plan : 
 
 Scheduler fondé sur ancres monotones, nombre d’intervalles acquis, début du courant, nominal atteint ; état persistable et transitions idempotentes. Le compteur de tentative est distinct de l’accumulateur actif réel : fraction abandonnée par Pause et temps avant reset restent dans le résultat par Série/côté. Reprise avec intervalle complet ; arrière-plan avec recalcul et sans rejeu des sons manqués. Le seuil 30 min est ancré sur la fin nominale recalculée. Aucun100% global avant finalisation.
 
-Ordre de développement : représentation variable effective, migration absence de cadence, snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
+Ordre de développement : représentation variable effective, initialisation sur base vierge pour la transition MFN (D-440, sans migration de cadence), snapshot versionné, calcul/incertitude, ordonnanceur/progression/audio, restitution/phrase, tests sur appareils. Les modules audio en arrière-plan, interruptions système, verrouillage et reprise doivent être qualifiés iOS/Android ; aucune réussite de test n’est revendiquée ici. Les sons concrets et leur adaptation aux préférences existantes restent du travail d’implémentation, pas un nouveau réglage Profil.
 
 ## 12.34 Architecture cible — Exercices, Médias et Parcours
 

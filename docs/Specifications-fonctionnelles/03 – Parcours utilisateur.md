@@ -11,6 +11,7 @@
   - [Navigation principale et articulation des écrans — Parcours de création d’une Séance](#navigation-principale-et-articulation-des-écrans--parcours-de-création-dune-séance)
   - [Navigation principale et articulation des écrans — Parcours d’ouverture et de modification d’une Séance](#navigation-principale-et-articulation-des-écrans--parcours-douverture-et-de-modification-dune-séance)
 - [Exercices](#exercices)
+  - [Création, niveaux et correction — cible MFN](#création-niveaux-et-correction--cible-mfn)
   - [Parcours MVP T03 — Catalogue des Exercices](#parcours-mvp-t03--catalogue-des-exercices)
   - [Navigation principale et articulation des écrans — Parcours du Catalogue des Exercices — MVP T03](#navigation-principale-et-articulation-des-écrans--parcours-du-catalogue-des-exercices--mvp-t03)
 - [Paramètres d’exécution](#paramètres-dexécution)
@@ -143,6 +144,17 @@ Le déploiement de la carte est facultatif et sert uniquement à consulter rapid
 Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d’Exécution. Ces zones tactiles conservent chacune leur comportement propre.
 
 ## Exercices
+
+### Création, niveaux et correction — cible MFN
+
+Références visuelles : [relevé Figma du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Reprendre un geste présente son contenu en lecture seule, déverrouillable par crayon en création ; les paramètres restent éditables. Créer explicitement une variante n’affiche pas une seconde question d’identité. Depuis la fiche, le popover propose « Changer de niveau / Ajouter un niveau » ; aucune action glissée supplémentaire au Catalogue.
+
+Créer un exercice commence dans l’éditeur. La recherche explicite d’un geste, accessible avant la saisie détaillée, et les suggestions incluent les gestes créés localement ; aucun Catalogue supplémentaire. Choisir le même geste reprend son contenu et permet de saisir d’autres paramètres. Une variante crée un nouveau geste et son exercice ; un geste indépendant n’est pas rattaché. Aucun écrasement silencieux d’une saisie existante.
+
+Depuis la fiche, créer un niveau l’insère après l’origine ; glisser réordonne les niveaux. Une navigation vers un niveau laisse choisir précisément ses paramètres parmi ses exercices. Ouvrir un exercice Catalogue entre directement en édition. L’enregistrement d’un contenu déjà utilisé pose la question de correction ou de création selon [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux) ; les occurrences existantes ne sont pas mises à jour.
+
+Dans la Composition, le contenu copié est verrouillé ; seuls les paramètres sont modifiables. Un autre geste exige remplacement ou création de variante. Les doublons créés indépendamment ne peuvent pas réunir leurs records rétroactivement dans cette version.
+
 
 ### Parcours MVP T03 — Catalogue des Exercices
 

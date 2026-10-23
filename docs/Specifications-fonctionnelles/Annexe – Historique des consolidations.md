@@ -137,3 +137,7 @@ Les captures courantes sont centralisées au chapitre06 ; l’état des lieux du
 *Ancien emplacement : chapitre 13, « Mise à jour des références visuelles — 07/10, corrections rédactionnelles ».*
 
 Les références de CE-T03-02 (catalogue), CE-T03-04 (éditeur et abandon), CE-UI-09 (zones corporelles) et CE-UI-10 (paramètres) ont été recapturées après correction du libellé de carte et des19 phrases. [Inventaire exact](../CLOTURE-CAPTURES-PHRASES-2026-10-07.md). Les comportements, champs et règles métier de ces contrats restent ceux déjà validés ; aucune nouvelle décision de conception.
+
+## 23/10/2026 — Mouvement, filiation et niveaux
+
+Intégration de la spécification normative v0.4 validée par Hermann : décisions D-436 à D-440, règles MFN et recettes au chapitre 10, propagation au modèle, aux parcours, aux contrats et à la cible technique. Les règles de suppression silencieuse des phases et de retrait interdit à deux phases sont remplacées ; les autres conventions de saisie restent conservées. Transition sur base vierge sans migration. Base de travail : branche documentaire Composition du 21/10, conservée ; aucune modification de code, aucun effacement de données, aucune conformité visuelle générale déclarée.

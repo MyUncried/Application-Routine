@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+**Actualisation Figma du 23/10/2026 :** [Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) — cinq nouveaux états et popover illustrés au chapitre 06, captures existantes actualisées, contrats et composants réconciliés ; écarts de prototype explicités.
+
 La documentation de référence forme un ensemble de treize chapitres, complété par quatre annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.
 
 | Chapitre | Titre | Contenu |
@@ -43,3 +45,7 @@ Cette section est une aide à la navigation. Elle regroupe, sans en ajouter, les
 - **Domiciles (D-402).** Une règle testable est énoncée au chapitre 10. Le chapitre 08 la cite par son identifiant, et le contrat du chapitre 13 en décrit l’effet à l’écran. `PRODUCT.md` est une synthèse sans ordre de référence propre.
 
 En cas de contradiction entre deux passages, les deux sont conservés jusqu’à décision explicite.
+
+## Mouvement, filiation et niveaux — intégration du 23/10/2026
+
+Règles normatives et recettes MFN : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Modèle et intégrité : chapitres 04/09 ; parcours : 03/08 ; contrats : 06/13 ; API/architecture : 11/12 ; livraison : 05 ; décisions D-436 à D-440 : 07. La spécification v0.4 est propagée dans ces chapitres ; code à réaliser, transition sur base vierge sans reprise.

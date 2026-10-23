@@ -1,5 +1,7 @@
 # Annexe — Matrice de traçabilité
 
+**Complément manuel Figma du 23/10/2026 :** [relevé MFN](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). MFN-06/08 → CE-T03-04 → `9882:19049`, `9891:39982`, `9959:19518`, `9959:19623`, `9952:44349` ; MFN-07/10 → CE-T03-02 et CE-T03-04 → `9577:19843` ; MFN-09 → CE-UI-10 (verrouillage, pas de nouveau crayon). Composants au chapitre 12, captures au chapitre 06. Ce complément ne régénère pas les tableaux historiques ci-dessous.
+
 Document non normatif, généré par `openspec/changes/archive/2026-10-18-revision-documentation-kodjo/outils/tracabilite.mjs` (change archivé le 18/10/2026 ; règles RM-235 à RM-250 et phases du 18/10 non encore reprises ici). Une référence n’y figure que si elle est **écrite** dans le texte : identifiant cité, ou règle qui cite un contrat. Aucune correspondance n’est déduite du sens ; une case vide signifie « aucune référence écrite », pas « aucun rapport ».
 
 ## Besoins → identifiants cités
@@ -831,3 +833,15 @@ CERTAIN : le contrat énonce, pour cet écran, la même condition et le même r�
 | [REC-26](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
 | [REC-27](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
 | [REC-28](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#recettes-fonctionnelles-et-preuves-attendues) |  |  |
+
+## Traçabilité MFN — 23/10/2026
+
+| Décision | Règles | Modèle / réalisation | Contrats / vérification |
+|---|---|---|---|
+| D-436 | Orientation fitness first indépendante | PRODUCT ; registre 07 | Ajustement de formulation |
+| D-437 | MFN-01, 03, 04, 09, 10, 11 | 01, 04, 09, 11, 12 | CE-T03-04, CE-T03-07, CE-T03-08 ; copies et historique |
+| D-438 | MFN-02, 08 | 08, 09, 11, 12 | CE-T03-04, CE-UI-10 ; durées manquantes et partage |
+| D-439 | MFN-05, 06, 07, 10 | 03, 04, 08, 09 | 06, CE-T03-04, CE-T03-07 ; sélection et niveaux |
+| D-440 | MFN-12, 13 | 05, 09, 11, 12 | Initialisation ponctuelle et conservation au redémarrage |
+
+Recettes normatives : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux), section Scénarios d’acceptation MFN. Aucun résultat de test applicatif n’est déclaré par cette propagation.
