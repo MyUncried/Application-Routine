@@ -48,7 +48,7 @@ import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { UNSELECTED_OPACITY } from "@/shared/ui/opacity";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { FINAL_ACTION_BUTTON, finalActionBottomMargin } from "@/shared/ui/finalAction";
+import { FINAL_ACTION_BUTTON, finalActionBottomMargin, finalActionZoneHeight } from "@/shared/ui/finalAction";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 
 jest.mock("expo-haptics", () => ({
@@ -1569,42 +1569,44 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
   });
 
-  it("S-08 — the bottom safe-area inset is applied exactly once (Bottom Action only, never duplicated on the scrollable list)", () => {
+  // PRE-6 story 7.10 (D-439, remplace S-08 et le pied de la story 7.9) : zone d'action principale
+  // fixe — en absolu au bas de l'écran, au-dessus de la zone de sécurité (34 + 8), dégradé blanc ;
+  // le corps défilant réserve toute sa hauteur (24 + 48 + 42 = 114 avec l'encart de test 34).
+  it("story 7.10 — fixed primary action zone: absolute at the bottom, button 8 above the safe area, scroll reserve = zone height", () => {
     renderScreen();
-
-    const scrollContent = StyleSheet.flatten(
-      screen.getByTestId("composition-body").props.contentContainerStyle,
-    );
-    expect(scrollContent.paddingBottom).toBe(16); // spacing[16] fixe, aucun insets.bottom ici.
-
-    const bottomAction = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
-    // Story 7.9 : pied de l'écran Exercice (`finalActionBottomMargin`), seul point d'application.
-    expect(bottomAction.marginBottom).toBe(spacing[24]);
+    const zone = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
+    expect(zone).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 24, paddingBottom: 34 + 8 });
+    expect(screen.getByTestId("composition-bottom-action").props.pointerEvents).toBe("box-none");
+    const scrollContent = StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle);
+    expect(scrollContent.paddingBottom).toBe(24 + 48 + 34 + 8);
+    expect(finalActionZoneHeight(34)).toBe(114);
+    // Le dégradé couvre toute la zone, sans capter de toucher.
+    const gradient = screen.getByTestId("composition-bottom-action-gradient");
+    expect(gradient.props.pointerEvents).toBe("none");
+    expect(StyleSheet.flatten(gradient.props.style)).toMatchObject({
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      experimental_backgroundImage: "linear-gradient(to bottom, #FFFFFF00 0%, #FFFFFF 100%)",
+    });
   });
 
-  // PRE-6 story 7.9 (recette J6d) : « Continuer » à la même hauteur que `Terminer` de l'écran de
-  // création d'un Exercice — même gabarit et même marge basse (`shared/ui/finalAction`).
-  it("story 7.9 — « Continuer » has the Exercise screen's final action: 48 high, radius 24, shadow G-8, bottom 24 from the screen edge on iOS", () => {
+  it("story 7.10 — « Continuer » has the format of « Terminer »: 48 high, radius 24, shadow G-8, side margins 24 at 402", () => {
     renderScreen();
     const button = StyleSheet.flatten(screen.getByTestId("composition-save-action").props.style);
     expect(button).toMatchObject({ ...FINAL_ACTION_BUTTON, backgroundColor: colors.disabled });
     expect(button).toMatchObject({ minHeight: 48, borderRadius: 24, shadowColor: "#1A1A26", shadowOpacity: 0.18, shadowRadius: 10 });
-    expect(button.paddingVertical).toBeUndefined();
-    expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).marginBottom).toBe(24);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).paddingHorizontal).toBe(24);
   });
 
-  it("story 7.9 — Android: the footer never goes under the bottom inset (same rule as the Exercise screen)", () => {
-    const before = Platform.OS;
-    Platform.OS = "android";
-    try {
-      // Encart bas de test : 34 — sur Android, le pied reste au-dessus (34), jamais à 24.
-      renderScreen();
-      expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).marginBottom).toBe(34);
-      expect(finalActionBottomMargin("android", 48)).toBe(48);
-      expect(finalActionBottomMargin("android", 0)).toBe(24);
-    } finally {
-      Platform.OS = before;
-    }
+  it("story 7.10 — « Continuer » enabled for a valid Composition: primary, still in the format of « Terminer »", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
+    const button = screen.getByTestId("composition-save-action");
+    expect(button.props.accessibilityState).toMatchObject({ disabled: false });
+    expect(StyleSheet.flatten(button.props.style)).toMatchObject({ backgroundColor: colors.primary, minHeight: 48, shadowColor: "#1A1A26" });
+    expect(finalActionBottomMargin(0)).toBe(16);
   });
 });
 
@@ -6506,6 +6508,39 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       });
     });
 
+    // Story 7.10 (D-439) : « Continuer » et la barre ✓ / Annuler occupent la même zone, au même
+    // emplacement vertical et à la même hauteur (48) : aucun saut à l'entrée ni à la sortie du placement.
+    it("story 7.10 — entering and leaving placement keeps the action zone and its content height unchanged (no jump)", () => {
+      renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
+      const zone = () => screen.getByTestId("composition-bottom-action");
+      const zoneStyle = () => StyleSheet.flatten(zone().props.style);
+      const reserve = () => StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle).paddingBottom;
+      // Contenu de la zone mesuré : le bouton seul (48), puis la barre seule (48).
+      const measureContent = (height: number) =>
+        act(() => {
+          fireEvent(screen.getByTestId("composition-bottom-action-content"), "layout", {
+            nativeEvent: { layout: { x: 0, y: 0, width: 354, height } },
+          });
+        });
+      const before = zoneStyle();
+      const buttonHeight = StyleSheet.flatten(screen.getByTestId("composition-save-action").props.style).minHeight;
+      expect(buttonHeight).toBe(48);
+      measureContent(48);
+      expect(reserve()).toBe(114);
+      enter();
+      // La barre est rendue DANS la même zone, à la place du bouton, à la même hauteur.
+      expect(within(zone()).getByTestId(BAR)).toBeTruthy();
+      expect(within(zone()).queryByTestId("composition-save-action")).toBeNull();
+      expect(StyleSheet.flatten(screen.getByTestId(BAR).props.style).height).toBe(buttonHeight);
+      measureContent(48);
+      expect(zoneStyle()).toEqual(before);
+      expect(reserve()).toBe(114);
+      fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
+      measureContent(48);
+      expect(zoneStyle()).toEqual(before);
+      expect(reserve()).toBe(114);
+    });
+
     it("matrix — long sequence: the whole list scrolls; the last slot is in the scrolled content, above the protected footer", () => {
       const many = Array.from({ length: 12 }, (_, index) =>
         anActivity(`E${index}`, index < 6 ? "BEFORE_TOUR" : "AFTER_TOUR", { name: `E${index}` }),
@@ -6526,7 +6561,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       // Le corps défile et occupe la place restante ; son contenu se termine par une marge basse.
       expect(box(body).flex).toBe(1);
       expect(body.props.scrollEnabled).toBe(true);
-      expect(StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom).toBe(spacing[16]);
+      // Story 7.10 (D-439) : réserve de défilement = hauteur de la zone d'action fixe (114).
+      expect(StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom).toBe(finalActionZoneHeight(34));
       // Derniers emplacements (cadre de la dernière occurrence, point après l'avant-dernière) : dans
       // le contenu défilant, avant la Fin.
       expect(within(body).getByTestId("composition-placement-slot-E11-recovery")).toBeTruthy();
@@ -6534,9 +6570,9 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(
         testIdOrder(screen.toJSON(), ["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]),
       ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
-      // Story 7.9 (recette J6d) : même pied que l'écran Exercice — bas à 24 du bord de l'écran
-      // (iOS, inset 34 ignoré), le contenu défilant s'arrête au-dessus du pied.
-      expect(box(footer).marginBottom).toBe(spacing[24]);
+      // Story 7.10 (D-439) : la barre de placement est dans la même zone que « Continuer », au-dessus
+      // de la zone de sécurité (34 + 8), sans chevaucher l'indicateur d'accueil.
+      expect(box(footer)).toMatchObject({ position: "absolute", bottom: 0, paddingBottom: 34 + 8 });
     });
   });
 
@@ -8458,6 +8494,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     describe("commentaire 3 — défilement automatique", () => {
       /** Zone visible de la liste : y 0 à 300 dans l'écran. */
       const VIEWPORT = { top: 0, height: 300 };
+      /** Story 7.10 : hauteur de la zone d'action fixe qui recouvre le bas du corps. */
+      const RESERVE = finalActionZoneHeight(34);
       let scrollTo: jest.Mock<(options: { y: number; animated: boolean }) => void>;
       beforeEach(() => {
         scrollTo = jest.fn();
@@ -8468,12 +8506,14 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         jest.spyOn(prototype, "scrollTo").mockImplementation(scrollTo);
         jest.spyOn(prototype, "getNativeScrollRef").mockReturnValue({
           measureInWindow: (callback: (x: number, y: number, width: number, height: number) => void) =>
-            callback(0, VIEWPORT.top, 402, VIEWPORT.height),
+            // Story 7.10 (D-439) : le corps passe sous la zone d'action fixe (insets de test : bas 34,
+            // zone de 114) ; la zone visible, au-dessus d'elle, reste y 0 à 300.
+            callback(0, VIEWPORT.top, 402, VIEWPORT.height + RESERVE),
         });
       });
       function layOutBody(contentHeight = 900, offset = 0) {
         const body = screen.getByTestId("composition-body");
-        fireEvent(body, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: VIEWPORT.height } } });
+        fireEvent(body, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: VIEWPORT.height + RESERVE } } });
         fireEvent(body, "contentSizeChange", 402, contentHeight);
         fireEvent(body, "scroll", { nativeEvent: { contentOffset: { x: 0, y: offset } } });
       }
@@ -8547,9 +8587,11 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
       });
 
+      // Story 7.10 (revue) : le décalage maximal est celui du conteneur entier (contenu, réserve
+      // comprise, moins la hauteur pleine) — la zone d'action ne fait que remonter la bande.
       it("bord bas du contenu : arrêt au décalage maximal", () => {
         renderLaidOut();
-        layOutBody(400);
+        layOutBody(400 + RESERVE);
         lift("A");
         moveTo("A", 199);
         frames(2000);

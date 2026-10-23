@@ -142,6 +142,26 @@ describe("ActivitySelectionScreen", () => {
     mockBack.mockClear();
   });
 
+  // PRE-6 story 7.10 (D-439) : barre Annuler / Ajouter dans la zone d'action principale fixe.
+  it("story 7.10 — Annuler / Ajouter in the fixed action zone above the safe area (34 + 8); Ajouter in the format of « Terminer », both 48 high; the list reserves the zone", async () => {
+    renderScreen([makeDefinition("a", "Squat")]);
+    await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
+    const zone = StyleSheet.flatten(screen.getByTestId("activity-selection-bottom-action").props.style);
+    expect(zone).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 24, paddingBottom: 42 });
+    expect(StyleSheet.flatten(screen.getByTestId("activity-selection-add").props.style)).toMatchObject({
+      flex: 1,
+      minHeight: 48,
+      borderRadius: 24,
+      shadowColor: "#1A1A26",
+      backgroundColor: colors.disabled,
+    });
+    // Annuler garde son style neutre (choix de la story 7.10), à la hauteur 48, sans ombre.
+    const cancel = StyleSheet.flatten(screen.getByTestId("activity-selection-cancel").props.style);
+    expect(cancel).toMatchObject({ flex: 1, minHeight: 48, borderRadius: 24, backgroundColor: colors.dialogNeutralActionBackground });
+    expect(cancel.shadowColor).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("activity-selection-list").props.contentContainerStyle).paddingBottom).toBe(114);
+  });
+
   it("disables Ajouter when nothing is selected", async () => {
     renderScreen([makeDefinition("a", "Squat")]);
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());

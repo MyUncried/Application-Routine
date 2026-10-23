@@ -2,7 +2,6 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
@@ -25,6 +24,8 @@ import {
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
+import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -79,7 +80,7 @@ function useBodyZonesReferential(
  */
 export function ActivitySelectionScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const actionZone = usePrimaryActionZone();
   const { draft, updateDraft } = useSessionDraft();
   const { state, reload, cancelPending } = useActivityCatalogue();
   const [selectedIds, setSelectedIds] = useState<readonly string[]>([]);
@@ -223,17 +224,17 @@ export function ActivitySelectionScreen() {
           </View>
         ) : null}
         {state.status === "loading" ? (
-          <View style={styles.centeredBody}>
+          <View style={[styles.centeredBody, { paddingBottom: actionZone.scrollReserve }]}>
             <ActivityIndicator size="large" color={colors.primary} />
           </View>
         ) : null}
         {state.status === "empty" ? (
-          <View style={styles.centeredBody}>
+          <View style={[styles.centeredBody, { paddingBottom: actionZone.scrollReserve }]}>
             <Text style={styles.emptyMessage}>{t.empty.message}</Text>
           </View>
         ) : null}
         {state.status === "error" ? (
-          <View style={styles.centeredBody}>
+          <View style={[styles.centeredBody, { paddingBottom: actionZone.scrollReserve }]}>
             <Text style={styles.emptyMessage}>{strings.screens.activities.error.message}</Text>
           </View>
         ) : null}
@@ -250,14 +251,19 @@ export function ActivitySelectionScreen() {
                 categoriesReferential={categoriesReferential}
               />
             )}
-            contentContainerStyle={styles.list}
+            // PRE-6 story 7.10 (D-439) : réserve de défilement = zone d'action fixe.
+            contentContainerStyle={[styles.list, { paddingBottom: actionZone.scrollReserve }]}
+            scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
             testID="activity-selection-list"
           />
         ) : null}
       </View>
 
-      <View
-        style={[styles.bottomAction, { marginBottom: insets.bottom + spacing[16] }]}
+      {/* PRE-6 story 7.10 (D-439) : barre Annuler / Ajouter dans la zone d'action principale fixe
+          (au-dessus de la zone de sécurité, dégradé) ; « Ajouter » au format `Terminer`. */}
+      <PrimaryActionZone
+        onContentHeightChange={actionZone.onContentHeightChange}
+        contentStyle={styles.bottomAction}
         testID="activity-selection-bottom-action"
       >
         <Pressable
@@ -269,20 +275,15 @@ export function ActivitySelectionScreen() {
         >
           <Text style={styles.cancelLabel}>{t.cancelAccessibilityLabel}</Text>
         </Pressable>
-        <Pressable
-          disabled={!canAdd}
+        <PrimaryActionButton
+          label={addLabel}
           onPress={handleAdd}
-          accessibilityRole="button"
-          accessibilityState={{ disabled: !canAdd }}
-          accessibilityLabel={addLabel}
-          style={[styles.addAction, !canAdd ? styles.addActionDisabled : null]}
+          disabled={!canAdd}
+          style={styles.addAction}
           testID="activity-selection-add"
-        >
-          <Text style={styles.addLabel} testID="activity-selection-add-label">
-            {addLabel}
-          </Text>
-        </Pressable>
-      </View>
+          labelTestID="activity-selection-add-label"
+        />
+      </PrimaryActionZone>
 
       {pendingAdd !== null ? (
         <CircuitEntryConfirmModal
@@ -568,16 +569,16 @@ const styles = StyleSheet.create({
   checkboxSelected: {
     borderColor: colors.selection,
   },
+  // PRE-6 story 7.10 : contenu de la zone d'action — Annuler et Ajouter côte à côte, hauteur 48.
   bottomAction: {
     flexDirection: "row",
-    marginHorizontal: spacing[24],
     gap: spacing[12],
   },
   cancelAction: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: spacing[12],
+    minHeight: FINAL_ACTION_BUTTON_HEIGHT,
     borderRadius: 24,
     backgroundColor: colors.dialogNeutralActionBackground,
   },
@@ -587,17 +588,5 @@ const styles = StyleSheet.create({
   },
   addAction: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: spacing[12],
-    borderRadius: 24,
-    backgroundColor: colors.primary,
-  },
-  addActionDisabled: {
-    backgroundColor: colors.disabled,
-  },
-  addLabel: {
-    ...type.button,
-    color: colors.background,
   },
 });

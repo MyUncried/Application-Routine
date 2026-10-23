@@ -42,6 +42,12 @@ export type AutoScrollTarget = {
   readonly scrollTo: (offset: number) => void;
   /** Zone visible dans le repère de l'écran ; rappel absent si la mesure est impossible. */
   readonly measure: (callback: (top: number, height: number) => void) => void;
+  /**
+   * PRE-6 story 7.10 (D-439) : hauteur recouverte au bas de la zone visible par une zone fixe
+   * (zone d'action principale) — elle remonte la bande du bas du défilement automatique ; le
+   * décalage maximal, lui, reste calculé sur la hauteur pleine du conteneur. 0 par défaut.
+   */
+  readonly bottomObstruction?: () => number;
 };
 
 /** Durée d'une première trame (aucune trame précédente), et borne d'une trame tardive (ms). */
@@ -122,7 +128,9 @@ export class DragAutoScrollController implements DragAutoScroll {
   /** Vitesse de la trame : nulle au bord du contenu dans le sens du défilement. */
   private velocity(): number {
     if (this.pointerY === null) return 0;
-    const speed = autoScrollVelocity(this.pointerY, this.viewport);
+    const obstruction = Math.max(0, this.target.bottomObstruction?.() ?? 0);
+    const visible = { top: this.viewport.top, height: Math.max(0, this.viewport.height - obstruction) };
+    const speed = autoScrollVelocity(this.pointerY, visible);
     const max = clampScrollOffset(Number.POSITIVE_INFINITY, this.contentHeight, this.viewportHeight());
     if ((speed < 0 && this.offset <= 0) || (speed > 0 && this.offset >= max)) return 0;
     return speed;

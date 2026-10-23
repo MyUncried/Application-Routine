@@ -1,6 +1,6 @@
-import { act, fireEvent, renderRouter, screen, testRouter, waitFor } from "expo-router/testing-library";
+import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
 import { createDefaultProfile, type Profile } from "@/domain/preferences/Profile";
 import { ProfileEditScreen } from "@/features/preferences/ProfileEditScreen";
@@ -67,6 +67,25 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 }
 
 const t = strings.screens.profileEdit;
+
+/** PRE-6 story 7.10 (D-439) : « Enregistrer » dans la zone d'action principale fixe. */
+describe("ProfileEditScreen — zone d'action principale (PRE-6 story 7.10)", () => {
+  it("« Enregistrer » is out of the scroll, in the fixed action zone, with the format of « Terminer »; the body reserves the zone height", async () => {
+    await renderScreen();
+    const body = screen.getByTestId("profile-edit-body");
+    const zone = screen.getByTestId("profile-edit-action-zone");
+    expect(StyleSheet.flatten(zone.props.style)).toMatchObject({ position: "absolute", bottom: 0 });
+    const save = screen.getByTestId("profile-edit-save-action");
+    expect(within(body).queryByTestId("profile-edit-save-action")).toBeNull();
+    expect(within(zone).getByTestId("profile-edit-save-action")).toBe(save);
+    expect(StyleSheet.flatten(save.props.style)).toMatchObject({ minHeight: 48, borderRadius: 24, shadowColor: "#1A1A26" });
+    expect(save.props.accessibilityLabel).toBe(t.saveAction);
+    // Réserve de défilement : 24 + 48 + marge basse (encart du routeur de test).
+    const reserve = StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom as number;
+    expect(reserve).toBeGreaterThanOrEqual(24 + 48 + 16);
+    expect(reserve).toBe(24 + 48 + (StyleSheet.flatten(zone.props.style).paddingBottom as number));
+  });
+});
 
 describe("ProfileEditScreen", () => {
   beforeEach(() => {

@@ -190,7 +190,7 @@ import {
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
-import { FINAL_ACTION_BUTTON, finalActionBottomMargin } from "@/shared/ui/finalAction";
+import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -728,6 +728,13 @@ export type CompositionScreenProps = {
 export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  // PRE-6 story 7.10 (D-439) : zone d'action principale fixe (Continuer / barre de placement) ; le
+  // corps défilant réserve sa hauteur en fin de défilement.
+  const actionZone = usePrimaryActionZone();
+  const actionZoneReserveRef = useRef(actionZone.scrollReserve);
+  useEffect(() => {
+    actionZoneReserveRef.current = actionZone.scrollReserve;
+  }, [actionZone.scrollReserve]);
   const { draft, updateDraft, resetDraft, editStatus, retryHydration, hydratedBaseline, creationBaseline } =
     useSessionDraft();
   const activityDefinitionService = useActivityDefinitionService();
@@ -880,6 +887,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const autoScroll = useDragAutoScroll({
     scrollTo: (offset) => bodyScrollRef.current?.scrollTo({ y: offset, animated: false }),
     measure: (callback) => bodyScrollRef.current?.getNativeScrollRef()?.measureInWindow((_x, y, _width, height) => callback(y, height)),
+    // Story 7.10 (D-439) : la zone d'action fixe recouvre le bas du corps — la bande du bas du
+    // défilement automatique remonte au haut de cette zone (dégradé compris) ; le décalage maximal
+    // reste celui du conteneur entier (la réserve est déjà dans la hauteur du contenu).
+    bottomObstruction: () => actionZoneReserveRef.current,
   });
   /** Hauteur mesurée du conteneur du Circuit ; `0` tant qu'il n'est pas mesuré (fond statique). */
   const [circuitMeasuredHeight, setCircuitMeasuredHeight] = useState(0);
@@ -2793,7 +2804,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       <ScrollView
         ref={bodyScrollRef}
         style={styles.body}
-        contentContainerStyle={styles.bodyContent}
+        contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
+        // Story 7.10 (revue) : l'indicateur de défilement s'arrête au haut de la zone d'action.
+        scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
         keyboardShouldPersistTaps="handled"
         // T02-S01 (D-127/CE-T02-02) : pendant un déplacement de carte, le
         // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
@@ -3173,8 +3186,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
       {/*
        * CMP-06 (contre-recette iPhone, correction consolidée, 2026-09-03) :
-       * zone d'action basse (`bottomAction`), poussée en bas
-       * (`marginTop: "auto"`).
+       * zone d'action basse (`bottomAction`) — fixe depuis PRE-6 story 7.10.
        *
        * REWORK09 (mission directe utilisateur, 2026-09-04, point 2
        * « CORRECTIONS CONNEXES — COMPOSITION ») : la ligne de synthèse
@@ -3185,11 +3197,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * reste seul dans cette zone ; le style `summary` (devenu sans
        * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
-      <View
+      {/*
+       * PRE-6 story 7.10 (D-439, remplace le pied de la story 7.9) : zone d'action principale fixe
+       * et standard — « Continuer » et la barre de placement au même emplacement, au-dessus de la
+       * zone de sécurité, sur le dégradé blanc ; aucun saut au changement de mode (même hauteur 48).
+       */}
+      <PrimaryActionZone
+        onContentHeightChange={actionZone.onContentHeightChange}
+        contentStyle={styles.bottomAction}
         testID="composition-bottom-action"
-        // PRE-6 story 7.9 (recette J6d) : même pied que `Terminer` de l'écran Exercice — bas du
-        // bouton à 24 du bord bas de l'écran sur iOS (au moins l'encart bas sur Android).
-        style={[styles.bottomAction, { marginBottom: finalActionBottomMargin(Platform.OS, insets.bottom) }]}
       >
         {/*
          * PRE-4, décision Q54 de Hermann (2026-10-18) : l'action enregistre depuis la Composition
@@ -3213,19 +3229,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           </Text>
         ) : null}
         {placement === null ? (
-          <Pressable
-            disabled={!isCompositionValid || saveState === "saving"}
+          <PrimaryActionButton
+            label={composition.saveAction}
             onPress={handleSave}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !isCompositionValid || saveState === "saving" }}
-            accessibilityLabel={composition.saveAction}
-            style={[styles.continueAction, !isCompositionValid || saveState === "saving" ? null : styles.continueActionEnabled]}
+            disabled={!isCompositionValid || saveState === "saving"}
             testID="composition-save-action"
-          >
-            <Text style={styles.continueLabel}>{composition.saveAction}</Text>
-          </Pressable>
+          />
         ) : null}
-      </View>
+      </PrimaryActionZone>
 
       {/*
        * T01-S09, correction VISUAL (point D) : chaque roulette numérique
@@ -5932,31 +5943,14 @@ const styles = StyleSheet.create({
   // `(tabs)`), le critère « centré sur l'axe du cadre de navigation » de
   // cette revue ne s'applique donc pas ici (condition explicitement posée
   // par la revue elle-même, « lorsqu'il est présent »).
+  // PRE-6 story 7.10 : contenu de la zone d'action (message d'échec au-dessus de « Continuer »).
   bottomAction: {
-    marginHorizontal: spacing[24],
     gap: spacing[12],
-  },
-  // PRE-6 story 7.9 (recette J6d) : gabarit de `Terminer` (écran Exercice) — hauteur 48, rayon 24,
-  // ombre G-8 ; inactif par défaut (`colors.disabled`), `continueActionEnabled` pose le primaire.
-  continueAction: {
-    ...FINAL_ACTION_BUTTON,
-    backgroundColor: colors.disabled,
-  },
-  // T01-S09 : même patron que `primaryAction`/`primaryActionDisabled`
-  // (`ExerciseScreen.tsx`) — fond `colors.primary` uniquement pour l'état
-  // activé, jamais l'inverse (`continueAction.backgroundColor` reste le
-  // fond désactivé par défaut).
-  continueActionEnabled: {
-    backgroundColor: colors.primary,
   },
   // Q54 : style de l'ancien message d'échec de `CategoriesScreen` (D-107).
   saveErrorText: {
     ...type.body,
     color: colors.danger,
     textAlign: "center",
-  },
-  continueLabel: {
-    ...type.button,
-    color: colors.background,
   },
 });

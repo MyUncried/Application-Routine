@@ -3,37 +3,81 @@ import type { ViewStyle } from "react-native";
 import { colors, dimensions, spacing } from "@/shared/ui/tokens";
 
 /**
- * Pied d'action principal partagé (PRE-6 story 7.9, recette J6d : « le bouton « Continuer » doit
- * être à la même hauteur que le bouton d'action de l'écran de création d'un exercice »).
+ * Bouton d'action principal et sa zone fixe — SOURCE UNIQUE (D-439, PRE-6 story 7.10).
  *
- * Référence : `Terminer` de l'Éditeur d'Exercice (`ActivityEditorForm`, PRE-5 story 3.2, FR-37,
- * arbitrages G-8 et G-10 de Hermann du 19/10, Figma `8328:35738` ; frame `Action finale` : `pb` 24,
- * bouton à y802 sur 874) — valeurs déplacées ici sans changement, puis reprises par « Continuer »
- * de la Composition.
+ * Historique : PRE-6 story 7.9 avait déplacé ici, sans changement, les valeurs de `Terminer` de
+ * l'Éditeur d'Exercice (PRE-5 story 3.2, FR-37, arbitrages G-8 et G-10 de Hermann du 19/10,
+ * Figma `8328:35738`) pour « Continuer » de la Composition.
+ *
+ * D-439 (Hermann, 23/10/2026) : format unique sur tous les écrans dotés d'un bouton d'action
+ * principal, référence `Terminer` (dimensions, marges latérales, typographie, couleurs, arrondis,
+ * ombre) ; zone fixe en bas, indépendante du défilement, avec une marge de sécurité au-dessus et un
+ * dégradé blanc 0 → 100 % pleine largeur ; bouton et barres de mode AU-DESSUS de la zone de
+ * sécurité inférieure (interprétation retenue, réversible : plus de bas à 24 du bord de l'écran,
+ * qui chevauchait la zone du geste d'accueil sur iPhone).
  */
 
-/** Bas du bouton à 24 du bord bas de l'écran (iOS : indépendamment de `insets.bottom`). */
-export const FINAL_ACTION_BOTTOM_OFFSET = spacing[24];
+/**
+ * Marge entre le bas du bouton (ou d'une barre de mode) et le bas de la zone de sécurité quand elle
+ * existe (iPhone à indicateur d'accueil, Android bord à bord avec barre de navigation) : 8. L'encart
+ * (34 sur iPhone) contient déjà l'indicateur et son dégagement ; 8 détache le bouton de son bord
+ * sans le remonter au-delà de la position de `Terminer` validée (24 du bord) de plus de 18.
+ */
+export const FINAL_ACTION_BOTTOM_MARGIN_ABOVE_INSET = spacing[8];
+
+/**
+ * Sans zone de sécurité (encart nul : iPhone à bouton d'accueil, Android à navigation par
+ * gestes masquée, web) : 16 du bord de l'écran, la marge standard des écrans KODJO.
+ */
+export const FINAL_ACTION_BOTTOM_MARGIN_WITHOUT_INSET = spacing[16];
+
+/**
+ * Marge de sécurité au-dessus du bouton, couverte par le dégradé : 24 (hauteur du fondu au-dessus du
+ * bouton ; le contenu défilant s'arrête au-dessus de cette marge en fin de défilement).
+ */
+export const FINAL_ACTION_TOP_MARGIN = spacing[24];
+
+/** Hauteur du bouton (et d'une barre de mode) : `dimensions.finalAction.buttonHeight` (48). */
+export const FINAL_ACTION_BUTTON_HEIGHT = dimensions.finalAction.buttonHeight;
+
+/**
+ * Marges latérales de `Terminer` (PRE-4 story 4.2, FR-02-04) : 24 à partir de la largeur 390, 16 en
+ * dessous. Règle écrite, jamais une coordonnée Figma.
+ */
+export const FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH = 390;
+export function finalActionSideMargin(windowWidth: number): number {
+  return windowWidth >= FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH ? spacing[24] : spacing[16];
+}
 
 /** G-8 : ombre du bouton (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */
 export const FINAL_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
 
 /**
- * Marge basse du pied : 24 sur iOS ; sur Android (bord à bord sous Expo 57, revue PRE-5 3.2),
- * jamais sous l'encart bas (barre de navigation système).
+ * Marge basse du bouton depuis le bord de l'écran (D-439) : encart bas + 8 quand il existe, 16 sinon.
+ * iPhone (encart 34) : 42 ; sans encart : 16. Mêmes valeurs sur toutes les plateformes.
  */
-export function finalActionBottomMargin(platformOS: string, bottomInset: number): number {
-  return platformOS === "android" ? Math.max(FINAL_ACTION_BOTTOM_OFFSET, bottomInset) : FINAL_ACTION_BOTTOM_OFFSET;
+export function finalActionBottomMargin(bottomInset: number): number {
+  return bottomInset > 0 ? bottomInset + FINAL_ACTION_BOTTOM_MARGIN_ABOVE_INSET : FINAL_ACTION_BOTTOM_MARGIN_WITHOUT_INSET;
 }
 
 /**
- * Gabarit du bouton : hauteur `dimensions.finalAction.buttonHeight` (48), rayon 24, ombre G-8
- * dans les deux états ; fond `colors.primary` (l'appelant pose `colors.disabled` à l'état inactif).
+ * Hauteur de la zone d'action fixe, du haut du dégradé au bord de l'écran : marge de sécurité
+ * (24) + contenu (bouton 48 par défaut, ou hauteur mesurée : message d'erreur au-dessus) + marge
+ * basse. Sert de réserve de défilement : la dernière ligne du contenu remonte au-dessus du dégradé.
+ * iPhone (encart 34) : 24 + 48 + 42 = 114.
+ */
+export function finalActionZoneHeight(bottomInset: number, contentHeight: number = FINAL_ACTION_BUTTON_HEIGHT): number {
+  return FINAL_ACTION_TOP_MARGIN + contentHeight + finalActionBottomMargin(bottomInset);
+}
+
+/**
+ * Gabarit du bouton : hauteur 48, rayon 24, ombre G-8 dans les deux états ; fond `colors.primary`
+ * (l'état inactif pose `colors.disabled`). Libellé : `type.button`, `colors.background`.
  */
 export const FINAL_ACTION_BUTTON: ViewStyle = {
   alignItems: "center",
   justifyContent: "center",
-  minHeight: dimensions.finalAction.buttonHeight,
+  minHeight: FINAL_ACTION_BUTTON_HEIGHT,
   borderRadius: 24,
   backgroundColor: colors.primary,
   shadowColor: FINAL_ACTION_SHADOW.color,
@@ -42,3 +86,12 @@ export const FINAL_ACTION_BUTTON: ViewStyle = {
   shadowRadius: FINAL_ACTION_SHADOW.radius,
   elevation: FINAL_ACTION_SHADOW.elevation,
 };
+
+/**
+ * Dégradé de la zone (D-439) : blanc de l'écran (`colors.background`), opacité 0 en haut → 1 en bas,
+ * linéaire, pleine largeur. Primitive de la plateforme : style `experimental_backgroundImage` de
+ * React Native 0.86 (analysé par `processBackgroundImage`, rendu natif iOS et Android sous Fabric),
+ * sans dépendance. Le blanc transparent est le même blanc à alpha 0 (pas `transparent`, noir à alpha 0,
+ * qui grisaillerait le milieu du fondu).
+ */
+export const FINAL_ACTION_GRADIENT = `linear-gradient(to bottom, ${colors.background}00 0%, ${colors.background} 100%)`;
