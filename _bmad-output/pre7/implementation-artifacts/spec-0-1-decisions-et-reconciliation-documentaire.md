@@ -42,7 +42,7 @@ Inchangés : modèle de données, calculs, API, identifiants `TARGET` / `MIXED`,
 
 ## Ambiguïtés laissées (à soumettre à Hermann si nécessaire)
 
-1. **Zones corporelles personnalisées** : l'assouplissement nomme le Profil et les Catégories ; le référentiel des Zones corporelles est administrable par l'utilisateur (ch12 l. 1559) et le plan §4 parle seulement de « zones liées » supprimées et de « référentiels initiaux réensemencés ». Le sort des Zones créées ou renommées par l'utilisateur n'est pas écrit. Proposition : les conserver comme les Catégories (même nature de référentiel), à confirmer en story A1.2.
+1. **Zones corporelles personnalisées** : l'assouplissement nomme le Profil et les Catégories ; le référentiel des Zones corporelles est administrable par l'utilisateur (ch12 l. 1559) et le plan §4 parle seulement de « zones liées » supprimées et de « référentiels initiaux réensemencés ». Le sort des Zones créées ou renommées par l'utilisateur n'est pas écrit. Proposition : les conserver comme les Catégories (même nature de référentiel), à confirmer en story A1.2. **Tranché par Hermann le 24/10/2026 : Zones corporelles conservées avec leurs personnalisations** ; intégré dans D-440, MFN-12, ch12 (Architecture cible MFN) et `PRODUCT.md`.
 2. **Libellé de l'option dans le texte historique de D-411** : conservé et annoté, conformément à la pratique du registre ; « Définie » et « À la cible » ne sont pas ajoutés à la liste des termes obsolètes du ch01 §8 (non demandé).
 3. **B9, libellés Précédent / Suivant** : D-434 prévoit des flèches seules si la largeur manque ; D-445 impose quatre emplacements égaux sans trancher ce point. La règle D-434 reste applicable.
 

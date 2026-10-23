@@ -11,7 +11,7 @@
 
 ## Points ouverts (sans blocage)
 
-- **Zones corporelles personnalisées** : l'assouplissement de D-440 nomme le Profil et les Catégories ; proposition de conserver aussi le référentiel des Zones modifiable (ch12, vers l. 1559). À confirmer par Hermann **avant A1.2**.
+- **Zones corporelles personnalisées** : tranché par Hermann le 24/10/2026, conservées avec le Profil et les Catégories (D-440, MFN-12, ch12, PRODUCT.md).
 - B9 : la règle de D-434 « flèches seules si la largeur manque » reste applicable.
 
 ## Prochaine étape
