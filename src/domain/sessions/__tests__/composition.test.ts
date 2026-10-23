@@ -786,8 +786,10 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       }
     });
 
-    it("retirer l'ancienne Récupération entre P et Q les réunirait → refus ; la sortir (D-437) : Q retiré", () => {
-      expect(removeOccurrenceOutcome(legacyPair(), "R")).toMatchObject({ status: "REFUSED", reason: "LOCATION_OCCUPIED" });
+    it("retirer l'ancienne Récupération entre P et Q les réunirait → story 7.5 : Q retiré ; la sortir (D-437) : Q retiré", () => {
+      const removal = removeOccurrenceOutcome(legacyPair(), "R");
+      expect(removal).toMatchObject({ status: "APPLIED", removedStopPointIds: ["Q"] });
+      expect(removal.status === "APPLIED" && removal.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
       // Paire héritée exemptée de RM-251, mais réunie sur un même emplacement : le second est retiré.
       const outcome = moveOccurrenceOutcome(legacyPair(), "R", "IN_TOUR", 4);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["Q"] });
@@ -814,33 +816,34 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
   });
 
   describe("supprimer une occurrence", () => {
-    it("[A, P, B] : supprimer A → refus (P suivrait le Compte à rebours), raison fournie", () => {
+    it("story 7.5 (D-437 amendée) — [A, P, B] : supprimer A → appliqué, P retiré (il suivrait le Compte à rebours)", () => {
       const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
-      expect(removeOccurrenceOutcome(state, "A")).toEqual({
-        status: "REFUSED",
-        reason: "STOP_POINT_NOT_ALLOWED",
-        stopPointIds: ["P"],
-      });
-      expect(removeOccurrence(state, "A")).toBe(state);
+      const outcome = removeOccurrenceOutcome(state, "A");
+      expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
+      expect(outcome.status === "APPLIED" && ids(outcome.state.exercises)).toEqual(["B"]);
+      expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([]);
+      expect(ids(removeOccurrence(state, "A").exercises)).toEqual(["B"]);
     });
 
-    it("[A, P, B] : supprimer B → refus (P précéderait la Fin) ; aucune suppression silencieuse", () => {
+    it("story 7.5 — [A, P, B] : supprimer B → appliqué, P retiré (il précéderait la Fin)", () => {
       const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
-      expect(removeOccurrenceOutcome(state, "B")).toEqual({
-        status: "REFUSED",
-        reason: "STOP_POINT_NOT_ALLOWED",
-        stopPointIds: ["P"],
-      });
-      expect(removeOccurrence(state, "B")).toBe(state);
+      expect(removeOccurrenceOutcome(state, "B")).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
     });
 
-    it("[A, P, B, Q, C] : supprimer B → refus (P, Q consécutifs)", () => {
+    it("story 7.5 — [A, P, B, Q, C] : supprimer B → appliqué, Q retiré, P (premier de la paire) conservé", () => {
       const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
-      expect(removeOccurrenceOutcome(state, "B")).toEqual({
-        status: "REFUSED",
-        reason: "CONSECUTIVE_STOP_POINTS",
-        stopPointIds: ["P", "Q"],
-      });
+      const outcome = removeOccurrenceOutcome(state, "B");
+      expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["Q"] });
+      expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
+    });
+
+    it("story 7.5 — même règle que le déplacement : interdits d'abord, puis paires consécutives", () => {
+      // [A, P, B, Q, C] dans le Circuit seul : supprimer A → P interdit (après le Compte à rebours),
+      // retiré d'abord ; [B, Q, C] ne contient plus de paire.
+      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
+      const outcome = removeOccurrenceOutcome(state, "A");
+      expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
+      expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("Q", "IN_TOUR", 1)]);
     });
 
     it("D-437 — [W | A, P, B | Z] : supprimer A amène P en tête de Circuit → accepté (tête autorisée)", () => {
@@ -849,20 +852,18 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 0)]);
     });
 
-    it("D-437 — la suppression garde le refus doux : jamais de retrait toléré", () => {
-      const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
-      expect(removeOccurrenceOutcome(state, "B")).toMatchObject({ status: "REFUSED", reason: "CONSECUTIVE_STOP_POINTS" });
-    });
-
-    it("D-437 — N ≥ 2 : une suppression qui ferait coexister début et fin de Tour est refusée (consécutifs entre deux Tours)", () => {
+    it("story 7.5 — N ≥ 2 : une suppression qui ferait coexister début et fin de Tour demande le choix (comme le déplacement)", () => {
       // [A, P, B, Q] dans le Circuit, N = 2 : supprimer A → P en début de Tour, Q en fin.
       const state = { ...stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]), tourRepeatCount: 2 };
-      // À N = 2, Q (fin de Tour, juste avant la Fin) est autorisé ; P aussi une fois en tête.
-      expect(removeOccurrenceOutcome(state, "A")).toEqual({
-        status: "REFUSED",
-        reason: "CONSECUTIVE_STOP_POINTS",
-        stopPointIds: ["Q", "P"],
-      });
+      const outcome = removeOccurrenceOutcome(state, "A");
+      expect(outcome.status).toBe("CHOICE_REQUIRED");
+      if (outcome.status === "CHOICE_REQUIRED") {
+        expect(outcome.conflict).toEqual({ headStopPointId: "P", tailStopPointId: "Q" });
+        expect(outcome.resolutions.HEAD.removedStopPointIds).toEqual(["Q"]);
+        expect(outcome.resolutions.TAIL.removedStopPointIds).toEqual(["P"]);
+        expect(ids(outcome.resolutions.HEAD.state.exercises)).toEqual(["B"]);
+      }
+      // Forme historique : rien n'est appliqué sans le choix.
       expect(removeOccurrence(state, "A")).toBe(state);
     });
 
@@ -875,21 +876,19 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(removeOccurrenceOutcome(state, "W")).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
     });
 
-    it("Circuit vidé par une suppression : refusé s'il porte un point ; « avant » + « après » consécutifs → refus", () => {
+    it("story 7.5 — Circuit vidé par une suppression : ses points sont retirés ; « avant » + « après » consécutifs → le second retiré", () => {
       const withPoint = stateOf(
         [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
         [point("P", "IN_TOUR", 1)],
       );
-      expect(removeOccurrenceOutcome(withPoint, "A")).toMatchObject({ status: "REFUSED", reason: "STOP_POINT_NOT_ALLOWED" });
+      expect(removeOccurrenceOutcome(withPoint, "A")).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
       const borders = stateOf(
         [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
         [point("B", "BEFORE_TOUR", 1), point("C", "AFTER_TOUR", 0)],
       );
-      expect(removeOccurrenceOutcome(borders, "A")).toEqual({
-        status: "REFUSED",
-        reason: "CONSECUTIVE_STOP_POINTS",
-        stopPointIds: ["B", "C"],
-      });
+      const outcome = removeOccurrenceOutcome(borders, "A");
+      expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["C"] });
+      expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("B", "BEFORE_TOUR", 1)]);
     });
 
     it("suppression acceptée : les points restent à leur place, leur position est recalculée", () => {

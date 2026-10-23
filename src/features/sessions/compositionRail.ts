@@ -73,11 +73,15 @@ export type RailChainInput = {
   readonly hasAfterCircuit: boolean;
   /**
    * Élément sorti de la chaîne (clé de rail) — soulevé, tenu pendant le dialogue de perte ou en
-   * retour animé — et sa hauteur relevée au début du geste.
+   * retour animé — et sa hauteur relevée au début du geste. PRE-6 story 7.5 : ou plusieurs — la
+   * carte en cours de suppression et les points que la suppression retire (fondu puis glissement).
    */
-  readonly skipped: { readonly key: string; readonly height: number } | null;
+  readonly skipped: RailSkippedItem | readonly RailSkippedItem[] | null;
   readonly geometry: RailGeometry;
 };
+
+/** Élément sorti de la chaîne du rail et sa hauteur. */
+export type RailSkippedItem = { readonly key: string; readonly height: number };
 
 /** Clés stables des éléments non occurrences. */
 export const RAIL_KEYS = {
@@ -163,7 +167,10 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
         return 0;
     }
   };
-  const isSkipped = (node: ChainNode) => input.skipped !== null && node.key === input.skipped.key;
+  const skippedItems: readonly RailSkippedItem[] =
+    input.skipped === null ? [] : Array.isArray(input.skipped) ? input.skipped : [input.skipped as RailSkippedItem];
+  const skippedHeight = (node: ChainNode) => skippedItems.find((item) => item.key === node.key)?.height;
+  const isSkipped = (node: ChainNode) => skippedHeight(node) !== undefined;
 
   const links = new Map<string, RailLink>();
   let previous: ChainNode = chain[0];
@@ -171,7 +178,7 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
   let skippedSpan = 0;
   for (const node of chain.slice(1)) {
     if (isSkipped(node)) {
-      skippedSpan += gapAbove(node) + (input.skipped?.height ?? 0);
+      skippedSpan += gapAbove(node) + (skippedHeight(node) ?? 0);
       continue;
     }
     links.set(node.key, {

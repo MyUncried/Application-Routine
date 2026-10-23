@@ -320,11 +320,9 @@ describe("strings", () => {
     });
   });
 
-  it("exposes the refused-deletion announcements (PRE-6 story 6.2, arbitrage du 22/10/2026)", () => {
-    expect(strings.screens.composition.activityActions).toMatchObject({
-      deleteRefusedStopPointNotAllowed: "Suppression impossible : un point d’arrêt se retrouverait à une position interdite.",
-      deleteRefusedConsecutiveStopPoints: "Suppression impossible : deux points d’arrêt se suivraient.",
-    });
+  it("no longer exposes refused-deletion announcements (PRE-6 story 7.5, D-437 amendée)", () => {
+    expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedStopPointNotAllowed");
+    expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedConsecutiveStopPoints");
   });
 
   it("exposes the exact local Composition empty-summary label (PRE-6 story 1.3, D-399 : « — min », no exercise count)", () => {

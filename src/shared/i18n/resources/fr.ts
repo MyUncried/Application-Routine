@@ -526,11 +526,8 @@ export const fr = {
         // dans la séquence affichée, mêmes règles que le glisser.
         moveUp: "Monter",
         moveDown: "Descendre",
-        // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : suppression d’un exercice refusée —
-        // rien n’est supprimé, la carte se referme et la raison est annoncée (formulation à valider).
-        deleteRefusedStopPointNotAllowed:
-          "Suppression impossible : un point d’arrêt se retrouverait à une position interdite.",
-        deleteRefusedConsecutiveStopPoints: "Suppression impossible : deux points d’arrêt se suivraient.",
+        // PRE-6 story 7.5 (D-437 amendée) : la suppression d’un exercice n’est plus refusée — les
+        // annonces de refus de la story 6.2 sont retirées.
       },
       // PRE-6 (story 2.3) : confirmation de perte de séries à l’entrée d’un exercice dans un
       // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion

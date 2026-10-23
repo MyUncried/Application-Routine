@@ -326,6 +326,55 @@ export function resolveDragShifts(
 }
 
 /**
+ * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : décalages qui montrent, avant qu'elle soit
+ * écrite, la disposition produite par la SUPPRESSION des éléments `removedIds` (la carte supprimée
+ * et les Points d'arrêt que la suppression retire) — même modèle que le retrait du glisser
+ * (`resolveDragShifts`) : tout ce qui suit un élément retiré remonte de sa hauteur mesurée plus
+ * l'écart qui disparaît avec lui (celui de sa zone ; la liste entière et son écart dans le corps si
+ * la zone se vide ; dans le Circuit, l'écart en-tête / liste si le Circuit se vide). Les éléments
+ * retirés n'y figurent pas (ils s'effacent sur place). Fonction pure.
+ */
+export function resolveRemovalShifts(
+  layout: CompositionDragLayout,
+  removedIds: ReadonlySet<string>,
+  gaps: DragShiftGaps,
+): DragShifts {
+  const ordered = (zone: StructuralPosition) =>
+    layout.rows
+      .filter((row) => row.zone === zone)
+      .slice()
+      .sort((a, b) => a.top - b.top);
+  const rows = new Map<string, number>();
+  let shift = 0;
+  let circuitTop = 0;
+  let circuitBottom = 0;
+  for (const zone of ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"] as const) {
+    const zoneRows = ordered(zone);
+    const kept = zoneRows.filter((row) => !removedIds.has(row.id)).length;
+    const removedGap = (index: number) => {
+      // L'écart qui disparaît : entre deux éléments restants (celui de la zone), ou celui de la
+      // liste (zone vidée) — dans le Circuit, l'écart en-tête / liste.
+      if (kept === 0) {
+        // Un seul écart de liste pour toute la zone vidée, compté sur son premier élément.
+        if (index > 0) return zone === "IN_TOUR" ? gaps.circuitRow : gaps.row;
+        return zone === "IN_TOUR" ? gaps.circuit : gaps.zone;
+      }
+      return zone === "IN_TOUR" ? gaps.circuitRow : gaps.row;
+    };
+    zoneRows.forEach((row, index) => {
+      if (removedIds.has(row.id)) {
+        shift -= row.height + removedGap(index);
+        return;
+      }
+      if (shift !== 0) rows.set(row.id, shift);
+    });
+    if (zone === "BEFORE_TOUR") circuitTop = shift;
+    if (zone === "IN_TOUR") circuitBottom = shift;
+  }
+  return { rows, circuitTop, circuitBottom, afterCircuit: circuitBottom, end: shift };
+}
+
+/**
  * PRE-6 story 7.4 (D-437, commentaire 3 de la recette du 22/10) : défilement automatique pendant un
  * glisser. Bande de bord, en points depuis chaque bord de la zone visible de la liste, dans laquelle
  * le doigt fait défiler la liste ; la vitesse croît linéairement avec la profondeur dans la bande,

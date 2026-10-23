@@ -304,11 +304,12 @@ export function duplicateActivity(
  * séquence (il ne suit plus l'occurrence qui le précédait) et recalcule sa
  * `position`. La collection `exercises` reste produite par les opérations
  * historiques (`moveActivity`, `removeActivity`, `duplicateActivity`,
- * inchangées). Suppression, duplication et déplacement autonome d'un point :
- * une opération invalide est REFUSÉE sans mutation (`judge`).
+ * inchangées). Duplication et déplacement autonome d'un point : une opération
+ * invalide est REFUSÉE sans mutation (`judge`).
  *
  * **D-437 (story 7.1)** :
- * - le DÉPLACEMENT d'une occurrence est TOLÉRANT (`settle`) : il est appliqué
+ * - le DÉPLACEMENT d'une occurrence — et, story 7.5 (D-437 amendée), sa
+ *   SUPPRESSION — est TOLÉRANT (`settle`) : il est appliqué
  *   et les points en cause sont retirés — d'abord ceux devenus interdits,
  *   puis, itérativement, le second de chaque paire devenue consécutive (le
  *   premier est conservé) ; l'issue nomme les points retirés ;
@@ -316,7 +317,7 @@ export function duplicateActivity(
  *   (`tourRepeatCount`), début et fin de Tour échappent à RM-219, et une
  *   opération qui les ferait COEXISTER (conflit de Tour,
  *   `tourBoundaryConflict`) rend `CHOICE_REQUIRED` avec les deux résolutions,
- *   sans muter — sauf la suppression, qui garde le refus doux de D-436.
+ *   sans muter.
  */
 export type CompositionState = {
   readonly exercises: readonly SessionDraftExercise[];
@@ -337,10 +338,11 @@ export type CompositionState = {
  *   autonome, la cible n'est pas proposable ;
  * - `CONSECUTIVE_STOP_POINTS` : deux points se suivraient sans Exercice
  *   entre eux (RM-251) — story 7.1 : y compris entre deux Tours (conflit de
- *   Tour créé par une SUPPRESSION, D-437) ;
+ *   Tour créé par une DUPLICATION, D-437) ;
  * - `LOCATION_OCCUPIED` : deux points se retrouveraient sur le même
- *   emplacement `(scope, position)` (suppression, déplacement autonome ;
- *   jamais rendu par un déplacement d'occurrence depuis D-437) ;
+ *   emplacement `(scope, position)` (duplication, déplacement autonome ;
+ *   jamais rendu par un déplacement ni, story 7.5, une suppression
+ *   d'occurrence) ;
  * - `AT_BOUNDARY` : « Monter » / « Descendre » sans élément voisin (début ou
  *   fin de la Séance).
  */
@@ -550,8 +552,9 @@ function choiceRequired(
 }
 
 /**
- * Juge STRICT de l'état produit par une suppression, une duplication ou un déplacement autonome
- * de point (D-436, revue de la story 6.1 ; story 7.1, D-437), dans cet ordre :
+ * Juge STRICT de l'état produit par une duplication ou un déplacement autonome de point (D-436,
+ * revue de la story 6.1 ; story 7.1, D-437 ; story 7.5 : plus la suppression, tolérante), dans cet
+ * ordre :
  * 1. le Circuit est vidé alors qu'il porte encore un point → refus ;
  * 2. un point devient interdit (RM-219, N compris ; il ne l'était pas avant) → refus ;
  * 3. une paire consécutive (RM-251) apparaît → refus (paires héritées exemptées,
@@ -559,7 +562,7 @@ function choiceRequired(
  * 4. l'unicité `(scope, position)`, vraie avant, est perdue → refus (`LOCATION_OCCUPIED`) : deux
  *    points d'une paire héritée réunis sur un même emplacement sont refusés ici ;
  * 5. story 7.1 : un conflit de Tour est créé (`newTourConflict`) → `onTourConflict` : `REFUSE`
- *    (suppression : refus doux de D-436, raison `CONSECUTIVE_STOP_POINTS` — les deux points se
+ *    (duplication : refus doux de D-436, raison `CONSECUTIVE_STOP_POINTS` — les deux points se
  *    suivraient entre deux Tours) ou `CHOOSE` (déplacement autonome : `CHOICE_REQUIRED`).
  * Story 7.1 (D-437) : l'ancienne règle « un point arrive en tête de Circuit → refus » est retirée.
  */
@@ -863,15 +866,16 @@ export function stepOccurrence(
 
 /**
  * Story 6.1 (D-436) : supprime une occurrence (voir `removeActivity`) ; ses
- * voisins se resserrent, les points restent à leur place dans la séquence
- * (aucun n'est retiré). Refus sans mutation selon `judge` — p. ex. `[A, P,
- * B]`, supprimer A (P suivrait le compte à rebours) ou B (P précéderait la
- * Fin) ; `[A, P, B, Q, C]`, supprimer B (P, Q consécutifs). La raison sert à
- * l'annonce d'accessibilité (story 6.3). Story 7.1 (D-437) : la suppression
- * GARDE ce refus doux (seul le déplacement devient tolérant) ; à N ≥ 2, une
- * suppression qui ferait coexister début et fin de Tour (`[A, P, B, Q]` dans
- * le Circuit, supprimer A) est refusée `CONSECUTIVE_STOP_POINTS` — les deux
- * points se suivraient entre deux Tours.
+ * voisins se resserrent, les points restent à leur place dans la séquence.
+ * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9 ; remplace le refus doux de
+ * D-436 et de la story 7.1) : la suppression est TOLÉRANTE, avec la règle du
+ * déplacement (`settle`) — jamais refusée pour un point interdit ou
+ * consécutif : elle est appliquée et les points en cause sont retirés
+ * (`removedStopPointIds`), interdits d'abord, puis le second de chaque paire
+ * consécutive (le premier est conservé). Ex. : `[A, P, B]`, supprimer A → P
+ * retiré (il suivrait le Compte à rebours) ; `[A, P, B, Q, C]`, supprimer B →
+ * Q retiré. Un conflit de Tour créé (N ≥ 2, `[A, P, B, Q]` dans le Circuit,
+ * supprimer A) rend `CHOICE_REQUIRED`, comme le déplacement.
  */
 export function removeOccurrenceOutcome(state: CompositionState, activityId: string): CompositionOutcome {
   const exercises = removeActivity(state.exercises, activityId);
@@ -881,7 +885,7 @@ export function removeOccurrenceOutcome(state: CompositionState, activityId: str
   const sequences = sequencesOf(state);
   const origin = locateInSequences(sequences, activityId)!;
   sequences[origin.zone].splice(origin.index, 1);
-  return judge(state, { ...state, exercises, stopPoints: stopPointsFromSequences(state, sequences) }, null, "REFUSE");
+  return settle(state, { ...state, exercises, stopPoints: stopPointsFromSequences(state, sequences) });
 }
 
 /** Forme historique de `removeOccurrenceOutcome` : l'état appliqué, ou l'entrée elle-même (refus, inconnu). */

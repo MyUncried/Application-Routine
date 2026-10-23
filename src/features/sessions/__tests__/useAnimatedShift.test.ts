@@ -347,3 +347,30 @@ describe("AnimatedShiftRegistry.prepareLayoutCommit (PRE-6 story 7.4, commentair
     expect(setValue.mock.calls.map(([value]) => value)).toEqual([0]);
   });
 });
+
+describe("AnimatedShiftRegistry.resyncNative (PRE-6 story 7.5, d-17)", () => {
+  it("renvoie la cible posée des clés au repos (même valeur), jamais celle d'une clé en animation", async () => {
+    const registry = new AnimatedShiftRegistry();
+    registry.value("a", 0);
+    registry.value("b", 0);
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", 0],
+      ]),
+      false,
+    );
+    registry.apply(
+      new Map([
+        ["a", 0],
+        ["b", 30],
+      ]),
+      true,
+    );
+    await flush();
+    const setValue = jest.spyOn(Animated.Value.prototype, "setValue");
+    registry.resyncNative(["a", "b", "inconnue"]);
+    expect(setValue.mock.calls.map(([value]) => value)).toEqual([0]);
+    expect(animations[0]!.stopped).toBe(false);
+  });
+});

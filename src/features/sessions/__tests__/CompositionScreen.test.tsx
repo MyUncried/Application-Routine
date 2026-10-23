@@ -2204,6 +2204,30 @@ function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, h
  * revendiquent le responder dès le contact. `touchMove` est dispatché à la
  * vue touchée et à tous ses ancêtres, indépendamment du responder.
  */
+/**
+ * PRE-6 story 7.5 : sous Jest, une animation sur le pilote natif (simulé) ne se termine jamais ; la
+ * suppression animée (fondu, glissement) est rejouée sur le pilote JS, mêmes durées. Rend la remise
+ * en état.
+ */
+function jsDrivenAnimations(): () => void {
+  jest.useFakeTimers();
+  const realTiming = Animated.timing;
+  const spy = jest.spyOn(Animated, "timing").mockImplementation((value, config) => realTiming(value, { ...config, useNativeDriver: false }));
+  return () => {
+    spy.mockRestore();
+    jest.useRealTimers();
+  };
+}
+
+/** PRE-6 story 7.5 : laisse se dérouler une suppression animée (fondu, puis glissement). */
+function finishDeletionAnimation() {
+  for (let pass = 0; pass < 3; pass += 1) {
+    act(() => {
+      jest.advanceTimersByTime(400);
+    });
+  }
+}
+
 function fireSwipe(activityId: string, deltaX: number) {
   const container = () => screen.getByTestId(`composition-activity-${activityId}`);
   const startX = 300;
@@ -2872,15 +2896,21 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getAllByText("1 min 30 s")).toHaveLength(2);
   });
 
-  it("AC-07 — Supprimer removes ONLY the targeted Activity", () => {
-    renderTwo();
-    fireSwipeLeft("ex-1");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+  it("AC-07 — Supprimer removes ONLY the targeted Activity (story 7.5 : after the fade and the slide)", () => {
+    const restoreTiming = jsDrivenAnimations();
+    try {
+      renderTwo();
+      fireSwipeLeft("ex-1");
+      fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
-    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
-    expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
-    expect(screen.queryByText("Gainage")).toBeNull();
-    expect(screen.getByText("Squats")).toBeTruthy();
+      finishDeletionAnimation();
+      expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+      expect(screen.getByTestId("composition-exercise-row-ex-2")).toBeTruthy();
+      expect(screen.queryByText("Gainage")).toBeNull();
+      expect(screen.getByText("Squats")).toBeTruthy();
+    } finally {
+      restoreTiming();
+    }
   });
 
   /**
@@ -2899,24 +2929,30 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   });
 
   it("CE-T02-01 — deleting the last Exercise and its attached Recovery disables Continuer", () => {
-  renderScreenWithDraft([
-    anActivity("ex-1", "BEFORE_TOUR", {
-      name: "Gainage",
-      postActivityRecoverySeconds: 45,
-    }),
-  ]);
+  const restoreTiming = jsDrivenAnimations();
+  try {
+    renderScreenWithDraft([
+      anActivity("ex-1", "BEFORE_TOUR", {
+        name: "Gainage",
+        postActivityRecoverySeconds: 45,
+      }),
+    ]);
 
-  expect(
-    screen.getByLabelText(composition.saveAction).props.accessibilityState,
-  ).toMatchObject({ disabled: false });
+    expect(
+      screen.getByLabelText(composition.saveAction).props.accessibilityState,
+    ).toMatchObject({ disabled: false });
 
-  fireSwipeLeft("ex-1");
-  fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+    fireSwipeLeft("ex-1");
+    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
-  expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
-  expect(
-    screen.getByLabelText(composition.saveAction).props.accessibilityState,
-  ).toMatchObject({ disabled: true });
+    finishDeletionAnimation();
+    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+    expect(
+      screen.getByLabelText(composition.saveAction).props.accessibilityState,
+    ).toMatchObject({ disabled: true });
+  } finally {
+    restoreTiming();
+  }
 });
 });
 
@@ -3465,16 +3501,23 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   });
 
   it("removes the Récupération with its Activity — `Supprimer` never leaves an orphan recovery", () => {
-    renderScreenWithDraft([
-      anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
-    ]);
+    const restoreTiming = jsDrivenAnimations();
+    try {
+      renderScreenWithDraft([
+        anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
+      ]);
 
-    fireSwipeLeft("ex-1");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+      fireSwipeLeft("ex-1");
+      fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+      finishDeletionAnimation();
+      expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
 
-    expect(screen.queryByTestId("composition-activity-recovery-ex-1-recovery")).toBeNull();
-    expect(screen.queryByText("1 min 30 s")).toBeNull();
-    expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+      expect(screen.queryByTestId("composition-activity-recovery-ex-1-recovery")).toBeNull();
+      expect(screen.queryByText("1 min 30 s")).toBeNull();
+      expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+    } finally {
+      restoreTiming();
+    }
   });
 });
 
@@ -3513,19 +3556,25 @@ describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-
     );
   });
 
-  it("recomputes immediately after a DELETION", () => {
-    renderScreenWithDraft([
-      anActivity("core-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
-      anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
-    ]);
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
-      "2 min",
-    );
+  it("recomputes immediately after a DELETION (story 7.5 : once the animated deletion is written)", () => {
+    const restoreTiming = jsDrivenAnimations();
+    try {
+      renderScreenWithDraft([
+        anActivity("core-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
+        anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
+      ]);
+      expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
+        "2 min",
+      );
 
-    fireSwipeLeft("core-1");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
+      fireSwipeLeft("core-1");
+      fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
 
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+      finishDeletionAnimation();
+      expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+    } finally {
+      restoreTiming();
+    }
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
@@ -4078,13 +4127,19 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
   });
 
-  it("D-436 — Supprimer une occurrence qui laisserait le point juste après le Compte à rebours est refusé, sans mutation", () => {
-    renderWithStopPoints(twoBefore());
-    fireSwipeLeft("ex-1");
-    fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
+  it("story 7.5 (D-437 amendée) — Supprimer une occurrence qui laisserait le point juste après le Compte à rebours : appliqué, le point retiré", () => {
+    const restoreTiming = jsDrivenAnimations();
+    try {
+      renderWithStopPoints(twoBefore());
+      fireSwipeLeft("ex-1");
+      fireEvent.press(screen.getByTestId("composition-activity-delete-ex-1"));
 
-    expect(screen.getByTestId("composition-exercise-row-ex-1")).toBeTruthy();
-    expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }]);
+      finishDeletionAnimation();
+      expect(screen.queryByTestId("composition-exercise-row-ex-1")).toBeNull();
+      expect(readStopPoints()).toEqual([]);
+    } finally {
+      restoreTiming();
+    }
   });
 
   // Story 7.1 (D-437) : le déplacement d'un Exercice est tolérant — un dépôt qui rendrait le point
@@ -4539,14 +4594,20 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
   });
 
-  it("D-436 — Supprimer une occurrence suivie d'un point : refusé si le point deviendrait premier (après le Compte à rebours)", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")], {
-      stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
-    });
-    a11yAction("ex-1", "delete");
+  it("story 7.5 (D-437 amendée) — Supprimer une occurrence suivie d'un point qui deviendrait premier : appliqué, le point retiré", () => {
+    const restoreTiming = jsDrivenAnimations();
+    try {
+      renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")], {
+        stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
+      });
+      a11yAction("ex-1", "delete");
 
-    expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-1", "ex-2"]);
-    expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
+      finishDeletionAnimation();
+      expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2"]);
+      expect(probe.draft!.stopPoints ?? []).toEqual([]);
+    } finally {
+      restoreTiming();
+    }
   });
 
   it("D-436 — Supprimer une occurrence : le point reste à sa place dans la séquence quand c'est permis", () => {
@@ -7106,6 +7167,39 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
+    it("story 7.5 (D-437 amendée) — deleting a card that would put a start and an end of Tour back to back (N = 2): the choice is asked; Annuler deletes nothing; « Début de tour » deletes the card and removes the end point", () => {
+      const restoreTiming = jsDrivenAnimations();
+      const alert = tourChoiceAlert();
+      try {
+        renderPlacement(matrix(), {
+          overrides: {
+            tourRepeatCount: 2,
+            stopPoints: [
+              { id: "S1", scope: "IN_TOUR", position: 1 },
+              { id: "S2", scope: "IN_TOUR", position: 2 },
+            ],
+          },
+        });
+        // [A | B, S1, C, S2 | D] : supprimer B mettrait S1 en début de Tour face à S2 en fin de Tour.
+        cardAction("B", "delete");
+        expect(alert).toHaveBeenCalledTimes(1);
+        expect(probe.updates).toBe(0);
+        answerTourChoice(alert, tc.cancel);
+        finishDeletionAnimation();
+        expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["A", "B", "C", "D"]);
+        expect(points()).toEqual(["S1:IN_TOUR:1", "S2:IN_TOUR:2"]);
+        cardAction("B", "delete");
+        expect(alert).toHaveBeenCalledTimes(2);
+        answerTourChoice(alert, tc.head);
+        finishDeletionAnimation();
+        expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["A", "C", "D"]);
+        expect(points()).toEqual(["S1:IN_TOUR:0"]);
+      } finally {
+        alert.mockRestore();
+        restoreTiming();
+      }
+    });
+
     it("the same card step, Annuler: nothing changes, nothing announced", () => {
       const alert = tourChoiceAlert();
       try {
@@ -7782,6 +7876,56 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(translateY("composition-tour-section-surface-top")).toBe(0);
   });
 
+  const deleteCard = (id: string) =>
+    fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+  const advance = (ms: number) =>
+    act(() => {
+      jest.advanceTimersByTime(ms);
+    });
+
+  it("story 7.5 (revue) — suppression d'une carte du Circuit : pendant le glissement, la bande du fond se rétracte sans s'écraser", () => {
+    renderLaidOut();
+    deleteCard("X");
+    // Fin du fondu (rendu du glissement à la sortie de `act`), puis milieu du glissement.
+    advance(160);
+    advance(60);
+    const bottom = translateY("composition-tour-section-surface-bottom");
+    expect(bottom).toBeLessThan(0);
+    expect(bottom).toBeGreaterThan(-(70 + CIRCUIT_GAP));
+    // Hauteur relevée au début de la suppression (170), pas celle d'un glisser jamais fait (0).
+    expect(scaleY("composition-tour-section-surface-band")).toBeCloseTo(1 + bottom / BAND, 6);
+    advance(400);
+    advance(400);
+    expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR"]);
+    expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
+  });
+
+  it("story 7.5 (revue) — pendant une suppression animée : seconde suppression, soulèvement, Dupliquer ignorés ; la carte qui s'efface est masquée à VoiceOver", () => {
+    renderLaidOut();
+    deleteCard("A");
+    advance(20);
+    expect(screen.getByTestId("composition-activity-A", { includeHiddenElements: true }).props.accessibilityElementsHidden).toBe(true);
+    deleteCard("B");
+    fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    lift("B");
+    moveTo("B", 100);
+    expect(screen.getByTestId("composition-body").props.scrollEnabled).toBe(true);
+    advance(400);
+    advance(400);
+    advance(400);
+    expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+  });
+
+  it("story 7.5 — « Réduire les animations » : suppression écrite aussitôt, sans fondu ni glissement", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    renderLaidOut();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+    expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+  });
+
   /**
    * PRE-6 story 7.4 (D-437, recette iPhone du 22/10, commentaires 3, 13 et 14).
    */
@@ -7894,6 +8038,71 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       settle();
       expect(rowShift("B")).toBe(0);
       expect(rowShift("A")).toBe(0);
+    });
+
+    /**
+     * PRE-6 story 7.5 (recette J6, d-17) : « Déplacement du haut hors circuit, dans le circuit : une
+     * zone grise rectangulaire remplace la carte qui se trouvait au dessus de la carte déplacée.
+     * Déplacement de la première carte du circuit en dehors vers le haut : dans le circuit un
+     * rectangle blanc persiste au niveau du circuit. » Pilote natif simulé de bout en bout.
+     */
+    describe("story 7.5 — d-17, cadre du Circuit après un changement de zone (pilote natif)", () => {
+      const native = () => {
+        nativeSetValue();
+        nativeTiming();
+      };
+      function expectResting() {
+        expect(circuitFrame()).toEqual(RESTING_FRAME);
+        for (const id of ["A", "B", "X", "Z"]) expect(rowShift(id)).toBe(0);
+      }
+      /**
+       * Cause (d-17) : sous Fabric iOS, quand la TAILLE d'une vue animée change, sa translation est
+       * recalculée depuis des propriétés gardées, peut-être périmées (`RCTViewComponentView.mm`
+       * l. 650-658), sans pose native ultérieure. Le Circuit change de taille au dépôt : ses bords
+       * doivent alors être renvoyés au pilote natif (pose à leur cible, 0).
+       */
+      function expectCircuitEdgesResyncedAfterResize(height: number) {
+        const setValue = Animated.Value.prototype.setValue as unknown as jest.Mock<(value: number) => void>;
+        const before = setValue.mock.calls.length;
+        fireLayout(screen.getByTestId("composition-tour-section"), 230, height);
+        const pushed = setValue.mock.calls.slice(before).map(([value]) => value);
+        expect(pushed).toEqual([0, 0]);
+        // Même taille : rien n'est renvoyé.
+        fireLayout(screen.getByTestId("composition-tour-section"), 230, height);
+        expect(setValue.mock.calls.length).toBe(before + 2);
+      }
+
+      it("B (juste au-dessus du Circuit) entre dans le Circuit : rien ne reste décalé au-dessus (A)", () => {
+        native();
+        renderLaidOut();
+        lift("B");
+        // Centre de B : 185 ; +100 → 285 : dans le Circuit, au-dessus du milieu de X.
+        moveTo("B", 100);
+        settle();
+        expect(circuitFrame().top).toBe(-PITCH);
+        release("B", 100);
+        expect(order()).toEqual(["A:BEFORE_TOUR", "B:IN_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+        settle();
+        expectResting();
+        // Le Circuit s'agrandit d'une carte.
+        expectCircuitEdgesResyncedAfterResize(170 + 70 + CIRCUIT_GAP);
+      });
+
+      it("X (première carte du Circuit) sort vers le haut : rien ne reste décalé dans le Circuit", () => {
+        native();
+        renderLaidOut();
+        lift("X");
+        // Centre de X : 325 ; -200 → 125 : avant le Circuit, entre A (105) et B (185).
+        moveTo("X", -200);
+        settle();
+        expect(circuitFrame().top).toBeGreaterThan(0);
+        release("X", -200);
+        expect(order()).toEqual(["A:BEFORE_TOUR", "X:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR"]);
+        settle();
+        expectResting();
+        // Le Circuit se rétracte de sa seule carte.
+        expectCircuitEdgesResyncedAfterResize(170 - 70 - CIRCUIT_GAP);
+      });
     });
 
     describe("commentaire 3 — défilement automatique", () => {
@@ -8727,20 +8936,25 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
         });
 
-        it("suppression refusée (arbitrage du 22/10) : rien n'est supprimé, la carte se referme, la raison est annoncée", () => {
+        it("story 7.5 (D-437 amendée) — [A, P, B] : supprimer A est appliqué après le fondu et le glissement ; P retiré, sans message visuel", () => {
           const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
           try {
             renderRail([...before(["A", "B"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }] });
             const draftBefore = probe.draft;
-            const card = screen.getByTestId("composition-exercise-row-A");
-            expect(((card.props.accessibilityActions ?? []) as { name: string }[]).map((action) => action.name)).toContain("delete");
-            fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-            expect(probe.draft!.exercises).toBe(draftBefore!.exercises);
-            expect(probe.draft!.stopPoints).toBe(draftBefore!.stopPoints);
-            // Revue 6.2 : annoncée à l'image suivante, après le focus porté sur la carte.
-            expect(announce).not.toHaveBeenCalledWith(composition.activityActions.deleteRefusedStopPointNotAllowed);
-            frames(1);
-            expect(announce).toHaveBeenCalledWith(composition.activityActions.deleteRefusedStopPointNotAllowed);
+            fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+            // Fondu en cours : rien n'est encore écrit, la carte s'efface.
+            expect(probe.draft).toBe(draftBefore);
+            expect(StyleSheet.flatten(screen.getByTestId("composition-activity-A", { includeHiddenElements: true }).props.style).opacity).toBe(1);
+            frames(4);
+            const fading = StyleSheet.flatten(screen.getByTestId("composition-activity-A", { includeHiddenElements: true }).props.style).opacity as number;
+            expect(fading).toBeLessThan(1);
+            expect(fading).toBeGreaterThan(0);
+            // Fin du fondu, puis glissement (rendus appliqués à la sortie de chaque `act`).
+            frames(12);
+            frames(30);
+            expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR"]);
+            expect(pointsOf()).toEqual([]);
+            expect(announce).toHaveBeenCalledWith(composition.stopPointsRemovedAnnouncement.singular);
             expect(screen.queryByTestId("composition-activity-actions-A")).toBeNull();
           } finally {
             announce.mockRestore();
@@ -8753,23 +8967,29 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(order()).toEqual(["A:BEFORE_TOUR", "generated-copy-id:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2"]);
         });
-        it("suppression refusée, points consécutifs : [A, P, B, Q, C], supprimer B → rien, annonce de la raison", () => {
-          const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
-          try {
-            renderRail([...before(["A", "B", "C"]), circuitX()], {
-              stopPoints: [
-                { id: "P", scope: "BEFORE_TOUR", position: 1 },
-                { id: "Q", scope: "BEFORE_TOUR", position: 2 },
-              ],
-            });
-            const draftBefore = probe.draft;
-            fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-            frames(1);
-            expect(probe.draft).toBe(draftBefore);
-            expect(announce).toHaveBeenCalledWith(composition.activityActions.deleteRefusedConsecutiveStopPoints);
-          } finally {
-            announce.mockRestore();
-          }
+        it("story 7.5 — points consécutifs : [A, P, B, Q, C], supprimer B → B supprimée, Q retiré, P conservé ; les suivantes glissent", () => {
+          renderRail([...before(["A", "B", "C"]), circuitX()], {
+            stopPoints: [
+              { id: "P", scope: "BEFORE_TOUR", position: 1 },
+              { id: "Q", scope: "BEFORE_TOUR", position: 2 },
+            ],
+          });
+          fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
+          // Fin du fondu (150 ms) : la carte B et le point Q sont effacés, rien ne glisse encore.
+          frames(11);
+          expect(StyleSheet.flatten(screen.getByTestId("composition-activity-B", { includeHiddenElements: true }).props.style).opacity).toBe(0);
+          expect(StyleSheet.flatten(screen.getByTestId("composition-stop-point-row-Q", { includeHiddenElements: true }).props.style).opacity).toBe(0);
+          expect(rowShift("C")).toBe(0);
+          // Glissement : C, le Circuit et la suite remontent ; rien n'est encore écrit.
+          frames(4);
+          expect(rowShift("C")).toBeLessThan(0);
+          expect(translateY("composition-tour-section-surface-top")).toBeLessThan(0);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
+          frames(30);
+          expect(order()).toEqual(["A:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
+          expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
+          expect(rowShift("C")).toBe(0);
+          expect(translateY("composition-tour-section-surface-top")).toBe(0);
         });
 
         it("D-437 — carte glissée qui laisserait un point juste après le Compte à rebours : appliqué, le point retiré", () => {

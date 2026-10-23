@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Animated,
   BackHandler,
+  Easing,
   Keyboard,
   Platform,
   Pressable,
@@ -44,7 +45,6 @@ import {
   removeOccurrenceOutcome,
   stepOccurrence,
   type CompositionOutcome,
-  type CompositionRefusalReason,
   type CompositionState,
   type OccurrenceStepDirection,
 } from "@/domain/sessions/composition";
@@ -105,6 +105,7 @@ import {
   NO_DRAG_SHIFTS,
   resolveDragShifts,
   resolveDropTarget,
+  resolveRemovalShifts,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
   type CompositionDragLayout,
@@ -158,6 +159,7 @@ import {
   resolveRailLinks,
   type RailChainItem,
   type RailGeometry,
+  type RailSkippedItem,
   type RailLink as RailLinkGeometry,
 } from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
@@ -472,7 +474,9 @@ type TourChoiceRequest =
     }
   | { readonly kind: "PLACEMENT_STOP_POINT"; readonly location: StopPointLocation }
   | { readonly kind: "PLACEMENT_EXISTING_STOP_POINT"; readonly stopPointId: string }
-  | { readonly kind: "CIRCUIT_COUNT"; readonly count: number };
+  | { readonly kind: "CIRCUIT_COUNT"; readonly count: number }
+  // Story 7.5 (D-437 amendée) : suppression qui créerait un conflit de Tour.
+  | { readonly kind: "OCCURRENCE_DELETE"; readonly activityId: string };
 
 /**
  * Story 7.2 (D-437) : resélection en placement du point existant `stopPointId`, refusée par
@@ -495,23 +499,52 @@ function placementReselectionChoice(
 }
 
 /**
- * PRE-6 story 6.2 (arbitrage du 22/10/2026) : annonce de la raison d'une suppression refusée,
- * pour chacune des raisons du Domaine.
+ * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : résultat de la suppression de l'occurrence
+ * `activityId` sur `draft` — tolérante (`removeOccurrenceOutcome`) : le patch du brouillon (réserve de
+ * Circuit comprise) et les Points d'arrêt retirés ; `"CHOICE"` si un conflit de Tour demande le choix
+ * « Début de tour / Fin de tour » (`choice` le tranche) ; `null` si rien n'est supprimé.
  */
-function deletionRefusedAnnouncement(reason: CompositionRefusalReason): string {
-  const t = strings.screens.composition.activityActions;
-  switch (reason) {
-    case "STOP_POINT_NOT_ALLOWED":
-      return t.deleteRefusedStopPointNotAllowed;
-    // Deux points réunis sur un même emplacement se suivent aussi : même message.
-    case "CONSECUTIVE_STOP_POINTS":
-    case "LOCATION_OCCUPIED":
-      return t.deleteRefusedConsecutiveStopPoints;
-    // Propre aux pas « Monter » / « Descendre » : jamais produit par une suppression.
-    case "AT_BOUNDARY":
-      return t.deleteRefusedStopPointNotAllowed;
+function deletionResult(
+  draft: SessionDraft,
+  activityId: string,
+  choice: TourBoundaryChoice | null,
+): { readonly patch: Partial<SessionDraft>; readonly removed: readonly string[] } | "CHOICE" | null {
+  const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
+  const outcome = removeOccurrenceOutcome(state, activityId);
+  let next: CompositionState;
+  let removed: readonly string[];
+  if (outcome.status === "APPLIED") {
+    next = outcome.state;
+    removed = outcome.removedStopPointIds;
+  } else if (outcome.status === "CHOICE_REQUIRED") {
+    if (choice === null) return "CHOICE";
+    next = outcome.resolutions[choice].state;
+    removed = outcome.resolutions[choice].removedStopPointIds;
+  } else {
+    return null;
   }
+  // PRE-6 (story 2.3) : la réserve de Circuit de l'occurrence retirée part avec elle.
+  const settled = settleCircuitMembership(draft, next.exercises);
+  return { patch: { ...compositionPatch(state, next), ...settled.reservePatch }, removed };
 }
+
+/**
+ * PRE-6 story 7.5 (recette J6 d-9) : suppression animée en cours — la carte (et les points que la
+ * suppression retire) s'efface en fondu (`opacity`), puis ce qui suit glisse pour combler la place
+ * (`resolveRemovalShifts` sur `layout`, registre des translations) ; le brouillon n'est écrit qu'à la
+ * fin (`commit`, idempotent, aussi appelé pour terminer aussitôt).
+ */
+type PendingDeletion = {
+  readonly key: string;
+  readonly fadingKeys: ReadonlySet<string>;
+  readonly opacity: Animated.Value;
+  readonly layout: CompositionDragLayout;
+  readonly phase: "fade" | "slide";
+  readonly commit: () => void;
+};
+
+/** PRE-6 story 7.5 : durée du fondu de la carte supprimée (le glissement suit, `DRAG_SHIFT_DURATION_MS`). */
+export const DELETE_FADE_DURATION_MS = 150;
 
 /** PRE-6 story 6.2 (revue) : focus d'accessibilité demandé sur un élément (clé de rail), et annonce. */
 type ItemFocusRequest = { readonly key: string; readonly token: number; readonly announcement?: string };
@@ -778,6 +811,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (!animated) shiftRegistryRef.current?.prepareLayoutCommit();
     setDragSession((current) => endDragSession(current, animated, release));
   }, []);
+  /** Story 7.5 : suppression animée en cours (fondu, puis glissement) ; une seule à la fois. */
+  const [deletion, setDeletion] = useState<PendingDeletion | null>(null);
+  const deletionRef = useRef<PendingDeletion | null>(null);
+  /** Story 7.5 : termine aussitôt une suppression animée en cours (brouillon écrit). */
+  const flushDeletion = useCallback(() => deletionRef.current?.commit(), []);
+  /** Revue 7.5 : dernier brouillon rendu, pour rejouer une suppression à son écriture. */
+  const draftRef = useRef(draft);
+  useLayoutEffect(() => {
+    draftRef.current = draft;
+  });
   /**
    * PRE-6 story 7.4 (D-437, commentaire 3) : défilement automatique pendant le glisser — le corps
    * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
@@ -924,7 +967,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // placement (ci-dessous), même sur un brouillon inchangé.
   const shouldBlockExit =
     !hasSaved &&
-    (placement !== null ||
+    // Revue 7.5 : une suppression animée en cours n'est pas encore écrite dans le brouillon.
+    (deletion !== null ||
+      placement !== null ||
       (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
@@ -970,6 +1015,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   async function handleSave() {
     // PRE-6 (story 3.1, RC-4) : « Continuer » referme le choix de nature du Circuit.
     closeCircuitNatureMenu();
+    // Story 7.5 : pendant une suppression animée, le brouillon n'est pas encore écrit — elle est
+    // terminée aussitôt, et l'enregistrement demande un nouveau toucher (choix 7.5).
+    if (deletionRef.current !== null) {
+      flushDeletion();
+      return;
+    }
     if (isSavingRef.current) {
       return;
     }
@@ -1022,8 +1073,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
         // Story 4.1 : le placement est abandonné sans mutation.
         leavePlacement();
+        // Story 7.5 : une suppression animée en cours est écrite.
+        flushDeletion();
       },
-      [closeCircuitNatureMenu, leavePlacement],
+      [closeCircuitNatureMenu, flushDeletion, leavePlacement],
     ),
   );
 
@@ -1093,6 +1146,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const enterPlacement = useCallback(() => {
     // Revue 6.2 : aucune entrée en placement pendant le glisser d'une carte ou d'un point.
     if (draggedKeyRef.current !== null) return;
+    // Story 7.5 : une suppression animée en cours est écrite d'abord.
+    flushDeletion();
     Keyboard.dismiss();
     // Toute surface ouverte se referme, comme à la perte du premier plan : roulettes des bornes,
     // compteur et choix de nature, feuille des volumes, dialogues en attente, arbre d'ajout.
@@ -1121,7 +1176,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (profileRequestRef.current === request) setRecoveryDefaultSeconds(DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS);
       },
     );
-  }, [finishDragPreview, profileService]);
+  }, [finishDragPreview, flushDeletion, profileService]);
   /** « Annuler » (et retour système) : l'état d'entrée est restitué, sans aucune mutation. */
   const cancelPlacement = useCallback(() => {
     leavePlacement();
@@ -1502,6 +1557,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (count: number) => {
       closeCircuitNatureMenu();
       if (tourChoicePendingRef.current) return;
+      // Revue 7.5 : une suppression animée en cours est écrite d'abord (N peut changer ses retraits).
+      flushDeletion();
       const outcome = circuitCountOutcome(draft, count);
       if (outcome.status === "CHOICE_REQUIRED") {
         openTourChoice({ kind: "CIRCUIT_COUNT", count });
@@ -1515,7 +1572,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
       reportRemovedStopPoints(outcome.removedStopPointIds);
     },
-    [closeCircuitNatureMenu, draft, openTourChoice, reportRemovedStopPoints, updateDraft],
+    [closeCircuitNatureMenu, draft, flushDeletion, openTourChoice, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -1591,12 +1648,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /** Mesure d'une rangée de zone (carte ou point), par clé d'élément. */
   const handleRowLayout = useCallback((key: string, zone: StructuralPosition, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
+    const previous = rowLayoutsRef.current.get(key);
     rowLayoutsRef.current.set(key, { top: y, height, zone });
+    // Story 7.5 (d-17) : taille changée — la translation native de la rangée est renvoyée.
+    if (previous !== undefined && previous.height !== height) shiftRegistryRef.current?.resyncNative([key]);
   }, []);
 
   const handleTourLayout = useCallback((event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
+    const resized = tourLayoutRef.current.height !== height;
     tourLayoutRef.current = { top: y, height };
+    // Story 7.5 (d-17) : le Circuit a changé de taille (dépôt d'une carte entrée ou sortie, suppression,
+    // placement) — Fabric recalcule alors la translation de son fond étiré à partir de propriétés
+    // gardées, peut-être périmées : les bords du Circuit sont renvoyés au pilote natif.
+    if (resized) shiftRegistryRef.current?.resyncNative([RAIL_KEYS.circuitHeader, RAIL_KEYS.circuitEnd]);
     setCircuitSectionTop(y);
     setCircuitMeasuredHeight(height);
   }, []);
@@ -1806,6 +1871,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // ignoré ; une géométrie incomplète (rangée non mesurée, ou mesurée dans une autre zone)
         // refuse le soulèvement — l'élément reste au repos.
         if (draggedKeyRef.current !== null) return false;
+        // Story 7.5 : aucun soulèvement pendant une suppression animée (disposition en mouvement).
+        if (deletionRef.current !== null) return false;
         const originLayout = buildDragLayout();
         if (originLayout === null) return false;
         // Story 5.2b : un nouveau geste pendant un retour arrête ce retour et pose toutes les
@@ -1878,7 +1945,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       insertionHeight,
     );
   }, [dragPreview, draft]);
-  const animateDragShifts = dragSession.animated && !reduceMotion;
+  // Story 7.5 : le glissement d'une suppression est toujours animé (sauf « Réduire les animations »).
+  const animateDragShifts = (deletion !== null || dragSession.animated) && !reduceMotion;
+  /** Story 7.5 : décalages du glissement qui suit le fondu d'une suppression. */
+  const deletionShifts = useMemo<DragShifts | null>(
+    () =>
+      deletion === null || deletion.phase !== "slide"
+        ? null
+        : resolveRemovalShifts(deletion.layout, deletion.fadingKeys, DRAG_SHIFT_GAPS),
+    [deletion],
+  );
   /**
    * PRE-6 (story 5.2) : translations animées de la séquence, une par élément porteur de rail
    * (`compositionRail.ts`), dans un registre PARTAGÉ : le lien de rail d'un élément s'étire de la
@@ -1890,19 +1966,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     for (const zone of STRUCTURAL_ZONES) {
       for (const item of zoneItems[zone]) {
         const key = zoneItemKey(item);
-        targets.set(key, dragShifts.rows.get(key) ?? 0);
+        targets.set(key, (deletionShifts ?? dragShifts).rows.get(key) ?? 0);
       }
     }
     // Story 5.2b : pendant le dialogue de perte, la carte relâchée reste où le doigt l'a laissée.
     if (dragPreview !== null && dragPreview.heldTranslationY !== null) {
       targets.set(dragPreview.key, dragPreview.heldTranslationY);
     }
-    targets.set(RAIL_KEYS.circuitHeader, dragShifts.circuitTop);
-    targets.set(RAIL_KEYS.circuitEnd, dragShifts.circuitBottom);
-    targets.set(RAIL_KEYS.afterCircuit, dragShifts.afterCircuit);
-    targets.set(RAIL_KEYS.end, dragShifts.end);
+    const shifts = deletionShifts ?? dragShifts;
+    targets.set(RAIL_KEYS.circuitHeader, shifts.circuitTop);
+    targets.set(RAIL_KEYS.circuitEnd, shifts.circuitBottom);
+    targets.set(RAIL_KEYS.afterCircuit, shifts.afterCircuit);
+    targets.set(RAIL_KEYS.end, shifts.end);
     return targets;
-  }, [dragPreview, dragShifts, zoneItems]);
+  }, [deletionShifts, dragPreview, dragShifts, zoneItems]);
   const shiftRegistry = useAnimatedShiftRegistry(railShiftTargets, animateDragShifts, dragSession.release);
   // Story 5.2b : accès du début de geste (`handleRowDragStart`, déclaré plus haut) au registre.
   useLayoutEffect(() => {
@@ -1923,6 +2000,42 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setDragSession((current) => (current.settling === settlingSession ? { ...current, settling: null } : current)),
     );
   }, [settlingSession, shiftRegistry]);
+  /**
+   * Story 7.5 : fondu de la suppression, démarré après le rendu, une microtâche plus tard (comme le
+   * registre : une animation native démarrée dans le rendu d'un démontage — les actions glissées
+   * refermées — atteindrait des propriétés encore attachées d'un composant démonté) ; puis glissement.
+   */
+  useEffect(() => {
+    if (deletion === null || deletion.phase !== "fade") return undefined;
+    const fading = deletion;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled || deletionRef.current !== fading) return;
+      Animated.timing(fading.opacity, {
+        toValue: 0,
+        duration: DELETE_FADE_DURATION_MS,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (deletionRef.current !== fading) return;
+        if (!finished) {
+          fading.commit();
+          return;
+        }
+        const sliding: PendingDeletion = { ...fading, phase: "slide" };
+        deletionRef.current = sliding;
+        setDeletion(sliding);
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [deletion]);
+  // Story 7.5 : fin du glissement d'une suppression — le brouillon est écrit.
+  useEffect(() => {
+    if (deletion === null || deletion.phase !== "slide") return undefined;
+    return shiftRegistry.whenSettled(() => deletion.commit());
+  }, [deletion, shiftRegistry]);
   const railShiftOf = useCallback(
     (key: string) => shiftRegistry.value(key, railShiftTargets.get(key) ?? 0),
     [railShiftTargets, shiftRegistry],
@@ -1978,21 +2091,38 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           measuredHeight: dragPreview.originLayout.rows.find((row) => row.id === dragPreview.key)?.height,
         }
       : settling;
-  const railSkippedKey = railSkip?.key ?? null;
   // Élément non mesuré : hauteur de sa rangée (story 6.2 : la rangée du point n'est plus dans le
   // bloc de la carte).
   const fallbackBlockHeight = (key: string): number =>
     stopPointIdOfKey(key) !== null ? STOP_POINT_LINE_HEIGHT : occurrenceCardHeight();
+  /**
+   * Éléments sortis de la chaîne du rail. Story 7.5 : pendant une suppression animée, la carte et les
+   * points retirés (leurs voisins se relient à travers leur place, qui se referme).
+   */
+  // Revue 7.5 : une carte en retour animé reste hors de la chaîne pendant une suppression.
+  const railSkipped: RailSkippedItem[] = [
+    ...(railSkip === null || deletion?.fadingKeys.has(railSkip.key) === true
+      ? []
+      : [{ key: railSkip.key, height: railSkip.measuredHeight ?? fallbackBlockHeight(railSkip.key) }]),
+    ...(deletion === null
+      ? []
+      : [...deletion.fadingKeys].map((key) => ({
+          key,
+          height: deletion.layout.rows.find((row) => row.id === key)?.height ?? fallbackBlockHeight(key),
+        }))),
+  ];
+  const railSkippedKeys = new Set(railSkipped.map((item) => item.key));
   const railLinks = resolveRailLinks({
     beforeTour: zoneItems.BEFORE_TOUR.map(railChainItemOf),
     inTour: zoneItems.IN_TOUR.map(railChainItemOf),
     afterTour: zoneItems.AFTER_TOUR.map(railChainItemOf),
     hasAfterCircuit: hasAfterCircuitRail,
-    skipped:
-      railSkip === null ? null : { key: railSkip.key, height: railSkip.measuredHeight ?? fallbackBlockHeight(railSkip.key) },
+    skipped: railSkipped,
     geometry: railGeometry,
   });
-  const sequenceRail: SequenceRailContext = { links: railLinks, shiftOf: railShiftOf, skippedKey: railSkippedKey };
+  /** Story 7.5 : éléments en cours d'effacement et leur opacité. */
+  const deletionFading = deletion === null ? null : { keys: deletion.fadingKeys, opacity: deletion.opacity };
+  const sequenceRail: SequenceRailContext = { links: railLinks, shiftOf: railShiftOf, skippedKeys: railSkippedKeys };
   /** Lien d'un élément non occurrence (toujours présent : seule une occurrence sort de la chaîne). */
   const railLinkOf = (key: string): RailLinkGeometry | null => railLinks.get(key) ?? null;
   const headerRailLink = railLinkOf(RAIL_KEYS.circuitHeader);
@@ -2030,6 +2160,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   const handleStepActivity = useCallback(
     (activityId: string, direction: StepDirection) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      if (deletionRef.current !== null) return;
       // Comme Dupliquer / Supprimer : les actions glissées révélées se referment.
       setRevealedActionsId(null);
       const key = railRowKey(activityId);
@@ -2057,6 +2189,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   const handleStepStopPoint = useCallback(
     (stopPointId: string, direction: StepDirection) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      if (deletionRef.current !== null) return;
       setRevealedActionsId(null);
       const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const fromScope = state.stopPoints.find((point) => point.id === stopPointId)?.scope;
@@ -2087,6 +2221,63 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
+   * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : suppression animée — fondu de la carte (et des
+   * points retirés), puis glissement de ce qui suit (registre des translations, comme l'aperçu du
+   * glisser), puis écriture du brouillon, REJOUÉE sur le brouillon courant. « Réduire les
+   * animations », ou une disposition non mesurée : écrite aussitôt.
+   */
+  const startDeletion = useCallback(
+    (activityId: string, choice: TourBoundaryChoice | null) => {
+      // Revue 7.5 : une seule suppression animée à la fois.
+      if (deletionRef.current !== null) return;
+      const result = deletionResult(draft, activityId, choice);
+      if (result === null || result === "CHOICE") return;
+      const key = railRowKey(activityId);
+      const opacity = new Animated.Value(1);
+      let done = false;
+      const commit = () => {
+        if (done) return;
+        done = true;
+        deletionRef.current = null;
+        // Revue 7.5 : rejouée sur le dernier brouillon ; si elle ne supprime plus rien (brouillon
+        // changé entre-temps), la carte réapparaît et rien n'est annoncé.
+        const replayed = deletionResult(draftRef.current, activityId, choice);
+        if (replayed === null || replayed === "CHOICE") {
+          opacity.setValue(1);
+          setDeletion(null);
+          return;
+        }
+        // Story 7.4 : translations JS à 0 avant les écritures de la nouvelle disposition.
+        shiftRegistryRef.current?.prepareLayoutCommit();
+        rowLayoutsRef.current.delete(key);
+        updateDraft((current) => {
+          const latest = deletionResult(current, activityId, choice);
+          return latest === null || latest === "CHOICE" ? current : { ...current, ...latest.patch };
+        });
+        // Story 7.2 : points retirés, sans message visuel (annonce discrète).
+        reportRemovedStopPoints(replayed.removed);
+        setDeletion(null);
+      };
+      const layout = reduceMotion ? null : buildDragLayout();
+      if (layout === null) {
+        commit();
+        return;
+      }
+      const fading: PendingDeletion = {
+        key,
+        fadingKeys: new Set([key, ...result.removed.map(railStopKey)]),
+        opacity,
+        layout,
+        phase: "fade",
+        commit,
+      };
+      deletionRef.current = fading;
+      setDeletion(fading);
+    },
+    [buildDragLayout, draft, reduceMotion, reportRemovedStopPoints, updateDraft],
+  );
+
+  /**
    * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : réponse au dialogue « Début de tour / Fin de
    * tour » — `choice` : la résolution du Domaine (`resolutions.HEAD` / `.TAIL`) est appliquée, REJOUÉE
    * sur l'état COURANT (sans conflit désormais, l'opération elle-même est appliquée) ; `null`
@@ -2101,6 +2292,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       if (request === null) return;
       const placementText = strings.screens.composition.placement;
       switch (request.kind) {
+        case "OCCURRENCE_DELETE": {
+          // Story 7.5 : « Annuler » ne supprime rien.
+          if (choice !== null) startDeletion(request.activityId, choice);
+          return;
+        }
         case "OCCURRENCE_MOVE": {
           if (choice === null) {
             setDragSession((current) => endDragSession(current, true));
@@ -2211,13 +2407,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         }
       }
     },
-    [draft, finishDragPreview, moveActivityTo, pendingTourChoice, placement, placementContext, reportRemovedStopPoints, requestItemFocus, updateDraft],
+    [
+      draft,
+      finishDragPreview,
+      moveActivityTo,
+      pendingTourChoice,
+      placement,
+      placementContext,
+      reportRemovedStopPoints,
+      requestItemFocus,
+      startDeletion,
+      updateDraft,
+    ],
   );
 
   // API-COM-06 : duplication et suppression restent des opérations de
   // BROUILLON — aucune écriture persistante avant l'enregistrement final.
   const handleDuplicateActivity = useCallback(
     (activityId: string) => {
+      // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
+      if (deletionRef.current !== null) return;
       setRevealedActionsId(null);
       const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const newId = Crypto.randomUUID();
@@ -2231,28 +2440,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [draft, updateDraft],
   );
 
+  /**
+   * Suppression d'une occurrence. PRE-6 story 7.5 (D-437 amendée, remplace le refus doux de la story
+   * 6.2) : toujours appliquée — les points qu'elle rendrait interdits ou consécutifs sont retirés sans
+   * message ; un conflit de Tour ouvre le choix « Début de tour / Fin de tour » (comme le
+   * déplacement). Une seule suppression animée à la fois.
+   */
   const handleDeleteActivity = useCallback(
     (activityId: string) => {
       setRevealedActionsId(null);
-      const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
-      const outcome = removeOccurrenceOutcome(state, activityId);
-      // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : suppression refusée (un point
-      // deviendrait interdit, ou deux points se suivraient) — rien n'est supprimé, la carte se
-      // referme (ci-dessus) et la raison est annoncée.
-      if (outcome.status === "REFUSED") {
-        // Revue 6.2 : annoncée à l'image suivante, une fois les actions refermées démontées et le
-        // focus porté sur la carte (sans quoi l'annonce serait coupée).
-        requestItemFocus(railRowKey(activityId), deletionRefusedAnnouncement(outcome.reason));
+      // Revue 7.5 : ni pendant une autre suppression animée, ni pendant le glisser d'un élément.
+      if (deletionRef.current !== null || draggedKeyRef.current !== null) return;
+      const result = deletionResult(draft, activityId, null);
+      if (result === null) return;
+      if (result === "CHOICE") {
+        if (openTourChoice({ kind: "OCCURRENCE_DELETE", activityId })) closeCircuitNatureMenu();
         return;
       }
-      if (outcome.status !== "APPLIED") return;
-      rowLayoutsRef.current.delete(railRowKey(activityId));
-      const next = outcome.state;
-      // PRE-6 (story 2.3) : la réserve de Circuit de l'occurrence retirée part avec elle.
-      const settled = settleCircuitMembership(draft, next.exercises);
-      updateDraft({ ...compositionPatch(state, next), ...settled.reservePatch });
+      startDeletion(activityId, null);
     },
-    [draft, requestItemFocus, updateDraft],
+    [closeCircuitNatureMenu, draft, openTourChoice, startDeletion],
   );
 
   const handleEditActivity = useCallback(
@@ -2540,6 +2747,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragEnd={handleDropItem}
           rail={sequenceRail}
           autoScroll={autoScroll}
+          fading={deletionFading}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={canStepActivity}
@@ -2571,7 +2779,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             <CircuitSurface
               top={circuitTopShift}
               bottom={circuitBottomShift}
-              dragHeight={dragSession.circuitHeight}
+              // Revue 7.5 : pendant une suppression, hauteur du Circuit relevée à son début.
+              dragHeight={deletion !== null ? deletion.layout.tourBottom - deletion.layout.tourTop : dragSession.circuitHeight}
               testID="composition-tour-section-surface"
             />
           ) : null}
@@ -2664,6 +2873,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onDragEnd={handleDropItem}
             rail={sequenceRail}
             autoScroll={autoScroll}
+            fading={deletionFading}
             onDuplicate={handleDuplicateActivity}
             onDelete={handleDeleteActivity}
             canStep={canStepActivity}
@@ -2763,6 +2973,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onDragEnd={handleDropItem}
           rail={sequenceRail}
           autoScroll={autoScroll}
+          fading={deletionFading}
           onDuplicate={handleDuplicateActivity}
           onDelete={handleDeleteActivity}
           canStep={canStepActivity}
@@ -3143,6 +3354,8 @@ type ActivityZoneListProps = {
   readonly rail: SequenceRailContext;
   /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
   readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : éléments supprimés en cours d'effacement (fondu), ou `null`. */
+  readonly fading: DeletionFading | null;
   readonly onDuplicate: (activityId: string) => void;
   readonly onDelete: (activityId: string) => void;
   /** PRE-6 (story 2.3) : « Monter » / « Descendre » possible pour cette occurrence ? */
@@ -3383,6 +3596,7 @@ function ActivityZoneList({
   onDragEnd,
   rail,
   autoScroll,
+  fading,
   onDuplicate,
   onDelete,
   canStep,
@@ -3467,6 +3681,7 @@ function ActivityZoneList({
               isRaised={raisedKey === key}
               rail={rail}
               autoScroll={autoScroll}
+              fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
               onLayout={(event) => onRowLayout(key, zone, event)}
               focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
               onFocusConsumed={onFocusConsumed}
@@ -3511,6 +3726,7 @@ function ActivityZoneList({
           onDragEnd={(translationY) => onDragEnd(key, zone, translationY)}
           rail={rail}
           autoScroll={autoScroll}
+          fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
@@ -3533,6 +3749,8 @@ type StopPointRowProps = {
   readonly rail: SequenceRailContext;
   /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
   readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : opacité du fondu quand la suppression d'une carte retire ce point. */
+  readonly fadeOpacity: Animated.Value | null;
   readonly onLayout: (event: LayoutChangeEvent) => void;
   /** Revue 6.2 : focus d'accessibilité demandé sur ce point (pas d'une zone à l'autre). */
   readonly focusRequest: ItemFocusRequest | null;
@@ -3572,6 +3790,7 @@ function StopPointRow({
   isRaised,
   rail,
   autoScroll,
+  fadeOpacity,
   onLayout,
   focusRequest,
   onFocusConsumed,
@@ -3588,7 +3807,7 @@ function StopPointRow({
   // Revue 6.2 : hors de la chaîne (soulevé, tenu, en retour), un point ne dessine AUCUN rail — ni
   // segment ni point de raccord : le lien de ses voisines traverse déjà sa place, et sa puce, centrée
   // sur la page, ne recouvre pas l'axe du rail (contrairement à une carte).
-  const railLink = rail.skippedKey === railKey ? undefined : rail.links.get(railKey);
+  const railLink = rail.skippedKeys.has(railKey) ? undefined : rail.links.get(railKey);
   const chipRef = useRef<View>(null);
   // Focus demandé (pas d'une zone à l'autre : la rangée vient d'être remontée) ; consommé une fois porté.
   useEffect(() => {
@@ -3711,7 +3930,12 @@ function StopPointRow({
         isRaised ? styles.activityRowContainerDragged : null,
         // Décalage de la rangée (aperçu du glisser d'un autre élément, retour 5.2b) : registre partagé.
         { transform: [{ translateY: shift }] },
+        // Story 7.5 : fondu quand la suppression d'une carte retire ce point.
+        fadeOpacity !== null ? { opacity: fadeOpacity } : null,
       ]}
+      pointerEvents={fadeOpacity !== null ? "none" : "auto"}
+      accessibilityElementsHidden={fadeOpacity !== null}
+      importantForAccessibility={fadeOpacity !== null ? "no-hide-descendants" : "auto"}
       onLayout={onLayout}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -3864,6 +4088,8 @@ type CompositionActivityRowProps = {
   readonly rail: SequenceRailContext;
   /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
   readonly autoScroll: DragAutoScroll;
+  /** PRE-6 story 7.5 : opacité du fondu de la carte supprimée, ou `null`. */
+  readonly fadeOpacity?: Animated.Value | null;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
@@ -4011,6 +4237,7 @@ function CompositionActivityRow({
   onDragEnd,
   rail,
   autoScroll,
+  fadeOpacity = null,
   onDuplicate,
   onDelete,
   onMoveUp,
@@ -4320,7 +4547,7 @@ function CompositionActivityRow({
    * au bas du bloc (rangée du point d'arrêt ou emplacement de placement compris), point de raccord
    * au centre d'un point d'arrêt. L'occurrence glissée sort de la chaîne : aucun rail.
    */
-  const railLink = rail.skippedKey === railKey ? undefined : rail.links.get(railKey);
+  const railLink = rail.skippedKeys.has(railKey) ? undefined : rail.links.get(railKey);
   /**
    * Story 5.2b : carte hors de la chaîne mais pas soulevée (maintenue pendant le dialogue de perte,
    * ou en retour animé) — au premier plan, elle recouvre le lien de ses voisines qui traverse sa
@@ -4328,7 +4555,7 @@ function CompositionActivityRow({
    * du bas du média au bas du bloc (rangée du point d'arrêt et son point compris). Ces segments sont
    * sur la carte elle-même : ils ne traversent aucun autre média.
    */
-  const hasOwnSurfaceRail = railLink === undefined && rail.skippedKey === railKey && isRaised && !isDragged;
+  const hasOwnSurfaceRail = railLink === undefined && rail.skippedKeys.has(railKey) && isRaised && !isDragged;
   /** Écart carte → rangée du point d'arrêt / emplacement : celui de la zone (9 dans le Circuit, 8 au dehors). */
   const slotGap = activity.structuralPosition === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP;
 
@@ -4469,13 +4696,19 @@ function CompositionActivityRow({
         isRaised ? styles.activityRowContainerDragged : null,
         // PRE-6 (story 2.3b) : le bloc entier (carte, ligne, repère du rail) libère la place visée.
         { transform: [{ translateY: dragShiftValue }] },
+        // PRE-6 story 7.5 : fondu de la carte supprimée.
+        fadeOpacity !== null ? { opacity: fadeOpacity } : null,
       ]}
       onLayout={onLayout}
       // VISUAL_CORRECTION (revue indépendante 5753653735, point 5) : une
       // AUTRE carte a ses actions révélées — cette carte reste bloquée
       // (aucun appui, appui long ni balayage) jusqu'à la fermeture de
       // l'autre, conformément au contrat existant (CE-T02-02).
-      pointerEvents={isBlockedByOtherReveal ? "none" : "auto"}
+      // Story 7.5 : la carte en cours de suppression ne répond plus.
+      pointerEvents={isBlockedByOtherReveal || fadeOpacity !== null ? "none" : "auto"}
+      // Revue 7.5 : la carte qui s'efface n'est plus proposée à VoiceOver (ni actions ni activation).
+      accessibilityElementsHidden={fadeOpacity !== null}
+      importantForAccessibility={fadeOpacity !== null ? "no-hide-descendants" : "auto"}
       // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
       // les puces de l'emplacement répondent.
       {...(placement === null
@@ -4907,11 +5140,14 @@ export function railGeometryFor(circuitHeaderHeight: number): RailGeometry {
  * PRE-6 (story 5.2) : ce que chaque occurrence reçoit pour son rail — liens (`resolveRailLinks`),
  * translations animées partagées (registre de l'écran) et occurrence sortie de la chaîne.
  */
+/** PRE-6 story 7.5 : éléments en cours d'effacement (suppression) et leur opacité partagée. */
+type DeletionFading = { readonly keys: ReadonlySet<string>; readonly opacity: Animated.Value };
+
 type SequenceRailContext = {
   readonly links: ReadonlyMap<string, RailLinkGeometry>;
   readonly shiftOf: (key: string) => Animated.Value;
-  /** Clé de l'élément sorti de la chaîne (soulevé, tenu ou en retour), ou `null`. */
-  readonly skippedKey: string | null;
+  /** Clés des éléments sortis de la chaîne (soulevé, tenu ou en retour ; story 7.5 : supprimés). */
+  readonly skippedKeys: ReadonlySet<string>;
 };
 
 /**

@@ -167,6 +167,29 @@ export class AnimatedShiftRegistry {
   }
 
   /**
+   * PRE-6 story 7.5 (recette J6, d-17) : renvoie au pilote natif la cible posée des clés `keys`
+   * (celles qui ne sont ni en animation ni en attente), après un changement de TAILLE de leur vue.
+   *
+   * Sous Fabric iOS, la translation d'une vue animée par le pilote natif n'est plus appliquée par
+   * les commits (`RCTViewComponentView.mm` l. 351-353, `propKeysManagedByAnimated`) ; mais quand la
+   * taille de la vue change, Fabric RECALCULE sa translation à partir des propriétés qu'il a gardées
+   * (l. 650-658), qui peuvent porter une translation périmée de l'aperçu — le fond du Circuit
+   * (`CircuitSurface`, bande étirée : zone grise sur la carte du dessus, ou rectangle blanc dans le
+   * Circuit) reste alors décalé jusqu'à la prochaine pose native (un appui long : `reset`). Une pose
+   * native, même à la même valeur, rétablit la translation de la vue.
+   */
+  resyncNative(keys: readonly string[]): void {
+    for (const key of keys) {
+      const shift = this.values.get(key);
+      const target = this.applied.get(key);
+      if (shift === undefined || target === undefined || this.running.has(key) || this.pending.has(key)) continue;
+      this.nativeStale.delete(key);
+      shift.setValue(target);
+    }
+    this.clearNativeSyncIfIdle();
+  }
+
+  /**
    * PRE-6 story 5.2b : nouveau geste pendant un retour — arrête toutes les animations et pose
    * toutes les valeurs à 0, de façon synchrone : l'écran rejoint la mise en page mesurée avant le
    * relevé du geste (`originLayout`).
