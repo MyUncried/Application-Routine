@@ -465,6 +465,8 @@ Aucun Catalogue Mouvement autonome n’est créé. Le sélecteur de gestes ne co
 
 **VALIDÉ :** aucune reprise des données de l’installation précédente n’est requise. Le nouveau schéma est initialisé vide de données utilisateur, avec les seuls référentiels et valeurs initiales nécessaires au fonctionnement. L’utilisateur reconstruira ses exercices et séances.
 
+**Assouplie par Hermann les 23 et 24/10/2026 (D-440 annotée) :** la conservation des données est privilégiée quand elle est simple et fiable ; les préférences du Profil et les Catégories sont conservées ; les Exercices et les Séances sont réinitialisés une seule fois, par la migration qui installe le nouveau schéma (migration 012), avec un avis à l’utilisateur et une information préalable de Hermann avant le premier chargement sur l’iPhone de recette ; aucune réinitialisation aux démarrages suivants. La filiation des occurrences existantes n’étant pas reconstituable (aucun lien occurrence → définition), leur conversion n’est pas retenue. Le paragraphe précédent vaut donc pour les Exercices et les Séances ; les préférences du Profil et les Catégories ne sont pas réinitialisées.
+
 Aucune conversion, reconstitution de filiation, conservation d’identifiants antérieurs, déduplication historique ou lecture des anciens formats n’est exigée pour cette transition. Toute occurrence créée dans le nouveau modèle porte sa filiation, y compris en création locale. `movementId` et `sourceMovementId` sont non nuls ; aucune exception de migration ne subsiste.
 
 La procédure de réinitialisation de l’installation existante doit être explicite et limitée à cette transition. Le simple redémarrage de la nouvelle version conserve les données recréées. Les copies et instantanés produits ensuite restent indépendants et conservés selon leurs règles normales ; supprimer leur source ne les invalide pas.
@@ -625,7 +627,7 @@ Une seule charge s’applique aux séries identiques. La ligne Charge (Avec / Sa
 
 #### RM-238 — Charge : séries variables
 
-La ligne Charge (Avec / Sans) reste sous le tableau. Avec affiche la colonne Charge, Sans la masque sans effacer ses valeurs ; le titre de colonne n’est pas interactif. Chaque série porte sa charge ; la charge est une valeur de la série au même titre que sa cible et sa Pause : elle la suit lors d’un déplacement et suit les règles communes de remplissage initial, de champ vide, d’ajout et de retrait, de suppression et de restauration et de passage identiques/variables ([Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), D-249, D-389). Aucune autorisation particulière de cellule de charge vide ; aucune propagation automatique d’une nouvelle charge aux autres cellules hors de ces règles communes ; l’initialisation commune à 0,25 kg de RM-239 est le seul cas propre à la charge. Colonnes de référence : Durée ou Répétitions, Pause, Charge (D-404).
+La ligne Charge (Avec / Sans) reste sous le tableau. Avec affiche la colonne Charge, Sans la masque sans effacer ses valeurs [remplacé par D-445 du 24/10/2026 : en Sans, la colonne Charge reste affichée, en-tête et largeur conservés, chaque cellule portant un tiret gris non éditable ; Charge activée, valeurs et champs s’affichent dans la même colonne, sans suppression ni recréation ; valeurs conservées sous Sans inchangées] ; le titre de colonne n’est pas interactif. Chaque série porte sa charge ; la charge est une valeur de la série au même titre que sa cible et sa Pause : elle la suit lors d’un déplacement et suit les règles communes de remplissage initial, de champ vide, d’ajout et de retrait, de suppression et de restauration et de passage identiques/variables ([Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#paramètres-et-brouillon-dun-exercice), D-249, D-389). Aucune autorisation particulière de cellule de charge vide ; aucune propagation automatique d’une nouvelle charge aux autres cellules hors de ces règles communes ; l’initialisation commune à 0,25 kg de RM-239 est le seul cas propre à la charge. Colonnes de référence : Durée ou Répétitions, Pause, Charge (D-404).
 
 #### RM-239 — Charge : saisie, pas et zéro
 
@@ -667,7 +669,7 @@ Une donnée historique qui encode Droite puis gauche ou Gauche puis droite (`RIG
 
 #### RM-245 — Cadence : choix rapides
 
-La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s et 1 s fixent directement l’intervalle du bip ; Sans désactive la cadence (valeur 0) ; Autre permet de saisir une autre valeur avec le mécanisme numérique existant du paramètre, dans les bornes et au pas existants (0..10 s, pas de 1 s, D-308, D-312). L’option sélectionnée reflète la valeur courante. Le modèle reste la valeur de cadence et son activation : aucun champ par raccourci. L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état. Aucune valeur personnalisée n’est mémorisée en plus de la valeur courante : Sans puis Autre ne restaure pas une valeur personnalisée antérieure (D-420). Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).
+La ligne Cadence propose, dans cet ordre, Autre, 5 s, 2 s, 1 s et Sans. 5 s, 2 s et 1 s fixent directement l’intervalle du bip ; Sans désactive la cadence (valeur 0) ; Autre permet de saisir une autre valeur avec le mécanisme numérique existant du paramètre, dans les bornes et au pas existants (0..10 s, pas de 1 s, D-308, D-312). L’option sélectionnée reflète la valeur courante. Le modèle reste la valeur de cadence et son activation : aucun champ par raccourci. L’affichage de la valeur personnalisée suit le contrôle existant ou sa référence Figma, sans nouvel état [précisé par D-445 du 24/10/2026 : la valeur personnalisée remplace « Autre » dans l’option, par exemple « 3 s » ; un nouvel appui sur l’option rouvre le stepper ; la valeur est conservée à la fermeture et à la réouverture selon le brouillon existant]. Aucune valeur personnalisée n’est mémorisée en plus de la valeur courante : Sans puis Autre ne restaure pas une valeur personnalisée antérieure (D-420). Les règles de bip, son influence selon les modes, la durée estimée et la condition d’arrêt sont inchangées (D-408).
 
 #### RM-246 — Durée de l’exercice et signaux
 
@@ -679,7 +681,7 @@ Le chevron du tableau de séries variables est à l’intérieur de l’option V
 
 #### RM-248 — Condition d’arrêt : séries identiques
 
-La ligne Condition d’arrêt propose « À l’échec » (à gauche) et « À la cible » (à droite). En séries identiques, les deux options sont sélectionnables et le choix s’applique à toutes les séries, selon le mode de l’Exercice : À la cible donne une cible chiffrée commune (durée ou répétitions), À l’échec une cible À l’échec commune, sans nombre prescrit. La condition n’est pas définie à un second endroit (RM-250). À la création, la Condition d’arrêt vaut À la cible (D-416). Lorsque la condition commune est À l’échec, la saisie de la durée numérique (Durée d’une série) est masquée (D-419) ; aucune cible chiffrée n’est affichée, selon la règle existante de la cible À l’échec. Le type de cible par série reste la seule donnée (D-411).
+La ligne Condition d’arrêt propose « À l’échec » (à gauche) et « À l’objectif » (à droite) [libellé D-445 du 24/10/2026, qui remplace « À la cible »]. En séries identiques, les deux options sont sélectionnables et le choix s’applique à toutes les séries, selon le mode de l’Exercice : À l’objectif donne une cible chiffrée commune (durée ou répétitions), À l’échec une cible À l’échec commune, sans nombre prescrit. La condition n’est pas définie à un second endroit (RM-250). À la création, la Condition d’arrêt vaut À l’objectif (D-416). Lorsque la condition commune est À l’échec, la saisie de la durée numérique (Durée d’une série) est masquée (D-419) ; aucune cible chiffrée n’est affichée, selon la règle existante de la cible À l’échec. Le type de cible par série reste la seule donnée (D-411).
 
 #### RM-249 — Condition d’arrêt : séries variables
 
@@ -687,9 +689,9 @@ En séries variables, la ligne Condition d’arrêt est un résultat dérivé de
 
 | Détail des séries | Résultat présenté |
 |---|---|
-| Toutes à cible chiffrée | Deux options visibles, À la cible sélectionnée automatiquement |
+| Toutes à cible chiffrée | Deux options visibles, À l’objectif sélectionnée automatiquement |
 | Toutes à l’échec | Deux options visibles, À l’échec sélectionnée automatiquement |
-| Au moins une série à cible chiffrée et une à l’échec | Une seule option : « À la cible et à l’échec » |
+| Au moins une série à cible chiffrée et une à l’échec | Une seule option : « À l’objectif et à l’échec » (libellé D-445) |
 
 Trois résultats possibles, jamais trois boutons ni un choix manuel Mixte ; dès que le détail redevient homogène, les deux options réapparaissent avec la sélection correspondante. Le résultat n’est pas un paramètre persisté et ne peut pas diverger des séries. Il est présenté comme une valeur déterminée par le détail, non modifiable, avec un libellé et une sémantique accessibles ; cette présentation ne signifie pas que la condition d’arrêt est sans effet. Tableau incomplet : une cellule vide n’est comptée ni à la cible ni à l’échec ; la convention des résultats calculés incomplets s’applique (D-384), sans validation supplémentaire (D-411).
 
