@@ -373,11 +373,12 @@ function normalizeClassification(row, index, requirementIds, candidateById) {
   };
 }
 
-function buildImpactGraph({
+// Validate the complete declared target set before any dependency scan. Keep
+// this same gate in graph construction so alternate callers cannot bypass it.
+function validateImpactClassifications({
   requirementRegistry,
   candidateManifest,
   classifications,
-  directImportScan = null,
 }) {
   RequirementRegistry.assertReady(requirementRegistry);
   validateCandidateManifest(candidateManifest);
@@ -408,6 +409,19 @@ function buildImpactGraph({
     }
   }
 
+  return normalized;
+}
+
+function buildImpactGraph({
+  requirementRegistry,
+  candidateManifest,
+  classifications,
+  directImportScan = null,
+}) {
+  const normalized = validateImpactClassifications({ requirementRegistry, candidateManifest, classifications });
+  const requirementIds = new Set(requirementRegistry.requirements.map(req => req.requirement_id));
+  const seen = new Set(normalized.map(row => classificationKey(row.requirement_id, row.candidate_id)));
+  const candidateById = new Map(candidateManifest.candidates.map(candidate => [candidate.candidate_id, candidate]));
   const selectedModifyIds = [...new Set(
     normalized
       .filter((row) => row.change_kind === 'MODIFY' && row.candidate_id !== null)
@@ -546,5 +560,6 @@ module.exports = {
   scanOneLevelDirectImporters,
   validateDirectImportScan,
   buildImpactGraph,
+  validateImpactClassifications,
   validateImpactGraph,
 };

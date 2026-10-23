@@ -365,6 +365,11 @@ Un candidat existant doit correspondre exactement à un chemin Git au HEAD analy
 
 Unicode, casse et séparateurs font partie de l’identité exacte du path.
 
+La préparation valide toutes les classifications déclarées contre ce manifeste
+avant le scan des importeurs directs, y compris lorsqu’une demande mélange
+des cibles valides et invalides. Ce précontrôle réutilise les validations de
+construction d’ImpactGraph ; il n’admet aucun chemin libre supplémentaire.
+
 ### 13.5 ONE_LEVEL_DIRECT_IMPORTS
 
 Pour tout module de code source classé `MODIFY`, la machine exécute un scan des importeurs directs.
