@@ -32,8 +32,8 @@ export const FINAL_ACTION_BOTTOM_MARGIN_ABOVE_INSET = spacing[8];
 export const FINAL_ACTION_BOTTOM_MARGIN_WITHOUT_INSET = spacing[16];
 
 /**
- * Marge de sécurité au-dessus du bouton, couverte par le dégradé : 24 (hauteur du fondu au-dessus du
- * bouton ; le contenu défilant s'arrête au-dessus de cette marge en fin de défilement).
+ * Part haute de la hauteur de la zone protégée (marge de sécurité, couverte par le dégradé) : 24.
+ * Depuis le correctif J6f, le bouton est centré dans la zone (`finalActionVerticalPadding`).
  */
 export const FINAL_ACTION_TOP_MARGIN = spacing[24];
 
@@ -53,21 +53,46 @@ export function finalActionSideMargin(windowWidth: number): number {
 export const FINAL_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
 
 /**
- * Marge basse du bouton depuis le bord de l'écran (D-439) : encart bas + 8 quand il existe, 16 sinon.
- * iPhone (encart 34) : 42 ; sans encart : 16. Mêmes valeurs sur toutes les plateformes.
+ * Part basse de la HAUTEUR de la zone protégée (D-439) : encart bas + 8 quand il existe, 16 sinon
+ * (iPhone : 42 ; sans encart : 16). Depuis le correctif J6f, elle ne fixe plus la position du
+ * bouton (voir `finalActionVerticalPadding`).
  */
 export function finalActionBottomMargin(bottomInset: number): number {
   return bottomInset > 0 ? bottomInset + FINAL_ACTION_BOTTOM_MARGIN_ABOVE_INSET : FINAL_ACTION_BOTTOM_MARGIN_WITHOUT_INSET;
 }
 
 /**
- * Hauteur de la zone d'action fixe, du haut du dégradé au bord de l'écran : marge de sécurité
- * (24) + contenu (bouton 48 par défaut, ou hauteur mesurée : message d'erreur au-dessus) + marge
- * basse. Sert de réserve de défilement : la dernière ligne du contenu remonte au-dessus du dégradé.
- * iPhone (encart 34) : 24 + 48 + 42 = 114.
+ * Hauteur de la zone d'action fixe (zone protégée), du haut du dégradé au bord de l'écran : 24 +
+ * contenu (bouton 48 par défaut, ou hauteur mesurée : message d'erreur au-dessus) + marge basse de
+ * référence (`finalActionBottomMargin`). Sert de réserve de défilement : la dernière ligne du
+ * contenu remonte au-dessus du dégradé. iPhone (encart 34) : 24 + 48 + 42 = 114 ; sans encart : 88.
  */
 export function finalActionZoneHeight(bottomInset: number, contentHeight: number = FINAL_ACTION_BUTTON_HEIGHT): number {
   return FINAL_ACTION_TOP_MARGIN + contentHeight + finalActionBottomMargin(bottomInset);
+}
+
+/**
+ * PRE-6 story 7.10, correctif J6f (D-439 « Position verticale », Hermann : « le bouton d'action est
+ * trop haut, priorité à l'espace accordé à l'écran. Conserver la hauteur de la zone protégée mais
+ * recentrer verticalement le bouton dans cette zone ») : marge au-dessus = marge au-dessous du
+ * contenu = (24 + marge basse de référence) / 2, ce qui garde la hauteur de la zone et centre le
+ * bouton. iPhone (encart 34) : 33 (bas du bouton à 33 du bord : 1 point dans l'encart de 34, zone
+ * de l'indicateur d'accueil, accepté par Hermann) ; sans encart : 20.
+ */
+export function finalActionVerticalPadding(bottomInset: number): number {
+  return (FINAL_ACTION_TOP_MARGIN + finalActionBottomMargin(bottomInset)) / 2;
+}
+
+/**
+ * Marges haute et basse du contenu dans la zone (hauteur de zone conservée). Centrées
+ * (`finalActionVerticalPadding`), sauf sur Android quand l'encart bas est une barre de navigation
+ * à boutons (encart 48 : centré à 40, le bouton couvrirait 8 points de la barre, zone tactile du
+ * système) : le bas ne descend jamais sous l'encart, la différence passe au-dessus (48 / 32).
+ */
+export function finalActionContentPadding(platformOS: string, bottomInset: number): { top: number; bottom: number } {
+  const centred = finalActionVerticalPadding(bottomInset);
+  const bottom = platformOS === "android" ? Math.max(centred, bottomInset) : centred;
+  return { top: 2 * centred - bottom, bottom };
 }
 
 /**

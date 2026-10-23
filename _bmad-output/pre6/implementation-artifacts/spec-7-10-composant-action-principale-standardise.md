@@ -103,6 +103,8 @@ context:
 
 ## Spec Change Log
 
+**Correctif J6f (23/10/2026)** — Hermann, verbatim : « le bouton d'action est trop haut, priorité à l'espace accordé à l'écran. Conserver la hauteur de la zone protégée mais recentrer verticalement le bouton dans cette zone. » D-439 mise à jour (« Position verticale », commit `b4d5728a`). Hauteur de la zone inchangée (`finalActionZoneHeight` : 24 + contenu + encart + 8, ou + 16 sans encart ; iPhone 114, sans encart 88), donc réserve de défilement et bande du défilement automatique inchangées. Contenu centré : `finalActionVerticalPadding` = (24 + marge basse de référence) / 2 au-dessus et au-dessous — iPhone 33 (bas du bouton à 33 du bord : 1 point dans l'encart de 34, accepté par Hermann, priorité à l'espace), sans encart 20, Android : le bas ne descend jamais sous l'encart (barre de navigation à boutons, encart 48 : centré, le bouton couvrirait 8 points de la barre — 32 au-dessus, 48 au-dessous, `finalActionContentPadding`). Même règle pour la barre ✓ / Annuler (même zone). Remplace, dans « Valeurs » ci-dessous, la position « encart + 8 » du bouton.
+
 ## Review Triage Log
 
 Deux revues indépendantes du 23/10/2026 (aveugle et cas limites ; écarts de vérification), sous-agents en lecture seule.

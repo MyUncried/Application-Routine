@@ -83,7 +83,9 @@ describe("ProfileEditScreen — zone d'action principale (PRE-6 story 7.10)", ()
     // Réserve de défilement : 24 + 48 + marge basse (encart du routeur de test).
     const reserve = StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom as number;
     expect(reserve).toBeGreaterThanOrEqual(24 + 48 + 16);
-    expect(reserve).toBe(24 + 48 + (StyleSheet.flatten(zone.props.style).paddingBottom as number));
+    // Correctif J6f : bouton centré — réserve = marge haute + 48 + marge basse.
+    const zoneStyle = StyleSheet.flatten(zone.props.style);
+    expect(reserve).toBe((zoneStyle.paddingTop as number) + 48 + (zoneStyle.paddingBottom as number));
   });
 });
 

@@ -1570,12 +1570,13 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
   });
 
   // PRE-6 story 7.10 (D-439, remplace S-08 et le pied de la story 7.9) : zone d'action principale
-  // fixe — en absolu au bas de l'écran, au-dessus de la zone de sécurité (34 + 8), dégradé blanc ;
+  // fixe — en absolu au bas de l'écran, zone protégée de 114 (encart 34), bouton centré (correctif J6f), dégradé blanc ;
   // le corps défilant réserve toute sa hauteur (24 + 48 + 42 = 114 avec l'encart de test 34).
   it("story 7.10 — fixed primary action zone: absolute at the bottom, button 8 above the safe area, scroll reserve = zone height", () => {
     renderScreen();
     const zone = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
-    expect(zone).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 24, paddingBottom: 34 + 8 });
+    // Correctif J6f (D-439) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    expect(zone).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(screen.getByTestId("composition-bottom-action").props.pointerEvents).toBe("box-none");
     const scrollContent = StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle);
     expect(scrollContent.paddingBottom).toBe(24 + 48 + 34 + 8);
@@ -6572,7 +6573,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
       // Story 7.10 (D-439) : la barre de placement est dans la même zone que « Continuer », au-dessus
       // de la zone de sécurité (34 + 8), sans chevaucher l'indicateur d'accueil.
-      expect(box(footer)).toMatchObject({ position: "absolute", bottom: 0, paddingBottom: 34 + 8 });
+      // Correctif J6f : barre centrée dans la zone protégée, comme « Continuer » (33 / 33).
+      expect(box(footer)).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
     });
   });
 

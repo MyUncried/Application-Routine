@@ -282,7 +282,7 @@ export function ActivityEditorForm({
 }: ActivityEditorFormProps) {
   const sideMargin = editorSideMargin(useWindowDimensions().width);
   // PRE-6 story 7.10 (D-439) : `Terminer` est porté par la zone d'action principale fixe
-  // (`PrimaryActionZone`, au-dessus de la zone de sécurité, dégradé) ; le corps réserve sa hauteur.
+  // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
   const actionZone = usePrimaryActionZone();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const parametersCardRef = useRef<View>(null);
@@ -588,7 +588,7 @@ export function ActivityEditorForm({
           jamais avec le clavier (Android : zone masquée clavier ouvert, revue 7.10) ; il redevient
           accessible dès sa fermeture (D-349).
           PRE-6 story 7.10 (D-439, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
-          principale fixe, bouton au-dessus de la zone de sécurité, dégradé blanc. */}
+          principale fixe (zone protégée, bouton centré, correctif J6f), dégradé blanc. */}
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
         {errorMessage ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID={errorTestID}>

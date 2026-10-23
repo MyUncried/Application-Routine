@@ -270,8 +270,8 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(instruction.height).toBeUndefined();
     expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
-    // PRE-6 story 7.10 (D-439, remplace « 24 du bas » de PRE-5 3.2) : encart de test 34 + 8.
-    expect(slot).toMatchObject({ position: "absolute", bottom: 0, paddingBottom: 34 + 8 });
+    // PRE-6 story 7.10 (D-439, remplace « 24 du bas » de PRE-5 3.2). Correctif J6f (D-439) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    expect(slot).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
 
@@ -2016,13 +2016,15 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
   });
 
   // PRE-6 story 7.10 (D-439, remplace « 24 du bord de l'écran » et la réserve de 12 de PRE-5 3.2) :
-  // bouton à 8 au-dessus de la zone de sécurité (16 sans encart) ; réserve = hauteur de la zone.
-  it("AC2, story 7.10 — `Terminer` : 34 + 8 du bas avec `insets.bottom` 34, 16 sans encart ; hors du `KeyboardAvoidingView` ; réserve de défilement = zone d'action", () => {
-    for (const [bottom, margin] of [[34, 42], [0, 16]] as const) {
+  // zone protégée de 24 + 48 + encart + 8 (16 sans encart) ; réserve = hauteur de la zone.
+  // Correctif J6f (D-439) : zone de 114 (encart 34) ou 88 (sans encart), bouton centré (33 / 20).
+  it("AC2, story 7.10 (correctif J6f) — `Terminer` centré dans la zone : 33 au-dessus et au-dessous avec `insets.bottom` 34, 20 sans encart ; hors du `KeyboardAvoidingView` ; réserve de défilement = hauteur de la zone (114 / 88)", () => {
+    for (const [bottom, padding, zone] of [[34, 33, 114], [0, 20, 88]] as const) {
       const view = render(<Harness safeAreaBottom={bottom} />);
-      expect(style("test-finish-slot").paddingBottom).toBe(margin);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: padding, paddingBottom: padding });
+      expect(padding * 2 + 48).toBe(zone);
       expect(within(screen.UNSAFE_getByType(KeyboardAvoidingView)).queryByTestId("test-finish-slot")).toBeNull();
-      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(24 + 48 + margin);
+      expect(StyleSheet.flatten(screen.getByTestId("exercise-body").props.contentContainerStyle).paddingBottom).toBe(zone);
       // Couleurs actif / inactif inchangées.
       expect(style("test-finish-action").backgroundColor).toBe("#0508E5");
       view.unmount();
@@ -2047,14 +2049,14 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     }
   });
 
-  it("AC2 (revue), story 7.10 — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : `Terminer` au-dessus (48 + 8) ; encart 0 : 16", () => {
+  it("AC2 (revue), story 7.10 (correctif J6f) — Android, bord à bord, encart bas 48 (barre de navigation à 3 boutons) : zone 24 + 48 + 56 = 128 ; centré, `Terminer` couvrirait 8 points de la barre : bas à 48 (jamais sous l'encart), 32 au-dessus ; encart 0 : centré 20 / 20", () => {
     const os = jest.replaceProperty(Platform, "OS", "android");
     try {
       const view = render(<Harness safeAreaBottom={48} />);
-      expect(style("test-finish-slot").paddingBottom).toBe(56);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: 32, paddingBottom: 48 });
       view.unmount();
       render(<Harness safeAreaBottom={0} />);
-      expect(style("test-finish-slot").paddingBottom).toBe(16);
+      expect(style("test-finish-slot")).toMatchObject({ paddingTop: 20, paddingBottom: 20 });
     } finally {
       os.restore();
     }

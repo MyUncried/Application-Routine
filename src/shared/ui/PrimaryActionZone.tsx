@@ -17,9 +17,8 @@ import {
   FINAL_ACTION_BUTTON,
   FINAL_ACTION_BUTTON_HEIGHT,
   FINAL_ACTION_GRADIENT,
-  FINAL_ACTION_TOP_MARGIN,
-  finalActionBottomMargin,
   finalActionSideMargin,
+  finalActionContentPadding,
   finalActionZoneHeight,
 } from "@/shared/ui/finalAction";
 import { colors, type } from "@/shared/ui/tokens";
@@ -31,8 +30,9 @@ import { colors, type } from "@/shared/ui/tokens";
  * - Posée en absolu au bas du conteneur de l'écran (`ScreenShell`), pleine largeur, indépendante du
  *   défilement ; le contenu défilant passe dessous et réserve sa hauteur en fin de défilement
  *   (`usePrimaryActionZone().scrollReserve`).
- * - Dégradé blanc 0 → 100 % (`FINAL_ACTION_GRADIENT`) sur toute la zone : marge de sécurité (24)
- *   au-dessus du contenu, contenu, marge basse au-dessus de la zone de sécurité.
+ * - Dégradé blanc 0 → 100 % (`FINAL_ACTION_GRADIENT`) sur toute la zone protégée, de hauteur
+ *   `finalActionZoneHeight` ; le contenu (bouton, barre de mode) y est centré verticalement
+ *   (correctif J6f : `finalActionVerticalPadding`, 33 au-dessus et au-dessous sur iPhone).
  * - `pointerEvents="box-none"` : la zone et son dégradé ne captent aucun toucher ; seuls ses
  *   enfants (le bouton, la barre) en reçoivent. Un élément du contenu visible sous la partie
  *   transparente reste touchable.
@@ -57,6 +57,7 @@ export function PrimaryActionZone({ children, onContentHeightChange, hidden = fa
   const { width } = useWindowDimensions();
   const keyboardHidesZone = useAndroidKeyboardVisible();
   const isHidden = hidden || keyboardHidesZone;
+  const padding = finalActionContentPadding(Platform.OS, insets.bottom);
   const onLayout = useCallback(
     (event: LayoutChangeEvent) => onContentHeightChange?.(event.nativeEvent.layout.height),
     [onContentHeightChange],
@@ -70,8 +71,9 @@ export function PrimaryActionZone({ children, onContentHeightChange, hidden = fa
         styles.zone,
         keyboardHidesZone ? styles.zoneHidden : null,
         {
-          paddingTop: FINAL_ACTION_TOP_MARGIN,
-          paddingBottom: finalActionBottomMargin(insets.bottom),
+          // Correctif J6f (D-439) : contenu centré verticalement dans la zone protégée.
+          paddingTop: padding.top,
+          paddingBottom: padding.bottom,
           paddingHorizontal: finalActionSideMargin(width),
         },
         style,

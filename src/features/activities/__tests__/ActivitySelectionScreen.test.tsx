@@ -147,7 +147,8 @@ describe("ActivitySelectionScreen", () => {
     renderScreen([makeDefinition("a", "Squat")]);
     await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
     const zone = StyleSheet.flatten(screen.getByTestId("activity-selection-bottom-action").props.style);
-    expect(zone).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 24, paddingBottom: 42 });
+    // Correctif J6f (D-439) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    expect(zone).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(StyleSheet.flatten(screen.getByTestId("activity-selection-add").props.style)).toMatchObject({
       flex: 1,
       minHeight: 48,

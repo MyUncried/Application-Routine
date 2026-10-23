@@ -260,7 +260,7 @@ export function ActivitySelectionScreen() {
       </View>
 
       {/* PRE-6 story 7.10 (D-439) : barre Annuler / Ajouter dans la zone d'action principale fixe
-          (au-dessus de la zone de sécurité, dégradé) ; « Ajouter » au format `Terminer`. */}
+          (zone protégée, bouton centré, dégradé) ; « Ajouter » au format `Terminer`. */}
       <PrimaryActionZone
         onContentHeightChange={actionZone.onContentHeightChange}
         contentStyle={styles.bottomAction}

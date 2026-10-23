@@ -280,7 +280,7 @@ export function ProfileEditScreen() {
       ) : null}
 
       {/* PRE-6 story 7.10 (D-439) : « Enregistrer » dans la zone d'action principale fixe (format
-          `Terminer`, au-dessus de la zone de sécurité, dégradé) ; le message d'échec au-dessus. */}
+          `Terminer`, zone protégée, bouton centré, dégradé) ; le message d'échec au-dessus. */}
       {draft ? (
         <PrimaryActionZone
           onContentHeightChange={actionZone.onContentHeightChange}

@@ -6,7 +6,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   FINAL_ACTION_GRADIENT,
   finalActionBottomMargin,
+  finalActionContentPadding,
   finalActionSideMargin,
+  finalActionVerticalPadding,
   finalActionZoneHeight,
 } from "@/shared/ui/finalAction";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
@@ -46,6 +48,22 @@ describe("finalAction — règles de la zone (D-439)", () => {
     expect(finalActionBottomMargin(0)).toBe(16);
   });
 
+  it("correctif J6f — the button is centred in the protected zone: equal padding above and below, zone height kept", () => {
+    expect(finalActionVerticalPadding(34)).toBe(33);
+    expect(finalActionVerticalPadding(0)).toBe(20);
+    expect(finalActionVerticalPadding(48)).toBe(40);
+    for (const inset of [0, 21, 34, 48]) {
+      expect(2 * finalActionVerticalPadding(inset) + 48).toBe(finalActionZoneHeight(inset));
+    }
+    // iPhone : bas du bouton à 33 du bord, 1 point dans l'encart de 34 (accepté, D-439).
+    expect(34 - finalActionVerticalPadding(34)).toBe(1);
+    expect(finalActionContentPadding("ios", 34)).toEqual({ top: 33, bottom: 33 });
+    expect(finalActionContentPadding("ios", 0)).toEqual({ top: 20, bottom: 20 });
+    // Android, barre de navigation à boutons (48) : jamais sous l'encart ; hauteur conservée.
+    expect(finalActionContentPadding("android", 48)).toEqual({ top: 32, bottom: 48 });
+    expect(finalActionContentPadding("android", 24)).toEqual({ top: 28, bottom: 28 });
+  });
+
   it("zone height = 24 above + content (48 by default) + bottom margin", () => {
     expect(finalActionZoneHeight(34)).toBe(114);
     expect(finalActionZoneHeight(0)).toBe(88);
@@ -70,8 +88,9 @@ describe("PrimaryActionZone", () => {
       left: 0,
       right: 0,
       bottom: 0,
-      paddingTop: 24,
-      paddingBottom: 42,
+      // Correctif J6f : centré dans la zone de 114 — 33 au-dessus, 33 au-dessous.
+      paddingTop: 33,
+      paddingBottom: 33,
     });
     expect(screen.getByTestId("zone").props.pointerEvents).toBe("box-none");
     expect(screen.getByTestId("zone-content").props.pointerEvents).toBe("box-none");
@@ -86,9 +105,10 @@ describe("PrimaryActionZone", () => {
     });
   });
 
-  it("without inset: bottom 16; side margins follow the window width (rule of « Terminer »)", () => {
+  it("without inset: zone 88, button centred (20 / 20); side margins follow the window width (rule of « Terminer »)", () => {
     render(withInsets(0, 375, <Probe onPress={jest.fn()} />));
-    expect(style("zone")).toMatchObject({ paddingHorizontal: finalActionSideMargin(Dimensions.get("window").width), paddingBottom: 16 });
+    expect(style("zone")).toMatchObject({ paddingHorizontal: finalActionSideMargin(Dimensions.get("window").width), paddingTop: 20, paddingBottom: 20 });
+    expect(screen.getByTestId("reserve").props.children).toBe(88);
   });
 
   it("scroll reserve follows the measured content (an error message above the button)", () => {
