@@ -132,6 +132,15 @@ Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et C
 
 ## Navigation, écrans et captures
 
+### États complémentaires MFN — cible validée du 23/10/2026
+
+Les écrans existants accueillent la recherche et les suggestions de gestes, les choix même geste/variante/indépendant, le regroupement des paramètres et la navigation linéaire entre niveaux. Aucun écran Catalogue Mouvement, aucun libellé visible « Mouvement », aucun passage obligatoire en lecture seule.
+
+CE-T03-04 porte le dialogue **Corriger cet exercice / Créer un nouvel exercice / Annuler**, puis l’étape distincte de complétion des durées des exercices concernés. CE-UI-10 conserve la saisie des valeurs mais verrouille la structure dans une occurrence. CE-T03-07 exige une définition précise avant insertion ; CE-T03-08 conserve ses cartes et expose les paramètres de la copie, sans modifier le geste. Règles : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+Vérification Figma ciblée du 23/10 : métadonnées du cadre `9230:19033` et de sa ligne `9230:19052` accessibles. Ce relevé structurel ne valide pas le rendu des nouveaux états MFN ; leur déclinaison visuelle reste à réaliser. Les références de Composition D-435 restent conservées.
+
+
 ### Navigation principale et articulation des écrans
 #### Navigation principale
 
