@@ -19,7 +19,7 @@ Le MVP est conçu pour un utilisateur individuel qui :
 - consulte l’historique détaillé de ses exécutions ;
 - utilise l’application sans compte et sans synchronisation cloud.
 
-La kinésithérapie constitue un premier cas d’usage, mais le produit reste généraliste.
+Le fitness constitue le premier cas d’usage ; le produit reste généraliste et couvre aussi la rééducation (D-436).
 
 ## 3. Concepts fonctionnels structurants
 
@@ -530,3 +530,7 @@ Références actives : [Paramètres et brouillon d’un exercice](Specifications
 ## Circuits de tours et de séries —12/10/2026
 
 [Spécification normative](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#circuits) : décisions consolidées, propagation fonctionnelle et contrats CE-CIR-01/02/03. Un circuit MVP ; nature, conversions, héritage, volumes, calcul et bilatéralité définis. Captures et DSF à aligner dans une étape ultérieure ; aucun développement applicatif livré.
+
+## Évolution validée — Mouvement, filiation et niveaux
+
+D-437 à D-440 (23/10/2026) séparent le contenu du geste et les paramètres d’exécution, partagent le contenu au Catalogue et conservent des occurrences autonomes avec filiation statistique. Niveaux linéaires, édition directe avec correction partagée explicite, historique sans rang. Transition sur base vierge, sans reprise et sans effacement aux lancements suivants. Règles normatives : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Cette cible reste à implémenter ; elle ne livre ni calcul de records ni passage automatique de niveau.
