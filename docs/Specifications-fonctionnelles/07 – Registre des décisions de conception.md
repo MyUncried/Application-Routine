@@ -2,6 +2,27 @@ Ce document devient le registre permanent des décisions de conception du produi
 
 # Format
 
+### D-436 — Orientation produit : fitness first
+
+Validée par Hermann, consignée le 23/10/2026. Le fitness est le premier cas d’usage de KODJO ; le produit reste généraliste et couvre aussi la rééducation. Ajustement de la phrase correspondante de PRODUCT.md, distinct du modèle MFN, sans repositionnement global ni impact technique.
+
+### D-437 — Mouvement, paramètres et filiation
+
+Validée le 23/10/2026, spécification v0.4. MFN-01, MFN-03, MFN-04, MFN-09 à MFN-11 : contenu partagé au Catalogue, paramètres par exercice, intégrité obligatoire de la relation active ; provenance non nulle des copies, immuable et sans intégrité référentielle. Occurrences autonomes, contenu verrouillé ; historique au nom copié sans rang. RM-021 conserve l’absence de création Catalogue depuis une séance ; l’écriture de la métadonnée durable d’utilisation est une exception limitée et explicite. D-124 conserve le suffixe système de duplication en Composition ; D-196 crée une définition Catalogue partageant le mouvement, sans suffixe ni alias. Règles détaillées : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+### D-438 — Phases structurées et correction partagée
+
+Validée le 23/10/2026. MFN-02 et MFN-08 séparent structure et durées, réutilisent WorkPhase.id avec compteur monotone par mouvement et prévoient les exercices frères incomplets. Édition directe ; dialogue d’identité à trois choix, nombre d’exercices concernés obligatoire au-delà d’un. D-373 est remplacée pour la suppression silencieuse des durées nulles : durée manquante conservée, enregistrement de l’exercice édité bloqué. Le nommage par défaut reste applicable. D-371 et D-432 sont remplacées uniquement pour le retrait : la croix permet 2 → 1, puis Sans avec la durée restante ; aucune réduction automatique par nettoyage. Éligibilité et bornes existantes conservées. Les anciennes consignes FR-3/FR-9/AD-20 de nettoyage ne s’appliquent plus à cette cible. Règles détaillées : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+### D-439 — Niveaux linéaires et découverte des gestes
+
+Validée le 23/10/2026. MFN-05 à MFN-07 et MFN-10 : au plus un groupe linéaire par mouvement, insertion après origine, réorganisation explicite, singleton conservé avec rang masqué. Recherche explicite et suggestions sur les mouvements disponibles, locaux compris. Cette recherche spécialisée ne généralise pas la recherche des Catalogues exclue par D-221. Aucun rattachement automatique ni fusion rétroactive ; les doublons indépendants gardent des records distincts. Aucun choix silencieux des paramètres d’une ligne regroupée. Règles détaillées : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+### D-440 — Transition ponctuelle sur base vierge
+
+Validée par Hermann, confirmée le 23/10/2026. MFN-12 : aucune reprise des exercices, séances, préférences ou historiques antérieurs ; initialisation du nouveau schéma avec les seuls référentiels initiaux. Les obligations de conversion et de compatibilité des anciennes données, dont D-394/D-401, ne sont pas requises pour cette transition. Ce n’est pas une autorisation de réinitialiser aux démarrages suivants. Aucune base n’est effacée par cette mise à jour documentaire. MFN-13 exclut moteur de records, charge réalisée, fusion et progression automatique ; D-403 reste applicable.
+
+
 | ID  | Décision | Statut | Intégrée |
 | --- | -------- | ------ | -------- |
 
@@ -32,6 +53,8 @@ Annotation levée par la décision RC-12 de Hermann du 19/10 : l’option Sans d
 Annotation de la décision RC-13 de Hermann du 20/10 (remplace RC-11 et RC-12 pour les largeurs) : la notation n’est affichée dans l’option Avec, avec son chevron et dans une option élargie (146), que lorsque Avec est sélectionné à N > 1 ; tant qu’Avec n’est pas sélectionné, et à N = 1, l’option affiche « Avec », sans chevron, de la même largeur que Sans (62). La largeur du segmenté varie donc ; le libellé reste sur deux lignes.
 
 ### D-432 — Contrôle des phases de l’exercice
+
+**Portée amendée par D-438 (23/10) :** croix disponible à deux phases et transition explicite vers Sans ; suppression silencieuse et normalisation depuis une durée nulle abandonnées. Les autres règles de présentation restent applicables.
 Décision de Hermann du 19/10/2026, après la revue indépendante du plan PRE-5. Le contrôle Phases de l’exercice garde deux options, Avec / Sans ; Sans est l’état par défaut, sans phase. Avec active la décomposition et affiche le nombre de phases dans l’option Avec, sous la forme « 3 phases ». Ce nombre se règle avec le stepper existant, de 2 à 6, révélé au toucher selon le mécanisme existant : actif, − et + sont visibles ; inactif, ils disparaissent et la valeur et le chevron restent visibles. Le tableau contient le nombre de phases configuré ; chaque ligne porte une poignée, un numéro, un libellé, une durée et une croix de suppression. Le chevron est un chevron graphique existant, jamais une flèche ni un caractère ; il est intégré à l’option Avec, à droite du nombre (D-410), pointe vers le haut quand le tableau est déployé et vers le bas quand il est replié, reste visible quand − et + sont masqués, et son appui replie ou déploie le tableau sans changer le nombre. Pas de ligne « Ajouter une phase », pas de +/− propres au tableau, pas de nouveau composant. À la première activation de Avec en durée libre, deux phases sont créées : la première reprend la durée de série si elle existe, la seconde reste à renseigner ; sans durée initiale, aucune durée n’est inventée ; toutes les durées sont modifiables et la durée de série est leur somme. Le stepper + ajoute une phase reprenant la durée de la dernière ; le stepper − retire la dernière, avec la même annulation que la croix. La croix d’une ligne est disponible au-dessus de 2 phases et indisponible à 2 ; le retrait passe alors par Sans (QR-1, validée par Hermann le 19/10/2026). Si la normalisation à la validation laisse une seule phase, l’exercice passe à Sans avec sa durée comme durée de série, sur le principe de D-371 ; s’il n’en reste aucune, il passe à Sans sans durée inventée et la validation existante s’applique (QR-2, validée par Hermann le 19/10/2026). Sans transforme la somme en durée unique de série ; Annuler la feuille restaure l’état ; les règles de normalisation et de validation existantes (D-373) sont préservées. Sous un format à durée imposée, le comportement de D-372 est conservé (dernière phase calculée sur le restant) ; il n’est pas généralisé à la durée libre. Remplace sur ces points D-371 (« Aucune crée une phase reprenant la durée de série » ; « Supprimer la dernière conserve sa durée comme durée de série ») et l’intégration du 18/10/2026 (« Avec crée la première phase ») ; le modèle de données admet toujours une seule phase.
 
 ### D-433 — Affichage permanent de la Durée de l’exercice
@@ -776,7 +799,7 @@ La V2 est amendée par ces décisions, notamment : réglages éditables ; organi
 | D-370 | Phases au MVP ; 0 à 6 phases ordonnées, libellé 20 caractères maximum ; Durée chiffrée et séries identiques uniquement ; une série joue une fois le motif sans pause interne. |
 | D-371 | Aucune crée une phase reprenant la durée de série ; chevron seulement avec phases. Ajout libre : copie de la dernière durée. Supprimer la dernière conserve sa durée comme durée de série. |
 | D-372 | Formats à durée de travail imposée : dernière phase calculée par différence ; ajout à 0, sans division ; réglages bornés pendant saisie, pas de blocage de validation pour dépassement. Déplacement conserve les durées et transfère le calcul à la dernière position ; suppression transfère le temps libéré à la dernière restante. |
-| D-373 | Validation : retrait silencieux des phases restées à 0 s ; libellé vide remplacé par Phase n. Zéro de saisie non persisté. Le cas des arrondis à zéro lors d’une adaptation proportionnelle reste distinct et à préciser. |
+| D-373 | **Historique : suppression silencieuse remplacée par D-438 ; nommage par défaut conservé.** Validation : retrait silencieux des phases restées à 0 s ; libellé vide remplacé par Phase n. Zéro de saisie non persisté. Le cas des arrondis à zéro lors d’une adaptation proportionnelle reste distinct et à préciser. |
 | D-374 | À l’intégration dans un format, somme différente : adaptation proportionnelle dans la copie de séance, à la hausse comme à la baisse ; message informatif sans confirmation supplémentaire ; catalogue intact. |
 | D-375 | Bip continu sur la série, sans redémarrage au changement de phase ; transition prioritaire en cas de coïncidence. Annonce de chaque libellé, première phase comprise, si voix activée ; sans retarder le temps ; nouvelle annonce interrompt la précédente. |
 
@@ -784,4 +807,4 @@ Les paramètres limites non arbitrés, les textes de synthèse et la présentati
 
 Intégration du 18/10/2026 : D-371 est remplacée sur ce point par D-410 et D-413 — le contrôle Phases de l’exercice propose Avec / Sans (« Aucune » devient Sans ; Avec crée la première phase) et son chevron est à l’intérieur de l’option Avec ; le tableau des phases n’a ni pied ni boutons +/−. Le texte de D-371 est conservé.
 
-Intégration du 19/10/2026 : D-432 remplace sur ces points D-371 et l’intégration du 18/10 — Avec affiche « n phases », nombre réglé de 2 à 6 par le stepper existant, première activation à deux phases, croix indisponible à 2 phases, normalisation laissant une seule phase ramenée à Sans. Le texte de D-371 est conservé.
+Historique, remplacé pour la suppression et la normalisation par D-438 : intégration du 19/10/2026, D-432 remplace sur ces points D-371 et l’intégration du 18/10 — Avec affiche « n phases », nombre réglé de 2 à 6 par le stepper existant, première activation à deux phases, croix indisponible à 2 phases, normalisation laissant une seule phase ramenée à Sans. Le texte de D-371 est conservé.
