@@ -339,6 +339,13 @@ Remarques générales de la recette J6c : « Supprimer la durée du circuit et a
 - **AC3** : réglage de ces deux durées en Composition borné à 0..60 s, pas 1 s ; affichage en secondes seulement (« 45 s », « 0 s », « 60 s ») ; valeur existante > 60 s ramenée à 60 s.
 - **AC4** : durée de la Séance de la zone de contexte arrondie aux 15 s les plus proches, préfixe ≈ ou ≥ ; libellé d'accessibilité cohérent.
 
+### Story 7.9: Retours J6d — en-tête du Circuit sélectionné, bouton « Continuer »
+
+Recette J6d de Hermann du 23/10/2026 : 8 points sur 9 OK (j6d-8 sans cas réel, clos par Hermann) ; j6d-5 en problème : « Lorsqu'on sélectionne circuit le texte est tronqué » ; remarque générale : « le bouton « Continuer » doit être à la même hauteur que le bouton d'action de l'écran de création d'un exercice ».
+
+- **AC1** (j6d-5) : Circuit sélectionné (et tout état de l'en-tête) : aucun texte de l'en-tête tronqué à 375 et 402 ; cause identifiée.
+- **AC2** : le bouton « Continuer » de la Composition est à la même position verticale et à la même hauteur que le bouton d'action principal de l'écran de création d'un Exercice (même pied d'action, mêmes marges et zone de sécurité).
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -350,7 +357,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
-Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c → 7.7 → 7.8 → Jalon J6d
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c → 7.7 → 7.8 → Jalon J6d → 7.9 → Jalon J6e
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.

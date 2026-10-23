@@ -86,6 +86,7 @@ development_status:
   7-4-glisser-défilement-automatique-et-cohérence: done
   7-5-retours-j6-suppression-tolérante-et-animée-cadre-du-circuit: done
   7-6-douceur-des-mouvements-de-la-composition: done
-  7-7-mouvements-disparition-apparition-actions-glissées: review
+  7-7-mouvements-disparition-apparition-actions-glissées: done
   7-8-présentation-en-tête-du-circuit-bornes-de-séance-durée-de-la-séance: review
+  7-9-retours-j6d-en-tête-du-circuit-sélectionné-bouton-continuer: in-progress
   epic-7-retrospective: optional
