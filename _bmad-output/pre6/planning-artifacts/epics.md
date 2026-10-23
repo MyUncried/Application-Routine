@@ -308,6 +308,17 @@ Recette différentielle J6 de Hermann du 22/10/2026 : 21 points OK sur 23, d-17 
 
 **Jalon J6b (iPhone, après 7.5)** : d-9 et d-17 revus ; d-12 reste ouvert jusqu'à l'exécution.
 
+### Story 7.6: Douceur des mouvements de la Composition
+
+Recette J6b de Hermann du 23/10/2026 : 8 points sur 8 OK, d-17 corrigé ; remarques sur j6b-5 et j6b-6 : « Le fondu est trop rapide, le mouvement des cartes aussi et est parfois saccadé. Quand on déplace une carte, le positionnement de la carte est trop rapide, on a l'impression qu'elle saute dans sa position cible. Il faut que tous les mouvements soient plus doux avec une fin de mouvement progressive. » ; « l'arrêt des mouvements peut être moins brutal ».
+
+- **AC1** : fondu de suppression et glissement des voisines plus lents, avec une décélération progressive en fin de mouvement.
+- **AC2** : à la dépose d'une carte ou d'un Point, l'élément rejoint sa place par un mouvement doux et décéléré, sans saut ; idem pour le retour d'une dépose refusée et les décalages pendant le glisser.
+- **AC3** : aucune saccade : animations sur le pilote natif, sans écriture d'état ni re-rendu pendant le mouvement ; un seul jeu de durées et de courbes partagé.
+- **AC4** : aucune régression de d-13 à d-17, j6b-1 à j6b-8 ni du placement ; « Réduire les animations » respecté comme aujourd'hui.
+
+**Jalon J6c (iPhone, après 7.6)** : ressenti des mouvements.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -319,7 +330,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
-Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.
