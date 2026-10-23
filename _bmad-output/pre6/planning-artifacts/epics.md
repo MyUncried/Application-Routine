@@ -346,6 +346,17 @@ Recette J6d de Hermann du 23/10/2026 : 8 points sur 9 OK (j6d-8 sans cas réel, 
 - **AC1** (j6d-5) : Circuit sélectionné (et tout état de l'en-tête) : aucun texte de l'en-tête tronqué à 375 et 402 ; cause identifiée.
 - **AC2** : le bouton « Continuer » de la Composition est à la même position verticale et à la même hauteur que le bouton d'action principal de l'écran de création d'un Exercice (même pied d'action, mêmes marges et zone de sécurité).
 
+### Story 7.10: Composant d’action principal standardisé (D-439)
+
+Demande de Hermann du 23/10/2026 après la livraison de 7.9 (D-439, ch07).
+
+- **AC1** : un composant partagé d’action principale (bouton au format « Terminer » + zone fixe + dégradé blanc 0 → 100 % pleine largeur + marge de sécurité au-dessus) ; seuls libellé, état et action varient.
+- **AC2** : appliqué à tous les écrans dotés d’un bouton d’action principal (inventaire dans la spec) ; le contenu défilant s’arrête avant la zone protégée, rien n’est masqué ni inaccessible.
+- **AC3** : bouton et barres de mode au-dessus de la zone de sécurité inférieure iOS, sans chevaucher la zone du geste d’accueil ; barre de placement ✓ / Annuler au même emplacement vertical que le bouton, sans saut au changement de mode, via le composant standard.
+- **AC4** : dégradé par une primitive de la plateforme ou de l’écosystème Expo SDK 57, sans dépendance majeure ou expérimentale non justifiée ; accessibilité inchangée.
+
+**Jalon J6f (iPhone)** : écrans dotés d’un bouton d’action principal revus.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -357,7 +368,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
-Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c → 7.7 → 7.8 → Jalon J6d → 7.9 → Jalon J6e
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c → 7.7 → 7.8 → Jalon J6d → 7.9 → Jalon J6e → 7.10 → Jalon J6f
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.

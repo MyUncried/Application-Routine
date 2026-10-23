@@ -5,6 +5,16 @@ Ce document devient le registre permanent des décisions de conception du produi
 | ID  | Décision | Statut | Intégrée |
 | --- | -------- | ------ | -------- |
 
+### D-439 — Bouton d’action principal standardisé et zone d’action fixe du 23/10/2026
+Décision de Hermann du 23/10/2026 (PRE-6, retours de la recette J6d). Elle vaut pour tous les écrans de KODJO qui portent un bouton d’action principal.
+**Bouton d’action principal.** Format unique sur l’ensemble des écrans, avec pour référence le bouton « Terminer » de l’écran Exercice : dimensions, marges latérales, typographie, couleurs, arrondis et ombre. Seuls le libellé, l’état et l’action varient selon le contexte.
+**Zone fixe et protection du défilement.** Le bouton reste fixe en bas de l’écran, indépendamment du défilement. Une marge de sécurité est toujours prévue au-dessus du bouton. Le contenu défilant s’arrête avant la zone protégée du bouton : aucun élément n’est masqué par le bouton ni rendu inaccessible. La règle s’applique uniformément à tous les écrans dotés d’un bouton d’action principal.
+**Dégradé de fond.** Toute la zone de fond entourant le bouton présente un dégradé vertical blanc, de 0 % d’opacité en haut à 100 % en bas, progressif et sans rupture visible ; il couvre toute la largeur de l’écran et englobe la marge supérieure et la zone autour du bouton.
+**Composant.** L’ensemble forme un composant d’action principal réutilisable, qui garantit une présentation homogène, la lisibilité du contenu, l’accessibilité du défilement et la visibilité permanente du bouton.
+**Barres d’action de mode (Composition, placement ✓ / Annuler).** Elles respectent intégralement la zone de sécurité inférieure d’iOS, sans chevaucher la zone du geste d’accueil, et gardent le même positionnement vertical que les autres barres d’action, sans saut lors du changement de mode. Elles utilisent le composant et les marges standardisés de KODJO, sans ajustement propre à un écran.
+**Interprétation retenue (réversible) :** la règle de zone de sécurité vaut aussi pour le bouton d’action principal, dont « Terminer » ; sa position verticale de référence est donc le bas de la zone de sécurité augmenté de la marge standard, et non plus 24 pt du bas de l’écran.
+**Hors périmètre / Remplace :** les positions, tailles et fonds propres à chaque écran pour le bouton d’action principal et son pied ; la position du pied de la Composition fixée par la story 7.9. Comportements, libellés et actions des boutons inchangés.
+
 ### D-438 — Retours de la recette iPhone J6c de la Composition de séance du 23/10/2026
 Décision de Hermann du 23/10/2026 (PRE-6, recette différentielle J6c). Elle complète D-435 à D-437 et en remplace les points nommés ci-dessous.
 **Mouvements.** Tous les mouvements de la Composition sont doux, sans arrêt brutal, avec une fin progressive. La disparition d’une carte supprimée est plus lente qu’au 23/10 matin. La carte créée par Dupliquer apparaît en fondu lent, et les éléments suivants glissent pour lui faire place. Les actions par glissement horizontal de la carte (gauche et droite) s’ouvrent, se referment et reviennent sans arrêt brutal.
