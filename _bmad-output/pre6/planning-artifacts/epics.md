@@ -319,6 +319,26 @@ Recette J6b de Hermann du 23/10/2026 : 8 points sur 8 OK, d-17 corrigé ; remarq
 
 **Jalon J6c (iPhone, après 7.6)** : ressenti des mouvements.
 
+### Story 7.7: Mouvements — disparition plus lente, apparition de la copie, actions glissées (D-438)
+
+Recette J6c de Hermann du 23/10/2026 : 7 points sur 7 OK ; remarque j6c-4 : « La disparition doit être encore plus lente. Lorsqu'on copie une carte, elle apparaît aussi brutalement, il faut qu'elle apparaisse en fondu plus lentement, idem pour le mouvement des cartes. Idem pour les mouvements glisser gauche et droite, pas d'arrêt brutal. »
+
+- **AC1** : fondu de suppression plus lent que 260 ms, glissement des suivantes en cohérence.
+- **AC2** : Dupliquer : la copie apparaît en fondu lent ; les éléments suivants glissent pour lui faire place (même module de mouvement).
+- **AC3** : actions glissées gauche / droite de la carte : ouverture, fermeture et retour avec décélération progressive, sans arrêt brutal ; mécanisme de geste inchangé.
+- **AC4** : aucune régression de j6c-1 à j6c-7 ; « Réduire les animations » respecté.
+
+### Story 7.8: Présentation — en-tête du Circuit, bornes de séance, durée de la Séance (D-438)
+
+Remarques générales de la recette J6c : « Supprimer la durée du circuit et aligner le stepper de tour à droite. Aligner le cadre du compte à rebours et de la fin de séance à droite du cadre des cartes d'exercices, Limiter leurs valeurs à 60s et ne pas afficher les minutes. Durée totale de l'exercice dans la zone de contexte, arrondir à 15 s près et mettre le signe à peu près égal ou supérieur ou égal à en fonction du contexte des exercices. »
+
+**Interprétations (réversibles, signalées à Hermann)** : « durée totale de l'exercice » = durée de la Séance affichée dans la zone de contexte ; préfixe ≈ / ≥ selon la règle déjà appliquée à la durée du Circuit ; une valeur existante de Compte à rebours ou de Fin de séance > 60 s est affichée et réenregistrée à 60 s.
+
+- **AC1** : en-tête du Circuit sans durée ; stepper aligné à droite ; textes et cibles de 7.3 inchangés.
+- **AC2** : cadres Compte à rebours et Fin de séance alignés à droite sur le bord droit des cartes d'Exercice.
+- **AC3** : réglage de ces deux durées en Composition borné à 0..60 s, pas 1 s ; affichage en secondes seulement (« 45 s », « 0 s », « 60 s ») ; valeur existante > 60 s ramenée à 60 s.
+- **AC4** : durée de la Séance de la zone de contexte arrondie aux 15 s les plus proches, préfixe ≈ ou ≥ ; libellé d'accessibilité cohérent.
+
 ## Ordre recommandé et dépendances
 
 ```
@@ -330,7 +350,7 @@ Epic 3 : 3.1 (après 1.4) → 3.2 → 3.3 ; 3.4 (après 1.4, parallèle) → Jal
 Epic 4 : 4.1 (après 1.2, 2.1) → 4.2 → 4.3                       → Jalon J3
 Epic 5 : 5.1 → 5.2 → 5.3 → 5.4 (après Epic 4 et 2.3b)              → Jalon J4
 Epic 6 : 6.1 → 6.2 → 6.3 (après 5.3 ; 5.1b en parallèle)          → Jalon J5
-Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c
+Epic 7 : 7.1 → 7.2 → 7.3 → 7.4 (après la recette J0-J5 du 22/10)  → Jalon J6 → 7.5 → Jalon J6b → 7.6 → Jalon J6c → 7.7 → 7.8 → Jalon J6d
 ```
 
 Chemin critique : 1.1 → 1.3 → 1.4 → 3.1 → 3.2. Les stories 2.1, 1.2 et 3.4 peuvent avancer en parallèle.

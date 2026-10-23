@@ -5,6 +5,14 @@ Ce document devient le registre permanent des décisions de conception du produi
 | ID  | Décision | Statut | Intégrée |
 | --- | -------- | ------ | -------- |
 
+### D-438 — Retours de la recette iPhone J6c de la Composition de séance du 23/10/2026
+Décision de Hermann du 23/10/2026 (PRE-6, recette différentielle J6c). Elle complète D-435 à D-437 et en remplace les points nommés ci-dessous.
+**Mouvements.** Tous les mouvements de la Composition sont doux, sans arrêt brutal, avec une fin progressive. La disparition d’une carte supprimée est plus lente qu’au 23/10 matin. La carte créée par Dupliquer apparaît en fondu lent, et les éléments suivants glissent pour lui faire place. Les actions par glissement horizontal de la carte (gauche et droite) s’ouvrent, se referment et reviennent sans arrêt brutal.
+**En-tête du Circuit.** La durée du Circuit n’est plus affichée dans son en-tête ; le stepper du nombre de Tours ou de Séries est aligné à droite.
+**Compte à rebours et Fin de séance.** Leurs cadres, dans la séquence de la Composition, sont alignés à droite sur le cadre des cartes d’Exercice. Leur durée est bornée à 0..60 s, pas 1 s, et s’affiche en secondes seulement, sans minutes.
+**Durée de la Séance.** La durée totale affichée dans la zone de contexte de la Composition est une estimation arrondie aux 15 secondes les plus proches, précédée de « ≈ » ou de « ≥ » selon les Exercices qui la composent, avec la même règle de choix du préfixe que l’estimation de durée existante.
+**Hors périmètre / Remplace :** dans D-437, l’affichage de la durée du Circuit dans son en-tête (et son arrondi à la minute au-delà de 3 minutes) ; dans D-089 (amendée par D-265), la borne 0..3599 s des champs Compte à rebours initial et Fin de séance de la Séance, ramenée à 0..60 s comme les valeurs par défaut du Profil. Le modèle de données, les API techniques et les calculs de durée sont inchangés ; seule la présentation de la durée change.
+
 ### D-437 — Retours de la recette iPhone de la Composition de séance du 22/10/2026
 Décision de Hermann du 22/10/2026 (PRE-6, recette J0 à J5, commentaires 1 à 17). Elle complète D-435 et D-436 et en remplace les points nommés ci-dessous.
 **Enchaînement sans pause.** La Composition n’affiche plus aucun message lorsque deux Exercices s’enchaînent sans pause. D-301 est retirée ; aucun autre avertissement ne la remplace.
