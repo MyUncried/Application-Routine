@@ -105,6 +105,7 @@ import {
   resolveDragShifts,
   resolveDropSettleOffset,
   resolveDropTarget,
+  resolveInsertionPoses,
   resolveRemovalShifts,
   shouldRevealAfterSwipe,
   type ActivityRowLayout,
@@ -179,9 +180,12 @@ import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { type DragAutoScroll, useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import {
+  MOTION_APPEAR_DURATION_MS,
+  MOTION_EASING,
   MOTION_FADE_DURATION_MS,
   MOTION_FADE_EASING,
   MOTION_FADE_TO_SLIDE_DELAY_MS,
+  MOTION_SHIFT_DURATION_MS,
 } from "@/features/sessions/compositionMotion";
 import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPickerMath";
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
@@ -841,6 +845,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /** Story 7.5 : suppression animée en cours (fondu, puis glissement) ; une seule à la fois. */
   const [deletion, setDeletion] = useState<PendingDeletion | null>(null);
   const deletionRef = useRef<PendingDeletion | null>(null);
+  /**
+   * PRE-6 story 7.7 (D-438) : copie de Dupliquer en cours d'apparition (fondu lent) ; les éléments
+   * suivants glissent pendant ce temps pour lui faire place.
+   */
+  const [appearance, setAppearance] = useState<{ readonly key: string; readonly opacity: Animated.Value } | null>(null);
+  /** Revue 7.7 : apparition en cours, lue de façon synchrone (suppression, seconde copie). */
+  const appearanceRef = useRef(appearance);
+  useLayoutEffect(() => {
+    appearanceRef.current = appearance;
+  });
+  /** Revue 7.7 : termine aussitôt une apparition en cours (copie pleinement affichée). */
+  const finishAppearance = useCallback(() => {
+    const current = appearanceRef.current;
+    if (current === null) return;
+    current.opacity.stopAnimation();
+    current.opacity.setValue(1);
+    appearanceRef.current = null;
+    setAppearance(null);
+  }, []);
   /** Story 7.5 : termine aussitôt une suppression animée en cours (brouillon écrit). */
   const flushDeletion = useCallback(() => deletionRef.current?.commit(), []);
   /** Revue 7.5 : dernier brouillon rendu, pour rejouer une suppression à son écriture. */
@@ -1995,7 +2018,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     );
   }, [dragPreview, draft]);
   // Story 7.5 : le glissement d'une suppression est toujours animé (sauf « Réduire les animations »).
-  const animateDragShifts = (deletion !== null || dragSession.animated) && !reduceMotion;
+  // Story 7.7 : de même pour le glissement qui fait place à une copie.
+  const animateDragShifts = (deletion !== null || appearance !== null || dragSession.animated) && !reduceMotion;
   /** Story 7.5 : décalages du glissement qui suit le fondu d'une suppression. */
   const deletionShifts = useMemo<DragShifts | null>(
     () =>
@@ -2086,6 +2110,29 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       if (slideTimer !== null) clearTimeout(slideTimer);
     };
   }, [deletion]);
+  /**
+   * Story 7.7 : fondu d'apparition de la copie, démarré après le rendu (une microtâche plus tard,
+   * comme le fondu de suppression) ; fin : la copie redevient une carte ordinaire.
+   */
+  useEffect(() => {
+    if (appearance === null) return undefined;
+    const current = appearance;
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      Animated.timing(current.opacity, {
+        toValue: 1,
+        duration: MOTION_APPEAR_DURATION_MS,
+        easing: MOTION_FADE_EASING,
+        useNativeDriver: true,
+      }).start(() => {
+        setAppearance((latest) => (latest === current ? null : latest));
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [appearance]);
   // Story 7.5 : fin du glissement d'une suppression — le brouillon est écrit.
   useEffect(() => {
     if (deletion === null || deletion.phase !== "slide") return undefined;
@@ -2180,7 +2227,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     geometry: railGeometry,
   });
   /** Story 7.5 : éléments en cours d'effacement et leur opacité. */
-  const deletionFading = deletion === null ? null : { keys: deletion.fadingKeys, opacity: deletion.opacity };
+  // Story 7.7 : ou la copie de Dupliquer en cours d'apparition.
+  const deletionFading =
+    deletion !== null
+      ? { keys: deletion.fadingKeys, opacity: deletion.opacity, leaving: true }
+      : appearance !== null
+        ? { keys: new Set([appearance.key]), opacity: appearance.opacity, leaving: false }
+        : null;
   const sequenceRail: SequenceRailContext = { links: railLinks, shiftOf: railShiftOf, skippedKeys: railSkippedKeys };
   /** Lien d'un élément non occurrence (toujours présent : seule une occurrence sort de la chaîne). */
   const railLinkOf = (key: string): RailLinkGeometry | null => railLinks.get(key) ?? null;
@@ -2291,6 +2344,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       if (deletionRef.current !== null) return;
       const result = deletionResult(draft, activityId, choice);
       if (result === null || result === "CHOICE") return;
+      // Story 7.7 : une copie encore en apparition est affichée pleinement (revue : seulement une fois
+      // la suppression lancée).
+      finishAppearance();
       const key = railRowKey(activityId);
       const opacity = new Animated.Value(1);
       let done = false;
@@ -2334,7 +2390,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       deletionRef.current = fading;
       setDeletion(fading);
     },
-    [buildDragLayout, draft, reduceMotion, reportRemovedStopPoints, updateDraft],
+    [buildDragLayout, draft, finishAppearance, reduceMotion, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -2493,18 +2549,49 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleDuplicateActivity = useCallback(
     (activityId: string) => {
       // Revue 7.5 : pendant une suppression animée (disposition figée), aucune autre opération.
-      if (deletionRef.current !== null) return;
+      // Revue 7.7 : ni pendant le glisser d'un élément, son aperçu tenu ou sa mise en place.
+      if (deletionRef.current !== null || draggedKeyRef.current !== null || dragPreview !== null || dragSession.settling !== null) {
+        return;
+      }
       setRevealedActionsId(null);
       const state = compositionStateOf(draft.exercises, draft.stopPoints, draft.tourRepeatCount);
       const newId = Crypto.randomUUID();
+      // Revue 7.7 : le Domaine d'abord — rien n'est animé si la copie n'est pas créée.
+      const duplicated = duplicateOccurrence(state, activityId, newId);
+      if (duplicated === state) return;
+      // Revue 7.7 : une copie précédente encore en apparition est affichée pleinement.
+      finishAppearance();
+      /*
+       * PRE-6 story 7.7 (D-438) : la copie apparaît en fondu lent et les éléments suivants glissent
+       * pour lui faire place. Le brouillon est écrit AUSSITÔT (contrairement à la suppression, écrite
+       * à la fin) : la copie doit être dans la mise en page pour être affichée, et l'enregistrement,
+       * la garde de sortie et les autres actions voient d'emblée le brouillon final. Avant le rendu,
+       * les éléments suivants sont posés là où ils étaient (décalés de la copie), puis glissent vers
+       * leur place ; « Réduire les animations » ou disposition non mesurée : sans mouvement.
+       */
+      const layout = reduceMotion ? null : buildDragLayout();
+      const sourceKey = railRowKey(activityId);
+      const sourceHeight = layout?.rows.find((row) => row.id === sourceKey)?.height;
+      const insertion =
+        layout === null || sourceHeight === undefined ? null : resolveInsertionPoses(layout, sourceKey, sourceHeight, DRAG_SHIFT_GAPS);
+      if (insertion !== null) {
+        const poses = new Map<string, number>(insertion.rows);
+        poses.set(RAIL_KEYS.circuitHeader, insertion.circuitTop);
+        poses.set(RAIL_KEYS.circuitEnd, insertion.circuitBottom);
+        poses.set(RAIL_KEYS.afterCircuit, insertion.afterCircuit);
+        poses.set(RAIL_KEYS.end, insertion.end);
+        // Revue 7.7 : un élément encore en mouvement (copie précédente) part du reste de son chemin.
+        shiftRegistryRef.current?.prepareLayoutCommit(poses, NO_CONTINUATION_EXCEPTIONS);
+        setAppearance({ key: railRowKey(newId), opacity: new Animated.Value(0) });
+      }
       // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : la copie n'emporte aucun point.
       updateDraft({
-        ...compositionPatch(state, duplicateOccurrence(state, activityId, newId)),
+        ...compositionPatch(state, duplicated),
         // PRE-6 (story 2.3) : la copie reçoit la réserve de Circuit de sa source (Séries).
         ...copyCircuitReserveEntry(draft, activityId, newId),
       });
     },
-    [draft, updateDraft],
+    [buildDragLayout, dragPreview, dragSession.settling, draft, finishAppearance, reduceMotion, updateDraft],
   );
 
   /**
@@ -3748,6 +3835,7 @@ function ActivityZoneList({
               rail={rail}
               autoScroll={autoScroll}
               fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
+          fadeLeaving={fading !== null && fading.keys.has(key) && fading.leaving}
               onLayout={(event) => onRowLayout(key, zone, event)}
               focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
               onFocusConsumed={onFocusConsumed}
@@ -3793,6 +3881,7 @@ function ActivityZoneList({
           rail={rail}
           autoScroll={autoScroll}
           fadeOpacity={fading !== null && fading.keys.has(key) ? fading.opacity : null}
+              fadeLeaving={fading !== null && fading.keys.has(key) && fading.leaving}
           onDuplicate={() => onDuplicate(activity.id)}
           onDelete={() => onDelete(activity.id)}
           onMoveUp={canStep(activity.id, "UP") ? () => onStep(activity.id, "UP") : null}
@@ -3817,6 +3906,8 @@ type StopPointRowProps = {
   readonly autoScroll: DragAutoScroll;
   /** PRE-6 story 7.5 : opacité du fondu quand la suppression d'une carte retire ce point. */
   readonly fadeOpacity: Animated.Value | null;
+  /** Story 7.7 : le fondu est une disparition (sans toucher ni accessibilité). */
+  readonly fadeLeaving: boolean;
   readonly onLayout: (event: LayoutChangeEvent) => void;
   /** Revue 6.2 : focus d'accessibilité demandé sur ce point (pas d'une zone à l'autre). */
   readonly focusRequest: ItemFocusRequest | null;
@@ -3857,6 +3948,7 @@ function StopPointRow({
   rail,
   autoScroll,
   fadeOpacity,
+  fadeLeaving,
   onLayout,
   focusRequest,
   onFocusConsumed,
@@ -3999,9 +4091,9 @@ function StopPointRow({
         // Story 7.5 : fondu quand la suppression d'une carte retire ce point.
         fadeOpacity !== null ? { opacity: fadeOpacity } : null,
       ]}
-      pointerEvents={fadeOpacity !== null ? "none" : "auto"}
-      accessibilityElementsHidden={fadeOpacity !== null}
-      importantForAccessibility={fadeOpacity !== null ? "no-hide-descendants" : "auto"}
+      pointerEvents={fadeLeaving ? "none" : "auto"}
+      accessibilityElementsHidden={fadeLeaving}
+      importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
       onLayout={onLayout}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
@@ -4154,8 +4246,10 @@ type CompositionActivityRowProps = {
   readonly rail: SequenceRailContext;
   /** PRE-6 story 7.4 : défilement automatique pendant le glisser. */
   readonly autoScroll: DragAutoScroll;
-  /** PRE-6 story 7.5 : opacité du fondu de la carte supprimée, ou `null`. */
+  /** PRE-6 story 7.5 : opacité du fondu de la carte supprimée (story 7.7 : ou de la copie qui apparaît), ou `null`. */
   readonly fadeOpacity?: Animated.Value | null;
+  /** Story 7.7 : le fondu est une disparition (sans toucher ni accessibilité). */
+  readonly fadeLeaving?: boolean;
   readonly onDuplicate: () => void;
   readonly onDelete: () => void;
   /** PRE-6 (story 2.3) : action accessible « Monter » / « Descendre » ; `null` = aucune (extrémité de la séquence). */
@@ -4186,6 +4280,13 @@ type OccurrenceAccessibilityActionName = "moveUp" | "moveDown" | "duplicate" | "
  */
 const SWIPE_REVEAL_OFFSET =
   dimensions.compositionSwipeActions.groupWidth + dimensions.compositionTourSection.inset;
+
+/**
+ * PRE-6 story 7.7 (D-438) : la carte d'occurrence reste le même `Pressable` (mécanisme de geste
+ * inchangé) ; seule sa translation horizontale devient une valeur animée, pour que l'ouverture, la
+ * fermeture et le retour des actions glissées se terminent en douceur (pilote natif).
+ */
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /**
  * `Composition / Activity Row` (`2588:2679`, D-128) et ses deux états T02 —
@@ -4304,6 +4405,7 @@ function CompositionActivityRow({
   rail,
   autoScroll,
   fadeOpacity = null,
+  fadeLeaving = false,
   onDuplicate,
   onDelete,
   onMoveUp,
@@ -4385,6 +4487,43 @@ function CompositionActivityRow({
   const [swipeTranslateX, setSwipeTranslateX] = useState(
     areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0,
   );
+  /**
+   * PRE-6 story 7.7 (D-438, j6c-4 : « pas d'arrêt brutal ») : translation horizontale AFFICHÉE de la
+   * carte — elle suit le doigt pendant le balayage (`setValue`) puis rejoint la position de repos
+   * (ouverte ou fermée) par le mouvement partagé (`compositionMotion.ts`, décélération), au lieu d'y
+   * être posée d'un coup. `swipeTranslateX` reste la position LOGIQUE (seuils, actions révélées).
+   * Le groupe d'actions reste monté jusqu'à la fin d'une fermeture (`isSwipeSettling`).
+   */
+  const reduceMotion = useReduceMotion();
+  const [swipeX] = useState(() => new Animated.Value(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0));
+  const [dragY] = useState(() => new Animated.Value(0));
+  const cardDragY = isDragged ? dragTranslationY : 0;
+  useLayoutEffect(() => {
+    dragY.setValue(cardDragY);
+  }, [cardDragY, dragY]);
+  const [isSwipeSettling, setIsSwipeSettling] = useState(false);
+  const swipeSettleTokenRef = useRef(0);
+  const settleSwipe = useCallback(
+    (target: number) => {
+      setSwipeTranslateX(target);
+      const token = ++swipeSettleTokenRef.current;
+      if (reduceMotion) {
+        swipeX.setValue(target);
+        setIsSwipeSettling(false);
+        return;
+      }
+      setIsSwipeSettling(true);
+      Animated.timing(swipeX, {
+        toValue: target,
+        duration: MOTION_SHIFT_DURATION_MS,
+        easing: MOTION_EASING,
+        useNativeDriver: true,
+      }).start(() => {
+        if (swipeSettleTokenRef.current === token) setIsSwipeSettling(false);
+      });
+    },
+    [reduceMotion, swipeX],
+  );
 
   /**
    * Resynchronise la position de repos lorsque l'état RÉVÉLÉ change pour une
@@ -4392,11 +4531,18 @@ function CompositionActivityRow({
    * s'ouvre, `Dupliquer`/`Supprimer` referme celle-ci) — jamais pendant le
    * balayage lui-même, qui pilote déjà `swipeTranslateX` en temps réel.
    */
+  /** Story 7.7 : position logique lue par l'effet de resynchronisation. */
+  const swipeTranslateXRef = useRef(swipeTranslateX);
+  useEffect(() => {
+    swipeTranslateXRef.current = swipeTranslateX;
+  }, [swipeTranslateX]);
   useEffect(() => {
     if (!isSwipingRef.current) {
-      setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
+      const rest = areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0;
+      // Story 7.7 : seulement si la position change (pas de mouvement au montage).
+      if (rest !== swipeTranslateXRef.current) settleSwipe(rest);
     }
-  }, [areActionsRevealed]);
+  }, [areActionsRevealed, settleSwipe]);
 
   /**
    * Enregistre l'origine du toucher ET la position de repos courante — c'est
@@ -4432,10 +4578,17 @@ function CompositionActivityRow({
   }, []);
 
   /** Applique `dx` à la position de repos, borné à `[-SWIPE_REVEAL_OFFSET, 0]` — la fermeture ne peut donc jamais progresser au-delà de `0`, ni l'ouverture au-delà de `-SWIPE_REVEAL_OFFSET`. */
-  const applySwipeMovement = useCallback((dx: number) => {
-    isSwipingRef.current = true;
-    setSwipeTranslateX(clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET));
-  }, []);
+  const applySwipeMovement = useCallback(
+    (dx: number) => {
+      isSwipingRef.current = true;
+      const x = clampSwipeTranslateX(swipeBaseRef.current + dx, SWIPE_REVEAL_OFFSET);
+      setSwipeTranslateX(x);
+      // Story 7.7 : la carte suit le doigt (une animation de repos en cours est arrêtée).
+      swipeSettleTokenRef.current += 1;
+      swipeX.setValue(x);
+    },
+    [swipeX],
+  );
 
   /**
    * Arbitrage du geste, en phase de CAPTURE — donc avant le `Pressable`
@@ -4524,13 +4677,14 @@ function CompositionActivityRow({
     }
     isSwipingRef.current = false;
     const shouldReveal = shouldRevealAfterSwipe(swipeTranslateX, SWIPE_REVEAL_OFFSET);
-    setSwipeTranslateX(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
+    // Story 7.7 : la carte rejoint sa position de repos en douceur.
+    settleSwipe(shouldReveal ? -SWIPE_REVEAL_OFFSET : 0);
     if (shouldReveal && !areActionsRevealed) {
       onRevealActions();
     } else if (!shouldReveal && areActionsRevealed) {
       onHideActions();
     }
-  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, swipeTranslateX]);
+  }, [areActionsRevealed, onDragEnd, onHideActions, onRevealActions, settleSwipe, swipeTranslateX]);
 
   /**
    * **Hérité de T02-S02** — le balayage engagé ne doit pas être perdu si le
@@ -4583,9 +4737,9 @@ function CompositionActivityRow({
   const handleTouchCancel = useCallback(() => {
     originRef.current = null;
     isSwipingRef.current = false;
-    setSwipeTranslateX(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
+    settleSwipe(areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0);
     handleResponderTerminate();
-  }, [areActionsRevealed, handleResponderTerminate]);
+  }, [areActionsRevealed, handleResponderTerminate, settleSwipe]);
 
   /**
    * Appui COURT (D-127) : ouvre l'Activité en modification — sauf lorsque
@@ -4706,6 +4860,13 @@ function CompositionActivityRow({
   // Même translation pour la carte et sa ligne de récupération : elles font bloc.
   const blockTransform = [{ translateX: swipeTranslateX }, { translateY: isDragged ? dragTranslationY : 0 }];
   /**
+   * Story 7.7 : transformation de la carte — translations horizontale (`swipeX`) ET verticale
+   * (`dragY`) animées. Revue 7.7 : une fois une animation native passée sur `transform`, Fabric iOS
+   * n'applique plus cette propriété depuis les commits (`propKeysManagedByAnimated`) ; le suivi
+   * vertical du doigt pendant le glisser passe donc lui aussi par une valeur animée (`setValue`).
+   */
+  const cardTransform = [{ translateX: swipeX }, { translateY: dragY }];
+  /**
    * V2-PRE-1 (plan §3.3) : changement de côté PROPRE à l'Exercice. PRE-6 (story 2.2,
    * RM-243, D-407, ARB-2) : icône neutre seulement, jamais pour un exercice unilatéral.
    */
@@ -4771,10 +4932,10 @@ function CompositionActivityRow({
       // (aucun appui, appui long ni balayage) jusqu'à la fermeture de
       // l'autre, conformément au contrat existant (CE-T02-02).
       // Story 7.5 : la carte en cours de suppression ne répond plus.
-      pointerEvents={isBlockedByOtherReveal || fadeOpacity !== null ? "none" : "auto"}
+      pointerEvents={isBlockedByOtherReveal || fadeLeaving ? "none" : "auto"}
       // Revue 7.5 : la carte qui s'efface n'est plus proposée à VoiceOver (ni actions ni activation).
-      accessibilityElementsHidden={fadeOpacity !== null}
-      importantForAccessibility={fadeOpacity !== null ? "no-hide-descendants" : "auto"}
+      accessibilityElementsHidden={fadeLeaving}
+      importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
       // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
       // les puces de l'emplacement répondent.
       {...(placement === null
@@ -4802,8 +4963,12 @@ function CompositionActivityRow({
        * pendant le geste est elle-même observable, pas seulement son
        * aboutissement.
        */}
-      {swipeTranslateX < 0 ? (
+      {swipeTranslateX < 0 || isSwipeSettling ? (
         <View
+          // Revue 7.7 : pendant le retour d'une fermeture, les actions ne répondent plus.
+          pointerEvents={swipeTranslateX < 0 ? "auto" : "none"}
+          accessibilityElementsHidden={swipeTranslateX >= 0}
+          importantForAccessibility={swipeTranslateX < 0 ? "auto" : "no-hide-descendants"}
           style={[styles.activityRowActions, { height: blockHeight }]}
           accessibilityLabel={composition.activityActions.revealAccessibilityLabel}
           testID={`composition-activity-actions-${activity.id}`}
@@ -4839,7 +5004,7 @@ function CompositionActivityRow({
         </View>
       ) : null}
 
-      <Pressable
+      <AnimatedPressable
         ref={cardRef}
         onPress={handlePress}
         onLongPress={handleLongPress}
@@ -4872,7 +5037,7 @@ function CompositionActivityRow({
           // verticalement (déplacement soulevé) — les deux restent
           // mutuellement exclusifs en pratique (`isDraggingRef`), mais la
           // transformation est toujours appliquée pour rester continue.
-          { transform: blockTransform },
+          { transform: cardTransform },
         ]}
         testID={`composition-exercise-row-${activity.id}`}
       >
@@ -4905,7 +5070,7 @@ function CompositionActivityRow({
           sideChangeTestID={`composition-activity-side-mode-${activity.id}`}
         />
 
-      </Pressable>
+      </AnimatedPressable>
 
       {/*
        * PRE-6 (story 5.2, D-435) : rail de l'occurrence, peint APRÈS la carte (il passe sur ses
@@ -5207,7 +5372,12 @@ export function railGeometryFor(circuitHeaderHeight: number): RailGeometry {
  * translations animées partagées (registre de l'écran) et occurrence sortie de la chaîne.
  */
 /** PRE-6 story 7.5 : éléments en cours d'effacement (suppression) et leur opacité partagée. */
-type DeletionFading = { readonly keys: ReadonlySet<string>; readonly opacity: Animated.Value };
+type DeletionFading = {
+  readonly keys: ReadonlySet<string>;
+  readonly opacity: Animated.Value;
+  /** Story 7.7 : éléments qui s'effacent (suppression) — sans toucher ni accessibilité ; faux pour une copie qui apparaît. */
+  readonly leaving: boolean;
+};
 
 type SequenceRailContext = {
   readonly links: ReadonlyMap<string, RailLinkGeometry>;
@@ -5377,6 +5547,9 @@ export function predictedInsertionHeight(
  * (`scaleY`, valeurs fractionnaires) laissait un liseré clair à chaque jointure pendant le glisser.
  */
 const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
+
+/** Revue 7.7 : continuation de tous les éléments en mouvement (copie de Dupliquer). */
+const NO_CONTINUATION_EXCEPTIONS: ReadonlySet<string> = new Set();
 
 /** Revue 7.6 : bords du Circuit, jamais continués au dépôt (voir `finishAppliedDrop`). */
 const CIRCUIT_EDGE_KEYS: ReadonlySet<string> = new Set([RAIL_KEYS.circuitHeader, RAIL_KEYS.circuitEnd]);

@@ -18,16 +18,24 @@ import { Easing, type EasingFunction } from "react-native";
  *   plus lente au démarrage qu'avant, et un arrêt progressif ;
  * - fondu : courbe douce aux deux bouts, Bézier (0,4 ; 0 ; 0,2 ; 1) — l'opacité ne chute pas d'emblée
  *   (« le fondu est trop rapide ») ;
- * - le glissement de la suppression commence pendant le fondu (à 120 ms) : les deux se chevauchent
- *   au lieu de s'enchaîner (440 ms en tout au lieu de 580).
+ * - le glissement de la suppression commence pendant le fondu : les deux se chevauchent.
+ *
+ * PRE-6 story 7.7 (D-438, recette J6c, j6c-4 : « La disparition doit être encore plus lente.
+ * Lorsqu'on copie une carte, elle apparaît aussi brutalement, il faut qu'elle apparaisse en fondu
+ * plus lentement […] ») : fondu de disparition et d'apparition à 450 ms (260 ms en 7.6) ; le
+ * glissement de la suppression part à 200 ms (fin à 520 ms, après le fondu) ; la copie de Dupliquer
+ * apparaît en fondu de 450 ms pendant que les éléments suivants glissent (320 ms) ; les actions
+ * glissées rejoignent leur position de repos par le même glissement.
  *
  * Toutes les animations restent sur le pilote natif ; la courbe est échantillonnée en JS au
  * démarrage (Animated), sans coût pendant le mouvement.
  */
 export const MOTION_SHIFT_DURATION_MS = 320;
-export const MOTION_FADE_DURATION_MS = 260;
+export const MOTION_FADE_DURATION_MS = 450;
 /** Délai entre le début du fondu et le début du glissement d'une suppression. */
-export const MOTION_FADE_TO_SLIDE_DELAY_MS = 120;
+export const MOTION_FADE_TO_SLIDE_DELAY_MS = 200;
+/** Story 7.7 : fondu d'apparition de la copie de Dupliquer. */
+export const MOTION_APPEAR_DURATION_MS = MOTION_FADE_DURATION_MS;
 /** Courbe de tous les glissements : décélération jusqu'à l'arrêt, sans rebond. */
 export const MOTION_EASING: EasingFunction = Easing.bezier(0.33, 1, 0.68, 1);
 /** Courbe du fondu : départ et fin progressifs. */

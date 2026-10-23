@@ -386,6 +386,35 @@ export function resolveDropSettleOffset(
 }
 
 /**
+ * PRE-6 story 7.7 (D-438) : poses de départ, dans la NOUVELLE disposition, des éléments qui suivent
+ * un élément inséré juste après `afterId` (copie de Dupliquer) — ils y apparaissent décalés de la
+ * hauteur insérée plus l'écart de la zone, c'est-à-dire là où ils étaient, puis glissent vers 0 pour
+ * lui faire place. Même modèle que `resolveDragShifts` (bords du Circuit, Fin de séance). Fonction
+ * pure ; `null` si `afterId` n'a pas été relevé.
+ */
+export function resolveInsertionPoses(
+  layout: CompositionDragLayout,
+  afterId: string,
+  insertedHeight: number,
+  gaps: DragShiftGaps,
+): DragShifts | null {
+  const anchor = layout.rows.find((row) => row.id === afterId);
+  if (anchor === undefined) {
+    return null;
+  }
+  const step = -(insertedHeight + (anchor.zone === "IN_TOUR" ? gaps.circuitRow : gaps.row));
+  const rows = new Map<string, number>();
+  for (const row of layout.rows) {
+    const after =
+      ZONE_ORDER[row.zone] > ZONE_ORDER[anchor.zone] || (row.zone === anchor.zone && row.top > anchor.top);
+    if (after) rows.set(row.id, step);
+  }
+  const circuitTop = anchor.zone === "BEFORE_TOUR" ? step : 0;
+  const circuitBottom = anchor.zone === "AFTER_TOUR" ? 0 : step;
+  return { rows, circuitTop, circuitBottom, afterCircuit: circuitBottom, end: step };
+}
+
+/**
  * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : décalages qui montrent, avant qu'elle soit
  * écrite, la disposition produite par la SUPPRESSION des éléments `removedIds` (la carte supprimée
  * et les Points d'arrêt que la suppression retire) — même modèle que le retrait du glisser

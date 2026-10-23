@@ -1979,6 +1979,8 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
  * ajoutée).
  */
 describe("CompositionScreen — Zones corporelles de la ligne Activité (correction compacte LOT_3_OF_3)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   const activityWithZones = {
     ...createExerciseDraft("ex-1"),
     name: "Gainage",
@@ -2211,6 +2213,8 @@ function fireLayout(element: ReturnType<typeof screen.getByTestId>, y: number, h
  * en état.
  */
 function jsDrivenAnimations(): () => void {
+  // Déjà actif (`swipeMotion()` du `describe`) : rien de plus.
+  if (jest.isMockFunction(Animated.timing)) return () => undefined;
   jest.useFakeTimers();
   const realTiming = Animated.timing;
   const spy = jest.spyOn(Animated, "timing").mockImplementation((value, config) => realTiming(value, { ...config, useNativeDriver: false }));
@@ -2229,6 +2233,30 @@ function finishDeletionAnimation() {
   }
 }
 
+/**
+ * PRE-6 story 7.7 : la carte rejoint sa position de repos par une animation (actions glissées) ;
+ * sous `swipeMotion()` (pilote JS, minuteurs simulés), les gestes la laissent se terminer.
+ */
+let swipeMotionDriven = false;
+function settleMotion() {
+  if (!swipeMotionDriven) return;
+  act(() => {
+    jest.advanceTimersByTime(600);
+  });
+}
+/** Dans un `describe` : animations de la carte rejouées sur le pilote JS, minuteurs simulés. */
+function swipeMotion() {
+  let restore: (() => void) | null = null;
+  beforeEach(() => {
+    restore = jsDrivenAnimations();
+    swipeMotionDriven = true;
+  });
+  afterEach(() => {
+    swipeMotionDriven = false;
+    restore?.();
+  });
+}
+
 function fireSwipe(activityId: string, deltaX: number) {
   const container = () => screen.getByTestId(`composition-activity-${activityId}`);
   const startX = 300;
@@ -2237,6 +2265,7 @@ function fireSwipe(activityId: string, deltaX: number) {
     nativeEvent: { pageX: startX + deltaX, pageY: 100 },
   });
   fireEvent(container(), "touchEnd", { nativeEvent: { pageX: startX + deltaX, pageY: 100 } });
+  settleMotion();
 }
 
 /** Balayage GAUCHE, au-delà de la moitié de la course — révèle `Dupliquer`/`Supprimer`. */
@@ -2250,6 +2279,8 @@ function fireSwipeRight(activityId: string) {
 }
 
 describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   const threeZones = [
     anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement" }),
     anActivity("core", "IN_TOUR", { name: "Gainage" }),
@@ -2571,6 +2602,8 @@ describe("CompositionScreen — déplacement d'une Activité (T02-S01, AC-04)", 
 });
 
 describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, AC-06/AC-07)", () => {
+  // PRE-6 story 7.7 : ouverture, fermeture et retour animés.
+  swipeMotion();
   function renderTwo() {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
@@ -2647,6 +2680,70 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
 
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 120, pageY: 100 } });
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
+  });
+
+  /** PRE-6 story 7.7 (D-438) : la carte rejoint sa position de repos sans arrêt brutal. */
+  it("story 7.7 — ouverture, fermeture et retour : la carte rejoint sa position de repos en décélérant, les actions restent dessous jusqu'à la fin", () => {
+    renderTwo();
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    const x = () =>
+      (StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform as Record<string, number>[])[0]!
+        .translateX;
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 210, pageY: 100 } });
+    expect(x()).toBe(-90);
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 210, pageY: 100 } });
+    // Ouverture : pas de saut à -154, un mouvement qui ralentit.
+    expect(x()).toBe(-90);
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    const early = x();
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    const later = x();
+    expect(early).toBeLessThan(-90);
+    expect(-90 - early).toBeGreaterThan(early - later);
+    settleMotion();
+    expect(x()).toBe(-154);
+    // Fermeture (balayage droit en deçà du seuil d'ouverture) : les actions restent visibles
+    // derrière la carte jusqu'à la fin du retour.
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+    act(() => {
+      jest.advanceTimersByTime(80);
+    });
+    expect(x()).toBeLessThan(0);
+    // Revue 7.7 : dessous, mais inertes et masquées à VoiceOver pendant le retour.
+    const closing = screen.getByTestId("composition-activity-actions-ex-1", { includeHiddenElements: true });
+    expect(closing.props.pointerEvents).toBe("none");
+    expect(closing.props.accessibilityElementsHidden).toBe(true);
+    settleMotion();
+    expect(x()).toBe(0);
+    expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
+  });
+
+  it("story 7.7 — « Réduire les animations » : la carte est posée ouverte ou fermée sans mouvement", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    renderTwo();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const container = () => screen.getByTestId("composition-activity-ex-1");
+    const x = () =>
+      (StyleSheet.flatten(screen.getByTestId("composition-exercise-row-ex-1").props.style).transform as Record<string, number>[])[0]!
+        .translateX;
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 300, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 210, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 210, pageY: 100 } });
+    expect(x()).toBe(-154);
+    fireEvent(container(), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
+    fireEvent(container(), "touchMove", { nativeEvent: { pageX: 200, pageY: 100 } });
+    fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
+    expect(x()).toBe(0);
+    expect(screen.queryByTestId("composition-activity-actions-ex-1", { includeHiddenElements: true })).toBeNull();
   });
 
   it("springs back to closed on release before crossing half of the reveal course, and ignores a vertically dominant movement (it belongs to the list)", () => {
@@ -2726,6 +2823,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 280, pageY: 100 } });
     fireEvent(container(), "responderRelease", { nativeEvent: { pageX: 280, pageY: 100 } });
 
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2785,6 +2883,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     fireEvent(container(), "touchMove", { nativeEvent: { pageX: 300, pageY: 100 } });
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
 
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2816,6 +2915,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     fireEvent(container(), "responderTerminate", {});
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 300, pageY: 100 } });
 
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2828,6 +2928,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     fireEvent(container(), "touchCancel", {});
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
 
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2841,6 +2942,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 380, pageY: 100 } });
 
     // Le dernier sens franchi est un balayage DROIT : rien n'est révélé.
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -2877,6 +2979,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     // La source reste intacte, et la copie reprend ses paramètres.
     expect(screen.getAllByTestId("composition-exercise-body-zones")).toHaveLength(2);
     // Les actions se referment après l'opération.
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
   });
 
@@ -3000,6 +3103,8 @@ describe("CompositionScreen — rythme vertical du corps (T02-S02)", () => {
  * d'arrêt (rendu provisoire jusqu'à la story 5.2). La carte fait 80 dans toutes les variantes.
  */
 describe("CompositionScreen — carte v2 : récupération en ligne 3 et géométrie (PRE-6 story 5.1, révise les stories 2.1 et 2.2)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   const withZeroRecovery = [anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" })];
   const withRecovery = [
     anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 90 }),
@@ -3528,6 +3633,8 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
  * recalcul immédiat après déplacement, duplication ou suppression ».
  */
 describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-S02)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   it("counts and totals ONLY the IN_TOUR Activities, then multiplies that zone by tourRepeatCount", () => {
     renderScreenWithDraft([
       anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
@@ -3620,6 +3727,8 @@ function setCircuitCountWithStepper(target: number) {
 }
 
 describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10 ; story 7.3, D-437)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
   const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
   const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
@@ -4073,6 +4182,8 @@ describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affect
  * (story 4.1) : une sonde lit `draft.stopPoints` dans le contexte.
  */
 describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   function DraftStopPointsProbe() {
     const context = useContext(SessionDraftContext);
     return <Text testID="draft-stop-points">{JSON.stringify(context?.draft.stopPoints ?? null)}</Text>;
@@ -4186,6 +4297,8 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
  * Fin, RM-159), bouton fermer, « + », bornes et action « Continuer ».
  */
 describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   function headerDuration() {
     return screen.getByTestId("composition-session-duration").props.children as string;
   }
@@ -4414,6 +4527,8 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
  * avec confirmation de perte, sortie sans message, actions accessibles (CE-T03-08 §18).
  */
 describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, story 2.3)", () => {
+  // PRE-6 story 7.7 : actions glissées animées.
+  swipeMotion();
   type Draft = SessionDraftContextValue["draft"];
   const probe: { draft: Draft | null; updateDraft: SessionDraftContextValue["updateDraft"] | null } = {
     draft: null,
@@ -4641,6 +4756,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
     a11yAction("ex-1", "moveDown");
 
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-ex-1")).toBeNull();
     expect(probe.draft!.exercises.map((exercise) => exercise.id)).toEqual(["ex-2", "ex-1"]);
   });
@@ -5047,6 +5163,8 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
 });
 
 describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.4, CE-CIR-03)", () => {
+  // PRE-6 story 7.7 : actions glissées animées.
+  swipeMotion();
   type Draft = SessionDraftContextValue["draft"];
   const anyNode = { includeHiddenElements: true } as const;
   const probe: { draft: Draft | null } = { draft: null };
@@ -5151,6 +5269,7 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     expect(screen.getByTestId("composition-activity-actions-before")).toBeTruthy();
     fireEvent.press(screen.getByTestId(EYE));
     expect(screen.getByTestId(SHEET)).toBeTruthy();
+    settleMotion();
     expect(screen.queryByTestId("composition-activity-actions-before")).toBeNull();
   });
 
@@ -7962,8 +8081,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   it("story 7.5 (revue) — suppression d'une carte du Circuit : pendant le glissement, la bande du fond se rétracte sans s'écraser", () => {
     renderLaidOut();
     deleteCard("X");
-    // Glissement lancé pendant le fondu (rendu à la sortie de `act`), puis en cours.
-    advance(160);
+    // Glissement lancé pendant le fondu (200 ms ; rendu à la sortie de `act`), puis en cours.
+    advance(220);
     advance(60);
     const bottom = translateY("composition-tour-section-surface-bottom");
     expect(bottom).toBeLessThan(0);
@@ -7990,6 +8109,75 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     advance(400);
     advance(400);
     expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+  });
+
+  /** PRE-6 story 7.7 (D-438, j6c-4) : la copie de Dupliquer apparaît en fondu lent, la suite glisse. */
+  it("story 7.7 — Dupliquer : brouillon écrit aussitôt ; la copie apparaît en fondu lent, les éléments suivants glissent pour lui faire place", () => {
+    renderLaidOut();
+    fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(order()).toEqual(["A:BEFORE_TOUR", "generated-copy-id:BEFORE_TOUR", "B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
+    const copy = () => StyleSheet.flatten(screen.getByTestId("composition-activity-generated-copy-id").props.style).opacity as number;
+    expect(copy()).toBe(0);
+    // B, le Circuit et la suite sont posés là où ils étaient (un pas plus haut), puis glissent.
+    expect(rowShift("B")).toBe(-PITCH);
+    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
+    expect(rowShift("Z")).toBe(-PITCH);
+    act(() => {
+      jest.advanceTimersByTime(160);
+    });
+    expect(copy()).toBeGreaterThan(0);
+    expect(copy()).toBeLessThan(1);
+    expect(rowShift("B")).toBeGreaterThan(-PITCH);
+    expect(rowShift("B")).toBeLessThan(0);
+    // La copie reste accessible et touchable pendant son apparition.
+    expect(screen.getByTestId("composition-activity-generated-copy-id").props.accessibilityElementsHidden).toBe(false);
+    settle();
+    settle();
+    expect(rowShift("B")).toBe(0);
+    // Fin de l'apparition : la copie est une carte ordinaire (aucune opacité posée).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-generated-copy-id").props.style).opacity).toBeUndefined();
+  });
+
+  it("story 7.7 (revue) — seconde copie pendant l'apparition de la première : la première est affichée pleinement", () => {
+    renderLaidOut();
+    const duplicate = (id: string) =>
+      fireEvent(screen.getByTestId(`composition-exercise-row-${id}`), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    const crypto = jest.requireMock("expo-crypto") as { randomUUID: jest.Mock };
+    crypto.randomUUID.mockReturnValueOnce("copy-1").mockReturnValueOnce("copy-2");
+    duplicate("A");
+    act(() => {
+      jest.advanceTimersByTime(60);
+    });
+    const opacityOf = (id: string) => StyleSheet.flatten(screen.getByTestId(`composition-activity-${id}`).props.style).opacity as number | undefined;
+    expect(opacityOf("copy-1")).toBeLessThan(1);
+    duplicate("B");
+    expect(opacityOf("copy-1")).toBeUndefined();
+    // La première copie n'est pas encore mesurée : disposition incomplète, la seconde est affichée
+    // aussitôt (choix 7.7).
+    expect(opacityOf("copy-2")).toBeUndefined();
+    settle();
+    settle();
+  });
+
+  it("story 7.7 (revue) — Dupliquer est ignoré pendant le glisser d'un élément", () => {
+    renderLaidOut();
+    lift("A");
+    moveTo("A", 40);
+    const before = order();
+    fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(order()).toEqual(before);
+    release("A", 40);
+  });
+
+  it("story 7.7 — « Réduire les animations » : la copie de Dupliquer est affichée aussitôt, sans glissement", async () => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+    renderLaidOut();
+    await act(async () => {
+      await Promise.resolve();
+    });
+    fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    expect(rowShift("B")).toBe(0);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-activity-generated-copy-id").props.style).opacity).toBeUndefined();
   });
 
   it("story 7.5 — « Réduire les animations » : suppression écrite aussitôt, sans fondu ni glissement", async () => {
@@ -9063,7 +9251,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             ],
           });
           fireEvent(screen.getByTestId("composition-exercise-row-B"), "accessibilityAction", { nativeEvent: { actionName: "delete" } });
-          // Story 7.6 : fondu en cours (260 ms), rien ne glisse encore avant 120 ms.
+          // Story 7.6, 7.7 : fondu en cours (450 ms), rien ne glisse encore avant 200 ms.
           frames(5);
           const fadingB = StyleSheet.flatten(screen.getByTestId("composition-activity-B", { includeHiddenElements: true }).props.style).opacity as number;
           expect(fadingB).toBeLessThan(1);
@@ -9072,11 +9260,11 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(rowShift("C")).toBe(0);
           // Le glissement commence pendant le fondu (chevauchement) : C, le Circuit et la suite
           // remontent ; rien n'est encore écrit.
-          frames(5);
+          frames(8);
           frames(4);
           expect(rowShift("C")).toBeLessThan(0);
-          // Fin du fondu (260 ms) passée, glissement en cours : rien n'est encore écrit.
-          frames(3);
+          // Fin du fondu (450 ms) passée, glissement en cours (fin vers 520 ms) : rien n'est encore écrit.
+          frames(12);
           expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
           expect(translateY("composition-tour-section-surface-top")).toBeLessThan(0);
           expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "C:BEFORE_TOUR", "X:IN_TOUR"]);
@@ -9697,6 +9885,8 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
  * `OccurrenceCardMedia.test.tsx`.
  */
 describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 story 5.1b)", () => {
+  // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
+  swipeMotion();
   const photoMedia = (id: string) => [
     { assetId: `asset-${id}`, asset: { id: `asset-${id}`, uri: `kodjo-media/${id}.jpg`, createdAt: "now", kind: "PHOTO" as const } },
     { assetId: `asset-${id}-2`, asset: { id: `asset-${id}-2`, uri: `kodjo-media/${id}-2.mov`, createdAt: "now", kind: "VIDEO" as const } },

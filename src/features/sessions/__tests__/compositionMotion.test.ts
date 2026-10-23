@@ -3,6 +3,7 @@ import { describe, expect, it } from "@jest/globals";
 import {
   resolveDragShifts,
   resolveDropSettleOffset,
+  resolveInsertionPoses,
   type CompositionDragLayout,
   type DropTarget,
 } from "@/features/sessions/compositionGesture";
@@ -20,11 +21,12 @@ import { DELETE_FADE_DURATION_MS } from "@/features/sessions/CompositionScreen";
 
 /** PRE-6 story 7.6 (recette J6b) : douceur des mouvements de la Composition. */
 describe("jeu de mouvements partagé (story 7.6)", () => {
-  it("un seul jeu de durées : glissements et mise en place 320 ms, fondu 260 ms, glissement lancé pendant le fondu", () => {
+  it("un seul jeu de durées : glissements et mise en place 320 ms, fondu 450 ms (story 7.7), glissement lancé pendant le fondu", () => {
     expect(DRAG_SHIFT_DURATION_MS).toBe(MOTION_SHIFT_DURATION_MS);
     expect(DELETE_FADE_DURATION_MS).toBe(MOTION_FADE_DURATION_MS);
     expect(MOTION_SHIFT_DURATION_MS).toBe(320);
-    expect(MOTION_FADE_DURATION_MS).toBe(260);
+    expect(MOTION_FADE_DURATION_MS).toBe(450);
+    expect(MOTION_FADE_TO_SLIDE_DELAY_MS).toBe(200);
     expect(MOTION_FADE_TO_SLIDE_DELAY_MS).toBeLessThan(MOTION_FADE_DURATION_MS);
     // L'écriture (fin du glissement) suit toujours la fin du fondu.
     expect(MOTION_FADE_TO_SLIDE_DELAY_MS + MOTION_SHIFT_DURATION_MS).toBeGreaterThan(MOTION_FADE_DURATION_MS);
@@ -100,5 +102,37 @@ describe("resolveDropSettleOffset (story 7.6)", () => {
 
   it("élément non relevé : null", () => {
     expect(offset("?", { zone: "BEFORE_TOUR", index: 0 }, 0)).toBeNull();
+  });
+});
+
+describe("resolveInsertionPoses (story 7.7)", () => {
+  const GAPS = { row: 10, circuitRow: 9, zone: 10, circuit: 12 };
+  const layout: CompositionDragLayout = {
+    tourTop: 240,
+    tourBottom: 500,
+    rows: [
+      { id: "A", zone: "BEFORE_TOUR", top: 0, height: 70 },
+      { id: "B", zone: "BEFORE_TOUR", top: 80, height: 70 },
+      { id: "X", zone: "IN_TOUR", top: 340, height: 70 },
+      { id: "Y", zone: "IN_TOUR", top: 419, height: 70 },
+      { id: "Z", zone: "AFTER_TOUR", top: 510, height: 70 },
+    ],
+  };
+  const of = (after: string) => {
+    const result = resolveInsertionPoses(layout, after, 70, GAPS);
+    return result === null ? null : { ...result, rows: Object.fromEntries(result.rows) };
+  };
+
+  it("copie avant le Circuit : tout ce qui suit part d'un pas plus haut (hauteur + écart de la zone)", () => {
+    expect(of("A")).toEqual({ rows: { B: -80, X: -80, Y: -80, Z: -80 }, circuitTop: -80, circuitBottom: -80, afterCircuit: -80, end: -80 });
+  });
+
+  it("copie dans le Circuit : écart du Circuit ; le haut du Circuit ne bouge pas", () => {
+    expect(of("X")).toEqual({ rows: { Y: -79, Z: -79 }, circuitTop: 0, circuitBottom: -79, afterCircuit: -79, end: -79 });
+  });
+
+  it("copie après le Circuit : seule la Fin glisse ; source inconnue : null", () => {
+    expect(of("Z")).toEqual({ rows: {}, circuitTop: 0, circuitBottom: 0, afterCircuit: 0, end: -80 });
+    expect(of("?")).toBeNull();
   });
 });

@@ -176,11 +176,18 @@ export class AnimatedShiftRegistry {
    * moins sa cible) au lieu de sauter à sa place — sauf les clés de `continueExcept` ; l'`apply`
    * animé suivant achève ce chemin. Sans `continueExcept` : tout à 0 (story 7.4).
    */
-  prepareLayoutCommit(pose: ShiftRelease | null = null, continueExcept: ReadonlySet<string> | null = null): void {
+  prepareLayoutCommit(
+    pose: ShiftRelease | ReadonlyMap<string, number> | null = null,
+    continueExcept: ReadonlySet<string> | null = null,
+  ): void {
     for (const [key, shift] of this.values) {
       const remaining =
         continueExcept === null || continueExcept.has(key) ? 0 : this.position(key) - (this.applied.get(key) ?? 0);
-      const posed = pose !== null && pose.key === key ? pose.from : Math.abs(remaining) < 0.5 ? 0 : remaining;
+      // Story 7.7 : plusieurs poses (éléments qui suivent la copie de Dupliquer).
+      const explicit = pose === null ? undefined : isPoseMap(pose) ? pose.get(key) : pose.key === key ? pose.from : undefined;
+      // Revue 7.7 : avec plusieurs poses (insertion), le reste du chemin d'un élément en mouvement s'y ajoute.
+      const carry = Math.abs(remaining) < 0.5 ? 0 : remaining;
+      const posed = explicit === undefined ? carry : pose !== null && isPoseMap(pose) ? explicit + carry : explicit;
       // Revue 7.4 : seules les clés déplacées ou en mouvement (au repos, rien à poser).
       if (posed === 0 && this.applied.get(key) === 0 && !this.running.has(key) && !this.pending.has(key) && jsValueOf(shift) === 0) {
         continue;
@@ -383,6 +390,10 @@ function setJsValue(value: Animated.Value, next: number): void {
     .__onAnimatedValueUpdateReceived;
   if (typeof receive === "function") receive.call(value, next);
   else value.setValue(next);
+}
+
+function isPoseMap(pose: ShiftRelease | ReadonlyMap<string, number>): pose is ReadonlyMap<string, number> {
+  return pose instanceof Map;
 }
 
 /** PRE-6 story 5.2b : translation de départ d'une clé, posée sans animation avant ses cibles. */
