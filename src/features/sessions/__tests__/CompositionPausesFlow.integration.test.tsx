@@ -29,7 +29,6 @@ import { ReferentialService } from "@/features/reference-data/ReferentialService
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { SessionService } from "@/features/sessions/SessionService";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
-import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
 import { strings } from "@/shared/i18n";
 
 /**
@@ -183,7 +182,7 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       await screen.findByLabelText(composition.name);
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // 4 × 60 s, B et C répétés deux fois : 360 s, aucune pause entre les exercices.
-      expect(sessionDuration()).toBe(formatEstimatedDuration(360, "exact"));
+      expect(sessionDuration()).toBe("≈ 6 min");
       // Story 7.2 (D-437) : D-301 retirée, aucun message d'enchaînement sans pause.
       expect(screen.queryByText("Attention, les exercices vont s’enchaîner sans pause.")).toBeNull();
 
@@ -210,7 +209,7 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       // Durée affichée avant enregistrement : R de B répétée à chaque Tour, points à 0 s,
       // R = 0 de A ne compte rien → 60 + 2 × (60 + 45) + 2 × 60 + 60 = 450 s.
       const displayedBeforeSave = sessionDuration();
-      expect(displayedBeforeSave).toBe(formatEstimatedDuration(450, "exact"));
+      expect(displayedBeforeSave).toBe("≈ 7 min 30 s");
       const pausesBeforeSave = displayedPauses();
       expect(pausesBeforeSave).toEqual({
         // A : R = 0 n'affiche rien ; B : R dans la carte ; C, D : rien.
@@ -378,7 +377,7 @@ describe("Retrait d'une récupération en placement → Continuer → réouvertu
       expect(persistedPauses((await sessionRepository.findById(sessionId))!).recoveries).toContainEqual(["B", 45]);
       expect(screen.queryByTestId("composition-activity-recovery-ex-b-recovery")).toBeNull();
       // Durée sans la récupération (exercices sans Pause : RM-038 est prouvée par le test d’écran « timed »).
-      expect(sessionDuration()).toBe(formatEstimatedDuration(360, "exact"));
+      expect(sessionDuration()).toBe("≈ 6 min");
 
       await act(async () => {
         fireEvent.press(screen.getByLabelText(composition.saveAction));

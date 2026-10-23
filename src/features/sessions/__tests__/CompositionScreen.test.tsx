@@ -427,7 +427,8 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
     const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
     expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    // Story 7.8 (D-438) : roulette d'une seule colonne de secondes (0..60).
+    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
   });
 
   it("T01-S09 correction VISUAL (point D) — supersedes the former popover zIndex elevation (UI-CTRL-002): Boundary Activity rows never carry an ad hoc zIndex, open or closed, now that wheel pickers render in a structurally separate overlay layer, never anchored to their triggering row", () => {
@@ -507,20 +508,22 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  it("shows the exact local empty summary '— min' (PRE-6 story 1.3, D-390, D-399 : durée seule, aucun nombre d'exercices)", () => {
+  // Story 7.8 (D-438) : plus de durée du Circuit ; la séance vide affiche « 0 s » dans la zone de
+  // contexte (remplace le résumé vide « — min » des stories 1.3 / REWORK09).
+  it("story 7.8 — no Circuit duration; the empty session shows « 0 s » in the context area", () => {
     renderScreen();
 
-    // REWORK09 : la ligne de synthèse basse est supprimée (redondante
-    // depuis REWORK08-C) — une seule occurrence subsiste désormais, sous
-    // le titre « Circuit » (composition-circuit-header-duration).
-    expect(screen.getAllByText("— min")).toHaveLength(1);
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
+    expect(screen.queryByText("— min")).toBeNull();
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
   });
 
-  it("shows the canonical default countdown (10 s) and final phase (5 s) row values", () => {
+  it("shows the canonical default countdown (10 s) and final phase (5 s) row values, in seconds only (story 7.8)", () => {
     renderScreen();
 
-    expect(screen.getByText("00 min 10 s")).toBeTruthy();
-    expect(screen.getByText("00 min 05 s")).toBeTruthy();
+    expect(within(screen.getByTestId("composition-boundary-countdown-value")).getByText("10 s")).toBeTruthy();
+    expect(within(screen.getByTestId("composition-boundary-final-phase-value")).getByText("5 s")).toBeTruthy();
+    expect(screen.queryByText("00 min 10 s")).toBeNull();
   });
 });
 
@@ -550,25 +553,51 @@ describe("CompositionScreen — champ Nom", () => {
 });
 
 describe("CompositionScreen — sélecteurs et exclusivité", () => {
+  // Story 7.8 (D-438) : les bornes de séance utilisent la roulette d'une colonne `NumberWheelPicker`
+  // (0..60 s, pas 1 s, secondes seules) ; les comportements D-06 / R4-09 / REWORK08-B sont conservés.
+  const countdownValue = () => within(screen.getByTestId("composition-boundary-countdown-value")).getByText(/ s$/).props.children;
+  const finalPhaseValue = () => within(screen.getByTestId("composition-boundary-final-phase-value")).getByText(/ s$/).props.children;
+
   it("opens the countdown wheel picker on row press, and hides it again on a second press of the same row", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
   });
 
   it("opening the final phase picker closes an already-open countdown picker (single overlay at a time)", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(10);
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    // Still exactly one picker mounted, now driven by the final phase value (05 s).
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(5);
+    // Still exactly one picker mounted, now driven by the final phase value (5 s).
+    expect(screen.getAllByTestId("number-wheel-column")).toHaveLength(1);
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(5);
+  });
+
+  it("story 7.8 — the boundary wheel is one native column of seconds 0..60, step 1, read in seconds", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.queryByTestId("duration-wheel-minutes")).toBeNull();
+    const column = screen.getByTestId("number-wheel-column");
+    const modifiers = column
+      .findAll((node) => typeof node.type === "string" && Array.isArray(node.props.modifiers))
+      .map((node) => node.props.modifiers as { $type: string; tag?: number; label?: string }[]);
+    const values = modifiers.flatMap((list) => list.filter((modifier) => modifier.$type === "tag")).map((modifier) => modifier.tag);
+    expect(values).toEqual(Array.from({ length: 61 }, (_, index) => index));
+    // Chaque ligne est lue en secondes (« 45 s »).
+    expect(JSON.stringify(modifiers)).toContain('"45 s"');
+    // Au-delà de 60 (événement natif hors bornes) : ramené à 60.
+    fireNativeSelectionChange(column, 75);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(countdownValue()).toBe("60 s");
+    expect(screen.getByLabelText(composition.countdown.label).props.accessibilityValue).toMatchObject({ text: "60 s" });
   });
 
   it("dismisses the keyboard when opening a duration picker (Name field may have had focus)", () => {
@@ -587,95 +616,86 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     }
   });
 
-  it("draft vs committed value (D-06): a native minutes selection does NOT update the row's displayed value while the picker stays open", () => {
+  it("draft vs committed value (D-06): a native selection does NOT update the row's displayed value while the picker stays open", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 40);
 
     // La ligne reste sur la valeur validée précédente (défaut 10 s) tant
-    // que le sélecteur n'est pas refermé — jamais mise à jour en cours de
-    // défilement (addendum `WHEEL DRAFT VS COMMITTED VALUE`, D-06).
-    expect(screen.getByText("00 min 10 s")).toBeTruthy();
-    expect(screen.queryByText("01 min 10 s")).toBeNull();
-    // The exercise is still null in T01-S07: the summary stays the exact
-    // local empty label regardless of countdown/final-phase changes (§9.1).
-    // REWORK09 : une seule occurrence désormais (durée du Circuit uniquement,
-    // la ligne basse redondante a été supprimée).
-    expect(screen.getAllByText("— min")).toHaveLength(1);
-    // REWORK08-B (« aucun chemin onChange/sélection/défilement ne
-    // déclenche la fermeture ») : le sélecteur reste réellement monté —
-    // preuve explicite, pas seulement déduite du libellé du test.
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    // que le sélecteur n'est pas refermé (addendum `WHEEL DRAFT VS COMMITTED VALUE`, D-06).
+    expect(countdownValue()).toBe("10 s");
+    expect(screen.queryByText("40 s")).toBeNull();
+    // La durée de séance ne compte jamais les bornes.
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
+    // REWORK08-B : le sélecteur reste réellement monté.
+    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
   });
 
   it("REWORK08-B, superseded by the correction VISUAL point D overlay — no chain of native selection-change events, however many, ever closes the picker — only Annuler/Valider do (root cause of the historical defect: the previous popover anchor intercepted the very first touch on the wheel before it reached the native Host view; the current WheelPickerOverlay backdrop is not pressable at all, see WheelPickerOverlay.test.tsx)", () => {
     renderScreen();
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
 
-    // Simule un défilement réel : plusieurs crans successifs sur les deux
-    // roues, comme un vrai geste de glissement continu.
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 3);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 5);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
+    // Simule un défilement réel : plusieurs crans successifs.
+    for (const seconds of [11, 12, 20, 33, 30]) {
+      fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), seconds);
+    }
 
-    // Le sélecteur — porté par la superposition plein écran dédiée — reste
-    // monté après toute cette séquence, jamais fermé par un simple
-    // changement de sélection.
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
 
-    // Seul Valider ferme (et commit) — la fermeture explicite reste
-    // possible et fonctionne normalement après cette séquence.
+    // Seul Valider ferme (et commit).
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    expect(screen.getByText("03 min 10 s")).toBeTruthy();
+    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
+    expect(countdownValue()).toBe("30 s");
   });
 
   it("selects a real value in the countdown picker, committed to the row exactly once on Validate (R4-09) (no false conformity — a picker that opens but never truly selects, AUD-05)", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 45);
     // Toujours la valeur validée précédente pendant que le sélecteur reste ouvert.
-    expect(screen.getByText("00 min 10 s")).toBeTruthy();
+    expect(countdownValue()).toBe("10 s");
 
-    // R4-08/R4-09 : seule l'action Valider ferme ET commit — un nouvel
-    // appui sur la ligne elle-même ne fait plus office de validation.
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-
-    // La valeur choisie est désormais affichée sur la ligne, exactement
-    // celle sélectionnée — jamais une valeur obsolète/décalée.
-    expect(screen.getByText("02 min 10 s")).toBeTruthy();
+    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
+    expect(countdownValue()).toBe("45 s");
   });
 
   it("Annuler (R4-09) closes without committing — the row keeps the previously validated value, never the draft", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 45);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
 
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
-    expect(screen.getByText("00 min 10 s")).toBeTruthy();
-    expect(screen.queryByText("02 min 10 s")).toBeNull();
+    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
+    expect(countdownValue()).toBe("10 s");
+    expect(screen.queryByText("45 s")).toBeNull();
   });
 
   it("draft/committed independence: re-opening the countdown picker after Valider restores exactly the last committed value, centered — never the previous draft nor a stale value", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 1);
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-seconds"), 10);
-    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (01 min 10 s)
-    expect(screen.getByText("01 min 10 s")).toBeTruthy();
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 25);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 35);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel)); // commit unique (35 s)
+    expect(countdownValue()).toBe("35 s");
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label)); // rouvre
-    expect(screen.getByTestId("duration-wheel-minutes").props.selection).toBe(1);
-    expect(screen.getByTestId("duration-wheel-seconds").props.selection).toBe(10);
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(35);
+  });
+
+  it("story 7.8 — Fin de séance: same wheel, 0 accepted, value in seconds only", () => {
+    renderScreen();
+
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 0);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(finalPhaseValue()).toBe("0 s");
+    expect(countdownValue()).toBe("10 s");
   });
 
   /**
@@ -1106,7 +1126,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(chipLabel.props.style)).toMatchObject({ fontSize: 13, color: colors.primary });
 
     const duration = screen.getByTestId("composition-session-duration");
-    expect(duration.props.children).toBe("0 min");
+    // Story 7.8 (D-438) : séance vide → « 0 s ».
+    expect(duration.props.children).toBe("0 s");
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
     // Revue 5.1b : la bande de 32 est une boîte de 44 (cibles contenues) aux marges verticales de −6 :
     // encombrement 32 inchangé.
@@ -1126,7 +1147,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(screen.getByTestId("composition-context-actions").props.style).flexShrink).toBe(0);
   });
 
-  it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary, then the Circuit duration Regular 12 tertiary; the counter on the right", () => {
+  it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary; the counter on the right (story 7.8 : no Circuit duration)", () => {
     renderScreen();
 
     // La seule surface visuelle est la structure extérieure (PRE-6 story 5.2, D-435, choix D5 :
@@ -1166,18 +1187,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(title.props.children).toBe("Circuit");
     expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 16, fontWeight: "600", color: colors.textPrimary });
 
-    const duration = within(header).getByTestId("composition-circuit-header-duration");
-    expect(duration.props.children).toBe("— min");
-    // Story 7.3 (D-437) : la durée a la taille du titre (16), graisse Regular et couleur tertiaire conservées.
-    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 16, fontWeight: "400", color: TEXT_TERTIARY });
-    // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau) ;
-    // la durée, calée à droite, se tronque (une ligne) ; ni le titre ni le compteur ne cèdent.
+    // Story 7.8 (D-438) : plus de durée du Circuit dans l'en-tête.
+    expect(within(header).queryByTestId("composition-circuit-header-duration")).toBeNull();
+    // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau).
     // Revue 5.2 : hauteur MINIMALE de 40 (Dynamic Type).
     expect(headerStyle).toMatchObject({ minHeight: 40, alignItems: "center", paddingLeft: 45 });
-    expect(duration.props.numberOfLines).toBe(1);
-    expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ flex: 1, minWidth: 0, textAlign: "right" });
-    // Revue 5.2 : le titre cède après la durée (ellipse) ; le compteur jamais.
+    // Story 7.8 : le bloc du titre prend la place libre (stepper calé à droite) et cède (ellipse) ;
+    // le compteur jamais.
     expect(StyleSheet.flatten(within(header).getByTestId("composition-circuit-header-text-block").props.style)).toMatchObject({
+      flexGrow: 1,
       flexShrink: 1,
       minWidth: 0,
     });
@@ -1220,70 +1238,50 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   });
 
   /**
-   * REWORK13 (R13-02) : la synthèse compte/totalise EXCLUSIVEMENT les
-   * Activités — `initialCountdownSeconds`/`finalPhaseSeconds` du brouillon
-   * (`10 s`/`5 s` par défaut dans `renderScreenWithDraft`) ne contribuent
-   * plus du tout, contrairement à l'ancien commentaire de ce test.
+   * Story 7.8 (D-438) : la durée du Circuit n'est plus affichée — ces tests (REWORK08-C, REWORK13)
+   * portent désormais sur la durée de la Séance de la zone de contexte, qui compte EXCLUSIVEMENT
+   * les occurrences (jamais le Compte à rebours ni la Fin de séance), arrondie aux 15 s.
    */
-  it("REWORK08-C/REWORK09/REWORK13 — the Circuit duration reflects the real computed Activity-only duration, not a static placeholder", () => {
-    // Correctif T02 (2026-09-08) : la durée du Circuit n'agrège que la zone
-    // IN_TOUR — `createExerciseDraft` positionne par défaut `BEFORE_TOUR`,
-    // d'où l'override explicite (sans quoi la synthèse serait vide).
+  it("REWORK08-C/REWORK09/REWORK13 — the session duration reflects the real computed Activity-only duration, not a static placeholder", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummary = screen.getByTestId("composition-circuit-header-duration");
-    // Contexte : seule l'Activité contribue désormais — 45 s -> ceil(45/60) = 1 min.
-    expect(tourSummary.props.children).toBe("1 min");
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("≈ 45 s");
   });
 
-  /**
-   * REWORK13 (R13-02), tests obligatoires n°2 et n°3 : confirmer le Compte
-   * à rebours initial ou la Fin de séance n'actualise jamais la synthèse du
-   * Tour (seulement sa propre carte) ; modifier une Activité ou le nombre
-   * de Tours l'actualise conformément aux références.
-   */
-  it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the Circuit duration", () => {
-    // Correctif T02 (2026-09-08) : voir le test précédent.
+  it("REWORK13 (R13-02) — confirming Compte à rebours initial or Fin de séance updates only their own card, never the session duration", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummaryBefore = screen.getByTestId("composition-circuit-header-duration").props.children;
-    expect(tourSummaryBefore).toBe("1 min");
+    const sessionBefore = screen.getByTestId("composition-session-duration").props.children;
+    expect(sessionBefore).toBe("≈ 45 s");
 
     // Compte à rebours initial : ouvre, change, confirme.
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 2);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 50);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.getByText("02 min 10 s")).toBeTruthy(); // sa propre carte a bien changé
-    expect(
-      screen.getByTestId("composition-circuit-header-duration")
-        .props.children,
-    ).toBe(tourSummaryBefore); // la durée du Circuit, elle, reste identique
+    expect(within(screen.getByTestId("composition-boundary-countdown-value")).getByText("50 s")).toBeTruthy();
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
 
     // Fin de séance : idem.
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
-    fireNativeSelectionChange(screen.getByTestId("duration-wheel-minutes"), 3);
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 30);
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
-    expect(screen.getByText("03 min 05 s")).toBeTruthy();
-    expect(
-      screen.getByTestId("composition-circuit-header-duration")
-        .props.children,
-    ).toBe(tourSummaryBefore);
+    expect(within(screen.getByTestId("composition-boundary-final-phase-value")).getByText("30 s")).toBeTruthy();
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
   });
 
-  it("REWORK13 (R13-02) — adding a second Activity updates the Circuit duration accordingly (count and duration both recomputed)", () => {
-    // Correctif T02 (2026-09-08) : voir le premier test de ce bloc.
+  it("REWORK13 (R13-02) — adding a second Activity updates the session duration accordingly", () => {
     renderScreenWithDraft([
       { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), structuralPosition: "IN_TOUR" },
       { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(30), structuralPosition: "IN_TOUR" },
     ]);
 
-    const tourSummary = screen.getByTestId("composition-circuit-header-duration");
-    // 45 + 30 = 75s -> ceil(75/60) = 2 min.
-    expect(tourSummary.props.children).toBe("2 min");
+    // 45 + 30 = 75 s → « ≈ 1 min 15 s ».
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("≈ 1 min 15 s");
   });
 
   // PRE-6 story 2.1 (Figma `8328:28636`) : borne = repère, libellé, pastille de valeur à droite
@@ -1293,8 +1291,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     for (const [testID, label, value, height] of [
-      ["composition-boundary-countdown", composition.countdown.label, "00 min 10 s", 27],
-      ["composition-boundary-final-phase", composition.finalPhase.label, "00 min 05 s", 24],
+      ["composition-boundary-countdown", composition.countdown.label, "10 s", 27],
+      ["composition-boundary-final-phase", composition.finalPhase.label, "5 s", 24],
     ] as const) {
       const row = screen.getByTestId(testID);
       // Revue 5.3 : boîte tactile réelle de 44, marges négatives : l'encombrement reste 27 / 24.
@@ -1315,11 +1313,11 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     renderScreen();
 
     const bottomAction = screen.getByTestId("composition-bottom-action");
-    expect(within(bottomAction).queryByText("— min")).toBeNull();
+    expect(within(bottomAction).queryByText("0 s")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.saveAction)).toBeTruthy();
-    // La synthèse reste bien affichée ailleurs (sous le titre « Circuit »),
-    // jamais silencieusement perdue.
-    expect(screen.getByTestId("composition-circuit-header-duration")).toBeTruthy();
+    // Story 7.8 (D-438) : la durée reste affichée ailleurs — celle de la Séance, dans la zone de
+    // contexte (plus de durée du Circuit).
+    expect(screen.getByTestId("composition-session-duration")).toBeTruthy();
   });
 
   // PRE-6 story 2.1 (`DSF / Forms / Valeur modifiable`, Texte=13) : pastille de valeur des bornes.
@@ -1346,7 +1344,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(-(end.marginTop as number) - (end.marginBottom as number)).toBe(44 - 24);
     expect(-(end.marginTop as number)).toBeLessThanOrEqual(8);
     expect(screen.getByLabelText(composition.finalPhase.label).props.hitSlop).toBeUndefined();
-    expect(StyleSheet.flatten(within(pill).getByText("00 min 10 s").props.style)).toMatchObject({
+    expect(StyleSheet.flatten(within(pill).getByText("10 s").props.style)).toMatchObject({
       ...type.editableValue,
       color: colors.primary,
     });
@@ -1593,7 +1591,7 @@ describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdro
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.countdown.label));
-    expect(screen.getByTestId("duration-wheel-picker")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
     expect(screen.queryByTestId("composition-backdrop")).toBeNull();
     expect(screen.getByTestId("wheel-picker-overlay-backdrop").props.onPress).toBeUndefined();
 
@@ -1601,7 +1599,7 @@ describe("CompositionScreen — fermeture par toucher en dehors (CMP-01, backdro
     // dehors) — comportement déjà couvert par les tests d'exclusivité
     // ci-dessus, revérifié ici dans le contexte de cette section.
     fireEvent.press(screen.getByLabelText(composition.wheelPicker.cancelAccessibilityLabel));
-    expect(screen.queryByTestId("duration-wheel-picker")).toBeNull();
+    expect(screen.queryByTestId("number-wheel-picker")).toBeNull();
   });
 
 });
@@ -1847,16 +1845,16 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
       expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
       // Valeurs par défaut EXACTES du parcours de création — aucune ne doit
       // apparaître ne serait-ce qu'un rendu.
-      expect(screen.queryByText("00 min 10 s")).toBeNull();
-      expect(screen.queryByText("00 min 05 s")).toBeNull();
-      expect(screen.queryByText(composition.summary.empty)).toBeNull();
+      expect(screen.queryByText("10 s")).toBeNull();
+      expect(screen.queryByText("5 s")).toBeNull();
+      expect(screen.queryByTestId("composition-session-duration")).toBeNull();
     });
 
     it("without a sessionId, 'creating' still renders the creation form — the creation path is strictly unchanged", () => {
       renderWithEditStatus("creating", {}, null);
 
       expect(screen.getByLabelText(composition.name)).toBeTruthy();
-      expect(screen.getByText(composition.summary.empty)).toBeTruthy();
+      expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
     });
 
@@ -3635,33 +3633,34 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
 describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-S02)", () => {
   // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
   swipeMotion();
-  it("counts and totals ONLY the IN_TOUR Activities, then multiplies that zone by tourRepeatCount", () => {
+  // Story 7.8 (D-438) : la durée du Circuit n'est plus affichée ; ces recalculs immédiats portent
+  // sur la durée de la Séance (zone de contexte), arrondie aux 15 s.
+  const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
+  it("counts the out-of-Circuit Activities once and multiplies ONLY the IN_TOUR zone by tourRepeatCount", () => {
     renderScreenWithDraft([
       anActivity("warmup", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
       anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
       anActivity("stretch", "AFTER_TOUR", { name: "Étirements", executionParameters: durationParameters(600) }),
     ]);
 
-    // Hors Tour : `600 + 600 = 20 min` volontairement énormes — ils ne
-    // doivent NI compter, NI peser dans la durée du Circuit.
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+    // Hors Tour : `600 + 600` comptés une seule fois, plus le Circuit `60 × 1`.
+    expect(sessionDuration()).toBe("≈ 21 min");
 
     setCircuitCountWithStepper(3);
 
-    // Seule la zone `IN_TOUR` est développée : `60 × 3 = 3 min`.
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("3 min");
+    // Seule la zone `IN_TOUR` est développée : `1 200 + 60 × 3 = 23 min`.
+    expect(sessionDuration()).toBe("≈ 23 min");
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });
 
   it("recomputes immediately after a DUPLICATION", () => {
     renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+    expect(sessionDuration()).toBe("≈ 1 min");
 
     fireSwipeLeft("core");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-core"));
 
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
-      "2 min",
-    );
+    expect(sessionDuration()).toBe("≈ 2 min");
   });
 
   it("recomputes immediately after a DELETION (story 7.5 : once the animated deletion is written)", () => {
@@ -3671,23 +3670,25 @@ describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-
         anActivity("core-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) }),
         anActivity("core-2", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60) }),
       ]);
-      expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
-        "2 min",
-      );
+      expect(sessionDuration()).toBe("≈ 2 min");
 
       fireSwipeLeft("core-1");
       fireEvent.press(screen.getByTestId("composition-activity-delete-core-1"));
 
       finishDeletionAnimation();
-      expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+      expect(sessionDuration()).toBe("≈ 1 min");
     } finally {
       restoreTiming();
     }
   });
 
   it("recomputes immediately after a MOVE out of the Tour", () => {
-    renderScreenWithDraft([anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })]);
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("1 min");
+    renderScreenWithDraft(
+      [anActivity("core", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })],
+      { tourRepeatCount: 3 },
+    );
+    // Dans le Circuit à 3 tours : 60 × 3.
+    expect(sessionDuration()).toBe("≈ 3 min");
 
     // Structure Tour `230–400` ; liste `IN_TOUR` à `y = 20` DANS cette
     // structure (donc `250` en absolu) ; carte `250–310`, centre `280`.
@@ -3701,10 +3702,8 @@ describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 100 } });
     fireEvent(container(), "touchEnd", { nativeEvent: { pageX: 200, pageY: 100 } });
 
-    // Sortie du Circuit : la durée du Circuit redevient l'état vide.
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(
-      composition.summary.empty,
-    );
+    // Sortie du Circuit : l'occurrence ne compte plus qu'une fois.
+    expect(sessionDuration()).toBe("≈ 1 min");
   });
 });
 
@@ -3732,7 +3731,8 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
   const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
   const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
-  const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
+  // Story 7.8 (D-438) : plus de durée du Circuit ; les pas du compteur se lisent dans la durée de la
+  // Séance (zone de contexte), arrondie aux 15 s.
   const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
   const stepper = () => screen.queryByTestId("composition-circuit-header-counter-stepper");
 
@@ -3819,34 +3819,32 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     ).toMatchObject({ disabled: false });
   });
 
-  it("each step updates N, the Circuit duration and the session duration, without any message; the unit agrees", () => {
+  it("each step updates N and the session duration, without any message; the unit agrees", () => {
     renderScreenWithDraft(oneActivity);
-    expect(circuitDuration()).toBe("1 min");
-    expect(sessionDuration()).toBe("1 min");
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
+    expect(sessionDuration()).toBe("≈ 1 min");
 
     setCircuitCountWithStepper(3);
 
     expect(counterValue()).toBe(3);
     expect(unitText()).toBe("tours");
-    expect(circuitDuration()).toBe("3 min");
-    expect(sessionDuration()).toBe("3 min");
+    expect(sessionDuration()).toBe("≈ 3 min");
     // Sans message : aucun dialogue de confirmation.
     expect(screen.queryByText("Confirmer")).toBeNull();
 
     const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
     fireEvent(minus, "pressIn");
     fireEvent(minus, "pressOut");
-    expect(circuitDuration()).toBe("2 min");
+    expect(sessionDuration()).toBe("≈ 2 min");
   });
 
-  it("story 7.3 — the Circuit duration is rounded to the nearest minute beyond 3 min; the session duration is not", () => {
-    // 2 × 95 s = 190 s : Circuit « 3 min » (arrondi au plus proche), séance « 4 min » (inchangée).
+  it("story 7.8 — the session duration is rounded to the nearest 15 s, prefixed « ≈ » (replaces the story 7.3 minute rounding)", () => {
+    // 2 × 95 s = 190 s → 195 s (190 / 15 = 12,67 → 13 tranches) : « ≈ 3 min 15 s ».
     renderScreenWithDraft(
       [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(95), postActivityRecoverySeconds: 0 })],
       { tourRepeatCount: 2 },
     );
-    expect(circuitDuration()).toBe("3 min");
-    expect(sessionDuration()).toBe("4 min");
+    expect(sessionDuration()).toBe("≈ 3 min 15 s");
   });
 
   it("Series 4 → 3 → 4 goes through setCircuitCount: the 4th row goes to the reserve, then is restored (original rows)", () => {
@@ -3863,19 +3861,18 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
       ],
       { tourRepeatCount: 4, circuitNature: "SERIES" },
     );
-    expect(circuitDuration()).toBe("10 min");
+    expect(sessionDuration()).toBe("≈ 10 min");
 
     const minus = screen.getByTestId("composition-circuit-header-counter-stepper-decrement");
     fireEvent(minus, "pressIn");
     fireEvent(minus, "pressOut");
-    expect(circuitDuration()).toBe("6 min");
+    expect(sessionDuration()).toBe("≈ 6 min");
     expect(unitText()).toBe("séries");
 
     const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment");
     fireEvent(plus, "pressIn");
     fireEvent(plus, "pressOut");
-    expect(circuitDuration()).toBe("10 min");
-    expect(sessionDuration()).toBe("10 min");
+    expect(sessionDuration()).toBe("≈ 10 min");
   });
 
   it("story 7.3 — no revealed state: no outside zone, scrolling or touching elsewhere leaves the stepper in place", () => {
@@ -3921,7 +3918,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
 
     stepCircuitCounter("increment");
     expect(counter().props.accessibilityValue).toMatchObject({ now: 4, text: "4 tours" });
-    expect(circuitDuration()).toBe("4 min");
+    expect(sessionDuration()).toBe("≈ 4 min");
 
     stepCircuitCounter("decrement", 3);
     expect(counter().props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
@@ -3942,14 +3939,15 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     expect(counter.props.accessibilityValue).toMatchObject({ text: "2 séries" });
   });
 
-  it("empty Circuit: « — min »; rehydrated drafts show their persisted count", () => {
+  it("empty Circuit: session « 0 s », no Circuit duration; rehydrated drafts show their persisted count", () => {
     renderScreenWithDraft([], { tourRepeatCount: 7 });
-    expect(circuitDuration()).toBe("— min");
+    expect(sessionDuration()).toBe("0 s");
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
     expect(counterValue()).toBe(7);
     expect(unitText()).toBe("tours");
   });
 
-  it("an out-of-Circuit occurrence never contributes to the Circuit duration, whatever N (correctif T02, 2026-09-08)", () => {
+  it("an out-of-Circuit occurrence counts once in the session duration, whatever N (correctif T02, 2026-09-08)", () => {
     renderScreenWithDraft(
       [
         anActivity("ex-1", "BEFORE_TOUR", { name: "Échauffement", executionParameters: durationParameters(600) }),
@@ -3957,17 +3955,18 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
       ],
       { tourRepeatCount: 5 },
     );
-    expect(circuitDuration()).toBe("5 min");
+    // 600 (une fois) + 60 × 5 = 900 s.
+    expect(sessionDuration()).toBe("≈ 15 min");
   });
 
-  it("PRE-6 (story 1.3) — a Series Circuit duration follows the passes of the draft's nature, duration only", () => {
+  it("PRE-6 (story 1.3) — a Series Circuit's contribution follows the passes of the draft's nature (session duration, story 7.8)", () => {
     // 3 séries de 60 s, pause 30 s, R 0 : Séries N = 2 → série 1 et 2 seulement, (60 + 30) × 2 = 180 s ;
     // en Tours, N = 2 développerait les trois séries deux fois (540 s → 9 min).
     renderScreenWithDraft(
       [anActivity("ex-1", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60, 3, 30) })],
       { tourRepeatCount: 2, circuitNature: "SERIES" },
     );
-    expect(circuitDuration()).toBe("3 min");
+    expect(sessionDuration()).toBe("≈ 3 min");
   });
 });
 
@@ -4303,9 +4302,9 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     return screen.getByTestId("composition-session-duration").props.children as string;
   }
 
-  it("PRE6-2.1 — séance vide : « 0 min » dans l'en-tête et Continuer désactivé", () => {
+  it("PRE6-2.1 — séance vide : « 0 s » dans l'en-tête (story 7.8) et Continuer désactivé", () => {
     renderScreen();
-    expect(headerDuration()).toBe("0 min");
+    expect(headerDuration()).toBe("0 s");
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByText("Continuer")).toBeTruthy();
   });
@@ -4319,10 +4318,10 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
       ],
       { tourRepeatCount: 3, initialCountdownSeconds: 600, finalPhaseSeconds: 600 },
     );
-    // 60 + 60 × 3 + 60 = 300 s → « 5 min » ; Compte à rebours et Fin (10 min chacun) exclus.
-    expect(headerDuration()).toBe("5 min");
-    // Le résumé du Circuit reste limité à la zone IN_TOUR.
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe("3 min");
+    // 60 + 60 × 3 + 60 = 300 s → « ≈ 5 min » (story 7.8) ; Compte à rebours et Fin exclus.
+    expect(headerDuration()).toBe("≈ 5 min");
+    // Story 7.8 (D-438) : plus de durée du Circuit.
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });
 
   it("PRE6-2.1 — une cible À l'échec : « ≥ … » dans l'en-tête", () => {
@@ -4370,14 +4369,60 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("PRE6-2.1 — bornes toujours présentes, défauts 10 s et 5 s, 0 s admis via la roulette existante", () => {
+  it("PRE6-2.1 — bornes toujours présentes, défauts 10 s et 5 s, 0 s admis via la roulette (secondes seules, story 7.8)", () => {
     renderScreenWithDraft([], { initialCountdownSeconds: 0 });
-    expect(within(screen.getByLabelText(composition.countdown.label)).getByText("00 min 00 s")).toBeTruthy();
-    expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("00 min 05 s")).toBeTruthy();
+    expect(within(screen.getByLabelText(composition.countdown.label)).getByText("0 s")).toBeTruthy();
+    expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("5 s")).toBeTruthy();
 
     fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
     expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityState).toMatchObject({ expanded: true });
-    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(5);
+  });
+
+  it("story 7.8 — a boundary value above 60 s in the draft is shown at 60 s and the wheel opens on 60", () => {
+    renderScreenWithDraft([], { initialCountdownSeconds: 600, finalPhaseSeconds: 75 });
+    expect(within(screen.getByLabelText(composition.countdown.label)).getByText("60 s")).toBeTruthy();
+    expect(within(screen.getByLabelText(composition.finalPhase.label)).getByText("60 s")).toBeTruthy();
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.getByTestId("number-wheel-column").props.selection).toBe(60);
+  });
+
+  it("story 7.8 — the session duration's accessible name carries the rounded value and its sign (≈ / ≥)", () => {
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(734) }]);
+    const duration = () => screen.getByTestId("composition-session-duration");
+    expect(duration().props.children).toBe("≈ 12 min 15 s");
+    expect(duration().props.accessibilityLabel).toBe(`${composition.sessionDurationAccessibilityLabel} ≈ 12 min 15 s`);
+
+    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Pompes", executionParameters: allFailureParameters(3, 20) }]);
+    expect(duration().props.children).toMatch(/^≥ /u);
+    expect(duration().props.accessibilityLabel).toBe(`${composition.sessionDurationAccessibilityLabel} ${duration().props.children as string}`);
+  });
+
+  it("story 7.8 — each boundary wheel is named after its boundary; Fin de séance reads its value in seconds", () => {
+    renderScreen();
+    fireEvent.press(screen.getByLabelText(composition.finalPhase.label));
+    expect(screen.getByTestId("number-wheel-column").props.modifiers).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: composition.finalPhase.label })]),
+    );
+    fireNativeSelectionChange(screen.getByTestId("number-wheel-column"), 60);
+    fireEvent.press(screen.getByLabelText(composition.wheelPicker.validateAccessibilityLabel));
+    expect(screen.getByLabelText(composition.finalPhase.label).props.accessibilityValue).toMatchObject({ text: "60 s" });
+    fireEvent.press(screen.getByLabelText(composition.countdown.label));
+    expect(screen.getByTestId("number-wheel-column").props.modifiers).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: composition.countdown.label })]),
+    );
+  });
+
+  it("story 7.8 — Compte à rebours and Fin de séance frames align on the right edge of the Exercise cards", () => {
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+    ]);
+    // Les cartes débordent de la colonne de 8 à droite (`CARD_OUTSET`) ; les deux bornes aussi.
+    const cardOutset = -(StyleSheet.flatten(screen.getByTestId("composition-zone-before-tour").props.style).marginHorizontal as number);
+    expect(cardOutset).toBe(8);
+    for (const testID of ["composition-boundary-countdown-step", "composition-boundary-final-phase-track"]) {
+      expect(StyleSheet.flatten(screen.getByTestId(testID).props.style)).toMatchObject({ marginRight: -cardOutset });
+    }
   });
 
   it("PRE6-2.1 — la durée de séance suit la nature du Circuit (Séries : passages, pas Tours × contenu)", () => {
@@ -4385,10 +4430,10 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     // Séries : (60 + 30) × 2 = 180 s → « 3 min » ; en Tours, 540 s → « 9 min ».
     const exercises = [anActivity("ex-1", "IN_TOUR", { name: "Squats", executionParameters: durationParameters(60, 3, 30) })];
     renderScreenWithDraft(exercises, { tourRepeatCount: 2, circuitNature: "SERIES" });
-    expect(headerDuration()).toBe("3 min");
+    expect(headerDuration()).toBe("≈ 3 min");
 
     renderScreenWithDraft(exercises, { tourRepeatCount: 2, circuitNature: "TOURS" });
-    expect(headerDuration()).toBe("9 min");
+    expect(headerDuration()).toBe("≈ 9 min");
   });
 
   it("PRE6-2.1 — une Récupération positive d'une occurrence du Circuit compte à chaque Tour", () => {
@@ -4397,13 +4442,13 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
       [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60), postActivityRecoverySeconds: 30 })],
       { tourRepeatCount: 2 },
     );
-    expect(headerDuration()).toBe("3 min");
+    expect(headerDuration()).toBe("≈ 3 min");
 
     renderScreenWithDraft(
       [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60), postActivityRecoverySeconds: 0 })],
       { tourRepeatCount: 2 },
     );
-    expect(headerDuration()).toBe("2 min");
+    expect(headerDuration()).toBe("≈ 2 min");
   });
 
   // PRE-6 story 5.1 : la récupération est dans la carte ; la rangée sous la carte ne porte plus qu'un point.
@@ -4472,7 +4517,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     renderScreen();
     fireEvent.press(within(screen.getByTestId("composition-boundary-countdown")).getByText(composition.countdown.label));
     expect(screen.getByLabelText(composition.countdown.label).props.accessibilityState).toMatchObject({ expanded: true });
-    expect(screen.getByTestId("duration-wheel-minutes")).toBeTruthy();
+    expect(screen.getByTestId("number-wheel-column")).toBeTruthy();
   });
 
   it("PRE6-2.1, révisé 7.2 — la puce Étiquette ouvre LabelPickerModal ; avec une Étiquette, elle montre l’icône teintée et le nom", async () => {
@@ -4904,9 +4949,8 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         toursDraft(2),
       );
       const before = probe.draft;
-      const duration = () => screen.getByTestId("composition-circuit-header-duration").props.children;
+      // Story 7.8 (D-438) : plus de durée du Circuit ; la durée de séance suit la nature.
       const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
-      const toursDuration = duration();
       const toursSessionDuration = sessionDuration();
       chooseNature("SERIES");
 
@@ -4931,9 +4975,8 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
       expect(rowsOfDraft("ex-1")).toEqual([row(10), row(20)]);
       // Conversion confirmée : aucune réserve (troncature définitive).
       expect(probe.draft!.circuitSeriesReserve).toBeUndefined();
-      // Durée du Circuit, durée de séance et unité suivent la nature.
+      // Durée de séance et unité suivent la nature.
       expect(unitText()).toBe("séries");
-      expect(duration()).not.toBe(toursDuration);
       expect(sessionDuration()).not.toBe(toursSessionDuration);
     });
 
@@ -5849,19 +5892,18 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(within(zero).getByText("0 s")).toBeTruthy();
   });
 
-  it("session and Circuit durations are recalculated live during placement, restored by Annuler", () => {
+  // Story 7.8 (D-438) : plus de durée du Circuit ; seule la durée de séance est recalculée.
+  it("the session duration is recalculated live during placement, restored by Annuler", () => {
     renderPlacement(matrix());
     const sessionBefore = screen.getByTestId("composition-session-duration").props.children;
-    const circuitBefore = screen.getByTestId("composition-circuit-header-duration", anyNode).props.children;
     enter();
     fireEvent.press(screen.getByLabelText(recoveryLabel("B")));
     nativeChange("duration-wheel-minutes", 2);
     fireEvent.press(screen.getByTestId("duration-wheel-validate"));
     expect(screen.getByTestId("composition-session-duration").props.children).not.toBe(sessionBefore);
-    expect(screen.getByTestId("composition-circuit-header-duration", anyNode).props.children).not.toBe(circuitBefore);
+    expect(screen.queryByTestId("composition-circuit-header-duration", anyNode)).toBeNull();
     fireEvent.press(screen.getByTestId(`${BAR}-cancel`));
     expect(screen.getByTestId("composition-session-duration").props.children).toBe(sessionBefore);
-    expect(screen.getByTestId("composition-circuit-header-duration").props.children).toBe(circuitBefore);
   });
   it("entering placement closes every open surface (add tree); the Circuit stepper stays shown but inactive (story 7.3)", () => {
     renderPlacement(matrix());
@@ -6466,7 +6508,6 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
     const recoveries = () => probe.draft!.exercises.map((exercise) => exercise.postActivityRecoverySeconds);
     const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children as string;
-    const circuitDuration = () => screen.getByTestId("composition-circuit-header-duration", anyNode).props.children as string;
     /** Exercices de 2 × 60 s, Pause 30 s : une Récupération positive remplace la Pause terminale. */
     const timed = (overrides: Partial<Record<"A" | "B" | "C" | "D", Partial<SessionDraftExercise>>> = {}) =>
       matrix({
@@ -6478,7 +6519,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     /** Durées affichées pour un brouillon donné (référence d'un rendu séparé). */
     function durationsOf(exercises: readonly SessionDraftExercise[]) {
       const view = renderPlacement(exercises);
-      const durations = { session: sessionDuration(), circuit: circuitDuration() };
+      const durations = { session: sessionDuration() };
       view.unmount();
       return durations;
     }
@@ -6588,15 +6629,14 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId("composition-activity-recovery-A-recovery", anyNode)).toBeNull();
     });
 
-    it("placement: removing a recovery inside the Circuit recalculates the Circuit duration (terminal Pause restored)", () => {
+    it("placement: removing a recovery inside the Circuit recalculates the session duration (terminal Pause restored)", () => {
       const expected = durationsOf(timed());
       renderPlacement(timed({ B: { postActivityRecoverySeconds: 120 } }));
-      const circuitBefore = circuitDuration();
+      const sessionBefore = sessionDuration();
       enter();
       fireEvent.press(frame("B"));
       fireEvent.press(confirm());
-      expect(circuitDuration()).not.toBe(circuitBefore);
-      expect(circuitDuration()).toBe(expected.circuit);
+      expect(sessionDuration()).not.toBe(sessionBefore);
       expect(sessionDuration()).toBe(expected.session);
     });
 
@@ -6681,13 +6721,12 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     it("placement: a modification is previewed in the durations before Confirmer", () => {
       const expected = durationsOf(timed({ B: { postActivityRecoverySeconds: 120 } }));
       renderPlacement(timed({ B: { postActivityRecoverySeconds: 20 } }));
-      const before = { session: sessionDuration(), circuit: circuitDuration() };
+      const before = { session: sessionDuration() };
       enter();
       reselect("B", 120);
       expect(probe.updates).toBe(0);
       expect(sessionDuration()).not.toBe(before.session);
       expect(sessionDuration()).toBe(expected.session);
-      expect(circuitDuration()).toBe(expected.circuit);
     });
 
     // PRE-6 story 6.2 (D-436) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action

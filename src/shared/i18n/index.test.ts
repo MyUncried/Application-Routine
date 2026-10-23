@@ -325,8 +325,9 @@ describe("strings", () => {
     expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedConsecutiveStopPoints");
   });
 
-  it("exposes the exact local Composition empty-summary label (PRE-6 story 1.3, D-399 : « — min », no exercise count)", () => {
-    expect(strings.screens.composition.summary.empty).toBe("— min");
+  it("exposes the seconds unit of the session boundaries; no Circuit duration label any more (PRE-6 story 7.8, D-438)", () => {
+    expect(strings.screens.composition.boundarySecondsUnit).toBe("s");
+    expect(strings.screens.composition).not.toHaveProperty("summary");
   });
 
   it("exposes the exact abandon-creation modal texts (docs §06, « Les modales » ; REWORK10, 2026-09-04 — 'Continuer la création'/'Abandonner' renamed to 'Annuler'/'Confirmer', same keys)", () => {

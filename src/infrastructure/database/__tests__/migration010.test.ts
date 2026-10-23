@@ -21,7 +21,6 @@ import {
 } from "@/domain/activities/testing/executionParametersFixtures";
 import { toSessionDraft } from "@/domain/sessions/SessionDraft";
 import { SessionValidationError } from "@/domain/sessions/errors";
-import { formatCompositionSummary } from "@/features/sessions/compositionPresentation";
 import { SessionService } from "@/features/sessions/SessionService";
 import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -1296,7 +1295,6 @@ describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
     expect(opened.status).toBe("OK");
     const draft = toSessionDraft((opened as { session: NonNullable<typeof session> }).session);
     expect(draft.exercises).toEqual([]);
-    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount })).toBe("— min");
     // Une Séance dont il ne reste qu'une zone (C : Circuit vidé) reste lue avec ses occurrences restantes.
     const sessionC = await repository.findById("session-c");
     expect(sessionC?.cycle.beforeTour?.map((activity) => activity.id)).toEqual(["c-before"]);

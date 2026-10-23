@@ -4,7 +4,6 @@ import { Animated, Pressable, StyleSheet, Text, View, type ViewProps } from "rea
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
@@ -32,13 +31,11 @@ export const CIRCUIT_HEADER_HEIGHT = 40;
 /** Titre « Circuit » : Inter Semi Bold 16, texte primaire. */
 const TITLE_TEXT = type.cardTitle;
 /**
- * PRE-6 story 7.3 (D-437, recette du 22/10, commentaire 9) : nombre, unité et durée à la taille du
- * titre « Circuit » (16). Nombre et unité gardent la graisse de la « Valeur modifiable » (Semi
- * Bold) ; la durée garde sa graisse (Regular) et sa couleur tertiaire. Aucun jeton 16 Regular au
- * registre : dérivés des jetons existants, sans toucher `tokens.ts`.
+ * PRE-6 story 7.3 (D-437, recette du 22/10, commentaire 9) : nombre et unité à la taille du titre
+ * « Circuit » (16), graisse de la « Valeur modifiable » (Semi Bold). Dérivé des jetons existants,
+ * sans toucher `tokens.ts`. Story 7.8 (D-438) : plus de durée du Circuit dans l'en-tête.
  */
 const COUNTER_TEXT = { ...type.editableValue, fontSize: TITLE_TEXT.fontSize, lineHeight: TITLE_TEXT.lineHeight };
-const DURATION_TEXT = { ...type.supporting, fontSize: TITLE_TEXT.fontSize, lineHeight: TITLE_TEXT.lineHeight };
 
 /**
  * PRE-6 story 7.3 (D-437) — géométrie du stepper toujours affiché (Figma `8328:28605`, nœud
@@ -71,8 +68,6 @@ const MINUS_TO_DIGIT_GAP = spacing[8];
 const DIGIT_TO_UNIT_GAP = spacing[6];
 const UNIT_TO_PLUS_GAP = spacing[12];
 const TITLE_TO_STEPPER_GAP = spacing[8];
-/** Écart minimal entre le fond du stepper et la durée calée à droite. */
-const STEPPER_TO_DURATION_GAP = spacing[4];
 
 /**
  * Exporté pour les tests de géométrie : bords des cibles, en points, le long de la ligne, depuis le
@@ -88,8 +83,7 @@ export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
   minusToDigitGap: MINUS_TO_DIGIT_GAP,
   digitToUnitGap: DIGIT_TO_UNIT_GAP,
   unitToPlusGap: UNIT_TO_PLUS_GAP,
-  stepperToDurationGap: STEPPER_TO_DURATION_GAP,
-  /** Bord gauche de la cible du −, depuis le titre. */
+  /** Bord gauche de la cible du −, depuis le bloc du titre (écart minimal depuis la story 7.8 : le stepper est calé à droite). */
   minusTargetLeft: TITLE_TO_STEPPER_GAP + STEPPER_PADDING - STEP_CIRCLE_INSET,
   /** Écart entre la cible de la pastille (largeur de la pastille) et celle du +. */
   unitToPlusTargetGap: UNIT_TO_PLUS_GAP - STEP_CIRCLE_INSET,
@@ -110,11 +104,6 @@ export type CircuitHeaderProps = {
   readonly nature: CircuitNature;
   /** N du Circuit (1..99). */
   readonly count: number;
-  /**
-   * Durée du Circuit déjà formatée (`formatCompositionSummary` : durée seule, « — min » à vide,
-   * ≈ / ≥, arrondie à la minute au-delà de 3 min — story 7.3).
-   */
-  readonly duration: string;
   /** Chaque pas (ou chaque action VoiceOver) : N demandé, appliqué par l'écran via `circuitCountOutcome` (story 7.2). */
   readonly onChangeCount: (count: number) => void;
   /** PRE-6 story 3.2 — Android / web : panneau du choix de nature ouvert. */
@@ -136,7 +125,7 @@ export type CircuitHeaderProps = {
   readonly onLayout?: ViewProps["onLayout"];
   /**
    * PRE-6 story 4.1 : mode placement — l'en-tête (stepper, pastille) est non interactif et
-   * masqué à l'accessibilité ; la durée du Circuit reste recalculée par l'écran. Revue 5.3 (Figma
+   * masqué à l'accessibilité. Revue 5.3 (Figma
    * `8328:29270`) : il n'est plus atténué (le nom de la prop est conservé).
    */
   readonly isAttenuated?: boolean;
@@ -163,8 +152,8 @@ export type CircuitHeaderProps = {
  * existant ; remplace `TourCard` et sa roulette du compte.
  *
  * - PRE-6 story 5.2 (D-435, Figma `9819:19948`) : une seule ligne de 40 — « Circuit », puis le
- *   stepper à la suite ; la seule durée du Circuit (D-382, D-390, D-399) est calée à droite sur la
- *   même ligne. La durée se tronque en premier, puis le titre ; le stepper garde sa taille.
+ *   stepper ; le titre se tronque, le stepper garde sa taille. Story 7.8 (D-438, remplace sur ce
+ *   point D-437) : plus de durée du Circuit ; le stepper est aligné à droite de la ligne.
  * - PRE-6 story 5.1b : l'œil des Volumes est dans la zone de contexte (`CompositionContextHeader`).
  * - PRE-6 story 7.3 (D-437, remplace le choix D8 du stepper révélé au toucher du chiffre, Figma
  *   `8328:28605`) : stepper toujours affiché et actif — − , le nombre en « Valeur modifiable », la
@@ -181,7 +170,6 @@ export type CircuitHeaderProps = {
 export function CircuitHeader({
   nature,
   count,
-  duration,
   onChangeCount,
   isNatureMenuOpen,
   onOpenNatureMenu,
@@ -212,13 +200,7 @@ export function CircuitHeader({
     >
       <View style={styles.textBlock} testID={`${testID}-text-block`}>
         <View style={styles.titleRow} testID={`${testID}-title-row`}>
-          {/* Revue 5.2 : VoiceOver lit la durée juste après le titre (elle est affichée à droite). */}
-          <Text
-            style={styles.title}
-            numberOfLines={1}
-            accessibilityLabel={`${t.title}, ${duration}`}
-            testID={`${testID}-title`}
-          >
+          <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
             {t.title}
           </Text>
         </View>
@@ -240,20 +222,6 @@ export function CircuitHeader({
           testID={`${testID}-counter`}
         />
       </View>
-      {/*
-       * Story 5.2 : durée calée à droite sur la ligne du titre. Revue : elle cède la place la
-       * première (base 0, `flex: 1`), puis le titre (ellipse). Lue avec le titre (VoiceOver), elle
-       * est retirée de l'accessibilité ici.
-       */}
-      <Text
-        style={styles.duration}
-        numberOfLines={1}
-        accessible={false}
-        importantForAccessibility="no"
-        testID={`${testID}-duration`}
-      >
-        {duration}
-      </Text>
     </Animated.View>
   );
 }
@@ -503,9 +471,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  // Revue 5.2 : ordre de cession de la place — la durée d'abord (base 0), puis le titre (ellipse) ;
-  // le stepper garde sa taille.
+  // Story 7.8 (D-438) : le bloc du titre prend la place libre — le stepper est calé à droite ; à
+  // court de place, le titre cède (ellipse), le stepper garde sa taille.
   textBlock: {
+    flexGrow: 1,
     flexShrink: 1,
     minWidth: 0,
   },
@@ -519,20 +488,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     minWidth: 0,
   },
-  // Revue 5.2 : le titre cède (ellipse) seulement une fois la durée effacée.
+  // Revue 5.2 : le titre cède (ellipse) ; le stepper jamais.
   title: {
     flexShrink: 1,
     minWidth: 0,
     ...TITLE_TEXT,
     color: colors.textPrimary,
-  },
-  duration: {
-    ...DURATION_TEXT,
-    flex: 1,
-    minWidth: 0,
-    marginLeft: STEPPER_TO_DURATION_GAP,
-    textAlign: "right",
-    color: TEXT_TERTIARY,
   },
   // Fond blanc du stepper (Figma `9819:19951`) : 36 de haut, rayon 18, marge 4.
   stepper: {

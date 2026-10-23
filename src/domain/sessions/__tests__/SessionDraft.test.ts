@@ -94,6 +94,52 @@ describe("createExerciseDraft", () => {
   });
 });
 
+describe("bornes de séance au-delà de 60 s (PRE-6 story 7.8, D-438)", () => {
+  const legacy = (initialCountdownSeconds: number, finalPhaseSeconds: number): Session => ({
+    id: "session-legacy",
+    ownerId: "usr_test",
+    name: "Ancienne",
+    color: DEFAULT_SESSION_COLOR,
+    status: "ACTIVE",
+    initialCountdownSeconds,
+    finalPhaseSeconds,
+    createdAt: "2026-01-01T00:00:00.000Z",
+    updatedAt: "2026-01-01T00:00:00.000Z",
+    cycle: {
+      id: "cycle-1",
+      position: 1,
+      repeatCount: 1,
+      tour: { id: "tour-1", position: 1, repeatCount: 1, exercises: [anActivity()] },
+    },
+  });
+
+  it("a persisted value above 60 s is read back at 60 s; 60 and below are unchanged", () => {
+    expect(toSessionDraft(legacy(600, 61))).toMatchObject({ initialCountdownSeconds: 60, finalPhaseSeconds: 60 });
+    expect(toSessionDraft(legacy(60, 0))).toMatchObject({ initialCountdownSeconds: 60, finalPhaseSeconds: 0 });
+  });
+
+  it("the read-back value does not mark the draft modified (draft and baseline share the reading) and is saved at 60 s", () => {
+    const session = legacy(600, 90);
+    const baseline = toSessionDraft(session);
+    const draft = toSessionDraft(session);
+    expect(isSessionDraftDirty(draft, baseline)).toBe(false);
+    // Revue 7.8 : la lecture bornée est celle d'une Séance à 60 / 60 (le bornage est effectif).
+    expect(sessionDraftsEqual(baseline, toSessionDraft(legacy(60, 60)))).toBe(true);
+    const update = toUpdateSessionInput(draft);
+    expect(update.ok).toBe(true);
+    if (update.ok) {
+      expect(update.value).toMatchObject({ initialCountdownSeconds: 60, finalPhaseSeconds: 60 });
+    }
+  });
+
+  it("a Profile default above 60 s (kept by D-265) creates a draft at 60 s", () => {
+    expect(createEmptyDraft({ initialCountdownSeconds: 120, finalPhaseSeconds: 45 })).toMatchObject({
+      initialCountdownSeconds: 60,
+      finalPhaseSeconds: 45,
+    });
+  });
+});
+
 describe("createEmptyDraft with Profile defaults (V2-PRE-2, D-213)", () => {
   it("uses the Domain's canonical constants when no defaults are provided (T19)", () => {
     const draft = createEmptyDraft();

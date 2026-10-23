@@ -23,7 +23,7 @@ import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
 import {
   DEFAULT_CIRCUIT_NATURE,
@@ -123,9 +123,8 @@ import {
 import { CompositionContextHeader } from "@/features/sessions/CompositionContextHeader";
 import {
   formatCompactDuration,
+  formatBoundarySecondsValue,
   formatCompositionSessionDuration,
-  formatCompositionSummary,
-  formatDurationRowValue,
   formatExerciseBodyZones,
   formatOccurrenceAccessibilityLabel,
   formatOccurrenceEstimatedDuration,
@@ -164,6 +163,7 @@ import {
   type RailLink as RailLinkGeometry,
 } from "@/features/sessions/compositionRail";
 import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
+import { NumberWheelPicker } from "@/features/sessions/NumberWheelPicker";
 import { STOP_POINT_CHIP_TOUCH_EXTENT } from "@/features/sessions/StopPointChip";
 import { formatPlacementConfirmLabel, PlacementBar } from "@/features/sessions/PlacementBar";
 import {
@@ -2623,35 +2623,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [closeCircuitNatureMenu, router],
   );
-  // REWORK08-C (`[ChatGPT] CHANGES_REQUESTED — REWORK08 — roulette native +
-  // synthèse Tour`, 2026-09-04, addendum précédemment `QUEUED_FOR_NEXT_
-  // COMPOSITION_REWORK` désormais explicitement autorisé) : calculée UNE
-  // SEULE FOIS, réutilisée à la fois par `CircuitHeader` (durée sous le titre
-  // « Circuit », PRE-6 story 3.1) et par `bottomAction` (synthèse déjà existante) —
-  // même contenu canonique (`formatCompositionSummary`), jamais recalculé
-  // ni reformulé localement pour l'un ou l'autre emplacement.
-  //
-  // REWORK13 (R13-02) : `initialCountdownSeconds`/`finalPhaseSeconds` ne
-  // sont plus transmis — `Compte à rebours initial`/`Fin de séance` sont
-  // des éléments structurels hors Tour, désormais toujours exclus de cette
-  // synthèse (voir `compositionPresentation.ts`). Confirmer l'un ou
-  // l'autre sélecteur n'actualise donc plus jamais `compositionSummary`,
-  // par construction (ces deux champs du brouillon ne sont plus lus par
-  // cette fonction).
-  //
-  // T02-S01 (CE-T02-01 « Calculs ») : la durée développe désormais les
-  // répétitions du Tour — `tourRepeatCount` est donc transmis, et chaque pas
-  // du compteur du Circuit actualise immédiatement cette synthèse. Le NOMBRE
-  // affiché reste celui des Activités réellement composées, chacune une
-  // seule fois.
-  const compositionSummary = formatCompositionSummary({
-    exercises: durationDraft.exercises,
-    tourRepeatCount,
-    // PRE-6 (story 1.3) : la durée du Circuit suit sa nature (Tours / Séries).
-    circuitNature: draft.circuitNature,
-  });
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
-  // Compte à rebours ni Fin ; même formatage que le résumé du Circuit.
+  // Compte à rebours ni Fin. Story 7.8 (D-438) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
+  // durée du Circuit n'est plus affichée (en-tête du Circuit).
   const sessionDuration = formatCompositionSessionDuration({
     exercises: durationDraft.exercises,
     tourRepeatCount,
@@ -2843,7 +2817,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {/* PRE-6 (story 4.1) : en placement, les bornes sont atténuées et non interactives. */}
         {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
             uniforme du rail), posés sur la rangée. */}
-        <View testID="composition-boundary-countdown-step">
+        {/* Story 7.8 (D-438) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
+        <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
           <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
             <BoundaryStep
               kind="start"
@@ -2851,7 +2826,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               // Revue 6.2 : la puce d'un point en tête de séquence déborde dans l'écart.
               neighborSlop={countdownFollowedByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
               label={composition.countdown.label}
-              value={formatDurationRowValue(draft.initialCountdownSeconds)}
+              value={formatBoundarySecondsValue(draft.initialCountdownSeconds)}
               isOpen={openOverlay === "countdown"}
               onPress={() => toggleOverlay("countdown")}
               testID="composition-boundary-countdown"
@@ -2977,7 +2952,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
-            duration={compositionSummary}
             // PRE-6 story 7.3 (D-437) : stepper toujours affiché ; chaque pas passe par
             // `circuitCountOutcome` (dialogue de Tour, story 7.2).
             onChangeCount={handleCircuitCountChange}
@@ -3137,7 +3111,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
 
         {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
-        <Animated.View style={{ transform: [{ translateY: endShift }] }} testID="composition-boundary-final-phase-track">
+        <Animated.View
+          // Story 7.8 (D-438) : cadre aligné à droite sur le bord droit des cartes d'Exercice.
+          style={[styles.boundaryTrailingOutset, { transform: [{ translateY: endShift }] }]}
+          testID="composition-boundary-final-phase-track"
+        >
           <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
             <BoundaryStep
               kind="end"
@@ -3145,7 +3123,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               // Revue 5.2 : la puce d'un point d'arrêt juste au-dessus déborde dans l'écart.
               neighborSlop={finPrecededByStopPoint ? STOP_POINT_CHIP_TOUCH_EXTENT : 0}
               label={composition.finalPhase.label}
-              value={formatDurationRowValue(draft.finalPhaseSeconds)}
+              value={formatBoundarySecondsValue(draft.finalPhaseSeconds)}
               isOpen={openOverlay === "finalPhase"}
               onPress={() => toggleOverlay("finalPhase")}
               ref={finalBoundaryRef}
@@ -3170,7 +3148,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * PRE-6 (story 3.2) — Android / web : panneau du choix de nature, hébergé par le contenu
          * défilant (qui le contient entièrement : sur Android, un toucher hors des limites d'un
          * parent n'atteint pas ses enfants), rendu en dernier pour passer au-dessus des étapes.
-         * Aligné à droite sur la pastille (bord droit du contenu), sous l'en-tête du Circuit ;
+         * Aligné à droite sur le bord droit du contenu (story 7.8 : le stepper y est calé), sous
+         * l'en-tête du Circuit ;
          * jamais rendu avant la mesure de l'en-tête.
          */}
         {openOverlay === "circuitNature" && circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? (
@@ -3196,9 +3175,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * REWORK09 (mission directe utilisateur, 2026-09-04, point 2
        * « CORRECTIONS CONNEXES — COMPOSITION ») : la ligne de synthèse
        * `0 activité · 0 min` précédemment affichée ICI est **supprimée** —
-       * devenue redondante depuis REWORK08-C, qui affiche désormais la même
-       * synthèse canonique (`compositionSummary`) directement sous le
-       * titre du Circuit (`CircuitHeader`, PRE-6 story 3.1). `Continuer`
+       * devenue redondante depuis REWORK08-C (synthèse affichée sous le titre
+       * du Circuit, elle-même retirée par PRE-6 story 7.8 : seule la durée de
+       * la Séance, dans la zone de contexte, demeure). `Continuer`
        * reste seul dans cette zone ; le style `summary` (devenu sans
        * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
@@ -3250,29 +3229,34 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * déclenchrice — voir ce composant pour la justification complète.
        */}
       <WheelPickerOverlay visible={openOverlay === "countdown"}>
-        <DurationWheelPicker
-          totalSeconds={draft.initialCountdownSeconds}
-          onValidate={(totalSeconds) => {
-            updateDraft({ initialCountdownSeconds: totalSeconds });
+        {/* PRE-6 story 7.8 (D-438) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        <NumberWheelPicker
+          value={draft.initialCountdownSeconds}
+          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
+          onValidate={(seconds) => {
+            updateDraft({ initialCountdownSeconds: seconds });
             closeOverlay();
           }}
           onCancel={closeOverlay}
-          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          // Revue 7.8 : la roulette (une seule colonne) porte le nom de sa borne.
+          accessibilityLabel={composition.countdown.label}
+          valueAccessibilityLabel={formatBoundarySecondsValue}
           cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
       </WheelPickerOverlay>
       <WheelPickerOverlay visible={openOverlay === "finalPhase"}>
-        <DurationWheelPicker
-          totalSeconds={draft.finalPhaseSeconds}
-          onValidate={(totalSeconds) => {
-            updateDraft({ finalPhaseSeconds: totalSeconds });
+        {/* PRE-6 story 7.8 (D-438) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        <NumberWheelPicker
+          value={draft.finalPhaseSeconds}
+          targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
+          onValidate={(seconds) => {
+            updateDraft({ finalPhaseSeconds: seconds });
             closeOverlay();
           }}
           onCancel={closeOverlay}
-          minutesAccessibilityLabel={composition.wheelPicker.minutesAccessibilityLabel}
-          secondsAccessibilityLabel={composition.wheelPicker.secondsAccessibilityLabel}
+          accessibilityLabel={composition.finalPhase.label}
+          valueAccessibilityLabel={formatBoundarySecondsValue}
           cancelAccessibilityLabel={composition.wheelPicker.cancelAccessibilityLabel}
           validateAccessibilityLabel={composition.wheelPicker.validateAccessibilityLabel}
         />
@@ -5548,6 +5532,9 @@ export function predictedInsertionHeight(
  */
 const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
 
+/** Story 7.8 (D-438) : bornes de la roulette du Compte à rebours et de la Fin de séance. */
+const SESSION_BOUNDARY_WHEEL_BOUNDS = { min: 0, max: SESSION_BOUNDARY_SECONDS_MAX } as const;
+
 /** Revue 7.7 : continuation de tous les éléments en mouvement (copie de Dupliquer). */
 const NO_CONTINUATION_EXCEPTIONS: ReadonlySet<string> = new Set();
 
@@ -5717,6 +5704,11 @@ const styles = StyleSheet.create({
   },
   activityRowContainerDragged: {
     zIndex: 1,
+  },
+  // PRE-6 story 7.8 (D-438) : Compte à rebours et Fin de séance débordent de la colonne de la
+  // séquence comme les cartes (8 à droite), pour que leur cadre s'aligne sur le bord droit des cartes.
+  boundaryTrailingOutset: {
+    marginRight: -CARD_OUTSET,
   },
   // Correctif 2.3b : zone (liste ou Circuit) qui porte la carte soulevée, au-dessus de ses sœurs
   // du corps défilant.

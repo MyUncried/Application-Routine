@@ -19,7 +19,7 @@ import {
 import { computeActivityDurationResult, computeStructuredSessionDuration } from "@/domain/sessions/calculations";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
 import { groupActivitiesByZone } from "@/domain/sessions/composition";
-import { DEFAULT_TOUR_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import { formatEstimatedDuration } from "@/features/sessions/formatSessionSummary";
@@ -48,108 +48,28 @@ export type CompositionSummaryFacts = {
 };
 
 /**
- * Résumé sous le titre du Circuit (`Nombre de tours`) — historique : T01-S07,
- * T01-S08 (revue PR #9), REWORK12, REWORK13 (R13-02), T02-S01/T02-S02, PRE-3,
- * PRE-4 (story 2.4, P41, P47).
+ * PRE-6 story 7.8 (D-438, « Durée de la Séance ») : pas d'arrondi (15 s) de la durée de la Séance
+ * affichée dans la zone de contexte.
+ */
+export const SESSION_DURATION_ROUNDING_SECONDS = 15;
+
+/**
+ * Durée de séance de la zone de contexte de la Composition (PRE-6 story 2.1, CE-T03-08, RM-159) :
+ * TOUTES les occurrences, développées selon la nature du Circuit (`computeStructuredSessionDuration`,
+ * autorité unique du Domaine), sans Compte à rebours initial ni Fin de séance.
  *
- * **PRE-6 (story 1.3, D-382, D-390, D-399)** : le résumé est la SEULE durée
- * de ce Circuit, sans nombre d'exercices ; « — min » (`summary.empty`) si
- * aucun Exercice n'est dans le Circuit.
- *
- * - Périmètre : les seules occurrences `IN_TOUR` ; les occurrences
- *   `BEFORE_TOUR`/`AFTER_TOUR`, le Compte à rebours initial et la Fin de
- *   séance en sont toujours exclus (REWORK13, R13-02).
- * - Calcul : autorité unique du Domaine, `computeStructuredSessionDuration`
- *   restreinte à la zone `IN_TOUR`, qui développe le Circuit selon sa nature
- *   (Tours : contenu interne × `tourRepeatCount` ; Séries : passages) —
- *   même total que la liste et la lecture complète. La Récupération positive
- *   remplace la Pause terminale ; aucune formule locale.
- * - Nature et format : « ≥ » si un travail est inconnu (à l'échec,
- *   Répétitions sans bip, Cible à renseigner), suivi des minutes et secondes
- *   sans arrondi (`formatPhraseDuration`), sauf une borne de 0 s qui garde
- *   « ≥ 0 min » (P47) ; « ≈ » si une contribution est estimée (Répétitions
- *   avec bip) ; exact sinon. `exact` et `estimated` passent par
- *   `formatEstimatedDuration` (arrondi à la minute supérieure, RM-101, P41).
- * - PRE-6 story 7.3 (D-437) : au-delà de 3 min, arrondi à la minute la plus
- *   proche, préfixe conservé (`formatCircuitDurationResult`).
- */
-export function formatCompositionSummary(facts: CompositionSummaryFacts): string {
-  const inTourExercises = facts.exercises.filter(
-    (exercise) => exercise.structuralPosition === "IN_TOUR",
-  );
-
-  if (inTourExercises.length === 0) {
-    return strings.screens.composition.summary.empty;
-  }
-
-  // PRE-6 (story 1.3, AD-40) : autorité unique du Domaine,
-  // `computeStructuredSessionDuration` restreinte à la zone `IN_TOUR` — le
-  // développement suit la nature du Circuit (Tours : × N ; Séries :
-  // passages), exactement comme la liste et la lecture complète. Aucune
-  // formule locale : la parité Domaine / présentation est vraie par
-  // construction.
-  const duration = computeStructuredSessionDuration({
-    beforeTour: [],
-    inTour: inTourExercises,
-    afterTour: [],
-    tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
-    circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
-  });
-  // PRE-6 (story 1.3, D-382, D-390) : la durée de ce seul Circuit, sans
-  // nombre d'exercices. Story 7.3 (D-437) : arrondie à la minute au-delà de 3 min.
-  return formatCircuitDurationResult(duration);
-}
-
-/**
- * PRE-6 story 7.3 (D-437, « Durée du Circuit » ; ch13 CE-T03-08) : seuil au-delà duquel la durée
- * de l'en-tête du Circuit, une estimation, est arrondie à la minute la plus proche.
- */
-export const CIRCUIT_DURATION_ROUNDING_THRESHOLD_SECONDS = 180;
-
-/**
- * Durée de l'en-tête du Circuit (story 7.3, D-437) : au-delà de 3 min (strictement), arrondie à la
- * minute la plus proche (`Math.round` : une demi-minute monte), préfixe d'estimation conservé
- * (« ≈ », « ≥ », aucun pour un total exact) ; jusqu'à 3 min, format partagé inchangé. Réservée au
- * résumé du Circuit : la durée de séance garde `formatSessionDurationResult`.
- */
-function formatCircuitDurationResult(duration: SessionDurationResult): string {
-  if (duration.seconds <= CIRCUIT_DURATION_ROUNDING_THRESHOLD_SECONDS) {
-    return formatSessionDurationResult(duration);
-  }
-  const minutes = Math.round(duration.seconds / 60);
-  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
-  const prefix = duration.kind === "estimated" ? estimatedPrefix : duration.kind === "lowerBound" ? lowerBoundPrefix : "";
-  return `${prefix}${minutes} ${strings.screens.sessions.card.durationUnit}`;
-}
-
-/**
- * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail
- * est inconnu, « ≈ » si une contribution est estimée (Répétitions avec bip),
- * aucun symbole sinon. PRE-4 (story 2.4, AC5) : la borne minimale garde ses
- * secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
- * `formatEstimatedDuration` et son arrondi à la minute supérieure (P41). Une
- * borne de 0 s garde « ≥ 0 min », jamais « 0 s » (règle P47).
- *
- * PRE-6 (story 2.1) : partagé par le résumé du Circuit et la durée de séance
- * de l'en-tête — même formatage et mêmes préfixes par construction.
- */
-function formatSessionDurationResult(duration: SessionDurationResult): string {
-  return duration.kind === "lowerBound" && duration.seconds > 0
-    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(duration.seconds)}`
-    : formatEstimatedDuration(duration.seconds, duration.kind);
-}
-
-/**
- * Durée de séance de l'en-tête de la Composition (PRE-6 story 2.1,
- * CE-T03-08, RM-159) : TOUTES les occurrences, développées selon la nature
- * du Circuit (`computeStructuredSessionDuration`, autorité unique du
- * Domaine), sans Compte à rebours initial ni Fin de séance. Séance vide :
- * « 0 min » (total exact nul).
+ * PRE-6 story 7.8 (D-438, remplace l'arrondi à la minute supérieure de cet affichage) : une
+ * ESTIMATION arrondie aux 15 secondes les plus proches (`Math.round`, une demi-tranche monte),
+ * précédée de « ≥ » si un travail est inconnu (borne minimale) et de « ≈ » sinon — même règle de
+ * choix que l'estimation existante (`SessionDurationResult.kind`), la durée affichée n'étant
+ * jamais exacte une fois arrondie. Format en minutes et secondes, sans minute nulle ni seconde
+ * nulle (« ≈ 12 min 15 s », « ≈ 45 s », « ≈ 3 min ») ; une séance vide (exactement 0) : « 0 s ».
+ * Le calcul de la durée et les autres affichages sont inchangés.
  */
 export function formatCompositionSessionDuration(facts: CompositionSummaryFacts): string {
   // Même répartition en zones que l'affichage de la Composition.
   const zones = groupActivitiesByZone(facts.exercises);
-  return formatSessionDurationResult(
+  return formatSessionDurationEstimate(
     computeStructuredSessionDuration({
       beforeTour: zones.beforeTour,
       inTour: zones.inTour,
@@ -161,7 +81,49 @@ export function formatCompositionSessionDuration(facts: CompositionSummaryFacts)
 }
 
 /**
- * Valeur affichée sur une ligne `Compte à rebours initial`/`Fin de séance`
+ * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail est inconnu, « ≈ » si une
+ * contribution est estimée (Répétitions avec bip), aucun symbole sinon. PRE-4 (story 2.4, AC5) : la
+ * borne minimale garde ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent
+ * `formatEstimatedDuration` et son arrondi à la minute supérieure (P41). Une borne de 0 s garde
+ * « ≥ 0 min », jamais « 0 s » (règle P47). Story 7.8 : sert encore au nom accessible d'une carte
+ * (la durée de séance a son propre format, `formatSessionDurationEstimate`).
+ */
+function formatSessionDurationResult(duration: SessionDurationResult): string {
+  return duration.kind === "lowerBound" && duration.seconds > 0
+    ? `${strings.shared.durationNature.lowerBoundPrefix}${formatPhraseDuration(duration.seconds)}`
+    : formatEstimatedDuration(duration.seconds, duration.kind);
+}
+
+/**
+ * Story 7.8 : estimation par tranches de 15 s (voir `formatCompositionSessionDuration`).
+ * - « ≈ » (exacte ou estimée) : tranche la plus proche (`Math.round`) ; une durée positive ne
+ *   s'affiche jamais « ≈ 0 s » (au moins une tranche, 15 s).
+ * - « ≥ » (borne minimale) : tranche inférieure (`Math.floor`), pour que le minimum affiché reste
+ *   vrai (98 s → « ≥ 1 min 30 s ») ; une borne nulle reste « ≥ 0 s ».
+ * - Séance vide (exactement 0) : « 0 s », sans préfixe. Durée non finie : traitée comme 0.
+ */
+export function formatSessionDurationEstimate(duration: SessionDurationResult): string {
+  const seconds = Number.isFinite(duration.seconds) ? Math.max(0, duration.seconds) : 0;
+  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+  const step = SESSION_DURATION_ROUNDING_SECONDS;
+  if (duration.kind === "lowerBound") {
+    return `${lowerBoundPrefix}${formatPhraseDuration(Math.floor(seconds / step) * step)}`;
+  }
+  if (seconds === 0) {
+    return formatPhraseDuration(0);
+  }
+  return `${estimatedPrefix}${formatPhraseDuration(Math.max(step, Math.round(seconds / step) * step))}`;
+}
+
+/** Story 7.8 : valeur d'une borne de séance, en secondes seulement, bornée à 0..60 (« 45 s »). */
+export function formatBoundarySecondsValue(totalSeconds: number): string {
+  const seconds = Number.isFinite(totalSeconds) ? Math.min(SESSION_BOUNDARY_SECONDS_MAX, Math.max(0, Math.round(totalSeconds))) : 0;
+  return `${seconds} ${strings.screens.composition.boundarySecondsUnit}`;
+}
+
+/**
+ * Historique (story 7.8 : plus aucun consommateur ; les bornes de séance utilisent
+ * `formatBoundarySecondsValue`). Valeur affichée sur une ligne `Compte à rebours initial`/`Fin de séance`
  * (Composition) ou `Durée`/`Pause après Série` (Exercice, T01-S08) avant
  * ouverture du sélecteur, ex. `"00 min 10 s"`. `maxTotalSeconds` par défaut
  * inchangé (3599, V1, Composition) ; l'écran Exercice passe explicitement
@@ -506,8 +468,8 @@ function occurrenceDurationKind(
 /**
  * Nom accessible de la carte d'occurrence (PRE-6 story 2.2, CE-T03-08 §18) :
  * type (« Exercice »), nom, position dans sa zone (« n sur m »), durée
- * d'occurrence (même format et mêmes symboles que les autres durées de la
- * Composition : `formatSessionDurationResult`) — omise si elle n'a pas de montant
+ * d'occurrence (`formatSessionDurationResult` ; story 7.8 : la durée de séance a son propre format
+ * par tranches de 15 s) — omise si elle n'a pas de montant
  * (`omitted`, `incomplete` : jamais « ≥ 0 min ») —, puis « changement de côté »
  * si l'occurrence est bilatérale (RM-243, sans direction).
  */

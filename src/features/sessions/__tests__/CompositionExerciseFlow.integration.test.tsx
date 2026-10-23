@@ -339,14 +339,9 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       exerciseRowTestId,
     ]);
 
-    // 5. Résumé du TOUR inchangé (correctif T02, 2026-09-08, point 1) :
-    // cette Activité est insérée `BEFORE_TOUR` (D-078/RM-020, « entre Compte
-    // à rebours et Tour », vérifié ci-dessus), donc hors de la zone
-    // `IN_TOUR` — la synthèse propre au Tour, qui n'agrège plus QUE cette
-    // zone, reste par conséquent l'état vide `"0 activité · 0 min"`. Avant
-    // ce correctif, une Activité `BEFORE_TOUR` contribuait encore (à tort)
-    // au nombre affiché par cette synthèse.
-    expect(screen.getByText(composition.summary.empty)).toBeTruthy();
+    // 5. Story 7.8 (D-438) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
+    // Tour, qui restait vide pour une Activité `BEFORE_TOUR`, a disparu avec elle).
+    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {

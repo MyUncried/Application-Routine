@@ -403,7 +403,7 @@ export type SessionSummary = {
    * `true` dès qu'au moins une Activité de la Composition est en mode
    * `REPETITIONS` (T01-S09) : `estimatedDurationSeconds` devient alors une
    * borne minimale plutôt qu'une durée exacte (même règle que
-   * `formatCompositionSummary`, RM-072) — à la charge de la présentation
+   * `formatCompositionSummary`, supprimé par PRE-6 story 7.8, RM-072) — à la charge de la présentation
    * d'en tirer un préfixe `≥` plutôt que de le coder ici.
    */
   isEstimatedDurationApproximate: boolean;

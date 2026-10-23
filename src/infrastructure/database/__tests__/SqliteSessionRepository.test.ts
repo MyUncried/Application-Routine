@@ -73,7 +73,6 @@ import { SqliteMediaRepository } from "@/infrastructure/database/repositories/Sq
 // le rendu passe donc par `createElement` plutôt que la syntaxe JSX, non
 // transformée dans un fichier `.ts` — même patron déjà établi par
 // `useSessionCatalogue.test.ts`.
-import { formatCompositionSummary } from "@/features/sessions/compositionPresentation";
 import { SessionCard } from "@/features/sessions/SessionCard";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn() }));
@@ -315,6 +314,23 @@ describe("SqliteSessionRepository", () => {
     const count = await database.getFirstAsync<{ count: number }>(
       "SELECT COUNT(*) AS count FROM sessions",
     );
+    expect(count?.count).toBe(0);
+  });
+
+  // PRE-6 story 7.8 (D-438) : Compte à rebours initial et Fin de séance bornés à 0..60 s à l'écriture.
+  it("story 7.8 — rejects a session boundary above 60 s with OUT_OF_RANGE 0..60, nothing written", async () => {
+    const repository = new SqliteSessionRepository(database, uuidFactory());
+
+    try {
+      await repository.create({ ...validInput(), initialCountdownSeconds: 61, finalPhaseSeconds: 60 });
+      throw new Error("expected repository.create to reject");
+    } catch (error) {
+      expect(error).toBeInstanceOf(SessionValidationError);
+      expect((error as SessionValidationError).violations).toEqual([
+        { code: "OUT_OF_RANGE", field: "session.initialCountdownSeconds", details: { min: 0, max: 60 } },
+      ]);
+    }
+    const count = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM sessions");
     expect(count?.count).toBe(0);
   });
 
@@ -3056,12 +3072,6 @@ describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
     expect(summary?.estimatedDurationSeconds).toBe(60 + 255);
     expect(summary?.durationKind).toBe("exact");
     expect(toSessionDurationResult(reopened!)).toEqual({ kind: "exact", seconds: 60 + 255 });
-    // Composition : le résumé est celui du seul Circuit (255 s → 4 min, D-382 ; arrondi à la minute la
-    // plus proche au-delà de 3 min, story 7.3, D-437).
-    const draft = toSessionDraft(reopened!);
-    expect(formatCompositionSummary({ exercises: draft.exercises, tourRepeatCount: draft.tourRepeatCount, circuitNature: draft.circuitNature })).toBe(
-      "4 min",
-    );
   });
 
   it("Tours : durée de liste inchangée (contenu interne × N)", async () => {

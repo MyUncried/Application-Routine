@@ -317,9 +317,9 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     expect(screen.queryByLabelText(composition.name)).toBeNull();
     expect(screen.queryByLabelText(composition.addActivity)).toBeNull();
     expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
-    expect(screen.queryByText("00 min 10 s")).toBeNull();
-    expect(screen.queryByText("00 min 05 s")).toBeNull();
-    expect(screen.queryByText(composition.summary.empty)).toBeNull();
+    expect(screen.queryByText("10 s")).toBeNull();
+    expect(screen.queryByText("5 s")).toBeNull();
+    expect(screen.queryByTestId("composition-session-duration")).toBeNull();
   });
 
   it("3. affiche le formulaire avec les valeurs PERSISTÉES une fois la Séance résolue — jamais les valeurs par défaut d'une création", async () => {
@@ -338,13 +338,14 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     expect(screen.queryByTestId("composition-edit-state")).toBeNull();
     expect(screen.getByLabelText(composition.name).props.value).toBe("Séance persistée");
     // Valeurs persistées (30 s / 20 s), jamais les défauts de création (10 s / 5 s).
-    expect(screen.getByText("00 min 30 s")).toBeTruthy();
-    expect(screen.getByText("00 min 20 s")).toBeTruthy();
-    expect(screen.queryByText("00 min 10 s")).toBeNull();
-    expect(screen.queryByText("00 min 05 s")).toBeNull();
+    // Story 7.8 (D-438) : secondes seules.
+    expect(screen.getByText("30 s")).toBeTruthy();
+    expect(screen.getByText("20 s")).toBeTruthy();
+    expect(screen.queryByText("10 s")).toBeNull();
+    expect(screen.queryByText("5 s")).toBeNull();
     // L'Activité persistée est bien restituée.
     expect(screen.getByText("Gainage persisté")).toBeTruthy();
-    expect(screen.queryByText(composition.summary.empty)).toBeNull();
+    expect(screen.getByTestId("composition-session-duration").props.children).toBe("≈ 5 min 15 s");
   });
 
   it("4. restitue les Zones corporelles de l'Activité réhydratée, dans l'ordre du référentiel, sur sa propre ligne", async () => {

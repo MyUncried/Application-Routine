@@ -466,10 +466,9 @@ export const fr = {
         singular: "Point d’arrêt retiré",
         plural: "{n} points d’arrêt retirés",
       },
-      summary: {
-        // PRE-6 (story 1.3, D-399) : Circuit vide → « — min » (D-390 : aucun nombre d’exercices).
-        empty: "— min",
-      },
+      // PRE-6 story 7.8 (D-438) : Compte à rebours et Fin de séance affichés en secondes seulement
+      // (« 45 s ») ; la durée du Circuit (et son « — min ») n’est plus affichée.
+      boundarySecondsUnit: "s",
       abandonModal: {
         title: "Abandonner la création ?",
         message: "Les informations saisies seront perdues et la séance ne sera pas créée.",

@@ -31,6 +31,7 @@ import {
   validateUpdateSessionInput,
   validateCircuitNature,
 } from "@/domain/sessions/validation";
+import { clampSessionBoundarySeconds } from "@/domain/sessions/defaults";
 
 describe("validateSessionName / validateExerciseName", () => {
   it("accepts 1 character after normalization", () => {
@@ -283,6 +284,29 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
     expect(validateInitialCountdownSeconds(1.5)).toEqual({
       ok: false,
       violations: [{ code: "NOT_INTEGER", field: "session.initialCountdownSeconds" }],
+    });
+  });
+
+  it("story 7.8 — clampSessionBoundarySeconds: 0..60, integer, non-finite → 0", () => {
+    expect(clampSessionBoundarySeconds(600)).toBe(60);
+    expect(clampSessionBoundarySeconds(60)).toBe(60);
+    expect(clampSessionBoundarySeconds(0)).toBe(0);
+    expect(clampSessionBoundarySeconds(-5)).toBe(0);
+    expect(clampSessionBoundarySeconds(30.4)).toBe(30);
+    expect(clampSessionBoundarySeconds(Number.NaN)).toBe(0);
+  });
+
+  // PRE-6 story 7.8 (D-438) : bornes de séance limitées à 0..60 s à l'écriture.
+  it("story 7.8 — accepts 60, rejects 61 and beyond with OUT_OF_RANGE 0..60", () => {
+    expect(validateInitialCountdownSeconds(60)).toEqual({ ok: true, value: 60 });
+    expect(validateFinalPhaseSeconds(60)).toEqual({ ok: true, value: 60 });
+    expect(validateInitialCountdownSeconds(61)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.initialCountdownSeconds", details: { min: 0, max: 60 } }],
+    });
+    expect(validateFinalPhaseSeconds(3599)).toEqual({
+      ok: false,
+      violations: [{ code: "OUT_OF_RANGE", field: "session.finalPhaseSeconds", details: { min: 0, max: 60 } }],
     });
   });
 });

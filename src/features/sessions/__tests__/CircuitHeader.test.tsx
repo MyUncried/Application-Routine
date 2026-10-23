@@ -12,13 +12,11 @@ import {
   circuitUnitLabel,
 } from "@/features/sessions/CircuitHeader";
 import { CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { colors, type } from "@/shared/ui/tokens";
 
 type HeaderOverrides = Partial<{
   nature: CircuitNature;
   count: number;
-  duration: string;
   isNatureMenuOpen: boolean;
   natureFocusRequest: number;
   isAttenuated: boolean;
@@ -35,7 +33,6 @@ function renderHeader(overrides: HeaderOverrides = {}) {
     <CircuitHeader
       nature={next.nature ?? "TOURS"}
       count={next.count ?? 1}
-      duration={next.duration ?? "— min"}
       onChangeCount={onChangeCount}
       isNatureMenuOpen={next.isNatureMenuOpen ?? false}
       natureFocusRequest={next.natureFocusRequest ?? 0}
@@ -190,14 +187,12 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
     });
   });
 
-  // Revue 5.2 : la durée, affichée à droite, est lue juste après le titre (VoiceOver).
-  it("VoiceOver reads the Circuit duration right after the title; the right-hand duration text is not a separate element", () => {
-    renderHeader({ duration: "≈ 12 min" });
-    expect(screen.getByTestId("header-title").props.accessibilityLabel).toBe("Circuit, ≈ 12 min");
-    const duration = screen.getByTestId("header-duration");
-    expect(duration.props.accessible).toBe(false);
-    expect(duration.props.importantForAccessibility).toBe("no");
-    expect(duration.props.children).toBe("≈ 12 min");
+  // Story 7.8 (D-438) : plus de durée du Circuit — le titre est lu seul, sans durée.
+  it("story 7.8 — no Circuit duration: neither text nor accessible name", () => {
+    renderHeader({ count: 3 });
+    expect(screen.queryByTestId("header-duration", anyNode)).toBeNull();
+    expect(screen.getByTestId("header-title").props.accessibilityLabel).toBeUndefined();
+    expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
   });
 });
 
@@ -207,17 +202,13 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
  * réelles de 44 espacées.
  */
 describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)", () => {
-  it("renders « Circuit », − N unit + and the duration at once, without any reveal", () => {
-    renderHeader({ duration: "≈ 12 min", count: 3, nature: "SERIES" });
+  it("renders « Circuit » and − N unit + at once, without any reveal", () => {
+    renderHeader({ count: 3, nature: "SERIES" });
     expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
     expect(screen.getByTestId(MINUS)).toBeTruthy();
     expect(screen.getByTestId(PLUS)).toBeTruthy();
     expect(screen.getByTestId("header-counter-value").props.children).toBe(3);
     expect(screen.getByTestId("header-counter-unit-text", anyNode).props.children).toBe("séries");
-    const duration = screen.getByTestId("header-duration");
-    expect(duration.props.children).toBe("≈ 12 min");
-    expect(duration.props.numberOfLines).toBe(1);
-    expect(StyleSheet.flatten(duration.props.style).color).toBe(TEXT_TERTIARY);
     // Ni état révélé, ni chiffre tactile, ni champ ouvert.
     expect(screen.queryByTestId("header-counter-value-press")).toBeNull();
     expect(screen.queryByTestId("header-counter-field")).toBeNull();
@@ -348,7 +339,6 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)",
         <CircuitHeader
           nature="TOURS"
           count={3}
-          duration="— min"
           onChangeCount={onChangeCount}
           isNatureMenuOpen={false}
           natureFocusRequest={0}
@@ -411,8 +401,8 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)",
       expect([...new Set(ids)]).toEqual(order);
     }));
 
-  it("the number is a « Valeur modifiable » (surface, radius 10, 10 / 4, primary); number, unit and duration at the title size", () => {
-    renderHeader({ count: 3, duration: "≈ 12 min" });
+  it("the number is a « Valeur modifiable » (surface, radius 10, 10 / 4, primary); number and unit at the title size", () => {
+    renderHeader({ count: 3 });
     expect(style("header-counter")).toMatchObject({
       backgroundColor: colors.surface,
       borderRadius: 10,
@@ -424,7 +414,6 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)",
     expect(style("header-counter-value")).toMatchObject({ color: colors.primary, fontSize: titleSize });
     expect(style("header-counter-unit-text")).toMatchObject({ color: colors.primary, fontSize: titleSize });
     expect(style("header-counter-unit")).toMatchObject({ backgroundColor: colors.surface, borderRadius: 10 });
-    expect(style("header-duration")).toMatchObject({ fontSize: titleSize, fontFamily: type.supporting.fontFamily });
   });
 
   it("stepper background (Figma `9819:19951`): white, 36 high, radius 18, padding 4; surface circles of 28", () => {
@@ -492,12 +481,10 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)",
     expect((plus.marginLeft as number) + circleInset).toBe(12);
   });
 
-  // Revue 5.2 : à court de place, la durée cède d'abord (base 0, `flex: 1`), puis le titre (ellipse) ;
-  // le stepper (et la pastille de nature) ne rétrécit jamais et ne quitte pas la ligne.
-  it("narrow widths: the duration gives way first, then the title; the stepper never shrinks", () => {
-    renderHeader({ duration: "≈ 1 h 12 min" });
-    expect(style("header-duration")).toMatchObject({ flex: 1, minWidth: 0, marginLeft: 4, textAlign: "right" });
-    expect(screen.getByTestId("header-duration").props.numberOfLines).toBe(1);
+  // Revue 5.2 / story 7.8 : à court de place, le titre cède (ellipse) ; le stepper (et la pastille
+  // de nature) ne rétrécit jamais et ne quitte pas la ligne.
+  it("narrow widths: the title gives way; the stepper never shrinks", () => {
+    renderHeader({ count: 3 });
     expect(style("header-text-block")).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(style("header-title-row").minWidth).toBe(0);
     expect(style("header-title")).toMatchObject({ flexShrink: 1, minWidth: 0 });
@@ -527,26 +514,27 @@ describe("CircuitHeader — sans l'œil des volumes (PRE-6 story 5.1b)", () => {
     expect(screen.queryByTestId("header-volumes-icon", anyNode)).toBeNull();
   });
 
-  // Story 5.2 (D-435, `9819:19948`) : une seule ligne de 40 — titre, stepper, puis la durée calée à
-  // droite ; story 5.1b : la ligne du titre ne porte plus que « Circuit ».
-  it("one line: « Circuit » alone on the title line, then the stepper, then the right-aligned duration", () => {
-    renderHeader({ duration: "≈ 1 h 12 min, durée très longue" });
+  // Story 5.2 (D-435, `9819:19948`) : une seule ligne de 40 ; story 5.1b : la ligne du titre ne
+  // porte que « Circuit » ; story 7.8 (D-438) : plus de durée, le stepper est calé à droite.
+  it("story 7.8 — one line: « Circuit » alone on the left, the stepper right-aligned, nothing after it", () => {
+    renderHeader({ count: 3 });
     const titleRow = screen.getByTestId("header-title-row");
     expect(StyleSheet.flatten(titleRow.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center" });
     const children = ([] as unknown[])
       .concat(titleRow.props.children)
       .filter((child): child is { props: { testID: string } } => child !== null && typeof child === "object");
     expect(children.map((child) => child.props.testID)).toEqual(["header-title"]);
-    expect(within(titleRow).queryByTestId("header-duration")).toBeNull();
     expect(within(titleRow).queryByTestId("header-counter-stepper")).toBeNull();
     const header = screen.getByTestId("header");
     const rowChildren = (header.props.children as ({ props: { testID: string } } | null)[])
       .flat()
       .filter((child): child is { props: { testID: string } } => child !== null);
-    expect(rowChildren.map((child) => child.props.testID)).toEqual([
-      "header-text-block",
-      "header-counter-slot",
-      "header-duration",
-    ]);
+    // Le stepper est le DERNIER élément de la ligne, et le bloc du titre prend toute la place libre :
+    // le bord droit du stepper est donc le bord droit de l'en-tête (aligné à droite).
+    expect(rowChildren.map((child) => child.props.testID)).toEqual(["header-text-block", "header-counter-slot"]);
+    expect(style("header-text-block").flexGrow).toBe(1);
+    expect(style("header-counter-slot").marginRight).toBeUndefined();
+    expect(style("header").paddingRight).toBeUndefined();
+    expect(style("header").justifyContent).toBeUndefined();
   });
 });

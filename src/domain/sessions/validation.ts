@@ -34,7 +34,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./circuit";
-import { DEFAULT_SIDE_MODE } from "./defaults";
+import { DEFAULT_SIDE_MODE, SESSION_BOUNDARY_SECONDS_MAX } from "./defaults";
 import { isSideMode, type SideMode } from "./sideMode";
 import {
   isStopPointPlacementAllowed,
@@ -393,12 +393,26 @@ function validateNonNegativeSeconds(
   return ok(raw);
 }
 
+/**
+ * PRE-6 story 7.8 (D-438, remplace la borne 0..3599 s de D-089 amendée par D-265) : Compte à rebours
+ * initial et Fin de séance bornés à 0..`SESSION_BOUNDARY_SECONDS_MAX` (60 s) à l'écriture. Aucune
+ * migration : une valeur héritée au-delà est relue à 60 s (`toSessionDraft`).
+ */
+function validateSessionBoundarySeconds(raw: number, field: ValidationField): ValidationResult<number> {
+  const base = validateNonNegativeSeconds(raw, field);
+  if (!base.ok) return base;
+  if (raw > SESSION_BOUNDARY_SECONDS_MAX) {
+    return fail([{ code: "OUT_OF_RANGE", field, details: { min: 0, max: SESSION_BOUNDARY_SECONDS_MAX } }]);
+  }
+  return base;
+}
+
 export function validateInitialCountdownSeconds(raw: number): ValidationResult<number> {
-  return validateNonNegativeSeconds(raw, "session.initialCountdownSeconds");
+  return validateSessionBoundarySeconds(raw, "session.initialCountdownSeconds");
 }
 
 export function validateFinalPhaseSeconds(raw: number): ValidationResult<number> {
-  return validateNonNegativeSeconds(raw, "session.finalPhaseSeconds");
+  return validateSessionBoundarySeconds(raw, "session.finalPhaseSeconds");
 }
 
 export function validateInstruction(

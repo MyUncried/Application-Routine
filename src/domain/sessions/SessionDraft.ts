@@ -42,6 +42,7 @@ import type {
   UpdateSessionInput,
 } from "./Session";
 import {
+  clampSessionBoundarySeconds,
   DEFAULT_ACTIVITY_TYPE,
   DEFAULT_EXECUTION_MODE,
   DEFAULT_EXERCISE_DURATION_SECONDS,
@@ -243,8 +244,10 @@ export function createEmptyDraft(defaults: SessionDraftDefaults = {}): SessionDr
     sourceSessionId: null,
     name: "",
     labelId: null,
-    initialCountdownSeconds: defaults.initialCountdownSeconds ?? DEFAULT_INITIAL_COUNTDOWN_SECONDS,
-    finalPhaseSeconds: defaults.finalPhaseSeconds ?? DEFAULT_FINAL_PHASE_SECONDS,
+    // PRE-6 story 7.8 (D-438) : un défaut du Profil hérité au-delà de 60 s (D-265 le conserve) est
+    // ramené à 60 s dans la Séance créée.
+    initialCountdownSeconds: clampSessionBoundarySeconds(defaults.initialCountdownSeconds ?? DEFAULT_INITIAL_COUNTDOWN_SECONDS),
+    finalPhaseSeconds: clampSessionBoundarySeconds(defaults.finalPhaseSeconds ?? DEFAULT_FINAL_PHASE_SECONDS),
     tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
     exercises: [],
   };
@@ -316,8 +319,11 @@ export function toSessionDraft(session: Session): SessionDraft {
     sourceSessionId: session.id,
     name: session.name,
     labelId: session.labelId ?? null,
-    initialCountdownSeconds: session.initialCountdownSeconds,
-    finalPhaseSeconds: session.finalPhaseSeconds,
+    // PRE-6 story 7.8 (D-438) : une valeur héritée au-delà de 60 s est relue à 60 s — brouillon
+    // et base de comparaison partagent cette lecture (la Séance n'est pas marquée modifiée) ; elle
+    // est réenregistrée à 60 s au prochain enregistrement.
+    initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),
+    finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
     tourRepeatCount: session.cycle.tour.repeatCount,
     // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
     ...(session.cycle.tour.nature !== undefined ? { circuitNature: session.cycle.tour.nature } : {}),
