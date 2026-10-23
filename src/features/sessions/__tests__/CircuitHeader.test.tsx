@@ -187,7 +187,7 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
     });
   });
 
-  // Story 7.8 (D-438) : plus de durée du Circuit — le titre est lu seul, sans durée.
+  // Story 7.8 (D-443) : plus de durée du Circuit — le titre est lu seul, sans durée.
   it("story 7.8 — no Circuit duration: neither text nor accessible name", () => {
     renderHeader({ count: 3 });
     expect(screen.queryByTestId("header-duration", anyNode)).toBeNull();
@@ -197,11 +197,11 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
 });
 
 /**
- * PRE-6 story 7.3 (D-437, recette du 22/10, commentaires 8 à 11 ; Figma `8328:28605`) : stepper
+ * PRE-6 story 7.3 (D-442, recette du 22/10, commentaires 8 à 11 ; Figma `8328:28605`) : stepper
  * toujours affiché et actif, nombre en « Valeur modifiable », textes à la taille du titre, cibles
  * réelles de 44 espacées.
  */
-describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-437)", () => {
+describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)", () => {
   it("renders « Circuit » and − N unit + at once, without any reveal", () => {
     renderHeader({ count: 3, nature: "SERIES" });
     expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
@@ -515,7 +515,7 @@ describe("CircuitHeader — sans l'œil des volumes (PRE-6 story 5.1b)", () => {
   });
 
   // Story 5.2 (D-435, `9819:19948`) : une seule ligne de 40 ; story 5.1b : la ligne du titre ne
-  // porte que « Circuit » ; story 7.8 (D-438) : plus de durée, le stepper est calé à droite.
+  // porte que « Circuit » ; story 7.8 (D-443) : plus de durée, le stepper est calé à droite.
   it("story 7.8 — one line: « Circuit » alone on the left, the stepper right-aligned, nothing after it", () => {
     renderHeader({ count: 3 });
     const titleRow = screen.getByTestId("header-title-row");

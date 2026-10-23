@@ -15,7 +15,7 @@ context:
 
 ## Intent
 
-**Problem:** Le Domaine rattache chaque Point d'arrêt à l'occurrence qui le précède (`anchorStopPoints` / `reattachStopPoints`, ARB-3) : il la suit au déplacement, est copié à la duplication et retiré à la suppression, et un point devenu interdit est supprimé silencieusement. Aucune règle n'interdit deux Points consécutifs. Hermann a remplacé ces règles (D-436, epic 6).
+**Problem:** Le Domaine rattache chaque Point d'arrêt à l'occurrence qui le précède (`anchorStopPoints` / `reattachStopPoints`, ARB-3) : il la suit au déplacement, est copié à la duplication et retiré à la suppression, et un point devenu interdit est supprimé silencieusement. Aucune règle n'interdit deux Points consécutifs. Hermann a remplacé ces règles (D-441, epic 6).
 
 **Approach:** Dans le Domaine pur, raisonner sur la séquence mêlée de chaque portée (occurrences et points) : les opérations sur les occurrences laissent les points à leur place dans cette séquence et recalculent leur `position` ; un prédicat RM-251 (non-consécutivité) et les interdits existants refusent toute opération invalide sans mutation ; ajout d'un déplacement autonome de point, des retraits programmés dans le sous-brouillon de placement, et de la fusion des points successifs du plan d'exécution en Séries partielles. Schéma, repositories et API inchangés.
 
@@ -30,7 +30,7 @@ context:
 - **R2** déplacement autonome : nouvelle opération (point, portée et position cibles) ; refus si interdit, consécutif, ou emplacement occupé ; identité conservée.
 - **Placement** : `placementSlots` ne propose jamais un emplacement qui créerait deux points consécutifs compte tenu de l'état effectif (existants − retraits + ajouts) ; le sous-brouillon porte des retraits programmés de points existants (toggle) ; `hasPlacementChanges` et `applyPlacementDraft` les appliquent ; une resélection annule le retrait ; état du libellé : fournir au Domaine ou à la présentation une fonction pure qui distingue « ajouts seuls » de « retraits, mélange ou modification de durée » (le libellé lui-même est fait en 6.3).
 - **Exécution** : `expandComposition` ne produit jamais deux étapes `STOP_POINT` successives (étapes `RECOVERY` ignorées pour ce test) : en Séries partielles, le second est omis ; Tours inchangés (garantis par la règle structurelle).
-- Fonctions pures, résultats discriminés plutôt qu'exceptions (convention du Domaine) ; noms en anglais ; commentaires en français citant D-436 / RM-251.
+- Fonctions pures, résultats discriminés plutôt qu'exceptions (convention du Domaine) ; noms en anglais ; commentaires en français citant D-441 / RM-251.
 
 **Never:**
 - Migration, changement de repository, de `Session.ts` persistant ou d'API ; modification de `src/features/` ou `app/` (story 6.2/6.3), sauf si une signature publique change de façon incompatible — dans ce cas, s'arrêter et le signaler plutôt que de modifier l'écran.
@@ -73,7 +73,7 @@ context:
 - [x] Plan d'exécution : fusion en Séries partielles + tests ; validation à l'enregistrement.
 
 **Acceptance Criteria:**
-- Given la suite complète, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit`, `npm run lint`, then tout est vert ; les tests qui encodaient ARB-3 sont réécrits selon D-436 (liste dans les notes), aucun autre affaibli.
+- Given la suite complète, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit`, `npm run lint`, then tout est vert ; les tests qui encodaient ARB-3 sont réécrits selon D-441 (liste dans les notes), aucun autre affaibli.
 
 ## Implementation Notes
 
@@ -92,8 +92,8 @@ Périmètre tenu : `src/domain/sessions/` (code et tests) et la fiche `src/domai
 
 **Jugement des opérations (`judge`)**, dans l'ordre : Circuit vidé alors qu'il porte un point ; point devenu interdit (RM-219) ; point amené en tête de Circuit (sauf s'il y était déjà) ; nouvelle paire consécutive (RM-251 ; paire héritée exemptée sur ses seuls identifiants, même renumérotée — jamais pour le point déplacé par `moveStopPoint`) ; perte de l'unicité `(scope, position)`. Un point hérité hors bornes ou non entier est laissé intact (jamais borné).
 
-**Tests réécrits (ARB-3 → D-436)**
-- `StopPoint.test.ts` : bloc `anchorStopPoints / reattachStopPoints (ARB-3)` remplacé par « séquence mêlée (D-436) », « RM-251 : non-consécutivité » et « isStopPointProposable » ; libellé du test `stopPointDisplay` ajusté (attente inchangée).
+**Tests réécrits (ARB-3 → D-441)**
+- `StopPoint.test.ts` : bloc `anchorStopPoints / reattachStopPoints (ARB-3)` remplacé par « séquence mêlée (D-441) », « RM-251 : non-consécutivité » et « isStopPointProposable » ; libellé du test `stopPointDisplay` ajusté (attente inchangée).
 - `composition.test.ts` : bloc ARB-3 remplacé par la matrice I/O et les cas de la revue.
 - `placement.test.ts` : les attentes complètes de `placementSlots` (story 4.1) portent désormais `kind` ; le test « ancienne Récupération autonome » est réécrit (un point qu'elle seule précède n'est plus proposé, séparateur unique).
 - `circuit.test.ts` : deux tests à point de tête de Circuit sans rien avant lui reçoivent un Exercice avant le Circuit (le point serait sinon en tête de Séance, désormais omis).

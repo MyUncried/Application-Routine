@@ -428,7 +428,7 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
     const backdrop = screen.getByTestId("wheel-picker-overlay-backdrop");
     expect(StyleSheet.flatten(backdrop.props.style).backgroundColor).toBe(colors.overlayScrim);
-    // Story 7.8 (D-438) : roulette d'une seule colonne de secondes (0..60).
+    // Story 7.8 (D-443) : roulette d'une seule colonne de secondes (0..60).
     expect(screen.getByTestId("number-wheel-picker")).toBeTruthy();
   });
 
@@ -509,7 +509,7 @@ describe("CompositionScreen — état initial", () => {
     expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
   });
 
-  // Story 7.8 (D-438) : plus de durée du Circuit ; la séance vide affiche « 0 s » dans la zone de
+  // Story 7.8 (D-443) : plus de durée du Circuit ; la séance vide affiche « 0 s » dans la zone de
   // contexte (remplace le résumé vide « — min » des stories 1.3 / REWORK09).
   it("story 7.8 — no Circuit duration; the empty session shows « 0 s » in the context area", () => {
     renderScreen();
@@ -554,7 +554,7 @@ describe("CompositionScreen — champ Nom", () => {
 });
 
 describe("CompositionScreen — sélecteurs et exclusivité", () => {
-  // Story 7.8 (D-438) : les bornes de séance utilisent la roulette d'une colonne `NumberWheelPicker`
+  // Story 7.8 (D-443) : les bornes de séance utilisent la roulette d'une colonne `NumberWheelPicker`
   // (0..60 s, pas 1 s, secondes seules) ; les comportements D-06 / R4-09 / REWORK08-B sont conservés.
   const countdownValue = () => within(screen.getByTestId("composition-boundary-countdown-value")).getByText(/ s$/).props.children;
   const finalPhaseValue = () => within(screen.getByTestId("composition-boundary-final-phase-value")).getByText(/ s$/).props.children;
@@ -720,7 +720,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreenWithDraft([], { labelId: "label-sport" });
 
     await waitFor(() => {
-      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      // PRE-6 story 7.2 (D-442) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
       const swatch = screen.getByTestId("composition-session-label-icon");
       expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
@@ -743,7 +743,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     renderScreenWithDraft([], { labelId: "label-sport" });
 
     await waitFor(() => {
-      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      // PRE-6 story 7.2 (D-442) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
       const swatch = screen.getByTestId("composition-session-label-icon");
       expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
@@ -773,7 +773,7 @@ describe("CompositionScreen — sélecteurs et exclusivité", () => {
     // secondes réelles (mesure de la recette 3 sur ExerciseScreen) — attente portée à 20 s.
     await waitFor(() => expect(screen.queryByTestId("label-picker-backdrop")).toBeNull(), { timeout: 20000 });
     await waitFor(() => {
-      // PRE-6 story 7.2 (D-437) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
+      // PRE-6 story 7.2 (D-442) : icône d’étiquette teintée de la couleur de l’Étiquette, plus de pastille.
       const swatch = screen.getByTestId("composition-session-label-icon");
       expect(StyleSheet.flatten(swatch.props.style).tintColor).toBe("#2E9B62");
     });
@@ -1127,7 +1127,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(StyleSheet.flatten(chipLabel.props.style)).toMatchObject({ fontSize: 13, color: colors.primary });
 
     const duration = screen.getByTestId("composition-session-duration");
-    // Story 7.8 (D-438) : séance vide → « 0 s ».
+    // Story 7.8 (D-443) : séance vide → « 0 s ».
     expect(duration.props.children).toBe("0 s");
     expect(StyleSheet.flatten(duration.props.style)).toMatchObject({ fontSize: 14, fontWeight: "400", color: TEXT_TERTIARY });
     // Revue 5.1b : la bande de 32 est une boîte de 44 (cibles contenues) aux marges verticales de −6 :
@@ -1188,7 +1188,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     expect(title.props.children).toBe("Circuit");
     expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontSize: 16, fontWeight: "600", color: colors.textPrimary });
 
-    // Story 7.8 (D-438) : plus de durée du Circuit dans l'en-tête.
+    // Story 7.8 (D-443) : plus de durée du Circuit dans l'en-tête.
     expect(within(header).queryByTestId("composition-circuit-header-duration")).toBeNull();
     // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau).
     // Revue 5.2 : hauteur MINIMALE de 40 (Dynamic Type).
@@ -1239,7 +1239,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   });
 
   /**
-   * Story 7.8 (D-438) : la durée du Circuit n'est plus affichée — ces tests (REWORK08-C, REWORK13)
+   * Story 7.8 (D-443) : la durée du Circuit n'est plus affichée — ces tests (REWORK08-C, REWORK13)
    * portent désormais sur la durée de la Séance de la zone de contexte, qui compte EXCLUSIVEMENT
    * les occurrences (jamais le Compte à rebours ni la Fin de séance), arrondie aux 15 s.
    */
@@ -1316,7 +1316,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     const bottomAction = screen.getByTestId("composition-bottom-action");
     expect(within(bottomAction).queryByText("0 s")).toBeNull();
     expect(within(bottomAction).getByLabelText(composition.saveAction)).toBeTruthy();
-    // Story 7.8 (D-438) : la durée reste affichée ailleurs — celle de la Séance, dans la zone de
+    // Story 7.8 (D-443) : la durée reste affichée ailleurs — celle de la Séance, dans la zone de
     // contexte (plus de durée du Circuit).
     expect(screen.getByTestId("composition-session-duration")).toBeTruthy();
   });
@@ -1569,13 +1569,13 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     expect(screen.getByTestId("wheel-picker-overlay")).toBeTruthy();
   });
 
-  // PRE-6 story 7.10 (D-439, remplace S-08 et le pied de la story 7.9) : zone d'action principale
+  // PRE-6 story 7.10 (D-444, remplace S-08 et le pied de la story 7.9) : zone d'action principale
   // fixe — en absolu au bas de l'écran, zone protégée de 114 (encart 34), bouton centré (correctif J6f), dégradé blanc ;
   // le corps défilant réserve toute sa hauteur (24 + 48 + 42 = 114 avec l'encart de test 34).
   it("story 7.10 — fixed primary action zone: absolute at the bottom, button 8 above the safe area, scroll reserve = zone height", () => {
     renderScreen();
     const zone = StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style);
-    // Correctif J6f (D-439) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    // Correctif J6f (D-444) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
     expect(zone).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(screen.getByTestId("composition-bottom-action").props.pointerEvents).toBe("box-none");
     const scrollContent = StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle);
@@ -2186,7 +2186,7 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
  * ------------------------------------------------------------------------ */
 
 /**
- * PRE-6 story 7.2 (D-437) : dialogue natif « Début de tour / Fin de tour / Annuler » (`Alert.alert`,
+ * PRE-6 story 7.2 (D-442) : dialogue natif « Début de tour / Fin de tour / Annuler » (`Alert.alert`,
  * espionné). `tourChoiceAlert()` installe l'espion ; `answerTourChoice` presse un bouton du dernier
  * dialogue affiché.
  */
@@ -2710,7 +2710,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(screen.getByTestId("composition-activity-actions-ex-1")).toBeTruthy();
   });
 
-  /** PRE-6 story 7.7 (D-438) : la carte rejoint sa position de repos sans arrêt brutal. */
+  /** PRE-6 story 7.7 (D-443) : la carte rejoint sa position de repos sans arrêt brutal. */
   it("story 7.7 — ouverture, fermeture et retour : la carte rejoint sa position de repos en décélérant, les actions restent dessous jusqu'à la fin", () => {
     renderTwo();
     const container = () => screen.getByTestId("composition-activity-ex-1");
@@ -3214,7 +3214,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
 
     const values = screen.getByTestId("composition-exercise-values-column");
     const recovery = within(values).getByTestId("composition-activity-recovery-ex-1-recovery");
-    // Story 7.2 (D-437) : simple affichage, la disposition est celle de la récupération elle-même.
+    // Story 7.2 (D-442) : simple affichage, la disposition est celle de la récupération elle-même.
     expect(StyleSheet.flatten(recovery.props.style)).toMatchObject({
       flexDirection: "row",
       alignItems: "center",
@@ -3264,7 +3264,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(blockStyle().height).toBe(80);
   });
 
-  // PRE-6 story 6.2 (D-436) : remplace « la rangée du point fait bloc avec l'occurrence » (ARB-3).
+  // PRE-6 story 6.2 (D-441) : remplace « la rangée du point fait bloc avec l'occurrence » (ARB-3).
   it("PRE6-6.2 — la rangée du point est une sœur des cartes, hors du conteneur gestuel de l'occurrence", () => {
     renderScreenWithDraft(withRecovery, { stopPoints: [pointAfter(1)] });
     const container = screen.getByTestId("composition-activity-ex-1");
@@ -3362,7 +3362,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(absolute).toHaveLength(0);
   });
 
-  it("PRE6-7.2 (D-437) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", () => {
+  it("PRE6-7.2 (D-442) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
     const recovery = screen.getByTestId("composition-activity-recovery-ex-1-recovery");
@@ -3463,7 +3463,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   });
 
   // VoiceOver n'atteint pas un bouton imbriqué dans la carte : la carte reprend ses deux actions.
-  it("PRE6-7.2 (D-437) — the card offers no recovery action (no « Modifier » / « Retirer la récupération »), whatever its value", () => {
+  it("PRE6-7.2 (D-442) — the card offers no recovery action (no « Modifier » / « Retirer la récupération »), whatever its value", () => {
     const card = () => screen.getByTestId("composition-exercise-row-ex-1");
     for (const seconds of [20, 0, null]) {
       const view = renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: seconds })]);
@@ -3663,7 +3663,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
 describe("CompositionScreen — recalcul immédiat de la durée du Circuit (T02-S02)", () => {
   // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
   swipeMotion();
-  // Story 7.8 (D-438) : la durée du Circuit n'est plus affichée ; ces recalculs immédiats portent
+  // Story 7.8 (D-443) : la durée du Circuit n'est plus affichée ; ces recalculs immédiats portent
   // sur la durée de la Séance (zone de contexte), arrondie aux 15 s.
   const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
   it("counts the out-of-Circuit Activities once and multiplies ONLY the IN_TOUR zone by tourRepeatCount", () => {
@@ -3755,13 +3755,13 @@ function setCircuitCountWithStepper(target: number) {
   }
 }
 
-describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10 ; story 7.3, D-437)", () => {
+describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1, CIR-10 ; story 7.3, D-442)", () => {
   // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
   swipeMotion();
   const oneActivity = [anActivity("ex-1", "IN_TOUR", { name: "Gainage", executionParameters: durationParameters(60) })];
   const unitText = () => screen.getByTestId("composition-circuit-header-counter-unit-text", { includeHiddenElements: true }).props.children;
   const counterValue = () => screen.getByTestId("composition-circuit-header-counter-value").props.children;
-  // Story 7.8 (D-438) : plus de durée du Circuit ; les pas du compteur se lisent dans la durée de la
+  // Story 7.8 (D-443) : plus de durée du Circuit ; les pas du compteur se lisent dans la durée de la
   // Séance (zone de contexte), arrondie aux 15 s.
   const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
   const stepper = () => screen.queryByTestId("composition-circuit-header-counter-stepper");
@@ -3770,7 +3770,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     renderScreenWithDraft(oneActivity);
     expect(counterValue()).toBe(1);
     expect(unitText()).toBe("tour");
-    // Story 7.3 (D-437, remplace D8) : stepper toujours affiché, sans toucher préalable.
+    // Story 7.3 (D-442, remplace D8) : stepper toujours affiché, sans toucher préalable.
     expect(stepper()).toBeTruthy();
 
     screen.unmount();
@@ -4205,9 +4205,9 @@ describe("CompositionScreen — PRE-4 Q53 (8) (Étiquette retirée encore affect
 });
 
 /**
- * PRE-6 (story 1.2 ; D-436 / RM-251 depuis la story 6.1, remplace ARB-3) : Dupliquer,
+ * PRE-6 (story 1.2 ; D-441 / RM-251 depuis la story 6.1, remplace ARB-3) : Dupliquer,
  * Supprimer et déposer laissent les Points d'arrêt du brouillon à leur place dans la
- * séquence ; une suppression qui rendrait un point interdit ou consécutif est refusée ; un dépôt est appliqué et retire les points en cause (story 7.1, D-437). Aucun rendu de point n'existe encore
+ * séquence ; une suppression qui rendrait un point interdit ou consécutif est refusée ; un dépôt est appliqué et retire les points en cause (story 7.1, D-442). Aucun rendu de point n'existe encore
  * (story 4.1) : une sonde lit `draft.stopPoints` dans le contexte.
  */
 describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)", () => {
@@ -4260,7 +4260,7 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
   ];
 
-  it("D-436 — Dupliquer ne copie pas le point : la copie suit la source, le point garde sa place ([A, P, B] → [A, A′, P, B])", () => {
+  it("D-441 — Dupliquer ne copie pas le point : la copie suit la source, le point garde sa place ([A, P, B] → [A, A′, P, B])", () => {
     renderWithStopPoints(twoBefore());
     fireSwipeLeft("ex-1");
     fireEvent.press(screen.getByTestId("composition-activity-duplicate-ex-1"));
@@ -4268,7 +4268,7 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     expect(readStopPoints()).toEqual([{ id: "s-1", scope: "BEFORE_TOUR", position: 2 }]);
   });
 
-  it("story 7.5 (D-437 amendée) — Supprimer une occurrence qui laisserait le point juste après le Compte à rebours : appliqué, le point retiré", () => {
+  it("story 7.5 (D-442 amendée) — Supprimer une occurrence qui laisserait le point juste après le Compte à rebours : appliqué, le point retiré", () => {
     const restoreTiming = jsDrivenAnimations();
     try {
       renderWithStopPoints(twoBefore());
@@ -4283,10 +4283,10 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     }
   });
 
-  // Story 7.1 (D-437) : le déplacement d'un Exercice est tolérant — un dépôt qui rendrait le point
+  // Story 7.1 (D-442) : le déplacement d'un Exercice est tolérant — un dépôt qui rendrait le point
   // interdit est appliqué et le point en cause retiré, sans message. La rangée du point est mesurée
   // (revue 6.2 : sans géométrie complète, le soulèvement est refusé).
-  it("D-437 — un dépôt qui laisserait le point en tête de séquence est appliqué, le point retiré ; story 7.2 : annonce discrète, sans message visuel", () => {
+  it("D-442 — un dépôt qui laisserait le point en tête de séquence est appliqué, le point retiré ; story 7.2 : annonce discrète, sans message visuel", () => {
     const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
     try {
       renderWithStopPoints(twoBefore());
@@ -4306,7 +4306,7 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     }
   });
 
-  it("D-437 — le point ne suit plus son occurrence ; avec un Circuit après, même dépôt : appliqué, le point retiré", () => {
+  it("D-442 — le point ne suit plus son occurrence ; avec un Circuit après, même dépôt : appliqué, le point retiré", () => {
     renderWithStopPoints([...twoBefore(), anActivity("core", "IN_TOUR", { name: "Pompes" })]);
     layoutTwoBeforeTour();
     fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
@@ -4350,7 +4350,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     );
     // 60 + 60 × 3 + 60 = 300 s → « ≈ 5 min » (story 7.8) ; Compte à rebours et Fin exclus.
     expect(headerDuration()).toBe("≈ 5 min");
-    // Story 7.8 (D-438) : plus de durée du Circuit.
+    // Story 7.8 (D-443) : plus de durée du Circuit.
     expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });
 
@@ -4484,7 +4484,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
   // PRE-6 story 5.1 : la récupération est dans la carte ; la rangée sous la carte ne porte plus qu'un point.
   // PRE-6 story 5.2 (D-435) : plus de repère par occurrence ; le rail de l'occurrence ne suit pas le
   // balayage (le rail ne glisse pas), et la carte soulevée sort du rail.
-  // PRE-6 story 6.2 (D-436) : la rangée du point est AUTONOME — elle ne suit ni le balayage ni le
+  // PRE-6 story 6.2 (D-441) : la rangée du point est AUTONOME — elle ne suit ni le balayage ni le
   // glisser de la carte qui la précède ; le rail de la carte ne suit ni l'un ni l'autre.
   it("PRE6-6.2 — la rangée du point ne suit ni le balayage ni le glisser de la carte ; le rail de la carte non plus", () => {
     renderScreenWithDraft(
@@ -4510,7 +4510,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     fireEvent(container(), "responderMove", { nativeEvent: { pageX: 200, pageY: 150 } });
 
     expect(cardTransform()[1]!.translateY).toBe(50);
-    // Le point reste à sa place (D-436, R1) : aucune translation de sa ligne ni de sa rangée.
+    // Le point reste à sa place (D-441, R1) : aucune translation de sa ligne ni de sa rangée.
     expect(translation("composition-stop-point-p1")).toBe(0);
     expect(screen.getByTestId("composition-rail-dot-stop-p1", hidden)).toBeTruthy();
     expect(screen.queryByTestId("composition-rail-link-ex-1", hidden)).toBeNull();
@@ -4559,7 +4559,7 @@ describe("CompositionScreen — PRE-6 story 2.1 (en-tête, bornes, Continuer)", 
     await waitFor(() => {
       const chip = screen.getByLabelText(composition.label.accessibilityLabel);
       expect(StyleSheet.flatten(within(chip).getByTestId("composition-session-label-icon").props.style).tintColor).toBe("#2E9B62");
-      // Story 7.2 (D-437) : plus de pastille ronde ; l'icône est celle d'étiquette (contour), de la taille de la puce.
+      // Story 7.2 (D-442) : plus de pastille ronde ; l'icône est celle d'étiquette (contour), de la taille de la puce.
       expect(within(chip).queryByTestId("composition-session-color-swatch")).toBeNull();
       expect(within(chip).queryByTestId("composition-session-label-outline-icon")).toBeNull();
       expect(within(chip).getByTestId("composition-session-label-name").props.children).toBe("Sport");
@@ -4785,7 +4785,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
   });
 
-  it("story 7.5 (D-437 amendée) — Supprimer une occurrence suivie d'un point qui deviendrait premier : appliqué, le point retiré", () => {
+  it("story 7.5 (D-442 amendée) — Supprimer une occurrence suivie d'un point qui deviendrait premier : appliqué, le point retiré", () => {
     const restoreTiming = jsDrivenAnimations();
     try {
       renderWithProbe([anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR")], {
@@ -4801,7 +4801,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     }
   });
 
-  it("D-436 — Supprimer une occurrence : le point reste à sa place dans la séquence quand c'est permis", () => {
+  it("D-441 — Supprimer une occurrence : le point reste à sa place dans la séquence quand c'est permis", () => {
     renderWithProbe(
       [anActivity("ex-1", "BEFORE_TOUR"), anActivity("ex-2", "BEFORE_TOUR"), anActivity("ex-3", "BEFORE_TOUR")],
       { stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 2 }] },
@@ -4812,7 +4812,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.stopPoints).toEqual([{ id: "p1", scope: "BEFORE_TOUR", position: 1 }]);
   });
 
-  it("D-437 — « Descendre » qui rendrait un point interdit : offert et appliqué, le point en cause retiré", () => {
+  it("D-442 — « Descendre » qui rendrait un point interdit : offert et appliqué, le point en cause retiré", () => {
     renderWithProbe([anActivity("ex-1", "AFTER_TOUR"), anActivity("ex-2", "AFTER_TOUR")], {
       stopPoints: [{ id: "p1", scope: "AFTER_TOUR", position: 1 }],
     });
@@ -4979,7 +4979,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         toursDraft(2),
       );
       const before = probe.draft;
-      // Story 7.8 (D-438) : plus de durée du Circuit ; la durée de séance suit la nature.
+      // Story 7.8 (D-443) : plus de durée du Circuit ; la durée de séance suit la nature.
       const sessionDuration = () => screen.getByTestId("composition-session-duration").props.children;
       const toursSessionDuration = sessionDuration();
       chooseNature("SERIES");
@@ -5682,10 +5682,10 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   it("placement: « Continuer » is replaced by the bar, the rest is inactive (cards not attenuated, D6), the demarcation rule is hidden", () => {
     // PRE-6 story 5.1 (D-435, choix D1) : aucun trait ; la récupération de A est en ligne 3 de sa carte.
     renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
-    // Story 7.2 (D-437) : hors placement, la récupération n'est pas une cible.
+    // Story 7.2 (D-442) : hors placement, la récupération n'est pas une cible.
     expect(screen.getByTestId("composition-activity-recovery-A-recovery").props.onStartShouldSetResponder).toBeUndefined();
     enter();
-    // Story 7.2 (D-437) : en placement, la récupération existante est une zone SÉLECTIONNÉE (cadre).
+    // Story 7.2 (D-442) : en placement, la récupération existante est une zone SÉLECTIONNÉE (cadre).
     const placedRecovery = screen.getByTestId("composition-placement-slot-A-recovery");
     expect(placedRecovery.props.onStartShouldSetResponder).toBeDefined();
     expect(placedRecovery.props.accessibilityLabel).toBe("Récupération après A");
@@ -5765,7 +5765,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
     enter();
     expect(screen.queryByLabelText(recoveryLabel("B"))).toBeNull();
-    // Story 7.2 (D-437) : zone de récupération existante, sélectionnée avec sa durée.
+    // Story 7.2 (D-442) : zone de récupération existante, sélectionnée avec sa durée.
     const existing = screen.getByLabelText("Récupération après B");
     expect(existing.props.accessibilityState).toMatchObject({ selected: true });
     expect(existing.props.accessibilityValue).toEqual({ text: "20 s" });
@@ -5933,7 +5933,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     // R = 0 sans point : aucune ligne hors placement (décision Hermann 21/10/2026, remplace D-303).
     expect(screen.queryByTestId("composition-activity-recovery-D")).toBeNull();
     expect(screen.queryByTestId("composition-activity-recovery-slot-D")).toBeNull();
-    // Une nouvelle entrée la montre comme existante, sélectionnée à 0 (story 7.2, D-437).
+    // Une nouvelle entrée la montre comme existante, sélectionnée à 0 (story 7.2, D-442).
     enter();
     expect(screen.queryByLabelText(recoveryLabel("D"))).toBeNull();
     const zero = screen.getByLabelText("Récupération après D");
@@ -5941,7 +5941,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(within(zero).getByText("0 s")).toBeTruthy();
   });
 
-  // Story 7.8 (D-438) : plus de durée du Circuit ; seule la durée de séance est recalculée.
+  // Story 7.8 (D-443) : plus de durée du Circuit ; seule la durée de séance est recalculée.
   it("the session duration is recalculated live during placement, restored by Annuler", () => {
     renderPlacement(matrix());
     const sessionBefore = screen.getByTestId("composition-session-duration").props.children;
@@ -5971,7 +5971,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     enter();
     expect(screen.queryByTestId(BAR)).toBeNull();
     view.unmount();
-    // Story 7.2 (D-437) : la récupération existante ne se règle plus qu'en placement — elle suffit.
+    // Story 7.2 (D-442) : la récupération existante ne se règle plus qu'en placement — elle suffit.
     renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", postActivityRecoverySeconds: 20 })]);
     expect(screen.getByTestId(ADD_STOP).props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByTestId(ADD_STOP).props.accessibilityHint).toBe(p.addStopChangesOnlyHint);
@@ -6141,7 +6141,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     expect(at("composition-placement-slot-after-circuit")).toBeLessThan(at("composition-zone-after-tour"));
     expect(screen.queryByLabelText(p.addStopPointAfterCircuitAccessibilityLabel)).toBeNull();
     const existing = screen.getByLabelText(p.existingStopPointAfterCircuitAccessibilityLabel);
-    // PRE-6 story 6.3 (D-436, R3) : point existant sélectionné, désélectionnable (puce pleine de la story 5.3).
+    // PRE-6 story 6.3 (D-441, R3) : point existant sélectionné, désélectionnable (puce pleine de la story 5.3).
     expect(existing.props.accessibilityRole).toBe("button");
     expect(existing.props.accessibilityState).toMatchObject({ selected: true });
     expect(existing.props.testID).toBe("composition-placement-slot-after-circuit-stop-point-existing");
@@ -6159,7 +6159,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   describe("placement mixte et défilement (PRE-6 story 5.3, D-435, `8328:29270`)", () => {
-    // Story 7.2 (D-437) : nom de la zone de récupération existante.
+    // Story 7.2 (D-442) : nom de la zone de récupération existante.
     const existingLabel = (exercise: string) => p.existingRecoveryAccessibilityLabel.replace("{exercise}", exercise);
     const frame = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery`);
     const face = (id: string) => screen.getByTestId(`composition-placement-slot-${id}-recovery-face`);
@@ -6221,7 +6221,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.queryByTestId("composition-activity-recovery-slot-B")).toBeNull();
     });
 
-    it("matrix — existing R = 0 (story 7.2, D-437): a SELECTED frame « 0 s » on A, named after the exercise; touching it schedules its removal", () => {
+    it("matrix — existing R = 0 (story 7.2, D-442): a SELECTED frame « 0 s » on A, named after the exercise; touching it schedules its removal", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 0 } }));
       enter();
       expect(screen.queryByLabelText(recoveryLabel("A"))).toBeNull();
@@ -6238,7 +6238,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(probe.draft!.exercises.find((exercise) => exercise.id === "A")!.postActivityRecoverySeconds).toBeNull();
     });
 
-    it("matrix — existing R = 20 s (story 7.2, D-437): selected frame; touch → deselected (dashed, reduced opacity, hint); touch again → wheel at 20, ✓ 45 → selected at 45; never counted in N", () => {
+    it("matrix — existing R = 20 s (story 7.2, D-442): selected frame; touch → deselected (dashed, reduced opacity, hint); touch again → wheel at 20, ✓ 45 → selected at 45; never counted in N", () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       enter();
       const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
@@ -6263,7 +6263,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
         expect(frame("A").props.accessibilityState).toMatchObject({ selected: true });
         expect(within(frame("A")).getByText("45 s")).toBeTruthy();
         expect(announce).toHaveBeenLastCalledWith(`${p.recoverySelectedAnnouncement}. Confirmer les modifications`);
-        expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
+        expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-441) : durée modifiée seule.
         expect(probe.updates).toBe(0);
       } finally {
         announce.mockRestore();
@@ -6509,7 +6509,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       });
     });
 
-    // Story 7.10 (D-439) : « Continuer » et la barre ✓ / Annuler occupent la même zone, au même
+    // Story 7.10 (D-444) : « Continuer » et la barre ✓ / Annuler occupent la même zone, au même
     // emplacement vertical et à la même hauteur (48) : aucun saut à l'entrée ni à la sortie du placement.
     it("story 7.10 — entering and leaving placement keeps the action zone and its content height unchanged (no jump)", () => {
       renderPlacement(matrix({ B: { postActivityRecoverySeconds: 20 } }));
@@ -6562,7 +6562,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       // Le corps défile et occupe la place restante ; son contenu se termine par une marge basse.
       expect(box(body).flex).toBe(1);
       expect(body.props.scrollEnabled).toBe(true);
-      // Story 7.10 (D-439) : réserve de défilement = hauteur de la zone d'action fixe (114).
+      // Story 7.10 (D-444) : réserve de défilement = hauteur de la zone d'action fixe (114).
       expect(StyleSheet.flatten(body.props.contentContainerStyle).paddingBottom).toBe(finalActionZoneHeight(34));
       // Derniers emplacements (cadre de la dernière occurrence, point après l'avant-dernière) : dans
       // le contenu défilant, avant la Fin.
@@ -6571,7 +6571,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(
         testIdOrder(screen.toJSON(), ["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]),
       ).toEqual(["composition-placement-slot-E11-recovery", "composition-boundary-final-phase-track"]);
-      // Story 7.10 (D-439) : la barre de placement est dans la même zone que « Continuer », au-dessus
+      // Story 7.10 (D-444) : la barre de placement est dans la même zone que « Continuer », au-dessus
       // de la zone de sécurité (34 + 8), sans chevaucher l'indicateur d'accueil.
       // Correctif J6f : barre centrée dans la zone protégée, comme « Continuer » (33 / 33).
       expect(box(footer)).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
@@ -6579,13 +6579,13 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   /**
-   * PRE-6 story 4.2, révisée par la story 7.2 (D-437, ch13 CE-T03-08 L1496, complément D-437 point
+   * PRE-6 story 4.2, révisée par la story 7.2 (D-442, ch13 CE-T03-08 L1496, complément D-442 point
    * 4) : hors placement, la récupération n'est plus une cible (ni roulette, ni bulle « Retirer », ni
    * action accessible) ; elle se modifie et se retire seulement en placement, où sa zone est
    * sélectionnée — la désélectionner programme son retrait (Pause terminale rétablie, RM-038), la
    * resélectionner à une durée la modifie. Les rangées de point (stories 4.2, 6.2) sont inchangées.
    */
-  describe("durée, modification et retrait (PRE-6 story 4.2, révisée par la story 7.2, D-437)", () => {
+  describe("durée, modification et retrait (PRE-6 story 4.2, révisée par la story 7.2, D-442)", () => {
     /** Story 6.2 : ligne et puce de la rangée autonome d'un point, par identifiant de point. */
     const line = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}`);
     const stopChip = (pointId: string) => screen.getByTestId(`composition-stop-point-${pointId}-chip`);
@@ -6643,7 +6643,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       // Plus de trait (story 5.1, D1) ; rangée de 22, puce centrée (story 5.2).
       expect(StyleSheet.flatten(line("pA").props.style)).toMatchObject({ height: 22, justifyContent: "center" });
       expect(within(line("pA")).queryByTestId("composition-recovery-line-icon")).toBeNull();
-      // Story 6.2 (D-436) : rangée autonome, entre A et B, hors du bloc de A ; la récupération de A
+      // Story 6.2 (D-441) : rangée autonome, entre A et B, hors du bloc de A ; la récupération de A
       // reste dans la ligne 3 de sa carte.
       expect(within(screen.getByTestId("composition-activity-A")).queryByTestId("composition-stop-point-pA-chip")).toBeNull();
       expect(
@@ -6735,7 +6735,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       nativeChange("duration-wheel-seconds", 45);
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
       expect(frame("B").props.accessibilityValue).toEqual({ text: "45 s" });
-      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-436) : durée modifiée seule.
+      expect(confirm().props.accessibilityLabel).toBe("Confirmer les modifications"); // Story 6.3 (D-441) : durée modifiée seule.
       expect(confirm().props.accessibilityState).toMatchObject({ disabled: false });
       expect(probe.updates).toBe(0);
 
@@ -6814,8 +6814,8 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(sessionDuration()).toBe(expected.session);
     });
 
-    // PRE-6 story 6.2 (D-436) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action
-    // de retrait (le retrait revient en placement, story 6.3). Story 7.2 (D-437) : la puce saisie est
+    // PRE-6 story 6.2 (D-441) : l'appui long d'un point le saisit (glisser) ; plus de bulle ni d'action
+    // de retrait (le retrait revient en placement, story 6.3). Story 7.2 (D-442) : la puce saisie est
     // marquée soulevée (style sélectionné, ombre de la carte soulevée), la rangée garde sa hauteur.
     it("story 6.2 / 7.2 — long press on a point grabs it, marked lifted: no bubble, no « remove » action, nothing removed (also after the Circuit)", () => {
       renderPlacement(matrix(), {
@@ -6855,11 +6855,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
   });
 
   /**
-   * PRE-6 story 6.3 (D-436 R3, RM-251, ch13 CE-T03-08, arbitrage du 22/10/2026) : en placement, les
+   * PRE-6 story 6.3 (D-441 R3, RM-251, ch13 CE-T03-08, arbitrage du 22/10/2026) : en placement, les
    * points existants sont sélectionnés ; les désélectionner programme leur retrait, appliqué par
    * Confirmer ; Annuler restaure tout ; libellé du bouton selon `placementConfirmation`.
    */
-  describe("retrait en placement et libellé (PRE-6 story 6.3, D-436)", () => {
+  describe("retrait en placement et libellé (PRE-6 story 6.3, D-441)", () => {
     const existingLabel = (name: string) => p.existingStopPointAccessibilityLabel.replace("{exercise}", name);
     const P_AFTER_A = { id: "P", scope: "BEFORE_TOUR", position: 1 } as const;
     const face = (testID: string) => StyleSheet.flatten(screen.getByTestId(`${testID}-face`).props.style);
@@ -7189,7 +7189,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       fireEvent.press(screen.getByLabelText(stopLabel("C")));
       fireEvent.press(screen.getByLabelText(recoveryLabel("C")));
       fireEvent.press(screen.getByTestId("duration-wheel-validate"));
-      // Story 7.2 (D-437) : modification de la récupération existante de B (désélection, roulette).
+      // Story 7.2 (D-442) : modification de la récupération existante de B (désélection, roulette).
       fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
       fireEvent.press(screen.getByTestId("composition-placement-slot-B-recovery"));
       nativeChange("duration-wheel-seconds", 45);
@@ -7203,7 +7203,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     it("review: after Confirmer, if « Ajouter un arrêt » becomes unavailable, focus goes to the first card", async () => {
       const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
       try {
-        // Story 7.2 (D-437) : un Exercice offre toujours sa zone de récupération ; seule une ancienne
+        // Story 7.2 (D-442) : un Exercice offre toujours sa zone de récupération ; seule une ancienne
         // Récupération autonome (type `RECOVERY`) n'offre rien après le retrait de son point.
         renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", type: "RECOVERY", postActivityRecoverySeconds: 20 })], {
           overrides: { stopPoints: [{ id: "H", scope: "BEFORE_TOUR", position: 1 }] },
@@ -7225,7 +7225,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
 
     it("review: an existing point without an id does not make « Ajouter un arrêt » available", () => {
-      // Story 7.2 (D-437) : une ancienne Récupération autonome (type `RECOVERY`) n'a pas de zone de
+      // Story 7.2 (D-442) : une ancienne Récupération autonome (type `RECOVERY`) n'a pas de zone de
       // récupération ; seul le point sans identifiant pourrait ouvrir le placement.
       renderPlacement([anActivity("A", "BEFORE_TOUR", { name: "A", type: "RECOVERY", postActivityRecoverySeconds: 20 })], {
         overrides: { stopPoints: [{ scope: "BEFORE_TOUR", position: 1 } as unknown as StopPoint] },
@@ -7234,11 +7234,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
     });
   });
   /**
-   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498, complément D-437 points 5 à 8) : tête de Circuit
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498, complément D-442 points 5 à 8) : tête de Circuit
    * dessinée en placement, choix « Début de tour / Fin de tour / Annuler » (dialogue natif) pour le
    * placement, le pas d'une carte ou d'un point et le passage de N = 1 à N ≥ 2, retraits annoncés.
    */
-  describe("tête de Circuit, choix de Tour et points retirés (PRE-6 story 7.2, D-437)", () => {
+  describe("tête de Circuit, choix de Tour et points retirés (PRE-6 story 7.2, D-442)", () => {
     const tc = strings.screens.composition.tourBoundaryChoice;
     const removedOne = strings.screens.composition.stopPointsRemovedAnnouncement.singular;
     const HEAD_SLOT = "composition-placement-slot-circuit-head";
@@ -7370,7 +7370,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
-    it("D-437 point 8 — N = 2, Circuit alone (opens and closes the Session): start and end of Tour are both offered; at N = 1 neither is", () => {
+    it("D-442 point 8 — N = 2, Circuit alone (opens and closes the Session): start and end of Tour are both offered; at N = 1 neither is", () => {
       const view = renderPlacement([anActivity("B", "IN_TOUR", { name: "B" }), anActivity("C", "IN_TOUR", { name: "C" })], {
         overrides: { tourRepeatCount: 2 },
       });
@@ -7411,7 +7411,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
-    it("story 7.5 (D-437 amendée) — deleting a card that would put a start and an end of Tour back to back (N = 2): the choice is asked; Annuler deletes nothing; « Début de tour » deletes the card and removes the end point", () => {
+    it("story 7.5 (D-442 amendée) — deleting a card that would put a start and an end of Tour back to back (N = 2): the choice is asked; Annuler deletes nothing; « Début de tour » deletes the card and removes the end point", () => {
       const restoreTiming = jsDrivenAnimations();
       const alert = tourChoiceAlert();
       try {
@@ -7466,7 +7466,7 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       }
     });
 
-    it("D-437 — a card step that removes a point: no visual message, focus on the card and a discreet « Point d'arrêt retiré »", async () => {
+    it("D-442 — a card step that removes a point: no visual message, focus on the card and a discreet « Point d'arrêt retiré »", async () => {
       const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
       const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
       try {
@@ -7622,11 +7622,11 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
 });
 
 /**
- * PRE-6 story 7.2 (D-437, qui retire D-301 ; ch13 CE-T03-08 L1583, complément D-437 point 1) : la
+ * PRE-6 story 7.2 (D-442, qui retire D-301 ; ch13 CE-T03-08 L1583, complément D-442 point 1) : la
  * Composition n'affiche plus aucun message lorsque deux Exercices s'enchaînent sans pause, et
  * aucun autre avertissement ne le remplace — ni texte, ni annonce, hors placement comme en placement.
  */
-describe("CompositionScreen — plus d'avertissement d'enchaînement sans pause (PRE-6 story 7.2, D-437 retire D-301)", () => {
+describe("CompositionScreen — plus d'avertissement d'enchaînement sans pause (PRE-6 story 7.2, D-442 retire D-301)", () => {
   const D301_TEXT = "Attention, les exercices vont s’enchaîner sans pause.";
   const ADD_STOP = "composition-add-stop-action";
 
@@ -7912,7 +7912,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(order()).toEqual(INITIAL_ORDER);
   });
 
-  it("D-437 — dépôt qui rendrait un point interdit : appliqué, le point retiré, cartes à leur place", () => {
+  it("D-442 — dépôt qui rendrait un point interdit : appliqué, le point retiré, cartes à leur place", () => {
     renderLaidOut({ stopPoints: [{ id: "s-1", scope: "BEFORE_TOUR", position: 1 }] }, { withX: false, withZ: false });
     // Story 6.2 : la rangée du point (entre A et B) est mesurée — sans quoi le soulèvement est refusé.
     fireLayout(screen.getByTestId("composition-stop-point-row-s-1"), 75, 0);
@@ -8235,7 +8235,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(order()).toEqual(["B:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
   });
 
-  /** PRE-6 story 7.7 (D-438, j6c-4) : la copie de Dupliquer apparaît en fondu lent, la suite glisse. */
+  /** PRE-6 story 7.7 (D-443, j6c-4) : la copie de Dupliquer apparaît en fondu lent, la suite glisse. */
   it("story 7.7 — Dupliquer : brouillon écrit aussitôt ; la copie apparaît en fondu lent, les éléments suivants glissent pour lui faire place", () => {
     renderLaidOut();
     fireEvent(screen.getByTestId("composition-exercise-row-A"), "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
@@ -8315,7 +8315,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
   });
 
   /**
-   * PRE-6 story 7.4 (D-437, recette iPhone du 22/10, commentaires 3, 13 et 14).
+   * PRE-6 story 7.4 (D-442, recette iPhone du 22/10, commentaires 3, 13 et 14).
    */
   describe("story 7.4 — défilement pendant le glisser, cohérence avec le pilote natif", () => {
     type InternalValue = {
@@ -8508,7 +8508,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         jest.spyOn(prototype, "scrollTo").mockImplementation(scrollTo);
         jest.spyOn(prototype, "getNativeScrollRef").mockReturnValue({
           measureInWindow: (callback: (x: number, y: number, width: number, height: number) => void) =>
-            // Story 7.10 (D-439) : le corps passe sous la zone d'action fixe (insets de test : bas 34,
+            // Story 7.10 (D-444) : le corps passe sous la zone d'action fixe (insets de test : bas 34,
             // zone de 114) ; la zone visible, au-dessus d'elle, reste y 0 à 300.
             callback(0, VIEWPORT.top, 402, VIEWPORT.height + RESERVE),
         });
@@ -8798,7 +8798,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       /** Mesure la mise en page (ordre courant du brouillon) et rend le modèle de la séquence. */
       function layOut() {
         const exercises = probe.draft!.exercises;
-        // Story 6.2 (D-436) : rangées de la zone dans l'ordre affiché — cartes et points.
+        // Story 6.2 (D-441) : rangées de la zone dans l'ordre affiché — cartes et points.
         const itemsOf = (zone: Zone) => scopeSequence(exercises, probe.draft!.stopPoints ?? [], zone);
         const ids = (zone: Zone) => itemsOf(zone);
         const elements: Element[] = [];
@@ -9016,7 +9016,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         expectRailJoined(elements, null);
       });
 
-      // Story 7.1 (D-437) : un déplacement de carte n'est plus refusé pour un point interdit ou
+      // Story 7.1 (D-442) : un déplacement de carte n'est plus refusé pour un point interdit ou
       // consécutif ; story 7.2 : le dépôt qui demande un choix (conflit de Tour) tient la carte pendant
       // le dialogue natif, comme le dialogue de perte (story 5.2b).
       it("dépôt en attente du choix de Tour (story 7.2) : la carte reste tenue pendant le dialogue ; Annuler la ramène depuis sa position de dépôt, image par image, au premier plan, rail continu", () => {
@@ -9174,7 +9174,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       });
 
       /**
-       * PRE-6 story 6.2 (D-436, R1, R2, RM-251) : glisser à un rang de la séquence mêlée — la carte
+       * PRE-6 story 6.2 (D-441, R1, R2, RM-251) : glisser à un rang de la séquence mêlée — la carte
        * laisse les points en place (\`moveOccurrenceInSequence\`) ; le point se déplace seul
        * (\`moveStopPoint\`) ; refus → retour animé, rien d'écrit. Rail continu (\`expectRailJoined\`).
        */
@@ -9222,7 +9222,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           ]);
         });
 
-        it("D-437 — [A, P, B, Q, C], B glissée après C : appliqué, Q retiré (P conservé), rail continu", () => {
+        it("D-442 — [A, P, B, Q, C], B glissée après C : appliqué, Q retiré (P conservé), rail continu", () => {
           const elements = renderRail([...before(["A", "B", "C"]), circuitX()], {
             stopPoints: [
               { id: "P", scope: "BEFORE_TOUR", position: 1 },
@@ -9305,7 +9305,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             ],
           });
           // P : monter le mettrait juste après le compte à rebours (jamais proposable) → absente ;
-          // descendre → après B. Q (avant le Circuit) : descendre va en tête du Circuit (story 7.1, D-437), puis après X.
+          // descendre → après B. Q (avant le Circuit) : descendre va en tête du Circuit (story 7.1, D-442), puis après X.
           expect(pointActions("P")).toEqual(["moveDown"]);
           expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
           expect(pointChip("P").props.accessibilityHint).toBe(composition.pauses.stopPointReorderAccessibilityHint);
@@ -9316,7 +9316,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(pointActions("Q")).toEqual(["moveUp", "moveDown"]);
           fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:1"]);
-          // Redescendre : il franchit de nouveau P (après B, occupé) → après C ; puis — story 7.1, D-437 —
+          // Redescendre : il franchit de nouveau P (après B, occupé) → après C ; puis — story 7.1, D-442 —
           // en tête du Circuit (proposée), puis après X.
           fireEvent(pointChip("Q"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:2", "Q:BEFORE_TOUR:3"]);
@@ -9342,7 +9342,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(pointsOf()).toEqual(["P:BEFORE_TOUR:1"]);
         });
 
-        it("story 7.5 (D-437 amendée) — [A, P, B] : supprimer A est appliqué après le fondu et le glissement ; P retiré, sans message visuel", () => {
+        it("story 7.5 (D-442 amendée) — [A, P, B] : supprimer A est appliqué après le fondu et le glissement ; P retiré, sans message visuel", () => {
           const announce = jest.spyOn(AccessibilityInfo, "announceForAccessibility").mockImplementation(() => undefined);
           try {
             renderRail([...before(["A", "B"]), circuitX()], { stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }] });
@@ -9405,7 +9405,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(translateY("composition-tour-section-surface-top")).toBe(0);
         });
 
-        it("D-437 — carte glissée qui laisserait un point juste après le Compte à rebours : appliqué, le point retiré", () => {
+        it("D-442 — carte glissée qui laisserait un point juste après le Compte à rebours : appliqué, le point retiré", () => {
           const elements = renderRail([...before(["A", "B"]), circuitX()], {
             stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
           });
@@ -9489,7 +9489,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           }
         });
 
-        it("R2 entre zones — D-437 : en tête du Circuit, accepté ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {
+        it("R2 entre zones — D-442 : en tête du Circuit, accepté ; « après le Circuit » : accepté (première rangée de la zone d'après)", () => {
           let elements = renderRail([...before(["A", "B"]), circuitX(), anActivity("Z", "AFTER_TOUR", { name: "Ex Z" })], {
             stopPoints: [{ id: "P", scope: "BEFORE_TOUR", position: 1 }],
           });
@@ -9607,7 +9607,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
             fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
             frames(1);
             expect(targets()).toEqual([]);
-            // Puis — story 7.1, D-437 — il descend en tête du Circuit : autre liste, le focus le suit.
+            // Puis — story 7.1, D-442 — il descend en tête du Circuit : autre liste, le focus le suit.
             fireEvent(pointChip("P"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });
             expect(pointsOf()).toEqual(["P:IN_TOUR:0"]);
             frames(1);

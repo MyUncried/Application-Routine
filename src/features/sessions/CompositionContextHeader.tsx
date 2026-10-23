@@ -87,7 +87,7 @@ export type CompositionContextHeaderProps = {
   readonly onNameFocus: () => void;
   /** Étiquette affectée (référentiel chargé), `null` sinon. */
   readonly sessionLabel: Label | null;
-  /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-437). */
+  /** Couleur DÉRIVÉE de l'Étiquette (V2-PRE-1), teinte de son icône (story 7.2, D-442). */
   readonly sessionColor: string;
   readonly onOpenLabelPicker: () => void;
   /** Durée de séance déjà formatée (`formatCompositionSessionDuration`). */
@@ -132,7 +132,7 @@ export type CompositionContextHeaderProps = {
  * Comportements repris tels quels de la Composition : saisie du nom
  * (`NAME_MAX_LENGTH`, placeholder `text-primary`, R4-01), ouverture de
  * `LabelPickerModal` (V2-PRE-2, CE-T03-16) ; avec Étiquette, icône `label-outline` teintée de
- * sa couleur + nom (R7a ; PRE-6 story 7.2, D-437, remplace la pastille ronde) ; sans Étiquette,
+ * sa couleur + nom (R7a ; PRE-6 story 7.2, D-442, remplace la pastille ronde) ; sans Étiquette,
  * icône `label-outline` (r4).
  */
 export function CompositionContextHeader({
@@ -202,7 +202,7 @@ export function CompositionContextHeader({
           >
             {sessionLabel ? (
               <>
-                {/* PRE-6 story 7.2 (D-437, remplace la pastille ronde) : icône d'étiquette (contour)
+                {/* PRE-6 story 7.2 (D-442, remplace la pastille ronde) : icône d'étiquette (contour)
                     dans la couleur de l'Étiquette. */}
                 <KodjoIcon
                   name="label-outline"

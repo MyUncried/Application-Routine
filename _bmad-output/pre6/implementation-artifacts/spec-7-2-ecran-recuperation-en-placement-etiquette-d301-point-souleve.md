@@ -18,14 +18,14 @@ context:
 
 ## Intent
 
-**Problem:** La story 7.1 a livré au Domaine les règles de D-437 (déplacement tolérant, début et fin de Tour, retrait de récupération en placement). L'écran ne les expose pas encore : la récupération reste réglable hors placement (toucher, bulle « Retirer »), l'avertissement D-301 s'affiche toujours, la puce Étiquette est une pastille ronde, un Point d'arrêt saisi n'est pas marqué, les choix « Début de tour / Fin de tour » sont traités comme des refus muets, et l'emplacement libre de tête de Circuit n'est pas dessiné.
+**Problem:** La story 7.1 a livré au Domaine les règles de D-442 (déplacement tolérant, début et fin de Tour, retrait de récupération en placement). L'écran ne les expose pas encore : la récupération reste réglable hors placement (toucher, bulle « Retirer »), l'avertissement D-301 s'affiche toujours, la puce Étiquette est une pastille ronde, un Point d'arrêt saisi n'est pas marqué, les choix « Début de tour / Fin de tour » sont traités comme des refus muets, et l'emplacement libre de tête de Circuit n'est pas dessiné.
 
 **Approach:** Brancher l'écran de Composition sur l'API de 7.1, sans changer le Domaine : récupération réglable seulement en placement (zones sélectionnables), dialogue natif de choix de Tour pour toutes les opérations qui le demandent, annonce discrète des points retirés, emplacement de tête dessiné dans le Circuit ; retirer D-301, la bulle et les actions accessibles de la récupération ; Étiquette en icône teintée ; point soulevé marqué.
 
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-437 (ch07 l. 8-19) ; ch13 CE-T03-08 (« Complément D-437 » points 1 à 9, §8 à §20) ; epics.md « Epic 7 », story 7.2 ; API exactes de la spec 7.1 (« API pour la story 7.2 »).
+- Sources : D-442 (ch07 l. 8-19) ; ch13 CE-T03-08 (« Complément D-442 » points 1 à 9, §8 à §20) ; epics.md « Epic 7 », story 7.2 ; API exactes de la spec 7.1 (« API pour la story 7.2 »).
 - **AC1** : hors placement, la récupération de la ligne 3 n'est plus une cible (ni toucher → roulette, ni appui long → bulle, ni action accessible propre) ; sa valeur reste lue dans le nom de la carte ; le toucher et l'appui long de la carte couvrent la ligne 3. Code mort retiré (bulle, actions, clés, tests remplacés par ceux de la nouvelle règle).
 - **AC2** : en placement, chaque zone de récupération d'un Exercice est sélectionnable. Sélectionnée (ajout, ou récupération existante, 0 comprise, non retirée) : cadre plein `primary` avec la durée ; toucher → désélection (`deselectPlacementRecovery`). Non sélectionnée : cadre en pointillés « Récupération » ; toucher → roulette (valeur initiale : durée existante, sinon défaut du Profil) ; ✓ → `selectPlacementRecovery`, X → rien. Libellés, état sélectionné, indices et annonces VoiceOver ; libellé de Confirmer par `placementConfirmation` ; Confirmer applique (`applyPlacementDraft`), Annuler restaure.
 - **AC3** : D-301 retirée : ni message, ni annonce, ni clé, ni `unpausedTransitions.ts` (et ses tests) s'il n'a plus d'usage.
@@ -35,7 +35,7 @@ context:
   - points retirés par un déplacement ou un pas de carte : aucun message visuel ; annonce discrète « Point d'arrêt retiré » ; focus sur la carte pour un pas ; aucune mesure de rangée conservée pour un point disparu ;
   - `CHOICE_REQUIRED` (glisser et pas d'une carte, dépose et pas d'un point, placement — emplacement libre ou resélection —, compteur du Circuit via `circuitCountOutcome`) : dialogue natif « Début de tour » / « Fin de tour » / « Annuler » ; un choix applique `resolutions.HEAD` / `.TAIL` rejouées sur l'état courant ; Annuler ne change rien (retour animé existant) ; pendant le dialogue, l'élément lâché reste où il a été lâché (mécanique du dialogue de perte, story 5.2b) ;
   - emplacement libre `CIRCUIT_HEAD` dessiné dans le Circuit, entre son en-tête et sa première carte, centré, raccordé au rail ;
-  - « Monter » / « Descendre » d'une carte qui retire un point : assumé (D-437).
+  - « Monter » / « Descendre » d'une carte qui retire un point : assumé (D-442).
 - Textes dans `fr.ts` ; `tokens.ts` inchangé ; cibles tactiles réelles (aucun `hitSlop` hors parent) ; fins de ligne préservées par fichier.
 
 **Never:**
@@ -87,7 +87,7 @@ context:
 
 **Acceptance Criteria:**
 - Given l'arbre entier, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit` et `npm run lint` sont lancés, then tout est vert.
-- Given un iPhone, when la recette J6 est menée, then les points 1, 2, 4 à 9 du complément D-437 (ch13) sont conformes.
+- Given un iPhone, when la recette J6 est menée, then les points 1, 2, 4 à 9 du complément D-442 (ch13) sont conformes.
 
 ## Implementation Notes
 
@@ -108,7 +108,7 @@ Domaine inchangé (seuls des commentaires de `circuit.ts` et `placement.ts` sont
 
 **Retirés** : `RemovalBubble.tsx`, `measureAnchor.ts`, `domain/sessions/unpausedTransitions.ts` (et tests), roulette de modification hors placement, actions « Modifier / Retirer la récupération », clés `pauses.modifyRecovery`, `pauses.removeRecovery`, `pauses.modifiableRecoveryAccessibilityLabel`, `unpausedWarning`.
 
-**Tests** : `CompositionScreen.test.tsx` (5.1, 4.1, 5.3, 4.2, 6.3 réécrits vers D-437 ; D-301 → absence de message ; bloc « tête de Circuit, choix de Tour et points retirés » ; glisser d'une carte et dépose d'un point à choix ; annonce d'un dépôt tolérant), `StopPointChip.test.tsx` (repris de `RemovalBubble.test.tsx`, + état soulevé), `TourBoundaryChoiceDialog.test.tsx`, `CompositionPausesFlow.integration.test.tsx` (retrait d'une récupération → Continuer → relecture), `index.test.ts`.
+**Tests** : `CompositionScreen.test.tsx` (5.1, 4.1, 5.3, 4.2, 6.3 réécrits vers D-442 ; D-301 → absence de message ; bloc « tête de Circuit, choix de Tour et points retirés » ; glisser d'une carte et dépose d'un point à choix ; annonce d'un dépôt tolérant), `StopPointChip.test.tsx` (repris de `RemovalBubble.test.tsx`, + état soulevé), `TourBoundaryChoiceDialog.test.tsx`, `CompositionPausesFlow.integration.test.tsx` (retrait d'une récupération → Continuer → relecture), `index.test.ts`.
 
 ## Spec Change Log
 

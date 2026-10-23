@@ -24,7 +24,7 @@ import {
 import { colors, type } from "@/shared/ui/tokens";
 
 /**
- * Zone d'action principale fixe (D-439, PRE-6 story 7.10) — composant unique des écrans dotés d'un
+ * Zone d'action principale fixe (D-444, PRE-6 story 7.10) — composant unique des écrans dotés d'un
  * bouton d'action principal (et des barres de mode qui le remplacent, placement ✓ / Annuler).
  *
  * - Posée en absolu au bas du conteneur de l'écran (`ScreenShell`), pleine largeur, indépendante du
@@ -71,7 +71,7 @@ export function PrimaryActionZone({ children, onContentHeightChange, hidden = fa
         styles.zone,
         keyboardHidesZone ? styles.zoneHidden : null,
         {
-          // Correctif J6f (D-439) : contenu centré verticalement dans la zone protégée.
+          // Correctif J6f (D-444) : contenu centré verticalement dans la zone protégée.
           paddingTop: padding.top,
           paddingBottom: padding.bottom,
           paddingHorizontal: finalActionSideMargin(width),

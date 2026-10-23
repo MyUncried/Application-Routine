@@ -338,7 +338,7 @@ export function resolveDragShifts(
  * basse `circuitPaddingBottom`). `null` si l'élément n'a pas été relevé.
  *
  * Revue 7.6 : `removedIds` — rangées (Points d'arrêt) que le dépôt retire (déplacement tolérant,
- * D-437) : chacune située au-dessus de la place finale la fait remonter de sa hauteur et de l'écart
+ * D-442) : chacune située au-dessus de la place finale la fait remonter de sa hauteur et de l'écart
  * de sa zone.
  */
 export function resolveDropSettleOffset(
@@ -386,7 +386,7 @@ export function resolveDropSettleOffset(
 }
 
 /**
- * PRE-6 story 7.7 (D-438) : poses de départ, dans la NOUVELLE disposition, des éléments qui suivent
+ * PRE-6 story 7.7 (D-443) : poses de départ, dans la NOUVELLE disposition, des éléments qui suivent
  * un élément inséré juste après `afterId` (copie de Dupliquer) — ils y apparaissent décalés de la
  * hauteur insérée plus l'écart de la zone, c'est-à-dire là où ils étaient, puis glissent vers 0 pour
  * lui faire place. Même modèle que `resolveDragShifts` (bords du Circuit, Fin de séance). Fonction
@@ -415,7 +415,7 @@ export function resolveInsertionPoses(
 }
 
 /**
- * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : décalages qui montrent, avant qu'elle soit
+ * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : décalages qui montrent, avant qu'elle soit
  * écrite, la disposition produite par la SUPPRESSION des éléments `removedIds` (la carte supprimée
  * et les Points d'arrêt que la suppression retire) — même modèle que le retrait du glisser
  * (`resolveDragShifts`) : tout ce qui suit un élément retiré remonte de sa hauteur mesurée plus
@@ -464,7 +464,7 @@ export function resolveRemovalShifts(
 }
 
 /**
- * PRE-6 story 7.4 (D-437, commentaire 3 de la recette du 22/10) : défilement automatique pendant un
+ * PRE-6 story 7.4 (D-442, commentaire 3 de la recette du 22/10) : défilement automatique pendant un
  * glisser. Bande de bord, en points depuis chaque bord de la zone visible de la liste, dans laquelle
  * le doigt fait défiler la liste ; la vitesse croît linéairement avec la profondeur dans la bande,
  * de 0 à sa limite intérieure jusqu'au maximum au bord (et au-delà, doigt hors de la liste). Valeurs

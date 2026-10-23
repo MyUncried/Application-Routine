@@ -7,7 +7,7 @@ import {
 } from "@/features/sessions/compositionGesture";
 
 /**
- * PRE-6 story 7.4 (D-437, commentaire 3 de la recette du 22/10) : défilement automatique de la liste
+ * PRE-6 story 7.4 (D-442, commentaire 3 de la recette du 22/10) : défilement automatique de la liste
  * de la Composition pendant le glisser d'une carte ou d'un Point d'arrêt.
  *
  * Quand le doigt approche du bord haut ou bas de la zone visible de la liste (bande de bord,
@@ -43,7 +43,7 @@ export type AutoScrollTarget = {
   /** Zone visible dans le repère de l'écran ; rappel absent si la mesure est impossible. */
   readonly measure: (callback: (top: number, height: number) => void) => void;
   /**
-   * PRE-6 story 7.10 (D-439) : hauteur recouverte au bas de la zone visible par une zone fixe
+   * PRE-6 story 7.10 (D-444) : hauteur recouverte au bas de la zone visible par une zone fixe
    * (zone d'action principale) — elle remonte la bande du bas du défilement automatique ; le
    * décalage maximal, lui, reste calculé sur la hauteur pleine du conteneur. 0 par défaut.
    */

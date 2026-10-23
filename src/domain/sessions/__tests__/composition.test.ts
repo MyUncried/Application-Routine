@@ -449,13 +449,13 @@ describe("appendActivityAfterLastDisplayed — side mode (V2-PRE-1)", () => {
 });
 
 /**
- * PRE-6 story 6.1 (D-436, RM-251 ; remplace ARB-3 de la story 1.2) :
+ * PRE-6 story 6.1 (D-441, RM-251 ; remplace ARB-3 de la story 1.2) :
  * opérations de Composition sur la séquence mêlée — les points gardent leur
  * place, toute opération invalide est refusée sans mutation. Matrice I/O de
  * la spec 6.1 et corrections de revue (tête de Circuit, Circuit vidé,
  * unicité, paires héritées, non-déplacement, « Monter » / « Descendre »).
  */
-describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM-251)", () => {
+describe("opérations de Composition et Points d'arrêt indépendants (D-441, RM-251)", () => {
   function stateOf(
     activities: readonly SessionDraftExercise[],
     stopPoints: CompositionState["stopPoints"],
@@ -480,7 +480,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(next.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
     });
 
-    it("D-437 — [A, P, B, C] → A après B : P deviendrait premier (après le Compte à rebours) → appliqué, P retiré", () => {
+    it("D-442 — [A, P, B, C] → A après B : P deviendrait premier (après le Compte à rebours) → appliqué, P retiré", () => {
       const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
       const outcome = moveOccurrenceOutcome(state, "A", "IN_TOUR", 1);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
@@ -489,14 +489,14 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(moveOccurrence(state, "A", "IN_TOUR", 1).stopPoints).toEqual([]);
     });
 
-    it("D-437 — [A, P, B] → B en tête : P deviendrait le dernier (juste avant la Fin) → appliqué, P retiré", () => {
+    it("D-442 — [A, P, B] → B en tête : P deviendrait le dernier (juste avant la Fin) → appliqué, P retiré", () => {
       const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
       const outcome = moveOccurrenceOutcome(state, "B", "IN_TOUR", 0);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
       expect(outcome.status === "APPLIED" && ids(outcome.state.exercises)).toEqual(["B", "A"]);
     });
 
-    it("D-437 — [A, P, B, Q, C] → B après C : P et Q consécutifs → appliqué, Q retiré (le premier est conservé)", () => {
+    it("D-442 — [A, P, B, Q, C] → B après C : P et Q consécutifs → appliqué, Q retiré (le premier est conservé)", () => {
       const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
       const outcome = moveOccurrenceOutcome(state, "B", "IN_TOUR", 2);
       expect(outcome).toEqual({
@@ -506,7 +506,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       });
     });
 
-    it("D-437 — trois points devenus consécutifs : retrait itératif du second, seul le premier reste", () => {
+    it("D-442 — trois points devenus consécutifs : retrait itératif du second, seul le premier reste", () => {
       // [A, P, B, Q, C, R, D] : B et C sortent après D → [A, P, Q, R, D, B, C].
       const state = stateOf(inTour("A", "B", "C", "D"), [
         point("P", "IN_TOUR", 1),
@@ -522,7 +522,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(second.status === "APPLIED" && second.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
     });
 
-    it("D-437 — interdit puis consécutif : les interdits d'abord, puis le second de la paire", () => {
+    it("D-442 — interdit puis consécutif : les interdits d'abord, puis le second de la paire", () => {
       // [A, P, B, Q, C] : A part en fin → [P, B, Q, C, A] : P interdit (après le compte à rebours), retiré ;
       // Q reste (aucune paire).
       const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1), point("Q", "IN_TOUR", 2)]);
@@ -531,7 +531,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("Q", "IN_TOUR", 1)]);
     });
 
-    it("D-437 — tête de Circuit autorisée : [W | A, P, B | Z], A descend → P en (IN, 0), conservé", () => {
+    it("D-442 — tête de Circuit autorisée : [W | A, P, B | Z], A descend → P en (IN, 0), conservé", () => {
       const state = withCircuitPoint();
       const outcome = moveOccurrenceOutcome(state, "A", "IN_TOUR", 1);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
@@ -539,13 +539,13 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(stepOccurrence(state, "A", "DOWN")).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
     });
 
-    it("D-437 — tête de Circuit : A sortie vers AFTER_TOUR → appliqué, P en tête", () => {
+    it("D-442 — tête de Circuit : A sortie vers AFTER_TOUR → appliqué, P en tête", () => {
       const outcome = moveOccurrenceOutcome(withCircuitPoint(), "A", "AFTER_TOUR", 0);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 0)]);
     });
 
-    it("D-437 — tête de Circuit sans rien avant (N = 1) : interdite (après le Compte à rebours) → retirée", () => {
+    it("D-442 — tête de Circuit sans rien avant (N = 1) : interdite (après le Compte à rebours) → retirée", () => {
       const state = stateOf([...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")], [point("P", "IN_TOUR", 1)]);
       expect(moveOccurrenceOutcome(state, "A", "AFTER_TOUR", 1)).toMatchObject({
         status: "APPLIED",
@@ -553,7 +553,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       });
     });
 
-    it("D-437 — N ≥ 2 : la même tête de Circuit, en ouverture de Séance, est conservée (début de Tour)", () => {
+    it("D-442 — N ≥ 2 : la même tête de Circuit, en ouverture de Séance, est conservée (début de Tour)", () => {
       const state = { ...stateOf([...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")], [point("P", "IN_TOUR", 1)]), tourRepeatCount: 3 };
       const outcome = moveOccurrenceOutcome(state, "A", "AFTER_TOUR", 1);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
@@ -561,7 +561,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.tourRepeatCount).toBe(3);
     });
 
-    it("D-437 — N ≥ 2 : un déplacement qui ferait coexister début et fin de Tour → choix requis, sans mutation", () => {
+    it("D-442 — N ≥ 2 : un déplacement qui ferait coexister début et fin de Tour → choix requis, sans mutation", () => {
       // [W | A, P, B, Q | Z], N = 2 : A sort en tête d'AFTER_TOUR → P en début de Tour, Q en fin.
       const state = {
         ...stateOf(
@@ -588,7 +588,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       });
     });
 
-    it("D-437 — choix requis : les points déjà retirés par la tolérance figurent dans chaque résolution", () => {
+    it("D-442 — choix requis : les points déjà retirés par la tolérance figurent dans chaque résolution", () => {
       // [W | H, A, B, P, C | Y, Z], N = 2 : C part en fin de Séance → [W | H, A, B, P | Y, Z, C] :
       // Y suit P (retiré, le second) ; P devient fin de Tour, H est début de Tour → conflit.
       const state = {
@@ -608,7 +608,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.resolutions.TAIL.state.stopPoints).toEqual([point("P", "IN_TOUR", 2)]);
     });
 
-    it("D-437 — un conflit de Tour hérité n'est pas redemandé", () => {
+    it("D-442 — un conflit de Tour hérité n'est pas redemandé", () => {
       const state = {
         ...stateOf(
           [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B", "C"), anActivity("Z", "AFTER_TOUR")],
@@ -632,7 +632,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       }
     });
 
-    it("D-437 — Circuit vidé alors qu'il porte un point : déplacement appliqué, le point du Circuit retiré", () => {
+    it("D-442 — Circuit vidé alors qu'il porte un point : déplacement appliqué, le point du Circuit retiré", () => {
       const state = stateOf(
         [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
         [point("P", "IN_TOUR", 1)],
@@ -642,7 +642,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([]);
     });
 
-    it("D-437 — Circuit vidé, « avant » + « après » le Circuit consécutifs → appliqué, le second (« après ») retiré", () => {
+    it("D-442 — Circuit vidé, « avant » + « après » le Circuit consécutifs → appliqué, le second (« après ») retiré", () => {
       const state = stateOf(
         [anActivity("W", "BEFORE_TOUR"), anActivity("A", "IN_TOUR"), anActivity("Z", "AFTER_TOUR")],
         [point("B", "BEFORE_TOUR", 1), point("C", "AFTER_TOUR", 0)],
@@ -697,7 +697,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(moveOccurrenceInSequence(state, "inconnu", "IN_TOUR", 0)).toEqual({ status: "NOT_FOUND" });
     });
 
-    it("D-437 — [A, P, B, C], A au rang 1 de [P, B, C] → P deviendrait premier : appliqué, P retiré", () => {
+    it("D-442 — [A, P, B, C], A au rang 1 de [P, B, C] → P deviendrait premier : appliqué, P retiré", () => {
       const state = stateOf(inTour("A", "B", "C"), [point("P", "IN_TOUR", 1)]);
       const outcome = moveOccurrenceInSequence(state, "A", "IN_TOUR", 1);
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
@@ -786,7 +786,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       }
     });
 
-    it("retirer l'ancienne Récupération entre P et Q les réunirait → story 7.5 : Q retiré ; la sortir (D-437) : Q retiré", () => {
+    it("retirer l'ancienne Récupération entre P et Q les réunirait → story 7.5 : Q retiré ; la sortir (D-442) : Q retiré", () => {
       const removal = removeOccurrenceOutcome(legacyPair(), "R");
       expect(removal).toMatchObject({ status: "APPLIED", removedStopPointIds: ["Q"] });
       expect(removal.status === "APPLIED" && removal.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
@@ -796,7 +796,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 1)]);
     });
 
-    it("D-437 — une paire héritée reste exemptée au déplacement : aucun des deux n'est retiré", () => {
+    it("D-442 — une paire héritée reste exemptée au déplacement : aucun des deux n'est retiré", () => {
       const state = legacyPair();
       expect(moveOccurrenceOutcome(state, "D", "IN_TOUR", 0)).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
     });
@@ -816,7 +816,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
   });
 
   describe("supprimer une occurrence", () => {
-    it("story 7.5 (D-437 amendée) — [A, P, B] : supprimer A → appliqué, P retiré (il suivrait le Compte à rebours)", () => {
+    it("story 7.5 (D-442 amendée) — [A, P, B] : supprimer A → appliqué, P retiré (il suivrait le Compte à rebours)", () => {
       const state = stateOf(inTour("A", "B"), [point("P", "IN_TOUR", 1)]);
       const outcome = removeOccurrenceOutcome(state, "A");
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: ["P"] });
@@ -846,7 +846,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("Q", "IN_TOUR", 1)]);
     });
 
-    it("D-437 — [W | A, P, B | Z] : supprimer A amène P en tête de Circuit → accepté (tête autorisée)", () => {
+    it("D-442 — [W | A, P, B | Z] : supprimer A amène P en tête de Circuit → accepté (tête autorisée)", () => {
       const outcome = removeOccurrenceOutcome(withCircuitPoint(), "A");
       expect(outcome).toMatchObject({ status: "APPLIED", removedStopPointIds: [] });
       expect(outcome.status === "APPLIED" && outcome.state.stopPoints).toEqual([point("P", "IN_TOUR", 0)]);
@@ -867,7 +867,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(removeOccurrence(state, "A")).toBe(state);
     });
 
-    it("D-437 — N ≥ 2 : supprimer l'Exercice qui précède un point de fin de Tour en clôture de Séance est accepté", () => {
+    it("D-442 — N ≥ 2 : supprimer l'Exercice qui précède un point de fin de Tour en clôture de Séance est accepté", () => {
       // [W | A, B, Q] (Q en fin de Tour, rien après le Circuit), N = 2 : supprimer W → Q reste autorisé.
       const state = {
         ...stateOf([anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B")], [point("Q", "IN_TOUR", 2)]),
@@ -963,7 +963,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 3 }).status).toBe("APPLIED");
     });
 
-    it("refus : consécutif (frontière du Circuit), emplacement occupé, interdit ; D-437 : tête de Circuit acceptée", () => {
+    it("refus : consécutif (frontière du Circuit), emplacement occupé, interdit ; D-442 : tête de Circuit acceptée", () => {
       const state = stateOf(
         [anActivity("W", "BEFORE_TOUR"), ...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")],
         [point("P", "BEFORE_TOUR", 1), point("L", "IN_TOUR", 2)],
@@ -988,7 +988,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(head.status === "APPLIED" && head.state.stopPoints).toEqual([point("P", "IN_TOUR", 0), point("L", "IN_TOUR", 2)]);
     });
 
-    it("D-437 — tête de Circuit : interdite à N = 1 si rien ne la précède ; autorisée à N ≥ 2 (début de Tour)", () => {
+    it("D-442 — tête de Circuit : interdite à N = 1 si rien ne la précède ; autorisée à N ≥ 2 (début de Tour)", () => {
       const state = stateOf([...inTour("A", "B"), anActivity("Z", "AFTER_TOUR")], [point("P", "IN_TOUR", 1)]);
       expect(moveStopPoint(state, "P", { scope: "IN_TOUR", position: 0 })).toMatchObject({
         status: "REFUSED",
@@ -1005,7 +1005,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       });
     });
 
-    it("D-437 — N ≥ 2 : une dépose qui ferait coexister début et fin de Tour → choix requis", () => {
+    it("D-442 — N ≥ 2 : une dépose qui ferait coexister début et fin de Tour → choix requis", () => {
       // [W | A, P, B, C, T | Z], N = 3 : P déposé en tête de Circuit, T en fin de Tour.
       const state = {
         ...stateOf(
@@ -1031,7 +1031,7 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
       expect(moveStopPoint({ ...state, tourRepeatCount: 1 }, "P", { scope: "IN_TOUR", position: 0 }).status).toBe("APPLIED");
     });
 
-    it("D-437 — resolveTourBoundaryConflict : sans conflit, l'entrée elle-même ; avec, l'autre point retiré", () => {
+    it("D-442 — resolveTourBoundaryConflict : sans conflit, l'entrée elle-même ; avec, l'autre point retiré", () => {
       const conflicting = {
         ...stateOf(inTour("A", "B"), [point("H", "IN_TOUR", 0), point("T", "IN_TOUR", 2)]),
         tourRepeatCount: 2,
@@ -1064,8 +1064,8 @@ describe("opérations de Composition et Points d'arrêt indépendants (D-436, RM
   });
 });
 
-/** PRE-6 story 7.1 — compléments de la revue (D-437). */
-describe("story 7.1 — revue : pas, retrait itératif, conflits à plusieurs points (D-437)", () => {
+/** PRE-6 story 7.1 — compléments de la revue (D-442). */
+describe("story 7.1 — revue : pas, retrait itératif, conflits à plusieurs points (D-442)", () => {
   const point = (id: string, scope: StructuralPosition, position: number) => ({ id, scope, position });
   const ex = (name: string, zone: StructuralPosition) => anActivity(name, zone);
   const legacy = (name: string, zone: StructuralPosition): SessionDraftExercise => ({ ...anActivity(name, zone), type: "RECOVERY" });

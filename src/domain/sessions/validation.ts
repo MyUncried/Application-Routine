@@ -394,7 +394,7 @@ function validateNonNegativeSeconds(
 }
 
 /**
- * PRE-6 story 7.8 (D-438, remplace la borne 0..3599 s de D-089 amendée par D-265) : Compte à rebours
+ * PRE-6 story 7.8 (D-443, remplace la borne 0..3599 s de D-089 amendée par D-265) : Compte à rebours
  * initial et Fin de séance bornés à 0..`SESSION_BOUNDARY_SECONDS_MAX` (60 s) à l'écriture. Aucune
  * migration : une valeur héritée au-delà est relue à 60 s (`toSessionDraft`).
  */
@@ -650,14 +650,14 @@ function pre3Transport(
  * `session.stopPoints`, jamais d'exception. Retourne les points normalisés
  * `{ scope, position }`, dans l'ordre reçu.
  *
- * Story 6.1 (D-436, revue) : les voisins sont lus sur la séquence triée
+ * Story 6.1 (D-441, revue) : les voisins sont lus sur la séquence triée
  * (`inSequenceOrder`) et seules les occurrences `EXERCISE` comptent. RM-251
  * (non-consécutivité) n'est volontairement PAS contrôlée à l'enregistrement :
  * une Séance héritée portant deux points consécutifs reste enregistrable ;
  * les opérations de Composition imposent RM-251 et le développement
  * (`expandComposition`) n'exécute jamais deux arrêts successifs.
  *
- * Story 7.1 (D-437) : `rules` porte N du Circuit — à N ≥ 2, un point de
+ * Story 7.1 (D-442) : `rules` porte N du Circuit — à N ≥ 2, un point de
  * début ou de fin de Tour est accepté même si le Circuit ouvre ou clôt la
  * Séance (`isStopPointPlacementAllowed`). Un conflit de Tour (début et fin à
  * N ≥ 2) n'est pas contrôlé non plus : une Séance qui le porte reste
@@ -701,7 +701,7 @@ function validateStopPoints(
   return normalized;
 }
 
-/** Story 7.1 (D-437) : règles d'emplacement d'une entrée — N validé, sinon défaut (1). */
+/** Story 7.1 (D-442) : règles d'emplacement d'une entrée — N validé, sinon défaut (1). */
 function stopPointRulesOf(tourRepeatCount: number | undefined): StopPointRules {
   return typeof tourRepeatCount === "number" ? { tourRepeatCount } : {};
 }

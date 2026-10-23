@@ -28,9 +28,9 @@ function renderChip(props: { lifted?: boolean; onLongPress?: () => void; onAcces
 }
 
 /**
- * PRE-6 story 4.2 (`8328:29428`) : puce « Point d'arrêt » hors placement. PRE-6 story 6.2 (D-436) :
+ * PRE-6 story 4.2 (`8328:29428`) : puce « Point d'arrêt » hors placement. PRE-6 story 6.2 (D-441) :
  * l'appui long saisit le point (glisser) ; plus d'action de retrait, mais « Monter » / « Descendre ».
- * Story 7.2 : la bulle « Retirer la récupération » (`RemovalBubble`) est retirée par D-437 ; ces
+ * Story 7.2 : la bulle « Retirer la récupération » (`RemovalBubble`) est retirée par D-442 ; ces
  * tests, autrefois dans `RemovalBubble.test.tsx`, y sont repris.
  */
 describe("StopPointChip (PRE-6 stories 4.2, 6.2)", () => {
@@ -57,8 +57,8 @@ describe("StopPointChip (PRE-6 stories 4.2, 6.2)", () => {
   });
 });
 
-/** PRE-6 story 7.2 (D-437, « Point d'arrêt saisi ») : état soulevé de la puce. */
-describe("StopPointChip — état soulevé (PRE-6 story 7.2, D-437)", () => {
+/** PRE-6 story 7.2 (D-442, « Point d'arrêt saisi ») : état soulevé de la puce. */
+describe("StopPointChip — état soulevé (PRE-6 story 7.2, D-442)", () => {
   it("at rest: white chip, orange symbol, label in text-label, no shadow", () => {
     renderChip();
     const face = StyleSheet.flatten(screen.getByTestId("chip-face").props.style);

@@ -137,7 +137,7 @@ const nativeChange = (testID: string, selection: number) =>
 
 /**
  * Récupérations et points tels qu'affichés hors placement (story 4.2). PRE-6 story 5.1 (D-435) : la
- * récupération est en ligne 3 de la carte. PRE-6 story 6.2 (D-436) : chaque point est une rangée
+ * récupération est en ligne 3 de la carte. PRE-6 story 6.2 (D-441) : chaque point est une rangée
  * autonome de la séquence, nommée par sa place (« Point d'arrêt après {exercice} »).
  */
 function displayedPauses() {
@@ -183,7 +183,7 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       await waitFor(() => expect(screen.getByText("B")).toBeTruthy());
       // 4 × 60 s, B et C répétés deux fois : 360 s, aucune pause entre les exercices.
       expect(sessionDuration()).toBe("≈ 6 min");
-      // Story 7.2 (D-437) : D-301 retirée, aucun message d'enchaînement sans pause.
+      // Story 7.2 (D-442) : D-301 retirée, aucun message d'enchaînement sans pause.
       expect(screen.queryByText("Attention, les exercices vont s’enchaîner sans pause.")).toBeNull();
 
       // Placement : après A (hors Circuit) R = 0 et un point ; après B (dans le Circuit) R = 45 s et
@@ -259,7 +259,7 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
       expect(sessionDuration()).toBe(displayedBeforeSave);
 
       // R = 0 de A est restée présente : une nouvelle entrée en placement la montre comme existante,
-      // sélectionnée à 0 (story 7.2, D-437).
+      // sélectionnée à 0 (story 7.2, D-442).
       await act(async () => {
         fireEvent.press(screen.getByTestId("composition-add-stop-action"));
       });
@@ -276,7 +276,7 @@ describe("Pauses de bout en bout : placement → Continuer → réouverture (PRE
 });
 
 /**
- * PRE-6 story 6.3 (D-436 R3, ch13 CE-T03-08 complément 8 à 11) — retrait d'un point en placement :
+ * PRE-6 story 6.3 (D-441 R3, ch13 CE-T03-08 complément 8 à 11) — retrait d'un point en placement :
  * désélection, « Confirmer les modifications », aucune écriture avant « Continuer », puis relecture
  * de la base et réouverture : le point retiré a disparu, l'autre est intact et sélectionné.
  */
@@ -332,7 +332,7 @@ describe("Retrait d'un point en placement → Continuer → réouverture (PRE-6 
 });
 
 /**
- * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 complément D-437 point 4) — retrait d'une récupération en
+ * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 complément D-442 point 4) — retrait d'une récupération en
  * placement : désélection de la zone, « Confirmer les modifications », rien d'écrit avant
  * « Continuer » ; relecture de la base : récupération absente, Pause terminale rétablie (RM-038).
  */

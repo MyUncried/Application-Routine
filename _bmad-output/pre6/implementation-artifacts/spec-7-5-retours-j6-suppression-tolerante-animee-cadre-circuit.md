@@ -19,7 +19,7 @@ context:
 ## Intent
 
 **Problem:** Recette différentielle J6 de Hermann (22/10) :
-- d-9 : la suppression d'un Exercice qui laisserait un Point d'arrêt interdit ou consécutif est refusée (refus doux de D-436) ; et « La suppression d'un exercice doit se faire avec un fondu pour la carte qui disparaît et un glissement des cartes. »
+- d-9 : la suppression d'un Exercice qui laisserait un Point d'arrêt interdit ou consécutif est refusée (refus doux de D-441) ; et « La suppression d'un exercice doit se faire avec un fondu pour la carte qui disparaît et un glissement des cartes. »
 - d-17 (verbatim) : « Déplacement du haut hors circuit, dans le circuit : une zone grise rectangulaire remplace la carte qui se trouvait au dessus de la carte déplacée. Déplacement de la première carte du circuit en dehors vers le haut : dans le circuit un rectangle blanc persiste au niveau du circuit. Un appui long sur une carte ou l'aller retour vers l'ouverture d'une carte remet la présentation en ordre. »
 
 **Approach:** (AC1) la suppression passe par la règle tolérante du déplacement (`settle`) ; (AC2) fondu de la carte puis glissement de la suite par le registre des translations existant, écriture du brouillon à la fin ; (AC3) cause NON prouvée sur appareil : la disposition React est démontrée correcte dans les deux scénarios (le résidu est natif) ; hypothèse retenue — le recalcul, par Fabric iOS, de la translation d'une vue animée qui change de taille — et correctif préventif : renvoi natif des translations des vues redimensionnées, à confirmer au jalon J6b.
@@ -27,7 +27,7 @@ context:
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-437 amendée (ch07, commit `2f82bc4d`) ; epics.md « Story 7.5 » ; specs 7.1 (déplacement tolérant), 7.2 (choix de Tour, annonce des points retirés), 7.4 (registre, `prepareLayoutCommit`).
+- Sources : D-442 amendée (ch07, commit `2f82bc4d`) ; epics.md « Story 7.5 » ; specs 7.1 (déplacement tolérant), 7.2 (choix de Tour, annonce des points retirés), 7.4 (registre, `prepareLayoutCommit`).
 - **AC1** : supprimer un Exercice est APPLIQUÉ ; les points en cause sont retirés sans message visuel, mêmes règles et même ordre que le déplacement (Circuit vidé → ses points ; interdits ; puis le second de chaque paire consécutive ; emplacement partagé) ; conflit de Tour créé (N ≥ 2) → `CHOICE_REQUIRED` et dialogue « Début de tour / Fin de tour » comme le déplacement. Refus doux, annonce de refus et textes retirés.
 - **AC2** : fondu de la carte supprimée (et des points retirés), puis glissement des éléments suivants (cartes, points, cadre du Circuit, Fin de séance) ; « Réduire les animations » : écriture immédiate. Aucune régression du glisser ni du placement.
 - **AC3** : après un dépôt qui fait entrer une carte dans le Circuit ou en fait sortir la première vers le haut, aucune zone grise ni rectangle blanc résiduel, sans appui long ni réouverture.

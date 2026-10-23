@@ -206,7 +206,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(router.getPathname()).toBe("/composition");
       expect(screen.queryByTestId("composition-edit-state")).toBeNull();
       expect(screen.getByLabelText(composition.name).props.value).toBe("Séance b");
-      // Story 7.8 (D-438) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
+      // Story 7.8 (D-443) : séance vide → « 0 s » dans la zone de contexte ; plus de durée de Circuit.
       expect(screen.getByTestId("composition-session-duration")).toHaveTextContent("0 s");
       expect(screen.getByLabelText(composition.addActivity)).toBeTruthy();
 

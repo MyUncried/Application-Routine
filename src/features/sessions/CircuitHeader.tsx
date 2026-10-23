@@ -31,14 +31,14 @@ export const CIRCUIT_HEADER_HEIGHT = 40;
 /** Titre « Circuit » : Inter Semi Bold 16, texte primaire. */
 const TITLE_TEXT = type.cardTitle;
 /**
- * PRE-6 story 7.3 (D-437, recette du 22/10, commentaire 9) : nombre et unité à la taille du titre
+ * PRE-6 story 7.3 (D-442, recette du 22/10, commentaire 9) : nombre et unité à la taille du titre
  * « Circuit » (16), graisse de la « Valeur modifiable » (Semi Bold). Dérivé des jetons existants,
- * sans toucher `tokens.ts`. Story 7.8 (D-438) : plus de durée du Circuit dans l'en-tête.
+ * sans toucher `tokens.ts`. Story 7.8 (D-443) : plus de durée du Circuit dans l'en-tête.
  */
 const COUNTER_TEXT = { ...type.editableValue, fontSize: TITLE_TEXT.fontSize, lineHeight: TITLE_TEXT.lineHeight };
 
 /**
- * PRE-6 story 7.3 (D-437) — géométrie du stepper toujours affiché (Figma `8328:28605`, nœud
+ * PRE-6 story 7.3 (D-442) — géométrie du stepper toujours affiché (Figma `8328:28605`, nœud
  * `9819:19951` : fond blanc de 36, rayon 18, marge 4, cercles 28 `color/surface`).
  *
  * Cibles RÉELLES (jamais `hitSlop` : sous Fabric iOS, `RCTViewComponentView` écarte un toucher hors
@@ -152,10 +152,10 @@ export type CircuitHeaderProps = {
  * existant ; remplace `TourCard` et sa roulette du compte.
  *
  * - PRE-6 story 5.2 (D-435, Figma `9819:19948`) : une seule ligne de 40 — « Circuit », puis le
- *   stepper ; le titre se tronque, le stepper garde sa taille. Story 7.8 (D-438, remplace sur ce
- *   point D-437) : plus de durée du Circuit ; le stepper est aligné à droite de la ligne.
+ *   stepper ; le titre se tronque, le stepper garde sa taille. Story 7.8 (D-443, remplace sur ce
+ *   point D-442) : plus de durée du Circuit ; le stepper est aligné à droite de la ligne.
  * - PRE-6 story 5.1b : l'œil des Volumes est dans la zone de contexte (`CompositionContextHeader`).
- * - PRE-6 story 7.3 (D-437, remplace le choix D8 du stepper révélé au toucher du chiffre, Figma
+ * - PRE-6 story 7.3 (D-442, remplace le choix D8 du stepper révélé au toucher du chiffre, Figma
  *   `8328:28605`) : stepper toujours affiché et actif — − , le nombre en « Valeur modifiable », la
  *   pastille d'unité, + — sur le fond blanc arrondi ; textes de la ligne à 16 ; cibles réelles de 44
  *   (voir `CIRCUIT_HEADER_TOUCH_GEOMETRY`). Maintien appuyé : `EXECUTION_UNIT_HOLD_POLICY` (le même
@@ -476,7 +476,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  // Story 7.8 (D-438) : le bloc du titre prend la place libre — le stepper est calé à droite ; à
+  // Story 7.8 (D-443) : le bloc du titre prend la place libre — le stepper est calé à droite ; à
   // court de place, le titre cède (ellipse), le stepper garde sa taille.
   textBlock: {
     flexGrow: 1,

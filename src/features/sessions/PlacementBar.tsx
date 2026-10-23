@@ -19,7 +19,7 @@ const CONFIRM_TEXT = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSiz
 const CANCEL_TEXT = { fontFamily: "Inter_600SemiBold", fontWeight: "600", fontSize: 14, lineHeight: 17 } as const;
 
 /**
- * Libellé du bouton Confirmer selon `placementConfirmation` (PRE-6 story 6.3, D-436, arbitrage du
+ * Libellé du bouton Confirmer selon `placementConfirmation` (PRE-6 story 6.3, D-441, arbitrage du
  * 22/10/2026) : ajouts seuls → « Confirmer N pause(s) ajoutée(s) » (singulier à 0 et 1, comme en
  * français) ; retrait de point, mélange ou modification de durée seule → « Confirmer les
  * modifications » ; rien à confirmer → « Confirmer 0 pause ajoutée », bouton indisponible.
@@ -44,7 +44,7 @@ export type PlacementBarProps = {
 
 /**
  * Barre du mode placement (PRE-6 story 4.1, AD-43, Figma `8328:29423`), à la place de
- * « Continuer » : « Confirmer … » et « Annuler ». Story 6.3 (D-436) : libellé selon
+ * « Continuer » : « Confirmer … » et « Annuler ». Story 6.3 (D-441) : libellé selon
  * `formatPlacementConfirmLabel` ; « Confirmer » est disponible dès qu'il y a un changement
  * applicable (ajout, retrait de point, modification de durée), indisponible sinon.
  * Revue 6.3 : la barre n'annonce plus rien d'elle-même ; l'écran annonce, en un seul message,

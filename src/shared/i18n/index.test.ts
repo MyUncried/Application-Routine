@@ -188,7 +188,7 @@ describe("strings", () => {
         SERIES: { singular: "série", plural: "séries" },
       },
       countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
-      // PRE-6 story 7.3 (D-437) : boutons − et + du stepper toujours affiché.
+      // PRE-6 story 7.3 (D-442) : boutons − et + du stepper toujours affiché.
       decrementAccessibilityLabel: { TOURS: "Retirer un tour", SERIES: "Retirer une série" },
       incrementAccessibilityLabel: { TOURS: "Ajouter un tour", SERIES: "Ajouter une série" },
       // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
@@ -259,7 +259,7 @@ describe("strings", () => {
       addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
       addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
       addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
-      // PRE-6 story 7.2 (D-437) : emplacement de tête de Circuit.
+      // PRE-6 story 7.2 (D-442) : emplacement de tête de Circuit.
       addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
       existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
       existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
@@ -268,7 +268,7 @@ describe("strings", () => {
       stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
       confirmSingular: "Confirmer {n} pause ajoutée",
       confirmPlural: "Confirmer {n} pauses ajoutées",
-      // PRE-6 story 6.3 (D-436) : libellé des changements autres que des ajouts seuls.
+      // PRE-6 story 6.3 (D-441) : libellé des changements autres que des ajouts seuls.
       confirmChanges: "Confirmer les modifications",
       cancel: "Annuler",
       recoveryWheelTitle: "Durée de récupération",
@@ -282,13 +282,13 @@ describe("strings", () => {
       stopPointKeptAnnouncement: "Point d’arrêt conservé",
       stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
       addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
-      // PRE-6 story 7.2 (D-437) : une récupération existante se modifie et se retire en placement.
+      // PRE-6 story 7.2 (D-442) : une récupération existante se modifie et se retire en placement.
       addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
       // PRE-6 story 6.3 (revue, ch13 L1524) : annonces d’ajout.
       stopPointAddedAnnouncement: "Point d’arrêt ajouté",
       recoveryAddedAnnouncement: "Récupération ajoutée",
       additionCancelledAnnouncement: "Ajout annulé",
-      // PRE-6 story 7.2 (D-437) : zone de récupération existante en placement.
+      // PRE-6 story 7.2 (D-442) : zone de récupération existante en placement.
       existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
       existingRecoverySelectedHint: "Toucher pour retirer cette récupération.",
       existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
@@ -297,16 +297,16 @@ describe("strings", () => {
     });
   });
 
-  it("exposes the pause texts (PRE-6 story 6.2 ; story 7.2, D-437 : plus de réglage de la récupération hors placement)", () => {
+  it("exposes the pause texts (PRE-6 story 6.2 ; story 7.2, D-442 : plus de réglage de la récupération hors placement)", () => {
     expect(strings.screens.composition.pauses).toEqual({
-      // PRE-6 story 6.2 (D-436) : plus de retrait d'un point par bulle ; l'appui long le déplace.
+      // PRE-6 story 6.2 (D-441) : plus de retrait d'un point par bulle ; l'appui long le déplace.
       stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
     });
-    // Story 7.2 (D-437) : D-301 retirée, plus d’avertissement d’enchaînement sans pause.
+    // Story 7.2 (D-442) : D-301 retirée, plus d’avertissement d’enchaînement sans pause.
     expect(strings.screens.composition).not.toHaveProperty("unpausedWarning");
   });
 
-  it("exposes the tour-boundary choice and removed-stop-point texts (PRE-6 story 7.2, D-437)", () => {
+  it("exposes the tour-boundary choice and removed-stop-point texts (PRE-6 story 7.2, D-442)", () => {
     expect(strings.screens.composition.tourBoundaryChoice).toEqual({
       title: "Point d’arrêt en début et en fin de tour",
       message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
@@ -320,12 +320,12 @@ describe("strings", () => {
     });
   });
 
-  it("no longer exposes refused-deletion announcements (PRE-6 story 7.5, D-437 amendée)", () => {
+  it("no longer exposes refused-deletion announcements (PRE-6 story 7.5, D-442 amendée)", () => {
     expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedStopPointNotAllowed");
     expect(strings.screens.composition.activityActions).not.toHaveProperty("deleteRefusedConsecutiveStopPoints");
   });
 
-  it("exposes the seconds unit of the session boundaries; no Circuit duration label any more (PRE-6 story 7.8, D-438)", () => {
+  it("exposes the seconds unit of the session boundaries; no Circuit duration label any more (PRE-6 story 7.8, D-443)", () => {
     expect(strings.screens.composition.boundarySecondsUnit).toBe("s");
     expect(strings.screens.composition).not.toHaveProperty("summary");
   });

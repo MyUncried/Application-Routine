@@ -296,7 +296,7 @@ describe("validateInitialCountdownSeconds / validateFinalPhaseSeconds", () => {
     expect(clampSessionBoundarySeconds(Number.NaN)).toBe(0);
   });
 
-  // PRE-6 story 7.8 (D-438) : bornes de séance limitées à 0..60 s à l'écriture.
+  // PRE-6 story 7.8 (D-443) : bornes de séance limitées à 0..60 s à l'écriture.
   it("story 7.8 — accepts 60, rejects 61 and beyond with OUT_OF_RANGE 0..60", () => {
     expect(validateInitialCountdownSeconds(60)).toEqual({ ok: true, value: 60 });
     expect(validateFinalPhaseSeconds(60)).toEqual({ ok: true, value: 60 });
@@ -1293,7 +1293,7 @@ describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () 
     expect(updated.ok && updated.value.stopPoints).toEqual(points);
   });
 
-  // Story 6.1 (revue, D-436) : RM-251 n'est pas contrôlée à l'enregistrement — une Séance
+  // Story 6.1 (revue, D-441) : RM-251 n'est pas contrôlée à l'enregistrement — une Séance
   // héritée portant deux points consécutifs reste enregistrable ; le développement n'en
   // exécute qu'un.
   it("RM-251 : deux points consécutifs hérités restent enregistrables ; le plan ne porte qu'un arrêt", () => {
@@ -1328,9 +1328,9 @@ describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () 
     }
   });
 
-  // Story 7.1 (D-437) : à N ≥ 2, la fin de Tour en clôture de Séance (IN p=2 ici) est acceptée, et un
+  // Story 7.1 (D-442) : à N ≥ 2, la fin de Tour en clôture de Séance (IN p=2 ici) est acceptée, et un
   // conflit de Tour (début et fin) reste enregistrable ; l'exécution n'en fait qu'un arrêt.
-  it("D-437 — N ≥ 2 : fin de Tour juste avant la Fin acceptée ; conflit début + fin enregistrable", () => {
+  it("D-442 — N ≥ 2 : fin de Tour juste avant la Fin acceptée ; conflit début + fin enregistrable", () => {
     const points = [
       { scope: "IN_TOUR" as const, position: 0 },
       { scope: "IN_TOUR" as const, position: 2 },

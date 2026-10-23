@@ -146,10 +146,10 @@ describe("orderStopPointsByScope", () => {
 });
 
 /**
- * Story 6.1 (D-436, remplace ARB-3) : le point est un élément autonome de la
+ * Story 6.1 (D-441, remplace ARB-3) : le point est un élément autonome de la
  * séquence mêlée de sa portée ; plus de rattachement à une occurrence.
  */
-describe("séquence mêlée (D-436)", () => {
+describe("séquence mêlée (D-441)", () => {
   const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
 
   it("scopeSequence : [pt(s,0)?, occ1, pt(s,1)?, …, occn, pt(s,n)?]", () => {
@@ -184,7 +184,7 @@ describe("séquence mêlée (D-436)", () => {
   });
 });
 
-describe("RM-251 : non-consécutivité (D-436)", () => {
+describe("RM-251 : non-consécutivité (D-441)", () => {
   const point = (id: string, scope: StructuralPosition, position: number): StopPoint => ({ id, scope, position });
   const pairIds = (pairs: readonly (readonly [StopPoint, StopPoint])[]) => pairs.map(([a, b]) => `${a.id}+${b.id}`);
 
@@ -243,10 +243,10 @@ describe("RM-251 : non-consécutivité (D-436)", () => {
   });
 });
 
-describe("isStopPointProposable (story 7.1, D-437 : tête de Circuit proposée)", () => {
+describe("isStopPointProposable (story 7.1, D-442 : tête de Circuit proposée)", () => {
   const occurrences = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
 
-  it("propose la tête de Circuit quand RM-219 l'autorise (remplace la non-proposition de D-436)", () => {
+  it("propose la tête de Circuit quand RM-219 l'autorise (remplace la non-proposition de D-441)", () => {
     expect(isStopPointAllowed(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(true);
     expect(isStopPointProposable(occurrences, { scope: "IN_TOUR", position: 0 })).toBe(true);
   });
@@ -273,8 +273,8 @@ describe("withoutStopPoint (PRE-6 story 4.2)", () => {
   });
 });
 
-/** PRE-6 story 7.1 (D-437) : début et fin de Tour, N du Circuit, conflit de Tour. */
-describe("début et fin de Tour (story 7.1, D-437)", () => {
+/** PRE-6 story 7.1 (D-442) : début et fin de Tour, N du Circuit, conflit de Tour. */
+describe("début et fin de Tour (story 7.1, D-442)", () => {
   /** Circuit seul [A, B] : il ouvre et clôt la Séance. */
   const circuitOnly = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR")];
   const head = { scope: "IN_TOUR" as const, position: 0 };

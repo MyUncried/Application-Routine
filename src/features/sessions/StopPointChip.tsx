@@ -33,7 +33,7 @@ export type StopPointChipProps = {
   readonly accessibilityActions: readonly { readonly name: string; readonly label: string }[];
   readonly onAccessibilityAction: (name: string) => void;
   /**
-   * PRE-6 story 7.2 (D-437, « Point d'arrêt saisi ») : point saisi par appui long — puce au style
+   * PRE-6 story 7.2 (D-442, « Point d'arrêt saisi ») : point saisi par appui long — puce au style
    * sélectionné du placement (pleine `primary`, symbole et texte blancs) et ombre de la carte
    * soulevée (CE-T02-02). Ni la taille de la puce ni celle de sa rangée ne changent (le rail et
    * l'aperçu du glisser comptent la hauteur de repos, story 5.2b). NON VÉRIFIABLE : Figma ne
@@ -49,7 +49,7 @@ export type StopPointChipProps = {
  * contour 1 `#C8C8D7`, rayon 12, marges 10 / 4, intervalle 6. Posée par la ligne structurelle,
  * bord droit aligné sur celui des cartes.
  *
- * Élément accessible (pas un bouton : un toucher ne fait rien). PRE-6 story 6.2 (D-436) : l'appui
+ * Élément accessible (pas un bouton : un toucher ne fait rien). PRE-6 story 6.2 (D-441) : l'appui
  * long saisit le point (glisser) ; la bulle « Retirer » et l'action de retrait sont retirées (le
  * retrait d'un point revient en placement, story 6.3) ; actions « Monter » / « Descendre ».
  */

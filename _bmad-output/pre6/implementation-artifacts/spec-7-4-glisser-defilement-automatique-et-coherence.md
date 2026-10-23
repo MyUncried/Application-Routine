@@ -31,7 +31,7 @@ Aujourd'hui le défilement est coupé pendant un glisser (`scrollEnabled={dragge
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-437 (ch07, « Défilement pendant un glisser ») ; epics.md « Epic 7 », story 7.4 ; specs 2.3b, 5.2b, 6.2, 7.2.
+- Sources : D-442 (ch07, « Défilement pendant un glisser ») ; epics.md « Epic 7 », story 7.4 ; specs 2.3b, 5.2b, 6.2, 7.2.
 - **AC1** (3) : pendant le glisser d'une carte OU d'un Point d'arrêt, quand le doigt approche du bord haut ou bas de la zone visible de la liste, la liste défile — vitesse progressive selon la profondeur dans la bande de bord ; arrêt hors de la bande, au bord du contenu, à la dépose, à l'annulation (et donc au dialogue, qui n'apparaît qu'après la dépose). L'élément soulevé reste sous le doigt ; l'emplacement prévisualisé, les décalages des voisines, le rail et le cadre du Circuit tiennent compte du défilement accumulé (repère du contenu). Le défilement par l'utilisateur reste coupé pendant le geste.
 - **AC2** (13) : cause trouvée et prouvée par un test qui échoue avant le correctif ; aucun décalage arbitraire.
 - **AC3** (14) : cadre du Circuit correct pendant et après un glisser qui entre dans le Circuit ou en sort ; cause trouvée, corrigée, testée.

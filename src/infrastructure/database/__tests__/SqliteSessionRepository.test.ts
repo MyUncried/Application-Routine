@@ -317,7 +317,7 @@ describe("SqliteSessionRepository", () => {
     expect(count?.count).toBe(0);
   });
 
-  // PRE-6 story 7.8 (D-438) : Compte à rebours initial et Fin de séance bornés à 0..60 s à l'écriture.
+  // PRE-6 story 7.8 (D-443) : Compte à rebours initial et Fin de séance bornés à 0..60 s à l'écriture.
   it("story 7.8 — rejects a session boundary above 60 s with OUT_OF_RANGE 0..60, nothing written", async () => {
     const repository = new SqliteSessionRepository(database, uuidFactory());
 

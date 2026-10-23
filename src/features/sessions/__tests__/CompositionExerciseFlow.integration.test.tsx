@@ -339,7 +339,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       exerciseRowTestId,
     ]);
 
-    // 5. Story 7.8 (D-438) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
+    // 5. Story 7.8 (D-443) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
     // Tour, qui restait vide pour une Activité `BEFORE_TOUR`, a disparu avec elle).
     expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
   });

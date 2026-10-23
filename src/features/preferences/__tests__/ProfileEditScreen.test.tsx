@@ -68,7 +68,7 @@ async function renderScreen(service: ProfileService = fakeProfileService()) {
 
 const t = strings.screens.profileEdit;
 
-/** PRE-6 story 7.10 (D-439) : « Enregistrer » dans la zone d'action principale fixe. */
+/** PRE-6 story 7.10 (D-444) : « Enregistrer » dans la zone d'action principale fixe. */
 describe("ProfileEditScreen — zone d'action principale (PRE-6 story 7.10)", () => {
   it("« Enregistrer » is out of the scroll, in the fixed action zone, with the format of « Terminer »; the body reserves the zone height", async () => {
     await renderScreen();

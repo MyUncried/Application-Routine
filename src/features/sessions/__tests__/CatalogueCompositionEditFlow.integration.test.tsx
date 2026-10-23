@@ -338,7 +338,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     expect(screen.queryByTestId("composition-edit-state")).toBeNull();
     expect(screen.getByLabelText(composition.name).props.value).toBe("Séance persistée");
     // Valeurs persistées (30 s / 20 s), jamais les défauts de création (10 s / 5 s).
-    // Story 7.8 (D-438) : secondes seules.
+    // Story 7.8 (D-443) : secondes seules.
     expect(screen.getByText("30 s")).toBeTruthy();
     expect(screen.getByText("20 s")).toBeTruthy();
     expect(screen.queryByText("10 s")).toBeNull();

@@ -17,7 +17,7 @@ describe("PlacementBar (PRE-6 story 4.1, story 6.3)", () => {
     expect(formatPlacementConfirmLabel(additions(2))).toBe("Confirmer 2 pauses ajoutées");
   });
 
-  it("story 6.3 (D-436, 22/10 arbitration): any other change reads « Confirmer les modifications »", () => {
+  it("story 6.3 (D-441, 22/10 arbitration): any other change reads « Confirmer les modifications »", () => {
     expect(formatPlacementConfirmLabel(CHANGES)).toBe("Confirmer les modifications");
   });
 

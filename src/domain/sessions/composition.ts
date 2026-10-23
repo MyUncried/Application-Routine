@@ -293,12 +293,12 @@ export function duplicateActivity(
 }
 
 /**
- * PRE-6 (story 1.2, AD-36 ; story 6.1, D-436, RM-251) : état de Composition
+ * PRE-6 (story 1.2, AD-36 ; story 6.1, D-441, RM-251) : état de Composition
  * porté ENSEMBLE par le brouillon — occurrences et Points d'arrêt. Aucune
  * opération ne modifie l'entrée ; un état inchangé est l'entrée elle-même
  * (même référence), et une liste de points inchangée garde sa référence.
  *
- * **D-436 (remplace ARB-3)** : les opérations raisonnent sur la séquence
+ * **D-441 (remplace ARB-3)** : les opérations raisonnent sur la séquence
  * mêlée de chaque portée (`scopeSequence`) ; déplacer, dupliquer ou
  * supprimer une occurrence laisse chaque point à SA place dans cette
  * séquence (il ne suit plus l'occurrence qui le précédait) et recalcule sa
@@ -307,8 +307,8 @@ export function duplicateActivity(
  * inchangées). Duplication et déplacement autonome d'un point : une opération
  * invalide est REFUSÉE sans mutation (`judge`).
  *
- * **D-437 (story 7.1)** :
- * - le DÉPLACEMENT d'une occurrence — et, story 7.5 (D-437 amendée), sa
+ * **D-442 (story 7.1)** :
+ * - le DÉPLACEMENT d'une occurrence — et, story 7.5 (D-442 amendée), sa
  *   SUPPRESSION — est TOLÉRANT (`settle`) : il est appliqué
  *   et les points en cause sont retirés — d'abord ceux devenus interdits,
  *   puis, itérativement, le second de chaque paire devenue consécutive (le
@@ -323,7 +323,7 @@ export type CompositionState = {
   readonly exercises: readonly SessionDraftExercise[];
   readonly stopPoints: readonly StopPoint[];
   /**
-   * Story 7.1 (D-437) : N du Circuit (`SessionDraft.tourRepeatCount`), contexte des règles
+   * Story 7.1 (D-442) : N du Circuit (`SessionDraft.tourRepeatCount`), contexte des règles
    * d'emplacement (`StopPointRules`) ; absent : 1. Jamais modifié par ces opérations : recopié tel
    * quel dans l'état produit.
    */
@@ -338,7 +338,7 @@ export type CompositionState = {
  *   autonome, la cible n'est pas proposable ;
  * - `CONSECUTIVE_STOP_POINTS` : deux points se suivraient sans Exercice
  *   entre eux (RM-251) — story 7.1 : y compris entre deux Tours (conflit de
- *   Tour créé par une DUPLICATION, D-437) ;
+ *   Tour créé par une DUPLICATION, D-442) ;
  * - `LOCATION_OCCUPIED` : deux points se retrouveraient sur le même
  *   emplacement `(scope, position)` (duplication, déplacement autonome ;
  *   jamais rendu par un déplacement ni, story 7.5, une suppression
@@ -353,7 +353,7 @@ export type CompositionRefusalReason =
   | "AT_BOUNDARY";
 
 /**
- * Story 7.1 (D-437) : état produit et points retirés pour l'obtenir (identifiants, ordre de
+ * Story 7.1 (D-442) : état produit et points retirés pour l'obtenir (identifiants, ordre de
  * retrait) — résolution d'un conflit de Tour.
  */
 export type CompositionResolution = {
@@ -367,7 +367,7 @@ export type CompositionResolution = {
  * rien ne change), élément introuvable, ou refusée — avec les points en
  * cause. Aucune de ces issues n'est une exception.
  *
- * Story 7.1 (D-437) :
+ * Story 7.1 (D-442) :
  * - `APPLIED.removedStopPointIds` : points retirés par un déplacement
  *   tolérant d'occurrence (vide sinon), pour que l'écran ajuste focus et
  *   annonces ;
@@ -500,7 +500,7 @@ function exemptedPairs(before: CompositionState, movedStopPointId: string | null
 }
 
 /**
- * Story 7.1 (D-437) : conflit de Tour CRÉÉ par l'opération — présent après et absent avant.
+ * Story 7.1 (D-442) : conflit de Tour CRÉÉ par l'opération — présent après et absent avant.
  * Revue 7.1 : dès que début et fin de Tour étaient déjà tous deux occupés avant l'opération, le
  * conflit est hérité, quels que soient les points (p. ex. une fin de Tour déplacée vers une autre
  * fin de Tour). `null` sinon.
@@ -517,7 +517,7 @@ function newTourConflict(
 }
 
 /**
- * Story 7.1 (D-437) : résout le conflit de Tour de `state` en conservant le point de début
+ * Story 7.1 (D-442) : résout le conflit de Tour de `state` en conservant le point de début
  * (`HEAD`) ou de fin (`TAIL`) de Tour ; l'autre point du conflit est retiré. Sans conflit (N = 1,
  * l'un des deux absent) : l'entrée elle-même, rien de retiré. Fonction pure, utilisable sur tout
  * état (p. ex. un conflit hérité que l'écran voudrait faire trancher).
@@ -552,8 +552,8 @@ function choiceRequired(
 }
 
 /**
- * Juge STRICT de l'état produit par une duplication ou un déplacement autonome de point (D-436,
- * revue de la story 6.1 ; story 7.1, D-437 ; story 7.5 : plus la suppression, tolérante), dans cet
+ * Juge STRICT de l'état produit par une duplication ou un déplacement autonome de point (D-441,
+ * revue de la story 6.1 ; story 7.1, D-442 ; story 7.5 : plus la suppression, tolérante), dans cet
  * ordre :
  * 1. le Circuit est vidé alors qu'il porte encore un point → refus ;
  * 2. un point devient interdit (RM-219, N compris ; il ne l'était pas avant) → refus ;
@@ -562,9 +562,9 @@ function choiceRequired(
  * 4. l'unicité `(scope, position)`, vraie avant, est perdue → refus (`LOCATION_OCCUPIED`) : deux
  *    points d'une paire héritée réunis sur un même emplacement sont refusés ici ;
  * 5. story 7.1 : un conflit de Tour est créé (`newTourConflict`) → `onTourConflict` : `REFUSE`
- *    (duplication : refus doux de D-436, raison `CONSECUTIVE_STOP_POINTS` — les deux points se
+ *    (duplication : refus doux de D-441, raison `CONSECUTIVE_STOP_POINTS` — les deux points se
  *    suivraient entre deux Tours) ou `CHOOSE` (déplacement autonome : `CHOICE_REQUIRED`).
- * Story 7.1 (D-437) : l'ancienne règle « un point arrive en tête de Circuit → refus » est retirée.
+ * Story 7.1 (D-442) : l'ancienne règle « un point arrive en tête de Circuit → refus » est retirée.
  */
 function judge(
   before: CompositionState,
@@ -611,7 +611,7 @@ function judge(
 }
 
 /**
- * Story 7.1 (D-437) : règle TOLÉRANTE du déplacement d'une occurrence. L'état `after` (points
+ * Story 7.1 (D-442) : règle TOLÉRANTE du déplacement d'une occurrence. L'état `after` (points
  * laissés à leur place dans la séquence) est appliqué ; les points en cause sont retirés, dans cet
  * ordre :
  * 1. le Circuit est vidé alors qu'il porte des points → ses points (interdits : plus aucun
@@ -699,7 +699,7 @@ function locateInSequences(
 }
 
 /**
- * Story 6.1 (D-436, R1) : déplace une occurrence vers `targetZone`, au rang
+ * Story 6.1 (D-441, R1) : déplace une occurrence vers `targetZone`, au rang
  * `sequenceIndex` de la séquence MÊLÉE de cette portée (occurrences et
  * points). **Contrat de l'indice** : il est compté sur la séquence de la
  * portée cible DONT LA SOURCE EST DÉJÀ RETIRÉE (même convention que
@@ -711,7 +711,7 @@ function locateInSequences(
  * non-déplacement : `APPLIED` avec l'entrée elle-même — aucun point ne change
  * de côté. Les points gardent leur place ; la récupération suit l'occurrence.
  *
- * Story 7.1 (D-437, remplace le refus de D-436) : le déplacement est TOLÉRANT
+ * Story 7.1 (D-442, remplace le refus de D-441) : le déplacement est TOLÉRANT
  * (`settle`) — jamais refusé pour un point interdit ou consécutif : il est
  * appliqué et les points en cause sont retirés (`removedStopPointIds`). Ex. :
  * `[A, P, B, Q, C]`, B déplacée après C → `[A, P, C, B]`, Q retiré (P
@@ -775,7 +775,7 @@ function clampOccurrenceIndex(targetIndex: number, count: number): number {
 }
 
 /**
- * Story 6.1 (D-436) : `moveOccurrenceInSequence` exprimé avec l'indice EN
+ * Story 6.1 (D-441) : `moveOccurrenceInSequence` exprimé avec l'indice EN
  * OCCURRENCES de la portée cible (forme historique, appel actuel de l'écran :
  * glisser et « Monter » / « Descendre ») — l'occurrence est insérée avant le
  * point qui occupe l'emplacement visé (`sequenceIndexForOccurrenceIndex`).
@@ -824,14 +824,14 @@ export function moveOccurrence(
 }
 
 /**
- * Story 6.1 (D-436, CE-T03-08 §18) : « Monter » / « Descendre » d'une
+ * Story 6.1 (D-441, CE-T03-08 §18) : « Monter » / « Descendre » d'une
  * occurrence — échange avec l'élément VOISIN de la séquence mêlée, point ou
  * occurrence. En limite de portée, l'occurrence franchit la limite comme
  * comme le faisait l'ancien pas de l'écran (story 2.3) : en montant, elle devient la
  * dernière de la portée précédente (après son éventuel point final) ; en
  * descendant, la première de la portée suivante (avant son éventuel point de
  * tête). Début ou fin de la Séance : refus `AT_BOUNDARY`. Mêmes issues que
- * `moveOccurrenceInSequence` — story 7.1 (D-437) : tolérant, p. ex. `[A, P,
+ * `moveOccurrenceInSequence` — story 7.1 (D-442) : tolérant, p. ex. `[A, P,
  * B]`, B monte au-dessus de P → `[A, B]`, P retiré (il précéderait la Fin).
  * Branchement à l'écran : story 6.2.
  */
@@ -865,10 +865,10 @@ export function stepOccurrence(
 }
 
 /**
- * Story 6.1 (D-436) : supprime une occurrence (voir `removeActivity`) ; ses
+ * Story 6.1 (D-441) : supprime une occurrence (voir `removeActivity`) ; ses
  * voisins se resserrent, les points restent à leur place dans la séquence.
- * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9 ; remplace le refus doux de
- * D-436 et de la story 7.1) : la suppression est TOLÉRANTE, avec la règle du
+ * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9 ; remplace le refus doux de
+ * D-441 et de la story 7.1) : la suppression est TOLÉRANTE, avec la règle du
  * déplacement (`settle`) — jamais refusée pour un point interdit ou
  * consécutif : elle est appliquée et les points en cause sont retirés
  * (`removedStopPointIds`), interdits d'abord, puis le second de chaque paire
@@ -894,7 +894,7 @@ export function removeOccurrence(state: CompositionState, activityId: string): C
 }
 
 /**
- * Story 6.1 (D-436, arbitrage du 22/10/2026) : duplique une occurrence (voir
+ * Story 6.1 (D-441, arbitrage du 22/10/2026) : duplique une occurrence (voir
  * `duplicateActivity`, récupération copiée) ; la copie est insérée juste
  * après la source, AVANT le point qui la suivait (`[A, P, B]` →
  * `[A, A′, P, B]`) ; aucun point n'est copié. Insérer une occurrence juste
@@ -924,7 +924,7 @@ export function duplicateOccurrenceOutcome(
 
 /**
  * Forme historique de `duplicateOccurrenceOutcome`. Story 6.2 : le 4e paramètre
- * (identifiant du point copié, plus lu depuis D-436) est retiré avec l'appel de
+ * (identifiant du point copié, plus lu depuis D-441) est retiré avec l'appel de
  * l'écran.
  */
 export function duplicateOccurrence(state: CompositionState, activityId: string, newId: string): CompositionState {
@@ -932,15 +932,15 @@ export function duplicateOccurrence(state: CompositionState, activityId: string,
 }
 
 /**
- * Story 6.1 (D-436, R2) : déplacement autonome d'un point vers `target`
+ * Story 6.1 (D-441, R2) : déplacement autonome d'un point vers `target`
  * (`position` = occurrences de la portée cible qui le précèdent), identité
  * conservée. Refus sans mutation si la cible n'est pas proposable
  * (`isStopPointProposable` : hors bornes, juste après le compte à rebours,
- * juste avant la Fin — story 7.1, D-437 : la tête de Circuit est proposable et,
+ * juste avant la Fin — story 7.1, D-442 : la tête de Circuit est proposable et,
  * à N ≥ 2, début et fin de Tour échappent à RM-219), si elle porte déjà un autre point,
  * ou si le point y serait consécutif à un autre (RM-251 ; aucune paire qui
  * le contient n'est exemptée). Cible égale à l'emplacement actuel : l'entrée
- * elle-même. Story 7.1 (D-437) : une dépose qui ferait coexister début et fin
+ * elle-même. Story 7.1 (D-442) : une dépose qui ferait coexister début et fin
  * de Tour à N ≥ 2 rend `CHOICE_REQUIRED` (`resolutions.HEAD` / `.TAIL`) ;
  * conserver l'autre point retire donc le point déplacé.
  */

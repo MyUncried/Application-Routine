@@ -6,7 +6,7 @@ import { RAIL_KEYS, railRowKey, railStopKey, resolveRailLinks } from "@/features
 import { railGeometryFor } from "@/features/sessions/CompositionScreen";
 
 /**
- * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : glissement qui suit le fondu d'une carte
+ * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : glissement qui suit le fondu d'une carte
  * supprimée — décalages purs (`resolveRemovalShifts`) et rail à travers les places qui se referment.
  */
 describe("resolveRemovalShifts (story 7.5)", () => {

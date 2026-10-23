@@ -16,7 +16,7 @@ context:
 
 ## Intent
 
-**Problem:** La recette iPhone du 22/10/2026 (commentaires 5, 6, 15, 17) a conduit Hermann à la décision D-437. Elle remplace trois règles de D-436 : le refus d'un déplacement d'Exercice pour cause de Point d'arrêt interdit ou consécutif, et la non-proposition de la tête de Circuit. Elle limite en outre le réglage de la Récupération au seul mode Placement : une récupération existante doit pouvoir y être retirée.
+**Problem:** La recette iPhone du 22/10/2026 (commentaires 5, 6, 15, 17) a conduit Hermann à la décision D-442. Elle remplace trois règles de D-441 : le refus d'un déplacement d'Exercice pour cause de Point d'arrêt interdit ou consécutif, et la non-proposition de la tête de Circuit. Elle limite en outre le réglage de la Récupération au seul mode Placement : une récupération existante doit pouvoir y être retirée.
 
 **Approach:** Dans le Domaine pur (`src/domain/sessions/`) :
 - le déplacement d'une occurrence devient tolérant : il est appliqué et les points en cause sont retirés ; l'issue les nomme ;
@@ -28,8 +28,8 @@ L'écran n'est adapté que pour compiler et garder ses tests verts ; la story 7.
 ## Boundaries & Constraints
 
 **Always:**
-- Règles : D-437 (ch07 l. 8-19) et D-436 (ch07, juste après), epics.md « Epic 7 », story 7.1, AC1 à AC3. Représentation `StopPoint = { id, scope, position }` inchangée.
-- **AC1** : `moveOccurrenceInSequence`, `moveOccurrenceOutcome`, `stepOccurrence` et la forme historique `moveOccurrence` appliquent le déplacement. Ils retirent d'abord les points devenus interdits (RM-219, ou Circuit vidé qui porte un point), puis, itérativement, le second point de chaque paire devenue consécutive (RM-251) ; le premier est conservé. L'issue `APPLIED` porte `removedStopPointIds` (vide par défaut). Les paires héritées restent exemptées. La suppression d'un Exercice garde le refus de D-436. `moveStopPoint` garde ses refus, sauf pour la tête de Circuit.
+- Règles : D-442 (ch07 l. 8-19) et D-441 (ch07, juste après), epics.md « Epic 7 », story 7.1, AC1 à AC3. Représentation `StopPoint = { id, scope, position }` inchangée.
+- **AC1** : `moveOccurrenceInSequence`, `moveOccurrenceOutcome`, `stepOccurrence` et la forme historique `moveOccurrence` appliquent le déplacement. Ils retirent d'abord les points devenus interdits (RM-219, ou Circuit vidé qui porte un point), puis, itérativement, le second point de chaque paire devenue consécutive (RM-251) ; le premier est conservé. L'issue `APPLIED` porte `removedStopPointIds` (vide par défaut). Les paires héritées restent exemptées. La suppression d'un Exercice garde le refus de D-441. `moveStopPoint` garde ses refus, sauf pour la tête de Circuit.
 - **AC2** : la tête de Circuit `(IN, 0)` est autorisée et proposée par le placement, `moveStopPoint`, `isStopPointProposable` et le juge, sous réserve de RM-219 et de RM-251. N est passé en contexte optionnel (`StopPointRules`).
   - À N ≥ 2, un point de début et un point de fin de Tour coexistants forment un conflit de Tour, détecté par un prédicat exporté. Toute opération qui le crée rend `CHOICE_REQUIRED` avec les résolutions `HEAD` et `TAIL`, sans muter : ajout en placement, `moveStopPoint`, déplacement d'occurrence, changement de N de 1 à N ≥ 2.
   - À N ≥ 2, RM-219 ne s'applique pas à ces deux emplacements.
@@ -40,7 +40,7 @@ L'écran n'est adapté que pour compiler et garder ses tests verts ; la story 7.
   - Désélection : un ajout est jeté ; pour une récupération existante, le retrait est programmé.
   - Resélection à une durée : le retrait est annulé, et une modification est programmée si la durée diffère.
   - `applyPlacementDraft` applique le retrait (`null`, Pause terminale rétablie, RM-038). `placementConfirmation` compte un retrait comme `CHANGES`. `setOccurrenceRecovery` est conservé.
-- Fonctions pures, résultats discriminés plutôt qu'exceptions, noms en anglais, commentaires en français citant D-437.
+- Fonctions pures, résultats discriminés plutôt qu'exceptions, noms en anglais, commentaires en français citant D-442.
 
 **Never:**
 - Aucune migration, aucun changement de repository, de `Session.ts` ni d'API technique. Aucune modification sous `docs/`, ni de l'interface au-delà du minimum pour compiler et garder les tests verts : dialogues et dessin de l'emplacement de tête relèvent de la story 7.2.
@@ -85,11 +85,11 @@ L'écran n'est adapté que pour compiler et garder ses tests verts ; la story 7.
 - [x] Déplacement tolérant, issue `CHOICE_REQUIRED`, refus de suppression étendu au conflit (`composition.ts`) + tests.
 - [x] Placement : tête de Circuit, choix requis, retraits de récupération (`placement.ts`) + tests.
 - [x] `circuitCountOutcome`, plan d'exécution (`circuit.ts`) ; validation (`validation.ts`) + tests.
-- [x] Écran au minimum ; tests d'écran de l'ancienne règle réécrits vers D-437.
+- [x] Écran au minimum ; tests d'écran de l'ancienne règle réécrits vers D-442.
 - [x] `src/domain/README.md` à jour.
 
 **Acceptance Criteria:**
-- Given l'arbre entier, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit` et `npm run lint` sont lancés, then tout est vert ; les tests qui encodaient le refus de D-436 au déplacement ou la non-proposition de la tête sont réécrits (liste ci-dessous), aucun autre n'est affaibli.
+- Given l'arbre entier, when `npm test -- --maxWorkers=2`, `npx tsc --noEmit` et `npm run lint` sont lancés, then tout est vert ; les tests qui encodaient le refus de D-441 au déplacement ou la non-proposition de la tête sont réécrits (liste ci-dessous), aucun autre n'est affaibli.
 
 ## Implementation Notes
 
@@ -139,7 +139,7 @@ L'écran n'est adapté que pour compiler et garder ses tests verts ; la story 7.
 
 **Décisions prises sur les cas ambigus (réversibles, à signaler à Hermann)**
 1. **Résolution d'un conflit au profit de l'autre point.** La résolution retire tous les points de la limite écartée (`tourBoundaryPoints`, revue). Pour un `moveStopPoint` ou un ajout en placement, choisir « l'autre » point supprime donc le point déplacé, ou jette l'ajout. L'option « Annuler » reste l'abandon de l'action.
-2. **Suppression créant un conflit de Tour.** D-437 ne range pas la suppression parmi les opérations à choix. Une telle suppression est refusée avec `CONSECUTIVE_STOP_POINTS`, comme le refus doux de D-436 : les deux points se suivraient entre deux Tours. L'annonce d'écran existante convient.
+2. **Suppression créant un conflit de Tour.** D-442 ne range pas la suppression parmi les opérations à choix. Une telle suppression est refusée avec `CONSECUTIVE_STOP_POINTS`, comme le refus doux de D-441 : les deux points se suivraient entre deux Tours. L'annonce d'écran existante convient.
 3. **`LOCATION_OCCUPIED` au déplacement d'une occurrence.** Cette raison n'est plus jamais rendue. Le seul cas est celui d'une paire héritée qu'une ancienne Récupération autonome séparait sur deux emplacements, réunie par le déplacement de cette Récupération : le second point est retiré. Elle reste rendue par la suppression et par `moveStopPoint`.
 4. **Limite de Tour.** Le début et la fin de Tour se définissent par l'absence d'Exercice du Circuit avant ou après le point ; les anciennes Récupérations ne comptent pas. Un Circuit sans Exercice n'a pas de limite de Tour.
 5. **Conflit hérité.** Un conflit déjà présent avant l'opération ne redemande rien, quels que soient les points (revue). `setCircuitCount` en forme historique applique N et garde les deux points, car c'est l'état d'un conflit hérité. L'écran devra passer à `circuitCountOutcome` en 7.2.
@@ -154,7 +154,7 @@ L'écran n'est adapté que pour compiler et garder ses tests verts ; la story 7.
 - L'emplacement libre `CIRCUIT_HEAD` n'est ni dessiné ni compté par `placementOfferOf` avant 7.2.
 - `CHOICE_REQUIRED` est traité comme un refus (aucune écriture, retour animé) jusqu'à 7.2.
 
-**Tests réécrits (D-436 → D-437)**
+**Tests réécrits (D-441 → D-442)**
 - `composition.test.ts` : les refus au déplacement (point premier, dernier, consécutifs, tête de Circuit, Circuit vidé, frontières, ancienne Récupération sortie, indice mêlé) deviennent des `APPLIED` avec retraits. La suppression qui amène en tête est désormais acceptée. Le refus de `moveStopPoint` vers la tête est remplacé par une acceptation. Les `APPLIED` complets portent `removedStopPointIds: []`.
 - `placement.test.ts` : l'emplacement `CIRCUIT_HEAD` apparaît dans les listes attendues. Le point de tête existant n'est plus `UNOFFERED_STOP_POINT`. L'ajout en tête est désormais accepté.
 - `StopPoint.test.ts` : `isStopPointProposable` propose la tête.
@@ -197,7 +197,7 @@ Trois revues indépendantes du 22/10/2026 (aveugle, cas limites, écarts de vér
 - L'emplacement libre `CIRCUIT_HEAD` n'est pas encore dessiné.
 
 **Soumis à Hermann (aucun changement)**
-- **Cas limites 2.** « Monter » ou « Descendre » d'un Exercice peut se réduire à supprimer un point sans changer l'ordre : `[A, P, B]`, B monte → `[A, B]`. C'est conforme à la lettre de D-437. À arbitrer : masquer le pas, ou assumer la suppression.
+- **Cas limites 2.** « Monter » ou « Descendre » d'un Exercice peut se réduire à supprimer un point sans changer l'ordre : `[A, P, B]`, B monte → `[A, B]`. C'est conforme à la lettre de D-442. À arbitrer : masquer le pas, ou assumer la suppression.
 - **Aveugle 6.** L'exception de N ≥ 2 est lue sur N seul. En Séries, des exercices hérités à moins de N séries peuvent réduire les passages effectifs. Le comportement est documenté (`repeatsCircuit`) et non modifié.
 
 ## Verification

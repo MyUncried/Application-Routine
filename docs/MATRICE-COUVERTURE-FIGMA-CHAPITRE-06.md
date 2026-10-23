@@ -1,5 +1,7 @@
 # Matrice de couverture Figma ↔ documentation
 
+**Actualisation ciblée MFN du 23/10 :** le [relevé Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) couvre les cinq nouveaux états CE-T03-04, le popover, quatre familles de composants et six captures existantes réexportées. Il indique les chemins, nœuds, contrats et écarts résiduels. Les neuf nouvelles images sont des exports Figma directs : six états d’interface et trois vues de composants. Les volumes de propagation annoncés (50 MVP / 51 hors MVP) ne sont pas un audit exhaustif. Cette mise à jour remplace les mentions « états MFN à illustrer » uniquement pour les états livrés ; la complétion des durées des exercices frères reste sans frame.
+
 **Actualisation ciblée du 12/10 :** pour Composition et création/Modalités d’exécution, la [matrice du 12/10](MATRICE-DSF-CIRCUITS-2026-10-12.md) remplace les références de ces parcours ci-dessous. Les autres familles ne sont pas réauditées par ce lot.
 
 

@@ -12,7 +12,7 @@ export type TourBoundaryChoiceDialogProps = {
 };
 
 /**
- * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand une action ferait
+ * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand une action ferait
  * se suivre, à N ≥ 2, un Point de début de Tour et un Point de fin de Tour entre deux Tours —
  * placement, déplacement d'un Point, déplacement d'un Exercice, passage de N = 1 à N ≥ 2.
  *

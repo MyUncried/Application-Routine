@@ -94,7 +94,7 @@ describe("createExerciseDraft", () => {
   });
 });
 
-describe("bornes de séance au-delà de 60 s (PRE-6 story 7.8, D-438)", () => {
+describe("bornes de séance au-delà de 60 s (PRE-6 story 7.8, D-443)", () => {
   const legacy = (initialCountdownSeconds: number, finalPhaseSeconds: number): Session => ({
     id: "session-legacy",
     ownerId: "usr_test",

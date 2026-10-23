@@ -59,7 +59,7 @@ function fill(template: string, values: Record<string, string>): string {
 
 /**
  * Point d'arrêt d'une rangée de placement, préparé par l'écran (story 6.3) :
- * - `EXISTING` : point existant (D-436, R3), visé par son IDENTIFIANT (deux points hérités sur la
+ * - `EXISTING` : point existant (D-441, R3), visé par son IDENTIFIANT (deux points hérités sur la
  *   même clé se retirent indépendamment) ; `blocked` : retrait programmé dont l'annulation est
  *   refusée par le Domaine (un point ajouté le suivrait, RM-251) ;
  * - `AVAILABLE` : emplacement libre ou ajouté, visé par son emplacement.
@@ -101,12 +101,12 @@ export type PlacementStopPointRowProps = {
  * - à ajouter : puce en pointillés (`9849:43089`), bouton « Ajouter un point d'arrêt après
  *   {exercice} » ; ajoutée : puce pleine `primary`, symbole et texte blancs, état sélectionné et
  *   indice « Un toucher retire cet ajout. » ;
- * - déjà présent (y compris à un emplacement que le placement ne propose pas) — story 6.3 (D-436,
+ * - déjà présent (y compris à un emplacement que le placement ne propose pas) — story 6.3 (D-441,
  *   R3) : bouton SÉLECTIONNÉ, même rendu que la puce ajoutée ; toucher le désélectionne (retrait
  *   programmé), retoucher le resélectionne. Désélectionné (« à retirer ») : pointillés ET opacité
  *   réduite (`UNSELECTED_OPACITY`), pour ne pas ressembler à un emplacement libre (revue 6.3).
  *   NON VÉRIFIABLE : Figma ne dessine aucun état sélectionné / désélectionné d'un point existant
- *   (`9843:18975` montre la puce posée d'avant D-436). Resélection refusée (`blocked`) : état
+ *   (`9843:18975` montre la puce posée d'avant D-441). Resélection refusée (`blocked`) : état
  *   indisponible et indice dédié ; le toucher reste reçu, l'écran en annonce le refus.
  *
  * Revue 5.3 : la cible est une boîte réelle de 22 + écarts (marges négatives : la rangée garde 22),
@@ -129,7 +129,7 @@ export function PlacementStopPointRow({
   let targetTestID: string;
   let onPress: () => void;
   if (point.kind === "EXISTING") {
-    // Story 6.3 (D-436) : sélectionné tant que son retrait n'est pas programmé.
+    // Story 6.3 (D-441) : sélectionné tant que son retrait n'est pas programmé.
     selected = !isPlacementStopPointRemoved(placement, point.stopPointId);
     toRemove = !selected;
     blocked = toRemove && point.blocked;
@@ -184,7 +184,7 @@ export type PlacementRecoveryFrameProps = {
   readonly occurrenceId: string;
   readonly exerciseName: string;
   /**
-   * PRE-6 story 7.2 (D-437) : durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout, ou
+   * PRE-6 story 7.2 (D-442) : durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout, ou
    * récupération existante — 0 comprise — modifiée ou non et non retirée), `null` si la zone n'est
    * pas sélectionnée.
    */
@@ -203,7 +203,7 @@ export type PlacementRecoveryFrameProps = {
  * ch13 L1486) : cadre « Récupération » dans la ligne 3 de la carte (colonne des valeurs,
  * `OCCURRENCE_RECOVERY_FRAME`).
  *
- * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : toutes les zones de récupération des Exercices
+ * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toutes les zones de récupération des Exercices
  * sont sélectionnables, comme les Points d'arrêt.
  * - Sélectionnée (ajoutée, ou récupération existante — 0 comprise — conservée) : cadre plein
  *   `primary`, sablier blanc de même taille (13, teinté) et durée seule (« 30 s », format de la

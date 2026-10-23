@@ -1,6 +1,6 @@
 /**
  * Point d'arrêt de Séance (V2-PRE-1, plan §3.3 ; PRE-6 story 1.2, AD-36 ;
- * story 6.1, D-436, RM-251) : identité, portée (avant, dans ou après le
+ * story 6.1, D-441, RM-251) : identité, portée (avant, dans ou après le
  * Circuit) et emplacement dans cette portée. Un Point d'arrêt interne au
  * Circuit est rejoué implicitement à chaque Tour. Il est interdit
  * immédiatement après le compte à rebours initial et immédiatement avant la
@@ -11,7 +11,7 @@
  * **Emplacement** (`position`) : nombre d'occurrences de la portée qui le
  * précèdent dans l'ordre affiché.
  *
- * **D-436 (story 6.1, remplace ARB-3)** : le point est un élément AUTONOME de
+ * **D-441 (story 6.1, remplace ARB-3)** : le point est un élément AUTONOME de
  * la séquence mêlée de sa portée — `[pt(s,0)?, occ1, pt(s,1)?, …, occn,
  * pt(s,n)?]` — et n'est plus rattaché à l'occurrence qui le précède : il ne
  * la suit pas au déplacement, n'est pas copié à la duplication ni retiré à la
@@ -25,7 +25,7 @@
  * frontières du Circuit en découlent : `(BEFORE, nB)` + `(IN, 0)`,
  * `(IN, nI)` + `(AFTER, 0)` et, Circuit vide, `(BEFORE, nB)` + `(AFTER, 0)`.
  *
- * **D-437 (story 7.1)** : la tête de Circuit `(IN, 0)` est autorisée et
+ * **D-442 (story 7.1)** : la tête de Circuit `(IN, 0)` est autorisée et
  * proposée ; à N ≥ 2 (`StopPointRules.tourRepeatCount`), un point de début ou
  * de fin de Tour échappe à RM-219 même si le Circuit ouvre ou clôt la
  * Séance, et leur coexistence est un conflit de Tour (`tourBoundaryConflict`)
@@ -64,7 +64,7 @@ export type StopPointOccurrence = {
 export type SequenceOccurrence = StopPointOccurrence & { readonly type?: ActivityType };
 
 /**
- * Prédicat UNIQUE de « séparateur » (story 6.1, D-436, RM-219, RM-251) : seule
+ * Prédicat UNIQUE de « séparateur » (story 6.1, D-441, RM-219, RM-251) : seule
  * une occurrence `EXERCISE` sépare deux points, sépare un point du compte à
  * rebours initial ou de la Fin. Une ancienne Récupération autonome
  * (`RECOVERY`) n'est donc jamais un voisin au sens de RM-219 ni un séparateur
@@ -103,7 +103,7 @@ export function occurrenceCountInScope(
  * directement la Fin). Une `position` hors bornes est ramenée dans
  * `0..n` — la borne elle-même relève de `isStopPointPositionInRange`.
  *
- * Story 6.1 (D-436) : seuls les séparateurs (`isSequenceSeparator`, occurrences
+ * Story 6.1 (D-441) : seuls les séparateurs (`isSequenceSeparator`, occurrences
  * `EXERCISE`) comptent ; une ancienne Récupération autonome n'est pas un
  * voisin — un point précédé seulement d'elle suit le compte à rebours. Un
  * type absent est lu `EXERCISE`.
@@ -139,10 +139,10 @@ export function isStopPointPositionInRange(
   );
 }
 
-// --- Début et fin de Tour (D-437) ---------------------------------------------
+// --- Début et fin de Tour (D-442) ---------------------------------------------
 
 /**
- * Story 7.1 (D-437) : contexte des règles d'emplacement — N du Circuit
+ * Story 7.1 (D-442) : contexte des règles d'emplacement — N du Circuit
  * (`SessionDraft.tourRepeatCount`, nombre de Tours ou de Séries). Absent : 1
  * (`DEFAULT_TOUR_REPEAT_COUNT`), RM-219 s'applique sans exception. Un
  * `SessionDraft`, un `CompositionState` ou un `PlacementContext` conviennent
@@ -151,8 +151,8 @@ export function isStopPointPositionInRange(
 export type StopPointRules = { readonly tourRepeatCount?: number };
 
 /**
- * D-437 : le Circuit est-il exécuté plusieurs fois (N ≥ 2 Tours ou Séries) ? Lu sur N seul, comme
- * D-437 le formule : en Séries, des exercices hérités à moins de N séries peuvent réduire les
+ * D-442 : le Circuit est-il exécuté plusieurs fois (N ≥ 2 Tours ou Séries) ? Lu sur N seul, comme
+ * D-442 le formule : en Séries, des exercices hérités à moins de N séries peuvent réduire les
  * passages effectivement joués (`expandComposition`) sans changer cette règle d'emplacement.
  */
 export function repeatsCircuit(rules: StopPointRules = {}): boolean {
@@ -164,7 +164,7 @@ export function repeatsCircuit(rules: StopPointRules = {}): boolean {
 export type TourBoundary = "HEAD" | "TAIL";
 
 /**
- * Story 7.1 (D-437) : un point `IN_TOUR` est en DÉBUT de Tour (`HEAD`) si
+ * Story 7.1 (D-442) : un point `IN_TOUR` est en DÉBUT de Tour (`HEAD`) si
  * aucun Exercice du Circuit ne le précède, en FIN de Tour (`TAIL`) si aucun ne
  * le suit ; `null` hors Circuit, entre deux Exercices, ou si le Circuit ne
  * contient aucun Exercice (seules d'anciennes Récupérations autonomes : rien
@@ -194,7 +194,7 @@ export function tourBoundaryOf(
 }
 
 /**
- * Story 7.1 (D-437) : emplacement autorisé au sens de RM-219, N compris. À
+ * Story 7.1 (D-442) : emplacement autorisé au sens de RM-219, N compris. À
  * N ≥ 2, un point de début ou de fin de Tour reste autorisé même si le
  * Circuit ouvre ou clôt la Séance (entre deux Tours, un Exercice le précède et
  * le suit ; l'exécution omet seulement l'arrêt qui suivrait le compte à
@@ -212,7 +212,7 @@ export function isStopPointPlacementAllowed(
   return isStopPointPlacementValid(stopPointNeighbors(occurrences, point));
 }
 
-/** Emplacement à la fois dans les bornes et autorisé (RM-219 ; story 7.1, D-437 : exception de début et de fin de Tour à N ≥ 2). */
+/** Emplacement à la fois dans les bornes et autorisé (RM-219 ; story 7.1, D-442 : exception de début et de fin de Tour à N ≥ 2). */
 export function isStopPointAllowed(
   occurrences: readonly SequenceOccurrence[],
   point: StopPointLocation,
@@ -222,8 +222,8 @@ export function isStopPointAllowed(
 }
 
 /**
- * Tête de Circuit `(IN_TOUR, 0)`. Story 7.1 (D-437, remplace la
- * non-proposition de D-436) : emplacement désormais autorisé et proposé, sous
+ * Tête de Circuit `(IN_TOUR, 0)`. Story 7.1 (D-442, remplace la
+ * non-proposition de D-441) : emplacement désormais autorisé et proposé, sous
  * réserve de RM-219 et RM-251 ; le prédicat ne sert plus qu'à NOMMER
  * l'emplacement (emplacement de placement dédié `CIRCUIT_HEAD`, `placement.ts`).
  */
@@ -233,7 +233,7 @@ export function isCircuitHead(point: StopPointLocation): boolean {
 
 /**
  * Emplacement qu'un utilisateur peut CHOISIR pour un point : autorisé
- * (`isStopPointAllowed`, N compris). Story 7.1 (D-437) : la tête de Circuit
+ * (`isStopPointAllowed`, N compris). Story 7.1 (D-442) : la tête de Circuit
  * n'est plus exclue. RM-251, le conflit de Tour et l'occupation se jugent à
  * part (`wouldBeConsecutive`, `tourBoundaryConflict`, `moveStopPoint`).
  */
@@ -274,7 +274,7 @@ export function orderStopPointsByScope<T extends StopPointLocation>(
     .sort((a, b) => a.position - b.position);
 }
 
-// --- Séquence mêlée (D-436) ---------------------------------------------------
+// --- Séquence mêlée (D-441) ---------------------------------------------------
 
 /** Élément de la séquence mêlée d'une portée : une occurrence ou un point. */
 export type SequenceItem<O, P> =
@@ -282,7 +282,7 @@ export type SequenceItem<O, P> =
   | { readonly kind: "STOP_POINT"; readonly point: P };
 
 /**
- * Séquence mêlée d'une portée (D-436) : `[pt(s,0)?, occ1, pt(s,1)?, …, occn,
+ * Séquence mêlée d'une portée (D-441) : `[pt(s,0)?, occ1, pt(s,1)?, …, occn,
  * pt(s,n)?]`, occurrences dans l'ordre de la collection. Un point hors bornes
  * (négatif, non entier, au-delà de n) est ramené à la borne la plus proche
  * (`0..n`, partie entière) ; deux points sur un même emplacement (donnée déjà
@@ -330,7 +330,7 @@ export function positionInSequence<O, P>(items: readonly SequenceItem<O, P>[], i
   return items.slice(0, Math.max(0, index)).filter((item) => item.kind === "OCCURRENCE").length;
 }
 
-// --- RM-251 : non-consécutivité (D-436) ---------------------------------------
+// --- RM-251 : non-consécutivité (D-441) ---------------------------------------
 
 /**
  * RM-251 : paires de points consécutifs sur la séquence structurelle — deux
@@ -390,16 +390,16 @@ export function withoutStopPoint<T extends StopPoint>(points: readonly T[], id: 
   return points.some((point) => point.id === id) ? points.filter((point) => point.id !== id) : points;
 }
 
-/** Story 7.1 (D-437) : retrait de plusieurs points par identifiant ; aucun visé : liste rendue telle quelle (même identité). */
+/** Story 7.1 (D-442) : retrait de plusieurs points par identifiant ; aucun visé : liste rendue telle quelle (même identité). */
 export function withoutStopPoints<T extends StopPoint>(points: readonly T[], ids: Iterable<string>): readonly T[] {
   const removed = new Set(ids);
   return points.some((point) => removed.has(point.id)) ? points.filter((point) => !removed.has(point.id)) : points;
 }
 
-// --- Conflit de Tour (D-437) --------------------------------------------------
+// --- Conflit de Tour (D-442) --------------------------------------------------
 
 /**
- * Story 7.1 (D-437) : à N ≥ 2, un point de début de Tour et un point de fin de
+ * Story 7.1 (D-442) : à N ≥ 2, un point de début de Tour et un point de fin de
  * Tour se suivraient entre deux Tours (fin du Tour k, début du Tour k + 1) —
  * RM-251 sur la séquence EXÉCUTÉE, que la séquence structurelle (sans
  * répétition) ne voit pas. Rend la paire en conflit (le PREMIER point de début
@@ -434,7 +434,7 @@ export function tourBoundaryConflict<P extends StopPointLocation>(
 }
 
 /**
- * Revue 7.1 (D-437) : TOUS les points de la limite `boundary` (début ou fin de Tour). Une
+ * Revue 7.1 (D-442) : TOUS les points de la limite `boundary` (début ou fin de Tour). Une
  * résolution de conflit retire tous les points de la limite écartée — avec deux points de fin
  * hérités (paire consécutive, ancienne Récupération), n'en retirer qu'un laisserait le conflit.
  */
@@ -446,7 +446,7 @@ export function tourBoundaryPoints<P extends StopPointLocation>(
   return points.filter((point) => tourBoundaryOf(occurrences, point) === boundary);
 }
 
-/** Prédicat du conflit de Tour (D-437, `tourBoundaryConflict`). */
+/** Prédicat du conflit de Tour (D-442, `tourBoundaryConflict`). */
 export function hasTourBoundaryConflict(
   occurrences: readonly SequenceOccurrence[],
   points: readonly StopPointLocation[],
@@ -456,7 +456,7 @@ export function hasTourBoundaryConflict(
 }
 
 /**
- * Choix de l'utilisateur devant un conflit de Tour (D-437) : conserver le
+ * Choix de l'utilisateur devant un conflit de Tour (D-442) : conserver le
  * point de début de Tour (`HEAD`, « Début de tour ») ou celui de fin (`TAIL`,
  * « Fin de tour ») ; « Annuler » n'applique rien (l'appelant garde l'état).
  */

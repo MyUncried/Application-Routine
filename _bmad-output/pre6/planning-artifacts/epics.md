@@ -12,6 +12,8 @@ inputDocuments:
 
 **Référence documentaire.** Les spécifications de `main` (`ad189847`), complétées par les corrections de la PR #390 (`59c682f1`), lues par `git show origin/docs/pre6-figma-ui-20261020:<fichier>`. La PR n'est ni fusionnée ni recopiée dans la branche PRE-6 : ses quatre passages (ch06 L399, ch09 L682, ch12 L906, ch13 L1254-1260) font foi pour PRE-6. Figma actuel, et non d'anciennes captures, pour le rendu : `DSF / Cards / Composition — exercice` `5544:6797`, `DSF / Cards / Exercice` `6214:7278`.
 
+**Renumérotation des décisions PRE-6 (23/10/2026).** À la fusion de PRE-6 sur `main`, les numéros D-436 à D-440 étaient déjà publiés sur `main` par la PR #392 (fitness first, mouvement et filiation, phases structurées, niveaux, base vierge). Les décisions PRE-6, jamais livrées, sont renumérotées après D-440 : D-436 (Points d'arrêt autonomes) → **D-441** ; D-437 (recette du 22/10) → **D-442** ; D-438 (recette J6c) → **D-443** ; D-439 (action principale standardisée) → **D-444**. Ce document, les specs de stories, le code, les tests et les chapitres de `docs/` utilisent les nouveaux numéros ; les messages de commit antérieurs gardent les anciens.
+
 ## Périmètre
 
 **Inclus.** Composition des **séances libres** :
@@ -226,9 +228,9 @@ Demande de Hermann du 22/10/2026 (recette iPhone : rail discontinu, segments orp
 
 **Jalon J4 (iPhone, après 5.4)** : largeurs 360 / 402 / 440, cartes hors Circuit et dans le Circuit, textes longs, récupération absente / 0 / positive, placement complet, retrait, glisser, balayage, duplication, VoiceOver.
 
-## Epic 6: Autonomie des Points d'arrêt (D-436)
+## Epic 6: Autonomie des Points d'arrêt (D-441)
 
-Demande de Hermann du 21/10/2026 (« Composition de séance — Autonomie des Points d'arrêt »), règles R1 à R4, et arbitrages du 22/10/2026. Décision documentaire **D-436**, règle **RM-251** (lot documentaire de l'epic). **Remplace ARB-3** (20/10) et le rattachement du Point d'arrêt à son occurrence encodé par les stories 1.2 (AC4), 2.3 (AC2-AC3) et 4.3 (AC1), ainsi que le retrait par bulle des stories 4.2 (AC2) et 5.2 (AC3). Aucune migration ni évolution d'API : `{ id, scope, position }` représente déjà un point indépendant (inspection du 21/10) ; seul le Domaine pur (`StopPoint.ts`, `composition.ts`, `placement.ts`, `circuit.ts`) et l'écran changent.
+Demande de Hermann du 21/10/2026 (« Composition de séance — Autonomie des Points d'arrêt »), règles R1 à R4, et arbitrages du 22/10/2026. Décision documentaire **D-441**, règle **RM-251** (lot documentaire de l'epic). **Remplace ARB-3** (20/10) et le rattachement du Point d'arrêt à son occurrence encodé par les stories 1.2 (AC4), 2.3 (AC2-AC3) et 4.3 (AC1), ainsi que le retrait par bulle des stories 4.2 (AC2) et 5.2 (AC3). Aucune migration ni évolution d'API : `{ id, scope, position }` représente déjà un point indépendant (inspection du 21/10) ; seul le Domaine pur (`StopPoint.ts`, `composition.ts`, `placement.ts`, `circuit.ts`) et l'écran changent.
 
 **Arbitrages de Hermann du 22/10/2026 :**
 - Dupliquer un Exercice ne copie pas son Point d'arrêt : `[A, P, B]` → `[A, A′, P, B]` ; la récupération reste copiée.
@@ -258,12 +260,12 @@ Demande de Hermann du 21/10/2026 (« Composition de séance — Autonomie des Po
 
 **Recette (Hermann, scénarios 1 à 15 de la demande)** : jalon J5 sur iPhone après 6.3.
 
-## Epic 7: Retours de la recette iPhone du 22/10/2026 (D-437)
+## Epic 7: Retours de la recette iPhone du 22/10/2026 (D-442)
 
-Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à 17). Décision documentaire **D-437** (ch07), propagée dans les chapitres concernés par le lot de l'epic. Aucune migration ni évolution d'API : `{ id, scope, position }` et `postActivityRecoverySeconds` suffisent.
+Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à 17). Décision documentaire **D-442** (ch07), propagée dans les chapitres concernés par le lot de l'epic. Aucune migration ni évolution d'API : `{ id, scope, position }` et `postActivityRecoverySeconds` suffisent.
 
 **Interprétations retenues (réversibles, signalées à Hermann) :**
-- Commentaire 5 : seule la règle du DÉPLACEMENT d'Exercice change (points en cause retirés sans message ; le premier d'une paire consécutive est conservé) ; la suppression garde le refus doux de D-436.
+- Commentaire 5 : seule la règle du DÉPLACEMENT d'Exercice change (points en cause retirés sans message ; le premier d'une paire consécutive est conservé) ; la suppression garde le refus doux de D-441.
 - Commentaires 6 et 17 : tête de Circuit proposée ; à N ≥ 2, début + fin de Tour → dialogue « lequel conserver » (Début de tour, Fin de tour, Annuler) ; à N ≥ 2, RM-219 n'interdit pas ces deux emplacements même si le Circuit ouvre ou clôt la Séance (l'exécution omet l'arrêt de tête ou de queue) ; à N = 1, RM-219 s'applique et un point devenu interdit au passage à N = 1 est retiré.
 - Commentaire 7 : marque visuelle de l'état soulevé du Point d'arrêt (et état sélectionné du placement distinct).
 - Commentaires 10 et 11 : stepper toujours affiché (Figma `8328:28605` le montre ouvert) ; chiffre en « Valeur modifiable » (fond `surface`, texte `primary`) ; D8 remplacé.
@@ -279,7 +281,7 @@ Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à
 ### Story 7.2: Écran — récupération seulement en placement, Étiquette, fin de D-301, point soulevé
 
 - **AC1** : hors placement, la récupération de la ligne 3 n'est plus une cible (ni toucher, ni appui long, ni bulle, ni action accessible propre) ; le toucher de la carte n'est pas changé.
-- **AC2** : en placement, toutes les zones de récupération des Exercices sont sélectionnables (AC3 de 7.1), libellés et annonces ; libellé du bouton selon D-436.
+- **AC2** : en placement, toutes les zones de récupération des Exercices sont sélectionnables (AC3 de 7.1), libellés et annonces ; libellé du bouton selon D-441.
 - **AC3** : plus de message d'enchaînement sans pause (D-301 retirée) ; code et textes associés retirés.
 - **AC4** : puce Étiquette : icône d'étiquette teintée de la couleur de l'Étiquette (sans Étiquette : inchangée).
 - **AC5** : Point d'arrêt soulevé visiblement marqué ; dialogues « lequel conserver » branchés (placement, dépose d'un point, dépose d'une carte, changement de N) ; déplacement de carte tolérant (AC1 de 7.1) sans message.
@@ -302,7 +304,7 @@ Recette J0 à J5 de Hermann du 22/10/2026 (`Recette_PRE-6.md`, commentaires 1 à
 
 Recette différentielle J6 de Hermann du 22/10/2026 : 21 points OK sur 23, d-17 en problème, d-12 non testable (exécution), demande nouvelle sur d-9.
 
-- **AC1** (d-9, D-437 amendée) : supprimer un Exercice qui laisserait un Point interdit ou consécutif est APPLIQUÉ ; les points en cause sont retirés sans message (mêmes règles que le déplacement : interdits d'abord, le premier d'une paire consécutive conservé). Plus de refus doux ni d'annonce de refus.
+- **AC1** (d-9, D-442 amendée) : supprimer un Exercice qui laisserait un Point interdit ou consécutif est APPLIQUÉ ; les points en cause sont retirés sans message (mêmes règles que le déplacement : interdits d'abord, le premier d'une paire consécutive conservé). Plus de refus doux ni d'annonce de refus.
 - **AC2** (d-9) : la carte supprimée disparaît en fondu ; les éléments suivants (cartes, points, cadre du Circuit) glissent pour combler sa place.
 - **AC3** (d-17) : carte sortie du haut du Circuit puis redéposée dedans, ou première carte du Circuit sortie vers le haut : aucune zone grise ni rectangle blanc résiduel, sans appui long ni réouverture ; cause trouvée et corrigée.
 
@@ -319,7 +321,7 @@ Recette J6b de Hermann du 23/10/2026 : 8 points sur 8 OK, d-17 corrigé ; remarq
 
 **Jalon J6c (iPhone, après 7.6)** : ressenti des mouvements.
 
-### Story 7.7: Mouvements — disparition plus lente, apparition de la copie, actions glissées (D-438)
+### Story 7.7: Mouvements — disparition plus lente, apparition de la copie, actions glissées (D-443)
 
 Recette J6c de Hermann du 23/10/2026 : 7 points sur 7 OK ; remarque j6c-4 : « La disparition doit être encore plus lente. Lorsqu'on copie une carte, elle apparaît aussi brutalement, il faut qu'elle apparaisse en fondu plus lentement, idem pour le mouvement des cartes. Idem pour les mouvements glisser gauche et droite, pas d'arrêt brutal. »
 
@@ -328,7 +330,7 @@ Recette J6c de Hermann du 23/10/2026 : 7 points sur 7 OK ; remarque j6c-4 : « L
 - **AC3** : actions glissées gauche / droite de la carte : ouverture, fermeture et retour avec décélération progressive, sans arrêt brutal ; mécanisme de geste inchangé.
 - **AC4** : aucune régression de j6c-1 à j6c-7 ; « Réduire les animations » respecté.
 
-### Story 7.8: Présentation — en-tête du Circuit, bornes de séance, durée de la Séance (D-438)
+### Story 7.8: Présentation — en-tête du Circuit, bornes de séance, durée de la Séance (D-443)
 
 Remarques générales de la recette J6c : « Supprimer la durée du circuit et aligner le stepper de tour à droite. Aligner le cadre du compte à rebours et de la fin de séance à droite du cadre des cartes d'exercices, Limiter leurs valeurs à 60s et ne pas afficher les minutes. Durée totale de l'exercice dans la zone de contexte, arrondir à 15 s près et mettre le signe à peu près égal ou supérieur ou égal à en fonction du contexte des exercices. »
 
@@ -346,9 +348,9 @@ Recette J6d de Hermann du 23/10/2026 : 8 points sur 9 OK (j6d-8 sans cas réel, 
 - **AC1** (j6d-5) : Circuit sélectionné (et tout état de l'en-tête) : aucun texte de l'en-tête tronqué à 375 et 402 ; cause identifiée.
 - **AC2** : le bouton « Continuer » de la Composition est à la même position verticale et à la même hauteur que le bouton d'action principal de l'écran de création d'un Exercice (même pied d'action, mêmes marges et zone de sécurité).
 
-### Story 7.10: Composant d’action principal standardisé (D-439)
+### Story 7.10: Composant d’action principal standardisé (D-444)
 
-Demande de Hermann du 23/10/2026 après la livraison de 7.9 (D-439, ch07).
+Demande de Hermann du 23/10/2026 après la livraison de 7.9 (D-444, ch07).
 
 - **AC1** : un composant partagé d’action principale (bouton au format « Terminer » + zone fixe + dégradé blanc 0 → 100 % pleine largeur + marge de sécurité au-dessus) ; seuls libellé, état et action varient.
 - **AC2** : appliqué à tous les écrans dotés d’un bouton d’action principal (inventaire dans la spec) ; le contenu défilant s’arrête avant la zone protégée, rien n’est masqué ni inaccessible.
@@ -406,7 +408,7 @@ Recette sur iPhone réel, build de développement, largeurs 375 et 402, VoiceOve
 
 **ARB-2 — Indicateur de changement de côté : CLOS, inclus dans PRE-6.** Icône seule quand la fonction s'applique, sans indicateur directionnel `D→G` / `G→D`. Présentation selon les composants Figma actualisés (`5544:6797`, `6214:7278`) et ch13 L1254-1260 (PR #390). Paramètres fonctionnels PRE-5 inchangés (story 2.2 AC3). Sujet non rouvert.
 
-**Remplacé par D-436 (Hermann, 21-22/10/2026, epic 6) : le Point d'arrêt ne suit plus son occurrence.** **ARB-3 — Point d'arrêt : CLOS.** Le Point d'arrêt accompagne l'occurrence d'exercice à laquelle il est rattaché, comme la Récupération, lors des déplacements, duplications et suppressions (ch09 L682, PR #390). La représentation `{ id, scope, position }` est conservée : la position organise la séquence, elle ne fige pas le point. Les opérations de Composition actualisent les positions dans les emplacements autorisés (AD-36 ; stories 1.2 AC4, 2.3 AC2-AC3, 4.3 AC1).
+**Remplacé par D-441 (Hermann, 21-22/10/2026, epic 6) : le Point d'arrêt ne suit plus son occurrence.** **ARB-3 — Point d'arrêt : CLOS.** Le Point d'arrêt accompagne l'occurrence d'exercice à laquelle il est rattaché, comme la Récupération, lors des déplacements, duplications et suppressions (ch09 L682, PR #390). La représentation `{ id, scope, position }` est conservée : la position organise la séquence, elle ne fige pas le point. Les opérations de Composition actualisent les positions dans les emplacements autorisés (AD-36 ; stories 1.2 AC4, 2.3 AC2-AC3, 4.3 AC1).
 
 ### Points non bloquants (défaut appliqué, vérifié en recette)
 

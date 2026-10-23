@@ -11,17 +11,17 @@
  *   Circuit (`AFTER_TOUR`, `position = 0`) s'il n'est pas vide, en excluant les emplacements
  *   interdits (`isStopPointAllowed`, story 1.2 : jamais juste après le compte à rebours, jamais
  *   juste avant la Fin, RM-219). Un emplacement qui porte déjà un point l'affiche comme existant.
- *   Story 6.1 (D-436, RM-251) : un emplacement LIBRE n'est proposé que s'il ne rend aucun point
+ *   Story 6.1 (D-441, RM-251) : un emplacement LIBRE n'est proposé que s'il ne rend aucun point
  *   consécutif, compte tenu de l'état effectif (points existants − retraits programmés + ajouts
  *   du sous-brouillon, `effectivePlacementStopPoints`).
  *
  * **Sous-brouillon** (`PlacementDraft`) : les changements de la session de placement — durée
- * de récupération par occurrence, emplacements de points ajoutés, et (story 6.1, D-436)
+ * de récupération par occurrence, emplacements de points ajoutés, et (story 6.1, D-441)
  * retraits programmés de points existants. « Annuler » le jette ; « Confirmer » l'applique au
  * `SessionDraft` en une seule mise à jour (`applyPlacementDraft`). Rien n'est persisté ici :
  * « Continuer » reste la seule persistance (D-388).
  *
- * **Story 7.1 (D-437)** : la Récupération ne se règle plus qu'en placement — une récupération
+ * **Story 7.1 (D-442)** : la Récupération ne se règle plus qu'en placement — une récupération
  * présente (0 comprise) apparaît sélectionnée ; la désélectionner programme son retrait
  * (`recoveryRemovals`), la resélectionner à une durée annule ce retrait et en programme la
  * modification. La tête de Circuit est un emplacement proposé (`CIRCUIT_HEAD`) ; N du Circuit
@@ -65,7 +65,7 @@ export type PlacementStopPointSlot = {
 };
 
 /**
- * Nature d'un emplacement : sous une occurrence, « après le Circuit », (story 7.1, D-437) en tête
+ * Nature d'un emplacement : sous une occurrence, « après le Circuit », (story 7.1, D-442) en tête
  * de Circuit — début de Tour `(IN_TOUR, 0)`, avant la première occurrence du Circuit —, ou (story
  * 6.1, R3) point existant sur un emplacement que le placement ne propose pas — emplacement devenu
  * interdit sans occurrence d'ancrage, hors bornes ou non entier —, rendu pour pouvoir être
@@ -106,7 +106,7 @@ function displayedOccurrences<T extends Pick<SessionDraftExercise, "structuralPo
  * élément, puis, s'il est autorisé, celui « après le Circuit » juste après la dernière
  * occurrence du Circuit (avant les occurrences `AFTER_TOUR`).
  *
- * Story 6.1 (D-436, RM-251, revue) :
+ * Story 6.1 (D-441, RM-251, revue) :
  * - un emplacement qui porte un point existant est toujours rendu `existing` (désélectionnable :
  *   retrait programmé), même s'il est devenu interdit ; un point existant sur un emplacement
  *   que le placement ne propose pas (hors bornes, non entier, « après le
@@ -119,7 +119,7 @@ function displayedOccurrences<T extends Pick<SessionDraftExercise, "structuralPo
  *   existants − retraits + ajouts de `placement`). Sans `placement` (hors placement, applicabilité) : par
  *   rapport aux seuls points existants.
  *
- * Story 7.1 (D-437) :
+ * Story 7.1 (D-442) :
  * - la tête de Circuit `(IN_TOUR, 0)` est un emplacement `CIRCUIT_HEAD` (`occurrenceId = null`),
  *   rendu juste avant la première occurrence du Circuit, aux mêmes conditions que les autres ;
  *   un point existant qui l'occupe y est rendu (il n'est plus `UNOFFERED_STOP_POINT`) ;
@@ -225,9 +225,9 @@ function recoverySlotOf(occurrence: PlacementOccurrence): PlacementRecoverySlot 
  * `recoveryChanges` (story 4.2) : nouvelle durée d'une récupération DÉJÀ présente, par
  * identifiant d'occurrence — « la modification de leur durée n'est pas un ajout » (ch08) : jamais
  * comptée dans N, appliquée avec le reste par « Confirmer », jetée par « Annuler ».
- * `stopPointRemovals` (story 6.1, D-436) : IDENTIFIANTS des points existants dont le retrait est
+ * `stopPointRemovals` (story 6.1, D-441) : IDENTIFIANTS des points existants dont le retrait est
  * programmé (désélection) ; une resélection annule le retrait ; jamais comptés dans N.
- * `recoveryRemovals` (story 7.1, D-437) : IDENTIFIANTS des occurrences dont la récupération
+ * `recoveryRemovals` (story 7.1, D-442) : IDENTIFIANTS des occurrences dont la récupération
  * PRÉSENTE (0 comprise) est programmée au retrait (désélection) ; exclusif d'une modification de
  * la même occurrence ; jamais compté dans N.
  */
@@ -248,7 +248,7 @@ export const EMPTY_PLACEMENT_DRAFT: PlacementDraft = {
 };
 
 /**
- * Story 6.1 (D-436) : points effectifs du placement — existants moins ceux dont le retrait est
+ * Story 6.1 (D-441) : points effectifs du placement — existants moins ceux dont le retrait est
  * programmé (par identifiant ; un point sans identifiant n'est jamais retiré), plus les ajouts
  * du sous-brouillon (emplacements, sans doublon). Story 7.1 : les points existants gardent leur
  * identifiant (un ajout n'en a pas).
@@ -291,7 +291,7 @@ export function setPlacementRecoveryChange(
 
 /**
  * Composition sur laquelle se jugent une bascule de point et l'applicabilité (story 6.1) ; un
- * `SessionDraft` convient. Story 7.1 (D-437) : `tourRepeatCount` (N du Circuit, absent : 1) —
+ * `SessionDraft` convient. Story 7.1 (D-442) : `tourRepeatCount` (N du Circuit, absent : 1) —
  * contexte des règles d'emplacement (`StopPointRules`).
  */
 export type PlacementContext = StopPointRules & {
@@ -299,7 +299,7 @@ export type PlacementContext = StopPointRules & {
   readonly stopPoints?: readonly StopPoint[];
 };
 
-// --- Récupérations en placement (story 7.1, D-437) ----------------------------
+// --- Récupérations en placement (story 7.1, D-442) ----------------------------
 
 /** Durée présente de la récupération d'une occurrence `EXERCISE` du contexte, sinon `null`. */
 function currentRecoveryOf(context: PlacementContext, occurrenceId: string): number | null {
@@ -314,13 +314,13 @@ function withoutKey(record: Readonly<Record<string, number>>, key: string): Read
   return Object.fromEntries(Object.entries(record).filter(([id]) => id !== key));
 }
 
-/** Story 7.1 (D-437) : le retrait de la récupération présente de `occurrenceId` est-il programmé ? */
+/** Story 7.1 (D-442) : le retrait de la récupération présente de `occurrenceId` est-il programmé ? */
 export function isPlacementRecoveryRemoved(placement: PlacementDraft, occurrenceId: string): boolean {
   return placement.recoveryRemovals.includes(occurrenceId);
 }
 
 /**
- * Story 7.1 (D-437) : durée SÉLECTIONNÉE en placement pour la récupération d'une occurrence, ou
+ * Story 7.1 (D-442) : durée SÉLECTIONNÉE en placement pour la récupération d'une occurrence, ou
  * `null` (zone non sélectionnée) — ajout du sous-brouillon, sinon récupération présente (0
  * comprise) modifiée ou non, sauf si son retrait est programmé. Non `EXERCISE` : `null`.
  */
@@ -343,7 +343,7 @@ export function placementRecoverySeconds(
 }
 
 /**
- * Story 7.1 (D-437) : toucher une récupération SÉLECTIONNÉE la désélectionne — ajoutée : l'ajout
+ * Story 7.1 (D-442) : toucher une récupération SÉLECTIONNÉE la désélectionne — ajoutée : l'ajout
  * est retiré ; présente : son retrait est programmé (et une modification de durée en attente est
  * jetée). Zone non sélectionnée, occurrence inconnue ou non `EXERCISE` : sous-brouillon rendu tel
  * quel (même identité).
@@ -367,7 +367,7 @@ export function deselectPlacementRecovery(
 }
 
 /**
- * Story 7.1 (D-437) : sélectionner une récupération à `seconds` (✓ de la roulette) — occurrence
+ * Story 7.1 (D-442) : sélectionner une récupération à `seconds` (✓ de la roulette) — occurrence
  * sans récupération présente : ajout (`setPlacementRecovery`) ; récupération présente : le retrait
  * éventuel est annulé et la durée, si elle diffère de la valeur du brouillon, est programmée en
  * modification (`setPlacementRecoveryChange`). Durée invalide (non entière, négative, NaN),
@@ -397,7 +397,7 @@ export function selectPlacementRecovery(
 }
 
 /**
- * Story 6.1 (D-436, arbitrage du 22/10/2026) : nature du bouton Confirmer — rien à confirmer,
+ * Story 6.1 (D-441, arbitrage du 22/10/2026) : nature du bouton Confirmer — rien à confirmer,
  * ajouts seuls (« Confirmer N pauses ajoutées », `count` = N), ou tout autre changement
  * (« Confirmer les modifications » : un retrait, une modification de durée, ou un mélange
  * avec des ajouts). Le libellé lui-même relève de la présentation (story 6.3).
@@ -414,7 +414,7 @@ export type PlacementConfirmation =
  */
 export function placementConfirmation(placement: PlacementDraft, context: PlacementContext): PlacementConfirmation {
   const applicable = applicablePlacement(context, placement);
-  // Story 7.1 (D-437) : un retrait de récupération est un changement (« Confirmer les modifications »).
+  // Story 7.1 (D-442) : un retrait de récupération est un changement (« Confirmer les modifications »).
   const changes = applicable.recoveryChanges.size + applicable.removedIds.size + applicable.recoveryRemovedIds.size;
   if (changes > 0) {
     return { kind: "CHANGES" };
@@ -435,12 +435,12 @@ export function removePlacementRecovery(placement: PlacementDraft, occurrenceId:
 }
 
 /**
- * Story 6.1 (D-436, R3) : bascule le retrait programmé du point existant `stopPointId`. Annuler
+ * Story 6.1 (D-441, R3) : bascule le retrait programmé du point existant `stopPointId`. Annuler
  * un retrait (resélection) est refusé — sous-brouillon rendu tel quel — si le point redevenait
  * consécutif à un point AJOUTÉ par le sous-brouillon. Story 6.3 (revue) : seul un ajout bloque ;
  * deux points existants déjà consécutifs avant le placement (données héritées) n'empêchent pas
  * d'en resélectionner un, le placement ne créant ni n'aggravant rien. `context` obligatoire.
- * Story 7.1 (D-437) : de même, la resélection est refusée si elle créait un conflit de Tour avec
+ * Story 7.1 (D-442) : de même, la resélection est refusée si elle créait un conflit de Tour avec
  * un point AJOUTÉ (à N ≥ 2, début et fin de Tour) ; un conflit entre deux points existants
  * (hérité) ne bloque pas.
  */
@@ -472,7 +472,7 @@ export function togglePlacementStopPointRemoval(
 }
 
 /**
- * Story 7.1 (D-437) : conflit de Tour du placement — emplacements de début et de fin de Tour, et
+ * Story 7.1 (D-442) : conflit de Tour du placement — emplacements de début et de fin de Tour, et
  * identifiant de chacun quand c'est un point EXISTANT (absent : point ajouté par le sous-brouillon).
  */
 export type PlacementTourConflict = {
@@ -483,7 +483,7 @@ export type PlacementTourConflict = {
 };
 
 /**
- * Story 7.1 (D-437) : issue d'une bascule de point en placement — appliquée (nouveau
+ * Story 7.1 (D-442) : issue d'une bascule de point en placement — appliquée (nouveau
  * sous-brouillon, ou l'entrée elle-même si rien ne change), ou choix requis : l'ajout créerait un
  * conflit de Tour (N ≥ 2). `resolutions.HEAD` conserve le début de Tour (« Début de tour »),
  * `resolutions.TAIL` la fin (« Fin de tour ») : l'autre point est retiré — ajout : l'ajout est
@@ -525,13 +525,13 @@ function withoutEffectivePoint(placement: PlacementDraft, point: PlacementExisti
 }
 
 /**
- * Bascule un point d'arrêt sur un emplacement (story 6.1, D-436, RM-251), jugé contre le même
+ * Bascule un point d'arrêt sur un emplacement (story 6.1, D-441, RM-251), jugé contre le même
  * ensemble que `placementSlots(context.exercises, context.stopPoints, placement, context)` :
  * - emplacement d'un point EXISTANT : bascule son retrait (`togglePlacementStopPointRemoval`) ;
  * - emplacement ajouté : retire l'ajout ;
  * - emplacement libre : l'ajoute seulement si `placementSlots` le propose ; sinon sous-brouillon
  *   rendu tel quel.
- * Story 7.1 (D-437) : un ajout qui CRÉE un conflit de Tour (absent de l'état effectif avant)
+ * Story 7.1 (D-442) : un ajout qui CRÉE un conflit de Tour (absent de l'état effectif avant)
  * rend `CHOICE_REQUIRED`, sans rien ajouter.
  *
  * Story 6.3 (revue) : `context` obligatoire. Deux points existants sur la même clé (données
@@ -551,7 +551,7 @@ export function togglePlacementStopPointOutcome(
     if (toggled !== placement || !isPlacementStopPointRemoved(placement, existing.id)) {
       return { status: "APPLIED", placement: toggled };
     }
-    // Revue 7.1 (D-436, D-437) : resélection refusée par `togglePlacementStopPointRemoval`. Si la
+    // Revue 7.1 (D-441, D-442) : resélection refusée par `togglePlacementStopPointRemoval`. Si la
     // seule cause est un conflit de Tour avec un AJOUT, l'utilisateur choisit : conserver le point
     // resélectionné (l'ajout est jeté) ou l'ajout (le point reste retiré, l'entrée elle-même).
     const reselected = { ...placement, stopPointRemovals: placement.stopPointRemovals.filter((id) => id !== existing.id) };
@@ -626,7 +626,7 @@ export function togglePlacementStopPoint(
   return outcome.status === "APPLIED" ? outcome.placement : placement;
 }
 
-/** Story 6.1 (D-436) : le retrait du point existant `stopPointId` est-il programmé ? */
+/** Story 6.1 (D-441) : le retrait du point existant `stopPointId` est-il programmé ? */
 export function isPlacementStopPointRemoved(placement: PlacementDraft, stopPointId: string): boolean {
   return placement.stopPointRemovals.includes(stopPointId);
 }
@@ -651,7 +651,7 @@ type ApplicablePlacement = {
  * Seul juge de l'applicabilité, partagé par `applyPlacementDraft` et `placementConfirmation` :
  * - retraits : points existants dont l'identifiant est programmé ;
  * - récupérations ajoutées : occurrences encore proposées `AVAILABLE` ;
- * - story 7.1 (D-437) : retraits de récupération — occurrence `EXERCISE` dont la récupération est
+ * - story 7.1 (D-442) : retraits de récupération — occurrence `EXERCISE` dont la récupération est
  *   encore présente (0 comprise) ; un retrait l'emporte sur une modification de la même occurrence ;
  * - modifications : récupération `EXERCISE` encore présente et de valeur différente ;
  * - points ajoutés, dans l'ordre du sous-brouillon : emplacement encore proposé sur les points
@@ -717,10 +717,10 @@ function applicablePlacement(context: PlacementContext, placement: PlacementDraf
  * changements APPLICABLES sont appliqués (`applicablePlacement` : une occurrence disparue, une
  * récupération ou un point déjà présents, un emplacement qui n'est plus proposé ou qui serait
  * consécutif sont ignorés). Une modification (`recoveryChanges`, story 4.2) ne s'applique qu'à
- * une récupération encore présente et n'en crée jamais. Story 6.1 (D-436) : les retraits
+ * une récupération encore présente et n'en crée jamais. Story 6.1 (D-441) : les retraits
  * programmés retirent d'abord les points visés ; jamais deux points consécutifs créés. Sans
  * changement applicable, le brouillon est rendu tel quel (même identité). `newStopPointId`
- * fournit l'identifiant de chaque point créé (le Domaine n'en génère pas). Story 7.1 (D-437) :
+ * fournit l'identifiant de chaque point créé (le Domaine n'en génère pas). Story 7.1 (D-442) :
  * un retrait de récupération programmé rend la récupération ABSENTE
  * (`postActivityRecoverySeconds = null`) — la Pause terminale configurée est rétablie dans les
  * durées (RM-038) ; N du Circuit lu sur `draft.tourRepeatCount`.

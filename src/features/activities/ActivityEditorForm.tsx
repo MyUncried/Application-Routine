@@ -181,7 +181,7 @@ const card = strings.executionParameters.card;
  * et le halo. Valeurs de la règle écrite, jamais une coordonnée Figma.
  */
 export const EDITOR_SIDE_MARGIN_MIN_WIDTH = FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH;
-/** PRE-6 story 7.10 (D-439) : même règle que la zone d'action principale (`shared/ui/finalAction`). */
+/** PRE-6 story 7.10 (D-444) : même règle que la zone d'action principale (`shared/ui/finalAction`). */
 export function editorSideMargin(windowWidth: number): number {
   return finalActionSideMargin(windowWidth);
 }
@@ -281,7 +281,7 @@ export function ActivityEditorForm({
   errorTestID,
 }: ActivityEditorFormProps) {
   const sideMargin = editorSideMargin(useWindowDimensions().width);
-  // PRE-6 story 7.10 (D-439) : `Terminer` est porté par la zone d'action principale fixe
+  // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
   // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
   const actionZone = usePrimaryActionZone();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -587,7 +587,7 @@ export function ActivityEditorForm({
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
           jamais avec le clavier (Android : zone masquée clavier ouvert, revue 7.10) ; il redevient
           accessible dès sa fermeture (D-349).
-          PRE-6 story 7.10 (D-439, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
+          PRE-6 story 7.10 (D-444, remplace FR-37 « 24 du bord de l'écran ») : zone d'action
           principale fixe (zone protégée, bouton centré, correctif J6f), dégradé blanc. */}
       <PrimaryActionZone onContentHeightChange={actionZone.onContentHeightChange} testID={finishSlotTestID}>
         {errorMessage ? (
@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   // Story 4.2 (AC4, AC5) ; PRE-5 3.2 (G-2) : 14 du bas du dégradé à la première section.
-  // PRE-6 story 7.10 (D-439, remplace la réserve de 12 au-dessus de `Terminer`) : réserve de
+  // PRE-6 story 7.10 (D-444, remplace la réserve de 12 au-dessus de `Terminer`) : réserve de
   // défilement = hauteur de la zone d'action fixe, appliquée au rendu avec la marge latérale.
   bodyContent: {
     flexGrow: 1,
@@ -981,7 +981,7 @@ const styles = StyleSheet.create({
     color: colors.background,
   },
   // PRE-5 story 3.2, arbitrages G-8 et G-10 (Figma `8328:35738`) : gabarit de `Terminer`, devenu
-  // celui de tous les boutons d'action principaux (`shared/ui/finalAction`, D-439, story 7.10).
+  // celui de tous les boutons d'action principaux (`shared/ui/finalAction`, D-444, story 7.10).
   saveErrorText: {
     ...type.body,
     color: colors.danger,

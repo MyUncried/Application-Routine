@@ -20,7 +20,7 @@ import { Easing, type EasingFunction } from "react-native";
  *   (« le fondu est trop rapide ») ;
  * - le glissement de la suppression commence pendant le fondu : les deux se chevauchent.
  *
- * PRE-6 story 7.7 (D-438, recette J6c, j6c-4 : « La disparition doit être encore plus lente.
+ * PRE-6 story 7.7 (D-443, recette J6c, j6c-4 : « La disparition doit être encore plus lente.
  * Lorsqu'on copie une carte, elle apparaît aussi brutalement, il faut qu'elle apparaisse en fondu
  * plus lentement […] ») : fondu de disparition et d'apparition à 450 ms (260 ms en 7.6) ; le
  * glissement de la suppression part à 200 ms (fin à 520 ms, après le fondu) ; la copie de Dupliquer

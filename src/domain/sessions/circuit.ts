@@ -159,14 +159,14 @@ export type CompositionExpansionInput = {
  *   (points compris).
  *
  * À un emplacement : Exercice → Récupération positive → Point d'arrêt. Story
- * 6.1 (D-436, remplace ARB-3) : le point est un élément autonome de la
+ * 6.1 (D-441, remplace ARB-3) : le point est un élément autonome de la
  * séquence mêlée de sa portée (`position` = occurrences qui le précèdent) ;
  * il est produit à sa place à chaque passage, que l'occurrence qui le
  * précède joue ou non. Un point `position = 0` est en tête de sa portée
  * (répété en tête de chaque Tour ou passage s'il est interne). R = 0 ou
  * absente ne produit aucune étape.
  *
- * RM-251 et RM-219 dans le développement (story 6.1, D-436 ; arbitrage de
+ * RM-251 et RM-219 dans le développement (story 6.1, D-441 ; arbitrage de
  * Hermann « supprimer le point en trop ») : le développement ne produit
  * jamais deux étapes `STOP_POINT` successives, ni un `STOP_POINT` en tête
  * (juste après le compte à rebours) ou en fin (juste avant la Fin) — le
@@ -178,7 +178,7 @@ export type CompositionExpansionInput = {
  * est omis comme un passage vide ; en Tours, le contenu interne est
  * identique à chaque Tour et n'est jamais omis.
  *
- * Story 7.1 (D-437) — début et fin de Tour : un point en tête de Circuit
+ * Story 7.1 (D-442) — début et fin de Tour : un point en tête de Circuit
  * `(IN, 0)` est autorisé ; à N ≥ 2, un point de début ou de fin de Tour reste
  * autorisé même si le Circuit ouvre ou clôt la Séance, et la même règle
  * d'omission s'applique : le point de début du Tour 1 qui suivrait le compte
@@ -266,7 +266,7 @@ export function expandComposition(input: CompositionExpansionInput): readonly Co
 }
 
 /**
- * RM-251 / RM-219 dans le développement (story 6.1, D-436) : omet tout point
+ * RM-251 / RM-219 dans le développement (story 6.1, D-441) : omet tout point
  * qui suit un autre point, ou qu'aucune occurrence `EXERCISE` jouée ne
  * précède (tête) ou ne suit (fin) — étapes `RECOVERY` et anciennes
  * Récupérations autonomes ignorées (`isSequenceSeparator`).
@@ -432,7 +432,7 @@ export function applyNatureChange(draft: SessionDraft, nature: CircuitNature): S
  * réserve, puis copie de la dernière ligne active ; identiques : seul
  * `count` suit N. Même N : brouillon inchangé (même référence).
  *
- * Story 7.1 (D-437) : forme historique de `circuitCountOutcome` (l'écran
+ * Story 7.1 (D-442) : forme historique de `circuitCountOutcome` (l'écran
  * appelle `circuitCountOutcome` depuis la story 7.2). Les points devenus interdits au passage à N = 1 sont
  * retirés ; un conflit de Tour CRÉÉ par le passage à N ≥ 2 n'est pas tranché
  * ici : N est appliqué et les deux points sont conservés (état d'un conflit
@@ -444,14 +444,14 @@ export function setCircuitCount(draft: SessionDraft, requested: number): Session
   return outcome.status === "APPLIED" ? outcome.draft : outcome.unresolved;
 }
 
-/** Story 7.1 (D-437) : brouillon produit et points retirés pour l'obtenir. */
+/** Story 7.1 (D-442) : brouillon produit et points retirés pour l'obtenir. */
 export type CircuitCountResolution = {
   readonly draft: SessionDraft;
   readonly removedStopPointIds: readonly string[];
 };
 
 /**
- * Story 7.1 (D-437) : issue d'un changement de N. `APPLIED` : brouillon
+ * Story 7.1 (D-442) : issue d'un changement de N. `APPLIED` : brouillon
  * produit (l'entrée elle-même si rien ne change) et points retirés sans
  * message (devenus interdits au passage à N = 1). `CHOICE_REQUIRED` : le
  * passage de N = 1 à N ≥ 2 ferait coexister un point de début et un point de
@@ -469,7 +469,7 @@ export type CircuitCountOutcome =
     };
 
 /**
- * Story 7.1 (D-437) : change N (`setCircuitCount` historique, AD-38), puis
+ * Story 7.1 (D-442) : change N (`setCircuitCount` historique, AD-38), puis
  * ajuste les Points d'arrêt :
  * - passage à N = 1 : les points autorisés à l'ancien N et plus au nouveau
  *   (début ou fin de Tour en ouverture ou clôture de Séance, RM-219) sont

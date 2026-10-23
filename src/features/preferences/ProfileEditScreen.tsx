@@ -182,7 +182,7 @@ export function ProfileEditScreen() {
         // (`ScrollView` + `keyboardShouldPersistTaps="handled"`).
         <ScrollView
           style={styles.body}
-          // PRE-6 story 7.10 (D-439) : réserve de défilement = zone d'action fixe.
+          // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe.
           contentContainerStyle={[styles.bodyContent, { paddingBottom: actionZone.scrollReserve }]}
           scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
           keyboardShouldPersistTaps="handled"
@@ -279,7 +279,7 @@ export function ProfileEditScreen() {
         </ScrollView>
       ) : null}
 
-      {/* PRE-6 story 7.10 (D-439) : « Enregistrer » dans la zone d'action principale fixe (format
+      {/* PRE-6 story 7.10 (D-444) : « Enregistrer » dans la zone d'action principale fixe (format
           `Terminer`, zone protégée, bouton centré, dégradé) ; le message d'échec au-dessus. */}
       {draft ? (
         <PrimaryActionZone

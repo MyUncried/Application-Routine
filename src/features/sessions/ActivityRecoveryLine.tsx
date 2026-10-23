@@ -47,7 +47,7 @@ export type OccurrenceRecoveryProps = {
  * `9798:19931`, `9798:19932`, `9798:19934`) : sablier 13 dans la colonne des symboles puis valeur
  * SANS préfixe, calée à droite (« 20 s »).
  *
- * PRE-6 story 7.2 (D-437, qui remplace sur ce point D-435) : hors placement, la récupération n'est
+ * PRE-6 story 7.2 (D-442, qui remplace sur ce point D-435) : hors placement, la récupération n'est
  * plus une cible — ni toucher (roulette), ni appui long (bulle « Retirer la récupération »), ni
  * action accessible propre. C'est un simple affichage, sans élément accessible propre : le toucher
  * et l'appui long reviennent à la carte (ouvrir l'Exercice, glisser), qui porte la valeur dans son
@@ -91,7 +91,7 @@ export type StopPointLineProps = {
   readonly translateY: number;
   /** Revue 6.2 : la puce, cible du focus d'accessibilité. */
   readonly chipRef?: Ref<View>;
-  /** PRE-6 story 7.2 (D-437) : point saisi (glisser en cours), marqué soulevé (`StopPointChip.lifted`). */
+  /** PRE-6 story 7.2 (D-442) : point saisi (glisser en cours), marqué soulevé (`StopPointChip.lifted`). */
   readonly lifted?: boolean;
   readonly testID?: string;
 };
@@ -101,7 +101,7 @@ export type StopPointLineProps = {
  * (D-435, Figma `9819:20018`, `9819:20063`) : rangée de 22, puce existante centrée sur la page ; le
  * point de raccord sur le rail est dessiné par la rangée porteuse (`RailDot`).
  *
- * PRE-6 story 6.2 (D-436) : la ligne appartient à la rangée AUTONOME du point (`StopPointRow` de
+ * PRE-6 story 6.2 (D-441) : la ligne appartient à la rangée AUTONOME du point (`StopPointRow` de
  * l'écran), sœur des cartes — plus au bloc d'une occurrence. L'appui long saisit le point
  * (glisser) ; la bulle « Retirer » et l'action de retrait sont retirées (le retrait revient en
  * placement, story 6.3) ; les actions accessibles sont « Monter » / « Descendre ».
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  // Story 7.2 (D-437) : simple affichage, le toucher traverse jusqu'à la carte.
+  // Story 7.2 (D-442) : simple affichage, le toucher traverse jusqu'à la carte.
   passThrough: {
     pointerEvents: "none",
   },

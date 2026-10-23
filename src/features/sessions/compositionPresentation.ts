@@ -48,7 +48,7 @@ export type CompositionSummaryFacts = {
 };
 
 /**
- * PRE-6 story 7.8 (D-438, « Durée de la Séance ») : pas d'arrondi (15 s) de la durée de la Séance
+ * PRE-6 story 7.8 (D-443, « Durée de la Séance ») : pas d'arrondi (15 s) de la durée de la Séance
  * affichée dans la zone de contexte.
  */
 export const SESSION_DURATION_ROUNDING_SECONDS = 15;
@@ -58,7 +58,7 @@ export const SESSION_DURATION_ROUNDING_SECONDS = 15;
  * TOUTES les occurrences, développées selon la nature du Circuit (`computeStructuredSessionDuration`,
  * autorité unique du Domaine), sans Compte à rebours initial ni Fin de séance.
  *
- * PRE-6 story 7.8 (D-438, remplace l'arrondi à la minute supérieure de cet affichage) : une
+ * PRE-6 story 7.8 (D-443, remplace l'arrondi à la minute supérieure de cet affichage) : une
  * ESTIMATION arrondie aux 15 secondes les plus proches (`Math.round`, une demi-tranche monte),
  * précédée de « ≥ » si un travail est inconnu (borne minimale) et de « ≈ » sinon — même règle de
  * choix que l'estimation existante (`SessionDurationResult.kind`), la durée affichée n'étant

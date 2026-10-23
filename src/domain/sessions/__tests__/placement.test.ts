@@ -55,7 +55,7 @@ describe("placementSlots (PRE-6 story 4.1, emplacements autorisés)", () => {
   it("offers a recovery after A, B, C, D and stop points after A, B, C and after the Circuit — never after D (before the End)", () => {
     expect(placementSlots(MATRIX)).toEqual([
       { kind: "OCCURRENCE", occurrenceId: "A", recovery: { kind: "AVAILABLE" }, stopPoint: { location: { scope: "BEFORE_TOUR", position: 1 }, existing: false } },
-      // Story 7.1 (D-437) : la tête de Circuit est proposée, juste avant la première occurrence du Circuit.
+      // Story 7.1 (D-442) : la tête de Circuit est proposée, juste avant la première occurrence du Circuit.
       { kind: "CIRCUIT_HEAD", occurrenceId: null, recovery: null, stopPoint: { location: { scope: "IN_TOUR", position: 0 }, existing: false } },
       { kind: "OCCURRENCE", occurrenceId: "B", recovery: { kind: "AVAILABLE" }, stopPoint: { location: { scope: "IN_TOUR", position: 1 }, existing: false } },
       { kind: "OCCURRENCE", occurrenceId: "C", recovery: { kind: "AVAILABLE" }, stopPoint: { location: { scope: "IN_TOUR", position: 2 }, existing: false } },
@@ -109,7 +109,7 @@ describe("placementSlots (PRE-6 story 4.1, emplacements autorisés)", () => {
     expect(slots.find((slot) => slot.occurrenceId === "A")?.stopPoint?.existing).toBe(false);
   });
 
-  // Story 6.1 (revue, D-436) : une ancienne Récupération autonome n'est plus un voisin (RM-219) —
+  // Story 6.1 (revue, D-441) : une ancienne Récupération autonome n'est plus un voisin (RM-219) —
   // un point qu'elle seule précède suivrait le compte à rebours.
   it("never offers a recovery after a legacy Récupération occurrence; a stop point after it only if an Exercise precedes", () => {
     const legacy: SessionDraftExercise = { ...occ("R", "BEFORE_TOUR"), type: "RECOVERY" };
@@ -261,11 +261,11 @@ describe("setOccurrenceRecovery (PRE-6 story 4.2, hors placement)", () => {
 });
 
 /**
- * PRE-6 story 6.1 (D-436, RM-251) : points existants désélectionnables (retraits programmés
+ * PRE-6 story 6.1 (D-441, RM-251) : points existants désélectionnables (retraits programmés
  * par identifiant), emplacements jamais consécutifs à l'état effectif, points existants non
  * proposés rendus pour être retirés, état du libellé de Confirmer.
  */
-describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)", () => {
+describe("placement et Points d'arrêt indépendants (story 6.1, D-441, RM-251)", () => {
   /** W (avant), Circuit [A, B, C], Z (après). */
   const ROW = [occ("W", "BEFORE_TOUR"), occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR"), occ("Z", "AFTER_TOUR")];
   const offered = (slots: ReturnType<typeof placementSlots>) =>
@@ -310,7 +310,7 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
     expect(slots.filter((slot) => slot.kind === "UNOFFERED_STOP_POINT")).toEqual([
       { kind: "UNOFFERED_STOP_POINT", occurrenceId: null, recovery: null, stopPoint: { location: { scope: "BEFORE_TOUR", position: 9 }, existing: true, stopPointId: "x" } },
     ]);
-    // Story 7.1 (D-437) : la tête de Circuit est un emplacement proposé ; le point qui l'occupe y est rendu.
+    // Story 7.1 (D-442) : la tête de Circuit est un emplacement proposé ; le point qui l'occupe y est rendu.
     expect(slots.find((slot) => slot.occurrenceId === null)).toEqual({
       kind: "CIRCUIT_HEAD",
       occurrenceId: null,
@@ -359,7 +359,7 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
     expect(placementConfirmation(restored, context)).toEqual({ kind: "NONE" });
   });
 
-  it("avec contexte, un ajout consécutif ou interdit est refusé (sous-brouillon inchangé) ; D-437 : la tête de Circuit est ajoutée", () => {
+  it("avec contexte, un ajout consécutif ou interdit est refusé (sous-brouillon inchangé) ; D-442 : la tête de Circuit est ajoutée", () => {
     const context = { exercises: ROW, stopPoints: [atEnd] };
     for (const location of [
       { scope: "AFTER_TOUR" as const, position: 0 },
@@ -488,10 +488,10 @@ describe("placement et Points d'arrêt indépendants (story 6.1, D-436, RM-251)"
 });
 
 /**
- * PRE-6 story 7.1 (D-437) : tête de Circuit proposée, début et fin de Tour à N ≥ 2 (RM-219 levée,
+ * PRE-6 story 7.1 (D-442) : tête de Circuit proposée, début et fin de Tour à N ≥ 2 (RM-219 levée,
  * conflit → choix requis), récupérations existantes désélectionnables (retrait programmé).
  */
-describe("placement — début et fin de Tour (story 7.1, D-437)", () => {
+describe("placement — début et fin de Tour (story 7.1, D-442)", () => {
   /** Circuit seul [A, B] : il ouvre et clôt la Séance. */
   const CIRCUIT_ONLY = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR")];
   const offered = (slots: ReturnType<typeof placementSlots>) =>
@@ -577,7 +577,7 @@ describe("placement — début et fin de Tour (story 7.1, D-437)", () => {
   });
 });
 
-describe("placement — récupérations existantes désélectionnables (story 7.1, D-437)", () => {
+describe("placement — récupérations existantes désélectionnables (story 7.1, D-442)", () => {
   const context = draftOf([occ("A", "BEFORE_TOUR", 0), occ("B", "IN_TOUR", 20), occ("C", "IN_TOUR")]);
 
   it("une récupération présente (0 comprise) est sélectionnée à sa durée ; absente : non sélectionnée", () => {
@@ -647,7 +647,7 @@ describe("placement — récupérations existantes désélectionnables (story 7.
   });
 });
 
-describe("placement — compléments de la revue 7.1 (D-437)", () => {
+describe("placement — compléments de la revue 7.1 (D-442)", () => {
   const CIRCUIT_ONLY = [occ("A", "IN_TOUR"), occ("B", "IN_TOUR"), occ("C", "IN_TOUR")];
 
   it("sens inverse : début de Tour existant, ajout de la fin à N = 2 → choix requis", () => {
@@ -661,7 +661,7 @@ describe("placement — compléments de la revue 7.1 (D-437)", () => {
     expect(outcome.resolutions.HEAD).toEqual(EMPTY_PLACEMENT_DRAFT);
   });
 
-  it("resélectionner un point existant en conflit avec un AJOUT → choix requis (D-436 : la resélection annule le retrait)", () => {
+  it("resélectionner un point existant en conflit avec un AJOUT → choix requis (D-441 : la resélection annule le retrait)", () => {
     const head: StopPoint = { id: "h", scope: "IN_TOUR", position: 0 };
     const context = { ...draftOf(CIRCUIT_ONLY, [head]), tourRepeatCount: 2 };
     const removed = togglePlacementStopPointRemoval(EMPTY_PLACEMENT_DRAFT, "h", context);

@@ -25,7 +25,7 @@ context:
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-437 (ch07 l. 17-18, « En-tête du Circuit », « Durée du Circuit ») ; ch13 CE-T03-08 (l. 631, 1474, 1498, 1561, 1678, 1694) ; ch10 RM-027 (l. 553) ; epics.md « Epic 7 », story 7.3 ; Figma `8328:28605` (stepper ouvert « Circuit (− 3 tours +) ≥ 19 min »), `5271:5455`.
+- Sources : D-442 (ch07 l. 17-18, « En-tête du Circuit », « Durée du Circuit ») ; ch13 CE-T03-08 (l. 631, 1474, 1498, 1561, 1678, 1694) ; ch10 RM-027 (l. 553) ; epics.md « Epic 7 », story 7.3 ; Figma `8328:28605` (stepper ouvert « Circuit (− 3 tours +) ≥ 19 min »), `5271:5455`.
 - **AC1** :
   - − N unité + toujours affichés et actifs (aucun toucher préalable, aucun état « révélé ») ; − et + bornés 1..99 (désactivés visuellement à la borne) ; maintien appuyé `EXECUTION_UNIT_HOLD_POLICY` conservé ;
   - N en « Valeur modifiable » (fond `colors.surface`, rayon 10, marges 10 / 4, texte `primary`) ; pastille d'unité inchangée dans son rôle (ouvre le choix de nature, menu natif iOS) ;
@@ -100,7 +100,7 @@ context:
 3. Chiffre de largeur naturelle (pas de largeur fixe à deux chiffres) : le + se décale d'environ 10 au passage 9 → 10.
 4. Durée Regular 16 (taille du titre, graisse et couleur tertiaire conservées).
 5. Arrondi : demi-minute vers le haut (`Math.round`) ; seuil strict (> 180 s) ; la borne minimale (≥) est elle aussi arrondie au plus proche (« ≥ 3 min 20 s » → « ≥ 3 min », mais « ≥ 3 min 30 s » → « ≥ 4 min », qui dépasse le minorant connu) — **à arbitrer par Hermann** (alternative : `Math.floor` pour « ≥ »). Conséquence visible : avec un seul Circuit, l'en-tête du Circuit peut afficher une minute de moins (exact / ≈, arrondi au plus proche) ou de plus (≥) que la durée de séance (arrondi supérieur, inchangée).
-6. À 375, la durée est presque toujours tronquée (38 pt pour « 3 tours ») : conséquence de la taille 16 imposée ; à valider par Hermann sur iPhone (D-437 ne fixe pas la priorité de lisibilité de la durée).
+6. À 375, la durée est presque toujours tronquée (38 pt pour « 3 tours ») : conséquence de la taille 16 imposée ; à valider par Hermann sur iPhone (D-442 ne fixe pas la priorité de lisibilité de la durée).
 7. Un pas referme le panneau de nature (Android / web) ; une roulette de borne ouverte (superposition plein écran) n'est pas concernée.
 8. Premier pas après 100 ms d'appui (`unstable_pressDelay`) : un défilement commencé sur − ou + ne change pas N.
 
@@ -122,7 +122,7 @@ Trois revues indépendantes du 22/10/2026 (aveugle, cas limites, écarts de vér
 9. Bas (aveugle 9, 10 ; vérification 7) — tests : signe grisé à la borne (`tintColor`), valeurs littérales de géométrie, activation sans toucher, délai d'appui.
 
 **Acceptés / soumis à Hermann**
-- Aveugle 4, cas limites 2 — « ≥ » arrondi au plus proche (peut dépasser le minorant) : lecture littérale de D-437 conservée, arbitrage demandé (choix 5).
+- Aveugle 4, cas limites 2 — « ≥ » arrondi au plus proche (peut dépasser le minorant) : lecture littérale de D-442 conservée, arbitrage demandé (choix 5).
 - Aveugle 5, cas limites 3 — écart d'une minute avec la durée de séance : conséquence de la règle (choix 5).
 - Vérification 3 — durée tronquée à 375 : choix 6, à juger sur iPhone.
 - Vérification 6 — roulette de borne laissée ouverte par un pas : la roulette est une superposition plein écran qui couvre le stepper ; choix 7.

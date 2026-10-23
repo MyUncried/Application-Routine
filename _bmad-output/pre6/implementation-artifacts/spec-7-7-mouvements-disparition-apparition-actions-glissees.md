@@ -1,5 +1,5 @@
 ---
-title: 'Story 7.7 — Mouvements : disparition plus lente, apparition de la copie, actions glissées (D-438)'
+title: 'Story 7.7 — Mouvements : disparition plus lente, apparition de la copie, actions glissées (D-443)'
 type: 'feature'
 created: '2026-10-23'
 status: 'review'
@@ -19,12 +19,12 @@ context:
 
 **Problem:** Recette J6c de Hermann (23/10), j6c-4, verbatim : « La disparition doit être encore plus lente. Lorsqu'on copie une carte, elle apparaît aussi brutalement, il faut qu'elle apparaisse en fondu plus lentement, idem pour le mouvement des cartes. Idem pour les mouvements glisser gauche et droite, pas d'arrêt brutal. »
 
-**Approach:** D-438 (« Mouvements »). Fondu de suppression ralenti ; apparition en fondu lent de la copie de Dupliquer pendant que les éléments suivants glissent ; ouverture, fermeture et retour des actions glissées par le glissement partagé, sans changer le mécanisme de geste.
+**Approach:** D-443 (« Mouvements »). Fondu de suppression ralenti ; apparition en fondu lent de la copie de Dupliquer pendant que les éléments suivants glissent ; ouverture, fermeture et retour des actions glissées par le glissement partagé, sans changer le mécanisme de geste.
 
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-438 (ch07, commit `835f2df3`) ; epics.md « Story 7.7 » ; spec 7.6 (`compositionMotion.ts`).
+- Sources : D-443 (ch07, commit `835f2df3`) ; epics.md « Story 7.7 » ; spec 7.6 (`compositionMotion.ts`).
 - **AC1** : fondu de suppression plus lent que 260 ms ; glissement des suivantes recalé (fin après le fondu).
 - **AC2** : Dupliquer : la copie apparaît en fondu lent ; les éléments suivants (cartes, points, cadre du Circuit, Fin) glissent pour lui faire place, par le registre des translations existant.
 - **AC3** : actions glissées (Figma `8328:28863`) : ouverture, fermeture, retour avec décélération ; mécanisme de geste inchangé (responder system, même `Pressable`, mêmes seuils).

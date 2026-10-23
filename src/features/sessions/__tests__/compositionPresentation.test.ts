@@ -532,7 +532,7 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
     ).toBe("≥ 30 s");
   });
 
-  it("PRE4-2.4/AC5, story 7.8 — Composition `exact` et `estimated` : estimation « ≈ » arrondie aux 15 s (D-438)", () => {
+  it("PRE4-2.4/AC5, story 7.8 — Composition `exact` et `estimated` : estimation « ≈ » arrondie aux 15 s (D-443)", () => {
     // exact : 3 × 55 s = 165 s → « ≈ 2 min 45 s ».
     expect(
       formatCompositionSessionDuration({
@@ -860,7 +860,7 @@ describe("resolveOccurrenceCategory (PRE-6 story 2.2)", () => {
 });
 
 /**
- * PRE-6 story 7.8 (D-438) : durée de la Séance de la zone de contexte — estimation arrondie aux 15 s
+ * PRE-6 story 7.8 (D-443) : durée de la Séance de la zone de contexte — estimation arrondie aux 15 s
  * les plus proches, « ≥ » pour une borne minimale, « ≈ » sinon ; bornes de séance en secondes.
  */
 describe("formatSessionDurationEstimate / formatBoundarySecondsValue (PRE-6 story 7.8)", () => {

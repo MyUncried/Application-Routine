@@ -20,6 +20,7 @@ Ce chapitre réunit les règles métier testables et les calculs, identifiés ou
   - [Cycle de vie d'une séance — Suppression d'une séance](#cycle-de-vie-dune-séance--suppression-dune-séance)
   - [Étiquettes de la séance — Règles fonctionnelles](#étiquettes-de-la-séance--règles-fonctionnelles)
 - [Exercices](#exercices)
+  - [Mouvement, filiation et niveaux](#mouvement-filiation-et-niveaux)
   - [Exercices, Séries et Récupérations](#exercices-séries-et-récupérations)
   - [Créer ou modifier un exercice — Parcours, données et validation](#créer-ou-modifier-un-exercice--parcours-données-et-validation)
   - [Règles transverses de l’éditeur d’Exercice](#règles-transverses-de-léditeur-dexercice)
@@ -245,6 +246,286 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
 
 ## Exercices
 
+### Mouvement, filiation et niveaux
+
+D-437 à D-440, validées le 23/10/2026. Cette section intègre les règles normatives de la spécification v0.4 et remplace, sur les points explicitement indiqués, les règles antérieures. Les identifiants MFN sont désormais les références de ces règles dans ce chapitre ; ils ne remplacent pas les identifiants RM existants. La livraison du code reste à réaliser. « Mouvement » est exclusivement interne ; l’interface utilise exercice, geste et niveau.
+
+
+### 1. Finalité et concepts
+
+#### MFN-01 — Séparer le mouvement de ses paramètres
+
+**Règle normative.**
+
+Un Exercice associe un Mouvement à des paramètres d’exécution. Plusieurs exercices peuvent partager le même mouvement avec des paramètres différents. Le mouvement n’est ni une séance imbriquée ni une étape supplémentaire de la composition : la structure Séance → Cycle technique → Circuit → Exercice est conservée.
+
+| Concept | Responsabilité |
+|---|---|
+| Mouvement | Identité du geste ou de sa variante précise, nom, description en étapes, médias, catégorie, zones corporelles et structure ordonnée des phases |
+| Exercice du Catalogue, `ActivityDefinition` | Mouvement associé à des paramètres d’exécution ; objet sélectionnable, planifiable et exécutable |
+| Exercice de séance, `SessionActivity` | Occurrence indépendante, avec son identifiant propre, ses contenus copiés et ses paramètres contextualisés |
+| Instantané d’exécution | Données figées au démarrage ; les résultats sont rattachés à l’exécution et à ses occurrences/séries/passages |
+| Groupe de niveaux | Relation de progression entre plusieurs mouvements ; aucun objet « niveau » autonome |
+
+Exemples : squats 3 × 10 et squats 4 × 8 partagent un mouvement ; pompes classiques et pompes sur les genoux peuvent être deux mouvements d’un même groupe de niveaux. Planche 30 s, 45 s et 60 s ne crée pas trois mouvements : seuls les paramètres changent.
+
+### 2. Répartition des propriétés
+
+| Propriété | Portée cible | Statut / précision |
+|---|---|---|
+| Nom, description en étapes, médias | Mouvement | Règle normative |
+| Catégorie, zones corporelles | Mouvement | Catégorie proposée depuis le niveau d’origine, librement modifiable ; aucune égalité imposée |
+| Nature, libellés et ordre des phases | Mouvement | Structure et libellés portés par le mouvement |
+| Durées des phases, répétitions réglables | Paramètres d’exécution | Validé ; ne crée pas de nouveaux réglages de répétition de phase dans cette version |
+| Mode Durée / Répétitions et cible chiffrée / À l’échec | Paramètres d’exécution | Vocabulaire aligné sur le code actuel : À l’échec est une cible, pas un troisième mode |
+| Nombre de séries, séries variables, charge, pauses | Paramètres d’exécution | Règle normative |
+| Changement de côté, ordre des côtés, pause entre côtés | Paramètres d’exécution | Modifiables dans la Composition selon les contraintes existantes |
+| Cadence, compte à rebours et fin propres à l’exercice | Paramètres d’exécution | Maintien du modèle existant |
+| Récupération après exercice | Occurrence de séance | Règle existante conservée ; ne devient pas un attribut du mouvement ou de la définition Catalogue |
+| Identité de provenance | Occurrence puis instantané | Filiation figée vers le mouvement |
+
+#### MFN-02 — Phases
+
+**VALIDÉ** : la structure du geste appartient au mouvement ; les valeurs temporelles et répétitions réglables appartiennent aux paramètres d’exécution. Une différence portant uniquement sur ces valeurs ne crée pas un niveau de mouvement.
+
+Modifier la structure des phases peut constituer une variante du geste. Une simple correction de libellé peut conserver son identité. L’application ne déduit pas automatiquement la portée sémantique du changement.
+
+**Éligibilité conservée :** les phases sont chronométrées, réservées au mode Durée à cible chiffrée et aux séries identiques. Une série déroule la séquence une seule fois. Cette évolution n’introduit ni phases en mode Répétitions, ni phases à l’échec ou en séries variables, ni compteur supplémentaire de répétitions par phase. Les paramètres de durée restent soumis aux contraintes du format ; l’adaptation des durées ne modifie pas la structure copiée.
+
+**Structure modifiable au Catalogue, y compris après utilisation.** Les corrections de contenu ou de découpage restent possibles au travers du dialogue MFN-08. Dans une occurrence, la structure copiée est figée selon MFN-09.
+
+Le comportement antérieur de normalisation des phases est délibéré (FR-3, FR-9, AD-20, D-371), et non une simple facilité d’éditeur. Ses trois effets sont traités séparément :
+
+1. **Phase à durée 0 ou vide :** la suppression silencieuse disparaît. La phase reste présente avec une durée non renseignée. L’enregistrement de l’exercice édité est refusé tant que la durée manque. Retirer une phase exige le geste explicite de retrait. Le cas particulier des exercices frères incomplets après correction partagée est défini en MFN-08.
+2. **Retrait jusqu’à une phase :** retirer l’avant-dernière phase efface la structure ; la durée de la phase restante devient la durée de série. La règle de phase unique D-371 est conservée mais déclenchée au geste de retrait, et non par nettoyage silencieux des durées. Le contrôle de retrait doit permettre cette transition.
+3. **Libellé vide d’une phase ajoutée :** le nommage par défaut reste inchangé. Il intervient sur une phase ajoutée, dans un changement structurel déjà couvert par le dialogue, puis le nom est stocké comme un libellé ordinaire.
+
+Dans une occurrence verrouillée, ces trois transformations de structure ne se déclenchent pas. Une durée vide empêche simplement d’enregistrer ; une contrainte de format ne permet pas de supprimer silencieusement une phase.
+
+**Identité des phases :** réutiliser `WorkPhase.id`, entier ≥ 1, unique dans la structure, persisté et conservé par clonage. La clé complète est mouvement + identifiant de phase. Un **compteur monotone porté par le mouvement** attribue les identifiants ; retirer une phase ne permet jamais de réutiliser son identifiant. Le déplacement conserve les associations structure/valeurs.
+
+Le modèle actuel initialise le prochain identifiant depuis le maximum présent ; cette méthode peut réutiliser un identifiant supprimé après réouverture et doit être remplacée. La réutilisation du mécanisme d’identité existant ne dispense donc pas de corriger sa stratégie d’allocation.
+
+Les types sont séparés : structure et libellés sur le mouvement ; paramètres Catalogue contenant des couples `{ phaseId, durationSeconds }` ; représentation résolue des copies contenant le libellé et les valeurs nécessaires à l’exécution. Aucun libellé Catalogue ne devient une seconde source modifiable dans les paramètres.
+
+### 3. Filiation vers le mouvement
+
+#### MFN-03 — Identité statistique
+
+**Règle normative**, supersédant la cible ActivityDefinition de la proposition RM-REC-01 antérieure.
+
+Toute nouvelle occurrence conserve l’identifiant du mouvement dont elle est issue. Deux exercices ayant des paramètres différents mais utilisant le même mouvement alimentent la même identité de regroupement. Deux niveaux ont des identifiants de mouvement distincts ; leur groupe ne fusionne pas leurs records.
+
+`movementId` désigne la relation active d’un exercice Catalogue ; `sourceMovementId` la filiation d’une copie et de son instantané. Les deux champs sont **non nuls** dans le nouveau modèle sur base vierge. Un identifiant source peut être orphelin sans être nul.
+
+| Événement | Résultat attendu |
+|---|---|
+| Insertion depuis le Catalogue | Nouvel identifiant d’occurrence ; copie du contenu et de l’identifiant du mouvement |
+| Modification des paramètres de l’occurrence | Filiation inchangée |
+| Duplication d’une occurrence ou d’une séance | Nouveaux identifiants propres ; filiations conservées à l’identique |
+| Création de l’instantané | Contenu et filiation copiés depuis l’occurrence, jamais relus dans le Catalogue |
+| Exécution directe ACTIVITY | Même identité de regroupement que les occurrences de séance ; provenance capturée au démarrage |
+| Correction ou suppression de la source | Aucun effet sur les copies ni les instantanés |
+| Données antérieures au nouveau modèle | Non reprises ; démarrage sur base vierge |
+
+Contraintes :
+
+1. La filiation d’une copie est immuable après sa création.
+2. Elle n’est pas utilisée pour charger un nom, une description, un média ou un paramètre à afficher ou exécuter.
+3. La filiation d’une copie ne porte aucune contrainte d’intégrité référentielle, cascade ou jointure obligatoire vers la source. Cette absence d’intégrité ne s’applique pas à la relation active `ActivityDefinition → Mouvement`.
+4. Une filiation orpheline est conservée sans invalidation ni nettoyage automatique.
+5. Son usage métier est exclusivement statistique. Sa copie et sa persistance sont des opérations de transport nécessaires à cet usage.
+6. Les conditions de comparaison des performances ne sont jamais encodées dans cet identifiant.
+7. Les résultats restent rattachés à l’exécution et à l’occurrence/série/côté/passage, pas seulement au mouvement.
+
+**Distinction essentielle :** ces restrictions concernent la filiation de la copie. La relation active Exercice Catalogue → Mouvement doit pouvoir être lue pour construire la fiche et éditer le contenu partagé. Lui appliquer l’interdiction de lecture rendrait la scission inutilisable.
+
+**Intégrité active :** chaque `ActivityDefinition` référence exactement un mouvement existant. La suppression d’un mouvement est interdite tant qu’une définition Catalogue le référence. Supprimer une définition ne supprime pas automatiquement son mouvement. La suppression est ainsi encadrée par la règle fonctionnelle, sans imposer ici le mécanisme SQL. Cette intégrité réelle est distincte de la filiation des copies, qui peut rester orpheline. Le mécanisme technique de garantie est à choisir dans l’implémentation ; le résultat fonctionnel est fixé.
+
+#### MFN-04 — Création directe et cycle de vie du mouvement
+
+Toute création locale produit une occurrence avec une filiation non nulle. Elle crée son mouvement sans publier automatiquement de définition dans le Catalogue. Il n’existe aucun parcours de création isolée d’un mouvement : il est créé avec un exercice Catalogue ou un exercice de séance.
+
+**Aucun ramassage automatique :** un mouvement créé et enregistré persiste même si plus rien ne le référence. Supprimer une séance ou sa dernière occurrence ne supprime pas le mouvement et ne transforme pas, à lui seul, sa filiation en référence orpheline. La recherche continue de proposer ce geste. Une suppression explicite éventuelle reste soumise à MFN-03 ; elle peut laisser des copies orphelines sans les modifier.
+
+La recherche et les suggestions portent sur les mouvements disponibles, y compris locaux, et non uniquement sur les entrées du Catalogue. Le sélecteur réutilise le contenu du geste pour définir les paramètres d’un nouvel exercice. Il ne publie pas automatiquement une entrée Catalogue pour le geste local.
+
+**Frontière transactionnelle :** le mouvement créé avec une occurrence locale est persisté dans la même transaction que son brouillon. Une création annulée ne laisse ni mouvement ni média orphelin. Une insertion dans un brouillon abandonné ne marque pas le mouvement comme utilisé. Le mouvement devient utilisé lors de l’enregistrement d’une séance qui le contient, selon MFN-08. Le maintien d’un mouvement sans références ne s’applique qu’aux créations effectivement enregistrées, pas aux créations abandonnées.
+
+### 4. Niveaux et progression
+
+#### MFN-05 — Progression linéaire
+
+**VALIDÉ :** un mouvement appartient au maximum à un groupe de niveaux. Le groupe présente une progression linéaire ordonnée explicitement par l’utilisateur, sans branchement.
+
+Le niveau suivant est le membre suivant de cet ordre. Il ne constitue ni une recommandation automatique ni un passage automatique. Les conditions de passage et le niveau courant de l’utilisateur restent hors périmètre.
+
+Le groupe n’est pas présenté comme un objet autonome nommé. Le mouvement porte l’appartenance et une clé de tri. Le rang et le total affichés sont dérivés. Aucun objet Niveau et aucun numéro de rang persistant ne sont nécessaires au Catalogue.
+
+Règles :
+
+- Un mouvement neuf commence sans groupe ; le groupe est créé lors du rattachement explicite d’une seconde variante.
+- Tous les exercices partageant un mouvement partagent son niveau.
+- Aucune contrainte d’unicité n’est posée sur les noms.
+- L’appartenance est toujours choisie par l’utilisateur. Une suggestion ne crée aucun rattachement automatique.
+- Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer.
+- Un déplacement dans le groupe n’est pas une modification du geste et ne déclenche pas le dialogue de correction.
+
+Un niveau créé s’insère immédiatement après celui dont il est issu. L’ordre se modifie par glissement. Un groupe réduit à un membre conserve son identifiant et masque rang et total. Le groupe étant un identifiant partagé sans contenu propre, retirer son dernier membre ne demande aucun nettoyage.
+
+La catégorie est reprise depuis le niveau d’origine puis reste librement modifiable, sans contrainte d’égalité entre niveaux.
+
+Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jamais des identités de mouvement. Le rapprochement de doublons identiques est une autre opération.
+
+### 5. Création et sélection
+
+#### MFN-06 — Créer un exercice
+
+**Règle normative.**
+
+Le formulaire existant est conservé autant que possible ; le choix de l’origine du mouvement est une interaction supplémentaire, et non une promesse d’écran strictement inchangé.
+
+| Choix | Effet |
+|---|---|
+| Même geste, autres paramètres | Réutiliser le mouvement ; reprendre son contenu ; saisir les paramètres du nouvel exercice |
+| Créer une variante / un niveau | Créer un mouvement distinct et son exercice ; proposer le rattachement au groupe d’origine |
+| Créer un geste indépendant | Créer un mouvement sans groupe et son exercice |
+
+Une suggestion peut être proposée sur la base d’un nom proche, sans fusion ni attribution automatique. La recherche porte sur tous les mouvements disponibles, locaux compris. Une recherche explicite reste accessible indépendamment de la similarité du nom, avant la saisie détaillée. Une sélection ne doit pas écraser silencieusement des informations déjà saisies.
+
+Un rattachement ultérieur à un groupe est possible. Une correction d’identité erronée après utilisation ne doit pas réécrire les filiations historiques : aucune fusion rétroactive n’est proposée dans cette version. **Conséquence produit assumée :** deux créations indépendantes de « Squats » conservent des identités et des records séparés ; l’utilisateur ne peut pas réunir rétroactivement ces records dans cette version. Les suggestions et la recherche explicite préviennent cette erreur sans garantir qu’elle sera évitée. Relier les doublons comme niveaux ne répare pas cette séparation. Cette exclusion n’interdit pas une évolution future.
+
+#### MFN-07 — Créer un niveau
+
+Accès depuis un exercice utilisant le mouvement, par le popover de niveau de sa fiche : **Changer de niveau / Ajouter un niveau**. L’ancienne action glissée Nouveau niveau est retirée ; les actions Catalogue de D-196 sont conservées. L’opération crée un mouvement distinct et un exercice associé, avec des paramètres éventuellement repris de l’original.
+
+La description, les médias et les zones sont initialisés depuis l’original puis peuvent être adaptés. Ne pas imposer un média distinct ni une modification de tous les champs. La différence fonctionnelle est celle du geste ; la détection automatique de cette différence n’est pas demandée.
+
+Le niveau s’insère immédiatement après le niveau d’origine ; l’ordre se modifie par glissement. La navigation vers un niveau affiche ses exercices disponibles, distingués par le résumé de leurs paramètres, et ne choisit pas silencieusement leurs paramètres.
+
+### 6. Modification du contenu partagé
+
+#### MFN-08 — Édition directe, correction partagée et nouvelle identité
+
+L’ouverture reste directement en édition, sans passage obligatoire en lecture seule. Une seule question d’identité apparaît à l’enregistrement si le mouvement a déjà été utilisé et que son **nom, sa description, son média ou la structure de ses phases** ont changé. Une modification limitée aux paramètres d’exécution, au classement dans le groupe, à la catégorie ou aux zones corporelles ne déclenche pas ce dialogue.
+
+**Déjà utilisé :** un mouvement le devient à l’enregistrement d’une séance contenant l’un de ses exercices ou au démarrage d’une exécution directe. Une insertion dans un brouillon abandonné ne laisse aucune trace. L’état est irréversible, même après suppression de toutes les utilisations.
+
+L’utilisation écrit cette métadonnée durable sur le mouvement source sans modifier son contenu ni ses paramètres et sans créer d’exercice Catalogue. C’est la seule exception de métadonnée à la règle d’indépendance. RM-021 (« ne crée aucun Exercice dans le catalogue ») n’interdit pas cette métadonnée. Les corrections concernées continueront à déclencher le dialogue même après suppression des utilisations.
+
+| Choix visible | Comportement |
+|---|---|
+| **Corriger cet exercice** | Conserver l’identité du mouvement et appliquer la correction à tous les exercices Catalogue qui le partagent |
+| **Créer un nouvel exercice** | Créer un mouvement distinct et un exercice portant les paramètres saisis ; conserver intacts l’exercice, le mouvement d’origine et les autres exercices qui le partagent |
+| **Annuler** | Revenir au brouillon d’édition sans enregistrer |
+
+En modification d’une définition Catalogue, les libellés du tableau sont conservés. En **création sur geste repris**, ils deviennent **Corriger ce geste / En faire un geste distinct / Annuler** (Figma `9952:44349`) : même décision d’identité, sans créer un exercice supplémentaire au brouillon de création. Le rattachement au groupe est proposé sans présélection lors de la création du nouveau geste. Annuler retrouve le brouillon appelant intact.
+
+La reprise d’un geste ouvre son contenu en lecture seule avec crayon, les paramètres restant modifiables. Le crayon ne persiste rien et n’existe pas pour déverrouiller une occurrence enregistrée. Une variante explicitement choisie crée déjà une nouvelle identité : sa validation n’affiche pas ce dialogue. Une reprise inchangée ou des paramètres seuls non plus. Le câblage démonstratif systématique vers la confirmation ne remplace pas ces conditions. Voir le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md).
+
+**Portée obligatoire du dialogue :** au-delà d’un exercice concerné par la correction, le dialogue indique leur nombre. Les copies déjà posées et les instantanés restent inchangés. La correction partagée ne constitue jamais une synchronisation des occurrences.
+
+**Étape d’écran après choix de correction structurelle :** lorsque la nouvelle structure nécessite des durées absentes dans des exercices concernés, présenter ces durées pour chacun d’eux, visibles et modifiables. Cette étape est distincte du dialogue à trois boutons ; elle ne modifie pas ses libellés.
+
+- Les valeurs déjà présentes restent associées à leurs phases par identifiant.
+- Les durées manquantes sont proposées explicitement, jamais inventées et enregistrées silencieusement.
+- L’exercice directement édité ne peut pas être enregistré avec une durée manquante, selon MFN-02.
+- L’utilisateur peut passer outre la complétion d’un exercice frère : sa durée reste non renseignée et cet exercice est conservé **incomplet**, à compléter avant son utilisation exécutable. Ce cas de stockage incomplet est une conséquence normative de la correction partagée, distincte de la validation de l’exercice édité.
+- Le type de brouillon `DraftWorkPhase.durationSeconds: number | null` fournit déjà l’état de saisie manquant. Il ne prouve pas que la persistance actuelle accepte cet état ; celle-ci doit être adaptée pour les exercices frères incomplets.
+
+Une action **Créer une variante** reste accessible avant édition pour l’utilisateur qui sait déjà qu’il change de geste. Aucun mécanisme de détection sémantique n’est ajouté.
+
+### 7. Composition, Catalogue et historique
+
+#### MFN-09 — Composition et exception de création locale
+
+Dans une occurrence, le contenu du geste est verrouillé : **nom, description, médias, catégorie, zones corporelles et structure des phases**. Les paramètres d’exécution restent modifiables selon les contraintes existantes du format. Le changement de côté, l’ordre et les pauses de côté suivent ces règles de paramètres.
+
+Le mode reste modifiable, sous le verrou existant en présence de phases ; aucune nouvelle éligibilité n’est introduite. Pour un autre geste, l’utilisateur remplace l’occurrence ou crée une variante. Le remplacement ne réécrit pas la filiation de l’occurrence existante.
+
+**Exception de création locale :** un exercice créé directement dans une séance reste modifiable jusqu’à sa première utilisation. Après celle-ci, le dialogue de MFN-08 s’applique aux modifications du geste ; cela n’autorise pas une édition silencieuse du contenu d’une occurrence verrouillée ni une réécriture des copies ou instantanés antérieurs. Le seuil est celui de MFN-08 : enregistrer la séance constitue la première utilisation, même sans exécution.
+
+**Duplication de Composition (D-124) :** le système appose le suffixe `(copie)` sur le nom propre de l’occurrence dupliquée. Ce nom reste non éditable. Cette exception système au nom copié ne renomme ni le geste source ni les autres exercices. La filiation est conservée.
+
+#### MFN-10 — Catalogue et duplication
+
+Aucun Catalogue Mouvement autonome n’est créé. Le sélecteur de gestes ne constitue pas un contenu exécutable supplémentaire. Les exercices sont regroupés par mouvement, avec navigation entre niveaux depuis la fiche.
+
+**Aucun alias :** le résumé des paramètres d’exécution distingue les exercices partageant un geste ; il est calculé et affiché sur les cartes. Une ligne regroupée ne peut pas être exécutée ou insérée sans désigner un exercice précis ; aucun jeu de paramètres par défaut n’est choisi silencieusement.
+
+**Duplication Catalogue (D-196) :** dupliquer crée une nouvelle `ActivityDefinition` référençant le même mouvement avec les paramètres copiés. Cela ne crée pas une variante. Le suffixe `(copie)` de D-124 reste limité à la duplication d’un Exercice de Séance ; il n’est pas ajouté ici au nom partagé du mouvement. Deux duplicatas Catalogue aux paramètres identiques peuvent rester visuellement indiscernables jusqu’à modification de l’un d’eux ; ce comportement est accepté.
+
+#### MFN-11 — Présentation historique
+
+**Historique :** l’historique affiche le nom du mouvement copié dans l’instantané et **n’affiche jamais le rang ni le total de niveaux**. Aucun champ de rang historique n’est ajouté. Le rang appartient à la présentation courante du Catalogue ; son réordonnancement n’affecte ni le nom historique ni les records. Aucune lecture de la source ou du groupe n’est nécessaire pour nommer une exécution passée.
+
+### 8. Base vierge et records
+
+#### MFN-12 — Démarrage sur base vierge
+
+**VALIDÉ :** aucune reprise des données de l’installation précédente n’est requise. Le nouveau schéma est initialisé vide de données utilisateur, avec les seuls référentiels et valeurs initiales nécessaires au fonctionnement. L’utilisateur reconstruira ses exercices et séances.
+
+Aucune conversion, reconstitution de filiation, conservation d’identifiants antérieurs, déduplication historique ou lecture des anciens formats n’est exigée pour cette transition. Toute occurrence créée dans le nouveau modèle porte sa filiation, y compris en création locale. `movementId` et `sourceMovementId` sont non nuls ; aucune exception de migration ne subsiste.
+
+La procédure de réinitialisation de l’installation existante doit être explicite et limitée à cette transition. Le simple redémarrage de la nouvelle version conserve les données recréées. Les copies et instantanés produits ensuite restent indépendants et conservés selon leurs règles normales ; supprimer leur source ne les invalide pas.
+
+#### MFN-13 — Frontière du calcul de records
+
+La filiation constitue la clé de regroupement, pas une garantie de comparabilité. Charge, côté, volume, fenêtre temporelle et protocole sont des dimensions de comparaison séparées. Les mesures réalisées doivent être distinguées des paramètres prévus.
+
+Hors périmètre : saisie généralisée des résultats chiffrés, charge réelle distincte, moteur et affichage des records, niveau courant de l’utilisateur, passage automatique de niveau, progressions ramifiées, contenus livrés, fusion rétroactive d’identités. Les records de circuits nécessitent une définition propre du circuit comparable ; ils ne sont pas rendus calculables par le seul mouvement.
+
+D-403 n’est pas réouvert automatiquement : l’usage de la charge pour calculer une performance nécessitera une décision explicite.
+
+
+#### Scénarios d’acceptation MFN
+
+Les identifiants AC ci-dessous sont à citer sous la forme MFN/AC pour les distinguer des autres recettes du dépôt. Ces scénarios sont des exigences, pas des tests déclarés exécutés.
+
+
+| ID | Situation | Résultat attendu |
+|---|---|---|
+| MFN/AC01 | Deux exercices du même mouvement avec 3 × 10 et 4 × 8 | Identifiants d’exercice distincts, identité de mouvement commune |
+| MFN/AC02 | Nouvelle variante rattachée | Nouvelle identité de mouvement ; même groupe ; records séparés |
+| MFN/AC03 | Durée de planche modifiée | Identité et niveau inchangés |
+| MFN/AC04 | Duplication de séance | Nouvelles occurrences, filiations conservées |
+| MFN/AC05 | Source corrigée ou supprimée | Copies et instantanés toujours lisibles sans relecture de la source |
+| MFN/AC06 | Exécution directe et en séance | Identité statistique commune, rattachements des résultats distincts |
+| MFN/AC07 | Réordonnancement de niveaux | Rang courant recalculé, aucune fusion de performances |
+| MFN/AC08 | Groupe à un seul mouvement | Identifiant de groupe conservé, rang et total masqués ; aucune perte de contenu |
+| MFN/AC09 | Modification limitée à charge ou durée | Pas de dialogue de correction du mouvement |
+| MFN/AC10 | Nom modifié après utilisation | Une seule décision à l’enregistrement ; Annuler garde le brouillon |
+| MFN/AC11 | Correction d’un mouvement partagé | Correction de toutes les définitions partageant le mouvement ; aucune modification de copie historique |
+| MFN/AC12 | Création locale puis annulation de séance | Aucune publication Catalogue implicite ni création persistante résiduelle dans la transaction du brouillon |
+| MFN/AC13 | Première initialisation puis redémarrage après création de données | Nouveau schéma initialisé sans reprise ; données recréées conservées au redémarrage |
+| MFN/AC14 | Phase déplacée | Association structure/valeur conservée par WorkPhase.id existant dans le contexte du mouvement, sans second identifiant |
+| MFN/AC15 | Phase à 0 s | Phase conservée, durée non renseignée ; enregistrement de l’exercice édité refusé ; aucun retrait silencieux |
+| MFN/AC16 | Passage à un autre niveau avec plusieurs exercices | Choix explicite des paramètres, sans invention d’une valeur par défaut |
+| MFN/AC17 | Suppression d’un mouvement référencé au Catalogue | Refus ; aucune définition ne devient inexploitable ; copie orpheline autorisée après une suppression permise |
+| MFN/AC18 | Consultation historique après réordonnancement des niveaux | Nom copié inchangé ; aucun rang ou total de niveaux affiché |
+| MFN/AC19 | Recherche d’un mouvement créé localement | Mouvement disponible proposé et réutilisable, sans entrée Catalogue créée automatiquement |
+| MFN/AC20 | Suppression de toutes les utilisations puis correction du nom | État déjà utilisé conservé ; dialogue conditionnel toujours présenté |
+| MFN/AC21 | Deux mouvements homonymes créés séparément | Identités et records distincts ; aucun rapprochement rétroactif implicite |
+| MFN/AC22 | Mouvement local enregistré puis dernière séance supprimée | Mouvement et contenu conservés, recherchables ; aucun ramassage automatique |
+| MFN/AC23 | Correction structurelle d’un geste partagé par plusieurs exercices | Dialogue affiche le nombre ; étape distincte de saisie des durées manquantes |
+| MFN/AC24 | Exercice édité complet, frère avec nouvelle durée non complétée | Correction enregistrée ; frère conservé incomplet, valeur manquante explicite ; pas de valeur inventée |
+| MFN/AC25 | Durée manquante dans l’exercice directement édité | Enregistrement refusé ; phase conservée |
+| MFN/AC26 | Retrait de l’avant-dernière phase au Catalogue | Structure effacée ; durée restante transférée à la durée de série |
+| MFN/AC27 | Phase ajoutée avec libellé vide | Nommage par défaut existant appliqué et stocké ; ajout couvert par le dialogue structurel |
+| MFN/AC28 | Tentative d’édition du contenu d’une occurrence verrouillée | Nom, description, médias, catégorie, zones et structure non éditables ; paramètres accessibles selon contraintes |
+| MFN/AC29 | Création locale avant puis après enregistrement de la séance | Geste modifiable avant première utilisation ; dialogue applicable ensuite, sans modification silencieuse des copies |
+| MFN/AC30 | Suppression de la phase au plus grand ID, fermeture puis ajout | Compteur du mouvement strictement croissant ; identifiant supprimé non réutilisé |
+| MFN/AC31 | Duplication Catalogue avec paramètres identiques | Nouvelle définition, même movementId ; aucun alias ; indiscernabilité visuelle acceptée |
+| MFN/AC32 | Duplication de Composition | Nouvel ID d’occurrence, même sourceMovementId, suffixe système `(copie)`, nom non éditable |
+| MFN/AC33 | Nouveau niveau puis réordonnancement | Placement après origine, glissement ; catégorie initiale reprise mais modifiable |
+| MFN/AC34 | Nouvelle identité depuis le dialogue | Libellé « Créer un nouvel exercice » ; rattachement au groupe sans présélection ; originaux intacts |
+| MFN/AC35 | Lecture des paramètres Catalogue puis création d’une copie | Couples phaseId/durée résolus avec la structure ; copie autonome avec libellés ; aucune seconde source modifiable au Catalogue |
+| MFN/AC36 | Écriture d’une définition, occurrence ou instantané dans le nouveau modèle | Identité de mouvement non nulle, aucune branche de compatibilité ancienne requise |
+| MFN/AC37 | Contrôle des textes d’interface | Exercices, gestes, niveaux ; jamais le terme interne « mouvement » |
+
+Tous ces scénarios sont normatifs. Leur présence ne signifie pas qu’ils ont déjà été exécutés.
+
+
 ### Exercices, Séries et Récupérations
 
 | ID | Règle |
@@ -269,16 +550,16 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
 
 <a id="regles-phases"></a>
 
-Les [règles détaillées des phases](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice) appliquent D-370 à D-375. Elles ne créent pas un troisième mode ni un compteur de répétitions du motif.
+Les [règles détaillées des phases](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice) appliquent D-370 à D-375, amendées par D-438. Elles ne créent pas un troisième mode ni un compteur de répétitions du motif.
 
-| Règle | Prescription |
+| Règle | Comportement |
 |---|---|
 | Éligibilité | Durée chiffrée, séries identiques, jusqu’à 6 phases, libellés de 20 caractères maximum. |
 | Séquence | Une série déroule une fois toutes les phases ; aucune pause entre phases. |
 | Durée | D = somme des phases ; unilatéral N × (D + P), dernière pause comprise. Préparation/fin exclues du total intrinsèque. |
 | Formats | Durée de travail imposée : dernière phase calculée ; ajout à zéro ; déplacement sans changement de valeurs ; temps supprimé repris par la dernière. |
 | Intégration au format | Adaptation proportionnelle si somme différente, dans les deux sens, copie de séance seule ; message informatif. Ne pas assimiler fenêtre EMOM et durée de travail. |
-| Normalisation | Zéros de saisie retirés à validation, libellés vides remplacés par Phase n ; aucune nouvelle confirmation. |
+| Validation D-438 | Durée nulle ou vide à renseigner, sans retrait ; enregistrement de l’exercice édité bloqué. Nommage par défaut des phases ajoutées conservé. Structure verrouillée dans une occurrence. |
 | Guidage | Cadence continue ; transition prioritaire ; annonce au début sans attente, interruption de la précédente. |
 | Reprise et commandes | Périmètre de série/côté inchangé ; position de phase conservée en pause ; reset repart de la première phase du périmètre réinitialisé ; Suivant ne devient pas phase suivante. |
 | Progression | Une subdivision ne change pas le poids global de la série ; conserver son unité contributive dans les plans mixtes plutôt qu’augmenter M pour chaque phase. |
@@ -422,7 +703,7 @@ Trois résultats possibles, jamais trois boutons ni un choix manuel Mixte ; dès
 
 #### RM-251 — Points d’arrêt : non-consécutivité
 
-Deux Points d’arrêt ne se suivent jamais dans l’ordre structurel d’une Séance sans Exercice entre eux ; une Récupération n’est pas un séparateur. Le contrôle porte sur la séquence fonctionnelle, non sur la proximité graphique, et s’applique à quatre opérations : insertion d’un Point, déplacement d’un Point, déplacement d’un Exercice, suppression d’un Exercice. Une insertion, un déplacement de Point ou une suppression d’Exercice qui produirait deux Points consécutifs, ou un Point à une position interdite, est refusé sans mutation du brouillon : ni réorganisation, ni suppression, ni déplacement automatique d’autres éléments. La suppression refusée laisse l’action Supprimer proposée ; au toucher, rien n’est supprimé, la carte se referme et une annonce d’accessibilité donne la raison. **Déplacement d’un Exercice (D-437, qui remplace sur ce point le refus de D-436).** Le déplacement est appliqué ; le ou les Points qu’il laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) sont retirés, sans message ; pour deux Points devenus consécutifs, le premier est conservé. Les restrictions existantes sont conservées : aucun Point immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance (RM-219, sous réserve de l’exception de début et de fin de Tour ci-dessous). La position en tête de Circuit, avant son premier Exercice (début de Tour), est autorisée et proposée, comme la fin de Tour (D-437, qui remplace la non-proposition de D-436). Aux frontières du Circuit, sont consécutifs au sens structurel : « après le dernier Exercice du Circuit » et « après le Circuit » ; « avant le Circuit » et « après le Circuit » lorsque le Circuit est vide. **Début et fin de Tour à N ≥ 2 (D-437).** Lorsque le Circuit est exécuté plusieurs fois (N ≥ 2 Tours ou Séries), un Point de début de Tour et un Point de fin de Tour se suivraient entre deux Tours : l’application demande alors lequel conserver (« Début de tour » ou « Fin de tour »), ou Annuler l’action qui créerait les deux. Cela vaut pour le placement, le déplacement d’un Point, le déplacement d’un Exercice et le passage de N = 1 à N ≥ 2. À N ≥ 2, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance : l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, les restrictions de RM-219 s’appliquent ; un Point devenu interdit par le passage à N = 1 est retiré sans message. À l’exécution, dans un Circuit de Séries, un passage partiel (le dernier Exercice n’a plus de série) peut encore faire se suivre deux Points dans le plan développé : le plan d’exécution n’en exécute qu’un, un seul arrêt, sans rien retirer de la Séance enregistrée. Aucun changement de schéma ni d’API technique (D-436, D-437).
+Deux Points d’arrêt ne se suivent jamais dans l’ordre structurel d’une Séance sans Exercice entre eux ; une Récupération n’est pas un séparateur. Le contrôle porte sur la séquence fonctionnelle, non sur la proximité graphique, et s’applique à quatre opérations : insertion d’un Point, déplacement d’un Point, déplacement d’un Exercice, suppression d’un Exercice. Une insertion ou un déplacement de Point qui produirait deux Points consécutifs, ou un Point à une position interdite, est refusé sans mutation du brouillon : ni réorganisation, ni suppression, ni déplacement automatique d’autres éléments. **Déplacement d’un Exercice (D-442, qui remplace sur ce point le refus de D-441).** Le déplacement est appliqué ; le ou les Points qu’il laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) sont retirés, sans message ; pour deux Points devenus consécutifs, le premier est conservé. **Suppression d’un Exercice (D-442, recette J6 du 22/10, qui remplace le refus doux de D-441).** La suppression suit la même règle : elle est appliquée et le ou les Points en cause sont retirés, sans message ; la carte supprimée disparaît en fondu et les éléments suivants glissent pour combler sa place (D-442), plus lentement et sans arrêt brutal depuis D-443. Les restrictions existantes sont conservées : aucun Point immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance (RM-219, sous réserve de l’exception de début et de fin de Tour ci-dessous). La position en tête de Circuit, avant son premier Exercice (début de Tour), est autorisée et proposée, comme la fin de Tour (D-442, qui remplace la non-proposition de D-441). Aux frontières du Circuit, sont consécutifs au sens structurel : « après le dernier Exercice du Circuit » et « après le Circuit » ; « avant le Circuit » et « après le Circuit » lorsque le Circuit est vide. **Début et fin de Tour à N ≥ 2 (D-442).** Lorsque le Circuit est exécuté plusieurs fois (N ≥ 2 Tours ou Séries), un Point de début de Tour et un Point de fin de Tour se suivraient entre deux Tours : l’application demande alors lequel conserver (« Début de tour » ou « Fin de tour »), ou Annuler l’action qui créerait les deux. Cela vaut pour le placement, le déplacement d’un Point, le déplacement d’un Exercice et le passage de N = 1 à N ≥ 2. À N ≥ 2, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance : l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, les restrictions de RM-219 s’appliquent ; un Point devenu interdit par le passage à N = 1 est retiré sans message. À l’exécution, dans un Circuit de Séries, un passage partiel (le dernier Exercice n’a plus de série) peut encore faire se suivre deux Points dans le plan développé : le plan d’exécution n’en exécute qu’un, un seul arrêt, sans rien retirer de la Séance enregistrée. Aucun changement de schéma ni d’API technique (D-441, D-442).
 
 <a id="cibles-mixtes"></a>
 ### Calculs et cas de recette des cibles mixtes
@@ -538,7 +819,7 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter un exercice`. |
 | RM-020 | Le premier Exercice créé est insérée après le Compte à rebours initial et avant le Circuit. Les suivantes sont insérées après le dernier Exercice existant de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Circuit. |
-| RM-021 | Toucher brièvement une carte d’Exercice ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucun Exercice dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. |
+| RM-021 | Toucher brièvement une carte d’Exercice ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucun Exercice dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. D-437 : le contenu de l’occurrence est verrouillé, seuls ses paramètres restent éditables ; filiation conservée lors de la duplication. L’enregistrement de la séance peut marquer durablement le mouvement utilisé, sans créer d’exercice Catalogue ni synchroniser son contenu. |
 | RM-022 | La Séance est classée par Étiquette ; la couleur affichée de la Séance est celle de cette Étiquette. |
 | RM-023 | Une Catégorie qualifie un Exercice et porte sa couleur sémantique ; les Zones corporelles restent distinctes. |
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
@@ -550,7 +831,7 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 | --- | --- |
 | RM-025 | Une Séance contient exactement un Circuit visible et un Cycle technique. |
 | RM-026 | Le Circuit est le conteneur ordonné d’Exercices ; un Tour est une exécution complète. Le nombre de Tours vaut de 1 à 99, avec 1 par défaut (D-209). |
-| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Exercice. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. **Remplacée le 12/10/2026 pour la commande du compteur (CIR-10 ; [« Le contrôle »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle)) : appuyer sur le chiffre révèle les boutons `−` et `+` ; l’ancienne cible unique sur toute la valeur ne s’applique plus.** **Remplacée le 22/10/2026 par D-437 : stepper `−` / `+` toujours affiché et actif, sans toucher préalable.** |
+| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Exercice. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. **Remplacée le 12/10/2026 pour la commande du compteur (CIR-10 ; [« Le contrôle »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle)) : appuyer sur le chiffre révèle les boutons `−` et `+` ; l’ancienne cible unique sur toute la valeur ne s’applique plus.** **Remplacée le 22/10/2026 par D-442 : stepper `−` / `+` toujours affiché et actif, sans toucher préalable.** |
 | RM-028 | Le Cycle est conservé pour l’évolutivité du modèle. Dans le MVP, son nombre de répétitions vaut toujours 1, n’est pas modifiable et n’est jamais affiché. |
 | RM-029 | Des Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Leur ordre est persistant. |
 | RM-030 | Le Compte à rebours initial et la Fin de séance sont structurellement présents. Une valeur de 0 seconde rend la phase instantanée sans la supprimer. Ces deux cartes structurelles ne sont pas déplaçables et n’acceptent aucun appui long de déplacement. |
@@ -559,7 +840,7 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 
 ### Avertissement non bloquant d’enchaînement (D-301)
 
-**Retiré par D-437 (22/10/2026) :** la Composition n’affiche plus aucun message lorsque deux Exercices s’enchaînent sans pause ; aucun autre avertissement ne le remplace. Texte historique : lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affichait l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. La condition concerne la frontière entre deux Exercices dans leur ordre d’exécution, y compris aux transitions du Circuit ; elle utilise les paramètres de l’occurrence, sans modifier les règles de substitution R/PN de [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases).
+**Retiré par D-442 (22/10/2026) :** la Composition n’affiche plus aucun message lorsque deux Exercices s’enchaînent sans pause ; aucun autre avertissement ne le remplace. Texte historique : lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affichait l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre. La condition concerne la frontière entre deux Exercices dans leur ordre d’exécution, y compris aux transitions du Circuit ; elle utilise les paramètres de l’occurrence, sans modifier les règles de substitution R/PN de [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases).
 
 ### Périmètre fonctionnel du MVP — Création et composition
 
@@ -630,13 +911,13 @@ La composition d'une séance repose sur les principes suivants :
 
 En Composition v2, aucun trait de démarcation autonome ne subsiste entre les cartes : seul le rail segmenté et les connexions des points d’arrêt matérialisent l’enchaînement. Les références historiques à un trait maintenu hors placement (D-303) sont remplacées sur ce rendu par D-435, arbitrage D1 du 21/10. En mode placement, les cartes restent visuellement grisées afin d'indiquer leur indisponibilité au toucher (arbitrage D6), sans griser les zones d'insertion ni masquer les commandes accessibles.
 
-Les points d’arrêt sont positionnés entre les cartes de Composition, au centre de la séquence et sur le rail ; les emplacements de récupération éligibles sont intégrés en zone pointillée à la troisième ligne de la carte. L’absence de valeur visible ne rend pas éligible une occurrence ayant déjà un objet récupération, même à zéro. Le mode placement doit permettre le défilement jusqu’à la dernière position sans recouvrir les actions de confirmation/annulation. Les gestes, contraintes de position, brouillons et calculs restent identiques (D-435), sauf pour les Points d’arrêt, régis depuis le 22/10/2026 par D-436 et RM-251 : déplacement autonome par appui long, retrait par désélection en placement, non-consécutivité ; et sauf pour la récupération, qui depuis D-437 ne se règle et ne se retire plus qu’en placement. Pendant le glisser d’une carte ou d’un Point, amener l’élément près du bord haut ou bas de la zone visible fait défiler la liste ; le défilement s’arrête quand l’élément quitte ce bord ou à la dépose ; les règles de dépose sont inchangées (D-437).
+Les points d’arrêt sont positionnés entre les cartes de Composition, au centre de la séquence et sur le rail ; les emplacements de récupération éligibles sont intégrés en zone pointillée à la troisième ligne de la carte. L’absence de valeur visible ne rend pas éligible une occurrence ayant déjà un objet récupération, même à zéro. Le mode placement doit permettre le défilement jusqu’à la dernière position sans recouvrir les actions de confirmation/annulation. Les gestes, contraintes de position, brouillons et calculs restent identiques (D-435), sauf pour les Points d’arrêt, régis depuis le 22/10/2026 par D-441 et RM-251 : déplacement autonome par appui long, retrait par désélection en placement, non-consécutivité ; et sauf pour la récupération, qui depuis D-442 ne se règle et ne se retire plus qu’en placement. Pendant le glisser d’une carte ou d’un Point, amener l’élément près du bord haut ou bas de la zone visible fait défiler la liste ; le défilement s’arrête quand l’élément quitte ce bord ou à la dépose ; les règles de dépose sont inchangées (D-442).
 
-Récupération uniquement après une occurrence, y compris la dernière ; aucune récupération avant le premier Exercice. Point d’arrêt : frontières existantes conservées, interdit juste après le compte à rebours initial et juste avant Fin de séance (sauf début ou fin de Tour à N ≥ 2, D-437), permis avant/après Circuit, en tête de Circuit (D-437) et entre ses Exercices ; deux Points d’arrêt ne se suivent jamais dans l’ordre structurel sans Exercice entre eux, une récupération n’étant pas un séparateur (RM-251, D-436). Les deux types ont donc un parcours commun sans devenir interchangeables à toutes les frontières.
+Récupération uniquement après une occurrence, y compris la dernière ; aucune récupération avant le premier Exercice. Point d’arrêt : frontières existantes conservées, interdit juste après le compte à rebours initial et juste avant Fin de séance (sauf début ou fin de Tour à N ≥ 2, D-442), permis avant/après Circuit, en tête de Circuit (D-442) et entre ses Exercices ; deux Points d’arrêt ne se suivent jamais dans l’ordre structurel sans Exercice entre eux, une récupération n’étant pas un séparateur (RM-251, D-441). Les deux types ont donc un parcours commun sans devenir interchangeables à toutes les frontières.
 
 À un emplacement partagé : Exercice → récupération positive → Point d’arrêt → suite. Les éléments internes au Circuit s’exécutent à chaque Tour. Circuit désigne le groupe, Tour sa répétition.
 
-Hors placement, la récupération affichée sur la carte n’est plus une cible : ni toucher ouvrant la roulette, ni appui long ouvrant la bulle « Retirer la récupération » (D-437, qui remplace sur ce point D-435 et D-436). Ajouter, modifier ou retirer une récupération se fait uniquement en mode Placement (« Ajouter un arrêt ») : une récupération existante, 0 comprise, y apparaît sélectionnée avec sa durée ; la toucher la désélectionne, ce qui programme son retrait ; toucher une zone non sélectionnée ouvre la roulette (durée existante, sinon défaut du Profil) et la sélectionne à la durée choisie. Confirmer applique ; Annuler restaure ; le libellé suit D-436 (« Confirmer les modifications » dès un retrait ou une modification de durée). Le Point d’arrêt n’a plus de bulle de retrait : son appui long le saisit pour le déplacer, et son retrait se fait par désélection en mode placement, appliquée par « Confirmer les modifications » (D-436). Un Point d’arrêt saisi par appui long est marqué visuellement (état soulevé), comme une carte (D-437). La suppression d’une récupération retire sa durée du plan et rétablit la Pause terminale configurée (RM-038) ; elle ne modifie pas la définition d’Exercice.
+Hors placement, la récupération affichée sur la carte n’est plus une cible : ni toucher ouvrant la roulette, ni appui long ouvrant la bulle « Retirer la récupération » (D-442, qui remplace sur ce point D-435 et D-441). Ajouter, modifier ou retirer une récupération se fait uniquement en mode Placement (« Ajouter un arrêt ») : une récupération existante, 0 comprise, y apparaît sélectionnée avec sa durée ; la toucher la désélectionne, ce qui programme son retrait ; toucher une zone non sélectionnée ouvre la roulette (durée existante, sinon défaut du Profil) et la sélectionne à la durée choisie. Confirmer applique ; Annuler restaure ; le libellé suit D-441 (« Confirmer les modifications » dès un retrait ou une modification de durée). Le Point d’arrêt n’a plus de bulle de retrait : son appui long le saisit pour le déplacer, et son retrait se fait par désélection en mode placement, appliquée par « Confirmer les modifications » (D-441). Un Point d’arrêt saisi par appui long est marqué visuellement (état soulevé), comme une carte (D-442). La suppression d’une récupération retire sa durée du plan et rétablit la Pause terminale configurée (RM-038) ; elle ne modifie pas la définition d’Exercice.
 
 ### Consultation média pendant l’Exécution — MVP — Récupérations — conception détaillée D-208
 
@@ -646,11 +927,11 @@ La Composition expose pour chaque occurrence `postActivityRecoverySeconds`, proj
 
 ### Cadence — comportements communs complémentaires — Avertissement d’enchaînement sans pause (D-301)
 
-**Retiré par D-437 (22/10/2026) :** la Composition n’affiche plus aucun message lorsque deux Exercices s’enchaînent sans pause ; aucun autre avertissement ne le remplace. Texte historique : lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affichait l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
+**Retiré par D-442 (22/10/2026) :** la Composition n’affiche plus aucun message lorsque deux Exercices s’enchaînent sans pause ; aucun autre avertissement ne le remplace. Texte historique : lorsque deux Exercices consécutifs n’ont ni pause effective de transition ni Récupération positive après son occurrence, la Composition affichait l’avertissement non bloquant : « Attention, les exercices vont s’enchaîner sans pause. » Il concerne l’enchaînement entre Exercices ; aucun avertissement distinct entre Séries n’est ajouté. Il n’empêche ni l’enregistrement ni l’exécution et ne modifie aucun paramètre.
 
 ### Champs et comportements des fonctionnalités — Pauses et symboles
 
-Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Sélection multiple, ouverture immédiate de la durée, sous-brouillon atomique et retrait par bulle selon la spécification consolidée ; pour le Point d’arrêt, retrait par désélection en placement et déplacement autonome (D-436) ; pour la récupération, réglage et retrait par sélection/désélection en placement seulement, la bulle étant retirée (D-437). Les frontières du Point d’arrêt ne deviennent pas celles de toutes les récupérations.
+Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Sélection multiple, ouverture immédiate de la durée, sous-brouillon atomique et retrait par bulle selon la spécification consolidée ; pour le Point d’arrêt, retrait par désélection en placement et déplacement autonome (D-441) ; pour la récupération, réglage et retrait par sélection/désélection en placement seulement, la bulle étant retirée (D-442). Les frontières du Point d’arrêt ne deviennent pas celles de toutes les récupérations.
 
 ## Circuits
 
@@ -706,7 +987,7 @@ C'est le circuit de séries qui rend exprimable le **circuit à volumes progress
 
 La nature est portée par **le mot d'unité du compteur de l'en-tête de circuit**, déjà présent : « 3 tours » ou « 3 séries ».
 
-- appuyer sur **le chiffre** révèle les boutons `−` et `+`, qui changent le nombre (remplacé par D-437 du 22/10/2026 : le stepper est toujours affiché et actif, `−` et `+` autour du nombre, sans toucher préalable ; le nombre est présenté au format « Valeur modifiable » ; les cibles tactiles du `−`, du `+` et de la pastille d’unité sont espacées et d’au moins 44 pt ; tous les textes de la ligne — nombre, unité, durée — ont la taille du titre « Circuit ») ;
+- appuyer sur **le chiffre** révèle les boutons `−` et `+`, qui changent le nombre (remplacé par D-442 du 22/10/2026 : le stepper est toujours affiché et actif, `−` et `+` autour du nombre, sans toucher préalable ; le nombre est présenté au format « Valeur modifiable » ; les cibles tactiles du `−`, du `+` et de la pastille d’unité sont espacées et d’au moins 44 pt ; tous les textes de la ligne — nombre, unité, durée — ont la taille du titre « Circuit ») ;
 - appuyer sur la pastille **« tours » ou « séries »** ouvre le choix de nature ;
 - la pastille n’entoure jamais le chiffre.
 
@@ -1537,7 +1818,7 @@ Ces règles relèvent du périmètre MVP (D-203, confirmation du 28/09/2026).
 |---|---|
 | RM-208 | Ancienne extension à une source Parcours autonome retirée. La planification multi-contenus utilise les sources SESSION/ACTIVITY de chaque entrée. |
 | RM-209 | Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). |
-| RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. Le Point d’arrêt ne suit pas l’occurrence : il garde sa position lors du déplacement et n’est pas copié lors de la duplication (D-436, RM-251). |
+| RM-210 | La récupération après exercice se déplace avec l’occurrence, est copiée lors de sa duplication et supprimée avec elle ; aucun recalcul ne dépend de l’adjacence. Le Point d’arrêt ne suit pas l’occurrence : il garde sa position lors du déplacement et n’est pas copié lors de la duplication (D-441, RM-251). |
 | RM-211 | Une Exécution directe d’`ActivityDefinition` n’exécute jamais de récupération post-exercice ; elle peut uniquement exécuter la Pause entre les côtés si l’Exercice est bilatéral. |
 | RM-212 | `sideRecoverySeconds` est initialisé depuis le défaut global **Pause entre les côtés** du Profil (`10 s` dans le Figma de référence) lorsque le Changement de côté d’un Exercice passe de Sans à Avec (D-406) ; la valeur reste modifiable dans l’éditeur de l’Exercice. |
 
@@ -2055,7 +2336,7 @@ Exemple normatif : 4×15×4+4×15=300 s, soit ≈5 min. Il est justifié par la 
 
 #### Extension normative — niveau Circuit
 
-Le Circuit produit exact si tout le travail est exact ; estimated si au moins une estimation et aucun travail inconnu ; lowerBound si au moins un travail inconnu. Répétitions chiffrées avec Bip>0 : estimées ; Répétitions avec Bip 0 ou toute cible À l’échec : travail inconnu. Les pauses et travaux estimables contribuent même si le total propre de l’exercice est omitted. Symbole préfixé au montant de l’en-tête : ≈ ou ≥, aucun symbole en exact. La durée affichée du Circuit est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-437) ; le calcul lui-même est inchangé.
+Le Circuit produit exact si tout le travail est exact ; estimated si au moins une estimation et aucun travail inconnu ; lowerBound si au moins un travail inconnu. Répétitions chiffrées avec Bip>0 : estimées ; Répétitions avec Bip 0 ou toute cible À l’échec : travail inconnu. Les pauses et travaux estimables contribuent même si le total propre de l’exercice est omitted. Symbole préfixé au montant de l’en-tête : ≈ ou ≥, aucun symbole en exact. La durée affichée du Circuit est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442) ; le calcul lui-même est inchangé. Remplacé par D-443 (23/10/2026) : la durée du Circuit n’est plus affichée dans son en-tête de Composition ; le calcul reste inchangé.
 
 Développer d’abord la nature du circuit. En circuit de séries, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte 1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit de tours. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral 75 s ; R20 →85 s. Trois passages identiques →225 s, ou 255 s avec R20 à chaque passage. PC0 ne supprime pas Pi.
 
@@ -2089,7 +2370,7 @@ Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : �
 
 #### Durée synthétique des Exercices
 
-La durée synthétique des Exercices est affichée sur les cartes du Catalogue ; le total affiché sous le titre du Circuit dans la Composition concerne exclusivement ce Circuit (D-382). Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Sur les cartes Catalogue et Composition, les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) ; les règles des durées partielles `≥` sont conservées (D-391). La durée affichée sous le titre du Circuit suit D-437 : au-delà de 3 minutes, elle est arrondie à la minute la plus proche.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue ; le total affiché sous le titre du Circuit dans la Composition concerne exclusivement ce Circuit (D-382 ; affichage dans l’en-tête retiré par D-443). Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Sur les cartes Catalogue et Composition, les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) ; les règles des durées partielles `≥` sont conservées (D-391). La durée affichée sous le titre du Circuit suit D-442 : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête). Depuis D-443, la durée totale de la Séance affichée dans la zone de contexte de la Composition est une estimation arrondie aux 15 secondes les plus proches, précédée de « ≈ » ou de « ≥ » selon les Exercices qui la composent, avec la même règle de choix du préfixe que l’estimation de durée existante ; le calcul est inchangé.
 
 *Texte identique à celui de la section [« Durée estimée d’exécution »](#durée-estimée-dexécution) ; il n’est pas recopié ici.*
 
@@ -2188,8 +2469,8 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 | RM-216 | Modifier la couleur d’une Étiquette/Catégorie modifie le rendu de tous les objets qui la référencent. Une valeur retirée conserve sa dernière couleur sur les objets existants. |
 | RM-217 | Les défauts Profil n’ont aucun effet rétroactif sur les Exercices/Séances déjà créés. |
 | RM-218 | Dans une Séance, les Compte à rebours d’exercice et Fin d’exercice ne sont jamais exécutés ; seuls le Compte à rebours initial et la Fin de séance s’appliquent, une fois, par substitution. Aucun booléen ni contrôle d’activation n’existe à cet effet. Les valeurs propres restent conservées pour l’exécution de l’Exercice seul. |
-| RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. Exception (D-437) : lorsque le Circuit est exécuté N ≥ 2 fois, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance ; l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, la règle s’applique ; un Point devenu interdit par le passage à N = 1 est retiré sans message. Non-consécutivité des Points d’arrêt : RM-251. |
-| RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit, en tête de Circuit (début de Tour, D-437) et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
+| RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. Exception (D-442) : lorsque le Circuit est exécuté N ≥ 2 fois, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance ; l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, la règle s’applique ; un Point devenu interdit par le passage à N = 1 est retiré sans message. Non-consécutivité des Points d’arrêt : RM-251. |
+| RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit, en tête de Circuit (début de Tour, D-442) et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
 | Ancienne RM-221 (phrase, historique) | Supersédée par RM-232 / D-298 ; la RM-221 active ci-dessous porte sur les Catalogues. |
 | RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
 | RM-222 | En planification, cases à cocher pour un ou plusieurs contenus ; valider par Ajouter 1 élément / Ajouter n éléments. Le toucher ne ferme pas la modale. La Composition et les référentiels conservent leurs contrats propres. |
@@ -2221,8 +2502,8 @@ La Composition présente un **Circuit** interne à la Séance et un nombre de **
 
 L’éditeur d’Exercice exige exactement une Catégorie et au moins une Zone corporelle. Dans la phrase de synthèse, `Durée totale` est omise par redondance uniquement en Durée avec une seule Série, sans changement de côté et sans pause. Les valeurs Profil utilisées à la création deviennent propres à l’Exercice après initialisation.
 
-Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Placement multiple unifié selon D-304. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées, sauf début ou fin de Tour d’un Circuit exécuté N ≥ 2 fois (D-437, RM-251). Les positions avant/après Circuit, en tête de Circuit (D-437) et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour. Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux (RM-251).
+Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). Placement multiple unifié selon D-304. Si les deux sont actifs : `Exercice → Récupération après exercice → Point d’arrêt → suite`. Les positions immédiatement après le Compte à rebours initial et immédiatement avant la Fin de séance ne sont jamais proposées, sauf début ou fin de Tour d’un Circuit exécuté N ≥ 2 fois (D-442, RM-251). Les positions avant/après Circuit, en tête de Circuit (D-442) et entre Exercices du Circuit sont autorisées ; un Point d’arrêt interne est répété à chaque Tour. Deux Points d’arrêt ne se suivent jamais sans Exercice entre eux (RM-251).
 
 Dans la face Média compacte, le bouton Lecture central est affiché avant lecture et disparaît pendant la lecture vidéo. Le retour à Information met la vidéo en pause.
 
-**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant le saisit pour un déplacement par glisser-déposer vers une position autorisée ; son retrait se fait uniquement en mode placement, par désélection du Point existant, affiché sélectionné (D-436, qui remplace la bulle de retrait du Point). Le mode placement montre les emplacements autorisés : puces entre cartes pour les points d’arrêt, zone pointillée de troisième ligne pour la récupération d’une occurrence éligible (D-435). La récupération existante reste réglable depuis sa zone de carte hors du mode placement (remplacé par D-437 : hors placement, la récupération n’est plus une cible ; en placement, elle apparaît sélectionnée et se modifie par la roulette ou se retire par désélection).
+**Interaction Point d’arrêt (D-217).** L’action dédiée d’ajout affiche les positions autorisées dans la Composition ; l’utilisateur choisit la position et peut quitter ce mode via le snackbar d’annulation. Un appui long sur un Point d’arrêt existant le saisit pour un déplacement par glisser-déposer vers une position autorisée ; son retrait se fait uniquement en mode placement, par désélection du Point existant, affiché sélectionné (D-441, qui remplace la bulle de retrait du Point). Le mode placement montre les emplacements autorisés : puces entre cartes pour les points d’arrêt, zone pointillée de troisième ligne pour la récupération d’une occurrence éligible (D-435). La récupération existante reste réglable depuis sa zone de carte hors du mode placement (remplacé par D-442 : hors placement, la récupération n’est plus une cible ; en placement, elle apparaît sélectionnée et se modifie par la roulette ou se retire par désélection).

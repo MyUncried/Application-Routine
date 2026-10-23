@@ -128,7 +128,7 @@ describe("resolveDropZone", () => {
 
 describe("resolveDropTarget", () => {
   /**
-   * PRE-6 story 6.2 (D-436) : les rangées de points sont des lignes de la géométrie (clé de rail) ;
+   * PRE-6 story 6.2 (D-441) : les rangées de points sont des lignes de la géométrie (clé de rail) ;
    * le rang rendu compte donc la séquence MÊLÉE de la zone, élément glissé retiré — l'indice de
    * `moveOccurrenceInSequence` (carte) et de l'emplacement d'un point (`moveStopPoint`).
    */

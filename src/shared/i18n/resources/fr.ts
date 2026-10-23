@@ -324,7 +324,7 @@ export const fr = {
           TOURS: "Nombre de tours",
           SERIES: "Nombre de séries",
         },
-        // PRE-6 (story 7.3, D-437) : boutons − et + du stepper toujours affiché, éléments
+        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper toujours affiché, éléments
         // accessibles distincts du réglage « Nombre de tours ».
         decrementAccessibilityLabel: {
           TOURS: "Retirer un tour",
@@ -399,7 +399,7 @@ export const fr = {
         addRecoveryAccessibilityLabel: "Ajouter une récupération après {exercise}",
         addStopPointAccessibilityLabel: "Ajouter un point d’arrêt après {exercise}",
         addStopPointAfterCircuitAccessibilityLabel: "Ajouter un point d’arrêt après le circuit",
-        // PRE-6 story 7.2 (D-437) : emplacement de tête de Circuit (début de Tour).
+        // PRE-6 story 7.2 (D-442) : emplacement de tête de Circuit (début de Tour).
         addStopPointAtCircuitStartAccessibilityLabel: "Ajouter un point d’arrêt au début du circuit",
         existingStopPointAccessibilityLabel: "Point d’arrêt après {exercise}",
         existingStopPointAfterCircuitAccessibilityLabel: "Point d’arrêt après le circuit",
@@ -408,13 +408,13 @@ export const fr = {
         stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
         confirmSingular: "Confirmer {n} pause ajoutée",
         confirmPlural: "Confirmer {n} pauses ajoutées",
-        // PRE-6 story 6.3 (D-436, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
+        // PRE-6 story 6.3 (D-441, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
         // de durée seule.
         confirmChanges: "Confirmer les modifications",
         cancel: "Annuler",
         recoveryWheelTitle: "Durée de récupération",
         selectedHint: "Un toucher retire cet ajout.",
-        // PRE-6 story 6.3 (D-436, ch13 CE-T03-08 accessibilité) : point existant sélectionné (conservé)
+        // PRE-6 story 6.3 (D-441, ch13 CE-T03-08 accessibilité) : point existant sélectionné (conservé)
         // ou désélectionné (retrait programmé).
         existingStopPointSelectedHint: "Toucher pour retirer ce point d’arrêt.",
         existingStopPointRemovedHint: "Toucher pour conserver ce point d’arrêt.",
@@ -426,14 +426,14 @@ export const fr = {
         stopPointKeptAnnouncement: "Point d’arrêt conservé",
         stopPointKeepRefusedAnnouncement: "Point d’arrêt non conservé : un point ajouté le suivrait",
         addStopRemovalOnlyHint: "Permet de retirer des points d’arrêt existants.",
-        // PRE-6 story 7.2 (D-437) : une récupération existante se modifie et se retire en placement.
+        // PRE-6 story 7.2 (D-442) : une récupération existante se modifie et se retire en placement.
         addStopChangesOnlyHint: "Permet de modifier ou de retirer les pauses existantes.",
         // PRE-6 story 6.3 (revue, ch13 L1524) : effet d’un ajout ou de son annulation, suivi du
         // libellé de « Confirmer » (nombre d’ajouts).
         stopPointAddedAnnouncement: "Point d’arrêt ajouté",
         recoveryAddedAnnouncement: "Récupération ajoutée",
         additionCancelledAnnouncement: "Ajout annulé",
-        // PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : zone de récupération existante (0 comprise)
+        // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : zone de récupération existante (0 comprise)
         // en placement — nom, indices (sélectionnée : toucher la retire ; désélectionnée : toucher
         // ouvre la roulette) et annonces. Formulations à valider.
         existingRecoveryAccessibilityLabel: "Récupération après {exercise}",
@@ -442,15 +442,15 @@ export const fr = {
         recoveryRemovedAnnouncement: "Récupération retirée",
         recoverySelectedAnnouncement: "Récupération sélectionnée",
       },
-      // PRE-6 story 7.2 (D-437) : la récupération ne se règle plus hors placement — la bulle « Retirer
+      // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
       // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
       // (stories 4.2, 5.1) sont retirées.
       pauses: {
-        // PRE-6 story 6.2 (D-436) : l’appui long d’un point le saisit (glisser).
+        // PRE-6 story 6.2 (D-441) : l’appui long d’un point le saisit (glisser).
         stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
-      // PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
+      // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.
       tourBoundaryChoice: {
@@ -460,13 +460,13 @@ export const fr = {
         tail: "Fin de tour",
         cancel: "Annuler",
       },
-      // PRE-6 story 7.2 (D-437) : points retirés sans message par un déplacement d’Exercice, un
+      // PRE-6 story 7.2 (D-442) : points retirés sans message par un déplacement d’Exercice, un
       // changement du nombre de Tours ou un choix de Tour — annonce d’accessibilité discrète.
       stopPointsRemovedAnnouncement: {
         singular: "Point d’arrêt retiré",
         plural: "{n} points d’arrêt retirés",
       },
-      // PRE-6 story 7.8 (D-438) : Compte à rebours et Fin de séance affichés en secondes seulement
+      // PRE-6 story 7.8 (D-443) : Compte à rebours et Fin de séance affichés en secondes seulement
       // (« 45 s ») ; la durée du Circuit (et son « — min ») n’est plus affichée.
       boundarySecondsUnit: "s",
       abandonModal: {
@@ -525,7 +525,7 @@ export const fr = {
         // dans la séquence affichée, mêmes règles que le glisser.
         moveUp: "Monter",
         moveDown: "Descendre",
-        // PRE-6 story 7.5 (D-437 amendée) : la suppression d’un exercice n’est plus refusée — les
+        // PRE-6 story 7.5 (D-442 amendée) : la suppression d’un exercice n’est plus refusée — les
         // annonces de refus de la story 6.2 sont retirées.
       },
       // PRE-6 (story 2.3) : confirmation de perte de séries à l’entrée d’un exercice dans un

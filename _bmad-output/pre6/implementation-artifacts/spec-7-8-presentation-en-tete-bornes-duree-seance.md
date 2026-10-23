@@ -1,5 +1,5 @@
 ---
-title: 'Story 7.8 — Présentation : en-tête du Circuit, bornes de séance, durée de la Séance (D-438)'
+title: 'Story 7.8 — Présentation : en-tête du Circuit, bornes de séance, durée de la Séance (D-443)'
 type: 'feature'
 created: '2026-10-23'
 status: 'review'
@@ -19,12 +19,12 @@ context:
 
 **Problem:** Recette J6c de Hermann (23/10), verbatim : « Supprimer la durée du circuit et aligner le stepper de tour à droite. Aligner le cadre du compte à rebours et de la fin de séance à droite du cadre des cartes d'exercices, Limiter leurs valeurs à 60s et ne pas afficher les minutes. Durée totale de l'exercice dans la zone de contexte, arrondir à 15 s près et mettre le signe à peu près égal ou supérieur ou égal à en fonction du contexte des exercices. »
 
-**Approach:** D-438 (« Circuit », « Compte à rebours et Fin de séance », « Durée de la Séance » ; remplace dans D-437 l'affichage et l'arrondi de la durée du Circuit, et dans D-089 amendée par D-265 la borne 0..3599 s des champs de la Séance). Présentation seulement : modèle de données et calculs de durée inchangés.
+**Approach:** D-443 (« Circuit », « Compte à rebours et Fin de séance », « Durée de la Séance » ; remplace dans D-442 l'affichage et l'arrondi de la durée du Circuit, et dans D-089 amendée par D-265 la borne 0..3599 s des champs de la Séance). Présentation seulement : modèle de données et calculs de durée inchangés.
 
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-438 (ch07, commit `835f2df3`) ; epics.md « Story 7.8 » AC1 à AC4.
+- Sources : D-443 (ch07, commit `835f2df3`) ; epics.md « Story 7.8 » AC1 à AC4.
 - **AC1** : en-tête du Circuit sans durée (affichage, nom accessible et code devenu inutile retirés, dont l'arrondi minute de 7.3) ; stepper aligné à droite.
 - **AC2** : cadres Compte à rebours et Fin de séance alignés à droite sur le bord droit des cartes d'Exercice.
 - **AC3** : réglage borné 0..60 s, pas 1 s ; affichage en secondes seules (« 45 s ») ; valeur existante au-delà de 60 s affichée et réenregistrée à 60 s sans marquer la Séance modifiée ; validateur aligné (0..60), sans migration.
@@ -76,7 +76,7 @@ context:
 **Choix non dictés (à valider en J7)**
 1. Préfixe « ≈ » aussi pour une durée exacte (arrondie), « ≥ » pour une borne minimale ; « 0 s » sans préfixe pour une séance vide.
 2. « ≈ » arrondi au plus proche (au moins 15 s si positif : 5 s → « ≈ 15 s ») ; « ≥ » arrondi à la tranche inférieure (98 s → « ≥ 1 min 30 s ») ; une borne minimale nulle s'affiche « ≥ 0 s » (l'ancienne règle P47 donnait « ≥ 0 min »).
-3. Valeur héritée > 60 : bornée à la lecture du brouillon (non à la base) ; les Séances jamais réenregistrées gardent leur valeur en base (aucune migration, D-438 laisse le modèle inchangé) ; aucun lecteur d'exécution n'existe encore, le README du Domaine impose `clampSessionBoundarySeconds` au futur lecteur.
+3. Valeur héritée > 60 : bornée à la lecture du brouillon (non à la base) ; les Séances jamais réenregistrées gardent leur valeur en base (aucune migration, D-443 laisse le modèle inchangé) ; aucun lecteur d'exécution n'existe encore, le README du Domaine impose `clampSessionBoundarySeconds` au futur lecteur.
 6. Roulette iOS des bornes : nombres seuls (« 45 »), sans « s » visible ; nom accessible « 45 s » (lu tel quel par VoiceOver) ; roulette nommée d'après sa borne.
 4. Défaut du Profil > 60 : Séance créée à 60 s.
 5. Roulette des bornes : une colonne de secondes (`NumberWheelPicker`) au lieu de minutes + secondes.

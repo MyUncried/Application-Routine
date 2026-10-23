@@ -153,7 +153,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
  *   à 0 avec ses voisines (même fraction `t`) ; hors de la chaîne et au premier plan jusqu'à la fin
  *   du retour, elle porte le rail de sa propre surface.
  *
- * PRE-6 story 6.2 (D-436) : les Points d'arrêt sont des rangées autonomes (`kind: "stop"`) — nœuds
+ * PRE-6 story 6.2 (D-441) : les Points d'arrêt sont des rangées autonomes (`kind: "stop"`) — nœuds
  * de la chaîne et lignes de la géométrie, avec leur hauteur (22) ; un point glissé suit le même
  * modèle (sans média : sa puce, centrée sur la page, ne recouvre pas l'axe du rail).
  *

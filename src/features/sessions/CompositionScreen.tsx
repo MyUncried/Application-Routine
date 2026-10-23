@@ -200,7 +200,7 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * de nature du Circuit (story 3.2,
  * Android / web ; sur iOS le menu natif porte seul son ouverture). PRE-6 story 3.4 : feuille
  * « Volumes du circuit » (`circuitVolumes`), ouverte par l'œil — l'ouvrir referme les autres.
- * PRE-6 story 7.3 (D-437) : le stepper du compte du Circuit est toujours affiché et actif ; il
+ * PRE-6 story 7.3 (D-442) : le stepper du compte du Circuit est toujours affiché et actif ; il
  * n'est plus un champ « révélé » (ancien `circuitCount`, choix D8 remplacé).
  */
 type OverlayKind = "countdown" | "finalPhase" | "circuitNature" | "circuitVolumes";
@@ -324,7 +324,7 @@ const EMPTY_STOP_POINTS: CompositionState["stopPoints"] = [];
 
 /**
  * PRE-6 (story 1.2) : occurrences et Points d'arrêt du brouillon, opérés ensemble. Story 7.1
- * (D-437) : avec N du Circuit, contexte des règles de début et de fin de Tour.
+ * (D-442) : avec N du Circuit, contexte des règles de début et de fin de Tour.
  */
 function compositionStateOf(
   exercises: SessionDraft["exercises"],
@@ -335,14 +335,14 @@ function compositionStateOf(
 }
 
 /**
- * PRE-6 story 7.2 (D-437) : rangée de l'emplacement LIBRE de tête de Circuit en placement — élément de
+ * PRE-6 story 7.2 (D-442) : rangée de l'emplacement LIBRE de tête de Circuit en placement — élément de
  * la séquence affichée (rail, écarts, mesures) qui n'est pas un point du brouillon. Identifiant
  * réservé, jamais un UUID.
  */
 const CIRCUIT_HEAD_SLOT_ID = "placement-circuit-head";
 const CIRCUIT_HEAD_SLOT_POINT: StopPoint = { id: CIRCUIT_HEAD_SLOT_ID, scope: "IN_TOUR", position: 0 };
 
-/** PRE-6 story 6.2 (D-436) : élément affiché d'une zone — une occurrence ou un Point d'arrêt. */
+/** PRE-6 story 6.2 (D-441) : élément affiché d'une zone — une occurrence ou un Point d'arrêt. */
 type ZoneItem = SequenceItem<SessionDraftExercise, StopPoint>;
 type ZoneItems = Readonly<Record<StructuralPosition, readonly ZoneItem[]>>;
 
@@ -379,8 +379,8 @@ function sequenceItemExists(draft: SessionDraft, key: string): boolean {
 
 /**
  * PRE-6 story 6.2 : éléments affichés de chaque zone. Hors placement (`placementRowStopPointIds =
- * null`) : séquence mêlée du Domaine (`scopeSequence`, D-436 ; ses règles de bornage et d'ordre).
- * En placement : occurrences, et — story 6.3 (D-436, R3) — les seuls points existants qu'aucun
+ * null`) : séquence mêlée du Domaine (`scopeSequence`, D-441 ; ses règles de bornage et d'ordre).
+ * En placement : occurrences, et — story 6.3 (D-441, R3) — les seuls points existants qu'aucun
  * emplacement ne porte (`UNOFFERED_STOP_POINT` : tête de Circuit, hors bornes…), rangées
  * autonomes à leur place dans la séquence mêlée, pour pouvoir être désélectionnés ; les autres
  * points sont portés par les emplacements (story 5.3).
@@ -393,7 +393,7 @@ function displayedZoneItems(
 ): ZoneItems {
   const kept =
     placementRowStopPointIds === null ? stopPoints : stopPoints.filter((point) => placementRowStopPointIds.has(point.id));
-  // Story 7.2 (D-437) : en placement, l'emplacement libre de tête de Circuit est une rangée en tête du
+  // Story 7.2 (D-442) : en placement, l'emplacement libre de tête de Circuit est une rangée en tête du
   // Circuit (`CIRCUIT_HEAD_SLOT_POINT`, jamais un point du brouillon).
   const shown = withCircuitHeadSlot ? [...kept, CIRCUIT_HEAD_SLOT_POINT] : kept;
   const itemsOf = (zone: StructuralPosition): readonly ZoneItem[] => scopeSequence(exercises, shown, zone);
@@ -430,7 +430,7 @@ function sameLocation(a: StopPointLocation, b: StopPointLocation): boolean {
  * structurel des emplacements (`(scope, 0..n)`, portées dans l'ordre) à partir de l'emplacement
  * affiché, que le Domaine ACCEPTE (`moveStopPoint` : proposable, libre, non consécutif) ; le point
  * peut donc en franchir un autre, comme au glisser. Rend l'état produit, ou `null` (action absente).
- * Story 7.2 (D-437) : le premier emplacement atteint qui demande un choix de Tour (`CHOICE_REQUIRED`)
+ * Story 7.2 (D-442) : le premier emplacement atteint qui demande un choix de Tour (`CHOICE_REQUIRED`)
  * offre le pas ; son action ouvre le dialogue « Début de tour / Fin de tour ».
  */
 type StopPointStep =
@@ -455,7 +455,7 @@ function stopPointStepOutcome(
     const location = locations[candidate]!;
     if (!isStopPointProposable(state.exercises, location, state)) continue;
     const outcome = moveStopPoint(state, stopPointId, location);
-    // Story 7.1 (revue, D-437) : un choix de Tour requis à l'emplacement voisin arrête la recherche
+    // Story 7.1 (revue, D-442) : un choix de Tour requis à l'emplacement voisin arrête la recherche
     // plutôt que de le franchir en silence ; story 7.2 : le pas est offert et demande le choix.
     if (outcome.status === "CHOICE_REQUIRED") return { status: "CHOICE_REQUIRED", location };
     if (outcome.status === "APPLIED" && outcome.state !== state) return { status: "APPLIED", state: outcome.state };
@@ -463,14 +463,14 @@ function stopPointStepOutcome(
   return null;
 }
 
-/** Story 7.2 (D-437) : annonce discrète des Points d'arrêt retirés sans message (singulier / pluriel). */
+/** Story 7.2 (D-442) : annonce discrète des Points d'arrêt retirés sans message (singulier / pluriel). */
 function removedStopPointsAnnouncement(count: number): string {
   const t = strings.screens.composition.stopPointsRemovedAnnouncement;
   return count === 1 ? t.singular : t.plural.replace("{n}", String(count));
 }
 
 /**
- * Story 7.2 (D-437, ch13 CE-T03-08 L1498) : opération suspendue au choix « Début de tour / Fin de
+ * Story 7.2 (D-442, ch13 CE-T03-08 L1498) : opération suspendue au choix « Début de tour / Fin de
  * tour » — rejouée sur l'état COURANT avec la résolution choisie (« Annuler » : rien ne change).
  * `fromStep` : action accessible « Monter » / « Descendre » (le focus suit l'élément).
  */
@@ -485,11 +485,11 @@ type TourChoiceRequest =
   | { readonly kind: "PLACEMENT_STOP_POINT"; readonly location: StopPointLocation }
   | { readonly kind: "PLACEMENT_EXISTING_STOP_POINT"; readonly stopPointId: string }
   | { readonly kind: "CIRCUIT_COUNT"; readonly count: number }
-  // Story 7.5 (D-437 amendée) : suppression qui créerait un conflit de Tour.
+  // Story 7.5 (D-442 amendée) : suppression qui créerait un conflit de Tour.
   | { readonly kind: "OCCURRENCE_DELETE"; readonly activityId: string };
 
 /**
- * Story 7.2 (D-437) : resélection en placement du point existant `stopPointId`, refusée par
+ * Story 7.2 (D-442) : resélection en placement du point existant `stopPointId`, refusée par
  * `togglePlacementStopPointRemoval` parce qu'elle créerait un conflit de Tour avec un AJOUT — le
  * choix requis (conserver le point, ou l'ajout) ; `null` si la resélection n'en demande pas.
  */
@@ -509,7 +509,7 @@ function placementReselectionChoice(
 }
 
 /**
- * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : résultat de la suppression de l'occurrence
+ * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : résultat de la suppression de l'occurrence
  * `activityId` sur `draft` — tolérante (`removeOccurrenceOutcome`) : le patch du brouillon (réserve de
  * Circuit comprise) et les Points d'arrêt retirés ; `"CHOICE"` si un conflit de Tour demande le choix
  * « Début de tour / Fin de tour » (`choice` le tranche) ; `null` si rien n'est supprimé.
@@ -573,10 +573,10 @@ function compositionPatch(previous: CompositionState, next: CompositionState): P
 }
 
 /**
- * PRE-6 (story 2.3) : intention de déplacement d'une occurrence. PRE-6 story 6.2 (D-436) : glisser
+ * PRE-6 (story 2.3) : intention de déplacement d'une occurrence. PRE-6 story 6.2 (D-441) : glisser
  * — `index` est le rang dans la séquence MÊLÉE de `zone` (occurrences et points), source retirée
  * (`moveOccurrenceInSequence`) ; « Monter » / « Descendre » — échange avec l'élément voisin
- * (`stepOccurrence`). Story 7.2 (D-437) : `tourChoice` — résolution choisie dans le dialogue
+ * (`stepOccurrence`). Story 7.2 (D-442) : `tourChoice` — résolution choisie dans le dialogue
  * « Début de tour / Fin de tour », appliquée si le déplacement demande ce choix.
  */
 type OccurrenceMove = (
@@ -593,7 +593,7 @@ type PendingOccurrenceMove = OccurrenceMove & {
 
 /**
  * Plan d'un déplacement sur `draft` : correctif du brouillon (occurrences adaptées au Circuit,
- * points, réserve), pertes et N du Circuit, et — story 7.2 (D-437) — points retirés sans message par
+ * points, réserve), pertes et N du Circuit, et — story 7.2 (D-442) — points retirés sans message par
  * le déplacement tolérant ; `CHOICE_REQUIRED` si le déplacement créerait un conflit de Tour et
  * qu'aucun `tourChoice` n'est fourni ; `null` si le Domaine refuse le déplacement ou s'il ne change
  * rien.
@@ -728,7 +728,7 @@ export type CompositionScreenProps = {
 export function CompositionScreen({ sessionId = null }: CompositionScreenProps = {}) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  // PRE-6 story 7.10 (D-439) : zone d'action principale fixe (Continuer / barre de placement) ; le
+  // PRE-6 story 7.10 (D-444) : zone d'action principale fixe (Continuer / barre de placement) ; le
   // corps défilant réserve sa hauteur en fin de défilement.
   const actionZone = usePrimaryActionZone();
   const actionZoneReserveRef = useRef(actionZone.scrollReserve);
@@ -854,7 +854,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [deletion, setDeletion] = useState<PendingDeletion | null>(null);
   const deletionRef = useRef<PendingDeletion | null>(null);
   /**
-   * PRE-6 story 7.7 (D-438) : copie de Dupliquer en cours d'apparition (fondu lent) ; les éléments
+   * PRE-6 story 7.7 (D-443) : copie de Dupliquer en cours d'apparition (fondu lent) ; les éléments
    * suivants glissent pendant ce temps pour lui faire place.
    */
   const [appearance, setAppearance] = useState<{ readonly key: string; readonly opacity: Animated.Value } | null>(null);
@@ -880,14 +880,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     draftRef.current = draft;
   });
   /**
-   * PRE-6 story 7.4 (D-437, commentaire 3) : défilement automatique pendant le glisser — le corps
+   * PRE-6 story 7.4 (D-442, commentaire 3) : défilement automatique pendant le glisser — le corps
    * défilant (`composition-body`), commandé par `scrollTo` sans animation à chaque trame.
    */
   const bodyScrollRef = useRef<ScrollView>(null);
   const autoScroll = useDragAutoScroll({
     scrollTo: (offset) => bodyScrollRef.current?.scrollTo({ y: offset, animated: false }),
     measure: (callback) => bodyScrollRef.current?.getNativeScrollRef()?.measureInWindow((_x, y, _width, height) => callback(y, height)),
-    // Story 7.10 (D-439) : la zone d'action fixe recouvre le bas du corps — la bande du bas du
+    // Story 7.10 (D-444) : la zone d'action fixe recouvre le bas du corps — la bande du bas du
     // défilement automatique remonte au haut de cette zone (dégradé compris) ; le décalage maximal
     // reste celui du conteneur entier (la réserve est déjà dans la hauteur du contenu).
     bottomObstruction: () => actionZoneReserveRef.current,
@@ -900,7 +900,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // — correctif du brouillon déjà calculé (adapté à N), appliqué seulement par « Confirmer ».
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<PendingOccurrenceMove | null>(null);
   /**
-   * Story 7.2 (D-437) : choix « Début de tour / Fin de tour » en attente (dialogue natif), et garde
+   * Story 7.2 (D-442) : choix « Début de tour / Fin de tour » en attente (dialogue natif), et garde
    * synchrone — un seul dialogue à la fois (un maintien du compteur rappelle le changement de N).
    */
   const [pendingTourChoice, setPendingTourChoice] = useState<TourChoiceRequest | null>(null);
@@ -964,7 +964,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // `withLabel` : suivi du nouveau libellé de « Confirmer » (ajouts, ch13 L1524).
   const placementAnnouncementRef = useRef<{ readonly text: string; readonly withLabel: boolean } | null>(null);
   /**
-   * Story 7.2 (D-437) : roulette « Durée de récupération » d'une zone NON sélectionnée du placement —
+   * Story 7.2 (D-442) : roulette « Durée de récupération » d'une zone NON sélectionnée du placement —
    * ouverte sur la durée existante (`seconds`), sinon (`null`) sur le défaut du Profil ; ✓ sélectionne
    * la zone à la durée choisie (`selectPlacementRecovery`), ✕ ne change rien.
    */
@@ -981,7 +981,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Demande de focus sur « Ajouter un arrêt », à la sortie du placement par Confirmer / Annuler.
   const [addStopFocusRequest, setAddStopFocusRequest] = useState(0);
   /*
-   * PRE-6 story 7.2 (D-437, qui remplace sur ce point D-435) : la récupération ne se règle plus hors
+   * PRE-6 story 7.2 (D-442, qui remplace sur ce point D-435) : la récupération ne se règle plus hors
    * placement — la roulette de modification, la bulle « Retirer la récupération » et les actions
    * accessibles de la carte (stories 4.2, 5.1) sont retirées ; tout passe par le placement.
    */
@@ -1120,7 +1120,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   // PRE-6 (story 3.1, RC-4 ; story 3.2) : un toucher ailleurs referme le panneau du choix de nature
   // (Android / web), sans rien appliquer ; une roulette de borne éventuellement ouverte n'est pas
-  // concernée. Story 7.3 (D-437) : le stepper du compte, toujours affiché, n'a rien à refermer.
+  // concernée. Story 7.3 (D-442) : le stepper du compte, toujours affiché, n'a rien à refermer.
   const closeCircuitNatureMenu = useCallback(() => {
     setOpenOverlay((current) => (current === "circuitNature" ? null : current));
   }, []);
@@ -1245,7 +1245,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setAddStopFocusRequest((current) => current + 1);
   }, [leavePlacement]);
   /**
-   * PRE-6 story 6.3 (D-436, RM-251) : composition sur laquelle se jugent les bascules de point et
+   * PRE-6 story 6.3 (D-441, RM-251) : composition sur laquelle se jugent les bascules de point et
    * l'applicabilité du sous-brouillon — toujours fournie au Domaine (`togglePlacementStopPoint`,
    * `placementConfirmation`, `placementSlots`) : la forme historique sans contexte n'est plus appelée.
    */
@@ -1260,7 +1260,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   /**
    * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`postActivityRecoverySeconds`
-   * et `stopPoints`, `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-436 —
+   * et `stopPoints`, `applyPlacementDraft` : ajouts, modifications de durée et — story 6.3, D-441 —
    * retraits programmés, en une fois, sans point consécutif), puis sortie du placement. Disponible
    * dès qu'un changement est applicable (`placementConfirmation` ≠ `NONE`). Identifiants des
    * points tirés hors du calcul d'état.
@@ -1290,7 +1290,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
   }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
   /**
-   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
    * (ajout, ou récupération existante, 0 comprise, conservée) : désélection (`deselectPlacementRecovery` :
    * ajout jeté, ou retrait programmé) ; non sélectionnée : roulette, sur la durée existante sinon
    * sur le défaut du Profil.
@@ -1317,8 +1317,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [draft.exercises, placement, placementContext],
   );
   /**
-   * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-436) —
-   * ajout s'il est proposé, désélection s'il est ajouté. Story 7.2 (D-437) : un ajout qui ferait se
+   * Toucher un emplacement libre ou ajouté : bascule du Domaine AVEC contexte (story 6.3, D-441) —
+   * ajout s'il est proposé, désélection s'il est ajouté. Story 7.2 (D-442) : un ajout qui ferait se
    * suivre un début et une fin de Tour (N ≥ 2) ouvre le choix « Début de tour / Fin de tour ».
    */
   const handlePlacementStopPointToggle = useCallback(
@@ -1343,7 +1343,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [openTourChoice, placement, placementContext],
   );
   /**
-   * ✓ de la roulette d'une zone de récupération (story 7.2, D-437) : la zone est sélectionnée à la
+   * ✓ de la roulette d'une zone de récupération (story 7.2, D-442) : la zone est sélectionnée à la
    * durée choisie (`selectPlacementRecovery` : ajout, ou récupération existante conservée — retrait
    * annulé — et modifiée si la durée diffère), annoncée avec le libellé de « Confirmer » (revue 6.3).
    * Roue non déplacée sur une récupération existante hors grille (donnée historique au-delà de 300 s
@@ -1370,10 +1370,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [placement, placementContext, recoveryWheel],
   );
   /**
-   * Revue 6.3 (D-436 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
+   * Revue 6.3 (D-441 R3, RM-251) : toucher un point EXISTANT bascule son retrait programmé, visé par
    * son identifiant (deux points hérités sur une même clé restent indépendants). Une annulation
    * refusée par le Domaine (un point ajouté le suivrait) ne change rien ; chaque issue est annoncée.
-   * Story 7.2 (D-437) : une resélection refusée parce qu'elle ferait se suivre un début et une fin
+   * Story 7.2 (D-442) : une resélection refusée parce qu'elle ferait se suivre un début et une fin
    * de Tour avec un AJOUT ouvre le choix « Début de tour / Fin de tour ».
    */
   const handlePlacementExistingStopPointToggle = useCallback(
@@ -1431,7 +1431,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     return () => subscription.remove();
   }, [cancelPlacement, isPlacementActive]);
 
-  // Emplacements du placement (Domaine), par occurrence et après le Circuit. Story 6.3 (D-436,
+  // Emplacements du placement (Domaine), par occurrence et après le Circuit. Story 6.3 (D-441,
   // RM-251) : en placement, calculés sur l'état effectif (existants − retraits + ajouts du
   // sous-brouillon) — un retrait programmé libère les emplacements voisins.
   const entrySlots = useMemo(
@@ -1443,7 +1443,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [entrySlots, placement, placementContext],
   );
   // « Ajouter un arrêt » est indisponible quand le placement n'aurait rien à proposer (Composition
-  // vide, tout est déjà présent). Story 6.3 (D-436, R3) : un point existant IDENTIFIÉ suffit à le
+  // vide, tout est déjà présent). Story 6.3 (D-441, R3) : un point existant IDENTIFIÉ suffit à le
   // rendre disponible — le placement est le seul chemin de son retrait ; un indice le dit quand
   // aucun ajout n'est possible.
   const entryOffer = placementOfferOf(entrySlots);
@@ -1465,7 +1465,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   const afterCircuitSlot = draftSlots.find((slot) => slot.kind === "AFTER_CIRCUIT") ?? null;
   /**
-   * Story 6.3 (D-436, R3) : points existants qu'aucun emplacement ne porte (`UNOFFERED_STOP_POINT` :
+   * Story 6.3 (D-441, R3) : points existants qu'aucun emplacement ne porte (`UNOFFERED_STOP_POINT` :
    * tête de Circuit, hors bornes, position non entière…), rendus en placement comme rangées
    * autonomes de la séquence (`displayedZoneItems`) ; `null` hors placement.
    */
@@ -1474,7 +1474,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     placement === null
       ? null
       : JSON.stringify(
-          // Story 7.1 (D-437) : un point existant en tête de Circuit est porté par l'emplacement
+          // Story 7.1 (D-442) : un point existant en tête de Circuit est porté par l'emplacement
           // `CIRCUIT_HEAD` ; il reste rendu comme rangée autonome de la séquence (à sa place, en tête du
           // Circuit), sélectionné et désélectionnable — story 7.2 : l'emplacement LIBRE de tête est
           // rendu de même (`circuitHeadRowPoint`).
@@ -1516,14 +1516,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
     [draft, placement],
   );
-  // PRE-6 story 7.2 (D-437) : D-301 est retirée — plus aucun message d'enchaînement sans pause.
+  // PRE-6 story 7.2 (D-442) : D-301 est retirée — plus aucun message d'enchaînement sans pause.
   /** Story 6.3 : ce que `placementRowPointOf` lit (noms, sous-brouillon, contexte, emplacements masqués). */
   const placementRowEnvironment = useMemo<PlacementRowEnvironment>(
     () => ({ labels: placementLabels, placement: placement ?? EMPTY_PLACEMENT_DRAFT, context: placementContext, hiddenKeys: unofferedDisplayKeys }),
     [placement, placementContext, placementLabels, unofferedDisplayKeys],
   );
   /**
-   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : emplacement LIBRE (ou ajouté) de tête de Circuit
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : emplacement LIBRE (ou ajouté) de tête de Circuit
    * — début de Tour, `CIRCUIT_HEAD` du Domaine —, dessiné dans le Circuit entre son en-tête et sa
    * première carte, centré et raccordé au rail comme les autres rangées du placement ; `null` hors
    * placement, sans emplacement, ou quand un point existant l'occupe (rangée autonome de ce point).
@@ -1565,7 +1565,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // l'ordre structurel — Compte à rebours ; Activités AVANT le Tour ; Tour et
   // ses Activités ; Activités APRÈS le Tour ; Fin de séance.
   /**
-   * PRE-6 story 6.2 (D-436) : éléments affichés de chaque zone — hors placement, la séquence mêlée
+   * PRE-6 story 6.2 (D-441) : éléments affichés de chaque zone — hors placement, la séquence mêlée
    * du Domaine (`scopeSequence` : occurrences et Points d'arrêt, chacun une rangée) ; en placement,
    * les occurrences et les seuls points non proposés (story 6.3) — les autres sont portés par les
    * emplacements (story 5.3).
@@ -1584,7 +1584,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const circuitNature = draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE;
 
   /**
-   * Story 7.2 (D-437) : points retirés sans message (déplacement tolérant d'un Exercice, passage à
+   * Story 7.2 (D-442) : points retirés sans message (déplacement tolérant d'un Exercice, passage à
    * N = 1, choix de Tour) — leurs mesures de rangée sont oubliées (aucune géométrie de glisser ne
    * les compte plus) et une annonce d'accessibilité discrète les signale ; `focusKey` : élément qui
    * reçoit le focus avec l'annonce (pas « Monter » / « Descendre »), sinon annonce seule.
@@ -1606,11 +1606,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   /**
    * PRE-6 (story 3.1, AD-38, report de l'epic 1) : tout changement de N passe par le Domaine — Tours :
    * le compte seul ; Séries : les exercices du Circuit suivent N (diminution en réserve,
-   * augmentation par restauration puis copie), sans message. Story 7.2 (D-437) :
+   * augmentation par restauration puis copie), sans message. Story 7.2 (D-442) :
    * `circuitCountOutcome` — au passage à N = 1, les points devenus interdits sont retirés (annonce
    * discrète) ; au passage de N = 1 à N ≥ 2 avec un début et une fin de Tour, le choix « Début de
    * tour / Fin de tour » est demandé AVANT tout changement (Annuler : N inchangé). Pendant le
-   * dialogue, les pas suivants (maintien) sont ignorés. Story 7.3 (D-437) : le stepper étant toujours
+   * dialogue, les pas suivants (maintien) sont ignorés. Story 7.3 (D-442) : le stepper étant toujours
    * affiché, un pas referme le choix de nature éventuellement ouvert (un seul contrôle actif, CIR-10).
    */
   // Forme fonctionnelle : chaque pas (maintien compris) part du brouillon COURANT, jamais de
@@ -1785,7 +1785,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   /**
    * Déplacement d'une occurrence (glisser, « Monter » / « Descendre ») — mêmes règles pour
-   * tous les chemins. Story 7.1 (D-437, remplace ARB-3 et le refus de D-436) : les Points d'arrêt
+   * tous les chemins. Story 7.1 (D-442, remplace ARB-3 et le refus de D-441) : les Points d'arrêt
    * restent à leur place ; un dépôt qui en rendrait un interdit ou consécutif est appliqué et le
    * Domaine retire les points en cause (`removedStopPointIds`, annonce et focus : story 7.2) ; un
    * conflit de Tour (choix requis) n'applique rien et ouvre le dialogue « Début de tour / Fin de
@@ -1801,7 +1801,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         return "REFUSED";
       }
       if (plan.status === "CHOICE_REQUIRED") {
-        // Story 7.2 (D-437) : conflit de Tour — rien n'est appliqué avant le choix ; la carte lâchée
+        // Story 7.2 (D-442) : conflit de Tour — rien n'est appliqué avant le choix ; la carte lâchée
         // reste tenue là où elle a été lâchée, comme pendant le dialogue de perte (story 5.2b).
         if (!openTourChoice({ kind: "OCCURRENCE_MOVE", move, fromStep: focusKey !== undefined })) return "REFUSED";
         closeCircuitNatureMenu();
@@ -1820,7 +1820,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         const replayed = planOccurrenceMove(current, move);
         return replayed?.status === "PLAN" ? { ...current, ...replayed.patch } : current;
       });
-      // Story 7.2 (D-437) : points retirés par le déplacement tolérant, sans message visuel.
+      // Story 7.2 (D-442) : points retirés par le déplacement tolérant, sans message visuel.
       reportRemovedStopPoints(plan.removedStopPointIds, focusKey);
       return "APPLIED";
     },
@@ -1828,7 +1828,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
-   * PRE-6 story 6.2 (D-436, R2) : déplacement autonome d'un Point d'arrêt vers l'emplacement
+   * PRE-6 story 6.2 (D-441, R2) : déplacement autonome d'un Point d'arrêt vers l'emplacement
    * `(scope, position)` du rang visé (`moveStopPoint`, identité conservée). Refus (emplacement non
    * proposable, occupé, RM-251) ou même emplacement : rien n'est écrit.
    */
@@ -1843,7 +1843,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }
       const outcome: CompositionOutcome = moveStopPoint(state, stopPointId, location);
       if (outcome.status === "CHOICE_REQUIRED") {
-        // Story 7.2 (D-437) : tête ou fin de Tour face à l'autre limite (N ≥ 2) — choix demandé, le
+        // Story 7.2 (D-442) : tête ou fin de Tour face à l'autre limite (N ≥ 2) — choix demandé, le
         // point lâché reste tenu (story 5.2b).
         return openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location, fromStep: false }) ? "PENDING" : "REFUSED";
       }
@@ -1886,7 +1886,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         finishDragPreview(true, { key, from: translationY });
         return;
       }
-      // PRE-6 story 6.2 (D-436) : une occurrence est insérée au rang visé de la séquence mêlée
+      // PRE-6 story 6.2 (D-441) : une occurrence est insérée au rang visé de la séquence mêlée
       // (`moveOccurrenceInSequence`, R1 : les points restent en place) ; un point est déplacé seul
       // (`moveStopPoint`, R2) vers l'emplacement `(scope, position)` de ce rang. Refus : retour animé.
       const stopPointId = stopPointIdOfKey(key);
@@ -2257,7 +2257,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const afterCircuitRailLink = railLinkOf(RAIL_KEYS.afterCircuit);
   const endRailLink = railLinkOf(RAIL_KEYS.end);
 
-  // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre ». PRE-6 story 6.2 (D-436) :
+  // PRE-6 (story 2.3, CE-T03-08 §18) : « Monter » / « Descendre ». PRE-6 story 6.2 (D-441) :
   // échange avec l'élément voisin de la séquence mêlée, point ou occurrence (`stepOccurrence`),
   // en franchissant les limites du Circuit ; même plan que le glisser (adaptation au Circuit de
   // Séries, confirmation de perte). Une action n'est offerte que si le Domaine l'accepte.
@@ -2298,7 +2298,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         plan?.status === "PLAN"
           ? plan.patch.exercises?.find((exercise) => exercise.id === activityId)?.structuralPosition
           : undefined;
-      // Story 7.2 (D-437) : un point retiré par le pas est annoncé avec le focus porté sur la carte
+      // Story 7.2 (D-442) : un point retiré par le pas est annoncé avec le focus porté sur la carte
       // (la clé de focus fait aussi reconnaître un pas après un choix de Tour).
       const removesStopPoints = plan?.status === "PLAN" && plan.removedStopPointIds.length > 0;
       const outcome = moveActivityTo({ activityId, direction }, key);
@@ -2310,7 +2310,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [draft, moveActivityTo, requestItemFocus],
   );
   /**
-   * PRE-6 story 6.2 (D-436, AC3) : « Monter » / « Descendre » d'un Point d'arrêt — vers
+   * PRE-6 story 6.2 (D-441, AC3) : « Monter » / « Descendre » d'un Point d'arrêt — vers
    * l'emplacement autorisé voisin (`stopPointStepTarget`), proposé seulement si `moveStopPoint`
    * l'accepte (non consécutif, libre) ; `null` sinon (action absente).
    */
@@ -2323,7 +2323,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const fromScope = state.stopPoints.find((point) => point.id === stopPointId)?.scope;
       const step = stopPointStepOutcome(state, stopPointId, direction);
       if (step?.status === "CHOICE_REQUIRED") {
-        // Story 7.2 (D-437) : le pas ferait se suivre un début et une fin de Tour — choix demandé.
+        // Story 7.2 (D-442) : le pas ferait se suivre un début et une fin de Tour — choix demandé.
         openTourChoice({ kind: "STOP_POINT_MOVE", stopPointId, location: step.location, fromStep: true });
         return;
       }
@@ -2348,7 +2348,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
-   * PRE-6 story 7.5 (D-437 amendée, recette J6 d-9) : suppression animée — fondu de la carte (et des
+   * PRE-6 story 7.5 (D-442 amendée, recette J6 d-9) : suppression animée — fondu de la carte (et des
    * points retirés), puis glissement de ce qui suit (registre des translations, comme l'aperçu du
    * glisser), puis écriture du brouillon, REJOUÉE sur le brouillon courant. « Réduire les
    * animations », ou une disposition non mesurée : écrite aussitôt.
@@ -2409,7 +2409,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
-   * PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : réponse au dialogue « Début de tour / Fin de
+   * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : réponse au dialogue « Début de tour / Fin de
    * tour » — `choice` : la résolution du Domaine (`resolutions.HEAD` / `.TAIL`) est appliquée, REJOUÉE
    * sur l'état COURANT (sans conflit désormais, l'opération elle-même est appliquée) ; `null`
    * (« Annuler ») : rien ne change — une carte ou un point lâché revient à sa place en douceur, comme
@@ -2577,7 +2577,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // Revue 7.7 : une copie précédente encore en apparition est affichée pleinement.
       finishAppearance();
       /*
-       * PRE-6 story 7.7 (D-438) : la copie apparaît en fondu lent et les éléments suivants glissent
+       * PRE-6 story 7.7 (D-443) : la copie apparaît en fondu lent et les éléments suivants glissent
        * pour lui faire place. Le brouillon est écrit AUSSITÔT (contrairement à la suppression, écrite
        * à la fin) : la copie doit être dans la mise en page pour être affichée, et l'enregistrement,
        * la garde de sortie et les autres actions voient d'emblée le brouillon final. Avant le rendu,
@@ -2599,7 +2599,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         shiftRegistryRef.current?.prepareLayoutCommit(poses, NO_CONTINUATION_EXCEPTIONS);
         setAppearance({ key: railRowKey(newId), opacity: new Animated.Value(0) });
       }
-      // PRE-6 story 6.2 (D-436, arbitrage du 22/10/2026) : la copie n'emporte aucun point.
+      // PRE-6 story 6.2 (D-441, arbitrage du 22/10/2026) : la copie n'emporte aucun point.
       updateDraft({
         ...compositionPatch(state, duplicated),
         // PRE-6 (story 2.3) : la copie reçoit la réserve de Circuit de sa source (Séries).
@@ -2610,7 +2610,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   /**
-   * Suppression d'une occurrence. PRE-6 story 7.5 (D-437 amendée, remplace le refus doux de la story
+   * Suppression d'une occurrence. PRE-6 story 7.5 (D-442 amendée, remplace le refus doux de la story
    * 6.2) : toujours appliquée — les points qu'elle rendrait interdits ou consécutifs sont retirés sans
    * message ; un conflit de Tour ouvre le choix « Début de tour / Fin de tour » (comme le
    * déplacement). Une seule suppression animée à la fois.
@@ -2639,7 +2639,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     [closeCircuitNatureMenu, router],
   );
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
-  // Compte à rebours ni Fin. Story 7.8 (D-438) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
+  // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
   // durée du Circuit n'est plus affichée (en-tête du Circuit).
   const sessionDuration = formatCompositionSessionDuration({
     exercises: durationDraft.exercises,
@@ -2834,7 +2834,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         {/* PRE-6 (story 4.1) : en placement, les bornes sont atténuées et non interactives. */}
         {/* Revue 5.2 : anneau et queue de la borne hors de l'atténuation du placement (opacité
             uniforme du rail), posés sur la rangée. */}
-        {/* Story 7.8 (D-438) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
+        {/* Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
         <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
           <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
             <BoundaryStep
@@ -2969,7 +2969,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
-            // PRE-6 story 7.3 (D-437) : stepper toujours affiché ; chaque pas passe par
+            // PRE-6 story 7.3 (D-442) : stepper toujours affiché ; chaque pas passe par
             // `circuitCountOutcome` (dialogue de Tour, story 7.2).
             onChangeCount={handleCircuitCountChange}
             // PRE-6 (story 3.2) : un seul contrôle ouvert à la fois (CIR-10).
@@ -3129,7 +3129,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
         {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
         <Animated.View
-          // Story 7.8 (D-438) : cadre aligné à droite sur le bord droit des cartes d'Exercice.
+          // Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice.
           style={[styles.boundaryTrailingOutset, { transform: [{ translateY: endShift }] }]}
           testID="composition-boundary-final-phase-track"
         >
@@ -3198,7 +3198,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * consommateur) est supprimé avec elle plutôt que laissé mort.
        */}
       {/*
-       * PRE-6 story 7.10 (D-439, remplace le pied de la story 7.9) : zone d'action principale fixe
+       * PRE-6 story 7.10 (D-444, remplace le pied de la story 7.9) : zone d'action principale fixe
        * et standard — « Continuer » et la barre de placement au même emplacement, au-dessus de la
        * zone de sécurité, sur le dégradé blanc ; aucun saut au changement de mode (même hauteur 48).
        */}
@@ -3246,7 +3246,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * déclenchrice — voir ce composant pour la justification complète.
        */}
       <WheelPickerOverlay visible={openOverlay === "countdown"}>
-        {/* PRE-6 story 7.8 (D-438) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
         <NumberWheelPicker
           value={draft.initialCountdownSeconds}
           targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
@@ -3263,7 +3263,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       </WheelPickerOverlay>
       <WheelPickerOverlay visible={openOverlay === "finalPhase"}>
-        {/* PRE-6 story 7.8 (D-438) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
+        {/* PRE-6 story 7.8 (D-443) : 0..60 s, pas 1 s, secondes seulement — une seule colonne. */}
         <NumberWheelPicker
           value={draft.finalPhaseSeconds}
           targetBounds={SESSION_BOUNDARY_WHEEL_BOUNDS}
@@ -3281,7 +3281,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
       {/*
        * PRE-6 (story 4.1, `8328:28733`) : roulette « Durée de récupération » d'une zone du placement —
-       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14). Story 7.2 (D-437) : ouverte par le
+       * 0..300 s sur la grille 1 / 5 / 30 s (CE-T03-08 §14). Story 7.2 (D-442) : ouverte par le
        * toucher d'une zone NON sélectionnée, sur la durée existante, sinon sur le défaut du Profil une
        * fois résolu. ✓ sélectionne la zone à la durée choisie (0 conservé comme présent, D-323) ; ✕ la
        * laisse telle qu'elle était.
@@ -3310,7 +3310,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         );
       })()}
 
-      {/* PRE-6 story 7.2 (D-437) : choix « Début de tour / Fin de tour » (dialogue natif). */}
+      {/* PRE-6 story 7.2 (D-442) : choix « Début de tour / Fin de tour » (dialogue natif). */}
       {pendingTourChoice !== null ? (
         <TourBoundaryChoiceDialog
           key={tourChoiceToken}
@@ -3365,7 +3365,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             const applied = plan?.status === "PLAN";
             if (plan?.status === "PLAN") {
               updateDraft(plan.patch);
-              // Story 7.2 (D-437) : points retirés par le déplacement tolérant (ou le choix de Tour).
+              // Story 7.2 (D-442) : points retirés par le déplacement tolérant (ou le choix de Tour).
               reportRemovedStopPoints(plan.removedStopPointIds, pendingCircuitEntry.focusKey);
             }
             // Story 2.3b, 7.6 : appliqué → la carte tenue glisse jusqu'à sa place ; sinon, retour.
@@ -3473,7 +3473,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 type ActivityZoneListProps = {
   readonly zone: StructuralPosition;
   readonly testID: string;
-  /** PRE-6 story 6.2 (D-436) : éléments de la zone — occurrences et, hors placement, points. */
+  /** PRE-6 story 6.2 (D-441) : éléments de la zone — occurrences et, hors placement, points. */
   readonly items: readonly ZoneItem[];
   /** Revue 6.2 : toutes les occurrences de la Séance (homonymes dans le nom d'un point). */
   readonly allOccurrences: readonly SessionDraftExercise[];
@@ -3532,9 +3532,9 @@ type PlacementRowContext = {
   readonly slotFor: (occurrenceId: string) => PlacementSlot | null;
   /** Story 6.3 : point d'arrêt rendu pour un emplacement (existant ou à ajouter), `null` sans point. */
   readonly rowPointOf: (stopPoint: PlacementStopPointSlot | null) => PlacementStopPointRowPoint | null;
-  /** Story 7.2 (D-437) : emplacement libre (ou ajouté) de tête de Circuit, `null` s'il n'est pas dessiné. */
+  /** Story 7.2 (D-442) : emplacement libre (ou ajouté) de tête de Circuit, `null` s'il n'est pas dessiné. */
   readonly circuitHeadRowPoint: PlacementStopPointRowPoint | null;
-  /** Story 7.2 (D-437) : toucher d'une zone de récupération (désélection, ou roulette). */
+  /** Story 7.2 (D-442) : toucher d'une zone de récupération (désélection, ou roulette). */
   readonly onPressRecovery: (occurrenceId: string) => void;
   /** Emplacement libre ou ajouté : bascule de l'ajout. */
   readonly onToggleStopPoint: (location: StopPointLocation) => void;
@@ -3578,7 +3578,7 @@ function placementLabelerOf(
         exercises,
       );
       if (anchor !== null) return t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
-      // Story 7.2 (D-437) : tête de Circuit (début de Tour) ; sinon « après le circuit ».
+      // Story 7.2 (D-442) : tête de Circuit (début de Tour) ; sinon « après le circuit ».
       return location.scope === "IN_TOUR" ? t.addStopPointAtCircuitStartAccessibilityLabel : t.addStopPointAfterCircuitAccessibilityLabel;
     },
   };
@@ -3586,7 +3586,7 @@ function placementLabelerOf(
 
 /**
  * Revue 6.3 : ce que le placement offre — un ajout, ou le retrait d'un point existant identifié.
- * Story 7.2 (D-437) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre) ; une
+ * Story 7.2 (D-442) : l'emplacement de tête de Circuit est dessiné (un ajout comme un autre) ; une
  * récupération existante (0 comprise) se modifie et se retire en placement, seul chemin de son
  * réglage : elle suffit à l'ouvrir.
  */
@@ -3614,7 +3614,7 @@ type PlacementRowEnvironment = {
 };
 
 /**
- * PRE-6 story 6.3 (D-436, R3) : point d'arrêt rendu pour l'emplacement `stopPoint` en placement ;
+ * PRE-6 story 6.3 (D-441, R3) : point d'arrêt rendu pour l'emplacement `stopPoint` en placement ;
  * `null` sans point. Revue 6.3 :
  * - existant : visé par son identifiant (un point sans identifiant, jamais dans un brouillon, n'est
  *   pas rendu) ; `blocked` si son retrait est programmé et que le Domaine en refuserait l'annulation ;
@@ -3634,7 +3634,7 @@ function placementRowPointOf(
   }
   const id = stopPoint.stopPointId;
   if (id === undefined) return null;
-  // Story 7.2 (D-437) : une resélection qui demande un choix de Tour n'est pas bloquée (dialogue).
+  // Story 7.2 (D-442) : une resélection qui demande un choix de Tour n'est pas bloquée (dialogue).
   const blocked =
     isPlacementStopPointRemoved(env.placement, id) &&
     togglePlacementStopPointRemoval(env.placement, id, env.context) === env.placement &&
@@ -3798,9 +3798,9 @@ function ActivityZoneList({
     >
       {items.map((item, itemIndex) => {
         if (item.kind === "STOP_POINT" && placement !== null) {
-          // PRE-6 story 6.3 (D-436, R3) : en placement, seul un point non proposé est une rangée
+          // PRE-6 story 6.3 (D-441, R3) : en placement, seul un point non proposé est une rangée
           // autonome — puce de placement sélectionnée, désélectionnable, sans glisser.
-          // Story 7.2 (D-437) : l'emplacement libre de tête de Circuit est une rangée de même nature.
+          // Story 7.2 (D-442) : l'emplacement libre de tête de Circuit est une rangée de même nature.
           const key = railStopKey(item.point.id);
           const isCircuitHeadSlot = item.point.id === CIRCUIT_HEAD_SLOT_ID;
           const rowPoint = isCircuitHeadSlot
@@ -3824,7 +3824,7 @@ function ActivityZoneList({
           );
         }
         if (item.kind === "STOP_POINT") {
-          // PRE-6 story 6.2 (D-436) : rangée autonome du Point d'arrêt, sœur des cartes.
+          // PRE-6 story 6.2 (D-441) : rangée autonome du Point d'arrêt, sœur des cartes.
           const key = railStopKey(item.point.id);
           return (
             <StopPointRow
@@ -3927,7 +3927,7 @@ type StopPointRowProps = {
 type StopPointAccessibilityActionName = "moveUp" | "moveDown";
 
 /**
- * PRE-6 story 6.2 (D-436, R2, CE-T03-08) : rangée AUTONOME d'un Point d'arrêt hors placement, sœur
+ * PRE-6 story 6.2 (D-441, R2, CE-T03-08) : rangée AUTONOME d'un Point d'arrêt hors placement, sœur
  * des cartes dans la liste de sa zone, entre les cartes selon `{scope, position}` (séquence mêlée).
  * Rendu de la story 5.2 inchangé : rangée de 22, puce centrée, écart de la zone au-dessus et
  * au-dessous (celui de la liste) ; nœud du rail (`railStopKey`) — lien vers l'élément précédent
@@ -3936,7 +3936,7 @@ type StopPointAccessibilityActionName = "moveUp" | "moveDown";
  * Geste : l'appui long sur la puce la soulève ; elle suit alors le doigt (translation locale, comme
  * la carte), ses voisines se décalent (aperçu 2.3b), et le dépôt passe par `moveStopPoint` ; refus
  * : retour animé (5.2b). Aucun balayage ; un toucher court ne fait rien hors placement. Le
- * soulèvement ne change ni la taille ni la mise en page de la rangée ; story 7.2 (D-437) : la puce
+ * soulèvement ne change ni la taille ni la mise en page de la rangée ; story 7.2 (D-442) : la puce
  * saisie est marquée soulevée (`StopPointChip.lifted`, style sélectionné et ombre de la carte
  * soulevée — NON VÉRIFIABLE, Figma n'en donne pas pour la puce). Accessibilité : « Monter » / « Descendre »
  * vers l'emplacement autorisé voisin, proposées seulement si le déplacement serait accepté.
@@ -4133,7 +4133,7 @@ function StopPointRow({
         onAccessibilityAction={(name) => actionHandlers[name as StopPointAccessibilityActionName]?.()}
         onLongPress={handleLongPress}
         translateY={isDragged ? dragTranslationY : 0}
-        // Story 7.2 (D-437) : point saisi marqué soulevé, comme une carte.
+        // Story 7.2 (D-442) : point saisi marqué soulevé, comme une carte.
         lifted={isDragged}
         chipRef={chipRef}
         testID={`composition-stop-point-${point.id}`}
@@ -4155,9 +4155,9 @@ type PlacementStopPointItemRowProps = {
 };
 
 /**
- * PRE-6 story 6.3 (D-436, R3) : en placement, rangée autonome d'un point existant qu'aucun
+ * PRE-6 story 6.3 (D-441, R3) : en placement, rangée autonome d'un point existant qu'aucun
  * emplacement ne porte (`UNOFFERED_STOP_POINT` : hors bornes…) ou en tête de Circuit, à sa place dans
- * la séquence mêlée. Story 7.2 (D-437) : aussi l'emplacement LIBRE de tête de Circuit, entre l'en-tête
+ * la séquence mêlée. Story 7.2 (D-442) : aussi l'emplacement LIBRE de tête de Circuit, entre l'en-tête
  * du Circuit et sa première carte. Même rangée de 22 et même puce que les emplacements (`PlacementStopPointRow`,
  * sélectionnée, désélectionnable) ; nœud du rail (lien vers l'élément précédent, queue sur toute sa
  * hauteur), sans point de raccord, comme les rangées du placement (story 5.3). Aucun glisser.
@@ -4263,7 +4263,7 @@ type CompositionActivityRowProps = {
 };
 
 /**
- * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 7.2 (D-437) :
+ * Noms des actions accessibles d'une carte d'occurrence (CE-T03-08 §18). PRE-6 story 7.2 (D-442) :
  * plus d'actions propres à la récupération (« Modifier » / « Retirer la récupération », story 5.1) —
  * elle se règle seulement en placement.
  */
@@ -4283,7 +4283,7 @@ const SWIPE_REVEAL_OFFSET =
   dimensions.compositionSwipeActions.groupWidth + dimensions.compositionTourSection.inset;
 
 /**
- * PRE-6 story 7.7 (D-438) : la carte d'occurrence reste le même `Pressable` (mécanisme de geste
+ * PRE-6 story 7.7 (D-443) : la carte d'occurrence reste le même `Pressable` (mécanisme de geste
  * inchangé) ; seule sa translation horizontale devient une valeur animée, pour que l'ouverture, la
  * fermeture et le retour des actions glissées se terminent en douceur (pilote natif).
  */
@@ -4489,7 +4489,7 @@ function CompositionActivityRow({
     areActionsRevealed ? -SWIPE_REVEAL_OFFSET : 0,
   );
   /**
-   * PRE-6 story 7.7 (D-438, j6c-4 : « pas d'arrêt brutal ») : translation horizontale AFFICHÉE de la
+   * PRE-6 story 7.7 (D-443, j6c-4 : « pas d'arrêt brutal ») : translation horizontale AFFICHÉE de la
    * carte — elle suit le doigt pendant le balayage (`setValue`) puis rejoint la position de repos
    * (ouverte ou fermée) par le mouvement partagé (`compositionMotion.ts`, décélération), au lieu d'y
    * être posée d'un coup. `swipeTranslateX` reste la position LOGIQUE (seuils, actions révélées).
@@ -4805,7 +4805,7 @@ function CompositionActivityRow({
   const blockHeight = blockHeightFor(isDragged);
   /**
    * PRE-6 (story 5.1) : récupération affichée en ligne 3 — hors placement, celle du brouillon ; en
-   * placement (story 7.2, D-437), la durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout,
+   * placement (story 7.2, D-442), la durée SÉLECTIONNÉE de la zone (`placementRecoverySeconds` : ajout,
    * ou existante modifiée ou non, sauf retrait programmé), pour ne jamais contredire le cadre.
    */
   const displayedRecoverySeconds =
@@ -4822,7 +4822,7 @@ function CompositionActivityRow({
   const placementRecovery = placementSlot?.recovery ?? null;
   const placementStopPoint = placementSlot?.stopPoint ?? null;
   /**
-   * Ligne 3 de la carte. PRE-6 story 7.2 (D-437) : en placement, toute zone de récupération d'un
+   * Ligne 3 de la carte. PRE-6 story 7.2 (D-442) : en placement, toute zone de récupération d'un
    * Exercice est le cadre sélectionnable (`PlacementRecoveryFrame` : sélectionnée — ajout, ou
    * récupération existante, 0 comprise, conservée — ou non) ; hors placement, la récupération est un
    * simple affichage (`OccurrenceRecovery`) : le toucher et l'appui long reviennent à la carte.
@@ -4850,9 +4850,9 @@ function CompositionActivityRow({
     );
   }
   /**
-   * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-436) : hors
+   * Rangée sous la carte, en placement seulement (story 5.3). PRE-6 story 6.2 (D-441) : hors
    * placement, le Point d'arrêt n'est plus dans le bloc de la carte (rangée autonome `StopPointRow`).
-   * Story 6.3 (D-436, R3) : un point existant sur l'emplacement de la carte (même devenu interdit)
+   * Story 6.3 (D-441, R3) : un point existant sur l'emplacement de la carte (même devenu interdit)
    * est rendu sélectionné, désélectionnable ; sinon, la puce à ajouter si l'emplacement en offre une.
    */
   const placementRowPoint: PlacementStopPointRowPoint | null =
@@ -5048,7 +5048,7 @@ function CompositionActivityRow({
          * portée par ce `Pressable` : à l’état soulevé (CE-T02-02), son fond remplace le blanc
          * derrière le contenu, sans opacité appliquée aux textes.
          *
-         * Récupération en ligne 3 : story 7.2 (D-437) — hors placement, simple affichage (le toucher
+         * Récupération en ligne 3 : story 7.2 (D-442) — hors placement, simple affichage (le toucher
          * ouvre l’Exercice, l’appui long saisit la carte) ; en placement (story 5.3), cadre
          * sélectionnable ; le reste de la carte est inactif (story 4.1).
          */}
@@ -5118,7 +5118,7 @@ function CompositionActivityRow({
 
       {/*
        * Rangée sous l'occurrence, en placement seulement (story 5.3) : emplacement de point d'arrêt
-       * à l'écart de la zone sous la carte (`slotGap`). PRE-6 story 6.2 (D-436) : hors placement,
+       * à l'écart de la zone sous la carte (`slotGap`). PRE-6 story 6.2 (D-441) : hors placement,
        * le Point d'arrêt est une rangée autonome de la séquence (`StopPointRow`), hors du bloc.
        */}
       {hasRowBelow ? (
@@ -5549,7 +5549,7 @@ export function predictedInsertionHeight(
  */
 const CIRCUIT_SURFACE_SEAM_OVERLAP = 2;
 
-/** Story 7.8 (D-438) : bornes de la roulette du Compte à rebours et de la Fin de séance. */
+/** Story 7.8 (D-443) : bornes de la roulette du Compte à rebours et de la Fin de séance. */
 const SESSION_BOUNDARY_WHEEL_BOUNDS = { min: 0, max: SESSION_BOUNDARY_SECONDS_MAX } as const;
 
 /** Revue 7.7 : continuation de tous les éléments en mouvement (copie de Dupliquer). */
@@ -5722,7 +5722,7 @@ const styles = StyleSheet.create({
   activityRowContainerDragged: {
     zIndex: 1,
   },
-  // PRE-6 story 7.8 (D-438) : Compte à rebours et Fin de séance débordent de la colonne de la
+  // PRE-6 story 7.8 (D-443) : Compte à rebours et Fin de séance débordent de la colonne de la
   // séquence comme les cartes (8 à droite), pour que leur cadre s'aligne sur le bord droit des cartes.
   boundaryTrailingOutset: {
     marginRight: -CARD_OUTSET,

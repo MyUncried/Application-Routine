@@ -261,7 +261,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(onFinish).not.toHaveBeenCalled();
   });
 
-  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, dans la zone d'action fixe au-dessus de la zone de sécurité (D-439, story 7.10) ; description sans hauteur figée", () => {
+  it("P3-02/keyboard-scroll — corps défilant avec clavier ; Terminer hors du défilement, dans la zone d'action fixe au-dessus de la zone de sécurité (D-444, story 7.10) ; description sans hauteur figée", () => {
     render(<Harness />);
     expect(screen.getByTestId("exercise-body").props.keyboardShouldPersistTaps).toBe("handled");
     // PRE-5 story 3.1 : étapes sans contenant ni hauteur figée (la cible tactile d'une ligne
@@ -270,7 +270,7 @@ describe("ActivityEditorForm — PRE-3", () => {
     expect(instruction.height).toBeUndefined();
     expect(instruction.maxHeight).toBeUndefined();
     const slot = StyleSheet.flatten(screen.getByTestId("test-finish-slot").props.style);
-    // PRE-6 story 7.10 (D-439, remplace « 24 du bas » de PRE-5 3.2). Correctif J6f (D-439) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
+    // PRE-6 story 7.10 (D-444, remplace « 24 du bas » de PRE-5 3.2). Correctif J6f (D-444) : bouton centré dans la zone protégée — 33 au-dessus et au-dessous avec l'encart de test 34 (zone 114).
     expect(slot).toMatchObject({ position: "absolute", bottom: 0, paddingTop: 33, paddingBottom: 33 });
     expect(within(screen.getByTestId("exercise-body")).queryByTestId("test-finish-action")).toBeNull();
   });
@@ -1032,7 +1032,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         // Centre du halo comparé au padding réellement reçu par `FixedHeader` : `ExerciseScreen.test.tsx`, `PRE4-4.2/AC4 AC5`.
         // PRE-5 3.2, arbitrage G-2 (à la place de D-327 pour cet écran) : 14 du bas du dégradé à
         // la première section ; 10 titre → contenu ; 16 entre sections ; 12 dernier bloc → Terminer.
-        // PRE-6 story 7.10 (D-439) : réserve de défilement = zone d'action fixe (24 + 48 + 34 + 8).
+        // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe (24 + 48 + 34 + 8).
         expect(content).toMatchObject({ paddingTop: 14, paddingBottom: finalActionZoneHeight(34) });
         expect(content.gap).toBeUndefined();
         expect(style("exercise-section-description")).toMatchObject({ gap: 10 });
@@ -1044,7 +1044,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
         for (const testID of ["exercise-section-description", "exercise-section-parameters", "activity-editor-section-media", "test-finish-action"]) {
           expect(style(testID).position === "absolute").toBe(false);
         }
-        // PRE-6 story 7.10 (D-439) : seule la zone d'action est en absolu, fixe au bas de l'écran.
+        // PRE-6 story 7.10 (D-444) : seule la zone d'action est en absolu, fixe au bas de l'écran.
         expect(style("test-finish-slot")).toMatchObject({ position: "absolute", bottom: 0 });
       } finally {
         view.restore();
@@ -2015,9 +2015,9 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     expect(card.borderColor).toBeUndefined();
   });
 
-  // PRE-6 story 7.10 (D-439, remplace « 24 du bord de l'écran » et la réserve de 12 de PRE-5 3.2) :
+  // PRE-6 story 7.10 (D-444, remplace « 24 du bord de l'écran » et la réserve de 12 de PRE-5 3.2) :
   // zone protégée de 24 + 48 + encart + 8 (16 sans encart) ; réserve = hauteur de la zone.
-  // Correctif J6f (D-439) : zone de 114 (encart 34) ou 88 (sans encart), bouton centré (33 / 20).
+  // Correctif J6f (D-444) : zone de 114 (encart 34) ou 88 (sans encart), bouton centré (33 / 20).
   it("AC2, story 7.10 (correctif J6f) — `Terminer` centré dans la zone : 33 au-dessus et au-dessous avec `insets.bottom` 34, 20 sans encart ; hors du `KeyboardAvoidingView` ; réserve de défilement = hauteur de la zone (114 / 88)", () => {
     for (const [bottom, padding, zone] of [[34, 33, 114], [0, 20, 88]] as const) {
       const view = render(<Harness safeAreaBottom={bottom} />);

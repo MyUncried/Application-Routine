@@ -166,8 +166,8 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     expect(expandComposition({ ...input, circuitNature: "TOURS" }).map(label)).toEqual(["W", "P:h", "A", "P:h", "A"]);
   });
 
-  // PRE-6 story 7.1 (D-437) : début et fin de Tour en ouverture ou clôture de Séance, conflit hérité.
-  it("D-437 — Circuit seul, N = 3 : le début de Tour n'est pas joué après le compte à rebours, la fin pas avant la Fin", () => {
+  // PRE-6 story 7.1 (D-442) : début et fin de Tour en ouverture ou clôture de Séance, conflit hérité.
+  it("D-442 — Circuit seul, N = 3 : le début de Tour n'est pas joué après le compte à rebours, la fin pas avant la Fin", () => {
     const exercises = [occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR")];
     const head = expandComposition({ exercises, stopPoints: [{ id: "h", scope: "IN_TOUR", position: 0 }], tourRepeatCount: 3 });
     expect(head.map(label)).toEqual(["A", "B", "P:h", "A", "B", "P:h", "A", "B"]);
@@ -175,7 +175,7 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     expect(tail.map(label)).toEqual(["A", "B", "P:t", "A", "B", "P:t", "A", "B"]);
   });
 
-  it("D-437 — conflit de Tour hérité (début et fin, N ≥ 2) : un seul arrêt entre deux Tours, jamais en tête ni en fin", () => {
+  it("D-442 — conflit de Tour hérité (début et fin, N ≥ 2) : un seul arrêt entre deux Tours, jamais en tête ni en fin", () => {
     const steps = expandComposition({
       exercises: [occurrence("A", "IN_TOUR"), occurrence("B", "IN_TOUR")],
       stopPoints: [
@@ -200,7 +200,7 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     expect(opened.map(label)).toEqual(["W", "P:h", "A1", "B1", "P:t", "A2", "B2"]);
   });
 
-  it("D-437 — Séries, Circuit seul, N = 3, début et fin de Tour : ni en tête, ni en fin, jamais deux arrêts de suite", () => {
+  it("D-442 — Séries, Circuit seul, N = 3, début et fin de Tour : ni en tête, ni en fin, jamais deux arrêts de suite", () => {
     const steps = expandComposition({
       exercises: [occurrence("A", "IN_TOUR", 3), occurrence("B", "IN_TOUR", 3)],
       stopPoints: [
@@ -259,7 +259,7 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     expect(steps.map(label)).toEqual(["W", "P:h", "A1"]);
   });
 
-  // PRE-6 story 6.1 (D-436, RM-251, arbitrage du 22/10/2026).
+  // PRE-6 story 6.1 (D-441, RM-251, arbitrage du 22/10/2026).
   it("Séries partielles : dernier exercice sans série au passage N, points avant et après → un seul point", () => {
     const steps = expandComposition({
       exercises: [occurrence("A", "IN_TOUR", 2), occurrence("B", "IN_TOUR", 1), occurrence("Z", "AFTER_TOUR")],
@@ -273,7 +273,7 @@ describe("expandComposition (PRE-6, AD-40)", () => {
     expect(steps.map(label)).toEqual(["A1", "P:p", "B1", "P:q", "A2", "P:p", "Z"]);
   });
 
-  it("D-436 : un point est produit à sa place même si l'occurrence qui le précède ne joue pas", () => {
+  it("D-441 : un point est produit à sa place même si l'occurrence qui le précède ne joue pas", () => {
     const steps = expandComposition({
       exercises: [occurrence("A", "IN_TOUR", 1), occurrence("B", "IN_TOUR", 2), occurrence("Z", "AFTER_TOUR")],
       stopPoints: [{ id: "p", scope: "IN_TOUR", position: 1 }],
@@ -492,7 +492,7 @@ describe("circuit — compte et réserve (PRE-6, story 1.4, AD-38)", () => {
     expect(setCircuitCount(draft, 2)).toBe(draft);
   });
 
-  describe("story 7.1 (D-437) : N et Points d'arrêt de début et de fin de Tour", () => {
+  describe("story 7.1 (D-442) : N et Points d'arrêt de début et de fin de Tour", () => {
     const circuitOnly = () => [exercise("A", durationParameters(30, 2)), exercise("B", durationParameters(30, 2))];
     const head = { id: "h", scope: "IN_TOUR" as const, position: 0 };
     const tail = { id: "t", scope: "IN_TOUR" as const, position: 2 };

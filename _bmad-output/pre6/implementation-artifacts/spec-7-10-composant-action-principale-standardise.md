@@ -1,5 +1,5 @@
 ---
-title: 'Story 7.10 — Composant d’action principal standardisé (D-439)'
+title: 'Story 7.10 — Composant d’action principal standardisé (D-444)'
 type: 'feature'
 created: '2026-10-23'
 status: 'review'
@@ -17,14 +17,14 @@ context:
 
 ## Intent
 
-**Problem:** Demande de Hermann du 23/10/2026 (D-439). A) Bouton d'action principal au format unique sur tous les écrans, référence « Terminer » (dimensions, positionnement, marges latérales, typographie, couleurs, arrondis, ombre) ; seuls libellé, état et action varient ; bouton fixe en bas, indépendant du défilement ; marge de sécurité au-dessus ; le contenu défilant s'arrête avant la zone protégée ; dégradé vertical blanc 0 % en haut → 100 % en bas, pleine largeur, englobant la marge supérieure et la zone autour du bouton ; composant réutilisable. B) Barre ✓ / Annuler : Safe Area inférieure iOS intégralement respectée, sans chevaucher le geste d'accueil ; même positionnement vertical que les autres barres, sans saut au changement de mode ; composant et marges standardisés.
+**Problem:** Demande de Hermann du 23/10/2026 (D-444). A) Bouton d'action principal au format unique sur tous les écrans, référence « Terminer » (dimensions, positionnement, marges latérales, typographie, couleurs, arrondis, ombre) ; seuls libellé, état et action varient ; bouton fixe en bas, indépendant du défilement ; marge de sécurité au-dessus ; le contenu défilant s'arrête avant la zone protégée ; dégradé vertical blanc 0 % en haut → 100 % en bas, pleine largeur, englobant la marge supérieure et la zone autour du bouton ; composant réutilisable. B) Barre ✓ / Annuler : Safe Area inférieure iOS intégralement respectée, sans chevaucher le geste d'accueil ; même positionnement vertical que les autres barres, sans saut au changement de mode ; composant et marges standardisés.
 
-**Approach:** D-439, interprétation retenue (réversible) : la zone de sécurité vaut aussi pour le bouton principal, « Terminer » compris — position de référence = bas de la zone de sécurité + marge standard. Un composant partagé (`PrimaryActionZone`, `PrimaryActionButton`) et une source unique de valeurs (`finalAction.ts`), appliqués à chaque écran doté d'un bouton d'action principal.
+**Approach:** D-444, interprétation retenue (réversible) : la zone de sécurité vaut aussi pour le bouton principal, « Terminer » compris — position de référence = bas de la zone de sécurité + marge standard. Un composant partagé (`PrimaryActionZone`, `PrimaryActionButton`) et une source unique de valeurs (`finalAction.ts`), appliqués à chaque écran doté d'un bouton d'action principal.
 
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-439 (ch07, commit `8948d213`) ; epics.md « Story 7.10 » AC1 à AC4.
+- Sources : D-444 (ch07, commit `8948d213`) ; epics.md « Story 7.10 » AC1 à AC4.
 - Comportements, libellés et actions des boutons inchangés ; accessibilité inchangée.
 - Dégradé par une primitive de la plateforme ou de l'écosystème Expo SDK 57.
 
@@ -92,7 +92,7 @@ context:
 **Clavier.** iOS : zone sous le clavier, visible à sa fermeture (D-349 conservé ; Éditeur : hors du `KeyboardAvoidingView`). Android : la fenêtre se redimensionne et la zone remonterait sur le champ actif — elle est masquée tant que le clavier est ouvert. Profil : « Enregistrer », jusque-là au bout du contenu, est désormais fixe — caché par le clavier pendant la saisie du nom, visible à sa fermeture.
 
 **Choix non dictés (à valider en J6f)**
-1. Interprétation D-439 : « Terminer » aussi remonte au-dessus de la zone de sécurité (42 du bord sur iPhone au lieu de 24).
+1. Interprétation D-444 : « Terminer » aussi remonte au-dessus de la zone de sécurité (42 du bord sur iPhone au lieu de 24).
 2. Marge basse 8 au-dessus de l'encart, 16 sans encart ; marge de sécurité (fondu) 24.
 3. Primitive `experimental_backgroundImage` plutôt qu'`expo-linear-gradient`.
 4. Sélection d'Exercices : Annuler garde son style neutre (gris) à la hauteur 48, sans ombre ; « Ajouter » prend le format `Terminer`.
@@ -103,7 +103,7 @@ context:
 
 ## Spec Change Log
 
-**Correctif J6f (23/10/2026)** — Hermann, verbatim : « le bouton d'action est trop haut, priorité à l'espace accordé à l'écran. Conserver la hauteur de la zone protégée mais recentrer verticalement le bouton dans cette zone. » D-439 mise à jour (« Position verticale », commit `b4d5728a`). Hauteur de la zone inchangée (`finalActionZoneHeight` : 24 + contenu + encart + 8, ou + 16 sans encart ; iPhone 114, sans encart 88), donc réserve de défilement et bande du défilement automatique inchangées. Contenu centré : `finalActionVerticalPadding` = (24 + marge basse de référence) / 2 au-dessus et au-dessous — iPhone 33 (bas du bouton à 33 du bord : 1 point dans l'encart de 34, accepté par Hermann, priorité à l'espace), sans encart 20, Android : le bas ne descend jamais sous l'encart (barre de navigation à boutons, encart 48 : centré, le bouton couvrirait 8 points de la barre — 32 au-dessus, 48 au-dessous, `finalActionContentPadding`). Même règle pour la barre ✓ / Annuler (même zone). Remplace, dans « Valeurs » ci-dessous, la position « encart + 8 » du bouton.
+**Correctif J6f (23/10/2026)** — Hermann, verbatim : « le bouton d'action est trop haut, priorité à l'espace accordé à l'écran. Conserver la hauteur de la zone protégée mais recentrer verticalement le bouton dans cette zone. » D-444 mise à jour (« Position verticale », commit `b4d5728a`). Hauteur de la zone inchangée (`finalActionZoneHeight` : 24 + contenu + encart + 8, ou + 16 sans encart ; iPhone 114, sans encart 88), donc réserve de défilement et bande du défilement automatique inchangées. Contenu centré : `finalActionVerticalPadding` = (24 + marge basse de référence) / 2 au-dessus et au-dessous — iPhone 33 (bas du bouton à 33 du bord : 1 point dans l'encart de 34, accepté par Hermann, priorité à l'espace), sans encart 20, Android : le bas ne descend jamais sous l'encart (barre de navigation à boutons, encart 48 : centré, le bouton couvrirait 8 points de la barre — 32 au-dessus, 48 au-dessous, `finalActionContentPadding`). Même règle pour la barre ✓ / Annuler (même zone). Remplace, dans « Valeurs » ci-dessous, la position « encart + 8 » du bouton.
 
 ## Review Triage Log
 

@@ -244,7 +244,7 @@ export function createEmptyDraft(defaults: SessionDraftDefaults = {}): SessionDr
     sourceSessionId: null,
     name: "",
     labelId: null,
-    // PRE-6 story 7.8 (D-438) : un défaut du Profil hérité au-delà de 60 s (D-265 le conserve) est
+    // PRE-6 story 7.8 (D-443) : un défaut du Profil hérité au-delà de 60 s (D-265 le conserve) est
     // ramené à 60 s dans la Séance créée.
     initialCountdownSeconds: clampSessionBoundarySeconds(defaults.initialCountdownSeconds ?? DEFAULT_INITIAL_COUNTDOWN_SECONDS),
     finalPhaseSeconds: clampSessionBoundarySeconds(defaults.finalPhaseSeconds ?? DEFAULT_FINAL_PHASE_SECONDS),
@@ -319,7 +319,7 @@ export function toSessionDraft(session: Session): SessionDraft {
     sourceSessionId: session.id,
     name: session.name,
     labelId: session.labelId ?? null,
-    // PRE-6 story 7.8 (D-438) : une valeur héritée au-delà de 60 s est relue à 60 s — brouillon
+    // PRE-6 story 7.8 (D-443) : une valeur héritée au-delà de 60 s est relue à 60 s — brouillon
     // et base de comparaison partagent cette lecture (la Séance n'est pas marquée modifiée) ; elle
     // est réenregistrée à 60 s au prochain enregistrement.
     initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),

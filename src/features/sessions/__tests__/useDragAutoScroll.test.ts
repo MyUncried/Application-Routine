@@ -8,7 +8,7 @@ import {
 } from "@/features/sessions/compositionGesture";
 import { DragAutoScrollController } from "@/features/sessions/useDragAutoScroll";
 
-/** PRE-6 story 7.4 (D-437, commentaire 3) : défilement automatique pendant le glisser. */
+/** PRE-6 story 7.4 (D-442, commentaire 3) : défilement automatique pendant le glisser. */
 describe("autoScrollVelocity / clampScrollOffset (story 7.4)", () => {
   const viewport = { top: 100, height: 400 };
 

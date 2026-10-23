@@ -15,7 +15,7 @@ import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/
 import { colors } from "@/shared/ui/tokens";
 
 /**
- * PRE-6 story 7.10 (D-439) : zone d'action principale fixe et bouton au format `Terminer`.
+ * PRE-6 story 7.10 (D-444) : zone d'action principale fixe et bouton au format `Terminer`.
  */
 function withInsets(bottom: number, width: number, children: React.ReactNode) {
   return (
@@ -41,7 +41,7 @@ function Probe({ onPress, disabled = false }: { onPress: () => void; disabled?: 
 
 const style = (testID: string) => StyleSheet.flatten(screen.getByTestId(testID).props.style);
 
-describe("finalAction — règles de la zone (D-439)", () => {
+describe("finalAction — règles de la zone (D-444)", () => {
   it("bottom margin: inset + 8 when a safe area exists, 16 otherwise", () => {
     expect(finalActionBottomMargin(34)).toBe(42);
     expect(finalActionBottomMargin(21)).toBe(29);
@@ -55,7 +55,7 @@ describe("finalAction — règles de la zone (D-439)", () => {
     for (const inset of [0, 21, 34, 48]) {
       expect(2 * finalActionVerticalPadding(inset) + 48).toBe(finalActionZoneHeight(inset));
     }
-    // iPhone : bas du bouton à 33 du bord, 1 point dans l'encart de 34 (accepté, D-439).
+    // iPhone : bas du bouton à 33 du bord, 1 point dans l'encart de 34 (accepté, D-444).
     expect(34 - finalActionVerticalPadding(34)).toBe(1);
     expect(finalActionContentPadding("ios", 34)).toEqual({ top: 33, bottom: 33 });
     expect(finalActionContentPadding("ios", 0)).toEqual({ top: 20, bottom: 20 });

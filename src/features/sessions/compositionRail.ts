@@ -17,7 +17,7 @@
  *   s'étire ou se rétracte de la différence entre les deux translations (`shift - prevShift`),
  *   portée par transformations sur le pilote natif.
  *
- * Story 6.2 (D-436) : la rangée autonome d'un Point d'arrêt est un nœud de la chaîne (`stop`) :
+ * Story 6.2 (D-441) : la rangée autonome d'un Point d'arrêt est un nœud de la chaîne (`stop`) :
  * écart de sa zone au-dessus, ancre au haut de la rangée (lien jusqu'au bord bas de l'élément
  * précédent), queue sur toute sa hauteur, point de raccord en son centre.
  *
@@ -60,7 +60,7 @@ export type RailLink = {
 
 /**
  * Élément d'une zone dans l'ordre affiché : une occurrence (son identifiant) ou, PRE-6 story 6.2
- * (D-436), la rangée autonome d'un Point d'arrêt (`{ stopPointId }`).
+ * (D-441), la rangée autonome d'un Point d'arrêt (`{ stopPointId }`).
  */
 export type RailChainItem = string | { readonly stopPointId: string };
 

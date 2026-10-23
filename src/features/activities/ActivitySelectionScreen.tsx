@@ -251,7 +251,7 @@ export function ActivitySelectionScreen() {
                 categoriesReferential={categoriesReferential}
               />
             )}
-            // PRE-6 story 7.10 (D-439) : réserve de défilement = zone d'action fixe.
+            // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe.
             contentContainerStyle={[styles.list, { paddingBottom: actionZone.scrollReserve }]}
             scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
             testID="activity-selection-list"
@@ -259,7 +259,7 @@ export function ActivitySelectionScreen() {
         ) : null}
       </View>
 
-      {/* PRE-6 story 7.10 (D-439) : barre Annuler / Ajouter dans la zone d'action principale fixe
+      {/* PRE-6 story 7.10 (D-444) : barre Annuler / Ajouter dans la zone d'action principale fixe
           (zone protégée, bouton centré, dégradé) ; « Ajouter » au format `Terminer`. */}
       <PrimaryActionZone
         onContentHeightChange={actionZone.onContentHeightChange}

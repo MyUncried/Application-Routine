@@ -3,13 +3,13 @@ import type { ViewStyle } from "react-native";
 import { colors, dimensions, spacing } from "@/shared/ui/tokens";
 
 /**
- * Bouton d'action principal et sa zone fixe — SOURCE UNIQUE (D-439, PRE-6 story 7.10).
+ * Bouton d'action principal et sa zone fixe — SOURCE UNIQUE (D-444, PRE-6 story 7.10).
  *
  * Historique : PRE-6 story 7.9 avait déplacé ici, sans changement, les valeurs de `Terminer` de
  * l'Éditeur d'Exercice (PRE-5 story 3.2, FR-37, arbitrages G-8 et G-10 de Hermann du 19/10,
  * Figma `8328:35738`) pour « Continuer » de la Composition.
  *
- * D-439 (Hermann, 23/10/2026) : format unique sur tous les écrans dotés d'un bouton d'action
+ * D-444 (Hermann, 23/10/2026) : format unique sur tous les écrans dotés d'un bouton d'action
  * principal, référence `Terminer` (dimensions, marges latérales, typographie, couleurs, arrondis,
  * ombre) ; zone fixe en bas, indépendante du défilement, avec une marge de sécurité au-dessus et un
  * dégradé blanc 0 → 100 % pleine largeur ; bouton et barres de mode AU-DESSUS de la zone de
@@ -53,7 +53,7 @@ export function finalActionSideMargin(windowWidth: number): number {
 export const FINAL_ACTION_SHADOW = { color: "#1A1A26", opacity: 0.18, offsetY: 2, radius: 10, elevation: 3 } as const;
 
 /**
- * Part basse de la HAUTEUR de la zone protégée (D-439) : encart bas + 8 quand il existe, 16 sinon
+ * Part basse de la HAUTEUR de la zone protégée (D-444) : encart bas + 8 quand il existe, 16 sinon
  * (iPhone : 42 ; sans encart : 16). Depuis le correctif J6f, elle ne fixe plus la position du
  * bouton (voir `finalActionVerticalPadding`).
  */
@@ -72,7 +72,7 @@ export function finalActionZoneHeight(bottomInset: number, contentHeight: number
 }
 
 /**
- * PRE-6 story 7.10, correctif J6f (D-439 « Position verticale », Hermann : « le bouton d'action est
+ * PRE-6 story 7.10, correctif J6f (D-444 « Position verticale », Hermann : « le bouton d'action est
  * trop haut, priorité à l'espace accordé à l'écran. Conserver la hauteur de la zone protégée mais
  * recentrer verticalement le bouton dans cette zone ») : marge au-dessus = marge au-dessous du
  * contenu = (24 + marge basse de référence) / 2, ce qui garde la hauteur de la zone et centre le
@@ -113,7 +113,7 @@ export const FINAL_ACTION_BUTTON: ViewStyle = {
 };
 
 /**
- * Dégradé de la zone (D-439) : blanc de l'écran (`colors.background`), opacité 0 en haut → 1 en bas,
+ * Dégradé de la zone (D-444) : blanc de l'écran (`colors.background`), opacité 0 en haut → 1 en bas,
  * linéaire, pleine largeur. Primitive de la plateforme : style `experimental_backgroundImage` de
  * React Native 0.86 (analysé par `processBackgroundImage`, rendu natif iOS et Android sous Fabric),
  * sans dépendance. Le blanc transparent est le même blanc à alpha 0 (pas `transparent`, noir à alpha 0,

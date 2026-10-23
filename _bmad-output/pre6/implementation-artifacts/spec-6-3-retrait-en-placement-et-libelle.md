@@ -18,14 +18,14 @@ context:
 
 ## Intent
 
-**Problem:** Depuis la story 6.2, l'appui long d'un Point d'arrêt est réservé à son déplacement et sa bulle « Retirer » a disparu : un point ne peut plus être retiré. D-436 (R3) prévoit que le retrait passe exclusivement par le mode Placement.
+**Problem:** Depuis la story 6.2, l'appui long d'un Point d'arrêt est réservé à son déplacement et sa bulle « Retirer » a disparu : un point ne peut plus être retiré. D-441 (R3) prévoit que le retrait passe exclusivement par le mode Placement.
 
 **Approach:** Brancher l'écran de placement sur le sous-brouillon de la story 6.1 : les points existants y apparaissent sélectionnés ; les toucher programme leur retrait, les retoucher l'annule ; Confirmer applique, Annuler restaure ; le libellé du bouton suit l'arbitrage du 22/10. Réutiliser `PlacementLayer`, `PlacementBar`, la puce de placement (story 5.3) et les fonctions pures de `placement.ts`.
 
 ## Boundaries & Constraints
 
 **Always:**
-- Sources : D-436 (R3), RM-251, CE-T03-08 (ch13 : placement, contrôles, accessibilité), ch08 placement, API-COM-09 ; epics.md Epic 6 et arbitrages du 22/10 (libellé).
+- Sources : D-441 (R3), RM-251, CE-T03-08 (ch13 : placement, contrôles, accessibilité), ch08 placement, API-COM-09 ; epics.md Epic 6 et arbitrages du 22/10 (libellé).
 - En placement, chaque point existant est rendu comme puce de placement **sélectionnée** (style « sélectionné » existant, ou celui de la puce de placement Figma `8328:29270` à l'état choisi), à sa position, y compris un point sur un emplacement non proposé (`kind: UNOFFERED_STOP_POINT`) ; toucher → désélection = retrait programmé (`togglePlacementStopPointRemoval`), retoucher → resélection ; aucun autre effet ; libellés et états accessibles (sélectionné / non sélectionné, indice « toucher pour retirer » / « toucher pour conserver »).
 - Les emplacements libres proposés tiennent compte de l'état effectif (existants − retraits + ajouts) via `placementSlots(…, placement)` et `togglePlacementStopPoint(…, context)` (jamais la forme historique sans contexte).
 - Libellé du bouton (`placementConfirmation`) : `ADDITIONS_ONLY {count}` → « Confirmer N pause(s) ajoutée(s) » (formulation actuelle) ; `CHANGES` (au moins un retrait, un mélange, ou une modification de durée de récupération existante) → « Confirmer les modifications » ; `NONE` → bouton indisponible.
@@ -84,7 +84,7 @@ Domaine inchangé en première passe (lecture seule de `placement.ts` et `StopPo
 **Contexte toujours fourni.** `placementContext` (exercices et points du brouillon) est passé à `togglePlacementStopPoint` et `placementConfirmation` ; les emplacements du placement sont `placementSlots(…, placement)` (état effectif : un retrait programmé libère ses voisins, RM-251). Plus aucun appel à la forme historique sans contexte dans l'application ; les surcharges sans contexte, `hasPlacementChanges`, `placementAdditionCount` et `stopPointDisplay` restent exportées par le Domaine (tests du Domaine), non appelées par l'écran — leur retrait est un nettoyage du Domaine, hors périmètre.
 
 **Points existants.**
-- Rendu : `PlacementStopPointRow` (variante `EXISTING` : `stopPointId`, `location`, `accessibilityLabel`) en bouton sélectionné, avec le style « sélectionné » existant de la puce de placement 5.3 (pleine `primary`, symbole et texte blancs) ; désélectionné : style « à ajouter » (pointillés, fond 5 %). **Figma** (`8328:29270`, lu le 22/10) : aucun état sélectionné / désélectionné d'un point existant ; le point existant y est la puce posée `9843:18975` (contour `#C8C8D7`, rayon 12) d'avant D-436. Choix noté, à valider par Hermann.
+- Rendu : `PlacementStopPointRow` (variante `EXISTING` : `stopPointId`, `location`, `accessibilityLabel`) en bouton sélectionné, avec le style « sélectionné » existant de la puce de placement 5.3 (pleine `primary`, symbole et texte blancs) ; désélectionné : style « à ajouter » (pointillés, fond 5 %). **Figma** (`8328:29270`, lu le 22/10) : aucun état sélectionné / désélectionné d'un point existant ; le point existant y est la puce posée `9843:18975` (contour `#C8C8D7`, rayon 12) d'avant D-441. Choix noté, à valider par Hermann.
 - Position : emplacement de carte → rangée sous la carte ; `AFTER_CIRCUIT` → rangée dédiée (seul ce `kind` la porte désormais : `find(occurrenceId === null)` pouvait retenir un `UNOFFERED_STOP_POINT`) ; `UNOFFERED_STOP_POINT` → rangée autonome de la séquence mêlée en placement (`displayedZoneItems` avec l'ensemble des identifiants non proposés, `PlacementStopPointItemRow` : rail lien + queue sans point de raccord comme les rangées du placement, aucun glisser, cible bornée à l'écart de la zone, 8 ou 9). Un point « après le Circuit » d'un Circuit vide est non proposé : rangée en tête de la zone après le Circuit (même place que hors placement).
 - Toucher : `togglePlacementStopPoint(location, context)` → `togglePlacementStopPointRemoval`. Une resélection qui rendrait le point consécutif à un ajout est refusée par le Domaine (puce inchangée, aucune annonce : aucune règle d'annonce ici, non inventée).
 - Accessibilité : nom par la règle 6.2 (`stopPointRowAccessibilityLabel` sur `scopeSequence` de sa portée, homonymes « n sur m », « après le circuit », têtes de portée) ; `accessibilityState.selected` ; indices `existingStopPointSelectedHint` « Toucher pour retirer ce point d'arrêt. » / `existingStopPointRemovedHint` « Toucher pour conserver ce point d'arrêt. » (formulations à valider).
@@ -92,7 +92,7 @@ Domaine inchangé en première passe (lecture seule de `placement.ts` et `StopPo
 
 **Libellé.** `PlacementBar` reçoit `confirmation` (`PlacementConfirmation`) au lieu de `count` / `canConfirm` ; `formatPlacementConfirmLabel(confirmation)` ; clé `confirmChanges` « Confirmer les modifications ». `NONE` garde « Confirmer 0 pause ajoutée », indisponible. Annonce à chaque changement de libellé (et non plus de N). Le point J3 « Confirmer 0 pause ajoutée actif quand seule une durée existante a été modifiée » est remplacé par « Confirmer les modifications ».
 
-**Entrée en placement.** « Ajouter un arrêt » est désormais disponible dès qu'un point existe, même sans aucun ajout possible : le placement est le seul chemin de retrait (D-436 R3). Conséquence nécessaire, sans règle écrite sur ce bouton — à valider par Hermann.
+**Entrée en placement.** « Ajouter un arrêt » est désormais disponible dès qu'un point existe, même sans aucun ajout possible : le placement est le seul chemin de retrait (D-441 R3). Conséquence nécessaire, sans règle écrite sur ce bouton — à valider par Hermann.
 
 **Nettoyage.** Retirés : `PauseRowContext.stopPointFor` et l'usage de `stopPointDisplay` par l'écran, `placementExistingStopPoint`, la variante `EXISTING` sans identifiant, `StopPointChipFace` (`StopPointChip.tsx`), les props `count` / `canConfirm` de `PlacementBar`.
 

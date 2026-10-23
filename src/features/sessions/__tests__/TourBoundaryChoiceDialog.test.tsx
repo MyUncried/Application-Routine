@@ -7,8 +7,8 @@ import { strings } from "@/shared/i18n";
 
 const t = strings.screens.composition.tourBoundaryChoice;
 
-/** PRE-6 story 7.2 (D-437, ch13 CE-T03-08 L1498) : dialogue natif « lequel conserver ». */
-describe("TourBoundaryChoiceDialog (PRE-6 story 7.2, D-437)", () => {
+/** PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : dialogue natif « lequel conserver ». */
+describe("TourBoundaryChoiceDialog (PRE-6 story 7.2, D-442)", () => {
   function renderDialog() {
     const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
     const onChoose = jest.fn();
