@@ -169,6 +169,17 @@ Cet instantané est utilisé pour garantir la cohérence de l'historique, même 
 
 ## Exercices
 
+### Parcours MFN — règles applicables aux écrans existants
+
+D-437 à D-439 complètent les parcours ci-dessous. Le Catalogue regroupe les exercices par geste ; sélection, insertion et lancement désignent toujours une définition précise, distinguée par son résumé de paramètres, sans alias. Les niveaux sont accessibles depuis la fiche ; nouveau niveau après l’origine, ordre modifiable par glissement, rang masqué pour un groupe réduit à un membre.
+
+L’éditeur s’ouvre directement en édition. Recherche explicite et suggestions portent sur tous les gestes disponibles, même créés localement. Les choix sont même geste/autres paramètres, variante/niveau, geste indépendant. Une sélection n’écrase pas silencieusement la saisie. Cette recherche spécialisée ne modifie pas l’absence de recherche générale dans les listes Catalogue.
+
+À l’enregistrement, usage durable + modification de nom/description/média/structure des phases déclenche **Corriger cet exercice / Créer un nouvel exercice / Annuler**. La correction annonce obligatoirement le nombre d’exercices concernés s’il dépasse un. La complétion des durées manquantes des frères est une étape distincte : exercice édité obligatoirement complet, frères pouvant être conservés incomplets et inexécutables. Aucun dialogue pour les seuls paramètres, catégorie, zones ou ordre des niveaux.
+
+L’occurrence présente son contenu copié verrouillé ; paramètres modifiables sous contraintes existantes. L’exception de création locale s’arrête à l’enregistrement de la séance. Annuler le brouillon ne laisse ni mouvement, ni média, ni marque d’utilisation. Les copies déjà enregistrées et les historiques ne se resynchronisent jamais. Détail et recettes : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+
 ### Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03
 
 #### Catalogue multi-type
@@ -232,13 +243,13 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 ## Phases d’un exercice — MVP
 
-Une phase est une subdivision d’un geste au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent.
+Une phase est une subdivision d’un geste au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent dans leur portée amendée par D-438. Les actions structurelles décrites ci-dessous sont propres au Catalogue ; elles sont verrouillées dans une occurrence.
 
 ### Structure, édition et calcul
 
 #### Structure et éligibilité
 
-- Un exercice contient zéro à six phases ordonnées. Zéro correspond à Phases de l’exercice Sans (D-410) ; une seule phase est autorisée.
+- Un exercice contient zéro à six phases ordonnées. Zéro correspond à Phases de l’exercice Sans ; la structure comporte sinon 2 à 6 phases. Le retrait explicite 2 → 1 revient à Sans avec la durée restante (D-438).
 - Chaque phase porte un libellé de 20 caractères maximum et une durée.
 - Une phase validée dure au moins 1 s, au pas de 1 s ; la somme des phases est comprise entre 1 et 3 535 s (D-430, 19/10/2026). Le zéro temporaire de saisie et la dernière phase calculée d’un format suivent les règles ci-dessous.
 - Les phases sont réservées au mode Durée avec une cible chiffrée et des séries identiques.
@@ -249,7 +260,7 @@ Une phase est une subdivision d’un geste au sein d’une série, distincte des
 
 #### Création et édition
 
-La ligne « Phases de l’exercice » (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Sans phases, Sans est sélectionné et aucun chevron n’est affiché. Hors durée imposée, choisir Avec crée deux phases (D-432) : la première reprend la durée actuelle de la série si elle existe, la seconde reste à renseigner ; sans durée initiale, aucune durée n’est inventée. L’option Avec affiche le nombre de phases (« 2 phases ») et, à droite du nombre, un chevron graphique existant, jamais une flèche ni un caractère (D-410, D-432). Le nombre se règle avec le stepper existant, de 2 à 6, révélé au toucher : actif, − et + sont visibles ; inactif, seuls la valeur et le chevron restent visibles. + ajoute une phase en fin de tableau ; − retire la dernière, avec la même annulation que la croix.
+La ligne « Phases de l’exercice » (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Sans phases, Sans est sélectionné et aucun chevron n’est affiché. Hors durée imposée, choisir Avec crée deux phases (D-432) : la première reprend la durée actuelle de la série si elle existe, la seconde reste à renseigner ; sans durée initiale, aucune durée n’est inventée. L’option Avec affiche le nombre de phases (« 2 phases ») et, à droite du nombre, un chevron graphique existant, jamais une flèche ni un caractère (D-410, D-432). Le nombre se règle avec le stepper existant, de 2 à 6 (le retrait explicite à deux phases retourne à Sans selon D-438), révélé au toucher : actif, − et + sont visibles ; inactif, seuls la valeur et le chevron restent visibles. + ajoute une phase en fin de tableau ; − retire la dernière, avec la même annulation que la croix.
 
 Lorsque des phases existent, l’appui sur le chevron replie ou déplie leur tableau sans changer le nombre ; le chevron pointe vers le haut quand le tableau est déployé, vers le bas quand il est replié. Le tableau contient le nombre de phases configuré et réutilise les conventions du tableau des séries : poignée de déplacement, numéro, colonnes Libellé et Durée, croix de suppression et ligne active, sans pied, sans ligne « Ajouter une phase » ni boutons +/− propres (D-413, D-432). L’appui sur le libellé ouvre la saisie de texte ; l’appui sur une durée modifiable ouvre son contrôle de durée : clavier numérique, saisie MMSS dans la cellule, sans « À l’échec » (D-434, qui remplace la roulette de durée de phase) ; une dernière phase calculée automatiquement reste non éditable.
 
@@ -257,17 +268,17 @@ Hors durée imposée, une phase ajoutée (stepper +, D-432) reprend la durée de
 
 Un libellé laissé vide est remplacé par « Phase n » à la validation, suivant la position finale. Les libellés personnalisés restent attachés à leur phase lors d’un déplacement.
 
-Toute phase restée à 0 s est retirée automatiquement à la validation, sans message ni blocage. Zéro est un état temporaire de saisie, pas une phase exécutable persistée. Si ce retrait laisse une seule phase, l’exercice passe à Sans avec sa durée comme durée de série ; s’il n’en laisse aucune, il passe à Sans sans durée inventée et la validation existante s’applique (D-432, QR-2 validée par Hermann le 19/10/2026). La validation de la feuille applique les paramètres au brouillon parent ; l’enregistrement définitif suit la frontière existante de l’éditeur. Annuler restaure l’état antérieur de cette feuille.
+Une phase à durée nulle ou vide reste présente avec une durée à renseigner ; l’enregistrement de l’exercice édité est bloqué. Aucun nettoyage silencieux (D-438). Une correction partagée peut laisser un frère explicitement incomplet, jamais exécutable. La validation de la feuille applique au brouillon parent ; Annuler restaure son état précédent.
 
 #### Suppression et retour sans phases
 
-Hors durée imposée, supprimer une phase retire sa contribution à la durée de série. Supprimer la dernière phase existante ramène la ligne à Sans (D-410) et conserve la durée qu’elle portait juste avant sa suppression comme durée de série. Cette durée redevient modifiable, sauf contrainte du format. Depuis D-432, le contrôle ne descend pas sous deux phases : la croix d’une ligne est disponible au-dessus de 2 phases et indisponible à 2, et le retrait passe alors par Sans, qui transforme la somme en durée unique de série (QR-1 validée par Hermann le 19/10/2026).
+Au Catalogue, retirer explicitement une phase retire sa contribution ; la croix reste disponible à deux phases. Le retrait 2 → 1 supprime la structure et conserve la durée restante comme durée de série (D-438). Choisir Sans conserve la somme comme durée unique. Dans une occurrence, ces actions structurelles sont indisponibles. Les contraintes du format restent applicables.
 
 Les conventions existantes de suppression et d’annulation doivent être réutilisées : restaurer une suppression restitue l’ordre, les libellés et les durées de l’état précédent, y compris les valeurs calculées affectées par cette suppression.
 
 #### Durée de série et durée totale
 
-Soit D la somme des durées des phases actives. La durée d’une série est D, affichée comme résultat calculé non modifiable. Une somme telle que 6 + 3 = 9 s n’est pas arrondie au pas de la roulette de durée saisie. Elle ne constitue pas une seconde prescription indépendante.
+Soit D la somme des durées des phases actives. La durée d’une série est D, affichée comme résultat calculé non modifiable. Une somme telle que 6 + 3 = 9 s n’est pas arrondie au pas de la roulette de durée saisie. Elle ne constitue pas une seconde valeur indépendante.
 
 Pour un exercice unilatéral de N séries identiques et une pause P après chaque série :
 
@@ -305,7 +316,7 @@ Les durées précédentes sont modifiables dans les limites du budget restant ; 
 | Supprimer 7 s dans 5 + 7 + 8 | 5 + 15 s |
 | Supprimer la dernière dans 5 + 7 + 8 | 5 + 15 s ; la précédente devient calculée |
 | Supprimer l’unique phase | Aucune phase ; série de 20 s toujours imposée |
-| Valider 20 + 0 | Retrait silencieux de la phase à zéro ; une phase de 20 s |
+| Valider 20 + 0 | Enregistrement refusé : seconde durée à renseigner, structure conservée (D-438) |
 
 #### Intégration d’un exercice déjà décomposé
 
@@ -340,8 +351,8 @@ Le placement exact du libellé de phase, le temps montré sur le cadran et la re
 
 ### Compléments à préciser avant les comportements concernés
 
-1. **Durées et arrondis extrêmes.** Durée minimale et pas des phases arbitrés le 19/10/2026 par D-430 : 1 s, pas de 1 s, somme 1..3535 s ; la borne de 5 s par série est supprimée. Une réduction proportionnelle peut produire une durée arrondie à zéro : supprimer cette phase ferait perdre une action. Il faut préciser l’arrondi préservant les phases positives et le traitement d’un budget trop court pour leur nombre, sans inventer de suppression silencieuse à l’intégration. La suppression des zéros de saisie, déjà validée, ne suffit pas à régler ce cas.
-2. **Création sans durée préexistante et suppression de toutes les phases nulles.** La reprise de la durée actuelle est définie lorsqu’elle existe. Le brouillon initial sans cible et le retour après normalisation d’une liste entièrement nulle doivent suivre une règle explicite ; ne pas fabriquer une durée valide arbitraire.
+1. **Durées et arrondis extrêmes.** Durée minimale et pas des phases arbitrés le 19/10/2026 par D-430 : 1 s, pas de 1 s, somme 1..3535 s ; la borne de 5 s par série est supprimée. Une réduction proportionnelle peut produire une durée arrondie à zéro : supprimer cette phase ferait perdre une action. Il faut préciser l’arrondi préservant les phases positives et le traitement d’un budget trop court pour leur nombre, sans inventer de suppression silencieuse à l’intégration. D-438 interdit désormais aussi la suppression des zéros de saisie ; ce cas d’arrondi reste distinct.
+2. **Création sans durée préexistante — clos par D-438.** Aucune durée inventée ; conserver les phases et demander les durées avant enregistrement. Aucun retour à Sans par nettoyage.
 3. **Phrase et présentation.** Rédiger les nouvelles phrases et exemples du corpus, puis préciser le cadran et les cartes dans le chantier séparé. La structure des segments est actée, les textes et dispositions exacts ne le sont pas.
 4. **Écart préexistant de bornes.** RM-234 du chapitre 10 indique 5..3535 s par série, alors que le code canonique inspecté au commit 6656fefc autorise 1..5999 s. La spécification prime ; il faut rattacher la correction au bon lot de développement et ne pas faire de la valeur historique du code une nouvelle décision métier. Cette divergence n’est pas créée par les phases. Depuis D-430 (19/10/2026), la borne spécifiée est 1..3535 s.
 
