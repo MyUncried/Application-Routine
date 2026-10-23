@@ -31,56 +31,56 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 # - Retrospective appends its action items to action_items; the status view surfaces open ones
 generated: 10-20-2026 18:00
-last_updated: 10-21-2026 20:00
+last_updated: 10-23-2026 23:00
 project: kodjo-pre6
 project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/pre6/implementation-artifacts
 development_status:
-  epic-1: in-progress
-  1-1-nature-du-circuit-borne-typée-et-migration-011: review
-  1-2-points-d-arrêt-de-bout-en-bout-dans-le-brouillon: review
-  1-3-développement-du-circuit-et-durées: review
-  1-4-opérations-de-circuit-compte-réserve-conversion-entrée-et-so: review
+  epic-1: done
+  1-1-nature-du-circuit-borne-typée-et-migration-011: done
+  1-2-points-d-arrêt-de-bout-en-bout-dans-le-brouillon: done
+  1-3-développement-du-circuit-et-durées: done
+  1-4-opérations-de-circuit-compte-réserve-conversion-entrée-et-so: done
   epic-1-retrospective: optional
 
-  epic-2: in-progress
-  2-1-en-tête-bornes-de-séance-et-continuer: review
-  2-2-cartes-d-occurrence: review
-  2-3-organisation-des-occurrences: review
-  2-3b-reorganisation-animee-au-glisser: review
+  epic-2: done
+  2-1-en-tête-bornes-de-séance-et-continuer: done
+  2-2-cartes-d-occurrence: done
+  2-3-organisation-des-occurrences: done
+  2-3b-reorganisation-animee-au-glisser: done
   epic-2-retrospective: optional
 
-  epic-3: in-progress
-  3-1-en-tête-du-circuit-et-compteur: review
-  3-2-choix-de-nature-et-confirmation-de-perte: review
-  3-3-n-hérité-dans-la-feuille-des-paramètres: review
-  3-4-modales-volumes-du-circuit: review
+  epic-3: done
+  3-1-en-tête-du-circuit-et-compteur: done
+  3-2-choix-de-nature-et-confirmation-de-perte: done
+  3-3-n-hérité-dans-la-feuille-des-paramètres: done
+  3-4-modales-volumes-du-circuit: done
   epic-3-retrospective: optional
 
-  epic-4: in-progress
-  4-1-mode-placement-et-sous-brouillon: review
-  4-2-durée-modification-et-retrait: review
-  4-3-pauses-dans-le-déroulement-et-la-composition: review
+  epic-4: done
+  4-1-mode-placement-et-sous-brouillon: done
+  4-2-durée-modification-et-retrait: done
+  4-3-pauses-dans-le-déroulement-et-la-composition: done
   epic-4-retrospective: optional
 
-  epic-5: in-progress
-  5-1-carte-v2-et-récupération-en-troisième-ligne: review
-  5-1b-photo-ou-affiche-vidéo-dans-le-gabarit: review
-  5-2-rail-segmenté-circuit-bornes-et-points-d-arrêt: review
-  5-2b-correction-du-rail-pendant-le-déplacement: review
-  5-3-placement-mixte-et-défilement: review
-  5-4-états-soulevé-et-actions-glissées: backlog
+  epic-5: done
+  5-1-carte-v2-et-récupération-en-troisième-ligne: done
+  5-1b-photo-ou-affiche-vidéo-dans-le-gabarit: done
+  5-2-rail-segmenté-circuit-bornes-et-points-d-arrêt: done
+  5-2b-correction-du-rail-pendant-le-déplacement: done
+  5-3-placement-mixte-et-défilement: done
+  5-4-états-soulevé-et-actions-glissées: done  # clos à la clôture PRE-6 (23/10) sans développement propre : état soulevé (6.2, 7.2) et actions glissées (7.7) livrés et validés en recette J6 ; écart CE-FMT-03 non consigné
   epic-5-retrospective: optional
 
-  epic-6: in-progress
-  6-1-domaine-points-d-arrêt-indépendants-et-non-consécutivité: review
-  6-2-glisser-déposer-d-un-point-d-arrêt: review
-  6-3-retrait-en-placement-libellé-fin-de-la-bulle-des-points: review
+  epic-6: done
+  6-1-domaine-points-d-arrêt-indépendants-et-non-consécutivité: done
+  6-2-glisser-déposer-d-un-point-d-arrêt: done
+  6-3-retrait-en-placement-libellé-fin-de-la-bulle-des-points: done
   epic-6-retrospective: optional
 
-  epic-7: in-progress
-  7-1-domaine-déplacement-tolérant-début-et-fin-de-tour-retrait-de-récupération: review
+  epic-7: done
+  7-1-domaine-déplacement-tolérant-début-et-fin-de-tour-retrait-de-récupération: done
   7-2-écran-récupération-en-placement-étiquette-fin-de-d-301-point-soulevé: done
   7-3-en-tête-du-circuit-stepper-permanent-et-durée-arrondie: done
   7-4-glisser-défilement-automatique-et-cohérence: done
@@ -89,5 +89,5 @@ development_status:
   7-7-mouvements-disparition-apparition-actions-glissées: done
   7-8-présentation-en-tête-du-circuit-bornes-de-séance-durée-de-la-séance: done
   7-9-retours-j6d-en-tête-du-circuit-sélectionné-bouton-continuer: done
-  7-10-composant-d-action-principal-standardisé: review
+  7-10-composant-d-action-principal-standardisé: done
   epic-7-retrospective: optional
