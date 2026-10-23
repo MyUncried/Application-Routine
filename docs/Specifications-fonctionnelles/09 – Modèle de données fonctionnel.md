@@ -6,6 +6,7 @@
   - [Entité Séance](#entité-séance)
   - [Règles d’intégrité et de copie](#règles-dintégrité-et-de-copie)
 - [Exercices](#exercices)
+  - [Modèle cible Mouvement et filiation — D-437 à D-440](#modèle-cible-mouvement-et-filiation--d-437-à-d-440)
   - [Entité Exercice](#entité-exercice)
   - [Entité Média](#entité-média)
   - [Extension du modèle — Exercices, Médias et Parcours](#extension-du-modèle--exercices-médias-et-parcours)
@@ -249,7 +250,7 @@ Les règles suivantes s’appliquent aux médias, dont l’import/ajout est incl
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Exercice.
 - Le retrait d’un média depuis un Exercice supprime uniquement l’association ciblée.
-- Le fichier physique local n’est supprimé que lorsqu’aucun Exercice, copie de Séance ni aucun Instantané ne le référence.
+- Le fichier physique local n’est supprimé que lorsqu’aucun Mouvement, Exercice, copie de Séance ni aucun Instantané ne le référence (D-437).
 - Les autres Exercices, Séances et Instantanés conservent leurs associations et restent inchangés.
 
 #### Archivage et suppression
@@ -282,6 +283,27 @@ La restauration d'une Séance :
 - Une modification de la séance n'affecte jamais les exécutions existantes.
 
 ## Exercices
+
+### Modèle cible Mouvement et filiation — D-437 à D-440
+
+Les propriétés intrinsèques énumérées dans les tableaux d’Exercice ci-dessous restent exposées à la lecture, mais leur propriété persistante est répartie comme suit. Les anciennes représentations aplaties ne constituent plus le stockage Catalogue cible.
+
+| Porteur | Données et contraintes |
+|---|---|
+| Mouvement | Identifiant stable ; nom, description ordonnée, médias ordonnés, catégorie obligatoire, zones 1..n ; structure de phases `(id, label)` ordonnée ; compteur monotone de phase ; état durable « déjà utilisé » initialement faux |
+| Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé |
+| ActivityDefinition | Identifiant propre, `movementId` non nul avec intégrité réelle ; paramètres d’exécution propres ; durées associées par `phaseId` ; aucun alias ni contenu partagé modifiable en double |
+| SessionActivity | Identifiant propre ; contenu résolu copié, paramètres contextualisés, `sourceMovementId` non nul et immuable sans contrainte référentielle ; récupération contextuelle inchangée |
+| Instantané | Contenu autonome et filiation copiés au démarrage, sans relecture source ; aucun champ rang/total de niveaux ; résultats rattachés à l’exécution et ses occurrences/séries/côtés/passages |
+
+Les identifiants de phase sont entiers ≥ 1 et uniques dans le mouvement. Leur identité complète est mouvement + phase ; déplacement et clonage les conservent. Un identifiant supprimé n’est jamais réalloué. Le Catalogue persiste les valeurs séparées de la structure ; les copies portent une représentation résolue.
+
+Une correction structurelle conserve les durées par identifiant. L’exercice édité doit être complet ; un exercice frère peut être persisté incomplet, avec durée non renseignée, après choix explicite de passer sa complétion. Il reste inexécutable jusqu’à complétion. Cette possibilité doit être portée par les types et la persistance, pas seulement le brouillon.
+
+La suppression d’un mouvement est interdite si une définition le référence. Supprimer la dernière définition ou occurrence ne collecte pas le mouvement. Une suppression explicite autorisée conserve les filiations orphelines. L’utilisation durable s’écrit à l’enregistrement de la séance ou au démarrage direct ; jamais pour un brouillon abandonné. Voir [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+
+**Transition D-440 :** les descriptions de migrations historiques de ce chapitre restent des traces des lots précédents. Elles ne prescrivent ni conversion ni lecteur ancien pour MFN : nouveau schéma sur base vierge, réinitialisation ponctuelle seulement.
+
 
 ### Entité Exercice
 
@@ -371,13 +393,13 @@ Elle ne contient pas directement :
 
 <a id="donnees-phases"></a>
 
-La définition Catalogue et sa copie de Séance transportent une liste ordonnée facultative de phases, commune à toutes les séries identiques. Chaque phase porte une identité stable, un libellé de 1 à 20 caractères après normalisation et une durée positive. La liste validée contient 0 à 6 éléments ; absence ou liste vide signifie sans phases. Les zéros temporaires restent dans le brouillon, jamais dans les données validées. Chaque phase validée dure au moins 1 s, au pas de 1 s, et la somme des phases est comprise entre 1 et 3 535 s (D-430, 19/10/2026) ; les autres cas limites restent à préciser au chapitre 08.
+La structure ordonnée et les libellés des phases appartiennent au Mouvement ; les paramètres Catalogue portent les durées par identifiant. La copie transporte la liste résolue. Sans phases : liste vide ; sinon 2 à 6 phases. Une durée renseignée vaut au moins 1 s, somme 1..3535 s. Une durée manquante ne supprime jamais la phase : elle bloque l’enregistrement de l’exercice édité et l’exécution ; seule la correction partagée peut persister les frères incomplets (D-438).
 
 La durée de série est dérivée de la somme ; une éventuelle projection historique est recalculée et ne constitue pas une autre source de vérité. Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
 
 L’adaptation au format ne modifie que les durées de la copie de séance. Duplication et copie conservent ordre, libellés et valeurs ; les copies restent indépendantes. L’instantané d’exécution fige les phases effectives après adaptation ; la reprise conserve leur position et le temps restant. Les anciennes définitions sans phases restent inchangées, sans réécriture des résultats historiques.
 
-La collection doit être intégrée au contrat canonique versionné et à ses sérialiseurs/parseurs. La version ancienne reste lisible ; une version inconnue ne doit jamais être rabattue silencieusement sur une durée scalaire qui ferait perdre les phases.
+La collection doit être intégrée au contrat canonique versionné et à ses sérialiseurs/parseurs. Pour la transition MFN, D-440 dispense de lire la version ancienne ; une version inconnue ne doit jamais être rabattue silencieusement sur une durée scalaire qui ferait perdre les phases.
 
 ### Entité Média
 
@@ -452,6 +474,8 @@ Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés m�
 La capacité existante de créer directement une `SessionActivity` depuis une Composition ne crée jamais implicitement d’`ActivityDefinition`. Elle est conservée dans le modèle et l’architecture même lorsqu’elle n’est pas exposée dans le parcours utilisateur courant.
 
 #### Migration T03
+
+**Historique T03 :** cette migration ne constitue pas une obligation de reprise pour la transition MFN, désormais régie par D-440.
 
 La migration T03 introduit les structures persistantes nécessaires aux `ActivityDefinition`, à leurs relations et à l’origine d’Exécution `ACTIVITY`.
 
@@ -639,6 +663,8 @@ Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont
 Une bascule Durée/Répétitions conserve le caractère À l’échec, indépendant de l’unité. Les cibles numériques incompatibles suivent les mécanismes existants de brouillon, mise à renseigner et restauration ; aucune conversion secondes ↔ répétitions n’est introduite.
 
 ##### Migration et compatibilité
+
+**Portée historique :** D-440 dispense de ces conversions, lecteurs anciens et messages de reprise pour la transition MFN sur base vierge. Les données créées ensuite restent conservées.
 
 Tout ancien exercice en mode À l’échec est interprété comme Répétitions avec toutes ses séries à l’échec. Conserver nombre, pauses, bip, côté, ordre et autres paramètres. Fin par Suivant, omission du total et phrase existante restent préservées.
 
