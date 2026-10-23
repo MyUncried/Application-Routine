@@ -1115,3 +1115,12 @@ Sections qui énoncent des règles sans identifiant propre (classification du lo
 | [Arbitrages complémentaires de Hermann du 17 octobre 2026 (A1 à A9)](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#arbitrages-complémentaires-de-hermann-du-17-octobre-2026-a1-à-a9) | Sujets transverses |
 | [Précisions de Hermann du 17 octobre 2026 (B1 à B5)](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#précisions-de-hermann-du-17-octobre-2026-b1-à-b5) | Sujets transverses |
 | [Formats de séances — décisions du 14 octobre 2026](07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md#formats-de-séances--décisions-du-14-octobre-2026) | Formats de séances |
+
+## Intégration MFN — 23/10/2026
+
+| Identifiants | Source normative |
+|---|---|
+| D-436 à D-440 | Registre des décisions, chapitre 07 |
+| MFN-01 à MFN-13 ; MFN/AC01 à MFN/AC37 | [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux) et scénarios d’acceptation du chapitre 10 |
+
+MFN/AC désigne le périmètre des recettes MFN ; les autres identifiants AC restent inchangés.
