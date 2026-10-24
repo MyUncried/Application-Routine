@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-7 (plan approuvé le 24/10/2026)
 generated: 10-24-2026 09:00
-last_updated: 10-24-2026 15:00
+last_updated: 10-24-2026 16:00
 project: kodjo-pre7
 project_key: NOKEY
 tracking_system: file-system
@@ -10,7 +10,7 @@ development_status:
   0-1-décisions-et-réconciliation-documentaire: done
   epic-b: in-progress
   b-1-harmonisation-visuelle-de-la-feuille-des-paramètres: review
-  b-2-libellés-valeurs-et-description: backlog
+  b-2-libellés-valeurs-et-description: review
   b-3-changement-de-côté-et-barre-du-clavier: backlog
   epic-a1: backlog
   a1-1-domaine-mouvement-et-paramètres-v4: backlog

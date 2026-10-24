@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -37,6 +37,19 @@ export type StepChange = { readonly steps: string[]; readonly focus: StepFocus |
  */
 export function displayedStepRows(steps: readonly string[]): readonly string[] {
   return steps.length === 0 || steps[steps.length - 1] !== "" ? [...steps, ""] : steps;
+}
+
+/**
+ * PRE-7 story B.2 (B1, D-445, arbitrage A1) : lignes réellement rendues. La
+ * ligne d'invite (dernière ligne de `displayedStepRows`, toujours vide) n'est
+ * rendue au repos qu'au rang 1 (« Décrivez la première étape ») ; au rang > 1,
+ * « Étape suivante » n'apparaît que lorsqu'une ligne de la Description a le
+ * focus. La liste des étapes n'est jamais modifiée : une dernière étape vide
+ * masquée reste dans `steps` (et n'est pas enregistrée, `encodeInstructionSteps`).
+ */
+export function renderedStepRows(steps: readonly string[], active: boolean): readonly string[] {
+  const rows = displayedStepRows(steps);
+  return active || rows.length <= 1 ? rows : rows.slice(0, -1);
 }
 
 /** Ligne de la liste affichée, matérialisée en étape si c'est la ligne d'invite. */
@@ -156,7 +169,11 @@ export type DescriptionStepsProps = {
 
 export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBottomChange, style }: DescriptionStepsProps) {
   const t = strings.screens.exercise.instruction;
+  // B1 : une ligne a le focus. Posé au focus, retiré par la même perte de focus
+  // différée que ↑ : un passage de ligne à ligne ne démonte jamais l'invite.
+  const [active, setActive] = useState(false);
   const rows = displayedStepRows(steps);
+  const visibleRows = renderedStepRows(steps, active);
   const inputRefs = useRef<(InputHandle | null)[]>([]);
   const rowLayouts = useRef<{ y: number; height: number }[]>([]);
   const pendingFocus = useRef<StepFocus | null>(null);
@@ -210,8 +227,10 @@ export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBo
 
   return (
     <View style={[styles.list, style]} testID="exercise-instruction-steps">
-      {rows.map((text, index) => {
-        const isLast = index === rows.length - 1;
+      {visibleRows.map((text, index) => {
+        // `rows` : lignes logiques (invite comprise) ; `visibleRows` : lignes rendues (B1). La
+        // seule ligne rendue porte aussi l'invite (`["", ""]` au repos : « Décrivez la première étape »).
+        const isLast = index === rows.length - 1 || visibleRows.length === 1;
         const isEmpty = text === "";
         const placeholder = isEmpty && isLast ? (index === 0 ? t.firstStepPlaceholder : t.nextStepPlaceholder) : undefined;
         const number = index + 1;
@@ -250,6 +269,7 @@ export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBo
               onFocus={() => {
                 cancelPendingBlur();
                 focusedIndex.current = index;
+                setActive(true);
                 onFocusChange(true);
                 reportActive(index);
               }}
@@ -263,6 +283,7 @@ export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBo
                   pendingBlur.current = null;
                   if (focusedIndex.current !== index) return;
                   focusedIndex.current = null;
+                  setActive(false);
                   onFocusChangeRef.current(false);
                 }, 0);
               }}

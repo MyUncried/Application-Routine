@@ -40,7 +40,7 @@ const executionParameters = {
     seriesPlural: "séries",
     // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à
     // gauche avec son chevron, Identiques à droite) et ligne « Condition d’arrêt » (À l’échec
-    // à gauche, À la cible à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
+    // à gauche, À l’objectif à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
     // de PRE-4 (champ, panneau et sous-titres) est retiré. Recette du 20/10 (RC-15) : plus de
     // ligne « Nombre de séries » ; le nombre est porté par l’option sélectionnée du Type de
     // série (« 3 séries identiques », « 3 séries variables », accord au singulier à N = 1), le
@@ -54,7 +54,9 @@ const executionParameters = {
     seriesCountVariableSingular: "{n} série variable",
     seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
     stopCondition: "Condition d’arrêt",
-    stopConditions: { FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" },
+    // D-445 (PRE-7 story B.2) : « À l’objectif » et « À l’objectif et à l’échec » remplacent
+    // « À la cible… » dans tous les états ; identifiants `TARGET` et `MIXED` inchangés.
+    stopConditions: { FAILURE: "À l’échec", TARGET: "À l’objectif", MIXED: "À l’objectif et à l’échec" },
     showTable: "Afficher le tableau des séries",
     hideTable: "Masquer le tableau des séries",
     // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.

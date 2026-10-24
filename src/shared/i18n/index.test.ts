@@ -680,7 +680,7 @@ describe("strings — PRE-5 story 2.4", () => {
     const sheet = strings.executionParameters.sheet;
     expect(sheet.mode).toBe("Mode");
     expect(sheet.stopCondition).toBe("Condition d’arrêt");
-    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" });
+    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À l’objectif", MIXED: "À l’objectif et à l’échec" });
     // Recette du 20/10 (RC-15) : la ligne « Nombre de séries » est retirée.
     expect("seriesCount" in sheet).toBe(false);
     // Recette du 20/10 (RC-17) : la ligne du segmenté « Variables | Identiques » s'intitule « Séries ».

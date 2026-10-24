@@ -1176,11 +1176,11 @@ export function ExecutionParametersSheet({
   );
 
   // PRE-5 story 2.4 (AC4, AC5 ; FR-19, FR-20 ; AD-23) : Condition d'arrêt. Identiques
-  // effectives → segmenté « À l'échec | À la cible » sur `stopConditionOf` (À la cible
+  // effectives → segmenté « À l'échec | À l'objectif » sur `stopConditionOf` (À l'objectif
   // par défaut, Mode non renseigné compris), qui appelle `setStopCondition` ; avec des
   // phases, À l'échec est indisponible. Variables → résultat dérivé, recalculé à chaque
   // rendu, en lecture seule (violet atténué, UX-DR2) : deux options si homogène, une seule
-  // « À la cible et à l'échec » si mixte ; aucune cellule renseignée → « — », annoncé
+  // « À l'objectif et à l'échec » si mixte ; aucune cellule renseignée → « — », annoncé
   // « Condition d'arrêt, aucune valeur ». Aucune validation ajoutée.
   const stopConditionOptions = [
     { value: "FAILURE" as const, label: t.stopConditions.FAILURE },
@@ -1463,11 +1463,21 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` ; recette du 19/10
   // (RC-10) : Autre / 1 s / Sans, options de 62 comme celles de la Charge ; option affichée par
   // `cadenceOptionOf` (Autre tant que le ± est ouvert ; 2 s, 5 s et toute autre valeur → Autre).
+  // PRE-7 story B.2 (B8, D-445, arbitrage A2) : une valeur personnalisée (classée Autre par
+  // `cadenceOptionOf` : toute valeur hors 0 et 1, soit 2 à 10 avec la borne haute de
+  // `EXECUTION_BOUNDS.cadenceBeepIntervalSeconds`) s'affiche à la place de « Autre » (« 3 s », annoncée « Autre, 3 s »),
+  // suivie en direct pendant que le ± est ouvert ; à 0 ou 1 (± ouvert), l'option reste « Autre ».
+  const cadenceCustomLabel =
+    cadenceOptionOf(draft.cadenceBeepIntervalSeconds) === "OTHER" ? beepLabel(draft.cadenceBeepIntervalSeconds) : null;
   const cadenceControl = (
     <SegmentedControl<CadenceOption>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
-      options={CADENCE_OPTIONS.map((option) => ({ value: option, label: t.cadenceOptions[option] }))}
+      options={CADENCE_OPTIONS.map((option) =>
+        option === "OTHER" && cadenceCustomLabel !== null
+          ? { value: option, label: cadenceCustomLabel, accessibilityLabel: `${t.cadenceOptions.OTHER}, ${cadenceCustomLabel}` }
+          : { value: option, label: t.cadenceOptions[option] },
+      )}
       value={cadenceOption}
       onChange={chooseCadence}
       accessibilityLabel={t.cadence}
@@ -1573,6 +1583,24 @@ export function ExecutionParametersSheet({
     if (seriesRow === undefined || (kind === "rowTarget" && effective.mode === null)) {
       return <View style={tableStyles.emptyCell} />;
     }
+    const prefix = `${SERIES_ROW_TEST_ID}-${number}`;
+    // PRE-7 story B.2 (B10, D-445, arbitrage A3) : sous Sans, la colonne Charge reste présente ;
+    // chaque cellule montre un tiret gris non éditable (aucun champ : ni focus, ni Précédent /
+    // Suivant, `keyboardFieldOrder`), annoncé « Série n, charge, Sans ». La charge conservée
+    // (RM-236) n'est ni affichée ni modifiée.
+    if (kind === "load" && !draft.loadEnabled) {
+      return (
+        <View
+          style={[tableCellStyle, styles.keyboardCell]}
+          accessible
+          accessibilityRole="text"
+          accessibilityLabel={`${t.rowLoad.replace("{n}", String(number))}, ${t.loadWithout}`}
+          testID={`${prefix}-load-unset`}
+        >
+          <Text style={[tableCellValueStyle, styles.tableCellUnset]}>{t.unset}</Text>
+        </View>
+      );
+    }
     const field = rowCellField(kind, row);
     const common = {
       editText: keyboard.editText(field),
@@ -1587,7 +1615,6 @@ export function ExecutionParametersSheet({
       valueStyle: tableCellValueStyle,
       entryGeneration: keyboard.entryGeneration,
     };
-    const prefix = `${SERIES_ROW_TEST_ID}-${number}`;
     if (kind === "rowTarget") {
       const mode = effective.mode === "REPETITIONS" ? "REPETITIONS" : "DURATION";
       // Story 3.6 (FR-06-05) : « à l’échec » pour une Cible à l'échec, sinon la valeur ou « — ».
@@ -1687,7 +1714,7 @@ export function ExecutionParametersSheet({
   };
 
   // PRE-5 story 2.8 (FR-2, FR-4, FR-27, FR-28, D-432) : segmenté « Phases de l'exercice ».
-  // Avec n'est disponible que si `canEnableWorkPhases` (Mode Durée, À la cible, séries
+  // Avec n'est disponible que si `canEnableWorkPhases` (Mode Durée, À l'objectif, séries
   // identiques effectives) ou si des phases existent ; sinon indisponible, Sans affiché.
   // Sélectionné, Avec affiche « n phases » (réglage du nombre révélé au toucher) et le chevron
   // du tableau ; sa largeur suit l'état (constantes `PHASE_OPTION_*`).
@@ -1977,7 +2004,6 @@ export function ExecutionParametersSheet({
                           }
                         }}
                         cell={keyboardCell}
-                        loadColumn={draft.loadEnabled}
                       />
                     ) : null}
                     {adjustment?.kind === "removal" ? adjustmentMessage : null}
@@ -2337,7 +2363,6 @@ function VariableTable({
   onMove,
   onDraggingChange,
   cell,
-  loadColumn,
 }: {
   draft: ExecutionSheetDraft;
   mode: ExecutionMode | null;
@@ -2348,8 +2373,6 @@ function VariableTable({
   onDraggingChange: (dragging: boolean) => void;
   /** D-434 : cellule clavier `kind` de la ligne d'identité `row` (numéro affiché `number`). */
   cell: (kind: RowCellKind, row: number, number: number) => ReactNode;
-  /** PRE-5 story 2.2 (FR-23, AC5) : charge Avec — colonne Charge après la Pause. */
-  loadColumn: boolean;
 }) {
   const rows = draft.rows;
   // Recette 2 (T-15, demande de Hermann) : repère d’insertion pendant le glisser.
@@ -2392,13 +2415,12 @@ function VariableTable({
         )}
         <View style={tableStyles.cellGap} />
         <Text style={tableStyles.columnHeader}>{t.columns.pause}</Text>
-        {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. */}
-        {loadColumn ? (
-          <>
-            <View style={tableStyles.cellGap} />
-            <Text style={tableStyles.columnHeader}>{t.columns.load}</Text>
-          </>
-        ) : null}
+        {/* PRE-5 story 2.2 : colonne Charge (titre non interactif), après la Pause. PRE-7 story
+            B.2 (B10) : toujours présente, sous Avec comme sous Sans (jamais recréée au passage). */}
+        <View style={tableStyles.cellGap} />
+        <Text style={tableStyles.columnHeader} testID="execution-sheet-table-header-load">
+          {t.columns.load}
+        </Text>
         <View style={tableStyles.spacer} />
         {/* Story 3.6 : place de la colonne des croix de retrait. */}
         <View style={tableStyles.removeColumn} />
@@ -2426,7 +2448,6 @@ function VariableTable({
               }}
               clip={!unclipped}
               cell={(kind) => (rowId === null ? <View style={tableStyles.emptyCell} /> : cell(kind, rowId, index + 1))}
-              loadColumn={loadColumn}
               inheritedSeriesCount={draft.inheritedSeriesCount}
             />
           </Fragment>
@@ -2456,7 +2477,6 @@ function SeriesTableRow({
   onLiftedChange,
   clip,
   cell,
-  loadColumn,
   inheritedSeriesCount,
 }: {
   index: number;
@@ -2473,8 +2493,6 @@ function SeriesTableRow({
   clip: boolean;
   /** D-434 : cellule clavier de cette ligne. */
   cell: (kind: RowCellKind) => ReactNode;
-  /** PRE-5 story 2.2 : colonne Charge (après la Pause, écart de 7). */
-  loadColumn: boolean;
   /** PRE-6 story 3.3 (AD-37) : N hérité d'un Circuit de Séries — croix indisponible. */
   inheritedSeriesCount: boolean;
 }) {
@@ -2510,15 +2528,12 @@ function SeriesTableRow({
         <View style={styles.tableCellSlot} testID={`${testID}-pause-cell`}>
           {cell("rowPause")}
         </View>
-        {/* PRE-5 story 2.2 (FR-23) : cellule Charge au clavier décimal, après un écart de 7. */}
-        {loadColumn ? (
-          <>
-            <View style={tableStyles.cellGap} />
-            <View style={styles.tableCellSlot} testID={`${testID}-load-cell`}>
-              {cell("load")}
-            </View>
-          </>
-        ) : null}
+        {/* PRE-5 story 2.2 (FR-23) : cellule Charge au clavier décimal, après un écart de 7.
+            PRE-7 story B.2 (B10) : emplacement toujours monté ; sous Sans, `cell` y rend le tiret. */}
+        <View style={tableStyles.cellGap} />
+        <View style={styles.tableCellSlot} testID={`${testID}-load-cell`}>
+          {cell("load")}
+        </View>
         <View style={tableStyles.spacer} />
         <RemoveRowButton
           accessibilityLabel={t.removeRow.replace("{n}", String(number))}
@@ -3124,7 +3139,7 @@ const FRAME_INSET = FRAME_BORDER_WIDTH + GROUP_PADDING;
  */
 const TABLE_BLOCK_BLEED = GROUP_PADDING - TABLE_BLOCK_SIDE_INSET;
 /**
- * FR-20 : option unique « À la cible et à l'échec » du résultat dérivé mixte — même
+ * FR-20 : option unique « À l'objectif et à l'échec » du résultat dérivé mixte — même
  * largeur totale que les deux options (2 × 106 + l'écart de 2 du segmenté), choix
  * d'intégration (le libellé ne tient pas dans 106).
  */
@@ -3479,6 +3494,10 @@ const styles = StyleSheet.create({
   // D-434 : cellule clavier (gabarit `TableCell` 71 × 24, rayon 8) à la largeur de sa colonne.
   keyboardCell: {
     width: "100%",
+  },
+  // PRE-7 story B.2 (B10, A3) : tiret de la cellule Charge sous Sans, teinte des options indisponibles.
+  tableCellUnset: {
+    color: colors.disabled,
   },
   // PRE-5 story 2.8 (FR-6, Figma `9207:18817`) : cellule Libellé au clavier texte — `TextInput`
   // visible de 76 × 24 (largeur de sa colonne), rayon 8, valeur Semi Bold 13 primaire centrée ;

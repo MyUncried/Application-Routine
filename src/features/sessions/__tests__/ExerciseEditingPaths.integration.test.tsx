@@ -1940,6 +1940,8 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
 function typeSteps(texts: readonly string[]) {
   texts.forEach((text, index) => {
     const testID = index === 0 ? "exercise-instruction-input" : `exercise-instruction-step-${index + 1}`;
+    // PRE-7 story B.2 (B1) : la ligne prend le focus, comme sur l'appareil (l'invite est alors rendue).
+    fireEvent(screen.getByTestId(testID), "focus");
     if (text !== "") fireEvent.changeText(screen.getByTestId(testID), text);
     fireEvent.changeText(screen.getByTestId(testID), `${text}\n`);
   });
@@ -1971,6 +1973,9 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     expect(editorContent().instructionSteps).toEqual(["Dos droit", "Genoux fléchis"]);
     expect(screen.getByTestId("exercise-instruction-input").props.value).toBe("Dos droit");
     expect(screen.getByTestId("exercise-instruction-step-2").props.value).toBe("Genoux fléchis");
+    // PRE-7 story B.2 (B1) : l'invite « Étape suivante » n'est rendue qu'en saisie.
+    expect(screen.queryByTestId("exercise-instruction-step-3")).toBeNull();
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
     expect(screen.getByTestId("exercise-instruction-step-3").props.placeholder).toBe(exercise.instruction.nextStepPlaceholder);
 
     // Copie Définition → Séance : la chaîne encodée est transportée telle quelle.
@@ -1988,6 +1993,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
     fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "Dos droit\n");
     expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit", ""]);
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
@@ -1997,6 +2003,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
 
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
+    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
     fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Souffler");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();

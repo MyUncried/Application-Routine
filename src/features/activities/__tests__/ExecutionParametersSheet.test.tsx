@@ -1578,7 +1578,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
       expect(states()).toEqual([true, false]);
     }));
 
-  it("PRE4-3.1/AC2, PRE5-2.4 — iOS : Mode non renseigné : aucune option sélectionnée, aucun cadre ; Condition d’arrêt « À la cible »", () =>
+  it("PRE4-3.1/AC2, PRE5-2.4 — iOS : Mode non renseigné : aucune option sélectionnée, aucun cadre ; Condition d’arrêt « À l’objectif »", () =>
     withPlatform("ios", () => {
       renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
       expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBeNull();
@@ -4951,11 +4951,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       expect(within(get("execution-sheet-panel-host")).getByTestId("execution-sheet-total-panel", hidden)).toBeTruthy();
     }));
 
-  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 90 s) : Condition « À la cible » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
+  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 90 s) : Condition « À l’objectif » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
     withPlatform("ios", () => {
       renderSheet(params());
       expect(stopSelected()).toBe("TARGET");
-      expect(["FAILURE", "TARGET"].map((value) => get(`${STOP_CONTROL}-${value}`).props.accessibilityLabel)).toEqual(["À l’échec", "À la cible"]);
+      expect(["FAILURE", "TARGET"].map((value) => get(`${STOP_CONTROL}-${value}`).props.accessibilityLabel)).toEqual(["À l’échec", "À l’objectif"]);
       expect(StyleSheet.flatten(get(STOP_CONTROL).props.style)).toMatchObject({ width: 220, height: 32 });
       expect(get("execution-sheet-row-target")).toBeTruthy();
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
@@ -5000,29 +5000,29 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     const view = renderSheetView(variableSheet([30, 45]));
     const control = get(STOP_CONTROL);
     expect(control.props.accessibilityRole).toBe("text");
-    expect(control.props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(control.props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
     expect(query(`${STOP_CONTROL}-TARGET`)).toBeNull();
-    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab", accessibilityLabel: "À la cible" })).toHaveLength(0);
+    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab", accessibilityLabel: "À l’objectif" })).toHaveLength(0);
     expect(styleOf(STOP_CONTROL).opacity).toBe(0.45);
     expect(styleOf(`${STOP_CONTROL}-indicator`).backgroundColor).toBe("#5F60EE");
-    expect(StyleSheet.flatten(within(control).getByText("À la cible", hidden).props.style).color).toBe("#FFFFFF");
+    expect(StyleSheet.flatten(within(control).getByText("À l’objectif", hidden).props.style).color).toBe("#FFFFFF");
     view.unmount();
     renderSheet(variableSheet(["FAILURE", "FAILURE"]));
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’échec");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
   });
 
-  it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À la cible et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
+  it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À l’objectif et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
     renderSheet(variableSheet([30, 45, null]));
     // Cellule vide non comptée : les deux séries renseignées sont à la cible.
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     // D-434 : cellule 1 mise à l'échec par « À l'échec » de la barre du clavier.
     chooseCellTarget(1, "FAILURE");
     // Une série à l'échec, une à la cible → mixte.
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible et à l’échec");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif et à l’échec");
     expect(derivedOptions()).toEqual(["MIXED"]);
-    expect(within(get(STOP_CONTROL)).getByText("À la cible et à l’échec", hidden)).toBeTruthy();
+    expect(within(get(STOP_CONTROL)).getByText("À l’objectif et à l’échec", hidden)).toBeTruthy();
     expect(styleOf(STOP_CONTROL).width).toBe(220);
     // La cellule 1 revient à 30 s : détail homogène, toujours en Variables (N = 3) — deux
     // options en lecture seule, À la cible sélectionnée.
@@ -5030,7 +5030,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
     expect(seriesTypeText()).toBe("Variables");
     expect(get(STOP_CONTROL).props.accessibilityRole).toBe("text");
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
     expect(styleOf(STOP_CONTROL).width).toBe(220);
   });
@@ -5072,7 +5072,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Durée", "TARGET", "Identiques"]);
   });
 
-  it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À la cible » ; choisir un Mode ferme le champ ± ouvert", () => {
+  it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À l’objectif » ; choisir un Mode ferme le champ ± ouvert", () => {
     renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBeNull();
     expect(stopSelected()).toBe("TARGET");
@@ -5501,7 +5501,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     });
   });
 
-  it("PRE5-2.2/AC2 — variables, toutes les charges à 0 à la fermeture : Sans, colonne retirée, valeurs conservées", () => {
+  it("PRE5-2.2/AC2, PRE7-B.2 (B10) — variables, toutes les charges à 0 à la fermeture : Sans, colonne conservée avec des tirets, valeurs conservées", () => {
     const { onApply } = renderSheet(variableLoads([0, 20]));
     focus(cell(2));
     keyboard.show();
@@ -5510,7 +5510,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     blur(cell(2));
     expect(loadChoice()).toBe("WITHOUT");
     expect(query(cell(1))).toBeNull();
-    expect(within(get("execution-sheet-table-header")).queryByText("Charge", hidden)).toBeNull();
+    expect(within(get("execution-sheet-table-header")).getByText("Charge", hidden)).toBeTruthy();
+    expect(get(`${cell(1)}-unset`).props.accessibilityLabel).toBe("Série 1, charge, Sans");
     validate();
     expect(applied(onApply)).toMatchObject({ loadEnabled: false });
   });
@@ -6893,7 +6894,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     expect(shown(target(1))).toBe("00:00");
     expect(get("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: true });
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible et à l’échec");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif et à l’échec");
     // De nouveau : la valeur numérique revient (« 00:45 »), la frappe suivante remplace.
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     expect(shown(target(1))).toBe("00:45");
@@ -7009,5 +7010,124 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     } finally {
       prototype.setSelection = original;
     }
+  });
+});
+
+/**
+ * PRE-7 story B.2 (D-445, CE-UI-10) — B8 : valeur personnalisée de la Cadence affichée à la
+ * place de « Autre » (arbitrage A2) ; B10 : colonne Charge des séries variables toujours
+ * présente, tiret gris non éditable sous Sans (arbitrage A3).
+ */
+describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const OTHER = `${CADENCE_CONTROL}-OTHER`;
+  const otherLabel = () => ({
+    // Libellé de la première option (Autre), rendu à côté de sa zone de sélection.
+    text: within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden).slice(0, 1).map((node) => String(node.props.children)),
+    spoken: get(OTHER).props.accessibilityLabel as string,
+  });
+
+  it("PRE7-B.2 (B8) — Cadence 3 s : l'option Autre affiche « 3 s », annoncée « Autre, 3 s » ; 1 et 0 : « Autre »", () => {
+    const expected: readonly [number, string, string][] = [
+      [3, "3 s", "Autre, 3 s"],
+      [10, "10 s", "Autre, 10 s"],
+      [1, "Autre", "Autre"],
+      [0, "Autre", "Autre"],
+    ];
+    for (const [value, text, spoken] of expected) {
+      const view = renderSheetView(params({ cadenceBeepIntervalSeconds: value }));
+      expect({ value, ...otherLabel() }).toEqual({ value, text: [text], spoken });
+      view.unmount();
+    }
+  });
+
+  it("PRE7-B.2 (B8) — appui sur « 3 s » : le ± s'ouvre à 3 s ; valeur suivie en direct ; 1 s ou Sans : l'option redevient « Autre »", () => {
+    const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 3 }));
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("3 s");
+    expect(cadenceText()).toBe("Autre");
+    tap("execution-sheet-beep-increment");
+    expect(otherLabel()).toEqual({ text: ["4 s"], spoken: "Autre, 4 s" });
+    // Fermeture puis réouverture : la valeur du Brouillon est conservée.
+    fireEvent.press(get(OTHER));
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(otherLabel().text).toEqual(["4 s"]);
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("4 s");
+    // ± ouvert, ramené à 1 s : « Autre » (borne basse du classement Autre).
+    for (let step = 0; step < 3; step += 1) tap("execution-sheet-beep-decrement");
+    expect(valueOf("execution-sheet-beep")).toBe("1 s");
+    expect(otherLabel().text).toEqual(["Autre"]);
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
+    expect(cadenceText()).toBe("1 s");
+    expect(otherLabel().text).toEqual(["Autre"]);
+    fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
+    expect(otherLabel().text).toEqual(["Autre"]);
+    // Sans puis Autre (ch13 l.1209, D-420) : le ± s'ouvre à Sans, l'option reste « Autre » (4 s oublié).
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("Sans");
+    expect(otherLabel()).toEqual({ text: ["Autre"], spoken: "Autre" });
+    validate();
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(0);
+  });
+
+  describe("B10 — colonne Charge des séries variables", () => {
+    const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
+    const target = (row: number) => `execution-sheet-table-row-${row}-target`;
+    const pause = (row: number) => `execution-sheet-table-row-${row}-pause`;
+    const input = (testID: string) => `${testID}-input`;
+    const focus = (testID: string) => fireEvent(get(input(testID)), "focus");
+    const blur = (testID: string) => fireEvent(get(input(testID)), "blur");
+    const activeCell = (id: string) => StyleSheet.flatten(get(id).props.style)?.backgroundColor === "#EAEAFF";
+    const variableLoads = (loads: number[], enabled: boolean) =>
+      params({
+        series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+        loadEnabled: enabled,
+      });
+    let keyboard: ReturnType<typeof captureKeyboard>;
+    beforeEach(() => {
+      keyboard = captureKeyboard();
+    });
+    afterEach(() => keyboard.restore());
+
+    it("Sans, charges [10, 0, 15] : en-tête « Charge » et trois tirets gris centrés, non éditables, annoncés « Série n, charge, Sans »", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      expect(get("execution-sheet-table-header-load")).toHaveTextContent("Charge");
+      for (const row of [1, 2, 3]) {
+        expect(StyleSheet.flatten(get(`${cell(row)}-cell`).props.style)).toMatchObject({ width: 71, flexShrink: 1 });
+        const dash = get(`${cell(row)}-unset`);
+        expect(dash.props).toMatchObject({ accessibilityRole: "text", accessibilityLabel: `Série ${row}, charge, Sans` });
+        expect(StyleSheet.flatten(dash.props.style)).toMatchObject({ alignItems: "center", justifyContent: "center" });
+        const text = within(dash).getByText("—", hidden);
+        expect(StyleSheet.flatten(text.props.style).color).toBe(colors.disabled);
+        expect(query(cell(row))).toBeNull();
+        expect(query(input(cell(row)))).toBeNull();
+      }
+    });
+
+    it("Sans : Précédent / Suivant ne passent jamais par une cellule Charge", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      focus(pause(1));
+      keyboard.show();
+      fireEvent.press(get("execution-sheet-keyboard-next"));
+      expect(activeCell(target(2))).toBe(true);
+      blur(pause(1));
+      focus(target(2));
+      fireEvent.press(get("execution-sheet-keyboard-previous"));
+      expect(activeCell(pause(1))).toBe(true);
+    });
+
+    it("Sans → Avec : en-tête et emplacements de la colonne restent montés ; les champs y apparaissent avec les valeurs conservées", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      const header = get("execution-sheet-table-header-load");
+      const slots = [1, 2, 3].map((row) => get(`${cell(row)}-cell`));
+      fireEvent.press(get("execution-sheet-load-control-WITH"));
+      expect(get("execution-sheet-table-header-load")).toBe(header);
+      expect([1, 2, 3].map((row) => get(`${cell(row)}-cell`))).toEqual(slots);
+      expect([1, 2, 3].map((row) => query(`${cell(row)}-unset`))).toEqual([null, null, null]);
+      expect([1, 2, 3].map((row) => String(get(`${cell(row)}-value`).props.children))).toEqual(["10 kg", "0 kg", "15 kg"]);
+    });
   });
 });
