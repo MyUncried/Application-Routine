@@ -109,6 +109,10 @@ const sources = {
   "card-work-duration": require("../../../assets/icons/icon-symbole-duree.svg"),
   "card-recovery-hourglass": require("../../../assets/icons/icon-sablier-recuperation-v2.svg"),
   "card-side-change": require("../../../assets/icons/icon-changement-de-cote-v2.svg"),
+  // PRE-7 story A2.2 (D-438, relevé Figma MFN du 23/10) : `icon/modifier` (`9925:41240`), crayon au
+  // trait bleu KODJO de l’action « Modifier le geste » (`9952:44374`). Export SVG de l’outil MCP
+  // Figma en lecture seule, attributs racine preserveAspectRatio/overflow/style retirés.
+  "edit-movement": require("../../../assets/icons/icon-modifier.svg"),
 } as const;
 
 const sizes = {
@@ -243,6 +247,8 @@ const sizes = {
   "card-work-duration": [13, 13],
   "card-recovery-hourglass": [13, 13],
   "card-side-change": [16, 16],
+  // Cadre 20 × 20 de l’instance (`9952:44375`), tracé débordant de 3,75 % de chaque côté : 21,5.
+  "edit-movement": [21.5, 21.5],
 } as const;
 
 /**

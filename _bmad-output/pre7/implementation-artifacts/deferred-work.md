@@ -36,3 +36,15 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-1-feuille-parametres-mfn.md`
   summary: La création d'un Exercice sur un geste repris (origine SAME_MOVEMENT ou VARIANT) devra transmettre à la Feuille le compteur de phase du Mouvement repris (`nextPhaseId`), et non max + 1.
   evidence: A2.1 ne câble que l'édition Catalogue (`movementNextPhaseId` de la définition lue) ; le parcours de reprise n'existe qu'en A2.3.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-2-contenu-partage-verrouillage.md`
+  summary: Report A1.3 « question d'identité non imposée à l'écriture » traité par A2.2 — l'Éditeur évalue toute correction avant d'écrire, présente la question d'identité et l'étape de complétion.
+  evidence: `ExerciseScreen.tsx` (`handleFinish` → `assessActivityDefinitionCorrection`) ; tests `ExerciseScreen.mfn.a22.integration.test.tsx`. Le service n'impose toujours pas l'accusé du choix à l'écriture (contrat A1.3 inchangé).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-2-contenu-partage-verrouillage.md`
+  summary: Après « Créer un nouvel exercice » / « En faire un geste distinct », le rattachement au groupe de niveaux d'origine n'est pas proposé (MFN-08, CE-T03-04 §14 : « proposé sans présélection ») ; aucun rattachement n'est fait.
+  evidence: aucun libellé documenté ni frame pour cette proposition ; option conservatrice `joinOriginGroup: false` (MFN-05, rattachement ultérieur possible MFN-06). À décider par Hermann, à câbler avec le popover de niveau (A3.1).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-2-contenu-partage-verrouillage.md`
+  summary: Les refus d'une correction partagée (frère inéligible, durée de frère invalide ou somme hors bornes, complétion devenue nécessaire entre l'évaluation et l'écriture) aboutissent au message générique « L'exercice n'a pas pu être enregistré. Réessayez. » et l'étape de complétion rouverte repart vide.
+  evidence: `ExerciseScreen.tsx` `proceedWithCorrection` / `writeCorrection` ; aucun texte documenté pour ces refus (RM-092). À proposer à Hermann (texte par refus, contrôle de la somme à l'étape, conservation des saisies).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-2-contenu-partage-verrouillage.md`
+  summary: Le crayon « Modifier le geste » disparaît à l'appui sans déplacer le focus VoiceOver ni annoncer le déverrouillage.
+  evidence: `EditMovementAction` démonté à l'appui ; à constater en recette JA avec VoiceOver ; si le focus se perd, le placer sur le Nom (`AccessibilityInfo.setAccessibilityFocus`).

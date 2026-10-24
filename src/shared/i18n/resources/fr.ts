@@ -235,6 +235,43 @@ export const fr = {
         name: "Nom de l’exercice",
         finishAction: "Terminer",
         saveError: "L’exercice n’a pas pu être enregistré. Réessayez.",
+        // PRE-7 story A2.2 (D-438, CE-T03-04 §3, relevé Figma MFN du 23/10, `9952:44374`) :
+        // crayon de la création sur geste repris, annoncé « Modifier le geste ».
+        editMovement: "Modifier le geste",
+        // PRE-7 story A2.2 (D-438, MFN-08, CE-T03-04 §14 ; feuille basse `9952:44349`) : question
+        // d’identité. Libellés des choix : MFN-08 (modification Catalogue) et complément de
+        // présentation D-438 (création sur geste repris). Titre, portée et explications : textes
+        // de `9952:44349`, nombres calculés (`correctionScope`). Accord au singulier ajouté pour
+        // un seul autre exercice ; l’explication du second choix n’existe que pour la reprise.
+        identityDecision: {
+          title: "Vous avez modifié {name}",
+          otherCountPlural: "{n} autres exercices utilisent ce geste.",
+          otherCountSingular: "{n} autre exercice utilise ce geste.",
+          correctScope: "La correction s’applique aux {n} exercices qui l’utilisent",
+          catalogue: {
+            correct: "Corriger cet exercice",
+            newIdentity: "Créer un nouvel exercice",
+          },
+          reprise: {
+            correct: "Corriger ce geste",
+            newIdentity: "En faire un geste distinct",
+            newIdentityScope: "Seul cet exercice change, {name} reste intact",
+          },
+          cancel: "Annuler",
+        },
+        // PRE-7 story A2.2 (MFN-08 « Étape d’écran après choix de correction structurelle »,
+        // CE-T03-04 §11 et §14) : étape distincte, sans frame Figma (NON VÉRIFIABLE). Libellés
+        // tirés du vocabulaire des documents (« durées manquantes », complétion « passée »),
+        // soumis à Hermann ; « Terminer », « Annuler » existants ; un frère passé affiche le texte
+        // existant `executionParameters.card.incomplete` (« Paramètres à compléter. »).
+        siblingCompletion: {
+          title: "Durées manquantes",
+          skip: "Passer",
+          finish: "Terminer",
+          cancel: "Annuler",
+          unset: "—",
+          durationAccessibilityLabel: "Durée de {label}",
+        },
         media: {
           label: "Médias",
           expandAccessibilityLabel: "Déployer la section Médias",

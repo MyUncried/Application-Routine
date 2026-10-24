@@ -51,6 +51,11 @@ export type FixedHeaderProps = {
   titleStyle?: StyleProp<TextStyle>;
   /** PRE-5 story 3.2 (G-1) : teinte locale du trait de l'icône du cercle (absente : export inchangé). */
   backIconTintColor?: string;
+  /**
+   * PRE-7 story A2.2 (D-438, Figma `9891:39982`) : action placée à droite du titre — crayon
+   * « Modifier le geste » de l'Éditeur en création sur geste repris. Absente : rendu inchangé.
+   */
+  trailing?: ReactNode;
 };
 
 /**
@@ -84,6 +89,7 @@ export function FixedHeader({
   backCircleStyle,
   titleStyle,
   backIconTintColor,
+  trailing,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
@@ -120,6 +126,7 @@ export function FixedHeader({
       <Text style={[styles.title, titleStyle]} accessibilityRole="header">
         {title}
       </Text>
+      {trailing ?? null}
     </View>
   );
 }

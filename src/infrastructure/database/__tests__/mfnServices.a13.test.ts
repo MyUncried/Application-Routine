@@ -205,6 +205,12 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
         affectedDefinitionCount: 2,
         siblingGaps: [{ definitionId: second.id, missingPhaseIds: [3], missingSeriesDuration: false }],
       }),
+      // PRE-7 A2.2 : structure allouée rendue pour l'étape de complétion (libellés par `phaseId`).
+      phases: [
+        { id: 1, label: "Phase 1" },
+        { id: 2, label: "Phase 2" },
+        { id: 3, label: "Remontée" },
+      ],
     });
 
     expect(await service().updateActivityDefinition(first.id, edited)).toEqual({

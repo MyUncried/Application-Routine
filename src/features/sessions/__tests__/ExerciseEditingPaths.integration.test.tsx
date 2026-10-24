@@ -391,6 +391,27 @@ async function openSessionFromCatalogue() {
   await settle();
 }
 
+/**
+ * PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : une Copie de Séance porte une filiation — son
+ * contenu (nom, description, Médias, Catégorie, Zones) est verrouillé, ses paramètres restent
+ * modifiables. Les parcours MS qui modifiaient le nom de la Copie modifient désormais un paramètre
+ * (2 → 1 série) après avoir vérifié le verrou du nom.
+ */
+function editCopyParameters() {
+  expect(screen.getByDisplayValue("Fentes").props.editable).toBe(false);
+  fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  tapExecutionSheetStep("execution-sheet-series-decrement");
+  fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+  expect(screen.queryByTestId("execution-sheet")).toBeNull();
+}
+
+/** Nombre de séries relu dans les paramètres persistés de la Copie. */
+async function copySeriesCount(): Promise<number> {
+  const row = await database.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities");
+  const parameters = JSON.parse(row!.execution_parameters) as { series: { kind: string; rows?: unknown[]; count?: number } };
+  return parameters.series.kind === "VARIABLE" ? parameters.series.rows!.length : parameters.series.count!;
+}
+
 /** Q54 : `Continuer` (PRE-6 story 2.1) depuis la Composition (écran « Catégories de la séance » supprimé). */
 async function continueAndSave() {
   await act(async () => {
@@ -743,16 +764,18 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     openAndCloseSheet();
     expect(sheetSpy).toHaveBeenCalled();
 
-    fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes sautées");
+    // PRE-7 A2.2 (MFN-09) : nom verrouillé, paramètre modifié (2 → 1 série).
+    editCopyParameters();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     expect(router.getPathname()).toBe("/composition");
-    expect(screen.getByText("Fentes sautées")).toBeTruthy();
+    expect(screen.getByText("Fentes")).toBeTruthy();
     expect(await dump()).toEqual(before);
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    expect(await database.getAllAsync("SELECT id, name FROM activities")).toEqual([{ id: copy.id, name: "Fentes sautées" }]);
+    expect(await database.getAllAsync("SELECT id, name FROM activities")).toEqual([{ id: copy.id, name: "Fentes" }]);
+    expect(await copySeriesCount()).toBe(1);
   }, 30000);
 });
 
@@ -768,14 +791,16 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
     await openSessionFromCatalogue();
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
-    fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes de Séance");
+    // PRE-7 A2.2 (MFN-09) : contenu de la Copie verrouillé ; son paramètre est modifié.
+    editCopyParameters();
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     expect(await definitionRow()).toEqual(definitionBefore);
     const copyAfterMs = await copyRow();
-    expect(copyAfterMs).toMatchObject([{ name: "Fentes de Séance" }]);
+    expect(copyAfterMs).toMatchObject([{ name: "Fentes" }]);
+    expect(await copySeriesCount()).toBe(1);
 
     await openExercisesSegment();
     expect(screen.getAllByTestId("activity-card-open")).toHaveLength(1);
@@ -1406,7 +1431,8 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
 
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
-    fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes modifiées");
+    // PRE-7 A2.2 (MFN-09) : la modification porte sur un paramètre, le nom étant verrouillé.
+    editCopyParameters();
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
     expect(screen.getByText(exercise.exitConfirmModal.title)).toBeTruthy();
     expect(screen.getByText(exercise.exitConfirmModal.message)).toBeTruthy();
@@ -1552,7 +1578,8 @@ describe("PRE4-4.1/AC13 — source supprimée pendant l'édition (Copie en Séan
     await openSessionFromCatalogue();
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
-    fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes modifiées");
+    // PRE-7 A2.2 (MFN-09) : la modification porte sur un paramètre, le nom étant verrouillé.
+    editCopyParameters();
 
     await database.runAsync("DELETE FROM activities WHERE id = ?", [copy.id]);
     const afterDeletion = await dump();
@@ -1564,7 +1591,7 @@ describe("PRE4-4.1/AC13 — source supprimée pendant l'édition (Copie en Séan
   it("PRE4-4.1/AC13 — Copie supprimée pendant l'édition : Terminer réussit dans le seul Brouillon de Composition, sans écriture ni contenu de démonstration", async () => {
     const { router, afterDeletion } = await editDeletedCopy();
     expect(router.getPathname()).toBe("/composition");
-    expect(screen.getByText("Fentes modifiées")).toBeTruthy();
+    expect(screen.getByText("Fentes")).toBeTruthy();
     expect(screen.getByLabelText(composition.name).props.value).toBe("Jambes");
     expect(await dump()).toEqual(afterDeletion);
   }, 30000);
@@ -1578,7 +1605,7 @@ describe("PRE4-4.1/AC13 — source supprimée pendant l'édition (Copie en Séan
     expect(router.getPathname()).toBe("/composition");
     expect(screen.getByText(composition.saveError)).toBeTruthy();
     expect(await dump()).toEqual(afterDeletion);
-    expect(screen.getByText("Fentes modifiées")).toBeTruthy();
+    expect(screen.getByText("Fentes")).toBeTruthy();
   }, 30000);
 });
 
@@ -1723,7 +1750,9 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
   }, 30000);
 
-  it("PRE4-4.4/AC2 — MS : ajoutés après les Médias de la Copie, au Brouillon à Terminer, enregistrés au Continuer ; Définition inchangée", async () => {
+  // PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : la Copie porte une filiation, ses Médias sont
+  // verrouillés — l'ajout qu'exerçait ce parcours n'existe plus ; consultation conservée.
+  it("PRE4-4.4/AC2 — MS (PRE-7 A2.2, MFN/AC28) : Médias de la Copie verrouillés — aucun ajout possible, Terminer et Continuer ne changent ni la Copie ni la Définition", async () => {
     const picker = new ScriptedPicker();
     const definition = await savedDefinition();
     const { copy } = await savedSessionWithCopy(definition);
@@ -1733,17 +1762,16 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
 
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
-    await addPhotoThenVideo(picker);
-    expect(galleryLabels()).toEqual(["Photo 1 sur 4", "Photo 2 sur 4", "Photo 3 sur 4", "Vidéo 4 sur 4"]);
-    const media = editorContent().media;
+    expect(screen.queryByTestId("media-add")).toBeNull();
+    expect(galleryLabels()).toEqual(["Photo 1 sur 2", "Photo 2 sur 2"]);
+    expect(picker.calls).toBe(0);
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     expect(await dump()).toEqual(before);
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    expect(await copyMedia(copy.id)).toEqual(media);
-    expect(media.slice(0, 2)).toEqual(["p1", "p2"]);
+    expect(await copyMedia(copy.id)).toEqual(["p1", "p2"]);
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
   }, 30000);
 });
@@ -1877,7 +1905,9 @@ describe("PRE4-4.4/AC5 — import annulé ou en erreur", () => {
 });
 
 describe("PRE4-4.4/AC7 — Copie en Séance : réordonner et retirer sans effet sur la Définition", () => {
-  it("PRE4-4.4/AC7 — MS : Monter puis Retirer sur la Copie, Terminer, Continuer : la Définition garde ses deux Médias dans leur ordre ; le fichier retiré existe toujours", async () => {
+  // PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : Médias de la Copie verrouillés — ni menu
+  // Retirer / Monter / Descendre, ni actions d'accessibilité équivalentes ; consultation conservée.
+  it("PRE4-4.4/AC7 — MS (PRE-7 A2.2, MFN/AC28) : Médias de la Copie verrouillés — ni Monter ni Retirer ; Terminer, Continuer : Copie et Définition gardent leurs deux Médias dans leur ordre", async () => {
     const definition = await savedDefinition();
     const { copy } = await savedSessionWithCopy(definition);
     const router = renderApp();
@@ -1886,19 +1916,21 @@ describe("PRE4-4.4/AC7 — Copie en Séance : réordonner et retirer sans effet 
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
     expect(editorContent().media).toEqual(["p1", "p2"]);
-    openMediaMenu(2).choose(mediaText.menuMoveUp);
-    expect(editorContent().media).toEqual(["p2", "p1"]);
-    openMediaMenu(1).choose(mediaText.menuRemove);
-    expect(editorContent().media).toEqual(["p1"]);
+    expect(() => openMediaMenu(2)).toThrow();
+    for (const index of [1, 2]) {
+      const tile = screen.getByTestId(`media-item-${index}`);
+      expect(tile.props.accessibilityActions).toEqual([]);
+      expect(tile.props.accessibilityHint).toBe(mediaText.photoHintLocked);
+    }
+    expect(editorContent().media).toEqual(["p1", "p2"]);
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
 
-    expect(await copyMedia(copy.id)).toEqual(["p1"]);
+    expect(await copyMedia(copy.id)).toEqual(["p1", "p2"]);
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
     expect(await database.getAllAsync("SELECT id FROM media_assets ORDER BY id")).toEqual([{ id: "p1" }, { id: "p2" }]);
-    expect(store.files.has("kodjo-media/p2")).toBe(true);
   }, 30000);
 });
 
@@ -1986,7 +2018,9 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     expect(activityDefinitionToDraftExercise(definition!, "occ-steps", 0).instruction).toBe("Dos droit\nGenoux fléchis");
   }, 30000);
 
-  it("PRE5-3.1/AC4 — MS : Copie à étapes ; une étape vide ajoutée par Entrée n'est pas une modification ; une étape saisie est enregistrée à Terminer ; la Définition reste inchangée", async () => {
+  // PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : la Description de la Copie (filiation) est
+  // verrouillée — les étapes sont lues, ni Entrée ni saisie ne les modifient.
+  it("PRE5-3.1/AC4 — MS (PRE-7 A2.2, MFN/AC28) : Copie à étapes, Description verrouillée ; aucune saisie, aucune garde d'abandon ; à Terminer, étapes transportées à l'identique ; la Définition reste inchangée", async () => {
     const definition = await savedDefinition(undefined, "Genou aligné\nDos droit");
     const { copy } = await savedSessionWithCopy(definition);
     const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id");
@@ -1996,9 +2030,10 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
-    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
+    expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
+    expect(screen.getByTestId("exercise-instruction-step-2").props.editable).toBe(false);
     fireEvent.changeText(screen.getByTestId("exercise-instruction-step-2"), "Dos droit\n");
-    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit", ""]);
+    expect(editorContent().instructionSteps).toEqual(["Genou aligné", "Dos droit"]);
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
     await settle(300);
     expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
@@ -2006,14 +2041,12 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
 
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
-    fireEvent(screen.getByTestId("exercise-instruction-step-2"), "focus");
-    fireEvent.changeText(screen.getByTestId("exercise-instruction-step-3"), "Souffler");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     const rows = await database.getAllAsync<{ instruction: string | null }>("SELECT instruction FROM activities");
-    expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit\nSouffler" }]);
+    expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit" }]);
     expect(await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual(definitionBefore);
   }, 30000);
 

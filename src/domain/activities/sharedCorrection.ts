@@ -337,3 +337,95 @@ export function assessSharedCorrection(
     ineligibleDefinitionIds,
   };
 }
+
+/**
+ * PRE-7 (A2.2, D-438, MFN-08 ; relevé Figma MFN du 23/10) : portée annoncée par
+ * la question d'identité, calculée et jamais copiée de la maquette.
+ *
+ * - `UPDATE` (Exercice du Catalogue modifié) : `affectedDefinitionCount`
+ *   compte déjà l'Exercice édité ; les autres en sont retirés.
+ * - `SAME_MOVEMENT` (création sur un geste repris) : la création en cours
+ *   « compte dans le total annoncé après sauvegarde, pas comme exercice déjà
+ *   enregistré » : autres = définitions qui partagent déjà le geste.
+ *
+ * `showCount` : le nombre n'est indiqué qu'« au-delà d'un exercice concerné ».
+ */
+export type CorrectionScope = {
+  readonly otherCount: number;
+  readonly totalCount: number;
+  readonly showCount: boolean;
+};
+
+export function correctionScope(kind: "UPDATE" | "SAME_MOVEMENT", affectedDefinitionCount: number): CorrectionScope {
+  const shared = Math.max(0, Math.trunc(affectedDefinitionCount));
+  const totalCount = kind === "UPDATE" ? Math.max(1, shared) : shared + 1;
+  const otherCount = totalCount - 1;
+  return { otherCount, totalCount, showCount: totalCount > 1 };
+}
+
+/**
+ * Saisie de l'étape de complétion pour un frère (MFN-08) : durée par phase
+ * manquante (`null` = encore vide), durée de série si la structure est retirée,
+ * ou complétion explicitement PASSÉE (`skipped`).
+ */
+export type SiblingCompletionEntry = {
+  readonly definitionId: string;
+  readonly skipped: boolean;
+  readonly phaseDurations: readonly { readonly phaseId: number; readonly durationSeconds: number | null }[];
+  readonly seriesDurationSeconds: number | null;
+};
+
+/**
+ * Brouillon initial de l'étape : une entrée par frère à compléter, toutes les
+ * durées vides — aucune valeur proposée n'est inventée (MFN-08).
+ */
+export function initialCompletionEntries(gaps: readonly SiblingGap[]): readonly SiblingCompletionEntry[] {
+  return gaps.map((gap) => ({
+    definitionId: gap.definitionId,
+    skipped: false,
+    phaseDurations: gap.missingPhaseIds.map((phaseId) => ({ phaseId, durationSeconds: null })),
+    seriesDurationSeconds: null,
+  }));
+}
+
+/** Vrai quand chaque frère est soit passé, soit entièrement renseigné (durées ≥ 1 s). */
+export function completionEntriesReady(gaps: readonly SiblingGap[], entries: readonly SiblingCompletionEntry[]): boolean {
+  return gaps.every((gap) => {
+    const entry = entries.find((candidate) => candidate.definitionId === gap.definitionId);
+    if (!entry) return false;
+    if (entry.skipped) return true;
+    const phasesReady = gap.missingPhaseIds.every((phaseId) => {
+      const value = entry.phaseDurations.find((item) => item.phaseId === phaseId)?.durationSeconds ?? null;
+      return value !== null && value >= 1;
+    });
+    const seriesReady = !gap.missingSeriesDuration || (entry.seriesDurationSeconds !== null && entry.seriesDurationSeconds >= 1);
+    return phasesReady && seriesReady;
+  });
+}
+
+/**
+ * Complétions transmises au service (`SiblingCompletion`) : un frère passé
+ * reçoit `null` pour chaque durée manquante (conservé INCOMPLET, MFN/AC24) ;
+ * sinon ses durées saisies. Une durée encore vide d'un frère non passé lève :
+ * l'interface n'appelle cette fonction que lorsque `completionEntriesReady`.
+ */
+export function buildSiblingCompletions(
+  gaps: readonly SiblingGap[],
+  entries: readonly SiblingCompletionEntry[],
+): readonly SiblingCompletion[] {
+  if (!completionEntriesReady(gaps, entries)) {
+    throw new Error("Sibling completion entries are not ready.");
+  }
+  return gaps.map((gap) => {
+    const entry = entries.find((candidate) => candidate.definitionId === gap.definitionId)!;
+    const durationOf = (phaseId: number): number | null =>
+      entry.skipped ? null : (entry.phaseDurations.find((item) => item.phaseId === phaseId)?.durationSeconds ?? null);
+    return {
+      definitionId: gap.definitionId,
+      ...(gap.missingPhaseIds.length > 0
+        ? { phaseDurations: gap.missingPhaseIds.map((phaseId) => ({ phaseId, durationSeconds: durationOf(phaseId) })) }
+        : {}),
+      ...(gap.missingSeriesDuration ? { seriesDurationSeconds: entry.skipped ? null : entry.seriesDurationSeconds } : {}),
+    };
+  });
+}

@@ -23,7 +23,7 @@ import {
   type SiblingCompletion,
   type SiblingGap,
 } from "@/domain/activities";
-import { allocatePhaseIdentities } from "@/domain/activities/Movement";
+import { allocatePhaseIdentities, type Movement, type MovementPhase } from "@/domain/activities/Movement";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
@@ -84,7 +84,16 @@ export type CorrectionTarget =
   | { readonly kind: "SAME_MOVEMENT"; readonly movementId: string };
 
 export type AssessCorrectionResult =
-  | { readonly status: "ASSESSED"; readonly assessment: CorrectionAssessment }
+  | {
+      readonly status: "ASSESSED";
+      readonly assessment: CorrectionAssessment;
+      /**
+       * PRE-7 (A2.2, MFN-08) : structure du geste après allocation des identités par le
+       * compteur du Mouvement — libellés des phases manquantes présentées à l'étape de
+       * complétion, par `phaseId`.
+       */
+      readonly phases: readonly MovementPhase[];
+    }
   | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
   /** Définition (`UPDATE`) ou Mouvement (`SAME_MOVEMENT`) introuvable. */
   | { readonly status: "NOT_FOUND" };
@@ -287,7 +296,27 @@ export class ActivityDefinitionService {
         .map((definition) => ({ definitionId: definition.id, parameters: definition.executionParameters })),
       sharing.length,
     );
-    return { status: "ASSESSED", assessment };
+    return { status: "ASSESSED", assessment, phases: allocation.movement.phases };
+  }
+
+  /**
+   * PRE-7 (A2.2, MFN-08) : l'évaluation d'une correction est disponible (Mouvement injecté) —
+   * même patron que `supportsMediaImport`. Faux pour un service construit sans
+   * `MovementRepository` (doublures antérieures à MFN) : l'éditeur écrit alors directement.
+   */
+  get supportsSharedCorrection(): boolean {
+    return this.movementRepository !== undefined;
+  }
+
+  /**
+   * PRE-7 (A2.2, MFN-06, MFN-08) : geste repris par une création (contenu, structure,
+   * compteur de phase) — `null` si inconnu ou sans `MovementRepository`.
+   */
+  async getMovement(movementId: string): Promise<Movement | null> {
+    if (!this.movementRepository) {
+      return null;
+    }
+    return this.movementRepository.findById(movementId);
   }
 
   /**

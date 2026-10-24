@@ -40,6 +40,7 @@ import {
   WORK_PHASE_LIMITS,
   type CatalogExecutionParameters,
   type ExecutionParameters,
+  type ExecutionParametersInput,
   type ExecutionParametersViolation,
   type PhaseDuration,
   type WorkPhase,
@@ -537,4 +538,27 @@ export function normalizeMovementName(name: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
+ * PRE-7 (A2.2, MFN-02, MFN-06 « Même geste, autres paramètres » : « reprendre son contenu ;
+ * saisir les paramètres du nouvel exercice ») — paramètres initiaux d'une création sur un geste
+ * repris : ceux du brouillon vide `base`, et, si le geste a des phases, sa STRUCTURE (identités et
+ * libellés) portée par une série identique en mode Durée — seul mode éligible aux phases (MFN-02) —
+ * avec des durées à renseigner (0, Cible `UNSET`) : aucune valeur n'est inventée, et une reprise
+ * inchangée n'est pas une modification de la structure du geste. Fonction pure.
+ */
+export function repriseExecutionParameters(movement: Movement, base: ExecutionParametersInput): ExecutionParametersInput {
+  if (movement.phases.length === 0 || base.series.kind !== "UNIFORM") {
+    return base;
+  }
+  return {
+    ...base,
+    mode: "DURATION",
+    series: {
+      ...base.series,
+      target: unsetTarget(),
+      workPhases: movement.phases.map((phase) => ({ id: phase.id, label: phase.label, durationSeconds: 0 })),
+    },
+  };
 }

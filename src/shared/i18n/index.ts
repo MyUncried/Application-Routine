@@ -224,6 +224,10 @@ const executionParameters = {
     // « Agrandir le média » par analogie du ch. 13 l. 1957.
     videoHint: "Lire la vidéo. Menu du média par appui long ou par les actions",
     photoHint: "Agrandir le média. Menu du média par appui long ou par les actions",
+    // PRE-7 story A2.2 (MFN-09, MFN/AC28) : contenu de geste verrouillé — consultation seule,
+    // sans menu (libellés « Lire la vidéo » / « Agrandir le média » du ch. 13 l. 3467).
+    videoHintLocked: "Lire la vidéo",
+    photoHintLocked: "Agrandir le média",
     closeConsultation: "Fermer",
     // Story 4.5 (FR-21-58, AC6) : erreur locale de consultation, lien du Média conservé.
     unavailable: "Média indisponible.",

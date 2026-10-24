@@ -127,6 +127,14 @@ export type ActivityEditorFormProps = {
    */
   phaseStructureLocked?: boolean;
   /**
+   * PRE-7 (A2.2, D-437, D-438, MFN-08, MFN-09 ; CE-T03-04 §3) : contenu du geste en lecture
+   * seule — nom, description, médias (consultation conservée), Catégorie, Zones corporelles et
+   * structure des phases. Occurrence copiée d'un geste (sans déverrouillage), ou création sur un
+   * geste repris avant le crayon « Modifier le geste ». Les paramètres restent modifiables.
+   * Défaut `false`.
+   */
+  contentLocked?: boolean;
+  /**
    * PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement de la définition éditée,
    * transmis à la Feuille (`openSheetDraft`) ; absent : max(`id`) + 1.
    */
@@ -280,6 +288,7 @@ export function ActivityEditorForm({
   exerciseSignals = "present",
   inheritedSeriesCount = false,
   phaseStructureLocked = false,
+  contentLocked = false,
   nextPhaseId,
   baselineParameters = null,
   mediaService,
@@ -394,6 +403,8 @@ export function ActivityEditorForm({
           placeholderTextColor={colors.textPrimary}
           accessibilityLabel={editor.name}
           maxLength={NAME_MAX_LENGTH}
+          // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
+          editable={!contentLocked}
           style={styles.nameInput}
           testID="exercise-name-input"
         />
@@ -413,13 +424,15 @@ export function ActivityEditorForm({
           <Pressable
             ref={categoryAccess}
             onPress={onOpenCategory}
+            // PRE-7 (A2.2, MFN-09) : Catégorie du geste verrouillé, affichée sans accès.
+            {...(contentLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             accessibilityLabel={
               category ? `${editor.category.label} ${category.name}` : editor.category.unsetAccessibilityLabel
             }
             // Revue 4.3 : feuille ouverte annoncée « développé », Catégorie renseignée comprise
             // (le glyphe d'une Catégorie renseignée n'a pas d'état ouvert visuel : écart E-V12).
-            accessibilityState={{ expanded: isCategoryPickerOpen }}
+            accessibilityState={contentLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
             hitSlop={ACCESS_HIT_SLOP}
             style={[styles.referenceAccess, category ? null : styles.referenceAccessUnset]}
             testID="activity-editor-category-button"
@@ -450,6 +463,8 @@ export function ActivityEditorForm({
               Keyboard.dismiss();
               bodyZonesSheet.open();
             }}
+            // PRE-7 (A2.2, MFN-09) : Zones du geste verrouillé, affichées sans accès.
+            {...(contentLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             // Revue 4.3 (WCAG 2.5.3) : le nom accessible contient le texte visible —
             // « Zone corporelle — non renseignée » au repos, comme la Catégorie ; renseigné,
@@ -459,7 +474,7 @@ export function ActivityEditorForm({
                 ? `${t.bodyZones.accessibilityLabel} ${zoneNames.join(", ")}`
                 : t.bodyZones.unsetAccessibilityLabel
             }
-            accessibilityState={{ expanded: isBodyZonePickerOpen }}
+            accessibilityState={contentLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
             hitSlop={ACCESS_HIT_SLOP}
             style={[styles.referenceAccess, zoneNames.length > 0 ? null : styles.referenceAccessUnset]}
             testID="exercise-body-zones-open"
@@ -518,6 +533,7 @@ export function ActivityEditorForm({
               <DescriptionSteps
                 steps={value.instructionSteps}
                 onChange={(steps) => onChange({ instructionSteps: steps })}
+                editable={!contentLocked}
                 onFocusChange={setIsDescriptionFocused}
                 onActiveRowBottomChange={(bottom) => {
                   descriptionLayoutRef.current.activeRowBottom = bottom;
@@ -591,6 +607,7 @@ export function ActivityEditorForm({
               onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
               onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
               onRetry={media.retry}
+              editable={!contentLocked}
             />
           </View>
         </ScrollView>
@@ -617,7 +634,8 @@ export function ActivityEditorForm({
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
           exerciseSignals={exerciseSignals}
           inheritedSeriesCount={inheritedSeriesCount}
-          phaseStructureLocked={phaseStructureLocked}
+          // PRE-7 (A2.2) : la structure des phases fait partie du contenu verrouillé.
+          phaseStructureLocked={phaseStructureLocked || contentLocked}
           nextPhaseId={nextPhaseId}
           onApply={applyParameters}
           onCancel={closeSheet}

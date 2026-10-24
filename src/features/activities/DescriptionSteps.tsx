@@ -165,9 +165,22 @@ export type DescriptionStepsProps = {
   /** Bas de la ligne active, relatif au haut de la liste, à chaque changement de ligne ou de mesure. */
   readonly onActiveRowBottomChange: (bottom: number) => void;
   readonly style?: StyleProp<ViewStyle>;
+  /**
+   * PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : `false` pour un contenu de geste verrouillé
+   * (occurrence copiée, geste repris avant le crayon) — étapes lues, non modifiables
+   * (`TextInput editable={false}`, primitive native). Défaut `true`.
+   */
+  readonly editable?: boolean;
 };
 
-export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBottomChange, style }: DescriptionStepsProps) {
+export function DescriptionSteps({
+  steps,
+  onChange,
+  onFocusChange,
+  onActiveRowBottomChange,
+  style,
+  editable = true,
+}: DescriptionStepsProps) {
   const t = strings.screens.exercise.instruction;
   // B1 : une ligne a le focus. Posé au focus, retiré par la même perte de focus
   // différée que ↑ : un passage de ligne à ligne ne démonte jamais l'invite.
@@ -265,6 +278,7 @@ export function DescriptionSteps({ steps, onChange, onFocusChange, onActiveRowBo
               placeholderTextColor={STEP_PROMPT_COLOR}
               accessibilityLabel={t.stepAccessibilityLabel.replace("{n}", String(number))}
               multiline
+              editable={editable}
               scrollEnabled={false}
               onFocus={() => {
                 cancelPendingBlur();

@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import {
@@ -10,7 +10,10 @@ import {
   validateForSave,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
+import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
+import { repriseExecutionParameters, type MovementPhase } from "@/domain/activities/Movement";
+import type { CorrectionAssessment, SiblingCompletion, SiblingGap } from "@/domain/activities/sharedCorrection";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { draftMediaEqual, toDraftMediaItems } from "@/domain/media/ActivityMedia";
@@ -32,19 +35,23 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import type { ActivityDefinitionService, CorrectionTarget } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { IdentityDecisionSheet } from "@/features/activities/IdentityDecisionSheet";
+import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
+import { formatExerciseRowSummary } from "@/features/sessions/compositionPresentation";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Référentiel persistant des Zones corporelles, chargé via
@@ -181,7 +188,17 @@ function withProfilePhases(parameters: ExecutionParametersInput, countdown: numb
  * autres écrans inchangés) et marge latérale de l'Éditeur (24, ou 16 sous 390).
  * Libellé accessible : celui du code de départ (`Retour`), inchangé.
  */
-function EditorHeader({ title, onClose, accessibilityLabel }: { title: string; onClose: () => void; accessibilityLabel: string }) {
+function EditorHeader({
+  title,
+  onClose,
+  accessibilityLabel,
+  trailing,
+}: {
+  title: string;
+  onClose: () => void;
+  accessibilityLabel: string;
+  trailing?: ReactNode;
+}) {
   const { width } = useWindowDimensions();
   return (
     <FixedHeader
@@ -196,6 +213,7 @@ function EditorHeader({ title, onClose, accessibilityLabel }: { title: string; o
       backCircleStyle={EDITOR_HEADER.backCircle}
       titleStyle={EDITOR_HEADER.title}
       backIconTintColor={EDITOR_HEADER.closeIconTint}
+      trailing={trailing}
     />
   );
 }
@@ -226,6 +244,16 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  *   de Composition à « Terminer » ; « Continuer » (Composition) reste seul à
  *   persister la Séance.
  *
+ * PRE-7 (A2.2, D-437, D-438, MFN-06, MFN-08, MFN-09 ; CE-T03-04 §3) : trois contextes
+ * d'édition explicites —
+ * - Exercice du Catalogue existant (`catalogueDefinitionId=<id>`) : ouvert directement en
+ *   édition ;
+ * - création sur un geste repris (`catalogueDefinitionId=new&movementId=<id>`, point d'entrée
+ *   branché par la recherche et les suggestions d'A2.3) : contenu du geste en lecture seule,
+ *   déverrouillé dans le brouillon par le crayon « Modifier le geste », paramètres modifiables ;
+ * - occurrence de Séance portant une filiation : contenu verrouillé, sans crayon ; une création
+ *   locale (sans filiation) reste modifiable jusqu'au premier enregistrement de la Séance.
+ *
  * Commun : ✓ de la feuille Paramètres n'applique qu'au brouillon parent
  * (aucune écriture) ; garde d'abandon (Annuler conserve tout, Confirmer
  * abandonne et nettoie uniquement les copies préparées non référencées) ;
@@ -239,18 +267,77 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  * scalaire dans l'écran).
  */
 export function ExerciseScreen() {
-  const params = useLocalSearchParams<{ exerciseId?: string; catalogueDefinitionId?: string }>();
+  const params = useLocalSearchParams<{ exerciseId?: string; catalogueDefinitionId?: string; movementId?: string }>();
   if (params.catalogueDefinitionId !== undefined) {
+    const isCreation = params.catalogueDefinitionId === "new";
+    const repriseMovementId =
+      isCreation && typeof params.movementId === "string" && params.movementId.trim().length > 0 ? params.movementId : null;
     return (
       <CatalogueActivityEditorScreen
-        definitionId={params.catalogueDefinitionId === "new" ? null : params.catalogueDefinitionId}
+        definitionId={isCreation ? null : params.catalogueDefinitionId}
+        repriseMovementId={repriseMovementId}
       />
     );
   }
   return <CompositionExerciseEditor />;
 }
 
-function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string | null }) {
+/** Issue d'une tentative d'écriture : vrai si enregistrée. */
+type SaveOutcome = Promise<boolean>;
+
+/** Entrée d'une écriture Catalogue préparée à `Terminer`, conservée pendant la feuille et l'étape. */
+type DefinitionInput = CreateActivityDefinitionInput;
+
+/** PRE-7 (A2.2, D-438) : question d'identité en attente (feuille basse `9952:44349`). */
+type PendingIdentityDecision = {
+  readonly input: DefinitionInput;
+  readonly assessment: CorrectionAssessment;
+  readonly phases: readonly MovementPhase[];
+};
+
+/** PRE-7 (A2.2, MFN-08) : étape de complétion des durées manquantes des frères, en attente. */
+type PendingSiblingCompletion = {
+  readonly input: DefinitionInput;
+  readonly gaps: readonly SiblingGap[];
+  readonly phases: readonly MovementPhase[];
+  readonly labels: Readonly<Record<string, string>>;
+};
+
+/**
+ * PRE-7 (A2.2, D-438, relevé Figma MFN du 23/10 `9952:44374`) : action « Modifier le geste » de
+ * l'en-tête — 40 × 32, fond `#F3F4F9`, rayon 10, crayon au trait 20 × 20 ; cible portée à 44 par
+ * `hitSlop`. Constantes locales, `tokens.ts` inchangé.
+ */
+const EDIT_MOVEMENT_ACTION = { width: 40, height: 32, radius: 10, background: "#F3F4F9" } as const;
+
+function EditMovementAction({ onPress }: { onPress: () => void }) {
+  const label = strings.screens.activities.editor.editMovement;
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      hitSlop={{
+        top: (minTouchTarget - EDIT_MOVEMENT_ACTION.height) / 2,
+        bottom: (minTouchTarget - EDIT_MOVEMENT_ACTION.height) / 2,
+        left: (minTouchTarget - EDIT_MOVEMENT_ACTION.width) / 2,
+        right: (minTouchTarget - EDIT_MOVEMENT_ACTION.width) / 2,
+      }}
+      style={styles.editMovementAction}
+      testID="activity-editor-edit-movement"
+    >
+      <KodjoIcon name="edit-movement" testID="activity-editor-edit-movement-icon" />
+    </Pressable>
+  );
+}
+
+function CatalogueActivityEditorScreen({
+  definitionId,
+  repriseMovementId,
+}: {
+  definitionId: string | null;
+  repriseMovementId: string | null;
+}) {
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
@@ -258,71 +345,113 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
   const { categories, reload: reloadCategories } = useCategories();
   const profile = useProfileDefaults();
   const isEditingExisting = definitionId !== null;
+  const isReprise = !isEditingExisting && repriseMovementId !== null;
+  const needsLoad = isEditingExisting || isReprise;
   // Story 4.2 (FR-02-04) : l'écran d'erreur de chargement suit la marge de l'Éditeur.
   const sideMargin = editorSideMargin(useWindowDimensions().width);
   const [mediaDraftId] = useState(() => `definition:${definitionId ?? Crypto.randomUUID()}`);
 
-  const [initial, setInitial] = useState<ActivityEditorFormValue | null>(() =>
-    definitionId === null ? createEmptyFormValue() : null,
-  );
+  const [initial, setInitial] = useState<ActivityEditorFormValue | null>(() => (needsLoad ? null : createEmptyFormValue()));
   // PRE-4 (AD-13) : ligne de base des paramètres relue à l'ouverture (aucune en création).
   const [baselineParameters, setBaselineParameters] = useState<ExecutionParametersInput | null>(null);
-  // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition,
-  // transmis à la Feuille ; absent en création (aucun Mouvement : max + 1).
+  // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition (ou
+  // le geste repris), transmis à la Feuille ; absent en création indépendante (max + 1).
   const [movementNextPhaseId, setMovementNextPhaseId] = useState<number | undefined>(undefined);
+  // PRE-7 (A2.2, D-438) : geste d'origine — identité (variante « Créer un nouvel exercice » /
+  // « En faire un geste distinct ») et nom AVANT modification (titre de la question d'identité).
+  const [origin, setOrigin] = useState<{ readonly movementId: string; readonly name: string } | null>(null);
+  // PRE-7 (A2.2, D-438, CE-T03-04 §3) : création sur geste repris — contenu en lecture seule
+  // jusqu'au crayon « Modifier le geste » ; le crayon ne persiste rien (brouillon seul).
+  const [contentUnlocked, setContentUnlocked] = useState(false);
+  const contentLocked = isReprise && !contentUnlocked;
   const [value, setValue] = useState<ActivityEditorFormValue | null>(initial);
-  const [profileApplied, setProfileApplied] = useState(definitionId !== null);
+  const [profileApplied, setProfileApplied] = useState(isEditingExisting);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [initialCategoryId, setInitialCategoryId] = useState<string | null>(null);
   // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
   const categoryAccessRef = useRef<View>(null);
   const categorySheet = useReferenceSheet(categoryAccessRef);
-  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(
-    definitionId === null ? "ready" : "loading",
-  );
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">(needsLoad ? "loading" : "ready");
   const [isSaving, setIsSaving] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const isSavingRef = useRef(false);
+  const [pendingDecision, setPendingDecision] = useState<PendingIdentityDecision | null>(null);
+  const [pendingCompletion, setPendingCompletion] = useState<PendingSiblingCompletion | null>(null);
   const t = strings.screens.activities.editor;
   const loadErrorStrings = strings.screens.activities.error;
 
   const fetchDefinition = useCallback(
     (isCancelled: () => boolean) => {
-      if (definitionId === null) {
+      if (definitionId !== null) {
+        activityDefinitionService
+          .getActivityDefinition(definitionId)
+          .then((definition) => {
+            if (isCancelled()) return;
+            if (!definition) {
+              setLoadState("error");
+              return;
+            }
+            const loaded: ActivityEditorFormValue = {
+              name: definition.name,
+              // PRE-5 story 3.1 (FR-35) : relue par le même décodage, sans migration ni conversion.
+              instructionSteps: decodeInstructionSteps(definition.description),
+              executionParameters: cloneExecutionParameters(definition.executionParameters),
+              bodyZoneIds: [...definition.bodyZoneIds],
+              media: toDraftMediaItems(definition.media ?? []),
+            };
+            setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
+            setMovementNextPhaseId(definition.movementNextPhaseId);
+            setOrigin({ movementId: definition.movementId, name: definition.name });
+            setInitial(loaded);
+            setValue(loaded);
+            setCategoryId(definition.categoryId ?? null);
+            setInitialCategoryId(definition.categoryId ?? null);
+            setLoadState("ready");
+          })
+          .catch((error: unknown) => {
+            if (isCancelled()) return;
+            console.error("L'activité n'a pas pu être chargée.", error);
+            setLoadState("error");
+          });
         return;
       }
+      if (repriseMovementId === null) {
+        return;
+      }
+      // PRE-7 (A2.2, MFN-06) : contenu du geste RÉELLEMENT repris ; paramètres du nouvel Exercice
+      // à saisir, construits sur la structure du geste (`repriseExecutionParameters`).
       activityDefinitionService
-        .getActivityDefinition(definitionId)
-        .then((definition) => {
+        .getMovement(repriseMovementId)
+        .then((movement) => {
           if (isCancelled()) return;
-          if (!definition) {
+          if (!movement) {
             setLoadState("error");
             return;
           }
+          const empty = createEmptyFormValue();
           const loaded: ActivityEditorFormValue = {
-            name: definition.name,
-            // PRE-5 story 3.1 (FR-35) : relue par le même décodage, sans migration ni conversion.
-            instructionSteps: decodeInstructionSteps(definition.description),
-            executionParameters: cloneExecutionParameters(definition.executionParameters),
-            bodyZoneIds: [...definition.bodyZoneIds],
-            media: toDraftMediaItems(definition.media ?? []),
+            name: movement.name,
+            instructionSteps: decodeInstructionSteps(movement.description),
+            executionParameters: repriseExecutionParameters(movement, empty.executionParameters),
+            bodyZoneIds: [...movement.bodyZoneIds],
+            media: [...movement.media],
           };
-          setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
-          setMovementNextPhaseId(definition.movementNextPhaseId);
+          setMovementNextPhaseId(movement.nextPhaseId);
+          setOrigin({ movementId: movement.id, name: movement.name });
           setInitial(loaded);
           setValue(loaded);
-          setCategoryId(definition.categoryId ?? null);
-          setInitialCategoryId(definition.categoryId ?? null);
+          setCategoryId(movement.categoryId);
+          setInitialCategoryId(movement.categoryId);
           setLoadState("ready");
         })
         .catch((error: unknown) => {
           if (isCancelled()) return;
-          console.error("L'activité n'a pas pu être chargée.", error);
+          console.error("Le geste repris n'a pas pu être chargé.", error);
           setLoadState("error");
         });
     },
-    [activityDefinitionService, definitionId],
+    [activityDefinitionService, definitionId, repriseMovementId],
   );
 
   useEffect(() => {
@@ -364,6 +493,98 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
     setValue((current) => (current ? { ...current, ...next } : current));
   }
 
+  function beginSave() {
+    isSavingRef.current = true;
+    setIsSaving(true);
+    setSaveError(false);
+  }
+
+  /** Fin d'une tentative sans enregistrement : verrou réarmé, brouillon et médias conservés. */
+  function releaseSave(failed: boolean) {
+    isSavingRef.current = false;
+    setIsSaving(false);
+    if (failed) setSaveError(true);
+  }
+
+  function completeSave() {
+    activityDefinitionService.commitMediaDraft(mediaDraftId);
+    setIsDone(true);
+  }
+
+  /** Tentative d'écriture : une erreur technique conserve le brouillon (rollback complet côté Repository). */
+  async function attempt(write: () => SaveOutcome) {
+    try {
+      if (await write()) {
+        completeSave();
+      } else {
+        releaseSave(true);
+      }
+    } catch (error) {
+      console.error("L'activité n'a pas pu être enregistrée.", error);
+      releaseSave(true);
+    }
+  }
+
+  /**
+   * « Corriger » (ou correction sans question d'identité) : contenu partagé appliqué à tous les
+   * Exercices du geste, durées des frères selon `completions` (MFN-08, services A1.3).
+   */
+  async function writeCorrection(input: DefinitionInput, completions?: readonly SiblingCompletion[]): Promise<boolean> {
+    if (definitionId !== null) {
+      return (await activityDefinitionService.updateActivityDefinition(definitionId, input, completions)).status === "UPDATED";
+    }
+    if (origin === null) {
+      return false;
+    }
+    const result = await activityDefinitionService.createActivityDefinitionWithOrigin(input, {
+      kind: "SAME_MOVEMENT",
+      movementId: origin.movementId,
+      ...(completions !== undefined ? { siblingCompletions: completions } : {}),
+    });
+    return result.status === "CREATED";
+  }
+
+  /**
+   * « Créer un nouvel exercice » / « En faire un geste distinct » (MFN-08) : nouveau geste et
+   * nouvel Exercice portant le brouillon ; l'original et ses autres Exercices restent intacts.
+   * Rattachement au groupe de niveaux : aucun (aucun rattachement automatique, MFN-05 ; la
+   * proposition sans présélection reste à présenter, point renvoyé à Hermann, spec A2.2).
+   */
+  async function writeNewIdentity(input: DefinitionInput): Promise<boolean> {
+    if (origin === null) {
+      return false;
+    }
+    const result = await activityDefinitionService.createActivityDefinitionWithOrigin(input, {
+      kind: "VARIANT",
+      originMovementId: origin.movementId,
+      joinOriginGroup: false,
+    });
+    return result.status === "CREATED";
+  }
+
+  /**
+   * Correction retenue (choix « Corriger », ou aucune question due) : un frère inéligible à la
+   * nouvelle structure fait refuser l'écriture (message d'erreur existant) ; des durées manquantes
+   * chez les frères ouvrent l'étape de complétion ; sinon écriture directe. Appelée verrou pris.
+   */
+  async function proceedWithCorrection(input: DefinitionInput, assessment: CorrectionAssessment, phases: readonly MovementPhase[]) {
+    if (assessment.ineligibleDefinitionIds.length > 0) {
+      releaseSave(true);
+      return;
+    }
+    if (assessment.siblingGaps.length > 0) {
+      const labels: Record<string, string> = {};
+      for (const gap of assessment.siblingGaps) {
+        const sibling = await activityDefinitionService.getActivityDefinition(gap.definitionId);
+        labels[gap.definitionId] = sibling ? formatExerciseRowSummary(sibling) : "";
+      }
+      releaseSave(false);
+      setPendingCompletion({ input, gaps: assessment.siblingGaps, phases, labels });
+      return;
+    }
+    await attempt(() => writeCorrection(input));
+  }
+
   async function handleFinish() {
     if (isSavingRef.current || value === null) {
       return;
@@ -373,10 +594,8 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
       setSaveError(true);
       return;
     }
-    isSavingRef.current = true;
-    setIsSaving(true);
-    setSaveError(false);
-    const definitionInput = {
+    beginSave();
+    const definitionInput: DefinitionInput = {
       name: value.name,
       // PRE-5 story 3.1 (AC4) : encodage à `Terminer` seulement (étapes vides retirées).
       description: encodeInstructionSteps(value.instructionSteps),
@@ -385,27 +604,67 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
       executionParameters: validated.value,
       media: value.media.map((item) => ({ assetId: item.assetId, asset: item.asset })),
     };
-    try {
-      const succeeded =
+    // PRE-7 (A2.2, MFN-08 ; report A1.3) : toute correction d'un geste existant (Exercice du
+    // Catalogue, ou création sur geste repris) est ÉVALUÉE avant l'écriture. Une création
+    // indépendante crée un geste neuf : rien à évaluer. Un service sans `MovementRepository`
+    // (doublures antérieures à MFN) écrit directement, comme avant.
+    const correctionTarget: CorrectionTarget | null =
+      definitionId !== null
+        ? { kind: "UPDATE", definitionId }
+        : isReprise && origin !== null
+          ? { kind: "SAME_MOVEMENT", movementId: origin.movementId }
+          : null;
+    if (correctionTarget === null || !activityDefinitionService.supportsSharedCorrection) {
+      await attempt(async () =>
         definitionId !== null
           ? (await activityDefinitionService.updateActivityDefinition(definitionId, definitionInput)).status === "UPDATED"
-          : (await activityDefinitionService.createActivityDefinition(definitionInput)).ok;
-      if (!succeeded) {
-        isSavingRef.current = false;
-        setIsSaving(false);
-        setSaveError(true);
+          : (await activityDefinitionService.createActivityDefinition(definitionInput)).ok,
+      );
+      return;
+    }
+    try {
+      const assessed = await activityDefinitionService.assessActivityDefinitionCorrection(correctionTarget, definitionInput);
+      if (assessed.status !== "ASSESSED") {
+        releaseSave(true);
         return;
       }
-      activityDefinitionService.commitMediaDraft(mediaDraftId);
-      setIsDone(true);
+      if (assessed.assessment.requiresIdentityDecision) {
+        // D-438 : une seule question, à l'enregistrement ; rien n'est écrit avant le choix.
+        releaseSave(false);
+        setPendingDecision({ input: definitionInput, assessment: assessed.assessment, phases: assessed.phases });
+        return;
+      }
+      await proceedWithCorrection(definitionInput, assessed.assessment, assessed.phases);
     } catch (error) {
-      // Rollback complet côté Repository : brouillon et médias conservés,
-      // verrou réarmé pour une nouvelle tentative (aucun doublon partiel).
       console.error("L'activité n'a pas pu être enregistrée.", error);
-      isSavingRef.current = false;
-      setIsSaving(false);
-      setSaveError(true);
+      releaseSave(true);
     }
+  }
+
+  async function chooseCorrection(decision: PendingIdentityDecision) {
+    setPendingDecision(null);
+    if (isSavingRef.current) return;
+    beginSave();
+    try {
+      await proceedWithCorrection(decision.input, decision.assessment, decision.phases);
+    } catch (error) {
+      console.error("L'activité n'a pas pu être enregistrée.", error);
+      releaseSave(true);
+    }
+  }
+
+  async function chooseNewIdentity(decision: PendingIdentityDecision) {
+    setPendingDecision(null);
+    if (isSavingRef.current) return;
+    beginSave();
+    await attempt(() => writeNewIdentity(decision.input));
+  }
+
+  async function finishCompletion(completion: PendingSiblingCompletion, completions: readonly SiblingCompletion[]) {
+    setPendingCompletion(null);
+    if (isSavingRef.current) return;
+    beginSave();
+    await attempt(() => writeCorrection(completion.input, completions));
   }
 
   const isValid =
@@ -422,6 +681,9 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
         title={isEditingExisting ? t.titleEdit : t.titleAdd}
         onClose={() => router.back()}
         accessibilityLabel={t.backAccessibilityLabel}
+        trailing={
+          loadState === "ready" && contentLocked ? <EditMovementAction onPress={() => setContentUnlocked(true)} /> : null
+        }
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="activity-editor-load-error">
@@ -455,6 +717,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           isCategoryPickerOpen={categorySheet.isOpen}
           categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          contentLocked={contentLocked}
           nextPhaseId={movementNextPhaseId}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
@@ -488,6 +751,33 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
       {/* Q18 (FR-02-12) : textes de création en CC, de modification en MC. */}
       {isPendingExit ? (
         <ExerciseExitConfirmModal isCreation={!isEditingExisting} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
+
+      {pendingDecision !== null && origin !== null ? (
+        <IdentityDecisionSheet
+          context={isEditingExisting ? "CATALOGUE" : "REPRISE"}
+          movementName={origin.name}
+          affectedDefinitionCount={pendingDecision.assessment.affectedDefinitionCount}
+          onCorrect={() => {
+            void chooseCorrection(pendingDecision);
+          }}
+          onNewIdentity={() => {
+            void chooseNewIdentity(pendingDecision);
+          }}
+          onCancel={() => setPendingDecision(null)}
+        />
+      ) : null}
+
+      {pendingCompletion !== null ? (
+        <SiblingCompletionStep
+          gaps={pendingCompletion.gaps}
+          phases={pendingCompletion.phases}
+          siblingLabels={pendingCompletion.labels}
+          onFinish={(completions) => {
+            void finishCompletion(pendingCompletion, completions);
+          }}
+          onCancel={() => setPendingCompletion(null)}
+        />
       ) : null}
     </ScreenShell>
   );
@@ -790,6 +1080,10 @@ function CompositionExerciseEditor() {
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
           phaseStructureLocked={phaseStructureLocked}
+          // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
+          // occurrence portant une filiation a son contenu (nom, description, médias, Catégorie,
+          // Zones) verrouillé, sans crayon ; une création locale non enregistrée reste modifiable.
+          contentLocked={phaseStructureLocked}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -869,5 +1163,13 @@ const styles = StyleSheet.create({
   loadErrorRetryLabel: {
     ...type.button,
     color: colors.background,
+  },
+  editMovementAction: {
+    width: EDIT_MOVEMENT_ACTION.width,
+    height: EDIT_MOVEMENT_ACTION.height,
+    borderRadius: EDIT_MOVEMENT_ACTION.radius,
+    backgroundColor: EDIT_MOVEMENT_ACTION.background,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
