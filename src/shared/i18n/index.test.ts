@@ -723,7 +723,6 @@ describe("strings — PRE-5 story 2.5", () => {
       expect(label.length).toBeGreaterThan(0);
     }
     // Recette du 19/10 (RC-6) : menu de l'Enchainement dans l'option Avec, chevron de repli retiré.
-    expect(sheet.sideSequenceCancel).toBe("Annuler");
     for (const removed of ["showSideSettings", "hideSideSettings", "sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
       expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
     }

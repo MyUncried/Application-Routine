@@ -1,12 +1,6 @@
-import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-ui";
-import {
-  accessibilityLabel as swiftUIAccessibilityLabel,
-  accessibilityValue as swiftUIAccessibilityValue,
-} from "@expo/ui/swift-ui/modifiers";
 import { Fragment, useEffect, useReducer, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
-  Alert,
   Animated,
   Easing,
   Modal,
@@ -265,7 +259,10 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  *   Recette du 19/10 (RC-6, Figma `9462:18987`) : plus de ligne « Enchainement » ni de chevron
  *   de repli ; l'option Avec (N > 1) porte la notation de l'Enchainement (`sideOrderSubtitles`,
  *   nom accessible `sideOrders`) et, sélectionnée, ouvre le menu natif des deux notations
- *   (`SideOrderMenu`). Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
+ *   (`SideOrderMenu`) [remplacé par PRE-7 story B.3 (B5, D-445) : déclencheur de taille fixe
+ *   `SideOrderTrigger` et déroulant Figma `9462:18987` sur `AnchoredPanel` (`SideOrderDropdown`,
+ *   surface `selector(sideOrder)`), toutes plates-formes ; menu natif et `Alert` retirés].
+ *   Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
  *   recette du 20/10 (RC-13) : la notation n'est affichée que si Avec est sélectionné (N > 1),
  *   dans une option élargie (146) ; sinon Avec affiche « Avec », de 62 comme Sans ;
  * - cadre Cadence et durée : « Cadence » en segmenté Autre / 1 s / Sans (RC-10)
@@ -357,6 +354,8 @@ const PHASE_OPTION_OPEN_WIDTH = 150;
 /** Surfaces de la Feuille (AD-15). */
 const TARGET_SELECTOR: SheetSurface = { kind: "selector", selector: "commonTarget" };
 const TOTAL_SELECTOR: SheetSurface = { kind: "selector", selector: "total" };
+/** PRE-7 story B.3 (B5) : déroulant de l'Enchainement (option Avec sélectionnée, N > 1). */
+const SIDE_ORDER_SELECTOR: SheetSurface = { kind: "selector", selector: "sideOrder" };
 const stepperSurface = (field: SheetStepperField): SheetSurface => ({ kind: "stepper", field });
 
 /**
@@ -550,6 +549,9 @@ export function ExecutionParametersSheet({
   // Boîte de la ligne d'un champ à panneau, relative à SON cadre (`PANEL_FRAME`).
   const [rowBoxes, setRowBoxes] = useState<Partial<Record<PanelControl, Box>>>({});
   const [panelHeight, setPanelHeight] = useState<{ readonly control: PanelControl; readonly height: number } | null>(null);
+  // PRE-7 story B.3 (B5) : boîte de la ligne « Changement de côté », relative au cadre Côtés,
+  // repère du déroulant de l'Enchainement (toutes plates-formes, arbitrage A3).
+  const [sideRowBox, setSideRowBox] = useState<Box | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const viewportHeightRef = useRef(0);
   // Recette du 19/10 (RC-1) : bas mesuré de la zone de la `Modal` (fenêtre), sinon la hauteur de la fenêtre.
@@ -924,11 +926,27 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * PRE-5 story 2.5 (AC2, FR-17) ; recette du 19/10 (RC-6) : choix dans le menu de l'option
-   * Avec ; `setSideOrder` seulement si différent.
+   * PRE-7 story B.3 (B5, D-445) : toucher le déclencheur de l'option Avec ouvre (ou referme) le
+   * déroulant de l'Enchainement, `selector(sideOrder)` ; la saisie en cours est appliquée d'abord.
+   */
+  function toggleSideOrderDropdown() {
+    const base = keyboard.flush(draft);
+    if (base !== draft) commitKeyboard(() => base);
+    toggle(SIDE_ORDER_SELECTOR);
+  }
+
+  /**
+   * PRE-5 story 2.5 (AC2, FR-17) ; recette du 19/10 (RC-6) ; PRE-7 story B.3 (B5) : choix d'une
+   * rangée du déroulant de l'Enchainement — fonction dédiée, puisque `chooseInline` refuse tout
+   * choix sous un Sélecteur ouvert (T10), ce qu'est le déroulant lui-même. `setSideOrder`
+   * seulement si différent (même choix : Brouillon inchangé, « Annuler » d'un retrait valable,
+   * Q29) ; le déroulant se ferme par sa clé.
    */
   function chooseSideOrder(order: SideOrder) {
-    chooseInline((base) => (base.sideOrder === order ? base : setSideOrder(base, order)));
+    if (!isOpen(SIDE_ORDER_SELECTOR)) return;
+    if (draft.sideOrder === order) setIsTableSelected(false);
+    else update(setSideOrder(draft, order));
+    closeSurface(openKey);
   }
 
   /**
@@ -1425,7 +1443,8 @@ export function ExecutionParametersSheet({
   // Recette du 19/10 (RC-6, Figma `9462:18986` / `9462:18987`) : la ligne « Enchainement » est
   // retirée ; l'option Avec porte la notation de l'Enchainement effectif (D-431,
   // police réduite), nom accessible « Avec, <libellé neutre> » (D-407). Sélectionnée, son contenu
-  // est le déclencheur du menu natif des deux notations (`SideOrderMenu`). À N = 1, Avec reprend
+  // est le déclencheur des deux notations (PRE-7 B.3 : `SideOrderTrigger`, qui ouvre le déroulant
+  // `SideOrderDropdown` ; remplace le menu natif `SideOrderMenu`). À N = 1, Avec reprend
   // son libellé, sans menu (Q38, valeur conservée). Recette du 19/10 (RC-11 puis RC-12) : Sans de 62
   // (`narrow`, comme les autres Sans de la page), Avec de 146 (`notation`) portant la notation D-431
   // complète. Recette du 20/10 (RC-13, remplace RC-11 et RC-12 pour les largeurs) : Avec non
@@ -1435,6 +1454,17 @@ export function ExecutionParametersSheet({
   // la plus grande (216, `SIDE_CONTROL_RESERVED_WIDTH`) : le libellé reste sur deux lignes.
   const sideChoice: SideChoice | null = draft.sideMode === null ? null : bilateral ? "WITH" : "WITHOUT";
   const sideOrder = effective.sideOrder;
+  // PRE-7 story B.3 (B5, RC-13) : le déroulant n'existe que là où son déclencheur est rendu
+  // (Avec sélectionné, N > 1).
+  const sideOrderDropdownOpen = sideOrderShown && sideChoice === "WITH" && isOpen(SIDE_ORDER_SELECTOR);
+  // Arbitrage A1 : bord haut de l'option Avec (segmenté de 32 centré dans la ligne, marge 3). Tant
+  // que la ligne n'est pas mesurée : ligne de hauteur minimale en tête du cadre.
+  const sideRow = sideRowBox ?? { y: 0, height: SHEET_ROW_MIN_HEIGHT };
+  const sideOrderDropdownTop = anchorTop("sides", sideRow.y + (sideRow.height - SIDE_SEGMENT_HEIGHT) / 2 + SIDE_SEGMENT_PADDING);
+  // Q41 : même réserve sous les cadres si le déroulant en dépassait le bas (défensif).
+  const contentRoom = sideOrderDropdownOpen
+    ? Math.max(panelRoom, Math.ceil(sideOrderDropdownTop + SIDE_ORDER_DROPDOWN_ROW_HEIGHT * 2 - framesBottom))
+    : panelRoom;
   const sideControl = (
     <SegmentedControl<SideChoice>
       variant="inline"
@@ -1448,7 +1478,12 @@ export function ExecutionParametersSheet({
               width: INLINE_OPTION_WIDTHS.notation,
               compact: true,
               selectedContent: (
-                <SideOrderMenu value={sideOrder} onChange={chooseSideOrder} testID="execution-sheet-side-order-menu" />
+                <SideOrderTrigger
+                  value={sideOrder}
+                  expanded={isOpen(SIDE_ORDER_SELECTOR)}
+                  onPress={toggleSideOrderDropdown}
+                  testID="execution-sheet-side-order-menu"
+                />
               ),
             }
           : { value: "WITH", label: t.sideModeChoices.WITH },
@@ -1777,6 +1812,21 @@ export function ExecutionParametersSheet({
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
       </AnchoredPanel>
     );
+  // PRE-7 story B.3 (B5, D-445, arbitrages A1 à A3) : déroulant de l'Enchainement sur
+  // `AnchoredPanel`, toutes plates-formes, recouvrant exactement l'option Avec (bord haut, bord
+  // droit, 146 × 88). Toucher extérieur ou échappement VoiceOver : fermeture par la clé, Brouillon
+  // inchangé ; une rangée : `chooseSideOrder`.
+  const sideOrderDropdown = sideOrderDropdownOpen ? (
+    <AnchoredPanel
+      key="sideOrder"
+      placement={{ top: sideOrderDropdownTop, right: SIDE_ORDER_DROPDOWN_RIGHT }}
+      onDismiss={() => closeSurface(openKey)}
+      outsideInsets={PANEL_OUTSIDE_INSETS}
+      testID="execution-sheet-side-order-panel"
+    >
+      <SideOrderDropdown value={sideOrder} onChoose={chooseSideOrder} testID="execution-sheet-side-order-menu" />
+    </AnchoredPanel>
+  ) : null;
 
   return (
     <Modal transparent visible animationType="fade" onRequestClose={handleCancel} testID="execution-sheet-modal">
@@ -1856,7 +1906,7 @@ export function ExecutionParametersSheet({
                 onContentSizeChange={(_width, height) => {
                   // Q41 : feuille à sa hauteur maximale et réserve ajoutée sous le groupe :
                   // le corps défile jusqu'au bas pour montrer le panneau en entier.
-                  if (panelRoom > 0 && height > viewportHeightRef.current + 1) {
+                  if (contentRoom > 0 && height > viewportHeightRef.current + 1) {
                     scrollRef.current?.scrollToEnd({ animated: !reduceMotion });
                   }
                 }}
@@ -2161,7 +2211,15 @@ export function ExecutionParametersSheet({
                   style={[styles.frame, styles.frameSpaced]}
                   testID="execution-sheet-frame-sides"
                 >
-                  <Row label={t.sideMode} testID="execution-sheet-row-side">
+                  <Row
+                    label={t.sideMode}
+                    // PRE-7 B.3 (B5) : repère du déroulant de l'Enchainement, relatif au cadre Côtés.
+                    onLayout={(event) => {
+                      const { y, height } = event.nativeEvent.layout;
+                      setSideRowBox((current) => (current !== null && sameBox(current, y, height) ? current : { y, height }));
+                    }}
+                    testID="execution-sheet-row-side"
+                  >
                     {/* RC-13 : place du segmenté le plus large réservée, segmenté aligné à droite. */}
                     <View style={styles.sideControlSlot} testID="execution-sheet-side-control-slot">
                       {sideControl}
@@ -2313,8 +2371,9 @@ export function ExecutionParametersSheet({
                     </>
                   ) : null}
                 </SheetMotionView>
-                {panelRoom > 0 ? <View style={{ height: panelRoom }} testID="execution-sheet-panel-room" /> : null}
+                {contentRoom > 0 ? <View style={{ height: contentRoom }} testID="execution-sheet-panel-room" /> : null}
                 {panel}
+                {sideOrderDropdown}
                 </Pressable>
               </SheetMotionScrollView>
             </SheetMotionView>
@@ -3034,74 +3093,119 @@ const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
  * Changement de côté (N > 1) : notation de l'Enchainement (D-431, Semi Bold 10, blanc) et
  * chevron existant de `KodjoIcon`, à 6 l'un de l'autre, sur toute l'option (146 × 26, RC-12).
  *
- * Choix (priorité aux primitives natives, AGENTS.md) : sur iOS, ce contenu est le déclencheur
- * du menu natif SwiftUI `Menu` d'`@expo/ui` (déjà installé, aucun nouveau module natif),
- * hébergé par `RNHostView` comme le menu contextuel de la galerie (`ActivityMediaList`). Le
- * toucher ouvre le menu des deux notations, la notation choisie cochée ; le choix appelle
- * `setSideOrder` ; un toucher extérieur ferme sans rien changer. Figma dessine un déroulant
- * sous l'option (notation choisie en violet, chevron vers le haut, autre notation dessous) :
- * le menu natif en tient lieu, avec son propre rendu ; le chevron reste vers le bas, l'état
- * ouvert étant porté par le menu. Ailleurs (Android, web) : `Alert` native aux deux notations.
+ * PRE-7 story B.3 (B5, D-445 ; remplace le menu natif SwiftUI `Menu` de RC-6 et l'`Alert` hors
+ * iOS) : ce contenu est un déclencheur React Native de TAILLE FIXE (146 × 26), qui ouvre le
+ * déroulant Figma de l'Enchainement (`SideOrderDropdown`, surface `selector(sideOrder)`). Cause
+ * du défaut B5 : l'hôte SwiftUI (`Host`) du menu natif hébergeait la notation par
+ * `RNHostView matchContents`, dimensionné sur son contenu ; après fermeture et réouverture de la
+ * Feuille, sa taille n'était plus celle de l'option et la notation en débordait. Sans hôte natif,
+ * la notation est mise en page par l'option elle-même : elle y tient toujours.
  *
- * VoiceOver : nom « Enchainement », valeur et options annoncées par leurs libellés neutres
- * (`sideOrders`, D-407), la notation n'étant pas lue.
+ * VoiceOver : bouton nommé « Enchainement », valeur annoncée par le libellé neutre (`sideOrders`,
+ * D-407), la notation n'étant pas lue ; état déployé tant que le déroulant est ouvert.
  */
-function SideOrderMenu({ value, onChange, testID }: { value: SideOrder; onChange: (order: SideOrder) => void; testID: string }) {
-  const trigger = (
-    <View
-      pointerEvents="none"
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={styles.sideOrderTrigger}
-    >
-      <Text style={inlineSelectedCompactLabelStyle} testID={`${testID}-notation`}>
-        {t.sideOrderSubtitles[value]}
-      </Text>
-      <View style={inlineChevronFrameStyle}>
-        <KodjoIcon
-          name="control-chevron-down"
-          size={dimensions.catalogueDisclosure.chevronDisplaySize}
-          tintColor={colors.background}
-        />
-      </View>
-    </View>
-  );
-  if (Platform.OS !== "ios") {
-    const openAlert = () =>
-      Alert.alert(t.sideSequence, undefined, [
-        ...SIDE_ORDERS.map((order) => ({ text: t.sideOrderSubtitles[order], onPress: () => onChange(order) })),
-        { text: t.sideSequenceCancel, style: "cancel" as const },
-      ]);
-    return (
-      <Pressable
-        onPress={openAlert}
-        accessibilityRole="button"
-        accessibilityLabel={t.sideSequence}
-        accessibilityValue={{ text: t.sideOrders[value] }}
-        testID={testID}
-      >
-        {trigger}
-      </Pressable>
-    );
-  }
+function SideOrderTrigger({
+  value,
+  expanded,
+  onPress,
+  testID,
+}: {
+  value: SideOrder;
+  expanded: boolean;
+  onPress: () => void;
+  testID: string;
+}) {
   return (
-    <Host style={styles.sideOrderTrigger} testID={testID}>
-      <Menu
-        label={<RNHostView matchContents>{trigger}</RNHostView>}
-        modifiers={[swiftUIAccessibilityLabel(t.sideSequence), swiftUIAccessibilityValue(t.sideOrders[value])]}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={t.sideSequence}
+      accessibilityValue={{ text: t.sideOrders[value] }}
+      accessibilityState={{ expanded }}
+      style={styles.sideOrderTrigger}
+      testID={testID}
+    >
+      <View
+        pointerEvents="none"
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={styles.sideOrderTriggerContent}
       >
-        {SIDE_ORDERS.map((order) => (
-          <SwiftUIButton
-            key={order}
-            label={t.sideOrderSubtitles[order]}
-            systemImage={order === value ? "checkmark" : undefined}
-            modifiers={[swiftUIAccessibilityLabel(t.sideOrders[order])]}
-            onPress={() => onChange(order)}
-            testID={`${testID}-${order}`}
+        <Text style={inlineSelectedCompactLabelStyle} testID={`${testID}-notation`}>
+          {t.sideOrderSubtitles[value]}
+        </Text>
+        <View style={inlineChevronFrameStyle}>
+          <KodjoIcon
+            name="control-chevron-down"
+            size={dimensions.catalogueDisclosure.chevronDisplaySize}
+            tintColor={colors.background}
           />
-        ))}
-      </Menu>
-    </Host>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+/**
+ * PRE-7 story B.3 (B5, D-445 ; Figma `9462:18987`) — contenu du déroulant de l'Enchainement, porté
+ * par `AnchoredPanel` (conteneur de positionnement : zone de toucher extérieur, panneau modal pour
+ * VoiceOver, geste d'échappement) : deux rangées de 44 sur la largeur de l'option Avec (146,
+ * arbitrage A1), dans l'ordre D-431 (`BY_SIDE` puis `BY_SERIES`, arbitrage A2). La notation choisie
+ * est sur le violet de sélection (Semi Bold 10, blanc), l'autre sur `colors.surface` (Regular 10,
+ * gris des options non sélectionnées) ; le chevron vers le haut est dans la première rangée.
+ * Toucher une rangée appelle `onChoose` (le parent ferme le déroulant et n'écrit l'Enchainement que
+ * s'il change). Rôle menu, rangées de rôle élément de menu nommées par leur libellé neutre
+ * (`sideOrders`, D-407), la choisie annoncée sélectionnée.
+ */
+function SideOrderDropdown({
+  value,
+  onChoose,
+  testID,
+}: {
+  value: SideOrder;
+  onChoose: (order: SideOrder) => void;
+  testID: string;
+}) {
+  return (
+    <View accessibilityRole="menu" accessibilityLabel={t.sideSequence} style={styles.sideOrderDropdown} testID={`${testID}-menu`}>
+      {SIDE_ORDERS.map((order, index) => {
+        const chosen = order === value;
+        return (
+          <Pressable
+            key={order}
+            onPress={() => onChoose(order)}
+            accessibilityRole="menuitem"
+            accessibilityLabel={t.sideOrders[order]}
+            accessibilityState={{ selected: chosen }}
+            style={[styles.sideOrderDropdownRow, chosen ? styles.sideOrderDropdownRowChosen : null]}
+            testID={`${testID}-${order}`}
+          >
+            <View
+              pointerEvents="none"
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={styles.sideOrderTriggerContent}
+            >
+              <Text
+                style={chosen ? inlineSelectedCompactLabelStyle : styles.sideOrderDropdownLabel}
+                testID={`${testID}-${order}-notation`}
+              >
+                {t.sideOrderSubtitles[order]}
+              </Text>
+              {index === 0 ? (
+                <View style={inlineChevronFrameStyle} testID={`${testID}-chevron`}>
+                  <KodjoIcon
+                    name="control-chevron-up"
+                    size={dimensions.catalogueDisclosure.chevronDisplaySize}
+                    tintColor={chosen ? colors.background : SIDE_ORDER_UNCHOSEN_COLOR}
+                  />
+                </View>
+              ) : null}
+            </View>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -3146,6 +3250,32 @@ const TABLE_BLOCK_BLEED = GROUP_PADDING - TABLE_BLOCK_SIDE_INSET;
 const MIXED_STOP_CONDITION_WIDTH = INLINE_OPTION_WIDTHS.wide * 2 + 2;
 /** RC-6 (Figma `9462:18988`) : écart entre la notation de l'Enchainement et son chevron. */
 const SIDE_ORDER_CHEVRON_GAP = 6;
+/**
+ * PRE-7 story B.3 (B5, Figma `9462:18987`) — géométrie du déroulant de l'Enchainement, constantes
+ * locales (`tokens.ts` inchangé). Deux rangées de 44 (88 au total) sur la largeur de l'option Avec
+ * (146, `INLINE_OPTION_WIDTHS.notation` ; arbitrage A1 : Figma mesure 144, largeur de l'option sous
+ * RC-6, portée à 146 par RC-12 / RC-13). Rayon des options `inline` (5). Gris Regular des options
+ * non sélectionnées du segmenté (`#4A4A52`, non exporté par `SegmentedControl`, aucun jeton
+ * équivalent) pour la notation non choisie.
+ */
+const SIDE_ORDER_DROPDOWN_ROW_HEIGHT = 44;
+/** Figma `9462:18987` : marge intérieure gauche des rangées (notation à x 8). */
+const SIDE_ORDER_DROPDOWN_ROW_INSET = 8;
+const SIDE_ORDER_UNCHOSEN_COLOR = "#4A4A52";
+/** Police réduite des notations (10, comme l'option Avec, RC-6) et hauteur de ligne des libellés `inline` (16). */
+const SIDE_ORDER_LABEL_SIZE = 10;
+const SIDE_ORDER_LABEL_LINE_HEIGHT = 16;
+/**
+ * PRE-7 story B.3 (B5, arbitrage A1) — repères du segmenté `inline` du Changement de côté (relevé
+ * UX-DR1 de `SegmentedControl` : cadre de 32, marge intérieure 3, écart 2 entre options ; non
+ * exportés). Le déroulant recouvre exactement l'option Avec : bord haut de l'option (3 sous le haut
+ * du cadre, lui-même centré dans la ligne) et bord droit de l'option (marge 3 + Sans 62 + écart 2
+ * depuis le bord droit du segmenté, aligné sur celui de la ligne).
+ */
+const SIDE_SEGMENT_HEIGHT = 32;
+const SIDE_SEGMENT_PADDING = 3;
+const SIDE_SEGMENT_GAP = 2;
+const SIDE_ORDER_DROPDOWN_RIGHT = FRAME_INSET + SIDE_SEGMENT_PADDING + INLINE_OPTION_WIDTHS.narrow + SIDE_SEGMENT_GAP;
 /**
  * Recette du 20/10 (RC-13) : place réservée au segmenté « Changement de côté » dans sa ligne, celle
  * du plus large (Avec 146 + Sans 62 + écart 2 + marges 2 × 3 = 216, RC-12), pour que le libellé
@@ -3257,14 +3387,49 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     alignItems: "center",
   },
-  // RC-6 : déclencheur du menu de l'Enchainement, sur toute l'option Avec (146 × 26, RC-12).
+  // RC-6 ; PRE-7 B.3 (B5) : déclencheur du déroulant de l'Enchainement, de taille fixe, sur toute
+  // l'option Avec (146 × 26, RC-12) ; aucun hôte natif dimensionné sur son contenu.
   sideOrderTrigger: {
     width: INLINE_OPTION_WIDTHS.notation,
     height: INLINE_OPTION_CONTENT_HEIGHT,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // Notation et chevron, à 6 l'un de l'autre, centrés (déclencheur et rangées du déroulant).
+  sideOrderTriggerContent: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: SIDE_ORDER_CHEVRON_GAP,
+  },
+  // PRE-7 B.3 (B5, Figma `9462:18987`) : déroulant de 146 × 88, rayon des options `inline`.
+  sideOrderDropdown: {
+    width: INLINE_OPTION_WIDTHS.notation,
+    height: SIDE_ORDER_DROPDOWN_ROW_HEIGHT * 2,
+    borderRadius: INLINE_OPTION_CONTENT_RADIUS,
+    overflow: "hidden",
+  },
+  // Rangée non choisie sur `colors.surface` ; la choisie sur le violet de sélection. Figma
+  // `9462:18987` : contenu aligné à gauche, marge intérieure 8 (notation à x 8 dans les deux
+  // rangées, chevron après l'écart de 6).
+  sideOrderDropdownRow: {
+    height: SIDE_ORDER_DROPDOWN_ROW_HEIGHT,
+    paddingHorizontal: SIDE_ORDER_DROPDOWN_ROW_INSET,
+    alignItems: "flex-start",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+  },
+  sideOrderDropdownRowChosen: {
+    backgroundColor: colors.selection,
+  },
+  // Notation non choisie : Regular 10, gris des options non sélectionnées.
+  sideOrderDropdownLabel: {
+    fontFamily: type.supporting.fontFamily,
+    fontWeight: type.supporting.fontWeight,
+    fontSize: SIDE_ORDER_LABEL_SIZE,
+    lineHeight: SIDE_ORDER_LABEL_LINE_HEIGHT,
+    color: SIDE_ORDER_UNCHOSEN_COLOR,
+    textAlign: "center",
   },
   scrim: {
     flex: 1,

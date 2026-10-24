@@ -1,4 +1,4 @@
-import { Button as SwiftUIButton, Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
+import { Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
@@ -58,7 +58,7 @@ import {
   TABLE_ROW_HEIGHT as SHARED_TABLE_ROW_HEIGHT,
   tableRowIdentity as sharedTableRowIdentity,
 } from "@/features/activities/sheetTable";
-import { keyboardBarCompact, keyboardBarLift } from "@/features/activities/KeyboardAccessoryBar";
+import { keyboardBarCompact, keyboardBarLift, keyboardBarSlotWidth } from "@/features/activities/KeyboardAccessoryBar";
 import { strings } from "@/shared/i18n";
 import { InlineStepper } from "@/shared/ui/ProfileStepper";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -197,9 +197,13 @@ function modeText(): string {
 const SIDE_CONTROL = "execution-sheet-side-control";
 /**
  * Recette du 19/10 (RC-6) : plus de ligne « Enchainement » ; l'option Avec sélectionnée (N > 1)
- * porte la notation et ouvre le menu natif (`Menu` d'`@expo/ui` sur iOS, `Alert` ailleurs).
+ * porte la notation et ouvre [remplacé par PRE-7 B.3 (B5, D-445) : le déroulant `ORDER_PANEL`,
+ * toutes plates-formes, par un déclencheur React Native de taille fixe] le menu natif (`Menu`
+ * d'`@expo/ui` sur iOS, `Alert` ailleurs).
  */
 const ORDER_MENU = "execution-sheet-side-order-menu";
+/** PRE-7 B.3 (B5) : déroulant de l'Enchainement (`AnchoredPanel`), à la place du menu natif et de l'`Alert`. */
+const ORDER_PANEL = "execution-sheet-side-order-panel";
 const CADENCE_CONTROL = "execution-sheet-cadence-control";
 const DURATION_DISCLOSURE = "execution-sheet-duration-disclosure";
 const chooseSide = chooseExecutionSide;
@@ -221,29 +225,14 @@ function orderText(): string {
   return order === undefined ? "—" : strings.executionParameters.sheet.sideOrders[order];
 }
 /**
- * Choisit l'Enchainement par son nom accessible, dans le menu de l'option Avec : bouton SwiftUI
- * du `Menu` natif sur iOS (événement natif `buttonPress`, le menu lui-même n'étant pas
- * simulable sous Jest), option de l'`Alert` ailleurs.
+ * Choisit l'Enchainement par son nom accessible, dans le déroulant de l'option Avec (PRE-7 B.3,
+ * B5 : toutes plates-formes) : toucher du déclencheur, puis de la rangée.
  */
 function chooseOrder(label: string) {
   const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
   if (order === undefined) throw new Error(`Enchainement inconnu « ${label} »`);
-  if (Platform.OS === "ios") {
-    act(() => {
-      fireEvent(screen.getByTestId(`${ORDER_MENU}-${order}`, anyNode), "buttonPress");
-    });
-    return;
-  }
-  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
-  try {
-    fireEvent.press(screen.getByTestId(ORDER_MENU));
-    const buttons = alert.mock.calls[0]?.[2] ?? [];
-    const button = buttons.find((candidate) => candidate.text === strings.executionParameters.sheet.sideOrderSubtitles[order]);
-    if (!button) throw new Error(`Enchainement « ${label} » absent de l'alerte`);
-    act(() => button.onPress?.());
-  } finally {
-    alert.mockRestore();
-  }
+  fireEvent.press(screen.getByTestId(ORDER_MENU));
+  fireEvent.press(screen.getByTestId(`${ORDER_MENU}-${order}`));
 }
 /** Option affichée de la Cadence (« Autre », « 1 s », « Sans » ; RC-10), ou « — ». */
 function cadenceText(): string {
@@ -1236,16 +1225,20 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(order.props.accessibilityLabel).toBe("Enchainement");
       expect(order.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
       expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
-      // Ailleurs qu'iOS, le menu est une `Alert` native : deux notations exactes, puis Annuler.
+      // PRE-7 B.3 (B5, arbitrage A3) : ailleurs qu'iOS aussi, le déroulant de l'Enchainement
+      // (plus d'`Alert`) : deux notations exactes, nommé « Enchainement », rôle menu.
       const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
       try {
         fireEvent.press(order);
-        expect(alert.mock.calls[0]?.[0]).toBe("Enchainement");
-        expect((alert.mock.calls[0]?.[2] ?? []).map((button) => [button.text, button.style ?? "default"])).toEqual([
-          ["(D1 → D2) ➜ (G1 → G2)", "default"],
-          ["(D1 → G1) ➜ (D2 → G2)", "default"],
-          ["Annuler", "cancel"],
+        expect(alert).not.toHaveBeenCalled();
+        const menu = within(screen.getByTestId(ORDER_PANEL)).getByTestId(`${ORDER_MENU}-menu`);
+        expect(menu.props.accessibilityRole).toBe("menu");
+        expect(menu.props.accessibilityLabel).toBe("Enchainement");
+        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/➜/u, anyNode).props.children)).toEqual([
+          "(D1 → D2) ➜ (G1 → G2)",
+          "(D1 → G1) ➜ (D2 → G2)",
         ]);
+        fireEvent.press(screen.getByTestId(`${ORDER_PANEL}-outside`, anyNode));
       } finally {
         alert.mockRestore();
       }
@@ -2534,41 +2527,99 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6 — iOS : Enchainement dans le menu natif (`Menu` d'`@expo/ui`) de l'option Avec : notation affichée et chevron ; deux notations graphiques exactes dans l'ordre, la choisie cochée, nom accessible neutre ; sans panneau ni Popover ; absent en Sans", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur fixe 146 × 26, notation et chevron ; déroulant 146 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
+      const onApply = view.onApply;
       const side = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
-      const host = within(side).getByTestId(ORDER_MENU);
-      expect(within(side).UNSAFE_getAllByType(Host)).toHaveLength(1);
-      expect(within(side).UNSAFE_getByType(Host).props.testID).toBe(ORDER_MENU);
-      const menu = within(host).UNSAFE_getByType(Menu);
-      // Déclencheur : notation choisie et chevron existant, hébergés par `RNHostView`.
-      expect(within(host).UNSAFE_getAllByType(RNHostView)).toHaveLength(1);
-      expect(within(host).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
-      expect(JSON.stringify(menu.props.modifiers)).toContain("Enchainement");
-      expect(JSON.stringify(menu.props.modifiers)).toContain("Un côté après l’autre");
-      const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
-      expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-        ["(D1 → D2) ➜ (G1 → G2)", "checkmark"],
-        ["(D1 → G1) ➜ (D2 → G2)", null],
+      const trigger = within(side).getByTestId(ORDER_MENU);
+      // B5 : aucun hôte natif dimensionné sur son contenu ; déclencheur React Native de taille fixe.
+      expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
+      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(trigger.props.accessibilityRole).toBe("button");
+      expect(trigger.props.accessibilityLabel).toBe("Enchainement");
+      expect(trigger.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
+      expect(trigger.props.accessibilityState).toMatchObject({ expanded: false });
+      expect(within(trigger).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(query(ORDER_PANEL)).toBeNull();
+
+      // Ouverture : déroulant ancré sur l'option Avec (cadre Côtés à y 400, ligne à y 5 de 44 :
+      // segmenté de 32 centré, option à 3 sous son haut → 400 + 5 + 6 + 3 = 414 ; bord droit de
+      // l'option à 13 + 3 + 62 + 2 = 80 du bord de l'hôte).
+      layoutFrames({ sides: [400, 100] });
+      layoutOf("execution-sheet-row-side", 5, 44);
+      fireEvent.press(trigger);
+      const panel = get(ORDER_PANEL);
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 80 });
+      expect(get(ORDER_MENU).props.accessibilityState).toMatchObject({ expanded: true });
+      const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
+      expect(menu.props.accessibilityRole).toBe("menu");
+      expect(menu.props.accessibilityLabel).toBe("Enchainement");
+      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 146, height: 88 });
+      const rows = within(menu).getAllByRole("menuitem");
+      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+      expect(rows.map((row) => row.props.accessibilityState)).toEqual([{ selected: true }, { selected: false }]);
+      expect(rows.map((row) => StyleSheet.flatten(row.props.style))).toEqual([
+        expect.objectContaining({ height: 44, backgroundColor: "#5F60EE", paddingHorizontal: 8, alignItems: "flex-start" }),
+        expect.objectContaining({ height: 44, backgroundColor: "#F5F7FA", paddingHorizontal: 8, alignItems: "flex-start" }),
       ]);
-      expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
-        expect.stringContaining("Un côté après l’autre"),
-        expect.stringContaining("Les deux côtés à chaque série"),
-      ]);
+      // Réserve sous les cadres : seul le cadre Côtés est mesuré (bas à 500) ; le déroulant
+      // descend à 414 + 88 = 502 → réserve de 2, absente une fois fermé.
+      expect(StyleSheet.flatten(get("execution-sheet-panel-room").props.style)).toMatchObject({ height: 2 });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "600", color: "#FFFFFF" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "400", color: "#4A4A52" });
+      // Chevron vers le haut dans la première rangée seulement.
+      expect(within(rows[0]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).not.toBeNull();
+      expect(within(rows[1]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).toBeNull();
       // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
       expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
       expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
+      expect(popovers()).toEqual([]);
+
+      // ✓ et ✕ de la Feuille absorbés : fermeture seule, Feuille ni validée ni abandonnée.
+      validate();
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(query("execution-sheet-panel-room")).toBeNull();
+      expect(onApply).not.toHaveBeenCalled();
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get("execution-sheet-cancel"));
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(view.onCancel).not.toHaveBeenCalled();
+      // Toucher extérieur et échappement VoiceOver : fermeture sans changement.
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get(`${ORDER_PANEL}-outside`));
+      expect(query(ORDER_PANEL)).toBeNull();
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent(get(ORDER_PANEL), "accessibilityEscape");
+      expect(query(ORDER_PANEL)).toBeNull();
+      // Même choix : fermeture, Brouillon inchangé.
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get(`${ORDER_MENU}-BY_SIDE`));
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(orderText()).toBe("Un côté après l’autre");
+      // Choix : `setSideOrder`, fermeture, notation affichée dans l'option.
       chooseOrder("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
-      expect(popovers()).toEqual([]);
       expect(orderText()).toBe("Les deux côtés à chaque série");
-      expect(
-        within(get(ORDER_MENU))
-          .UNSAFE_getAllByType(SwiftUIButton)
-          .map((item) => item.props.systemImage ?? null),
-      ).toEqual([null, "checkmark"]);
+      fireEvent.press(get(ORDER_MENU));
+      expect(within(get(ORDER_PANEL)).getAllByRole("menuitem").map((row) => row.props.accessibilityState)).toEqual([
+        { selected: false },
+        { selected: true },
+      ]);
+      fireEvent.press(get(`${ORDER_PANEL}-outside`));
+      validate();
+      expect(applied(onApply)).toMatchObject({ sideOrder: "BY_SERIES" });
       view.unmount();
+
+      // Réouverture de la Feuille avec BY_SERIES : notation dans le déclencheur fixe, aucun hôte SwiftUI.
+      const reopened = renderSheetView(bilateral({ sideOrder: "BY_SERIES" }));
+      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(within(get(ORDER_MENU)).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
+      expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
+      reopened.unmount();
       renderSheet(params({ sideMode: "UNILATERAL" }));
       expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     }));
@@ -2888,7 +2939,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(web).toEqual(ios);
   });
 
-  it("PRE4-3.3/AC11, PRE5-2.5, RC-6 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Cadence), avec ses options ; Enchainement par l'`Alert` de l'option Avec ; ni panneau ni Popover", () =>
+  it("PRE4-3.3/AC11, PRE5-2.5, RC-6 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Cadence), avec ses options ; Enchainement par le déroulant de l'option Avec (PRE7-B.3, A3 : plus d'`Alert`) ; ni panneau de roue ni Popover", () =>
     withPlatform("android", () => {
       renderSheet(bilateral());
       for (const [rowID, controlID, options] of [
@@ -4820,7 +4871,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
       // PRE-5 story 2.5 : Changement de côté et Cadence, même exception ; RC-6 : déclencheur du
       // menu de l'Enchainement, à la hauteur d'une option (26). PRE-5 story 2.8 : segmenté
-      // `inline` de la ligne « Phases de l'exercice », même exception.
+      // `inline` de la ligne « Phases de l'exercice », même exception. PRE-7 B.3 (B5) : le
+      // déclencheur du déroulant de l'Enchainement est la vue de taille fixe (146 × 26) elle-même.
       const inlineSegmented = [
         ":26",
         "execution-sheet-cadence-control:32",
@@ -4829,6 +4881,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         "execution-sheet-phases-control:32",
         "execution-sheet-series-type-control:32",
         "execution-sheet-side-control:32",
+        "execution-sheet-side-order-menu:26",
         "execution-sheet-stop-condition-control:32",
       ];
       const tableRows = [`execution-sheet-table-row-1:${TABLE_ROW_HEIGHT}`, `execution-sheet-table-row-2:${TABLE_ROW_HEIGHT}`];
@@ -6018,13 +6071,19 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       expect(sideText()).toBe("Avec");
     }));
 
-  it("PRE5-2.5/AC2, RC-6 — Enchainement : menu de l'option Avec, items BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+  it("PRE5-2.5/AC2, RC-6, PRE7-B.3 — Enchainement : déroulant de l'option Avec, rangées BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
-    const menu = get(ORDER_MENU);
-    const labels = within(menu)
-      .UNSAFE_getAllByType(SwiftUIButton)
-      .map((node) => String(node.props.label));
-    expect(labels).toEqual(["(D1 → D2) ➜ (G1 → G2)", "(D1 → G1) ➜ (D2 → G2)"]);
+    // PRE-7 B.3 (B5) : rangées du déroulant, dans l'ordre D-431.
+    fireEvent.press(get(ORDER_MENU));
+    const labels = within(get(ORDER_PANEL))
+      .getAllByRole("menuitem")
+      .map((row) => String(row.props.accessibilityLabel));
+    expect(labels).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+    expect(SIDE_ORDER_VALUES.map((order) => get(`${ORDER_MENU}-${order}-notation`).props.children)).toEqual([
+      "(D1 → D2) ➜ (G1 → G2)",
+      "(D1 → G1) ➜ (D2 → G2)",
+    ]);
+    fireEvent.press(get(`${ORDER_PANEL}-outside`));
     expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
@@ -6875,14 +6934,50 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     ]);
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
     expect(get("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: false });
+    // PRE-7 B.3 (B9, arbitrage A4) : quatre emplacements égaux (base nulle, même part), boutons
+    // arrondis sur le blanc des touches ; Fermer bleu KODJO, texte blanc ; fond de barre conservé.
+    const slotIDs = [
+      "execution-sheet-keyboard-failure",
+      "execution-sheet-keyboard-previous",
+      "execution-sheet-keyboard-next",
+      "execution-sheet-keyboard-close",
+    ];
+    for (const id of slotIDs) {
+      expect(styleOf(id)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 44, minHeight: 36, borderRadius: 8, paddingHorizontal: 2 });
+    }
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E6E9ED", gap: 6, paddingHorizontal: 8 });
+    expect(styleOf("execution-sheet-keyboard-previous").backgroundColor).toBe("#FFFFFF");
+    expect(styleOf("execution-sheet-keyboard-close").backgroundColor).toBe("#0508E5");
+    expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-close")).getByText("Fermer", hidden).props.style).color).toBe("#FFFFFF");
+    expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-next")).getByText(/Suivant|→/u, hidden).props.style).color).toBe("#5C4DFF");
+    expect(query("execution-sheet-keyboard-failure-slot")).toBeNull();
     fireEvent.press(get("execution-sheet-keyboard-next"));
     blur(target(1));
     focus(pause(1));
     expect(failureButton()).toBeNull();
+    // Pause : emplacement 1 réservé, vide et non accessible ; Précédent et Suivant aux emplacements
+    // 2 et 3, de même largeur que Fermer.
+    const reserved = get("execution-sheet-keyboard-failure-slot");
+    expect(reserved.props.accessible).toBe(false);
+    expect(reserved.props.children).toBeUndefined();
+    expect(styleOf("execution-sheet-keyboard-failure-slot")).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0 });
+    const ordered = get("execution-sheet-keyboard-bar").findAll(
+      (node) => typeof node.props.testID === "string" && /^execution-sheet-keyboard-(failure-slot|previous|next|close)$/.test(node.props.testID) && typeof node.type === "string",
+    );
+    expect([...new Set(ordered.map((node) => node.props.testID))]).toEqual([
+      "execution-sheet-keyboard-failure-slot",
+      "execution-sheet-keyboard-previous",
+      "execution-sheet-keyboard-next",
+      "execution-sheet-keyboard-close",
+    ]);
+    const { backgroundColor: _previousBackground, ...previousSlot } = styleOf("execution-sheet-keyboard-previous");
+    const { backgroundColor: _closeBackground, ...closeSlot } = styleOf("execution-sheet-keyboard-close");
+    expect(previousSlot).toEqual(closeSlot);
     fireEvent.press(get("execution-sheet-keyboard-next"));
     blur(pause(1));
     focus(load(1));
     expect(failureButton()).toBeNull();
+    expect(query("execution-sheet-keyboard-failure-slot")).not.toBeNull();
     expect(query("execution-sheet-keyboard-close")).not.toBeNull();
     hideExecutionSheetKeyboard();
   });
@@ -6963,24 +7058,45 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(totalShown()).toBe("—");
   });
 
-  it("libellés Précédent / Suivant si la largeur le permet, sinon flèches seules avec leurs libellés d'accessibilité ; zones tactiles préservées", () => {
-    expect(keyboardBarCompact(0, 400)).toBe(false);
+  it("libellés Précédent / Suivant si la largeur le permet, sinon flèches seules avec leurs libellés d'accessibilité ; zones tactiles préservées ; PRE7-B.3 (B9) : le plus large libellé doit tenir dans un emplacement", () => {
+    // PRE-7 B.3 (B9, arbitrage A4) : emplacement = (barre − 2 × 8 − 3 × 6) / 4 ; libellé + 2 × 2.
+    expect(keyboardBarSlotWidth(390)).toBe(89);
+    expect([360, 402, 440].map(keyboardBarSlotWidth)).toEqual([81.5, 92, 101.5]);
+    expect(keyboardBarCompact(0, 60)).toBe(false);
     expect(keyboardBarCompact(390, 0)).toBe(false);
-    expect(keyboardBarCompact(390, 300)).toBe(false);
-    expect(keyboardBarCompact(390, 359)).toBe(true);
+    expect(keyboardBarCompact(390, 85)).toBe(false);
+    expect(keyboardBarCompact(390, 86)).toBe(true);
     renderSheet(variable([[numberTarget(45), 20], [numberTarget(30), 10]]));
     focus(target(1));
     showExecutionSheetKeyboard();
     const labels = strings.executionParameters.sheet.keyboardBar;
     expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
-    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 44 } } });
-    fireEvent(get("execution-sheet-keyboard-bar-measure"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 20 } } });
+    const measure = (key: "previous" | "next", width: number) =>
+      fireEvent(get(`execution-sheet-keyboard-bar-measure-${key}`), "layout", { nativeEvent: { layout: { x: 0, y: 0, width, height: 20 } } });
+    // Barre de 402 (emplacement 92). Garde : tant qu'une mesure manque, rien n'est réduit, même
+    // si la seule mesure connue (100) ne tiendrait pas.
+    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 44 } } });
+    measure("previous", 100);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText(labels.next, hidden)).toBeTruthy();
+    // Les deux mesures connues : le plus large (100 + 2 × 2 > 92) ne tient pas — flèches seules.
+    measure("next", 60);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText("←", hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText("→", hidden)).toBeTruthy();
+    // « ← Précédent » de 85,4 tient à 402 (85,4 + 4 ≤ 92) : libellés complets.
+    measure("previous", 85.4);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText(labels.next, hidden)).toBeTruthy();
+    // Barre de 360 (emplacement 81,5) : le plus large (85,4) ne tient plus — flèches seules, pour les deux.
+    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 360, height: 44 } } });
     expect(within(get("execution-sheet-keyboard-previous")).getByText("←", hidden)).toBeTruthy();
     expect(within(get("execution-sheet-keyboard-next")).getByText("→", hidden)).toBeTruthy();
     expect(get("execution-sheet-keyboard-previous").props.accessibilityLabel).toBe("Précédent");
     expect(get("execution-sheet-keyboard-next").props.accessibilityLabel).toBe("Suivant");
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
-    expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 44, minWidth: 44 });
+    // Zone tactile de 44 de haut : bouton de 36 au moins, débord de 4 en haut et en bas.
+    expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 36 });
+    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 4, bottom: 4 });
     blur(target(1));
     hideExecutionSheetKeyboard();
   });

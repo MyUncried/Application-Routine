@@ -403,6 +403,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     showExecutionSheetKeyboard();
     expect(get("execution-sheet-keyboard-bar")).toBeTruthy();
     expect(query("execution-sheet-keyboard-failure")).toBeNull();
+    // PRE-7 B.3 (B9) : son emplacement reste réservé, vide et non accessible.
+    expect(get("execution-sheet-keyboard-failure-slot").props.accessible).toBe(false);
     expect(get("execution-sheet-keyboard-previous").props.accessibilityState).toMatchObject({ disabled: true });
     expect(get(`${row(1)}-active-marker`)).toBeTruthy();
     expect(query(`${row(2)}-active-marker`)).toBeNull();

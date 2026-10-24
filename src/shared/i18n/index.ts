@@ -139,7 +139,6 @@ const executionParameters = {
     // nom accessible des notations = `sideOrders`. Recette du 19/10 (RC-12) : notation D-431
     // complète rétablie (option Avec de 146), après le raccourcissement de RC-11.
     sideSequence: "Enchainement",
-    sideSequenceCancel: "Annuler",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
     sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
     sideRecovery: "Pause entre les côtés",
