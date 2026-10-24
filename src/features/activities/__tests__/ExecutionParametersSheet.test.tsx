@@ -2686,11 +2686,18 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
     expect(cadenceText()).toBe("Autre");
     expect(shownValue("execution-sheet-countdown")).toBe("10 s");
-    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 10 });
+    // PRE-7 B.1 (D-445, B3) : pastille de 32, rayon 8, marges 12 (auparavant ≈ 24, rayon 10, marges 10).
+    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({
+      backgroundColor: "#F5F7FA",
+      borderRadius: 8,
+      minHeight: 32,
+      paddingHorizontal: 12,
+    });
     expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
     // NFR-09, Q42 : zone de toucher fermée d'au moins 44 × 44 (toute la largeur du champ).
     expect(styleOf("execution-sheet-countdown-toggle")).toMatchObject({ width: 137, minHeight: 44 });
-    // Q41 : même cadre fermé et ouvert (largeur, centrage, hauteur) — la valeur ne bouge pas.
+    // Q41 : même cadre fermé et ouvert (largeur, alignement, hauteur). PRE-7 B.1 (D-445, B6) :
+    // contenu aligné à droite (et non plus centré), fermé comme ouvert.
     const closedFrame = styleOf("execution-sheet-countdown-toggle");
     fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
     expect(styleOf("execution-sheet-countdown-field")).toEqual(closedFrame);
@@ -2699,7 +2706,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(cadenceText()).toBe("Autre");
     const openFrame = styleOf("execution-sheet-beep-field");
     expect(openFrame).toEqual(closedFrame);
-    expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "center", justifyContent: "center" });
+    expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end", justifyContent: "center" });
     expect(styleOf("execution-sheet-beep-motion-content")).toMatchObject({ flexDirection: "row", justifyContent: "flex-end" });
     expect(styleOf("execution-sheet-row-beep-line").minHeight).toBe(44);
     expect(screen.getByTestId("execution-sheet-beep-decrement")).toBeTruthy();
@@ -2709,6 +2716,40 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(screen.getByTestId("execution-sheet-beep").props.accessibilityRole).toBe("adjustable");
     expect(screen.getByTestId("execution-sheet-beep").props.accessibilityValue).toMatchObject({ min: 0, max: 10, now: 2 });
+  });
+
+  /**
+   * PRE-7 story B.1 (D-445, B3, B6, B7 ; CE-UI-10 §9, révision 24/10, lignes 5, 9, 11, 12, 13) :
+   * hauteur commune de 32 (pastilles, steppers ouverts sur `color/surface`), alignement à droite
+   * fermé et ouvert de Pause, Pause entre les côtés, Compte à rebours et Fin, chevron de Durée de
+   * l'exercice sans cadre. Jest ne prouve que l'arbre JS : le rendu relève de la recette JB.
+   */
+  it("PRE7-B.1 — pastilles et steppers ouverts de 32, champs sur color/surface, steppers alignés à droite fermés et ouverts, chevron de Durée de l'exercice sans cadre", () => {
+    renderSheet(bilateral({ cadenceBeepIntervalSeconds: 2 }));
+    showSignals();
+    const pill = { backgroundColor: colors.surface, borderRadius: 8, minHeight: 32, paddingHorizontal: 12 };
+    expect(styleOf("execution-sheet-target-value")).toMatchObject(pill);
+    expect(screen.getByTestId("execution-sheet-target-value").props.hitSlop).toEqual({ top: 6, bottom: 6 });
+    expect(styleOf("execution-sheet-total")).toMatchObject(pill);
+    const openPill = { minHeight: 32, padding: 2, borderRadius: 16, backgroundColor: colors.surface };
+    for (const field of ["pause", "side-recovery", "countdown", "end"]) {
+      expect(styleOf(`execution-sheet-${field}-toggle`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
+      expect(styleOf(`execution-sheet-${field}-pill`)).toMatchObject(pill);
+      fireEvent.press(screen.getByTestId(`execution-sheet-${field}-toggle`));
+      expect(styleOf(`execution-sheet-${field}-field`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
+      expect(styleOf(`execution-sheet-${field}`)).toMatchObject({ ...openPill, width: 137 });
+    }
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(styleOf("execution-sheet-beep")).toMatchObject({ ...openPill, width: 137 });
+    // B7 : Disclosure Cadre Non — cadre interne 28 sans fond ni contour ; cible, nom et état inchangés.
+    const frame = styleOf(`${DURATION_DISCLOSURE}-frame`);
+    expect(frame).toMatchObject({ width: 28, height: 28 });
+    expect(frame.backgroundColor).toBeUndefined();
+    expect(frame.borderWidth).toBeUndefined();
+    const disclosure = screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals);
+    expect(disclosure.props.accessibilityRole).toBe("button");
+    expect(disclosure.props.accessibilityState).toMatchObject({ expanded: true });
+    expect(28 + 2 * (disclosure.props.hitSlop as number)).toBeGreaterThanOrEqual(48);
   });
 
   it("PRE4-3.3/AC8 — T20 : un seul champ actif — toucher une autre valeur ferme le premier et ouvre le second d'un seul geste ; T22 : ± du champ ouvert sans fermeture, Bip au pas de 1", () => {

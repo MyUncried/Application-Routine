@@ -1230,7 +1230,7 @@ export function ExecutionParametersSheet({
   // nombre de séries est porté par l'option sélectionnée (« 3 séries identiques », « 3 séries
   // variables » et chevron) ; son toucher révèle le stepper existant (1..99, mêmes pas, même
   // politique de maintien, `setSeriesCount`, surface `stepper(count)`) sur fond `#F2F2FF` dans
-  // un segmenté de 34 ; toucher la valeur le referme (RC-4). L'option non sélectionnée garde
+  // un segmenté de 32 (34 avant PRE-7 B.1) ; toucher la valeur le referme (RC-4). L'option non sélectionnée garde
   // « Variables » ou « Identiques ». À N = 1 (P16), le Type de série reste non modifiable :
   // Variables indisponible (au lieu du contrôle entier atténué), le nombre reste réglable.
   // Recette du 20/10 (RC-17, décisions de Hermann) : la ligne s'intitule « Séries » ; stepper
@@ -1696,7 +1696,7 @@ export function ExecutionParametersSheet({
     <SegmentedControl<PhaseChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.narrow}
-      // Recette du 20/10 (RC-16) : réglage ouvert, segmenté de 34 (fond clair de 28, comme RC-15).
+      // Recette du 20/10 (RC-16) : réglage ouvert, segmenté de 32 depuis PRE-7 B.1, 34 auparavant (fond clair de 28, comme RC-15).
       height={hasWorkPhases && phaseCountOpen ? PHASE_CONTROL_OPEN_HEIGHT : undefined}
       options={[
         hasWorkPhases
@@ -2217,6 +2217,8 @@ export function ExecutionParametersSheet({
                           <DisclosureControl
                             expanded={isDurationExpanded}
                             onPress={toggleDuration}
+                            // PRE-7 B.1 (D-445, B7) : chevron sans cadre (Disclosure, Cadre Non).
+                            framed={false}
                             accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
                             testID="execution-sheet-duration-disclosure"
                           />
@@ -2651,7 +2653,8 @@ function ValuePill({
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={invalid ? invalidHint : undefined}
       accessibilityState={{ expanded, disabled }}
-      hitSlop={{ top: 10, bottom: 10 }}
+      // PRE-7 B.1 : pastille de 32 portée à 44 de haut (auparavant 24 + 2 × 10).
+      hitSlop={VALUE_PILL_HIT_SLOP}
       style={[styles.valuePill, invalid ? styles.valuePillInvalid : null, disabled ? styles.unselected : null]}
       testID={testID}
     >
@@ -2754,8 +2757,9 @@ function RevealStepper({
   ...stepper
 }: InlineStepperProps & { isOpen: boolean; onToggle: () => void; fieldLabel: string }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
-  // Même largeur et même centrage fermé et ouvert : la valeur garde exactement sa position
-  // horizontale (Q41, aucun mouvement du texte) ; la zone de toucher fermée couvre toute
+  // Même cadre fermé et ouvert (largeur, place). PRE-7 B.1 (D-445, B6) : contenu aligné à droite
+  // comme Durée de l'exercice (remplace le centrage Q41) : le champ reste ancré au même bord droit
+  // à l'ouverture ; la zone de toucher fermée couvre toute
   // cette largeur sur au moins 44 de haut (NFR-09, Q42), la pastille seule étant plus petite.
   const frame = { width: stepper.width ?? STEPPER_WIDTH };
   if (!isOpen) {
@@ -2783,6 +2787,8 @@ function RevealStepper({
       {...stepper}
       fieldRef={fieldRef}
       onClose={closeFromAccessibility}
+      // PRE-7 B.1 (B3) : pilule de 32 sur `color/surface`.
+      frameStyle={styles.openStepperPill}
       fieldTestID={`${stepper.testID}-field`}
       style={[styles.stepperFrame, frame]}
     />
@@ -2802,6 +2808,8 @@ function RevealedStepperField({ onClose, ...stepper }: InlineStepperProps & { on
       {...stepper}
       fieldRef={fieldRef}
       onClose={closeFromAccessibility}
+      // PRE-7 B.1 (B3) : pilule de 32 sur `color/surface`, comme les autres steppers de la Feuille.
+      frameStyle={styles.openStepperPill}
       fieldTestID={`${stepper.testID}-field`}
       style={[styles.stepperFrame, { width: stepper.width ?? STEPPER_WIDTH }]}
     />
@@ -3142,20 +3150,36 @@ const SEGMENT_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
  * touche jusqu'au bord gauche de l'option et sur 44 de haut ; le chevron (10) jusqu'au bord droit,
  * 44 de haut, sans recouvrir le libellé (écart partagé 3 / 3). Ouvert : marges 4 ; − [8] valeur [6]
  * chevron [8] + ; les cercles gardent leur marge de 8 (44 de large) ; le chevron indisponible ne
- * prend que l'écart de 6 à sa gauche. Segmenté de 34 et fond de 28 (rayon 5 des options).
+ * prend que l'écart de 6 à sa gauche. Segmenté de 34 et fond de 28 (32 depuis PRE-7 B.1, B3) (rayon 5 des options).
  */
 const PHASE_OPTION_INSET = 17;
 const PHASE_CHEVRON_GAP = 6;
-const PHASE_CONTROL_OPEN_HEIGHT = 34;
+// PRE-7 story B.1 (D-445, B3) : segmenté de 32 aussi réglage ouvert (fond de 28, 2 de chaque côté).
+const PHASE_CONTROL_OPEN_HEIGHT = 32;
 const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_GAP / 2 };
 const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP / 2, right: PHASE_OPTION_INSET };
 const PHASE_CHEVRON_OPEN_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP, right: 0 };
 /**
- * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 quand le stepper du
+ * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 (32 depuis PRE-7 B.1, B3) quand le stepper du
  * nombre de séries (28) est ouvert, 32 au repos ; stepper sur fond `#F2F2FF` (`colors.stepperSurface`),
  * rayon 14 (moitié de sa hauteur).
  */
-const SERIES_CONTROL_OPEN_HEIGHT = 34;
+// PRE-7 story B.1 (D-445, B3) : hauteur commune de 32, réglage ouvert compris (stepper de 28).
+const SERIES_CONTROL_OPEN_HEIGHT = 32;
+/**
+ * PRE-7 story B.1 (D-445, B3 ; CE-UI-10 §9, révision 24/10) — hauteur commune des boutons et
+ * champs éditables de la Feuille : 32, celle du segmenté `inline` (une légère augmentation est
+ * admise pour la pastille, auparavant ≈ 24). Les pastilles de 32 partagent le rayon 8 du segmenté
+ * et la marge horizontale 12 des boutons actifs de Séries (B4). Les champs de saisie (pastilles,
+ * steppers ouverts) sont sur `color/surface` ; les steppers ouverts restent arrondis (rayon 16, comme
+ * leurs cercles). Les hauteurs ouvertes de Séries et Phases, égales au défaut du segmenté, restent
+ * explicites. Constantes locales, aucun jeton modifié.
+ */
+const SHEET_CONTROL_HEIGHT = 32;
+const SHEET_CONTROL_RADIUS = fixedRadii[8];
+const SHEET_FIELD_INSET = spacing[12];
+/** Pastille de 32 portée à une cible de 44 de haut, sans recouvrir les lignes voisines. */
+const VALUE_PILL_HIT_SLOP = { top: (SHEET_ROW_MIN_HEIGHT - SHEET_CONTROL_HEIGHT) / 2, bottom: (SHEET_ROW_MIN_HEIGHT - SHEET_CONTROL_HEIGHT) / 2 };
 const SERIES_STEPPER_RADIUS = SERIES_STEPPER_CIRCLE / 2;
 /**
  * RC-15 : place d'une ligne de premier niveau hors libellé et contrôle — marges du corps (2 × 24),
@@ -3359,11 +3383,12 @@ const styles = StyleSheet.create({
     bottom: -PANEL_OUTSIDE_INSETS.bottom,
     left: -PANEL_OUTSIDE_INSETS.left,
   },
-  // Story 3.3 : cadre d'un champ ± hors tableau, fermé comme ouvert (même largeur, valeur
-  // centrée au même endroit ; zone de toucher d'au moins 44 de haut).
+  // Story 3.3 : cadre d'un champ ± hors tableau, fermé comme ouvert (même largeur, même place ;
+  // zone de toucher d'au moins 44 de haut). PRE-7 B.1 (D-445, B6) : contenu aligné à droite,
+  // comme Durée de l'exercice — pastille fermée et stepper ouvert sur le même bord droit.
   stepperFrame: {
     minHeight: SHEET_ROW_MIN_HEIGHT,
-    alignItems: "center",
+    alignItems: "flex-end",
     justifyContent: "center",
   },
   // AD-11 : élément sans effet (croix de retrait indisponible).
@@ -3399,11 +3424,23 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  // PRE-7 B.1 (B3) : pastille de valeur de 32 (hauteur minimale : le texte agrandi n'est pas
+  // rogné), rayon 8 et marges 12 harmonisés avec le segmenté, fond `color/surface` des champs.
   valuePill: {
     backgroundColor: colors.surface,
-    borderRadius: fixedRadii[10],
+    borderRadius: SHEET_CONTROL_RADIUS,
+    minHeight: SHEET_CONTROL_HEIGHT,
+    justifyContent: "center",
     paddingVertical: spacing[4],
-    paddingHorizontal: spacing[10],
+    paddingHorizontal: SHEET_FIELD_INSET,
+  },
+  // PRE-7 B.1 (B3) : pilule du stepper ouvert de la Feuille (`InlineStepper.frameStyle`) — 32 de
+  // haut (cercles de 28 à 2 du bord), arrondie, sur `color/surface` comme les autres champs.
+  openStepperPill: {
+    minHeight: SHEET_CONTROL_HEIGHT,
+    padding: (SHEET_CONTROL_HEIGHT - SERIES_STEPPER_CIRCLE) / 2,
+    borderRadius: SHEET_CONTROL_HEIGHT / 2,
+    backgroundColor: colors.surface,
   },
   // Valeur à renseigner : fond rouge léger, sans liseré (Q35, 2026-10-17 ; jeton
   // `color.dangerSurface`, #FFF1F0).

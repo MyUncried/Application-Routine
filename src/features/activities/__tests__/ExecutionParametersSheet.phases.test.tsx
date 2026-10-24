@@ -263,7 +263,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(query(TABLE)).toBeNull();
   });
 
-  it("RC-16 — ouvert : « − | n phases | chevron | + » sur #EAEAFF, texte primaire, segmenté de 34 ; − et + règlent 2..6 ; chevron visible mais indisponible (annoncé) ; valeur, chevron ou toucher ailleurs ferment sans changer le nombre ni le repli", () => {
+  it("RC-16 — ouvert : « − | n phases | chevron | + » sur #EAEAFF, texte primaire, segmenté de 32 (PRE-7 B.1, B3 ; 34 auparavant) ; − et + règlent 2..6 ; chevron visible mais indisponible (annoncé) ; valeur, chevron ou toucher ailleurs ferment sans changer le nombre ni le repli", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
     fireEvent.press(get(COUNT_TOGGLE));
     // Ordre dans le réglage : −, valeur, chevron, +.
@@ -276,7 +276,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     const order = [`${STEPPER}-decrement`, `${STEPPER}-value`, CHEVRON, `${STEPPER}-increment`].map((id) => ids.indexOf(id));
     expect(order.every((index) => index >= 0)).toBe(true);
     expect(order).toEqual([...order].sort((a, b) => a - b));
-    expect(styleOf("execution-sheet-phases-control").height).toBe(34);
+    expect(styleOf("execution-sheet-phases-control").height).toBe(32);
     expect(StyleSheet.flatten(get(`${STEPPER}-value`).props.style).color).toBe(colors.primary);
     expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: true, expanded: true });
     expect(get(STEPPER).props.accessibilityHint).toBe(t.phasesTableToggleUnavailableHint);

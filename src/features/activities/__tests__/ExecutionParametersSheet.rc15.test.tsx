@@ -129,12 +129,12 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(get(TOGGLE).props.accessibilityLabel).toBe("Séries, 3 séries identiques");
   });
 
-  it("toucher la valeur révèle « − | 3 séries | + » sur fond #F2F2FF dans un segmenté de 34, sans cadre violet ; ± selon les règles existantes ; toucher la valeur referme (RC-4) et le libellé complet revient", () => {
+  it("toucher la valeur révèle « − | 3 séries | + » sur fond #F2F2FF dans un segmenté de 32 (PRE-7 B.1, B3 ; 34 auparavant), sans cadre violet ; ± selon les règles existantes ; toucher la valeur referme (RC-4) et le libellé complet revient", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(get(TOGGLE));
     expect(within(get(CONTROL)).getByTestId(FIELD)).toBeTruthy();
     expect(styleOf(FIELD)).toMatchObject({ backgroundColor: colors.stepperSurface, borderRadius: 14 });
-    expect(styleOf(CONTROL).height).toBe(34);
+    expect(styleOf(CONTROL).height).toBe(32);
     expect(query(`${CONTROL}-indicator`)).toBeNull();
     expect(query(`${CONTROL}-tile-UNIFORM`)).toBeNull();
     expect(String(get(`${STEPPER}-value`).props.children)).toBe("3 séries");
@@ -219,10 +219,13 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(query("execution-sheet-table")).toBeNull();
   });
 
-  it("largeurs : option sélectionnée adaptée au contenu (Figma 127 / 134 / 138 à un point près) ; non sélectionnée de 106 (RC-17 : libellé « Séries » plus court), réduite seulement si le libellé n'a plus sa place", () => {
+  // PRE-7 story B.1 (D-445, B4) : marge du bouton actif fermé portée de 8 à 12 de chaque côté —
+  // options fermées « 3 séries identiques » 126 → 134 et « 3 séries variables » 134 → 142 ; stepper
+  // ouvert inchangé (138, 154).
+  it("largeurs : option sélectionnée adaptée au contenu (stepper ouvert : Figma 138 à un point près ; fermées 134 / 142 depuis B.1, marges 12 au lieu des 8 de Figma 127 / 134) ; non sélectionnée de 106 (RC-17 : libellé « Séries » plus court), réduite seulement si le libellé n'a plus sa place", () => {
     setWidth(402);
     renderSheet(params());
-    expect(optionWidth(UNIFORM)).toBe(126);
+    expect(optionWidth(UNIFORM)).toBe(134);
     expect(optionWidth(VARIABLE)).toBe(106);
     fireEvent.press(get(TOGGLE));
     expect(optionWidth(UNIFORM)).toBe(138);
@@ -240,7 +243,7 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(optionWidth(VARIABLE)).toBe(106);
     screen.unmount();
     renderSheet(params(variable(3)));
-    expect(optionWidth(VARIABLE)).toBe(134);
+    expect(optionWidth(VARIABLE)).toBe(142);
     expect(optionWidth(UNIFORM)).toBe(106);
     fireEvent.press(get(TOGGLE));
     expect(optionWidth(VARIABLE)).toBe(154);
@@ -248,9 +251,10 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(optionWidth(UNIFORM)).toBe(95);
   });
 
-  it("à 375 et à 402, de 1 à 99 séries, dans les deux types, réglage ouvert ou fermé : le libellé « Séries » garde au moins 36 (une ligne, RC-17), sans débordement ; à 402, l'option non sélectionnée garde toujours 106", () => {
+  // PRE-7 story B.1 (B4) : largeurs 360 et 440 ajoutées (marges fermées de 12).
+  it("à 360, 375, 402 et 440, de 1 à 99 séries, dans les deux types, réglage ouvert ou fermé : le libellé « Séries » garde au moins 36 (une ligne, RC-17), sans débordement ; à 402 et 440, l'option non sélectionnée garde toujours 106", () => {
     expect(SERIES_TYPE_LABEL_MIN_WIDTH).toBe(36);
-    for (const screenWidth of [375, 402]) {
+    for (const screenWidth of [360, 375, 402, 440]) {
       const rowWidth = screenWidth - 74 - 8;
       for (let count = 1; count <= 99; count += 1) {
         for (const type of ["UNIFORM", "VARIABLE"] as const) {
@@ -264,7 +268,7 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
             });
             const unselected = seriesUnselectedOptionWidth(type === "UNIFORM" ? "VARIABLE" : "UNIFORM", selected, rowWidth);
             const control = 3 + selected + 2 + unselected + 3;
-            if (screenWidth === 402) expect({ count, type, open, unselected }).toEqual({ count, type, open, unselected: 106 });
+            if (screenWidth >= 402) expect({ count, type, open, unselected }).toEqual({ count, type, open, unselected: 106 });
             expect({ screenWidth, count, type, open, fits: rowWidth - control >= SERIES_TYPE_LABEL_MIN_WIDTH }).toEqual({
               screenWidth,
               count,

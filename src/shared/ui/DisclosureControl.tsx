@@ -25,6 +25,14 @@ export type DisclosureControlProps = {
    * (`SessionCard`, Catalogue) sont strictement inchangés.
    */
   decorative?: boolean;
+  /**
+   * PRE-7 story B.1 (D-445, B7 ; ch. 12, Disclosure `5544:4650`, propriété Cadre) : `true`
+   * (défaut) = Cadre Oui, rendu inchangé pour les consommateurs existants (`SessionCard`,
+   * Catalogue, `ExerciseScreen`) ; `false` = Cadre Non — cadre interne 28 × 28 conservé (même
+   * encombrement, même position du chevron), habillage retiré (ni fond, ni contour, ni rayon).
+   * Chevron, teintes, cible 48 × 48, accessibilité et interaction inchangés.
+   */
+  framed?: boolean;
   /** Préfixe des `testID` internes (`${testID}-frame`/`${testID}-chevron`) — le `Pressable` racine lui-même ne porte pas de `testID` propre, déjà ciblable sans ambiguïté par `accessibilityLabel`. */
   testID?: string;
 };
@@ -79,6 +87,7 @@ export function DisclosureControl({
   onPress,
   accessibilityLabel,
   decorative = false,
+  framed = true,
   testID,
 }: DisclosureControlProps) {
   return (
@@ -98,7 +107,7 @@ export function DisclosureControl({
       style={styles.pressable}
     >
       <View
-        style={[styles.frame, expanded ? styles.frameExpanded : styles.frameCollapsed]}
+        style={framed ? [styles.frame, expanded ? styles.frameExpanded : styles.frameCollapsed] : styles.frameless}
         testID={testID ? `${testID}-frame` : undefined}
       >
         <KodjoIcon
@@ -122,6 +131,13 @@ const styles = StyleSheet.create({
     height: dimensions.catalogueDisclosure.frame,
     borderRadius: dimensions.catalogueDisclosure.radius,
     backgroundColor: colors.disclosureBackground,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  // PRE-7 story B.1 (Cadre Non) : même cadre interne 28 × 28, sans habillage.
+  frameless: {
+    width: dimensions.catalogueDisclosure.frame,
+    height: dimensions.catalogueDisclosure.frame,
     alignItems: "center",
     justifyContent: "center",
   },
