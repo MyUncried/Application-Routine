@@ -1,6 +1,6 @@
 # API fonctionnelles
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Contrats complémentaires : rechercher les gestes par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les gestes. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v5 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Contrats complémentaires : rechercher les mouvements par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les mouvements. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v5 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
 
 
 ## Sommaire
@@ -103,7 +103,7 @@ Ces contrats remplacent la propriété aplatie du contenu Catalogue et précisen
 
 | Opération | Contrat cible |
 |---|---|
-| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même geste / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
+| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même mouvement / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
 | Lire une définition | Résoudre sa relation active obligatoire vers le mouvement ; retourner contenu et paramètres propres |
 | Enregistrer une correction | Vérifier usage durable et champs sensibles ; transmettre le choix et le nombre de définitions touchées ; appliquer atomiquement contenu partagé et durées par identifiant ; distinguer exercice édité complet et frères incomplets explicitement acceptés |
 | Créer une variante | Nouveau mouvement et nouvelle définition ; original conservé ; proposition de groupe sans présélection |

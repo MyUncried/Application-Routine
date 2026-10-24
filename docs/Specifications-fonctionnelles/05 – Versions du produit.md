@@ -308,7 +308,7 @@ T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés port
 
 ### Évolution validée MFN — à réaliser
 
-La cible D-437 à D-440 comprend le mouvement partagé, la filiation systématique, les niveaux linéaires, la recherche de gestes locaux, la correction partagée et le verrouillage des occurrences. Elle est validée fonctionnellement ; elle n’est pas déclarée livrée par les tranches existantes. Ordre de réalisation : modèle/initialisation sur base vierge, services et copie, éditeur et phases partagées, Catalogue/niveaux, propagation vers instantanés puis recette transverse.
+La cible D-437 à D-440 comprend le mouvement partagé, la filiation systématique, les niveaux linéaires, la recherche de mouvements locaux, la correction partagée et le verrouillage des occurrences. Elle est validée fonctionnellement ; elle n’est pas déclarée livrée par les tranches existantes. Ordre de réalisation : modèle/initialisation sur base vierge, services et copie, éditeur et phases partagées, Catalogue/niveaux, propagation vers instantanés puis recette transverse.
 
 Aucune migration de données antérieures n’est exigée. La réinitialisation est une opération ponctuelle de transition ; les données recréées survivent aux redémarrages. Hors périmètre : moteur et écran des records, mesures réalisées supplémentaires, fusion rétroactive, progression automatique et ramifiée. D-403 n’est pas rouvert. Référence : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
 

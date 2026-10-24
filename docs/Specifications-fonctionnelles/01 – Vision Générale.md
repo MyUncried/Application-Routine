@@ -1,6 +1,6 @@
 # Vision et glossaire
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Le geste porte des alias facultatifs, noms alternatifs de recherche ; ils ne nomment pas les exercices. Un niveau est un rang courant dérivé, jamais stocké dans les occurrences ou instantanés.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Le mouvement porte des alias facultatifs, noms alternatifs de recherche ; ils ne nomment pas les exercices. Un niveau est un rang courant dérivé, jamais stocké dans les occurrences ou instantanés.
 
 
 ## Sommaire
@@ -168,7 +168,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Séance** | Modèle de contenu exécutable. Elle possède un nom, une couleur et une Composition comprenant un Compte à rebours initial, des Exercices organisés avant, dans ou après un Circuit répété en Tours, et une Fin de séance. Elle peut être exécutée directement ou planifiée par une Routine. | `Renforcement du genou` |
 | **Exercice** | Association d’un Mouvement à des paramètres d’exécution ; plus petite unité fonctionnelle définie par l’utilisateur. Elle est exécutée selon une Durée, un nombre de Répétitions ou jusqu’à l’échec. Elle porte une Pause après chaque série et peut porter une **Pause entre les côtés** lorsqu’elle est bilatérale. Elle peut porter une **Charge** facultative et informative (RM-235 à RM-241). Une `ActivityDefinition` ne porte jamais de Récupération après exercice ; cette dernière appartient uniquement à l’occurrence contextualisée dans une Séance. Dans le MVP T03, l’Exercice existe soit comme `ActivityDefinition` persistante autonome du Catalogue, soit comme `SessionActivity` propre à une Séance. | 3 Séries de 12 squats |
 | **Point d’arrêt** | Élément de Composition qui suspend l’enchaînement jusqu’à une reprise explicite, sans écran dédié. Le temps passé au Point d’arrêt n’entre pas dans la durée de la Séance. | |
-| **Mouvement** | Concept interne : identité et contenu du geste (nom, étapes, médias, catégorie, zones, structure ordonnée des phases), partagé par les exercices Catalogue ; aucun paramètre d’exécution. Jamais un libellé d’interface. | Squat |
+| **Mouvement** | Concept interne : identité et contenu du mouvement (nom, étapes, médias, catégorie, zones, structure ordonnée des phases), partagé par les exercices Catalogue ; aucun paramètre d’exécution. Jamais un libellé d’interface. | Squat |
 | **Niveau** | Position courante d’un mouvement dans un groupe linéaire de variantes, sans entité Niveau. Rang calculé, absent de l’historique. Des paramètres différents seuls ne créent pas un niveau. | Pompes sur les genoux puis classiques |
 | **Filiation** | Identifiant de mouvement conservé dans une copie et son instantané, immuable, utilisé uniquement pour le regroupement statistique. | `sourceMovementId` |
 | **Compte à rebours d’Exercice** | Phase optionnelle propre à un Exercice, distincte du Compte à rebours initial de la Séance. | |
