@@ -40,6 +40,9 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
  *   résumés de paramètres (MFN-07, MFN/AC16 : aucun choix silencieux) ; l'Exercice ouvert est coché.
  *   Un niveau sans Exercice au Catalogue (geste local) est indisponible ; sans niveaux, « Changer de
  *   niveau » l'est aussi. Un toucher extérieur ferme le menu sans rien choisir.
+ * - PRE-7 story A3.2 : « Réordonner les niveaux », dernière entrée du sous-menu « Changer de niveau »
+ *   (et de l'étape des niveaux du panneau), ouvre l'écran des niveaux (`MovementLevelsScreen`) ; les
+ *   deux actions documentées restent seules à la racine du popover (`9577:19843`).
  * - Android et web : bouton (cible 44) et panneau `AnchoredPanel` à étapes (racine, niveaux,
  *   Exercices), hébergé par l'Éditeur dans un parent qui le contient entièrement — rendu
  *   `NON VÉRIFIABLE` (Figma ne dessine que le rendu iOS), lignes du panneau de `CircuitNatureMenu`.
@@ -65,6 +68,8 @@ export type MovementLevelMenuModel = {
   readonly levels: readonly LevelOption[];
   readonly onChangeLevel: (definitionId: string) => void;
   readonly onAddLevel: () => void;
+  /** PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux. */
+  readonly onReorderLevels: () => void;
 };
 
 /** Pastille : position dérivée (`null` : vide) ; `menu` `null` : affichage seul, sans accès. */
@@ -230,6 +235,8 @@ export function MovementLevelMenu({
               {menu.levels.map((option) => (
                 <NativeLevelItem key={option.rank} option={option} menu={menu} testID={`${testID}-level-${option.rank}`} />
               ))}
+              {/* PRE-7 (A3.2) : écran des niveaux, en fin du sous-menu (mêmes conditions d'accès). */}
+              <SwiftUIButton label={t.reorderLevels} onPress={menu.onReorderLevels} testID={`${testID}-reorder`} />
             </Menu>
             <SwiftUIButton label={t.addLevel} onPress={menu.onAddLevel} testID={`${testID}-add`} />
           </Menu>
@@ -347,7 +354,7 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
       },
     ];
   } else if (step.kind === "LEVELS") {
-    rows = menu.levels.map((option) => {
+    const levelRows = menu.levels.map((option): PanelRowProps => {
       const only = option.exercises.length === 1 ? option.exercises[0] : undefined;
       return {
         id: `level-${option.rank}`,
@@ -360,6 +367,18 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
         },
       };
     });
+    // PRE-7 (A3.2) : écran des niveaux, en fin de l'étape (comme dans le sous-menu natif).
+    rows = [
+      ...levelRows,
+      {
+        id: "reorder",
+        label: t.reorderLevels,
+        onPress: () => {
+          onDismiss();
+          menu.onReorderLevels();
+        },
+      },
+    ];
   } else {
     const option = menu.levels.find((candidate) => candidate.rank === step.rank);
     rows = (option?.exercises ?? []).map((exercise) => ({

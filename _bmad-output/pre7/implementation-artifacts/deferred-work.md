@@ -66,3 +66,12 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-1-pastille-popover-niveau.md`
   summary: Panneau de repli du popover de niveau (Android, web) : ni retour à l'étape précédente, ni recadrage dans l'écran (pastille près d'un bord, longue liste de niveaux).
   evidence: rendu `NON VÉRIFIABLE` (Figma ne dessine que le menu natif iOS) ; fermer et rouvrir suffit ; à reprendre si Android entre en recette.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-2-consultation-reordonnancement-niveaux.md`
+  summary: Retrait d'un membre du groupe (`detachFromGroup`, MFN-05 « Retirer un membre… ») et rattachement ultérieur (MFN-06) sans accès dans l'interface.
+  evidence: aucun libellé, frame ni parcours documenté ; le plan A3.2 ne couvre que la liste et le réordonnancement. À décider par Hermann avec les reports de rattachement d'A2.2 / A2.3 / A3.1.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-2-consultation-reordonnancement-niveaux.md`
+  summary: Lignes de l'écran des niveaux à hauteur fixe de 36 (`DraggableRow`, AD-28) : nom tronqué sur une ligne, texte agrandi possiblement rogné ; poignée à cible 36.
+  evidence: géométrie du composant accepté réutilisé sans modification (plan §3, §8) ; à constater en recette JA (360 / 402 / 440, texte agrandi).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-2-consultation-reordonnancement-niveaux.md`
+  summary: Gardes « aucune navigation pendant une écriture en vol » d'`ExerciseScreen` (`onChangeLevel`, `onAddLevel` d'A3.1, `onReorderLevels` d'A3.2) non couvertes par un test.
+  evidence: revue A3.2 (lacunes de vérification) ; un test d'intégration commun, `Terminer` ralenti par une écriture différée puis appui sur chaque entrée du popover, couvrirait les trois.

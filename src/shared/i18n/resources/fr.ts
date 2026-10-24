@@ -283,6 +283,25 @@ export const fr = {
           changeLevel: "Changer de niveau",
           addLevel: "Ajouter un niveau",
           levelOption: "Niveau {rank} sur {total} · {name}",
+          // PRE-7 story A3.2 : accès à l’écran des niveaux, en fin du sous-menu « Changer de niveau »
+          // (aucun libellé documenté ; verbe de ch03 l.154 « glisser réordonne les niveaux »).
+          reorderLevels: "Réordonner les niveaux",
+        },
+        // PRE-7 story A3.2 (D-439, MFN-05, MFN/AC07) : écran des niveaux d’un groupe, sans frame
+        // Figma (NON VÉRIFIABLE). Aucun texte documenté : titre « Niveaux » ; lignes calquées sur
+        // celles des phases (« Déplacer la phase {n} », « Monter la phase {n} ») ; nombre
+        // d’Exercices repris de `movementSearch` ; erreurs calquées sur `error` (Catalogue) et
+        // `saveError` des valeurs. Textes à valider par Hermann.
+        levelOrder: {
+          title: "Niveaux",
+          closeAccessibilityLabel: "Retour",
+          row: "Niveau {n}",
+          handle: "Déplacer le niveau {n}",
+          moveUp: "Monter le niveau {n}",
+          moveDown: "Descendre le niveau {n}",
+          loadError: "Impossible de charger les niveaux.",
+          retry: "Réessayer",
+          saveError: "La modification n’a pas pu être enregistrée. Réessayez.",
         },
         // PRE-7 story A2.2 (D-438, MFN-08, CE-T03-04 §14 ; feuille basse `9952:44349`) : question
         // d’identité. Libellés des choix : MFN-08 (modification Catalogue) et complément de

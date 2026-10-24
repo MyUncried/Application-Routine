@@ -42,6 +42,7 @@ function menuModel(overrides: Partial<MovementLevelMenuModel> = {}): MovementLev
     ],
     onChangeLevel: jest.fn(),
     onAddLevel: jest.fn(),
+    onReorderLevels: jest.fn(),
     ...overrides,
   };
 }
@@ -255,5 +256,52 @@ describe("PRE-7 A3.1 — MovementLevelPanel (repli Android / web)", () => {
     expect(alone.onAddLevel).toHaveBeenCalledTimes(1);
     fireEvent.press(screen.getByTestId("panel-outside"));
     expect(onDismiss).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("PRE-7 A3.2 — accès à l'écran des niveaux", () => {
+  it("iOS : « Réordonner les niveaux », dernière entrée du sous-menu « Changer de niveau » ; racine inchangée", () =>
+    withPlatform("ios", () => {
+      const model = menuModel();
+      renderMenu({ position: { rank: 2, total: 3 }, menu: model });
+      const host = screen.getByTestId("level", anyNode);
+      const change = within(host).UNSAFE_getAllByType(Menu).find((menu) => menu.props.testID === "level-change")!;
+      const reorder = screen.getByTestId("level-reorder", anyNode);
+      expect(reorder.props.label).toBe("Réordonner les niveaux");
+      expect(within(change).getByTestId("level-reorder", anyNode)).toBeTruthy();
+      const entries = (change.props.children as unknown[]).flat().filter(Boolean) as { props: { testID: string } }[];
+      expect(entries[entries.length - 1]!.props.testID).toBe("level-reorder");
+      // Racine du popover : les deux actions documentées seulement (`9577:19843`).
+      const root = within(host).UNSAFE_getAllByType(Menu)[0]!;
+      const rootEntries = (root.props.children as unknown[]).flat().filter(Boolean) as { props: { testID: string } }[];
+      expect(rootEntries.map((entry) => entry.props.testID)).toEqual(["level-change", "level-add"]);
+      act(() => fireEvent(reorder, "buttonPress"));
+      expect(model.onReorderLevels).toHaveBeenCalledTimes(1);
+      expect(model.onChangeLevel).not.toHaveBeenCalled();
+    }));
+
+  it("iOS, sans groupe : l'entrée appartient au sous-menu indisponible", () =>
+    withPlatform("ios", () => {
+      renderMenu({ position: null, menu: menuModel({ levels: [] }) });
+      const change = within(screen.getByTestId("level", anyNode))
+        .UNSAFE_getAllByType(Menu)
+        .find((menu) => menu.props.testID === "level-change")!;
+      expect(hasDisabled(change.props.modifiers, true)).toBe(true);
+      expect(within(change).getByTestId("level-reorder", anyNode)).toBeTruthy();
+    }));
+
+  it("panneau de repli : dernière ligne de l'étape des niveaux, qui ferme le panneau puis ouvre l'écran", () => {
+    const model = menuModel();
+    const onDismiss = jest.fn();
+    render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
+    expect(screen.queryByTestId("panel-reorder")).toBeNull();
+    fireEvent.press(screen.getByTestId("panel-change"));
+    const rows = screen.getAllByRole("button").map((row) => row.props.testID);
+    expect(rows[rows.length - 1]).toBe("panel-reorder");
+    expect(screen.getByTestId("panel-reorder").props.accessibilityLabel).toBe("Réordonner les niveaux");
+    fireEvent.press(screen.getByTestId("panel-reorder"));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(model.onReorderLevels).toHaveBeenCalledTimes(1);
+    expect(model.onChangeLevel).not.toHaveBeenCalled();
   });
 });

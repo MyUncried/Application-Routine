@@ -43,6 +43,7 @@ import type {
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { IdentityDecisionSheet } from "@/features/activities/IdentityDecisionSheet";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
+import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
 import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -853,6 +854,10 @@ function CatalogueActivityEditorScreen({
       ? (origin?.movementId ?? null)
       : null;
   const levels = loadedLevels !== null && loadedLevels.movementId === levelMovementId ? loadedLevels.levels : null;
+  // PRE-7 (A3.2, MFN-05) : écran des niveaux ouvert depuis le popover ; à sa fermeture, les niveaux
+  // sont relus (jeton) — la lecture précédente reste affichée jusque-là : le formulaire reste monté.
+  const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
+  const [levelsReloadToken, setLevelsReloadToken] = useState(0);
   useEffect(() => {
     if (levelMovementId === null) return;
     let cancelled = false;
@@ -871,7 +876,7 @@ function CatalogueActivityEditorScreen({
     return () => {
       cancelled = true;
     };
-  }, [activityDefinitionService, levelMovementId]);
+  }, [activityDefinitionService, levelMovementId, levelsReloadToken]);
   const editorLevel = editorLevelOf(
     levels,
     isEditingExisting && definitionId !== null
@@ -890,6 +895,11 @@ function CatalogueActivityEditorScreen({
               pathname: "/exercise",
               params: { catalogueDefinitionId: "new", levelOriginDefinitionId: definitionId },
             });
+          },
+          // PRE-7 (A3.2) : consultation et réordonnancement des niveaux, au-dessus de la fiche.
+          onReorderLevels: () => {
+            if (isSaving) return;
+            setIsLevelsScreenOpen(true);
           },
         }
       : null,
@@ -1018,6 +1028,17 @@ function CatalogueActivityEditorScreen({
       ) : null}
 
       {originChoice.overlays}
+
+      {isLevelsScreenOpen && levelMovementId !== null ? (
+        <MovementLevelsScreen
+          service={activityDefinitionService}
+          movementId={levelMovementId}
+          onClose={() => {
+            setIsLevelsScreenOpen(false);
+            setLevelsReloadToken((current) => current + 1);
+          }}
+        />
+      ) : null}
     </ScreenShell>
   );
 }

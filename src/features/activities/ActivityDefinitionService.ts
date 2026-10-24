@@ -131,6 +131,16 @@ export type MovementLevels = {
   readonly levels: readonly MovementLevelEntry[];
 };
 
+/**
+ * PRE-7 (A3.2, MFN-05, MFN/AC07) : issue d'un réordonnancement des niveaux — niveaux relus après
+ * l'écriture (rangs recalculés) ; `NOT_FOUND` : geste inconnu, sans groupe, ou service sans
+ * `MovementRepository` ; `INVALID_ORDER` : pas une permutation exacte des membres (rien n'est écrit).
+ */
+export type ReorderMovementLevelsResult =
+  | { readonly status: "OK"; readonly levels: MovementLevels }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "INVALID_ORDER" };
+
 function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefusedResult {
   switch (refusal.kind) {
     case "SIBLING_COMPLETION_REQUIRED":
@@ -420,6 +430,33 @@ export class ActivityDefinitionService {
         definitions: definitions.filter((definition) => definition.movementId === member.id),
       })),
     };
+  }
+
+  /**
+   * PRE-7 (A3.2, D-439, MFN-05, MFN/AC07, MFN/AC33) — réordonne le groupe du geste `movementId`
+   * (`orderedMovementIds` : tous ses membres, dans le nouvel ordre) par `MovementRepository.reorder`
+   * (transaction exclusive, permutation exacte). Un déplacement dans le groupe n'est pas une
+   * modification du geste : ni question d'identité, ni contenu, ni Exercice touchés, aucune fusion ;
+   * seules les clés de tri (et `updated_at` des gestes) changent. Niveaux relus après l'écriture.
+   */
+  async reorderMovementLevels(movementId: string, orderedMovementIds: readonly string[]): Promise<ReorderMovementLevelsResult> {
+    const movements = this.movementRepository;
+    if (!movements) {
+      return { status: "NOT_FOUND" };
+    }
+    const movement = await movements.findById(movementId);
+    if (!movement || movement.levelGroup === null) {
+      return { status: "NOT_FOUND" };
+    }
+    const outcome = await movements.reorder(movement.levelGroup.groupId, orderedMovementIds);
+    if (outcome.status === "INVALID_ORDER") {
+      return { status: "INVALID_ORDER" };
+    }
+    if (outcome.status !== "OK") {
+      return { status: "NOT_FOUND" };
+    }
+    const levels = await this.getMovementLevels(movementId);
+    return levels === null ? { status: "NOT_FOUND" } : { status: "OK", levels };
   }
 
   /**
