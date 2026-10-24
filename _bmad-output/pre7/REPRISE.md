@@ -1,21 +1,19 @@
-# PRE-7 — Point de reprise (24/10/2026)
+# PRE-7 — Point de reprise (24/10/2026, fin de session autonome)
 
-- **Clone** : `C:\Dev\KODJO-BMAD-PRE7` (clone de `MyUncried/Application-Routine`), BMad 6.12.4 local (`_bmad/`, `.claude/skills/bmad-*`, exclus par `.git/info/exclude`), `node_modules` installé (`npm ci`).
-- **Branche** : `pre7-bmad/dev`, créée depuis `main` @ `bcd84481` (fusion de la PR #393, PRE-6). Aucun push ; `main` non modifié.
-- **Plan approuvé** : `_bmad-output/pre7/planning-artifacts/epics.md` (6 epics, 13 stories ; précisions de Hermann du 24/10 intégrées en A1.3 et A2.2). Suivi : `_bmad-output/pre7/implementation-artifacts/sprint-status.yaml`.
+- **Clone** : `C:\Dev\KODJO-BMAD-PRE7`, BMad 6.12.4 local (non versionné). Branche `pre7-bmad/dev` depuis `main` @ `bcd84481`. Aucun push ; `main` non modifié ; aucune fusion.
+- **Plan** : `planning-artifacts/epics.md` ; suivi `implementation-artifacts/sprint-status.yaml` ; reports `implementation-artifacts/deferred-work.md`.
 
 ## Terminé
 
-1. Clone, branche, BMad, `CLAUDE.md` propre au clone PRE-7 (exclu de la livraison avec `AGENTS.md`).
-2. **Epic 0 / story 0.1** (commit `4cecf382`) : D-440 et MFN-12 assouplies (Profil et Catégories conservés, Exercices et Séances réinitialisés une seule fois par la migration 012) ; **D-445** (finalisation de l'éditeur, B1 à B10) avec propagation dans ch01, 04, 06, 07, 08, 10, 12, 13 et `PRODUCT.md`. Spec : `implementation-artifacts/spec-0-1-decisions-et-reconciliation-documentaire.md`.
-
-## Points ouverts (sans blocage)
-
-- **Zones corporelles personnalisées** : tranché par Hermann le 24/10/2026, conservées avec le Profil et les Catégories (D-440, MFN-12, ch12, PRODUCT.md).
-- B9 : la règle de D-434 « flèches seules si la largeur manque » reste applicable.
+- Epic 0 (`4cecf382`) et précision Zones corporelles (`1e8c8468` : D-440, MFN-12, ch12, PRODUCT.md).
+- Les 12 stories de développement, chacune avec spec, implémentation, trois revues, triage et commit local ; toutes au statut `review` : B.1 `1917ba25`, B.2 `832e61ab`, B.3 `91359946`, A1.1 `df3d027d`, A1.2 `481ff5d2` (migration 012), A1.3 `fdaab154`, A2.1 `2d73cd90`, A2.2 `29373454`, A2.3 `173a7256`, A3.1 `c7140692`, A3.2 `60ee7eb5`, A4.1 `050f6c99`.
+- Contrôles au HEAD final : 172 suites, 4 309 tests verts ; `npx tsc --noEmit` et `npm run lint` verts.
 
 ## Prochaine étape
 
-Story **B.1 — Harmonisation visuelle de la Feuille des paramètres** (B3, B4, B6, B7), avec en parallèle possible **A1.1 — Domaine Mouvement et paramètres v4** (domaine pur). Méthode par story : spec dans `implementation-artifacts/`, implémentation, trois revues (aveugle, cas limites, lacunes de vérification), triage, `npm test -- --maxWorkers=2`, `npx tsc --noEmit`, `npm run lint`, commit local, statut `review`. Recette iPhone JB après B.3 ; JA1 (prévenir Hermann avant le chargement de la migration 012) ; JA à la fin.
+Recette iPhone de Hermann : `recette-iphone-pre7.md` (JA1, JB, JA). Puis arbitrages listés dans les specs (sections Implementation Notes / points renvoyés) et corrections de recette. Fusion sur `main` : autorisation distincte.
 
-Serveur Expo : aucun lancé depuis ce clone (celui du port 8081 tourne depuis le clone PRE-6). Lancer : `APP_VARIANT=bmad npx expo start --dev-client --tunnel --scheme routine-bmad --port 8081` après avoir arrêté l'autre.
+## Environnement
+
+- Serveur : `APP_VARIANT=bmad npx expo start --dev-client --tunnel --scheme routine-bmad --port 8081` depuis ce clone ; le serveur PRE-6 a été arrêté.
+- `node_modules/@expo/ngrok-bin-win32-arm64` copié depuis le clone PRE-6 (paquet optionnel absent après `npm ci` ; machine arm64) ; `package.json` et lockfile inchangés.
