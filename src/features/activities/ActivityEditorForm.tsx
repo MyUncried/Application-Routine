@@ -140,6 +140,18 @@ export type ActivityEditorFormProps = {
    */
   nextPhaseId?: number;
   /**
+   * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé) —
+   * l'adaptateur y propose un geste proche. Absent : rien.
+   */
+  onNameEndEditing?: () => void;
+  /**
+   * PRE-7 (A2.3, MFN-06 « recherche explicite accessible indépendamment de la similarité du nom,
+   * avant la saisie détaillée ») : lien de recherche des gestes, en tête du contenu ; `null`
+   * (défaut) : absent. Emplacement sans frame Figma (NON VÉRIFIABLE), style du lien
+   * « Rechercher un autre geste » de `9882:19141`.
+   */
+  movementSearchAction?: { readonly label: string; readonly onPress: () => void } | null;
+  /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
    * Feuille pour la validation unique `validateForSave` (H25).
@@ -290,6 +302,8 @@ export function ActivityEditorForm({
   phaseStructureLocked = false,
   contentLocked = false,
   nextPhaseId,
+  onNameEndEditing,
+  movementSearchAction = null,
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -356,7 +370,13 @@ export function ActivityEditorForm({
   const [zonesEmptiedByDeletion, setZonesEmptiedByDeletion] = useState(false);
   const finishDisabled = isFinishDisabled || (zonesEmptiedByDeletion && value.bodyZoneIds.length === 0);
 
+  // PRE-7 (A2.3, revue) : une fin de saisie du nom PROVOQUÉE par l'ouverture d'une feuille
+  // (Paramètres, Catégorie, Zones) ne propose pas de geste proche — sinon la feuille de suggestion
+  // se présenterait par-dessus cette feuille (deux présentations natives simultanées sur iOS).
+  const nameEndSuppressedRef = useRef(false);
+
   function openSheet() {
+    nameEndSuppressedRef.current = true;
     Keyboard.dismiss();
     setIsSheetOpen(true);
   }
@@ -405,6 +425,20 @@ export function ActivityEditorForm({
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
+          {...(onNameEndEditing
+            ? {
+                onFocus: () => {
+                  nameEndSuppressedRef.current = false;
+                },
+                onEndEditing: () => {
+                  if (nameEndSuppressedRef.current) {
+                    nameEndSuppressedRef.current = false;
+                    return;
+                  }
+                  onNameEndEditing();
+                },
+              }
+            : {})}
           style={styles.nameInput}
           testID="exercise-name-input"
         />
@@ -423,7 +457,10 @@ export function ActivityEditorForm({
         <View style={styles.referenceRow} testID="exercise-reference-row">
           <Pressable
             ref={categoryAccess}
-            onPress={onOpenCategory}
+            onPress={() => {
+              nameEndSuppressedRef.current = true;
+              onOpenCategory();
+            }}
             // PRE-7 (A2.2, MFN-09) : Catégorie du geste verrouillé, affichée sans accès.
             {...(contentLocked ? { disabled: true } : {})}
             accessibilityRole="button"
@@ -460,6 +497,7 @@ export function ActivityEditorForm({
           <Pressable
             ref={bodyZonesAccessRef}
             onPress={() => {
+              nameEndSuppressedRef.current = true;
               Keyboard.dismiss();
               bodyZonesSheet.open();
             }}
@@ -509,6 +547,20 @@ export function ActivityEditorForm({
           }}
           testID="exercise-body"
         >
+          {movementSearchAction ? (
+            <Pressable
+              onPress={() => {
+                Keyboard.dismiss();
+                movementSearchAction.onPress();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={movementSearchAction.label}
+              style={styles.movementSearchLink}
+              testID="activity-editor-movement-search"
+            >
+              <Text style={styles.movementSearchLinkLabel}>{movementSearchAction.label}</Text>
+            </Pressable>
+          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           <View
             style={styles.section}
@@ -977,6 +1029,21 @@ const styles = StyleSheet.create({
   // son contenu ; 16 entre deux sections.
   section: {
     gap: EDITOR_VERTICAL_GRID.titleToBlock,
+  },
+  // PRE-7 (A2.3) : lien de recherche des gestes — style de « Rechercher un autre geste »
+  // (`9882:19141` : Medium 15, `primary`) ; cible ≥ 44 ; emplacement NON VÉRIFIABLE.
+  movementSearchLink: {
+    alignSelf: "flex-start",
+    minHeight: minTouchTarget,
+    justifyContent: "center",
+    marginBottom: EDITOR_VERTICAL_GRID.blockToBlock,
+  },
+  movementSearchLinkLabel: {
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 15,
+    lineHeight: 18,
+    color: colors.primary,
   },
   followingSection: {
     marginTop: EDITOR_VERTICAL_GRID.blockToNextTitle,

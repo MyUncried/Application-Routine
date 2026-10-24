@@ -238,6 +238,38 @@ export const fr = {
         // PRE-7 story A2.2 (D-438, CE-T03-04 §3, relevé Figma MFN du 23/10, `9952:44374`) :
         // crayon de la création sur geste repris, annoncé « Modifier le geste ».
         editMovement: "Modifier le geste",
+        // PRE-7 story A2.3 (MFN-06, D-439 ; feuille `9882:19125` de `9882:19049`) : suggestion d’un
+        // geste proche à la création. Textes de la feuille ; « {name} » = geste RÉELLEMENT proposé,
+        // jamais l’exemple Squats. Le relevé du 23/10 demande d’adapter « déjà dans votre catalogue »
+        // à l’origine du résultat : un geste sans Exercice au Catalogue (créé dans une séance) reçoit
+        // la formulation neutre `localMessage` (point soumis à Hermann).
+        movementSuggestion: {
+          title: "Un geste proche existe",
+          catalogueMessage: "{name} est déjà dans votre catalogue. Voulez-vous le réutiliser ?",
+          localMessage: "{name} existe déjà. Voulez-vous le réutiliser ?",
+          sameMovement: "Même geste, autres paramètres",
+          sameMovementDetail: "Reprend la description et le média de {name}",
+          variant: "Variante de ce geste",
+          variantDetail: "Crée un niveau de plus dans la progression",
+          independent: "Geste indépendant",
+          independentDetail: "Aucun lien avec {name}",
+          searchOther: "Rechercher un autre geste",
+        },
+        // PRE-7 story A2.3 (MFN-04, MFN-06, D-439 ; écran `9959:19623`) : recherche spécialisée des
+        // gestes, locaux compris. Titre, champ et note de `9959:19623` ; sous-titre des cartes
+        // « Niveau r sur t · n exercices », rang et nombre calculés. `open` : accès depuis le
+        // formulaire, sans frame (NON VÉRIFIABLE), libellé repris du champ de recherche.
+        movementSearch: {
+          title: "Choisir un geste",
+          placeholder: "Rechercher un geste",
+          localNote: "Les gestes créés dans une séance apparaissent aussi.",
+          level: "Niveau {rank} sur {total}",
+          exerciseCountSingular: "{n} exercice",
+          exerciseCountPlural: "{n} exercices",
+          separator: " · ",
+          open: "Rechercher un geste",
+          closeAccessibilityLabel: "Retour",
+        },
         // PRE-7 story A2.2 (D-438, MFN-08, CE-T03-04 §14 ; feuille basse `9952:44349`) : question
         // d’identité. Libellés des choix : MFN-08 (modification Catalogue) et complément de
         // présentation D-438 (création sur geste repris). Titre, portée et explications : textes

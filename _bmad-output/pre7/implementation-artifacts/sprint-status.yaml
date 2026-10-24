@@ -19,7 +19,7 @@ development_status:
   epic-a2: in-progress
   a2-1-feuille-des-paramètres-mfn: review
   a2-2-contenu-partagé-et-verrouillage: review
-  a2-3-création-recherche-et-suggestions-de-gestes: backlog
+  a2-3-création-recherche-et-suggestions-de-gestes: review
   epic-a3: backlog
   a3-1-pastille-et-popover-de-niveau: backlog
   a3-2-consultation-et-réordonnancement-des-niveaux: backlog

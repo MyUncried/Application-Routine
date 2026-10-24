@@ -12,7 +12,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
-import { repriseExecutionParameters, type MovementPhase } from "@/domain/activities/Movement";
+import { repriseExecutionParameters, type Movement, type MovementPhase } from "@/domain/activities/Movement";
 import type { CorrectionAssessment, SiblingCompletion, SiblingGap } from "@/domain/activities/sharedCorrection";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
@@ -39,6 +39,7 @@ import type { ActivityDefinitionService, CorrectionTarget } from "@/features/act
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { IdentityDecisionSheet } from "@/features/activities/IdentityDecisionSheet";
 import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
+import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
 import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerModal";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
@@ -331,13 +332,35 @@ function EditMovementAction({ onPress }: { onPress: () => void }) {
   );
 }
 
+/**
+ * PRE-7 (A2.3, MFN-06, MFN-07) : champs de contenu VIDES initialisés depuis le geste d'origine
+ * d'une variante (description, médias, Zones) ; le nom saisi et toute saisie existante sont
+ * conservés — aucune sélection n'écrase silencieusement une information déjà saisie.
+ */
+function withVariantContent(value: ActivityEditorFormValue, origin: Movement): ActivityEditorFormValue {
+  return {
+    ...value,
+    instructionSteps:
+      encodeInstructionSteps(value.instructionSteps) === null ? decodeInstructionSteps(origin.description) : value.instructionSteps,
+    media: value.media.length === 0 ? [...origin.media] : value.media,
+    bodyZoneIds: value.bodyZoneIds.length === 0 ? [...origin.bodyZoneIds] : value.bodyZoneIds,
+  };
+}
+
 function CatalogueActivityEditorScreen({
   definitionId,
-  repriseMovementId,
+  repriseMovementId: routeRepriseMovementId,
 }: {
   definitionId: string | null;
   repriseMovementId: string | null;
 }) {
+  // PRE-7 (A2.3, MFN-06) : geste repris par la route (A2.2) ou choisi dans l'écran (suggestion,
+  // recherche) — la reprise choisie en place garde l'écran monté (aucune navigation, aucun garde
+  // d'abandon déclenché) et recharge le contenu du geste.
+  const [repriseMovementId, setRepriseMovementId] = useState(routeRepriseMovementId);
+  // PRE-7 (A2.3, MFN-06 « Créer une variante / un niveau ») : geste d'origine d'une variante
+  // choisie ; `Terminer` crée un nouveau geste (`VARIANT`), sans question d'identité (MFN-08).
+  const [variantOrigin, setVariantOrigin] = useState<{ readonly movementId: string } | null>(null);
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
@@ -482,6 +505,39 @@ function CatalogueActivityEditorScreen({
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
 
+  // PRE-7 (A2.3, MFN-06, ch03 l.152) : suggestion et recherche des gestes en création, avant tout
+  // choix d'origine et tant que seul le nom est saisi (« avant la saisie détaillée »).
+  const onlyNameEntered =
+    value !== null &&
+    initial !== null &&
+    formValueEquals({ ...value, name: initial.name }, initial) &&
+    categoryId === initialCategoryId;
+  const originChoice = useMovementOriginChoice({
+    service: activityDefinitionService,
+    available:
+      !isEditingExisting && repriseMovementId === null && variantOrigin === null && loadState === "ready" && onlyNameEntered,
+    onSameMovement: (choice) => {
+      // Reprise du geste RÉELLEMENT choisi : contenu en lecture seule + crayon (A2.2), Profil
+      // réappliqué au brouillon rechargé. Seul le nom saisi est remplacé, par choix explicite.
+      setSaveError(false);
+      setContentUnlocked(false);
+      // Revue : brouillon vidé AVANT de réarmer le Profil — sinon le rendu suivant appliquerait
+      // Compte à rebours et Fin à l'ancien brouillon, et non au brouillon rechargé du geste.
+      setInitial(null);
+      setValue(null);
+      setProfileApplied(false);
+      setLoadState("loading");
+      setRepriseMovementId(choice.movement.id);
+    },
+    onVariant: (choice) => {
+      setSaveError(false);
+      setVariantOrigin({ movementId: choice.movement.id });
+      setValue((current) => (current ? withVariantContent(current, choice.movement) : current));
+      // MFN-05 l.375, MFN/AC33 : Catégorie reprise de l'origine, puis librement modifiable.
+      setCategoryId((current) => current ?? choice.movement.categoryId);
+    },
+  });
+
   useEffect(() => {
     if (isDone) {
       router.back();
@@ -614,6 +670,24 @@ function CatalogueActivityEditorScreen({
         : isReprise && origin !== null
           ? { kind: "SAME_MOVEMENT", movementId: origin.movementId }
           : null;
+    if (correctionTarget === null && variantOrigin !== null) {
+      // PRE-7 (A2.3, MFN-06, MFN-08) : variante explicitement choisie — nouveau geste et son
+      // Exercice, enregistrés directement (aucune question d'identité : l'original n'est pas
+      // touché). Rattachement au groupe d'origine : aucun (MFN-05, aucun rattachement automatique ;
+      // la proposition sans présélection reste à présenter, point renvoyé à Hermann).
+      const originMovementId = variantOrigin.movementId;
+      await attempt(
+        async () =>
+          (
+            await activityDefinitionService.createActivityDefinitionWithOrigin(definitionInput, {
+              kind: "VARIANT",
+              originMovementId,
+              joinOriginGroup: false,
+            })
+          ).status === "CREATED",
+      );
+      return;
+    }
     if (correctionTarget === null || !activityDefinitionService.supportsSharedCorrection) {
       await attempt(async () =>
         definitionId !== null
@@ -719,6 +793,10 @@ function CatalogueActivityEditorScreen({
           profileSideRecoverySecondsDefault={profile.sideRecovery}
           contentLocked={contentLocked}
           nextPhaseId={movementNextPhaseId}
+          onNameEndEditing={() => originChoice.proposeFor(value.name)}
+          movementSearchAction={
+            originChoice.canSearch ? { label: t.movementSearch.open, onPress: originChoice.openSearch } : null
+          }
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -779,6 +857,8 @@ function CatalogueActivityEditorScreen({
           onCancel={() => setPendingCompletion(null)}
         />
       ) : null}
+
+      {originChoice.overlays}
     </ScreenShell>
   );
 }
@@ -933,6 +1013,52 @@ function CompositionExerciseEditor() {
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
+  // PRE-7 (A2.3, MFN-04, MFN-06, MFN-09) : création depuis une Séance — mêmes suggestion et
+  // recherche qu'au Catalogue, avant tout choix et tant que seul le nom est saisi. « Même geste » :
+  // l'occurrence porte la filiation du geste choisi (contenu verrouillé, sans crayon, MFN-09) ;
+  // « Variante » : création LOCALE (geste local créé à l'enregistrement de la Séance), champs vides
+  // initialisés depuis l'origine. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
+  const [variantChosen, setVariantChosen] = useState(false);
+  const repriseLocked = !isEditingExisting && (local?.sourceMovementId ?? "").trim().length > 0;
+  const occurrenceOnlyNamed =
+    local !== null && occurrenceEquals({ ...local, name: initialSnapshot.name }, instructionSteps, initialSnapshot);
+  const originChoice = useMovementOriginChoice({
+    service: activityDefinitionService,
+    available: !isEditingExisting && !repriseLocked && !variantChosen && occurrenceOnlyNamed,
+    onSameMovement: ({ movement }) => {
+      setInstructionSteps(decodeInstructionSteps(movement.description));
+      setLocal((current) =>
+        current
+          ? {
+              ...current,
+              name: movement.name,
+              instruction: movement.description,
+              categoryId: movement.categoryId,
+              bodyZoneIds: [...movement.bodyZoneIds],
+              media: [...movement.media],
+              executionParameters: repriseExecutionParameters(movement, current.executionParameters),
+              sourceMovementId: movement.id,
+            }
+          : current,
+      );
+    },
+    onVariant: ({ movement }) => {
+      setVariantChosen(true);
+      setInstructionSteps((current) =>
+        encodeInstructionSteps(current) === null ? decodeInstructionSteps(movement.description) : current,
+      );
+      setLocal((current) =>
+        current
+          ? {
+              ...current,
+              media: (current.media ?? []).length === 0 ? [...movement.media] : current.media,
+              bodyZoneIds: current.bodyZoneIds.length === 0 ? [...movement.bodyZoneIds] : current.bodyZoneIds,
+              categoryId: current.categoryId ?? movement.categoryId,
+            }
+          : current,
+      );
+    },
+  });
   // PRE-6 (story 2.3) : la sortie l'emporte — le dialogue de Circuit en attente est retiré
   // (ajustement d'état pendant le rendu ; `finishingRef` n'est jamais engagé tant qu'il attend).
   if (isPendingExit && pendingCircuitEntry !== null) {
@@ -1083,7 +1209,13 @@ function CompositionExerciseEditor() {
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
           // occurrence portant une filiation a son contenu (nom, description, médias, Catégorie,
           // Zones) verrouillé, sans crayon ; une création locale non enregistrée reste modifiable.
-          contentLocked={phaseStructureLocked}
+          contentLocked={phaseStructureLocked || repriseLocked}
+          onNameEndEditing={() => originChoice.proposeFor(value.name)}
+          movementSearchAction={
+            originChoice.canSearch
+              ? { label: strings.screens.activities.editor.movementSearch.open, onPress: originChoice.openSearch }
+              : null
+          }
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -1137,6 +1269,8 @@ function CompositionExerciseEditor() {
           }}
         />
       ) : null}
+
+      {originChoice.overlays}
     </ScreenShell>
   );
 }

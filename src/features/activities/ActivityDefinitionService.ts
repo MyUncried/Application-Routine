@@ -24,6 +24,7 @@ import {
   type SiblingGap,
 } from "@/domain/activities";
 import { allocatePhaseIdentities, type Movement, type MovementPhase } from "@/domain/activities/Movement";
+import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
@@ -97,6 +98,17 @@ export type AssessCorrectionResult =
   | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
   /** Définition (`UPDATE`) ou Mouvement (`SAME_MOVEMENT`) introuvable. */
   | { readonly status: "NOT_FOUND" };
+
+/**
+ * PRE-7 (A2.3, MFN-04, MFN-05, MFN-06) : geste proposé par la recherche ou la suggestion — le geste,
+ * le nombre d'Exercices du Catalogue qui le référencent et sa position de niveau dérivée (`null` sans
+ * groupe ou pour un singleton). Comptes et rangs calculés, jamais persistés.
+ */
+export type MovementChoice = {
+  readonly movement: Movement;
+  readonly definitionCount: number;
+  readonly level: MovementLevelPosition | null;
+};
 
 function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefusedResult {
   switch (refusal.kind) {
@@ -317,6 +329,45 @@ export class ActivityDefinitionService {
       return null;
     }
     return this.movementRepository.findById(movementId);
+  }
+
+  /**
+   * PRE-7 (A2.3, MFN-04, MFN-06, D-439) — recherche spécialisée des gestes disponibles, LOCAUX
+   * COMPRIS (créés dans une Séance, absents du Catalogue) : nom normalisé contenant la requête,
+   * requête vide = tous (`MovementRepository.search`). Ce n'est pas une recherche dans les listes
+   * Catalogue (D-221 inchangée) : rien n'est créé ni publié. `[]` sans `MovementRepository`
+   * (doublures antérieures à MFN).
+   */
+  async searchMovements(query: string): Promise<readonly MovementChoice[]> {
+    const movements = this.movementRepository;
+    if (!movements) {
+      return [];
+    }
+    const found = await movements.search(query);
+    const groups = new Map<string, readonly Movement[]>();
+    const choices: MovementChoice[] = [];
+    for (const movement of found) {
+      let level: MovementLevelPosition | null = null;
+      if (movement.levelGroup !== null) {
+        const groupId = movement.levelGroup.groupId;
+        let members = groups.get(groupId);
+        if (members === undefined) {
+          members = await movements.listGroup(groupId);
+          groups.set(groupId, members);
+        }
+        level = movementLevelPosition(movement, members);
+      }
+      choices.push({ movement, definitionCount: await movements.countDefinitions(movement.id), level });
+    }
+    return choices;
+  }
+
+  /**
+   * PRE-7 (A2.3) : la recherche des gestes est disponible (Mouvement injecté) — même patron que
+   * `supportsSharedCorrection` ; faux : l'éditeur ne propose ni suggestion ni recherche.
+   */
+  get supportsMovementSearch(): boolean {
+    return this.movementRepository !== undefined;
   }
 
   /**

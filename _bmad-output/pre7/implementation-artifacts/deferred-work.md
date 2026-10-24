@@ -48,3 +48,12 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-2-contenu-partage-verrouillage.md`
   summary: Le crayon « Modifier le geste » disparaît à l'appui sans déplacer le focus VoiceOver ni annoncer le déverrouillage.
   evidence: `EditMovementAction` démonté à l'appui ; à constater en recette JA avec VoiceOver ; si le focus se perd, le placer sur le Nom (`AccessibilityInfo.setAccessibilityFocus`).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-3-recherche-suggestions-gestes.md`
+  summary: Report A2.1 « compteur de phase sur geste repris » traité — la reprise (route A2.2, ou choisie en place par la suggestion ou la recherche A2.3) transmet `movement.nextPhaseId` à la Feuille ; la variante crée un geste neuf (compteur max + 1).
+  evidence: `ExerciseScreen.tsx` (`fetchDefinition`, `setMovementNextPhaseId(movement.nextPhaseId)`) ; parcours `ExerciseScreen.mfn.a23.integration.test.tsx`.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-3-recherche-suggestions-gestes.md`
+  summary: « Variante de ce geste » (sous-titre Figma « Crée un niveau de plus dans la progression ») n'écrit aucun rattachement au groupe d'origine (`joinOriginGroup: false`) au Catalogue, et, créée depuis une Séance, ne garde aucun lien avec son origine (création locale indépendante).
+  evidence: MFN-06 (ch10 l.390) « proposer le rattachement au groupe d'origine » sans libellé ni frame ; MFN-05 « appartenance toujours choisie ». À décider par Hermann avec le point 1 d'A2.2 (feuille de proposition sans présélection, ou choix « Variante » valant rattachement explicite), à câbler en A3.1.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-3-recherche-suggestions-gestes.md`
+  summary: Les gardes de réponses hors d'ordre (`requestRef` de `MovementSearchScreen` et de `useMovementOriginChoice.proposeFor`, `enabledRef` / `overlayRef`) ne sont couvertes par aucun test à résolution différée.
+  evidence: revue A2.3 (lacunes de vérification) ; demande une doublure de `searchMovements` à promesse contrôlée ; courses peu probables sur appareil (lecture locale rapide).
