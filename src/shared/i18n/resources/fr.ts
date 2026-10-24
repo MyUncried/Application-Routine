@@ -24,6 +24,11 @@ export const fr = {
   migrationNotice: {
     unreadableExercisesDroppedSingular: "1 exercice illisible n’a pas pu être repris.",
     unreadableExercisesDroppedPlural: "{n} exercices illisibles n’ont pas pu être repris.",
+    // PRE-7 (A1.2, D-440 assouplie, MFN-12) : avis unique de la migration 012 —
+    // Exercices et Séances réinitialisés, Profil, Catégories et Zones conservés.
+    // Texte sans source littérale, à valider par Hermann au jalon JA1.
+    exercisesAndSessionsReset:
+      "Vos exercices et vos séances ont été réinitialisés pour cette nouvelle version. Vos préférences, vos catégories et vos zones corporelles sont conservées.",
     dismissAction: "OK",
   },
   // V2-BILAT-01 : textes PARTAGÉS entre plusieurs écrans — `SideModeControl`

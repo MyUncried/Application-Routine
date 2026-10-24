@@ -15,6 +15,7 @@ import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue
 function makeDefinition(id: string): ActivityDefinition {
   return {
     id,
+    movementId: "mov-1",
     name: `Activité ${id}`,
     description: null,
     executionParameters: durationParameters(30),

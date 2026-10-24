@@ -35,8 +35,7 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
   numberTarget,
-  serializeExecutionParameters,
-  serializeV2,
+  serializeResolvedExecutionParameters,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
 import {
@@ -634,9 +633,9 @@ describe("SqliteSessionRepository", () => {
           id, session_id, cycle_id, tour_id, type, structural_position,
           position, name, execution_mode, duration_seconds,
           repetition_count, series_count, pause_seconds, instruction,
-          created_at, updated_at, execution_parameters
-        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?, ?)`,
-        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp, serializeV2(durationParameters(30))],
+          created_at, updated_at, execution_parameters, source_movement_id
+        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?, ?, 'mov-historique')`,
+        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp, serializeResolvedExecutionParameters(durationParameters(30))],
       );
 
       const repository = new SqliteSessionRepository(database, uuidFactory());
@@ -2149,9 +2148,11 @@ function validRow(): SessionAggregateRow {
     instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
-    // PRE-4 : JSON v2 obligatoire pour un Exercice (lu par `readV2`).
-    activity_execution_parameters: serializeV2(durationParameters(30)),
+    // PRE-7 (A1.2) : forme résolue v4 obligatoire pour un Exercice (`readResolvedExecutionParameters`).
+    activity_execution_parameters: serializeResolvedExecutionParameters(durationParameters(30)),
     activity_category_id: null,
+    // PRE-7 (A1.2, `migration012`) : filiation non nulle.
+    activity_source_movement_id: "mov-1",
   };
 }
 
@@ -2338,7 +2339,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     expect(copy.cycle.tour.exercises[0]?.categoryId).toBe("cardio");
     await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'mobilite'");
     const unused = await database.getFirstAsync<{ n: number }>(
-      "SELECT (SELECT COUNT(*) FROM activities WHERE category_id = 'mobilite') + (SELECT COUNT(*) FROM activity_definitions WHERE category_id = 'mobilite') AS n",
+      "SELECT (SELECT COUNT(*) FROM activities WHERE category_id = 'mobilite') + (SELECT COUNT(*) FROM movements WHERE category_id = 'mobilite') AS n",
     );
     expect(unused?.n).toBe(0);
     await expect(
@@ -2440,7 +2441,8 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map((c) => c.name);
     expect(columns.some((name) => /phrase|segment|summary/i.test(name))).toBe(false);
     const row = await database.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities");
-    expect(JSON.parse(row!.execution_parameters)).toEqual(parameters());
+    // PRE-7 (A1.2) : forme résolue v4 des copies.
+    expect(JSON.parse(row!.execution_parameters)).toEqual({ ...parameters(), version: 4 });
   });
 
   it("P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables", async () => {
@@ -2543,7 +2545,13 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   it("P3-23/file-preservation — retirer un lien ou une occurrence ne supprime jamais l'asset référencé ailleurs", async () => {
     const repository = new SqliteSessionRepository(database, ids("ses"));
     const media = new SqliteMediaRepository(database);
-    const created = await repository.create(sessionInput([occurrence(), occurrence({ media: [{ assetId: "v1" }] })]));
+    // PRE-7 (A1.2) : deux copies du Catalogue (filiation portée) — aucun Mouvement local, seuls les liens d'occurrence comptent.
+    const created = await repository.create(
+      sessionInput([
+        occurrence({ sourceMovementId: "mov-catalogue" }),
+        occurrence({ media: [{ assetId: "v1" }], sourceMovementId: "mov-catalogue" }),
+      ]),
+    );
     expect(await media.countReferences("v1")).toBe(2);
     const removedLink = await repository.update(
       created.id,
@@ -2672,8 +2680,8 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     const stored = await database.getFirstAsync<{ execution_parameters: string }>(
       "SELECT execution_parameters FROM activities WHERE id = 'mixed'",
     );
-    // PRE-5 (AD-18) : écrit en v3 par l'écrivain unique.
-    expect(stored?.execution_parameters).toBe(serializeExecutionParameters(mixed));
+    // PRE-7 (A1.2) : écrit en forme résolue v4 par l'écrivain unique.
+    expect(stored?.execution_parameters).toBe(serializeResolvedExecutionParameters(mixed));
     const reread = (await repository.findById(created.id))!.cycle.tour.exercises;
     expect(reread.map((activity) => activity.executionParameters)).toEqual([mixed, reps]);
     for (const scalar of ["executionMode", "durationSeconds", "repetitionCount", "seriesCount", "pauseSeconds"]) {
@@ -2849,6 +2857,7 @@ function headerOnlyRow(): SessionAggregateQueryRow {
     activity_side_mode: null,
     activity_execution_parameters: null,
     activity_category_id: null,
+    activity_source_movement_id: null,
   };
 }
 

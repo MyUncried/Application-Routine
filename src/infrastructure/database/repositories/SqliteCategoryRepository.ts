@@ -148,9 +148,12 @@ export class SqliteCategoryRepository implements CategoryRepository {
     return { status: "OK", value: mapCategoryRow({ ...current, is_active: 0 }) };
   }
 
+  /** Utilisée par un Exercice du Catalogue — PRE-7 (A1.2) : Catégorie portée par son Mouvement (`movements.category_id`). */
   async isUsed(id: string): Promise<boolean> {
     const row = await this.database.getFirstAsync<{ count: number }>(
-      `SELECT COUNT(*) AS count FROM activity_definitions WHERE category_id = ?`,
+      `SELECT COUNT(*) AS count FROM activity_definitions
+       JOIN movements ON movements.id = activity_definitions.movement_id
+       WHERE movements.category_id = ?`,
       [id],
     );
     return (row?.count ?? 0) > 0;

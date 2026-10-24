@@ -84,6 +84,7 @@ function aSummary(id: string): SessionSummary {
 function aDefinition(id: string): ActivityDefinition {
   return {
     id,
+    movementId: "mov-1",
     name: `Activité ${id}`,
     description: null,
     executionParameters: durationParameters(30, 1, 0),

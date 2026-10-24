@@ -7,12 +7,12 @@ import { moveDraftMedia, placeRetriedMedia, selectionNeighbours, type DraftMedia
 import { ActivityMediaImportService, readyMedia, type MediaPickerPort, type PickedMedia } from "@/domain/media/ActivityMediaImportService";
 import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import {
-  replaceDefinitionMediaLinks,
-  replaceSessionActivityMediaLinks,
+import {  replaceSessionActivityMediaLinks,
   SqliteMediaRepository,
 } from "@/infrastructure/database/repositories/SqliteMediaRepository";
+import { replaceMovementMediaLinks } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
 import { LocalMediaStore, mediaExtension, type MediaFileSystem } from "@/infrastructure/media/LocalMediaStore";
 
 /**
@@ -74,12 +74,9 @@ let sequence = 0;
 const uuid = () => `id-${++sequence}`;
 const now = () => "2026-10-09T10:00:00.000Z";
 
+/** PRE-7 (A1.2) : définition et son Mouvement, qui porte les médias. */
 async function seed(database: NodeSqliteDatabase): Promise<void> {
-  await database.runAsync(
-    `INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count,
-      series_count, pause_seconds, side_mode, created_at, updated_at)
-     VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 1, 0, 'UNILATERAL', 'now', 'now')`,
-  );
+  await seedCatalogueDefinition(database, { id: "def-1" });
 }
 
 beforeEach(() => {
@@ -122,7 +119,7 @@ describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
     const database = NodeSqliteDatabase.openFile(databasePath);
     await migrateDatabase(database);
     await seed(database);
-    await database.withExclusiveTransactionAsync((transaction) => replaceDefinitionMediaLinks(transaction, "def-1", ordered, uuid));
+    await database.withExclusiveTransactionAsync((transaction) => replaceMovementMediaLinks(transaction, "mov-def-1", ordered, uuid));
     database.close();
     const reopened = NodeSqliteDatabase.openFile(databasePath);
     try {
@@ -184,13 +181,13 @@ describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
       const repository = new SqliteMediaRepository(database);
       // Définition enregistrée avec le média partagé seulement.
       await database.withExclusiveTransactionAsync((transaction) =>
-        replaceDefinitionMediaLinks(transaction, "def-1", [sharedItem!], uuid),
+        replaceMovementMediaLinks(transaction, "mov-def-1", [sharedItem!], uuid),
       );
       leases.commitDraft("draft-def");
       // Un autre brouillon actif emprunte le même fichier.
       leases.lease("draft-copy", sharedItem!.assetId);
       // Retirer le lien de la définition : l'asset et ses octets restent.
-      await database.withExclusiveTransactionAsync((transaction) => replaceDefinitionMediaLinks(transaction, "def-1", [], uuid));
+      await database.withExclusiveTransactionAsync((transaction) => replaceMovementMediaLinks(transaction, "mov-def-1", [], uuid));
       expect(await repository.findAsset(sharedItem!.assetId)).not.toBeNull();
       expect(store.fileExists(sharedItem!.asset.uri)).toBe(true);
       expect(typeof replaceSessionActivityMediaLinks).toBe("function");
@@ -255,7 +252,7 @@ describe("LocalMediaStore — REV-03 (fichiers et SQLite réels)", () => {
     const database = NodeSqliteDatabase.openFile(databasePath);
     await migrateDatabase(database);
     await seed(database);
-    await database.withExclusiveTransactionAsync((transaction) => replaceDefinitionMediaLinks(transaction, "def-1", media, uuid));
+    await database.withExclusiveTransactionAsync((transaction) => replaceMovementMediaLinks(transaction, "mov-def-1", media, uuid));
     database.close();
     const reopened = NodeSqliteDatabase.openFile(databasePath);
     try {

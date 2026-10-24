@@ -90,6 +90,7 @@ function makeDefinition(
 ): ActivityDefinition {
   return {
     id,
+    movementId: "mov-1",
     name,
     description: null,
     executionParameters: durationParameters(30, 2, 5),

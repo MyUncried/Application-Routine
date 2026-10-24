@@ -6,8 +6,10 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 import {
   ExecutionParametersValidationError,
   projectScalars,
+  readExecutionParameters,
   readV2,
   serializeV2,
+  validateForSave,
   type ExecutionParameters,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
@@ -19,9 +21,7 @@ import {
   uniformParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
-import { toSessionDraft } from "@/domain/sessions/SessionDraft";
 import { SessionValidationError } from "@/domain/sessions/errors";
-import { SessionService } from "@/features/sessions/SessionService";
 import type { Database } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
@@ -328,7 +328,7 @@ describe("PRE4-1.1/AC9 — prédicat d'illisibilité fermé, un test par cas", (
       expected += 1;
     }
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await version()).toBe(11);
     expect(await exists("activity_definitions", "def-unreadable")).toBe(false);
@@ -347,7 +347,7 @@ describe("PRE4-1.1/AC9 — prédicat d'illisibilité fermé, un test par cas", (
     await insertDefinition("def-6000", { json: sameJson });
     await insertCopy("copy-6000", "a", { json: sameJson });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await exists("activities", "copy-6000")).toBe(false);
     expect(await exists("activity_definitions", "def-6000")).toBe(true);
@@ -362,7 +362,7 @@ describe("PRE4-1.1/AC9 — prédicat d'illisibilité fermé, un test par cas", (
     await insertDefinition("def-pause", { json: sameJson });
     await insertCopy("copy-pause", "a", { json: sameJson });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await exists("activities", "copy-pause")).toBe(false);
     expect(await exists("activity_definitions", "def-pause")).toBe(true);
@@ -373,7 +373,7 @@ describe("PRE4-1.1/AC9 — prédicat d'illisibilité fermé, un test par cas", (
     await buildVersion9();
     await insertDefinition("def-json", { json: v1({}, { target: 45 }), pause: -5, series: 2.5 });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await exists("activity_definitions", "def-json")).toBe(true);
     expect(await notices()).toEqual([]);
@@ -415,7 +415,7 @@ describe("PRE4-1.1/AC10 — conversion de l'ancien mode À l'échec", () => {
     );
     const before = await snapshot();
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(expectParity(await definitionJson("def-failure"), uniformJson)).toEqual(
       allFailureParameters(3, 10, {
@@ -486,7 +486,7 @@ describe("PRE4-1.1/AC11 — données lisibles mais invalides conservées, jamais
     await insertSession("a");
     await insertCopy("copy-zero", "a", { json: copyZero });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     const scalars = (mode: LegacyExecutionScalars["executionMode"], duration: number | null, repetitions: number | null) => ({
       executionMode: mode,
@@ -568,7 +568,7 @@ describe("PRE4-1.1/AC12 — écart des illisibles : intégrité, Séances et Mé
     const before = await snapshot();
     const tablesBefore = (before.schema as { type: string; name: string }[]).filter((row) => row.type === "table").map((row) => row.name);
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await version()).toBe(11);
     const after = await snapshot();
@@ -631,7 +631,7 @@ describe("PRE4-1.1/AC12 — écart des illisibles : intégrité, Séances et Mé
     await insertSession("a");
     await insertCopy("copy-of-source", "a", { json: shared });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await exists("activity_definitions", "def-source")).toBe(true);
     expect(await exists("activities", "copy-of-source")).toBe(false);
@@ -641,7 +641,7 @@ describe("PRE4-1.1/AC12 — écart des illisibles : intégrité, Séances et Mé
 describe("PRE4-1.1/AC13 — avis de migration enregistré, sans affichage", () => {
   it("schéma exact de migration_notices ; une seule ligne ; ni identifiant ni contenu d'Exercice", async () => {
     await populateIntegrityBase();
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await database.getAllAsync("SELECT name, type, \"notnull\", pk FROM pragma_table_info('migration_notices') ORDER BY cid")).toEqual([
       { name: "id", type: "INTEGER", notnull: 0, pk: 1 },
@@ -667,13 +667,13 @@ describe("PRE4-1.1/AC13 — avis de migration enregistré, sans affichage", () =
     await insertDefinition("def-bad", { json: "{" });
     await insertSession("a");
     await insertCopy("copy-bad", "a", { json: "{" });
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     expect(await notices()).toEqual([expect.objectContaining({ count: 2 })]);
 
     const clean = NodeSqliteDatabase.openInMemory();
     try {
       await buildVersion9(clean);
-      await migrateDatabase(clean, clock);
+      await migrateDatabase(clean, clock, 11);
       expect(await clean.getAllAsync("SELECT * FROM migration_notices")).toEqual([]);
     } finally {
       clean.close();
@@ -683,7 +683,7 @@ describe("PRE4-1.1/AC13 — avis de migration enregistré, sans affichage", () =
   it("le repository des avis lit l'avis non acquitté puis l'acquitte (date ISO), sans réapparition", async () => {
     await buildVersion9();
     await insertDefinition("def-bad", { json: "{" });
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     const repository = new SqliteMigrationNoticeRepository(database, () => "2026-10-17T08:00:00.000Z");
 
     const notice = await repository.findUnacknowledged();
@@ -712,7 +712,7 @@ describe("PRE4-1.1/AC14 — valeurs positives hors bornes lisibles et conservée
     await insertSession("a");
     await insertCopy("copy-pause-400", "a", { json: copyPause400 });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     expect(await notices()).toEqual([]);
     expect(
@@ -734,17 +734,13 @@ describe("PRE4-1.1/AC14 — valeurs positives hors bornes lisibles et conservée
     expect(expectParity(await definitionJson("countdown-90"), countdown90)).toEqual(durationParameters(30, 3, 10, { countdownSeconds: 90 }));
     expect(expectParity(await copyJson("copy-pause-400"), copyPause400)).toEqual(variableParameters({ rows: [[30, 10], [30, 400]] }));
 
-    // Une valeur non modifiée est réenregistrée telle quelle (niveau structurel du repository).
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    const reread = await definitions.findById("reps-150");
-    const saved = await definitions.update("reps-150", {
-      name: "Renommé",
-      description: null,
-      category: { kind: "EXISTING", categoryId: "cardio" },
-      bodyZoneIds: ["dos"],
-      executionParameters: reread!.executionParameters,
-    });
-    expect(saved?.executionParameters).toEqual(repetitionParameters(150, 3, 10));
+    // Une valeur non modifiée reste enregistrable telle quelle (niveau structurel du repository,
+    // `validateForSave(…, "STORAGE")`). PRE-7 (A1.2) : la base est arrêtée à la version 11 (les
+    // repositories courants lisent le schéma 012) ; la ligne v11 est relue par le lecteur v2/v3
+    // conservé dans le domaine, puis soumise à la validation qu'applique le repository.
+    const reread = readExecutionParameters(await definitionJson("reps-150"));
+    const revalidated = validateForSave(reread, "STORAGE");
+    expect(revalidated.ok ? revalidated.value : revalidated.violations).toEqual(repetitionParameters(150, 3, 10));
   });
 
   it("le convertisseur figé de migration010 n'importe ni le sérialiseur ni les lecteurs du domaine", () => {
@@ -785,7 +781,7 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
               (SELECT COUNT(*) FROM session_activity_media WHERE activity_id NOT IN ('a-2','b-1','b-2','c-tour')) AS media`,
     );
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     // PRE-6 : la colonne additive de `migration011` est hors objet de cette preuve.
     const activitiesAfter = await shape("activities");
@@ -807,7 +803,7 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
   it("nouveau CHECK : bornes de 004 à l'identique, TO_FAILURE retiré, cible scalaire NULL admise, jamais deux cibles, RECOVERY inchangée", async () => {
     await buildVersion9();
     await insertSession("a");
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     let position = 0;
     const insert = (columns: Record<string, unknown>) => {
       const row = {
@@ -872,7 +868,7 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
   it("parité : les mêmes lignes reçoivent le même verdict du CHECK réel et d'assertSessionAggregateRow", async () => {
     await buildVersion9();
     await insertSession("a");
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     const candidates: readonly Record<string, unknown>[] = [];
     const values = {
       type: ["EXERCISE", "RECOVERY"],
@@ -988,7 +984,7 @@ describe("PRE4-1.1/AC16 — la projection de migration010 est la projection uniq
     await insertCopy("copy-var", "a", { json: v1({}, { kind: "VARIABLE", rows: [{ target: 45, pauseSeconds: 10 }, { target: 30, pauseSeconds: 10 }] }) });
     await insertCopy("copy-failure", "a", { position: 1, json: v1({ mode: "TO_FAILURE" }, { count: 3, target: null, pauseSeconds: 10 }), mode: "TO_FAILURE", duration: null });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     const definitionRows = await database.getAllAsync<Record<string, unknown>>(
       "SELECT execution_parameters, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode, side_recovery_seconds FROM activity_definitions",
@@ -1077,7 +1073,7 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
       await populateIntegrityBase();
       database = swap;
       const counting = new FailingDatabase(scratch, Number.POSITIVE_INFINITY);
-      await migrateDatabase(counting, clock);
+      await migrateDatabase(counting, clock, 11);
       probe.calls = counting.calls;
     } finally {
       scratch.close();
@@ -1085,13 +1081,13 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
     expect(probe.calls).toBeGreaterThan(40);
 
     for (let failAt = 1; failAt <= probe.calls; failAt += 1) {
-      await expect(migrateDatabase(new FailingDatabase(database, failAt), clock)).rejects.toThrow(
+      await expect(migrateDatabase(new FailingDatabase(database, failAt), clock, 11)).rejects.toThrow(
         `Injected failure at call ${failAt}`,
       );
       expect(await snapshot()).toEqual(initial);
     }
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     expect(await version()).toBe(11);
     expect(await notices()).toEqual([expect.objectContaining({ count: 5 })]);
   });
@@ -1100,18 +1096,18 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
     await populateIntegrityBase();
     await database.execAsync("ALTER TABLE activities ADD COLUMN unexpected TEXT");
     const altered = await snapshot();
-    await expect(migrateDatabase(database, clock)).rejects.toThrow("unexpected schema for activities");
+    await expect(migrateDatabase(database, clock, 11)).rejects.toThrow("unexpected schema for activities");
     expect(await snapshot()).toEqual(altered);
     await database.execAsync("ALTER TABLE activities DROP COLUMN unexpected");
 
     await database.execAsync("CREATE TABLE activity_notes (activity_id TEXT REFERENCES activities(id))");
     const withForeignKey = await snapshot();
-    await expect(migrateDatabase(database, clock)).rejects.toThrow("unexpected foreign key to activities from activity_notes");
+    await expect(migrateDatabase(database, clock, 11)).rejects.toThrow("unexpected foreign key to activities from activity_notes");
     expect(await snapshot()).toEqual(withForeignKey);
     expect(await version()).toBe(9);
     await database.execAsync("DROP TABLE activity_notes");
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     expect(await version()).toBe(11);
   });
 });
@@ -1119,7 +1115,7 @@ describe("PRE4-1.1/AC17 — atomicité et nouvelle tentative (erreur structurell
 describe("PRE4-1.1/AC19 — refus d'un troisième Mode ou d'une Cible UNSET à l'écriture", () => {
   it("Définition et Copie en TO_FAILURE ou à Cible UNSET : refusées sans aucune écriture", async () => {
     await buildVersion9();
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     const before = await snapshot();
     const legacy = { ...allFailureParameters(3, 10), mode: "TO_FAILURE" } as unknown as ExecutionParameters;
     const unset = durationParameters("UNSET", 3, 10);
@@ -1158,23 +1154,32 @@ describe("PRE4-1.1/AC19 — refus d'un troisième Mode ou d'une Cible UNSET à l
   });
 });
 
-describe("PRE4-1.1/AC10 + AC18 — relecture par les repositories après migration", () => {
-  it("un ancien Exercice à l'échec migré est relu par les repositories en Répétitions, toutes Cibles FAILURE", async () => {
+describe("PRE4-1.1/AC10 + AC18 — relecture après migration", () => {
+  // PRE-7 (A1.2) : base arrêtée à la version 11 ; les lignes migrées sont relues par le lecteur
+  // v2/v3 du domaine (`readExecutionParameters`, celui des repositories jusqu'à 011).
+  it("un ancien Exercice à l'échec migré est relu en Répétitions, toutes Cibles FAILURE", async () => {
     await buildVersion9();
     await insertDefinition("def-failure", { mode: "TO_FAILURE", duration: null, series: 3, pause: 10 });
     await database.runAsync("INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-failure', 'dos')");
     await insertSession("a");
     await insertCopy("copy-failure", "a", { mode: "TO_FAILURE", duration: null, series: 3, pause: 10, recovery: 30 });
 
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
-    const definition = await new SqliteActivityDefinitionRepository(database, ids("def")).findById("def-failure");
-    expect(definition?.executionParameters).toEqual(uniformParameters({ mode: "REPETITIONS", count: 3, target: "FAILURE", pauseSeconds: 10 }));
-    const session = await new SqliteSessionRepository(database, ids("ses")).findById("session-a");
-    const copy = session?.cycle.tour.exercises[0];
-    expect(copy?.executionParameters).toEqual(allFailureParameters(3, 10));
-    expect(copy?.postActivityRecoverySeconds).toBe(30);
-    expect("executionMode" in (copy ?? {})).toBe(false);
+    expect(readExecutionParameters(await definitionJson("def-failure"))).toEqual(
+      uniformParameters({ mode: "REPETITIONS", count: 3, target: "FAILURE", pauseSeconds: 10 }),
+    );
+    const copy = await database.getFirstAsync<{
+      session_id: string;
+      execution_parameters: string;
+      post_activity_recovery_seconds: number;
+      post_activity_recovery_present: number;
+    }>(
+      "SELECT session_id, execution_parameters, post_activity_recovery_seconds, post_activity_recovery_present FROM activities WHERE id = 'copy-failure'",
+    );
+    expect(copy?.session_id).toBe("session-a");
+    expect(readExecutionParameters(copy?.execution_parameters)).toEqual(allFailureParameters(3, 10));
+    expect([copy?.post_activity_recovery_seconds, copy?.post_activity_recovery_present]).toEqual([30, 1]);
   });
 });
 
@@ -1184,7 +1189,7 @@ describe("PRE4-1.2/AC2 — repository des avis : acquittement à l'appui seuleme
     await insertDefinition("def-bad", { json: "{" });
     await insertSession("a");
     await insertCopy("copy-bad", "a", { json: "{" });
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
 
     // Lancement 1 : l'avis est lu, l'application est quittée sans toucher le bouton.
     const firstLaunch = new SqliteMigrationNoticeRepository(database, () => "2026-10-17T08:00:00.000Z");
@@ -1212,7 +1217,7 @@ describe("PRE4-1.2/AC2 — repository des avis : acquittement à l'appui seuleme
   it("aucune migration écartant un Exercice : aucun avis à lire (AC3, côté données)", async () => {
     await buildVersion9();
     await insertDefinition("def-ok");
-    await migrateDatabase(database, clock);
+    await migrateDatabase(database, clock, 11);
     expect(await new SqliteMigrationNoticeRepository(database).findUnacknowledged()).toBeNull();
   });
 });
@@ -1223,120 +1228,74 @@ async function populateMigratedBaseWithEmptySession(): Promise<void> {
   await database.runAsync("UPDATE sessions SET updated_at = '2026-01-05T00:00:00.000Z' WHERE id = 'session-a'");
   await database.runAsync("UPDATE sessions SET updated_at = '2026-01-06T00:00:00.000Z' WHERE id = 'session-b'");
   await database.runAsync("UPDATE sessions SET updated_at = '2026-01-04T00:00:00.000Z' WHERE id = 'session-c'");
-  await migrateDatabase(database, clock);
+  await migrateDatabase(database, clock, 11);
 }
 
+/**
+ * PRE-7 (A1.2) : base arrêtée à la version 11. Les preuves portent sur l'état
+ * laissé par `migration010` (Séance B conservée sans occurrence, A et C avec
+ * leurs occurrences lisibles), relu en lignes brutes ; la lecture, la liste et
+ * l'enregistrement d'une Séance sans occurrence par le repository courant
+ * (P39) sont prouvés sur le schéma 012 par `SqliteSessionRepository.test.ts`
+ * (« PRE-7 A1.2 — Séance sans occurrence »).
+ */
 describe("PRE4-1.2/AC6 — Séance sans occurrence visible dans la liste", () => {
-  it("la Séance B (toutes Copies écartées) figure dans la liste, 0 exercice et 0 s ; A et C gardent résumé, ordre et durée", async () => {
+  it("la Séance B (toutes Copies écartées) reste une Séance active, 0 exercice ; A et C gardent leurs occurrences et l'ordre de liste", async () => {
     await populateMigratedBaseWithEmptySession();
-    const repository = new SqliteSessionRepository(database, ids("ses"));
 
-    const list = await repository.listActive();
-
-    // Ordre existant : date de modification décroissante, Séance B comprise.
-    expect(list.map((summary) => summary.id)).toEqual(["session-b", "session-a", "session-c"]);
-    const sessionB = list[0]!;
-    expect(sessionB).toMatchObject({
-      name: "Séance b",
-      activityCount: 0,
-      estimatedDurationSeconds: 0,
-      // Nature de durée exacte à 0 : ni « ≥ » ni « ≈ » sur la carte.
-      durationKind: "exact",
-      isEstimatedDurationApproximate: false,
-      tourRepeatCount: 2,
-      bodyZoneNames: [],
-      categoryNames: [],
-    });
-
-    // Les autres Séances : même résumé que sans la Séance vide (la jointure
-    // externe n'ajoute qu'une ligne pour la Séance sans occurrence).
-    const withEmpty = list.filter((summary) => summary.id !== "session-b");
-    await database.runAsync("DELETE FROM sessions WHERE id = 'session-b'");
-    expect(await repository.listActive()).toEqual(withEmpty);
-    expect(withEmpty.map((summary) => [summary.id, summary.activityCount])).toEqual([
-      ["session-a", 2],
-      ["session-c", 1],
+    // Ordre de la liste : date de modification décroissante, Séance B comprise.
+    const listed = await database.getAllAsync<{ id: string; name: string; count: number; repeat_count: number }>(
+      `SELECT sessions.id, sessions.name, tours.repeat_count,
+              (SELECT COUNT(*) FROM activities WHERE activities.session_id = sessions.id) AS count
+       FROM sessions JOIN tours ON tours.session_id = sessions.id
+       WHERE sessions.status = 'ACTIVE' ORDER BY sessions.updated_at DESC`,
+    );
+    expect(listed).toEqual([
+      { id: "session-b", name: "Séance b", repeat_count: 2, count: 0 },
+      { id: "session-a", name: listed[1]!.name, repeat_count: listed[1]!.repeat_count, count: 2 },
+      { id: "session-c", name: listed[2]!.name, repeat_count: listed[2]!.repeat_count, count: 1 },
     ]);
-    for (const summary of withEmpty) {
-      expect(summary.estimatedDurationSeconds).toBeGreaterThan(0);
+    // Les occurrences restantes sont lisibles (durée de liste > 0).
+    for (const row of await database.getAllAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activities WHERE session_id IN ('session-a', 'session-c')",
+    )) {
+      expect(readExecutionParameters(row.execution_parameters).series).toBeDefined();
     }
   });
 });
 
 describe("PRE4-1.2/AC7 — Séance sans occurrence ouvrable", () => {
-  it("la lecture par identifiant renvoie la Séance B avec ses paramètres et une composition vide", async () => {
+  it("la Séance B est conservée avec ses paramètres et une composition vide ; C garde l'occurrence avant le Circuit", async () => {
     await populateMigratedBaseWithEmptySession();
-    const repository = new SqliteSessionRepository(database, ids("ses"));
 
-    const session = await repository.findById("session-b");
-
-    expect(session).toEqual({
+    expect(
+      await database.getFirstAsync(
+        `SELECT sessions.id, sessions.owner_id, sessions.name, sessions.label_id, sessions.status,
+                sessions.initial_countdown_seconds, sessions.final_phase_seconds, sessions.created_at, sessions.updated_at,
+                cycles.id AS cycle_id, tours.id AS tour_id, tours.repeat_count, tours.nature
+         FROM sessions JOIN cycles ON cycles.session_id = sessions.id JOIN tours ON tours.cycle_id = cycles.id
+         WHERE sessions.id = 'session-b'`,
+      ),
+    ).toEqual({
       id: "session-b",
-      ownerId: "usr_0123456789abcdef0123456789abcdef",
+      owner_id: "usr_0123456789abcdef0123456789abcdef",
       name: "Séance b",
-      color: expect.any(String),
-      labelId: null,
+      label_id: null,
       status: "ACTIVE",
-      initialCountdownSeconds: 10,
-      finalPhaseSeconds: 5,
-      createdAt: "2026-01-04T00:00:00.000Z",
-      updatedAt: "2026-01-06T00:00:00.000Z",
-      cycle: {
-        id: "cycle-b",
-        position: 1,
-        repeatCount: 1,
-        // PRE-6 (story 1.1) : la nature reprise par `migration011` est relue.
-        tour: { id: "tour-b", position: 1, repeatCount: 2, nature: "TOURS", exercises: [] },
-      },
+      initial_countdown_seconds: 10,
+      final_phase_seconds: 5,
+      created_at: "2026-01-04T00:00:00.000Z",
+      updated_at: "2026-01-06T00:00:00.000Z",
+      cycle_id: "cycle-b",
+      tour_id: "tour-b",
+      repeat_count: 2,
+      // PRE-6 (story 1.1) : la nature reprise par `migration011`.
+      nature: "TOURS",
     });
-    expect(await repository.findSessionStatus("session-b")).toBe("ACTIVE");
-    // Ouverture en modification (chemin de l'écran existant) : brouillon vide, résumé existant.
-    const opened = await new SessionService(repository).getSessionForEdit("session-b");
-    expect(opened.status).toBe("OK");
-    const draft = toSessionDraft((opened as { session: NonNullable<typeof session> }).session);
-    expect(draft.exercises).toEqual([]);
-    // Une Séance dont il ne reste qu'une zone (C : Circuit vidé) reste lue avec ses occurrences restantes.
-    const sessionC = await repository.findById("session-c");
-    expect(sessionC?.cycle.beforeTour?.map((activity) => activity.id)).toEqual(["c-before"]);
-    expect(sessionC?.cycle.tour.exercises).toEqual([]);
-    // Une Séance inexistante reste absente.
-    expect(await repository.findById("session-z")).toBeNull();
-  });
-
-  it("enregistrer la Séance vide rouverte suit les règles existantes : une Séance sans Exercice est refusée, une Séance complétée est enregistrée", async () => {
-    await populateMigratedBaseWithEmptySession();
-    const repository = new SqliteSessionRepository(database, ids("ses"), () => "2026-10-20T00:00:00.000Z");
-    const session = (await repository.findById("session-b"))!;
-    const base = {
-      sourceSessionId: session.id,
-      name: session.name,
-      labelId: session.labelId,
-      initialCountdownSeconds: session.initialCountdownSeconds,
-      finalPhaseSeconds: session.finalPhaseSeconds,
-      tourRepeatCount: session.cycle.tour.repeatCount,
-    };
-
-    await expect(repository.update("session-b", { ...base, activities: [] })).rejects.toBeInstanceOf(SessionValidationError);
-
-    const outcome = await repository.update("session-b", {
-      ...base,
-      activities: [
-        {
-          id: "b-new",
-          type: "EXERCISE",
-          structuralPosition: "IN_TOUR",
-          position: 0,
-          name: "Gainage",
-          executionParameters: durationParameters(30, 3, 10),
-          postActivityRecoverySeconds: 0,
-          instruction: null,
-          bodyZoneIds: [],
-          media: [],
-        },
-      ],
-    });
-    expect(outcome.status).toBe("UPDATED");
-    const reread = await repository.findById("session-b");
-    expect(reread?.cycle.tour.exercises.map((activity) => activity.id)).toEqual(["b-new"]);
+    expect(await database.getAllAsync("SELECT id FROM activities WHERE session_id = 'session-b'")).toEqual([]);
+    // Une Séance dont il ne reste qu'une zone (C : Circuit vidé) garde ses occurrences restantes.
+    expect(
+      await database.getAllAsync("SELECT id, structural_position FROM activities WHERE session_id = 'session-c' ORDER BY position"),
+    ).toEqual([{ id: "c-before", structural_position: "BEFORE_TOUR" }]);
   });
 });

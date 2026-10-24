@@ -10,19 +10,28 @@ import type {
 } from "@/domain/activities";
 import {
   ExecutionParametersValidationError,
-  projectScalars,
-  readExecutionParameters,
-  serializeExecutionParameters,
+  readCatalogExecutionParameters,
+  serializeCatalogExecutionParameters,
   validateForSave,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
+import {
+  allocatePhaseIdentities,
+  resolveCatalogParameters,
+  splitResolvedParameters,
+  type Movement,
+} from "@/domain/activities/Movement";
+import { SharedMovementStructureError } from "@/domain/activities/MovementRepository";
 import type { Database } from "@/infrastructure/database/Database";
-import type {
-  ActivityDefinitionBodyZoneRow,
-  ActivityDefinitionRow,
-} from "@/infrastructure/database/types/DatabaseRows";
+import type { ActivityDefinitionRow } from "@/infrastructure/database/types/DatabaseRows";
 
-import { listDefinitionMediaByIds, replaceDefinitionMediaLinks } from "./SqliteMediaRepository";
+import {
+  countMovementDefinitions,
+  insertMovement,
+  readMovementRecords,
+  updateMovementContent,
+  type MovementRecord,
+} from "./SqliteMovementRepository";
 
 type UuidFactory = () => string;
 type CategoryIdRow = { id: string; is_active: 0 | 1 };
@@ -42,18 +51,14 @@ export class RetiredCategoryError extends Error {
   }
 }
 
-const SELECT_COLUMNS = `
-  id, name, description, execution_mode, duration_seconds, repetition_count,
-  series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
-  execution_parameters, created_at, updated_at
-`;
+const SELECT_COLUMNS = "id, movement_id, execution_parameters, created_at, updated_at";
 
 /**
  * PRE-4 (story 1.1, AD-3, AD-13) : défense du repository — les paramètres
  * sont contrôlés au niveau structurel (`validateForSave(…, "STORAGE")`) AVANT
- * toute écriture (un troisième Mode ou une Cible `UNSET` est refusé, AC19),
- * puis les colonnes historiques reçoivent UNIQUEMENT la projection scalaire
- * unique (`projectScalars`) — jamais une écriture indépendante concurrente.
+ * toute écriture (un troisième Mode ou une Cible `UNSET` est refusé, AC19).
+ * PRE-7 (A1.1, D-438) : une durée de phase manquante est refusée — l'Exercice
+ * édité doit être complet (MFN/AC25).
  */
 function validatedParameters(input: CreateActivityDefinitionInput): ExecutionParameters {
   const validated = validateForSave(input.executionParameters, "STORAGE");
@@ -65,18 +70,18 @@ function validatedParameters(input: CreateActivityDefinitionInput): ExecutionPar
 
 /**
  * Résout une référence de Catégorie (`CreateCategoryInput`) vers un
- * identifiant réellement persisté (D-211) — même patron que l'ancienne
- * résolution `session_categories` (`SqliteSessionRepository`), désormais
- * portée par l'Exercice : `EXISTING` doit référencer une Catégorie déjà
- * présente (défense en profondeur) ; `NEW` retrouve la Catégorie de même clé
- * canonique si elle existe déjà (D-106, jamais de doublon) ou la crée sinon.
+ * identifiant réellement persisté (D-211) : `EXISTING` doit référencer une
+ * Catégorie déjà présente (défense en profondeur) ; `NEW` retrouve la
+ * Catégorie de même clé canonique si elle existe déjà (D-106, jamais de
+ * doublon) ou la crée sinon. PRE-7 (A1.2) : la Catégorie est portée par le
+ * Mouvement (`movements.category_id`).
  */
 async function resolveCategoryId(
   transaction: Database,
   category: CreateCategoryInput,
   uuidFactory: UuidFactory,
   timestamp: string,
-  /** Catégorie déjà assignée à cet Exercice avant la modification — `null` à la création (T16). */
+  /** Catégorie déjà assignée au Mouvement de cet Exercice avant la modification — `null` à la création (T16). */
   currentCategoryId: string | null = null,
 ): Promise<string> {
   if (category.kind === "EXISTING") {
@@ -88,13 +93,13 @@ async function resolveCategoryId(
       throw new Error("Referenced category does not exist.");
     }
     if (row.is_active === 0 && row.id !== currentCategoryId) {
-      // PRE-4, décision Q53 (8) : à la création, une Catégorie retirée déjà affectée à une Définition ou une
-      // occurrence est acceptée (Catégorie conservée par l'Éditeur après sa suppression depuis
-      // la feuille, ou héritée) ; affectée nulle part, elle reste refusée (D-210).
+      // PRE-4, décision Q53 (8) : à la création, une Catégorie retirée déjà affectée à un
+      // Mouvement ou une occurrence est acceptée (Catégorie conservée par l'Éditeur après sa
+      // suppression depuis la feuille, ou héritée) ; affectée nulle part, elle reste refusée (D-210).
       const used = await transaction.getFirstAsync<{ id: string }>(
         `SELECT id FROM activities WHERE category_id = ?
          UNION ALL
-         SELECT id FROM activity_definitions WHERE category_id = ?
+         SELECT id FROM movements WHERE category_id = ?
          LIMIT 1`,
         [row.id, row.id],
       );
@@ -123,13 +128,36 @@ async function resolveCategoryId(
   return categoryId;
 }
 
+/** Ensemble des identités de phases d'un Mouvement (comparaison de structure). */
+function phaseIdSet(movement: Movement): string {
+  return movement.phases
+    .map((phase) => phase.id)
+    .sort((a, b) => a - b)
+    .join(",");
+}
+
 /**
- * Persistance SQLite des `ActivityDefinition` (V2-CAT-01, `migration006` ;
- * V2-PRE-1, `migration007` : Catégorie obligatoire, pause de changement de
- * côté propre, retrait de la récupération post-exercice). Même patron que
- * `SqliteCategoryRepository`/`SqliteSessionRepository` : aucune dépendance à
- * `expo-sqlite` directement (`Database`, interface partagée),
- * `uuidFactory`/`now` injectables pour les tests.
+ * Persistance SQLite des `ActivityDefinition` — PRE-7 (A1.2, D-437,
+ * `migration012`) : une définition référence son Mouvement
+ * (`activity_definitions.movement_id`, intègre) et porte ses paramètres
+ * propres en forme Catalogue v4 ; le contenu partagé (nom, description,
+ * médias, Catégorie, Zones, structure des phases) est porté par le Mouvement.
+ *
+ * - `create` crée toujours un geste indépendant (Mouvement neuf, sans groupe,
+ *   « déjà utilisé » faux) et sa définition, dans UNE transaction : une
+ *   erreur ne laisse ni Mouvement ni média orphelin. Les identités de phases
+ *   du brouillon sont reprises, le compteur posé à max(`id`) + 1.
+ * - `update` garde l'identité des phases déjà présentes dans la structure du
+ *   Mouvement et alloue par le compteur celles qui n'y sont pas
+ *   (`allocatePhaseIdentities`, MFN-02) ; changer l'ensemble des phases d'un
+ *   Mouvement partagé est refusé (`SharedMovementStructureError`, frontière
+ *   A1.3).
+ * - la lecture résout structure + valeurs (`resolveCatalogParameters`) : un
+ *   exercice frère incomplet est relu avec `missingPhaseIds` ; un écart
+ *   structure ≠ valeurs lève `ExecutionParametersDataError`.
+ *
+ * `uuidFactory`/`now` injectables pour les tests ; ordre de consommation :
+ * définition, Mouvement, Catégorie nouvelle, liens de médias.
  */
 export class SqliteActivityDefinitionRepository implements ActivityDefinitionRepository {
   constructor(
@@ -140,39 +168,37 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
 
   async create(input: CreateActivityDefinitionInput): Promise<ActivityDefinition> {
     const canonical = validatedParameters(input);
-    const values = projectScalars(canonical);
+    const split = splitResolvedParameters(canonical);
     const id = this.uuidFactory();
+    const movementId = this.uuidFactory();
     const timestamp = this.now();
 
-    // PRE-3 : asset(s) importé(s) + définition + liens ordonnés dans UNE
+    // Asset(s) importé(s) + Mouvement + définition + liens ordonnés dans UNE
     // transaction (Terminer Catalogue) — aucune écriture partielle.
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const categoryId = await resolveCategoryId(transaction, input.category, this.uuidFactory, timestamp);
-      await transaction.runAsync(
-        `INSERT INTO activity_definitions (
-          id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, category_id, side_mode, side_recovery_seconds,
-          execution_parameters, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          input.name,
-          input.description,
-          values.executionMode,
-          values.durationSeconds,
-          values.repetitionCount,
-          values.seriesCount,
-          values.pauseSeconds,
+      await insertMovement(
+        transaction,
+        {
+          id: movementId,
+          name: input.name,
+          description: input.description,
+          media: input.media ?? [],
           categoryId,
-          values.sideMode,
-          values.sideRecoverySeconds,
-          serializeExecutionParameters(canonical),
-          timestamp,
-          timestamp,
-        ],
+          bodyZoneIds: input.bodyZoneIds,
+          phases: split.phases,
+          nextPhaseId: split.phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1,
+          used: false,
+          levelGroup: null,
+        },
+        timestamp,
+        () => this.uuidFactory(),
       );
-      await insertBodyZones(transaction, id, input.bodyZoneIds);
-      await replaceDefinitionMediaLinks(transaction, id, input.media ?? [], this.uuidFactory);
+      await transaction.runAsync(
+        `INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?)`,
+        [id, movementId, serializeCatalogExecutionParameters(split.parameters), timestamp, timestamp],
+      );
     });
 
     const created = await this.findById(id);
@@ -182,66 +208,60 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     return created;
   }
 
-  async update(
-    id: string,
-    input: UpdateActivityDefinitionInput,
-  ): Promise<ActivityDefinition | null> {
+  async update(id: string, input: UpdateActivityDefinitionInput): Promise<ActivityDefinition | null> {
     const canonical = validatedParameters(input);
-    const values = projectScalars(canonical);
     const timestamp = this.now();
     let updated = false;
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
-      const existing = await transaction.getFirstAsync<{
-        id: string;
-        created_at: string;
-        category_id: string;
-      }>("SELECT id, created_at, category_id FROM activity_definitions WHERE id = ?", [id]);
+      const existing = await transaction.getFirstAsync<{ id: string; movement_id: string }>(
+        "SELECT id, movement_id FROM activity_definitions WHERE id = ?",
+        [id],
+      );
       if (!existing) {
         return;
       }
+      const record = (await readMovementRecords(transaction, [existing.movement_id])).get(existing.movement_id);
+      if (!record) {
+        throw new Error("The movement of the activity definition is missing.");
+      }
+      const current = record.movement;
       const categoryId = await resolveCategoryId(
         transaction,
         input.category,
         this.uuidFactory,
         timestamp,
-        existing.category_id,
+        current.categoryId,
       );
-
-      await transaction.runAsync(
-        `UPDATE activity_definitions SET
-          name = ?, description = ?, execution_mode = ?, duration_seconds = ?,
-          repetition_count = ?, series_count = ?, pause_seconds = ?,
-          category_id = ?, side_mode = ?, side_recovery_seconds = ?,
-          execution_parameters = ?, updated_at = ?
-         WHERE id = ?`,
-        [
-          input.name,
-          input.description,
-          values.executionMode,
-          values.durationSeconds,
-          values.repetitionCount,
-          values.seriesCount,
-          values.pauseSeconds,
-          categoryId,
-          values.sideMode,
-          values.sideRecoverySeconds,
-          serializeExecutionParameters(canonical),
-          timestamp,
-          id,
-        ],
-      );
-      await transaction.runAsync(
-        `DELETE FROM activity_definition_body_zones WHERE activity_definition_id = ?`,
-        [id],
-      );
-      await insertBodyZones(transaction, id, input.bodyZoneIds);
+      const allocation = allocatePhaseIdentities(current, canonical);
+      if (
+        phaseIdSet(allocation.movement) !== phaseIdSet(current) &&
+        (await countMovementDefinitions(transaction, current.id)) > 1
+      ) {
+        throw new SharedMovementStructureError();
+      }
+      const split = splitResolvedParameters(allocation.parameters);
       // PRE-3 : `media` absent (ancien appelant) conserve les liens ; une
       // liste explicite — même vide — les remplace. Les assets ne sont
       // jamais supprimés.
-      if (input.media !== undefined) {
-        await replaceDefinitionMediaLinks(transaction, id, input.media, this.uuidFactory);
-      }
+      await updateMovementContent(
+        transaction,
+        {
+          ...allocation.movement,
+          name: input.name,
+          description: input.description,
+          categoryId,
+          bodyZoneIds: input.bodyZoneIds,
+          phases: split.phases,
+          ...(input.media !== undefined ? { media: input.media } : {}),
+        },
+        timestamp,
+        () => this.uuidFactory(),
+      );
+      await transaction.runAsync(
+        "UPDATE activity_definitions SET execution_parameters = ?, updated_at = ? WHERE id = ?",
+        [serializeCatalogExecutionParameters(split.parameters), timestamp, id],
+      );
       updated = true;
     });
 
@@ -259,83 +279,55 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     if (!row) {
       return null;
     }
-    const bodyZoneIds = await getBodyZoneIds(this.database, [id]);
-    const media = await listDefinitionMediaByIds(this.database, [id]);
-    return mapActivityDefinitionRow(row, bodyZoneIds.get(id) ?? [], media.get(id) ?? []);
+    const records = await readMovementRecords(this.database, [row.movement_id]);
+    return mapActivityDefinitionRow(row, records);
   }
 
   async listAll(): Promise<readonly ActivityDefinition[]> {
     const rows = await this.database.getAllAsync<ActivityDefinitionRow>(
       `SELECT ${SELECT_COLUMNS} FROM activity_definitions ORDER BY updated_at DESC`,
     );
-    const ids = rows.map((row) => row.id);
-    const bodyZonesById = await getBodyZoneIds(this.database, ids);
-    const mediaById = await listDefinitionMediaByIds(this.database, ids);
-    return rows.map((row) =>
-      mapActivityDefinitionRow(row, bodyZonesById.get(row.id) ?? [], mediaById.get(row.id) ?? []),
+    const records = await readMovementRecords(
+      this.database,
+      rows.map((row) => row.movement_id),
     );
+    return rows.map((row) => mapActivityDefinitionRow(row, records));
   }
-}
-
-async function insertBodyZones(
-  transaction: Database,
-  activityDefinitionId: string,
-  bodyZoneIds: readonly string[],
-): Promise<void> {
-  for (const bodyZoneId of bodyZoneIds) {
-    await transaction.runAsync(
-      `INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES (?, ?)`,
-      [activityDefinitionId, bodyZoneId],
-    );
-  }
-}
-
-async function getBodyZoneIds(
-  database: Database,
-  activityDefinitionIds: readonly string[],
-): Promise<ReadonlyMap<string, readonly string[]>> {
-  if (activityDefinitionIds.length === 0) {
-    return new Map();
-  }
-  // `activityDefinitionIds` provient toujours de lignes déjà relues depuis
-  // SQLite (jamais une saisie utilisateur directe) — même garantie que
-  // `SqliteSessionRepository.getBodyZonesForActivities`.
-  const placeholders = activityDefinitionIds.map(() => "?").join(", ");
-  const rows = await database.getAllAsync<ActivityDefinitionBodyZoneRow>(
-    `SELECT activity_definition_id, body_zone_id FROM activity_definition_body_zones
-     WHERE activity_definition_id IN (${placeholders})`,
-    activityDefinitionIds,
-  );
-  const byId = new Map<string, string[]>();
-  for (const row of rows) {
-    const list = byId.get(row.activity_definition_id) ?? [];
-    list.push(row.body_zone_id);
-    byId.set(row.activity_definition_id, list);
-  }
-  return byId;
 }
 
 /**
- * Projection d'une ligne. PRE-4 (story 1.1, AD-3), PRE-5 (AD-18) : `readExecutionParameters` (v2 et v3) est le seul
- * lecteur ; NULL, JSON corrompu, v1 ou version inconnue lèvent une
- * `ExecutionParametersDataError` — jamais un repli sur les scalaires, qui ne
- * sont ni relus ni exposés. Le côté et la Pause entre les côtés exposés sont
- * ceux des paramètres.
+ * Projection d'une ligne (PRE-7, A1.2) : contenu du Mouvement + paramètres
+ * Catalogue v4 (`readCatalogExecutionParameters`, strict ; aucune lecture
+ * v2/v3) résolus par la structure du Mouvement (`resolveCatalogParameters`).
+ * Le côté et la Pause entre les côtés exposés sont ceux des paramètres.
  */
 function mapActivityDefinitionRow(
   row: ActivityDefinitionRow,
-  bodyZoneIds: readonly string[],
-  media: ActivityDefinition["media"] = [],
+  records: ReadonlyMap<string, MovementRecord>,
 ): ActivityDefinition {
-  const executionParameters = readExecutionParameters(row.execution_parameters);
+  const record = records.get(row.movement_id);
+  if (!record) {
+    throw new Error("The movement of the activity definition is missing.");
+  }
+  const { movement } = record;
+  const resolution = resolveCatalogParameters(movement.phases, readCatalogExecutionParameters(row.execution_parameters));
+  const executionParameters = resolution.parameters;
   return {
     executionParameters,
-    media,
+    ...(resolution.status === "INCOMPLETE" ? { missingPhaseIds: resolution.missingPhaseIds } : {}),
+    media: record.mediaLinks.map((link) => ({
+      id: link.id,
+      activityDefinitionId: row.id,
+      assetId: link.assetId,
+      position: link.position,
+      asset: { ...link.asset },
+    })),
     id: row.id,
-    name: row.name,
-    description: row.description,
-    categoryId: row.category_id,
-    bodyZoneIds,
+    movementId: movement.id,
+    name: movement.name,
+    description: movement.description,
+    categoryId: movement.categoryId,
+    bodyZoneIds: [...movement.bodyZoneIds],
     sideMode: executionParameters.sideMode,
     sideRecoverySeconds: executionParameters.sideRecoverySeconds,
     createdAt: row.created_at,

@@ -630,9 +630,14 @@ function pre3Transport(
   activity: {
     readonly categoryId?: string | null;
     readonly media?: CreateSessionActivityInput["media"];
+    readonly sourceMovementId?: string;
   },
 ) {
   return {
+    // PRE-7 (A1.2, MFN-03) : filiation transportée telle quelle (une chaîne vide reste absente).
+    ...(typeof activity.sourceMovementId === "string" && activity.sourceMovementId.trim().length > 0
+      ? { sourceMovementId: activity.sourceMovementId.trim() }
+      : {}),
     ...(activity.categoryId !== undefined
       ? { categoryId: activity.categoryId && activity.categoryId.trim().length > 0 ? activity.categoryId : null }
       : {}),

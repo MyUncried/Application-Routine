@@ -146,6 +146,15 @@ export type Activity = {
   categoryId?: string | null;
   /** PRE-3 : médias ordonnés de l'occurrence (liens propres, fichiers partagés). */
   media?: readonly SessionActivityMediaWithAsset[];
+  /**
+   * PRE-7 (A1.2, D-437, MFN-03, MFN-12) : filiation de la copie — identifiant
+   * du Mouvement dont elle est issue, non nul et immuable, SANS clé étrangère
+   * (`activities.source_movement_id`) : jamais lu pour charger un contenu à
+   * afficher ou à exécuter ; une filiation orpheline est conservée telle quelle.
+   * Toujours renseignée par le repository après la migration 012 ; optionnelle
+   * sur ce type LU pour les fixtures (convention de transition).
+   */
+  sourceMovementId?: string;
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
@@ -262,6 +271,13 @@ export type CreateSessionActivityInput = {
   readonly categoryId?: string | null;
   /** PRE-3 : médias ordonnés ; l'ordre du tableau est la position. */
   readonly media?: readonly MediaLinkInput[];
+  /**
+   * PRE-7 (A1.2, MFN-03, MFN-04) : filiation portée par le brouillon (copie du
+   * Catalogue, duplication) et écrite telle quelle. Absente : occurrence créée
+   * localement — le repository crée son Mouvement local dans la transaction de
+   * la Séance et prend son identifiant (celui de l'occurrence) pour filiation.
+   */
+  readonly sourceMovementId?: string;
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
@@ -350,6 +366,12 @@ export type UpdateSessionActivityInput = {
   readonly categoryId?: string | null;
   /** PRE-3 : `undefined` conserve les liens persistés ; `[]` explicite les retire (jamais l'asset). */
   readonly media?: readonly MediaLinkInput[];
+  /**
+   * PRE-7 (A1.2, MFN-03) : filiation. Occurrence existante : la filiation
+   * persistée est IMMUABLE et conservée quelle que soit cette valeur. Occurrence
+   * nouvelle : comme `CreateSessionActivityInput.sourceMovementId`.
+   */
+  readonly sourceMovementId?: string;
 };
 
 /**

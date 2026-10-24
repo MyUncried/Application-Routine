@@ -29,9 +29,15 @@
  * (`CatalogExecutionParameters`, couples `{ phaseId, durationSeconds | null }`
  * sans libellé), écrite par `serializeCatalogExecutionParameters` et lue par
  * `readCatalogExecutionParameters`, strict. La v3 reste la représentation
- * résolue ; `readExecutionParameters` reste en place tant que la persistance en
- * dépend (retrait avec la migration 012, A1.2). Une durée de phase 0 n'est plus
- * nettoyée : elle est non renseignée et bloque l'enregistrement (D-438).
+ * résolue. Une durée de phase 0 n'est plus nettoyée : elle est non renseignée
+ * et bloque l'enregistrement (D-438).
+ *
+ * PRE-7 (A1.2, D-440) : après la migration 012, la persistance lit et écrit la
+ * seule v4 — forme Catalogue pour les définitions, forme RÉSOLUE v4
+ * (`serializeResolvedExecutionParameters`, `readResolvedExecutionParameters`)
+ * pour les copies. `readExecutionParameters` (v2, v3) reste dans le domaine
+ * (Instantané, A1.3 ; preuves des migrations historiques), sans appelant de
+ * persistance.
  *
  * Fonctions pures — sans React, SQLite, Expo, Profil implicite ni horloge.
  */
@@ -1102,6 +1108,14 @@ export function serializeV2(parameters: ExecutionParameters): string {
  * écrits (`false`, `0` et `[]` compris). La charge est écrite sous Sans.
  */
 export function serializeExecutionParameters(parameters: ExecutionParameters): string {
+  return encodeResolvedParameters(parameters, EXECUTION_PARAMETERS_VERSION);
+}
+
+/** Encodage canonique de la représentation résolue sous la version donnée (v3, ou forme résolue v4 des copies). */
+function encodeResolvedParameters(
+  parameters: ExecutionParameters,
+  version: typeof EXECUTION_PARAMETERS_VERSION | typeof RESOLVED_EXECUTION_PARAMETERS_VERSION,
+): string {
   const { series } = parameters;
   const encoded =
     series.kind === "UNIFORM"
@@ -1126,7 +1140,7 @@ export function serializeExecutionParameters(parameters: ExecutionParameters): s
           })),
         };
   return JSON.stringify({
-    version: EXECUTION_PARAMETERS_VERSION,
+    version,
     mode: parameters.mode,
     series: encoded,
     sideMode: parameters.sideMode,
@@ -1524,6 +1538,53 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
   return { version: CATALOG_EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
+}
+
+// --- Forme résolue v4 des copies (PRE-7, A1.2, D-437, D-440, MFN-02) ---------
+
+/**
+ * PRE-7 (A1.2, ch12 « Architecture cible MFN » : « phases résolues dans les
+ * copies ») — version de la forme RÉSOLUE persistée par les copies de Séance
+ * (`activities.execution_parameters`) après la migration 012 : grammaire de la
+ * v3 (libellés de phases compris), version 4. La colonne détermine la forme :
+ * `activity_definitions` porte la forme Catalogue v4, `activities` la forme
+ * résolue v4. La représentation en mémoire reste `ExecutionParameters`
+ * (`version: 3`).
+ */
+export const RESOLVED_EXECUTION_PARAMETERS_VERSION = 4 as const;
+
+/**
+ * Écrivain STRICT de la forme résolue v4 (MFN-02, D-438) : clés et ordre de
+ * `serializeExecutionParameters`, version 4. Lève si l'invariant des phases
+ * est rompu, durée manquante comprise : une copie de Séance n'est produite que
+ * d'une résolution exécutable (ch11 « refuser les exercices incomplets ») ; un
+ * exercice frère incomplet ne persiste que sous la forme Catalogue.
+ */
+export function serializeResolvedExecutionParameters(parameters: ExecutionParameters): string {
+  const { series } = parameters;
+  if (series.kind === "UNIFORM") {
+    const problem = workPhasesProblem(parameters.mode, series.target, series.workPhases);
+    if (problem !== null) {
+      throw new Error(`serializeResolvedExecutionParameters: ${workPhasesProblemReason(problem)} (MFN-02).`);
+    }
+  }
+  return encodeResolvedParameters(parameters, RESOLVED_EXECUTION_PARAMETERS_VERSION);
+}
+
+/**
+ * Lecteur STRICT de la forme résolue v4 (D-440 : aucune lecture v2/v3 dans la
+ * persistance après 012) : NULL, JSON corrompu, toute version autre que 4, et
+ * toute violation de la grammaire v3 (`readV3Object`, invariant des phases
+ * compris ; une forme Catalogue, sans `workPhases`, est refusée) →
+ * `ExecutionParametersDataError`. Retourne la représentation en mémoire
+ * (`version: 3`).
+ */
+export function readResolvedExecutionParameters(json: string | null | undefined): ExecutionParameters {
+  const value = parseParametersJson(json);
+  if (value.version !== RESOLVED_EXECUTION_PARAMETERS_VERSION) {
+    unknownVersion(value.version);
+  }
+  return readV3Object(value);
 }
 
 /**

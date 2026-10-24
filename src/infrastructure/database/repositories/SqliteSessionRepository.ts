@@ -5,11 +5,12 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   numberTarget,
   projectScalars,
-  readExecutionParameters,
-  serializeExecutionParameters,
+  readResolvedExecutionParameters,
+  serializeResolvedExecutionParameters,
   unsetTarget,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
+import { splitResolvedParameters } from "@/domain/activities/Movement";
 import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
 import {
   computeActivityCount,
@@ -54,6 +55,7 @@ import type {
 } from "@/infrastructure/database/types/DatabaseRows";
 
 import { listSessionActivityMediaByIds, replaceSessionActivityMediaLinks } from "./SqliteMediaRepository";
+import { insertMovement, markMovementsUsed } from "./SqliteMovementRepository";
 
 type LocalUserRow = { id: string };
 type UuidFactory = () => string;
@@ -216,7 +218,7 @@ async function isCategoryAssignedAnywhere(transaction: Database, categoryId: str
   const row = await transaction.getFirstAsync<{ id: string }>(
     `SELECT id FROM activities WHERE category_id = ?
      UNION ALL
-     SELECT id FROM activity_definitions WHERE category_id = ?
+     SELECT id FROM movements WHERE category_id = ?
      LIMIT 1`,
     [categoryId, categoryId],
   );
@@ -232,7 +234,7 @@ async function getInheritableBodyZoneIds(transaction: Database): Promise<Readonl
   const rows = await transaction.getAllAsync<{ body_zone_id: string }>(
     `SELECT body_zone_id FROM activity_body_zones
      UNION
-     SELECT body_zone_id FROM activity_definition_body_zones`,
+     SELECT body_zone_id FROM movement_body_zones`,
   );
   return new Set(rows.map((row) => row.body_zone_id));
 }
@@ -300,7 +302,8 @@ SELECT
   activities.instruction,
   activities.side_mode AS activity_side_mode,
   activities.execution_parameters AS activity_execution_parameters,
-  activities.category_id AS activity_category_id
+  activities.category_id AS activity_category_id,
+  activities.source_movement_id AS activity_source_movement_id
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id
 JOIN cycles ON cycles.session_id = sessions.id
@@ -409,6 +412,7 @@ export class SqliteSessionRepository implements SessionRepository {
         timestamp,
       );
       await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
+      await markSessionMovementsUsed(transaction, sessionId, timestamp);
 
       created = await readSession(transaction, sessionId, user.id);
     });
@@ -519,6 +523,7 @@ export class SqliteSessionRepository implements SessionRepository {
         sessionId,
       ]);
       await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
+      await markSessionMovementsUsed(transaction, sessionId, timestamp);
 
       const session = await readSession(transaction, sessionId, user.id);
       if (!session) {
@@ -644,6 +649,7 @@ async function insertActivities(
     // Zone retirée héritée de sa source (Q53).
     await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set(), inheritedBodyZoneIds);
     await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null, true);
+    const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activityId, activity, timestamp);
 
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
@@ -670,6 +676,7 @@ async function insertActivities(
         values.sideMode,
         values.executionParameters,
         activity.categoryId ?? null,
+        sourceMovementId,
       ],
     );
 
@@ -694,6 +701,89 @@ async function replaceOccurrenceMedia(
     return;
   }
   await replaceSessionActivityMediaLinks(transaction, activityId, media, uuidFactory);
+}
+
+/**
+ * PRE-7 (A1.2, D-437, MFN-03, MFN-04) : filiation d'une occurrence NOUVELLE,
+ * dans la transaction de la Séance.
+ *
+ * - filiation portée par le brouillon (copie du Catalogue, duplication) :
+ *   écrite telle quelle, sans clé étrangère ni lecture de contenu (une
+ *   filiation orpheline est admise) ;
+ * - occurrence créée localement (aucune filiation) avec Catégorie et Zones :
+ *   son Mouvement local est créé ici (contenu de l'occurrence, structure de
+ *   ses phases, sans groupe, sans définition Catalogue) ; son identifiant est
+ *   celui de l'occurrence, et les identités de ses liens de médias en sont
+ *   dérivées : aucun identifiant supplémentaire n'est consommé. Un échec
+ *   annule la Séance entière : une création annulée ne laisse aucun Mouvement ;
+ * - sans Catégorie ou sans Zone (entrées hors interface, Récupération
+ *   historique) : la filiation reçoit l'identifiant de l'occurrence, sans
+ *   Mouvement (orpheline admise par MFN-03).
+ */
+async function resolveNewOccurrenceFiliation(
+  transaction: Database,
+  activityId: string,
+  activity: {
+    readonly type: ActivityType;
+    readonly name: string;
+    readonly instruction?: string | null;
+    readonly executionParameters: CreateSessionActivityInput["executionParameters"];
+    readonly bodyZoneIds: readonly string[];
+    readonly categoryId?: string | null;
+    readonly media?: readonly MediaLinkInput[];
+    readonly sourceMovementId?: string;
+  },
+  timestamp: string,
+): Promise<string> {
+  if (activity.sourceMovementId !== undefined && activity.sourceMovementId.length > 0) {
+    return activity.sourceMovementId;
+  }
+  const categoryId = activity.categoryId ?? null;
+  if (activity.type !== "EXERCISE" || categoryId === null || activity.bodyZoneIds.length === 0) {
+    return activityId;
+  }
+  const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE id = ?", [activityId]);
+  if (existing) {
+    return activityId;
+  }
+  const { phases } = splitResolvedParameters(activity.executionParameters as ExecutionParameters);
+  await insertMovement(
+    transaction,
+    {
+      id: activityId,
+      name: activity.name,
+      description: activity.instruction ?? null,
+      media: activity.media ?? [],
+      categoryId,
+      bodyZoneIds: activity.bodyZoneIds,
+      phases,
+      nextPhaseId: phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1,
+      // « Déjà utilisé » est écrit au succès de l'enregistrement (`markSessionMovementsUsed`).
+      used: false,
+      levelGroup: null,
+    },
+    timestamp,
+    (position) => `${activityId}:${position}`,
+  );
+  return activityId;
+}
+
+/**
+ * PRE-7 (A1.2, MFN-08) : marque « déjà utilisé » les Mouvements des
+ * occurrences de la Séance enregistrée, dans la transaction de succès —
+ * jamais pour un brouillon abandonné, irréversible, seule métadonnée écrite
+ * sur la source. Une filiation orpheline est ignorée.
+ */
+async function markSessionMovementsUsed(transaction: Database, sessionId: string, timestamp: string): Promise<void> {
+  const rows = await transaction.getAllAsync<{ source_movement_id: string }>(
+    "SELECT DISTINCT source_movement_id FROM activities WHERE session_id = ?",
+    [sessionId],
+  );
+  await markMovementsUsed(
+    transaction,
+    rows.map((row) => row.source_movement_id),
+    timestamp,
+  );
 }
 
 /**
@@ -724,7 +814,8 @@ const ACTIVITY_ROW_COLUMNS = `
   position, name, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
-  instruction, created_at, updated_at, side_mode, execution_parameters, category_id
+  instruction, created_at, updated_at, side_mode, execution_parameters, category_id,
+  source_movement_id
 `;
 
 /**
@@ -835,7 +926,7 @@ function toActivitySqlValues(activity: {
       postActivityRecoveryPresent: activity.postActivityRecoverySeconds === null ? 0 : 1,
       bodyZoneIds: activity.bodyZoneIds,
       sideMode: projection.sideMode,
-      executionParameters: serializeExecutionParameters(parameters),
+      executionParameters: serializeResolvedExecutionParameters(parameters),
     };
   }
   assertActivityColumns({
@@ -974,6 +1065,7 @@ async function mergeActivities(
         activity.id,
       ]);
     } else {
+      const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activity.id, activity, timestamp);
       await transaction.runAsync(
         `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
          VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
@@ -999,6 +1091,7 @@ async function mergeActivities(
           values.sideMode,
           values.executionParameters,
           activity.categoryId ?? null,
+          sourceMovementId,
         ],
       );
     }
@@ -1145,8 +1238,9 @@ async function getBodyZoneNamesBySession(
 }
 
 /**
- * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. PRE-5 (AD-18) : `readExecutionParameters` (v2 et v3) est
- * le seul lecteur d'un Exercice (NULL, JSON corrompu, v1 ou version inconnue
+ * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. PRE-7 (A1.2,
+ * D-440) : `readResolvedExecutionParameters` (forme résolue v4) est le seul
+ * lecteur d'un Exercice (NULL, JSON corrompu, v2, v3 ou version inconnue
  * → `ExecutionParametersDataError`, jamais un repli sur les scalaires) ; une
  * ancienne Récupération autonome est lue défensivement depuis sa durée.
  */
@@ -1155,7 +1249,7 @@ function rowExecutionParameters(
   json: string | null,
   durationSeconds: number | null,
 ): ExecutionParameters {
-  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readExecutionParameters(json);
+  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readResolvedExecutionParameters(json);
 }
 
 function toActivity(
@@ -1173,6 +1267,7 @@ function toActivity(
     executionParameters,
     ...(row.activity_category_id !== undefined ? { categoryId: row.activity_category_id } : {}),
     ...(isRecovery ? {} : { media: mediaByActivity.get(row.activity_id) ?? [] }),
+    sourceMovementId: row.activity_source_movement_id,
     id: row.activity_id,
     type: row.activity_type,
     structuralPosition: row.structural_position,
@@ -1306,7 +1401,7 @@ const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
  * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
  * en UNE requête groupée — total ensuite calculé par l'autorité unique du
  * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
- * PRE-4 (story 1.1, AD-3), PRE-5 (AD-18) : `readExecutionParameters` seul, aucun fait scalaire.
+ * PRE-4 (story 1.1, AD-3) ; PRE-7 (A1.2) : `readResolvedExecutionParameters` seul, aucun fait scalaire.
  */
 async function getDurationFactsBySession(
   database: Database,

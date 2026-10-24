@@ -75,10 +75,12 @@ export type SessionAggregateRow = {
   instruction: string | null;
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
   activity_side_mode: SideMode;
-  /** JSON canonique (v2 après `migration010`, v3 dès le prochain enregistrement — PRE-5, AD-18 ; lu par `readExecutionParameters`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
+  /** PRE-7 (A1.2) : JSON de la forme RÉSOLUE v4 (`readResolvedExecutionParameters`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
   activity_execution_parameters: string | null;
   /** PRE-3 : Catégorie de la copie — `NULL` pour une ancienne copie. */
   activity_category_id: string | null;
+  /** PRE-7 (A1.2, MFN-03, `migration012`) : filiation non nulle, sans clé étrangère. */
+  activity_source_movement_id: string;
 };
 
 /** PRE-4 (story 1.2, P39) : colonnes propres à une occurrence dans `SessionAggregateRow`. */
@@ -98,7 +100,8 @@ export type SessionAggregateOccurrenceColumn =
   | "instruction"
   | "activity_side_mode"
   | "activity_execution_parameters"
-  | "activity_category_id";
+  | "activity_category_id"
+  | "activity_source_movement_id";
 
 /**
  * PRE-4 (story 1.2, FR-18-20 sixième conséquence, P39) : ligne de la lecture
@@ -141,31 +144,55 @@ export type CategoryRow = {
  * `initial_countdown_seconds`/`final_phase_seconds` disparaissent : le Compte
  * à rebours initial et la Fin de séance sont exclus de la durée affichée.
  */
-/** Une ligne par `ActivityDefinition` persistée (V2-CAT-01, `migration006`). */
+/**
+ * Une ligne par `ActivityDefinition` persistée (PRE-7, A1.2, `migration012`) :
+ * relation intègre vers son Mouvement et paramètres propres en forme
+ * Catalogue v4 (`readCatalogExecutionParameters`). Le contenu partagé est
+ * porté par `movements`.
+ */
 export type ActivityDefinitionRow = {
   id: string;
-  name: string;
-  description: string | null;
-  /** Colonne historique projetée (AD-3), jamais relue comme source. */
-  execution_mode: LegacyExecutionMode;
-  duration_seconds: number | null;
-  repetition_count: number | null;
-  series_count: number;
-  pause_seconds: number;
-  /** V2-PRE-1 (D-211) : Catégorie exactement une, obligatoire. */
-  category_id: string;
-  side_mode: SideMode;
-  /** V2-PRE-1 : pause de changement de côté propre à l'Exercice. */
-  side_recovery_seconds: number;
-  /** JSON canonique v2 (`migration010`) ou v3 (PRE-5, AD-18), lu par `readExecutionParameters` ; jamais NULL après la migration. */
-  execution_parameters: string | null;
+  movement_id: string;
+  execution_parameters: string;
   created_at: string;
   updated_at: string;
 };
 
-export type ActivityDefinitionBodyZoneRow = {
-  activity_definition_id: string;
+/** PRE-7 (A1.2, `migration012`) : une ligne par Mouvement (contenu partagé du geste, D-437). */
+export type MovementRow = {
+  id: string;
+  name: string;
+  normalized_name: string;
+  description: string | null;
+  category_id: string;
+  next_phase_id: number;
+  used: number;
+  level_group_id: string | null;
+  level_sort_key: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+/** PRE-7 (A1.2) : phase de la structure d'un Mouvement, ordonnée par `position`. */
+export type MovementPhaseRow = {
+  movement_id: string;
+  phase_id: number;
+  position: number;
+  label: string;
+};
+
+/** PRE-7 (A1.2) : Zone corporelle d'un Mouvement. */
+export type MovementBodyZoneRow = {
+  movement_id: string;
   body_zone_id: string;
+};
+
+/** PRE-7 (A1.2) : lien ordonné de média d'un Mouvement, joint à son asset. */
+export type MovementMediaRow = JoinedMediaAssetColumns & {
+  id: string;
+  movement_id: string;
+  asset_id: string;
+  position: number;
 };
 
 /** Une ligne par Zone corporelle persistée (V2-PRE-1, `migration007` ; `canonical_key` ajoutée NOT NULL/UNIQUE par `migration008`, V2-PRE-2). */
@@ -232,14 +259,6 @@ export type JoinedMediaAssetColumns = {
   asset_duration_ms: number | null;
   asset_width: number | null;
   asset_height: number | null;
-};
-
-/** Une ligne par association média↔Exercice, jointe à son média (V2-PRE-1, `migration007`). */
-export type ActivityMediaRow = JoinedMediaAssetColumns & {
-  id: string;
-  activity_definition_id: string;
-  asset_id: string;
-  position: number;
 };
 
 /** PRE-3 (`migration009`) : lien ordonné de média d'une occurrence de Séance, joint à son asset. */

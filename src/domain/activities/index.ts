@@ -2,3 +2,4 @@
 
 export * from "./ActivityDefinition";
 export * from "./ActivityDefinitionRepository";
+export * from "./MovementRepository";

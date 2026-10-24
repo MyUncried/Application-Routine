@@ -460,3 +460,75 @@ export function validateCatalogParameters(
   const others = result.violations.filter((violation) => !isIncompletenessViolation(violation, missing));
   return others.length > 0 ? { ok: false, violations: others } : { ok: true, value: normalized };
 }
+
+/** Résultat de l'allocation des phases d'une mise à jour (`allocatePhaseIdentities`). */
+export type PhaseAllocation = {
+  /** Mouvement à la nouvelle structure, compteur avancé. */
+  readonly movement: Movement;
+  /** Paramètres résolus dont les identités de phases sont celles du Mouvement. */
+  readonly parameters: ExecutionParameters;
+};
+
+/**
+ * PRE-7 (A1.2, MFN-02, MFN/AC30 : « un compteur monotone porté par le
+ * mouvement attribue les identifiants ») — allocation des identités de phases
+ * d'une mise à jour. Une phase dont l'identité figure déjà dans la structure du
+ * Mouvement la garde (déplacement, renommage, durée) ; toute autre phase reçoit
+ * la valeur courante du compteur, qui avance d'autant. Garantie : une identité
+ * absente de la structure PERSISTÉE n'est jamais reprise (une phase retirée et
+ * enregistrée, puis réintroduite par un max + 1 du Brouillon, reçoit le
+ * compteur). Limite : une identité encore présente dans la structure persistée
+ * est conservée telle quelle ; si le Brouillon retire une phase sans
+ * enregistrer puis en ajoute une qui recalcule la même identité par max + 1
+ * (structure [1, 2, 3], 3 retirée puis rajoutée dans la même Feuille), elle est
+ * gardée comme la phase 3 d'origine. Fermer ce cas suppose que la Feuille
+ * reçoive le compteur du Mouvement (`openSheetDraft(…, { nextPhaseId })`,
+ * câblage A2.1). Une série variable n'a aucune phase : la structure devient
+ * vide, le compteur est conservé.
+ *
+ * L'ordre et les libellés sont ceux des paramètres reçus ; les durées sont
+ * reportées sur l'identité allouée. Aucune validation : le sérialiseur et la
+ * résolution appliquent l'invariant.
+ */
+export function allocatePhaseIdentities(movement: Movement, parameters: ExecutionParameters): PhaseAllocation {
+  const { series } = parameters;
+  if (series.kind === "VARIABLE") {
+    return { movement: withPhaseStructure(movement, [], movement.nextPhaseId), parameters };
+  }
+  const present = new Set(movement.phases.map((phase) => phase.id));
+  const kept = new Set<number>();
+  let counter = movement.nextPhaseId;
+  const workPhases: WorkPhase[] = series.workPhases.map((phase) => {
+    let id: number;
+    if (present.has(phase.id) && !kept.has(phase.id)) {
+      id = phase.id;
+    } else {
+      id = counter;
+      counter += 1;
+    }
+    kept.add(id);
+    return { id, label: phase.label, durationSeconds: phase.durationSeconds };
+  });
+  const next = withPhaseStructure(
+    movement,
+    workPhases.map((phase) => ({ id: phase.id, label: phase.label })),
+    counter,
+  );
+  return { movement: next, parameters: { ...parameters, series: { ...series, workPhases } } };
+}
+
+/**
+ * Clé de recherche d'un nom de Mouvement (MFN-04, MFN-06 : recherche des
+ * gestes disponibles, locaux compris) : espaces réduits, casse et accents
+ * neutralisés — même normalisation que les clés canoniques des référentiels.
+ * Aucune contrainte d'unicité n'en découle (MFN-05 : « aucune contrainte
+ * d'unicité n'est posée sur les noms »).
+ */
+export function normalizeMovementName(name: string): string {
+  return name
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}

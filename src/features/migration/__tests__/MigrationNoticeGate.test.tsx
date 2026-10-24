@@ -295,6 +295,25 @@ describe("PRE4-1.2/AC1 — au plus un Alert par montage", () => {
     expect(alertCalls).toEqual([]);
     expect(repository.acknowledgeCalls).toEqual([]);
   });
+
+  it("PRE-7 A1.2 — avis EXERCISES_AND_SESSIONS_RESET (migration 012) : une Alert, texte du lexique sans nombre, acquitté au bouton seulement", async () => {
+    const reset: MigrationNotice = { ...notice(5), kind: "EXERCISES_AND_SESSIONS_RESET" };
+    const repository = new InMemoryMigrationNoticeRepository(reset);
+    launch(repository);
+
+    await waitFor(() => expect(alertCalls).toHaveLength(1));
+    const call = alertCalls[0]!;
+    expect(call.title).toBe(strings.migrationNotice.exercisesAndSessionsReset);
+    expect(call.title).not.toContain("5");
+    expect(formatMigrationNoticeMessage(reset)).toBe(strings.migrationNotice.exercisesAndSessionsReset);
+    expect(call.buttons).toHaveLength(1);
+    expect(call.options).toEqual({ cancelable: false });
+    expect(repository.acknowledgeCalls).toEqual([]);
+
+    call.buttons[0]!.onPress?.();
+    await Promise.resolve();
+    expect(repository.acknowledgeCalls).toEqual([7]);
+  });
 });
 
 const ROOT = join(__dirname, "..", "..", "..", "..");

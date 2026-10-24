@@ -146,6 +146,14 @@ export type SessionDraftExercise = {
   readonly categoryId?: string | null;
   /** PRE-3 : médias ordonnés de l'occurrence (assets partagés, liens propres). */
   readonly media?: readonly DraftMediaItem[];
+  /**
+   * PRE-7 (A1.2, D-437, MFN-03) : filiation de l'occurrence vers son Mouvement
+   * — portée par le brouillon pour que la réécriture des occurrences à chaque
+   * mise à jour de Séance ne la perde pas ; conservée à la duplication
+   * (étalement). Absente pour une occurrence créée localement et pas encore
+   * enregistrée (le repository crée alors son Mouvement local).
+   */
+  readonly sourceMovementId?: string;
 };
 
 export type SessionDraft = {
@@ -362,6 +370,8 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     // PRE-3 : transport complet et indépendant (copies profondes).
     ...(activity.categoryId !== undefined ? { categoryId: activity.categoryId } : {}),
     ...(activity.media ? { media: toDraftMediaItems(activity.media) } : {}),
+    // PRE-7 (A1.2, MFN-03) : filiation relue, transportée telle quelle.
+    ...(activity.sourceMovementId !== undefined ? { sourceMovementId: activity.sourceMovementId } : {}),
   };
 }
 
@@ -517,6 +527,8 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       ? // PRE-4 (story 1.3, AD-9) : actif cloné, le brouillon et l'entrée persistable ne partagent rien.
         { media: exercise.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) }
       : {}),
+    // PRE-7 (A1.2, MFN-03) : filiation transportée jusqu'à la transaction de Séance.
+    ...(exercise.sourceMovementId !== undefined ? { sourceMovementId: exercise.sourceMovementId } : {}),
   };
 }
 

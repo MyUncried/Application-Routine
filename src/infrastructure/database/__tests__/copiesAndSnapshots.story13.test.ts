@@ -10,7 +10,13 @@ import {
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
-import { serializeV2, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
+import {
+  readExecutionParameters,
+  serializeCatalogExecutionParameters,
+  serializeExecutionParameters,
+  type ExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import { splitResolvedParameters } from "@/domain/activities/Movement";
 import { commitSheetDraft, openSheetDraft, setSeriesCount } from "@/domain/activities/ExecutionParametersDraft";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
@@ -122,9 +128,15 @@ function picked(name: string): PickedMedia {
   };
 }
 
-/** Ancien Exercice dont la Cible est restée à renseigner après migration (forme v2 écrite par 010). */
+/**
+ * Exercice dont la Cible est restée à renseigner (héritée d'une ancienne donnée, H7). PRE-7 (A1.2) :
+ * écrite directement sous la forme Catalogue v4, seule lue après la migration 012.
+ */
 async function forceParameters(database: Database, definitionId: string, parameters: ExecutionParameters) {
-  await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [serializeV2(parameters), definitionId]);
+  await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [
+    serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters),
+    definitionId,
+  ]);
 }
 
 describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (NodeSqliteDatabase REAL)", () => {
@@ -241,8 +253,11 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const result: Record<string, unknown[]> = {};
     for (const table of [
       "activity_definitions",
-      "activity_definition_body_zones",
-      "activity_media",
+      // PRE-7 (A1.2) : contenu partagé porté par le Mouvement.
+      "movements",
+      "movement_phases",
+      "movement_body_zones",
+      "movement_media",
       "media_assets",
       "sessions",
       "activities",
@@ -349,7 +364,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(second!.executionParameters).toEqual(ac1Parameters());
     expect(second!.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
     const after = await dump();
-    for (const table of ["activity_definitions", "activity_definition_body_zones", "activity_media", "media_assets"]) {
+    for (const table of ["activity_definitions", "movement_phases", "movement_body_zones", "movement_media", "media_assets"]) {
       expect(after[table]).toEqual(definitionBefore[table]);
     }
     expect((await readDefinition(definition.id)).executionParameters).toEqual(editedDefinition);
@@ -499,10 +514,15 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       const timed = envelope(v1Parameters, 95);
       const untimed = envelope(withoutBeep, null);
 
-      await migrateDatabase(v9);
+      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; la Définition migrée est relue par le
+      // lecteur v2/v3 du domaine (celui des repositories jusqu'à 011).
+      await migrateDatabase(v9, undefined, 11);
       expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
       expect(await v9.getAllAsync("SELECT name FROM sqlite_master WHERE name LIKE '%snapshot%'")).toEqual([]);
-      const migrated = (await new SqliteActivityDefinitionRepository(v9, ids("def")).findById("def-v9"))!;
+      const migratedJson = async () =>
+        (await v9.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activity_definitions WHERE id = 'def-v9'"))!
+          .execution_parameters;
+      const migrated = { executionParameters: readExecutionParameters(await migratedJson()) };
 
       const rereadTimed = parseExerciseSnapshot(timed);
       expect(rereadTimed.snapshotVersion).toBe(1);
@@ -513,10 +533,10 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(rereadUntimed.actualDurationSeconds).toBeNull();
 
       // Modifier ensuite la source ne change pas la relecture (aucun recalcul depuis la source).
-      await new SqliteActivityDefinitionRepository(v9, ids("def")).update("def-v9", {
-        ...activityDefinitionToInput(migrated),
-        executionParameters: { ...migrated.executionParameters, cadenceBeepIntervalSeconds: 7 },
-      });
+      await v9.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'def-v9'", [
+        serializeExecutionParameters({ ...migrated.executionParameters, cadenceBeepIntervalSeconds: 7 }),
+      ]);
+      expect(readExecutionParameters(await migratedJson()).cadenceBeepIntervalSeconds).toBe(7);
       expect(parseExerciseSnapshot(timed)).toEqual(rereadTimed);
     } finally {
       v9.close();
@@ -586,7 +606,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const definition = await readDefinition((await ac1Definition()).id);
     const before = await dump();
     // Échec au premier lien de Média, APRÈS la mise à jour de la Définition et de ses Zones dans la même transaction.
-    const failing = failOnWrite(database, /INSERT INTO activity_media/);
+    const failing = failOnWrite(database, /INSERT INTO movement_media/);
     const service = new ActivityDefinitionService(new SqliteActivityDefinitionRepository(failing.database, ids("def")));
     const editInput = { ...activityDefinitionToInput(definition), name: "Fentes lentes" };
     await expect(service.updateActivityDefinition(definition.id, editInput)).rejects.toThrow("Injected failure");
@@ -626,7 +646,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(displayed).toEqual(["p3", "v1", "p2", "p1"]);
 
     // Avant Terminer : aucun lien ni asset du Média ajouté.
-    expect(await database.getAllAsync("SELECT id FROM activity_media WHERE asset_id = 'p3'")).toEqual([]);
+    expect(await database.getAllAsync("SELECT id FROM movement_media WHERE asset_id = 'p3'")).toEqual([]);
     expect(await database.getAllAsync("SELECT id FROM media_assets WHERE id = 'p3'")).toEqual([]);
 
     await updateDefinition(definition.id, {
@@ -640,7 +660,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     // Première vignette = premier Média relu (la vignette de carte n'est pas implémentée, D-264).
     expect(reread.media?.[0]?.assetId).toBe("p3");
     const positions = await database.getAllAsync<{ position: number }>(
-      "SELECT position FROM activity_media WHERE activity_definition_id = ? ORDER BY position",
+      "SELECT position FROM movement_media WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?) ORDER BY position",
       [definition.id],
     );
     expect(positions.map((row) => row.position)).toEqual([0, 1, 2, 3]);
@@ -796,14 +816,22 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       const before = await media();
       const files = [...store.files];
 
-      await migrateDatabase(v9);
+      // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; liens et références relus en lignes brutes
+      // (le repository de médias courant lit le schéma 012).
+      await migrateDatabase(v9, undefined, 11);
       expect(await v9.getFirstAsync("PRAGMA user_version")).toEqual({ user_version: 11 });
       expect(await media()).toEqual(before);
-      expect((await new SqliteActivityDefinitionRepository(v9, ids("def")).findById("def-v9"))?.media?.map((item) => item.assetId)).toEqual(["a-def", "a-copy"]);
-      const mediaRepository = new SqliteMediaRepository(v9);
-      expect(await mediaRepository.countReferences("a-archived")).toBe(1);
-      expect(await mediaRepository.countReferences("a-solo")).toBe(0);
-      expect(await mediaRepository.findAsset("a-solo")).toEqual(expect.objectContaining({ uri: "kodjo-media/a-solo" }));
+      expect(
+        await v9.getAllAsync("SELECT asset_id FROM activity_media WHERE activity_definition_id = 'def-v9' ORDER BY position"),
+      ).toEqual([{ asset_id: "a-def" }, { asset_id: "a-copy" }]);
+      const references = async (assetId: string) =>
+        (await v9.getFirstAsync<{ count: number }>(
+          "SELECT (SELECT COUNT(*) FROM activity_media WHERE asset_id = ?) + (SELECT COUNT(*) FROM session_activity_media WHERE asset_id = ?) AS count",
+          [assetId, assetId],
+        ))!.count;
+      expect(await references("a-archived")).toBe(1);
+      expect(await references("a-solo")).toBe(0);
+      expect(await v9.getFirstAsync("SELECT uri FROM media_assets WHERE id = 'a-solo'")).toEqual({ uri: "kodjo-media/a-solo" });
       expect(store.deleted).toEqual([]);
       expect([...store.files]).toEqual(files);
     } finally {
@@ -841,7 +869,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     importService.commitDraft(mediaDraftId);
 
     expect((await readDefinition(definition.id)).media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p-new"]);
-    expect(await database.getAllAsync("SELECT asset_id FROM activity_media ORDER BY position")).toEqual([
+    expect(await database.getAllAsync("SELECT asset_id FROM movement_media ORDER BY position")).toEqual([
       { asset_id: "v1" },
       { asset_id: "p1" },
       { asset_id: "p-new" },
@@ -879,7 +907,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     for (const media of [rereadDefinition.media, rereadCopy.media, rereadSnapshot.media]) {
       expect(media?.map((item) => item.asset.id)).toEqual(["v1", "p1", "p2"]);
     }
-    expect(await database.getAllAsync("SELECT id FROM activity_media WHERE asset_id = 'p1'")).toHaveLength(1);
+    expect(await database.getAllAsync("SELECT id FROM movement_media WHERE asset_id = 'p1'")).toHaveLength(1);
     expect(await database.getAllAsync("SELECT id FROM session_activity_media WHERE asset_id = 'p1'")).toHaveLength(1);
   });
 
@@ -940,7 +968,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(decodeInstructionSteps(exercise.instruction)).toEqual(["Buste droit", "Genoux souples", "Expirer en montant"]);
     }
     const stored = await database.getAllAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities ORDER BY rowid");
-    expect(stored.every((row) => row.execution_parameters.startsWith('{"version":3,'))).toBe(true);
+    // PRE-7 (A1.2) : forme résolue v4 des copies.
+    expect(stored.every((row) => row.execution_parameters.startsWith('{"version":4,'))).toBe(true);
 
     // Instantané : phases et charge sous Sans conservées.
     const snapshot = parseExerciseSnapshot(

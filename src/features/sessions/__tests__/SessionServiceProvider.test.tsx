@@ -628,9 +628,11 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
    * `activity_definition_body_zones` déjà persistée), `PRAGMA user_version`
    * positionné à `6`, PUIS la base est remise au double `expo-sqlite` : c'est
    * le VRAI `onInit` de `SessionServiceProvider` (`initializeDatabase` →
-   * `migrateDatabase`) qui détecte la version 6 et applique SEULE
-   * `migration007` par-dessus — exactement le scénario « mise à niveau d'une
-   * installation existante » du plan (§3, §14.2, §16).
+   * `migrateDatabase`) qui détecte la version 6 et applique `migration007`
+   * puis les suivantes — exactement le scénario « mise à niveau d'une
+   * installation existante » du plan (§3, §14.2, §16). PRE-7 (A1.2) : la
+   * chaîne se termine par `migration012`, qui supprime une seule fois les
+   * Exercices historiques en conservant Catégories et Zones (D-440 assouplie).
    *
    * `execAsync`/`runAsync` de `NodeSqliteDatabase` n'attendent ici
    * délibérément AUCUN `await` : leur corps s'exécute intégralement de façon
@@ -639,7 +641,7 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
    * `openInMemory()` lui-même doit rester synchrone (le double `expo-sqlite`
    * ne l'attend jamais).
    */
-  it("edits an existing Catalogue ActivityDefinition coming from a database migrated from historical data (migrations 001-006 with rows, then 007), and shows its Category name and Zones on reopening — through the real provider wiring", async () => {
+  it("edits a Catalogue ActivityDefinition in a database migrated from historical data (migrations 001-006 with rows, then 007 to 012), and shows its Category name and Zones on reopening — through the real provider wiring", async () => {
     const onReady = jest.fn();
     const originalOpenInMemory = mockNodeSqliteDatabase.openInMemory;
     const openInMemorySpy = jest
@@ -714,27 +716,40 @@ describe("SessionServiceProvider — câblage réel des Zones corporelles et des
 
     const service = activityDefinitionService!;
 
-    const beforeEdit = await service.getActivityDefinition("legacy-def-1");
-    expect(beforeEdit).not.toBeNull();
-    expect(beforeEdit?.bodyZoneIds).toEqual(["dos"]);
-    // `migration007` : `ALTER TABLE activity_definitions ADD COLUMN category_id
-    // ... DEFAULT 'autre'` — toute ligne historique hérite donc de la
-    // Catégorie prédéfinie « Autre ».
-    expect(beforeEdit?.categoryId).toBe("autre");
+    // PRE-7 (A1.2, D-440 assouplie) : la chaîne du démarrage va jusqu'à `migration012`,
+    // qui supprime une seule fois les Exercices historiques (aucune filiation
+    // reconstituable) ; Catégories et Zones sont conservées. Le câblage réel est
+    // prouvé sur un Exercice recréé dans la base migrée.
+    expect(await service.getActivityDefinition("legacy-def-1")).toBeNull();
     const categories = await service.listCategories();
     expect(categories.find((category) => category.id === "autre")?.name).toBe("Autre");
+    expect((await service.listBodyZones()).some((zone) => zone.id === "dos")).toBe(true);
 
-    const updateResult = await service.updateActivityDefinition("legacy-def-1", {
+    const created = await service.createActivityDefinition({
+      name: "Fentes historiques",
+      description: null,
+      executionParameters: durationParameters(40, 2, 10),
+      category: { kind: "EXISTING", categoryId: "autre" },
+      bodyZoneIds: ["dos"],
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) {
+      throw new Error("Expected the Exercise creation to succeed.");
+    }
+    const beforeEdit = await service.getActivityDefinition(created.value.id);
+    expect(beforeEdit?.bodyZoneIds).toEqual(["dos"]);
+    expect(beforeEdit?.categoryId).toBe("autre");
+
+    const updateResult = await service.updateActivityDefinition(created.value.id, {
       name: "Fentes historiques modifiées",
       description: beforeEdit!.description,
-      // PRE-4 (story 1.1) : paramètres typés relus (convertis par `migration010`).
       executionParameters: beforeEdit!.executionParameters,
       category: { kind: "EXISTING", categoryId: "autre" },
       bodyZoneIds: beforeEdit!.bodyZoneIds,
     });
     expect(updateResult.status).toBe("UPDATED");
 
-    const reopened = await service.getActivityDefinition("legacy-def-1");
+    const reopened = await service.getActivityDefinition(created.value.id);
     expect(reopened?.name).toBe("Fentes historiques modifiées");
     expect(reopened?.categoryId).toBe("autre");
     expect(reopened?.bodyZoneIds).toEqual(["dos"]);

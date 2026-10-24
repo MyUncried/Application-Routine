@@ -13,6 +13,7 @@ import { MIGRATION_008_COLUMNS, MIGRATION_008_FINALIZE } from "./migrations/migr
 import { MIGRATION_009 } from "./migrations/migration009";
 import { applyMigration010 } from "./migrations/migration010";
 import { applyMigration011 } from "./migrations/migration011";
+import { applyMigration012 } from "./migrations/migration012";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -41,12 +42,21 @@ type NamedRow = { id: string; name: string };
  * n'importe quelle étape annule l'intégralité des migrations appliquées
  * pendant ce run et laisse `user_version` inchangé (aucun état intermédiaire
  * persisté, aucune Récupération à moitié convertie).
+ *
+ * PRE-7 (A1.2) : `targetVersion` (défaut `DATABASE_VERSION`) arrête la chaîne
+ * à une version antérieure — réservé aux preuves des migrations historiques,
+ * qui lisent une base v11 sans la transition de `migration012`. L'application
+ * appelle toujours la forme par défaut.
  */
 export async function migrateDatabase(
   database: Database,
-  /** Horloge de l'avis de `migration010` (ISO 8601 UTC) — injectable pour les tests. */
+  /** Horloge des avis de `migration010` et `migration012` (ISO 8601 UTC) — injectable pour les tests. */
   now: () => string = () => new Date().toISOString(),
+  targetVersion: number = DATABASE_VERSION,
 ): Promise<void> {
+  if (!Number.isInteger(targetVersion) || targetVersion < 1 || targetVersion > DATABASE_VERSION) {
+    throw new Error(`Unsupported target database version ${targetVersion}.`);
+  }
   const versionRow = await database.getFirstAsync<UserVersionRow>("PRAGMA user_version");
   const currentVersion = versionRow?.user_version ?? 0;
 
@@ -56,14 +66,17 @@ export async function migrateDatabase(
     );
   }
 
-  if (currentVersion === DATABASE_VERSION) {
+  if (currentVersion >= targetVersion) {
     return;
   }
 
   await database.withExclusiveTransactionAsync(async (transaction) => {
     let version = currentVersion;
 
-    if (version === 0) {
+    // Chaque étape s'arrête à `targetVersion` (défaut : la dernière).
+    const pending = (step: number): boolean => version === step && version < targetVersion;
+
+    if (pending(0)) {
       await transaction.execAsync(MIGRATION_001);
       await transaction.runAsync(
         `INSERT OR IGNORE INTO users (singleton_key, id, created_at)
@@ -73,37 +86,37 @@ export async function migrateDatabase(
       version = 1;
     }
 
-    if (version === 1) {
+    if (pending(1)) {
       await transaction.execAsync(MIGRATION_002);
       version = 2;
     }
 
-    if (version === 2) {
+    if (pending(2)) {
       await transaction.execAsync(MIGRATION_003);
       version = 3;
     }
 
-    if (version === 3) {
+    if (pending(3)) {
       await transaction.execAsync(MIGRATION_004);
       version = 4;
     }
 
-    if (version === 4) {
+    if (pending(4)) {
       await transaction.execAsync(MIGRATION_005);
       version = 5;
     }
 
-    if (version === 5) {
+    if (pending(5)) {
       await transaction.execAsync(MIGRATION_006);
       version = 6;
     }
 
-    if (version === 6) {
+    if (pending(6)) {
       await transaction.execAsync(MIGRATION_007);
       version = 7;
     }
 
-    if (version === 7) {
+    if (pending(7)) {
       await transaction.execAsync(MIGRATION_008_COLUMNS);
 
       // Les clés normalisées (NFD, casse) ne sont pas exprimables en SQL
@@ -135,7 +148,7 @@ export async function migrateDatabase(
 
     // PRE-3 : colonnes et table additives uniquement — aucun backfill,
     // aucune lecture du Profil, aucune réécriture des valeurs existantes.
-    if (version === 8) {
+    if (pending(8)) {
       await transaction.execAsync(MIGRATION_009);
       version = 9;
     }
@@ -144,7 +157,7 @@ export async function migrateDatabase(
     // (classement, écart des illisibles, conversion v2, reconstruction
     // d'`activities`, avis), dans CETTE transaction : toute erreur
     // structurelle annule l'ensemble et laisse `user_version` inchangé (H6).
-    if (version === 9) {
+    if (pending(9)) {
       await applyMigration010(transaction, now);
       version = 10;
     }
@@ -152,9 +165,22 @@ export async function migrateDatabase(
     // PRE-6 (story 1.1, AD-34, AD-35) : nature du Circuit et présence de la
     // récupération — `ADD COLUMN` idempotents et reprise, dans CETTE
     // transaction : un échec annule tout et laisse `user_version` inchangé.
-    if (version === 10) {
+    if (pending(10)) {
       await applyMigration011(transaction);
       version = 11;
+    }
+
+    // PRE-7 (A1.2, D-440 assouplie) : schéma MFN et transition PONCTUELLE —
+    // Exercices et Séances supprimés une seule fois, Profil, Catégories et
+    // Zones conservés, avis ; dans CETTE transaction : un échec annule tout et
+    // laisse `user_version` à 11. Jamais rejouée (garde `user_version`).
+    if (pending(11)) {
+      await applyMigration012(transaction, now);
+      version = 12;
+    }
+
+    if (version !== targetVersion) {
+      throw new Error(`Database migration stopped at version ${version} instead of ${targetVersion}.`);
     }
 
     const userCount = await transaction.getFirstAsync<CountRow>(
@@ -166,6 +192,6 @@ export async function migrateDatabase(
       throw new Error("The local user could not be initialized.");
     }
 
-    await transaction.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+    await transaction.execAsync(`PRAGMA user_version = ${targetVersion}`);
   });
 }

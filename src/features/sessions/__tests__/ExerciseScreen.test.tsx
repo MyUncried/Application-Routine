@@ -450,6 +450,7 @@ describe("ExerciseScreen — PRE-3 (quatre parcours)", () => {
   it("P3-01/Catalogue:edit — tous les champs rouverts (variable, côtés, bip, CR/Fin, médias) ; Terminer met à jour cette définition", async () => {
     const definition: ActivityDefinition = {
       id: "def-1",
+      movementId: "mov-1",
       name: "Fentes",
       description: "Dos droit",
       categoryId: "cardio",
@@ -738,6 +739,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
   function legacyDefinition(executionParameters: ExecutionParameters): ActivityDefinition {
     return {
       id: "def-legacy",
+      movementId: "mov-1",
       name: "Gainage",
       description: null,
       executionParameters,
@@ -973,6 +975,7 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
 
   const DEFINITION: ActivityDefinition = {
     id: "def-1",
+    movementId: "mov-1",
     name: "Fentes",
     description: "Dos droit",
     categoryId: "cardio",

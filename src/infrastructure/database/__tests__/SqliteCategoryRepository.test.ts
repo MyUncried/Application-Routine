@@ -4,6 +4,7 @@ import { initializeDatabase } from "@/infrastructure/database/initializeDatabase
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteCategoryRepository } from "@/infrastructure/database/repositories/SqliteCategoryRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
 
 function makeUuidFactory(prefix: string) {
   let counter = 0;
@@ -207,12 +208,8 @@ describe("SqliteCategoryRepository", () => {
     });
 
     it("is true once an Exercise of the Catalogue references the Category", async () => {
-      await database.runAsync(
-        `INSERT INTO activity_definitions (
-          id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, category_id, side_mode, side_recovery_seconds, created_at, updated_at
-        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'cardio', 'UNILATERAL', 0, 'now', 'now')`,
-      );
+      // PRE-7 (A1.2) : la Catégorie est portée par le Mouvement de l'Exercice.
+      await seedCatalogueDefinition(database, { id: "def-1", categoryId: "cardio" });
       const repository = new SqliteCategoryRepository(database, makeUuidFactory("cat"));
       expect(await repository.isUsed("cardio")).toBe(true);
     });

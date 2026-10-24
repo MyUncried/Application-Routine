@@ -835,6 +835,7 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
   const video: MediaAsset = { id: "v1", uri: "kodjo-media/v1.mov", createdAt: "now", kind: "VIDEO", durationMs: 1000 };
   const definition: ActivityDefinition = {
     id: "def-1",
+    movementId: "mov-1",
     name: "Fentes",
     description: null,
     categoryId: "cardio",
@@ -964,6 +965,7 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
     });
   const definition: ActivityDefinition = {
     id: "def-1",
+    movementId: "mov-1",
     name: "Fentes",
     description: "Buste droit",
     categoryId: "cardio",

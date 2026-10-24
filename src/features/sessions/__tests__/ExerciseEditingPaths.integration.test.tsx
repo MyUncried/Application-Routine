@@ -500,7 +500,7 @@ describe("PRE4-4.1/AC1 — Créer au Catalogue (Q33)", () => {
     expect(router.getPathname()).toBe("/");
     expect(isSelected(sessions.contentTypes.activities)).toBe(true);
     expect(await screen.findByText("Pompes")).toBeTruthy();
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions ORDER BY name")).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id ORDER BY movements.name")).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
   }, 20000);
 });
 
@@ -651,7 +651,7 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     expect(await database.getAllAsync("SELECT name FROM activities ORDER BY position")).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 });
 
@@ -674,7 +674,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     await settle(300);
     expect(router.getPathname()).toBe("/");
     expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Gainage" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Gainage" }]);
   }, 20000);
 
   it("PRE4-4.1/AC6 AC7 AC8 — MC : même Éditeur et même Feuille ; route catalogueDefinitionId=<id> ; Terminer met à jour la Définition", async () => {
@@ -696,7 +696,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     await settle(300);
     expect(router.getPathname()).toBe("/");
     expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-    expect(await database.getAllAsync("SELECT id, name FROM activity_definitions")).toEqual([{ id: definition.id, name: "Fentes lentes" }]);
+    expect(await database.getAllAsync("SELECT activity_definitions.id, movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ id: definition.id, name: "Fentes lentes" }]);
   }, 20000);
 
   it("PRE4-4.1/AC6 AC7 AC8 — CS : même Éditeur et même Feuille ; route sans paramètre ; Terminer ne modifie que le Brouillon de Composition", async () => {
@@ -726,7 +726,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     const names = (await database.getAllAsync<{ name: string }>("SELECT name FROM activities ORDER BY position")).map((row) => row.name);
     expect(names).toContain("Pompes");
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 
   it("PRE4-4.1/AC6 AC7 AC8 — MS : même Éditeur et même Feuille ; route exerciseId=<Copie> ; Terminer ne modifie que le Brouillon, rien n'est écrit avant Continuer", async () => {
@@ -760,7 +760,7 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
   it("PRE4-4.1/AC9 — modifier la Copie (MS) puis Continuer laisse la Définition intacte ; modifier la Définition (MC) laisse la Copie intacte ; aucun doublon au Catalogue", async () => {
     const definition = await savedDefinition();
     const { copy } = await savedSessionWithCopy(definition);
-    const definitionRow = async () => database.getAllAsync("SELECT * FROM activity_definitions");
+    const definitionRow = async () => database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id");
     const copyRow = async () => database.getAllAsync("SELECT * FROM activities");
     const definitionBefore = await definitionRow();
 
@@ -785,7 +785,7 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
     await settle(300);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes du Catalogue" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes du Catalogue" }]);
     expect(await copyRow()).toEqual(copyAfterMs);
     expect(screen.getAllByTestId("activity-card-open")).toHaveLength(1);
   }, 30000);
@@ -930,7 +930,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
   it("PRE4-4.1/AC10 — MS : Copie enregistrée à Cibles mixtes ; bascules, ✓, Terminer, Continuer, réouverture : contenu identique ; la Définition reste indépendante", async () => {
     const definition = await savedDefinition(MIXED_PARAMETERS);
     const { copy } = await savedSessionWithCopy(definition);
-    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions");
+    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id");
     const router = renderApp();
     await openSessionFromCatalogue();
 
@@ -958,7 +958,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
     expect(editorContent()).toEqual(opened);
-    expect(await database.getAllAsync("SELECT * FROM activity_definitions")).toEqual(definitionBefore);
+    expect(await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual(definitionBefore);
   }, 30000);
 
   it("PRE4-4.1/AC10 — CC : nouvel Exercice (deux Zones, description), Mode aller-retour, ✓, Terminer, réouverture au Catalogue : contenu identique", async () => {
@@ -1010,7 +1010,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${created!.id}`));
     await settle();
     expect(editorContent()).toEqual(entered);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 });
 
@@ -1180,7 +1180,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
   it("PRE4-4.1/AC10 — MS : Cible à l'échec saisie dans la Feuille de la Copie ; Terminer, Continuer, réouverture : relu à l'identique ; Définition indépendante", async () => {
     const definition = await savedDefinition(NUMERIC_PARAMETERS);
     const { copy } = await savedSessionWithCopy(definition);
-    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions");
+    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id");
     const router = renderApp();
     await openSessionFromCatalogue();
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
@@ -1198,7 +1198,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${copy.id}`));
     await settle();
     expect(editorContent()).toEqual(entered);
-    expect(await database.getAllAsync("SELECT * FROM activity_definitions")).toEqual(definitionBefore);
+    expect(await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual(definitionBefore);
   }, 30000);
 
   it("PRE4-4.1/AC10 — CC : Cibles mixtes (30 s, 45 s, à l'échec) saisies dans la Feuille d'un nouvel Exercice ; Terminer, réouverture : relu à l'identique", async () => {
@@ -1245,13 +1245,13 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${created!.id}`));
     await settle();
     expect(editorContent()).toEqual(entered);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 60000);
 });
 
 describe("PRE4-4.2/AC10 — enregistrement atomique et erreur d'écriture (motif FailingDatabase)", () => {
   it("PRE4-4.2/AC10 — CC : échec injecté au milieu de la transaction ; rien n'est écrit, Brouillon conservé, message du code de départ ; appuis répétés : une seule opération ; réessai : un seul Exercice", async () => {
-    const failing = failOnWrite(database, /INSERT INTO activity_definition_body_zones/u);
+    const failing = failOnWrite(database, /INSERT INTO movement_body_zones/u);
     const router = renderApp({ definitionDatabase: failing.database });
     await openExercisesSegment();
     fireEvent.press(screen.getByLabelText(sessions.createAction));
@@ -1281,10 +1281,10 @@ describe("PRE4-4.2/AC10 — enregistrement atomique et erreur d'écriture (motif
     });
     await settle(300);
     expect(router.getPathname()).toBe("/");
-    expect(await database.getAllAsync("SELECT name, description FROM activity_definitions")).toEqual([
+    expect(await database.getAllAsync("SELECT movements.name, movements.description FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([
       { name: "Gainage", description: "Dos droit." },
     ]);
-    expect(await database.getAllAsync("SELECT body_zone_id FROM activity_definition_body_zones")).toEqual([{ body_zone_id: "dos" }]);
+    expect(await database.getAllAsync("SELECT body_zone_id FROM movement_body_zones")).toEqual([{ body_zone_id: "dos" }]);
   }, 30000);
 });
 
@@ -1314,7 +1314,7 @@ describe("PRE4-4.2/AC10 — Séance : appuis répétés", () => {
     await settle();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     expect(await database.getAllAsync("SELECT name FROM activities WHERE name = 'Gainage'")).toEqual([{ name: "Gainage" }]);
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions")).toEqual([{ name: "Fentes" }]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 });
 
@@ -1441,10 +1441,13 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     });
     await settle(300);
     expect(router.getPathname()).toBe("/");
-    expect(await database.getAllAsync("SELECT name FROM activity_definitions ORDER BY name")).toEqual([{ name: "Fentes" }, { name: "Gainage" }]);
-    // La Définition n'a aucun champ de Récupération : seule la Pause entre les côtés existe.
-    const definitionColumns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)");
-    expect(definitionColumns.map((column) => column.name).filter((name) => /recovery/.test(name))).toEqual(["side_recovery_seconds"]);
+    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id ORDER BY movements.name")).toEqual([{ name: "Fentes" }, { name: "Gainage" }]);
+    // La Définition n'a aucun champ de Récupération. PRE-7 (A1.2) : ni colonne scalaire, la Pause
+    // entre les côtés est portée par les paramètres (forme Catalogue v4), le contenu par le Mouvement.
+    for (const table of ["activity_definitions", "movements"]) {
+      const columns = await database.getAllAsync<{ name: string }>(`PRAGMA table_info(${table})`);
+      expect(columns.map((column) => column.name).filter((name) => /recovery/.test(name))).toEqual([]);
+    }
 
     // CS + Copie insérée par « Un exercice existant ».
     fireEvent.press(screen.getByLabelText(sessions.contentTypes.sessions));
@@ -1635,7 +1638,7 @@ function galleryLabels(): string[] {
 
 async function definitionMedia(definitionId: string): Promise<string[]> {
   const rows = await database.getAllAsync<{ asset_id: string }>(
-    "SELECT asset_id FROM activity_media WHERE activity_definition_id = ? ORDER BY position",
+    "SELECT asset_id FROM movement_media WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?) ORDER BY position",
     [definitionId],
   );
   return rows.map((row) => row.asset_id);
@@ -1962,7 +1965,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     await settle(300);
     expect(router.getPathname()).toBe("/");
     const [created] = await database.getAllAsync<{ id: string; description: string | null }>(
-      "SELECT id, description FROM activity_definitions",
+      "SELECT activity_definitions.id, movements.description FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id",
     );
     expect(created!.description).toBe("Dos droit\nGenoux fléchis");
 
@@ -1986,7 +1989,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
   it("PRE5-3.1/AC4 — MS : Copie à étapes ; une étape vide ajoutée par Entrée n'est pas une modification ; une étape saisie est enregistrée à Terminer ; la Définition reste inchangée", async () => {
     const definition = await savedDefinition(undefined, "Genou aligné\nDos droit");
     const { copy } = await savedSessionWithCopy(definition);
-    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions");
+    const definitionBefore = await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id");
     const router = renderApp();
     await openSessionFromCatalogue();
 
@@ -2011,7 +2014,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     const rows = await database.getAllAsync<{ instruction: string | null }>("SELECT instruction FROM activities");
     expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit\nSouffler" }]);
-    expect(await database.getAllAsync("SELECT * FROM activity_definitions")).toEqual(definitionBefore);
+    expect(await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual(definitionBefore);
   }, 30000);
 
   it("PRE5-3.1/AC5 — MC : ancienne Description `\\r\\n` à ligne vide relue une ligne = une étape, sans étape fantôme ; non modifiée (ou une étape vide ajoutée) : aucune garde, rien d'écrit", async () => {
@@ -2050,7 +2053,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     await settle(300);
     expect(router.getPathname()).toBe("/");
     const row = await database.getFirstAsync<{ description: string | null }>(
-      "SELECT description FROM activity_definitions WHERE id = ?",
+      "SELECT movements.description FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id WHERE activity_definitions.id = ?",
       [definition.id],
     );
     expect(row).toEqual({ description: null });

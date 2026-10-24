@@ -50,8 +50,9 @@ export type ActivityDefinition = {
   readonly name: string;
   readonly description: string | null;
   /**
-   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES,
-   * relus par `readExecutionParameters` (v2 et v3, PRE-5 AD-18) — seule source du Mode, des Cibles, de N et des
+   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES —
+   * PRE-7 (A1.2) : représentation résolue reconstituée de la structure du
+   * Mouvement et de la forme Catalogue v4 (`resolveCatalogParameters`) — seule source du Mode, des Cibles, de N et des
    * Pauses. Aucun champ scalaire n'est exposé (inventaire des lecteurs de
    * scalaires de la spine).
    */
@@ -65,13 +66,22 @@ export type ActivityDefinition = {
    */
   readonly categoryId?: string;
   /**
-   * PRE-7 (A1.1, D-437, MFN-01, MFN-03) : relation ACTIVE vers le Mouvement
-   * (`Movement.ts`) dont l'Exercice porte les paramètres — non nulle, avec
-   * intégrité réelle dans le nouveau modèle. OPTIONNELLE sur ce type LU
-   * seulement jusqu'à la colonne `movement_id` de la migration 012 (A1.2), même
-   * patron de transition que `categoryId` ; A1.2 la rend obligatoire.
+   * PRE-7 (A1.1, A1.2, D-437, MFN-01, MFN-03) : relation ACTIVE vers le
+   * Mouvement (`Movement.ts`) dont l'Exercice porte les paramètres —
+   * OBLIGATOIRE, intègre (`activity_definitions.movement_id`, clé étrangère
+   * restrictive, migration 012). Nom, description, médias, Catégorie, Zones et
+   * libellés de phases exposés ci-dessus sont ceux du Mouvement, résolus à la
+   * lecture.
    */
-  readonly movementId?: string;
+  readonly movementId: string;
+  /**
+   * PRE-7 (A1.2, MFN-08, MFN/AC24) : présent et non vide pour un exercice
+   * frère INCOMPLET (durée de phase non renseignée, forme Catalogue v4 `null`) :
+   * identités des phases à compléter, dans l'ordre de la structure. Ses
+   * `executionParameters` portent alors 0 pour ces durées et une Cible `UNSET` ;
+   * il reste inexécutable. Absent pour un Exercice exécutable.
+   */
+  readonly missingPhaseIds?: readonly number[];
   /** Zones corporelles — collection non vide, distincte (plan §4). */
   readonly bodyZoneIds: readonly string[];
   /** Direction de l'Exercice, égale à `executionParameters.sideMode` (relue des paramètres). */
@@ -362,6 +372,10 @@ export function activityDefinitionToDraftExercise(
     executionParameters: cloneExecutionParameters(definition.executionParameters),
     categoryId: definition.categoryId ?? null,
     media,
+    // PRE-7 (A1.2, D-437, MFN-03) : filiation non nulle de la copie vers le
+    // Mouvement de la définition — transportée par le brouillon, écrite telle
+    // quelle par le repository, jamais relue pour charger un contenu.
+    sourceMovementId: definition.movementId,
     id: newId,
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,

@@ -68,6 +68,8 @@ describe("PRE5-1.1/AC4 — garde de cantonnement de serializeV2 et readV2 (AD-18
       "src/infrastructure/database/__tests__/SqliteSessionRepository.test.ts",
       "src/infrastructure/database/__tests__/copiesAndSnapshots.story13.test.ts",
       "src/infrastructure/database/__tests__/executionParametersV3.roundTrip.test.ts",
+      // PRE-7 (A1.2, D-440) : données v2 injectées pour prouver leur REFUS après la migration 012.
+      "src/infrastructure/database/__tests__/SqliteActivityDefinitionRepository.test.ts",
     ]);
     const offenders = FILES.filter((file) => V2_IDENTIFIER.test(file.code) && !allowed.has(file.path)).map((file) => file.path);
     expect(offenders).toEqual([]);
@@ -89,15 +91,28 @@ describe("PRE5-1.1/AC4 — garde de cantonnement de serializeV2 et readV2 (AD-18
     expect(ep).toMatch(/export function readExecutionParameters[\s\S]*?readV2Object\(value\)[\s\S]*?readV3Object\(value\)/);
   });
 
-  it("repositories, Instantané et contrôle natif passent par readExecutionParameters et serializeExecutionParameters", () => {
+  it("l'Instantané passe par readExecutionParameters et serializeExecutionParameters", () => {
     const code = (path: string) => FILES.find((file) => file.path === path)!.code;
-    for (const path of [
-      "src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts",
-      "src/infrastructure/database/repositories/SqliteSessionRepository.ts",
-      "src/domain/activities/exerciseSnapshot.ts",
-    ]) {
-      expect({ path, reads: /\breadExecutionParameters\(/.test(code(path)) }).toEqual({ path, reads: true });
-      expect({ path, writes: /\bserializeExecutionParameters\(/.test(code(path)) }).toEqual({ path, writes: true });
-    }
+    const path = "src/domain/activities/exerciseSnapshot.ts";
+    expect({ path, reads: /\breadExecutionParameters\(/.test(code(path)) }).toEqual({ path, reads: true });
+    expect({ path, writes: /\bserializeExecutionParameters\(/.test(code(path)) }).toEqual({ path, writes: true });
+  });
+
+  // PRE-7 (A1.2, D-440) : après la migration 012, la persistance ne lit ni n'écrit plus la v2 ni la v3.
+  it("PRE-7 A1.2 — les repositories lisent et écrivent la seule v4 (Catalogue pour les définitions, résolue pour les copies)", () => {
+    const code = (path: string) => FILES.find((file) => file.path === path)!.code;
+    const persistence = FILES.filter((file) => file.path.startsWith("src/infrastructure/database/repositories/"));
+    expect(persistence.length).toBeGreaterThan(0);
+    expect(
+      persistence
+        .filter((file) => /\b(readExecutionParameters|serializeExecutionParameters|readV3)\b/.test(file.code))
+        .map((file) => file.path),
+    ).toEqual([]);
+    const definitions = code("src/infrastructure/database/repositories/SqliteActivityDefinitionRepository.ts");
+    expect(/\breadCatalogExecutionParameters\(/.test(definitions)).toBe(true);
+    expect(/\bserializeCatalogExecutionParameters\(/.test(definitions)).toBe(true);
+    const sessions = code("src/infrastructure/database/repositories/SqliteSessionRepository.ts");
+    expect(/\breadResolvedExecutionParameters\(/.test(sessions)).toBe(true);
+    expect(/\bserializeResolvedExecutionParameters\(/.test(sessions)).toBe(true);
   });
 });

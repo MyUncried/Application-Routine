@@ -112,11 +112,11 @@ export class SqliteBodyZoneRepository implements BodyZoneRepository {
     return { status: "OK", value: mapBodyZoneRow({ ...current, is_active: 0 }) };
   }
 
-  /** Utilisée par une Activité du Catalogue (`activity_definition_body_zones`) OU une occurrence de Séance (`activity_body_zones`). */
+  /** Utilisée par un Mouvement (`movement_body_zones`, PRE-7 A1.2 : Zones du geste, Catalogue ou local) OU une occurrence de Séance (`activity_body_zones`). */
   async isUsed(id: string): Promise<boolean> {
     const row = await this.database.getFirstAsync<{ count: number }>(
       `SELECT
-        (SELECT COUNT(*) FROM activity_definition_body_zones WHERE body_zone_id = ?) +
+        (SELECT COUNT(*) FROM movement_body_zones WHERE body_zone_id = ?) +
         (SELECT COUNT(*) FROM activity_body_zones WHERE body_zone_id = ?) AS count`,
       [id, id],
     );

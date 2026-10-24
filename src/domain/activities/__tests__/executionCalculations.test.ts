@@ -892,6 +892,7 @@ describe("PRE-4 story 2.1 — AC8 calculs tirés des seules règles (FR-13-06)",
 
   const definition = (executionParameters: ExecutionParameters): ActivityDefinition => ({
     id: "def-ac8",
+    movementId: "mov-1",
     name: "Gainage",
     description: null,
     executionParameters,

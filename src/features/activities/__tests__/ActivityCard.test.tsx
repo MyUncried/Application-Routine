@@ -61,6 +61,7 @@ function renderCard(ui: Parameters<typeof render>[0]) {
 
 const DEFINITION: ActivityDefinition = {
   id: "def-1",
+  movementId: "mov-1",
   name: "Squat",
   description: null,
   executionParameters: durationParameters(30, 3, 10),
