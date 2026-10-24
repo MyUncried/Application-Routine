@@ -25,6 +25,14 @@
  * l'Instantané. `serializeV2` n'a plus d'appelant de production : il reste
  * réservé aux tests de parité de `migration010` (AD-10).
  *
+ * PRE-7 (A1.1, D-437, D-438, MFN-02) : forme CATALOGUE v4
+ * (`CatalogExecutionParameters`, couples `{ phaseId, durationSeconds | null }`
+ * sans libellé), écrite par `serializeCatalogExecutionParameters` et lue par
+ * `readCatalogExecutionParameters`, strict. La v3 reste la représentation
+ * résolue ; `readExecutionParameters` reste en place tant que la persistance en
+ * dépend (retrait avec la migration 012, A1.2). Une durée de phase 0 n'est plus
+ * nettoyée : elle est non renseignée et bloque l'enregistrement (D-438).
+ *
  * Fonctions pures — sans React, SQLite, Expo, Profil implicite ni horloge.
  */
 
@@ -234,6 +242,11 @@ export type ExecutionParametersViolation = {
   readonly level: ExecutionValidationLevel;
   /** Rang 1-indexé de la Série concernée (Régime variables), pour signaler la cellule. */
   readonly seriesNumber?: number;
+  /**
+   * PRE-7 (A1.1, D-438, MFN-02) : identité de la phase dont la durée manque
+   * (`REQUIRED` `workPhases`), pour signaler sa cellule ; la phase est conservée.
+   */
+  readonly phaseId?: number;
   readonly details?: { readonly min: number; readonly max: number; readonly step?: number };
 };
 
@@ -703,8 +716,18 @@ function codePointLength(text: string): number {
   return Array.from(text).length;
 }
 
-/** Raison « somme hors bornes » (PRE-5 story 2.1) : la violation `workPhases` porte alors les bornes de la somme. */
-const WORK_PHASES_SUM_OUT_OF_RANGE = "work phases sum out of range";
+/**
+ * Écart à l'invariant des phases : durées manquantes (`MISSING`, D-438), ou
+ * forme invalide (`INVALID`, avec sa raison ; `sumOutOfRange` si seule la
+ * somme sort de 1..3535). `null` si l'invariant tient.
+ */
+type WorkPhasesProblem =
+  | { readonly kind: "MISSING"; readonly phaseIds: readonly number[] }
+  | { readonly kind: "INVALID"; readonly reason: string; readonly sumOutOfRange?: true };
+
+function invalidPhases(reason: string): WorkPhasesProblem {
+  return { kind: "INVALID", reason };
+}
 
 /**
  * PRE-5 (AD-20, FR-1, FR-3, FR-40) — invariant structurel des phases, partagé
@@ -712,34 +735,39 @@ const WORK_PHASES_SUM_OUT_OF_RANGE = "work phases sum out of range";
  * valide. Sinon : Mode `DURATION`, Cible `NUMBER`, 1 à 6 phases, `id` entier
  * ≥ 1 unique, durée entière ≥ 1 s (D-430), libellé de 1 à 20 points de code non
  * blanc, `target.value` = Σ des durées, Σ dans 1..3535. Aucune tolérance de
- * ligne de base (H25 ne s'applique pas à la somme). Retourne la raison d'un
- * écart, `null` si l'invariant tient.
+ * ligne de base (H25 ne s'applique pas à la somme).
+ *
+ * PRE-7 (A1.1, D-438, MFN-02, ch11 « Contrats internes des phases ») : une
+ * durée 0 ou `null` est une durée NON RENSEIGNÉE, distinguée d'une forme
+ * invalide (`MISSING`, identités dans l'ordre de la liste) ; la Cible et la
+ * somme ne sont alors pas contrôlées (aucun total à comparer). Les autres
+ * contrôles (nombre, Mode, identités, libellés, durée négative ou non entière)
+ * priment. `readV3` refuse les deux cas : une donnée stockée n'est jamais
+ * effacée ni complétée silencieusement.
  */
-function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): string | null {
+function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): WorkPhasesProblem | null {
   if (!Array.isArray(workPhases)) {
-    return "work phases are not a list";
+    return invalidPhases("work phases are not a list");
   }
   if (workPhases.length === 0) {
     return null;
   }
   if (workPhases.length > WORK_PHASE_LIMITS.maxCount) {
-    return "too many work phases";
+    return invalidPhases("too many work phases");
   }
   if (mode !== "DURATION") {
-    return "work phases require the DURATION mode";
-  }
-  if (!isRecord(target) || target.kind !== "NUMBER") {
-    return "work phases require a NUMBER target";
+    return invalidPhases("work phases require the DURATION mode");
   }
   const ids = new Set<number>();
+  const missing: number[] = [];
   let sum = 0;
   for (const phase of workPhases as unknown[]) {
     if (!isRecord(phase) || Array.isArray(phase)) {
-      return "malformed work phase";
+      return invalidPhases("malformed work phase");
     }
     const { id, label, durationSeconds } = phase as { id?: unknown; label?: unknown; durationSeconds?: unknown };
     if (typeof id !== "number" || !Number.isInteger(id) || id < 1 || ids.has(id)) {
-      return "malformed or duplicated work phase id";
+      return invalidPhases("malformed or duplicated work phase id");
     }
     ids.add(id);
     if (
@@ -747,21 +775,37 @@ function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown):
       label.trim().length === 0 ||
       codePointLength(label) > WORK_PHASE_LIMITS.labelMaxLength
     ) {
-      return "malformed work phase label";
+      return invalidPhases("malformed work phase label");
+    }
+    if (durationSeconds === null || durationSeconds === 0) {
+      // D-438 : durée non renseignée, phase conservée.
+      missing.push(id);
+      continue;
     }
     if (typeof durationSeconds !== "number" || !Number.isInteger(durationSeconds) || durationSeconds < WORK_PHASE_LIMITS.durationMin) {
-      return "malformed work phase duration";
+      return invalidPhases("malformed work phase duration");
     }
     sum += durationSeconds;
   }
+  if (missing.length > 0) {
+    return { kind: "MISSING", phaseIds: missing };
+  }
+  if (!isRecord(target) || target.kind !== "NUMBER") {
+    return invalidPhases("work phases require a NUMBER target");
+  }
   const bounds = EXECUTION_BOUNDS.durationTarget;
   if (sum < bounds.min || sum > bounds.max) {
-    return WORK_PHASES_SUM_OUT_OF_RANGE;
+    return { kind: "INVALID", reason: "work phases sum out of range", sumOutOfRange: true };
   }
   if (target.value !== sum) {
-    return "series target differs from the work phases sum";
+    return invalidPhases("series target differs from the work phases sum");
   }
   return null;
+}
+
+/** Raison lisible d'un écart (messages d'erreur de données). */
+function workPhasesProblemReason(problem: WorkPhasesProblem): string {
+  return problem.kind === "MISSING" ? `missing work phase duration (${problem.phaseIds.join(", ")})` : problem.reason;
 }
 
 function targetBounds(mode: ExecutionMode): Bounds {
@@ -824,6 +868,9 @@ function baselineOf(baseline: ExecutionValidationBaseline): ExecutionParametersI
  * PRE-5 (AD-19, AD-20) : `loadEnabled` booléen et chaque `loadKg` valide
  * (`isValidLoadKg`) au niveau structurel seulement ; invariant des phases
  * (`workPhasesProblem`) au niveau structurel, sans tolérance de ligne de base.
+ * PRE-7 (A1.1, D-438) : une durée de phase manquante (0) donne une violation
+ * `REQUIRED` `workPhases` portant son `phaseId`, une par phase ; aucune phase
+ * n'est retirée.
  *
  * Succès : paramètres EFFECTIFS normalisés (N=1, côté non renseigné →
  * `UNILATERAL`).
@@ -944,7 +991,13 @@ export function validateForSave(
       violations.push({ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" });
     } else {
       const problem = workPhasesProblem(mode, series.target, series.workPhases);
-      if (problem !== null) {
+      if (problem !== null && problem.kind === "MISSING") {
+        // PRE-7 (A1.1, D-438, MFN/AC15, AC25) : une violation par durée manquante, la phase
+        // restant présente ; ✓ et enregistrement de l'Exercice édité refusés.
+        for (const phaseId of problem.phaseIds) {
+          violations.push({ code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId });
+        }
+      } else if (problem !== null) {
         // PRE-5 (story 2.1, FR-3) : une somme hors de 1..3535 rend ✓ indisponible ; la
         // violation porte alors les bornes de la somme, comme une durée de série invalide.
         const { min, max } = EXECUTION_BOUNDS.durationTarget;
@@ -952,7 +1005,7 @@ export function validateForSave(
           code: "OUT_OF_RANGE",
           field: "workPhases",
           level: "STRUCTURE",
-          ...(problem === WORK_PHASES_SUM_OUT_OF_RANGE ? { details: { min, max } } : {}),
+          ...(problem.sumOutOfRange === true ? { details: { min, max } } : {}),
         });
       }
     }
@@ -1213,7 +1266,7 @@ function readV3Object(value: Record<string, unknown>): ExecutionParameters {
     const loadKg = readLoadKg(seriesValue.loadKg);
     const problem = workPhasesProblem(mode, row.target, seriesValue.workPhases);
     if (problem !== null) {
-      throw new ExecutionParametersDataError(`Malformed work phases: ${problem}.`);
+      throw new ExecutionParametersDataError(`Malformed work phases: ${workPhasesProblemReason(problem)}.`);
     }
     const workPhases = (seriesValue.workPhases as WorkPhase[]).map((phase) => ({
       id: phase.id,
@@ -1280,6 +1333,207 @@ export function readExecutionParameters(json: string | null | undefined): Execut
     return readV3Object(value);
   }
   return unknownVersion(value.version);
+}
+
+// --- Format Catalogue v4 (PRE-7, A1.1, D-437, D-438, MFN-02) ------------------
+
+/**
+ * PRE-7 (A1.1, MFN-02, ch09 « contrat canonique versionné », ch12 §12.5) —
+ * version de la forme CATALOGUE des paramètres d'exécution : valeurs propres à
+ * un Exercice du Catalogue, sans libellé de phase. La structure des phases
+ * `(id, label)` appartient au Mouvement (`Movement.ts`) ; la représentation
+ * RÉSOLUE (`ExecutionParameters`, v3, avec les libellés) reste celle des
+ * copies, de la Feuille, de la phrase, des calculs et de l'Instantané.
+ */
+export const CATALOG_EXECUTION_PARAMETERS_VERSION = 4 as const;
+
+/**
+ * Durée d'une phase dans la forme Catalogue (MFN-02) : associée à la phase du
+ * Mouvement par `phaseId`. `null` = durée non renseignée (exercice frère
+ * incomplet après une correction partagée, MFN-08) ; une durée 0 n'est jamais
+ * stockée, `null` est la seule absence.
+ */
+export type PhaseDuration = {
+  readonly phaseId: number;
+  readonly durationSeconds: number | null;
+};
+
+/** Séries identiques de la forme Catalogue : `phaseDurations` remplace `workPhases` (aucun libellé). */
+export type CatalogUniformSeries = Omit<UniformSeries, "workPhases"> & {
+  readonly phaseDurations: readonly PhaseDuration[];
+};
+
+export type CatalogExecutionSeries = CatalogUniformSeries | VariableSeries;
+
+/** Paramètres Catalogue v4 : mêmes champs racine que la v3, séries Catalogue. */
+export type CatalogExecutionParameters = Omit<ExecutionParameters, "version" | "series"> & {
+  readonly version: typeof CATALOG_EXECUTION_PARAMETERS_VERSION;
+  readonly series: CatalogExecutionSeries;
+};
+
+/**
+ * Invariant des durées de phases de la forme Catalogue (MFN-02, MFN-08,
+ * D-430) : liste (vide = « Aucune », toujours valide) ; sinon au plus 6
+ * entrées, Mode `DURATION`, `phaseId` entier ≥ 1 unique, durée entière ≥ 1 s
+ * ou `null`. Au moins une durée `null` (exercice frère incomplet) : Cible
+ * `UNSET`, aucun total inventé. Toutes renseignées : Cible `NUMBER` = Σ, Σ dans
+ * 1..3535. Partagé par le sérialiseur, le lecteur v4 et la résolution
+ * (`Movement.ts`). Retourne la raison d'un écart, `null` si l'invariant tient.
+ */
+export function phaseDurationsProblem(mode: unknown, target: unknown, phaseDurations: unknown): string | null {
+  if (!Array.isArray(phaseDurations)) {
+    return "phase durations are not a list";
+  }
+  if (phaseDurations.length === 0) {
+    return null;
+  }
+  if (phaseDurations.length > WORK_PHASE_LIMITS.maxCount) {
+    return "too many phase durations";
+  }
+  if (mode !== "DURATION") {
+    return "phase durations require the DURATION mode";
+  }
+  const ids = new Set<number>();
+  let sum = 0;
+  let incomplete = false;
+  for (const entry of phaseDurations as unknown[]) {
+    if (!isRecord(entry) || Array.isArray(entry)) {
+      return "malformed phase duration";
+    }
+    const { phaseId, durationSeconds } = entry as { phaseId?: unknown; durationSeconds?: unknown };
+    if (typeof phaseId !== "number" || !Number.isInteger(phaseId) || phaseId < 1 || ids.has(phaseId)) {
+      return "malformed or duplicated phase id";
+    }
+    ids.add(phaseId);
+    if (durationSeconds === null) {
+      incomplete = true;
+      continue;
+    }
+    if (typeof durationSeconds !== "number" || !Number.isInteger(durationSeconds) || durationSeconds < WORK_PHASE_LIMITS.durationMin) {
+      return "malformed phase duration value";
+    }
+    sum += durationSeconds;
+  }
+  if (!isRecord(target)) {
+    return "malformed series target";
+  }
+  if (incomplete) {
+    return target.kind === "UNSET" ? null : "an incomplete phase list requires an UNSET target";
+  }
+  if (target.kind !== "NUMBER") {
+    return "complete phase durations require a NUMBER target";
+  }
+  const bounds = EXECUTION_BOUNDS.durationTarget;
+  if (sum < bounds.min || sum > bounds.max) {
+    return "phase durations sum out of range";
+  }
+  return target.value === sum ? null : "series target differs from the phase durations sum";
+}
+
+/**
+ * Sérialisation canonique v4 (MFN-02) : clés et ordre de la v3, `JSON.stringify`
+ * sans espace ; dans l'uniforme, `"phaseDurations"` (couples `phaseId`,
+ * `durationSeconds`, `null` compris) remplace `"workPhases"`. Lève une erreur si
+ * l'invariant `phaseDurationsProblem` est rompu : une durée 0, une Cible
+ * incohérente ou une identité dupliquée n'est jamais écrite.
+ */
+export function serializeCatalogExecutionParameters(parameters: CatalogExecutionParameters): string {
+  const { series } = parameters;
+  if (series.kind === "UNIFORM") {
+    const problem = phaseDurationsProblem(parameters.mode, series.target, series.phaseDurations);
+    if (problem !== null) {
+      throw new Error(`serializeCatalogExecutionParameters: ${problem} (MFN-02).`);
+    }
+  }
+  const encoded =
+    series.kind === "UNIFORM"
+      ? {
+          kind: "UNIFORM",
+          count: series.count,
+          target: encodeTarget(series.target),
+          pauseSeconds: series.pauseSeconds,
+          loadKg: series.loadKg,
+          phaseDurations: series.phaseDurations.map((entry) => ({
+            phaseId: entry.phaseId,
+            durationSeconds: entry.durationSeconds,
+          })),
+        }
+      : {
+          kind: "VARIABLE",
+          rows: series.rows.map((row) => ({
+            target: encodeTarget(row.target),
+            pauseSeconds: row.pauseSeconds,
+            loadKg: row.loadKg,
+          })),
+        };
+  return JSON.stringify({
+    version: CATALOG_EXECUTION_PARAMETERS_VERSION,
+    mode: parameters.mode,
+    series: encoded,
+    sideMode: parameters.sideMode,
+    sideOrder: parameters.sideOrder,
+    sideRecoverySeconds: parameters.sideRecoverySeconds,
+    cadenceBeepIntervalSeconds: parameters.cadenceBeepIntervalSeconds,
+    countdownSeconds: parameters.countdownSeconds,
+    endSeconds: parameters.endSeconds,
+    loadEnabled: parameters.loadEnabled,
+  });
+}
+
+/**
+ * Lecteur v4 STRICT (MFN-02, ch09 : « une version inconnue ne doit jamais être
+ * rabattue silencieusement sur une durée scalaire ») : NULL, JSON corrompu,
+ * toute version autre que 4 (v3 et v5 comprises), clé `loadEnabled`, `loadKg`
+ * ou `phaseDurations` absente ou mal typée, invariant `phaseDurationsProblem`
+ * rompu (durée 0, phase dupliquée…) → `ExecutionParametersDataError`, jamais
+ * un repli. Grammaire racine, Cible, Pause et charge identiques à la v3 ; les
+ * clés inconnues sont ignorées, comme en v2 et v3.
+ */
+export function readCatalogExecutionParameters(json: string | null | undefined): CatalogExecutionParameters {
+  const value = parseParametersJson(json);
+  if (value.version !== CATALOG_EXECUTION_PARAMETERS_VERSION) {
+    unknownVersion(value.version);
+  }
+  const { mode, seriesValue, root } = readRootFields(value);
+  if (typeof value.loadEnabled !== "boolean") {
+    throw new ExecutionParametersDataError("Malformed loadEnabled.");
+  }
+  let series: CatalogExecutionSeries;
+  if (seriesValue.kind === "UNIFORM") {
+    const count = readUniformCount(seriesValue);
+    const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
+    const loadKg = readLoadKg(seriesValue.loadKg);
+    const problem = phaseDurationsProblem(mode, row.target, seriesValue.phaseDurations);
+    if (problem !== null) {
+      throw new ExecutionParametersDataError(`Malformed phase durations: ${problem}.`);
+    }
+    const phaseDurations = (seriesValue.phaseDurations as PhaseDuration[]).map((entry) => ({
+      phaseId: entry.phaseId,
+      durationSeconds: entry.durationSeconds,
+    }));
+    series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg, phaseDurations };
+  } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
+    series = {
+      kind: "VARIABLE",
+      rows: seriesValue.rows.map((row: unknown) => ({
+        ...readTargetAndPause(row),
+        loadKg: readLoadKg((row as { loadKg?: unknown }).loadKg),
+      })),
+    };
+  } else {
+    throw new ExecutionParametersDataError("Unknown series kind.");
+  }
+  return { version: CATALOG_EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
+}
+
+/**
+ * Invariant des phases RÉSOLUES (v3), exposé pour la résolution Catalogue
+ * (`Movement.ts`) : raison d'un écart, `null` s'il tient. Une durée manquante
+ * (0) y est un écart.
+ */
+export function resolvedWorkPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): string | null {
+  const problem = workPhasesProblem(mode, target, workPhases);
+  return problem === null ? null : workPhasesProblemReason(problem);
 }
 
 // --- Projection scalaire unique (AD-3) ---------------------------------------

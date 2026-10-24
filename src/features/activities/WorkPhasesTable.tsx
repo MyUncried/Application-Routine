@@ -211,7 +211,8 @@ function WorkPhaseRow({
         <RemoveRowButton
           accessibilityLabel={t.removePhase.replace("{n}", String(number))}
           closesFieldHint={t.removePhaseClosesFieldHint}
-          // QR-1 : croix indisponible au minimum du contrôle (deux phases).
+          // QR-1 : croix indisponible au minimum du contrôle (deux phases). PRE-7 (A1.1, D-438) : le
+          // domaine permet 2 → Sans ; seule l'interface garde la croix indisponible ici jusqu'à A2.1.
           disabled={count <= WORK_PHASE_LIMITS.controlMinCount}
           active={removalActive}
           onPress={() => onRemove(phaseId)}

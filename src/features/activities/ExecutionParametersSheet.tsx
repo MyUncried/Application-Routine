@@ -646,7 +646,8 @@ export function ExecutionParametersSheet({
   const totalEditable = isRequestedTotalEditable(draft);
 
   // PRE-5 story 2.8 (FR-9, AD-25) : disponibilité du ✓ et résultat avec le libellé par défaut
-  // « Phase n » (phases à 0 ou à renseigner retirées, une seule restante → Sans).
+  // « Phase n ». PRE-7 (A1.1, D-438) : une phase à 0 ou à renseigner n'est plus retirée ; elle
+  // rend ✓ indisponible (violation `workPhases` portant son `phaseId`).
   const validation = commitSheetDraft(draft, baseline, defaultPhaseLabel);
   // Indice par ligne signalée (rang 0-indexé) ; sa présence vaut signalement.
   const invalidRows = new Map(
@@ -659,8 +660,11 @@ export function ExecutionParametersSheet({
   const uniformTargetViolation =
     !validation.ok && !showVariableTable
       ? // PRE-5 story 2.8 (FR-3, revue) : une somme des phases hors de 1..3535 (violation
-        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche.
-        validation.violations.find((violation) => violation.field === "target" || violation.field === "workPhases")
+        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche. PRE-7 (A1.1, D-438) : une
+        // durée de phase manquante (`phaseId`) reste signalée par sa seule cellule (« — », rouge pâle).
+        validation.violations.find(
+          (violation) => violation.field === "target" || (violation.field === "workPhases" && violation.phaseId === undefined),
+        )
       : undefined;
   const uniformTargetInvalid = uniformTargetViolation !== undefined;
   const uniformTargetHint = uniformTargetViolation ? invalidHintFor(uniformTargetViolation.code) : undefined;
@@ -794,8 +798,10 @@ export function ExecutionParametersSheet({
 
   /**
    * PRE-5 story 2.8 (FR-8, QR-1, AD-27) : croix de la phase d'identité `phaseId`, sur le modèle
-   * de `handleRemove`. Sans surface ouverte : `removeWorkPhase` (refusé à deux phases) et
-   * « Phase supprimée — Annuler ». Sinon l'appui range la surface ouverte sans retirer.
+   * de `handleRemove`. Sans surface ouverte : `removeWorkPhase` et « Phase supprimée — Annuler ».
+   * Sinon l'appui range la surface ouverte sans retirer. PRE-7 (A1.1, D-438) : le domaine permet le
+   * retrait à deux phases (2 → Sans) ; seule l'interface garde la croix indisponible à deux phases
+   * (`WorkPhasesTable`) jusqu'à A2.1.
    */
   function handleRemovePhase(phaseId: number) {
     setIsTableSelected(false);
@@ -1729,7 +1735,8 @@ export function ExecutionParametersSheet({
       );
     }
     const text = secondsLabel(phase.durationSeconds);
-    const missing = phase.durationSeconds === null;
+    // PRE-7 (A1.1, D-438) : une durée à 0 s est non renseignée comme « — » ; elle bloque ✓ et sa cellule le signale.
+    const missing = phase.durationSeconds === null || phase.durationSeconds < 1;
     return (
       <KeyboardField
         {...common}

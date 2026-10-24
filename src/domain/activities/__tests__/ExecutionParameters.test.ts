@@ -785,6 +785,46 @@ describe("PRE5-1.1/AC5 — invariant des phases (AD-20, FR-1, FR-3, FR-40)", () 
   });
 });
 
+describe("PRE7-A1.1 — durée de phase manquante (D-438, MFN-02, MFN/AC15)", () => {
+  it("une durée 0 est non renseignée : REQUIRED workPhases portant son phaseId, une par phase, à tous les niveaux", () => {
+    const input = withPhases([
+      { id: 4, label: "a", durationSeconds: 9 },
+      { id: 7, label: "b", durationSeconds: 0 },
+      { id: 2, label: "c", durationSeconds: 0 },
+    ]);
+    for (const baseline of ["STORAGE", null, input] as const) {
+      expect(violations(input, baseline)).toEqual([
+        { code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 7 },
+        { code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 2 },
+      ]);
+    }
+  });
+
+  it("une forme invalide prime sur une durée manquante ; une durée négative n'est pas « manquante »", () => {
+    const negative = withPhases([
+      { id: 1, label: "a", durationSeconds: 0 },
+      { id: 2, label: "b", durationSeconds: -1 },
+      { id: 3, label: "c", durationSeconds: 6 },
+    ]);
+    expect(violations(negative, "STORAGE")).toEqual([{ code: "OUT_OF_RANGE", field: "workPhases", level: "STRUCTURE" }]);
+    const blank = withPhases([
+      { id: 1, label: "a", durationSeconds: 0 },
+      { id: 2, label: " ", durationSeconds: 3 },
+    ]);
+    expect(violations(blank, "STORAGE")).toEqual([{ code: "OUT_OF_RANGE", field: "workPhases", level: "STRUCTURE" }]);
+  });
+
+  it("readV3 refuse toujours une durée 0 stockée : aucun effacement ni complément silencieux", () => {
+    const json = serializeExecutionParameters(
+      withPhases([
+        { id: 1, label: "a", durationSeconds: 6 },
+        { id: 2, label: "b", durationSeconds: 0 },
+      ]),
+    );
+    expect(readable(json)).toBe(false);
+  });
+});
+
 function readable(json: string): boolean {
   try {
     readV3(json);

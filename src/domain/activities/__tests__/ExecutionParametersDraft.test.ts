@@ -1354,7 +1354,7 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       expect(deriveSeriesDuration({ ...draft, uniform: { ...draft.uniform, target: unsetTarget() } }).uniform.target).toEqual(numberTarget(6));
     });
 
-    it("phase seule relue des données : D redérivée dès que la liste est non vide ; Sans garde D ; null puis ✓ n'invente rien", () => {
+    it("phase seule relue des données : D redérivée dès que la liste est non vide ; Sans garde D ; null puis ✓ refusé, phase conservée (D-438)", () => {
       const parent = parameters({
         kind: "UNIFORM",
         count: 3,
@@ -1371,9 +1371,15 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       const result = sheetDraftResult(emptied, phaseLabel);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.violations.map((violation) => violation.field)).toEqual(["target"]);
+        // PRE-7 (D-438) : la phase n'est plus retirée ; sa durée manquante est signalée par son identité.
+        expect(result.violations).toEqual([
+          { code: "REQUIRED", field: "target", level: "STRUCTURE" },
+          { code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 1 },
+        ]);
       }
-      expect(normalizeWorkPhases(emptied, phaseLabel).uniform.target).toEqual(unsetTarget());
+      const normalized = normalizeWorkPhases(emptied, phaseLabel);
+      expect(normalized.uniform.target).toEqual(unsetTarget());
+      expect(normalized.workPhases).toEqual([{ id: 1, label: "Seule", durationSeconds: null }]);
     });
 
     it("aucun calcul de la dernière phase sur le restant : modifier une phase ne change pas les autres", () => {
@@ -1430,11 +1436,58 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       expect(restored.pendingRemoval).toBeNull();
     });
 
-    it("(QR-1) la croix est refusée à deux phases ; identité inconnue refusée", () => {
-      const two = withPhases([6, 3]);
-      expect(removeWorkPhase(two, 1)).toBe(two);
+    it("(D-438, remplace D-371 et D-432 pour le retrait) croix à deux phases : Sans, la durée restante devient la durée de série ; annulation restitue les deux phases", () => {
+      const two = setWorkPhaseLabel(setWorkPhaseLabel(withPhases([9, 4]), 1, "Descente"), 2, "Montée");
+      const sans = removeWorkPhase(two, 2);
+      expect(sans.workPhases).toEqual([]);
+      expect(sans.uniform.target).toEqual(numberTarget(9));
+      expect(sans.pendingRemoval).toEqual({
+        kind: "phase",
+        index: 1,
+        phase: { id: 2, label: "Montée", durationSeconds: 4 },
+        clearedPhases: two.workPhases,
+      });
+      expect(committed(sans).series).toEqual(uniform(3, 9, 15));
+      const restored = undoRemoval(sans);
+      expect(restored.workPhases).toEqual(two.workPhases);
+      expect(restored.uniform.target).toEqual(numberTarget(13));
+      expect(restored.pendingRemoval).toBeNull();
+      // Retrait de la première : la seconde, restante, donne la durée de série.
+      expect(removeWorkPhase(two, 1).uniform.target).toEqual(numberTarget(4));
+    });
+
+    it("(D-438) croix à deux phases avec une durée restante non renseignée : Sans, durée de série à renseigner (UNSET)", () => {
+      const sans = removeWorkPhase(withPhases([9, null]), 1);
+      expect(sans.workPhases).toEqual([]);
+      expect(sans.uniform.target).toEqual(unsetTarget());
+      expect(durations(undoRemoval(sans))).toEqual([9, null]);
+    });
+
+    it("(D-438) croix à deux phases avec une durée restante à 0 : Sans, durée de série à renseigner (UNSET)", () => {
+      const sans = removeWorkPhase(withPhases([9, 0]), 1);
+      expect(sans.workPhases).toEqual([]);
+      expect(sans.uniform.target).toEqual(unsetTarget());
+    });
+
+    it("(Q29) après 2 → Sans, une autre modification invalide l'annulation : undoRemoval laisse le Brouillon inchangé", () => {
+      const sans = removeWorkPhase(withPhases([9, 4]), 2);
+      expect(sans.pendingRemoval).not.toBeNull();
+      for (const next of [setUniformTarget(sans, numberTarget(20)), setMode(sans, "REPETITIONS")]) {
+        expect(next).not.toBe(sans);
+        expect(next.pendingRemoval).toBeNull();
+        expect(undoRemoval(next)).toBe(next);
+      }
+    });
+
+    it("phase seule relue des données : la croix est refusée (Sans reste le geste) ; identité inconnue refusée ; stepper toujours borné à 2", () => {
+      const single = openSheetDraft(
+        parameters({ kind: "UNIFORM", count: 3, target: numberTarget(9), pauseSeconds: 15, loadKg: 0, workPhases: [{ id: 1, label: "Seule", durationSeconds: 9 }] }),
+      );
+      expect(removeWorkPhase(single, 1)).toBe(single);
       const three = labelled();
       expect(removeWorkPhase(three, 99)).toBe(three);
+      const two = withPhases([6, 3]);
+      expect(setWorkPhaseCount(two, 1)).toBe(two);
     });
 
     it("une seule annulation en attente : un nouveau retrait remplace la précédente", () => {
@@ -1477,7 +1530,8 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       const removed = removeWorkPhase(labelled(), 2);
       expect(setStopCondition(removed, "FAILURE")).toBe(removed);
       expect(setMode(removed, "REPETITIONS")).toBe(removed);
-      expect(removeWorkPhase(removed, 1)).toBe(removed);
+      // PRE-7 (D-438) : la croix est permise à deux phases ; une identité inconnue reste refusée.
+      expect(removeWorkPhase(removed, 99)).toBe(removed);
     });
   });
 
@@ -1510,26 +1564,40 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
     });
   });
 
-  describe("PRE5-2.1/AC5 — normalisation et disponibilité du ✓ (FR-3, FR-9, AD-25)", () => {
-    it("[0, null] : liste revenue à « Aucune », la validation de la durée seule décide ; aucune durée inventée (QR-2)", () => {
+  describe("PRE5-2.1/AC5 — normalisation et disponibilité du ✓ (FR-9, AD-25 ; D-438 remplace D-373 et écarte le nettoyage FR-3/FR-9/AD-20)", () => {
+    it("[0, null] : phases conservées, durées non renseignées ; ✓ refusé par phase et par Cible ; aucune durée inventée (D-438, MFN/AC15)", () => {
       const draft = withPhases([0, null]);
       const normalized = normalizeWorkPhases(draft, phaseLabel);
-      expect(normalized.workPhases).toEqual([]);
+      expect(durations(normalized)).toEqual([0, null]);
+      expect(labels(normalized)).toEqual(["Phase 1", "Phase 2"]);
       expect(normalized.uniform.target).toEqual(unsetTarget());
       const result = sheetDraftResult(draft, phaseLabel);
       expect(result.ok).toBe(false);
       if (!result.ok) {
-        expect(result.violations.map((violation) => violation.field)).toEqual(["target"]);
+        expect(result.violations).toEqual([
+          { code: "REQUIRED", field: "target", level: "STRUCTURE" },
+          { code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 1 },
+          { code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 2 },
+        ]);
       }
+      expect(draft.workPhases).toHaveLength(2);
     });
 
-    it("[9, null] : une seule phase reste, l'Exercice passe à Sans avec une durée de série de 9 s (QR-2, D-371)", () => {
-      const result = sheetDraftResult(withPhases([9, null]), phaseLabel);
-      expect(result).toEqual({ ok: true, value: expect.objectContaining({ series: uniform(3, 9, 15) }) });
+    it("[9, null] : ✓ refusé, la phase vide est conservée ; aucun passage implicite à Sans (D-438, MFN/AC25)", () => {
+      const draft = withPhases([9, null]);
+      const result = sheetDraftResult(draft, phaseLabel);
+      expect(result).toEqual({ ok: false, violations: [{ code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 2 }] });
+      expect(durations(normalizeWorkPhases(draft, phaseLabel))).toEqual([9, null]);
+      expect(sheetDraftResult(setWorkPhaseDuration(draft, 2, 4), phaseLabel).ok).toBe(true);
     });
 
-    it("somme normalisée de 3 536 s : ✓ indisponible, violation workPhases portant les bornes de la somme", () => {
-      const result = sheetDraftResult(withPhases([3000, 536, 0]), phaseLabel);
+    it("[6, 0, 3] : ✓ refusé pour la seule phase à 0, conservée (D-438)", () => {
+      const result = sheetDraftResult(withPhases([6, 0, 3]), phaseLabel);
+      expect(result).toEqual({ ok: false, violations: [{ code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 2 }] });
+    });
+
+    it("somme de 3 536 s : ✓ indisponible, violation workPhases portant les bornes de la somme ; une durée manquante prime", () => {
+      const result = sheetDraftResult(withPhases([3000, 536]), phaseLabel);
       expect(result.ok).toBe(false);
       if (!result.ok) {
         expect(result.violations).toContainEqual({
@@ -1539,21 +1607,35 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
           details: { min: 1, max: 3535 },
         });
       }
+      const missing = sheetDraftResult(withPhases([3000, 536, 0]), phaseLabel);
+      expect(missing.ok).toBe(false);
+      if (!missing.ok) {
+        const phaseViolations = missing.violations.filter((violation) => violation.field === "workPhases");
+        expect(phaseViolations).toEqual([{ code: "REQUIRED", field: "workPhases", level: "STRUCTURE", phaseId: 3 }]);
+      }
       expect(sheetDraftResult(withPhases([3000, 535]), phaseLabel).ok).toBe(true);
     });
 
-    it("phases à 0 ou à renseigner retirées sans message ; libellé vide → « Phase n » selon la position finale ; D redérivée", () => {
+    it("libellé vide → « Phase n » selon la position ; aucune phase retirée ; D redérivée (D-438, MFN/AC27)", () => {
       let draft = withPhases([6, 0, 3, null]);
-      draft = setWorkPhaseLabel(draft, 2, "Retirée");
+      draft = setWorkPhaseLabel(draft, 2, "Conservée");
       draft = setWorkPhaseLabel(draft, 3, "   ");
-      const result = sheetDraftResult(draft, phaseLabel);
+      const refused = sheetDraftResult(draft, phaseLabel);
+      expect(refused.ok).toBe(false);
+      if (!refused.ok) {
+        expect(refused.violations.map((violation) => violation.phaseId)).toEqual([2, 4]);
+      }
+      expect(labels(normalizeWorkPhases(draft, phaseLabel))).toEqual(["Phase 1", "Conservée", "Phase 3", "Phase 4"]);
+      const result = sheetDraftResult(setWorkPhaseDuration(setWorkPhaseDuration(draft, 2, 2), 4, 1), phaseLabel);
       expect(result.ok).toBe(true);
       if (result.ok && result.value.series.kind === "UNIFORM") {
         expect(result.value.series.workPhases).toEqual([
           { id: 1, label: "Phase 1", durationSeconds: 6 },
-          { id: 3, label: "Phase 2", durationSeconds: 3 },
+          { id: 2, label: "Conservée", durationSeconds: 2 },
+          { id: 3, label: "Phase 3", durationSeconds: 3 },
+          { id: 4, label: "Phase 4", durationSeconds: 1 },
         ]);
-        expect(result.value.series.target).toEqual(numberTarget(9));
+        expect(result.value.series.target).toEqual(numberTarget(12));
       }
     });
 

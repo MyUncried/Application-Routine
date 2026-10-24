@@ -64,6 +64,14 @@ export type ActivityDefinition = {
    * sans Catégorie — toujours défini en pratique par le Repository.
    */
   readonly categoryId?: string;
+  /**
+   * PRE-7 (A1.1, D-437, MFN-01, MFN-03) : relation ACTIVE vers le Mouvement
+   * (`Movement.ts`) dont l'Exercice porte les paramètres — non nulle, avec
+   * intégrité réelle dans le nouveau modèle. OPTIONNELLE sur ce type LU
+   * seulement jusqu'à la colonne `movement_id` de la migration 012 (A1.2), même
+   * patron de transition que `categoryId` ; A1.2 la rend obligatoire.
+   */
+  readonly movementId?: string;
   /** Zones corporelles — collection non vide, distincte (plan §4). */
   readonly bodyZoneIds: readonly string[];
   /** Direction de l'Exercice, égale à `executionParameters.sideMode` (relue des paramètres). */

@@ -434,19 +434,28 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect([shownLabel(1), shownLabel(2)]).toEqual(["Phase 1", "Phase 2"]);
   });
 
-  it("PRE5-2.8/AC7 (FR-9, QR-2) — ✓ avec [9, —] et libellés vides : Sans, cible 9 s, aucune phase", () => {
+  it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées, « — » seul signalé", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(get(WITH));
-    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
-    expect(applied(onApply).series).toEqual({
-      kind: "UNIFORM",
-      count: 3,
-      target: numberTarget(9),
-      pauseSeconds: 15,
-      loadKg: 0,
-      workPhases: [],
-    });
+    expect(onApply).not.toHaveBeenCalled();
+    expect(phaseRows()).toHaveLength(2);
+    expect([shownDuration(1), shownDuration(2)]).toEqual(["9 s", "—"]);
+    // La cause est visible sur la seule cellule « — » ; « Durée d'une série » n'est pas marquée.
+    expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
+    expect(styleOf(duration(1)).backgroundColor).toBeUndefined();
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 9 s, ${t.totalReadOnlySpoken}`);
+  });
+
+  it("PRE7-A1.1 (D-438) — phase relue à 0 s : cellule marquée comme « — », ✓ indisponible (une saisie de 0 donne 1 s)", () => {
+    renderSheet(withPhases([["A", 6], ["B", 0]]));
+    expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
+    expect(styleOf(duration(1)).backgroundColor).toBeUndefined();
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 6 s, ${t.totalReadOnlySpoken}`);
+    enterDuration(2, "3");
+    expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
   it("PRE5-2.8/AC7 (FR-9, QN-3) — ✓ avec [6 « », 3 « Maintien »] : phases « Phase 1 » 6 s et « Maintien » 3 s, cible 9 s", () => {
