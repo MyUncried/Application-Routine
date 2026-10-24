@@ -1,5 +1,8 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Décision complémentaire validée par Hermann : v5 définitive du 24/10, intégrée le 25/10/2026. Elle amende D-437/D-438 pour les alias et le crayon de contenu partagé, D-439 pour le choix de difficulté et le rang courant, D-165 pour le tri global des sélections. D-221, RM-221 et RM-013 sont retirées au profit de v5 R06. Les mentions historiques contraires ci-dessous sont supersédées dans cette seule portée. D-440 (base vierge, sans migration) reste applicable.
+
+
 # Format
 
 ### D-436 — Orientation produit : fitness first

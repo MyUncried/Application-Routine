@@ -1,5 +1,8 @@
 # Parcours utilisateur
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Création : recherche automatique sur nom et alias, reprise/variante/indépendant sans attribution implicite. Variante : choix Plus facile que X / Plus difficile que X. Catalogue : paramètres directement éditables, contenu partagé accessible par le seul crayon Modifier le geste. Insertion : recherche et filtres avec sélection persistante. Changement de niveau en séance : remplacement explicite, paramètres repris, phases selon les quatre cas de v5 §8.
+
+
 ## Sommaire
 
 - [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)

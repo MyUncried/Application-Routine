@@ -1,5 +1,8 @@
 # Contrats d’écran
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). CE-T03-02/04 : commande Niveau vide, choix de difficulté, alias et crayon du contenu partagé en création sur geste repris ET en édition Catalogue ; paramètres directement éditables. CE-T03-04 : recherche R02–R05 et avertissement N08 non bloquant. CE-T03-07 : recherche et filtres Catégorie/Zones, sélection conservée entre requêtes, compteur global, ordre Catalogue puis date de création et ID croissants. CE-T03-08/CE-UI-10 : changer de niveau remplace la copie avec nouvelle filiation ; reprend paramètres et contexte sans nouveau verrou, selon les quatre cas de phases v5 §8. Suivi : contenu figé, classification actuelle résoluble ; pas de rang sur les lignes compactes 1992:8996. Recette : R07 automatique en CI ; vérifier les quatre transitions de phases, annulation atomique, sélection masquée, rang après réordre et absence de mutation historique.
+
+
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
 
 > **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette.
@@ -728,7 +731,7 @@ Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archiv
 
 #### 12. Contrôles et interactions
 
-Créer une variante/un niveau est accessible depuis le popover de niveau de la fiche : « Changer de niveau / Ajouter un niveau » (`9577:19843`). Aucun Nouveau niveau dans les actions glissées : conserver Planifier / Dupliquer / Archiver (D-196). Nouveau niveau immédiatement après l’origine, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
+Créer une variante/un niveau est accessible depuis le popover de niveau de la fiche : « Changer de niveau / Ajouter un niveau » (`9577:19843`). Aucun Nouveau niveau dans les actions glissées : conserver Planifier / Dupliquer / Archiver (D-196). Nouveau niveau avant/après l’origine selon la difficulté déclarée, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
 
 Surface carte = ouvrir/modifier ; Lecture = exécution directe. Aucun contrôle Déployer, visible ou invisible, quel que soit le média. La gouttière existe toujours ; le booléen Photo ne change que son contenu. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
 
@@ -1372,7 +1375,7 @@ Règles applicables : RM-095, RM-113, RM-163, RM-192, RM-209 (rattachement docum
 
 #### 2. Finalité fonctionnelle
 
-Choisir plusieurs définitions actives puis copier dans le brouillon de Séance selon leur ordre de liste, pas l’ordre des touchers.
+Choisir plusieurs définitions actives puis copier selon le tri du Catalogue appliqué à toute la sélection, puis createdAt et identifiant croissants, indépendamment des requêtes et des touchers.
 
 #### 3. Contexte d’entrée
 
@@ -1386,7 +1389,7 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 D-437/D-439 : regroupement par geste, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
 
-Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Aucun filtre/recherche supplémentaire n’est exposé par cette modale de référence ; les règles de filtres Catalogue ne créent pas ici un contrôle. Il n’existe donc pas de sélection cachée par un filtre local.
+Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Recherche textuelle et filtres Catégorie/Zones selon v5 §7 ; les sélections masquées sont conservées et incluses au compteur.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
@@ -1410,7 +1413,7 @@ Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intér
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-360/402/440 ; aucune recherche ; validation reste accessible ; lignes s’étendent pour texte ; scroll indépendant.
+360/402/440 ; recherche avec clavier ; validation reste accessible ; lignes s’étendent pour texte ; scroll indépendant.
 
 #### 11. États de l’écran
 
@@ -1418,7 +1421,7 @@ Liste vide ; 0/1/N sélection ; Sélectionner désactivé/actif ; copie en cours
 
 #### 12. Contrôles et interactions
 
-Toucher ligne/case sélectionne ou désélectionne le même ID. Sélectionner produit une seule insertion groupée. Fermer annule toute sélection transitoire. Ni réordre ni filtre local ni action Créer un exercice ne sont ajoutés.
+Toucher ligne/case sélectionne ou désélectionne le même ID. Sélectionner produit une seule insertion groupée. Fermer annule toute sélection transitoire. Recherche et filtres locaux autorisés ; aucun réordre manuel ni action Créer un exercice ajouté.
 
 #### 13. Gestes
 
@@ -1426,7 +1429,7 @@ Tap et scroll uniquement. Aucun drag/reorder.
 
 #### 14. Validation
 
-N>0 et toutes définitions encore disponibles avant insertion. L’ordre final est l’ordre de liste des IDs sélectionnés. Une disparition invalide cette soumission, actualise sélection/compteur et demande une nouvelle validation explicite.
+N>0 et toutes définitions encore disponibles avant insertion. L’ordre final suit v5 §7 : tri Catalogue, date de création croissante, identifiant croissant. Une disparition invalide cette soumission, actualise sélection/compteur et demande une nouvelle validation explicite.
 
 #### 15. Brouillon et persistance
 
@@ -1450,7 +1453,7 @@ Ordre liste et non touchers ; copies indépendantes ; zéro sélection interdit 
 
 #### 20. Recette déterministe
 
-Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier aucun badge/lecture/déploiement/création/recherche/filtre local ; vignette, texte long, cadre de coupe à 8 px de la case, clavier non requis.
+Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fermeture sans effet, double tap, suppression de source avant validation, rollback total, modification indépendante des copies. Vérifier recherche, filtres et sélection conservée ; aucun badge durée/lecture/déploiement/création ; vignette, texte long, cadre de coupe à 8 px de la case, clavier de recherche pris en charge.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
@@ -4150,7 +4153,7 @@ Enregistrer avec Ressenti valide sauvegarde puis restaure le Catalogue ou le Cal
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
+D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
@@ -4242,7 +4245,7 @@ Navigation globale ; aucun déploiement de carte. Pas de dépendance à l’Acti
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
+D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
@@ -4340,7 +4343,7 @@ Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni so
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 : le nom affiché provient de la copie figée dans l’instantané. Ne jamais afficher le rang ou le total des niveaux, ni relire le mouvement ou le groupe pour nommer une exécution passée. Aucun champ de rang historique.
+D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 

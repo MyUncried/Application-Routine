@@ -1,5 +1,8 @@
 # Modèle fonctionnel
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Alias sur le geste ; rang courant dérivé du groupe. La filiation immuable permet statistiques, résolution facultative de la classification actuelle et choix de niveau. La consultation de la source ne modifie jamais les copies ni les instantanés ; leur contenu reste autonome.
+
+
 ## Sommaire
 
 - [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
