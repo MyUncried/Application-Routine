@@ -76,7 +76,14 @@ function useBodyZonesReferential(
  * `ActivityDefinition` n'est créée ni modifiée par ce parcours.
  *
  * L'ordre d'insertion suit l'ordre COURANT de présentation de la liste au
- * moment de la validation — jamais l'ordre des touchers (plan §4.4).
+ * moment de la validation — jamais l'ordre des touchers (plan §4.4). PRE-7
+ * (A4.1, D-439, CE-T03-07 §5) : cet ordre est l'ordre regroupé par geste de
+ * `useActivityCatalogue` ; chaque `SelectionRow` désigne une définition
+ * précise (aucune ligne de groupe), dont la copie reçoit le contenu résolu et
+ * `sourceMovementId` (`activityDefinitionToDraftExercise`). Un frère
+ * incomplet reste sélectionnable : son résumé « Paramètres à compléter. »
+ * le signale, et `Continuer` reste inactif en Composition tant que
+ * l'occurrence n'est pas complétée (D-389 : aucun message supplémentaire).
  */
 export function ActivitySelectionScreen() {
   const router = useRouter();

@@ -12,10 +12,10 @@ import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue
 // le wrapper de contexte utilise `React.createElement` plutôt que la syntaxe
 // JSX, qui ne serait pas transformée dans un fichier `.ts`.
 
-function makeDefinition(id: string): ActivityDefinition {
+function makeDefinition(id: string, movementId = "mov-1"): ActivityDefinition {
   return {
     id,
-    movementId: "mov-1",
+    movementId,
     name: `Activité ${id}`,
     description: null,
     executionParameters: durationParameters(30),
@@ -74,6 +74,45 @@ describe("useActivityCatalogue", () => {
 
     await waitFor(() => expect(result.current.state.status).toBe("ready"));
     expect(result.current.state).toEqual({ status: "ready", definitions });
+  });
+
+  // PRE-7 A4.1 (D-439, MFN-10, CE-T03-02 §5) : ordre regroupé par geste, aplati.
+  it("groups interleaved movements by first appearance and keeps the listed order within a movement", async () => {
+    const listed = [
+      makeDefinition("a1", "mov-a"),
+      makeDefinition("b1", "mov-b"),
+      makeDefinition("a2", "mov-a"),
+      makeDefinition("c1", "mov-c"),
+      makeDefinition("b2", "mov-b"),
+      makeDefinition("a3", "mov-a"),
+    ];
+    const service: Partial<ActivityDefinitionService> = {
+      listActivityDefinitions: jest
+        .fn<ActivityDefinitionService["listActivityDefinitions"]>()
+        .mockResolvedValue(listed),
+    };
+    const { result } = renderHook(() => useActivityCatalogue(), {
+      wrapper: makeWrapper(service),
+    });
+
+    act(() => {
+      result.current.reload();
+    });
+
+    await waitFor(() => expect(result.current.state.status).toBe("ready"));
+    const state = result.current.state;
+    expect(state.status === "ready" && state.definitions.map((definition) => definition.id)).toEqual([
+      "a1",
+      "a2",
+      "a3",
+      "b1",
+      "b2",
+      "c1",
+    ]);
+    // Chaque définition reste un élément propre (aucune ligne de groupe, aucun alias).
+    expect(state.status === "ready" && state.definitions).toEqual(
+      ["a1", "a2", "a3", "b1", "b2", "c1"].map((id) => listed.find((definition) => definition.id === id)),
+    );
   });
 
   it("reaches error when the service rejects", async () => {

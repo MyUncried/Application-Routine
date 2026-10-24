@@ -15,8 +15,12 @@ export type ActivityCatalogueListProps = {
  * Corps du segment `Activités` du Catalogue (V2-CAT-01, plan §4.1/§7 étape 5)
  * — mêmes quatre états que `CatalogueScreen` (`loading`/`empty`/`error`/
  * `ready`), rendus indépendamment de la navigation (fournie par l'écran
- * hôte). La liste est déjà triée par `updatedAt DESC` par le Repository —
- * jamais retriée ici.
+ * hôte). La liste arrive dans l'ordre regroupé par geste de
+ * `useActivityCatalogue` (PRE-7 A4.1, D-439, CE-T03-02 §5 : groupes dans
+ * l'ordre `updatedAt DESC` du Repository) — jamais retriée ici. Chaque
+ * définition garde sa propre `ActivityCard` et son résumé ; le regroupement
+ * n'est rendu que par la contiguïté des cartes (aucun en-tête de groupe,
+ * `NON VÉRIFIABLE`, ch13 l.157).
  */
 export function ActivityCatalogueList({
   state,

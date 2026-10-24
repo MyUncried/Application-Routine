@@ -75,3 +75,6 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-2-consultation-reordonnancement-niveaux.md`
   summary: Gardes « aucune navigation pendant une écriture en vol » d'`ExerciseScreen` (`onChangeLevel`, `onAddLevel` d'A3.1, `onReorderLevels` d'A3.2) non couvertes par un test.
   evidence: revue A3.2 (lacunes de vérification) ; un test d'intégration commun, `Terminer` ralenti par une écriture différée puis appui sur chaque entrée du popover, couvrirait les trois.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a4-1-catalogue-par-geste-selection.md`
+  summary: Report A2.1 « frère incomplet sélectionnable pour une Séance, refusé seulement à l'enregistrement » traité par A4.1 (option conservatrice, à valider par Hermann) — le frère reste sélectionnable (définition active, durées = paramètres modifiables de l'occurrence, MFN-02, MFN-09), signalé par le résumé existant « Paramètres à compléter. » sur la carte de choix puis sur l'occurrence ; `Continuer` reste inactif tant qu'il n'est pas complété ; aucun message supplémentaire (D-389).
+  evidence: `useActivityCatalogue.ts` (ordre regroupé), `ActivitySelectionScreen.tsx` (`SelectionRow` inchangé) ; tests `features/activities/__tests__/catalogueByMovement.a41.test.tsx`. Alternative non retenue : exclure le frère de la modale. Le lancement reste réservé aux Exercices exécutables.

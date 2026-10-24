@@ -45,7 +45,7 @@ describe("ActivityCatalogueList", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it("renders every definition in the order provided (updatedAt DESC upstream)", () => {
+  it("renders every definition in the order provided, without reordering (grouping is done by the hook, A4.1)", () => {
     const definitions = [makeDefinition("b"), makeDefinition("a")];
     render(
       <ActivityCatalogueList

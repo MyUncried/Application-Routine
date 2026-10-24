@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import { groupDefinitionsByMovement } from "@/domain/activities/ActivityDefinition";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 
 /**
@@ -11,6 +12,14 @@ import { useActivityDefinitionService } from "@/features/activities/ActivityDefi
  * `useFocusEffect`, et à l'activation du segment). N'importe ni
  * `SqliteActivityDefinitionRepository`, ni `Database`, ni `expo-sqlite` — le
  * seul point d'accès aux données est `useActivityDefinitionService()`.
+ *
+ * PRE-7 (A4.1, D-439, MFN-10 ; CE-T03-02 §5, CE-T03-07 §5) : `definitions`
+ * porte l'ordre regroupé par geste, aplati — groupes dans l'ordre de première
+ * apparition de la liste `updatedAt DESC` du Repository, définitions d'un
+ * groupe dans cet ordre (`groupDefinitionsByMovement`, A1.3). Le Catalogue et
+ * la modale « Sélection des exercices » affichent cet ordre, chaque définition
+ * gardant sa propre carte et son résumé : aucune ligne de groupe n'existe,
+ * rien ne se lance ni ne s'insère sans désigner une définition précise.
  */
 export type ActivityCatalogueState =
   | { status: "loading" }
@@ -57,7 +66,9 @@ export function useActivityCatalogue(): UseActivityCatalogueResult {
           return;
         }
         setState(
-          definitions.length === 0 ? { status: "empty" } : { status: "ready", definitions },
+          definitions.length === 0
+            ? { status: "empty" }
+            : { status: "ready", definitions: groupedByMovement(definitions) },
         );
       },
       (error: unknown) => {
@@ -71,4 +82,16 @@ export function useActivityCatalogue(): UseActivityCatalogueResult {
   }, [activityDefinitionService]);
 
   return { state, reload, cancelPending };
+}
+
+/**
+ * Ordre regroupé par geste, aplati (A4.1) ; aucun retri au sein d'un groupe.
+ * Reproduit exactement `ActivityDefinitionService.listActivityDefinitionsByMovement`
+ * (même fonction de domaine `groupDefinitionsByMovement` sur la même liste) :
+ * les deux doivent rester alignés.
+ */
+function groupedByMovement(
+  definitions: readonly ActivityDefinition[],
+): readonly ActivityDefinition[] {
+  return groupDefinitionsByMovement(definitions).flatMap((group) => group.definitions);
 }
