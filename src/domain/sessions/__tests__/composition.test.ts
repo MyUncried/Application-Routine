@@ -355,7 +355,8 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
 
   it("copies every parameter and association of the source, Récupération attachée included", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
-    expect(next[2]).toEqual({ ...activities[1], id: "copy-1", name: "Gainage (copie)" });
+    // PRE-7 (A1.3) : source locale non enregistrée → filiation pré-allouée (identifiant de la source).
+    expect(next[2]).toEqual({ ...activities[1], id: "copy-1", name: "Gainage (copie)", sourceMovementId: "in-1", pendingLocalMovement: true });
     expect(next[2]?.postActivityRecoverySeconds).toBe(90);
     expect(next[2]?.executionParameters).toEqual(durationParameters(45, 3, 20));
     // AD-9 : clonage profond — aucune référence partagée des paramètres.

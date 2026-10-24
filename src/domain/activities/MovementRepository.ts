@@ -72,16 +72,14 @@ export interface MovementRepository {
 }
 
 /**
- * PRE-7 (A1.2, frontière A1.3) : une mise à jour d'Exercice qui changerait
- * l'ensemble des phases d'un Mouvement PARTAGÉ (référencé par plusieurs
- * définitions) est refusée, sans écriture, en attendant la correction partagée
- * atomique de A1.3 (MFN-08 : durées par `phaseId`, frères incomplets). Le
- * contenu partagé (nom, description, médias, Catégorie, Zones, libellés et
- * ordre des phases) reste modifiable.
+ * PRE-7 (A1.3) : Mouvement désigné par une origine de création (même geste,
+ * variante) introuvable — entrée invalide, rien n'est écrit. La garde
+ * provisoire d'A1.2 (`SharedMovementStructureError`) est levée au profit de
+ * la correction partagée explicite (`sharedCorrection.ts`).
  */
-export class SharedMovementStructureError extends Error {
-  constructor() {
-    super("The phase set of a shared movement cannot be changed outside a shared correction.");
-    this.name = "SharedMovementStructureError";
+export class MovementNotFoundError extends Error {
+  constructor(readonly movementId: string) {
+    super("The referenced movement does not exist.");
+    this.name = "MovementNotFoundError";
   }
 }

@@ -476,38 +476,61 @@ export class SqliteMovementRepository implements MovementRepository {
   private async join(movementId: string, originId: string, placement: "END" | "AFTER_ORIGIN"): Promise<MovementGroupOutcome> {
     let outcome: MovementGroupOutcome = { status: "NOT_FOUND" };
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
-      if (movementId === originId) {
-        outcome = { status: "INVALID_ORDER" };
-        return;
-      }
-      const movement = await transaction.getFirstAsync<{ level_group_id: string | null }>(
-        "SELECT level_group_id FROM movements WHERE id = ?",
-        [movementId],
-      );
-      const origin = await transaction.getFirstAsync<{ level_group_id: string | null }>(
-        "SELECT level_group_id FROM movements WHERE id = ?",
-        [originId],
-      );
-      if (!movement || !origin) {
-        return;
-      }
-      if (movement.level_group_id !== null && movement.level_group_id !== origin.level_group_id) {
-        outcome = { status: "ALREADY_IN_GROUP" };
-        return;
-      }
-      const groupId = origin.level_group_id ?? this.uuidFactory();
-      const members = origin.level_group_id === null ? [originId] : await groupMemberIds(transaction, groupId);
-      const others = members.filter((id) => id !== movementId);
-      const originIndex = others.indexOf(originId);
-      const ordered =
-        placement === "END"
-          ? [...others, movementId]
-          : [...others.slice(0, originIndex + 1), movementId, ...others.slice(originIndex + 1)];
-      await writeGroupOrder(transaction, groupId, ordered, this.now());
-      outcome = { status: "OK", members: await this.readGroup(transaction, groupId) };
+      const joined = await joinMovementGroup(transaction, movementId, originId, placement, this.uuidFactory, this.now());
+      outcome = joined.status === "OK" ? { status: "OK", members: await this.readGroup(transaction, joined.groupId) } : joined;
     });
     return outcome;
   }
+}
+
+/** Issue de `joinMovementGroup` : identifiant du groupe rejoint, ou cas attendu de refus. */
+export type JoinMovementGroupOutcome =
+  | { readonly status: "OK"; readonly groupId: string }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "ALREADY_IN_GROUP" }
+  | { readonly status: "INVALID_ORDER" };
+
+/**
+ * Rattachement dans la transaction COURANTE (MFN-05, MFN-07) — réutilisé par
+ * `SqliteMovementRepository` et par la création d'une variante rattachée
+ * (`SqliteActivityDefinitionRepository`, même transaction que la création).
+ * L'identifiant d'un groupe nouveau n'est consommé qu'après les refus.
+ */
+export async function joinMovementGroup(
+  transaction: Database,
+  movementId: string,
+  originId: string,
+  placement: "END" | "AFTER_ORIGIN",
+  uuidFactory: UuidFactory,
+  timestamp: string,
+): Promise<JoinMovementGroupOutcome> {
+  if (movementId === originId) {
+    return { status: "INVALID_ORDER" };
+  }
+  const movement = await transaction.getFirstAsync<{ level_group_id: string | null }>(
+    "SELECT level_group_id FROM movements WHERE id = ?",
+    [movementId],
+  );
+  const origin = await transaction.getFirstAsync<{ level_group_id: string | null }>(
+    "SELECT level_group_id FROM movements WHERE id = ?",
+    [originId],
+  );
+  if (!movement || !origin) {
+    return { status: "NOT_FOUND" };
+  }
+  if (movement.level_group_id !== null && movement.level_group_id !== origin.level_group_id) {
+    return { status: "ALREADY_IN_GROUP" };
+  }
+  const groupId = origin.level_group_id ?? uuidFactory();
+  const members = origin.level_group_id === null ? [originId] : await groupMemberIds(transaction, groupId);
+  const others = members.filter((id) => id !== movementId);
+  const originIndex = others.indexOf(originId);
+  const ordered =
+    placement === "END"
+      ? [...others, movementId]
+      : [...others.slice(0, originIndex + 1), movementId, ...others.slice(originIndex + 1)];
+  await writeGroupOrder(transaction, groupId, ordered, timestamp);
+  return { status: "OK", groupId };
 }
 
 async function groupMemberIds(transaction: Database, groupId: string): Promise<string[]> {

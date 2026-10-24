@@ -255,6 +255,13 @@ export function nextCopyName(name: string, takenNames: Iterable<string>): string
  * noms de la Composition. D-138 (bloc indivisible avec la Récupération) reste
  * respectée : hors nom et identifiant, la copie est identique à sa source.
  *
+ * PRE-7 (A1.3, MFN-03, MFN-09, MFN/AC32) : la filiation est conservée à
+ * l'identique (étalement). Une source créée localement et pas encore
+ * enregistrée n'a pas encore de filiation : la copie reçoit l'identifiant
+ * PRÉ-ALLOUÉ du Mouvement local de la source (l'identifiant de la source,
+ * règle du repository) et `pendingLocalMovement`, pour que les deux
+ * occurrences partagent un seul Mouvement à l'enregistrement.
+ *
  * La source reste inchangée. Un identifiant inconnu retourne la collection
  * inchangée.
  */
@@ -285,6 +292,9 @@ export function duplicateActivity(
     // copie à l'enregistrement). La Récupération existante est conservée.
     executionParameters: cloneExecutionParameters(source.executionParameters),
     ...(source.media ? { media: source.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) } : {}),
+    ...(source.type === "EXERCISE" && (source.sourceMovementId ?? "").trim().length === 0
+      ? { sourceMovementId: source.id, pendingLocalMovement: true as const }
+      : {}),
   };
 
   const next = [...activities];

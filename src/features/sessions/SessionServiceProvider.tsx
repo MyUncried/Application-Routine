@@ -11,6 +11,7 @@ import { SqliteCategoryRepository } from "@/infrastructure/database/repositories
 import { SqliteLabelRepository } from "@/infrastructure/database/repositories/SqliteLabelRepository";
 import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
+import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
 import { SqliteProfileRepository } from "@/infrastructure/database/repositories/SqliteProfileRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -143,6 +144,8 @@ function SessionServiceInitializer({
         importService: new ActivityMediaImportService(new PhotoLibraryPicker(), getLocalMediaStore(), () => Crypto.randomUUID()),
         repository: new SqliteMediaRepository(database),
       },
+      // PRE-7 (A1.3) : lecture du Mouvement pour l'évaluation d'une correction partagée (MFN-08).
+      new SqliteMovementRepository(database),
     );
   }, [nativeDatabase]);
 

@@ -80,6 +80,9 @@ export type ActivityDefinition = {
    * identités des phases à compléter, dans l'ordre de la structure. Ses
    * `executionParameters` portent alors 0 pour ces durées et une Cible `UNSET` ;
    * il reste inexécutable. Absent pour un Exercice exécutable.
+   * PRE-7 (A1.3) : présent mais VIDE pour un frère sans phase dont la durée de
+   * série reste à renseigner (structure retirée par une correction partagée,
+   * complétion passée) — Cible `UNSET`, inexécutable.
    */
   readonly missingPhaseIds?: readonly number[];
   /** Zones corporelles — collection non vide, distincte (plan §4). */
@@ -385,4 +388,35 @@ export function activityDefinitionToDraftExercise(
     bodyZoneIds: [...definition.bodyZoneIds],
     sideMode: definition.executionParameters.sideMode,
   };
+}
+
+/**
+ * PRE-7 (A1.3, MFN-10, ch11 « Exercices regroupés par mouvement ») : Exercices
+ * du Catalogue partageant un même Mouvement (geste). Aucun alias : une ligne
+ * regroupée n'est ni exécutable ni insérable sans désigner une définition
+ * précise (A4.1).
+ */
+export type ActivityDefinitionGroup = {
+  readonly movementId: string;
+  readonly definitions: readonly ActivityDefinition[];
+};
+
+/**
+ * Regroupe des définitions par Mouvement, sans retri : les groupes suivent
+ * l'ordre de première apparition dans `definitions` (la liste du Catalogue,
+ * `updatedAt DESC`), et les définitions d'un groupe gardent cet ordre.
+ */
+export function groupDefinitionsByMovement(
+  definitions: readonly ActivityDefinition[],
+): readonly ActivityDefinitionGroup[] {
+  const groups = new Map<string, ActivityDefinition[]>();
+  for (const definition of definitions) {
+    const members = groups.get(definition.movementId);
+    if (members) {
+      members.push(definition);
+    } else {
+      groups.set(definition.movementId, [definition]);
+    }
+  }
+  return Array.from(groups, ([movementId, members]) => ({ movementId, definitions: members }));
 }

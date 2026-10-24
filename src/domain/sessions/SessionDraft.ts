@@ -154,6 +154,12 @@ export type SessionDraftExercise = {
    * enregistrée (le repository crée alors son Mouvement local).
    */
   readonly sourceMovementId?: string;
+  /**
+   * PRE-7 (A1.3, MFN-04) : copie d'une occurrence locale non enregistrée —
+   * `sourceMovementId` est l'identifiant pré-alloué du Mouvement local de la
+   * source (voir `CreateSessionActivityInput.pendingLocalMovement`).
+   */
+  readonly pendingLocalMovement?: true;
 };
 
 export type SessionDraft = {
@@ -529,6 +535,8 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       : {}),
     // PRE-7 (A1.2, MFN-03) : filiation transportée jusqu'à la transaction de Séance.
     ...(exercise.sourceMovementId !== undefined ? { sourceMovementId: exercise.sourceMovementId } : {}),
+    // PRE-7 (A1.3, MFN-04) : Mouvement local pré-alloué d'une copie non enregistrée.
+    ...(exercise.pendingLocalMovement === true ? { pendingLocalMovement: true as const } : {}),
   };
 }
 

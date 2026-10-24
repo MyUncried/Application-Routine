@@ -633,6 +633,8 @@ async function insertActivities(
   const positionByZone = new Map<StructuralPosition, number>();
   // Q53 : Zones héritables, relevées avant la première insertion.
   const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
+  // PRE-7 (A1.3) : sources locales de cette Séance, qui créent elles-mêmes leur Mouvement.
+  const localSources = localMovementSourceIds(activities);
 
   for (const activity of activities) {
     const zone = activity.structuralPosition;
@@ -649,7 +651,7 @@ async function insertActivities(
     // Zone retirée héritée de sa source (Q53).
     await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set(), inheritedBodyZoneIds);
     await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null, true);
-    const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activityId, activity, timestamp);
+    const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activityId, activity, timestamp, localSources);
 
     await transaction.runAsync(
       `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
@@ -718,7 +720,13 @@ async function replaceOccurrenceMedia(
  *   annule la Séance entière : une création annulée ne laisse aucun Mouvement ;
  * - sans Catégorie ou sans Zone (entrées hors interface, Récupération
  *   historique) : la filiation reçoit l'identifiant de l'occurrence, sans
- *   Mouvement (orpheline admise par MFN-03).
+ *   Mouvement (orpheline admise par MFN-03) ;
+ * - PRE-7 (A1.3) copie d'une occurrence locale non enregistrée
+ *   (`pendingLocalMovement`, filiation pré-allouée = identifiant de la
+ *   source) : écrite telle quelle ; si la source n'est pas enregistrée avec
+ *   cette Séance (`localSources`) et que le Mouvement n'existe pas, la copie
+ *   le crée à cet identifiant depuis son propre contenu (même règle
+ *   d'éligibilité). Ainsi la source et ses copies partagent un seul Mouvement.
  */
 async function resolveNewOccurrenceFiliation(
   transaction: Database,
@@ -732,25 +740,31 @@ async function resolveNewOccurrenceFiliation(
     readonly categoryId?: string | null;
     readonly media?: readonly MediaLinkInput[];
     readonly sourceMovementId?: string;
+    readonly pendingLocalMovement?: true;
   },
   timestamp: string,
+  localSources: ReadonlySet<string>,
 ): Promise<string> {
+  let movementId = activityId;
   if (activity.sourceMovementId !== undefined && activity.sourceMovementId.length > 0) {
-    return activity.sourceMovementId;
+    if (activity.pendingLocalMovement !== true || localSources.has(activity.sourceMovementId)) {
+      return activity.sourceMovementId;
+    }
+    movementId = activity.sourceMovementId;
   }
   const categoryId = activity.categoryId ?? null;
   if (activity.type !== "EXERCISE" || categoryId === null || activity.bodyZoneIds.length === 0) {
-    return activityId;
+    return movementId;
   }
-  const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE id = ?", [activityId]);
+  const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE id = ?", [movementId]);
   if (existing) {
-    return activityId;
+    return movementId;
   }
   const { phases } = splitResolvedParameters(activity.executionParameters as ExecutionParameters);
   await insertMovement(
     transaction,
     {
-      id: activityId,
+      id: movementId,
       name: activity.name,
       description: activity.instruction ?? null,
       media: activity.media ?? [],
@@ -763,9 +777,26 @@ async function resolveNewOccurrenceFiliation(
       levelGroup: null,
     },
     timestamp,
-    (position) => `${activityId}:${position}`,
+    (position) => `${movementId}:${position}`,
   );
-  return activityId;
+  return movementId;
+}
+
+/**
+ * PRE-7 (A1.3) : identifiants des occurrences NOUVELLES créées localement
+ * (Exercice sans filiation) — chacune crée son Mouvement local à son propre
+ * identifiant ; une copie en attente qui la désigne ne le crée pas.
+ */
+function localMovementSourceIds(
+  activities: readonly { readonly id?: string; readonly type: ActivityType; readonly sourceMovementId?: string }[],
+): ReadonlySet<string> {
+  const ids = new Set<string>();
+  for (const activity of activities) {
+    if (activity.id !== undefined && activity.type === "EXERCISE" && (activity.sourceMovementId ?? "").length === 0) {
+      ids.add(activity.id);
+    }
+  }
+  return ids;
 }
 
 /**
@@ -968,6 +999,8 @@ async function mergeActivities(
 ): Promise<void> {
   const existing = new Set(existingActivityIds);
   const incoming = new Set(activities.map((activity) => activity.id));
+  // PRE-7 (A1.3) : sources locales NOUVELLES, qui créent elles-mêmes leur Mouvement.
+  const localSources = localMovementSourceIds(activities.filter((activity) => !existing.has(activity.id)));
 
   // T16 (D-210) : capturée AVANT toute suppression — les Zones déjà
   // affectées à une Activité CONSERVÉE restent permises même retirées ;
@@ -1065,7 +1098,7 @@ async function mergeActivities(
         activity.id,
       ]);
     } else {
-      const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activity.id, activity, timestamp);
+      const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activity.id, activity, timestamp, localSources);
       await transaction.runAsync(
         `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
          VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,

@@ -631,13 +631,15 @@ function pre3Transport(
     readonly categoryId?: string | null;
     readonly media?: CreateSessionActivityInput["media"];
     readonly sourceMovementId?: string;
+    readonly pendingLocalMovement?: true;
   },
 ) {
+  const hasFiliation = typeof activity.sourceMovementId === "string" && activity.sourceMovementId.trim().length > 0;
   return {
     // PRE-7 (A1.2, MFN-03) : filiation transportée telle quelle (une chaîne vide reste absente).
-    ...(typeof activity.sourceMovementId === "string" && activity.sourceMovementId.trim().length > 0
-      ? { sourceMovementId: activity.sourceMovementId.trim() }
-      : {}),
+    ...(hasFiliation ? { sourceMovementId: (activity.sourceMovementId as string).trim() } : {}),
+    // PRE-7 (A1.3, MFN-04) : Mouvement local en attente, seulement avec sa filiation pré-allouée.
+    ...(hasFiliation && activity.pendingLocalMovement === true ? { pendingLocalMovement: true as const } : {}),
     ...(activity.categoryId !== undefined
       ? { categoryId: activity.categoryId && activity.categoryId.trim().length > 0 ? activity.categoryId : null }
       : {}),

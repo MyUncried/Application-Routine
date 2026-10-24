@@ -15,7 +15,7 @@ import {
   type ExecutionParameters,
   type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
-import { SharedMovementStructureError } from "@/domain/activities/MovementRepository";
+import { SharedCorrectionRefusedError } from "@/domain/activities/sharedCorrection";
 import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
@@ -252,7 +252,9 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
   });
 
-  it("Mouvement partagé : changer l'ensemble de ses phases est refusé sans écriture (SharedMovementStructureError) ; le contenu partagé reste modifiable", async () => {
+  // PRE-7 (A1.3) : la garde provisoire d'A1.2 (`SharedMovementStructureError`) est levée au profit de la
+  // correction partagée explicite ; sans complétion du frère, le changement de structure reste refusé sans écriture.
+  it("Mouvement partagé : changer l'ensemble de ses phases sans complétion du frère est refusé sans écriture (SharedCorrectionRefusedError) ; le contenu partagé reste modifiable", async () => {
     const created = await definitions().create(input(phased(phases(6, 3))));
     const sibling = await definitions().create(input(phased(phases(6, 3))));
     // Rattachement direct en base (les services d'origine « même geste » sont livrés en A1.3).
@@ -260,7 +262,8 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     await database.runAsync("DELETE FROM movements WHERE id = ?", [sibling.movementId]);
     const before = await database.getAllAsync("SELECT * FROM movement_phases ORDER BY rowid");
 
-    await expect(definitions().update(created.id, input(phased(phases(6))))).rejects.toThrow(SharedMovementStructureError);
+    // Phase ajoutée : la durée du frère manque, sa complétion n'est pas fournie.
+    await expect(definitions().update(created.id, input(phased(phases(6, 3, 4))))).rejects.toThrow(SharedCorrectionRefusedError);
     expect(await database.getAllAsync("SELECT * FROM movement_phases ORDER BY rowid")).toEqual(before);
 
     const renamed = await definitions().update(created.id, input(phased(phases(6, 3)), { name: "Squat partagé" }));

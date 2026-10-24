@@ -562,6 +562,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const copy = exercisesOf(session)[0]!;
     const filesBefore = [...store.files];
     const snapshot = createExerciseSnapshot({
+      sourceMovementId: copy.sourceMovementId!,
       name: copy.name,
       categoryId: copy.categoryId ?? null,
       bodyZoneIds: copy.bodyZoneIds,
@@ -708,6 +709,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     await database.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = '2026-10-16T12:00:00.000Z' WHERE id = ?", [archived.id]);
     // Instantané seul : « solo » n'est plus référencé que par lui.
     const snapshot = createExerciseSnapshot({
+      sourceMovementId: other.movementId,
       name: other.name,
       categoryId: null,
       bodyZoneIds: [],
@@ -887,6 +889,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const copy = exercisesOf(session)[0]!;
     const json = serializeExerciseSnapshot(
       createExerciseSnapshot({
+        sourceMovementId: copy.sourceMovementId!,
         name: copy.name,
         categoryId: copy.categoryId ?? null,
         bodyZoneIds: copy.bodyZoneIds,
@@ -975,6 +978,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const snapshot = parseExerciseSnapshot(
       serializeExerciseSnapshot(
         createExerciseSnapshot({
+          sourceMovementId: copy!.sourceMovementId!,
           name: copy!.name,
           categoryId: copy!.categoryId ?? null,
           bodyZoneIds: copy!.bodyZoneIds,

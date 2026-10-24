@@ -278,6 +278,15 @@ export type CreateSessionActivityInput = {
    * la Séance et prend son identifiant (celui de l'occurrence) pour filiation.
    */
   readonly sourceMovementId?: string;
+  /**
+   * PRE-7 (A1.3, MFN-03, MFN-04) : copie d'une occurrence créée localement et
+   * pas encore enregistrée (`duplicateActivity`) — `sourceMovementId` porte
+   * alors l'identifiant PRÉ-ALLOUÉ du Mouvement local de la source (celui de
+   * l'occurrence source). Le repository crée ce Mouvement à l'enregistrement
+   * s'il n'existe pas et si la source n'est pas enregistrée avec la Séance ;
+   * sinon la filiation est écrite telle quelle. Jamais persisté.
+   */
+  readonly pendingLocalMovement?: true;
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
@@ -372,6 +381,8 @@ export type UpdateSessionActivityInput = {
    * nouvelle : comme `CreateSessionActivityInput.sourceMovementId`.
    */
   readonly sourceMovementId?: string;
+  /** PRE-7 (A1.3) : comme `CreateSessionActivityInput.pendingLocalMovement` (occurrence nouvelle seulement). */
+  readonly pendingLocalMovement?: true;
 };
 
 /**

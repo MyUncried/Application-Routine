@@ -21,3 +21,6 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a1-2-schema-012-transition-repositories.md`
   summary: Une occurrence locale dupliquée avant le premier enregistrement de la Séance reçoit un Mouvement distinct de sa source, au lieu de partager la filiation.
   evidence: le brouillon ne porte aucune filiation pour une création locale non enregistrée ; le repository crée un Mouvement par occurrence sans filiation. À traiter en A1.3 (filiation pré-allouée au brouillon, MFN-04).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a1-3-services-filiation.md`
+  summary: La question d'identité (MFN-08) n'est pas imposée à l'écriture : `updateActivityDefinition` et l'origine `SAME_MOVEMENT` corrigent le geste partagé sans accusé du choix.
+  evidence: `assessActivityDefinitionCorrection` rend `requiresIdentityDecision`, mais l'écriture ne le vérifie pas ; seul appelant aujourd'hui `ExerciseScreen` (geste à définition unique). À câbler en A2.2 : évaluer avant chaque enregistrement et présenter le dialogue, puis l'étape de complétion.

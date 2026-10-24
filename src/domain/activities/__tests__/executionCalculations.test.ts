@@ -925,6 +925,7 @@ describe("PRE-4 story 2.1 — AC8 calculs tirés des seules règles (FR-13-06)",
       same(effectiveParameters(moveRow(draft, 2, 0)));
       same(activityDefinitionToDraftExercise(definition(original), "copy", 0).executionParameters);
       const snapshot = createExerciseSnapshot({
+        sourceMovementId: "mov-1",
         name: "Gainage",
         categoryId: null,
         bodyZoneIds: ["z"],

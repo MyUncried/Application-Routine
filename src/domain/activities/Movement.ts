@@ -319,6 +319,10 @@ export function splitResolvedParameters(parameters: ExecutionParameters): SplitP
  *   `parameters` reste éditable (durée manquante à 0, ouverte `null` par le
  *   Brouillon ; Cible `UNSET`) et `missingPhaseIds` liste les phases à
  *   compléter dans l'ordre de la structure. Jamais exécutable.
+ *   PRE-7 (A1.3, MFN-08) : `missingPhaseIds` est VIDE pour un frère sans phase
+ *   dont la durée de série reste à renseigner (Cible `UNSET` : structure
+ *   retirée par une correction partagée alors que ses durées étaient
+ *   incomplètes, complétion explicitement passée).
  */
 export type CatalogResolution =
   | { readonly status: "EXECUTABLE"; readonly parameters: ExecutionParameters }
@@ -384,7 +388,9 @@ export function resolveCatalogParameters(
     ...root,
     series: { ...uniform, target: { ...series.target }, workPhases },
   };
-  if (missingPhaseIds.length > 0) {
+  // PRE-7 (A1.3) : une Cible `UNSET` n'est jamais exécutable — sans phase
+  // manquante, c'est la durée de série elle-même qui reste à renseigner.
+  if (missingPhaseIds.length > 0 || series.target.kind === "UNSET") {
     return { status: "INCOMPLETE", parameters: resolved, missingPhaseIds };
   }
   const problem = resolvedWorkPhasesProblem(resolved.mode, resolved.series.kind === "UNIFORM" ? resolved.series.target : null, workPhases);

@@ -2,6 +2,8 @@
 
 `SessionService` — orchestration applicative du cycle de vie de la Séance (§11.2, §12.4). Ne dépend que du Domaine (`@/domain/sessions/*`) et de l'interface `SessionRepository` — jamais de React, Expo, React Native ou d'une implémentation concrète du Repository, injectée par le constructeur.
 
+PRE-7 (story A1.3, API-SEA-05, MFN-03, MFN/AC04) : `duplicateSession(sessionId, newActivityId)` duplique une Séance active par `toDuplicateSessionDraft` puis `createSession` (une transaction, « déjà utilisé » au succès) : `DUPLICATED`, `NOT_FOUND` ou `INVALID` ; suffixe calculé sur les Séances actives ; aucune interface dans PRE-7.
+
 Disponible depuis T01-S03/T01-S04 :
 
 - `createSession(draft): Promise<ValidationResult<Session>>` — convertit le brouillon via `toCreateSessionInput` (Domaine) et ne délègue à `SessionRepository.create` que si la conversion réussit. Un brouillon invalide retourne les violations structurées par valeur, sans aucune tentative d'écriture. Les erreurs du Repository (techniques, ou `SessionValidationError` en défense de dernier recours) se propagent telles quelles, sans être capturées ni confondues avec ce résultat structuré.

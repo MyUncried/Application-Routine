@@ -7,12 +7,24 @@
  */
 
 import {
+  assessSharedCorrection,
+  groupDefinitionsByMovement,
+  MovementNotFoundError,
+  SharedCorrectionRefusedError,
   validateActivityDefinitionInput,
   type ActivityDefinition,
+  type ActivityDefinitionGroup,
+  type ActivityDefinitionOrigin,
   type ActivityDefinitionRepository,
   type ActivityDefinitionValidationViolation,
+  type CorrectionAssessment,
   type CreateActivityDefinitionInput,
+  type SharedCorrectionRefusal,
+  type SiblingCompletion,
+  type SiblingGap,
 } from "@/domain/activities";
+import { allocatePhaseIdentities } from "@/domain/activities/Movement";
+import type { MovementRepository } from "@/domain/activities/MovementRepository";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -41,10 +53,51 @@ export type CreateActivityDefinitionResult =
   | { readonly ok: true; readonly value: ActivityDefinition }
   | { readonly ok: false; readonly violations: readonly ActivityDefinitionValidationViolation[] };
 
+/**
+ * PRE-7 (A1.3, MFN-08) : refus d'une correction partagée, sans écriture —
+ * complétion des frères attendue (étape distincte de saisie des durées
+ * manquantes), frère inéligible à la nouvelle structure, ou durée fournie
+ * invalide.
+ */
+export type SharedCorrectionRefusedResult =
+  | { readonly status: "SIBLING_COMPLETION_REQUIRED"; readonly siblings: readonly SiblingGap[] }
+  | { readonly status: "INELIGIBLE_SIBLINGS"; readonly definitionIds: readonly string[] }
+  | { readonly status: "INVALID_SIBLING_COMPLETION"; readonly definitionIds: readonly string[] };
+
 export type UpdateActivityDefinitionResult =
   | { readonly status: "UPDATED"; readonly value: ActivityDefinition }
   | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
+  | { readonly status: "NOT_FOUND" }
+  | SharedCorrectionRefusedResult;
+
+/** PRE-7 (A1.3, MFN-06, MFN-07) : issue d'une création avec origine explicite. */
+export type CreateActivityDefinitionWithOriginResult =
+  | { readonly status: "CREATED"; readonly value: ActivityDefinition }
+  | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
+  /** Mouvement du même geste ou d'origine de la variante introuvable. */
+  | { readonly status: "MOVEMENT_NOT_FOUND" }
+  | SharedCorrectionRefusedResult;
+
+/** Cible d'une évaluation : Exercice du Catalogue modifié, ou création sur un geste repris. */
+export type CorrectionTarget =
+  | { readonly kind: "UPDATE"; readonly definitionId: string }
+  | { readonly kind: "SAME_MOVEMENT"; readonly movementId: string };
+
+export type AssessCorrectionResult =
+  | { readonly status: "ASSESSED"; readonly assessment: CorrectionAssessment }
+  | { readonly status: "INVALID"; readonly violations: readonly ActivityDefinitionValidationViolation[] }
+  /** Définition (`UPDATE`) ou Mouvement (`SAME_MOVEMENT`) introuvable. */
   | { readonly status: "NOT_FOUND" };
+
+function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefusedResult {
+  switch (refusal.kind) {
+    case "SIBLING_COMPLETION_REQUIRED":
+      return { status: refusal.kind, siblings: refusal.siblings };
+    case "INELIGIBLE_SIBLINGS":
+    case "INVALID_SIBLING_COMPLETION":
+      return { status: refusal.kind, definitionIds: refusal.definitionIds };
+  }
+}
 
 export class ActivityDefinitionService {
   /**
@@ -86,6 +139,12 @@ export class ActivityDefinitionService {
     private readonly bodyZoneRepository?: BodyZoneRepository,
     private readonly labelRepository?: LabelRepository,
     private readonly media?: ActivityMediaAdapters,
+    /**
+     * PRE-7 (A1.3) : lecture du Mouvement (usage durable, structure, compteur)
+     * pour `assessActivityDefinitionCorrection` — optionnel, même patron que
+     * les référentiels ci-dessus ; injecté par `SessionServiceProvider`.
+     */
+    private readonly movementRepository?: MovementRepository,
   ) {}
 
   /**
@@ -115,6 +174,7 @@ export class ActivityDefinitionService {
   async updateActivityDefinition(
     id: string,
     input: CreateActivityDefinitionInput,
+    siblingCompletions?: readonly SiblingCompletion[],
   ): Promise<UpdateActivityDefinitionResult> {
     const validated = validateActivityDefinitionInput(input);
     if (!validated.ok) {
@@ -124,11 +184,119 @@ export class ActivityDefinitionService {
     // existants — la valeur par défaut `[]` de la validation ne doit jamais
     // les effacer implicitement en modification.
     const { media: _media, ...withoutMedia } = validated.value;
-    const value = await this.repository.update(id, input.media === undefined ? withoutMedia : validated.value);
+    // PRE-7 (A1.3, MFN-08) : « Corriger cet exercice » — le contenu partagé
+    // vaut pour tous les Exercices du geste ; les durées des frères suivent
+    // `siblingCompletions` (`null` = complétion explicitement passée). Un
+    // refus est rendu en union, sans écriture.
+    let value: ActivityDefinition | null;
+    try {
+      value = await this.repository.update(id, input.media === undefined ? withoutMedia : validated.value, siblingCompletions);
+    } catch (error) {
+      if (error instanceof SharedCorrectionRefusedError) {
+        return refusedResult(error.refusal);
+      }
+      throw error;
+    }
     if (!value) {
       return { status: "NOT_FOUND" };
     }
     return { status: "UPDATED", value };
+  }
+
+  /**
+   * PRE-7 (A1.3, MFN-06, MFN-07, MFN-08) — création avec origine EXPLICITE
+   * (`ActivityDefinitionOrigin`) : geste indépendant, même geste (contenu
+   * appliqué comme correction partagée), variante (rattachement au groupe
+   * d'origine selon le choix transmis, jamais automatique). Même contrat de
+   * validation que `createActivityDefinition` ; une erreur technique du
+   * repository se propage, aucune écriture partielle.
+   */
+  async createActivityDefinitionWithOrigin(
+    input: CreateActivityDefinitionInput,
+    origin: ActivityDefinitionOrigin,
+  ): Promise<CreateActivityDefinitionWithOriginResult> {
+    const validated = validateActivityDefinitionInput(input);
+    if (!validated.ok) {
+      return { status: "INVALID", violations: validated.violations };
+    }
+    // Même geste : sans `media`, les médias du geste repris sont conservés.
+    const { media: _media, ...withoutMedia } = validated.value;
+    const value = origin.kind === "SAME_MOVEMENT" && input.media === undefined ? withoutMedia : validated.value;
+    try {
+      return { status: "CREATED", value: await this.repository.create(value, origin) };
+    } catch (error) {
+      if (error instanceof SharedCorrectionRefusedError) {
+        return refusedResult(error.refusal);
+      }
+      if (error instanceof MovementNotFoundError) {
+        return { status: "MOVEMENT_NOT_FOUND" };
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * PRE-7 (A1.3, MFN-08 ; ch11 « Vérifier usage durable et champs sensibles ;
+   * transmettre le choix et le nombre de définitions touchées ») — évaluation
+   * SANS écriture d'une correction, avant l'enregistrement : la question
+   * d'identité est due si le geste est « déjà utilisé » et que son nom, sa
+   * description, ses médias ou sa structure de phases changent ; l'évaluation
+   * donne aussi le nombre de définitions qui le partagent et les durées
+   * manquantes des frères. Le choix « Corriger » se transmet par
+   * `updateActivityDefinition` (ou l'origine `SAME_MOVEMENT`), « Créer un
+   * nouvel exercice » par l'origine `VARIANT`. Lève sans `MovementRepository`.
+   */
+  async assessActivityDefinitionCorrection(
+    target: CorrectionTarget,
+    input: CreateActivityDefinitionInput,
+  ): Promise<AssessCorrectionResult> {
+    if (!this.movementRepository) {
+      throw new Error("ActivityDefinitionService was constructed without a MovementRepository.");
+    }
+    const validated = validateActivityDefinitionInput(input);
+    if (!validated.ok) {
+      return { status: "INVALID", violations: validated.violations };
+    }
+    let movementId: string;
+    if (target.kind === "UPDATE") {
+      const definition = await this.repository.findById(target.definitionId);
+      if (!definition) {
+        return { status: "NOT_FOUND" };
+      }
+      movementId = definition.movementId;
+    } else {
+      movementId = target.movementId;
+    }
+    const movement = await this.movementRepository.findById(movementId);
+    if (!movement) {
+      return { status: "NOT_FOUND" };
+    }
+    const sharing = (await this.repository.listAll()).filter((definition) => definition.movementId === movementId);
+    const editedId = target.kind === "UPDATE" ? target.definitionId : null;
+    const allocation = allocatePhaseIdentities(movement, validated.value.executionParameters);
+    const assessment = assessSharedCorrection(
+      movement,
+      {
+        name: validated.value.name,
+        description: validated.value.description,
+        ...(input.media !== undefined ? { mediaAssetIds: input.media.map((item) => item.assetId) } : {}),
+        phases: allocation.movement.phases,
+      },
+      sharing
+        .filter((definition) => definition.id !== editedId)
+        .map((definition) => ({ definitionId: definition.id, parameters: definition.executionParameters })),
+      sharing.length,
+    );
+    return { status: "ASSESSED", assessment };
+  }
+
+  /**
+   * PRE-7 (A1.3, MFN-10) — Catalogue regroupé par geste : groupes dans l'ordre
+   * de première apparition de la liste (`updatedAt DESC`), définitions dans
+   * cet ordre (`groupDefinitionsByMovement`).
+   */
+  async listActivityDefinitionsByMovement(): Promise<readonly ActivityDefinitionGroup[]> {
+    return groupDefinitionsByMovement(await this.repository.listAll());
   }
 
   /** Liste des `ActivityDefinition` persistantes, déjà triées par `updatedAt DESC` (Repository). */
