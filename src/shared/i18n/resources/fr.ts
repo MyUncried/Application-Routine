@@ -270,6 +270,20 @@ export const fr = {
           open: "Rechercher un geste",
           closeAccessibilityLabel: "Retour",
         },
+        // PRE-7 story A3.1 (D-439, MFN-05, MFN-07 ; CE-T03-04 §9 ; Figma `9925:41506` / `9925:41515`,
+        // popover `9577:19843`) : pastille de la rangée de classification et popover de niveau. Vide :
+        // « Niveau » (sans groupe ou singleton, rang masqué, jamais un faux « Niveau 1 ») ; renseignée :
+        // « Niveau X », rang calculé ; le total figure dans le choix (« Niveau r sur t · nom »). Le nom
+        // accessible vide suit `category.unsetAccessibilityLabel`. L’en-tête « 2 sur 3 » du popover
+        // Figma est un ancien exemple, non repris.
+        levelMenu: {
+          unsetLabel: "Niveau",
+          unsetAccessibilityLabel: "Niveau — non renseigné",
+          rank: "Niveau {rank}",
+          changeLevel: "Changer de niveau",
+          addLevel: "Ajouter un niveau",
+          levelOption: "Niveau {rank} sur {total} · {name}",
+        },
         // PRE-7 story A2.2 (D-438, MFN-08, CE-T03-04 §14 ; feuille basse `9952:44349`) : question
         // d’identité. Libellés des choix : MFN-08 (modification Catalogue) et complément de
         // présentation D-438 (création sur geste repris). Titre, portée et explications : textes

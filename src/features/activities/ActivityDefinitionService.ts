@@ -110,6 +110,27 @@ export type MovementChoice = {
   readonly level: MovementLevelPosition | null;
 };
 
+/**
+ * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : un niveau du groupe d'un geste — le geste membre,
+ * son rang dérivé (1..total, ordre des clés de tri) et ses Exercices du Catalogue (ordre de la
+ * liste, `updatedAt DESC`) ; un geste local du groupe n'en a aucun.
+ */
+export type MovementLevelEntry = {
+  readonly movement: Movement;
+  readonly rank: number;
+  readonly definitions: readonly ActivityDefinition[];
+};
+
+/**
+ * PRE-7 (A3.1, MFN-05) : niveaux d'un geste. `position` : rang et total dérivés, `null` sans groupe
+ * ou pour un singleton (rang masqué, jamais un faux « Niveau 1 ») ; `levels` : membres ordonnés,
+ * vide quand `position` est `null`. Rien n'est persisté.
+ */
+export type MovementLevels = {
+  readonly position: MovementLevelPosition | null;
+  readonly levels: readonly MovementLevelEntry[];
+};
+
 function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefusedResult {
   switch (refusal.kind) {
     case "SIBLING_COMPLETION_REQUIRED":
@@ -360,6 +381,45 @@ export class ActivityDefinitionService {
       choices.push({ movement, definitionCount: await movements.countDefinitions(movement.id), level });
     }
     return choices;
+  }
+
+  /** PRE-7 (A3.1) : niveaux disponibles (Mouvement injecté) — même patron que `supportsMovementSearch`. */
+  get supportsMovementLevels(): boolean {
+    return this.movementRepository !== undefined;
+  }
+
+  /**
+   * PRE-7 (A3.1, D-439, MFN-05, MFN-07) — niveaux du geste (pastille et popover de la fiche) :
+   * rang et total dérivés du groupe (`listGroup`, `movementLevelPosition`), et, pour chaque membre,
+   * ses Exercices du Catalogue (« la navigation vers un niveau affiche ses exercices disponibles »).
+   * Lecture seule. `null` : geste inconnu, ou service sans `MovementRepository`.
+   */
+  async getMovementLevels(movementId: string): Promise<MovementLevels | null> {
+    const movements = this.movementRepository;
+    if (!movements) {
+      return null;
+    }
+    const movement = await movements.findById(movementId);
+    if (!movement) {
+      return null;
+    }
+    if (movement.levelGroup === null) {
+      return { position: null, levels: [] };
+    }
+    const members = await movements.listGroup(movement.levelGroup.groupId);
+    const position = movementLevelPosition(movement, members);
+    if (position === null) {
+      return { position: null, levels: [] };
+    }
+    const definitions = await this.repository.listAll();
+    return {
+      position,
+      levels: members.map((member, index) => ({
+        movement: member,
+        rank: index + 1,
+        definitions: definitions.filter((definition) => definition.movementId === member.id),
+      })),
+    };
   }
 
   /**

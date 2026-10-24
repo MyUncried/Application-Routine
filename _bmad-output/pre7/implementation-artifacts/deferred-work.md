@@ -57,3 +57,12 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-3-recherche-suggestions-gestes.md`
   summary: Les gardes de réponses hors d'ordre (`requestRef` de `MovementSearchScreen` et de `useMovementOriginChoice.proposeFor`, `enabledRef` / `overlayRef`) ne sont couvertes par aucun test à résolution différée.
   evidence: revue A2.3 (lacunes de vérification) ; demande une doublure de `searchMovements` à promesse contrôlée ; courses peu probables sur appareil (lecture locale rapide).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-1-pastille-popover-niveau.md`
+  summary: Reports A2.2 et A2.3 « rattachement au groupe » examinés en A3.1 — « Ajouter un niveau » du popover est branché (`joinOriginGroup: true`, inséré juste après l'origine) ; la variante des suggestions et la nouvelle identité (« Créer un nouvel exercice » / « En faire un geste distinct ») restent sans rattachement.
+  evidence: MFN-06 (ch10 l.391) et CE-T03-04 §14 demandent une PROPOSITION de rattachement sans présélection, sans libellé ni frame ; MFN-05 l.370 « appartenance toujours choisie ». À décider par Hermann (feuille Oui / Non à libeller, ou « Variante de ce geste » valant rattachement) ; à câbler alors dans `ExerciseScreen.tsx` (`setVariantOrigin({ …, joinOriginGroup })`, `writeNewIdentity`).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-1-pastille-popover-niveau.md`
+  summary: Garde d'abandon sur « Changer de niveau » / « Ajouter un niveau » (`router.replace` depuis un brouillon modifié) non démontrée par un test : `useCompositionExitGuard` est simulé dans les parcours.
+  evidence: revue A3.1 (lacunes de vérification) ; `usePreventRemove` intercepte la suppression d'écran d'un remplacement dans la pile native, à constater en recette JA (modifier un Exercice, choisir un autre niveau : « Abandonner les modifications ? »).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a3-1-pastille-popover-niveau.md`
+  summary: Panneau de repli du popover de niveau (Android, web) : ni retour à l'étape précédente, ni recadrage dans l'écran (pastille près d'un bord, longue liste de niveaux).
+  evidence: rendu `NON VÉRIFIABLE` (Figma ne dessine que le menu natif iOS) ; fermer et rouvrir suffit ; à reprendre si Android entre en recette.

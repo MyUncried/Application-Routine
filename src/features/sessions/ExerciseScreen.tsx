@@ -35,9 +35,14 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import type { ActivityDefinitionService, CorrectionTarget } from "@/features/activities/ActivityDefinitionService";
+import type {
+  ActivityDefinitionService,
+  CorrectionTarget,
+  MovementLevels,
+} from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { IdentityDecisionSheet } from "@/features/activities/IdentityDecisionSheet";
+import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
 import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -268,15 +273,29 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  * scalaire dans l'écran).
  */
 export function ExerciseScreen() {
-  const params = useLocalSearchParams<{ exerciseId?: string; catalogueDefinitionId?: string; movementId?: string }>();
+  const params = useLocalSearchParams<{
+    exerciseId?: string;
+    catalogueDefinitionId?: string;
+    movementId?: string;
+    levelOriginDefinitionId?: string;
+  }>();
   if (params.catalogueDefinitionId !== undefined) {
     const isCreation = params.catalogueDefinitionId === "new";
     const repriseMovementId =
       isCreation && typeof params.movementId === "string" && params.movementId.trim().length > 0 ? params.movementId : null;
+    // PRE-7 (A3.1, MFN-07) : « Ajouter un niveau » depuis la fiche d'un Exercice du Catalogue.
+    const levelOriginDefinitionId =
+      isCreation &&
+      repriseMovementId === null &&
+      typeof params.levelOriginDefinitionId === "string" &&
+      params.levelOriginDefinitionId.trim().length > 0
+        ? params.levelOriginDefinitionId
+        : null;
     return (
       <CatalogueActivityEditorScreen
         definitionId={isCreation ? null : params.catalogueDefinitionId}
         repriseMovementId={repriseMovementId}
+        levelOriginDefinitionId={levelOriginDefinitionId}
       />
     );
   }
@@ -347,12 +366,47 @@ function withVariantContent(value: ActivityEditorFormValue, origin: Movement): A
   };
 }
 
+/**
+ * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : modèle de la pastille de Niveau de la fiche — rang
+ * dérivé, et popover sur un Exercice existant du Catalogue (niveaux du groupe, Exercices distingués
+ * par le résumé de leurs paramètres). Lecture en échec : pastille vide, sans popover.
+ */
+function editorLevelOf(
+  levels: MovementLevels | "error" | null,
+  menu: Omit<MovementLevelMenuModel, "levels"> | null,
+): EditorLevel | null {
+  if (levels === null) return null;
+  if (levels === "error") return menu === null ? null : { position: null, menu: null };
+  if (menu === null) {
+    // Création sur geste repris : même niveau que le geste (MFN-05), affiché sans popover.
+    return levels.position === null ? null : { position: levels.position, menu: null };
+  }
+  const total = levels.position?.total ?? 0;
+  return {
+    position: levels.position,
+    menu: {
+      ...menu,
+      levels: levels.levels.map((entry) => ({
+        rank: entry.rank,
+        total,
+        name: entry.movement.name,
+        exercises: entry.definitions.map((definition) => ({
+          definitionId: definition.id,
+          summary: formatExerciseRowSummary(definition),
+        })),
+      })),
+    },
+  };
+}
+
 function CatalogueActivityEditorScreen({
   definitionId,
   repriseMovementId: routeRepriseMovementId,
+  levelOriginDefinitionId = null,
 }: {
   definitionId: string | null;
   repriseMovementId: string | null;
+  levelOriginDefinitionId?: string | null;
 }) {
   // PRE-7 (A2.3, MFN-06) : geste repris par la route (A2.2) ou choisi dans l'écran (suggestion,
   // recherche) — la reprise choisie en place garde l'écran monté (aucune navigation, aucun garde
@@ -360,7 +414,11 @@ function CatalogueActivityEditorScreen({
   const [repriseMovementId, setRepriseMovementId] = useState(routeRepriseMovementId);
   // PRE-7 (A2.3, MFN-06 « Créer une variante / un niveau ») : geste d'origine d'une variante
   // choisie ; `Terminer` crée un nouveau geste (`VARIANT`), sans question d'identité (MFN-08).
-  const [variantOrigin, setVariantOrigin] = useState<{ readonly movementId: string } | null>(null);
+  // PRE-7 (A3.1, MFN-07) : `joinOriginGroup` vrai pour « Ajouter un niveau » (rattachement explicite,
+  // inséré juste après l'origine) ; faux pour la variante des suggestions (A2.3, aucun rattachement).
+  const [variantOrigin, setVariantOrigin] = useState<{ readonly movementId: string; readonly joinOriginGroup: boolean } | null>(
+    null,
+  );
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
@@ -369,7 +427,8 @@ function CatalogueActivityEditorScreen({
   const profile = useProfileDefaults();
   const isEditingExisting = definitionId !== null;
   const isReprise = !isEditingExisting && repriseMovementId !== null;
-  const needsLoad = isEditingExisting || isReprise;
+  const isLevelCreation = !isEditingExisting && !isReprise && levelOriginDefinitionId !== null;
+  const needsLoad = isEditingExisting || isReprise || isLevelCreation;
   // Story 4.2 (FR-02-04) : l'écran d'erreur de chargement suit la marge de l'Éditeur.
   const sideMargin = editorSideMargin(useWindowDimensions().width);
   const [mediaDraftId] = useState(() => `definition:${definitionId ?? Crypto.randomUUID()}`);
@@ -388,7 +447,9 @@ function CatalogueActivityEditorScreen({
   const [contentUnlocked, setContentUnlocked] = useState(false);
   const contentLocked = isReprise && !contentUnlocked;
   const [value, setValue] = useState<ActivityEditorFormValue | null>(initial);
-  const [profileApplied, setProfileApplied] = useState(isEditingExisting);
+  // A3.1 : « Ajouter un niveau » reprend les paramètres de l'Exercice d'origine, Compte à rebours et
+  // Fin compris ; les défauts du Profil ne les remplacent pas.
+  const [profileApplied, setProfileApplied] = useState(isEditingExisting || isLevelCreation);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [initialCategoryId, setInitialCategoryId] = useState<string | null>(null);
   // Story 4.6 (FR-22-10, AC9) : feuille de Catégorie, focus rendu à l'accès après sa fermeture.
@@ -439,6 +500,41 @@ function CatalogueActivityEditorScreen({
           });
         return;
       }
+      if (repriseMovementId === null && levelOriginDefinitionId !== null) {
+        // PRE-7 (A3.1, MFN-07, MFN-05 l.375) : « Ajouter un niveau » — nouveau geste et son Exercice,
+        // description, médias, Zones et Catégorie initialisés depuis l'original, paramètres repris
+        // (« éventuellement repris de l'original »), tous modifiables ; nom à saisir.
+        activityDefinitionService
+          .getActivityDefinition(levelOriginDefinitionId)
+          .then((definition) => {
+            if (isCancelled()) return;
+            if (!definition) {
+              setLoadState("error");
+              return;
+            }
+            const loaded: ActivityEditorFormValue = {
+              name: "",
+              instructionSteps: decodeInstructionSteps(definition.description),
+              executionParameters: cloneExecutionParameters(definition.executionParameters),
+              bodyZoneIds: [...definition.bodyZoneIds],
+              media: toDraftMediaItems(definition.media ?? []),
+            };
+            // AD-13 (H25) : une valeur héritée de l'original, non modifiée, reste enregistrable.
+            setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
+            setVariantOrigin({ movementId: definition.movementId, joinOriginGroup: true });
+            setInitial(loaded);
+            setValue(loaded);
+            setCategoryId(definition.categoryId ?? null);
+            setInitialCategoryId(definition.categoryId ?? null);
+            setLoadState("ready");
+          })
+          .catch((error: unknown) => {
+            if (isCancelled()) return;
+            console.error("L'exercice d'origine du niveau n'a pas pu être chargé.", error);
+            setLoadState("error");
+          });
+        return;
+      }
       if (repriseMovementId === null) {
         return;
       }
@@ -474,7 +570,7 @@ function CatalogueActivityEditorScreen({
           setLoadState("error");
         });
     },
-    [activityDefinitionService, definitionId, repriseMovementId],
+    [activityDefinitionService, definitionId, repriseMovementId, levelOriginDefinitionId],
   );
 
   useEffect(() => {
@@ -531,7 +627,7 @@ function CatalogueActivityEditorScreen({
     },
     onVariant: (choice) => {
       setSaveError(false);
-      setVariantOrigin({ movementId: choice.movement.id });
+      setVariantOrigin({ movementId: choice.movement.id, joinOriginGroup: false });
       setValue((current) => (current ? withVariantContent(current, choice.movement) : current));
       // MFN-05 l.375, MFN/AC33 : Catégorie reprise de l'origine, puis librement modifiable.
       setCategoryId((current) => current ?? choice.movement.categoryId);
@@ -673,16 +769,18 @@ function CatalogueActivityEditorScreen({
     if (correctionTarget === null && variantOrigin !== null) {
       // PRE-7 (A2.3, MFN-06, MFN-08) : variante explicitement choisie — nouveau geste et son
       // Exercice, enregistrés directement (aucune question d'identité : l'original n'est pas
-      // touché). Rattachement au groupe d'origine : aucun (MFN-05, aucun rattachement automatique ;
-      // la proposition sans présélection reste à présenter, point renvoyé à Hermann).
-      const originMovementId = variantOrigin.movementId;
+      // touché). Rattachement au groupe d'origine : aucun pour la variante des suggestions (MFN-05,
+      // aucun rattachement automatique ; la proposition sans présélection reste à présenter, point
+      // renvoyé à Hermann) ; explicite pour « Ajouter un niveau » (A3.1, MFN-07 : inséré juste après
+      // l'origine).
+      const { movementId: originMovementId, joinOriginGroup } = variantOrigin;
       await attempt(
         async () =>
           (
             await activityDefinitionService.createActivityDefinitionWithOrigin(definitionInput, {
               kind: "VARIANT",
               originMovementId,
-              joinOriginGroup: false,
+              joinOriginGroup,
             })
           ).status === "CREATED",
       );
@@ -741,6 +839,66 @@ function CatalogueActivityEditorScreen({
     await attempt(() => writeCorrection(completion.input, completions));
   }
 
+  // PRE-7 (A3.1, D-439, MFN-05) : niveaux du geste de la fiche (Exercice existant) ou du geste
+  // repris, relus après le chargement ; rang et total dérivés, jamais persistés.
+  // Lecture rattachée au geste lu : une lecture d'un autre geste (reprise rechargée) n'est jamais
+  // affichée.
+  const [loadedLevels, setLoadedLevels] = useState<{
+    readonly movementId: string;
+    readonly levels: MovementLevels | "error";
+  } | null>(null);
+  // Service sans `MovementRepository` (doublures antérieures à MFN) : aucune pastille.
+  const levelMovementId =
+    loadState === "ready" && (isEditingExisting || isReprise) && activityDefinitionService.supportsMovementLevels === true
+      ? (origin?.movementId ?? null)
+      : null;
+  const levels = loadedLevels !== null && loadedLevels.movementId === levelMovementId ? loadedLevels.levels : null;
+  useEffect(() => {
+    if (levelMovementId === null) return;
+    let cancelled = false;
+    Promise.resolve()
+      .then(() => activityDefinitionService.getMovementLevels(levelMovementId))
+      .then(
+        (result) => {
+          if (!cancelled) setLoadedLevels({ movementId: levelMovementId, levels: result ?? "error" });
+        },
+        (error: unknown) => {
+          if (cancelled) return;
+          console.error("Les niveaux du geste n'ont pas pu être chargés.", error);
+          setLoadedLevels({ movementId: levelMovementId, levels: "error" });
+        },
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [activityDefinitionService, levelMovementId]);
+  const editorLevel = editorLevelOf(
+    levels,
+    isEditingExisting && definitionId !== null
+      ? {
+          currentDefinitionId: definitionId,
+          // MFN-07 : ouvrir l'Exercice choisi (remplacement ; garde d'abandon existante si modifié).
+          // Aucune navigation pendant une écriture en vol (revue A3.1).
+          onChangeLevel: (id) => {
+            if (isSaving) return;
+            router.replace({ pathname: "/exercise", params: { catalogueDefinitionId: id } });
+          },
+          // MFN-07 : création d'un nouveau geste et de son Exercice, jamais d'un niveau seul.
+          onAddLevel: () => {
+            if (isSaving) return;
+            router.replace({
+              pathname: "/exercise",
+              params: { catalogueDefinitionId: "new", levelOriginDefinitionId: definitionId },
+            });
+          },
+        }
+      : null,
+  );
+  // Revue A3.1 : le formulaire attend la lecture des niveaux (base locale, quelques millisecondes)
+  // pour s'afficher d'emblée avec sa rangée définitive — aucune rangée à deux accès qui se
+  // réorganise ensuite en trois.
+  const levelsPending = levelMovementId !== null && levels === null;
+
   const isValid =
     value !== null &&
     isActivityEditorFormValid(value, {
@@ -776,7 +934,7 @@ function CatalogueActivityEditorScreen({
           </Pressable>
         </View>
       ) : null}
-      {loadState === "ready" && value !== null ? (
+      {loadState === "ready" && value !== null && !levelsPending ? (
         <ActivityEditorForm
           value={value}
           onChange={patch}
@@ -797,6 +955,7 @@ function CatalogueActivityEditorScreen({
           movementSearchAction={
             originChoice.canSearch ? { label: t.movementSearch.open, onPress: originChoice.openSearch } : null
           }
+          level={editorLevel}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}

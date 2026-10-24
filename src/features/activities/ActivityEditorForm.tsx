@@ -33,8 +33,15 @@ import type { Silhouette } from "@/domain/preferences/Profile";
 import { NAME_MAX_LENGTH, validateExerciseName } from "@/domain/sessions/validation";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityMediaList, type MediaNotice } from "@/features/activities/ActivityMediaList";
+import type { AnchoredPanelPlacement } from "@/features/activities/AnchoredPanel";
 import { DESCRIPTION_STEP_GUTTER, DescriptionSteps } from "@/features/activities/DescriptionSteps";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
+import {
+  MOVEMENT_LEVEL_PANEL_GAP,
+  MovementLevelMenu,
+  MovementLevelPanel,
+  type EditorLevel,
+} from "@/features/activities/MovementLevelMenu";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { strings } from "@/shared/i18n";
@@ -151,6 +158,13 @@ export type ActivityEditorFormProps = {
    * « Rechercher un autre geste » de `9882:19141`.
    */
   movementSearchAction?: { readonly label: string; readonly onPress: () => void } | null;
+  /**
+   * PRE-7 (A3.1, D-439, MFN-05, MFN-07 ; CE-T03-04 §9, Figma `9029:18363`) : pastille de Niveau, en
+   * troisième position de la rangée de classification, et popover « Changer de niveau / Ajouter un
+   * niveau » quand `menu` est fourni. `null` (défaut) : rangée Catégorie / Zones inchangée (création
+   * sans geste, export `8328:35698` ; Séance).
+   */
+  level?: EditorLevel | null;
   /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
@@ -304,6 +318,7 @@ export function ActivityEditorForm({
   nextPhaseId,
   onNameEndEditing,
   movementSearchAction = null,
+  level = null,
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -331,6 +346,13 @@ export function ActivityEditorForm({
   const bodyZonesSheet = useReferenceSheet(bodyZonesAccessRef);
   const isBodyZonePickerOpen = bodyZonesSheet.isOpen;
   const media = useMediaImport(mediaService, mediaDraftId, value.media, (next) => onChange({ media: next }));
+  // PRE-7 (A3.1) : panneau de repli du popover de niveau (Android, web), hébergé par une vue qui
+  // couvre l'Éditeur (un toucher hors des limites du parent n'atteint pas ses enfants sur Android).
+  const levelAnchorRef = useRef<View>(null);
+  const levelPanelHostRef = useRef<View>(null);
+  const [levelPanelPlacement, setLevelPanelPlacement] = useState<AnchoredPanelPlacement | null>(null);
+  const levelMenu = level?.menu ?? null;
+  const accessHitSlop = level ? LEVEL_ROW_ACCESS_HIT_SLOP : ACCESS_HIT_SLOP;
 
   const t = strings.screens.exercise;
   const editor = strings.screens.activities.editor;
@@ -454,7 +476,7 @@ export function ActivityEditorForm({
             `primary` ; « renseigné » : sans fond, libellé `textPrimary`, glyphe Catégorie plein
             teinté de sa couleur. Rien ne bouge entre les deux. Cible ≥ 44 de haut étendue vers
             le bas, sans recouvrir le Nom (`ACCESS_HIT_SLOP`, FR-22-04). */}
-        <View style={styles.referenceRow} testID="exercise-reference-row">
+        <View style={[styles.referenceRow, level ? styles.referenceRowWithLevel : null]} testID="exercise-reference-row">
           <Pressable
             ref={categoryAccess}
             onPress={() => {
@@ -470,7 +492,7 @@ export function ActivityEditorForm({
             // Revue 4.3 : feuille ouverte annoncée « développé », Catégorie renseignée comprise
             // (le glyphe d'une Catégorie renseignée n'a pas d'état ouvert visuel : écart E-V12).
             accessibilityState={contentLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
-            hitSlop={ACCESS_HIT_SLOP}
+            hitSlop={accessHitSlop}
             style={[styles.referenceAccess, category ? null : styles.referenceAccessUnset]}
             testID="activity-editor-category-button"
           >
@@ -513,8 +535,12 @@ export function ActivityEditorForm({
                 : t.bodyZones.unsetAccessibilityLabel
             }
             accessibilityState={contentLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
-            hitSlop={ACCESS_HIT_SLOP}
-            style={[styles.referenceAccess, zoneNames.length > 0 ? null : styles.referenceAccessUnset]}
+            hitSlop={accessHitSlop}
+            style={[
+              styles.referenceAccess,
+              zoneNames.length > 0 ? null : styles.referenceAccessUnset,
+              level ? styles.referenceAccessElastic : null,
+            ]}
             testID="exercise-body-zones-open"
           >
             <BodyZoneIcon
@@ -531,6 +557,34 @@ export function ActivityEditorForm({
               {zoneNames.length > 0 ? zoneNames.join(t.bodyZones.bandSeparator) : t.bodyZones.unsetLabel}
             </Text>
           </Pressable>
+          {level ? (
+            <MovementLevelMenu
+              level={level}
+              accessStyles={{
+                access: styles.referenceAccess,
+                accessUnset: styles.referenceAccessUnset,
+                label: styles.referenceLabel,
+                labelSet: styles.referenceLabelSet,
+              }}
+              hitSlop={LEVEL_ROW_ACCESS_HIT_SLOP}
+              anchorRef={levelAnchorRef}
+              isPanelOpen={levelPanelPlacement !== null}
+              onClosePanel={() => setLevelPanelPlacement(null)}
+              onOpenPanel={(anchor) => {
+                nameEndSuppressedRef.current = true;
+                Keyboard.dismiss();
+                const host = levelPanelHostRef.current;
+                if (!host) return;
+                host.measureInWindow((hostX, hostY, hostWidth) => {
+                  setLevelPanelPlacement({
+                    top: anchor.y - hostY + anchor.height + MOVEMENT_LEVEL_PANEL_GAP,
+                    right: Math.max(0, hostX + hostWidth - (anchor.x + anchor.width)),
+                  });
+                });
+              }}
+              testID="activity-editor-level"
+            />
+          ) : null}
         </View>
       </View>
 
@@ -716,6 +770,19 @@ export function ActivityEditorForm({
           silhouette={silhouette}
         />
       ) : null}
+
+      {levelMenu && Platform.OS !== "ios" ? (
+        <View ref={levelPanelHostRef} pointerEvents="box-none" style={styles.levelPanelHost} testID="activity-editor-level-panel-host">
+          {levelPanelPlacement !== null ? (
+            <MovementLevelPanel
+              menu={levelMenu}
+              placement={levelPanelPlacement}
+              onDismiss={() => setLevelPanelPlacement(null)}
+              testID="activity-editor-level-panel"
+            />
+          ) : null}
+        </View>
+      ) : null}
     </>
   );
 }
@@ -877,6 +944,17 @@ const ACCESS_HIT_SLOP = {
   left: ACCESS_COLUMN_GAP / 2,
   right: ACCESS_COLUMN_GAP / 2,
 } as const;
+/**
+ * PRE-7 (A3.1, CE-T03-04 §9, Figma `9029:18363`) : rangée Catégorie / Zones / Niveau — écart 12
+ * (au lieu de 20), Zones élastiques et tronquées, Niveau à droite ; la frontière horizontale des
+ * cibles reste au milieu de l'écart.
+ */
+const LEVEL_ROW_COLUMN_GAP = 12;
+const LEVEL_ROW_ACCESS_HIT_SLOP = {
+  ...ACCESS_HIT_SLOP,
+  left: LEVEL_ROW_COLUMN_GAP / 2,
+  right: LEVEL_ROW_COLUMN_GAP / 2,
+} as const;
 /** Débord de la cible sous la rangée : 17 − (32 − 26) / 2 = 14. */
 const ACCESS_TARGET_OVERFLOW_BELOW_ROW = ACCESS_HIT_SLOP.bottom - (ACCESS_ROW_HEIGHT - ACCESS_HEIGHT) / 2;
 /** Rangée repliée sur deux lignes : l’écart couvre le débord bas de la ligne du dessus. */
@@ -977,6 +1055,24 @@ const styles = StyleSheet.create({
     paddingLeft: ACCESS_PADDING_LEFT,
     paddingRight: ACCESS_PADDING_RIGHT,
     borderRadius: ACCESS_RADIUS,
+  },
+  // PRE-7 (A3.1) : rangée à trois accès, sur une ligne — Zones élastiques et tronquées pour
+  // préserver Catégorie et Niveau (relevé Figma MFN du 23/10).
+  referenceRowWithLevel: {
+    flexWrap: "nowrap",
+    columnGap: LEVEL_ROW_COLUMN_GAP,
+  },
+  referenceAccessElastic: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  levelPanelHost: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
   },
   referenceAccessUnset: {
     backgroundColor: ACCESS_UNSET_VEIL,
