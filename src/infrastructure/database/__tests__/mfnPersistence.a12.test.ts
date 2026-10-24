@@ -182,7 +182,10 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     const created = await definitions().create(input(phased(phases(4, 5, 6))));
     const removed = await definitions().update(created.id, input(phased(phases(4, 5))));
     expect((await movements().findById(created.movementId))?.nextPhaseId).toBe(4);
-    // L'éditeur actuel recalcule max + 1 (= 3) pour la phase ajoutée ; le Mouvement alloue 4.
+    // PRE-7 A2.1 (MFN/AC30) : la définition relue expose ce compteur, que l'éditeur transmet à la Feuille.
+    expect((await definitions().findById(created.id))?.movementNextPhaseId).toBe(4);
+    expect((await definitions().listAll()).find((definition) => definition.id === created.id)?.movementNextPhaseId).toBe(4);
+    // Une identité de brouillon déjà retirée (3, ancien max + 1) n'est de toute façon pas réallouée : le Mouvement alloue 4.
     const added = await definitions().update(
       created.id,
       input(phased([...phases(4, 5), { id: 3, label: "Nouvelle", durationSeconds: 7 }])),
@@ -196,6 +199,7 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     const movement = await movements().findById(created.movementId);
     expect(movement?.phases.map((phase) => phase.id)).toEqual([1, 2, 4]);
     expect(movement?.nextPhaseId).toBe(5);
+    expect((await definitions().findById(created.id))?.movementNextPhaseId).toBe(5);
     // Déplacement et renommage : identités conservées, compteur inchangé.
     const moved = await definitions().update(
       created.id,

@@ -186,9 +186,15 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     // Libellés vides : « Phase n » selon la position.
     expect([shownLabel(1), shownLabel(2)]).toEqual(["Phase 1", "Phase 2"]);
     // FR-3 : Durée d'une série = Σ, en lecture seule (sans pastille ni roue), annoncée non modifiable.
+    // PRE-7 A2.1 (D-384) : la seconde durée manque — D est « — » à renseigner, jamais 9 s partiels.
     expect(query("execution-sheet-target-value")).toBeNull();
-    expect(seriesDurationText()).toBe("9 s");
-    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 9 s, ${t.totalReadOnlySpoken}`);
+    expect(seriesDurationText()).toBe("—");
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(
+      `${t.durationTarget}, ${t.unsetSpoken}, ${t.totalReadOnlySpoken}, ${t.invalidHint}`,
+    );
+    enterDuration(2, "3");
+    expect(seriesDurationText()).toBe("12 s");
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 12 s, ${t.totalReadOnlySpoken}`);
     // Largeur de l'option Avec, réglage fermé : 104 (recette du 20/10, RC-16 : marges de « Sans ») ; Sans garde 62.
     expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
     expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
@@ -331,7 +337,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(14) });
   });
 
-  it("PRE5-2.8/AC3b, AC7 (FR-8, QR-1) — croix : à 3 phases, retrait + « Phase supprimée — Annuler », Annuler restitue ordre, libellé, durée et D ; à 2, croix indisponible", () => {
+  it("PRE5-2.8/AC3b, AC7 (FR-8) — croix : à 3 phases, retrait + « Phase supprimée — Annuler », Annuler restitue ordre, libellé, durée et D ; à 2, croix disponible (PRE-7 A2.1, D-438 remplace D-371 et D-432 pour le retrait)", () => {
     renderSheet(withPhases([["Descente", 6], ["Maintien", 3], ["Montée", 5]]));
     expect(get(remove(2)).props.accessibilityLabel).toBe("Supprimer la phase 2");
     expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: false });
@@ -341,9 +347,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(seriesDurationText()).toBe("11 s");
     expect(countText()).toBe("2 phases");
     expect(within(get("execution-sheet-adjusted")).getByText(t.phaseRemoved, hidden)).toBeTruthy();
-    // À deux phases : croix indisponibles (état exposé).
-    expect(get(remove(1)).props.accessibilityState).toMatchObject({ disabled: true });
-    expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: true });
+    // PRE-7 A2.1 (D-438) : à deux phases, croix disponibles (2 → Sans, voir `ExecutionParametersSheet.mfn.a21`).
+    expect(get(remove(1)).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(get(remove(2)).props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(get("execution-sheet-adjusted-undo"));
     expect([1, 2, 3].map(shownLabel)).toEqual(["Descente", "Maintien", "Montée"]);
     expect([1, 2, 3].map(shownDuration)).toEqual(["6 s", "3 s", "5 s"]);
@@ -368,7 +374,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     enterDuration(1, "");
     expect(shownDuration(1)).toBe("—");
     expect(styleOf(duration(1)).backgroundColor).toBe(colors.dangerSurface);
-    expect(seriesDurationText()).toBe("3 s");
+    // PRE-7 A2.1 (D-384) : D à renseigner tant qu'une durée manque (jamais la somme partielle).
+    expect(seriesDurationText()).toBe("—");
     enterDuration(1, "9999");
     expect(shownDuration(1)).toBe("58 min 55 s");
     enterDuration(1, "0");
@@ -434,7 +441,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect([shownLabel(1), shownLabel(2)]).toEqual(["Phase 1", "Phase 2"]);
   });
 
-  it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées, « — » seul signalé", () => {
+  it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées ; la cellule « — » et D « — » à renseigner (A2.1, D-384)", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(get(WITH));
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
@@ -442,10 +449,15 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(onApply).not.toHaveBeenCalled();
     expect(phaseRows()).toHaveLength(2);
     expect([shownDuration(1), shownDuration(2)]).toEqual(["9 s", "—"]);
-    // La cause est visible sur la seule cellule « — » ; « Durée d'une série » n'est pas marquée.
+    // La cause est visible sur la cellule « — » ; PRE-7 A2.1 (D-384) : « Durée d'une série » est
+    // « — » à renseigner (état existant « deux phases à renseigner »), jamais 9 s partiels.
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
     expect(styleOf(duration(1)).backgroundColor).toBeUndefined();
-    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 9 s, ${t.totalReadOnlySpoken}`);
+    expect(seriesDurationText()).toBe("—");
+    expect(styleOf("execution-sheet-target-static").backgroundColor).toBe(colors.dangerSurface);
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(
+      `${t.durationTarget}, ${t.unsetSpoken}, ${t.totalReadOnlySpoken}, ${t.invalidHint}`,
+    );
   });
 
   it("PRE7-A1.1 (D-438) — phase relue à 0 s : cellule marquée comme « — », ✓ indisponible (une saisie de 0 donne 1 s)", () => {
@@ -453,9 +465,13 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
     expect(styleOf(duration(1)).backgroundColor).toBeUndefined();
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(`${t.durationTarget}, 6 s, ${t.totalReadOnlySpoken}`);
+    // PRE-7 A2.1 (D-384) : D ouverte « — » à renseigner tant que la durée manque.
+    expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBe(
+      `${t.durationTarget}, ${t.unsetSpoken}, ${t.totalReadOnlySpoken}, ${t.invalidHint}`,
+    );
     enterDuration(2, "3");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(seriesDurationText()).toBe("9 s");
   });
 
   it("PRE5-2.8/AC7 (FR-9, QN-3) — ✓ avec [6 « », 3 « Maintien »] : phases « Phase 1 » 6 s et « Maintien » 3 s, cible 9 s", () => {

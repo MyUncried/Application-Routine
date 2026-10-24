@@ -449,6 +449,8 @@ function mapActivityDefinitionRow(
     })),
     id: row.id,
     movementId: movement.id,
+    // PRE-7 (A2.1, MFN/AC30) : compteur de phase transmis à la Feuille par l'éditeur.
+    movementNextPhaseId: movement.nextPhaseId,
     name: movement.name,
     description: movement.description,
     categoryId: movement.categoryId,

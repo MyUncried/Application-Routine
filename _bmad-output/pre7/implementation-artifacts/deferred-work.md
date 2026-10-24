@@ -24,3 +24,15 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a1-3-services-filiation.md`
   summary: La question d'identité (MFN-08) n'est pas imposée à l'écriture : `updateActivityDefinition` et l'origine `SAME_MOVEMENT` corrigent le geste partagé sans accusé du choix.
   evidence: `assessActivityDefinitionCorrection` rend `requiresIdentityDecision`, mais l'écriture ne le vérifie pas ; seul appelant aujourd'hui `ExerciseScreen` (geste à définition unique). À câbler en A2.2 : évaluer avant chaque enregistrement et présenter le dialogue, puis l'étape de complétion.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-1-feuille-parametres-mfn.md`
+  summary: Un Exercice frère incomplet (`missingPhaseIds`) peut être choisi pour une Séance depuis la sélection du Catalogue ; il n'est refusé qu'à l'enregistrement (`toCreateSessionInput`), sans signalement à l'insertion.
+  evidence: hors CE-UI-10 (CE-T03-07, sélection) ; ch13 l.846 et l.894 « frère incomplet non exécutable », « exclusion des frères incomplets du lancement ». À traiter en A4.1 (sélection désignant une définition précise) ; aucun parcours d'interface ne crée de frère incomplet avant A2.2.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-1-feuille-parametres-mfn.md`
+  summary: La copie d'une occurrence locale non enregistrée (`pendingLocalMovement`) a sa structure de phases verrouillée alors que sa source reste modifiable : à l'enregistrement, les deux partagent un Mouvement créé depuis la source avec des structures différentes.
+  evidence: préexistant (avant A2.1 les deux étaient modifiables) ; décision renvoyée à Hermann (verrouiller aussi la source dupliquée, ou rendre la copie modifiable jusqu'au premier enregistrement ; ch10 MFN-09 l.444-446).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-1-feuille-parametres-mfn.md`
+  summary: Le verrou de structure d'une occurrence n'a pas d'indice d'accessibilité (raison de l'indisponibilité) : seul l'état disabled est annoncé.
+  evidence: aucun texte documenté pour cet indice (RM-092, aucune invention) ; proposer à Hermann un libellé, sur le modèle de « Nombre de séries imposé par le circuit ».
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-a2-1-feuille-parametres-mfn.md`
+  summary: La création d'un Exercice sur un geste repris (origine SAME_MOVEMENT ou VARIANT) devra transmettre à la Feuille le compteur de phase du Mouvement repris (`nextPhaseId`), et non max + 1.
+  evidence: A2.1 ne câble que l'édition Catalogue (`movementNextPhaseId` de la définition lue) ; le parcours de reprise n'existe qu'en A2.3.

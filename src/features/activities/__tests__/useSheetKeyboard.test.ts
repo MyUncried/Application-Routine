@@ -271,7 +271,8 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(1);
     const emptied = applyPhaseDurationEdit(draft, 4, "");
     expect(durationOf(emptied, 4)).toBeNull();
-    expect(emptied.uniform.target).toEqual(numberTarget(9));
+    // PRE-7 A2.1 (D-384) : D à renseigner tant qu'une durée manque, jamais la somme partielle.
+    expect(emptied.uniform.target).toEqual(unsetTarget());
     expect(applyPhaseDurationEdit(draft, 4, "105")).toBe(draft);
     expect(applyPhaseDurationEdit(draft, 99, "30")).toBe(draft);
   });

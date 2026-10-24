@@ -8,6 +8,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
   type LayoutChangeEvent,
@@ -288,9 +289,16 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  *   surface) et rend le chevron actif ;
  * - tableau des phases (`WorkPhasesTable`) : libellé au clavier texte et durée au clavier
  *   numérique MMSS (`keyboard(phaseLabel | phaseDuration)`), glisser, actions accessibles,
- *   croix (indisponible à deux phases, QR-1) ;
- * - avec des phases, « Durée d'une série » est la somme, en lecture seule ;
+ *   croix (PRE-7 A2.1, D-438 : disponible dès deux phases, 2 → Sans à la durée restante) ;
+ * - avec des phases, « Durée d'une série » est la somme, en lecture seule (PRE-7 A2.1, D-384 :
+ *   « — » à renseigner tant qu'une durée manque, jamais une somme partielle) ;
  * - ✓ : `commitSheetDraft` reçoit le libellé par défaut « Phase n » (normalisation FR-9).
+ *
+ * PRE-7 (A2.1, D-438, MFN-02, MFN-09, CE-UI-10) : `phaseStructureLocked` (occurrence de Séance)
+ * rend indisponibles les contrôles de structure — Avec / Sans, nombre, croix, glisser et Monter /
+ * Descendre, libellés (champ natif non modifiable) — et garde les durées modifiables ; `nextPhaseId`
+ * (compteur du Mouvement) est transmis à `openSheetDraft`. États existants seulement ; l'état
+ * verrouillé n'a pas de frame Figma (`NON VÉRIFIABLE`, ch13).
  */
 export type ExecutionParametersSheetProps = {
   readonly parent: ExecutionParametersInput;
@@ -313,6 +321,18 @@ export type ExecutionParametersSheetProps = {
    * Lu au montage de la Feuille (ouverture) seulement : un changement pendant l'ouverture est ignoré.
    */
   readonly inheritedSeriesCount?: boolean;
+  /**
+   * PRE-7 (A2.1, D-438, MFN-09, CE-UI-10) : structure des phases verrouillée (occurrence de
+   * Séance copiée d'un geste). Vrai : Avec / Sans, nombre, croix, glisser et libellés
+   * indisponibles ; les durées restent modifiables (D redérivée). Faux (défaut) : structure
+   * modifiable (Catalogue, création locale non enregistrée). Lu au montage de la Feuille.
+   */
+  readonly phaseStructureLocked?: boolean;
+  /**
+   * PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur monotone de phase du Mouvement, transmis à
+   * `openSheetDraft` ; absent : max(`id`) + 1 (aucun Mouvement, création). Lu au montage.
+   */
+  readonly nextPhaseId?: number;
   readonly onApply: (parameters: ExecutionParameters) => void;
   readonly onCancel: () => void;
 };
@@ -495,12 +515,18 @@ export function ExecutionParametersSheet({
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
   inheritedSeriesCount = false,
+  phaseStructureLocked = false,
+  nextPhaseId,
   onApply,
   onCancel,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-  const [draft, setDraft] = useState<ExecutionSheetDraft>(() => openSheetDraft(parent, { inheritedSeriesCount }));
+  const [draft, setDraft] = useState<ExecutionSheetDraft>(() =>
+    openSheetDraft(parent, { inheritedSeriesCount, ...(nextPhaseId !== undefined ? { nextPhaseId } : {}) }),
+  );
+  // PRE-7 (A2.1) : verrou de structure lu à l'ouverture, comme N hérité.
+  const [structureLocked] = useState(phaseStructureLocked);
   // Story 3.3 (AD-15) : surface ouverte unique — roue (panneau sur iOS), champ ± ou clavier.
   const [surface, dispatchSurface] = useReducer(sheetSurfaceReducer, INITIAL_SHEET_SURFACE_STATE);
   const openSurface = surface.open;
@@ -660,8 +686,10 @@ export function ExecutionParametersSheet({
   const uniformTargetViolation =
     !validation.ok && !showVariableTable
       ? // PRE-5 story 2.8 (FR-3, revue) : une somme des phases hors de 1..3535 (violation
-        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche. PRE-7 (A1.1, D-438) : une
-        // durée de phase manquante (`phaseId`) reste signalée par sa seule cellule (« — », rouge pâle).
+        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche. PRE-7 (A1.1, D-438) : la
+        // violation d'une durée de phase manquante (`phaseId`) marque sa seule cellule ; depuis A2.1
+        // (D-384), D est alors `UNSET` (« — ») et sa propre violation `target` la marque à renseigner,
+        // comme l'état existant « deux phases à renseigner ».
         validation.violations.find(
           (violation) => violation.field === "target" || (violation.field === "workPhases" && violation.phaseId === undefined),
         )
@@ -799,11 +827,13 @@ export function ExecutionParametersSheet({
   /**
    * PRE-5 story 2.8 (FR-8, QR-1, AD-27) : croix de la phase d'identité `phaseId`, sur le modèle
    * de `handleRemove`. Sans surface ouverte : `removeWorkPhase` et « Phase supprimée — Annuler ».
-   * Sinon l'appui range la surface ouverte sans retirer. PRE-7 (A1.1, D-438) : le domaine permet le
-   * retrait à deux phases (2 → Sans) ; seule l'interface garde la croix indisponible à deux phases
-   * (`WorkPhasesTable`) jusqu'à A2.1.
+   * Sinon l'appui range la surface ouverte sans retirer. PRE-7 (A2.1, D-438) : croix disponible dès
+   * deux phases ; à deux, le retrait donne Sans, la durée restante devenant la durée de série, avec
+   * le même message annulable (Annuler restitue les deux phases). Sous structure verrouillée : aucun
+   * retrait (croix indisponible).
    */
   function handleRemovePhase(phaseId: number) {
+    if (structureLocked) return;
     setIsTableSelected(false);
     if (!removalEnabled(surface)) {
       dispatchSurface(surface.open.kind === "stepper" ? { type: "outside" } : { type: "closeAll" });
@@ -821,10 +851,18 @@ export function ExecutionParametersSheet({
    * - Avec → Sans : `setWorkPhasesEnabled(false)` (la somme devient la durée unique de série) ;
    * - Avec re-choisi (des phases existent) : ouvre ou ferme le réglage du nombre, comme le
    *   toucher de « n phases ».
+   * PRE-7 (A2.1, D-438, MFN-09) : sous structure verrouillée, aucun passage ni réglage ; le geste
+   * range seulement la surface ouverte (saisie appliquée), comme le Type de série sous N hérité.
    */
   function choosePhases(choice: PhaseChoice) {
     // T10 : panneau ou sélecteur ouvert — fermeture sans appliquer.
     if (openSurface.kind === "selector") {
+      dispatchSurface({ type: "closeAll" });
+      return;
+    }
+    if (structureLocked) {
+      const base = keyboard.flush(draft);
+      if (base !== draft) commitKeyboard(() => base);
       dispatchSurface({ type: "closeAll" });
       return;
     }
@@ -851,6 +889,7 @@ export function ExecutionParametersSheet({
    * et par la transition ; le réglage reste ouvert (T22).
    */
   function changePhaseCount(count: number) {
+    if (structureLocked) return;
     const next = setWorkPhaseCount(draft, count);
     if (next === draft) return;
     setIsTableSelected(false);
@@ -1722,6 +1761,20 @@ export function ExecutionParametersSheet({
       hitSlop: KEYBOARD_CELL_HIT_SLOP,
     };
     const prefix = `${PHASE_ROW_TEST_ID}-${number}`;
+    if (kind === "phaseLabel" && structureLocked) {
+      // PRE-7 (A2.1, D-438, MFN-09) : libellé d'une structure verrouillée — même champ natif, non
+      // modifiable (`editable={false}`), même place et même texte lisible ; aucun clavier.
+      return (
+        <TextInput
+          value={phase.label.trim() === "" ? defaultPhaseLabel(number) : phase.label}
+          editable={false}
+          accessibilityLabel={t.phaseLabel.replace("{n}", String(number))}
+          accessibilityState={{ disabled: true }}
+          style={[tableCellValueStyle, styles.phaseLabelInput]}
+          testID={`${prefix}-label`}
+        />
+      );
+    }
     if (kind === "phaseLabel") {
       return (
         <KeyboardField
@@ -1760,7 +1813,10 @@ export function ExecutionParametersSheet({
   // identiques effectives) ou si des phases existent ; sinon indisponible, Sans affiché.
   // Sélectionné, Avec affiche « n phases » (réglage du nombre révélé au toucher) et le chevron
   // du tableau ; sa largeur suit l'état (constantes `PHASE_OPTION_*`).
-  const phaseCountOpen = isOpen(stepperSurface("phaseCount"));
+  // PRE-7 (A2.1, D-438, MFN-09) : sous structure verrouillée, Avec (sans phase) et Sans (avec
+  // phases) sont indisponibles, « n phases » est affiché indisponible sans réglage (comme N hérité),
+  // le chevron du tableau reste actif (ni le nombre ni les phases n'en dépendent).
+  const phaseCountOpen = !structureLocked && isOpen(stepperSurface("phaseCount"));
   const phasesControl = (
     <SegmentedControl<PhaseChoice>
       variant="inline"
@@ -1783,11 +1839,14 @@ export function ExecutionParametersSheet({
                   onChange={changePhaseCount}
                   folded={isPhasesFolded}
                   onChevronPress={togglePhasesTable}
+                  disabled={structureLocked}
                 />
               ),
             }
-          : { value: "WITH", label: t.workPhaseChoices.WITH, disabled: !canEnableWorkPhases(draft) },
-        { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT },
+          : { value: "WITH", label: t.workPhaseChoices.WITH, disabled: structureLocked || !canEnableWorkPhases(draft) },
+        hasWorkPhases && structureLocked
+          ? { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT, disabled: true }
+          : { value: "WITHOUT", label: t.workPhaseChoices.WITHOUT },
       ]}
       value={hasWorkPhases ? "WITH" : "WITHOUT"}
       onChange={choosePhases}
@@ -2000,6 +2059,7 @@ export function ExecutionParametersSheet({
                         }}
                         cell={phaseCell}
                         bleed={TABLE_BLOCK_BLEED}
+                        structureLocked={structureLocked}
                         style={styles.tableBlock}
                       />
                     ) : null}
@@ -3037,6 +3097,7 @@ function PhaseCountField({
   onChange,
   folded,
   onChevronPress,
+  disabled = false,
 }: {
   isOpen: boolean;
   onToggle: () => void;
@@ -3044,6 +3105,12 @@ function PhaseCountField({
   onChange: (count: number) => void;
   folded: boolean;
   onChevronPress: () => void;
+  /**
+   * PRE-7 (A2.1, D-438, MFN-09) : nombre verrouillé (occurrence) — « n phases » affiché avec
+   * l'état indisponible existant de `SegmentCountField` (`unselected`, sans réglage) ; le chevron
+   * reste actif.
+   */
+  disabled?: boolean;
 }) {
   const chevronTestID = "execution-sheet-phases-control-WITH-chevron";
   const chevronLabel = folded ? t.showPhases : t.hidePhases;
@@ -3087,6 +3154,7 @@ function PhaseCountField({
       closedAccessory={chevron}
       openAccessory={chevron}
       openHint={t.phasesTableToggleUnavailableHint}
+      disabled={disabled}
       testID="execution-sheet-phase-count"
       textTestID="execution-sheet-phase-count-text"
     />

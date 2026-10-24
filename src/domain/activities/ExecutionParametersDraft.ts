@@ -251,7 +251,7 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     activeRows.forEach((row, index) => remember(rowIds[index]!, row.target));
     remember(uniformId, uniform.target);
   }
-  return {
+  const opened: ExecutionSheetDraft = {
     mode: parameters.mode,
     count: seriesCountOf(parameters),
     variable,
@@ -285,6 +285,10 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
     loadEnabled: parameters.loadEnabled,
   };
+  // PRE-7 (A2.1, D-384) : avec une durée de phase non renseignée (frère incomplet), D est ouverte
+  // à renseigner, comme `deriveSeriesDuration` la tient ensuite ; une liste complète garde la Cible
+  // lue telle quelle (`requestedParameters(openSheetDraft(p))` = `p`).
+  return opened.workPhases.some((phase) => phase.durationSeconds === null) ? deriveSeriesDuration(opened) : opened;
 }
 
 /**
@@ -920,15 +924,23 @@ export function canEnableWorkPhases(draft: ExecutionSheetDraft): boolean {
 
 /**
  * SEUL écrivain de D tant que des phases existent (AD-20, FR-3) : Cible commune
- * = `NUMBER(Σ)` si Σ ≥ 1, sinon `UNSET` ; une durée `null` compte pour 0. Appelée
- * seulement par une transition qui laisse une liste non vide (activation, ajout,
- * retrait, annulation d'un retrait, réglage d'une durée, y compris sur une phase
- * seule relue des données) et par la normalisation d'une liste non vide ; jamais
- * de calcul de la dernière phase sur le restant (réservé aux formats, D-372).
+ * = `NUMBER(Σ)` si Σ ≥ 1, sinon `UNSET`. Appelée seulement par une transition
+ * qui laisse une liste non vide (activation, ajout, retrait, annulation d'un
+ * retrait, réglage d'une durée, y compris sur une phase seule relue des données)
+ * et par la normalisation d'une liste non vide ; jamais de calcul de la dernière
+ * phase sur le restant (réservé aux formats, D-372).
+ *
+ * PRE-7 (A2.1, D-384, MFN-02 ; CE-UI-10 « donnée nécessaire au calcul manquante :
+ * — ») : dès qu'une durée manque (`null` ou < 1 s), D est `UNSET` (« — »), jamais
+ * la somme partielle des durées connues — comme la forme Catalogue v4 d'un frère
+ * incomplet. Avec → Sans garde cette D : la durée de série reste alors à renseigner.
  */
 export function deriveSeriesDuration(draft: ExecutionSheetDraft): ExecutionSheetDraft {
+  const missing = draft.workPhases.some(
+    (phase) => phase.durationSeconds === null || phase.durationSeconds < WORK_PHASE_LIMITS.durationMin,
+  );
   const sum = draft.workPhases.reduce((total, phase) => total + (phase.durationSeconds ?? 0), 0);
-  return withUniformTarget(draft, sum >= 1 ? numberTarget(sum) : unsetTarget());
+  return withUniformTarget(draft, !missing && sum >= 1 ? numberTarget(sum) : unsetTarget());
 }
 
 /**
@@ -948,8 +960,9 @@ function withWorkPhases(draft: ExecutionSheetDraft, workPhases: readonly DraftWo
  *   `NUMBER` courante si elle est dans 1..3535, sinon `null` ; la seconde `null`
  *   (à renseigner). Rien n'est inventé. Sinon : refus, Brouillon inchangé.
  * - Sans : `workPhases = []` ; la Cible garde la dernière somme, qui devient la
- *   durée unique de série modifiable (`UNSET` si la somme était nulle) ; aucune
- *   mémoire des anciennes phases (revenir à Avec recrée deux phases).
+ *   durée unique de série modifiable (`UNSET` si la somme était nulle ou, depuis
+ *   PRE-7 A2.1, si une durée manquait) ; aucune mémoire des anciennes phases
+ *   (revenir à Avec recrée deux phases).
  */
 export function setWorkPhasesEnabled(draft: ExecutionSheetDraft, enabled: boolean): ExecutionSheetDraft {
   if (!enabled) {

@@ -267,6 +267,9 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
   );
   // PRE-4 (AD-13) : ligne de base des paramètres relue à l'ouverture (aucune en création).
   const [baselineParameters, setBaselineParameters] = useState<ExecutionParametersInput | null>(null);
+  // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition,
+  // transmis à la Feuille ; absent en création (aucun Mouvement : max + 1).
+  const [movementNextPhaseId, setMovementNextPhaseId] = useState<number | undefined>(undefined);
   const [value, setValue] = useState<ActivityEditorFormValue | null>(initial);
   const [profileApplied, setProfileApplied] = useState(definitionId !== null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -306,6 +309,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
             media: toDraftMediaItems(definition.media ?? []),
           };
           setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
+          setMovementNextPhaseId(definition.movementNextPhaseId);
           setInitial(loaded);
           setValue(loaded);
           setCategoryId(definition.categoryId ?? null);
@@ -451,6 +455,7 @@ function CatalogueActivityEditorScreen({ definitionId }: { definitionId: string 
           isCategoryPickerOpen={categorySheet.isOpen}
           categoryAccessRef={categoryAccessRef}
           profileSideRecoverySecondsDefault={profile.sideRecovery}
+          nextPhaseId={movementNextPhaseId}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -521,6 +526,12 @@ function seriesEqual(a: ExecutionParametersInput, b: ExecutionParametersInput): 
 type OpenedOccurrence = {
   readonly inheritedSeriesCount: boolean;
   readonly openedParameters: readonly ExecutionParametersInput[];
+  /**
+   * PRE-7 (A2.1, D-437, D-438, MFN-09 ; CE-UI-10) : structure des phases verrouillée — occurrence
+   * portant une filiation (copie du Catalogue, Séance enregistrée, duplication). Une occurrence
+   * sans filiation est une création locale non encore enregistrée : modifiable (exception MFN-09).
+   */
+  readonly phaseStructureLocked: boolean;
 };
 
 function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: CircuitNature | undefined): OpenedOccurrence | null {
@@ -535,6 +546,7 @@ function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: Circu
       exercise.type === "EXERCISE" &&
       (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
     openedParameters: validated.ok ? [opened, validated.value] : [opened],
+    phaseStructureLocked: (exercise.sourceMovementId ?? "").trim().length > 0,
   };
 }
 
@@ -582,6 +594,7 @@ function CompositionExerciseEditor() {
     setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature));
   }
   const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
+  const phaseStructureLocked = openedOccurrence?.phaseStructureLocked ?? false;
   const [initialSnapshot, setInitialSnapshot] = useState<SessionDraftExercise>(() =>
     existingExercise
       ? existingExercise
@@ -776,6 +789,7 @@ function CompositionExerciseEditor() {
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
+          phaseStructureLocked={phaseStructureLocked}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}

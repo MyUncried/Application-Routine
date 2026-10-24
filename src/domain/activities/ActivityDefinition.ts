@@ -75,6 +75,14 @@ export type ActivityDefinition = {
    */
   readonly movementId: string;
   /**
+   * PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur monotone de phase du Mouvement
+   * (`Movement.nextPhaseId`), relu avec la définition pour que l'éditeur ouvre
+   * la Feuille avec ce compteur plutôt que max(`id`) + 1 : une identité retirée
+   * n'est jamais réallouée. Optionnel sur ce type LU (fixtures) ; toujours
+   * renseigné par le Repository.
+   */
+  readonly movementNextPhaseId?: number;
+  /**
    * PRE-7 (A1.2, MFN-08, MFN/AC24) : présent et non vide pour un exercice
    * frère INCOMPLET (durée de phase non renseignée, forme Catalogue v4 `null`) :
    * identités des phases à compléter, dans l'ordre de la structure. Ses

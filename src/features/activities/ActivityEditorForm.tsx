@@ -122,6 +122,16 @@ export type ActivityEditorFormProps = {
    */
   inheritedSeriesCount?: boolean;
   /**
+   * PRE-7 (A2.1, D-438, MFN-09) : structure des phases verrouillée dans la Feuille (occurrence de
+   * Séance copiée d'un geste) ; durées modifiables. Défaut `false`. Transmise à chaque ouverture.
+   */
+  phaseStructureLocked?: boolean;
+  /**
+   * PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement de la définition éditée,
+   * transmis à la Feuille (`openSheetDraft`) ; absent : max(`id`) + 1.
+   */
+  nextPhaseId?: number;
+  /**
    * PRE-4 (story 1.1, AD-13) : ligne de base des paramètres, relue à
    * l'ouverture de l'Éditeur (`null` en création) — transmise au ✓ de la
    * Feuille pour la validation unique `validateForSave` (H25).
@@ -269,6 +279,8 @@ export function ActivityEditorForm({
   profileSideRecoverySecondsDefault,
   exerciseSignals = "present",
   inheritedSeriesCount = false,
+  phaseStructureLocked = false,
+  nextPhaseId,
   baselineParameters = null,
   mediaService,
   mediaDraftId,
@@ -605,6 +617,8 @@ export function ActivityEditorForm({
           profileSideRecoverySecondsDefault={profileSideRecoverySecondsDefault}
           exerciseSignals={exerciseSignals}
           inheritedSeriesCount={inheritedSeriesCount}
+          phaseStructureLocked={phaseStructureLocked}
+          nextPhaseId={nextPhaseId}
           onApply={applyParameters}
           onCancel={closeSheet}
         />

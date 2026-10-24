@@ -1824,3 +1824,146 @@ describe("ExerciseScreen — N hérité dans la Feuille (PRE-6, story 3.3)", () 
     expect(cadence.executionParameters.cadenceBeepIntervalSeconds).toBe(0);
   });
 });
+
+/**
+ * PRE-7 story A2.1 (D-437, D-438, MFN-02, MFN-09, MFN/AC28, AC30 ; CE-UI-10) : l'éditeur transmet à
+ * la Feuille le verrou de structure d'une occurrence portant une filiation (copie, Séance
+ * enregistrée, duplication), jamais pour une création locale non enregistrée ; et, au Catalogue,
+ * le compteur de phase du Mouvement relu avec la définition. Frère incomplet : signalé par la
+ * Carte, `Terminer` inactif.
+ */
+describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", () => {
+  const PHASED: ExecutionParameters = (() => {
+    const base = durationParameters(9, 3, 15);
+    return {
+      ...base,
+      series: {
+        ...(base.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: 6 },
+          { id: 2, label: "Maintien", durationSeconds: 3 },
+        ],
+      },
+    };
+  })();
+  const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  const isStructureLocked = () =>
+    screen.getByTestId("execution-sheet-phase-row-1-remove").props.accessibilityState?.disabled === true &&
+    screen.getByTestId("execution-sheet-phases-control-WITHOUT").props.accessibilityState?.disabled === true;
+
+  it("occurrence copiée d'un geste (filiation), y compris une copie d'occurrence locale en attente : structure verrouillée, durées modifiables", () => {
+    for (const filiation of [{ sourceMovementId: "mov-1" }, { sourceMovementId: "occ-0", pendingLocalMovement: true as const }]) {
+      const { updateDraft } = renderRoute({
+        params: { exerciseId: "occ-1" },
+        exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", ...filiation })],
+      });
+      openSheet();
+      expect(isStructureLocked()).toBe(true);
+      expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
+      fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "focus");
+      fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "8");
+      fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "blur");
+      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+      fireEvent.press(screen.getByTestId("exercise-finish-action"));
+      const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
+      expect(finished.executionParameters.series).toMatchObject({
+        kind: "UNIFORM",
+        target: { kind: "NUMBER", value: 11 },
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: 8 },
+          { id: 2, label: "Maintien", durationSeconds: 3 },
+        ],
+      });
+      expect(finished.sourceMovementId).toBe(filiation.sourceMovementId);
+      screen.unmount();
+    }
+  });
+
+  it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure modifiable (exception MFN-09)", () => {
+    renderRoute({ params: { exerciseId: "occ-1" }, exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL" })] });
+    openSheet();
+    expect(isStructureLocked()).toBe(false);
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBeUndefined();
+    screen.unmount();
+    renderRoute({});
+    openSheet();
+    chooseExecutionMode("Durée");
+    expect(screen.getByTestId("execution-sheet-phases-control-WITH").props.accessibilityState?.disabled).toBe(false);
+  });
+
+  it("Catalogue : la Feuille reçoit le compteur de phase du Mouvement — une phase ajoutée reçoit l'identité du compteur (7), jamais max + 1 (MFN/AC30)", async () => {
+    const definition: ActivityDefinition = {
+      id: "def-1",
+      movementId: "mov-1",
+      movementNextPhaseId: 7,
+      name: "Planche",
+      description: "",
+      categoryId: "cardio",
+      bodyZoneIds: ["cuisses"],
+      sideMode: "UNILATERAL",
+      executionParameters: PHASED,
+      media: [],
+      createdAt: "now",
+      updatedAt: "now",
+    };
+    const updateActivityDefinition = jest
+      .fn<ActivityDefinitionService["updateActivityDefinition"]>()
+      .mockResolvedValue({ status: "UPDATED", value: definition });
+    renderRoute({
+      params: { catalogueDefinitionId: "def-1" },
+      service: { getActivityDefinition: jest.fn(async () => definition), updateActivityDefinition },
+    });
+    await screen.findByDisplayValue("Planche");
+    openSheet();
+    // Catalogue : structure modifiable, croix disponible dès deux phases (D-438).
+    expect(isStructureLocked()).toBe(false);
+    fireEvent.press(screen.getByTestId("execution-sheet-phase-count-toggle"));
+    fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressIn");
+    fireEvent(screen.getByTestId("execution-sheet-phase-count-increment"), "pressOut");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    const input = updateActivityDefinition.mock.calls[0]![1];
+    const series = input.executionParameters.series;
+    expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.id) : []).toEqual([1, 2, 7]);
+  });
+
+  it("frère incomplet ouvert au Catalogue : Carte « Paramètres à compléter. », Terminer inactif ; Feuille : durée « — », D « — », ✓ indisponible", async () => {
+    const incomplete: ExecutionParameters = {
+      ...PHASED,
+      series: {
+        ...(PHASED.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
+        target: { kind: "UNSET" },
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: 6 },
+          { id: 2, label: "Maintien", durationSeconds: 0 },
+        ],
+      },
+    };
+    const definition: ActivityDefinition = {
+      id: "def-2",
+      movementId: "mov-1",
+      movementNextPhaseId: 3,
+      missingPhaseIds: [2],
+      name: "Planche",
+      description: "",
+      categoryId: "cardio",
+      bodyZoneIds: ["cuisses"],
+      sideMode: "UNILATERAL",
+      executionParameters: incomplete,
+      media: [],
+      createdAt: "now",
+      updatedAt: "now",
+    };
+    renderRoute({ params: { catalogueDefinitionId: "def-2" }, service: { getActivityDefinition: jest.fn(async () => definition) } });
+    await screen.findByDisplayValue("Planche");
+    expect(String(screen.getByTestId("exercise-parameters-phrase").props.children)).toBe(strings.executionParameters.card.incomplete);
+    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
+    openSheet();
+    const sheet = strings.executionParameters.sheet;
+    expect(String(screen.getByTestId("execution-sheet-phase-row-2-duration-value").props.children)).toBe(sheet.unset);
+    expect(String(screen.getByTestId("execution-sheet-target-text").props.children)).toBe(sheet.unset);
+    expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+});
