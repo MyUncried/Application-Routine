@@ -91,7 +91,7 @@ Trois notions à ne pas confondre, et c'est le point le plus structurant pour l'
 | Durée | Temps écoulé, ou arrêt avant le terme | Terminée, ou partielle |
 | Max | Limite atteinte, ou abandon | Terminée si la limite est déclarée, partielle sinon |
 
-La dernière ligne est celle qui demande une commande explicite. Sur une borne Max, atteindre sa limite est une fin normale et la séance est complète. Mais tout appui sur Stop ne vaut pas déclaration de limite : il faut distinguer, dans l'interface, le geste qui dit j'ai atteint ma limite de celui qui dit j'arrête là. Sans cette distinction, un abandon serait enregistré comme une performance.
+La dernière ligne est celle qui demande une commande explicite. Sur une borne Max, atteindre sa limite est une fin normale et la séance est complète. Mais tout appui sur Stop ne vaut pas déclaration de limite : il faut distinguer, dans l'interface, le mouvement qui dit j'ai atteint ma limite de celui qui dit j'arrête là. Sans cette distinction, un abandon serait enregistré comme une performance.
 
 Sur un Death by, l'utilisateur déclare son nombre de tours à chaque passage. Quand il déclare ne plus pouvoir, cet arrêt n'est pas un échec de la séance, c'est son résultat : motif de fin « limite atteinte », résultat « tour N », état « terminée ».
 

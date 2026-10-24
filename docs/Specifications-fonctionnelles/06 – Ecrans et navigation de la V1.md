@@ -137,9 +137,9 @@ Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et C
 
 ### États complémentaires MFN — mise à jour Figma du 23/10/2026
 
-Les cinq nouveaux états CE-T03-04 sont maintenant illustrés ci-dessous. Le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) fixe le parcours, les composants et les écarts résiduels. Aucun Catalogue Mouvement ; les libellés visibles sont « geste », « exercice » et « niveau ».
+Les cinq nouveaux états CE-T03-04 sont maintenant illustrés ci-dessous. Le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) fixe le parcours, les composants et les écarts résiduels. Aucun Catalogue Mouvement ; les libellés visibles sont « mouvement », « exercice » et « niveau ».
 
-En création sur geste repris, le contenu est en lecture seule jusqu’au crayon, mais les paramètres restent modifiables. Cela ne change ni l’ouverture directe en édition d’une définition Catalogue ni le verrouillage des occurrences. La confirmation n’est pas systématique : geste utilisé et contenu modifié seulement. Une variante explicitement choisie est sauvegardée sans question redondante. La complétion des durées des exercices frères reste à illustrer. Les références de Composition D-435 sont conservées.
+En création sur mouvement repris, le contenu est en lecture seule jusqu’au crayon, mais les paramètres restent modifiables. Cela ne change ni l’ouverture directe en édition d’une définition Catalogue ni le verrouillage des occurrences. La confirmation n’est pas systématique : mouvement utilisé et contenu modifié seulement. Une variante explicitement choisie est sauvegardée sans question redondante. La complétion des durées des exercices frères reste à illustrer. Les références de Composition D-435 sont conservées.
 
 ### Navigation principale et articulation des écrans
 #### Navigation principale
@@ -578,7 +578,7 @@ Formulaire : conserver les shells et l’ordre visible dans les captures. Toute 
 
 Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
-#### Gestes et niveaux — captures du 23/10/2026
+#### Mouvements et niveaux — captures du 23/10/2026
 
 Références complémentaires CE-T03-04 ; comportement normatif et limites de preuve dans le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Les nombres, noms et rangs des maquettes sont des données d’exemple.
 
@@ -588,23 +588,23 @@ Références complémentaires CE-T03-04 ; comportement normatif et limites de pr
 
 ![Suggestion de rapprochement](images/figma-9882-19049.png)
 
-##### Geste repris — contenu en lecture seule
+##### Mouvement repris — contenu en lecture seule
 
 [Source Figma — `9891:39982`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9891-39982)
 
-![Geste repris — contenu en lecture seule](images/figma-9891-39982.png)
+![Mouvement repris — contenu en lecture seule](images/figma-9891-39982.png)
 
-##### Geste — contenu éditable
+##### Mouvement — contenu éditable
 
 [Source Figma — `9959:19518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19518)
 
-![Geste — contenu éditable](images/figma-9959-19518.png)
+![Mouvement — contenu éditable](images/figma-9959-19518.png)
 
-##### Recherche d’un geste
+##### Recherche d’un mouvement
 
 [Source Figma — `9959:19623`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623)
 
-![Recherche d’un geste](images/figma-9959-19623.png)
+![Recherche d’un mouvement](images/figma-9959-19623.png)
 
 ##### Confirmation conditionnelle à la sauvegarde
 
@@ -618,7 +618,7 @@ Références complémentaires CE-T03-04 ; comportement normatif et limites de pr
 
 ![Popover — changer de niveau / ajouter un niveau](images/figma-9577-19843.png)
 
-La confirmation ci-dessus représente la création sur un geste repris modifié. Elle n’apparaît ni pour une simple reprise ni pour une variante déjà choisie. Le popover illustre les nouveaux libellés ; son en-tête et sa jauge restent anciens, sans autorité sur le rang réel.
+La confirmation ci-dessus représente la création sur un mouvement repris modifié. Elle n’apparaît ni pour une simple reprise ni pour une variante déjà choisie. Le popover illustre les nouveaux libellés ; son en-tête et sa jauge restent anciens, sans autorité sur le rang réel.
 
 #### Formulaire — vues principales et résumé
 

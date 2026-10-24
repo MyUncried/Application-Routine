@@ -1,6 +1,6 @@
 # Contrats d’écran
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). CE-T03-02/04 : commande Niveau vide, choix de difficulté, alias et crayon du contenu partagé en création sur geste repris ET en édition Catalogue ; paramètres directement éditables. CE-T03-04 : recherche R02–R05 et avertissement N08 non bloquant. CE-T03-07 : recherche et filtres Catégorie/Zones, sélection conservée entre requêtes, compteur global, ordre Catalogue puis date de création et ID croissants. CE-T03-08/CE-UI-10 : changer de niveau remplace la copie avec nouvelle filiation ; reprend paramètres et contexte sans nouveau verrou, selon les quatre cas de phases v5 §8. Suivi : contenu figé, classification actuelle résoluble ; pas de rang sur les lignes compactes 1992:8996. Recette : R07 automatique en CI ; vérifier les quatre transitions de phases, annulation atomique, sélection masquée, rang après réordre et absence de mutation historique.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). CE-T03-02/04 : commande Niveau vide, choix de difficulté, alias et crayon du contenu partagé en création sur mouvement repris ET en édition Catalogue ; paramètres directement éditables. CE-T03-04 : recherche R02–R05 et avertissement N08 non bloquant. CE-T03-07 : recherche et filtres Catégorie/Zones, sélection conservée entre requêtes, compteur global, ordre Catalogue puis date de création et ID croissants. CE-T03-08/CE-UI-10 : changer de niveau remplace la copie avec nouvelle filiation ; reprend paramètres et contexte sans nouveau verrou, selon les quatre cas de phases v5 §8. Suivi : contenu figé, classification actuelle résoluble ; pas de rang sur les lignes compactes 1992:8996. Recette : R07 automatique en CI ; vérifier les quatre transitions de phases, annulation atomique, sélection masquée, rang après réordre et absence de mutation historique.
 
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
@@ -695,7 +695,7 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 #### 5. Données affichées et source de vérité
 
-D-437/D-439 : la liste regroupe les définitions par geste ; chaque définition garde son identité et son résumé de paramètres, sans alias. La ligne de regroupement ne se lance ni ne s’insère sans sélection d’une définition précise. Deux duplicatas identiques peuvent être indiscernables jusqu’à modification. Les relations entre niveaux se naviguent depuis la fiche, séparément de ce regroupement.
+D-437/D-439 : la liste regroupe les définitions par mouvement ; chaque définition garde son identité et son résumé de paramètres, sans alias. La ligne de regroupement ne se lance ni ne s’insère sans sélection d’une définition précise. Deux duplicatas identiques peuvent être indiscernables jusqu’à modification. Les relations entre niveaux se naviguent depuis la fiche, séparément de ce regroupement.
 
 Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la Pause entre les côtés éventuelle relève de la définition.
 
@@ -791,7 +791,7 @@ Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le r�
 
 #### 3. Contexte d’entrée
 
-D-437/D-438 : ouverture Catalogue directement en édition. En création sur geste repris, contenu initialement en lecture seule, paramètres modifiables et crayon « Modifier le geste » ouvrant le brouillon de contenu. Aucun crayon de déverrouillage d’une occurrence. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
+D-437/D-438 : ouverture Catalogue directement en édition. En création sur mouvement repris, contenu initialement en lecture seule, paramètres modifiables et crayon « Modifier le mouvement » ouvrant le brouillon de contenu. Aucun crayon de déverrouillage d’une occurrence. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
 
 Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillon ou copie de travail. Le même motif s’applique à une copie de Composition lorsque son édition est exposée, sans synchronisation vers la référence.
 
@@ -830,7 +830,7 @@ Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Descrip
 
 #### 9. Layout déterministe
 
-Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. « Terminer » est la référence du bouton d’action principal standardisé de D-444 : fixe en bas de l’écran, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur. Complément du 23/10 : rangée Catégorie / Zones / Niveau, espacement 12 pt et marges latérales 6 pt ; zones élastiques tronquées, valeur intégrale accessible. Pastille « Niveau X », total dans le choix ; pas de rang pour un singleton ou un geste sans groupe. Confirmation en feuille basse `9952:44349` ; cibles tactiles ≥ 44 × 44, indépendantes des boîtes d’icônes. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
+Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. « Terminer » est la référence du bouton d’action principal standardisé de D-444 : fixe en bas de l’écran, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur. Complément du 23/10 : rangée Catégorie / Zones / Niveau, espacement 12 pt et marges latérales 6 pt ; zones élastiques tronquées, valeur intégrale accessible. Pastille « Niveau X », total dans le choix ; pas de rang pour un singleton ou un mouvement sans groupe. Confirmation en feuille basse `9952:44349` ; cibles tactiles ≥ 44 × 44, indépendantes des boîtes d’icônes. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
 
 Phrase : Inter 13, interligne 20, texte sombre et valeurs en gras ; largeur 324/x39 dans la référence 402. *Remplacé par les arbitrages G-1 à G-10 de Hermann du 19/10 (G-6) : Inter Regular 14, interligne 20, dans un bloc `#F9FAFC` de rayon 12 sans liseré, sans Compte à rebours ni Fin (R-14).* Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
@@ -846,7 +846,7 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
-États MFN : recherche de gestes incluant les créations locales ; choix même geste/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. Les cinq états de création/reprise/recherche/confirmation sont illustrés au chapitre 06. La complétion des durées manquantes et l’état de frère incomplet restent sans frame dédiée ; les écarts de câblage et de rang sont consignés dans le relevé Figma du 23/10.
+États MFN : recherche de mouvements incluant les créations locales ; choix même mouvement/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. Les cinq états de création/reprise/recherche/confirmation sont illustrés au chapitre 06. La complétion des durées manquantes et l’état de frère incomplet restent sans frame dédiée ; les écarts de câblage et de rang sont consignés dans le relevé Figma du 23/10.
 
 Vide, nom seul, catégorie renseignée, nom/description en étapes/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
@@ -862,7 +862,7 @@ Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte :
 
 #### 14. Validation
 
-D-438 : si geste utilisé et nom, description, média ou structure des phases modifié, proposer **Corriger cet exercice / Créer un nouvel exercice / Annuler** en modification Catalogue ; en création sur geste repris, **Corriger ce geste / En faire un geste distinct / Annuler**, dans la feuille basse `9952:44349`. Aucune confirmation pour une variante explicitement choisie ou une reprise inchangée. Annuler conserve le brouillon appelant. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
+D-438 : si mouvement utilisé et nom, description, média ou structure des phases modifié, proposer **Corriger cet exercice / Créer un nouvel exercice / Annuler** en modification Catalogue ; en création sur mouvement repris, **Corriger ce mouvement / En faire un mouvement distinct / Annuler**, dans la feuille basse `9952:44349`. Aucune confirmation pour une variante explicitement choisie ou une reprise inchangée. Annuler conserve le brouillon appelant. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
 
 Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider. Pour les états incomplets du formulaire, son fond est lié au token Figma `color/disabled` (`#BEC2CC`) à opacité 100 % ; pour un état valide, le bouton d’action actif est lié à `color/primary` (`#0508E5`). Le rendu gris matérialise l’inactivité sans définir à lui seul la validité métier (évidences Figma `8328:35698`, `8328:35740`, `8328:36278`, `8328:36853` ; état actif `8328:37022`).
 
@@ -1151,9 +1151,9 @@ Avec phases et N libre, Durée totale conserve le calcul inverse de R-02 : seul 
 
 #### 13. Gestes
 
-Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans geste fin.
+Tap et maintien sur steppers, arrêt au relâchement/sortie de cible, pas supplémentaire de relâchement interdit après répétition. Glisser la poignée réordonne cible/Pause/charge/bip ensemble et recalcule la dernière ligne (RM-238). Alternatives accessibles sans mouvement fin.
 
-Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie texte ; tap durée éditable : contrôle durée, au clavier numérique MMSS dans la cellule, sans « À l’échec » (D-434). La dernière calculée n’ouvre pas de saisie. Les gestes et alternatives accessibles du tableau existant sont conservés.
+Poignée : déplacer le libellé et sa durée ensemble. Tap libellé : saisie texte ; tap durée éditable : contrôle durée, au clavier numérique MMSS dans la cellule, sans « À l’échec » (D-434). La dernière calculée n’ouvre pas de saisie. Les mouvements et alternatives accessibles du tableau existant sont conservés.
 
 #### 14. Validation
 
@@ -1387,7 +1387,7 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 #### 5. Données affichées et source de vérité
 
-D-437/D-439 : regroupement par geste, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
+D-437/D-439 : regroupement par mouvement, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
 
 Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Recherche textuelle et filtres Catégorie/Zones selon v5 §7 ; les sélections masquées sont conservées et incluses au compteur.
 
@@ -1501,7 +1501,7 @@ Compte à rebours/Fin non déplaçables ; stepper du nombre de Tours ou de Séri
 
 #### 9. Layout déterministe
 
-**Arbitrages de recette du 21/10 — D1 et D6 :** aucun trait de démarcation entre les cartes de Composition (hors rail segmenté et liaisons des points d’arrêt) ; les anciennes prescriptions de trait permanent D-303 sont supersédées sur ce seul rendu. En mode placement, les cartes conservent un grisé visuel perceptible pour signifier leur indisponibilité au toucher ; leur couleur ne doit pas masquer les zones d’ajout, le contenu ni les repères du rail. Le retour au mode normal restaure les styles habituels ; les gestes et règles d’édition existants ne sont pas changés.
+**Arbitrages de recette du 21/10 — D1 et D6 :** aucun trait de démarcation entre les cartes de Composition (hors rail segmenté et liaisons des points d’arrêt) ; les anciennes prescriptions de trait permanent D-303 sont supersédées sur ce seul rendu. En mode placement, les cartes conservent un grisé visuel perceptible pour signifier leur indisponibilité au toucher ; leur couleur ne doit pas masquer les zones d’ajout, le contenu ni les repères du rail. Le retour au mode normal restaure les styles habituels ; les mouvements et règles d’édition existants ne sont pas changés.
 
 Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. À la largeur Figma de 402 : cartes v2 370 × 80 dès x16, rayon12, fond blanc, bord1 `#E4E7EF` hors Circuit et sans bord dans Circuit ; média64 × 64 à x24, rayon12/bord1 `#7A7A80` ; texte dès x100, symboles x282, valeurs alignées sur x378. Les colonnes s’adaptent aux largeurs 360/402/440 et aux libellés. Catégorie et Zones sont deux propriétés distinctes ; deux valeurs éventuelles sur la ligne de travail ne repoussent pas la récupération de la ligne3. Rail `#7A7A80` 1,5, segmenté entre bords des repères et médias, calculé depuis le layout réel, jamais sur les gabarits. Circuit : aplat `#F3F4F9`, débord 8 de part et d’autre des cartes, sans rectangle de contour, cartes internes espacées de 9 ; cercle/titre/compteur centré sur page/durée à droite alignés en en-tête ; depuis D-442, les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt, et tous les textes de cette ligne (nombre, unité, durée) ont la taille du titre « Circuit ». En placement, point d’arrêt centré dans un espace dédié de 22 et raccordé au rail ; récupération proposée par cadre pointillé dans la zone de ligne3 des seules cartes éligibles. Les commandes de nature et de volumes sont conservées même absentes d’une maquette illustrative. Les états soulevé et swipe renvoient à `8328:33546` et `8328:28863` ; un Point d’arrêt saisi par appui long est marqué visuellement par un état soulevé, comme une carte (D-442). Annuler et Confirmer restent accessibles dans le pied protégé. Depuis D-443 (23/10/2026), la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite ; les cadres du Compte à rebours initial et de la Fin de séance sont alignés à droite sur le cadre des cartes d’Exercice. Le pied de Continuer et la barre de placement ✓ / Annuler suivent le composant d’action principal standardisé (D-444) : zone fixe protégée, dégradé blanc pleine largeur, bouton centré verticalement dans la zone, zone de sécurité inférieure d’iOS respectée, même position verticale sans saut au changement de mode. Le rail ne remplace pas les règles existantes sur le trait de démarcation (D-303).
 
@@ -1517,7 +1517,7 @@ Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette
 
 #### 12. Contrôles et interactions
 
-D-437 : l’édition d’une occurrence conserve le nom, la description, les médias, la catégorie, les zones et la structure des phases verrouillés. Paramètres modifiables sous les contraintes existantes, mode verrouillé en présence de phases, côtés modifiables. Changer de geste exige remplacement/variante ; duplication conserve filiation et suffixe système D-124 sans renommage du mouvement.
+D-437 : l’édition d’une occurrence conserve le nom, la description, les médias, la catégorie, les zones et la structure des phases verrouillés. Paramètres modifiables sous les contraintes existantes, mode verrouillé en présence de phases, côtés modifiables. Changer de mouvement exige remplacement/variante ; duplication conserve filiation et suffixe système D-124 sans renommage du mouvement.
 
 **Complément cible 12/10 :** Choix de nature → CE-CIR-01 ; perte → CE-CIR-02 ; œil → CE-CIR-03. Diminution sans message ; restauration avant préremplissage. Ajout catalogue avec perte exige confirmation, Annuler abandonne ajout.
 
@@ -1630,15 +1630,15 @@ Les commandes contextuelles de Composition font 34 px, dessins 20, gaps 10, cibl
 
 Un appui court sur une carte Exercice ouvre directement son parcours de modification. Un appui long sur la carte de l’occurrence Exercice déclenche sa réorganisation sans ouvrir la modification ; la carte et sa récupération contextuelle intégrée forment le bloc déplacé (D-435), sans rangée séparée. Un glissement gauche déplace le bloc avec le geste et révèle progressivement les actions `Dupliquer` et `Supprimer` placées derrière. `Dupliquer` crée un Exercice de Séance indépendant avec un nouvel identifiant, reprend tous les paramètres de la source, y compris Pause et Récupération, la nomme `{nom} (copie)` puis `{nom} (copie 2)`, etc., sans collision, et l’insère immédiatement après la source dans la même zone structurelle. Le Point d’arrêt qui suit la source n’est pas copié et garde sa place : `[A, P, B]` devient `[A, A′, P, B]` (D-441). Cette action ne crée aucun Exercice dans le catalogue. `Supprimer` retire le bloc du brouillon ; si la suppression laisse un Point à une position non autorisée ou deux Points d’arrêt consécutifs, elle est appliquée et le ou les Points en cause sont retirés sans message, le premier de deux Points devenus consécutifs étant conservé (D-442, qui remplace le refus doux de D-441 ; RM-251) ; la carte supprimée disparaît en fondu et les éléments suivants glissent pour combler sa place (D-442), plus lentement et sans arrêt brutal depuis D-443 ; la suppression n’est persistée qu’avec l’enregistrement final de la Séance et l’abandon restitue la version persistée.
 
-Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le geste. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Circuit. Aucun overlay immobile ne remplace ce mouvement réel.
+Dans l’état Figma `Composition d’une séance — actions glissées` (`2028:11808`), la carte/bloc suit le mouvement. L’action `Dupliquer` reprend son rayon DSF et un espace visuel sépare son bord gauche de la portion encore visible de la carte, laissant apparaître le fond du conteneur Circuit. Aucun overlay immobile ne remplace ce mouvement réel.
 
 ### Composer une séance / Modifier une séance — Réorganisation
 
-Les Exercices peuvent être réorganisés dans leur zone ou déplacés par glisser-déposer avant le Circuit, dans le Circuit ou après le Circuit. Le geste commence par un appui long sur le bloc complet ; la carte de l’occurrence passe dans l’état soulevé puis suit le glissement ; la récupération après exercice reste rattachée à l’occurrence pendant le déplacement ; sa valeur affichable suit la troisième ligne de carte jusqu’à la dépose valide. Le Point d’arrêt reste à sa position dans la séquence (D-441) ; une dépose d’Exercice qui le laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) est appliquée, et le ou les Points en cause sont retirés sans message, le premier de deux Points devenus consécutifs étant conservé (D-442, qui remplace sur ce point le refus de D-441). Un Point d’arrêt se réorganise lui-même par appui long, qui le marque visuellement par un état soulevé, puis glisser-déposer, vers une position autorisée avant, dans (tête de Circuit comprise, D-442) ou après le Circuit. Pendant le glisser d’une carte ou d’un Point, amener l’élément près du bord haut ou bas de la zone visible fait défiler la liste ; le défilement s’arrête quand l’élément quitte ce bord ou à la dépose (D-442). Un toucher court conserve son comportement d’ouverture de l’Exercice en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
+Les Exercices peuvent être réorganisés dans leur zone ou déplacés par glisser-déposer avant le Circuit, dans le Circuit ou après le Circuit. Le mouvement commence par un appui long sur le bloc complet ; la carte de l’occurrence passe dans l’état soulevé puis suit le glissement ; la récupération après exercice reste rattachée à l’occurrence pendant le déplacement ; sa valeur affichable suit la troisième ligne de carte jusqu’à la dépose valide. Le Point d’arrêt reste à sa position dans la séquence (D-441) ; une dépose d’Exercice qui le laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) est appliquée, et le ou les Points en cause sont retirés sans message, le premier de deux Points devenus consécutifs étant conservé (D-442, qui remplace sur ce point le refus de D-441). Un Point d’arrêt se réorganise lui-même par appui long, qui le marque visuellement par un état soulevé, puis glisser-déposer, vers une position autorisée avant, dans (tête de Circuit comprise, D-442) ou après le Circuit. Pendant le glisser d’une carte ou d’un Point, amener l’élément près du bord haut ou bas de la zone visible fait défiler la liste ; le défilement s’arrête quand l’élément quitte ce bord ou à la dépose (D-442). Un toucher court conserve son comportement d’ouverture de l’Exercice en modification. Le déplacement conserve l’identifiant et tous les paramètres, met à jour la position structurelle et renumérote continûment les positions de chaque zone. Il ne persiste rien avant l’enregistrement final.
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Exercice et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
-La poignée `Icon / Structure / Movable` reste l’indice visuel du caractère déplaçable, mais le geste d’activation porte sur la carte. L’état soulevé est uniquement transitoire : il ne modifie ni l’ordre ni la position structurelle avant la dépose.
+La poignée `Icon / Structure / Movable` reste l’indice visuel du caractère déplaçable, mais le mouvement d’activation porte sur la carte. L’état soulevé est uniquement transitoire : il ne modifie ni l’ordre ni la position structurelle avant la dépose.
 
 Le Circuit reste structurel. Le Compte à rebours initial et la Fin de séance sont explicitement non déplaçables, sans appui long ni poignée de déplacement.
 
@@ -2214,7 +2214,7 @@ Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde 
 
 #### 13. Gestes
 
-Gestes de composition existants ; pas de geste de conversion du format ajouté.
+Mouvements de composition existants ; pas de mouvement de conversion du format ajouté.
 
 #### 14. Validation
 
@@ -2392,7 +2392,7 @@ Travail ; travail confirmé/repos révélé ; échéance ; clôture. R-01 couvre
 
 #### 13. Gestes
 
-Appui cadran explicite ; son et média ne confirment pas de travail. Gestes génériques ne doivent pas contourner l’échéance.
+Appui cadran explicite ; son et média ne confirment pas de travail. Mouvements génériques ne doivent pas contourner l’échéance.
 
 #### 14. Validation
 
@@ -2783,7 +2783,7 @@ Réinitialiser et Suivant selon table§4.12 ; Pause suspend les horloges actives
 
 #### 13. Gestes
 
-Tap commandes ; aucun geste structurel de Session.
+Tap commandes ; aucun mouvement structurel de Session.
 
 #### 14. Validation
 
@@ -3103,7 +3103,7 @@ Pour une séance libre à plan fini, Démarrer construit le plan ; ordre canoniq
 
 #### 13. Gestes
 
-Tap commandes ; confirmation explicite avant action destructive ; gestes média uniquement dans sa zone ; aucun retour vers Exercice précédent au MVP.
+Tap commandes ; confirmation explicite avant action destructive ; mouvements média uniquement dans sa zone ; aucun retour vers Exercice précédent au MVP.
 
 #### 14. Validation
 
@@ -3463,7 +3463,7 @@ Erreur locale visible à la place du média ; conserver face et accès aux autre
 
 #### 18. Accessibilité
 
-Labels Changer de face, Lire la vidéo et Agrandir le média ; pagination annoncée ; alternatives accessibles précédent/suivant au geste ; ordre de focus stable. Annonces KODJO intelligibles via ducking ; aucun flash/autoplay.
+Labels Changer de face, Lire la vidéo et Agrandir le média ; pagination annoncée ; alternatives accessibles précédent/suivant au mouvement ; ordre de focus stable. Annonces KODJO intelligibles via ducking ; aucun flash/autoplay.
 
 #### 19. Invariants
 
@@ -3979,7 +3979,7 @@ Changer x ou n remet toutes les pastilles au gris. Sélectionner les positions v
 
 #### 13. Gestes
 
-Toucher d’un stepper ou d’une pastille, action au relâchement ; aucun geste de réordonnancement dans le motif.
+Toucher d’un stepper ou d’une pastille, action au relâchement ; aucun mouvement de réordonnancement dans le motif.
 
 #### 14. Validation
 
@@ -4287,7 +4287,7 @@ Navigation globale, aucune action sur Ressenti et aucun déploiement ; commandes
 
 #### 13. Gestes
 
-Scroll. Aucun geste modifiant historique.
+Scroll. Aucun mouvement modifiant historique.
 
 #### 14. Validation
 
@@ -5227,7 +5227,7 @@ Un tap sur `Créer` produit une navigation directe. Aucun second choix utilisate
 
 #### 13. Gestes
 
-Tap simple sur `Créer`. Aucun geste ou scrim intermédiaire.
+Tap simple sur `Créer`. Aucun mouvement ou scrim intermédiaire.
 
 #### 14. Validation
 

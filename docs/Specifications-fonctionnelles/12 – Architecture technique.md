@@ -1,6 +1,6 @@
 # Architecture technique
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par geste. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par mouvement. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
 
 
 ## Sommaire
@@ -932,7 +932,7 @@ Complément du 23/10 : [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-N
 | Famille | Référence courante | Variantes / portée |
 |---|---|---|
 | Niveau | `icon/niveau` `9932:44044` | Niveau 1 / 2 / 3, tranches non atteintes à 28 % ; aucune limite métier à trois niveaux |
-| Modifier le geste | `icon/modifier` `9925:41240` | Crayon au trait bleu KODJO, création sur geste repris ; pas de déverrouillage d’occurrence |
+| Modifier le mouvement | `icon/modifier` `9925:41240` | Crayon au trait bleu KODJO, création sur mouvement repris ; pas de déverrouillage d’occurrence |
 | Classification | `Sélecteur classification` `9925:41506`, `9925:41515` | Rôle Niveau, états Vide / Renseigné ; Rôle = Catégorie / Zone / Niveau |
 | Contexte exercice | `Zone bleue — Nom et média` `9029:18368`, rangée `9029:18363` | Niveau troisième ; espacement 12, marges latérales 6 ; zones élastiques tronquées |
 | Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
@@ -1572,7 +1572,7 @@ Si l’application est interrompue alors qu’une Exécution est `En cours`, cel
 
 Classifier chaque phase par mode ET nature de cible ; DURATION seul ne garantit plus une fin automatique. Les formules de poids sont conservées, les prédicats changent : cible échec inconnue et fin Suivant, même avec bip. Reprendre les intervalles logiques pour la proposition de répétitions, indépendamment de l’audibilité ; ne pas diviser le temps global cumulé par l’intervalle après des pauses/reset. Persister séparément cumul et dernière tentative, identité par occurrence/côté, et qualification du relevé. Confirmer/corriger ne commande pas l’avancement.
 
-Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; une erreur structurelle annule toute la migration, tandis que les Exercices aux paramètres illisibles, valeurs négatives ou non entières comprises, sont écartés et dénombrés ; ce nombre est restitué par le message récapitulatif de fin de migration, affiché seulement si au moins un Exercice a été écarté et non réaffiché aux mises à jour suivantes (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; D-394 ; chapitre 09, Migration et compatibilité) ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les gestes. Qualification des interactions, du rendu 45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
+Migration versionnée et atomique de l’ancien mode, copies/snapshots compris ; une erreur structurelle annule toute la migration, tandis que les Exercices aux paramètres illisibles, valeurs négatives ou non entières comprises, sont écartés et dénombrés ; ce nombre est restitué par le message récapitulatif de fin de migration, affiché seulement si au moins un Exercice a été écarté et non réaffiché aux mises à jour suivantes (décisions PRE-4 Q19 et Q28 du 16/10, D-385 ; D-394 ; chapitre 09, Migration et compatibilité) ; compatibilité/reprise à qualifier sur le schéma réel. Le §4.5 reçu impose une roulette grisée mais manipulable : son mouvement sélectionne une cible numérique. Ne pas traduire cet état par disabled bloquant les mouvements. Qualification des interactions, du rendu 45% du bloc et de l’accessibilité sur chaque plateforme à réaliser. Aucun coût nul ni capacité déjà livrée n’est revendiqué.
 
 ## Moteur Cadence — cible technique
 
