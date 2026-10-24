@@ -1,5 +1,8 @@
 # Modèle de données fonctionnel
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Mouvement : ajouter les alias facultatifs et les représentations de recherche dérivées du nom et des alias (normalisation, tokens, trigrammes), recalculées à leur modification. Aucun alias propre à ActivityDefinition. sourceMovementId reste immuable sans intégrité référentielle ; sa lecture facultative permet aussi la classification actuelle. Aucun rang/total stocké dans les copies ou instantanés. Remplacer un niveau crée une nouvelle occurrence ; phases reprises par position vers les identifiants du nouveau geste, jamais par égalité des identifiants entre gestes. Les instantanés restent autonomes pour leur contenu ; la classification actuelle est une projection séparée.
+
+
 ## Sommaire
 
 - [Séances](#séances)

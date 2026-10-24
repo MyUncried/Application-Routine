@@ -1,5 +1,8 @@
 # Conception fonctionnelle par fonctionnalité
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Les parcours v5 §4 à §10 remplacent les anciennes variantes correspondantes : état vide Niveau, édition directe des paramètres et crayon du geste partagé, recherche automatique et explicite préremplie, alias, avertissement N08 à trois choix non bloquant, remplacement de niveau avec reprise des phases par rang. Aucun contrôle supplémentaire à la sauvegarde après choix explicite de geste indépendant.
+
+
 Ce chapitre décrit, fonctionnalité par fonctionnalité, les enchaînements, états et transitions. Les règles testables sont énoncées au chapitre 10 et citées ici par leur identifiant ; les champs et contrôles d’écran sont définis par les contrats du chapitre 13.
 
 ## Sommaire

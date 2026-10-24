@@ -1,5 +1,8 @@
 # Vision et glossaire
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Le geste porte des alias facultatifs, noms alternatifs de recherche ; ils ne nomment pas les exercices. Un niveau est un rang courant dérivé, jamais stocké dans les occurrences ou instantanés.
+
+
 ## Sommaire
 
 - [L’idée en une phrase](#lidée-en-une-phrase)

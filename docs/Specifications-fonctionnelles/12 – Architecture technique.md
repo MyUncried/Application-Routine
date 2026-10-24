@@ -1,5 +1,8 @@
 # Architecture technique
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par geste. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
+
+
 ## Sommaire
 
 - [12.0 Objet et périmètre](#120-objet-et-périmètre)

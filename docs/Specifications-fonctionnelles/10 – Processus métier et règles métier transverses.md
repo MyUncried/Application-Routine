@@ -1,5 +1,8 @@
 # Règles métier et calculs
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Les règles N01–N08 et R01–R07 ainsi que les parcours de la v5 sont normatifs et remplacent les clauses MFN incompatibles. Les coefficients sont initiaux, ajustés pendant le développement contre les cas automatisés R07. Leur validation et les non-régressions s’exécutent automatiquement en CI, sans réglage utilisateur.
+
+
 Ce chapitre réunit les règles métier testables et les calculs, identifiés ou non, dans l’ordre du plan de domaine commun. Le chapitre 08 décrit les enchaînements qui les appliquent ; les contrats du chapitre 13 en décrivent l’effet à l’écran.
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
@@ -158,7 +161,7 @@ Ce chapitre rassemble les règles fonctionnelles qui s’appliquent à plusieurs
 | RM-010 | Après restauration, un message `Séance restaurée` propose temporairement `Annuler`. |
 | RM-011 | Une Séance archivée peut être supprimée définitivement après confirmation explicite. Cette suppression ne supprime pas ses Exécutions historiques. |
 | RM-012 | Le glissement gauche déplace visiblement la carte avec le geste et révèle progressivement les actions placées derrière. Une fois ouverte, la carte se referme uniquement par un glissement droit commencé sur cette même carte ; un glissement droit ailleurs, un appui sur le fond ou un appui sur sa surface principale hors options n’a aucun effet de fermeture. Une seule carte peut exposer simultanément ses actions, sans désactiver les autres contrôles de l’écran. |
-| RM-013 | **Supersédée par D-221.** Aucune recherche globale ni recherche locale de Catalogue n’est incluse dans le MVP. |
+| RM-013 | Retirée par v5 R06 : recherche des gestes et du sélecteur d’insertion ; champ de recherche des listes Catalogue non réalisé à ce stade. |
 | RM-014 | L’état vide du Catalogue permet de lancer la création de la première Séance. |
 
 ### Parcours principal — Créer et exécuter une séance — Points d'attention
@@ -334,7 +337,7 @@ Contraintes :
 2. Elle n’est pas utilisée pour charger un nom, une description, un média ou un paramètre à afficher ou exécuter.
 3. La filiation d’une copie ne porte aucune contrainte d’intégrité référentielle, cascade ou jointure obligatoire vers la source. Cette absence d’intégrité ne s’applique pas à la relation active `ActivityDefinition → Mouvement`.
 4. Une filiation orpheline est conservée sans invalidation ni nettoyage automatique.
-5. Son usage métier est exclusivement statistique. Sa copie et sa persistance sont des opérations de transport nécessaires à cet usage.
+5. Son usage couvre les statistiques, la résolution facultative de la classification actuelle et le choix de niveau. Sa copie et sa persistance ne synchronisent aucun contenu.
 6. Les conditions de comparaison des performances ne sont jamais encodées dans cet identifiant.
 7. Les résultats restent rattachés à l’exécution et à l’occurrence/série/côté/passage, pas seulement au mouvement.
 
@@ -371,7 +374,7 @@ Règles :
 - Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer.
 - Un déplacement dans le groupe n’est pas une modification du geste et ne déclenche pas le dialogue de correction.
 
-Un niveau créé s’insère immédiatement après celui dont il est issu. L’ordre se modifie par glissement. Un groupe réduit à un membre conserve son identifiant et masque rang et total. Le groupe étant un identifiant partagé sans contenu propre, retirer son dernier membre ne demande aucun nettoyage.
+Un niveau créé s’insère avant ou après son origine selon le choix Plus facile que X / Plus difficile que X. L’ordre se modifie par glissement. Un groupe réduit à un membre conserve son identifiant et masque rang et total. Le groupe étant un identifiant partagé sans contenu propre, retirer son dernier membre ne demande aucun nettoyage.
 
 La catégorie est reprise depuis le niveau d’origine puis reste librement modifiable, sans contrainte d’égalité entre niveaux.
 
@@ -401,7 +404,7 @@ Accès depuis un exercice utilisant le mouvement, par le popover de niveau de sa
 
 La description, les médias et les zones sont initialisés depuis l’original puis peuvent être adaptés. Ne pas imposer un média distinct ni une modification de tous les champs. La différence fonctionnelle est celle du geste ; la détection automatique de cette différence n’est pas demandée.
 
-Le niveau s’insère immédiatement après le niveau d’origine ; l’ordre se modifie par glissement. La navigation vers un niveau affiche ses exercices disponibles, distingués par le résumé de leurs paramètres, et ne choisit pas silencieusement leurs paramètres.
+Le niveau s’insère avant ou après le niveau d’origine selon le choix Plus facile que X / Plus difficile que X ; l’ordre se modifie par glissement. La navigation vers un niveau affiche ses exercices disponibles, distingués par le résumé de leurs paramètres, et ne choisit pas silencieusement leurs paramètres.
 
 ### 6. Modification du contenu partagé
 
@@ -451,13 +454,13 @@ Le mode reste modifiable, sous le verrou existant en présence de phases ; aucun
 
 Aucun Catalogue Mouvement autonome n’est créé. Le sélecteur de gestes ne constitue pas un contenu exécutable supplémentaire. Les exercices sont regroupés par mouvement, avec navigation entre niveaux depuis la fiche.
 
-**Aucun alias :** le résumé des paramètres d’exécution distingue les exercices partageant un geste ; il est calculé et affiché sur les cartes. Une ligne regroupée ne peut pas être exécutée ou insérée sans désigner un exercice précis ; aucun jeu de paramètres par défaut n’est choisi silencieusement.
+**Aucun alias propre à l’exercice (les alias de geste sont autorisés par v5 R05) :** le résumé des paramètres d’exécution distingue les exercices partageant un geste ; il est calculé et affiché sur les cartes. Une ligne regroupée ne peut pas être exécutée ou insérée sans désigner un exercice précis ; aucun jeu de paramètres par défaut n’est choisi silencieusement.
 
 **Duplication Catalogue (D-196) :** dupliquer crée une nouvelle `ActivityDefinition` référençant le même mouvement avec les paramètres copiés. Cela ne crée pas une variante. Le suffixe `(copie)` de D-124 reste limité à la duplication d’un Exercice de Séance ; il n’est pas ajouté ici au nom partagé du mouvement. Deux duplicatas Catalogue aux paramètres identiques peuvent rester visuellement indiscernables jusqu’à modification de l’un d’eux ; ce comportement est accepté.
 
 #### MFN-11 — Présentation historique
 
-**Historique :** l’historique affiche le nom du mouvement copié dans l’instantané et **n’affiche jamais le rang ni le total de niveaux**. Aucun champ de rang historique n’est ajouté. Le rang appartient à la présentation courante du Catalogue ; son réordonnancement n’affecte ni le nom historique ni les records. Aucune lecture de la source ou du groupe n’est nécessaire pour nommer une exécution passée.
+**Historique :** contenu, nom copié, paramètres et relevés restent figés. Aucun rang ni total n’est stocké. La classification actuelle se résout à la lecture par filiation selon v5 §10 ; les lignes compactes du Suivi 1992:8996 restent sans rang affiché.
 
 ### 8. Base vierge et records
 
@@ -502,7 +505,7 @@ Les identifiants AC ci-dessous sont à citer sous la forme MFN/AC pour les disti
 | MFN/AC15 | Phase à 0 s | Phase conservée, durée non renseignée ; enregistrement de l’exercice édité refusé ; aucun retrait silencieux |
 | MFN/AC16 | Passage à un autre niveau avec plusieurs exercices | Choix explicite des paramètres, sans invention d’une valeur par défaut |
 | MFN/AC17 | Suppression d’un mouvement référencé au Catalogue | Refus ; aucune définition ne devient inexploitable ; copie orpheline autorisée après une suppression permise |
-| MFN/AC18 | Consultation historique après réordonnancement des niveaux | Nom copié inchangé ; aucun rang ou total de niveaux affiché |
+| MFN/AC18 | Consultation historique après réordonnancement des niveaux | Nom copié inchangé ; classification actuelle résoluble, aucun rang stocké ; vue compacte sans rang |
 | MFN/AC19 | Recherche d’un mouvement créé localement | Mouvement disponible proposé et réutilisable, sans entrée Catalogue créée automatiquement |
 | MFN/AC20 | Suppression de toutes les utilisations puis correction du nom | État déjà utilisé conservé ; dialogue conditionnel toujours présenté |
 | MFN/AC21 | Deux mouvements homonymes créés séparément | Identités et records distincts ; aucun rapprochement rétroactif implicite |
@@ -517,7 +520,7 @@ Les identifiants AC ci-dessous sont à citer sous la forme MFN/AC pour les disti
 | MFN/AC30 | Suppression de la phase au plus grand ID, fermeture puis ajout | Compteur du mouvement strictement croissant ; identifiant supprimé non réutilisé |
 | MFN/AC31 | Duplication Catalogue avec paramètres identiques | Nouvelle définition, même movementId ; aucun alias ; indiscernabilité visuelle acceptée |
 | MFN/AC32 | Duplication de Composition | Nouvel ID d’occurrence, même sourceMovementId, suffixe système `(copie)`, nom non éditable |
-| MFN/AC33 | Nouveau niveau puis réordonnancement | Placement après origine, glissement ; catégorie initiale reprise mais modifiable |
+| MFN/AC33 | Nouveau niveau puis réordonnancement | Placement avant/après origine selon difficulté déclarée, glissement ; catégorie initiale reprise mais modifiable |
 | MFN/AC34 | Nouvelle identité depuis le dialogue | Libellé « Créer un nouvel exercice » ; rattachement au groupe sans présélection ; originaux intacts |
 | MFN/AC35 | Lecture des paramètres Catalogue puis création d’une copie | Couples phaseId/durée résolus avec la structure ; copie autonome avec libellés ; aucune seconde source modifiable au Catalogue |
 | MFN/AC36 | Écriture d’une définition, occurrence ou instantané dans le nouveau modèle | Identité de mouvement non nulle, aucune branche de compatibilité ancienne requise |
@@ -2472,7 +2475,7 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 | RM-219 | Après un Exercice, la Récupération après exercice est exécutée avant un éventuel Point d’arrêt. Aucun Point d’arrêt juste après le Compte à rebours initial ni juste avant la Fin de séance. Exception (D-442) : lorsque le Circuit est exécuté N ≥ 2 fois, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance ; l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, la règle s’applique ; un Point devenu interdit par le passage à N = 1 est retiré sans message. Non-consécutivité des Points d’arrêt : RM-251. |
 | RM-220 | Un Point d’arrêt peut être placé avant/après le Circuit, en tête de Circuit (début de Tour, D-442) et entre ses Exercices ; s’il est dans le Circuit, il est rencontré à chaque Tour. |
 | Ancienne RM-221 (phrase, historique) | Supersédée par RM-232 / D-298 ; la RM-221 active ci-dessous porte sur les Catalogues. |
-| RM-221 | Les Catalogues du MVP ne proposent aucune recherche globale ou locale ; filtres et tri restent les mécanismes de réduction/organisation disponibles selon leur périmètre. |
+| RM-221 | Retirée par v5 R06 : recherche des gestes et du sélecteur d’insertion ; champ de recherche des listes Catalogue non réalisé à ce stade. |
 | RM-222 | En planification, cases à cocher pour un ou plusieurs contenus ; valider par Ajouter 1 élément / Ajouter n éléments. Le toucher ne ferme pas la modale. La Composition et les référentiels conservent leurs contrats propres. |
 | RM-223 | Planifier sans contenu ; Planifier une séance ou Planifier un exercice à contenu unique ; Planifier un parcours à plusieurs contenus, de même type ou mixtes. Aucun objet autonome Parcours. |
 | RM-231 | **Supersédée par RM-232 / D-298.** |

@@ -1,5 +1,8 @@
 # API fonctionnelles
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Contrats complémentaires : rechercher les gestes par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les gestes. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v5 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
+
+
 ## Sommaire
 
 - [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)

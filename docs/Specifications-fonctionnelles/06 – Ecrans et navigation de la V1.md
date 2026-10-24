@@ -1,5 +1,8 @@
 # Interface : navigation, écrans et conventions communes
 
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Les captures du 23/10 restent des preuves des états alors observés. La v5 prescrit en complément : fiche sans groupe = commande Niveau ; cartes/lignes informatives sans groupe = aucun indicateur ; niveau auprès du nom sur les cartes, jamais dans le résumé des paramètres. Écran Niveaux : poignée/rang, vignette 36 × 36, nom, extrait descriptif, compte des exercices. Recherche : vignette 48 × 48, contexte d’origine, zones et extrait descriptif. Le placement exact sur toutes les cartes et les icônes au-delà de trois rangs restent à compléter dans Figma ; aucune capture nouvelle n’est revendiquée.
+
+
 Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. La sélection actuelle conserve 62 captures de référence parmi les 197 frames de premier niveau du Prototype MVP ; les 135 autres frames restent dans Figma et sont couvertes comme variantes, sans copie supplémentaire dans ce chapitre. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
 
 **Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
