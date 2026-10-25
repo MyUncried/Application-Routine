@@ -2,11 +2,7 @@
 
 ## Sources et statut
 
-Sources : [spécification v6 reçue](KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé Figma transmis](figma-niveaux-2026-10-25/releve-utilisateur.md), inspection en lecture seule du fichier `G6RY5Ebhgwb4AHIOYDwwvg`, pages Prototype MVP, Design system — Fondations et Expérience PRE-4.
-
-La v6 remplace la v5 pour les niveaux, la recherche, les alias, la reprise des paramètres et la classification actuelle. Les changements visuels explicites sont intégrés. Les changements fonctionnels contradictoires du relevé sont identifiés ci-dessous, sans les faire passer pour des décisions rendues. « Continue » autorise la poursuite de la documentation ; il ne sélectionne pas une réponse aux questions précédentes. D-255/D-300 et D-376 restent applicables : une maquette ne remplace pas implicitement une règle métier.
-
-Les sources reçues sont conservées telles quelles pour la revue. Leurs anciens identifiants d’écran ne constituent pas un inventaire courant : utiliser la table ci-dessous. Les termes actuels sont **mouvement**, **exercice**, **niveau**, **paramètres d’exécution**. Les noms de fichiers historiques et les identifiants techniques restent stables.
+Le relevé visuel du 25/10 est conservé, avec les sources reçues et les captures datées. Les décisions ultérieures de Hermann ferment C01–C07 et C09 ; seul C08 reste différé. La [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md) et D-445 remplacent les prescriptions fonctionnelles contradictoires de la v6 et du relevé initial. Aucune mise à jour effective de Figma ni du code n’est revendiquée ici.
 
 ## Écrans et correspondances
 
@@ -27,9 +23,9 @@ Les sources reçues sont conservées telles quelles pour la revue. Leurs anciens
 | [Création activité — Niveau — Ajouter un niveau (déployé)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10152-20369) | `10152:20369` | CE-UI-NIV-01 |
 | [Groupe de niveaux — Ordre](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10085-20050) | `10085:20050` | CE-UI-NIV-01 |
 | [Composition séance — Changer de niveau — Durées à compléter](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-20073) | `10070:20073` | CE-T03-08 / CE-UI-10 |
-| [Catalogue des mouvements — Liste complète](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623) | `9959:19623` | Catalogue mouvements — proposition |
-| [Catalogue des mouvements — Aucun résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-19964) | `10070:19964` | Catalogue mouvements — proposition |
-| [Catalogue — Vue Mouvements (piles)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) | `10266:20575` | Catalogue mouvements — proposition |
+| [Catalogue des mouvements — Liste complète](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623) | `9959:19623` | Catalogue mouvements — entretien |
+| [Catalogue des mouvements — Aucun résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-19964) | `10070:19964` | Catalogue mouvements — entretien |
+| [Catalogue — Vue Mouvements (piles)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) | `10266:20575` | Catalogue mouvements — entretien |
 | [Niveau — icônes, trois états](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10027-40948) | `10027:40948` | CE-UI-NIV-01 |
 
 L’ancienne recherche `9959:19623` est désormais intitulée **Catalogue des mouvements — Liste complète**. Elle n’est plus une preuve du sélecteur de création décrit par R03/R04. L’ancien popover `9577:19843` est remplacé comme référence courante par `10027:40760`, puis ses déploiements `10152:20245` et `10152:20369`. `9952:44349` est maintenant un dialogue centré, plus une feuille basse.
@@ -46,23 +42,58 @@ R03 conserve l’accès explicite à une recherche préremplie, effaçable, et l
 
 ### Reprise et variante
 
-La reprise verrouille initialement le contenu partagé ; les paramètres restent modifiables. Le crayon permet d’éditer le contenu dans le brouillon, avec son état actif blanc / bleu pendant l’édition. Une variante est accessible depuis chaque résultat et depuis Ajouter un niveau. Le choix plus facile / plus difficile place le nouveau membre avant / après l’origine ; la première variante crée le groupe de deux membres. Aucun rang zéro, aucun classement automatique, aucun plafond de trois ou cinq niveaux.
-
-La variante explicite ne redemande pas s’il faut corriger l’origine. Le relevé dessine ensuite un formulaire vierge, un nom conservé ou une invite grise « (compléter le nom) », et désactive la similarité ; les divergences d’héritage et d’unicité sont C01/C02. L’invite est une aide de saisie, jamais un suffixe à persister dans le nom.
+La reprise lit le mouvement partagé. Le crayon est disponible depuis Catalogue et séance ; paramètres locaux et Niveau restent actifs. Variante : description/médias vierges, catégorie et zones reprises, nom commencé conservé avec invite (compléter le nom) non persistée, effacée à la reprise de saisie. Choix de difficulté puis création directe, sans seconde confirmation de correction.
 
 ### Sauvegarde
 
-Le dialogue est centré : largeur 354 sur écran 402, titre 18, message 14 ; boutons latéraux 147 dans les états à deux boutons. Nom modifié : deux cartes radio avec conséquence explicite et aucune présélection ; Annuler reste disponible ; Confirmer doit rester visible mais inactif avant choix. Nom inchangé : la maquette ne propose que la mise à jour. Le nombre d’autres exercices est une donnée calculée, jamais la constante « 2 ».
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
 
-Les conditions fonctionnelles de déclenchement restent celles de MFN-08 / v6 tant que C03 n’est pas tranché. Les paramètres seuls et le reclassement seuls ne déclenchent aucun dialogue. Annuler conserve le brouillon, sans écriture ni nouvelle identité. Une correction commune ne doit pas être déduite de la simple validation du nom.
+À l’enregistrement d’une modification d’un mouvement existant :
+
+| Condition | Dialogue / résultat |
+|---|---|
+| Nom modifié, avec ou sans autre exercice et avec ou sans historique | Toujours : Mettre à jour ce mouvement / Créer un nouveau mouvement / Annuler ; choix explicite, sans présélection |
+| Nom inchangé, contenu modifié, au moins un autre exercice lié ou une exécution enregistrée | Confirmation de mise à jour uniquement : Annuler / Confirmer |
+| Nom inchangé, contenu modifié, ni autre exercice lié ni exécution enregistrée | Sauvegarde silencieuse du même mouvement |
+| Aucun changement de contenu ; paramètres seuls ; reclassement seul | Aucun dialogue de mouvement |
+
+Le changement de nom est une modification du nom effectivement enregistré ; une variation de casse ou d’accent peut donc être une correction à confirmer, même si la clé d’unicité reste identique. Le contrôle d’unicité exclut l’identité en cours d’édition ; une création distincte doit disposer d’une clé différente des mouvements existants.
+
+« Autre exercice » couvre les définitions Catalogue et les occurrences persistées de séance utilisant le mouvement, hors objet édité ; les lignes sont comptées une fois, sans multiplication par les séries, tours ou planifications. Les occurrences historisées sont traitées par la condition d’existence d’une exécution, pas ajoutées au compteur d’exercices. L’existence se recherche par identité de mouvement, pour SESSION comme ACTIVITY, et non par nom. Une séance simplement enregistrée n’est pas une exécution passée. Aucun indicateur d’utilisation irréversible déclenché par insertion n’est requis.
+
+Le dialogue indique la portée réelle et le nombre d’autres exercices concernés ; zéro autre exercice ne masque pas l’enjeu historique. Un renommage corrigé conserve l’identité : les anciens et nouveaux noms peuvent légitimement partager leurs performances. Créer un nouveau mouvement conserve l’original et rattache l’exercice édité à la nouvelle identité. Depuis une séance, ce choix remplace l’occurrence par une nouvelle occurrence dans le brouillon ; les exécutions antérieures gardent leur filiation. Le rattachement éventuel à un groupe reste explicite.
+
+Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais indisponible avant sélection lorsqu’un choix est requis. Une variante explicitement choisie et un mouvement neuf sont des créations : pas de seconde question sur la correction de l’origine. Aucun bouton additionnel de création distincte dans l’édition n’est ajouté ; la recommandation antérieure de ce second mécanisme est retirée. L’application ne déduit pas la différence sémantique entre correction et nouveau mouvement.
+
+Rendu : dialogue centré 354, titre 18, message 14 ; Annuler / Confirmer restent visibles. Les frames ne définissent pas les conditions du dialogue.
 
 ### Niveaux et composition
 
-Le popover comporte Changer de niveau, Ajouter un niveau, Réordonner les niveaux. Les deux premiers se déploient sur place, chevron droite puis bas. Le réordonnancement montre rang fixe à gauche, image, nom et description tronquée sur deux lignes. La classification est lue au moment de l’affichage ; les copies conservent leur contenu.
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Dans une séance, changer de niveau remplace l’occurrence dans le brouillon par une nouvelle occurrence et conserve les paramètres indépendants du mouvement. Les durées de phases se transfèrent **par rang**, jamais par égalité d’identifiants de deux mouvements. Sans→sans : durée reprise ; sans→phases : durées vides ; phases→sans : somme ; phases→phases : rangs communs repris, surplus source abandonné, surplus cible à compléter. Annuler restaure intégralement l’occurrence précédente. Aucun exercice Catalogue n’est créé par ce remplacement.
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
-La commande vide affiche **Niveau**, sans « Aucun », sans rang. Le groupe singleton a le même affichage. Les cartes informatives sans niveau n’ajoutent aucun libellé. L’historique conserve contenu et relevés exécutés, sans rang stocké ; une présentation peut résoudre la classification actuelle séparément. La vue compacte `1992:8996` reste sans rang.
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
+
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, somme ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
+
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
 ## Composants et tokens vérifiés
 
@@ -82,19 +113,38 @@ La commande vide affiche **Niveau**, sans « Aucun », sans rang. Le groupe sing
 
 **Règles transverses de cartes :** bilatéralité après les zones corporelles en deuxième ligne ; sablier fixe dans une réserve dimensionnée sur la durée la plus longue de la liste, durée accolée ; même alignement pour horloge / heure du calendrier semaine, sans point médian avant l’horloge. Préserver les gabarits sans photo des séances et listes mixtes : le changement de hauteur n’ajoute pas de média à ces cartes. Les variantes dépliées conservent une hauteur adaptée au contenu. Les cibles tactiles existantes ≥44, ou 48 lorsqu’elles sont spécifiées, restent distinctes du glyphe 14 ou du bouton visible 26.
 
-## Contradictions des sources — à trancher explicitement
+## Décisions des sources — huit points clos
 
-| ID | V6 / règle en vigueur | Relevé Figma reçu | Incidence documentaire / technique |
-|---|---|---|---|
-| C01 | N08 et §6 autorisent noms identiques et variante sans différence décrite | Nom canonique unique, refus dès la frappe | Ne pas instaurer une contrainte unique DB ni supprimer Créer quand même sans décision. Distinguer normalisation d’unicité et score de proximité ; le périmètre des alias reste à préciser |
-| C02 | §5 : adapter le contenu repris ; catégorie commune des niveaux dans MFN | Variante entièrement vierge, catégorie non héritée | Préciser contenu initial et validation de catégorie avant d’écrire le service de création |
-| C03 | MFN-08 / §5 : usage durable + contenu modifié, y compris une seule définition déjà exécutée | Dialogue seulement à partir de deux exercices ; choix distinct impossible à nom inchangé | Risque de changer silencieusement l’identité d’un mouvement utilisé. Définir aussi si le comptage inclut copies de séance et exercices archivés |
-| C04 | §7/8 : copie indépendante, contenu verrouillé | Crayon présent depuis une séance, avec édition du mouvement | Définir si le crayon vise la source partagée ou une nouvelle copie ; ne pas modifier silencieusement la filiation immuable |
-| C05 | §10 : instantané figé, classification actuelle résolue séparément | Historique présenté comme arbitrage ouvert ; propagation aux exercices présents/futurs | Règle v6 conservée en attendant décision ; distinguer définitions Catalogue, copies de séances et instantanés |
-| C06 | §9 : jauge + 2/3 sur cartes, Niveau 2 sur 3 dans les lignes de contexte | Nom suffixé - N2 sans pastille, Niveau N avec pastille | Rendu récent documenté ; total et accessibilité à harmoniser. Ne jamais persister le suffixe dans le nom |
-| C07 | R03 : sélecteur de recherche ; R06 : pas de champ Catalogue réalisé | Catalogue mouvements et proposition de quatrième segment avec piles/recherche | Présence Figma attestée, périmètre MVP non confirmé. Ne pas transformer la proposition en route obligatoire |
-| C08 | N03 décrit retrait de groupe ; rattachement explicite possible | Rattacher/détacher/supprimer hors MVP, non dessinés | Les invariants restent valables ; les parcours de maintenance ne sont pas déclarés livrés |
-| C09 | §5 : référentiels modifiables directement, crayon réservé au contenu | Catégorie, zones et niveau inclus dans le verrouillage du crayon | La commande Niveau doit néanmoins rester accessible à un mouvement vierge et au changement de niveau en séance ; préciser les portées |
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
+
+À l’enregistrement d’une modification d’un mouvement existant :
+
+| Condition | Dialogue / résultat |
+|---|---|
+| Nom modifié, avec ou sans autre exercice et avec ou sans historique | Toujours : Mettre à jour ce mouvement / Créer un nouveau mouvement / Annuler ; choix explicite, sans présélection |
+| Nom inchangé, contenu modifié, au moins un autre exercice lié ou une exécution enregistrée | Confirmation de mise à jour uniquement : Annuler / Confirmer |
+| Nom inchangé, contenu modifié, ni autre exercice lié ni exécution enregistrée | Sauvegarde silencieuse du même mouvement |
+| Aucun changement de contenu ; paramètres seuls ; reclassement seul | Aucun dialogue de mouvement |
+
+Le changement de nom est une modification du nom effectivement enregistré ; une variation de casse ou d’accent peut donc être une correction à confirmer, même si la clé d’unicité reste identique. Le contrôle d’unicité exclut l’identité en cours d’édition ; une création distincte doit disposer d’une clé différente des mouvements existants.
+
+« Autre exercice » couvre les définitions Catalogue et les occurrences persistées de séance utilisant le mouvement, hors objet édité ; les lignes sont comptées une fois, sans multiplication par les séries, tours ou planifications. Les occurrences historisées sont traitées par la condition d’existence d’une exécution, pas ajoutées au compteur d’exercices. L’existence se recherche par identité de mouvement, pour SESSION comme ACTIVITY, et non par nom. Une séance simplement enregistrée n’est pas une exécution passée. Aucun indicateur d’utilisation irréversible déclenché par insertion n’est requis.
+
+Le dialogue indique la portée réelle et le nombre d’autres exercices concernés ; zéro autre exercice ne masque pas l’enjeu historique. Un renommage corrigé conserve l’identité : les anciens et nouveaux noms peuvent légitimement partager leurs performances. Créer un nouveau mouvement conserve l’original et rattache l’exercice édité à la nouvelle identité. Depuis une séance, ce choix remplace l’occurrence par une nouvelle occurrence dans le brouillon ; les exécutions antérieures gardent leur filiation. Le rattachement éventuel à un groupe reste explicite.
+
+Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais indisponible avant sélection lorsqu’un choix est requis. Une variante explicitement choisie et un mouvement neuf sont des créations : pas de seconde question sur la correction de l’origine. Aucun bouton additionnel de création distincte dans l’édition n’est ajouté ; la recommandation antérieure de ce second mécanisme est retirée. L’application ne déduit pas la différence sémantique entre correction et nouveau mouvement.
 
 ## Écarts entre relevé et maquette / travail manquant
 
@@ -103,19 +153,30 @@ La commande vide affiche **Niveau**, sans « Aucun », sans rang. Le groupe sing
 - `10070:20073`, Durées à compléter : les trois durées visibles sont déjà renseignées. Cette capture établit le parcours et son titre, pas l’état de champs manquants ni le blocage de validation.
 - `10085:20050` : rangs, médias et descriptions présents ; les libellés Plus facile / Plus difficile sont visibles, contrairement au texte v6 qui les juge inutiles. Le nombre d’exercices et les actions accessibles de réordonnancement restent à vérifier/compléter.
 - Le catalogue `10070:19964` est nommé Aucun résultat : ce n’est pas une preuve d’un catalogue initial vide. Le parcours de recherche explicite R03, le message d’origine locale, les zones et les comptes de R04 ne sont pas établis par les seules nouvelles cartes.
-- La saisie/édition des alias, les erreurs d’enregistrement, le conflit concurrent d’unicité si C01 est adopté, le choix parmi plusieurs exercices d’un niveau, les frères incomplets après correction et la recherche multi-sélection avec filtres restent à couvrir explicitement.
+- La saisie/édition des alias, les erreurs d’enregistrement, le conflit concurrent d’unicité selon C01 validé, le choix parmi plusieurs exercices d’un niveau, les frères incomplets après correction et la recherche multi-sélection avec filtres restent à couvrir explicitement.
 - Jauge générique : seuil « au-delà de cinq, peut-être dès trois » non décidé, aucun plafond métier à en déduire. L’état vide reste Niveau. Le texte accessible doit porter le rang réel et le total, sans interpréter les trois tranches comme une borne.
-- Catalogue en piles : navigation depuis une pile, entretien d’un mouvement sans exercice Catalogue et effet de la recherche sur l’affichage restent à spécifier si le périmètre est adopté.
+- Catalogue en piles : navigation depuis une pile, entretien d’un mouvement sans exercice Catalogue et effet de la recherche sur l’affichage restent à spécifier dans le cadre du catalogue d’entretien validé.
 - Aucune fusion rétroactive : un doublon de mouvement créé indépendamment conserve des statistiques séparées. La recherche est le filet préventif, pas un mécanisme de réparation.
 
 ## Couverture et vérification
 
 Chapitre 06 : galerie et références courantes ; 12 : inventaire de composants/tokens et gabarits ; 13 : éditeur, sélection, composition, calendrier, catalogues et contrat Niveaux. Les chapitres 03/04/05/07/08/09/10/11 et PRODUCT/INDEX tracent la portée fonctionnelle et les réserves. La matrice de traçabilité relie règles, états et recettes.
 
-La recette automatisée R07 reste requise pour toute évolution de recherche. Ajouter les scénarios Entrée sans sélection, résultat dédupliqué par mouvement, maintien des sélections filtrées, absence de réordonnancement sous appui, variante sans dialogue de correction, annulation sans résidu, transfert des quatre cas de phases, historique inchangé et classification recalculée. Les tests dépendant de C01–C09 doivent citer l’arbitrage retenu, pas choisir une règle par défaut.
+La recette automatisée R07 reste requise pour toute évolution de recherche. Ajouter les scénarios Entrée sans sélection, résultat dédupliqué par mouvement, maintien des sélections filtrées, absence de réordonnancement sous appui, variante sans dialogue de correction, annulation sans résidu, transfert des quatre cas de phases, historique inchangé et classification recalculée. Les tests couvrent D-445 et MFN/AC01–45 ; C08 seul reste différé sur le périmètre MVP.
 
 Mission documentaire : aucun code produit, aucune donnée, aucune maquette modifiés ; pas de migration, conformément à la base vierge autorisée. Vérification des PNG, empreintes, liens locaux introduits et structure des contrats. Cette vérification ne vaut pas recette applicative.
 
 ## Limite effective des exports
 
 97 captures PNG ont été récupérées et vérifiées, dont tous les nouveaux écrans et composants. Le connecteur Figma a ensuite refusé les appels avec le message « You've reached the Figma MCP tool call limit for your Full seat on the Professional plan ». 43 références secondaires documentaires n’ont pas pu être réexportées ; elles sont conservées et listées au chapitre 06 et dans le manifeste. Aucune image ancienne n’est présentée comme un export du 25/10. Cette limite empêche de déclarer le rafraîchissement visuel entièrement terminé.
+
+
+## Alignements Figma restant à réaliser après décision
+
+- Variante 10187:20340 : reprendre catégorie et zones, conserver description/médias vierges et invite de nom non persistée.
+- Dialogues : appliquer la matrice MFN-08, dont nom modifié sans autre exercice et confirmation pour historique seul ; garder Confirmer visible avant sélection.
+- Crayon actif depuis une séance : portée de correction partagée ; commande Niveau active hors crayon.
+- Retirer les annotations excluant C08 du MVP ; ce périmètre est différé.
+- Conserver le rendu C06 et le catalogue C07. Le seuil de jauge générique reste un travail de représentation, sans plafond métier.
+
+Ces alignements sont documentés, non exécutés dans Figma par la présente intervention. Le blocage précédent du quota et les 43 exports complémentaires restent tracés.

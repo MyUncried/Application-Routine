@@ -1,6 +1,6 @@
 # Interface : navigation, écrans et conventions communes
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Les captures du 23/10 restent des preuves des états alors observés. La v5 prescrit en complément : fiche sans groupe = commande Niveau ; cartes/lignes informatives sans groupe = aucun indicateur ; niveau auprès du nom sur les cartes, jamais dans le résumé des paramètres. Écran Niveaux : poignée/rang, vignette 36 × 36, nom, extrait descriptif, compte des exercices. Recherche : vignette 48 × 48, contexte d’origine, zones et extrait descriptif. Le placement exact sur toutes les cartes et les icônes au-delà de trois rangs restent à compléter dans Figma ; aucune capture nouvelle n’est revendiquée.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. La sélection actuelle conserve 62 captures de référence parmi les 197 frames de premier niveau du Prototype MVP ; les 135 autres frames restent dans Figma et sont couvertes comme variantes, sans copie supplémentaire dans ce chapitre. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
@@ -137,9 +137,9 @@ Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et C
 
 ### États complémentaires MFN — mise à jour Figma du 23/10/2026
 
-Les états courants du parcours sont illustrés ci-dessous. Le relevé du 25/10 actualise les composants et les écarts. Le catalogue de mouvements est une proposition documentée sous C07 ; le vocabulaire visible est mouvement / exercice / niveau.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-En création sur mouvement repris, le contenu est en lecture seule jusqu’au crayon, mais les paramètres restent modifiables. Cela ne change ni l’ouverture directe en édition d’une définition Catalogue ni le verrouillage des occurrences. La confirmation n’est pas systématique : mouvement utilisé et contenu modifié seulement. Une variante explicitement choisie est sauvegardée sans question redondante. La complétion des durées des exercices frères reste à illustrer. Les références de Composition D-435 sont conservées.
+D-445 : reprise initialement en lecture seule, crayon de correction partagée disponible au Catalogue et en séance ; paramètres locaux et Niveau actifs. Nom modifié : dialogue toujours. Nom inchangé : confirmation pour contenu modifié avec autre exercice ou historique. Variante explicite : création directe. Les captures datées ne modifient pas ces conditions.
 
 ### Navigation principale et articulation des écrans
 #### Navigation principale
@@ -638,7 +638,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 #### Mouvements et niveaux — captures du 25/10/2026
 
-Voir le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) pour les règles, contradictions C01–C09 et écarts visuels. Les captures montrent Figma, sans correction artificielle. Le catalogue mouvements en piles reste une proposition de périmètre.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 | Écran courant | Nœud Figma | Contrat / statut |
 |---|---|---|
@@ -657,9 +657,9 @@ Voir le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) pour les règl
 | [Création activité — Niveau — Ajouter un niveau (déployé)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10152-20369) | `10152:20369` | CE-UI-NIV-01 |
 | [Groupe de niveaux — Ordre](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10085-20050) | `10085:20050` | CE-UI-NIV-01 |
 | [Composition séance — Changer de niveau — Durées à compléter](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-20073) | `10070:20073` | CE-T03-08 / CE-UI-10 |
-| [Catalogue des mouvements — Liste complète](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623) | `9959:19623` | Catalogue mouvements — proposition |
-| [Catalogue des mouvements — Aucun résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-19964) | `10070:19964` | Catalogue mouvements — proposition |
-| [Catalogue — Vue Mouvements (piles)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) | `10266:20575` | Catalogue mouvements — proposition |
+| [Catalogue des mouvements — Liste complète](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623) | `9959:19623` | Catalogue mouvements — entretien |
+| [Catalogue des mouvements — Aucun résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-19964) | `10070:19964` | Catalogue mouvements — entretien |
+| [Catalogue — Vue Mouvements (piles)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) | `10266:20575` | Catalogue mouvements — entretien |
 | [Niveau — icônes, trois états](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10027-40948) | `10027:40948` | CE-UI-NIV-01 |
 
 **Création exercice — Mouvement — Mouvements proches — `9882:19049`**
@@ -2407,7 +2407,7 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 
 Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : composant distinct de 107 pt avec actions internes, non soumis au gabarit simple. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
 
-Le rendu récent utilise Niveau N dans une pastille, Niveau à l’état vide, et le suffixe - Nn auprès du nom lorsqu’il n’y a pas de pastille. Ce suffixe est une présentation dérivée, jamais une modification du nom enregistré. Son remplacement du 2/3 de la v6 est la contradiction C06. Le total reste nécessaire dans le choix de niveau et dans le libellé accessible. Les écrans historiques compacts ne gagnent pas de suffixe.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 Les dialogues de sauvegarde de mouvement sont centrés ; la feuille basse des paramètres d’exécution reste distincte. Le panneau de rapprochement est superposé sous le champ nom, clavier visible. Les cartes de résultat portent les deux actions ; Entrée ne sélectionne aucun résultat.
 
@@ -2461,3 +2461,22 @@ Le 25/10/2026, 97 exports ont réussi, dont tous les nouveaux états du parcours
 | Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice | `8795:14588` | Réexport nécessaire ; référence antérieure conservée |
 | Composition séance — Progression (préremplie) — Par alternance | `8795:14681` | Réexport nécessaire ; référence antérieure conservée |
 | P-Création exercice — Paramètres — Tableau de 3 phases | `9207:18817` | Réexport nécessaire ; référence antérieure conservée |
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.

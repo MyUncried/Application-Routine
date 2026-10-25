@@ -1,6 +1,6 @@
 # Architecture technique
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par mouvement. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 ## Sommaire
@@ -239,38 +239,21 @@ Ils ne correspondent pas à des serveurs ou microservices distincts.
 
 ### Architecture cible MFN — D-437 à D-440
 
-Évolution à implémenter, distincte de l’état livré : mouvement partagé avec relation active intègre depuis ActivityDefinition ; contenu résolu autonome dans SessionActivity et instantané. La filiation non nulle des copies n’a ni clé étrangère obligatoire ni chargement de source. Une source absente n’empêche ni affichage ni exécution d’une copie complète.
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Le découpage touche modèles, repositories, DTO, brouillons, validateurs et sérialiseurs : structure `(id, label)` sur mouvement, valeurs Catalogue `(phaseId, durationSeconds)`, phases résolues dans les copies. Les JSON v3 actuels doivent évoluer ; ne pas conserver les parseurs actuels en supposant qu’ils transportent de nouveaux champs. D-440 permet un schéma neuf sans conversion ni compatibilité ancienne. L’initialisation ne réinitialise jamais les données à chaque lancement.
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
-Réutiliser WorkPhase.id avec un compteur monotone persisté par mouvement ; ne pas recalculer le prochain identifiant depuis le maximum de la liste courante. Les exercices frères incomplets nécessitent un état persistant de durée absente et un refus d’exécution ; la nullabilité actuelle du seul brouillon ne suffit pas.
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
-Les transactions couvrent création locale avec la séance, annulation sans résidu, correction partagée et associations de durées, ainsi que marquage durable d’utilisation au succès. Aucun journal d’utilisation ni collecte automatique de mouvement n’est requis. Les références médias du mouvement entrent dans le comptage avant nettoyage physique ; les copies gardent leurs propres associations. Suppression d’une définition ne supprime pas le mouvement.
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
-Le moteur consomme une représentation résolue ; aucun accès au Catalogue ou au groupe pendant l’exécution. La filiation traverse tous les convertisseurs, snapshots et stockages ; elle ne remplace pas l’identité des résultats. Aucun rang historique. Détail : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
 
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, somme ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
 
-La couche Domaine contient :
-- les entités définies dans le chapitre 09 ;
-- les règles métier ;
-- les validations ;
-- les transitions d’état ;
-- les calculs indépendants de l’interface et du stockage.
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
 
-Les calculs de Durée estimée d’exécution, Durée synthétique des Exercices, Durée réelle, nombres d’Exercices, progression globale et occurrences périodiques sont implémentés comme des règles déterministes distinctes du Domaine conformément au chapitre 10. L’interface ne peut substituer l’une de ces deux métriques estimées à l’autre : le Catalogue et la Composition consomment la Durée synthétique des Exercices, tandis que l’Exécution consomme la Durée estimée d’exécution. La progression couvre le Plan complet, `INITIAL_COUNTDOWN` et `SESSION_END` compris, et ne vaut `100 %` qu’après l’achèvement de `SESSION_END` ; dans T04, les étapes chronométrées sont pondérées par leur durée planifiée et les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles sont exclues. Ces règles ne doivent pas être redéfinies dans l’interface ou la couche de persistance.
-
-Les objets du domaine ne doivent pas dépendre directement :
-- de l’interface utilisateur ;
-- de la base de données ;
-- d’un protocole réseau ;
-- d’Apple ou Android.
-
-Cette séparation facilite :
-- les tests automatisés ;
-- l’évolution du stockage ;
-- l’ajout futur d’un backend ;
-- la synchronisation future ;
-- la réutilisation éventuelle de la logique métier sur d’autres plateformes.
+Le moteur ne relit plus les sources après démarrage. Aucun marquage durable d’utilisation sur insertion n’est nécessaire au dialogue : calculer autres exercices et existence d’une exécution selon MFN-08. Les médias référencés par les instantanés doivent être préservés. Pas de migration (D-440).
 
 ## 12.6 Persistance et stockage local
 
@@ -932,7 +915,7 @@ Complément du 23/10 : [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-N
 | Famille | Référence courante | Variantes / portée |
 |---|---|---|
 | Niveau | `icon/niveau` `9932:44044` | Niveau 1 / 2 / 3, tranches non atteintes à 28 % ; aucune limite métier à trois niveaux |
-| Modifier le mouvement | `icon/modifier` `9925:41240` | Crayon plein bleu KODJO dans le rendu du 25/10 ; création sur mouvement repris ; portée en occurrence réservée C04 |
+| Modifier le mouvement | `icon/modifier` `9925:41240` | Crayon plein bleu KODJO dans le rendu du 25/10 ; création sur mouvement repris ; portée en occurrence réservée D-445 (clos) |
 | Classification | `Sélecteur classification` `9925:41506`, `9925:41515` | Rôle Niveau, états Vide / Renseigné ; Rôle = Catégorie / Zone / Niveau |
 | Contexte exercice | `Zone bleue — Nom et média` `9029:18368`, rangée `9029:18363` | Niveau troisième ; espacement 12, marges latérales 6 ; zones élastiques tronquées |
 | Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
@@ -1793,7 +1776,7 @@ Le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md#composants-et-tokens
 |---|---|---|
 | Carte — Mouvement | 10124:21979 | Sélection Absente / Vide / Cochée, 322 × 80 ; instances 354 × 80 |
 | Carte — Mouvement — Résultat | 10199:22268 | 338 × 107, photo 57, deux actions ; pas de radio dans la recherche |
-| icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve C04 |
+| icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve D-445 (clos) |
 | icon/niveau | 9932:44044 | Variantes 1/2/3 ; état vide via Sélecteur classification, rangs supérieurs à compléter |
 | Sélecteur classification | 9003:15638 | Rôles Catégorie / Zone / Niveau ; vide 9925:41506, renseigné 9925:41515 |
 | Zone bleue — Nom et média | 9029:18368 | 3 sélecteurs ; gap 12, marges 6, zones flexibles tronquées |

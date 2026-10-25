@@ -1,6 +1,6 @@
 # API fonctionnelles
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Contrats complémentaires : rechercher les gestes par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les gestes. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v6 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 ## Sommaire
@@ -99,21 +99,22 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 ### Contrats MFN — évolution des opérations existantes
 
-Ces contrats remplacent la propriété aplatie du contenu Catalogue et précisent les API ci-dessous ; ils n’imposent pas de service distant.
+Ces opérations implémentent D-445, sans service distant imposé.
 
 | Opération | Contrat cible |
 |---|---|
-| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même mouvement / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
-| Lire une définition | Résoudre sa relation active obligatoire vers le mouvement ; retourner contenu et paramètres propres |
-| Enregistrer une correction | Vérifier usage durable et champs sensibles ; transmettre le choix et le nombre de définitions touchées ; appliquer atomiquement contenu partagé et durées par identifiant ; distinguer exercice édité complet et frères incomplets explicitement acceptés |
-| Créer une variante | Nouveau mouvement et nouvelle définition ; original conservé ; proposition de groupe sans présélection |
-| Copier / dupliquer | Nouveaux identifiants d’objets ; filiation copiée à l’identique ; contenu de l’occurrence autonome et verrouillé ; paramètres modifiables |
-| Enregistrer une séance / démarrer en direct | Marquer durablement l’utilisation du mouvement dans la transaction de succès ; aucune création Catalogue ; absence de source orpheline tolérée pour une copie existante |
-| Exécuter | Refuser les exercices incomplets ; instantané autonome avec filiation, sans rang ; même identité en ACTIVITY et SESSION |
-| Supprimer | Refuser suppression d’un mouvement encore référencé par une définition ; ne jamais invalider une copie ni collecter automatiquement un mouvement inutilisé |
+| Rechercher / créer | Nom unique garanti à l’écriture ; recherche nom/alias dédupliquée ; mouvements sans exercice et locaux inclus |
+| Lire une définition ou une occurrence | Résoudre directement le mouvement courant et les paramètres propres de l’objet ; aucune dépendance de SessionActivity envers ActivityDefinition |
+| Préparer une sauvegarde | Comparer nom/contenu, compter autres définitions et occurrences liées, rechercher existence d’exécution par identité ; branche de dialogue selon MFN-08 |
+| Mettre à jour | Écrire le contenu du mouvement atomiquement ; garder paramètres locaux ; détecter les phases devenues incomplètes ; ne pas synchroniser des copies de contenu |
+| Créer distinct | Nouvelle identité et nom unique ; rattacher l’objet édité, remplacer l’occurrence si contexte séance ; originaux et historiques conservés |
+| Créer une variante | Description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté, exercice associé ; pas de confirmation de correction |
+| Insérer / dupliquer | Nouvelle occurrence, même référence au mouvement et paramètres locaux copiés ; aucune écriture d’indicateur d’utilisation sur insertion |
+| Démarrer | Vérifier compatibilité et complétude, résoudre contenu/paramètres puis figer l’instantané avec filiation ; pas de relecture pendant exécution |
+| Supprimer un exercice | Conserver le mouvement et tous les instantanés ; aucun ramassage automatique |
+| Supprimer un mouvement | Préserver intégrité des références actives ; parcours et admission MVP différés C08 |
 
-Invariants détaillés : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). D-440 dispense de lire ou convertir les anciens formats pendant la transition MFN ; aucune perte silencieuse de données du nouveau modèle n’est permise.
-
+Règles et recettes : MFN-01 à MFN-13 / MFN-AC du chapitre 10. Base vierge D-440 ; pas de migration.
 
 ### API Exercices
 
@@ -130,7 +131,7 @@ Invariants détaillés : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%2
 
 Les opérations de création, modification, copie et duplication transportent la liste ordonnée de phases avec les paramètres canoniques. Aucun endpoint ni service distant supplémentaire n’est requis. Contrat de données : chapitre 09, Phases de l’exercice ; comportement : [chapitre 08](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
-- Validation du brouillon (D-438) : une durée de phase nulle ou vide reste à renseigner, sans suppression ; l’exercice édité ne peut être enregistré incomplet. Le nommage par défaut des phases ajoutées reste conservé. Retrait de structure uniquement explicite au Catalogue ; aucune transformation structurelle dans une copie verrouillée.
+- Validation du brouillon (D-438) : une durée de phase nulle ou vide reste à renseigner, sans suppression ; l’exercice édité ne peut être enregistré incomplet. Le nommage par défaut des phases ajoutées reste conservé. Retrait de structure uniquement explicite au Catalogue ; structure modifiée par le crayon du mouvement partagé, jamais par une normalisation silencieuse des paramètres locaux.
 - Validation : éligibilité, six phases maximum, libellés 20 caractères, chaque phase validée ≥ 1 s et somme des phases comprise entre 1 et 3 535 s (D-430), cohérence avec la durée imposée ; les données corrompues ne bénéficient pas d’un effacement silencieux.
 - Calcul : somme des phases comme durée de série ; projections et agrégats issus des mêmes paramètres, sans double comptage.
 - Adaptation au format : reçoit la liste et la durée de travail imposée ; renvoie la liste adaptée et les valeurs avant/après nécessaires au message informatif. Source Catalogue inchangée. Les arrondis extrêmes attendent la règle du chapitre 08.
@@ -144,7 +145,7 @@ Conserver les contrats d’annulation et de copie indépendante ; D-440 dispense
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
-| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, y compris les étapes ordonnées de description (D-425), charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune synchronisation avec la référence ; `sourceMovementId` conserve la filiation statistique immuable (D-437). |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une occurrence avec référence directe au mouvement et paramètres locaux copiés, charge/activation comprises ; aucun contenu autonome à synchroniser, aucun lien de dépendance envers la définition Catalogue. D-445 / MFN-03. |
 | `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
@@ -557,6 +558,6 @@ Validation, calcul, duplication, insertion dans une Séance et instantané parta
 
 ## Contrats de service — incidence du relevé 25/10
 
-La recherche renvoie des mouvements dédupliqués par identité, classés sur leur meilleure correspondance nom/alias. Le plafond de cinq du panneau ne transforme pas le catalogue en sélecteur et ne supprime pas le parcours Voir tous. Les services de création de variante, remplacement d’occurrence et réordonnancement restent distincts. Les durées de mouvements différents se transfèrent par rang de phase. Ne pas ajouter propagation aux copies, unicité des noms ou suppression du marquage durable avant résolution C01/C03/C04/C05. Aucun nouveau service de maintenance du catalogue de mouvements n’est déclaré MVP sur la seule proposition C07.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

@@ -1,6 +1,6 @@
 # Conception fonctionnelle par fonctionnalité
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Les parcours v6 §4 à §10 remplacent les anciennes variantes correspondantes : état vide Niveau, édition directe des paramètres et crayon du mouvement partagé, recherche automatique et explicite préremplie, alias, avertissement N08 à trois choix non bloquant, remplacement de niveau avec reprise des phases par rang. Aucun contrôle supplémentaire à la sauvegarde après choix explicite de mouvement indépendant.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 Ce chapitre décrit, fonctionnalité par fonctionnalité, les enchaînements, états et transitions. Les règles testables sont énoncées au chapitre 10 et citées ici par leur identifiant ; les champs et contrôles d’écran sont définis par les contrats du chapitre 13.
@@ -178,9 +178,9 @@ D-437 à D-439 complètent les parcours ci-dessous. Le Catalogue regroupe les ex
 
 L’éditeur s’ouvre directement en édition. Recherche explicite et suggestions portent sur tous les mouvements disponibles, même créés localement. Les choix sont même mouvement/autres paramètres, variante/niveau, mouvement indépendant. Une sélection n’écrase pas silencieusement la saisie. Cette recherche spécialisée ne modifie pas l’absence de recherche générale dans les listes Catalogue.
 
-À l’enregistrement, usage durable + modification de nom/description/média/structure des phases déclenche **Corriger cet exercice / Créer un nouvel exercice / Annuler** en édition Catalogue. En création sur mouvement repris, les libellés sont **Corriger ce mouvement / En faire un mouvement distinct / Annuler**. Le contenu repris est initialement verrouillé, déverrouillable par crayon uniquement dans ce contexte ; les paramètres restent éditables. Une variante explicitement choisie et une reprise inchangée se sauvegardent sans dialogue d’identité. Le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) décrit les états et le retour au brouillon. La correction annonce obligatoirement le nombre d’exercices concernés s’il dépasse un. La complétion des durées manquantes des frères est une étape distincte : exercice édité obligatoirement complet, frères pouvant être conservés incomplets et inexécutables. Aucun dialogue pour les seuls paramètres, catégorie, zones ou ordre des niveaux.
+D-445 / MFN-08 : nom changé, dialogue toujours ; nom inchangé et contenu modifié, confirmer si au moins un autre exercice lié ou une exécution enregistrée ; sinon sauvegarde silencieuse. Paramètres seuls ou reclassement seuls : aucun dialogue. Crayon de contenu partagé disponible au Catalogue et en séance ; Niveau reste actif. Variante explicite sans question redondante. Durées nouvelles non inventées ; frères incomplets signalés avant lancement.
 
-L’occurrence présente son contenu copié verrouillé ; paramètres modifiables sous contraintes existantes. L’exception de création locale s’arrête à l’enregistrement de la séance. Annuler le brouillon ne laisse ni mouvement, ni média, ni marque d’utilisation. Les copies déjà enregistrées et les historiques ne se resynchronisent jamais. Détail et recettes : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+L’occurrence référence directement le mouvement et conserve ses paramètres propres ; elle ne dépend pas de la définition Catalogue. Une correction apparaît à la lecture du contenu courant. Annulation sans résidu. Seuls l’instantané, l’exécution démarrée et l’historique restent figés (D-445).
 
 
 ### Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03
@@ -859,6 +859,31 @@ Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis 
 
 ## États et transitions — mouvement et niveau (25/10)
 
-Les cartes Résultat portent leurs deux actions ; aucune action globale de sélection. Le panneau peut afficher cinq résultats et fige leur ordre sous appui. Reprise → contenu verrouillé + paramètres éditables ; crayon → brouillon de contenu. Variante → choix difficulté → formulaire → validation directe de nouvelle identité. La sauvegarde partagée prend désormais la forme d’un dialogue centré à cartes radio. Ses conditions contradictoires sont réservées en C03. Popover Niveau → sous-liste Changer / Ajouter ou écran Ordre. Les nouvelles références et la recette sont au relevé du 25/10 et dans CE-T03-04 / CE-UI-NIV-01.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.

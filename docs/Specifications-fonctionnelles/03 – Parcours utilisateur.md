@@ -1,6 +1,6 @@
 # Parcours utilisateur
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Création : recherche automatique sur nom et alias, reprise/variante/indépendant sans attribution implicite. Variante : choix Plus facile que X / Plus difficile que X. Catalogue : paramètres directement éditables, contenu partagé accessible par le seul crayon Modifier le mouvement. Insertion : recherche et filtres avec sélection persistante. Changement de niveau en séance : remplacement explicite, paramètres repris, phases selon les quatre cas de v6 §8.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 ## Sommaire
@@ -150,13 +150,13 @@ Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d�
 
 ### Création, niveaux et correction — cible MFN
 
-Références visuelles : [relevé Figma du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Reprendre un geste présente son contenu en lecture seule, déverrouillable par crayon en création ; les paramètres restent éditables. Créer explicitement une variante n’affiche pas une seconde question d’identité. Depuis la fiche, le popover propose « Changer de niveau / Ajouter un niveau » ; aucune action glissée supplémentaire au Catalogue.
+Références visuelles : [relevé Figma du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Reprendre un geste présente son contenu en lecture seule, déverrouillable par crayon en création, au Catalogue et en séance, au Catalogue et en séance ; les paramètres restent éditables. Créer explicitement une variante n’affiche pas une seconde question d’identité. Depuis la fiche, le popover propose « Changer de niveau / Ajouter un niveau » ; aucune action glissée supplémentaire au Catalogue.
 
-Créer un exercice commence dans l’éditeur. La recherche explicite d’un mouvement, accessible avant la saisie détaillée, et les suggestions incluent les mouvements créés localement ; aucun Catalogue supplémentaire. Choisir le même mouvement reprend son contenu et permet de saisir d’autres paramètres. Une variante crée un nouveau mouvement et son exercice ; un mouvement indépendant n’est pas rattaché. Aucun écrasement silencieux d’une saisie existante.
+Créer un exercice commence dans l’éditeur. La recherche explicite d’un mouvement, accessible avant la saisie détaillée, et les suggestions incluent les mouvements créés localement ; catalogue d’entretien distinct de ce sélecteur (D-445). Choisir le même mouvement reprend son contenu et permet de saisir d’autres paramètres. Une variante crée un nouveau mouvement et son exercice ; un mouvement indépendant n’est pas rattaché. Aucun écrasement silencieux d’une saisie existante.
 
 Depuis la fiche, créer un niveau l’insère après l’origine ; glisser réordonne les niveaux. Une navigation vers un niveau laisse choisir précisément ses paramètres parmi ses exercices. Ouvrir un exercice Catalogue entre directement en édition. L’enregistrement d’un contenu déjà utilisé pose la question de correction ou de création selon [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux) ; les occurrences existantes ne sont pas mises à jour.
 
-Dans la Composition, le contenu copié est verrouillé ; seuls les paramètres sont modifiables. Un autre mouvement exige remplacement ou création de variante. Les doublons créés indépendamment ne peuvent pas réunir leurs records rétroactivement dans cette version.
+Dans la Composition, l’occurrence lit le mouvement courant. Le crayon ouvre sa correction partagée ; paramètres locaux et Niveau restent actifs. Créer un autre mouvement ou changer de niveau remplace l’occurrence, sans réattribuer les historiques. Aucun rapprochement rétroactif de records (D-445).
 
 
 ### Parcours MVP T03 — Catalogue des Exercices
@@ -597,7 +597,7 @@ Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments �
 
 #### Ajouter des médias à un Exercice — MVP PRE-3
 
-D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations sont ordonnées, indépendantes dans les copies et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
+D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations courantes appartiennent au mouvement ; les instantanés en conservent une copie ordonnée et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
 
 <a id="formats-parcours"></a>
 #### Formats et départs rapides — parcours
@@ -614,6 +614,30 @@ Navigation, annulation et sauvegarde reprennent les brouillons existants ; le ch
 
 ## Parcours de niveaux — actualisation du 25/10
 
-Création : nom → rapprochement superposé → Utiliser ce mouvement / Créer une variante / continuer sans sélectionner. Entrée ne sélectionne pas. Variante : choix Plus difficile / Moins difficile puis formulaire ; le choix explicite évite une confirmation de correction. Niveau : Changer / Ajouter / Réordonner, déploiements en place. Dans une séance, changer remplace la copie dans le brouillon en conservant les paramètres selon v6 §8. Les divergences sur le formulaire vierge, le crayon en séance et le dialogue sont C01–C04, pas des parcours silencieusement validés.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.

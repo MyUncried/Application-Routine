@@ -539,4 +539,16 @@ D-437 à D-440 (23/10/2026) séparent le contenu du mouvement et les paramètres
 
 ## Niveaux et recherche — documentation du 25/10/2026
 
-Le vocabulaire courant est mouvement / exercice / niveau / paramètres d’exécution. Références : [v6](KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé Figma, contrats et réserves](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La présence d’un catalogue de mouvements dans Figma n’en confirme pas l’admission MVP (C07). Les copies et instantanés restent indépendants ; la classification actuelle est dérivée à la lecture. Les règles contradictoires ne sont pas arbitrées par les captures.
+**D-445 :** huit points clos ; C08 seul différé. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+## Décisions closes — D-445
+
+Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre MVP. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [prompt Claude Code](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V7.md).
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
