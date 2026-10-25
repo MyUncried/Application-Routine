@@ -1,8 +1,10 @@
 # Documentation de KODJO
 
-**Référence définitive intégrée le 25/10/2026 :** [Niveaux, recherche et parcours v5](KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Ses règles remplacent les dispositions antérieures contradictoires dans leur portée, notamment recherche, alias, reprise des phases et classification actuelle. [Prompt Claude Code](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V5.md).
+**Actualisation du 25/10/2026 :** [niveaux, recherche, captures, composants, tokens et réserves](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Les contradictions C01–C09 restent explicites ; les captures ne les tranchent pas.
 
-**Actualisation Figma du 23/10/2026 :** [Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) — cinq nouveaux états et popover illustrés au chapitre 06, captures existantes actualisées, contrats et composants réconciliés ; écarts de prototype explicités.
+**Référence fonctionnelle reçue et intégrée — v6 :** [Niveaux, recherche et parcours v6](KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Ses règles remplacent les dispositions antérieures contradictoires dans leur portée, notamment recherche, alias, reprise des phases et classification actuelle. [Consignes Claude Code actualisées](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V6.md).
+
+**Relevé historique Figma du 23/10/2026 :** [Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) — cinq nouveaux états et popover illustrés au chapitre 06, captures existantes actualisées, contrats et composants réconciliés ; écarts de prototype explicités.
 
 La documentation de référence forme un ensemble de treize chapitres, complété par quatre annexes non normatives. Les règles métier, calculs et comportements sont définis ici ; Figma décrit les dispositions visuelles et illustre des états. Les valeurs de démonstration des captures ne définissent pas les calculs.
 
@@ -20,7 +22,7 @@ La documentation de référence forme un ensemble de treize chapitres, complét�
 | 10 | [Règles métier et calculs](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md) | Règles testables, calculs, formats d’affichage, recettes |
 | 11 | [API fonctionnelles](Specifications-fonctionnelles/11%20%E2%80%93%20API%20fonctionnelles.md) | Contrats de services |
 | 12 | [Architecture technique](Specifications-fonctionnelles/12%20%E2%80%93%20Architecture%20technique.md) | Architecture et design system technique |
-| 13 | [Contrats d’écran](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Les 40 contrats d’écran |
+| 13 | [Contrats d’écran](Specifications-fonctionnelles/13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md) | Les 40 contrats existants et le contrat Niveaux |
 
 **Annexes non normatives :**
 - [Correspondance des sections](Specifications-fonctionnelles/Annexe%20%E2%80%93%20Correspondance%20des%20sections.md) : pour chaque ancienne section, sa place actuelle ;

@@ -1,5 +1,7 @@
 # Figma — Gestes, filiation et niveaux — 23 octobre 2026
 
+> Actualisation du 25/10/2026 : les rendus de cartes, niveaux, recherche et sauvegarde concernés sont décrits dans le [relevé courant](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Ce document daté reste une preuve historique ; ses captures et noms de composants ne remplacent pas l’inventaire courant.
+
 **Actualisation normative du 25/10 :** la [v5 définitive](KODJO-Niveaux-Recherche-Parcours-Regles-v5.md) remplace les comportements antérieurs contradictoires de ce relevé : état vide « Niveau », crayon du contenu partagé aussi en édition Catalogue, alias, création par difficulté, recherche et reprise des phases par position. Les images ci-dessous restent des exports du 23/10, pas des preuves de réalisation de la v5. Aucun nouvel export Figma effectué dans cette passe. Les placements de cartes et symboles complémentaires restent ouverts selon v5 §13.
 
 Référence : fichier `G6RY5Ebhgwb4AHIOYDwwvg`, rapport du propriétaire et exports directs vérifiés le 23/10/2026. Ce relevé complète D-437 à D-439 et les contrats CE-T03-02, CE-T03-04 et CE-UI-10 ; il ne modifie ni le modèle ni le périmètre de migration D-440. Aucun fichier Figma ni code applicatif modifié par cette passe documentaire.

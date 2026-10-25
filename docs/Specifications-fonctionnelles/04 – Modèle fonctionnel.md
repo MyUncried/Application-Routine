@@ -1,6 +1,6 @@
 # Modèle fonctionnel
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Alias sur le geste ; rang courant dérivé du groupe. La filiation immuable permet statistiques, résolution facultative de la classification actuelle et choix de niveau. La consultation de la source ne modifie jamais les copies ni les instantanés ; leur contenu reste autonome.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Alias sur le mouvement ; rang courant dérivé du groupe. La filiation immuable permet statistiques, résolution facultative de la classification actuelle et choix de niveau. La consultation de la source ne modifie jamais les copies ni les instantanés ; leur contenu reste autonome.
 
 
 ## Sommaire
@@ -289,7 +289,7 @@ Dans une occurrence, R>0 se substitue à la seule Pause terminale ; R reste une 
 
 Un exercice présente une liste résolue de phases : aucune, ou 2 à 6 (D-438). La structure et les libellés, de 20 caractères maximum, appartiennent au mouvement ; les durées appartiennent aux paramètres. Le retrait explicite 2 → 1 au Catalogue revient à Sans avec la durée restante. Elles sont communes aux séries identiques, uniquement en mode Durée à cible chiffrée. Une série exécute exactement une fois cette liste ; sa durée en est la somme, et non une seconde valeur indépendante. L’absence de phases conserve le comportement existant.
 
-Les phases s’enchaînent sans pause. Les pauses après série, les côtés, les circuits et la récupération contextuelle conservent leur portée. Chaque passage de travail d’un côté déroule le motif complet ; une phase ne devient pas un passage de circuit. Les phases de geste ne doivent pas être confondues avec les phases structurelles du plan. Voir [règles d’édition et de format](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+Les phases s’enchaînent sans pause. Les pauses après série, les côtés, les circuits et la récupération contextuelle conservent leur portée. Chaque passage de travail d’un côté déroule le motif complet ; une phase ne devient pas un passage de circuit. Les phases de mouvement ne doivent pas être confondues avec les phases structurelles du plan. Voir [règles d’édition et de format](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 ### Composition d'une séance — Les exercices
 
@@ -620,3 +620,10 @@ Les zones corporelles permettent de caractériser les exercices selon les partie
 Un Exercice valide possède une ou plusieurs Zones corporelles ; la sélection reste multiple.
 
 Dans le MVP, les Zones corporelles constituent un référentiel utilisateur administrable, initialisé avec dix valeurs par défaut. L’utilisateur peut consulter et sélectionner plusieurs Zones corporelles lors de la création ou de la modification d’un Exercice. Il peut également créer une nouvelle Zone corporelle, renommer une Zone existante et supprimer une Zone. Lorsqu’une Zone supprimée est utilisée par des Exercices courants, ses associations aux objets existants sont conservées après confirmation ; les Instantanés et Exécutions historiques restent inchangés.
+
+
+## Mouvement et interface — actualisation du 25/10
+
+Le nom présenté avec - Nn dans la nouvelle maquette reste composé à l’affichage ; le nom du mouvement n’est pas modifié. Une pile de mouvements et le regroupement de plusieurs exercices utilisant un mouvement sont deux relations différentes. Le modèle reste mouvement partagé → exercices paramétrés → copies indépendantes → instantanés figés. Les propositions d’unicité et de propagation du relevé sont C01/C04/C05 ; aucune nouvelle intégrité sur les copies n’est déduite d’une interface.
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

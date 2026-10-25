@@ -339,3 +339,8 @@ Les captures sont intégrées en Markdown standard et regroupées dans leur fami
 
 [État des lieux exhaustif,42frames et revue des contrats](ETAT-DES-LIEUX-CREATION-EXERCICE-2026-10-03.md). Les références actuelles remplacent les copies du02/10 :37frames de la famille création/modification,2effets Catalogue/Composition et3exécutions. La réserve de réinitialisation a été retirée : D-029/D-150 restent applicables aux deux ordres.
 
+
+
+## Actualisation niveaux / recherche — 25/10/2026
+
+Référence : [relevé courant](DSF-NIVEAUX-RECHERCHE-2026-10-25.md), [manifeste des exports avec empreintes et limites](figma-niveaux-2026-10-25/captures.json). 97 captures courantes, dont les nouveaux parcours, composants, catalogues et exemples de cartes ; 43 exports complémentaires bloqués par le quota Figma, anciennes images conservées et signalées au chapitre 06. L’ancien 9959:19623 a changé de rôle : catalogue de mouvements, plus sélecteur de recherche. Le popover courant est 10027:40760. Les conditions métier contradictoires C01–C09 ne sont pas arbitrées par cette actualisation.

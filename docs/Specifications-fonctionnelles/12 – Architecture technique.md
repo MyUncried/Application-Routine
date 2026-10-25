@@ -1,6 +1,6 @@
 # Architecture technique
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par geste. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Recherche : fonctions pures, représentations calculées à l’écriture, meilleur score parmi nom/alias, un résultat par mouvement. Vérifier la réutilisation de la normalisation et mesurer le coût avant d’introduire un index. Jeu R07 automatisé en développement et CI ; couvrir résultats attendus/interdits, ordre pertinent, suggestions et déduplication ; chaque défaut corrigé ajoute un cas. Ne pas recopier la formule comme oracle de test. Les coefficients initiaux sont ajustables par le développeur. Préserver la consultation/exécution des copies si la classification source ne se résout pas.
 
 
 ## Sommaire
@@ -932,7 +932,7 @@ Complément du 23/10 : [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-N
 | Famille | Référence courante | Variantes / portée |
 |---|---|---|
 | Niveau | `icon/niveau` `9932:44044` | Niveau 1 / 2 / 3, tranches non atteintes à 28 % ; aucune limite métier à trois niveaux |
-| Modifier le geste | `icon/modifier` `9925:41240` | Crayon au trait bleu KODJO, création sur geste repris ; pas de déverrouillage d’occurrence |
+| Modifier le mouvement | `icon/modifier` `9925:41240` | Crayon plein bleu KODJO dans le rendu du 25/10 ; création sur mouvement repris ; portée en occurrence réservée C04 |
 | Classification | `Sélecteur classification` `9925:41506`, `9925:41515` | Rôle Niveau, états Vide / Renseigné ; Rôle = Catégorie / Zone / Niveau |
 | Contexte exercice | `Zone bleue — Nom et média` `9029:18368`, rangée `9029:18363` | Niveau troisième ; espacement 12, marges latérales 6 ; zones élastiques tronquées |
 | Navigation | DSF / Navigation / Barre inférieure `5544:4441` | Catalogue / Calendrier / Suivi / Profil |
@@ -1783,3 +1783,28 @@ Le générateur livré pour le MVP est **francophone uniquement**. Les segments 
 276 cas historiques conservés sans altération, complétés par les cibles mixtes du 13/10 ; injecter le total métier de test à la place du montant d’exemple avant comparaison. Vérifier texte/ponctuation exacts et absence de clause ajoutée aux cas variables. Vérifier singulier, côtés désignés côté 1 / côté 2 (RM-243), mention de charge active ou absente (RM-240), deux/trois/plus de trois cibles, min=max, bip 0/positif dans deux modes, pause 0/positive, N1 avec/sans pause et PC0/positive. Les cas complémentaires ne remplacent pas le corpus.
 
 Contrôler les segments et le gras, notamment deux valeurs identiques à des positions différentes ; concaténation égale au texte attendu. Relire un objet ancien après modification de grammaire : nouvelle phrase, aucune migration de chaîne. Vérifier absence de champ persistant phrase/segments et génération au rendu, annulation/validation, accès clavier/lecteur d’écran et absence de troncature à 360/402/440 avec texte agrandi. Il s’agit de recette prescrite, pas d’une implémentation ou de tests applicatifs exécutés dans ce lot documentaire.
+
+
+## Composants et valeurs observés — niveaux / recherche (25/10/2026)
+
+Le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md#composants-et-tokens-vérifiés) et son [export de propriétés](../figma-niveaux-2026-10-25/releve-composants.json) actualisent l’inventaire, sans création de tokens fictifs.
+
+| Composant | Identifiant | Contrat |
+|---|---|---|
+| Carte — Mouvement | 10124:21979 | Sélection Absente / Vide / Cochée, 322 × 80 ; instances 354 × 80 |
+| Carte — Mouvement — Résultat | 10199:22268 | 338 × 107, photo 57, deux actions ; pas de radio dans la recherche |
+| icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve C04 |
+| icon/niveau | 9932:44044 | Variantes 1/2/3 ; état vide via Sélecteur classification, rangs supérieurs à compléter |
+| Sélecteur classification | 9003:15638 | Rôles Catégorie / Zone / Niveau ; vide 9925:41506, renseigné 9925:41515 |
+| Zone bleue — Nom et média | 9029:18368 | 3 sélecteurs ; gap 12, marges 6, zones flexibles tronquées |
+
+Fond des cartes : liaison VariableID:2290:56 ; contour : color/cards/border, VariableID:6364:10579. Radio actif : color/primary, VariableID:2290:51 → VariableID:2290:2 (#0508E5). Textes des nouvelles cartes : Nom 15, Description 12, Niveau 12, actions 13, sans textStyleId lié observé. Ne pas déclarer ces valeurs comme de nouveaux tokens canoniques sans liaison constatée. Les variables component/card/height et component/cards/media-size existent ; leur valeur et leur emploi doivent être alignés au gabarit, sans appliquer 80 à la carte Résultat ni aux cartes dépliées.
+
+Carte repliée simple 80 ; média 64 ; marges 8 ; colonne x84 ; icône de ligne 14 sans cercle. Bilatéralité en ligne 2 immédiatement après zones. Réserve de durée commune calculée à la largeur de la valeur la plus longue, glyphes fixes ; même principe horloge/heure en calendrier semaine. Préserver le comportement responsive et les cibles tactiles ≥44 (48 lorsque spécifié), même pour le bouton Résultat dessiné haut de 26.
+
+Dialogue centré : largeur 354 sur écran 402, titre 18, message 14, boutons 147 dans les états à deux actions. Réemployer le gabarit de décision existant ; les trois frames de sauvegarde ne prouvent pas l’existence d’un nouveau composant. L’absence de Confirmer dans l’état non sélectionné est un écart à corriger, pas un modèle d’interaction à reproduire.
+
+
+![Carte — Mouvement, variantes](images/niveaux-2026-10-25/10124-21979.png)
+
+![Carte — Mouvement — Résultat](images/niveaux-2026-10-25/10199-22268.png)

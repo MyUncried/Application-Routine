@@ -1,6 +1,6 @@
 # Modèle de données fonctionnel
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Mouvement : ajouter les alias facultatifs et les représentations de recherche dérivées du nom et des alias (normalisation, tokens, trigrammes), recalculées à leur modification. Aucun alias propre à ActivityDefinition. sourceMovementId reste immuable sans intégrité référentielle ; sa lecture facultative permet aussi la classification actuelle. Aucun rang/total stocké dans les copies ou instantanés. Remplacer un niveau crée une nouvelle occurrence ; phases reprises par position vers les identifiants du nouveau geste, jamais par égalité des identifiants entre gestes. Les instantanés restent autonomes pour leur contenu ; la classification actuelle est une projection séparée.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Mouvement : ajouter les alias facultatifs et les représentations de recherche dérivées du nom et des alias (normalisation, tokens, trigrammes), recalculées à leur modification. Aucun alias propre à ActivityDefinition. sourceMovementId reste immuable sans intégrité référentielle ; sa lecture facultative permet aussi la classification actuelle. Aucun rang/total stocké dans les copies ou instantanés. Remplacer un niveau crée une nouvelle occurrence ; phases reprises par position vers les identifiants du nouveau mouvement, jamais par égalité des identifiants entre gestes. Les instantanés restent autonomes pour leur contenu ; la classification actuelle est une projection séparée.
 
 
 ## Sommaire
@@ -1446,3 +1446,10 @@ UTILISATEUR
 ```
 
 Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Tours sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
+
+
+## Données et réserves — actualisation du 25/10
+
+Aucun suffixe - Nn, rang ou total stocké ; calcul à la lecture. Recherche : nom/alias et représentations normalisées selon R02/R05 ; unicité proposée C01 à distinguer de la proximité. Ne pas créer de contrainte UNIQUE sur un nom au seul motif de la capture Nom déjà utilisé. Relation active ActivityDefinition→Mouvement avec intégrité ; filiation des copies sans intégrité référentielle ni cascade. C03 ne supprime pas encore l’indicateur durable d’utilisation. C04/C05 ne déclenchent aucune synchronisation de copies ou d’instantanés. Base vierge autorisée : aucun développement de migration requis.
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

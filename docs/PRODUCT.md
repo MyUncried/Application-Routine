@@ -534,4 +534,9 @@ Références actives : [Paramètres et brouillon d’un exercice](Specifications
 
 ## Évolution validée — Mouvement, filiation et niveaux
 
-D-437 à D-440 (23/10/2026) séparent le contenu du geste et les paramètres d’exécution, partagent le contenu au Catalogue et conservent des occurrences autonomes avec filiation statistique. Niveaux linéaires, édition directe avec correction partagée explicite, historique sans rang. Transition sur base vierge, sans reprise et sans effacement aux lancements suivants. Règles normatives : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Cette cible reste à implémenter ; elle ne livre ni calcul de records ni passage automatique de niveau.
+D-437 à D-440 (23/10/2026) séparent le contenu du mouvement et les paramètres d’exécution, partagent le contenu au Catalogue et conservent des occurrences autonomes avec filiation statistique. Niveaux linéaires, édition directe avec correction partagée explicite, historique sans rang. Transition sur base vierge, sans reprise et sans effacement aux lancements suivants. Règles normatives : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Cette cible reste à implémenter ; elle ne livre ni calcul de records ni passage automatique de niveau.
+
+
+## Niveaux et recherche — documentation du 25/10/2026
+
+Le vocabulaire courant est mouvement / exercice / niveau / paramètres d’exécution. Références : [v6](KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé Figma, contrats et réserves](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La présence d’un catalogue de mouvements dans Figma n’en confirme pas l’admission MVP (C07). Les copies et instantanés restent indépendants ; la classification actuelle est dérivée à la lecture. Les règles contradictoires ne sont pas arbitrées par les captures.

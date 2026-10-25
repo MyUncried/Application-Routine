@@ -1,0 +1,1108 @@
+{
+  "components": [
+    {
+      "id": "10124:21979",
+      "name": "Carte — Mouvement",
+      "variants": {
+        "Sélection": {
+          "type": "VARIANT",
+          "defaultValue": "Absente",
+          "variantOptions": [
+            "Absente",
+            "Vide",
+            "Cochée"
+          ]
+        }
+      },
+      "nodes": [
+        {
+          "id": "10124:21979",
+          "name": "Carte — Mouvement",
+          "type": "COMPONENT_SET",
+          "width": 322,
+          "height": 331,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10088:20050",
+          "name": "Sélection=Absente",
+          "type": "COMPONENT",
+          "width": 322,
+          "height": 80,
+          "bindings": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10088:20052",
+          "name": "Nom",
+          "type": "TEXT",
+          "width": 164,
+          "height": 18,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Squats assistés",
+          "size": 15
+        },
+        {
+          "id": "10088:20053",
+          "name": "Description",
+          "type": "TEXT",
+          "width": 230,
+          "height": 32,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+          "size": 12
+        },
+        {
+          "id": "10117:21949",
+          "name": "Niveau",
+          "type": "TEXT",
+          "width": 58,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Niveau 3",
+          "size": 12
+        },
+        {
+          "id": "10124:21967",
+          "name": "Sélection=Vide",
+          "type": "COMPONENT",
+          "width": 322,
+          "height": 80,
+          "bindings": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10124:21969",
+          "name": "Nom",
+          "type": "TEXT",
+          "width": 132,
+          "height": 18,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Squats assistés",
+          "size": 15
+        },
+        {
+          "id": "10124:21970",
+          "name": "Description",
+          "type": "TEXT",
+          "width": 198,
+          "height": 32,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+          "size": 12
+        },
+        {
+          "id": "10124:21971",
+          "name": "Niveau",
+          "type": "TEXT",
+          "width": 58,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Niveau 2",
+          "size": 12
+        },
+        {
+          "id": "10128:21969",
+          "name": "Sélection",
+          "type": "INSTANCE",
+          "width": 20,
+          "height": 20,
+          "bindings": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingLeft": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingRight": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingBottom": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "topLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "topRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            }
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "I10128:21969;5544:4740",
+          "name": "Radio — non sélectionné",
+          "type": "ELLIPSE",
+          "width": 20,
+          "height": 20,
+          "bindings": {
+            "cornerRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4352"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10124:21972",
+          "name": "Sélection=Cochée",
+          "type": "COMPONENT",
+          "width": 322,
+          "height": 80,
+          "bindings": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10124:21974",
+          "name": "Nom",
+          "type": "TEXT",
+          "width": 132,
+          "height": 18,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Squats assistés",
+          "size": 15
+        },
+        {
+          "id": "10124:21975",
+          "name": "Description",
+          "type": "TEXT",
+          "width": 198,
+          "height": 32,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+          "size": 12
+        },
+        {
+          "id": "10124:21976",
+          "name": "Niveau",
+          "type": "TEXT",
+          "width": 58,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Niveau 2",
+          "size": 12
+        },
+        {
+          "id": "10128:21971",
+          "name": "Sélection",
+          "type": "INSTANCE",
+          "width": 20,
+          "height": 20,
+          "bindings": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingLeft": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingRight": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingBottom": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "topLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "topRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            }
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "I10128:21971;5544:4737",
+          "name": "Radio — sélectionné",
+          "type": "ELLIPSE",
+          "width": 20,
+          "height": 20,
+          "bindings": {
+            "cornerRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:51"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:51"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "I10128:21971;5544:4738",
+          "name": "Radio — point",
+          "type": "ELLIPSE",
+          "width": 8,
+          "height": 8,
+          "bindings": {
+            "cornerRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:54"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "10199:22268",
+      "name": "Carte — Mouvement — Résultat",
+      "variants": null,
+      "nodes": [
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "type": "COMPONENT",
+          "width": 338,
+          "height": 107,
+          "bindings": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          },
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10199:22260",
+          "name": "Photo",
+          "type": "RECTANGLE",
+          "width": 57,
+          "height": 57,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10199:22261",
+          "name": "Nom",
+          "type": "TEXT",
+          "width": 187,
+          "height": 18,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Squats assistés",
+          "size": 15
+        },
+        {
+          "id": "10199:22262",
+          "name": "Description",
+          "type": "TEXT",
+          "width": 253,
+          "height": 32,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+          "size": 12
+        },
+        {
+          "id": "10199:22263",
+          "name": "Niveau",
+          "type": "TEXT",
+          "width": 58,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Niveau 3",
+          "size": 12
+        },
+        {
+          "id": "10199:22264",
+          "name": "Bouton — Utiliser ce mouvement",
+          "type": "FRAME",
+          "width": 157,
+          "height": 26,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "10199:22265",
+          "name": "Libellé",
+          "type": "TEXT",
+          "width": 141,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Utiliser ce mouvement",
+          "size": 13
+        },
+        {
+          "id": "10206:22271",
+          "name": "Action — Créer une variante",
+          "type": "TEXT",
+          "width": 115,
+          "height": 16,
+          "bindings": {},
+          "textStyle": "",
+          "text": "Créer une variante",
+          "size": 13
+        },
+        {
+          "id": "10206:22272",
+          "name": "Zone tactile — Créer une variante",
+          "type": "RECTANGLE",
+          "width": 131,
+          "height": 44,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "9925:41240",
+      "name": "icon/modifier",
+      "variants": null,
+      "nodes": [
+        {
+          "id": "9925:41240",
+          "name": "icon/modifier",
+          "type": "COMPONENT",
+          "width": 24,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "9925:41241",
+          "name": "crayon",
+          "type": "VECTOR",
+          "width": 24,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        }
+      ]
+    },
+    {
+      "id": "9932:44044",
+      "name": "icon/niveau",
+      "variants": {
+        "Niveau": {
+          "type": "VARIANT",
+          "defaultValue": "1",
+          "variantOptions": [
+            "1",
+            "2",
+            "3"
+          ]
+        }
+      },
+      "nodes": [
+        {
+          "id": "9932:44044",
+          "name": "icon/niveau",
+          "type": "COMPONENT_SET",
+          "width": 112,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "9925:41235",
+          "name": "Niveau=1",
+          "type": "COMPONENT",
+          "width": 24,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "9932:44034",
+          "name": "Niveau=2",
+          "type": "COMPONENT",
+          "width": 24,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        },
+        {
+          "id": "9932:44039",
+          "name": "Niveau=3",
+          "type": "COMPONENT",
+          "width": 24,
+          "height": 24,
+          "bindings": {},
+          "textStyle": null,
+          "text": null,
+          "size": null
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "id": "VariableID:2290:2",
+      "name": "color/blue/primary-0508E5",
+      "values": {
+        "2289:0": {
+          "r": 0.019607843831181526,
+          "g": 0.0313725508749485,
+          "b": 0.8980392217636108,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:3",
+      "name": "color/blue/selection-5F60EE",
+      "values": {
+        "2289:0": {
+          "r": 0.37254902720451355,
+          "g": 0.3764705955982208,
+          "b": 0.9333333373069763,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:4",
+      "name": "color/blue/selection-surface-E5F0FF",
+      "values": {
+        "2289:0": {
+          "r": 0.8980392217636108,
+          "g": 0.9411764740943909,
+          "b": 1,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:8",
+      "name": "color/neutral/text-141414",
+      "values": {
+        "2289:0": {
+          "r": 0.0784313753247261,
+          "g": 0.0784313753247261,
+          "b": 0.0784313753247261,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:9",
+      "name": "color/neutral/text-secondary-595E66",
+      "values": {
+        "2289:0": {
+          "r": 0.3490196168422699,
+          "g": 0.3686274588108063,
+          "b": 0.4000000059604645,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:51",
+      "name": "color/primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:2"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:57",
+      "name": "color/text-primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:8"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:58",
+      "name": "color/text-secondary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:9"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:87",
+      "name": "size/button-primary-min-height",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:37"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2612:9",
+      "name": "size/context-band-height",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2612:5"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3066:3904",
+      "name": "component/card/structure-slot",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:31"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3066:3905",
+      "name": "component/card/structure-icon",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:28"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3066:3906",
+      "name": "component/card/height",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3066:3896"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3066:3907",
+      "name": "component/composition/card-width",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3066:3899"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:5974",
+      "name": "color/status/catalogue-text-2159ED",
+      "values": {
+        "2289:0": {
+          "r": 0.12999999523162842,
+          "g": 0.3499999940395355,
+          "b": 0.9300000071525574,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:5976",
+      "name": "color/status/planned-text-5F5FC7",
+      "values": {
+        "2289:0": {
+          "r": 0.3716999888420105,
+          "g": 0.3716999888420105,
+          "b": 0.7788000106811523,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:5978",
+      "name": "color/status/positive-text-1F804F",
+      "values": {
+        "2289:0": {
+          "r": 0.11999999731779099,
+          "g": 0.5,
+          "b": 0.3100000023841858,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:5980",
+      "name": "color/status/partial-text-B1540F",
+      "values": {
+        "2289:0": {
+          "r": 0.6948000192642212,
+          "g": 0.3280999958515167,
+          "b": 0.05790000036358833,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:5982",
+      "name": "color/status/interrupted-text-C2293B",
+      "values": {
+        "2289:0": {
+          "r": 0.7599999904632568,
+          "g": 0.1599999964237213,
+          "b": 0.23000000417232513,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10762",
+      "name": "color/status/catalogue-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3970:5974"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10764",
+      "name": "color/status/planned-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3970:5976"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10766",
+      "name": "color/status/positive-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3970:5978"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10768",
+      "name": "color/status/partial-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3970:5980"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10770",
+      "name": "color/status/interrupted-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:3970:5982"
+        }
+      }
+    },
+    {
+      "id": "VariableID:3970:10772",
+      "name": "color/status/archived-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:9"
+        }
+      }
+    },
+    {
+      "id": "VariableID:4093:6160",
+      "name": "color/neutral/card-border-D9D9D9",
+      "values": {
+        "2289:0": {
+          "r": 0.8509804010391235,
+          "g": 0.8509804010391235,
+          "b": 0.8509804010391235,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:4093:6162",
+      "name": "color/card-border",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:4093:6160"
+        }
+      }
+    },
+    {
+      "id": "VariableID:4151:6160",
+      "name": "color/blue/category-action-border-8283F2",
+      "values": {
+        "2289:0": {
+          "r": 0.5098039507865906,
+          "g": 0.5137255191802979,
+          "b": 0.9490196108818054,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:4151:6162",
+      "name": "color/neutral/category-action-secondary-text-383840",
+      "values": {
+        "2289:0": {
+          "r": 0.21960784494876862,
+          "g": 0.21960784494876862,
+          "b": 0.250980406999588,
+          "a": 1
+        }
+      }
+    },
+    {
+      "id": "VariableID:4151:6165",
+      "name": "color/category-action/cancel-text",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:4151:6162"
+        }
+      }
+    },
+    {
+      "id": "VariableID:4151:6166",
+      "name": "color/on-primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:5"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10579",
+      "name": "color/cards/border",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4453"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10582",
+      "name": "color/cards/archive-border",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10581"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10584",
+      "name": "color/cards/value-icon",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4347"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10585",
+      "name": "color/cards/nature-icon",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4315"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10587",
+      "name": "color/cards/media-placeholder",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10586"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10589",
+      "name": "component/cards/radius",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:23"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10591",
+      "name": "component/cards/border-width",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10590"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10593",
+      "name": "component/cards/badge-radius",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10592"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10594",
+      "name": "component/context/visual-size",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:35"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10595",
+      "name": "component/context/icon-size",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:28"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10596",
+      "name": "component/context/touch-target",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:36"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10597",
+      "name": "component/context/gap",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:25"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10598",
+      "name": "component/context/composition-gap",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:24"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10599",
+      "name": "component/cards/selection-text-gap",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:28"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6364:10601",
+      "name": "component/cards/media-size",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10600"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6753:11525",
+      "name": "color/cards/calendar-day-border",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4537"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6935:11528",
+      "name": "color/primary-soft",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:4151:6160"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6935:11529",
+      "name": "color/text-tertiary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4363"
+        }
+      }
+    },
+    {
+      "id": "VariableID:6935:11530",
+      "name": "color/text-label",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:5541:4441"
+        }
+      }
+    }
+  ]
+}

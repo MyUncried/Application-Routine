@@ -1,5 +1,7 @@
 # Claude Code — Implémenter les niveaux et la recherche v5
 
+> Remplacé pour les travaux courants par [le prompt v6](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V6.md) et le relevé Figma du 25/10, qui recense les réserves fonctionnelles.
+
 Tu interviens dans le dépôt MyUncried/Application-Routine pour implémenter la spécification définitive Niveaux et recherche v5, validée par Hermann.
 
 ## Sources à lire

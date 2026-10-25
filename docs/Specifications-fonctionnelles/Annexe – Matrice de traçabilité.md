@@ -845,3 +845,17 @@ CERTAIN : le contrat énonce, pour cet écran, la même condition et le même r�
 | D-440 | MFN-12, 13 | 05, 09, 11, 12 | Initialisation ponctuelle et conservation au redémarrage |
 
 Recettes normatives : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux), section Scénarios d’acceptation MFN. Aucun résultat de test applicatif n’est déclaré par cette propagation.
+
+
+## Niveaux / recherche — traçabilité du 25/10/2026
+
+| Règles | Contrats | Preuves / recette |
+|---|---|---|
+| R02–R07, MFN-06 | CE-T03-04 | 9882:19049, 10131:21995 ; corpus automatisé R07 ; réserves C01/C02/C07 |
+| MFN-08 | CE-T03-04 | 10253:20414, 9952:44349, 10257:20651 ; C03/C09, Confirmer absent avant sélection |
+| N01–N07 | CE-UI-NIV-01 | 10027:40760, 10152:20245, 10152:20369, 10085:20050 ; première progression, singleton, ordre |
+| v6 §7/8, MFN-09 | CE-T03-07, CE-T03-08, CE-UI-10 | 10070:20073 ; quatre cas de phases, sélection conservée, annulation ; C04 |
+| v6 §10, MFN-11 | CE-T03-14/15, CE-UI-08 | 1992:8996 ; instantané inchangé, rang actuel résolu sans stockage ; C05 |
+| Conventions cartes du 25/10 | CE-T03-01/02/07/08, CE-UI-02/03/04 | Carte Mouvement 10124:21979, Résultat 10199:22268 ; tokens au chapitre 12 |
+
+Les identifiants C01–C09 sont des contradictions du [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md), pas de nouvelles décisions produit. CE-UI-NIV-01 est le contrat ajouté ; aucun contrat Catalogue mouvements définitif n’est créé tant que C07 reste ouvert.

@@ -1,0 +1,1142 @@
+[
+  {
+    "id": "1992:375",
+    "name": "P-Profil — Vue d'ensemble - Vibration désactivée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:469",
+    "name": "P-Splash — Kodjo",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:474",
+    "name": "Profil — Stepper Pause changement de côté",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:579",
+    "name": "Profil — Stepper Récupération après activité",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:684",
+    "name": "Profil — Vue d'ensemble - Vibration activée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:778",
+    "name": "P-Profil — Modifier le profil — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5101",
+    "name": "P-Calendrier — Semaine",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5237",
+    "name": "P-Calendrier — Mois",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5365",
+    "name": "P-Modal — Supprimer une planification unique — Calendrier",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5510",
+    "name": "Calendrier — Jour — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5602",
+    "name": "P-Calendrier — Jour — Appui long — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5697",
+    "name": "Calendrier — Jour — MAJ — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5794",
+    "name": "Calendrier — Jour — Créneau à planifier — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:5962",
+    "name": "P-Calendrier — Semaine — Actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:6102",
+    "name": "P-Modal — Supprimer des occurrences — Calendrier",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:6249",
+    "name": "P-Modal — Choisir une séance — Planification — Liste longue",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:6389",
+    "name": "P-Calendrier — Semaine — Séance déployée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:6622",
+    "name": "Planifier une séance — Sélecteur de date ouvert",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:6838",
+    "name": "P-Planifier une séance — Création",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:7187",
+    "name": "Planifier une séance — Rappel personnalisé ouvert",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:7369",
+    "name": "Planifier une séance — Rappel personnalisé sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:7537",
+    "name": "Planifier une séance — Stepper du nombre de semaines",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:7716",
+    "name": "Planifier une séance — Sans répétition",
+    "type": "FRAME"
+  },
+  {
+    "id": "7599:14197",
+    "name": "Modal — Planifier une séance — Sélectionner une séance",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8132",
+    "name": "P-Exécution d'une séance — Démarrée",
+    "type": "FRAME"
+  },
+  {
+    "id": "4968:8188",
+    "name": "P-Exécution d'un exercice — Démarrée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8224",
+    "name": "Modal — Réinitialiser l’activité",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8326",
+    "name": "Modal — Passer à l’activité suivante",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8428",
+    "name": "Modal — Séance en pause",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8530",
+    "name": "Exécution d'une séance — Démarrée — Bips et vocal désactivés",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8626",
+    "name": "Exécution d'une séance — Initial",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8718",
+    "name": "P-Synthèse de séance — Terminée —  Évaluation initiale",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8780",
+    "name": "Synthèse de séance — Terminée — Ressenti sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "4968:8055",
+    "name": "P-Synthèse d'exécution — Exercice Terminé —  Évaluation initiale",
+    "type": "FRAME"
+  },
+  {
+    "id": "4968:8105",
+    "name": "Synthèse d'exécution — Exercice Terminé —  Ressenti sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "4760:6448",
+    "name": "Synthèse de séance — Partielle — Évaluation initiale",
+    "type": "FRAME"
+  },
+  {
+    "id": "4760:6500",
+    "name": "Synthèse de séance — Partielle — Ressenti sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8843",
+    "name": "P-Suivi — Séances — Liste condensée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:8996",
+    "name": "Suivi — Séances — Vue déployée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:9910",
+    "name": "P-Catalogue des séances — Liste par défaut",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:10014",
+    "name": "P-Catalogue des séances — Séance déployée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:10518",
+    "name": "Catalogue des séances — Liste condensée — actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:10628",
+    "name": "Catalogue des séances — Séance déployée — actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:10848",
+    "name": "Catalogue des séances — Archivées — Séance restaurée",
+    "type": "FRAME"
+  },
+  {
+    "id": "1992:10937",
+    "name": "Catalogue des séances — Liste sans Renforcement du genou",
+    "type": "FRAME"
+  },
+  {
+    "id": "2059:267",
+    "name": "Calendrier — Jour suivant — Glissement gauche — MVP",
+    "type": "FRAME"
+  },
+  {
+    "id": "2074:86",
+    "name": "Calendrier — Semaine — Après suppression d’une planification",
+    "type": "FRAME"
+  },
+  {
+    "id": "2094:86",
+    "name": "Calendrier — Semaine — Étirements — Actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "2117:86",
+    "name": "Catalogue des séances — État vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "2117:190",
+    "name": "Suivi — Séances — État vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "2128:86",
+    "name": "Calendrier — Jour — État vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "2139:86",
+    "name": "Profil — Vue d'ensemble — Parcours vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "2234:88",
+    "name": "Catalogue des séances — Archivées — actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "2234:189",
+    "name": "Modal — Confirmer la suppression d’une séance archivée",
+    "type": "FRAME"
+  },
+  {
+    "id": "2252:86",
+    "name": "Calendrier — Semaine — Mardi sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "5271:5455",
+    "name": "Modification d'une séance",
+    "type": "FRAME"
+  },
+  {
+    "id": "3786:5093",
+    "name": "P-Catalogue des Exercices — Liste",
+    "type": "FRAME"
+  },
+  {
+    "id": "4168:11149",
+    "name": "P-Catalogue des séances — Filtrer — Panneau ouvert",
+    "type": "FRAME"
+  },
+  {
+    "id": "4168:11262",
+    "name": "P-Catalogue des Exercices — Filtrer — Panneau ouvert",
+    "type": "FRAME"
+  },
+  {
+    "id": "4593:6285",
+    "name": "P-Modal — Confirmer l’archivage d’une séance planifiée",
+    "type": "FRAME"
+  },
+  {
+    "id": "4734:6342",
+    "name": "Modifier un exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "4521:6220",
+    "name": "Catalogue des exercices — État vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "4544:6344",
+    "name": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+    "type": "FRAME"
+  },
+  {
+    "id": "4544:6651",
+    "name": "Catalogue des Exercices — Liste — Filtre actif étendu",
+    "type": "FRAME"
+  },
+  {
+    "id": "4549:6382",
+    "name": "Catalogue des séances — Liste — Filtre inactif étendu",
+    "type": "FRAME"
+  },
+  {
+    "id": "4549:6742",
+    "name": "Catalogue des séances — Filtre actif Archivé",
+    "type": "FRAME"
+  },
+  {
+    "id": "4592:6217",
+    "name": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+    "type": "FRAME"
+  },
+  {
+    "id": "4738:6209",
+    "name": "P-Catalogue des Exercices — Liste — actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "4738:6355",
+    "name": "S-Catalogue des Exercices — Liste — Première carte déployée — Média",
+    "type": "FRAME"
+  },
+  {
+    "id": "4997:6113",
+    "name": "P-Exécution d'un exercice — Initial — Bascule basse (média) avec Cercle",
+    "type": "FRAME"
+  },
+  {
+    "id": "5588:4363",
+    "name": "P-Exécution d'un exercice — Initial — Bascule haute avec média",
+    "type": "FRAME"
+  },
+  {
+    "id": "5009:6069",
+    "name": "P-Exécution d'un exercice — Média plein écran",
+    "type": "FRAME"
+  },
+  {
+    "id": "5021:5994",
+    "name": "Exécution d'un exercice — Initial - Cercle avec Texte",
+    "type": "FRAME"
+  },
+  {
+    "id": "5581:4257",
+    "name": "P-Exécution d'un exercice — Démarré —  Bascule haute avec texte",
+    "type": "FRAME"
+  },
+  {
+    "id": "5451:4272",
+    "name": "P-Modal — Choisir un exercice — Planification — Liste longue",
+    "type": "FRAME"
+  },
+  {
+    "id": "6426:10149",
+    "name": "Stepper — Séries (interactif)",
+    "type": "COMPONENT_SET"
+  },
+  {
+    "id": "6446:10103",
+    "name": "Cadre bas — retournement",
+    "type": "COMPONENT_SET"
+  },
+  {
+    "id": "6451:10942",
+    "name": "Zone d’exécution — retournements",
+    "type": "COMPONENT_SET"
+  },
+  {
+    "id": "7594:34531",
+    "name": "P-Planifier un parcours",
+    "type": "FRAME"
+  },
+  {
+    "id": "7594:34653",
+    "name": "P-Modal — Planifier un parcours — Fréquence",
+    "type": "FRAME"
+  },
+  {
+    "id": "7594:34809",
+    "name": "Modal — Planifier un parcours — Sélectionner plusieurs séances",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28172",
+    "name": "Composition séance — Initial",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28238",
+    "name": "Composition séance — Nom saisi",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28304",
+    "name": "Composition séance — Compte à rebours",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28377",
+    "name": "Composition séance — Abandon (confirmation)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28445",
+    "name": "Composition séance — Sélection exercices",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28605",
+    "name": "Composition séance — Standard",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28733",
+    "name": "Composition séance — Récupération (modale)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28863",
+    "name": "P-Composition séance — Actions glissées",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:28998",
+    "name": "Composition séance — Fin de séance",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:29133",
+    "name": "Composition séance — Retirer une récupération",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:29270",
+    "name": "P-Composition séance — Placement d’une pause",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:29428",
+    "name": "P-Composition séance — Point d’arrêt",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:33546",
+    "name": "P-Composition séance — Déplacement",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:33689",
+    "name": "Composition séance — Retirer un point d’arrêt",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:33836",
+    "name": "P-Composition séance — Étiquettes",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34006",
+    "name": "Composition séance — Étiquettes — Appui long — Confirmation suppression",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34107",
+    "name": "P-Composition séance — Nouvelle étiquette",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34377",
+    "name": "Composition séance — Étiquette sélectionnée",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34520",
+    "name": "Composition séance — Standard — Séries variables",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34662",
+    "name": "Composition séance — Circuit — Nature (popover)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34813",
+    "name": "Composition séance — Circuit — Nature (confirmation générique)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:34965",
+    "name": "P-Composition séance — Circuit — Volumes (de séries)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:35135",
+    "name": "Composition séance — Circuit — Volumes (de tours)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:35698",
+    "name": "P-Ajouter un exercice — Initial",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:35740",
+    "name": "Ajouter un exercice — Nom Description Media",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:35810",
+    "name": "P-Ajouter un exercice — Catégories",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:35932",
+    "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36056",
+    "name": "P-Ajouter un exercice — Nouvelle catégorie",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36278",
+    "name": "Ajouter un exercice — Catégorie renseignée",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36348",
+    "name": "P-Ajouter un exercice — Zones corporelles",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36441",
+    "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36536",
+    "name": "P-Ajouter un exercice — Nouvelle zone corporelle",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36781",
+    "name": "Création activité — Abandon (confirmation)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36853",
+    "name": "P-Création activité — Paramètres — Champ vide",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:36923",
+    "name": "Création activité — Paramètres (modale) — Champs vides",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:37022",
+    "name": "Création activité — Paramètres — Résumé affiché",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:37092",
+    "name": "Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:37760",
+    "name": "Création activité — Paramètres (modale) — Série en durée",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:37862",
+    "name": "P-Création activité — Paramètres (modale) — Durée d’une série (roulette)",
+    "type": "FRAME"
+  },
+  {
+    "id": "9232:44646",
+    "name": "P-Création activité — Paramètres (modale) — Durée d’une phase (roulette)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:37972",
+    "name": "Création activité — Paramètres (modale) — Changement de côté Replié",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38084",
+    "name": "Création activité — Paramètres (modale) — Durée totale (roulette)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38193",
+    "name": "P-Création activité — Paramètres (modale) — Changement de côté déployé",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38409",
+    "name": "Création activité — Paramètres (modale) — Durée totale ajustée (message)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38513",
+    "name": "Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38632",
+    "name": "Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38741",
+    "name": "Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:38848",
+    "name": "Création activité — Paramètres (modale) — Séries variables (tableau replié)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:39072",
+    "name": "Création activité — Paramètres (modale) — Une seule série",
+    "type": "FRAME"
+  },
+  {
+    "id": "8328:39279",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables (déplacement)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8470:13303",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables, cas mixte",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:29271",
+    "name": "P-Composition séance — Modèles",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:29980",
+    "name": "P-Composition séance — Modèles — Tabata (quels exercices)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:29503",
+    "name": "P-Composition séance — Modèles — Tabata (sélection des exercices)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30306",
+    "name": "P-Composition séance — Modèles — Tabata (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30749",
+    "name": "Composition séance — Tabata (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:30059",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30040",
+    "name": "Composition séance — Modèles — EMOM (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30392",
+    "name": "Composition séance — Modèles — EMOM (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30880",
+    "name": "Composition séance — EMOM (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:30515",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30143",
+    "name": "Composition séance — Modèles — AMRAP (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30521",
+    "name": "Composition séance — Modèles — AMRAP (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:31043",
+    "name": "Composition séance — AMRAP (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:30873",
+    "name": "Modification activité — Paramètres (modale) — Exercice AMRAP",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30198",
+    "name": "Composition séance — Modèles — Death by (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30602",
+    "name": "Composition séance — Modèles — Death by (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:31157",
+    "name": "Composition séance — Death by (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:31210",
+    "name": "Modification activité — Paramètres (modale) — Exercice Death by",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30255",
+    "name": "Composition séance — Modèles — For time (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:30672",
+    "name": "Composition séance — Modèles — For time (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8624:31263",
+    "name": "Composition séance — For time (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8598:31560",
+    "name": "Modification activité — Paramètres (modale) — Exercice For time",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:33799",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:33857",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:33941",
+    "name": "Composition séance — Intervalles 30/30 (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34070",
+    "name": "Modification activité — Paramètres (modale) — Exercice Intervalles 30/30",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34196",
+    "name": "Composition séance — Modèles — Renforcement (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34263",
+    "name": "Composition séance — Modèles — Renforcement (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34356",
+    "name": "Composition séance — Renforcement (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34494",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34548",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34628",
+    "name": "Composition séance — Gainage · Mobilité (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34753",
+    "name": "Composition séance — Modèles — Superset (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34807",
+    "name": "Composition séance — Modèles — Superset (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:34887",
+    "name": "Composition séance — Superset (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35005",
+    "name": "Composition séance — Modèles — Progression (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35062",
+    "name": "Composition séance — Modèles — Progression (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35145",
+    "name": "Composition séance — Progression (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35273",
+    "name": "Composition séance — Modèles — À l’échec (paramètres)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35331",
+    "name": "Composition séance — Modèles — À l’échec (récapitulatif)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8656:35415",
+    "name": "Composition séance — À l’échec (préremplie)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8747:14320",
+    "name": "Composition séance — Tabata (préremplie) — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8747:14451",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8795:14449",
+    "name": "Composition séance — EMOM (préremplie) — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8795:14588",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8795:14681",
+    "name": "Composition séance — Progression (préremplie) — Par alternance",
+    "type": "FRAME"
+  },
+  {
+    "id": "8921:35275",
+    "name": "P-Avant la séance — Douleur",
+    "type": "FRAME"
+  },
+  {
+    "id": "8921:35340",
+    "name": "P-Synthèse de séance — Effort et douleur — Douleur renseignée",
+    "type": "FRAME"
+  },
+  {
+    "id": "8925:15593",
+    "name": "S-Synthèse de séance — Effort et douleur — Douleur repliée",
+    "type": "FRAME"
+  },
+  {
+    "id": "8928:15098",
+    "name": "P-Modale — Répétitions partielles",
+    "type": "FRAME"
+  },
+  {
+    "id": "8937:35362",
+    "name": "P-Modale — Résultat de série",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15172",
+    "name": "Création activité — Paramètres (modale) — Phases verrouillées (séries variables)",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15383",
+    "name": "P-Exécution d'une séance — Tabata — Par alternance",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15448",
+    "name": "Exécution d'une séance — Tabata — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15513",
+    "name": "Exécution d'une séance — Intervalles 30/30 — Par alternance",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15578",
+    "name": "Exécution d'une séance — Intervalles 30/30 — Par exercice",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15643",
+    "name": "Exécution d'une séance — EMOM",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15709",
+    "name": "P-Exécution d'une séance — EMOM — repos déclaré",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15775",
+    "name": "Exécution d'une séance — AMRAP",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15849",
+    "name": "Exécution d'une séance — For time",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15917",
+    "name": "Exécution d'une séance — Death by",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:15983",
+    "name": "Exécution d'une séance — Progression — Série en cours",
+    "type": "FRAME"
+  },
+  {
+    "id": "8982:16049",
+    "name": "Exécution d'une séance — Progression — Récupération",
+    "type": "FRAME"
+  },
+  {
+    "id": "9207:18817",
+    "name": "P-Création exercice — Paramètres — Tableau de 3 phases",
+    "type": "FRAME"
+  },
+  {
+    "id": "9289:17849",
+    "name": "Création activité — Paramètres (modale) — Charge",
+    "type": "FRAME"
+  },
+  {
+    "id": "9290:17953",
+    "name": "Création activité — Paramètres (modale) — Séries variables avec charge",
+    "type": "FRAME"
+  },
+  {
+    "id": "9292:18077",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique",
+    "type": "FRAME"
+  },
+  {
+    "id": "9307:18208",
+    "name": "P-Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée",
+    "type": "FRAME"
+  },
+  {
+    "id": "9436:18101",
+    "name": "P-Création exercice — Paramètres — Séries unifiées — État initial",
+    "type": "FRAME"
+  },
+  {
+    "id": "9436:18305",
+    "name": "P-Création exercice — Paramètres — Séries unifiées — Stepper ouvert",
+    "type": "FRAME"
+  },
+  {
+    "id": "9439:18307",
+    "name": "P-Création exercice — Paramètres — Séries unifiées — Stepper fermé",
+    "type": "FRAME"
+  },
+  {
+    "id": "9445:18410",
+    "name": "P-Création exercice — Paramètres — Séries unifiées — 3 séries variables",
+    "type": "FRAME"
+  },
+  {
+    "id": "9446:18513",
+    "name": "P-Création exercice — Paramètres — Côtés unifiés — Choix déployé",
+    "type": "FRAME"
+  },
+  {
+    "id": "9446:18738",
+    "name": "P-Création exercice — Paramètres — Côtés unifiés — Choix sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "9448:18721",
+    "name": "P-Création exercice — Paramètres — Côtés unifiés — Résultat déployé",
+    "type": "FRAME"
+  },
+  {
+    "id": "9779:19874",
+    "name": "Composition séance — Standard — Illustration (photos)",
+    "type": "FRAME"
+  },
+  {
+    "id": "9882:19049",
+    "name": "Création exercice — Mouvement — Mouvements proches",
+    "type": "FRAME"
+  },
+  {
+    "id": "9891:39982",
+    "name": "Création exercice — Mouvement — Repris (lecture seule)",
+    "type": "FRAME"
+  },
+  {
+    "id": "9952:44349",
+    "name": "Création exercice — Mouvement — Sauvegarde — Nom modifié",
+    "type": "FRAME"
+  },
+  {
+    "id": "9959:19518",
+    "name": "Création exercice — Mouvement — Contenu éditable",
+    "type": "FRAME"
+  },
+  {
+    "id": "9959:19623",
+    "name": "Catalogue des mouvements — Liste complète",
+    "type": "FRAME"
+  },
+  {
+    "id": "9977:19613",
+    "name": "P-Composition séance — Modèles — Deux colonnes",
+    "type": "FRAME"
+  },
+  {
+    "id": "10027:40760",
+    "name": "Création activité — Paramètres — Résumé affiché — Niveau (pastilles) — Popover",
+    "type": "FRAME"
+  },
+  {
+    "id": "10027:40948",
+    "name": "Niveau — icônes, trois états",
+    "type": "FRAME"
+  },
+  {
+    "id": "10070:19964",
+    "name": "Catalogue des mouvements — Aucun résultat",
+    "type": "FRAME"
+  },
+  {
+    "id": "10070:20073",
+    "name": "Composition séance — Changer de niveau — Durées à compléter",
+    "type": "FRAME"
+  },
+  {
+    "id": "10085:20050",
+    "name": "Groupe de niveaux — Ordre",
+    "type": "FRAME"
+  },
+  {
+    "id": "10131:21995",
+    "name": "Création exercice — Mouvement — Options d’un résultat",
+    "type": "FRAME"
+  },
+  {
+    "id": "10140:20180",
+    "name": "Création exercice — Mouvement — Variante, plus ou moins difficile",
+    "type": "FRAME"
+  },
+  {
+    "id": "10152:20245",
+    "name": "Création activité — Niveau — Changer de niveau (déployé)",
+    "type": "FRAME"
+  },
+  {
+    "id": "10152:20369",
+    "name": "Création activité — Niveau — Ajouter un niveau (déployé)",
+    "type": "FRAME"
+  },
+  {
+    "id": "10175:20349",
+    "name": "Création exercice — Mouvement — Nom déjà utilisé",
+    "type": "FRAME"
+  },
+  {
+    "id": "10187:20340",
+    "name": "Création exercice — Mouvement — Variante, formulaire vierge",
+    "type": "FRAME"
+  },
+  {
+    "id": "10253:20414",
+    "name": "Création exercice — Mouvement — Sauvegarde — Nom inchangé",
+    "type": "FRAME"
+  },
+  {
+    "id": "10257:20651",
+    "name": "Création exercice — Mouvement — Sauvegarde — Choix sélectionné",
+    "type": "FRAME"
+  },
+  {
+    "id": "10266:20575",
+    "name": "Catalogue — Vue Mouvements (piles)",
+    "type": "FRAME"
+  }
+]
