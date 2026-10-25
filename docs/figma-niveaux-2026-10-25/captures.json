@@ -1,0 +1,1327 @@
+[
+  {
+    "node": "9882:19049",
+    "name": "Création exercice — Mouvement — Mouvements proches",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9882-19049.png",
+    "sha256": "5557b836fcc6610117a995320f6c5d23994b1dc1e6e07c8d6d7dc0612f26fda6",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9891:39982",
+    "name": "Création exercice — Mouvement — Repris (lecture seule)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9891-39982.png",
+    "sha256": "b020c4bb9318def037ec615d926dd719962a070ff58b6621675e87213f5e77fa",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9952:44349",
+    "name": "Création exercice — Mouvement — Sauvegarde — Nom modifié",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9952-44349.png",
+    "sha256": "ce87f9b500b3505bd266619d41880c545114c9c7c8977d3d4869782ef3d4f154",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9959:19518",
+    "name": "Création exercice — Mouvement — Contenu éditable",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9959-19518.png",
+    "sha256": "62c7cf67c26cd9cf07d60d5c02e4b5674ef65c8f7d24fd56b4bffce8d47df20b",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9959:19623",
+    "name": "Catalogue des mouvements — Liste complète",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9959-19623.png",
+    "sha256": "c5757cd07ddfb3dae2eacf44727296f1fdb49990b3df290519dc2a16368a6b91",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10027:40760",
+    "name": "Création activité — Paramètres — Résumé affiché — Niveau (pastilles) — Popover",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10027-40760.png",
+    "sha256": "354ee27ee1b733f8008c85649d214b4f152e4b2a43e317fa512a1828439aec9f",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10027:40948",
+    "name": "Niveau — icônes, trois états",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10027-40948.png",
+    "sha256": "422c6586b73a8c22c6929014c84e141b13eb2e675e5cc7acedc1b600d12fa5b8",
+    "pixels": [
+      402,
+      400
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10070:19964",
+    "name": "Catalogue des mouvements — Aucun résultat",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10070-19964.png",
+    "sha256": "90a8a78f72376a40db1dbad4f1e028d5324442fa1acce2f542c8ee1521bd62a0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10070:20073",
+    "name": "Composition séance — Changer de niveau — Durées à compléter",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10070-20073.png",
+    "sha256": "0e254ec080a64e88c65d3ed228b6b5a8522fb461dbfaba5696c4d1a247ed9437",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10085:20050",
+    "name": "Groupe de niveaux — Ordre",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10085-20050.png",
+    "sha256": "caa8b1658d523d2441d327bc7a60b8df0f9dd17998483f67de22c00093dd4e41",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10131:21995",
+    "name": "Création exercice — Mouvement — Options d’un résultat",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10131-21995.png",
+    "sha256": "70d2771fc691152fff7107b7cab75d5870f3f103801e8359b0bdde73c54e8e3c",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10140:20180",
+    "name": "Création exercice — Mouvement — Variante, plus ou moins difficile",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10140-20180.png",
+    "sha256": "4f572d69b603a85b0f1e3981921245cfb19f5bad78d63c758d01dda8121986fb",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10152:20245",
+    "name": "Création activité — Niveau — Changer de niveau (déployé)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10152-20245.png",
+    "sha256": "241f56f90c400649ff23bc69ded60be137e7c868c97f4ea6bca1b5ac933f0f6b",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10152:20369",
+    "name": "Création activité — Niveau — Ajouter un niveau (déployé)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10152-20369.png",
+    "sha256": "4559889200679cb38db7b8dd569a69ea545e221cc77416a39b68df61bb88caba",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10175:20349",
+    "name": "Création exercice — Mouvement — Nom déjà utilisé",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10175-20349.png",
+    "sha256": "6842a3a37b03bb2ed19e1bd14b545454e701701e5188607c1145de13b327c0e4",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10187:20340",
+    "name": "Création exercice — Mouvement — Variante, formulaire vierge",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10187-20340.png",
+    "sha256": "dc07a33cb9a8f6dc1f1b4eb68899a6444ba3a7efc9327ee1e33792fa61714c2d",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10253:20414",
+    "name": "Création exercice — Mouvement — Sauvegarde — Nom inchangé",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10253-20414.png",
+    "sha256": "722c11c42a184a251bc8377776789cd1c94e9add8e53109036c3c2dc952b5fc3",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10257:20651",
+    "name": "Création exercice — Mouvement — Sauvegarde — Choix sélectionné",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10257-20651.png",
+    "sha256": "d499fb6f62ecbbd041d8296997a9bc2d7a2593e6a4d416d5ef0c8e3bc45b1101",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10266:20575",
+    "name": "Catalogue — Vue Mouvements (piles)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10266-20575.png",
+    "sha256": "48247b534298f05365a04485711a282c5aecdf68242be9d8a3495b072c6c56bb",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10124:21979",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10124-21979.png",
+    "sha256": "9974c66fbcb5ff87837a92caa718d27eea07eff3aa43a401bfe5518ac6b9a952",
+    "pixels": [
+      322,
+      331
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "10199:22268",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/10199-22268.png",
+    "sha256": "6c695222f608afa37999d25f68558afa7e0b23c7e1b1418312af1ec9cfe2b9f3",
+    "pixels": [
+      358,
+      127
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9925:41240",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9925-41240.png",
+    "sha256": "43d4c42b4d1a0adcc94224495df15138c64e0c240181e2dd924a1c83cdfc8ed1",
+    "pixels": [
+      26,
+      26
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9932:44044",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9932-44044.png",
+    "sha256": "932aac472f701ea22faef5d3f8d7f484ff0d4640cce0d5c43a4df9b7f9f8b66a",
+    "pixels": [
+      112,
+      24
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9029:18368",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9029-18368.png",
+    "sha256": "68f118f75f3e64d6c8a9ce78d14b1c0aae34b3716b4954515c84c12887bcaf8d",
+    "pixels": [
+      402,
+      115
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9925:41506",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9925-41506.png",
+    "sha256": "9c6e6ed1ea15d9e9c19dac9cd053488948134b073ba8e709398bf88fd368bbe1",
+    "pixels": [
+      97,
+      26
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9925:41515",
+    "name": "Composant",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9925-41515.png",
+    "sha256": "ff290111e049e096964450569f5a360651637fe8e5d1f3c3b4d4e8df2454879f",
+    "pixels": [
+      111,
+      20
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:35698",
+    "name": "P-Ajouter un exercice — Initial",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-35698.png",
+    "sha256": "93a9faa850f45033ffdec7cb51426293bbbafce01ccc8ebbe6ca8b8cd5bc8e41",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:35740",
+    "name": "Ajouter un exercice — Nom Description Media",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-35740.png",
+    "sha256": "feafe4aa371418c0e387437b2c1c1d069c0c070d8f0c6d2feeffe2c29ff96c6c",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:37022",
+    "name": "Création activité — Paramètres — Résumé affiché",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-37022.png",
+    "sha256": "f2f591abbac1cc6b0546475af760a696f6d51454ce20e8f46d3a6461cf876043",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4734:6342",
+    "name": "Modifier un exercice",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4734-6342.png",
+    "sha256": "0363c1a5c3258010d836b6fbc7bb3af1e4ca5dd0d9c1fc0011e4ba49a1b39ac9",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "3786:5093",
+    "name": "P-Catalogue des Exercices — Liste",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/3786-5093.png",
+    "sha256": "cbcdf3321d0d568931c6c8872c38436649c7d7f8022de28104e874c2c4a40e27",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28445",
+    "name": "Composition séance — Sélection exercices",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28445.png",
+    "sha256": "6f0c8e0b1c027218f74da225a1deede8cc5f922bffbb74f8b3f5e27d6027fe71",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28605",
+    "name": "Composition séance — Standard",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28605.png",
+    "sha256": "8dec9ac2ac3707c37c23bf30d16d8d9a633b3b786b3a96ea8f305f1d26f1c53a",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "1992:5101",
+    "name": "P-Calendrier — Semaine",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/1992-5101.png",
+    "sha256": "301fc030daa1fe6af9ee88b17126ad3eee904ac5c0ee0b8b54cca968cd715c9f",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "1992:9910",
+    "name": "P-Catalogue des séances — Liste par défaut",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/1992-9910.png",
+    "sha256": "6fd6e141b71cbdcc4aea98a562f2d43e027d1f488d95f56a602f1c01c851012d",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "1992:6838",
+    "name": "P-Planifier une séance — Création",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/1992-6838.png",
+    "sha256": "0c42c274bb51516a333f07e28bad2d4933d45fa873d73fb55eb6340a97eb159c",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4168:11149",
+    "name": "P-Catalogue des séances — Filtrer — Panneau ouvert",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4168-11149.png",
+    "sha256": "4c13810bdbd206dbd8cbd15c01ddf7dc7d029dbb3a8b6ce3f99695794899ec36",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4168:11262",
+    "name": "P-Catalogue des Exercices — Filtrer — Panneau ouvert",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4168-11262.png",
+    "sha256": "ece59a4bc4078f281319408101cd521b2693642db84abb90989c13d0eee6050b",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4521:6220",
+    "name": "Catalogue des exercices — État vide",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4521-6220.png",
+    "sha256": "9962495e15a9dd3728e7c6bdd004f0ca9790f818b94a8ef25949e3ae074c7c79",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4544:6344",
+    "name": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4544-6344.png",
+    "sha256": "5c5bf88811cab58c3d5cb8919b89cf1ebb7d5cc2a804589e73b28e316cd34c7e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4544:6651",
+    "name": "Catalogue des Exercices — Liste — Filtre actif étendu",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4544-6651.png",
+    "sha256": "d785ccde68eac30b93ad737b1b80a58e941e5ae39bed52761b58b06332101c1b",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4549:6382",
+    "name": "Catalogue des séances — Liste — Filtre inactif étendu",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4549-6382.png",
+    "sha256": "627876d24ae629e062a4b2b5ab6685c8f1267a6107769a85aabee0cf576f5694",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4592:6217",
+    "name": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4592-6217.png",
+    "sha256": "0a8703b7270cb741760299275afd09a0aa60df986c20053a03f3013b704565e0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4738:6209",
+    "name": "P-Catalogue des Exercices — Liste — actions glissées",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4738-6209.png",
+    "sha256": "4e71595fb1ae1b52a443def1b37b535eaf006b7ae7aad5011dae28b286b3255f",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "4738:6355",
+    "name": "S-Catalogue des Exercices — Liste — Première carte déployée — Média",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/4738-6355.png",
+    "sha256": "db401c25a08df0ba3b59b2b8f74d759770fa11365fb63e135d07b7074bce625c",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28172",
+    "name": "Composition séance — Initial",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28172.png",
+    "sha256": "1fff5d156650e0d734e27644dce135c0b5bb296b5f957cb6abab5de67270e716",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28238",
+    "name": "Composition séance — Nom saisi",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28238.png",
+    "sha256": "536a0dfa2954bd7d1d869e5684c7db33a9a12a96e0d1a12ba6c92fc93f3d92d0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28304",
+    "name": "Composition séance — Compte à rebours",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28304.png",
+    "sha256": "536a0dfa2954bd7d1d869e5684c7db33a9a12a96e0d1a12ba6c92fc93f3d92d0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28377",
+    "name": "Composition séance — Abandon (confirmation)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28377.png",
+    "sha256": "69fd2554e0f8e85aa0c6f61e1fe9fbee35699371c6e031a133488e7ec08f774e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28733",
+    "name": "Composition séance — Récupération (modale)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28733.png",
+    "sha256": "36e68f9253d251a4e629045b6d20ed1875f45e3236befc24d94a063beb546c25",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28863",
+    "name": "P-Composition séance — Actions glissées",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28863.png",
+    "sha256": "8fbd5bc3e705992fce4287fc7add5f07f673abed0ddc6630815156aecd14bca7",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:28998",
+    "name": "Composition séance — Fin de séance",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-28998.png",
+    "sha256": "72aa04435632bda0c881625c5a178270934f68b08972ac9dd848ab9118c85b20",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:29133",
+    "name": "Composition séance — Retirer une récupération",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-29133.png",
+    "sha256": "6a67996f2487e7e5514d8beca037b0131adf52c68cbe19407b1b10f4ab1a36ca",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:29270",
+    "name": "P-Composition séance — Placement d’une pause",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-29270.png",
+    "sha256": "187fb25bcf85103366eb3b125daa13bd4a5f190cdb4b7eb3186993e0418e22fb",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:29428",
+    "name": "P-Composition séance — Point d’arrêt",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-29428.png",
+    "sha256": "5139905c1b39dc0bc56df50661d2c7f0339657e80bbdb1d21de1e1773f6214e1",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:33546",
+    "name": "P-Composition séance — Déplacement",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-33546.png",
+    "sha256": "dbd564cd3358c52105a9f000762672aa3377ce8f655c5e800bcc93cab928d652",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:33689",
+    "name": "Composition séance — Retirer un point d’arrêt",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-33689.png",
+    "sha256": "484596e1471c4ac5af44b1662bfcab4878ed481b8f1aeb522063968eb30d6b10",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:33836",
+    "name": "P-Composition séance — Étiquettes",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-33836.png",
+    "sha256": "965b60075297609a8da5f6f0de8ce4dad3a29eac3b2e7d960c4ee4f2d082817c",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34006",
+    "name": "Composition séance — Étiquettes — Appui long — Confirmation suppression",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34006.png",
+    "sha256": "62c1c633c18d146e45285a0e7a51609bcf2a3def63ba29935d1caa5547c4a441",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34107",
+    "name": "P-Composition séance — Nouvelle étiquette",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34107.png",
+    "sha256": "a2f428dd47f336826443fda204e7821be803fff49b2dfde4d284d148e7da1ac1",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34377",
+    "name": "Composition séance — Étiquette sélectionnée",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34377.png",
+    "sha256": "f8a467f6e01e6a6e148600a993ac64af3877337137d11c779655e39bc276aa3e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34520",
+    "name": "Composition séance — Standard — Séries variables",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34520.png",
+    "sha256": "2b02f498babc964c0c753fa2882584f6212def28ebb7fde71ba82b41ddc7cd70",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34662",
+    "name": "Composition séance — Circuit — Nature (popover)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34662.png",
+    "sha256": "b6542c4a1447769592b1f6e76a9a6977e7376ff822bb04fdde96c18b99c4f1c9",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34813",
+    "name": "Composition séance — Circuit — Nature (confirmation générique)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34813.png",
+    "sha256": "a3f438bb40e4dec561d4b3314f26013130ccf8306763d4d15a449a40c29eda79",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:34965",
+    "name": "P-Composition séance — Circuit — Volumes (de séries)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-34965.png",
+    "sha256": "fb4a3e6c1e1fa9896866b15daee148013025d5fab168ca3d767922bb711977a9",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:35135",
+    "name": "Composition séance — Circuit — Volumes (de tours)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-35135.png",
+    "sha256": "2aec93ef74ccc61098125e5b3f302654bb81a66a2acf3d92ea00ef7f23d88d03",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:35810",
+    "name": "P-Ajouter un exercice — Catégories",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-35810.png",
+    "sha256": "0cfac5b13e2881a48728af71ce3d37a5f0acab9b4c0555ddcd714b8e551f9159",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:35932",
+    "name": "Ajouter un exercice — Catégorie — Appui long — Confirmation suppression",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-35932.png",
+    "sha256": "db9079b2d58ef942c5eb98304563e3d9f3a9f2a0d1ffeb12357ca33291962d7a",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36056",
+    "name": "P-Ajouter un exercice — Nouvelle catégorie",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36056.png",
+    "sha256": "f412776b6b68c7539c6db596bb90d78971ec2c4b312e0c3949dd68504b494218",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36278",
+    "name": "Ajouter un exercice — Catégorie renseignée",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36278.png",
+    "sha256": "faae08b7f5923f6a6e7496645c90e2d0296e765c687a3610e6a4e71f51d811bc",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36348",
+    "name": "P-Ajouter un exercice — Zones corporelles",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36348.png",
+    "sha256": "9284cec2a861954f76ade5dff9109ac5a4730cc52e222cc50d1b3a833d9cfc2e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36441",
+    "name": "Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36441.png",
+    "sha256": "16466b50b2e0020b16c94623f59d81ddcbfe4307fe479564ce56399c9ddac3ac",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36536",
+    "name": "P-Ajouter un exercice — Nouvelle zone corporelle",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36536.png",
+    "sha256": "cee655be169a22220c2db2cb1ecc3ac18ba746ed391391fe19c658765db46905",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36781",
+    "name": "Création activité — Abandon (confirmation)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36781.png",
+    "sha256": "bb7777da253c686420fb5b69be8d33edbdee0a7b4c695d75ea679e687bcda873",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36853",
+    "name": "P-Création activité — Paramètres — Champ vide",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36853.png",
+    "sha256": "8bef1e20051d3e9ea923ed7503a7301b5aabcc197ce48ef71c198ff1aa01f55e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:36923",
+    "name": "Création activité — Paramètres (modale) — Champs vides",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-36923.png",
+    "sha256": "f8cf79f389166859c73520bcbcf37baa613a0f5241dcd511403ea2fe9fab2386",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:37092",
+    "name": "Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-37092.png",
+    "sha256": "e13b1d9c43447ffef10409ce8df91e45b1c0ab1a55c958d5a697d473a4a8ebd5",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:37760",
+    "name": "Création activité — Paramètres (modale) — Série en durée",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-37760.png",
+    "sha256": "3258b351cbffe82c6e97a6c8e3e9a9314fdf78964d1c3cb787478f665eb92353",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:37862",
+    "name": "P-Création activité — Paramètres (modale) — Durée d’une série (roulette)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-37862.png",
+    "sha256": "bb702ec7d0a8cd8ceb6d970cabe361c9509b835389a48f6ff13af95b06720c6f",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9232:44646",
+    "name": "P-Création activité — Paramètres (modale) — Durée d’une phase (roulette)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9232-44646.png",
+    "sha256": "885cf2e92b9536651b552fcb8c79a66c166b7f427edaec2086fc8b842fd5ef76",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:37972",
+    "name": "Création activité — Paramètres (modale) — Changement de côté Replié",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-37972.png",
+    "sha256": "9a125e1970a47cb0be1922f8e89cb61449f8b11eeee6a7fe84cbc954c8dfc9fd",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38084",
+    "name": "Création activité — Paramètres (modale) — Durée totale (roulette)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-38084.png",
+    "sha256": "d350bb0b5828ca5c40e4714510053cf7af552ec090662d39186e782a9b050227",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38193",
+    "name": "P-Création activité — Paramètres (modale) — Changement de côté déployé",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-38193.png",
+    "sha256": "ecb7803eee07fd678e1812cab3f7992b2c62a65c2fcfba456185b9c9543c2978",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38409",
+    "name": "Création activité — Paramètres (modale) — Durée totale ajustée (message)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-38409.png",
+    "sha256": "d4138a0196a406aaf2e0f93fc28ec1ff836959885e22ea417d02dbca52510997",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38513",
+    "name": "Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-38513.png",
+    "sha256": "67c564ea8d097ce1b3fc4105e034065845535b0f634d04fbb65cce7f442fd3c0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38632",
+    "name": "Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-38632.png",
+    "sha256": "b493aa8723d4f82c647cf803006134224b8f945d4fbadbe623d2ce72e60436ff",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:39072",
+    "name": "Création activité — Paramètres (modale) — Une seule série",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8328-39072.png",
+    "sha256": "c9abaa4bba97579218c88e9c5a5cadf54a1bc41f608e699558c64b2bf8b7d699",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8624:30749",
+    "name": "Composition séance — Tabata (préremplie)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8624-30749.png",
+    "sha256": "ec705e3d45fa8799e4486c7acdfc3f1bcb7ec0ffd04e40ac2d9308992968cbb0",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8598:30059",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8598-30059.png",
+    "sha256": "35e3a1935b791371913fbdbc4f7593584f75fbe35f3366045f89d22ae1399f47",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8624:30143",
+    "name": "Composition séance — Modèles — AMRAP (paramètres)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8624-30143.png",
+    "sha256": "69dcbc1abbcd4902b4c6b397feaead6a3dba7de9486de6cffee4c2616a31fb0d",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8598:31210",
+    "name": "Modification activité — Paramètres (modale) — Exercice Death by",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8598-31210.png",
+    "sha256": "027f9b398cb9de8039e29530928014228a228bb862cd6cc280eee5b1bbbda63a",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8624:31263",
+    "name": "Composition séance — For time (préremplie)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8624-31263.png",
+    "sha256": "7573bb00c7d2ac9713d5e2e2d2b33c014ad81c0bb3e6961ce318b362af5f6c41",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8656:33941",
+    "name": "Composition séance — Intervalles 30/30 (préremplie)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8656-33941.png",
+    "sha256": "b82dae0def72b28de1295d7da0fa3349943ac68797445d149f35223effc9d007",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8656:34807",
+    "name": "Composition séance — Modèles — Superset (récapitulatif)",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8656-34807.png",
+    "sha256": "e697cef104b320e5af45621bb123add3ea9f41a7bcec6df54b0a9ded91c89b7e",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8795:14449",
+    "name": "Composition séance — EMOM (préremplie) — Par exercice",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/8795-14449.png",
+    "sha256": "6d1f90f97ceb24aaa6e6e5267427d256c02c26c5a3dc1c51b6fede42ba0660a1",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9292:18077",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9292-18077.png",
+    "sha256": "fcf18a8c3f8d11a6e7a1a1cc2c6430e4f67c4fd1472a7215cbe1d2b1adad483f",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "9307:18208",
+    "name": "P-Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée",
+    "path": "Specifications-fonctionnelles/images/niveaux-2026-10-25/9307-18208.png",
+    "sha256": "c784929c11159ce4fa5c7638af2604e125e0f4e4e0525e04ee6e1d27f94e0488",
+    "pixels": [
+      402,
+      874
+    ],
+    "status": "exported-2026-10-25"
+  },
+  {
+    "node": "8328:38741",
+    "name": "Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8328:38848",
+    "name": "Création activité — Paramètres (modale) — Séries variables (tableau replié)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8328:39279",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables (déplacement)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8470:13303",
+    "name": "P-Création activité — Paramètres (modale) — Séries variables, cas mixte",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8598:29271",
+    "name": "P-Composition séance — Modèles",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:29980",
+    "name": "P-Composition séance — Modèles — Tabata (quels exercices)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8598:29503",
+    "name": "P-Composition séance — Modèles — Tabata (sélection des exercices)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30306",
+    "name": "P-Composition séance — Modèles — Tabata (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30040",
+    "name": "Composition séance — Modèles — EMOM (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30392",
+    "name": "Composition séance — Modèles — EMOM (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30880",
+    "name": "Composition séance — EMOM (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8598:30515",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30521",
+    "name": "Composition séance — Modèles — AMRAP (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:31043",
+    "name": "Composition séance — AMRAP (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8598:30873",
+    "name": "Modification activité — Paramètres (modale) — Exercice AMRAP",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30198",
+    "name": "Composition séance — Modèles — Death by (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30602",
+    "name": "Composition séance — Modèles — Death by (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:31157",
+    "name": "Composition séance — Death by (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30255",
+    "name": "Composition séance — Modèles — For time (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8624:30672",
+    "name": "Composition séance — Modèles — For time (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8598:31560",
+    "name": "Modification activité — Paramètres (modale) — Exercice For time",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:33799",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:33857",
+    "name": "Composition séance — Modèles — Intervalles 30/30 (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34070",
+    "name": "Modification activité — Paramètres (modale) — Exercice Intervalles 30/30",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34196",
+    "name": "Composition séance — Modèles — Renforcement (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34263",
+    "name": "Composition séance — Modèles — Renforcement (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34356",
+    "name": "Composition séance — Renforcement (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34494",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34548",
+    "name": "Composition séance — Modèles — Gainage · Mobilité (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34628",
+    "name": "Composition séance — Gainage · Mobilité (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34753",
+    "name": "Composition séance — Modèles — Superset (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:34887",
+    "name": "Composition séance — Superset (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35005",
+    "name": "Composition séance — Modèles — Progression (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35062",
+    "name": "Composition séance — Modèles — Progression (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35145",
+    "name": "Composition séance — Progression (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35273",
+    "name": "Composition séance — Modèles — À l’échec (paramètres)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35331",
+    "name": "Composition séance — Modèles — À l’échec (récapitulatif)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8656:35415",
+    "name": "Composition séance — À l’échec (préremplie)",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8747:14320",
+    "name": "Composition séance — Tabata (préremplie) — Par exercice",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8747:14451",
+    "name": "Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8795:14588",
+    "name": "Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "8795:14681",
+    "name": "Composition séance — Progression (préremplie) — Par alternance",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  },
+  {
+    "node": "9207:18817",
+    "name": "P-Création exercice — Paramètres — Tableau de 3 phases",
+    "status": "export-blocked-figma-quota",
+    "previous_capture": "retained; see existing chapter 06 link"
+  }
+]

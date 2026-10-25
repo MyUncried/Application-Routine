@@ -1,6 +1,6 @@
 # API fonctionnelles
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Contrats complémentaires : rechercher les gestes par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les gestes. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v5 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Contrats complémentaires : rechercher les gestes par nom/alias avec déduplication par identifiant et meilleure correspondance ; requête vide = tous les gestes. Résoudre facultativement rang/total courants sans modifier la copie. Ajouter une variante et son exercice atomiquement avant/après origine selon difficulté déclarée. Remplacer une occurrence atomiquement en préservant position/récupération et en appliquant v6 §8 ; annuler conserve le brouillon précédent. Sélection multiple : recherche/filtres, conservation des IDs masqués, tri du Catalogue puis createdAt croissant et identifiant croissant. La lecture de classification n’est pas une dépendance du moteur.
 
 
 ## Sommaire
@@ -103,7 +103,7 @@ Ces contrats remplacent la propriété aplatie du contenu Catalogue et précisen
 
 | Opération | Contrat cible |
 |---|---|
-| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même geste / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
+| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même mouvement / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
 | Lire une définition | Résoudre sa relation active obligatoire vers le mouvement ; retourner contenu et paramètres propres |
 | Enregistrer une correction | Vérifier usage durable et champs sensibles ; transmettre le choix et le nombre de définitions touchées ; appliquer atomiquement contenu partagé et durées par identifiant ; distinguer exercice édité complet et frères incomplets explicitement acceptés |
 | Créer une variante | Nouveau mouvement et nouvelle définition ; original conservé ; proposition de groupe sans présélection |
@@ -553,3 +553,10 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 #### Contrat transverse des paramètres v13
 
 Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause/charge et l’état variable explicite sont copiés intégralement, avec l’activation de la charge (RM-236). Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance ; les charges conservées sous Sans ne sont pas un champ caché de brouillon et sont persistées (RM-236, D-403).
+
+
+## Contrats de service — incidence du relevé 25/10
+
+La recherche renvoie des mouvements dédupliqués par identité, classés sur leur meilleure correspondance nom/alias. Le plafond de cinq du panneau ne transforme pas le catalogue en sélecteur et ne supprime pas le parcours Voir tous. Les services de création de variante, remplacement d’occurrence et réordonnancement restent distincts. Les durées de mouvements différents se transfèrent par rang de phase. Ne pas ajouter propagation aux copies, unicité des noms ou suppression du marquage durable avant résolution C01/C03/C04/C05. Aucun nouveau service de maintenance du catalogue de mouvements n’est déclaré MVP sur la seule proposition C07.
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

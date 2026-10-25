@@ -1,6 +1,6 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). Décision complémentaire validée par Hermann : v5 définitive du 24/10, intégrée le 25/10/2026. Elle amende D-437/D-438 pour les alias et le crayon de contenu partagé, D-439 pour le choix de difficulté et le rang courant, D-165 pour le tri global des sélections. D-221, RM-221 et RM-013 sont retirées au profit de v5 R06. Les mentions historiques contraires ci-dessous sont supersédées dans cette seule portée. D-440 (base vierge, sans migration) reste applicable.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Décision complémentaire validée par Hermann : v5 définitive du 24/10, intégrée le 25/10/2026. Elle amende D-437/D-438 pour les alias et le crayon de contenu partagé, D-439 pour le choix de difficulté et le rang courant, D-165 pour le tri global des sélections. D-221, RM-221 et RM-013 sont retirées au profit de v5 R06. Les mentions historiques contraires ci-dessous sont supersédées dans cette seule portée. D-440 (base vierge, sans migration) reste applicable.
 
 
 # Format
@@ -21,7 +21,7 @@ Validée le 23/10/2026. MFN-02 et MFN-08 séparent structure et durées, réutil
 
 Validée le 23/10/2026. MFN-05 à MFN-07 et MFN-10 : au plus un groupe linéaire par mouvement, insertion après origine, réorganisation explicite, singleton conservé avec rang masqué. Recherche explicite et suggestions sur les mouvements disponibles, locaux compris. Cette recherche spécialisée ne généralise pas la recherche des Catalogues exclue par D-221. Aucun rattachement automatique ni fusion rétroactive ; les doublons indépendants gardent des records distincts. Aucun choix silencieux des paramètres d’une ligne regroupée. Règles détaillées : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
 
-**Complément de présentation D-438/D-439 du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). En création sur geste repris : contenu initialement en lecture seule et crayon, paramètres modifiables ; confirmation conditionnelle « Corriger ce geste / En faire un geste distinct / Annuler ». En édition Catalogue, les libellés antérieurs restent applicables. Une variante explicite ne redemande pas la décision. Accès aux niveaux par popover « Changer de niveau / Ajouter un niveau », sans quatrième action glissée Catalogue. Pastille « Niveau X », total dans le choix ; aucune limite à trois niveaux déduite de l’icône. Les écarts de prototype sont consignés, non promus en règles métier.
+**Complément de présentation D-438/D-439 du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). En création sur mouvement repris : contenu initialement en lecture seule et crayon, paramètres modifiables ; confirmation conditionnelle « Corriger ce mouvement / En faire un mouvement distinct / Annuler ». En édition Catalogue, les libellés antérieurs restent applicables. Une variante explicite ne redemande pas la décision. Accès aux niveaux par popover « Changer de niveau / Ajouter un niveau », sans quatrième action glissée Catalogue. Pastille « Niveau X », total dans le choix ; aucune limite à trois niveaux déduite de l’icône. Les écarts de prototype sont consignés, non promus en règles métier.
 
 ### D-440 — Transition ponctuelle sur base vierge
 
@@ -857,3 +857,10 @@ Les paramètres limites non arbitrés, les textes de synthèse et la présentati
 Intégration du 18/10/2026 : D-371 est remplacée sur ce point par D-410 et D-413 — le contrôle Phases de l’exercice propose Avec / Sans (« Aucune » devient Sans ; Avec crée la première phase) et son chevron est à l’intérieur de l’option Avec ; le tableau des phases n’a ni pied ni boutons +/−. Le texte de D-371 est conservé.
 
 Historique, remplacé pour la suppression et la normalisation par D-438 : intégration du 19/10/2026, D-432 remplace sur ces points D-371 et l’intégration du 18/10 — Avec affiche « n phases », nombre réglé de 2 à 6 par le stepper existant, première activation à deux phases, croix indisponible à 2 phases, normalisation laissant une seule phase ramenée à Sans. Le texte de D-371 est conservé.
+
+
+## Relevé documentaire du 25/10 — sans arbitrage implicite
+
+La spécification v6 remplace la v5 ; vocabulaire mouvement unifié. Les nouveaux rendus sont intégrés aux chapitres 06/12/13. Les divergences C01–C09 sont consignées dans le relevé du 25/10 ; aucune nouvelle décision D n’est attribuée à un arbitrage non rendu. D-437/D-438 restent lisibles avec leurs amendements v6. Le gel des historiques et la classification actuelle ne sont pas révoqués par une question ouverte du relevé Figma.
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

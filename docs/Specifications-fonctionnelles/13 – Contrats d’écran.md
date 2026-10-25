@@ -1,11 +1,13 @@
 # Contrats d’écran
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v5](../KODJO-Niveaux-Recherche-Parcours-Regles-v5.md). CE-T03-02/04 : commande Niveau vide, choix de difficulté, alias et crayon du contenu partagé en création sur geste repris ET en édition Catalogue ; paramètres directement éditables. CE-T03-04 : recherche R02–R05 et avertissement N08 non bloquant. CE-T03-07 : recherche et filtres Catégorie/Zones, sélection conservée entre requêtes, compteur global, ordre Catalogue puis date de création et ID croissants. CE-T03-08/CE-UI-10 : changer de niveau remplace la copie avec nouvelle filiation ; reprend paramètres et contexte sans nouveau verrou, selon les quatre cas de phases v5 §8. Suivi : contenu figé, classification actuelle résoluble ; pas de rang sur les lignes compactes 1992:8996. Recette : R07 automatique en CI ; vérifier les quatre transitions de phases, annulation atomique, sélection masquée, rang après réordre et absence de mutation historique.
+**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). CE-T03-02/04 : commande Niveau vide, choix de difficulté, alias et crayon du contenu partagé en création sur mouvement repris ET en édition Catalogue ; paramètres directement éditables. CE-T03-04 : recherche R02–R05 et avertissement N08 non bloquant. CE-T03-07 : recherche et filtres Catégorie/Zones, sélection conservée entre requêtes, compteur global, ordre Catalogue puis date de création et ID croissants. CE-T03-08/CE-UI-10 : changer de niveau remplace la copie avec nouvelle filiation ; reprend paramètres et contexte sans nouveau verrou, selon les quatre cas de phases v6 §8. Suivi : contenu figé, classification actuelle résoluble ; pas de rang sur les lignes compactes 1992:8996. Recette : R07 automatique en CI ; vérifier les quatre transitions de phases, annulation atomique, sélection masquée, rang après réordre et absence de mutation historique.
 
 
 > Planification à plusieurs contenus (08/10) : les règles antérieures d’archivage supprimant les Routines associées restent décrites pour le cas à contenu unique. Leur extension à une Routine contenant d’autres contenus est **non définie** ; ne pas supprimer ces autres planifications par généralisation. Voir la chapitre 08, Planification.
 
 > **Règle documentaire :** le chapitre 13 ne contient aucune copie d’écran. Les captures et copies physiques d’écrans/modales sont centralisées exclusivement dans le chapitre 06. Le chapitre 13 conserve uniquement les contrats, états, règles et références de nodes Figma nécessaires à la recette.
+
+Nouveau contrat : [CE-UI-NIV-01 — Niveaux](#ce-ui-niv-01--niveaux--choisir-ajouter-réordonner).
 
 ## Sommaire
 
@@ -141,7 +143,7 @@ Ce chapitre constitue la **spécification des familles d’écran du MVP, avec s
 
 Un écran T03 n’est considéré comme spécifié que si son contrat définit explicitement : contexte d’entrée, sorties, données et leurs sources, valeurs Figma, structure, éléments obligatoires, layout, responsive, états, contrôles, gestes, validation, brouillon/persistance, navigation/conservation d’état, erreurs, accessibilité, invariants, recette.
 
-Les 40 contrats actifs couvrent les familles CE-T03, CE-MEDIA-EXEC, CE-UI, CE-EXEC-SESSION et CE-FMT. Les contrats suivent les 20 rubriques canoniques définies ci-dessous. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les règles de clôture §6 complètent les contrats sans modifier le design. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
+Les 41 contrats actifs couvrent les familles CE-T03, CE-MEDIA-EXEC, CE-UI, CE-EXEC-SESSION et CE-FMT. Les contrats suivent les 20 rubriques canoniques définies ci-dessous. CE-T03-16 est désormais le contrat des Étiquettes de Composition ; l’ancien parcours Catégories est retiré. Les règles de clôture §6 complètent les contrats sans modifier le design. Cette correction documentaire ne modifie pas les tranches de réalisation ni leurs autorisations.
 
 ### Sources et ordre d’application
 
@@ -378,6 +380,8 @@ Carte : titre et badge durée, Étiquette puis catégories issues des exercices 
 
 #### 9. Layout déterministe
 
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
+
 Cartes Catalogue : [DSF Durée du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). Texte de durée sans fond/cadre/padding, Inter Semi Bold 12 #141414, droite 16px. Propriété booléenne Durée des sets 6214:7276/7278 ; absence → aucun contenu de remplacement. Exercice replié/archivé : titre 250px, lignes basses 207px à x88 ; coupes 60/69/145 fondées sur 207. Gouttière 12px conservée ; Séance 16/16. La référence Exercice Déployé ne crée aucun accès MVP.
 
 Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Hauteur repliée 90, déployée 235. Commandes 34/dessins 20/gaps 12/cibles 44. Segmenté à deux options 354×42 : padding 4, gap 4, options 171×34 ; typographie 16/20 et styles communs ci-dessus. Actions glissées de même hauteur que la carte, y compris déployée.
@@ -396,7 +400,7 @@ Exercices navigue ; Séances maintient ; `Créer` initialise directement le parc
 
 #### 13. Gestes
 
-Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun geste sur le segment désactivé.
+Cartes de Séance utilisant des actions contextuelles suivent §4.7. Aucun mouvement sur le segment désactivé.
 
 #### 14. Validation
 
@@ -695,7 +699,9 @@ Surface carte → `CE-T03-04`; Lecture → `CE-T03-09`; `Créer` → règle cont
 
 #### 5. Données affichées et source de vérité
 
-D-437/D-439 : la liste regroupe les définitions par geste ; chaque définition garde son identité et son résumé de paramètres, sans alias. La ligne de regroupement ne se lance ni ne s’insère sans sélection d’une définition précise. Deux duplicatas identiques peuvent être indiscernables jusqu’à modification. Les relations entre niveaux se naviguent depuis la fiche, séparément de ce regroupement.
+**Complément du 25/10/2026.** Le niveau est une classification actuelle dérivée du mouvement, jamais un suffixe stocké. Le rendu Figma - Nn près du nom est documenté sous C06 face à la jauge 2/3 de la v6. Le catalogue de mouvements et ses piles restent la proposition C07, distincte des exercices exécutables.
+
+D-437/D-439 : la liste regroupe les définitions par mouvement ; chaque définition garde son identité et son résumé de paramètres, sans alias. La ligne de regroupement ne se lance ni ne s’insère sans sélection d’une définition précise. Deux duplicatas identiques peuvent être indiscernables jusqu’à modification. Les relations entre niveaux se naviguent depuis la fiche, séparément de ce regroupement.
 
 Source : `ActivityDefinitionRepository` / `API-CAT-01`. Défaut : non archivées, `updatedAt DESC`. Exécuter ne modifie pas `updatedAt`. Le Catalogue n’affiche aucune récupération post-exercice, car elle n’existe pas sur `ActivityDefinition`; seule la Pause entre les côtés éventuelle relève de la définition.
 
@@ -716,6 +722,8 @@ Header → segmenté → rangée commandes Catalogue (`Créer`, `Filtrer`, `Trie
 Pastille Catégorie colorée, Zones corporelles, titre et badge durée ; synthèse `N séries de X` / `N séries de N rép.` / `N séries à l’échec`, miroir 16 si bilatéral, indicateur de changement de côté sans direction (RM-243). Aucune pause/récupération ni prochaine planification affichée. Lecture indépendante ; aucun Déployer, avec ou sans média. Aucune poignée. Créer/Filtrer actifs, Trier désactivé.
 
 #### 9. Layout déterministe
+
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
@@ -775,7 +783,7 @@ Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèq
 
 ### CE-T03-04 — Éditeur Exercice — créer / modifier
 
-**Actualisation Figma du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) ; captures au chapitre 06. Les états `9882:19049`, `9891:39982`, `9952:44349`, `9959:19518`, `9959:19623` et le popover `9577:19843` complètent ce contrat, sans créer de nouvelles destinations.
+**Actualisation du 25/10 :** [inventaire courant, captures et réserves C01–C09](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). `9959:19623` est désormais un catalogue de mouvements, plus le sélecteur de création ; popover courant `10027:40760`. Les états du formulaire et du dialogue restent des états de CE-T03-04.
 
 #### 1. Identification
 
@@ -791,7 +799,9 @@ Créer/modifier un Exercice avec paramètres saisis dans la feuille basse. Le r�
 
 #### 3. Contexte d’entrée
 
-D-437/D-438 : ouverture Catalogue directement en édition. En création sur geste repris, contenu initialement en lecture seule, paramètres modifiables et crayon « Modifier le geste » ouvrant le brouillon de contenu. Aucun crayon de déverrouillage d’une occurrence. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
+**Complément du 25/10/2026.** Paramètres toujours directement modifiables. Le contenu repris est verrouillé jusqu’au crayon ; Catalogue : mêmes deux portées. Le crayon dessiné pour une occurrence de séance contredit le verrouillage v6 : réserve C04, aucune propagation aux copies n’est autorisée par cette capture. Catégorie / zones / commande Niveau : portée contradictoire C09.
+
+D-437/D-438 : ouverture Catalogue directement en édition. En création sur mouvement repris, contenu initialement en lecture seule, paramètres modifiables et crayon « Modifier le mouvement » ouvrant le brouillon de contenu. Aucun crayon de déverrouillage d’une occurrence. Création locale : contenu éditable jusqu’au premier enregistrement de la séance ; une occurrence déjà copiée affiche son contenu verrouillé.
 
 Créer depuis Catalogue ou modifier une définition existante ; nouveau brouillon ou copie de travail. Le même motif s’applique à une copie de Composition lorsque son édition est exposée, sans synchronisation vers la référence.
 
@@ -821,6 +831,8 @@ Le champ du mode à droite du titre de la carte, visible sur 7059:13302 et 7119:
 
 #### 7. Structure de l’écran
 
+**Complément du 25/10/2026.** Panneau de rapprochement sous le nom, au-dessus du formulaire, clavier visible ; deux actions dans chaque carte Résultat. Dialogue de sauvegarde centré, distinct de CE-UI-10. Les popovers de niveau se déploient sur place, contrat CE-UI-NIV-01.
+
 En-tête fixe → bandeau de contexte (nom, Catégorie, Zones corporelles) → carte Paramètres (état non renseigné ou synthèse calculée) → Description en étapes numérotées → Média → Terminer. Compte à rebours et Fin relèvent de la feuille Paramètres d’exécution CE-UI-10 et ne sont pas des lignes autonomes du formulaire principal (D-413). Réutiliser le shell existant.
 
 #### 8. Éléments obligatoires
@@ -830,7 +842,7 @@ Nom de l’exercice ; accès aux catégories et zones corporelles ; zone Descrip
 
 #### 9. Layout déterministe
 
-Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. « Terminer » est la référence du bouton d’action principal standardisé de D-444 : fixe en bas de l’écran, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur. Complément du 23/10 : rangée Catégorie / Zones / Niveau, espacement 12 pt et marges latérales 6 pt ; zones élastiques tronquées, valeur intégrale accessible. Pastille « Niveau X », total dans le choix ; pas de rang pour un singleton ou un geste sans groupe. Confirmation en feuille basse `9952:44349` ; cibles tactiles ≥ 44 × 44, indépendantes des boîtes d’icônes. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
+Shell conservé : en-tête fixe, bandeau nom/référentiels, carte Paramètres, Description, Média, action Terminer. « Terminer » est la référence du bouton d’action principal standardisé de D-444 : fixe en bas de l’écran, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur. Complément du 23/10 : rangée Catégorie / Zones / Niveau, espacement 12 pt et marges latérales 6 pt ; zones élastiques tronquées, valeur intégrale accessible. Pastille « Niveau X », total dans le choix ; pas de rang pour un singleton ou un mouvement sans groupe. Confirmation en dialogue centré `9952:44349`, avec états `10253:20414` et `10257:20651` ; cibles tactiles ≥ 44 × 44, indépendantes des boîtes d’icônes. Références 3943:6064/4734:6342/6407:9702 et 6665:27862/28050. Les deux nouveaux résumés gardent cette implantation ; le texte peut grandir, sans déplacement arbitraire des contrôles. Feuille selon DSF-SERIES-VARIABLES-2026-10-02, actualisé le 03/10.
 
 Phrase : Inter 13, interligne 20, texte sombre et valeurs en gras ; largeur 324/x39 dans la référence 402. *Remplacé par les arbitrages G-1 à G-10 de Hermann du 19/10 (G-6) : Inter Regular 14, interligne 20, dans un bloc `#F9FAFC` de rayon 12 sans liseré, sans Compte à rebours ni Fin (R-14).* Hauteur auto et retour naturel ; le contenu inférieur suit la croissance. Aucune limite de 198/211 caractères. Le layout du shell reste celui des frames du formulaire.
 
@@ -846,13 +858,17 @@ Référence longue 7119:27855 :224caractères, cinq lignes/100px à largeur 324,
 
 #### 11. États de l’écran
 
-États MFN : recherche de gestes incluant les créations locales ; choix même geste/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. Les cinq états de création/reprise/recherche/confirmation sont illustrés au chapitre 06. La complétion des durées manquantes et l’état de frère incomplet restent sans frame dédiée ; les écarts de câblage et de rang sont consignés dans le relevé Figma du 23/10.
+**Complément du 25/10/2026.** Mouvements proches `9882:19049`, nom déjà utilisé `10175:20349` (C01), options `10131:21995`, reprise `9891:39982`, édition `9959:19518`, variante difficulté `10140:20180`, variante vierge `10187:20340` (C02), sauvegarde nom inchangé `10253:20414`, modifié `9952:44349`, choix sélectionné `10257:20651`. Les trois derniers états portent les réserves C01/C03 ; pas de règle d’identité déduite des captures.
+
+États MFN : recherche de mouvements incluant les créations locales ; choix même mouvement/variante/indépendant ; dialogue d’identité à trois choix ; correction partagée avec nombre d’exercices concernés ; étape de durées manquantes ; frère incomplet non exécutable. Les cinq états de création/reprise/recherche/confirmation sont illustrés au chapitre 06. La complétion dispose désormais de la frame `10070:20073`, mais toutes ses durées sont renseignées : l’état incomplet reste à illustrer. L’état de frère incomplet n’a pas de frame dédiée. Voir le relevé du 25/10 pour les écarts.
 
 Vide, nom seul, catégorie renseignée, nom/description en étapes/média renseignés, modification existante, résumé uniforme, résumé variable Durée/Répétitions/À l’échec, bilatéral et chacun des ordres, avec et sans charge (charge commune, charges par série, RM-240), abandon confirmé/annulé, erreur de sauvegarde. Le résumé Répétitions est visible derrière 6665:24844 ; pas de vue parent dédiée actuellement. L’absence de capture ne retire pas cet état du contrat.
 
 Avec/sans cadence ; phrase courte/longue, total déterminable/approximatif, suppression de cadence et retour de mode en brouillon. Les textes de démonstration de 7059/7061/7119 sont antérieurs à la grammaire finale et ne la remplacent pas.
 
 #### 12. Contrôles et interactions
+
+**Complément du 25/10/2026.** Entrée dans le nom ne choisit aucun mouvement. Utiliser ce mouvement adopte explicitement le résultat ; Créer une variante ouvre le choix Plus difficile / Moins difficile. Retour aux résultats conserve la saisie. Maximum cinq résultats dans le panneau, ordre stable pendant un appui, un résultat par mouvement malgré plusieurs alias. L’accès explicite R03 demeure requis. Après choix de variante, la recherche de similarité est désactivée ; l’unicité à la sauvegarde reste sous réserve C01.
 
 Dans Description, Entrée ajoute l’étape numérotée suivante (D-425) ; aucun bouton « Ajouter une étape ». Le bouton ↑ ferme le clavier sans enregistrer l’Exercice (D-351 partiellement maintenue). Le traitement des étapes vides et l’application du plafond historique de 1 000 caractères à une séquence restent À CLARIFIER ; aucune valeur par étape n’est inventée. Toucher la zone Paramètres ouvre CE-UI-10. Aucun mot ou nombre de la phrase ne sélectionne une ligne indépendamment. ✓ applique au brouillon et régénère ; ✕ conserve le brouillon ; Terminer persiste atomiquement.
 
@@ -862,7 +878,9 @@ Tap, saisie et défilement du formulaire. Toucher une tuile Média la consulte :
 
 #### 14. Validation
 
-D-438 : si geste utilisé et nom, description, média ou structure des phases modifié, proposer **Corriger cet exercice / Créer un nouvel exercice / Annuler** en modification Catalogue ; en création sur geste repris, **Corriger ce geste / En faire un geste distinct / Annuler**, dans la feuille basse `9952:44349`. Aucune confirmation pour une variante explicitement choisie ou une reprise inchangée. Annuler conserve le brouillon appelant. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
+**Complément du 25/10/2026.** Relevé reçu : nom canonique unique avec erreur rouge dès la frappe, variante vierge et contrôle à la sauvegarde ; sauvegarde partagée seulement si au moins deux exercices, mise à jour seule si nom inchangé. Ces modifications sont C01–C03 et ne remplacent pas silencieusement MFN-08. Le dialogue doit conserver Annuler et Confirmer, ce dernier désactivé sans choix ; son absence sur `9952:44349` est un écart visuel.
+
+D-438 : si mouvement utilisé et nom, description, média ou structure des phases modifié, proposer **Corriger cet exercice / Créer un nouvel exercice / Annuler** en modification Catalogue ; en création sur mouvement repris, **Corriger ce mouvement / En faire un mouvement distinct / Annuler**, dans le dialogue centré (rendu actualisé au 25/10 ; libellés et conditions contradictoires détaillés en C01/C03). Aucune confirmation pour une variante explicitement choisie ou une reprise inchangée. Annuler conserve le brouillon appelant. Au-delà d’un exercice touché, en indiquer le nombre. Après correction structurelle, présenter les durées manquantes : exercice édité obligatoirement complet, complétion des frères pouvant être passée explicitement. Une nouvelle identité conserve l’original et propose le groupe sans présélection. Paramètres, catégorie, zones et ordre seuls : aucun dialogue.
 
 Nom, exactement une Catégorie et au moins une Zone pour un nouvel Exercice ; maintien des affectations retirées D-210. Paramètres exécutables issus de CE-UI-10. Terminer inactif si paramètres absents/invalides ; la couleur d’exemple de Figma ne suffit pas à valider. Pour les états incomplets du formulaire, son fond est lié au token Figma `color/disabled` (`#BEC2CC`) à opacité 100 % ; pour un état valide, le bouton d’action actif est lié à `color/primary` (`#0508E5`). Le rendu gris matérialise l’inactivité sans définir à lui seul la validité métier (évidences Figma `8328:35698`, `8328:35740`, `8328:36278`, `8328:36853` ; état actif `8328:37022`).
 
@@ -886,6 +904,8 @@ Retour au Catalogue restauré en contexte définition ; au contexte Composition 
 
 #### 18. Accessibilité
 
+**Complément du 25/10/2026.** Annoncer les résultats et erreurs sans sélectionner automatiquement. Séparer le focus des deux actions de résultat ; leur zone tactile respecte le minimum existant malgré le bouton visible de 26. Rendre l’état actif du crayon perceptible autrement que par la couleur. Dialogues : arrière-plan inerte, focus restitué au brouillon après Annuler. Niveau : annoncer rang et total réels.
+
 Un focus pour la zone de phrase, label Modifier les paramètres d’exécution, lecture intégrale ; aucune valeur estimée annoncée comme saisissable. Restituer le focus au retour.
 
 #### 19. Invariants
@@ -893,6 +913,8 @@ Un focus pour la zone de phrase, label Modifier les paramètres d’exécution, 
 Aucune édition inline de la phrase. Mode/nom exclus de la phrase intrinsèque ; pas de total À l’échec. Calculs selon [Calculs des durées et ordre des phases](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-des-durées-et-ordre-des-phases), D-248 ; D-242 supersédée ; import de médias livré dans PRE-3 selon D-333, sans anticiper le moteur de lecture en exécution. Aucun enregistrement à la simple fermeture de feuille.
 
 #### 20. Recette déterministe
+
+**Complément du 25/10/2026.** Tests automatiques R07 requis. Ajouter Entrée sans sélection, alias sans doublon, stabilité sous appui, reprise puis annulation, variante sans confirmation de correction, erreur DB sans perte du brouillon. Les cas d’unicité et de seuil à deux exercices attendent C01/C03 ; aucune recette ne les déclare décidés.
 
 Recette complémentaire : scénarios du [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) (reprise, variante sans dialogue, recherche locale, comptes dynamiques, annulation, rangs, responsive), puis MFN/AC01 à MFN/AC37 du chapitre 10 ; vérifier notamment comptage des frères, annulation sans résidu, absence de fusion et exclusion des frères incomplets du lancement. Recette applicative à exécuter lors de l’implémentation.
 
@@ -991,7 +1013,7 @@ Archivage avec Routines ACTIVITY : confirmation avant suppression des planificat
 
 #### 18. Accessibilité
 
-Actions nommées ; Supprimer annoncé destructif ; dialogue focusé ; filtre Archives annoncé actif ; équivalents aux gestes disponibles.
+Actions nommées ; Supprimer annoncé destructif ; dialogue focusé ; filtre Archives annoncé actif ; équivalents aux mouvements disponibles.
 
 #### 19. Invariants
 
@@ -1116,6 +1138,8 @@ Le tableau n’a pas de défilement vertical indépendant du corps. (transféré
 
 #### 11. États de l’écran
 
+**Complément du 25/10/2026.** `10070:20073` est la nouvelle référence Durées à compléter après changement de niveau. La capture contient des durées illustratives déjà renseignées ; elle ne dispense pas de couvrir les phases réellement vides et la validation indisponible.
+
 Cible chiffrée / À l’échec / mélange ; ouverture sur la cible courante. Option sélectionnée100%, sinon45% du remplissage #1a1a1f. À l’échec sélectionné : partie numérique neutre00:00 et grisée en mode Durée ; ce zéro n’est pas une cible valide. Aucun écran uniforme supplémentaire : un changement de valeur seul ne crée pas un nouveau contrat.
 
 Cadence Sans / 5 s / 2 s / 1 s / Autre avec valeur personnalisée, dans chacun des deux modes (RM-245) ; cible valide/incomplète ; uniforme/variable ;N1 ; Changement de côté Sans / Avec replié / Avec déployé et deux enchaînements (RM-242, RM-247) ; tableau ouvert/replié par le chevron de Variables ; option non modifiable avec sa valeur réelle (RM-247) ; Condition d’arrêt sélectionnable en identiques, résultat À la cible / À l’échec / « À la cible et à l’échec » en variables, tableau incomplet (RM-248, RM-249) ; Durée de l’exercice repliée / déployée (RM-246), dans ses trois états « — », « Non calculable », valeur avec ≈, ≥ ou sans symbole, et transitions entre ces états sans disparition ni déplacement de la ligne (D-433) ; charge Sans / valeur commune / colonne par série / saisie au clavier / zéro / valeurs conservées sous Sans (RM-236 à RM-239) ; steppers au minimum/maximum et maintenus ; validation/annulation. Depuis D-434 : cellule au repos (« 5 s », « 1 min 5 s », « 1 min 30 s », « 12 min », « 0 s ») et en saisie (« 00:05 », « 01:05 », « 01:30 », « 12:00 ») ; barre du clavier avec ou sans « À l’échec » ; libellés Précédent / Suivant affichés ou flèches seules selon la largeur. Plus aucun état roulette de cadence. Les états À l’échec de la roulette de cible décrits ci-dessus ne concernent plus la Durée d’une série des séries identiques, roulette numérique seule (RM-250).
@@ -1196,6 +1220,8 @@ Bip sonore uniquement pendant Série, aucune transition automatique. Les interva
 Une série = un motif complet ; phases seulement Durée chiffrée et identiques. Pauses et côtés inchangés. Aucun comportement ne découle d’un exemple chiffré Figma.
 
 #### 20. Recette déterministe
+
+**Complément du 25/10/2026.** Vérifier automatiquement les quatre conversions de phases v6 §8, durée nulle/manquante non inventée, annulation intégrale, séries variables, charge, pauses, côtés et position conservés. IDs de phases locaux : aucune jointure entre mouvements par égalité d’id.
 
 Recette complémentaire (roulette de cible d’une cellule de série variable en mode Durée depuis le 18/10, RM-250 ; roulette remplacée par D-434 le 19/10 : les mêmes cas se vérifient au clavier numérique MMSS et par la commande « À l’échec » de la barre, notamment affichage « 1 min 5 s » / « 01:05 », première frappe remplaçant la valeur, Retour arrière, absence des poignées de sélection iOS, barre sur une seule ligne) : deux options, ouverture valeur/échec courant, exclusion mutuelle,00:00 cible refusée (pause 0 valide), tout échec « Non calculable », mixte 30/45/échec avec pauses 10/20/30 → « ≥ 2 min 15 s » en lecture seule, Répétitions sans bip « Non calculable » (D-433) ; annuler/appliquer sans persistance anticipée. Tester 30 s → toucher échec →00:00 grisé → tourner vers 30 s → cible numérique ; réouverture fidèle et annulation/restauration. Le bloc grisé reste manipulable. Qualification native et accessible sur appareils à réaliser ; §4.5 reçu, réserve de source close.
 
@@ -1387,9 +1413,9 @@ Fermer/Annuler → Composition sans mutation ; Sélectionner avec N>0 → insert
 
 #### 5. Données affichées et source de vérité
 
-D-437/D-439 : regroupement par geste, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
+D-437/D-439 : regroupement par mouvement, mais sélection par définition précise et résumé de paramètres. Une ligne de groupe ne choisit pas de paramètres implicitement. La copie reçoit contenu résolu et sourceMovementId, sans dépendance de lecture ultérieure.
 
-Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Recherche textuelle et filtres Catégorie/Zones selon v5 §7 ; les sélections masquées sont conservées et incluses au compteur.
+Définitions actives et ensemble d’IDs sélectionnés en mémoire. Ordre de la liste affichée, stable pendant la sélection. Recherche textuelle et filtres Catégorie/Zones selon v6 §7 ; les sélections masquées sont conservées et incluses au compteur.
 
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
@@ -1407,6 +1433,8 @@ Case 20, titre 15, pastilles 20, valeurs 16, compteur et Sélectionner désactiv
 
 #### 9. Layout déterministe
 
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
+
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Cartes standard : largeur 354 sur écran 402, rayon 8, fond #F9FAFC, bord intérieur 0,5 #CCD1E0, titre 15 Semi Bold ; classement pastilles 20, valeurs nues 16 ; aucune barre verticale. Références APRÈS6354:16089 / Photo 6354:16964. Les captures actualisées le 30/09 sont listées dans la matrice de couverture ; les fichiers hors remplacement restent historiques. Choix Composition 354 × 91 ; cadre des zones corporelles arrêté à 8 px de la case, points de suspension en fin, liste seule défilante ; actions fixes. Gouttière permanente d’exercice : carré 64 à 12 du bord, photo si média ou icône de nature sinon, centrée et recadrée sans déformation (couverture vidéo), texte x88 ; titre 250 en Catalogue replié/archivé, lignes basses 207 ; Choix conserve sa largeur liée au contrôle ; hauteur inchangée ; place réservée pendant chargement/erreur, texte alternatif = nom de l’exercice. Aucun badge durée/heure dans ce choix, catégorie conservée, pictogramme de zone conservé ; Déployer absent.
@@ -1421,6 +1449,8 @@ Liste vide ; 0/1/N sélection ; Sélectionner désactivé/actif ; copie en cours
 
 #### 12. Contrôles et interactions
 
+**Complément du 25/10/2026.** Recherche et filtres Catégorie / Zones ; maintenir la sélection au changement de requête et montrer le nombre total, y compris masqués. Insérer suivant le tri Catalogue, puis date de création croissante et identifiant croissant. Ne pas utiliser les cartes de mouvements comme sélection d’exercices : plusieurs exercices peuvent partager un mouvement.
+
 Toucher ligne/case sélectionne ou désélectionne le même ID. Sélectionner produit une seule insertion groupée. Fermer annule toute sélection transitoire. Recherche et filtres locaux autorisés ; aucun réordre manuel ni action Créer un exercice ajouté.
 
 #### 13. Gestes
@@ -1429,7 +1459,7 @@ Tap et scroll uniquement. Aucun drag/reorder.
 
 #### 14. Validation
 
-N>0 et toutes définitions encore disponibles avant insertion. L’ordre final suit v5 §7 : tri Catalogue, date de création croissante, identifiant croissant. Une disparition invalide cette soumission, actualise sélection/compteur et demande une nouvelle validation explicite.
+N>0 et toutes définitions encore disponibles avant insertion. L’ordre final suit v6 §7 : tri Catalogue, date de création croissante, identifiant croissant. Une disparition invalide cette soumission, actualise sélection/compteur et demande une nouvelle validation explicite.
 
 #### 15. Brouillon et persistance
 
@@ -1501,6 +1531,8 @@ Compte à rebours/Fin non déplaçables ; stepper du nombre de Tours ou de Séri
 
 #### 9. Layout déterministe
 
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
+
 **Arbitrages de recette du 21/10 — D1 et D6 :** aucun trait de démarcation entre les cartes de Composition (hors rail segmenté et liaisons des points d’arrêt) ; les anciennes prescriptions de trait permanent D-303 sont supersédées sur ce seul rendu. En mode placement, les cartes conservent un grisé visuel perceptible pour signifier leur indisponibilité au toucher ; leur couleur ne doit pas masquer les zones d’ajout, le contenu ni les repères du rail. Le retour au mode normal restaure les styles habituels ; les gestes et règles d’édition existants ne sont pas changés.
 
 Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. À la largeur Figma de 402 : cartes v2 370 × 80 dès x16, rayon12, fond blanc, bord1 `#E4E7EF` hors Circuit et sans bord dans Circuit ; média64 × 64 à x24, rayon12/bord1 `#7A7A80` ; texte dès x100, symboles x282, valeurs alignées sur x378. Les colonnes s’adaptent aux largeurs 360/402/440 et aux libellés. Catégorie et Zones sont deux propriétés distinctes ; deux valeurs éventuelles sur la ligne de travail ne repoussent pas la récupération de la ligne3. Rail `#7A7A80` 1,5, segmenté entre bords des repères et médias, calculé depuis le layout réel, jamais sur les gabarits. Circuit : aplat `#F3F4F9`, débord 8 de part et d’autre des cartes, sans rectangle de contour, cartes internes espacées de 9 ; cercle/titre/compteur centré sur page/durée à droite alignés en en-tête ; depuis D-442, les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt, et tous les textes de cette ligne (nombre, unité, durée) ont la taille du titre « Circuit ». En placement, point d’arrêt centré dans un espace dédié de 22 et raccordé au rail ; récupération proposée par cadre pointillé dans la zone de ligne3 des seules cartes éligibles. Les commandes de nature et de volumes sont conservées même absentes d’une maquette illustrative. Les états soulevé et swipe renvoient à `8328:33546` et `8328:28863` ; un Point d’arrêt saisi par appui long est marqué visuellement par un état soulevé, comme une carte (D-442). Annuler et Confirmer restent accessibles dans le pied protégé. Depuis D-443 (23/10/2026), la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite ; les cadres du Compte à rebours initial et de la Fin de séance sont alignés à droite sur le cadre des cartes d’Exercice. Le pied de Continuer et la barre de placement ✓ / Annuler suivent le composant d’action principal standardisé (D-444) : zone fixe protégée, dégradé blanc pleine largeur, bouton centré verticalement dans la zone, zone de sécurité inférieure d’iOS respectée, même position verticale sans saut au changement de mode. Le rail ne remplace pas les règles existantes sur le trait de démarcation (D-303).
@@ -1517,7 +1549,9 @@ Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette
 
 #### 12. Contrôles et interactions
 
-D-437 : l’édition d’une occurrence conserve le nom, la description, les médias, la catégorie, les zones et la structure des phases verrouillés. Paramètres modifiables sous les contraintes existantes, mode verrouillé en présence de phases, côtés modifiables. Changer de geste exige remplacement/variante ; duplication conserve filiation et suffixe système D-124 sans renommage du mouvement.
+**Complément du 25/10/2026.** Changer de niveau ouvre CE-UI-NIV-01 puis le remplacement v6 §8 ; paramètres conservés sans verrou supplémentaire. Le contenu copié reste verrouillé, sous réserve C04 du relevé. Aucun remplacement dans une exécution passée ni au milieu d’une exécution en cours.
+
+D-437 : l’édition d’une occurrence conserve le nom, la description, les médias, la catégorie, les zones et la structure des phases verrouillés. Paramètres modifiables sous les contraintes existantes, mode verrouillé en présence de phases, côtés modifiables. Changer de mouvement exige remplacement/variante ; duplication conserve filiation et suffixe système D-124 sans renommage du mouvement.
 
 **Complément cible 12/10 :** Choix de nature → CE-CIR-01 ; perte → CE-CIR-02 ; œil → CE-CIR-03. Diminution sans message ; restauration avant préremplissage. Ajout catalogue avec perte exige confirmation, Annuler abandonne ajout.
 
@@ -1638,7 +1672,7 @@ Les Exercices peuvent être réorganisés dans leur zone ou déplacés par gliss
 
 L’état Figma `Composition d'une séance — Appui long — carte soulevée` (`3518:4576`) matérialise ce retour visuel. Avec Récupération, le bloc actif passe de `354 × 93` à `362 × 97`, reste centré dans la section (`x = 6`, contre `x = 10` au repos), utilise le fond bleu très clair `#F7F7FF`, un contenu atténué, un contour `1` point `#D1D1D6`, un rayon `12` et une ombre périphérique `#14171F` à `22 %`, décalage `0 / 0`, flou `10`, étalement `2`. L’ombre et le contour entourent l’Exercice et sa Récupération. Les autres cartes et éléments structurels restent inchangés.
 
-La poignée `Icon / Structure / Movable` reste l’indice visuel du caractère déplaçable, mais le geste d’activation porte sur la carte. L’état soulevé est uniquement transitoire : il ne modifie ni l’ordre ni la position structurelle avant la dépose.
+La poignée `Icon / Structure / Movable` reste l’indice visuel du caractère déplaçable, mais le mouvement d’activation porte sur la carte. L’état soulevé est uniquement transitoire : il ne modifie ni l’ordre ni la position structurelle avant la dépose.
 
 Le Circuit reste structurel. Le Compte à rebours initial et la Fin de séance sont explicitement non déplaçables, sans appui long ni poignée de déplacement.
 
@@ -2214,7 +2248,7 @@ Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde 
 
 #### 13. Gestes
 
-Gestes de composition existants ; pas de geste de conversion du format ajouté.
+Gestes de composition existants ; pas de mouvement de conversion du format ajouté.
 
 #### 14. Validation
 
@@ -2783,7 +2817,7 @@ Réinitialiser et Suivant selon table§4.12 ; Pause suspend les horloges actives
 
 #### 13. Gestes
 
-Tap commandes ; aucun geste structurel de Session.
+Tap commandes ; aucun mouvement structurel de Session.
 
 #### 14. Validation
 
@@ -3611,6 +3645,8 @@ Barre couleur 4 ; nature 26 ; titre 13 gras ; heure/durée 11 gris ; Lecture 26.
 
 #### 9. Layout déterministe
 
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
+
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Référence 402 : x80, largeur 298 ; séance 46 de haut, exercice 48. Hauteur d’instance adaptée à l’événement. Exemple heure/durée : 08 h · 13 min.
@@ -3705,6 +3741,8 @@ Semaine : nature 26, badge heure 08:00, classement puis durée avec sablier ; st
 
 #### 9. Layout déterministe
 
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
+
 Composants actifs et propriété Durée : [DSF cartes du 07/10](../DSF-CARTES-DUREE-2026-10-07.md). La suppression du cadre de durée Catalogue ne change pas le contrat de cette variante : sélecteurs sans durée, Suivi avec durée réelle, Calendrier avec données de planification. Ne pas injecter une durée à cause du défauttrue de la propriété Figma.
 
 Carte 354×95,5 repliée ; séance déployée 254,5. Segmenté 354/padding 4/gaps 4/options 112,67. Aucune barre de carte Semaine.
@@ -3794,6 +3832,8 @@ Titre et fermeture → segmenté Exercices/Séances → liste défilante avec ca
 Cases à cocher même pour un seul élément. Ajouter 1 élément au singulier ; Ajouter n éléments au pluriel. Le titre de la modale suit le segment actif.
 
 #### 9. Layout déterministe
+
+**Complément du 25/10/2026.** Gabarits courants du [relevé du 25/10](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md) : carte simple repliée 80 pt ; photo 64 à 8/8 seulement lorsque la famille autorise un média, texte x84 ; icônes de ligne 14 sans cercle ; bilatéralité après les zones en ligne 2. Réserver une largeur commune aux durées de la liste pour aligner le sablier ; calendrier semaine : même règle pour horloge/heure, sans point médian. Les cartes dépliées et les cartes Résultat ne sont pas forcées à 80.
 
 Marges 24 et largeur 354 sur 402 ; CTA de référence y 802,354×48, libellé centré. Cartes de choix issues du DSF courant, sans durée ni Lecture/Déployer. Cases à droite ; pas de radios. États de sélection du contrôle de planification : retenu #5F60EE/texte blanc Semi Bold ; non retenu #F9FAFC/texte #141414 Regular.
 
@@ -4153,7 +4193,7 @@ Enregistrer avec Ressenti valide sauvegarde puis restaure le Catalogue ou le Cal
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
+D-437 / MFN-11 amendée par v6 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 Le futur relevé À l’échec distingue chronométré, estimé, déclaré et non renseigné, par occurrence/côté ; il ne remplace pas le temps actif cumulé. Exigence de données validée ; implantation des champs de saisie et de restitution hors périmètre de cette passe, aucun emplacement nouveau supposé.
 
@@ -4215,6 +4255,8 @@ Options selected ; CTA disabled annoncé ; commentaire avec limite ; erreurs ann
 
 #### 19. Invariants
 
+**Complément du 25/10/2026.** Contenu exécuté et relevés restent figés ; rang non stocké, classification actuelle résolue séparément si nécessaire. Ne pas propager une correction de nom ou de média dans l’instantané. C05 signale que le relevé rouvre cette question sans décision contraire à la v6.
+
 Ressenti obligatoire si Synthèse affichée ; commentaire facultatif ; aucun Session count.
 
 #### 20. Recette déterministe
@@ -4245,7 +4287,7 @@ Navigation globale ; aucun déploiement de carte. Pas de dépendance à l’Acti
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
+D-437 / MFN-11 amendée par v6 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
@@ -4287,7 +4329,7 @@ Navigation globale, aucune action sur Ressenti et aucun déploiement ; commandes
 
 #### 13. Gestes
 
-Scroll. Aucun geste modifiant historique.
+Scroll. Aucun mouvement modifiant historique.
 
 #### 14. Validation
 
@@ -4310,6 +4352,8 @@ Source supprimée : carte reste lisible. Snapshot ancien : appliquer compatibili
 Type, titre, statut, durée, catégorie et Ressenti annoncé lorsqu’il existe ; dates des groupes accessibles. L’indicateur Ressenti n’est pas présenté comme un bouton. Aucun déployer/replier annoncé.
 
 #### 19. Invariants
+
+**Complément du 25/10/2026.** Contenu exécuté et relevés restent figés ; rang non stocké, classification actuelle résolue séparément si nécessaire. Ne pas propager une correction de nom ou de média dans l’instantané. C05 signale que le relevé rouvre cette question sans décision contraire à la v6.
 
 Historique indépendant source ; origin ACTIVITY ; compteur Séances inchangé.
 
@@ -4343,7 +4387,7 @@ Enregistrer réussi → Suivi ; erreur reste sur Synthèse. Aucun Relancer ni so
 
 #### 5. Données affichées et source de vérité
 
-D-437 / MFN-11 amendée par v5 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
+D-437 / MFN-11 amendée par v6 §10 : nom et contenu issus de l’instantané, aucun rang stocké ; classification actuelle résoluble séparément. Pas de rang sur les lignes compactes du Suivi 1992:8996.
 
 *Texte identique à celui de la section [« CE-T03-14 — Synthèse d’Exécution directe »](#ce-t03-14--synthèse-dexécution-directe) ; il n’est pas recopié ici.*
 
@@ -4404,6 +4448,8 @@ Interruption technique sans présentation autorise Ressenti absent ; données so
 Labels des trois Ressentis et état sélectionné ; obligatoire/facultatif annoncé ; statut non uniquement coloré ; focus/erreur champ ; réduction des animations.
 
 #### 19. Invariants
+
+**Complément du 25/10/2026.** Contenu exécuté et relevés restent figés ; rang non stocké, classification actuelle résolue séparément si nécessaire. Ne pas propager une correction de nom ou de média dans l’instantané. C05 signale que le relevé rouvre cette question sans décision contraire à la v6.
 
 Exécuté≠terminé ; un Exercice partiel compte exécuté, jamais atteint ne compte pas ; pas de compteur de Séries interprété comme nombre d’Exercices ; aucun Cycle/Tour.
 
@@ -5041,6 +5087,8 @@ Barre adapte largeur 360/402/440 et inset bas ; aucun chevauchement ; labels acc
 
 #### 11. États de l’écran
 
+**Complément du 25/10/2026.** La maquette `10266:20575` propose un quatrième segment Mouvements dans le Catalogue, pas un nouvel onglet de navigation principale. Son admission MVP reste C07 ; ne pas déclarer cette proposition réalisée.
+
 Quatre destinations : Catalogues, Calendrier, Suivi, Profil ; une active. Aucune Recherche ; aucune destination créée par la variante Search du set DSF. Navigation absente des modales/shells d’Exécution selon leur propre contrat.
 
 #### 12. Contrôles et interactions
@@ -5393,3 +5441,86 @@ Le comportement utilisateur est déjà fixé. L’exclusion d’une occurrence i
 | E73 | règle commune §4.1 + tous contrats données |
 
 Chaque contenu E01–E73 est rattaché ci-dessus ; E08 est rattaché à CE-T03-02/17 et §4.3. E70 n’a volontairement pas d’écran artificiel.
+
+
+### CE-UI-NIV-01 — Niveaux — choisir, ajouter, réordonner
+
+#### 1. Identification
+
+CE-UI-NIV-01. Popover `10027:40760`, Changer déployé `10152:20245`, Ajouter déployé `10152:20369`, Ordre `10085:20050`. Règles N01–N07 et v6 §5–8.
+
+#### 2. Finalité fonctionnelle
+
+Consulter la progression, choisir un autre niveau, en ajouter un ou en réordonner les membres.
+
+#### 3. Contexte d’entrée
+
+Commande Niveau de CE-T03-04 ou de la copie ouverte depuis CE-T03-08. Sans groupe : commande Niveau vide et création de première progression possible.
+
+#### 4. Contexte de sortie / destinations
+
+Catalogue : consulter un exercice du mouvement choisi, sans transformer l’origine ; si plusieurs exercices, choix explicite. Séance : préparer un remplacement puis retour au brouillon. Ajouter : création d’un mouvement et d’un exercice. Réordonner : écran Ordre.
+
+#### 5. Données affichées et source de vérité
+
+Identifiant du mouvement, groupe et ordre courant ; rang et total calculés. Nom, média, description du candidat ; aucun rang persistant dans les copies. Les anciens contenus copiés ne sont pas resynchronisés.
+
+#### 6. Classification des valeurs Figma
+
+Libellés Changer / Ajouter / Réordonner statiques. Noms, descriptions, rangs, comptes et photos dynamiques. Squats et Niveau 3 sont des exemples.
+
+#### 7. Structure de l’écran
+
+Popover à trois options ; Changer et Ajouter se déploient en place, chevrons droite/bas. Ordre : rang fixe à gauche, carte avec vignette, nom et description sur deux lignes.
+
+#### 8. Éléments obligatoires
+
+Commande Niveau visible même sans groupe ; choix explicite de difficulté pour créer ; sélection explicite de mouvement pour remplacer. Aucun passage automatique au niveau suivant.
+
+#### 9. Layout déterministe
+
+Carte Mouvement `10124:21979`, variante adaptée à la sélection. Les trois variantes icon/niveau ne limitent pas la progression. Rendu des rangs supérieurs et comptes à harmoniser selon le relevé.
+
+#### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Liste défilante, noms longs tronqués visuellement mais complets pour l’accessibilité ; cibles tactiles conservées. Aucun clavier nécessaire pour choisir/réordonner, clavier du formulaire pour créer.
+
+#### 11. États de l’écran
+
+Sans groupe ; deux membres ; groupe singleton ; trois et plus de trois niveaux ; sélection ; ajout plus facile / difficile ; réordonnancement ; source indisponible ; durée manquante après remplacement.
+
+#### 12. Contrôles et interactions
+
+Choix difficulté = insertion avant/après l’origine. Changer dans une séance : nouvelle occurrence dans le brouillon, durée transférée par rang, complément des seules valeurs manquantes. Les paramètres indépendants du mouvement restent modifiables.
+
+#### 13. Gestes
+
+Tap pour ouvrir, choisir et déployer ; déplacement des lignes pour réordonner. Prévoir commandes accessibles équivalentes au déplacement ; ne pas inférer d’une poignée un autre geste métier.
+
+#### 14. Validation
+
+Aucun niveau créé seul ; enregistrement atomique du nouveau mouvement, de son exercice et du groupe. Paramètres valides avant validation du remplacement. Aucune confirmation de correction de l’origine pour une variante explicite.
+
+#### 15. Brouillon et persistance
+
+Annulation de création/remplacement sans résidu. Reclassement ne change ni identité ni relevés ; les modalités de validation/annulation du réordonnancement non montrées par Figma restent à préciser, sans inventer de bouton.
+
+#### 16. Navigation et conservation d’état
+
+Retour au contexte Catalogue ou séance, avec position et paramètres conservés. La fermeture d’une sélection sans validation ne remplace rien.
+
+#### 17. Erreurs et cas limites
+
+Groupe réduit à un membre = état vide. Mouvement absent : copie consultable et exécutable suivant ses données propres ; ne pas fabriquer un rang. Aucun rapprochement rétroactif par nom.
+
+#### 18. Accessibilité
+
+Annoncer Niveau X sur Y, action et sélection. Ne pas utiliser la couleur seule ni annoncer les trois segments comme le total réel. Actions accessibles de déplacement à compléter dans la maquette.
+
+#### 19. Invariants
+
+Un seul groupe linéaire par mouvement ; aucune limite métier ; records séparés par mouvement ; instantanés inchangés. Rattacher/détacher/supprimer sont hors du parcours dessiné, réserve C08.
+
+#### 20. Recette déterministe
+
+Première variante facile : origine 2 / variante 1 ; difficile : origine 1 / variante 2. Réordonner recalcule tous les affichages sans toucher les relevés. Tester singleton, quatre cas de phases, annulation et source supprimée. Recette automatisée requise au développement ; non exécutée par cette mise à jour documentaire.

@@ -1,5 +1,7 @@
 # DSF — durée des cartes — 07/10/2026
 
+> Actualisation du 25/10/2026 : les rendus de cartes, niveaux, recherche et sauvegarde concernés sont décrits dans le [relevé courant](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Ce document daté reste une preuve historique ; ses captures et noms de composants ne remplacent pas l’inventaire courant.
+
 Sources : [prompt cartes](archives/cartes-phrases-v14-2026-10-07/prompt-cartes.md), composants relus dans Figma, spécification Bip pour présence/nature. Ce complément remplace les anciennes dispositions de badge de durée Catalogue, pas les badges des contrôles éditables.
 
 ## Composants actifs et portée

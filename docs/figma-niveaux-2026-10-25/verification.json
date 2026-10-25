@@ -1,0 +1,17 @@
+{
+  "png_count": 97,
+  "blocked_exports": 43,
+  "existing_image_links_updated": 22,
+  "contracts": 41,
+  "contract_structure_errors": [],
+  "introduced_broken_links": [],
+  "baseline_broken_links": [
+    {
+      "file": "docs/MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md",
+      "target": "Specifications-fonctionnelles/images/ecran-13a-catalogue-seances-creer-arbre.png",
+      "preexisting": true
+    }
+  ],
+  "source_sections_with_current_captures": 62,
+  "git_diff_check": "passed"
+}
