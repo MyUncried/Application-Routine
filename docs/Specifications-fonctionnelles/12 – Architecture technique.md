@@ -902,6 +902,8 @@ Le Bottom Action contient un bouton `354 × 48` placé à `x=12`, avec un espace
 
 Au relevé historique du 1er septembre 2026, `Prototype MVP` contenait `74` frames de production (133 frames au relevé du 06/10). Le contrôle daté établit que `73` utilisent au moins un Screen Shell ; le Splash `1992:469` est l’unique exception. Les neuf états de planification concernés utilisent également `DSF / Gabarits / Modale plein écran` à l’intérieur de leur écran de contexte.
 
+**Réconciliation Figma des cartes de Composition (20/10/2026, PRE-6).** Dans la page `Design system — Fondations`, `DSF / Cards / Composition — exercice` (`5544:6797`) est un ensemble de composants à quatre variantes visuelles : Durée bilatérale, Séries, Répétitions et Répétitions + cadence. Les 111 cartes de Composition recensées dans la page Prototype MVP ont été raccordées comme instances Figma lors du contrôle du 20/10 ; ce constat est propre au fichier Figma, il ne signifie ni composant React Native livré ni contrôle d'exécution. Les cartes de sélection utilisent les variantes du composant `DSF / Cards / Exercice` (`6214:7278`). Les contenus par exercice restent des propriétés d'instance ; faire évoluer le composant visuel partagé plutôt que multiplier des implémentations de carte indépendantes lorsque les états sont communs. Références : [composant Composition](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5544-6797), [composant Exercice](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=6214-7278). Ceci ne prescrit pas une correspondance 1:1 avec les composants du code.
+
 ### Composants et contrôles réutilisables
 
 Les composants ci-dessous constituent le catalogue structurel actuellement vérifié
