@@ -1,6 +1,6 @@
 # Modèle fonctionnel
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Alias sur le mouvement ; rang courant dérivé du groupe. La filiation immuable permet statistiques, résolution facultative de la classification actuelle et choix de niveau. La consultation de la source ne modifie jamais les copies ni les instantanés ; leur contenu reste autonome.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 ## Sommaire
@@ -152,7 +152,13 @@ Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle techni
 
 #### Exercice
 
-**Modèle cible D-437 (23/10/2026).** L’Exercice associe un Mouvement et des paramètres d’exécution. Le contenu énuméré ci-dessous est porté par le mouvement pour une définition Catalogue et copié pour une occurrence. Les définitions partageant le mouvement voient ses corrections ; les occurrences et instantanés restent autonomes. La structure Séance → Cycle technique → Circuit → Exercice ne change pas. Définitions : glossaire du chapitre 01 ; comportements : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 Le mouvement porte nom, étapes, médias, catégorie, zones et structure ordonnée des phases ; les valeurs temporelles, répétitions et autres réglages restent des paramètres. Chaque définition Catalogue référence exactement un mouvement existant ; aucune suppression de mouvement tant qu’une définition le référence. Le mouvement est créé avec un exercice Catalogue ou local, jamais seul ; une fois enregistré il peut subsister sans exercice, sans collecte automatique. Son groupe éventuel est linéaire, unique et invisible comme objet autonome.
 
@@ -188,7 +194,7 @@ La Pause et la Pause entre les côtés sont indépendantes. Lorsque le Changemen
 
 Dans le MVP T03, une **Exercice de référence** (`ActivityDefinition`) est une définition persistante autonome du Catalogue des exercices. Son cycle de vie comprend création, consultation/modification, archivage, restauration et suppression définitive depuis les archives. Elle peut être exécutée directement lorsqu’elle est valide.
 
-Une **Exercice de Séance** (`SessionActivity`) est une copie indépendante placée avant, dans ou après le Circuit d’une Séance. L’insertion depuis le Catalogue copie les propriétés intrinsèques applicables de la référence au moment de l’insertion, notamment nom, Description facultative structurée en étapes ordonnées (D-425), mode/cible, Séries, Pause, `sideRecoverySeconds`, charge avec son activation et ses valeurs conservées (RM-236), Zones corporelles et Changement de côté (direction propre historique, RM-244). Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). La copie devient ensuite indépendante : modifier, archiver ou supprimer la source ne modifie jamais la copie, et inversement.
+Une **Exercice de Séance** (`SessionActivity`) possède son identité propre, une référence directe au mouvement et des paramètres locaux copiés à l’insertion puis indépendants du Catalogue. Le contenu partagé est lu depuis le mouvement. La récupération contextuelle conserve les règles D-304/D-307 ; modifier ou supprimer la définition Catalogue ne modifie pas les paramètres locaux ni la référence au mouvement. Le mouvement survit à la suppression des exercices. D-445 remplace l’ancienne copie autonome de contenu.
 
 Un Exercice créé directement dans une Séance ne devient pas automatiquement une référence de Catalogue. D-440 dispense de toute reprise des données antérieures pour la transition MFN ; la création locale produit un mouvement et sa copie sans publier de définition Catalogue.
 
@@ -624,6 +630,4 @@ Dans le MVP, les Zones corporelles constituent un référentiel utilisateur admi
 
 ## Mouvement et interface — actualisation du 25/10
 
-Le nom présenté avec - Nn dans la nouvelle maquette reste composé à l’affichage ; le nom du mouvement n’est pas modifié. Une pile de mouvements et le regroupement de plusieurs exercices utilisant un mouvement sont deux relations différentes. Le modèle reste mouvement partagé → exercices paramétrés → copies indépendantes → instantanés figés. Les propositions d’unicité et de propagation du relevé sont C01/C04/C05 ; aucune nouvelle intégrité sur les copies n’est déduite d’une interface.
-
-Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).

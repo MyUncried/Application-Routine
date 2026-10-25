@@ -1,8 +1,8 @@
 # Documentation de KODJO
 
-**Actualisation du 25/10/2026 :** [niveaux, recherche, captures, composants, tokens et réserves](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Les contradictions C01–C09 restent explicites ; les captures ne les tranchent pas.
+**D-445 :** huit points clos ; C08 seul différé. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-**Référence fonctionnelle reçue et intégrée — v6 :** [Niveaux, recherche et parcours v6](KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Ses règles remplacent les dispositions antérieures contradictoires dans leur portée, notamment recherche, alias, reprise des phases et classification actuelle. [Consignes Claude Code actualisées](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V6.md).
+**Référence fonctionnelle reçue et intégrée — v7 :** [Niveaux, recherche et parcours v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Ses règles remplacent les dispositions antérieures contradictoires dans leur portée, notamment recherche, alias, reprise des phases et classification actuelle. [Consignes Claude Code actualisées](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V7.md).
 
 **Relevé historique Figma du 23/10/2026 :** [Gestes, filiation et niveaux](DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) — cinq nouveaux états et popover illustrés au chapitre 06, captures existantes actualisées, contrats et composants réconciliés ; écarts de prototype explicités.
 
@@ -53,3 +53,16 @@ En cas de contradiction entre deux passages, les deux sont conservés jusqu’à
 ## Mouvement, filiation et niveaux — intégration du 23/10/2026
 
 Règles normatives et recettes MFN : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Modèle et intégrité : chapitres 04/09 ; parcours : 03/08 ; contrats : 06/13 ; API/architecture : 11/12 ; livraison : 05 ; décisions D-436 à D-440 : 07. La spécification v0.4 est propagée dans ces chapitres ; code à réaliser, transition sur base vierge sans reprise.
+
+
+## Décisions closes — D-445
+
+Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre MVP. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [prompt Claude Code](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V7.md).
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.

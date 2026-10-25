@@ -1,0 +1,23 @@
+{
+  "decision": "D-445",
+  "closed": [
+    "C01",
+    "C02",
+    "C03",
+    "C04",
+    "C05",
+    "C06",
+    "C07",
+    "C09"
+  ],
+  "deferred_scope": [
+    "C08"
+  ],
+  "contracts": 41,
+  "contract_errors": [],
+  "new_broken_links": [],
+  "acceptance_cases": 45,
+  "unique_acceptance_cases": 45,
+  "application_tests": "not run; documentation only",
+  "figma": "not modified; previous captures and export limitation retained"
+}

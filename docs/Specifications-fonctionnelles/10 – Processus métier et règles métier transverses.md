@@ -1,6 +1,6 @@
 # Règles métier et calculs
 
-**Référence normative actualisée — 25/10/2026 :** [spécification Niveaux et recherche v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md). Les règles N01–N08 et R01–R07 ainsi que les parcours de la v6 sont normatifs et remplacent les clauses MFN incompatibles. Les coefficients sont initiaux, ajustés pendant le développement contre les cas automatisés R07. Leur validation et les non-régressions s’exécutent automatiquement en CI, sans réglage utilisateur.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
 Ce chapitre réunit les règles métier testables et les calculs, identifiés ou non, dans l’ordre du plan de domaine commun. Le chapitre 08 décrit les enchaînements qui les appliquent ; les contrats du chapitre 13 en décrivent l’effet à l’écran.
@@ -251,7 +251,7 @@ Les exécutions déjà enregistrées restent conservées dans l'historique.
 
 ### Mouvement, filiation et niveaux
 
-D-437 à D-440, validées le 23/10/2026. Cette section intègre les règles normatives de la spécification v0.4 et remplace, sur les points explicitement indiqués, les règles antérieures. Les identifiants MFN sont désormais les références de ces règles dans ce chapitre ; ils ne remplacent pas les identifiants RM existants. La livraison du code reste à réaliser. « Mouvement » est exclusivement interne ; l’interface utilise exercice, mouvement et niveau.
+D-437 à D-440, validées le 23/10/2026. Cette section intègre les règles normatives de la spécification v0.4 et remplace, sur les points explicitement indiqués, les règles antérieures. Les identifiants MFN sont désormais les références de ces règles dans ce chapitre ; ils ne remplacent pas les identifiants RM existants. La livraison du code reste à réaliser. D-445 actualise ces règles : mouvement est utilisé dans le modèle et dans l’interface.
 
 
 ### 1. Finalité et concepts
@@ -266,7 +266,7 @@ Un Exercice associe un Mouvement à des paramètres d’exécution. Plusieurs ex
 |---|---|
 | Mouvement | Identité du geste ou de sa variante précise, nom, description en étapes, médias, catégorie, zones corporelles et structure ordonnée des phases |
 | Exercice du Catalogue, `ActivityDefinition` | Mouvement associé à des paramètres d’exécution ; objet sélectionnable, planifiable et exécutable |
-| Exercice de séance, `SessionActivity` | Occurrence indépendante, avec son identifiant propre, ses contenus copiés et ses paramètres contextualisés |
+| Exercice de séance, `SessionActivity` | Occurrence avec identifiant propre, référence directe au mouvement et paramètres locaux indépendants |
 | Instantané d’exécution | Données figées au démarrage ; les résultats sont rattachés à l’exécution et à ses occurrences/séries/passages |
 | Groupe de niveaux | Relation de progression entre plusieurs mouvements ; aucun objet « niveau » autonome |
 
@@ -295,7 +295,7 @@ Modifier la structure des phases peut constituer une variante du mouvement. Une 
 
 **Éligibilité conservée :** les phases sont chronométrées, réservées au mode Durée à cible chiffrée et aux séries identiques. Une série déroule la séquence une seule fois. Cette évolution n’introduit ni phases en mode Répétitions, ni phases à l’échec ou en séries variables, ni compteur supplémentaire de répétitions par phase. Les paramètres de durée restent soumis aux contraintes du format ; l’adaptation des durées ne modifie pas la structure copiée.
 
-**Structure modifiable au Catalogue, y compris après utilisation.** Les corrections de contenu ou de découpage restent possibles au travers du dialogue MFN-08. Dans une occurrence, la structure copiée est figée selon MFN-09.
+**Structure modifiable au Catalogue, y compris après utilisation.** Les corrections de contenu ou de découpage restent possibles au travers du dialogue MFN-08. Depuis une occurrence, le crayon ouvre la correction du mouvement partagé selon MFN-08 ; l’instantané déjà démarré reste figé.
 
 Le comportement antérieur de normalisation des phases est délibéré (FR-3, FR-9, AD-20, D-371), et non une simple facilité d’éditeur. Ses trois effets sont traités séparément :
 
@@ -303,57 +303,33 @@ Le comportement antérieur de normalisation des phases est délibéré (FR-3, FR
 2. **Retrait jusqu’à une phase :** retirer l’avant-dernière phase efface la structure ; la durée de la phase restante devient la durée de série. La règle de phase unique D-371 est conservée mais déclenchée au mouvement de retrait, et non par nettoyage silencieux des durées. Le contrôle de retrait doit permettre cette transition.
 3. **Libellé vide d’une phase ajoutée :** le nommage par défaut reste inchangé. Il intervient sur une phase ajoutée, dans un changement structurel déjà couvert par le dialogue, puis le nom est stocké comme un libellé ordinaire.
 
-Dans une occurrence verrouillée, ces trois transformations de structure ne se déclenchent pas. Une durée vide empêche simplement d’enregistrer ; une contrainte de format ne permet pas de supprimer silencieusement une phase.
+Dans les paramètres locaux, ces transformations de structure ne se déclenchent pas ; elles relèvent de l’édition du mouvement partagé. Une durée vide empêche simplement d’enregistrer ; une contrainte de format ne permet pas de supprimer silencieusement une phase.
 
 **Identité des phases :** réutiliser `WorkPhase.id`, entier ≥ 1, unique dans la structure, persisté et conservé par clonage. La clé complète est mouvement + identifiant de phase. Un **compteur monotone porté par le mouvement** attribue les identifiants ; retirer une phase ne permet jamais de réutiliser son identifiant. Le déplacement conserve les associations structure/valeurs.
 
 Le modèle actuel initialise le prochain identifiant depuis le maximum présent ; cette méthode peut réutiliser un identifiant supprimé après réouverture et doit être remplacée. La réutilisation du mécanisme d’identité existant ne dispense donc pas de corriger sa stratégie d’allocation.
 
-Les types sont séparés : structure et libellés sur le mouvement ; paramètres Catalogue contenant des couples `{ phaseId, durationSeconds }` ; représentation résolue des copies contenant le libellé et les valeurs nécessaires à l’exécution. Aucun libellé Catalogue ne devient une seconde source modifiable dans les paramètres.
+Les types sont séparés : structure et libellés sur le mouvement ; paramètres Catalogue contenant des couples `{ phaseId, durationSeconds }` ; représentation résolue de l’instantané contenant le libellé et les valeurs nécessaires à l’exécution. Aucun libellé Catalogue ne devient une seconde source modifiable dans les paramètres.
 
 ### 3. Filiation vers le mouvement
 
 #### MFN-03 — Identité statistique
 
-**Règle normative**, supersédant la cible ActivityDefinition de la proposition RM-REC-01 antérieure.
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
 
-Toute nouvelle occurrence conserve l’identifiant du mouvement dont elle est issue. Deux exercices ayant des paramètres différents mais utilisant le même mouvement alimentent la même identité de regroupement. Deux niveaux ont des identifiants de mouvement distincts ; leur groupe ne fusionne pas leurs records.
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
 
-`movementId` désigne la relation active d’un exercice Catalogue ; `sourceMovementId` la filiation d’une copie et de son instantané. Les deux champs sont **non nuls** dans le nouveau modèle sur base vierge. Un identifiant source peut être orphelin sans être nul.
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
-| Événement | Résultat attendu |
-|---|---|
-| Insertion depuis le Catalogue | Nouvel identifiant d’occurrence ; copie du contenu et de l’identifiant du mouvement |
-| Modification des paramètres de l’occurrence | Filiation inchangée |
-| Duplication d’une occurrence ou d’une séance | Nouveaux identifiants propres ; filiations conservées à l’identique |
-| Création de l’instantané | Contenu et filiation copiés depuis l’occurrence, jamais relus dans le Catalogue |
-| Exécution directe ACTIVITY | Même identité de regroupement que les occurrences de séance ; provenance capturée au démarrage |
-| Correction ou suppression de la source | Aucun effet sur les copies ni les instantanés |
-| Données antérieures au nouveau modèle | Non reprises ; démarrage sur base vierge |
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
-Contraintes :
-
-1. La filiation d’une copie est immuable après sa création.
-2. Elle n’est pas utilisée pour charger un nom, une description, un média ou un paramètre à afficher ou exécuter.
-3. La filiation d’une copie ne porte aucune contrainte d’intégrité référentielle, cascade ou jointure obligatoire vers la source. Cette absence d’intégrité ne s’applique pas à la relation active `ActivityDefinition → Mouvement`.
-4. Une filiation orpheline est conservée sans invalidation ni nettoyage automatique.
-5. Son usage couvre les statistiques, la résolution facultative de la classification actuelle et le choix de niveau. Sa copie et sa persistance ne synchronisent aucun contenu.
-6. Les conditions de comparaison des performances ne sont jamais encodées dans cet identifiant.
-7. Les résultats restent rattachés à l’exécution et à l’occurrence/série/côté/passage, pas seulement au mouvement.
-
-**Distinction essentielle :** ces restrictions concernent la filiation de la copie. La relation active Exercice Catalogue → Mouvement doit pouvoir être lue pour construire la fiche et éditer le contenu partagé. Lui appliquer l’interdiction de lecture rendrait la scission inutilisable.
-
-**Intégrité active :** chaque `ActivityDefinition` référence exactement un mouvement existant. La suppression d’un mouvement est interdite tant qu’une définition Catalogue le référence. Supprimer une définition ne supprime pas automatiquement son mouvement. La suppression est ainsi encadrée par la règle fonctionnelle, sans imposer ici le mécanisme SQL. Cette intégrité réelle est distincte de la filiation des copies, qui peut rester orpheline. Le mécanisme technique de garantie est à choisir dans l’implémentation ; le résultat fonctionnel est fixé.
+La référence `movementId` est obligatoire sur les objets vivants Catalogue et séance. L’identité du mouvement d’une occurrence n’est pas réécrite en place pour simuler un autre mouvement : remplacer cette occurrence. L’instantané porte `sourceMovementId` obligatoire, sans cascade ni jointure obligatoire, et conserve sa filiation même après suppression permise du mouvement. Aucun rang dans ces identifiants. Deux paramètres différents sur le même mouvement peuvent se regrouper ; deux niveaux restent deux identités, sous réserve des conditions de comparabilité.
 
 #### MFN-04 — Création directe et cycle de vie du mouvement
 
-Toute création locale produit une occurrence avec une filiation non nulle. Elle crée son mouvement sans publier automatiquement de définition dans le Catalogue. Il n’existe aucun parcours de création isolée d’un mouvement : il est créé avec un exercice Catalogue ou un exercice de séance.
+Un mouvement enregistré peut exister sans exercice. Supprimer son dernier exercice Catalogue ou sa dernière occurrence de séance ne le supprime pas ; aucun ramassage automatique. Le catalogue d’entretien peut le présenter et la recherche de création le proposer, y compris lorsqu’il a été créé localement.
 
-**Aucun ramassage automatique :** un mouvement créé et enregistré persiste même si plus rien ne le référence. Supprimer une séance ou sa dernière occurrence ne supprime pas le mouvement et ne transforme pas, à lui seul, sa filiation en référence orpheline. La recherche continue de proposer ce mouvement. Une suppression explicite éventuelle reste soumise à MFN-03 ; elle peut laisser des copies orphelines sans les modifier.
-
-La recherche et les suggestions portent sur les mouvements disponibles, y compris locaux, et non uniquement sur les entrées du Catalogue. Le sélecteur réutilise le contenu du geste pour définir les paramètres d’un nouvel exercice. Il ne publie pas automatiquement une entrée Catalogue pour le geste local.
-
-**Frontière transactionnelle :** le mouvement créé avec une occurrence locale est persisté dans la même transaction que son brouillon. Une création annulée ne laisse ni mouvement ni média orphelin. Une insertion dans un brouillon abandonné ne marque pas le mouvement comme utilisé. Le mouvement devient utilisé lors de l’enregistrement d’une séance qui le contient, selon MFN-08. Le maintien d’un mouvement sans références ne s’applique qu’aux créations effectivement enregistrées, pas aux créations abandonnées.
+Créer localement dans une séance ne publie pas automatiquement une définition Catalogue. Enregistrer la création du mouvement et son occurrence dans la transaction du brouillon ; annuler ne laisse aucun résidu. Le maintien d’un mouvement isolé concerne les créations enregistrées, pas les brouillons abandonnés. La suppression explicite reste distincte et son périmètre relève de C08 ; l’intégrité active MFN-03 doit être conservée.
 
 ### 4. Niveaux et progression
 
@@ -369,7 +345,7 @@ Règles :
 
 - Un mouvement neuf commence sans groupe ; le groupe est créé lors du rattachement explicite d’une seconde variante.
 - Tous les exercices partageant un mouvement partagent son niveau.
-- Aucune contrainte d’unicité n’est posée sur les noms.
+- Le nom principal est unique selon la clé canonique espaces/casse/accents ; les alias peuvent être partagés.
 - L’appartenance est toujours choisie par l’utilisateur. Une suggestion ne crée aucun rattachement automatique.
 - Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer.
 - Un déplacement dans le groupe n’est pas une modification du geste et ne déclenche pas le dialogue de correction.
@@ -384,91 +360,79 @@ Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jama
 
 #### MFN-06 — Créer un exercice
 
-**Relevé Figma 25/10 :** divergences C01/C02/C07 consignées dans le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La règle ci-dessous n’est pas silencieusement remplacée.
+La saisie du nom déclenche le rapprochement défini par R02–R07 de la spécification v7 ; les tests de référence sont automatiques. Noms principaux uniques après normalisation espaces/casse/accents : contrôler à la frappe et à la sauvegarde ; exclure le mouvement édité de sa propre collision. Les alias peuvent être communs à plusieurs mouvements ; un seul résultat par identité.
 
-**Règle normative.**
+Le panneau sous le nom propose au plus cinq résultats, sans réordonnancement sous appui, avec Utiliser ce mouvement / Créer une variante dans chaque carte. Entrée valide le nom, jamais une sélection. L’accès explicite à la recherche reste disponible ; elle inclut tous les mouvements disponibles, même sans exercice ou créés dans une séance. Sélection explicite, jamais fusion ni écrasement silencieux des informations saisies.
 
-Le formulaire existant est conservé autant que possible ; le choix de l’origine du mouvement est une interaction supplémentaire, et non une promesse d’écran strictement inchangé.
-
-| Choix | Effet |
-|---|---|
-| Même mouvement, autres paramètres | Réutiliser le mouvement ; reprendre son contenu ; saisir les paramètres du nouvel exercice |
-| Créer une variante / un niveau | Créer un mouvement distinct et son exercice ; proposer le rattachement au groupe d’origine |
-| Créer un mouvement indépendant | Créer un mouvement sans groupe et son exercice |
-
-Une suggestion peut être proposée sur la base d’un nom proche, sans fusion ni attribution automatique. La recherche porte sur tous les mouvements disponibles, locaux compris. Une recherche explicite reste accessible indépendamment de la similarité du nom, avant la saisie détaillée. Une sélection ne doit pas écraser silencieusement des informations déjà saisies.
-
-Un rattachement ultérieur à un groupe est possible. Une correction d’identité erronée après utilisation ne doit pas réécrire les filiations historiques : aucune fusion rétroactive n’est proposée dans cette version. **Conséquence produit assumée :** deux créations indépendantes de « Squats » conservent des identités et des records séparés ; l’utilisateur ne peut pas réunir rétroactivement ces records dans cette version. Les suggestions et la recherche explicite préviennent cette erreur sans garantir qu’elle sera évitée. Relier les doublons comme niveaux ne répare pas cette séparation. Cette exclusion n’interdit pas une évolution future.
+Utiliser reprend le contenu courant du mouvement et laisse définir les paramètres. Variante suit MFN-07 ; indépendant crée sans groupe. L’unicité interdit deux créations homonymes mais ne détecte pas deux noms différents pour le même mouvement. Aucun rapprochement rétroactif des records ; relier deux mouvements comme niveaux ne fusionne pas leurs performances.
 
 #### MFN-07 — Créer un niveau
 
-Accès depuis un exercice utilisant le mouvement, par le popover de niveau de sa fiche : **Changer de niveau / Ajouter un niveau**. L’ancienne action glissée Nouveau niveau est retirée ; les actions Catalogue de D-196 sont conservées. L’opération crée un mouvement distinct et un exercice associé, avec des paramètres éventuellement repris de l’original.
+Depuis un résultat de recherche ou Ajouter un niveau, choisir Plus facile / Plus difficile : insertion avant / après l’origine ; première variante = groupe de deux membres. Créer ensemble le mouvement distinct et l’exercice associé.
 
-La description, les médias et les zones sont initialisés depuis l’original puis peuvent être adaptés. Ne pas imposer un média distinct ni une modification de tous les champs. La différence fonctionnelle est celle du geste ; la détection automatique de cette différence n’est pas demandée.
+Description et médias vierges ; catégorie et zones reprises, modifiables selon les règles existantes. Conserver le nom commencé et afficher l’invite grise (compléter le nom), non persistée ; elle disparaît à la reprise de saisie sans effacer le nom. La similarité est désactivée après choix de variante ; l’unicité reste contrôlée à la sauvegarde. Aucune seconde question de correction de l’origine.
 
-Le niveau s’insère avant ou après le niveau d’origine selon le choix Plus facile que X / Plus difficile que X ; l’ordre se modifie par glissement. La navigation vers un niveau affiche ses exercices disponibles, distingués par le résumé de leurs paramètres, et ne choisit pas silencieusement leurs paramètres.
+Commande Niveau active hors crayon ; Changer / Ajouter / Réordonner sont distincts. Dans le Catalogue, naviguer vers le mouvement choisi puis désigner explicitement un exercice si plusieurs paramètres existent. L’ancienne quatrième action glissée Nouveau niveau n’est pas réintroduite.
 
 ### 6. Modification du contenu partagé
 
 #### MFN-08 — Édition directe, correction partagée et nouvelle identité
 
-**Relevé Figma 25/10 :** divergences C01/C03/C09 consignées dans le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La règle ci-dessous n’est pas silencieusement remplacée.
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
 
-L’ouverture reste directement en édition, sans passage obligatoire en lecture seule. Une seule question d’identité apparaît à l’enregistrement si le mouvement a déjà été utilisé et que son **nom, sa description, son média ou la structure de ses phases** ont changé. Une modification limitée aux paramètres d’exécution, au classement dans le groupe, à la catégorie ou aux zones corporelles ne déclenche pas ce dialogue.
+À l’enregistrement d’une modification d’un mouvement existant :
 
-**Déjà utilisé :** un mouvement le devient à l’enregistrement d’une séance contenant l’un de ses exercices ou au démarrage d’une exécution directe. Une insertion dans un brouillon abandonné ne laisse aucune trace. L’état est irréversible, même après suppression de toutes les utilisations.
-
-L’utilisation écrit cette métadonnée durable sur le mouvement source sans modifier son contenu ni ses paramètres et sans créer d’exercice Catalogue. C’est la seule exception de métadonnée à la règle d’indépendance. RM-021 (« ne crée aucun Exercice dans le catalogue ») n’interdit pas cette métadonnée. Les corrections concernées continueront à déclencher le dialogue même après suppression des utilisations.
-
-| Choix visible | Comportement |
+| Condition | Dialogue / résultat |
 |---|---|
-| **Corriger cet exercice** | Conserver l’identité du mouvement et appliquer la correction à tous les exercices Catalogue qui le partagent |
-| **Créer un nouvel exercice** | Créer un mouvement distinct et un exercice portant les paramètres saisis ; conserver intacts l’exercice, le mouvement d’origine et les autres exercices qui le partagent |
-| **Annuler** | Revenir au brouillon d’édition sans enregistrer |
+| Nom modifié, avec ou sans autre exercice et avec ou sans historique | Toujours : Mettre à jour ce mouvement / Créer un nouveau mouvement / Annuler ; choix explicite, sans présélection |
+| Nom inchangé, contenu modifié, au moins un autre exercice lié ou une exécution enregistrée | Confirmation de mise à jour uniquement : Annuler / Confirmer |
+| Nom inchangé, contenu modifié, ni autre exercice lié ni exécution enregistrée | Sauvegarde silencieuse du même mouvement |
+| Aucun changement de contenu ; paramètres seuls ; reclassement seul | Aucun dialogue de mouvement |
 
-En modification d’une définition Catalogue, les libellés du tableau sont conservés. En **création sur mouvement repris**, ils deviennent **Corriger ce mouvement / En faire un mouvement distinct / Annuler** (Figma `9952:44349`) : même décision d’identité, sans créer un exercice supplémentaire au brouillon de création. Le rattachement au groupe est proposé sans présélection lors de la création du nouveau mouvement. Annuler retrouve le brouillon appelant intact.
+Le changement de nom est une modification du nom effectivement enregistré ; une variation de casse ou d’accent peut donc être une correction à confirmer, même si la clé d’unicité reste identique. Le contrôle d’unicité exclut l’identité en cours d’édition ; une création distincte doit disposer d’une clé différente des mouvements existants.
 
-La reprise d’un mouvement ouvre son contenu en lecture seule avec crayon, les paramètres restant modifiables. Le crayon ne persiste rien et n’existe pas pour déverrouiller une occurrence enregistrée. Une variante explicitement choisie crée déjà une nouvelle identité : sa validation n’affiche pas ce dialogue. Une reprise inchangée ou des paramètres seuls non plus. Le câblage démonstratif systématique vers la confirmation ne remplace pas ces conditions. Voir le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md).
+« Autre exercice » couvre les définitions Catalogue et les occurrences persistées de séance utilisant le mouvement, hors objet édité ; les lignes sont comptées une fois, sans multiplication par les séries, tours ou planifications. Les occurrences historisées sont traitées par la condition d’existence d’une exécution, pas ajoutées au compteur d’exercices. L’existence se recherche par identité de mouvement, pour SESSION comme ACTIVITY, et non par nom. Une séance simplement enregistrée n’est pas une exécution passée. Aucun indicateur d’utilisation irréversible déclenché par insertion n’est requis.
 
-**Portée obligatoire du dialogue :** au-delà d’un exercice concerné par la correction, le dialogue indique leur nombre. Les copies déjà posées et les instantanés restent inchangés. La correction partagée ne constitue jamais une synchronisation des occurrences.
+Le dialogue indique la portée réelle et le nombre d’autres exercices concernés ; zéro autre exercice ne masque pas l’enjeu historique. Un renommage corrigé conserve l’identité : les anciens et nouveaux noms peuvent légitimement partager leurs performances. Créer un nouveau mouvement conserve l’original et rattache l’exercice édité à la nouvelle identité. Depuis une séance, ce choix remplace l’occurrence par une nouvelle occurrence dans le brouillon ; les exécutions antérieures gardent leur filiation. Le rattachement éventuel à un groupe reste explicite.
 
-**Étape d’écran après choix de correction structurelle :** lorsque la nouvelle structure nécessite des durées absentes dans des exercices concernés, présenter ces durées pour chacun d’eux, visibles et modifiables. Cette étape est distincte du dialogue à trois boutons ; elle ne modifie pas ses libellés.
+Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais indisponible avant sélection lorsqu’un choix est requis. Une variante explicitement choisie et un mouvement neuf sont des créations : pas de seconde question sur la correction de l’origine. Aucun bouton additionnel de création distincte dans l’édition n’est ajouté ; la recommandation antérieure de ce second mécanisme est retirée. L’application ne déduit pas la différence sémantique entre correction et nouveau mouvement.
 
-- Les valeurs déjà présentes restent associées à leurs phases par identifiant.
-- Les durées manquantes sont proposées explicitement, jamais inventées et enregistrées silencieusement.
-- L’exercice directement édité ne peut pas être enregistré avec une durée manquante, selon MFN-02.
-- L’utilisateur peut passer outre la complétion d’un exercice frère : sa durée reste non renseignée et cet exercice est conservé **incomplet**, à compléter avant son utilisation exécutable. Ce cas de stockage incomplet est une conséquence normative de la correction partagée, distincte de la validation de l’exercice édité.
-- Le type de brouillon `DraftWorkPhase.durationSeconds: number | null` fournit déjà l’état de saisie manquant. Il ne prouve pas que la persistance actuelle accepte cet état ; celle-ci doit être adaptée pour les exercices frères incomplets.
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
 
-Une action **Créer une variante** reste accessible avant édition pour l’utilisateur qui sait déjà qu’il change de mouvement. Aucun mécanisme de détection sémantique n’est ajouté.
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, somme ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
+
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
 
 ### 7. Composition, Catalogue et historique
 
 #### MFN-09 — Composition et exception de création locale
 
-**Relevé Figma 25/10 :** divergences C04 consignées dans le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La règle ci-dessous n’est pas silencieusement remplacée.
+L’occurrence lit le mouvement courant et garde ses paramètres locaux, sa position et sa récupération. Le contenu est initialement en lecture seule ; le crayon permet sa modification partagée selon MFN-08, y compris depuis une séance. Ce n’est pas une modification locale silencieuse d’une copie de contenu. Paramètres et commande Niveau restent actifs hors crayon.
 
-Dans une occurrence, le contenu du mouvement est verrouillé : **nom, description, médias, catégorie, zones corporelles et structure des phases**. Les paramètres d’exécution restent modifiables selon les contraintes existantes du format. Le changement de côté, l’ordre et les pauses de côté suivent ces règles de paramètres.
+Un changement de niveau ou une création distincte remplace l’occurrence par une nouvelle identité d’occurrence dans le brouillon, référençant le mouvement choisi ; validation atomique, annulation intégrale. Aucun exercice Catalogue n’est créé automatiquement par le remplacement. Les anciennes exécutions gardent leur identité et leur contenu.
 
-Le mode reste modifiable, sous le verrou existant en présence de phases ; aucune nouvelle éligibilité n’est introduite. Pour un autre mouvement, l’utilisateur remplace l’occurrence ou crée une variante. Le remplacement ne réécrit pas la filiation de l’occurrence existante.
+Duplication : nouvel identifiant d’occurrence, même référence au mouvement, copie indépendante des paramètres. Le suffixe système de duplication (copie) reste une distinction locale de présentation ; il ne modifie pas le nom unique du mouvement. Les contraintes existantes de mode, côtés et format restent inchangées.
 
-**Exception de création locale :** un exercice créé directement dans une séance reste modifiable jusqu’à sa première utilisation. Après celle-ci, le dialogue de MFN-08 s’applique aux modifications du geste ; cela n’autorise pas une édition silencieuse du contenu d’une occurrence verrouillée ni une réécriture des copies ou instantanés antérieurs. Le seuil est celui de MFN-08 : enregistrer la séance constitue la première utilisation, même sans exécution.
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
 
-**Duplication de Composition (D-124) :** le système appose le suffixe `(copie)` sur le nom propre de l’occurrence dupliquée. Ce nom reste non éditable. Cette exception système au nom copié ne renomme ni le mouvement source ni les autres exercices. La filiation est conservée.
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, somme ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
+
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
 
 #### MFN-10 — Catalogue et duplication
 
-Aucun Catalogue Mouvement autonome n’est créé. Le sélecteur de gestes ne constitue pas un contenu exécutable supplémentaire. Les exercices sont regroupés par mouvement, avec navigation entre niveaux depuis la fiche.
+Le catalogue des mouvements est un contexte d’entretien ; la recherche et la sélection restent dans le parcours de création, y compris depuis une séance. Les groupes peuvent être présentés en piles ; un mouvement seul ne constitue pas une pile. Ne pas confondre famille de niveaux et exercices ayant le même mouvement.
 
-**Aucun alias propre à l’exercice (les alias de mouvement sont autorisés par v5 R05) :** le résumé des paramètres d’exécution distingue les exercices partageant un mouvement ; il est calculé et affiché sur les cartes. Une ligne regroupée ne peut pas être exécutée ou insérée sans désigner un exercice précis ; aucun jeu de paramètres par défaut n’est choisi silencieusement.
+Dupliquer une ActivityDefinition crée une nouvelle définition avec le même mouvement et une copie de ses paramètres, sans créer un niveau. Les résumés de paramètres distinguent les exercices ; aucun choix implicite de paramètres pour une ligne regroupée. Aucun alias propre à l’exercice ; les alias du mouvement participent à la recherche.
 
-**Duplication Catalogue (D-196) :** dupliquer crée une nouvelle `ActivityDefinition` référençant le même mouvement avec les paramètres copiés. Cela ne crée pas une variante. Le suffixe `(copie)` de D-124 reste limité à la duplication d’un Exercice de Séance ; il n’est pas ajouté ici au nom partagé du mouvement. Deux duplicatas Catalogue aux paramètres identiques peuvent rester visuellement indiscernables jusqu’à modification de l’un d’eux ; ce comportement est accepté.
+Affichage : Niveau N dans une pastille ; commande vide Niveau ; sans pastille, suffixe - Nn auprès du nom, absent sans groupe. Rang et suffixe dérivés ; aucun suffixe dans le nom ni dans la clé unique. Nombre de niveaux non plafonné ; accessibilité et choix donnent le rang/total réels. Les lignes compactes historiques restent sans rang.
+
+C08 est différé : ne pas déclarer rattachement, détachement ou suppression hors MVP. Retirer du groupe ne supprime pas le mouvement ; supprimer le dernier exercice le laisse survivre.
 
 #### MFN-11 — Présentation historique
 
-**Relevé Figma 25/10 :** divergences C05 consignées dans le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). La règle ci-dessous n’est pas silencieusement remplacée.
 
-**Historique :** contenu, nom copié, paramètres et relevés restent figés. Aucun rang ni total n’est stocké. La classification actuelle se résout à la lecture par filiation selon v6 §10 ; les lignes compactes du Suivi 1992:8996 restent sans rang affiché.
+**Historique :** contenu, nom copié, paramètres et relevés restent figés. Aucun rang ni total n’est stocké. La classification actuelle se résout à la lecture par filiation selon D-445 / MFN-11 ; les lignes compactes du Suivi 1992:8996 restent sans rang affiché.
 
 ### 8. Base vierge et records
 
@@ -478,7 +442,7 @@ Aucun Catalogue Mouvement autonome n’est créé. Le sélecteur de gestes ne co
 
 Aucune conversion, reconstitution de filiation, conservation d’identifiants antérieurs, déduplication historique ou lecture des anciens formats n’est exigée pour cette transition. Toute occurrence créée dans le nouveau modèle porte sa filiation, y compris en création locale. `movementId` et `sourceMovementId` sont non nuls ; aucune exception de migration ne subsiste.
 
-La procédure de réinitialisation de l’installation existante doit être explicite et limitée à cette transition. Le simple redémarrage de la nouvelle version conserve les données recréées. Les copies et instantanés produits ensuite restent indépendants et conservés selon leurs règles normales ; supprimer leur source ne les invalide pas.
+La procédure de réinitialisation de l’installation existante doit être explicite et limitée à cette transition. Le simple redémarrage de la nouvelle version conserve les données recréées. Les paramètres locaux et instantanés produits ensuite sont conservés selon D-445 ; les références actives au mouvement restent intègres, les instantanés restent autonomes.
 
 #### MFN-13 — Frontière du calcul de records
 
@@ -500,39 +464,48 @@ Les identifiants AC ci-dessous sont à citer sous la forme MFN/AC pour les disti
 | MFN/AC02 | Nouvelle variante rattachée | Nouvelle identité de mouvement ; même groupe ; records séparés |
 | MFN/AC03 | Durée de planche modifiée | Identité et niveau inchangés |
 | MFN/AC04 | Duplication de séance | Nouvelles occurrences, filiations conservées |
-| MFN/AC05 | Source corrigée ou supprimée | Copies et instantanés toujours lisibles sans relecture de la source |
+| MFN/AC05 | Correction du mouvement puis suppression de son exercice Catalogue | Les occurrences lisent le contenu corrigé, conservent leurs paramètres et ne dépendent pas de la définition supprimée ; instantanés inchangés |
 | MFN/AC06 | Exécution directe et en séance | Identité statistique commune, rattachements des résultats distincts |
 | MFN/AC07 | Réordonnancement de niveaux | Rang courant recalculé, aucune fusion de performances |
 | MFN/AC08 | Groupe à un seul mouvement | Identifiant de groupe conservé, rang et total masqués ; aucune perte de contenu |
 | MFN/AC09 | Modification limitée à charge ou durée | Pas de dialogue de correction du mouvement |
-| MFN/AC10 | Nom modifié après utilisation | Une seule décision à l’enregistrement ; Annuler garde le brouillon |
-| MFN/AC11 | Correction d’un mouvement partagé | Correction de toutes les définitions partageant le mouvement ; aucune modification de copie historique |
+| MFN/AC10 | Nom modifié, sans autre exercice ni historique | Dialogue toujours présent : mettre à jour / créer / annuler |
+| MFN/AC11 | Correction partagée depuis une séance | Contenu courant visible dans définitions et séances ; aucune réécriture des instantanés ni de l’exécution démarrée |
 | MFN/AC12 | Création locale puis annulation de séance | Aucune publication Catalogue implicite ni création persistante résiduelle dans la transaction du brouillon |
 | MFN/AC13 | Première initialisation puis redémarrage après création de données | Nouveau schéma initialisé sans reprise ; données recréées conservées au redémarrage |
 | MFN/AC14 | Phase déplacée | Association structure/valeur conservée par WorkPhase.id existant dans le contexte du mouvement, sans second identifiant |
 | MFN/AC15 | Phase à 0 s | Phase conservée, durée non renseignée ; enregistrement de l’exercice édité refusé ; aucun retrait silencieux |
 | MFN/AC16 | Passage à un autre niveau avec plusieurs exercices | Choix explicite des paramètres, sans invention d’une valeur par défaut |
-| MFN/AC17 | Suppression d’un mouvement référencé au Catalogue | Refus ; aucune définition ne devient inexploitable ; copie orpheline autorisée après une suppression permise |
+| MFN/AC17 | Suppression d’un mouvement référencé par définition ou occurrence | Refus tant que référence active ; un instantané peut conserver une filiation orpheline après suppression permise |
 | MFN/AC18 | Consultation historique après réordonnancement des niveaux | Nom copié inchangé ; classification actuelle résoluble, aucun rang stocké ; vue compacte sans rang |
 | MFN/AC19 | Recherche d’un mouvement créé localement | Mouvement disponible proposé et réutilisable, sans entrée Catalogue créée automatiquement |
-| MFN/AC20 | Suppression de toutes les utilisations puis correction du nom | État déjà utilisé conservé ; dialogue conditionnel toujours présenté |
-| MFN/AC21 | Deux mouvements homonymes créés séparément | Identités et records distincts ; aucun rapprochement rétroactif implicite |
+| MFN/AC20 | Nom inchangé et contenu modifié, une exécution enregistrée et aucun autre exercice | Confirmation de mise à jour ; zéro autre exercice ne masque pas le dialogue |
+| MFN/AC21 | Nom principal déjà utilisé, casse/accents/espaces équivalents | Création refusée ; correction de sa propre identité autorisée ; alias partagés possibles |
 | MFN/AC22 | Mouvement local enregistré puis dernière séance supprimée | Mouvement et contenu conservés, recherchables ; aucun ramassage automatique |
-| MFN/AC23 | Correction structurelle d’un mouvement partagé par plusieurs exercices | Dialogue affiche le nombre ; étape distincte de saisie des durées manquantes |
+| MFN/AC23 | Phase ajoutée à un mouvement partagé | Nouvelles durées non inventées ; autres exercices incomplets signalés avant lancement, sans complétion immédiate obligatoire |
 | MFN/AC24 | Exercice édité complet, frère avec nouvelle durée non complétée | Correction enregistrée ; frère conservé incomplet, valeur manquante explicite ; pas de valeur inventée |
 | MFN/AC25 | Durée manquante dans l’exercice directement édité | Enregistrement refusé ; phase conservée |
 | MFN/AC26 | Retrait de l’avant-dernière phase au Catalogue | Structure effacée ; durée restante transférée à la durée de série |
 | MFN/AC27 | Phase ajoutée avec libellé vide | Nommage par défaut existant appliqué et stocké ; ajout couvert par le dialogue structurel |
-| MFN/AC28 | Tentative d’édition du contenu d’une occurrence verrouillée | Nom, description, médias, catégorie, zones et structure non éditables ; paramètres accessibles selon contraintes |
-| MFN/AC29 | Création locale avant puis après enregistrement de la séance | Geste modifiable avant première utilisation ; dialogue applicable ensuite, sans modification silencieuse des copies |
+| MFN/AC28 | Crayon dans une occurrence de séance | Édition du mouvement partagé, paramètres locaux et commande Niveau accessibles ; portée annoncée |
+| MFN/AC29 | Séance enregistrée sans exécution, un seul exercice et nom inchangé | Modification de contenu silencieuse ; l’enregistrement de séance seul ne vaut pas exécution passée |
 | MFN/AC30 | Suppression de la phase au plus grand ID, fermeture puis ajout | Compteur du mouvement strictement croissant ; identifiant supprimé non réutilisé |
 | MFN/AC31 | Duplication Catalogue avec paramètres identiques | Nouvelle définition, même movementId ; aucun alias ; indiscernabilité visuelle acceptée |
-| MFN/AC32 | Duplication de Composition | Nouvel ID d’occurrence, même sourceMovementId, suffixe système `(copie)`, nom non éditable |
+| MFN/AC32 | Duplication de Composition | Nouvel ID d’occurrence, même mouvement, paramètres copiés indépendamment ; suffixe système local sans renommer le mouvement |
 | MFN/AC33 | Nouveau niveau puis réordonnancement | Placement avant/après origine selon difficulté déclarée, glissement ; catégorie initiale reprise mais modifiable |
-| MFN/AC34 | Nouvelle identité depuis le dialogue | Libellé « Créer un nouvel exercice » ; rattachement au groupe sans présélection ; originaux intacts |
-| MFN/AC35 | Lecture des paramètres Catalogue puis création d’une copie | Couples phaseId/durée résolus avec la structure ; copie autonome avec libellés ; aucune seconde source modifiable au Catalogue |
+| MFN/AC34 | Créer un nouveau mouvement depuis le dialogue | Nom unique, original conservé ; exercice édité rattaché au nouveau mouvement ; occurrence remplacée en séance, historique inchangé |
+| MFN/AC35 | Insertion Catalogue puis changement de ses paramètres | Occurrence directement liée au mouvement avec paramètres locaux initiaux ; modifications des paramètres Catalogue sans effet |
 | MFN/AC36 | Écriture d’une définition, occurrence ou instantané dans le nouveau modèle | Identité de mouvement non nulle, aucune branche de compatibilité ancienne requise |
-| MFN/AC37 | Contrôle des textes d’interface | Exercices, gestes, niveaux ; jamais le terme interne « mouvement » |
+| MFN/AC37 | Contrôle des textes d’interface | Mouvement / exercice / niveau ; état vide Niveau ; suffixe de rang non persisté |
+
+| MFN/AC38 | Nom inchangé, contenu modifié, autre occurrence persistée sans historique | Confirmation ; les occurrences de séance comptent parmi les autres exercices |
+| MFN/AC39 | Nom inchangé, contenu modifié, aucun autre exercice ni historique | Sauvegarde silencieuse ; pas d’état durable d’utilisation à cause d’une insertion |
+| MFN/AC40 | Paramètres seuls, historique et autres exercices présents | Aucun dialogue de mouvement |
+| MFN/AC41 | Variante depuis recherche | Description/médias vierges, catégorie/zones reprises, nom et invite non persistée ; création sans dialogue de correction |
+| MFN/AC42 | Dernier exercice supprimé | Mouvement conservé, visible/recherchable, réutilisable |
+| MFN/AC43 | Mouvement corrigé pendant une exécution | Exécution en cours inchangée ; prochaine exécution résout le contenu courant |
+| MFN/AC44 | Commande Niveau sans crayon | Accessible ; choisir remplace/navigue selon contexte, ne reclasse pas l’origine |
+| MFN/AC45 | Renommage choisi comme mise à jour | Identité conservée ; anciens et nouveaux noms regroupés légitimement, instantanés inchangés |
 
 Tous ces scénarios sont normatifs. Leur présence ne signifie pas qu’ils ont déjà été exécutés.
 
@@ -830,7 +803,7 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 | RM-018 | Retour pendant une création commencée ouvre un dialogue flottant centré. `Annuler`, action neutre, conserve les données ; `Confirmer`, action destructive rouge, supprime le brouillon et revient au Catalogue. |
 | RM-019 | La Composition expose un seul bouton global `+ Ajouter un exercice`. |
 | RM-020 | Le premier Exercice créé est insérée après le Compte à rebours initial et avant le Circuit. Les suivantes sont insérées après le dernier Exercice existant de la Composition ; toutes peuvent ensuite être déplacées manuellement avant, dans ou après le Circuit. |
-| RM-021 | Toucher brièvement une carte d’Exercice ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres et associations média de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucun Exercice dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. D-437 : le contenu de l’occurrence est verrouillé, seuls ses paramètres restent éditables ; filiation conservée lors de la duplication. L’enregistrement de la séance peut marquer durablement le mouvement utilisé, sans créer d’exercice Catalogue ni synchroniser son contenu. |
+| RM-021 | Toucher brièvement une carte d’Exercice ouvre directement son édition. Un appui long amorce son déplacement ; l’ordre et la position structurelle ne sont modifiés qu’à la dépose dans une destination valide. La duplication et la suppression sont accessibles par glissement gauche dans la Composition. Dupliquer crée une copie indépendante avec un nouvel identifiant, le suffixe de nom `(copie)` puis numéroté si nécessaire, tous les paramètres locaux et la référence au mouvement de la source ; la copie est placée immédiatement après la source dans la même zone structurelle et ne crée aucun Exercice dans le catalogue. Cette règle d’appui long ne s’applique pas au Compte à rebours initial ni à la Fin de séance, qui ne sont pas déplaçables. D-445 : l’occurrence lit le mouvement partagé ; le crayon permet sa correction, paramètres et Niveau restent actifs. Duplication conserve le mouvement et copie les paramètres. Aucun indicateur irréversible d’utilisation n’est écrit à l’insertion. |
 | RM-022 | La Séance est classée par Étiquette ; la couleur affichée de la Séance est celle de cette Étiquette. |
 | RM-023 | Une Catégorie qualifie un Exercice et porte sa couleur sémantique ; les Zones corporelles restent distinctes. |
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
@@ -2522,6 +2495,6 @@ Dans la face Média compacte, le bouton Lecture central est affiché avant lectu
 
 ## Règles de présentation et réserves du relevé 25/10
 
-La v6 demeure la référence des règles N01–N08 et R02–R07. Le nouveau panneau requiert sélection explicite, un résultat par mouvement, cinq résultats visibles au maximum et ordre stable sous appui ; Entrée ne sélectionne pas. La variante explicite ne demande pas de corriger l’origine. L’état vide de la commande est Niveau ; aucun libellé sur une carte informative sans niveau. Les contradictions C01–C09 du relevé courant sont attachées aux règles MFN-06/08/09/11, sans les remplacer silencieusement. Aucun texte issu d’une capture, ni Niveau 1 ni « 2 autres exercices », n’est une valeur par défaut. Le corpus R07 est automatique et obligatoire lors de toute évolution de formule ou de seuil.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v6.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).

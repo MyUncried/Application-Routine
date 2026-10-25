@@ -1,5 +1,7 @@
 # KODJO — Niveaux, recherche de mouvements, parcours et règles
 
+> Source historique reçue : remplacée pour les instructions courantes par la [v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), décisions D-445.
+
 Date : 24 octobre 2026
 Version 6, définitive. Tous les arbitrages produit sont rendus.
 Remplace les v2 à v5 du 24 octobre.
