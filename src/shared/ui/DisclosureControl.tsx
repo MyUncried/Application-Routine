@@ -26,7 +26,7 @@ export type DisclosureControlProps = {
    */
   decorative?: boolean;
   /**
-   * PRE-7 story B.1 (D-445, B7 ; ch. 12, Disclosure `5544:4650`, propriété Cadre) : `true`
+   * PRE-7 story B.1 (D-447, B7 ; ch. 12, Disclosure `5544:4650`, propriété Cadre) : `true`
    * (défaut) = Cadre Oui, rendu inchangé pour les consommateurs existants (`SessionCard`,
    * Catalogue, `ExerciseScreen`) ; `false` = Cadre Non — cadre interne 28 × 28 conservé (même
    * encombrement, même position du chevron), habillage retiré (ni fond, ni contour, ni rayon).

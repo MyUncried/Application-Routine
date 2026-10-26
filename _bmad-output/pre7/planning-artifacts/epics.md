@@ -7,7 +7,7 @@
 
 - `main` @ `bcd84481` : PRE-4, PRE-5 (#389), docs #391 et #392 (MFN), PRE-6 (#393). À reconfirmer au démarrage (`git log -1 origin/main`).
 - Schéma SQLite : migrations 001 à 011. Paramètres d'exécution JSON v3 (PRE-5). 149 suites, 4 070 tests.
-- Numérotation : D-436 à D-440 = MFN (main) ; D-441 à D-444 = PRE-6. Prochain numéro libre : **D-445**.
+- Numérotation : D-436 à D-440 = MFN (main) ; D-441 à D-444 = PRE-6. Prochain numéro libre : **D-445** [renumérotation du 26/10/2026, après intégration de `main` : D-445 = décision de `main` (PR #397) ; D-446 = chantier des phases PRE-7 (rapproché de PHC-20261026) ; D-447 = décision éditeur PRE-7 ; suivantes à partir de D-448].
 - Démarrage proposé : nouveau worktree `C:\Dev\KODJO-BMAD-PRE7` (branche `pre7-bmad/dev` depuis `main`), BMad 6.12.4 copié comme pour PRE-6, artefacts dans `_bmad-output/pre7/`.
 
 ## 2. Constat de l'existant (vérifié dans le code)
@@ -46,7 +46,7 @@
 
 **0.1 Décisions et réconciliation documentaire.** Après approbation du plan :
 - Annotation de D-440 et MFN-12 : « Assouplie par Hermann le 23/10/2026 : les préférences du Profil et les Catégories sont conservées ; Exercices et Séances sont réinitialisés une seule fois par la migration du nouveau schéma, avec avis ; aucune réinitialisation aux démarrages suivants. » Les autres décisions MFN sont inchangées.
-- **D-445 — Finalisation de l'éditeur d'Exercice** (demande de Hermann du 23/10) : B1 à B10, avec les remplacements explicites : libellés « À l'objectif » / « À l'objectif et à l'échec » (D-411, D-416, D-424 et chapitres cités) ; colonne Charge toujours présente avec tiret en Sans (remplace « Sans la masque » de RM-238 et ch06:576) ; déroulant Changement de côté conforme à Figma `9462:18986` (remplace le menu natif accepté en recette PRE-5) ; barre du clavier (§6 B9) ; chevron nu de Durée de l'exercice (variante de `DisclosureControl`, ch12).
+- **D-447 — Finalisation de l'éditeur d'Exercice** (demande de Hermann du 23/10) : B1 à B10, avec les remplacements explicites : libellés « À l'objectif » / « À l'objectif et à l'échec » (D-411, D-416, D-424 et chapitres cités) ; colonne Charge toujours présente avec tiret en Sans (remplace « Sans la masque » de RM-238 et ch06:576) ; déroulant Changement de côté conforme à Figma `9462:18986` (remplace le menu natif accepté en recette PRE-5) ; barre du clavier (§6 B9) ; chevron nu de Durée de l'exercice (variante de `DisclosureControl`, ch12).
 - Propagation des libellés B2 dans ch01, 04, 06, 07, 08, 10, 13.
 - AC : aucune autre décision MFN modifiée ; noms Unicode et CRLF conservés ; `npx tsc --noEmit` vert.
 

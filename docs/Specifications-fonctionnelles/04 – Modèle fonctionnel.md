@@ -327,7 +327,7 @@ Modale Résultat de série (8937:35362) : saisie proposée zéro, minimum zéro,
 
 Un Exercice possède un mode unique : Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Une Série est une définition subordonnée à l’Exercice, numérotée 1..N : une cible éventuelle et une Pause. Elle n’est pas une entité autonome, ni un groupe d’exercices. En bilatéral, N signifie N Séries **par côté**, avec les mêmes paramètres pour les deux côtés.
 
-- **Condition d’arrêt** : libellé visible de la ligne `À l’échec` / `À l’objectif` ; choix commun en séries identiques, résultat dérivé non modifiable en séries variables ; le type de cible par Série reste la seule donnée (D-411, RM-248, RM-249 ; libellés D-445).
+- **Condition d’arrêt** : libellé visible de la ligne `À l’échec` / `À l’objectif` ; choix commun en séries identiques, résultat dérivé non modifiable en séries variables ; le type de cible par Série reste la seule donnée (D-411, RM-248, RM-249 ; libellés D-447).
 - **Séries variables** : état explicite, indépendant de l’égalité éventuelle des valeurs.
 - **Pause après chaque série** : libellé d’interface ; Pi est la Pause configurée de la Série i. Elle est exécutée après chaque Série, dernière comprise ; seule PN est remplacée par une récupération positive qui suit l’Exercice. Zéro signifie absence de phase positive.
 - **Charge** : `Avec` / `Sans` ; valeur informative en kilogrammes, commune en séries identiques ou propre à chaque Série variable ; activation distincte des valeurs conservées (D-403, D-404 ; RM-235 à RM-241).

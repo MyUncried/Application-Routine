@@ -31,7 +31,7 @@ import { colors } from "@/shared/ui/tokens";
  * Relevé Figma `9292:18077` (lecture seule), constantes locales nommées (`tokens.ts`
  * inchangé, NFR-3) : hauteur 44, fond `#E6E9ED`, texte `#5C4DFF` 14 regular.
  *
- * PRE-7 story B.3 (B9, D-445, arbitrage A4) : une seule ligne de QUATRE EMPLACEMENTS STABLES, de
+ * PRE-7 story B.3 (B9, D-447, arbitrage A4) : une seule ligne de QUATRE EMPLACEMENTS STABLES, de
  * largeur et de hauteur égales — « À l'échec » (ou un emplacement réservé vide, non accessible,
  * quand il ne s'applique pas : Pause, Charge), Précédent, Suivant, Fermer ; Précédent et Suivant
  * restent donc au même endroit quel que soit le champ. Boutons arrondis (rayon local 8) sur le

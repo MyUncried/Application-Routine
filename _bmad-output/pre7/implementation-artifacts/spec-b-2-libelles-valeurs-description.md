@@ -14,7 +14,7 @@ context:
 
 ## Intent
 
-**Problem:** Dans l'éditeur d'Exercice, l'invite « Étape suivante » reste affichée au repos (B1) ; la Condition d'arrêt affiche encore « À la cible » / « À la cible et à l'échec » (B2) ; l'option Autre de la Cadence n'affiche jamais la valeur personnalisée (B8) ; en séries variables, la colonne Charge disparaît sous Sans (B10). D-445 (ch07 l.73-85), CE-T03-04 (ch13 l.826), CE-UI-10 (ch13 l.1086, 1226, 1230), RM-238, RM-245, RM-248, RM-249.
+**Problem:** Dans l'éditeur d'Exercice, l'invite « Étape suivante » reste affichée au repos (B1) ; la Condition d'arrêt affiche encore « À la cible » / « À la cible et à l'échec » (B2) ; l'option Autre de la Cadence n'affiche jamais la valeur personnalisée (B8) ; en séries variables, la colonne Charge disparaît sous Sans (B10). D-447 (ch07 l.73-85), CE-T03-04 (ch13 l.826), CE-UI-10 (ch13 l.1086, 1226, 1230), RM-238, RM-245, RM-248, RM-249.
 
 **Approach:** Présentation seule. B1 : ligne d'invite rendue seulement quand une ligne de la Description a le focus (même minuterie de perte de focus différée que ↑). B2 : lexique `src/shared/i18n/index.ts:57`. B8 : libellé de l'option Autre = valeur courante quand elle est personnalisée. B10 : colonne Charge toujours rendue, tiret gris non éditable en Sans.
 
@@ -55,7 +55,7 @@ context:
 ## Tasks & Acceptance
 
 **Execution:**
-- [x] `src/shared/i18n/index.ts` -- libellés B2 -- D-445.
+- [x] `src/shared/i18n/index.ts` -- libellés B2 -- D-447.
 - [x] `src/features/activities/DescriptionSteps.tsx` -- invite rendue seulement si active -- B1, A1.
 - [x] `src/features/activities/ExecutionParametersSheet.tsx` -- option Autre « n s » (A2) ; colonne Charge toujours présente, tiret (A3) -- B8, B10.
 - [x] Tests -- attentes B2, invite au repos (focus avant saisie dans l'invite), colonne Charge ; nouveaux tests B1 (repos / focus / passage de ligne), B8 (3 s, réouverture, 1 s / Sans), B10 (tirets, navigation, Sans → Avec sans recréation de la colonne).
@@ -92,7 +92,7 @@ context:
 | 9 | aveugle | Aide de test `otherLabel()` dépendante de l'ordre de rendu | low | rejeté : le libellé n'est pas enfant de l'option pressable ; correctif non direct |
 | 10 | aveugle | testID d'en-tête Charge inutilisé | low | patch : utilisé par les tests B10 |
 | 11 | aveugle | Commentaire « 2 à 10 » sans la borne | low | patch appliqué |
-| 12 | aveugle | Effets B1 : décalage de mise en page, VoiceOver doit d'abord activer une étape | low | rejeté en code : conséquence de D-445 ; à observer en recette JB |
+| 12 | aveugle | Effets B1 : décalage de mise en page, VoiceOver doit d'abord activer une étape | low | rejeté en code : conséquence de D-447 ; à observer en recette JB |
 | 13 | aveugle | Tests d'intégration en deux temps (focus puis saisie) | false | conforme à B1, aucun défaut |
 | 14 | aveugle | README de `src/features/activities/` non mis à jour | low | rejeté : README de niveau fichier, sans suivi par story ; aucune affirmation devenue fausse |
 | 15 | lacunes | Aucune lacune de vérification | — | — |

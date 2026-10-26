@@ -223,7 +223,7 @@ export type InlineStepperProps = {
    */
   readonly stepButtonStyle?: Pick<ViewStyle, "backgroundColor">;
   /**
-   * PRE-7 story B.1 (D-445, B3) — ajout additif, absent par défaut : habillage de la pilule
+   * PRE-7 story B.1 (D-447, B3) — ajout additif, absent par défaut : habillage de la pilule
    * (hauteur, marge, rayon, fond), appliqué après le style de base et avant les états signalé
    * et désactivé. Sert à la Feuille des paramètres (pilule de 32 sur `color/surface`) sans
    * changer le rendu du Profil ni du Circuit. Cercles, mécanisme et accessibilité inchangés.

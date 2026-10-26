@@ -4,7 +4,7 @@
 
 ## Goal
 
-Terminer la présentation de l'éditeur d'Exercice et de sa Feuille des paramètres d'exécution (points B1 à B10 demandés par Hermann) : harmoniser les hauteurs, alignements et marges, corriger les libellés et l'affichage des valeurs, remplacer le menu natif du Changement de côté par le déroulant dessiné dans Figma, et stabiliser la barre au-dessus du clavier. Le travail porte uniquement sur l'interface. Le modèle de données, les calculs, les API et les identifiants techniques ne changent pas. Cet epic passe avant l'Epic A2, qui modifie le même fichier (`ExecutionParametersSheet.tsx`) pour les états MFN : terminer l'harmonisation d'abord évite de la refaire. Sources qui font autorité : la décision D-445 (chapitre 07) et le contrat d'écran CE-UI-10 (chapitre 13, §8 à §20, en particulier les révisions du 24/10 aux §9 et §10). Le dossier de planification ne contient que `epics.md` : il n'existe ni PRD, ni architecture, ni document UX propres à PRE-7.
+Terminer la présentation de l'éditeur d'Exercice et de sa Feuille des paramètres d'exécution (points B1 à B10 demandés par Hermann) : harmoniser les hauteurs, alignements et marges, corriger les libellés et l'affichage des valeurs, remplacer le menu natif du Changement de côté par le déroulant dessiné dans Figma, et stabiliser la barre au-dessus du clavier. Le travail porte uniquement sur l'interface. Le modèle de données, les calculs, les API et les identifiants techniques ne changent pas. Cet epic passe avant l'Epic A2, qui modifie le même fichier (`ExecutionParametersSheet.tsx`) pour les états MFN : terminer l'harmonisation d'abord évite de la refaire. Sources qui font autorité : la décision D-447 (chapitre 07) et le contrat d'écran CE-UI-10 (chapitre 13, §8 à §20, en particulier les révisions du 24/10 aux §9 et §10). Le dossier de planification ne contient que `epics.md` : il n'existe ni PRD, ni architecture, ni document UX propres à PRE-7.
 
 ## Stories
 
@@ -30,7 +30,7 @@ Terminer la présentation de l'éditeur d'Exercice et de sa Feuille des paramèt
 ## Technical Decisions
 
 - Clavier natif `number-pad` / `decimal-pad` conservé. La barre est rendue par la Feuille au-dessus du clavier, parce qu'`InputAccessoryView` ne s'affiche pas dans la `Modal` de la Feuille (mécanisme validé en RC-1 de PRE-5).
-- Le déroulant du Changement de côté est construit sur `AnchoredPanel.tsx` et remplace le menu natif iOS accepté en RC-6. Ce remplacement est explicitement décidé par D-445 : ce n'est pas une substitution de primitive à l'initiative du développeur.
+- Le déroulant du Changement de côté est construit sur `AnchoredPanel.tsx` et remplace le menu natif iOS accepté en RC-6. Ce remplacement est explicitement décidé par D-447 : ce n'est pas une substitution de primitive à l'initiative du développeur.
 - Déjà conformes, à ne pas redévelopper : la réouverture du stepper Cadence par un nouvel appui sur Autre ; la conservation des valeurs de charge en Sans ; l'ordre de la barre du clavier (« À l'échec » seulement pour une Cible) ; le clavier natif.
 - Textes : la source des libellés de la Condition d'arrêt est `src/shared/i18n/index.ts:57`.
 - Tests : mettre à jour la géométrie existante de `ExecutionParametersSheet.test.tsx` et de `rc15`, sans nouveau dispositif. Ne pas affaiblir les garde-fous « zéro `ScrollView` sur iOS » des sélecteurs à roulette.
@@ -45,5 +45,5 @@ Terminer la présentation de l'éditeur d'Exercice et de sa Feuille des paramèt
 ## Cross-Story Dependencies
 
 - B.1, puis B.2, puis B.3, dans cet ordre : les trois stories modifient `ExecutionParametersSheet.tsx`.
-- Prérequis : la story 0.1 (D-445 et la propagation des libellés dans la documentation), terminée.
+- Prérequis : la story 0.1 (D-447 et la propagation des libellés dans la documentation), terminée.
 - B.3 précède A2.1 (Feuille des paramètres MFN, même fichier). A1.1 (domaine pur) peut avancer en parallèle.

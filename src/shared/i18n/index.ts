@@ -54,7 +54,7 @@ const executionParameters = {
     seriesCountVariableSingular: "{n} série variable",
     seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
     stopCondition: "Condition d’arrêt",
-    // D-445 (PRE-7 story B.2) : « À l’objectif » et « À l’objectif et à l’échec » remplacent
+    // D-447 (PRE-7 story B.2) : « À l’objectif » et « À l’objectif et à l’échec » remplacent
     // « À la cible… » dans tous les états ; identifiants `TARGET` et `MIXED` inchangés.
     stopConditions: { FAILURE: "À l’échec", TARGET: "À l’objectif", MIXED: "À l’objectif et à l’échec" },
     showTable: "Afficher le tableau des séries",

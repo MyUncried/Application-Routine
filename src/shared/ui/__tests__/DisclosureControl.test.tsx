@@ -140,7 +140,7 @@ describe("DisclosureControl — option decorative (T02-S02)", () => {
 });
 
 /**
- * PRE-7 story B.1 (D-445, B7 ; ch. 12, Disclosure `5544:4650`, Cadre Non) : variante sans cadre
+ * PRE-7 story B.1 (D-447, B7 ; ch. 12, Disclosure `5544:4650`, Cadre Non) : variante sans cadre
  * du chevron de Durée de l'exercice. Cadre interne 28 × 28 conservé, habillage retiré ; chevron,
  * teintes, cible 48, accessibilité et interaction inchangés. Défaut (Cadre Oui) inchangé.
  */

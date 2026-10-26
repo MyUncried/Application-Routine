@@ -14,13 +14,13 @@ context:
 
 ## Intent
 
-**Problem:** Dans la Feuille des paramètres d'exécution (CE-UI-10), les contrôles éditables n'ont pas la même hauteur (pastilles ≈ 24, steppers ouverts 36, segmentés 32, segmentés Séries et Phases ouverts 34), les rayons diffèrent, les steppers fermés sont centrés dans un cadre de 137 au lieu d'être alignés à droite comme Durée de l'exercice, les boutons actifs de Séries sont serrés (marge 8) et le chevron de Durée de l'exercice porte un cadre (D-445, B3, B4, B6, B7).
+**Problem:** Dans la Feuille des paramètres d'exécution (CE-UI-10), les contrôles éditables n'ont pas la même hauteur (pastilles ≈ 24, steppers ouverts 36, segmentés 32, segmentés Séries et Phases ouverts 34), les rayons diffèrent, les steppers fermés sont centrés dans un cadre de 137 au lieu d'être alignés à droite comme Durée de l'exercice, les boutons actifs de Séries sont serrés (marge 8) et le chevron de Durée de l'exercice porte un cadre (D-447, B3, B4, B6, B7).
 
 **Approach:** Harmonisation de présentation seule, sans jeton modifié : hauteur 32 pour pastilles de valeur, steppers ouverts et segmentés ouverts ; pastilles et steppers de la Feuille sur `colors.surface` ; valeur fermée et stepper ouvert alignés à droite ; marge des boutons actifs Séries 12 ; variante sans cadre (propriété optionnelle, défaut inchangé) de `DisclosureControl` pour Durée de l'exercice.
 
 ## Boundaries & Constraints
 
-**Always:** D-445 (ch07 l.73-85) et CE-UI-10 §9 « Révision 24/10 », lignes 5, 9, 11, 12, 13 du tableau. Comportements, accessibilité (noms, états, actions, focus), cibles tactiles ≥ 44 (chevron 48), mécanismes des steppers et identifiants inchangés. Composants partagés modifiés seulement par ajout optionnel, défaut strictement inchangé (Profil, `CircuitHeader`, `SessionCard`, Catalogue). Mise en page sans débordement à 360 / 402 / 440.
+**Always:** D-447 (ch07 l.73-85) et CE-UI-10 §9 « Révision 24/10 », lignes 5, 9, 11, 12, 13 du tableau. Comportements, accessibilité (noms, états, actions, focus), cibles tactiles ≥ 44 (chevron 48), mécanismes des steppers et identifiants inchangés. Composants partagés modifiés seulement par ajout optionnel, défaut strictement inchangé (Profil, `CircuitHeader`, `SessionCard`, Catalogue). Mise en page sans débordement à 360 / 402 / 440.
 
 **Never:** modifier `tokens.ts`, `app.json`, `package.json`, `.github/` ; inventer une couleur ou un composant ; toucher B1, B2, B5, B8, B9, B10 ; affaiblir un test existant (garde-fous zéro `ScrollView` iOS des roulettes).
 

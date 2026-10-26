@@ -260,7 +260,7 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  *   Recette du 19/10 (RC-6, Figma `9462:18987`) : plus de ligne « Enchainement » ni de chevron
  *   de repli ; l'option Avec (N > 1) porte la notation de l'Enchainement (`sideOrderSubtitles`,
  *   nom accessible `sideOrders`) et, sélectionnée, ouvre le menu natif des deux notations
- *   (`SideOrderMenu`) [remplacé par PRE-7 story B.3 (B5, D-445) : déclencheur de taille fixe
+ *   (`SideOrderMenu`) [remplacé par PRE-7 story B.3 (B5, D-447) : déclencheur de taille fixe
  *   `SideOrderTrigger` et déroulant Figma `9462:18987` sur `AnchoredPanel` (`SideOrderDropdown`,
  *   surface `selector(sideOrder)`), toutes plates-formes ; menu natif et `Alert` retirés].
  *   Pause entre les côtés visible sous Avec. `popover(side | order)` retirées ;
@@ -979,7 +979,7 @@ export function ExecutionParametersSheet({
   }
 
   /**
-   * PRE-7 story B.3 (B5, D-445) : toucher le déclencheur de l'option Avec ouvre (ou referme) le
+   * PRE-7 story B.3 (B5, D-447) : toucher le déclencheur de l'option Avec ouvre (ou referme) le
    * déroulant de l'Enchainement, `selector(sideOrder)` ; la saisie en cours est appliquée d'abord.
    */
   function toggleSideOrderDropdown() {
@@ -1551,7 +1551,7 @@ export function ExecutionParametersSheet({
   // PRE-5 story 2.5 (AC3, AD-24, R-11) : « Cadence » en segmenté `inline` ; recette du 19/10
   // (RC-10) : Autre / 1 s / Sans, options de 62 comme celles de la Charge ; option affichée par
   // `cadenceOptionOf` (Autre tant que le ± est ouvert ; 2 s, 5 s et toute autre valeur → Autre).
-  // PRE-7 story B.2 (B8, D-445, arbitrage A2) : une valeur personnalisée (classée Autre par
+  // PRE-7 story B.2 (B8, D-447, arbitrage A2) : une valeur personnalisée (classée Autre par
   // `cadenceOptionOf` : toute valeur hors 0 et 1, soit 2 à 10 avec la borne haute de
   // `EXECUTION_BOUNDS.cadenceBeepIntervalSeconds`) s'affiche à la place de « Autre » (« 3 s », annoncée « Autre, 3 s »),
   // suivie en direct pendant que le ± est ouvert ; à 0 ou 1 (± ouvert), l'option reste « Autre ».
@@ -1672,7 +1672,7 @@ export function ExecutionParametersSheet({
       return <View style={tableStyles.emptyCell} />;
     }
     const prefix = `${SERIES_ROW_TEST_ID}-${number}`;
-    // PRE-7 story B.2 (B10, D-445, arbitrage A3) : sous Sans, la colonne Charge reste présente ;
+    // PRE-7 story B.2 (B10, D-447, arbitrage A3) : sous Sans, la colonne Charge reste présente ;
     // chaque cellule montre un tiret gris non éditable (aucun champ : ni focus, ni Précédent /
     // Suivant, `keyboardFieldOrder`), annoncé « Série n, charge, Sans ». La charge conservée
     // (RM-236) n'est ni affichée ni modifiée.
@@ -1887,7 +1887,7 @@ export function ExecutionParametersSheet({
         {panelControl === "total" ? <View testID="execution-sheet-total-wheel">{totalWheel}</View> : null}
       </AnchoredPanel>
     );
-  // PRE-7 story B.3 (B5, D-445, arbitrages A1 à A3) : déroulant de l'Enchainement sur
+  // PRE-7 story B.3 (B5, D-447, arbitrages A1 à A3) : déroulant de l'Enchainement sur
   // `AnchoredPanel`, toutes plates-formes, recouvrant exactement l'option Avec (bord haut, bord
   // droit, 146 × 88). Toucher extérieur ou échappement VoiceOver : fermeture par la clé, Brouillon
   // inchangé ; une rangée : `chooseSideOrder`.
@@ -2358,7 +2358,7 @@ export function ExecutionParametersSheet({
                           <DisclosureControl
                             expanded={isDurationExpanded}
                             onPress={toggleDuration}
-                            // PRE-7 B.1 (D-445, B7) : chevron sans cadre (Disclosure, Cadre Non).
+                            // PRE-7 B.1 (D-447, B7) : chevron sans cadre (Disclosure, Cadre Non).
                             framed={false}
                             accessibilityLabel={isDurationExpanded ? t.hideExerciseSignals : t.showExerciseSignals}
                             testID="execution-sheet-duration-disclosure"
@@ -2888,7 +2888,7 @@ function RevealStepper({
   ...stepper
 }: InlineStepperProps & { isOpen: boolean; onToggle: () => void; fieldLabel: string }) {
   const { fieldRef, toggleRef, closeFromAccessibility } = useOpenFieldFocus(isOpen, onToggle);
-  // Même cadre fermé et ouvert (largeur, place). PRE-7 B.1 (D-445, B6) : contenu aligné à droite
+  // Même cadre fermé et ouvert (largeur, place). PRE-7 B.1 (D-447, B6) : contenu aligné à droite
   // comme Durée de l'exercice (remplace le centrage Q41) : le champ reste ancré au même bord droit
   // à l'ouverture ; la zone de toucher fermée couvre toute
   // cette largeur sur au moins 44 de haut (NFR-09, Q42), la pastille seule étant plus petite.
@@ -3158,7 +3158,7 @@ const SIDE_ORDERS: readonly SideOrder[] = ["BY_SIDE", "BY_SERIES"];
  * Changement de côté (N > 1) : notation de l'Enchainement (D-431, Semi Bold 10, blanc) et
  * chevron existant de `KodjoIcon`, à 6 l'un de l'autre, sur toute l'option (146 × 26, RC-12).
  *
- * PRE-7 story B.3 (B5, D-445 ; remplace le menu natif SwiftUI `Menu` de RC-6 et l'`Alert` hors
+ * PRE-7 story B.3 (B5, D-447 ; remplace le menu natif SwiftUI `Menu` de RC-6 et l'`Alert` hors
  * iOS) : ce contenu est un déclencheur React Native de TAILLE FIXE (146 × 26), qui ouvre le
  * déroulant Figma de l'Enchainement (`SideOrderDropdown`, surface `selector(sideOrder)`). Cause
  * du défaut B5 : l'hôte SwiftUI (`Host`) du menu natif hébergeait la notation par
@@ -3212,7 +3212,7 @@ function SideOrderTrigger({
 }
 
 /**
- * PRE-7 story B.3 (B5, D-445 ; Figma `9462:18987`) — contenu du déroulant de l'Enchainement, porté
+ * PRE-7 story B.3 (B5, D-447 ; Figma `9462:18987`) — contenu du déroulant de l'Enchainement, porté
  * par `AnchoredPanel` (conteneur de positionnement : zone de toucher extérieur, panneau modal pour
  * VoiceOver, geste d'échappement) : deux rangées de 44 sur la largeur de l'option Avec (146,
  * arbitrage A1), dans l'ordre D-431 (`BY_SIDE` puis `BY_SERIES`, arbitrage A2). La notation choisie
@@ -3364,7 +3364,7 @@ const SEGMENT_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
  */
 const PHASE_OPTION_INSET = 17;
 const PHASE_CHEVRON_GAP = 6;
-// PRE-7 story B.1 (D-445, B3) : segmenté de 32 aussi réglage ouvert (fond de 28, 2 de chaque côté).
+// PRE-7 story B.1 (D-447, B3) : segmenté de 32 aussi réglage ouvert (fond de 28, 2 de chaque côté).
 const PHASE_CONTROL_OPEN_HEIGHT = 32;
 const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_GAP / 2 };
 const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP / 2, right: PHASE_OPTION_INSET };
@@ -3374,10 +3374,10 @@ const PHASE_CHEVRON_OPEN_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_G
  * nombre de séries (28) est ouvert, 32 au repos ; stepper sur fond `#F2F2FF` (`colors.stepperSurface`),
  * rayon 14 (moitié de sa hauteur).
  */
-// PRE-7 story B.1 (D-445, B3) : hauteur commune de 32, réglage ouvert compris (stepper de 28).
+// PRE-7 story B.1 (D-447, B3) : hauteur commune de 32, réglage ouvert compris (stepper de 28).
 const SERIES_CONTROL_OPEN_HEIGHT = 32;
 /**
- * PRE-7 story B.1 (D-445, B3 ; CE-UI-10 §9, révision 24/10) — hauteur commune des boutons et
+ * PRE-7 story B.1 (D-447, B3 ; CE-UI-10 §9, révision 24/10) — hauteur commune des boutons et
  * champs éditables de la Feuille : 32, celle du segmenté `inline` (une légère augmentation est
  * admise pour la pastille, auparavant ≈ 24). Les pastilles de 32 partagent le rayon 8 du segmenté
  * et la marge horizontale 12 des boutons actifs de Séries (B4). Les champs de saisie (pastilles,
@@ -3629,7 +3629,7 @@ const styles = StyleSheet.create({
     left: -PANEL_OUTSIDE_INSETS.left,
   },
   // Story 3.3 : cadre d'un champ ± hors tableau, fermé comme ouvert (même largeur, même place ;
-  // zone de toucher d'au moins 44 de haut). PRE-7 B.1 (D-445, B6) : contenu aligné à droite,
+  // zone de toucher d'au moins 44 de haut). PRE-7 B.1 (D-447, B6) : contenu aligné à droite,
   // comme Durée de l'exercice — pastille fermée et stepper ouvert sur le même bord droit.
   stepperFrame: {
     minHeight: SHEET_ROW_MIN_HEIGHT,

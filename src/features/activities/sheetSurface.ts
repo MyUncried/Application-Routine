@@ -62,7 +62,7 @@
  */
 
 /**
- * PRE-7 story B.3 (B5, D-445) : `sideOrder`, le déroulant de l'Enchainement ouvert depuis l'option
+ * PRE-7 story B.3 (B5, D-447) : `sideOrder`, le déroulant de l'Enchainement ouvert depuis l'option
  * Avec sélectionnée du Changement de côté (remplace le menu natif de RC-6). Famille Sélecteur : un
  * toucher ailleurs le ferme sans appliquer et n'ouvre pas le champ touché (T10), ✓ et ✕ sont
  * absorbés tant qu'il est ouvert, sa fermeture passe par sa clé.

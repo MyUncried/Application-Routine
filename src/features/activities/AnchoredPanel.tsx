@@ -60,10 +60,10 @@ export type AnchoredPanelProps = {
  * pas, et une animation de hauteur ou d'opacité réintroduirait ce que Q41 retire.
  * À juger sur iPhone.
  *
- * PRE-7 story B.3 (B5, D-445) : il porte aussi, sur toutes les plates-formes, le déroulant de
+ * PRE-7 story B.3 (B5, D-447) : il porte aussi, sur toutes les plates-formes, le déroulant de
  * l'Enchainement, posé sur l'option Avec du Changement de côté (et non sous un champ). Le
  * panneau reste un conteneur de positionnement : le contenu du déroulant est dessiné par la
- * Feuille. Ce remplacement du menu natif est décidé par D-445, non une substitution.
+ * Feuille. Ce remplacement du menu natif est décidé par D-447, non une substitution.
  */
 export function AnchoredPanel({ placement, onDismiss, outsideInsets, onLayout, style, children, testID }: AnchoredPanelProps) {
   return (

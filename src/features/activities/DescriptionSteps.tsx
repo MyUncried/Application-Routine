@@ -40,7 +40,7 @@ export function displayedStepRows(steps: readonly string[]): readonly string[] {
 }
 
 /**
- * PRE-7 story B.2 (B1, D-445, arbitrage A1) : lignes réellement rendues. La
+ * PRE-7 story B.2 (B1, D-447, arbitrage A1) : lignes réellement rendues. La
  * ligne d'invite (dernière ligne de `displayedStepRows`, toujours vide) n'est
  * rendue au repos qu'au rang 1 (« Décrivez la première étape ») ; au rang > 1,
  * « Étape suivante » n'apparaît que lorsqu'une ligne de la Description a le

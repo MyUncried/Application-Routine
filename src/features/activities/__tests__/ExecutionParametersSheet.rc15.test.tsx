@@ -219,7 +219,7 @@ describe("RC-15 — contrôle segmenté Séries (recette du 20/10)", () => {
     expect(query("execution-sheet-table")).toBeNull();
   });
 
-  // PRE-7 story B.1 (D-445, B4) : marge du bouton actif fermé portée de 8 à 12 de chaque côté —
+  // PRE-7 story B.1 (D-447, B4) : marge du bouton actif fermé portée de 8 à 12 de chaque côté —
   // options fermées « 3 séries identiques » 126 → 134 et « 3 séries variables » 134 → 142 ; stepper
   // ouvert inchangé (138, 154).
   it("largeurs : option sélectionnée adaptée au contenu (stepper ouvert : Figma 138 à un point près ; fermées 134 / 142 depuis B.1, marges 12 au lieu des 8 de Figma 127 / 134) ; non sélectionnée de 106 (RC-17 : libellé « Séries » plus court), réduite seulement si le libellé n'a plus sa place", () => {

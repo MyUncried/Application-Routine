@@ -34,7 +34,7 @@ BMad Method **6.12.4** (modules `core` et `bmm`), copie locale de l'installation
 - Documentation = comportements et calculs ; Figma = rendu visuel. Une valeur lue dans une capture n'est jamais une règle.
 - Le document le plus récent ne remplace pas automatiquement les autres. Un remplacement doit être explicite : décision Dxxx qui nomme la règle remplacée, ou mention « remplacé par ».
 - Ne jamais inventer une règle. Une ambiguïté nécessaire est soumise à Hermann avec ses sources exactes (fichier et ligne) et une proposition d'arbitrage.
-- Numérotation : D-436 à D-440 = MFN ; D-441 à D-444 = PRE-6 ; décisions PRE-7 à partir de D-445.
+- Numérotation : D-436 à D-440 = MFN ; D-441 à D-444 = PRE-6 ; D-445 = décision de main (PR #397) ; D-446 = chantier des phases PRE-7 (rapproché de PHC-20261026) ; D-447 = décision éditeur PRE-7 ; suivantes à partir de D-448.
 - Une suite de tests verte ne vaut pas preuve sur appareil : jalons de recette iPhone JB, JA1 et JA dans `epics.md`.
 
 ## Références inactives dans ce clone

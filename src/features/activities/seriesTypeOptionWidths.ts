@@ -10,7 +10,7 @@ import { INLINE_OPTION_WIDTHS } from "@/shared/ui/SegmentedControl";
  * 66 avec marge 8). Mesures : avances d'Inter de l'application (`loadTextWidth`, Semi Bold 12 ;
  * Semi Bold 13 au prorata de la taille). Constantes locales, aucun jeton modifié (NFR-3).
  *
- * PRE-7 story B.1 (D-445, B4) : marge intérieure horizontale du bouton actif (option sélectionnée
+ * PRE-7 story B.1 (D-447, B4) : marge intérieure horizontale du bouton actif (option sélectionnée
  * fermée) portée de 8 à 12, de chaque côté (avant le libellé, après le libellé ou le chevron).
  */
 export const SERIES_LABEL_INSET = 12;

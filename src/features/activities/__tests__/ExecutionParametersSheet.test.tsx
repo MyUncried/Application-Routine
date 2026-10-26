@@ -197,7 +197,7 @@ function modeText(): string {
 const SIDE_CONTROL = "execution-sheet-side-control";
 /**
  * Recette du 19/10 (RC-6) : plus de ligne « Enchainement » ; l'option Avec sélectionnée (N > 1)
- * porte la notation et ouvre [remplacé par PRE-7 B.3 (B5, D-445) : le déroulant `ORDER_PANEL`,
+ * porte la notation et ouvre [remplacé par PRE-7 B.3 (B5, D-447) : le déroulant `ORDER_PANEL`,
  * toutes plates-formes, par un déclencheur React Native de taille fixe] le menu natif (`Menu`
  * d'`@expo/ui` sur iOS, `Alert` ailleurs).
  */
@@ -2737,7 +2737,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
     expect(cadenceText()).toBe("Autre");
     expect(shownValue("execution-sheet-countdown")).toBe("10 s");
-    // PRE-7 B.1 (D-445, B3) : pastille de 32, rayon 8, marges 12 (auparavant ≈ 24, rayon 10, marges 10).
+    // PRE-7 B.1 (D-447, B3) : pastille de 32, rayon 8, marges 12 (auparavant ≈ 24, rayon 10, marges 10).
     expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({
       backgroundColor: "#F5F7FA",
       borderRadius: 8,
@@ -2747,7 +2747,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
     // NFR-09, Q42 : zone de toucher fermée d'au moins 44 × 44 (toute la largeur du champ).
     expect(styleOf("execution-sheet-countdown-toggle")).toMatchObject({ width: 137, minHeight: 44 });
-    // Q41 : même cadre fermé et ouvert (largeur, alignement, hauteur). PRE-7 B.1 (D-445, B6) :
+    // Q41 : même cadre fermé et ouvert (largeur, alignement, hauteur). PRE-7 B.1 (D-447, B6) :
     // contenu aligné à droite (et non plus centré), fermé comme ouvert.
     const closedFrame = styleOf("execution-sheet-countdown-toggle");
     fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
@@ -2770,7 +2770,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
   });
 
   /**
-   * PRE-7 story B.1 (D-445, B3, B6, B7 ; CE-UI-10 §9, révision 24/10, lignes 5, 9, 11, 12, 13) :
+   * PRE-7 story B.1 (D-447, B3, B6, B7 ; CE-UI-10 §9, révision 24/10, lignes 5, 9, 11, 12, 13) :
    * hauteur commune de 32 (pastilles, steppers ouverts sur `color/surface`), alignement à droite
    * fermé et ouvert de Pause, Pause entre les côtés, Compte à rebours et Fin, chevron de Durée de
    * l'exercice sans cadre. Jest ne prouve que l'arbre JS : le rendu relève de la recette JB.
@@ -7131,7 +7131,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
 });
 
 /**
- * PRE-7 story B.2 (D-445, CE-UI-10) — B8 : valeur personnalisée de la Cadence affichée à la
+ * PRE-7 story B.2 (D-447, CE-UI-10) — B8 : valeur personnalisée de la Cadence affichée à la
  * place de « Autre » (arbitrage A2) ; B10 : colonne Charge des séries variables toujours
  * présente, tiret gris non éditable sous Sans (arbitrage A3).
  */
