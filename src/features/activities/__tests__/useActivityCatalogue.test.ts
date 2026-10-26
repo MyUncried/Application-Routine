@@ -73,7 +73,8 @@ describe("useActivityCatalogue", () => {
     });
 
     await waitFor(() => expect(result.current.state.status).toBe("ready"));
-    expect(result.current.state).toEqual({ status: "ready", definitions });
+    // PRE-7 (R-6, C06) : positions de niveau lues avec la liste ; service sans cette lecture : table vide.
+    expect(result.current.state).toEqual({ status: "ready", definitions, levelPositions: new Map() });
   });
 
   // PRE-7 A4.1 (D-439, MFN-10, CE-T03-02 §5) : ordre regroupé par geste, aplati.

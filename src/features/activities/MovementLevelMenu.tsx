@@ -20,6 +20,7 @@ import {
 import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import { AnchoredPanel, type AnchoredPanelPlacement } from "@/features/activities/AnchoredPanel";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
@@ -43,6 +44,12 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
  * - PRE-7 story A3.2 : « Réordonner les niveaux », dernière entrée du sous-menu « Changer de niveau »
  *   (et de l'étape des niveaux du panneau), ouvre l'écran des niveaux (`MovementLevelsScreen`) ; les
  *   deux actions documentées restent seules à la racine du popover (`9577:19843`).
+ * - PRE-7 story R-6 (D-445 C09, v7 §5 l.67, MFN-07 l.371, MFN-09 l.410 ; CE-UI-NIV-01) : la commande
+ *   est active hors crayon dans tous les contextes. Choix PAR EXERCICE au Catalogue (inchangé) ; choix
+ *   PAR MOUVEMENT (`movementChoice`) en reprise et sur une occurrence de Séance, où un niveau est un
+ *   mouvement du groupe, local compris : chaque niveau est alors un bouton, le mouvement courant coché.
+ *   « Ajouter un niveau » est un sous-menu natif « Plus facile / Plus difficile » (déploiement
+ *   `10152:20369`, MFN-07 : insertion avant / après l'origine) ; indisponible sans `onAddLevel`.
  * - Android et web : bouton (cible 44) et panneau `AnchoredPanel` à étapes (racine, niveaux,
  *   Exercices), hébergé par l'Éditeur dans un parent qui le contient entièrement — rendu
  *   `NON VÉRIFIABLE` (Figma ne dessine que le rendu iOS), lignes du panneau de `CircuitNatureMenu`.
@@ -60,16 +67,31 @@ export type LevelOption = {
   readonly total: number;
   readonly name: string;
   readonly exercises: readonly LevelExerciseOption[];
+  /** PRE-7 (R-6) : mouvement du niveau, cible du choix par mouvement (`movementChoice`). */
+  readonly movementId?: string;
+};
+
+/**
+ * PRE-7 (R-6, C09, MFN-09) : choix par mouvement — reprise et occurrence de Séance. Le choix
+ * prépare un remplacement ; il ne reclasse jamais le mouvement courant.
+ */
+export type LevelMovementChoice = {
+  readonly currentMovementId: string;
+  readonly onChangeMovement: (movementId: string) => void;
 };
 
 /** Popover disponible : Exercice ouvert, niveaux du groupe (vide sans groupe), actions. */
 export type MovementLevelMenuModel = {
-  readonly currentDefinitionId: string;
+  /** Exercice du Catalogue ouvert ; `null` hors fiche d'un Exercice existant. */
+  readonly currentDefinitionId: string | null;
   readonly levels: readonly LevelOption[];
+  /** Choix par Exercice (Catalogue) ; ignoré lorsque `movementChoice` est fourni. */
   readonly onChangeLevel: (definitionId: string) => void;
-  readonly onAddLevel: () => void;
+  /** PRE-7 (R-6, MFN-07) : sens choisi, avant / après l'origine ; `null` : « Ajouter » indisponible. */
+  readonly onAddLevel: ((placement: VariantPlacement) => void) | null;
   /** PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux. */
   readonly onReorderLevels: () => void;
+  readonly movementChoice?: LevelMovementChoice;
 };
 
 /** Pastille : position dérivée (`null` : vide) ; `menu` `null` : affichage seul, sans accès. */
@@ -238,7 +260,15 @@ export function MovementLevelMenu({
               {/* PRE-7 (A3.2) : écran des niveaux, en fin du sous-menu (mêmes conditions d'accès). */}
               <SwiftUIButton label={t.reorderLevels} onPress={menu.onReorderLevels} testID={`${testID}-reorder`} />
             </Menu>
-            <SwiftUIButton label={t.addLevel} onPress={menu.onAddLevel} testID={`${testID}-add`} />
+            {/* PRE-7 (R-6, MFN-07, `10152:20369`) : sens explicite, avant / après l'origine. */}
+            <Menu
+              label={t.addLevel}
+              modifiers={menu.onAddLevel === null ? [swiftUIDisabled(true)] : undefined}
+              testID={`${testID}-add`}
+            >
+              <SwiftUIButton label={t.addEasier} onPress={() => menu.onAddLevel?.("BEFORE_ORIGIN")} testID={`${testID}-add-easier`} />
+              <SwiftUIButton label={t.addHarder} onPress={() => menu.onAddLevel?.("AFTER_ORIGIN")} testID={`${testID}-add-harder`} />
+            </Menu>
           </Menu>
         </Host>
       </View>
@@ -282,6 +312,21 @@ function NativeLevelItem({
   readonly testID: string;
 }) {
   const label = levelOptionLabel(option);
+  const choice = menu.movementChoice;
+  if (choice !== undefined) {
+    // PRE-7 (R-6) : un niveau = un mouvement ; le mouvement courant est coché, le choisir ne fait rien.
+    const movementId = option.movementId;
+    const isCurrent = movementId === choice.currentMovementId;
+    return (
+      <SwiftUIButton
+        label={label}
+        systemImage={isCurrent ? "checkmark" : undefined}
+        modifiers={movementId === undefined ? [swiftUIDisabled(true)] : undefined}
+        onPress={() => selectMovement(choice, movementId)}
+        testID={testID}
+      />
+    );
+  }
   const isCurrentLevel = option.exercises.some((exercise) => exercise.definitionId === menu.currentDefinitionId);
   if (option.exercises.length > 1) {
     return (
@@ -317,7 +362,16 @@ function selectExercise(menu: MovementLevelMenuModel, definitionId: string) {
   if (definitionId !== menu.currentDefinitionId) menu.onChangeLevel(definitionId);
 }
 
-type PanelStep = { readonly kind: "ROOT" } | { readonly kind: "LEVELS" } | { readonly kind: "EXERCISES"; readonly rank: number };
+/** PRE-7 (R-6) : choisir le mouvement courant ne fait rien (il est coché). */
+function selectMovement(choice: LevelMovementChoice, movementId: string | undefined) {
+  if (movementId !== undefined && movementId !== choice.currentMovementId) choice.onChangeMovement(movementId);
+}
+
+type PanelStep =
+  | { readonly kind: "ROOT" }
+  | { readonly kind: "LEVELS" }
+  | { readonly kind: "EXERCISES"; readonly rank: number }
+  | { readonly kind: "ADD" };
 
 export type MovementLevelPanelProps = {
   readonly menu: MovementLevelMenuModel;
@@ -344,17 +398,34 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
   if (step.kind === "ROOT") {
     rows = [
       { id: "change", label: t.changeLevel, disabled: !canChangeLevel(menu), onPress: () => setStep({ kind: "LEVELS" }) },
-      {
-        id: "add",
-        label: t.addLevel,
-        onPress: () => {
-          onDismiss();
-          menu.onAddLevel();
-        },
-      },
+      { id: "add", label: t.addLevel, disabled: menu.onAddLevel === null, onPress: () => setStep({ kind: "ADD" }) },
+    ];
+  } else if (step.kind === "ADD") {
+    // PRE-7 (R-6, MFN-07) : sens explicite, avant / après l'origine.
+    const add = (placement: VariantPlacement) => {
+      onDismiss();
+      menu.onAddLevel?.(placement);
+    };
+    rows = [
+      { id: "add-easier", label: t.addEasier, onPress: () => add("BEFORE_ORIGIN") },
+      { id: "add-harder", label: t.addHarder, onPress: () => add("AFTER_ORIGIN") },
     ];
   } else if (step.kind === "LEVELS") {
+    const choice = menu.movementChoice;
     const levelRows = menu.levels.map((option): PanelRowProps => {
+      if (choice !== undefined) {
+        // PRE-7 (R-6) : choix par mouvement, une ligne par niveau.
+        return {
+          id: `level-${option.rank}`,
+          label: levelOptionLabel(option),
+          selected: option.movementId === choice.currentMovementId,
+          disabled: option.movementId === undefined,
+          onPress: () => {
+            onDismiss();
+            selectMovement(choice, option.movementId);
+          },
+        };
+      }
       const only = option.exercises.length === 1 ? option.exercises[0] : undefined;
       return {
         id: `level-${option.rank}`,

@@ -29,7 +29,7 @@ import {
   type ExecutionParametersInput,
   type SeriesRow,
 } from "@/domain/activities/ExecutionParameters";
-import type { MovementPhase } from "@/domain/activities/Movement";
+import { transferParametersByRank, type MovementPhase } from "@/domain/activities/Movement";
 import type { MovementContentSnapshot } from "@/domain/activities/movementSave";
 import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 
@@ -535,18 +535,70 @@ export function replaceOccurrenceWithNewMovement(
     copyNumber: null,
   };
   const movement = draftMovementOf(replacement, "NEW", { nextPhaseId: options.nextPhaseId, aliases: [] });
-  const exercises = draft.exercises.map((exercise) => (exercise.id === edited.id ? replacement : exercise));
+  const replaced = replaceOccurrence(draft, edited.id, replacement);
+  return {
+    exercises: replaced.exercises,
+    movements: { ...(draft.movements ?? {}), [movement.id]: movement },
+    ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+  };
+}
+
+/**
+ * PRE-7 (R-6) : contenu d'un Mouvement que reçoit une occurrence — Mouvement enregistré
+ * (`Movement`) ou entrée de la table du brouillon (`DraftMovement`).
+ */
+export type OccurrenceMovementContent = Pick<
+  DraftMovement,
+  "id" | "name" | "description" | "categoryId" | "bodyZoneIds" | "media" | "phases"
+>;
+
+/**
+ * PRE-7 (R-6, D-445 C05, C09, MFN-09 l.412 et l.418) : occurrence préparée par un changement de
+ * niveau (ou de mouvement) — vue du contenu du Mouvement choisi (nom, description, Catégorie, Zones,
+ * médias, structure des phases), référence à ce Mouvement, et paramètres transférés PAR RANG
+ * (`transferParametersByRank`) : tout le reste de l'occurrence (identité, position, récupération,
+ * côtés, séries) est conservé. Le remplacement lui-même — nouvelle identité d'occurrence à la même
+ * place — n'est inscrit qu'à la validation (`replaceOccurrence`). Fonction pure.
+ */
+export function withOccurrenceMovement(
+  occurrence: SessionDraftExercise,
+  movement: OccurrenceMovementContent,
+): SessionDraftExercise {
+  const executionParameters = transferParametersByRank(occurrence.executionParameters, movement.phases);
+  return {
+    ...occurrence,
+    name: movement.name,
+    instruction: movement.description,
+    categoryId: movement.categoryId,
+    bodyZoneIds: [...movement.bodyZoneIds],
+    media: movement.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })),
+    executionParameters,
+    sourceMovementId: movement.id,
+  };
+}
+
+/**
+ * PRE-7 (R-4, R-6 ; MFN-09 l.412 « nouvelle identité d'occurrence dans le brouillon ») : remplace,
+ * à la MÊME place, l'occurrence `previousId` par `replacement` (identité nouvelle). L'entrée de
+ * réserve de Circuit éventuelle suit l'occurrence ; la table des Mouvements n'est pas touchée.
+ * Fonction pure ; une occurrence absente du brouillon lève (entrée invalide).
+ */
+export function replaceOccurrence(
+  draft: SessionDraft,
+  previousId: string,
+  replacement: SessionDraftExercise,
+): Pick<SessionDraft, "exercises" | "circuitSeriesReserve"> {
+  if (!draft.exercises.some((exercise) => exercise.id === previousId)) {
+    throw new Error("replaceOccurrence: the replaced occurrence is not in the draft.");
+  }
+  const exercises = draft.exercises.map((exercise) => (exercise.id === previousId ? replacement : exercise));
   const reserve = draft.circuitSeriesReserve;
   let circuitSeriesReserve = reserve;
-  if (reserve !== undefined && Object.prototype.hasOwnProperty.call(reserve, edited.id)) {
-    const { [edited.id]: rows, ...rest } = reserve;
-    circuitSeriesReserve = { ...rest, [ids.occurrenceId]: rows! };
+  if (reserve !== undefined && Object.prototype.hasOwnProperty.call(reserve, previousId)) {
+    const { [previousId]: rows, ...rest } = reserve;
+    circuitSeriesReserve = { ...rest, [replacement.id]: rows! };
   }
-  return {
-    exercises,
-    movements: { ...(draft.movements ?? {}), [movement.id]: movement },
-    ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}),
-  };
+  return { exercises, ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}) };
 }
 
 /**

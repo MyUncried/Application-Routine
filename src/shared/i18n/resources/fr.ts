@@ -225,6 +225,9 @@ export const fr = {
         deployAccessibilityLabel: "Déployer l’exercice",
         playAccessibilityLabel: "Lecture",
         openAccessibilityLabel: "Modifier l’exercice",
+        // PRE-7 (R-6, D-445 C06, MFN-10 l.426, relevé du 25/10 §6 « Squat assisté - N1 ») : suffixe
+        // de niveau des cartes sans pastille, dérivé, jamais stocké dans le nom.
+        levelSuffix: "{name} - N{rank}",
       },
       editor: {
         // Complément d'alignement du 07/10 (ajout D) : titre d'écran de
@@ -287,6 +290,9 @@ export const fr = {
           rank: "Niveau {rank}",
           changeLevel: "Changer de niveau",
           addLevel: "Ajouter un niveau",
+          // PRE-7 (R-6, MFN-07 l.371, déploiement `10152:20369`) : sens du niveau ajouté.
+          addEasier: "Plus facile",
+          addHarder: "Plus difficile",
           levelOption: "Niveau {rank} sur {total} · {name}",
           // PRE-7 story A3.2 : accès à l’écran des niveaux, en fin du sous-menu « Changer de niveau »
           // (aucun libellé documenté ; verbe de ch03 l.154 « glisser réordonne les niveaux »).

@@ -437,6 +437,33 @@ export class ActivityDefinitionService {
     return choices;
   }
 
+  /**
+   * PRE-7 (R-6, D-445 C06, v7 l.69, MFN-10 l.426) — position de niveau de chaque mouvement d'un
+   * groupe d'au moins deux membres, par identifiant : source du suffixe « - Nn » des cartes sans
+   * pastille (Catalogue, choix d'exercices, Composition). Rang et total dérivés de l'ordre du groupe
+   * (`listGroup`, `movementLevelPosition`), jamais persistés ; un mouvement sans groupe ou seul
+   * dans le sien est absent (aucun suffixe). Lecture seule ; table vide sans `MovementRepository`.
+   */
+  async listMovementLevelPositions(): Promise<ReadonlyMap<string, MovementLevelPosition>> {
+    const positions = new Map<string, MovementLevelPosition>();
+    const movements = this.movementRepository;
+    if (!movements) {
+      return positions;
+    }
+    const groupIds = new Set<string>();
+    for (const movement of await movements.search("")) {
+      if (movement.levelGroup !== null) groupIds.add(movement.levelGroup.groupId);
+    }
+    for (const groupId of groupIds) {
+      const members = await movements.listGroup(groupId);
+      for (const member of members) {
+        const position = movementLevelPosition(member, members);
+        if (position !== null) positions.set(member.id, position);
+      }
+    }
+    return positions;
+  }
+
   /** PRE-7 (A3.1) : niveaux disponibles (Mouvement injecté) — même patron que `supportsMovementSearch`. */
   get supportsMovementLevels(): boolean {
     return this.movementRepository !== undefined;

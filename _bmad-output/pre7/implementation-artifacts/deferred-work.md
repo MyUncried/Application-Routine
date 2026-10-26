@@ -145,3 +145,34 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
   summary: Aucune pastille « Niveau N » pour une variante créée en Séance, contrairement au Catalogue.
   evidence: `CompositionExerciseEditor` ne calcule pas `level` ; la commande Niveau en Séance relève de R-6.
+
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: Reports R-5 « Ajouter un niveau pas aligné sur C02 » et « pastille Niveau N absente pour une variante créée en Séance » traités par R-6. Au Catalogue, « Ajouter un niveau » est un sous-menu natif « Plus facile / Plus difficile » (MFN-07 l.371, `10152:20369`) : insertion avant / après l'origine, description et médias vierges, Catégorie et Zones reprises, pastille du rang prévu. En Séance, une variante (choisie dans l'éditeur, ou Mouvement `NEW` rouvert) montre la pastille de son rang prévu, sans menu.
+  evidence: `MovementLevelMenu.tsx`, `ExerciseScreen.tsx` (`levelPlacement`, `variantLevelOrigin`) ; tests `ExerciseScreen.mfn.a31.integration.test.tsx`, `ExerciseScreen.r6.integration.test.tsx`, `MovementLevelMenu.test.tsx`.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: « Ajouter un niveau » est indisponible en reprise et sur une occurrence de Séance (option conservatrice). MFN-07 ne dit pas si, en Séance, le niveau créé remplace l'occurrence ou en ajoute une.
+  evidence: `ExerciseScreen.tsx` (`onAddLevel: null` en reprise et en occurrence). À décider par Hermann ; le domaine accepte déjà `levelOrigin` en Séance (R-5).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: Garde d'abandon sur un remplacement (risque cité par la proposition §R-6) : après un changement de niveau, l'occurrence diffère de l'ouverture, donc la fermeture passe par le dialogue d'abandon existant ; confirmer restitue l'occurrence. Couvert par les tests seulement avec une garde simulée.
+  evidence: `ExerciseScreen.tsx` (`shouldBlockExit`, `useCompositionExitGuard`). À constater en recette JA2.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: La capture `10070:20073` (« Durées à compléter », Feuille ouverte) n'est pas reproduite. Après un changement de niveau aux durées manquantes, l'éditeur affiche « Paramètres à compléter. » et `Terminer` reste indisponible ; la Feuille ne s'ouvre pas d'elle-même, et le titre reste celui de l'éditeur.
+  evidence: capture datée, sans règle écrite (DSF l.153 : la capture « établit le parcours et son titre, pas l’état de champs manquants ni le blocage de validation ») ; le titre « Durées à compléter » et l’ouverture de la Feuille sont à trancher par Hermann en JA2.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: Le suffixe « - Nn » d'une carte est lu en base. Une variante créée en Séance et pas encore enregistrée n'en a pas sur sa carte de Composition, et un mouvement corrigé dans le brouillon garde son ancien nom dans la liste des niveaux du menu.
+  evidence: `listMovementLevelPositions`, `getMovementLevels` (lecture seule de la base) ; rendu à constater en JA2.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: Rendu du suffixe (« Squats - N2 (copie 2) » : ordre des deux suffixes, troncature des noms longs) et du sous-menu natif « Ajouter un niveau » non constatés sur appareil.
+  evidence: tests fonctionnels seulement ; à constater en recette JA2 (360 / 402 / 440, texte agrandi).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: La règle du crayon diffère selon le contexte (option conservatrice). En Séance, il est retiré après un changement de niveau jusqu'à `Terminer` ; en reprise au Catalogue, il reste disponible et corrige le mouvement choisi.
+  evidence: `ExerciseScreen.tsx` (`canUnlockMovement`, `contentLocked`). À valider par Hermann.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: L'écran des niveaux ouvert depuis une occurrence de Séance réordonne le groupe en base immédiatement (comportement A3.2). L'abandon de l'éditeur ou de la Séance ne l'annule pas.
+  evidence: `MovementLevelsScreen` (écriture directe), ouvert depuis `CompositionExerciseEditor`. À confirmer par Hermann en JA2.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: `listMovementLevelPositions` lit tous les mouvements, puis chaque groupe (1 + G lectures) à chaque rechargement du Catalogue et à chaque retour sur la Composition.
+  evidence: `ActivityDefinitionService.ts` (positions) ; une requête unique sur l'appartenance aux groupes suffirait.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
+  summary: La relecture des suffixes « - Nn » au retour sur la Composition n'est couverte par aucun test.
+  evidence: `useMovementLevelPositions(…, categoriesFocusToken)` ; le seul test vérifie la première lecture.

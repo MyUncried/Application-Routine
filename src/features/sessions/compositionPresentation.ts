@@ -489,11 +489,13 @@ export function formatOccurrenceAccessibilityLabel(
   exercise: SessionDraftExercise,
   position: { readonly index: number; readonly count: number },
   context: OccurrenceCircuitContext = {},
+  /** PRE-7 (R-6, C06) : nom affiché par la carte (suffixes de niveau et de copie compris). */
+  displayName: string = occurrenceDisplayName(exercise.name, exercise.copyNumber),
 ): string {
   const card = strings.screens.composition.occurrenceCard;
   const parts = [
     card.accessibilityType,
-    occurrenceDisplayName(exercise.name, exercise.copyNumber),
+    displayName,
     card.accessibilityPosition
       .replace("{position}", String(position.index + 1))
       .replace("{count}", String(position.count)),

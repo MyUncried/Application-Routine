@@ -2343,6 +2343,36 @@ function fireSwipeRight(activityId: string) {
   fireSwipe(activityId, 80);
 }
 
+describe("CompositionScreen — suffixe de niveau « - Nn » (PRE-7 R-6, D-445 C06, MFN-10)", () => {
+  it("carte sans pastille : « nom - Nn » pour un mouvement groupé, puis le suffixe de copie ; nom seul sans groupe ; nom accessible identique", async () => {
+    const listMovementLevelPositions = jest
+      .fn<ActivityDefinitionService["listMovementLevelPositions"]>()
+      .mockResolvedValue(new Map([["mov-squats", { rank: 2, total: 3 }]]));
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService({ listMovementLevelPositions })}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper
+              initialExercises={[
+                { ...createExerciseDraft("ex-1"), name: "Squats", executionParameters: durationParameters(30, 3, 10), sourceMovementId: "mov-squats", copyNumber: 2 },
+                { ...createExerciseDraft("ex-2"), name: "Pompes", executionParameters: durationParameters(30, 3, 10), sourceMovementId: "mov-alone" },
+              ]}
+            >
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await waitFor(() => expect(listMovementLevelPositions).toHaveBeenCalled());
+    const squats = screen.getByTestId("composition-exercise-row-ex-1");
+    await waitFor(() => expect(within(squats).getByTestId("composition-exercise-name").props.children).toBe("Squats - N2 (copie 2)"));
+    expect(squats.props.accessibilityLabel).toContain("Squats - N2 (copie 2)");
+    const alone = screen.getByTestId("composition-exercise-row-ex-2");
+    expect(within(alone).getByTestId("composition-exercise-name").props.children).toBe("Pompes");
+  });
+});
+
 describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () => {
   // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
   swipeMotion();

@@ -23,6 +23,7 @@ import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
+import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
@@ -91,6 +92,8 @@ import type { ActivityDefinitionService } from "@/features/activities/ActivityDe
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
+import { useMovementLevelPositions } from "@/features/activities/useMovementLevelPositions";
+import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
@@ -764,6 +767,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     activityDefinitionService,
     `${draftCategoryKey}#${categoriesFocusToken}`,
   );
+  // PRE-7 (R-6, D-445 C06) : positions de niveau (suffixe « - Nn » des cartes), relues au retour au
+  // premier plan (niveau ajouté ou réordonné depuis un éditeur).
+  const levelPositions = useMovementLevelPositions(activityDefinitionService, categoriesFocusToken);
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -1517,8 +1523,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * (revue 6.3) emplacements à ajouter.
    */
   const placementLabels = useMemo(
-    () => (isPlacementActive ? placementLabelerOf(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS) : null),
-    [draft.exercises, draft.stopPoints, isPlacementActive],
+    () =>
+      isPlacementActive ? placementLabelerOf(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, levelPositions) : null,
+    [draft.exercises, draft.stopPoints, isPlacementActive, levelPositions],
   );
   // Pendant le placement, durées recalculées en direct sur le brouillon tel que « Confirmer » le
   // produirait (R positive remplace la Pause terminale, story 1.3).
@@ -2891,6 +2898,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           raisedKey={raisedKey}
           bodyZonesReferential={bodyZonesReferential}
           categoriesReferential={categoriesReferential}
+          levelPositions={levelPositions}
           circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
@@ -3016,6 +3024,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             raisedKey={raisedKey}
             bodyZonesReferential={bodyZonesReferential}
             categoriesReferential={categoriesReferential}
+            levelPositions={levelPositions}
             circuitContext={occurrenceCircuitContext}
             onLayout={handleZoneLayout}
             onRowLayout={handleRowLayout}
@@ -3116,6 +3125,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           raisedKey={raisedKey}
           bodyZonesReferential={bodyZonesReferential}
           categoriesReferential={categoriesReferential}
+          levelPositions={levelPositions}
           circuitContext={occurrenceCircuitContext}
           onLayout={handleZoneLayout}
           onRowLayout={handleRowLayout}
@@ -3494,6 +3504,8 @@ type ActivityZoneListProps = {
   readonly raisedKey: string | null;
   readonly bodyZonesReferential: readonly BodyZone[];
   readonly categoriesReferential: readonly Category[];
+  /** PRE-7 (R-6, C06) : positions de niveau par mouvement (suffixe « - Nn »). */
+  readonly levelPositions: ReadonlyMap<string, MovementLevelPosition>;
   readonly circuitContext: OccurrenceCircuitContext;
   readonly onLayout: (zone: StructuralPosition, event: LayoutChangeEvent) => void;
   /** Mesure d'une rangée, par clé d'élément et zone (revue 6.2). */
@@ -3566,6 +3578,7 @@ type PlacementLabeler = {
 function placementLabelerOf(
   exercises: readonly SessionDraftExercise[],
   stopPoints: readonly StopPoint[],
+  levelPositions: ReadonlyMap<string, MovementLevelPosition>,
 ): PlacementLabeler {
   const t = strings.screens.composition.placement;
   const existing = new Map<string, string>();
@@ -3573,7 +3586,7 @@ function placementLabelerOf(
     const items = scopeSequence(exercises, stopPoints, scope);
     items.forEach((item, index) => {
       if (item.kind === "STOP_POINT") {
-        existing.set(item.point.id, stopPointRowAccessibilityLabel(items, index, scope, exercises));
+        existing.set(item.point.id, stopPointRowAccessibilityLabel(items, index, scope, exercises, levelPositions));
       }
     });
   }
@@ -3586,6 +3599,7 @@ function placementLabelerOf(
         items,
         items.findIndex((item) => item.kind === "STOP_POINT"),
         exercises,
+        levelPositions,
       );
       if (anchor !== null) return t.addStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
       // Story 7.2 (D-442) : tête de Circuit (début de Tour) ; sinon « après le circuit ».
@@ -3658,10 +3672,25 @@ function placementRowPointOf(
  * « n sur m » dans la zone quand un homonyme existe ; `null` en tête de portée. Revue 6.3 : partagé
  * par les points existants et les emplacements à ajouter.
  */
+/**
+ * PRE-7 (R-6, D-445 C06) : nom affiché d'une occurrence — suffixe de niveau « - Nn » puis suffixe
+ * de copie (Q3) ; même nom pour la carte, son nom accessible et les points d'arrêt qui la suivent.
+ */
+function occurrenceCardName(
+  occurrence: SessionDraftExercise,
+  levelPositions: ReadonlyMap<string, MovementLevelPosition>,
+): string {
+  return occurrenceDisplayName(
+    withLevelSuffix(occurrence.name, levelPositions.get(occurrence.sourceMovementId ?? "")),
+    occurrence.copyNumber,
+  );
+}
+
 function stopPointAnchor(
   items: readonly ZoneItem[],
   index: number,
   allOccurrences: readonly SessionDraftExercise[],
+  levelPositions: ReadonlyMap<string, MovementLevelPosition>,
 ): string | null {
   const preceding = items
     .slice(0, Math.max(0, index))
@@ -3670,11 +3699,10 @@ function stopPointAnchor(
       (item): item is Extract<ZoneItem, { kind: "OCCURRENCE" }> => item.kind === "OCCURRENCE" && isSequenceSeparator(item.occurrence),
     );
   if (preceding === undefined) return null;
-  // PRE-7 (R-3, Q3) : nom affiché, suffixe de copie compris.
-  const name = occurrenceDisplayName(preceding.occurrence.name, preceding.occurrence.copyNumber);
+  // PRE-7 (R-3, Q3 ; R-6, C06) : nom affiché par la carte, suffixes de niveau et de copie compris.
+  const name = occurrenceCardName(preceding.occurrence, levelPositions);
   // Homonymes : la notation de position des cartes (« n sur m » dans la zone) les distingue.
-  const homonyms =
-    allOccurrences.filter((occurrence) => occurrenceDisplayName(occurrence.name, occurrence.copyNumber) === name).length > 1;
+  const homonyms = allOccurrences.filter((occurrence) => occurrenceCardName(occurrence, levelPositions) === name).length > 1;
   if (!homonyms) return name;
   const inZone = items.filter((item) => item.kind === "OCCURRENCE");
   const position = strings.screens.composition.occurrenceCard.accessibilityPosition
@@ -3694,9 +3722,10 @@ function stopPointRowAccessibilityLabel(
   index: number,
   zone: StructuralPosition,
   allOccurrences: readonly SessionDraftExercise[],
+  levelPositions: ReadonlyMap<string, MovementLevelPosition>,
 ): string {
   const t = strings.screens.composition.placement;
-  const anchor = stopPointAnchor(items, index, allOccurrences);
+  const anchor = stopPointAnchor(items, index, allOccurrences, levelPositions);
   if (anchor !== null) return t.existingStopPointAccessibilityLabel.replace("{exercise}", () => anchor);
   if (zone === "AFTER_TOUR") return t.existingStopPointAfterCircuitAccessibilityLabel;
   return zone === "IN_TOUR" ? t.stopPointAtCircuitStartAccessibilityLabel : t.stopPointAtSessionStartAccessibilityLabel;
@@ -3750,6 +3779,7 @@ function ActivityZoneList({
   raisedKey,
   bodyZonesReferential,
   categoriesReferential,
+  levelPositions,
   circuitContext,
   onLayout,
   onRowLayout,
@@ -3842,7 +3872,7 @@ function ActivityZoneList({
             <StopPointRow
               key={key}
               point={item.point}
-              accessibilityLabel={stopPointRowAccessibilityLabel(items, itemIndex, zone, allOccurrences)}
+              accessibilityLabel={stopPointRowAccessibilityLabel(items, itemIndex, zone, allOccurrences, levelPositions)}
               isDragged={draggedKey === key}
               isRaised={raisedKey === key}
               rail={rail}
@@ -3876,6 +3906,7 @@ function ActivityZoneList({
           isBlockedByOtherReveal={revealedActionsId !== null && revealedActionsId !== activity.id}
           bodyZonesReferential={bodyZonesReferential}
           categoriesReferential={categoriesReferential}
+          levelPositions={levelPositions}
           circuitContext={circuitContext}
           onLayout={(event) => onRowLayout(key, zone, event)}
           focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
@@ -4234,6 +4265,8 @@ type CompositionActivityRowProps = {
   readonly bodyZonesReferential: readonly BodyZone[];
   /** PRE-6 (story 2.2) : Catégories (ligne de classement) et contexte de Circuit (durées). */
   readonly categoriesReferential: readonly Category[];
+  /** PRE-7 (R-6, C06) : positions de niveau par mouvement (suffixe « - Nn »). */
+  readonly levelPositions: ReadonlyMap<string, MovementLevelPosition>;
   readonly circuitContext: OccurrenceCircuitContext;
   /** Position de l'occurrence dans sa zone, pour son nom accessible (« n sur m »). */
   readonly position: { readonly index: number; readonly count: number };
@@ -4405,6 +4438,7 @@ function CompositionActivityRow({
   isBlockedByOtherReveal,
   bodyZonesReferential,
   categoriesReferential,
+  levelPositions,
   circuitContext,
   position,
   onLayout,
@@ -4807,6 +4841,9 @@ function CompositionActivityRow({
   }, [applyDragTranslation, autoScroll, onDragStart]);
 
   const bodyZones = formatExerciseBodyZones(activity.bodyZoneIds, bodyZonesReferential);
+  // PRE-7 (R-6, D-445 C06, MFN-10 l.426) : la carte n'a pas de pastille — suffixe dérivé « - Nn » à
+  // la suite du nom du mouvement, puis le suffixe de copie (Q3) ; jamais stocké.
+  const displayedName = occurrenceCardName(activity, levelPositions);
   // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
   const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
   const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
@@ -4844,7 +4881,7 @@ function CompositionActivityRow({
     recoveryNode = (
       <PlacementRecoveryFrame
         occurrenceId={activity.id}
-        exerciseName={occurrenceDisplayName(activity.name, activity.copyNumber)}
+        exerciseName={displayedName}
         selectedSeconds={displayedRecoverySeconds ?? null}
         existing={placementRecovery.kind === "EXISTING"}
         onPress={placement.onPressRecovery}
@@ -4891,11 +4928,11 @@ function CompositionActivityRow({
    */
   /** Nom accessible : la récupération affichée y figure (« …, récupération 20 s »), hors placement et en placement. */
   const accessibilityLabel = isDisplayableRecovery(displayedRecoverySeconds)
-    ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
+    ? `${formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName)}, ${composition.occurrenceCard.accessibilityRecovery.replace(
         "{duration}",
         () => formatCompactDuration(displayedRecoverySeconds),
       )}`
-    : formatOccurrenceAccessibilityLabel(activity, position, circuitContext);
+    : formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName);
   const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = {
     ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
     ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
@@ -5065,7 +5102,7 @@ function CompositionActivityRow({
          * sélectionnable ; le reste de la carte est inactif (story 4.1).
          */}
         <OccurrenceCard
-          name={occurrenceDisplayName(activity.name, activity.copyNumber)}
+          name={displayedName}
           category={category}
           bodyZones={bodyZones}
           summary={formatOccurrenceSummary(activity)}

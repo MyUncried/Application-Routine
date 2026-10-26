@@ -33,6 +33,10 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
  * niveau » vers l'Exercice explicitement choisi, « Ajouter un niveau » (nouveau geste et son
  * Exercice, inséré juste après l'origine, sans question d'identité, rien d'écrit avant `Terminer`).
  * Plate-forme : iOS (`jest-expo`), menu natif. Rappel : ces tests ne valent pas recette sur iPhone (JA).
+ *
+ * PRE-7 story R-6 (MFN-07 l.371-373, C02, C09) : « Ajouter un niveau » demande le sens (Plus facile /
+ * Plus difficile : avant / après l'origine) ; description et médias vierges ; en reprise, la commande
+ * Niveau est présente (choix par mouvement, « Ajouter » indisponible).
  */
 
 jest.mock("expo-haptics", () => ({
@@ -224,15 +228,15 @@ describe("PRE-7 A3.1 — pastille de Niveau (rangée de classification)", () => 
     expect(pastilleLabel()).toBe("Niveau");
   });
 
-  it("création sans geste : aucune pastille ; création sur geste repris : pastille du geste, sans popover", async () => {
+  it("création sans geste : aucune pastille ; création sur geste repris : pastille du geste et commande Niveau (R-6, C09), « Ajouter » indisponible", async () => {
     const { squats } = await twoLevels();
     await renderEditor({ catalogueDefinitionId: "new" });
     expect(screen.queryByTestId("activity-editor-level", anyNode)).toBeNull();
     screen.unmount();
     await renderEditor({ catalogueDefinitionId: "new", movementId: squats.movementId });
     expect(pastilleLabel()).toBe("Niveau 2");
-    expect(screen.queryByTestId("activity-editor-level-add", anyNode)).toBeNull();
-    expect(screen.getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 2");
+    expect(JSON.stringify(nativeMenu("activity-editor-level-change")?.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(false)));
+    expect(JSON.stringify(nativeMenu("activity-editor-level-add")?.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(true)));
   });
 
   it("lecture des niveaux en échec : pastille vide sans popover (journal)", async () => {
@@ -300,26 +304,29 @@ describe("PRE-7 A3.1 — Changer de niveau (MFN-07, MFN/AC16)", () => {
   });
 });
 
-describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08)", () => {
-  it("depuis la fiche : création du niveau ; préremplie depuis l'original (nom vide) ; Terminer → inséré juste après l'origine, sans question d'identité", async () => {
+describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08 ; R-6 : sens et contenu C02)", () => {
+  it("depuis la fiche : Plus difficile → création du niveau ; description vierge, Catégorie reprise (nom vide) ; Terminer → inséré juste après l'origine, sans question d'identité", async () => {
     const { assisted, squats } = await twoLevels();
     await renderEditor({ catalogueDefinitionId: assisted.id });
-    await pressNative("activity-editor-level-add");
+    await pressNative("activity-editor-level-add-harder");
     expect(mockReplace).toHaveBeenCalledWith({
       pathname: "/exercise",
-      params: { catalogueDefinitionId: "new", levelOriginDefinitionId: assisted.id },
+      params: { catalogueDefinitionId: "new", levelOriginDefinitionId: assisted.id, levelPlacement: "AFTER_ORIGIN" },
     });
     screen.unmount();
 
     const definitionsBefore = await definitionsRows();
     const movementsBefore = await movementsRows();
-    await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: assisted.id });
+    await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: assisted.id, levelPlacement: "AFTER_ORIGIN" });
     expect(screen.getByTestId("exercise-name-input").props.value).toBe("");
-    expect(screen.getByDisplayValue("Buste droit")).toBeTruthy();
+    // PRE-7 (R-6, MFN-07 l.373, C02) : description vierge.
+    expect(screen.queryByDisplayValue("Buste droit")).toBeNull();
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toBe("Catégorie Cardio");
     // Aucune suggestion ni recherche de geste : l'origine est déjà choisie.
     expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
-    expect(screen.queryByTestId("activity-editor-level", anyNode)).toBeNull();
+    // PRE-7 (R-6, C06) : pastille du rang prévu, affichage seul (origine 1 sur 2 → 2 sur 3).
+    expect(pastilleLabel()).toBe("Niveau 2");
+    expect(screen.getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 2");
     // Rien n'est écrit avant `Terminer`.
     expect(await definitionsRows()).toEqual(definitionsBefore);
     expect(await movementsRows()).toEqual(movementsBefore);
@@ -339,13 +346,34 @@ describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08)", () => {
     expect(created).toBeDefined();
     expect(created?.movementId).not.toBe(assisted.movementId);
     expect(created?.executionParameters).toEqual(assisted.executionParameters);
-    expect(created?.description).toBe("Buste droit");
+    expect(created?.description ?? "").toBe("");
     const levels = await service().getMovementLevels(created!.movementId);
     expect(levels?.position).toEqual({ rank: 2, total: 3 });
     expect(levels?.levels.map((level) => level.movement.name)).toEqual(["Squats assistés", "Squats sautés", "Squats"]);
     // Original et ses Exercices intacts.
     expect(await service().getActivityDefinition(assisted.id)).toEqual(assisted);
     expect(await service().getActivityDefinition(squats.id)).toEqual(squats);
+  });
+
+  it("Plus facile : inséré AVANT l'origine (R-6, MFN-07 l.371) ; pastille du rang prévu", async () => {
+    const { assisted, squats } = await twoLevels();
+    await renderEditor({ catalogueDefinitionId: squats.id });
+    await pressNative("activity-editor-level-add-easier");
+    expect(mockReplace).toHaveBeenCalledWith({
+      pathname: "/exercise",
+      params: { catalogueDefinitionId: "new", levelOriginDefinitionId: squats.id, levelPlacement: "BEFORE_ORIGIN" },
+    });
+    screen.unmount();
+    await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: squats.id, levelPlacement: "BEFORE_ORIGIN" });
+    expect(pastilleLabel()).toBe("Niveau 2");
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squats demi");
+    await settle();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
+    });
+    await settle(50);
+    const levels = await service().getMovementLevels(assisted.movementId);
+    expect(levels?.levels.map((level) => level.movement.name)).toEqual(["Squats assistés", "Squats demi", "Squats"]);
   });
 
   it("depuis un geste sans groupe : le groupe est créé (origine niveau 1, nouveau niveau 2)", async () => {
@@ -389,14 +417,15 @@ describe("PRE-7 A3.1 — revue : compléments de vérification", () => {
     expect(screen.getByTestId("activity-editor-category-button").props.hitSlop).toMatchObject({ left: 6, right: 6, top: 1, bottom: 17 });
   });
 
-  it("création sur un geste repris sans groupe : aucune pastille", async () => {
+  it("création sur un geste repris sans groupe : pastille vide « Niveau », commande présente (R-6, CE-UI-NIV-01 §8)", async () => {
     const alone = await create({ name: "Pompes" });
     await renderEditor({ catalogueDefinitionId: "new", movementId: alone.movementId });
     expect(screen.getByTestId("exercise-name-input").props.value).toBe("Pompes");
-    expect(screen.queryByTestId("activity-editor-level", anyNode)).toBeNull();
+    expect(pastilleLabel()).toBe("Niveau");
+    expect(JSON.stringify(nativeMenu("activity-editor-level-change")?.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(true)));
   });
 
-  it("Ajouter un niveau : médias et Zones repris de l'original (référencés, origine intacte), Compte à rebours de l'original conservé", async () => {
+  it("Ajouter un niveau : médias VIERGES (R-6, C02), Zones reprises, origine intacte, Compte à rebours de l'original conservé", async () => {
     const origin = await create({ media: [{ assetId: "p1", asset: PHOTO }], bodyZoneIds: ["cuisses"] });
     await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: origin.id });
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squats sautés");
@@ -406,7 +435,7 @@ describe("PRE-7 A3.1 — revue : compléments de vérification", () => {
     });
     await settle(50);
     const created = (await service().listActivityDefinitions()).find((definition) => definition.name === "Squats sautés");
-    expect((created?.media ?? []).map((item) => item.assetId)).toEqual(["p1"]);
+    expect(created?.media ?? []).toEqual([]);
     expect(created?.bodyZoneIds).toEqual(["cuisses"]);
     // Profil : Compte à rebours 7 ; l'original garde le sien, repris tel quel.
     expect(origin.executionParameters.countdownSeconds).not.toBe(7);

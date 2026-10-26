@@ -10,9 +10,9 @@ import {
   validateForSave,
   type ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
-import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
+import type { ActivityDefinition, CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
-import { repriseExecutionParameters, type MovementPhase } from "@/domain/activities/Movement";
+import { repriseExecutionParameters, transferParametersByRank, type MovementPhase } from "@/domain/activities/Movement";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
@@ -32,15 +32,17 @@ import {
   type Silhouette,
 } from "@/domain/preferences/Profile";
 import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
-import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
+import { settleCircuitMembership, type CircuitMembershipSettlement } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import {
   createExerciseDraft,
   draftMovementOf,
   exerciseEquals,
   movementContentOfDraft,
+  replaceOccurrence,
   replaceOccurrenceWithNewMovement,
   withDraftMovement,
+  withOccurrenceMovement,
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
@@ -301,6 +303,7 @@ export function ExerciseScreen() {
     catalogueDefinitionId?: string;
     movementId?: string;
     levelOriginDefinitionId?: string;
+    levelPlacement?: string;
   }>();
   if (params.catalogueDefinitionId !== undefined) {
     const isCreation = params.catalogueDefinitionId === "new";
@@ -314,11 +317,15 @@ export function ExerciseScreen() {
       params.levelOriginDefinitionId.trim().length > 0
         ? params.levelOriginDefinitionId
         : null;
+    // PRE-7 (R-6, MFN-07 l.371) : sens choisi dans « Ajouter un niveau » ; absent (ancienne route) :
+    // après l'origine, comme en A3.1.
+    const levelPlacement: VariantPlacement = params.levelPlacement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
     return (
       <CatalogueActivityEditorScreen
         definitionId={isCreation ? null : params.catalogueDefinitionId}
         repriseMovementId={repriseMovementId}
         levelOriginDefinitionId={levelOriginDefinitionId}
+        levelPlacement={levelPlacement}
       />
     );
   }
@@ -392,18 +399,22 @@ function withVariantContent(value: ActivityEditorFormValue, originBodyZoneIds: r
 
 /**
  * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : modèle de la pastille de Niveau de la fiche — rang
- * dérivé, et popover sur un Exercice existant du Catalogue (niveaux du groupe, Exercices distingués
- * par le résumé de leurs paramètres). Lecture en échec : pastille vide, sans popover.
+ * dérivé, et popover (niveaux du groupe, Exercices distingués par le résumé de leurs paramètres).
+ * Lecture en échec : pastille vide, sans popover.
+ *
+ * PRE-7 (R-6, D-445 C09, v7 l.67, MFN-09 l.410, CE-UI-NIV-01 §3) : la commande est active hors
+ * crayon dans tous les contextes — Exercice du Catalogue (choix par Exercice), reprise et occurrence
+ * de Séance (choix par mouvement, `movementChoice`), même sans groupe (« Niveau »). `menu` `null` :
+ * pastille affichée seule (contenu en cours d'édition par le crayon).
  */
 function editorLevelOf(
   levels: MovementLevels | "error" | null,
   menu: Omit<MovementLevelMenuModel, "levels"> | null,
 ): EditorLevel | null {
   if (levels === null) return null;
-  if (levels === "error") return menu === null ? null : { position: null, menu: null };
+  if (levels === "error") return { position: null, menu: null };
   if (menu === null) {
-    // Création sur geste repris : même niveau que le geste (MFN-05), affiché sans popover.
-    return levels.position === null ? null : { position: levels.position, menu: null };
+    return { position: levels.position, menu: null };
   }
   const total = levels.position?.total ?? 0;
   return {
@@ -414,6 +425,7 @@ function editorLevelOf(
         rank: entry.rank,
         total,
         name: entry.movement.name,
+        movementId: entry.movement.id,
         exercises: entry.definitions.map((definition) => ({
           definitionId: definition.id,
           summary: formatExerciseRowSummary(definition),
@@ -423,14 +435,31 @@ function editorLevelOf(
   };
 }
 
+/**
+ * PRE-7 (R-6) : niveaux relus après un changement de niveau dans le MÊME groupe — mêmes membres,
+ * position du mouvement choisi ; rien n'est relu ni reclassé (C09).
+ */
+function levelsAfterChange(levels: MovementLevels, movementId: string): MovementLevels {
+  const entry = levels.levels.find((candidate) => candidate.movement.id === movementId);
+  if (entry === undefined || levels.position === null) return levels;
+  return { position: { rank: entry.rank, total: levels.position.total }, levels: levels.levels };
+}
+
+/** Aucun choix par Exercice hors fiche d'un Exercice du Catalogue (choix par mouvement). */
+function noExerciseChoice() {
+  return undefined;
+}
+
 function CatalogueActivityEditorScreen({
   definitionId,
   repriseMovementId: routeRepriseMovementId,
   levelOriginDefinitionId = null,
+  levelPlacement = "AFTER_ORIGIN",
 }: {
   definitionId: string | null;
   repriseMovementId: string | null;
   levelOriginDefinitionId?: string | null;
+  levelPlacement?: VariantPlacement;
 }) {
   // PRE-7 (A2.3, MFN-06) : geste repris par la route (A2.2) ou choisi dans l'écran (suggestion,
   // recherche) — la reprise choisie en place garde l'écran monté (aucune navigation, aucun garde
@@ -532,27 +561,45 @@ function CatalogueActivityEditorScreen({
         return;
       }
       if (repriseMovementId === null && levelOriginDefinitionId !== null) {
-        // PRE-7 (A3.1, MFN-07, MFN-05 l.375) : « Ajouter un niveau » — nouveau geste et son Exercice,
-        // description, médias, Zones et Catégorie initialisés depuis l'original, paramètres repris
-        // (« éventuellement repris de l'original »), tous modifiables ; nom à saisir.
+        // PRE-7 (A3.1, MFN-07) : « Ajouter un niveau » — nouveau geste et son Exercice, paramètres
+        // repris de l'original, tous modifiables ; nom à saisir.
+        // PRE-7 (R-6, MFN-07 l.371-373, C02 ; report R-5) : description et médias VIERGES, Catégorie
+        // et Zones reprises ; inséré avant (Plus facile) ou après (Plus difficile) l'origine ; la
+        // pastille montre le rang prévu (affichage seulement). Option conservatrice : nom vide,
+        // sans invite (aucun nom n'a été commencé).
+        let originDefinition: ActivityDefinition | null = null;
         activityDefinitionService
           .getActivityDefinition(levelOriginDefinitionId)
-          .then((definition) => {
+          .then(async (definition) => {
+            originDefinition = definition;
+            if (!definition || activityDefinitionService.supportsMovementLevels !== true) return null;
+            return activityDefinitionService.getMovementLevels(definition.movementId).catch((error: unknown) => {
+              console.error("Les niveaux du geste n'ont pas pu être chargés.", error);
+              return undefined;
+            });
+          })
+          .then((originLevels) => {
             if (isCancelled()) return;
+            const definition = originDefinition;
             if (!definition) {
               setLoadState("error");
               return;
             }
             const loaded: ActivityEditorFormValue = {
               name: "",
-              instructionSteps: decodeInstructionSteps(definition.description),
+              instructionSteps: [],
               executionParameters: cloneExecutionParameters(definition.executionParameters),
               bodyZoneIds: [...definition.bodyZoneIds],
-              media: toDraftMediaItems(definition.media ?? []),
+              media: [],
             };
             // AD-13 (H25) : une valeur héritée de l'original, non modifiée, reste enregistrable.
             setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
-            setVariantOrigin({ movementId: definition.movementId, joinOriginGroup: true });
+            setVariantOrigin({ movementId: definition.movementId, joinOriginGroup: true, placement: levelPlacement });
+            setVariantLevel(
+              originLevels === null || originLevels === undefined
+                ? null
+                : { position: variantLevelPosition(originLevels.position, levelPlacement), menu: null },
+            );
             setInitial(loaded);
             setValue(loaded);
             setCategoryId(definition.categoryId ?? null);
@@ -601,7 +648,7 @@ function CatalogueActivityEditorScreen({
           setLoadState("error");
         });
     },
-    [activityDefinitionService, definitionId, repriseMovementId, levelOriginDefinitionId],
+    [activityDefinitionService, definitionId, repriseMovementId, levelOriginDefinitionId, levelPlacement],
   );
 
   useEffect(() => {
@@ -937,6 +984,47 @@ function CatalogueActivityEditorScreen({
       cancelled = true;
     };
   }, [activityDefinitionService, levelMovementId, levelsReloadToken]);
+  /**
+   * PRE-7 (R-6, D-445 C09, v7 §4 l.59) : changement de niveau en reprise — le mouvement repris est
+   * remplacé, en place, par le mouvement choisi du même groupe : son contenu (lecture seule, crayon)
+   * et sa structure de phases, paramètres transférés PAR RANG. Aucune navigation, aucune écriture :
+   * l'Exercice n'existe pas encore (option conservatrice, à valider par Hermann). Le groupe n'est
+   * pas reclassé (C09).
+   */
+  function changeRepriseLevel(movementId: string) {
+    if (isSaving || levels === null || levels === "error") return;
+    const movement = levels.levels.find((entry) => entry.movement.id === movementId)?.movement;
+    if (movement === undefined) return;
+    setSaveError(false);
+    setLoadedLevels({ movementId: movement.id, levels: levelsAfterChange(levels, movement.id) });
+    setOrigin({ movementId: movement.id, name: movement.name });
+    setMovementNextPhaseId(movement.nextPhaseId);
+    if (movement.id === repriseMovementId && initial !== null) {
+      // Retour au mouvement repris : contenu et paramètres d'origine restitués, jamais un second
+      // transfert depuis l'état courant (qui viderait les durées de phase).
+      setValue(initial);
+      setCategoryId(initialCategoryId);
+      return;
+    }
+    setValue((current) =>
+      current
+        ? {
+            ...current,
+            name: movement.name,
+            instructionSteps: decodeInstructionSteps(movement.description),
+            executionParameters: transferParametersByRank(current.executionParameters, movement.phases),
+            bodyZoneIds: [...movement.bodyZoneIds],
+            media: [...movement.media],
+          }
+        : current,
+    );
+    setCategoryId(movement.categoryId);
+  }
+  // PRE-7 (A3.2) : consultation et réordonnancement des niveaux, au-dessus de la fiche.
+  const openLevelsScreen = () => {
+    if (isSaving) return;
+    setIsLevelsScreenOpen(true);
+  };
   const editorLevel = editorLevelOf(
     levels,
     isEditingExisting && definitionId !== null
@@ -948,21 +1036,28 @@ function CatalogueActivityEditorScreen({
             if (isSaving) return;
             router.replace({ pathname: "/exercise", params: { catalogueDefinitionId: id } });
           },
-          // MFN-07 : création d'un nouveau geste et de son Exercice, jamais d'un niveau seul.
-          onAddLevel: () => {
+          // MFN-07 : création d'un nouveau geste et de son Exercice, jamais d'un niveau seul ;
+          // PRE-7 (R-6, MFN-07 l.371) : avant (Plus facile) ou après (Plus difficile) l'origine.
+          onAddLevel: (placement) => {
             if (isSaving) return;
             router.replace({
               pathname: "/exercise",
-              params: { catalogueDefinitionId: "new", levelOriginDefinitionId: definitionId },
+              params: { catalogueDefinitionId: "new", levelOriginDefinitionId: definitionId, levelPlacement: placement },
             });
           },
-          // PRE-7 (A3.2) : consultation et réordonnancement des niveaux, au-dessus de la fiche.
-          onReorderLevels: () => {
-            if (isSaving) return;
-            setIsLevelsScreenOpen(true);
-          },
+          onReorderLevels: openLevelsScreen,
         }
-      : null,
+      : isReprise && origin !== null && !contentUnlocked
+        ? {
+            // PRE-7 (R-6) : reprise — choix par mouvement ; « Ajouter un niveau » indisponible
+            // (option conservatrice : seul le Catalogue est aligné sur MFN-07).
+            currentDefinitionId: null,
+            onChangeLevel: noExerciseChoice,
+            onAddLevel: null,
+            onReorderLevels: openLevelsScreen,
+            movementChoice: { currentMovementId: origin.movementId, onChangeMovement: changeRepriseLevel },
+          }
+        : null,
   );
   // Revue A3.1 : le formulaire attend la lecture des niveaux (base locale, quelques millisecondes)
   // pour s'afficher d'emblée avec sa rangée définitive — aucune rangée à deux accès qui se
@@ -1292,8 +1387,13 @@ function CompositionExerciseEditor() {
   const [pendingOccurrenceSave, setPendingOccurrenceSave] = useState<PendingOccurrenceSave | null>(null);
   const movementLocked = phaseStructureLocked && unlockedMovement === null;
   // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
+  // PRE-7 (R-6) : après un changement de niveau, plus de crayon jusqu'à `Terminer` — une correction
+  // du mouvement choisi ne se mêle pas au remplacement de l'occurrence (option conservatrice).
   const canUnlockMovement =
-    isEditingExisting && movementLocked && activityDefinitionService.supportsSharedCorrection === true;
+    isEditingExisting &&
+    movementLocked &&
+    activityDefinitionService.supportsSharedCorrection === true &&
+    (local?.sourceMovementId ?? "") === (initialSnapshot.sourceMovementId ?? "");
 
   // Nouvelle occurrence : défauts CR/Fin du Profil appliqués à leur lecture
   // si le brouillon est intact — ajustement d'état pendant le rendu, une fois.
@@ -1400,6 +1500,102 @@ function CompositionExerciseEditor() {
     }
   }, [isFinishing, shouldBlockExit, router]);
 
+  // PRE-7 (R-6, D-445 C09, v7 l.67, MFN-09 l.410 ; CE-UI-NIV-01 §3, §4) : commande Niveau de
+  // l'occurrence d'un Mouvement enregistré (existante, ou reprise en création), active hors crayon :
+  // niveaux du groupe relus par le service ; rang et total dérivés, jamais persistés. Lecture
+  // rattachée au mouvement lu : une lecture d'un autre mouvement n'est jamais affichée.
+  const occurrenceMovementId = (local?.sourceMovementId ?? "").trim();
+  const levelMovementId =
+    activityDefinitionService.supportsMovementLevels === true &&
+    local !== null &&
+    occurrenceMovementId.length > 0 &&
+    isPersistedMovementOccurrence(local, draft.movements)
+      ? occurrenceMovementId
+      : null;
+  // PRE-7 (R-6 ; report R-5) : variante créée dans la Séance (choisie dans l'éditeur, ou Mouvement
+  // NOUVEAU du brouillon rouvert) — pastille du rang prévu, dérivé de la position de l'origine.
+  const variantLevelOrigin: MovementLevelOrigin | null =
+    levelMovementId === null && activityDefinitionService.supportsMovementLevels === true
+      ? (variantOrigin ?? draft.movements?.[occurrenceMovementId]?.levelOrigin ?? null)
+      : null;
+  const levelLookupId = levelMovementId ?? variantLevelOrigin?.movementId ?? null;
+  const [loadedLevels, setLoadedLevels] = useState<{
+    readonly movementId: string;
+    readonly levels: MovementLevels | "error";
+  } | null>(null);
+  // L'éditeur attend la PREMIÈRE lecture (base locale) pour s'afficher avec sa rangée définitive
+  // (revue A3.1) ; les lectures suivantes (changement de niveau, reprise) ne le démontent pas.
+  const [initialLevelLookupId] = useState(levelLookupId);
+  const levelsPending = initialLevelLookupId !== null && loadedLevels === null;
+  const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
+  const [levelsReloadToken, setLevelsReloadToken] = useState(0);
+  useEffect(() => {
+    if (levelLookupId === null) return;
+    let cancelled = false;
+    Promise.resolve()
+      .then(() => activityDefinitionService.getMovementLevels(levelLookupId))
+      .then(
+        (result) => {
+          if (!cancelled) setLoadedLevels({ movementId: levelLookupId, levels: result ?? "error" });
+        },
+        (error: unknown) => {
+          if (cancelled) return;
+          console.error("Les niveaux du geste n'ont pas pu être chargés.", error);
+          setLoadedLevels({ movementId: levelLookupId, levels: "error" });
+        },
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [activityDefinitionService, levelLookupId, levelsReloadToken]);
+  const levels = loadedLevels !== null && loadedLevels.movementId === levelLookupId ? loadedLevels.levels : null;
+
+  /**
+   * PRE-7 (R-6, D-445 C05, C09 ; v7 §4 l.59, MFN-09 l.412 et l.418) : changement de niveau — prépare
+   * dans l'éditeur l'occurrence remplaçante : contenu du mouvement choisi (entrée corrigée du
+   * brouillon s'il y en a une), paramètres transférés PAR RANG (`withOccurrenceMovement`). Rien
+   * n'est inscrit : `Terminer` valide le remplacement (`planFinish`), la fermeture l'abandonne et
+   * restitue l'occurrence. Le groupe n'est pas reclassé.
+   */
+  function changeOccurrenceLevel(movementId: string) {
+    if (finishingRef.current || local === null || levels === null || levels === "error") return;
+    const entry = levels.levels.find((candidate) => candidate.movement.id === movementId);
+    if (entry === undefined) return;
+    setLoadedLevels({ movementId, levels: levelsAfterChange(levels, movementId) });
+    if (isEditingExisting && movementId === (initialSnapshot.sourceMovementId ?? "").trim()) {
+      // Retour au niveau d'origine : l'occurrence d'ouverture est restituée (contenu et paramètres),
+      // jamais un second transfert depuis l'état courant (qui viderait les durées de phase).
+      setInstructionSteps(decodeInstructionSteps(initialSnapshot.instruction));
+      setLocal(initialSnapshot);
+      return;
+    }
+    const next = withOccurrenceMovement(local, draft.movements?.[movementId] ?? entry.movement);
+    setInstructionSteps(decodeInstructionSteps(next.instruction));
+    setLocal(next);
+  }
+
+  let occurrenceLevel: EditorLevel | null = null;
+  if (levelMovementId !== null) {
+    // Choix par mouvement ; « Ajouter un niveau » indisponible en Séance (option conservatrice) ;
+    // pendant l'édition du contenu par le crayon, pastille seule.
+    occurrenceLevel = editorLevelOf(
+      levels,
+      unlockedMovement !== null
+        ? null
+        : {
+            currentDefinitionId: null,
+            onChangeLevel: noExerciseChoice,
+            onAddLevel: null,
+            onReorderLevels: () => {
+              if (!finishingRef.current) setIsLevelsScreenOpen(true);
+            },
+            movementChoice: { currentMovementId: levelMovementId, onChangeMovement: changeOccurrenceLevel },
+          },
+    );
+  } else if (variantLevelOrigin !== null && levels !== null && levels !== "error") {
+    occurrenceLevel = { position: variantLevelPosition(levels.position, variantLevelOrigin.placement), menu: null };
+  }
+
   function patchLocal(next: Partial<ActivityEditorFormValue>) {
     // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
     if (next.name !== undefined) setNameHintVisible(false);
@@ -1436,10 +1632,31 @@ function CompositionExerciseEditor() {
    * occurrence qui arrive dans un Circuit de Séries est adaptée à N ; ses pertes éventuelles
    * sont rendues pour confirmation AVANT toute mutation.
    */
-  function planFinish(current: SessionDraftExercise) {
+  function planFinish(current: SessionDraftExercise): Pick<CircuitMembershipSettlement, "exercises" | "losses" | "targetCount"> & {
+    readonly movements: SessionDraft["movements"];
+    readonly circuitSeriesReserve?: SessionDraft["circuitSeriesReserve"];
+  } {
     // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
     // PRE-7 (R-3, C05) : une création locale reçoit un Mouvement NOUVEAU à son identifiant.
     const encoded: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    // PRE-7 (R-6, MFN-09 l.412, CE-UI-NIV-01 §4) : niveau changé sur une occurrence existante —
+    // remplacement à la MÊME place par une nouvelle identité d'occurrence, référençant le mouvement
+    // choisi (sans numéro de copie) ; l'entrée de réserve de Circuit suit. Aucun Exercice du
+    // Catalogue créé, table des Mouvements inchangée.
+    if (
+      isEditingExisting &&
+      (encoded.sourceMovementId ?? "") !== (initialSnapshot.sourceMovementId ?? "") &&
+      draft.exercises.some((exercise) => exercise.id === encoded.id)
+    ) {
+      const replaced = replaceOccurrence(draft, encoded.id, { ...encoded, id: Crypto.randomUUID(), copyNumber: null });
+      return {
+        exercises: replaced.exercises,
+        losses: [],
+        targetCount: 0,
+        movements: draft.movements,
+        ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+      };
+    }
     const createsMovement = encoded.type === "EXERCISE" && (encoded.sourceMovementId ?? "").trim().length === 0;
     const finished: SessionDraftExercise = createsMovement ? { ...encoded, sourceMovementId: encoded.id } : encoded;
     const plan = draft.exercises.some((exercise) => exercise.id === finished.id)
@@ -1593,7 +1810,7 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = true;
-    commitFinished(plan.exercises, plan.movements);
+    commitFinished(plan.exercises, plan.movements, plan.circuitSeriesReserve);
   }
 
   function commitFinished(
@@ -1670,7 +1887,7 @@ function CompositionExerciseEditor() {
         trailing={canUnlockMovement ? <EditMovementAction onPress={unlockMovement} /> : null}
       />
 
-      {value !== null ? (
+      {value !== null && !levelsPending ? (
         <ActivityEditorForm
           value={value}
           onChange={patchLocal}
@@ -1702,6 +1919,7 @@ function CompositionExerciseEditor() {
               ? { label: strings.screens.activities.editor.movementSearch.open, onPress: originChoice.openSearch }
               : null
           }
+          level={occurrenceLevel}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
@@ -1796,6 +2014,18 @@ function CompositionExerciseEditor() {
       ) : null}
 
       {originChoice.overlays}
+
+      {/* PRE-7 (R-6, A3.2) : écran des niveaux ; niveaux relus à sa fermeture. */}
+      {isLevelsScreenOpen && levelMovementId !== null ? (
+        <MovementLevelsScreen
+          service={activityDefinitionService}
+          movementId={levelMovementId}
+          onClose={() => {
+            setIsLevelsScreenOpen(false);
+            setLevelsReloadToken((current) => current + 1);
+          }}
+        />
+      ) : null}
     </ScreenShell>
   );
 }

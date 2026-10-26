@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
+import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
@@ -12,6 +13,7 @@ import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition"
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
+import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { catalogueDuration } from "@/features/activities/ActivityCard";
@@ -256,6 +258,7 @@ export function ActivitySelectionScreen() {
                 onToggle={() => toggle(item.id)}
                 bodyZonesReferential={bodyZonesReferential}
                 categoriesReferential={categoriesReferential}
+                levelPosition={state.levelPositions?.get(item.movementId) ?? null}
               />
             )}
             // PRE-6 story 7.10 (D-444) : réserve de défilement = zone d'action fixe.
@@ -333,13 +336,17 @@ function SelectionRow({
   onToggle,
   bodyZonesReferential,
   categoriesReferential,
+  levelPosition,
 }: {
   definition: ActivityDefinition;
   selected: boolean;
   onToggle: () => void;
   bodyZonesReferential: readonly BodyZone[];
   categoriesReferential: readonly Category[];
+  /** PRE-7 (R-6, C06) : carte sans pastille — suffixe « - Nn » du mouvement groupé. */
+  levelPosition: MovementLevelPosition | null;
 }) {
+  const displayedName = withLevelSuffix(definition.name, levelPosition);
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
   const summary = formatExerciseRowSummary(definition);
   // PRE-6 (story 2.2, contexte « Choix composition » `8328:28445`, ch13 PR #390).
@@ -353,7 +360,7 @@ function SelectionRow({
       onPress={onToggle}
       accessibilityRole="checkbox"
       accessibilityState={{ checked: selected }}
-      accessibilityLabel={definition.name}
+      accessibilityLabel={displayedName}
       style={[styles.row, selected ? styles.rowSelected : null]}
       testID={`activity-selection-row-${definition.id}`}
     >
@@ -362,7 +369,7 @@ function SelectionRow({
         <View style={styles.rowMainArea}>
           <View style={styles.rowContent}>
             <Text style={styles.rowLabel} numberOfLines={2}>
-              {definition.name}
+              {displayedName}
             </Text>
             {/*
              * PRE-6 (story 2.2, ch13 PR #390) : Catégorie et Zones corporelles sur UNE ligne,

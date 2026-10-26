@@ -592,3 +592,32 @@ export function repriseExecutionParameters(movement: Movement, base: ExecutionPa
     },
   };
 }
+
+/**
+ * PRE-7 (R-6, D-445 C09, v7 §4 l.59, MFN-09 l.418 ; ch07 l.936 annoté par PHC-20261026) — paramètres
+ * transférés lors d'un CHANGEMENT de mouvement ou de niveau, vers la structure de phases
+ * `targetPhases` du mouvement choisi. Transfert PAR RANG, jamais par égalité d'identifiants entre
+ * deux mouvements (leurs identités de phase sont indépendantes) :
+ * - sans → sans : paramètres repris, cible comprise ;
+ * - sans → phases : phases du mouvement choisi, durées vides (0, à compléter ; aucune durée
+ *   inventée depuis la cible, PHC) ;
+ * - phases → sans : phases retirées, cible de série conservée, jamais remplacée par la somme (PHC) ;
+ * - phases → phases : durée du rang i reprise sur la phase de rang i, surplus source abandonné,
+ *   surplus cible vide (à compléter).
+ * Mode, séries (régime, nombre, cibles, pauses, charges), côtés, cadence, Compte à rebours et Fin
+ * sont conservés tels quels : D-446 rend les phases compatibles avec tous les formats (Q9), aucune
+ * autre contrainte ne s'applique. Les durées vides laissent l'exercice incomplet, signalé et bloqué
+ * par la validation existante (C05, `hasMissingPhaseDuration`). Fonction pure.
+ */
+export function transferParametersByRank(
+  parameters: ExecutionParametersInput,
+  targetPhases: readonly MovementPhase[],
+): ExecutionParametersInput {
+  const source = parameters.series.workPhases;
+  const workPhases: WorkPhase[] = targetPhases.map((phase, rank) => ({
+    id: phase.id,
+    label: phase.label,
+    durationSeconds: source[rank]?.durationSeconds ?? 0,
+  }));
+  return { ...parameters, series: { ...parameters.series, workPhases } };
+}

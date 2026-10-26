@@ -176,10 +176,16 @@ describe("PRE-7 A3.1 — MovementLevelMenu", () => {
       act(() => fireEvent(screen.getByTestId("level-level-2-d2", anyNode), "buttonPress"));
       act(() => fireEvent(level3, "buttonPress"));
       expect(model.onChangeLevel).toHaveBeenCalledTimes(2);
-      const add = screen.getByTestId("level-add", anyNode);
+      // PRE-7 (R-6, MFN-07, `10152:20369`) : « Ajouter un niveau » est un sous-menu natif du sens.
+      const add = within(host).UNSAFE_getAllByType(Menu).find((menu) => menu.props.testID === "level-add")!;
       expect(add.props.label).toBe("Ajouter un niveau");
-      act(() => fireEvent(add, "buttonPress"));
-      expect(model.onAddLevel).toHaveBeenCalledTimes(1);
+      const directions = within(add).UNSAFE_getAllByType(SwiftUIButton);
+      expect(directions.map((item) => item.props.label)).toEqual(["Plus facile", "Plus difficile"]);
+      act(() => fireEvent(screen.getByTestId("level-add-easier", anyNode), "buttonPress"));
+      expect(model.onAddLevel).toHaveBeenLastCalledWith("BEFORE_ORIGIN");
+      act(() => fireEvent(screen.getByTestId("level-add-harder", anyNode), "buttonPress"));
+      expect(model.onAddLevel).toHaveBeenLastCalledWith("AFTER_ORIGIN");
+      expect(model.onAddLevel).toHaveBeenCalledTimes(2);
     }));
 
   it("iOS, sans groupe : pastille vide, « Changer de niveau » indisponible, « Ajouter un niveau » disponible", () =>
@@ -252,10 +258,68 @@ describe("PRE-7 A3.1 — MovementLevelPanel (repli Android / web)", () => {
     const alone = menuModel({ levels: [] });
     render(<MovementLevelPanel menu={alone} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
     expect(screen.getByTestId("panel-change").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    // PRE-7 (R-6, MFN-07) : « Ajouter un niveau » déploie le choix du sens.
     fireEvent.press(screen.getByTestId("panel-add"));
-    expect(alone.onAddLevel).toHaveBeenCalledTimes(1);
+    expect(alone.onAddLevel).not.toHaveBeenCalled();
+    expect(screen.getByTestId("panel-add-easier").props.accessibilityLabel).toBe("Plus facile");
+    fireEvent.press(screen.getByTestId("panel-add-harder"));
+    expect(alone.onAddLevel).toHaveBeenCalledWith("AFTER_ORIGIN");
+    expect(onDismiss).toHaveBeenCalledTimes(2);
     fireEvent.press(screen.getByTestId("panel-outside"));
     expect(onDismiss).toHaveBeenCalledTimes(3);
+  });
+});
+
+/** PRE-7 R-6 : niveaux d'un groupe, choix par mouvement (reprise, occurrence de Séance). */
+function movementMenuModel(onChangeMovement = jest.fn<(movementId: string) => void>()): MovementLevelMenuModel {
+  return menuModel({
+    currentDefinitionId: null,
+    levels: [
+      { rank: 1, total: 3, name: "Squats assistés", movementId: "m1", exercises: [{ definitionId: "d1", summary: "3 séries" }] },
+      { rank: 2, total: 3, name: "Squats", movementId: "m2", exercises: [] },
+      { rank: 3, total: 3, name: "Mobilisation du genou", movementId: "m3", exercises: [] },
+    ],
+    onAddLevel: null,
+    movementChoice: { currentMovementId: "m2", onChangeMovement },
+  });
+}
+
+describe("PRE-7 R-6 — choix par mouvement (C09, MFN-09)", () => {
+  it("iOS : un bouton par niveau, mouvement courant coché, mouvement local disponible ; « Ajouter » indisponible sans `onAddLevel`", () =>
+    withPlatform("ios", () => {
+      const model = movementMenuModel();
+      renderMenu({ position: { rank: 2, total: 3 }, menu: model });
+      const host = screen.getByTestId("level", anyNode);
+      // Aucun sous-menu d'Exercices : chaque niveau est un bouton natif.
+      expect(within(host).UNSAFE_getAllByType(Menu).map((menu) => menu.props.testID)).toEqual([
+        undefined,
+        "level-change",
+        "level-add",
+      ]);
+      const level2 = screen.getByTestId("level-level-2", anyNode);
+      expect([level2.props.label, level2.props.systemImage]).toEqual(["Niveau 2 sur 3 · Squats", "checkmark"]);
+      const level3 = screen.getByTestId("level-level-3", anyNode);
+      expect(level3.props.modifiers).toBeUndefined();
+      act(() => fireEvent(level2, "buttonPress"));
+      expect(model.movementChoice!.onChangeMovement).not.toHaveBeenCalled();
+      act(() => fireEvent(level3, "buttonPress"));
+      expect(model.movementChoice!.onChangeMovement).toHaveBeenCalledWith("m3");
+      expect(model.onChangeLevel).not.toHaveBeenCalled();
+      const add = within(host).UNSAFE_getAllByType(Menu).find((menu) => menu.props.testID === "level-add")!;
+      expect(hasDisabled(add.props.modifiers, true)).toBe(true);
+    }));
+
+  it("panneau de repli : une ligne par niveau, choix direct du mouvement ; « Ajouter » indisponible", () => {
+    const model = movementMenuModel();
+    const onDismiss = jest.fn();
+    render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
+    expect(screen.getByTestId("panel-add").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    fireEvent.press(screen.getByTestId("panel-change"));
+    expect(screen.getByTestId("panel-level-2").props.accessibilityState).toEqual({ selected: true, disabled: false });
+    fireEvent.press(screen.getByTestId("panel-level-1"));
+    expect(onDismiss).toHaveBeenCalledTimes(1);
+    expect(model.movementChoice!.onChangeMovement).toHaveBeenCalledWith("m1");
+    expect(screen.queryByTestId("panel-d1")).toBeNull();
   });
 });
 

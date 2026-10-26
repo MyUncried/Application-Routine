@@ -68,7 +68,12 @@ export function ActivityCatalogueList({
       data={state.definitions}
       keyExtractor={(definition) => definition.id}
       renderItem={({ item }) => (
-        <ActivityCard definition={item} onOpen={() => onOpenDefinition(item.id)} />
+        <ActivityCard
+          definition={item}
+          // PRE-7 (R-6, C06) : suffixe « - Nn » du mouvement groupé.
+          levelPosition={state.levelPositions?.get(item.movementId) ?? null}
+          onOpen={() => onOpenDefinition(item.id)}
+        />
       )}
       scrollEnabled
       showsVerticalScrollIndicator={false}
