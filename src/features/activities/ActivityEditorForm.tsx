@@ -165,13 +165,6 @@ export type ActivityEditorFormProps = {
    */
   nameHint?: string | null;
   /**
-   * PRE-7 (A2.3, MFN-06 « recherche explicite accessible indépendamment de la similarité du nom,
-   * avant la saisie détaillée ») : lien de recherche des gestes, en tête du contenu ; `null`
-   * (défaut) : absent. Emplacement sans frame Figma (NON VÉRIFIABLE), style du lien
-   * « Rechercher un autre geste » de `9882:19141`.
-   */
-  movementSearchAction?: { readonly label: string; readonly onPress: () => void } | null;
-  /**
    * PRE-7 (A3.1, D-439, MFN-05, MFN-07 ; CE-T03-04 §9, Figma `9029:18363`) : pastille de Niveau, en
    * troisième position de la rangée de classification, et popover « Changer de niveau / Ajouter un
    * niveau » quand `menu` est fourni. `null` (défaut) : rangée Catégorie / Zones inchangée (création
@@ -332,7 +325,6 @@ export function ActivityEditorForm({
   onNameEndEditing,
   nameAssist = null,
   nameHint = null,
-  movementSearchAction = null,
   level = null,
   baselineParameters = null,
   mediaService,
@@ -655,20 +647,6 @@ export function ActivityEditorForm({
           }}
           testID="exercise-body"
         >
-          {movementSearchAction ? (
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                movementSearchAction.onPress();
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={movementSearchAction.label}
-              style={styles.movementSearchLink}
-              testID="activity-editor-movement-search"
-            >
-              <Text style={styles.movementSearchLinkLabel}>{movementSearchAction.label}</Text>
-            </Pressable>
-          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           <View
             style={styles.section}
@@ -1236,21 +1214,6 @@ const styles = StyleSheet.create({
   // son contenu ; 16 entre deux sections.
   section: {
     gap: EDITOR_VERTICAL_GRID.titleToBlock,
-  },
-  // PRE-7 (A2.3) : lien de recherche des gestes — style de « Rechercher un autre geste »
-  // (`9882:19141` : Medium 15, `primary`) ; cible ≥ 44 ; emplacement NON VÉRIFIABLE.
-  movementSearchLink: {
-    alignSelf: "flex-start",
-    minHeight: minTouchTarget,
-    justifyContent: "center",
-    marginBottom: EDITOR_VERTICAL_GRID.blockToBlock,
-  },
-  movementSearchLinkLabel: {
-    fontFamily: "Inter_500Medium",
-    fontWeight: "500",
-    fontSize: 15,
-    lineHeight: 18,
-    color: colors.primary,
   },
   followingSection: {
     marginTop: EDITOR_VERTICAL_GRID.blockToNextTitle,

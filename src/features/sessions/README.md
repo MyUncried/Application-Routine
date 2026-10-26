@@ -177,3 +177,5 @@ PRE-7 (story R-6, D-445 C05, C06, C09 ; v7 §4-§5, MFN-07, MFN-09 ; CE-UI-NIV-0
 - `CompositionScreen.tsx` : suffixe « - Nn » sur la carte d'occurrence, puis le suffixe de copie (« Squats - N2 (copie 2) »), dans son nom accessible aussi (`formatOccurrenceAccessibilityLabel`, paramètre `displayName`) ; positions relues au retour au premier plan.
 
 Tests : `__tests__/ExerciseScreen.r6.integration.test.tsx` (SQLite réelle), `ExerciseScreen.mfn.a31.integration.test.tsx` adapté (sens, C02, reprise), cas « R-6 » de `CompositionScreen.test.tsx`.
+
+PRE-7 (story R-8, D-448 points 1 et 2, recette JA2 cr-8) — `ExerciseScreen.tsx` : plus de lien « Rechercher un mouvement » dans les deux éditeurs (Catalogue et Séance) ; `patch` et `patchLocal` ne masquent l'invite grise « (compléter le nom) » que si le nom change réellement (le clavier iOS peut renvoyer le même texte à la perte du focus). Tests : `__tests__/ExerciseScreen.r8.integration.test.tsx` (SQLite réelle) ; `ExerciseScreen.r5.integration.test.tsx` adapté (parcours de l'écran de recherche par le lien retirés, variante « Plus difficile » réécrite par le panneau).

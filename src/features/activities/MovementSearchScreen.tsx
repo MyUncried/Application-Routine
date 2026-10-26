@@ -42,7 +42,10 @@ const GAP = 10;
  * liste, dont le contenu dépend de la requête (R03, « il n'existe pas de liste filtrée coexistant
  * avec une zone tous les mouvements ») :
  * - requête renseignée : résultats listés (R02 ≥ 0,45), classés par pertinence décroissante, un
- *   par mouvement, nom ou alias (R05) ;
+ *   par mouvement, nom ou alias (R05) ; PRE-7 (R-8, D-448 point 1) : correspondances par début de
+ *   mot comprises, en tête après le nom identique ;
+ * PRE-7 (R-8, D-448 point 2) : écran conservé sans point d'entrée dans l'interface (lien de
+ * l'éditeur retiré, précision de Hermann du 26/10/2026) ;
  * - requête renseignée sans résultat : l'absence est annoncée, avec « Voir tous les mouvements »,
  *   qui vide la requête ;
  * - requête vide : tous les mouvements, dans l'ordre de parcours du Catalogue

@@ -229,17 +229,60 @@ export type RankedMovement = {
   readonly score: number;
   /** Seuil haut atteint : suggestion présentée d'elle-même (R03). */
   readonly suggested: boolean;
+  /**
+   * PRE-7 (R-8, D-448 point 1) : chaque mot tapé est le début d'un mot distinct du nom principal ou
+   * d'un alias. Résultat présenté comme une suggestion (le panneau sous le nom s'ouvre), classé
+   * devant les seuls rapprochements R02 ; `suggested` garde son sens R02.
+   */
+  readonly wordPrefix: boolean;
 };
 
 /**
- * R02 à R05 — mouvements rapprochés de `query`, classés par pertinence décroissante :
- * - un résultat par mouvement, retenu sur sa meilleure correspondance entre nom principal et
- *   alias (R05 : deux mouvements partageant un alias restent deux résultats distincts) ;
- * - listé si le score de NOM atteint 0,45 : les bonus « réordonnent, ils ne promeuvent pas »
- *   (v7 l.152), ils ne font donc entrer aucun candidat dans la liste ;
- * - suggéré si le score, bonus compris, atteint 0,75 ; jamais si le score de nom est sous 0,65,
- *   et un résultat non suggéré est classé sous les suggérés (score plafonné) ;
- * - égalité : nom normalisé, puis identifiant (ordre déterministe).
+ * PRE-7 (R-8, D-448 point 1) : chaque mot de `queryWords` est le début d'un mot DISTINCT de
+ * `nameWords` (affectation par retour arrière, volumes de quelques mots). Formes normalisées par
+ * `normalizeSearchText`, sans rognage de pluriel ni retrait de mots fonctionnels ; le dernier mot
+ * peut être partiel (« squats sau » → « Squats sautés bas »).
+ */
+function matchesWordPrefixes(queryWords: readonly string[], nameWords: readonly string[]): boolean {
+  if (queryWords.length === 0 || queryWords.length > nameWords.length) {
+    return false;
+  }
+  const used = new Array<boolean>(nameWords.length).fill(false);
+  const assign = (index: number): boolean => {
+    if (index === queryWords.length) return true;
+    const word = queryWords[index]!;
+    for (let candidate = 0; candidate < nameWords.length; candidate += 1) {
+      if (!used[candidate] && nameWords[candidate]!.startsWith(word)) {
+        used[candidate] = true;
+        if (assign(index + 1)) return true;
+        used[candidate] = false;
+      }
+    }
+    return false;
+  };
+  return assign(0);
+}
+
+/** Mots d'une forme normalisée (`normalizeSearchText`), dans l'ordre. */
+function normalizedWords(normalized: string): readonly string[] {
+  return normalized.length === 0 ? [] : normalized.split(" ");
+}
+
+/**
+ * R02 à R05, PRE-7 (R-8, D-448 point 1) — mouvements rapprochés de `query`, un résultat par
+ * mouvement, retenu sur sa meilleure correspondance entre nom principal et alias (R05 : deux
+ * mouvements partageant un alias restent deux résultats distincts). Un mouvement est retenu :
+ * - si chaque mot tapé commence un mot distinct de son nom ou d'un alias (`wordPrefix`), même
+ *   sous le seuil de liste ;
+ * - sinon si son score de NOM R02 atteint 0,45 : les bonus « réordonnent, ils ne promeuvent pas »
+ *   (v7 l.152), ils ne font entrer aucun candidat dans la liste.
+ * `suggested` garde son sens R02 : score, bonus compris, d'au moins 0,75, jamais si le score de nom
+ * est sous 0,65 (score plafonné sinon). Coefficients et seuils inchangés.
+ * Ordre, en trois rangs successifs, stable d'une frappe à l'autre :
+ * 1. nom identique (normalisé, nom principal ou alias), par nom normalisé puis identifiant ;
+ * 2. correspondances par début de mot, par nom normalisé puis identifiant ;
+ * 3. rapprochements R02 seuls, par score décroissant (suggérés devant les autres, bonus compris),
+ *    puis pertinence réelle, score de nom, nom normalisé et identifiant.
  * Requête vide (après normalisation) : `[]` ; la liste complète relève de l'écran (R03).
  */
 export function rankMovements(
@@ -253,13 +296,19 @@ export function rankMovements(
   }
   const zones = new Set(context.bodyZoneIds ?? []);
   const categoryId = context.categoryId ?? null;
-  const ranked: (RankedMovement & { readonly sortName: string; readonly raw: number })[] = [];
+  const queryWords = normalizedWords(prepared.normalized);
+  const ranked: (RankedMovement & { readonly sortName: string; readonly raw: number; readonly tier: number })[] = [];
   for (const candidate of candidates) {
     let nameScore = 0;
+    let exact = false;
+    let wordPrefix = false;
     for (const name of [candidate.name, ...candidate.aliases]) {
-      nameScore = Math.max(nameScore, preparedScore(prepared, prepare(name)));
+      const preparedName = prepare(name);
+      nameScore = Math.max(nameScore, preparedScore(prepared, preparedName));
+      exact ||= preparedName.normalized === prepared.normalized;
+      wordPrefix ||= matchesWordPrefixes(queryWords, normalizedWords(preparedName.normalized));
     }
-    if (nameScore < LISTING_THRESHOLD) {
+    if (nameScore < LISTING_THRESHOLD && !wordPrefix) {
       continue;
     }
     const bonus =
@@ -272,11 +321,20 @@ export function rankMovements(
       nameScore,
       score: suggested ? raw : Math.min(raw, SUGGESTION_THRESHOLD - Number.EPSILON),
       suggested,
+      wordPrefix,
       sortName: normalizeSearchText(candidate.name),
       raw,
+      // 0 : nom identique ; 1 : début de mot ; 2 : rapprochement R02 seul.
+      tier: exact ? 0 : wordPrefix ? 1 : 2,
     });
   }
   ranked.sort((left, right) => {
+    if (left.tier !== right.tier) return left.tier - right.tier;
+    if (left.tier < 2) {
+      // Nom identique ou début de mot : ordre alphabétique stable, indépendant du score (D-448).
+      if (left.sortName !== right.sortName) return left.sortName < right.sortName ? -1 : 1;
+      return left.id < right.id ? -1 : left.id > right.id ? 1 : 0;
+    }
     if (left.score !== right.score) return right.score - left.score;
     // Résultats plafonnés au même score : départagés par la pertinence réelle avant le nom.
     if (left.raw !== right.raw) return right.raw - left.raw;
@@ -284,7 +342,7 @@ export function rankMovements(
     if (left.sortName !== right.sortName) return left.sortName < right.sortName ? -1 : 1;
     return left.id < right.id ? -1 : left.id > right.id ? 1 : 0;
   });
-  return ranked.map(({ sortName: _sortName, raw: _raw, ...result }) => result);
+  return ranked.map(({ sortName: _sortName, raw: _raw, tier: _tier, ...result }) => result);
 }
 
 /** Rang (1..total) et total dérivés du groupe de niveaux (MFN-05) ; jamais persistés. */

@@ -478,6 +478,8 @@ function CatalogueActivityEditorScreen({
   // PRE-7 (R-5, C02) : invite grise « (compléter le nom) » après le choix d'une variante, retirée à
   // la reprise de saisie du nom ; position de niveau prévue de la variante (affichage seulement).
   const [nameHintVisible, setNameHintVisible] = useState(false);
+  // PRE-7 (R-8, cr-8) : dernier nom connu, comparé par `patch` (synchronisé après chaque rendu).
+  const nameRef = useRef<string | undefined>(undefined);
   const [variantLevel, setVariantLevel] = useState<EditorLevel | null>(null);
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
@@ -736,10 +738,20 @@ function CatalogueActivityEditorScreen({
     }
   }, [isDone, router]);
 
+  useEffect(() => {
+    nameRef.current = value?.name;
+  }, [value?.name]);
+
   function patch(next: Partial<ActivityEditorFormValue>) {
     setSaveError(false);
     // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
-    if (next.name !== undefined) setNameHintVisible(false);
+    // PRE-7 (R-8, cr-8) : seulement sur une modification réelle — le clavier iOS peut renvoyer le
+    // même texte à la perte du focus. Comparaison au dernier nom saisi (`nameRef`), à jour même
+    // entre deux évènements sans rendu intermédiaire.
+    if (next.name !== undefined) {
+      if (next.name !== nameRef.current) setNameHintVisible(false);
+      nameRef.current = next.name;
+    }
     setValue((current) => (current ? { ...current, ...next } : current));
   }
 
@@ -1119,9 +1131,6 @@ function CatalogueActivityEditorScreen({
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? t.movementSuggestion.completeNameHint : null}
-          movementSearchAction={
-            originChoice.canSearch ? { label: t.movementSearch.open, onPress: originChoice.openSearch } : null
-          }
           level={variantOrigin?.placement !== undefined ? variantLevel : editorLevel}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
@@ -1421,6 +1430,11 @@ function CompositionExerciseEditor() {
   // vierges. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
   const [variantOrigin, setVariantOrigin] = useState<MovementLevelOrigin | null>(null);
   const [nameHintVisible, setNameHintVisible] = useState(false);
+  // PRE-7 (R-8, cr-8) : dernier nom connu, comparé par `patchLocal` (synchronisé après chaque rendu).
+  const nameRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    nameRef.current = local?.name;
+  }, [local?.name]);
   const repriseLocked = !isEditingExisting && (local?.sourceMovementId ?? "").trim().length > 0;
   const occurrenceOnlyNamed =
     local !== null &&
@@ -1598,7 +1612,13 @@ function CompositionExerciseEditor() {
 
   function patchLocal(next: Partial<ActivityEditorFormValue>) {
     // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
-    if (next.name !== undefined) setNameHintVisible(false);
+    // PRE-7 (R-8, cr-8) : seulement sur une modification réelle — le clavier iOS peut renvoyer le
+    // même texte à la perte du focus. Comparaison au dernier nom saisi (`nameRef`), à jour même
+    // entre deux évènements sans rendu intermédiaire.
+    if (next.name !== undefined) {
+      if (next.name !== nameRef.current) setNameHintVisible(false);
+      nameRef.current = next.name;
+    }
     if (next.instructionSteps !== undefined) {
       setInstructionSteps(next.instructionSteps);
     }
@@ -1914,11 +1934,6 @@ function CompositionExerciseEditor() {
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? strings.screens.activities.editor.movementSuggestion.completeNameHint : null}
-          movementSearchAction={
-            originChoice.canSearch
-              ? { label: strings.screens.activities.editor.movementSearch.open, onPress: originChoice.openSearch }
-              : null
-          }
           level={occurrenceLevel}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}

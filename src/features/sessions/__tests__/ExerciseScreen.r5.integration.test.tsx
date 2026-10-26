@@ -256,11 +256,6 @@ const resultIds = () =>
   screen
     .queryAllByTestId(/^movement-suggestion-result-.+-summary$/)
     .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-summary$/, "$1"));
-/** Mouvements des cartes de l'écran de recherche, dans l'ordre affiché. */
-const searchResultIds = () =>
-  screen
-    .queryAllByTestId(/^movement-search-result-.+-summary$/)
-    .map((node) => String(node.props.testID).replace(/^movement-search-result-(.+)-summary$/, "$1"));
 
 /** Paramètres d'un mouvement neuf : Durée 45 s. */
 function fillDurationParameters() {
@@ -343,13 +338,12 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
     expect(resultIds()[0]).not.toBe(before[0]);
   });
 
-  it("saisie détaillée commencée (description) : ni panneau ni lien de recherche", async () => {
+  // PRE-7 (R-8, D-448 point 2) : lien de recherche retiré de l'éditeur ; seul le panneau est vérifié.
+  it("saisie détaillée commencée (description) : aucun panneau", async () => {
     await catalogueSquats();
     await renderEditor({ catalogueDefinitionId: "new" });
-    expect(screen.getByTestId("activity-editor-movement-search")).toBeTruthy();
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos plat");
     await settle();
-    expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
     await typeName("Squat");
     expect(resultIds()).toEqual([]);
   });
@@ -472,16 +466,15 @@ describe("PRE-7 R-5 — variante (C02)", () => {
     );
   });
 
-  it("depuis l'écran de recherche : « Plus difficile » → inséré APRÈS l'origine", async () => {
+  // PRE-7 (R-8, D-448 point 2) : réécrit par le panneau, le lien vers l'écran de recherche étant
+  // retiré de l'éditeur.
+  it("depuis le panneau : « Plus difficile » → inséré APRÈS l'origine", async () => {
     const squats = await catalogueSquats();
     await renderEditor({ catalogueDefinitionId: "new" });
     await typeName("Squats");
-    await endNameEditing();
-    await press("activity-editor-movement-search");
-    expect(screen.getByTestId("movement-search-input").props.value).toBe("Squats");
-    await press(`movement-search-result-${squats.movementId}-variant`);
-    await press(`movement-search-result-${squats.movementId}-harder`);
-    expect(screen.queryByTestId("movement-search-input")).toBeNull();
+    await press(`movement-suggestion-result-${squats.movementId}-variant`);
+    await press(`movement-suggestion-result-${squats.movementId}-harder`);
+    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
     expect(screen.getByTestId("activity-editor-level-label", anyNode).props.children).toBe("Niveau 2");
     await typeName("Squats sautés");
@@ -493,49 +486,9 @@ describe("PRE-7 R-5 — variante (C02)", () => {
   });
 });
 
-describe("PRE-7 R-5 — écran de recherche (R03)", () => {
-  it("prérempli avec le nom ; sans résultat : annonce et « Voir tous les mouvements » ; tous les mouvements, sans exercice compris ; reprise d'un mouvement local", async () => {
-    await catalogueSquats();
-    const local = await localMovement();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Natation");
-    await press("activity-editor-movement-search");
-    expect(screen.getByTestId("movement-search-input").props.value).toBe("Natation");
-    expect(screen.getByTestId("movement-search-empty")).toBeTruthy();
-    expect(screen.getByText(editor.movementSearch.noResult)).toBeTruthy();
-    await press("movement-search-show-all");
-    expect(screen.getByTestId("movement-search-input").props.value).toBe("");
-    expect(screen.queryByTestId("movement-search-empty")).toBeNull();
-    expect(screen.getByTestId("movement-search-result-genou")).toBeTruthy();
-    expect(searchResultIds()).toHaveLength(2);
-
-    fireEvent.changeText(screen.getByTestId("movement-search-input"), "genoux mobilisation");
-    await settle(10);
-    expect(searchResultIds()).toEqual(["genou"]);
-    await press("movement-search-result-genou-use");
-    await settle(50);
-    expect(screen.queryByTestId("movement-search-input")).toBeNull();
-    expect(nameInput().props.value).toBe(local.name);
-    expect(nameInput().props.editable).toBe(false);
-    fillPhaseDurations();
-    await finish();
-    expect((await service().listActivityDefinitions()).filter((definition) => definition.movementId === "genou")).toHaveLength(1);
-  });
-
-  it("✕ : retour au brouillon intact, rien d'écrit", async () => {
-    await catalogueSquats();
-    const movementsBefore = await movementsRows();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squats assistés");
-    await press("activity-editor-movement-search");
-    fireEvent.press(screen.getAllByLabelText(editor.movementSearch.closeAccessibilityLabel).at(-1)!);
-    await settle(20);
-    expect(screen.queryByTestId("movement-search-input")).toBeNull();
-    expect(nameInput().props.value).toBe("Squats assistés");
-    expect(mockBack).not.toHaveBeenCalled();
-    expect(await movementsRows()).toEqual(movementsBefore);
-  });
-});
+// PRE-7 (R-8, D-448 point 2) : les parcours « écran de recherche (R03) » passaient par le lien de
+// l'éditeur, retiré ; l'écran, conservé sans point d'entrée, est vérifié seul par
+// `src/features/activities/__tests__/MovementSearchScreen.r8.test.tsx`.
 
 describe("PRE-7 R-5 — Séance", () => {
   it("deux créations locales de même nom dans le brouillon : signalé pendant la saisie, Terminer indisponible (report R-3)", async () => {
@@ -659,7 +612,8 @@ describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition"
     expect(patch.movements?.["occ-v"]).toMatchObject({ change: "NEW", levelOrigin });
   });
 
-  it("Catégorie choisie avant la saisie du nom : panneau et lien de recherche toujours présents", async () => {
+  // PRE-7 (R-8, D-448 point 2) : lien de recherche retiré de l'éditeur ; seul le panneau est vérifié.
+  it("Catégorie choisie avant la saisie du nom : panneau toujours présent", async () => {
     const squats = await catalogueSquats();
     await renderEditor({ catalogueDefinitionId: "new" });
     fireEvent.press(screen.getByTestId("activity-editor-category-button"));
@@ -667,7 +621,6 @@ describe("PRE-7 R-5 — revue : disponibilité, reprise en Séance, réédition"
     fireEvent.press(screen.getByTestId("category-picker-confirm"));
     await settle(400);
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toContain("Cardio");
-    expect(screen.getByTestId("activity-editor-movement-search")).toBeTruthy();
     await typeName("Squat");
     expect(resultIds()).toEqual([squats.movementId]);
   });

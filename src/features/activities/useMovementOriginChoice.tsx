@@ -53,7 +53,10 @@ export type MovementOriginChoiceOptions = {
 };
 
 export type MovementOriginChoiceState = {
-  /** Recherche explicite disponible (lien du formulaire). */
+  /**
+   * Recherche explicite disponible. PRE-7 (R-8, D-448 point 2) : le lien de l'éditeur est retiré ;
+   * écran et fonction conservés sans point d'entrée dans l'interface, en attendant un autre accès.
+   */
   readonly canSearch: boolean;
   readonly openSearch: () => void;
   /** Fin de la saisie du nom (Entrée, clavier fermé) : le panneau se ferme, aucune sélection. */
@@ -87,8 +90,10 @@ export type MovementOriginChoiceState = {
  * - le nom déjà utilisé (C01, clé canonique, identité éditée exclue) est signalé dès la frappe et
  *   reste affiché tant qu'il dure ; dans une création, le panneau garde alors ses cartes (« reprenez
  *   ce mouvement ou choisissez un autre nom ») ;
- * - la recherche explicite reste accessible (R03) ; rien n'est écrit : l'écran applique le choix à
- *   son brouillon, `Terminer` seul persiste.
+ * - la recherche explicite reste dans le code (R03), sans point d'entrée depuis R-8 (D-448 point 2) ;
+ *   rien n'est écrit : l'écran applique le choix à son brouillon, `Terminer` seul persiste ;
+ * - PRE-7 (R-8, D-448 point 1, cr-8) : une correspondance par début de mot ouvre aussi le panneau ;
+ *   l'étape de variante n'est annulée ni par la fin de saisie ni par un texte inchangé.
  */
 export function useMovementOriginChoice({
   service,
@@ -155,8 +160,16 @@ export function useMovementOriginChoice({
     .map((result) => byId.get(result.id))
     .filter((choice): choice is MovementChoice => choice !== undefined);
   // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).
+  // PRE-7 (R-8, D-448 point 1) : une correspondance par début de mot ouvre le panneau comme une
+  // suggestion. Étape de variante en cours (cr-8) : le panneau reste ouvert jusqu'au choix Plus
+  // facile / Plus difficile, quelle que soit la fin de saisie.
   const live =
-    searchEnabled && (conflict || (dismissedFor !== name && ranked.some((result) => result.suggested))) ? listed : [];
+    searchEnabled &&
+    (conflict ||
+      variantOf !== null ||
+      (dismissedFor !== name && ranked.some((result) => result.suggested || result.wordPrefix)))
+      ? listed
+      : [];
   const results = frozen ?? live;
   const showMessage = (conflict || refused) && uniqueness.messageHidden !== true;
   const showPanel = results.length > 0 || showMessage;
@@ -216,8 +229,11 @@ export function useMovementOriginChoice({
       if (searchEnabled) setIsSearchOpen(true);
     },
     onNameEndEditing: () => {
+      // PRE-7 (R-8, cr-8) : toucher « Créer une variante » ferme le clavier ; cette fin de saisie
+      // (`onEndEditing`, perte du focus) n'annule pas l'étape de variante : `variantOf` est conservé
+      // et maintient le panneau ouvert ; la fin de saisie reste notée, si bien que « Retour » ferme
+      // le panneau. Seule une modification réelle du nom revient à la liste (`variantStep.name`).
       setDismissedFor(name);
-      setVariantOf(null);
     },
     nameTaken,
     checkDistinctName,

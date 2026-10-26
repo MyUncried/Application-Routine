@@ -175,12 +175,15 @@ describe("PRE-7 R-5 — R07 : familles complétées", () => {
 
 describe("PRE-7 R-5 — R02 : signaux Catégorie et Zones (bonus plafonnés)", () => {
   it("les bonus réordonnent deux candidats de même score de nom", () => {
+    // PRE-7 (R-8, D-448 point 1) : requête « Squatt » (faute de frappe) au lieu de « Squat ». « Squat »
+    // est désormais un nom identique (alias) des deux candidats, classés par nom normalisé avant
+    // tout score ; les bonus ne réordonnent que les rapprochements R02, que « Squatt » produit seul.
     const library = [
       candidate("x", "Squat large", { aliases: ["Squat"], categoryId: "renfo", bodyZoneIds: ["jambes"] }),
       candidate("y", "Squat lent", { aliases: ["Squat"], categoryId: "souplesse", bodyZoneIds: ["dos"] }),
     ];
-    const plain = search("Squat", {}, library).map((result) => result.id);
-    const withSignals = search("Squat", { categoryId: "souplesse", bodyZoneIds: ["dos"] }, library).map((result) => result.id);
+    const plain = search("Squatt", {}, library).map((result) => result.id);
+    const withSignals = search("Squatt", { categoryId: "souplesse", bodyZoneIds: ["dos"] }, library).map((result) => result.id);
     expect(plain[0]).toBe("x");
     expect(withSignals[0]).toBe("y");
   });

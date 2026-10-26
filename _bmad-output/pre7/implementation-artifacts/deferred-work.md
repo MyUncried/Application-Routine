@@ -182,3 +182,6 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-7-phases-durees-signalements.md`
   summary: La couleur rouge de « Paramètres à compléter. » dans `SiblingCompletionStep` n'est vérifiée par aucun test.
   evidence: Seul `ExerciseScreen.mfn.a22.integration.test.tsx:403` vérifie la présence de la ligne, pas sa couleur.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-8-recherche-prefixe-variante.md`
+  summary: L'écran de recherche (`MovementSearchScreen`), `openSearch`, `overlays` et `canSearch` restent sans point d'entrée ni test d'intégration depuis le retrait du lien de l'éditeur.
+  evidence: Précision de Hermann du 26/10/2026 (« Conservé sans accès pour l'instant ») ; seul `MovementSearchScreen.r8.test.tsx` teste l'écran isolé. À rebrancher avec un futur accès.
