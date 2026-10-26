@@ -534,4 +534,21 @@ Références actives : [Paramètres et brouillon d’un exercice](Specifications
 
 ## Évolution validée — Mouvement, filiation et niveaux
 
-D-437 à D-440 (23/10/2026) séparent le contenu du geste et les paramètres d’exécution, partagent le contenu au Catalogue et conservent des occurrences autonomes avec filiation statistique. Niveaux linéaires, édition directe avec correction partagée explicite, historique sans rang. Transition sur base vierge, sans reprise et sans effacement aux lancements suivants [D-440 assouplie les 23 et 24/10/2026 : préférences du Profil, Catégories et Zones corporelles conservées avec leurs personnalisations ; seuls les Exercices, les Séances et leurs associations sont réinitialisés, une seule fois, par la migration du nouveau schéma, avec avis]. Règles normatives : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Cette cible reste à implémenter ; elle ne livre ni calcul de records ni passage automatique de niveau.
+D-437 à D-440 (23/10/2026) séparent le contenu du mouvement et les paramètres d’exécution, partagent le contenu au Catalogue et conservent des occurrences autonomes avec filiation statistique. Niveaux linéaires, édition directe avec correction partagée explicite, historique sans rang. Transition sur base vierge, sans reprise et sans effacement aux lancements suivants [D-440 assouplie les 23 et 24/10/2026 : préférences du Profil, Catégories et Zones corporelles conservées avec leurs personnalisations ; seuls les Exercices, les Séances et leurs associations sont réinitialisés, une seule fois, par la migration du nouveau schéma, avec avis]. Règles normatives : [chapitre 10](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). Cette cible reste à implémenter ; elle ne livre ni calcul de records ni passage automatique de niveau.
+
+
+## Niveaux et recherche — documentation du 25/10/2026
+
+**D-445 :** huit points clos ; C08 seul différé. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+## Décisions closes — D-445
+
+Huit points clos : C01–C07 et C09. C08 seul reste différé sur le périmètre MVP. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [prompt Claude Code](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V7.md).
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.

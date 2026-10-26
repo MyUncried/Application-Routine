@@ -1,5 +1,8 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 # Format
 
 ### D-436 — Orientation produit : fitness first
@@ -18,7 +21,7 @@ Validée le 23/10/2026. MFN-02 et MFN-08 séparent structure et durées, réutil
 
 Validée le 23/10/2026. MFN-05 à MFN-07 et MFN-10 : au plus un groupe linéaire par mouvement, insertion après origine, réorganisation explicite, singleton conservé avec rang masqué. Recherche explicite et suggestions sur les mouvements disponibles, locaux compris. Cette recherche spécialisée ne généralise pas la recherche des Catalogues exclue par D-221. Aucun rattachement automatique ni fusion rétroactive ; les doublons indépendants gardent des records distincts. Aucun choix silencieux des paramètres d’une ligne regroupée. Règles détaillées : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
 
-**Complément de présentation D-438/D-439 du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). En création sur geste repris : contenu initialement en lecture seule et crayon, paramètres modifiables ; confirmation conditionnelle « Corriger ce geste / En faire un geste distinct / Annuler ». En édition Catalogue, les libellés antérieurs restent applicables. Une variante explicite ne redemande pas la décision. Accès aux niveaux par popover « Changer de niveau / Ajouter un niveau », sans quatrième action glissée Catalogue. Pastille « Niveau X », total dans le choix ; aucune limite à trois niveaux déduite de l’icône. Les écarts de prototype sont consignés, non promus en règles métier.
+**Complément de présentation D-438/D-439 du 23/10 :** [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). En création sur mouvement repris : contenu initialement en lecture seule et crayon, paramètres modifiables ; confirmation conditionnelle « Corriger ce mouvement / En faire un mouvement distinct / Annuler ». En édition Catalogue, les libellés antérieurs restent applicables. Une variante explicite ne redemande pas la décision. Accès aux niveaux par popover « Changer de niveau / Ajouter un niveau », sans quatrième action glissée Catalogue. Pastille « Niveau X », total dans le choix ; aucune limite à trois niveaux déduite de l’icône. Les écarts de prototype sont consignés, non promus en règles métier.
 
 ### D-440 — Transition ponctuelle sur base vierge
 
@@ -860,6 +863,8 @@ La V2 est amendée par ces décisions, notamment : réglages éditables ; organi
 
 ### Phases d’exercice — décisions du 15 octobre 2026
 
+**Historique partiellement remplacé le 26/10 par PHC-20261026 :** éligibilité Durée/Répétitions et échec, motif cyclique, cible indépendante ; suppression du budget de dernière phase et de l’adaptation proportionnelle. Voir la clarification en fin de registre.
+
 | ID | Décision |
 |---|---|
 | D-370 | Phases au MVP ; 0 à 6 phases ordonnées, libellé 20 caractères maximum ; Durée chiffrée et séries identiques uniquement ; une série joue une fois le motif sans pause interne. |
@@ -874,3 +879,72 @@ Les paramètres limites non arbitrés, les textes de synthèse et la présentati
 Intégration du 18/10/2026 : D-371 est remplacée sur ce point par D-410 et D-413 — le contrôle Phases de l’exercice propose Avec / Sans (« Aucune » devient Sans ; Avec crée la première phase) et son chevron est à l’intérieur de l’option Avec ; le tableau des phases n’a ni pied ni boutons +/−. Le texte de D-371 est conservé.
 
 Historique, remplacé pour la suppression et la normalisation par D-438 : intégration du 19/10/2026, D-432 remplace sur ces points D-371 et l’intégration du 18/10 — Avec affiche « n phases », nombre réglé de 2 à 6 par le stepper existant, première activation à deux phases, croix indisponible à 2 phases, normalisation laissant une seule phase ramenée à Sans. Le texte de D-371 est conservé.
+
+
+## Relevé documentaire du 25/10 — sans arbitrage implicite
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
+
+## D-445 — Clôture des décisions mouvement, niveaux et recherche — 25/10/2026
+
+**Validée par Hermann.** Cette décision remplace les dispositions contradictoires de D-437/D-438/D-439, MFN-01 à MFN-11 et de la v6 sur ces points. Les anciens textes du registre restent historiques, pas une consigne concurrente. D-440 (base vierge) est conservée.
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
+
+À l’enregistrement d’une modification d’un mouvement existant :
+
+| Condition | Dialogue / résultat |
+|---|---|
+| Nom modifié, avec ou sans autre exercice et avec ou sans historique | Toujours : Mettre à jour ce mouvement / Créer un nouveau mouvement / Annuler ; choix explicite, sans présélection |
+| Nom inchangé, contenu modifié, au moins un autre exercice lié ou une exécution enregistrée | Confirmation de mise à jour uniquement : Annuler / Confirmer |
+| Nom inchangé, contenu modifié, ni autre exercice lié ni exécution enregistrée | Sauvegarde silencieuse du même mouvement |
+| Aucun changement de contenu ; paramètres seuls ; reclassement seul | Aucun dialogue de mouvement |
+
+Le changement de nom est une modification du nom effectivement enregistré ; une variation de casse ou d’accent peut donc être une correction à confirmer, même si la clé d’unicité reste identique. Le contrôle d’unicité exclut l’identité en cours d’édition ; une création distincte doit disposer d’une clé différente des mouvements existants.
+
+« Autre exercice » couvre les définitions Catalogue et les occurrences persistées de séance utilisant le mouvement, hors objet édité ; les lignes sont comptées une fois, sans multiplication par les séries, tours ou planifications. Les occurrences historisées sont traitées par la condition d’existence d’une exécution, pas ajoutées au compteur d’exercices. L’existence se recherche par identité de mouvement, pour SESSION comme ACTIVITY, et non par nom. Une séance simplement enregistrée n’est pas une exécution passée. Aucun indicateur d’utilisation irréversible déclenché par insertion n’est requis.
+
+Le dialogue indique la portée réelle et le nombre d’autres exercices concernés ; zéro autre exercice ne masque pas l’enjeu historique. Un renommage corrigé conserve l’identité : les anciens et nouveaux noms peuvent légitimement partager leurs performances. Créer un nouveau mouvement conserve l’original et rattache l’exercice édité à la nouvelle identité. Depuis une séance, ce choix remplace l’occurrence par une nouvelle occurrence dans le brouillon ; les exécutions antérieures gardent leur filiation. Le rattachement éventuel à un groupe reste explicite.
+
+Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais indisponible avant sélection lorsqu’un choix est requis. Une variante explicitement choisie et un mouvement neuf sont des créations : pas de seconde question sur la correction de l’origine. Aucun bouton additionnel de création distincte dans l’édition n’est ajouté ; la recommandation antérieure de ce second mécanisme est retirée. L’application ne déduit pas la différence sémantique entre correction et nouveau mouvement.
+
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
+
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, somme ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
+
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
+
+Les recommandations d’ajouter une seconde commande de création distincte ou d’utiliser un seuil graphique non validé ne sont pas promues en décisions. Les huit points sont clos ; C08 reste un choix de périmètre à venir.
+
+
+### PHC-20261026 — Phases cycliques, clarification du 26 octobre 2026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée.
+
+Remplace les dispositions contraires D-370/D-372/D-374 et les transferts de durée D-371/D-432/D-438 ; conserve le reste. [Texte normatif et recette](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). D-446 locale à rapprocher, sans numéro réattribué.

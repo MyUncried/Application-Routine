@@ -1,5 +1,8 @@
 # API fonctionnelles
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 ## Sommaire
 
 - [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
@@ -96,28 +99,29 @@ Les intégrations avec des services externes, notamment les calendriers Apple, G
 
 ### Contrats MFN — évolution des opérations existantes
 
-Ces contrats remplacent la propriété aplatie du contenu Catalogue et précisent les API ci-dessous ; ils n’imposent pas de service distant.
+Ces opérations implémentent D-445, sans service distant imposé.
 
 | Opération | Contrat cible |
 |---|---|
-| Créer / rechercher | Rechercher les mouvements disponibles, locaux compris ; choix explicite même geste / variante / indépendant. Créer mouvement et définition ou occurrence locale atomiquement ; annuler sans résidu |
-| Lire une définition | Résoudre sa relation active obligatoire vers le mouvement ; retourner contenu et paramètres propres |
-| Enregistrer une correction | Vérifier usage durable et champs sensibles ; transmettre le choix et le nombre de définitions touchées ; appliquer atomiquement contenu partagé et durées par identifiant ; distinguer exercice édité complet et frères incomplets explicitement acceptés |
-| Créer une variante | Nouveau mouvement et nouvelle définition ; original conservé ; proposition de groupe sans présélection |
-| Copier / dupliquer | Nouveaux identifiants d’objets ; filiation copiée à l’identique ; contenu de l’occurrence autonome et verrouillé ; paramètres modifiables |
-| Enregistrer une séance / démarrer en direct | Marquer durablement l’utilisation du mouvement dans la transaction de succès ; aucune création Catalogue ; absence de source orpheline tolérée pour une copie existante |
-| Exécuter | Refuser les exercices incomplets ; instantané autonome avec filiation, sans rang ; même identité en ACTIVITY et SESSION |
-| Supprimer | Refuser suppression d’un mouvement encore référencé par une définition ; ne jamais invalider une copie ni collecter automatiquement un mouvement inutilisé |
+| Rechercher / créer | Nom unique garanti à l’écriture ; recherche nom/alias dédupliquée ; mouvements sans exercice et locaux inclus |
+| Lire une définition ou une occurrence | Résoudre directement le mouvement courant et les paramètres propres de l’objet ; aucune dépendance de SessionActivity envers ActivityDefinition |
+| Préparer une sauvegarde | Comparer nom/contenu, compter autres définitions et occurrences liées, rechercher existence d’exécution par identité ; branche de dialogue selon MFN-08 |
+| Mettre à jour | Écrire le contenu du mouvement atomiquement ; garder paramètres locaux ; détecter les phases devenues incomplètes ; ne pas synchroniser des copies de contenu |
+| Créer distinct | Nouvelle identité et nom unique ; rattacher l’objet édité, remplacer l’occurrence si contexte séance ; originaux et historiques conservés |
+| Créer une variante | Description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté, exercice associé ; pas de confirmation de correction |
+| Insérer / dupliquer | Nouvelle occurrence, même référence au mouvement et paramètres locaux copiés ; aucune écriture d’indicateur d’utilisation sur insertion |
+| Démarrer | Vérifier compatibilité et complétude, résoudre contenu/paramètres puis figer l’instantané avec filiation ; pas de relecture pendant exécution |
+| Supprimer un exercice | Conserver le mouvement et tous les instantanés ; aucun ramassage automatique |
+| Supprimer un mouvement | Préserver intégrité des références actives ; parcours et admission MVP différés C08 |
 
-Invariants détaillés : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux). D-440 dispense de lire ou convertir les anciens formats pendant la transition MFN ; aucune perte silencieuse de données du nouveau modèle n’est permise.
-
+Règles et recettes : MFN-01 à MFN-13 / MFN-AC du chapitre 10. Base vierge D-440 ; pas de migration.
 
 ### API Exercices
 
 |ID|Opération|Entrées principales|Résultat|Règles / validations|Objets impactés|
 |---|---|---|---|---|---|
 | API-ACT-01 | Paramétrer un Exercice | Nom, description facultative sous forme d’étapes ordonnées (D-425), référentiels, mode unique, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, charge (activation, valeur commune ou par Série), changement de côté Sans / Avec, ordre des côtés, PC, CR/Fin | Exercice validé | Validation v13 ; charge selon RM-239, valeurs conservées sous Sans transportées (RM-236) ; changement de côté selon RM-242 et RM-244 ; N1 normalisé ; aucune R contextuelle sur ActivityDefinition ; écriture atomique | Exercice |
-| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, changement de côté, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. La charge n’entre pas dans le calcul (RM-235). | Exercice / occurrence |
+| API-ACT-02 | Calculer les paramètres temporels | Mode, N, uniforme/variable, cibles/Pauses/Bip0..10 ordonnés, changement de côté, ordre des côtés, PC, R contextuel éventuel, Tv en Durée uniforme | Total dérivé avec niveau d’incertitude, statut incomplet et N canonique si inversion | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. La charge n’entre pas dans le calcul (RM-235). | Exercice / occurrence |
 | API-ACT-03 | Définir les pauses | Paramètres uniformes/variables, PC | Exercice validé | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases. | Exercice |
 |API-ACT-04|Lire/afficher les médias associés|ID Exercice|Média(s) associé(s) pour la gouttière permanente de la carte d’Exercice|L’affichage en gouttière, sans déploiement, fait partie du MVP (D-260/D-261) ; cette API fonctionnelle ne préjuge pas du mécanisme d’import/capture|Exercice, Média|
 |API-ACT-05|Associer des zones corporelles|ID Exercice, zones corporelles|Zones corporelles mises à jour|Une ou plusieurs zones du référentiel utilisateur courant pour un Exercice valide (D-211)|Exercice, Zone corporelle|
@@ -127,10 +131,10 @@ Invariants détaillés : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%2
 
 Les opérations de création, modification, copie et duplication transportent la liste ordonnée de phases avec les paramètres canoniques. Aucun endpoint ni service distant supplémentaire n’est requis. Contrat de données : chapitre 09, Phases de l’exercice ; comportement : [chapitre 08](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
-- Validation du brouillon (D-438) : une durée de phase nulle ou vide reste à renseigner, sans suppression ; l’exercice édité ne peut être enregistré incomplet. Le nommage par défaut des phases ajoutées reste conservé. Retrait de structure uniquement explicite au Catalogue ; aucune transformation structurelle dans une copie verrouillée.
-- Validation : éligibilité, six phases maximum, libellés 20 caractères, chaque phase validée ≥ 1 s et somme des phases comprise entre 1 et 3 535 s (D-430), cohérence avec la durée imposée ; les données corrompues ne bénéficient pas d’un effacement silencieux.
-- Calcul : somme des phases comme durée de série ; projections et agrégats issus des mêmes paramètres, sans double comptage.
-- Adaptation au format : reçoit la liste et la durée de travail imposée ; renvoie la liste adaptée et les valeurs avant/après nécessaires au message informatif. Source Catalogue inchangée. Les arrondis extrêmes attendent la règle du chapitre 08.
+- Validation du brouillon (D-438) : une durée de phase nulle ou vide reste à renseigner, sans suppression ; l’exercice édité ne peut être enregistré incomplet. Le nommage par défaut des phases ajoutées reste conservé. Retrait de structure uniquement explicite au Catalogue ; structure modifiée par le crayon du mouvement partagé, jamais par une normalisation silencieuse des paramètres locaux.
+- Validation : éligibilité, six phases maximum, libellés 20 caractères, chaque phase validée ≥ 1 s et somme des phases comprise entre 1 et 3 535 s (D-430), indépendance vis-à-vis de la durée de série imposée (PHC-20261026) ; les données corrompues ne bénéficient pas d’un effacement silencieux.
+- Calcul : somme des phases comme durée du motif ; cible de série indépendante ; projections et agrégats issus des mêmes paramètres, sans double comptage.
+- Format : applique sa cible à la série sans modifier les durées des phases ; aucun service d’adaptation proportionnelle ni message de mise à l’échelle (PHC-20261026).
 - Génération du plan : conserve la série comme unité logique et expose les sous-étapes chronométrées et leur identité à la reprise/audio.
 - Génération de phrase : segments `{texte, gras}` depuis les paramètres effectifs, sans chaîne persistée. Les formulations exactes avec phases restent à intégrer au corpus ; ne pas appliquer les seuls 276 cas historiques comme couverture de cette extension.
 
@@ -141,7 +145,7 @@ Conserver les contrats d’annulation et de copie indépendante ; D-440 dispense
 | API | Version | Entrée principale | Résultat / règle |
 |---|---|---|---|
 | `API-ACT-REF-01..05` | MVP T03 | définition d’Exercice | Créer, lire, lister, modifier, archiver/supprimer une référence autonome. Si des Routines ciblent l’Exercice, l’archivage arrête leurs occurrences futures selon la même règle que pour une Séance ; les occurrences historisées et Exécutions restent conservées. |
-| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une copie complète indépendante, y compris les étapes ordonnées de description (D-425), charge et son activation comprises, valeurs conservées sous Sans incluses (RM-236) ; aucune synchronisation avec la référence ; `sourceMovementId` conserve la filiation statistique immuable (D-437). |
+| `API-ACT-COPY-01` | MVP T03 | ID référence, ID Séance, position | Crée une occurrence avec référence directe au mouvement et paramètres locaux copiés, charge/activation comprises ; aucun contenu autonome à synchroniser, aucun lien de dépendance envers la définition Catalogue. D-445 / MFN-03. |
 | `API-MED-01..05` | MVP PRE-3 | exercice, fichier ou position | Importer/choisir, associer, lister, réordonner et retirer `0..n` médias locaux (D-333) ; nettoyage physique seulement sans référence. Capture caméra à clarifier, sans activation implicite. |
 | `API-CAT-01` | MVP T03 / V2 | type, filtre, tri | Avant T03, accepte uniquement `SESSION`; dans le MVP T03, accepte également `ACTIVITY`; l’ancien type autonome `CIRCUIT` n’est pas réintroduit par la planification multi-contenus. Défaut : non archivés, dernière modification décroissante. |
 | API-CIR (ancienne famille) | Retirée 08/10 | Sans nouvelle implémentation | L’objet autonome Parcours et son exécution globale ne font plus partie de la cible. |
@@ -550,3 +554,19 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 #### Contrat transverse des paramètres v13
 
 Validation, calcul, duplication, insertion dans une Séance et instantané partagent la représentation de chapitre 08, paramètres d’exercice. Le tableau ordonné cible/Pause/charge et l’état variable explicite sont copiés intégralement, avec l’activation de la charge (RM-236). Les API de Séance calculent To avec récupération explicite, sans ajouter R deux fois. Les API de lecture ne réécrivent pas les résultats historiques. Aucun champ caché de brouillon ne traverse la persistance ; les charges conservées sous Sans ne sont pas un champ caché de brouillon et sont persistées (RM-236, D-403).
+
+
+## Contrats de service — incidence du relevé 25/10
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+
+
+### Phases — clarification PHC-20261026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.

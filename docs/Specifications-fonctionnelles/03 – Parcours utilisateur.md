@@ -1,5 +1,8 @@
 # Parcours utilisateur
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 ## Sommaire
 
 - [Objet et organisation du chapitre](#objet-et-organisation-du-chapitre)
@@ -147,13 +150,13 @@ Le chevron déploie ou replie la carte. La zone `Démarrer` lance le parcours d�
 
 ### Création, niveaux et correction — cible MFN
 
-Références visuelles : [relevé Figma du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Reprendre un geste présente son contenu en lecture seule, déverrouillable par crayon en création ; les paramètres restent éditables. Créer explicitement une variante n’affiche pas une seconde question d’identité. Depuis la fiche, le popover propose « Changer de niveau / Ajouter un niveau » ; aucune action glissée supplémentaire au Catalogue.
+Références visuelles : [relevé Figma du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Reprendre un geste présente son contenu en lecture seule, déverrouillable par crayon en création, au Catalogue et en séance, au Catalogue et en séance ; les paramètres restent éditables. Créer explicitement une variante n’affiche pas une seconde question d’identité. Depuis la fiche, le popover propose « Changer de niveau / Ajouter un niveau » ; aucune action glissée supplémentaire au Catalogue.
 
-Créer un exercice commence dans l’éditeur. La recherche explicite d’un geste, accessible avant la saisie détaillée, et les suggestions incluent les gestes créés localement ; aucun Catalogue supplémentaire. Choisir le même geste reprend son contenu et permet de saisir d’autres paramètres. Une variante crée un nouveau geste et son exercice ; un geste indépendant n’est pas rattaché. Aucun écrasement silencieux d’une saisie existante.
+Créer un exercice commence dans l’éditeur. La recherche explicite d’un mouvement, accessible avant la saisie détaillée, et les suggestions incluent les mouvements créés localement ; catalogue d’entretien distinct de ce sélecteur (D-445). Choisir le même mouvement reprend son contenu et permet de saisir d’autres paramètres. Une variante crée un nouveau mouvement et son exercice ; un mouvement indépendant n’est pas rattaché. Aucun écrasement silencieux d’une saisie existante.
 
 Depuis la fiche, créer un niveau l’insère après l’origine ; glisser réordonne les niveaux. Une navigation vers un niveau laisse choisir précisément ses paramètres parmi ses exercices. Ouvrir un exercice Catalogue entre directement en édition. L’enregistrement d’un contenu déjà utilisé pose la question de correction ou de création selon [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux) ; les occurrences existantes ne sont pas mises à jour.
 
-Dans la Composition, le contenu copié est verrouillé ; seuls les paramètres sont modifiables. Un autre geste exige remplacement ou création de variante. Les doublons créés indépendamment ne peuvent pas réunir leurs records rétroactivement dans cette version.
+Dans la Composition, l’occurrence lit le mouvement courant. Le crayon ouvre sa correction partagée ; paramètres locaux et Niveau restent actifs. Créer un autre mouvement ou changer de niveau remplace l’occurrence, sans réattribuer les historiques. Aucun rapprochement rétroactif de records (D-445).
 
 
 ### Parcours MVP T03 — Catalogue des Exercices
@@ -201,9 +204,9 @@ Les paramètres métier restent identiques entre création et modification ; seu
 
 ### Définir les phases d’un exercice — MVP
 
-Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée chiffrée et séries identiques, choisir Avec crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410). ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
+Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée ou Répétitions, à cible ou à l’échec, en séries identiques, choisir Avec crée deux phases dont les durées sont à renseigner indépendamment de la cible de série (PHC-20261026). Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme est la durée du motif ; la cible de série reste indépendante. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410). ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
 
-Dans un format imposant une durée de travail, la dernière phase reçoit le temps restant. L’intégration d’un exercice dont la somme diffère adapte proportionnellement sa copie dans la séance et affiche un message informatif ; la définition Catalogue reste intacte. Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+Dans un format imposant une durée de travail, la cible de série suit le format et les durées du motif restent inchangées. Aucune dernière phase calculée ni adaptation proportionnelle (PHC-20261026). Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 #### Ajouter un Exercice depuis une Composition
 
@@ -594,7 +597,7 @@ Choisir une ou plusieurs Séances/Exercices par cases → Ajouter n éléments �
 
 #### Ajouter des médias à un Exercice — MVP PRE-3
 
-D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations sont ordonnées, indépendantes dans les copies et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
+D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, dans le Catalogue comme dans une copie de Séance. L’utilisateur associe le média au brouillon de l’Exercice puis enregistre avec Terminer ; il retrouve ses associations après réouverture. Les associations courantes appartiennent au mouvement ; les instantanés en conservent une copie ordonnée et peuvent partager un fichier physique immuable. Retirer une association ne supprime jamais un fichier encore référencé. Les sources système, formats et états du sélecteur d’import restent à clarifier ; aucune caméra ni limite n’est déduite des maquettes. La consultation pendant l’Exécution conserve D-203 et relève du moteur ultérieur.
 
 <a id="formats-parcours"></a>
 #### Formats et départs rapides — parcours
@@ -607,3 +610,43 @@ D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, 
 6. Arrêt Death by : un seul déclencheur ouvre les deux issues « Limite atteinte » et « Abandonner ». Si la dernière fenêtre n’est pas acquise, renseigner les répétitions partielles, proposées à zéro. Résultat conservé, état incomplet dans les deux cas.
 
 Navigation, annulation et sauvegarde reprennent les brouillons existants ; le choix d’un segment ne sauvegarde pas la séance à lui seul. Les captures actuelles et les variantes sont au chapitre 06, contrats CE-FMT-01…06 au chapitre 13.
+
+
+## Parcours de niveaux — actualisation du 25/10
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+### Phases — clarification PHC-20261026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.

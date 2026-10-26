@@ -1,5 +1,7 @@
 # DSF — Cartes, icônes et animations d’appui
 
+> Actualisation du 25/10/2026 : les rendus de cartes, niveaux, recherche et sauvegarde concernés sont décrits dans le [relevé courant](DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Ce document daté reste une preuve historique ; ses captures et noms de composants ne remplacent pas l’inventaire courant.
+
 > Actualisation 08/10 : les règles générales d’interface sont définies dans [DSF-INTERFACE-GENERALE-2026-10-08](DSF-INTERFACE-GENERALE-2026-10-08.md). Pour la planification, la [matrice du 08/10](MATRICE-PLANIFICATION-2026-10-08.md) remplace les anciennes références et leur statut ; les lignes datées antérieures restent un inventaire historique, pas la preuve des nouvelles captures.
 
 

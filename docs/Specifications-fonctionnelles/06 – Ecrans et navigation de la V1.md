@@ -1,5 +1,8 @@
 # Interface : navigation, écrans et conventions communes
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 Ce chapitre décrit l’interface dans son ensemble : navigation, inventaire des écrans et de leurs contrats, captures, et conventions d’interface communes à plusieurs écrans. La sélection actuelle conserve 62 captures de référence parmi les 197 frames de premier niveau du Prototype MVP ; les 135 autres frames restent dans Figma et sont couvertes comme variantes, sans copie supplémentaire dans ce chapitre. Le comportement propre à chaque écran est défini par son contrat au chapitre 13 ; le rendu visuel par Figma.
 
 **Évolutions v15 du 07/10 :**36captations vérifiées, dont 15PNG changés depuis main 72d1bf4. [Inventaire et preuves](../MATRICE-EVOLUTIONS-V15-2026-10-07.md), [DSF phrases](../DSF-PHRASES-V15-2026-10-07.md). Vue longue renommée 224caractères ; les calculs déjà décidés sont conservés.
@@ -134,9 +137,9 @@ Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et C
 
 ### États complémentaires MFN — mise à jour Figma du 23/10/2026
 
-Les cinq nouveaux états CE-T03-04 sont maintenant illustrés ci-dessous. Le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) fixe le parcours, les composants et les écarts résiduels. Aucun Catalogue Mouvement ; les libellés visibles sont « geste », « exercice » et « niveau ».
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-En création sur geste repris, le contenu est en lecture seule jusqu’au crayon, mais les paramètres restent modifiables. Cela ne change ni l’ouverture directe en édition d’une définition Catalogue ni le verrouillage des occurrences. La confirmation n’est pas systématique : geste utilisé et contenu modifié seulement. Une variante explicitement choisie est sauvegardée sans question redondante. La complétion des durées des exercices frères reste à illustrer. Les références de Composition D-435 sont conservées.
+D-445 : reprise initialement en lecture seule, crayon de correction partagée disponible au Catalogue et en séance ; paramètres locaux et Niveau actifs. Nom modifié : dialogue toujours. Nom inchangé : confirmation pour contenu modifié avec autre exercice ou historique. Variante explicite : création directe. Les captures datées ne modifient pas ces conditions.
 
 ### Navigation principale et articulation des écrans
 #### Navigation principale
@@ -242,7 +245,7 @@ Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, éta
 
 [Source Figma — `1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910)
 
-![Catalogue des séances — Liste par défaut](images/ecran-2-catalogue-seances.png)
+![P-Catalogue des séances — Liste par défaut](images/niveaux-2026-10-25/1992-9910.png)
 
 ##### Catalogue des séances — Séance déployée
 
@@ -300,6 +303,8 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4549:6382`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6382)
 
+![Catalogue des séances — Liste — Filtre inactif étendu](images/niveaux-2026-10-25/4549-6382.png)
+
 
 
 État `Filtres / Aucun`, liste inchangée
@@ -315,6 +320,8 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 ##### Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité
 
 [Source Figma — `4592:6217`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4592-6217)
+
+![Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité](images/niveaux-2026-10-25/4592-6217.png)
 
 
 
@@ -332,7 +339,7 @@ Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séa
 
 [Source Figma — `4168:11149`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11149)
 
-![Catalogue des séances — Filtrer — Panneau ouvert](images/figma-4168-11149.png)
+![P-Catalogue des séances — Filtrer — Panneau ouvert](images/niveaux-2026-10-25/4168-11149.png)
 
 Modale de filtres contextuels Séances : statut et Étiquettes
 
@@ -348,11 +355,13 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093)
 
-![Catalogue des Exercices — Liste](images/ecran-12-catalogue-activites-liste.png)
+![P-Catalogue des Exercices — Liste](images/niveaux-2026-10-25/3786-5093.png)
 
 #### Catalogue des exercices — État vide
 
 [Source Figma — `4521:6220`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4521-6220)
+
+![Catalogue des exercices — État vide](images/niveaux-2026-10-25/4521-6220.png)
 
 
 
@@ -360,11 +369,15 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4544:6344`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6344)
 
+![Catalogue des Exercices — Liste — Filtre inactif étendu](images/niveaux-2026-10-25/4544-6344.png)
+
 
 
 #### Catalogue des Exercices — Liste — Filtre actif étendu
 
 [Source Figma — `4544:6651`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6651)
+
+![Catalogue des Exercices — Liste — Filtre actif étendu](images/niveaux-2026-10-25/4544-6651.png)
 
 
 
@@ -372,11 +385,13 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4738:6209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6209)
 
-![Catalogue des Exercices — Liste — actions glissées](images/figma-4738-6209.png)
+![P-Catalogue des Exercices — Liste — actions glissées](images/niveaux-2026-10-25/4738-6209.png)
 
 #### Référence historique hors MVP — Catalogue des Exercices — Liste — Première carte déployée — Média
 
 [Source Figma — `4738:6355`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6355)
+
+![S-Catalogue des Exercices — Liste — Première carte déployée — Média](images/niveaux-2026-10-25/4738-6355.png)
 
 
 
@@ -386,7 +401,7 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4168:11262`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11262)
 
-![Catalogue des Exercices — Filtrer — Panneau ouvert](images/figma-4168-11262.png)
+![P-Catalogue des Exercices — Filtrer — Panneau ouvert](images/niveaux-2026-10-25/4168-11262.png)
 
 ### Composer une séance / Modifier une séance
 
@@ -414,11 +429,15 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28172`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28172)
 
+![Composition séance — Initial](images/niveaux-2026-10-25/8328-28172.png)
+
 
 
 ##### Composition séance — Nom saisi
 
 [Source Figma — `8328:28238`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28238)
+
+![Composition séance — Nom saisi](images/niveaux-2026-10-25/8328-28238.png)
 
 
 
@@ -426,21 +445,29 @@ La diminution est sans message ; une conversion de nature entraînant une perte 
 
 [Source Figma — `8328:28605`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28605)
 
+![Composition séance — Standard](images/niveaux-2026-10-25/8328-28605.png)
+
 
 
 ##### Composition séance — Actions glissées
 
 [Source Figma — `8328:28863`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28863)
 
+![P-Composition séance — Actions glissées](images/niveaux-2026-10-25/8328-28863.png)
+
 
 ##### Composition séance — Point d’arrêt
 
 [Source Figma — `8328:29428`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29428)
 
+![P-Composition séance — Point d’arrêt](images/niveaux-2026-10-25/8328-29428.png)
+
 
 ##### Composition séance — Déplacement
 
 [Source Figma — `8328:33546`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33546)
+
+![P-Composition séance — Déplacement](images/niveaux-2026-10-25/8328-33546.png)
 
 
 ##### Composition séance — Étiquette sélectionnée
@@ -449,11 +476,15 @@ Dans la zone de contexte, la puce Étiquette porte l’icône d’étiquette (co
 
 [Source Figma — `8328:34377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34377)
 
+![Composition séance — Étiquette sélectionnée](images/niveaux-2026-10-25/8328-34377.png)
+
 
 
 ##### Composition séance — Standard — Séries variables
 
 [Source Figma — `8328:34520`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34520)
+
+![Composition séance — Standard — Séries variables](images/niveaux-2026-10-25/8328-34520.png)
 
 
 
@@ -469,10 +500,14 @@ Dans la zone de contexte, la puce Étiquette porte l’icône d’étiquette (co
 
 [Source Figma — `8328:29270`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29270)
 
+![P-Composition séance — Placement d’une pause](images/niveaux-2026-10-25/8328-29270.png)
+
 
 ##### Composition séance — Récupération (modale)
 
 [Source Figma — `8328:28733`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28733)
+
+![Composition séance — Récupération (modale)](images/niveaux-2026-10-25/8328-28733.png)
 
 
 
@@ -482,6 +517,8 @@ Remplacé par D-442 ; capture historique. Hors placement, la récupération n’
 
 [Source Figma — `8328:29133`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-29133)
 
+![Composition séance — Retirer une récupération](images/niveaux-2026-10-25/8328-29133.png)
+
 
 
 ##### Composition séance — Retirer un point d’arrêt
@@ -489,6 +526,8 @@ Remplacé par D-442 ; capture historique. Hors placement, la récupération n’
 Remplacé par D-441 ; capture historique pour le Point d’arrêt. Le retrait du Point d’arrêt se fait désormais par désélection en mode Placement ; la bulle reste valable pour la récupération (« Composition séance — Retirer une récupération ») (remplacé par D-442 : la récupération se retire elle aussi par désélection en mode Placement).
 
 [Source Figma — `8328:33689`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33689)
+
+![Composition séance — Retirer un point d’arrêt](images/niveaux-2026-10-25/8328-33689.png)
 
 
 
@@ -498,11 +537,15 @@ Remplacé par D-441 ; capture historique pour le Point d’arrêt. Le retrait du
 
 [Source Figma — `8328:28304`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28304)
 
+![Composition séance — Compte à rebours](images/niveaux-2026-10-25/8328-28304.png)
+
 
 
 ##### Composition séance — Abandon (confirmation)
 
 [Source Figma — `8328:28377`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28377)
+
+![Composition séance — Abandon (confirmation)](images/niveaux-2026-10-25/8328-28377.png)
 
 
 
@@ -510,11 +553,15 @@ Remplacé par D-441 ; capture historique pour le Point d’arrêt. Le retrait du
 
 [Source Figma — `8328:28445`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28445)
 
+![Composition séance — Sélection exercices](images/niveaux-2026-10-25/8328-28445.png)
+
 
 
 ##### Composition séance — Fin de séance
 
 [Source Figma — `8328:28998`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-28998)
+
+![Composition séance — Fin de séance](images/niveaux-2026-10-25/8328-28998.png)
 
 
 
@@ -522,16 +569,22 @@ Remplacé par D-441 ; capture historique pour le Point d’arrêt. Le retrait du
 
 [Source Figma — `8328:33836`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-33836)
 
+![P-Composition séance — Étiquettes](images/niveaux-2026-10-25/8328-33836.png)
+
 
 ##### Composition séance — Étiquettes — Appui long — Confirmation suppression
 
 [Source Figma — `8328:34006`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34006)
+
+![Composition séance — Étiquettes — Appui long — Confirmation suppression](images/niveaux-2026-10-25/8328-34006.png)
 
 
 
 ##### Composition séance — Nouvelle étiquette
 
 [Source Figma — `8328:34107`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34107)
+
+![P-Composition séance — Nouvelle étiquette](images/niveaux-2026-10-25/8328-34107.png)
 
 
 #### Circuit — popover, confirmation et volumes
@@ -542,11 +595,15 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 [Source Figma — `8328:34662`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34662)
 
+![Composition séance — Circuit — Nature (popover)](images/niveaux-2026-10-25/8328-34662.png)
+
 
 
 ##### Composition séance — Circuit — Nature (confirmation générique)
 
 [Source Figma — `8328:34813`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34813)
+
+![Composition séance — Circuit — Nature (confirmation générique)](images/niveaux-2026-10-25/8328-34813.png)
 
 
 
@@ -554,10 +611,14 @@ CE-CIR-01/02/03. La confirmation est conditionnée à la perte de valeurs, pas �
 
 [Source Figma — `8328:34965`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-34965)
 
+![P-Composition séance — Circuit — Volumes (de séries)](images/niveaux-2026-10-25/8328-34965.png)
+
 
 ##### Composition séance — Circuit — Volumes (de tours)
 
 [Source Figma — `8328:35135`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35135)
+
+![Composition séance — Circuit — Volumes (de tours)](images/niveaux-2026-10-25/8328-35135.png)
 
 
 
@@ -575,47 +636,108 @@ Formulaire : conserver les shells et l’ordre visible dans les captures. Toute 
 
 Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) [remplacé par D-445 du 24/10/2026 : colonne Charge toujours présente, tiret gris non éditable dans chaque cellule en Sans] et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
-#### Gestes et niveaux — captures du 23/10/2026
+#### Mouvements et niveaux — captures du 25/10/2026
 
-Références complémentaires CE-T03-04 ; comportement normatif et limites de preuve dans le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). Les nombres, noms et rangs des maquettes sont des données d’exemple.
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
-##### Suggestion de rapprochement
+| Écran courant | Nœud Figma | Contrat / statut |
+|---|---|---|
+| [Création exercice — Mouvement — Mouvements proches](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9882-19049) | `9882:19049` | CE-T03-04 |
+| [Création exercice — Mouvement — Nom déjà utilisé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10175-20349) | `10175:20349` | CE-T03-04 |
+| [Création exercice — Mouvement — Options d’un résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10131-21995) | `10131:21995` | CE-T03-04 |
+| [Création exercice — Mouvement — Repris (lecture seule)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9891-39982) | `9891:39982` | CE-T03-04 |
+| [Création exercice — Mouvement — Contenu éditable](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19518) | `9959:19518` | CE-T03-04 |
+| [Création exercice — Mouvement — Variante, plus ou moins difficile](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10140-20180) | `10140:20180` | CE-T03-04 |
+| [Création exercice — Mouvement — Variante, formulaire vierge](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10187-20340) | `10187:20340` | CE-T03-04 |
+| [Création exercice — Mouvement — Sauvegarde — Nom inchangé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10253-20414) | `10253:20414` | CE-T03-04 |
+| [Création exercice — Mouvement — Sauvegarde — Nom modifié](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9952-44349) | `9952:44349` | CE-T03-04 |
+| [Création exercice — Mouvement — Sauvegarde — Choix sélectionné](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10257-20651) | `10257:20651` | CE-T03-04 |
+| [Création activité — Paramètres — Résumé affiché — Niveau (pastilles) — Popover](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10027-40760) | `10027:40760` | CE-UI-NIV-01 |
+| [Création activité — Niveau — Changer de niveau (déployé)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10152-20245) | `10152:20245` | CE-UI-NIV-01 |
+| [Création activité — Niveau — Ajouter un niveau (déployé)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10152-20369) | `10152:20369` | CE-UI-NIV-01 |
+| [Groupe de niveaux — Ordre](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10085-20050) | `10085:20050` | CE-UI-NIV-01 |
+| [Composition séance — Changer de niveau — Durées à compléter](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-20073) | `10070:20073` | CE-T03-08 / CE-UI-10 |
+| [Catalogue des mouvements — Liste complète](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623) | `9959:19623` | Catalogue mouvements — entretien |
+| [Catalogue des mouvements — Aucun résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10070-19964) | `10070:19964` | Catalogue mouvements — entretien |
+| [Catalogue — Vue Mouvements (piles)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10266-20575) | `10266:20575` | Catalogue mouvements — entretien |
+| [Niveau — icônes, trois états](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10027-40948) | `10027:40948` | CE-UI-NIV-01 |
 
-[Source Figma — `9882:19049`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9882-19049)
+**Création exercice — Mouvement — Mouvements proches — `9882:19049`**
 
-![Suggestion de rapprochement](images/figma-9882-19049.png)
+![Création exercice — Mouvement — Mouvements proches](images/niveaux-2026-10-25/9882-19049.png)
 
-##### Geste repris — contenu en lecture seule
+**Création exercice — Mouvement — Nom déjà utilisé — `10175:20349`**
 
-[Source Figma — `9891:39982`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9891-39982)
+![Création exercice — Mouvement — Nom déjà utilisé](images/niveaux-2026-10-25/10175-20349.png)
 
-![Geste repris — contenu en lecture seule](images/figma-9891-39982.png)
+**Création exercice — Mouvement — Options d’un résultat — `10131:21995`**
 
-##### Geste — contenu éditable
+![Création exercice — Mouvement — Options d’un résultat](images/niveaux-2026-10-25/10131-21995.png)
 
-[Source Figma — `9959:19518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19518)
+**Création exercice — Mouvement — Repris (lecture seule) — `9891:39982`**
 
-![Geste — contenu éditable](images/figma-9959-19518.png)
+![Création exercice — Mouvement — Repris (lecture seule)](images/niveaux-2026-10-25/9891-39982.png)
 
-##### Recherche d’un geste
+**Création exercice — Mouvement — Contenu éditable — `9959:19518`**
 
-[Source Figma — `9959:19623`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19623)
+![Création exercice — Mouvement — Contenu éditable](images/niveaux-2026-10-25/9959-19518.png)
 
-![Recherche d’un geste](images/figma-9959-19623.png)
+**Création exercice — Mouvement — Variante, plus ou moins difficile — `10140:20180`**
 
-##### Confirmation conditionnelle à la sauvegarde
+![Création exercice — Mouvement — Variante, plus ou moins difficile](images/niveaux-2026-10-25/10140-20180.png)
 
-[Source Figma — `9952:44349`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9952-44349)
+**Création exercice — Mouvement — Variante, formulaire vierge — `10187:20340`**
 
-![Confirmation conditionnelle à la sauvegarde](images/figma-9952-44349.png)
+![Création exercice — Mouvement — Variante, formulaire vierge](images/niveaux-2026-10-25/10187-20340.png)
 
-##### Popover — changer de niveau / ajouter un niveau
+**Création exercice — Mouvement — Sauvegarde — Nom inchangé — `10253:20414`**
 
-[Source Figma — `9577:19843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9577-19843)
+![Création exercice — Mouvement — Sauvegarde — Nom inchangé](images/niveaux-2026-10-25/10253-20414.png)
 
-![Popover — changer de niveau / ajouter un niveau](images/figma-9577-19843.png)
+**Création exercice — Mouvement — Sauvegarde — Nom modifié — `9952:44349`**
 
-La confirmation ci-dessus représente la création sur un geste repris modifié. Elle n’apparaît ni pour une simple reprise ni pour une variante déjà choisie. Le popover illustre les nouveaux libellés ; son en-tête et sa jauge restent anciens, sans autorité sur le rang réel.
+![Création exercice — Mouvement — Sauvegarde — Nom modifié](images/niveaux-2026-10-25/9952-44349.png)
+
+**Création exercice — Mouvement — Sauvegarde — Choix sélectionné — `10257:20651`**
+
+![Création exercice — Mouvement — Sauvegarde — Choix sélectionné](images/niveaux-2026-10-25/10257-20651.png)
+
+**Création activité — Paramètres — Résumé affiché — Niveau (pastilles) — Popover — `10027:40760`**
+
+![Création activité — Paramètres — Résumé affiché — Niveau (pastilles) — Popover](images/niveaux-2026-10-25/10027-40760.png)
+
+**Création activité — Niveau — Changer de niveau (déployé) — `10152:20245`**
+
+![Création activité — Niveau — Changer de niveau (déployé)](images/niveaux-2026-10-25/10152-20245.png)
+
+**Création activité — Niveau — Ajouter un niveau (déployé) — `10152:20369`**
+
+![Création activité — Niveau — Ajouter un niveau (déployé)](images/niveaux-2026-10-25/10152-20369.png)
+
+**Groupe de niveaux — Ordre — `10085:20050`**
+
+![Groupe de niveaux — Ordre](images/niveaux-2026-10-25/10085-20050.png)
+
+**Composition séance — Changer de niveau — Durées à compléter — `10070:20073`**
+
+![Composition séance — Changer de niveau — Durées à compléter](images/niveaux-2026-10-25/10070-20073.png)
+
+**Catalogue des mouvements — Liste complète — `9959:19623`**
+
+![Catalogue des mouvements — Liste complète](images/niveaux-2026-10-25/9959-19623.png)
+
+**Catalogue des mouvements — Aucun résultat — `10070:19964`**
+
+![Catalogue des mouvements — Aucun résultat](images/niveaux-2026-10-25/10070-19964.png)
+
+**Catalogue — Vue Mouvements (piles) — `10266:20575`**
+
+![Catalogue — Vue Mouvements (piles)](images/niveaux-2026-10-25/10266-20575.png)
+
+**Niveau — icônes, trois états — `10027:40948`**
+
+![Niveau — icônes, trois états](images/niveaux-2026-10-25/10027-40948.png)
+
 
 #### Formulaire — vues principales et résumé
 
@@ -623,11 +745,13 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `8328:36853`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36853)
 
-![Création exercice — Paramètres — Champ vide](images/circuits-2026-10-12/8328-36853.png)
+![P-Création activité — Paramètres — Champ vide](images/niveaux-2026-10-25/8328-36853.png)
 
 ##### Création exercice — Paramètres — Résumé affiché
 
 [Source Figma — `8328:37022`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37022)
+
+![Création activité — Paramètres — Résumé affiché](images/niveaux-2026-10-25/8328-37022.png)
 
 
 
@@ -635,17 +759,21 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `8328:35698`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35698)
 
-![Ajouter un exercice — Initial](images/circuits-2026-10-12/8328-35698.png)
+![P-Ajouter un exercice — Initial](images/niveaux-2026-10-25/8328-35698.png)
 
 ##### Ajouter un exercice — Nom Description Media
 
 [Source Figma — `8328:35740`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35740)
+
+![Ajouter un exercice — Nom Description Media](images/niveaux-2026-10-25/8328-35740.png)
 
 
 
 ##### Ajouter un exercice — Catégorie renseignée
 
 [Source Figma — `8328:36278`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36278)
+
+![Ajouter un exercice — Catégorie renseignée](images/niveaux-2026-10-25/8328-36278.png)
 
 
 
@@ -655,11 +783,13 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `8328:35810`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35810)
 
-![Ajouter un exercice — Catégories](images/figma-8328-35810.png)
+![P-Ajouter un exercice — Catégories](images/niveaux-2026-10-25/8328-35810.png)
 
 ##### Ajouter un exercice — Catégorie — Appui long — Confirmation suppression
 
 [Source Figma — `8328:35932`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-35932)
+
+![Ajouter un exercice — Catégorie — Appui long — Confirmation suppression](images/niveaux-2026-10-25/8328-35932.png)
 
 
 
@@ -667,17 +797,19 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `8328:36056`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36056)
 
-![Ajouter un exercice — Nouvelle catégorie](images/figma-8328-36056.png)
+![P-Ajouter un exercice — Nouvelle catégorie](images/niveaux-2026-10-25/8328-36056.png)
 
 ##### Ajouter un exercice — Zones corporelles
 
 [Source Figma — `8328:36348`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36348)
 
-![Ajouter un exercice — Zones corporelles](images/figma-8328-36348.png)
+![P-Ajouter un exercice — Zones corporelles](images/niveaux-2026-10-25/8328-36348.png)
 
 ##### Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression
 
 [Source Figma — `8328:36441`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36441)
+
+![Ajouter un exercice — Zones corporelles — Appui long — Confirmation suppression](images/niveaux-2026-10-25/8328-36441.png)
 
 
 
@@ -685,11 +817,13 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `8328:36536`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36536)
 
-![Ajouter un exercice — Nouvelle zone corporelle](images/figma-8328-36536.png)
+![P-Ajouter un exercice — Nouvelle zone corporelle](images/niveaux-2026-10-25/8328-36536.png)
 
 ##### Création activité — Abandon (confirmation)
 
 [Source Figma — `8328:36781`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36781)
+
+![Création activité — Abandon (confirmation)](images/niveaux-2026-10-25/8328-36781.png)
 
 
 
@@ -697,11 +831,13 @@ La confirmation ci-dessus représente la création sur un geste repris modifié.
 
 [Source Figma — `4734:6342`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4734-6342)
 
+![Modifier un exercice](images/niveaux-2026-10-25/4734-6342.png)
+
 
 
 ### Présentation des phases d’exercice
 
-La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée la première phase ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
 
@@ -731,6 +867,8 @@ Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et
 
 [Source Figma — `8328:36923`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-36923)
 
+![Création activité — Paramètres (modale) — Champs vides](images/niveaux-2026-10-25/8328-36923.png)
+
 
 
 Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À l’objectif par défaut (D-416 ; libellé D-445).
@@ -738,6 +876,8 @@ Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-
 ##### Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)
 
 [Source Figma — `8328:37092`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37092)
+
+![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)](images/niveaux-2026-10-25/8328-37092.png)
 
 
 
@@ -747,6 +887,8 @@ Mode en contrôle segmenté ; Durée d’une série et Durée de l’exercice à
 
 [Source Figma — `8328:37760`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37760)
 
+![Création activité — Paramètres (modale) — Série en durée](images/niveaux-2026-10-25/8328-37760.png)
+
 
 
 Séries identiques en mode Durée ; signaux repliés sous Durée de l’exercice.
@@ -755,13 +897,15 @@ Séries identiques en mode Durée ; signaux repliés sous Durée de l’exercice
 
 [Source Figma — `8328:37862`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37862)
 
-![Création activité — Paramètres (modale) — Durée d’une série (roulette)](images/parametres-2026-10-18/8328-37862.png)
+![P-Création activité — Paramètres (modale) — Durée d’une série (roulette)](images/niveaux-2026-10-25/8328-37862.png)
 
 Roulette de durée commune, durée numérique seule, sans option À l’échec (RM-250).
 
 ##### Création activité — Paramètres (modale) — Durée totale (roulette)
 
 [Source Figma — `8328:38084`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38084)
+
+![Création activité — Paramètres (modale) — Durée totale (roulette)](images/niveaux-2026-10-25/8328-38084.png)
 
 
 
@@ -771,6 +915,8 @@ Roulette de la ligne Durée de l’exercice ; 5 min 30 s est une valeur illustra
 
 [Source Figma — `8328:37972`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-37972)
 
+![Création activité — Paramètres (modale) — Changement de côté Replié](images/niveaux-2026-10-25/8328-37972.png)
+
 
 
 Avec sélectionné, chevron intérieur vers le bas, Enchainement et Pause entre les côtés repliés (RM-242, RM-247).
@@ -779,13 +925,15 @@ Avec sélectionné, chevron intérieur vers le bas, Enchainement et Pause entre 
 
 [Source Figma — `8328:38193`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38193)
 
-![Création activité — Paramètres (modale) — Changement de côté déployé](images/parametres-2026-10-18/8328-38193.png)
+![P-Création activité — Paramètres (modale) — Changement de côté déployé](images/niveaux-2026-10-25/8328-38193.png)
 
 Avec déployé : Enchainement (deux stratégies, notation Figma à flèches conservée, RM-243) et Pause entre les côtés.
 
 ##### Création activité — Paramètres (modale) — Durée totale ajustée (message)
 
 [Source Figma — `8328:38409`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38409)
+
+![Création activité — Paramètres (modale) — Durée totale ajustée (message)](images/niveaux-2026-10-25/8328-38409.png)
 
 
 
@@ -795,6 +943,8 @@ Message d’ajustement de la durée (D-340) ; le nom de frame garde l’ancien l
 
 [Source Figma — `8328:38513`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38513)
 
+![Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée) — séries variables](images/niveaux-2026-10-25/8328-38513.png)
+
 
 
 Mode segmenté au-dessus d’un tableau de séries variables.
@@ -802,6 +952,8 @@ Mode segmenté au-dessus d’un tableau de séries variables.
 ##### Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence
 
 [Source Figma — `8328:38632`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-38632)
+
+![Création activité — Paramètres (modale) — Séries variables en Répétition Avec Cadence](images/niveaux-2026-10-25/8328-38632.png)
 
 
 
@@ -835,13 +987,15 @@ Résultat unique de la Condition d’arrêt pour un mélange de cibles (RM-249) 
 
 [Source Figma — `9232:44646`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9232-44646)
 
-![Création activité — Paramètres (modale) — Durée d’une phase (roulette)](images/parametres-2026-10-18/9232-44646.png)
+![P-Création activité — Paramètres (modale) — Durée d’une phase (roulette)](images/niveaux-2026-10-25/9232-44646.png)
 
 Roulette ouverte depuis une cellule de séries variables en mode Durée, avec l’option « Aucune durée, à l’échec » (RM-250). Malgré son nom, cette frame n’illustre pas une roulette de phase : les phases y sont à Sans ; le contrat de phase n’en est pas déduit. Écart Figma depuis D-434 (19/10/2026) : la cellule Durée d’une série variable ne s’ouvre plus sur une roulette ; elle se saisit au clavier numérique MMSS dans la cellule, « À l’échec » étant la commande de gauche de la barre du clavier. Cette frame n’est plus une référence conforme.
 
 ##### Création activité — Paramètres (modale) — Une seule série
 
 [Source Figma — `8328:39072`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8328-39072)
+
+![Création activité — Paramètres (modale) — Une seule série](images/niveaux-2026-10-25/8328-39072.png)
 
 
 
@@ -875,7 +1029,7 @@ Colonnes Durée, Pause, Charge (20, 25, 30 kg illustratifs) ; ligne Charge Avec 
 
 [Source Figma — `9292:18077`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9292-18077)
 
-![Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique](images/parametres-2026-10-18/9292-18077.png)
+![P-Création activité — Paramètres (modale) — Séries variables avec charge — Clavier numérique](images/niveaux-2026-10-25/9292-18077.png)
 
 Saisie directe au clavier, tableau visible au-dessus (RM-239, D-413). Écarts Figma : le clavier illustré n’a pas de séparateur décimal ; la cellule mise en évidence est la Durée de la série 1, pas une cellule Charge. La ligne Charge Avec / Sans est volontairement absente de cet état ; le réglage reste disponible hors saisie. Écarts Figma depuis D-434 (19/10/2026) : la cellule Durée active doit afficher sa valeur au format MM:SS (« 00:30 » et non « 30 s ») ; la barre doit porter, de gauche à droite, « À l’échec » | « ← Précédent » | « Suivant → » | « Fermer », « À l’échec » étant absent de la frame ; la mise en évidence d’une cellule Durée sous le clavier n’est plus un écart. Aucune frame n’illustre la cellule Pause ou une durée de phase en saisie.
 
@@ -883,7 +1037,7 @@ Saisie directe au clavier, tableau visible au-dessus (RM-239, D-413). Écarts Fi
 
 [Source Figma — `9307:18208`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9307-18208)
 
-![Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée](images/parametres-2026-10-18/9307-18208.png)
+![P-Création activité — Paramètres (modale) — Série en durée — Durée de l’exercice déployée](images/niveaux-2026-10-25/9307-18208.png)
 
 Seul exemple déployé : chevron vers le haut, Compte à rebours et Fin d’exercice visibles (RM-246).
 
@@ -921,7 +1075,7 @@ Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 
 
 [Source Figma — `1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101)
 
-![Calendrier — Semaine](images/ecran-7a-calendrier-semaine.png)
+![P-Calendrier — Semaine](images/niveaux-2026-10-25/1992-5101.png)
 
 ##### Calendrier — Mois
 
@@ -1037,7 +1191,7 @@ Captures du 08/10 sauf réserve explicite dans la matrice. Le retrait de « Él�
 
 Frame `1992:6838` ; [Figma](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6838).
 
-![Planifier une séance — Création](images/figma-1992-6838.png)
+![Planifier une séance — Création](images/niveaux-2026-10-25/1992-6838.png)
 
 #### Modal — Planifier une séance — Sélectionner une séance
 
@@ -2175,7 +2329,7 @@ Les boutons apparaissent **à droite de la valeur**, qui recule d'une translatio
 
 ##### Un seul champ actif à la fois
 
-Appuyer sur une autre valeur ferme le précédent et ouvre le nouveau **d'un seul geste**. Les boutons disparaissent et réapparaissent plutôt que de voyager d'une ligne à l'autre.
+Appuyer sur une autre valeur ferme le précédent et ouvre le nouveau **d'un seul mouvement**. Les boutons disparaissent et réapparaissent plutôt que de voyager d'une ligne à l'autre.
 
 ##### Il n'y a rien à valider
 
@@ -2247,3 +2401,82 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 | RG-11 | Image ou couverture vidéo centrée, remplissant le carré 64 sans déformation ; excédent recadré. | Validé |
 | RG-12 | Sans média, pendant le chargement ou si le média est indisponible, conserver la gouttière 64, son fond #EEF0F6 et l’icône de nature de l’exercice. | Validé — D-260 |
 | RG-13 | Texte alternatif de la vignette : nom de l’exercice. | Validé |
+
+
+## Conventions actualisées — cartes et niveaux (25/10/2026)
+
+Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : composant distinct de 107 pt avec actions internes, non soumis au gabarit simple. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+Les dialogues de sauvegarde de mouvement sont centrés ; la feuille basse des paramètres d’exécution reste distincte. Le panneau de rapprochement est superposé sous le champ nom, clavier visible. Les cartes de résultat portent les deux actions ; Entrée ne sélectionne aucun résultat.
+
+
+## Captures secondaires conservées — limite du connecteur Figma
+
+Le 25/10/2026, 97 exports ont réussi, dont tous les nouveaux états du parcours et les composants. Le quota Figma a empêché le rafraîchissement de 43 autres références documentaires. Les versions antérieures disponibles restent conservées pour ces références ; les règles de rendu du relevé courant prévalent sur leurs anciens détails visuels. La liste ci-dessous est exhaustive pour les exports demandés restés bloqués.
+
+| Écran | Nœud | État |
+|---|---|---|
+| Création activité — Paramètres (modale) — Séries variables en répétitions Sans Cadence | `8328:38741` | Réexport nécessaire ; référence antérieure conservée |
+| Création activité — Paramètres (modale) — Séries variables (tableau replié) | `8328:38848` | Réexport nécessaire ; référence antérieure conservée |
+| P-Création activité — Paramètres (modale) — Séries variables (déplacement) | `8328:39279` | Réexport nécessaire ; référence antérieure conservée |
+| P-Création activité — Paramètres (modale) — Séries variables, cas mixte | `8470:13303` | Réexport nécessaire ; référence antérieure conservée |
+| P-Composition séance — Modèles | `8598:29271` | Réexport nécessaire ; référence antérieure conservée |
+| P-Composition séance — Modèles — Tabata (quels exercices) | `8624:29980` | Réexport nécessaire ; référence antérieure conservée |
+| P-Composition séance — Modèles — Tabata (sélection des exercices) | `8598:29503` | Réexport nécessaire ; référence antérieure conservée |
+| P-Composition séance — Modèles — Tabata (récapitulatif) | `8624:30306` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — EMOM (paramètres) | `8624:30040` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — EMOM (récapitulatif) | `8624:30392` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — EMOM (préremplie) | `8624:30880` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice EMOM | `8598:30515` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — AMRAP (récapitulatif) | `8624:30521` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — AMRAP (préremplie) | `8624:31043` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice AMRAP | `8598:30873` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Death by (paramètres) | `8624:30198` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Death by (récapitulatif) | `8624:30602` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Death by (préremplie) | `8624:31157` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — For time (paramètres) | `8624:30255` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — For time (récapitulatif) | `8624:30672` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice For time | `8598:31560` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Intervalles 30/30 (paramètres) | `8656:33799` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Intervalles 30/30 (récapitulatif) | `8656:33857` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice Intervalles 30/30 | `8656:34070` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Renforcement (paramètres) | `8656:34196` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Renforcement (récapitulatif) | `8656:34263` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Renforcement (préremplie) | `8656:34356` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Gainage · Mobilité (paramètres) | `8656:34494` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Gainage · Mobilité (récapitulatif) | `8656:34548` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Gainage · Mobilité (préremplie) | `8656:34628` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Superset (paramètres) | `8656:34753` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Superset (préremplie) | `8656:34887` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Progression (paramètres) | `8656:35005` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — Progression (récapitulatif) | `8656:35062` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Progression (préremplie) | `8656:35145` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — À l’échec (paramètres) | `8656:35273` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Modèles — À l’échec (récapitulatif) | `8656:35331` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — À l’échec (préremplie) | `8656:35415` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Tabata (préremplie) — Par exercice | `8747:14320` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice Tabata — Par exercice | `8747:14451` | Réexport nécessaire ; référence antérieure conservée |
+| Modification activité — Paramètres (modale) — Exercice EMOM — Par exercice | `8795:14588` | Réexport nécessaire ; référence antérieure conservée |
+| Composition séance — Progression (préremplie) — Par alternance | `8795:14681` | Réexport nécessaire ; référence antérieure conservée |
+| P-Création exercice — Paramètres — Tableau de 3 phases | `9207:18817` | Réexport nécessaire ; référence antérieure conservée |
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.

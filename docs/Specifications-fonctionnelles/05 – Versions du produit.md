@@ -127,7 +127,7 @@ Le modèle de données de la V1 repose sur la hiérarchie Séance → Cycle → 
 
 ### Phases d’exercice — périmètre MVP
 
-Le MVP inclut jusqu’à six phases chronométrées et nommées par exercice, en Durée chiffrée et séries identiques : édition, copies, calcul, adaptation aux formats compatibles et guidage d’exécution. Les phases en Répétitions ou À l’échec restent exclues. Cette décision ne vaut pas livraison dans une tranche déjà qualifiée et ne modifie pas rétroactivement son périmètre de recette. Le placement sur le cadran et les cartes reste à compléter dans les contrats concernés ; la personnalisation libre du cadran n’est pas incluse.
+Le MVP inclut jusqu’à six phases chronométrées et nommées par exercice, en Durée ou Répétitions, à cible ou à l’échec, en séries identiques : édition, copies, calcul, adaptation aux formats compatibles et guidage d’exécution. Les phases sont également compatibles avec Répétitions et À l’échec (PHC-20261026). Cette décision ne vaut pas livraison dans une tranche déjà qualifiée et ne modifie pas rétroactivement son périmètre de recette. Le placement sur le cadran et les cartes reste à compléter dans les contrats concernés ; la personnalisation libre du cadran n’est pas incluse.
 
 ## Complément intégré au MVP
 
@@ -308,7 +308,7 @@ T04 développe ensuite le Plan d’Exécution par Séries, Tours et côtés port
 
 ### Évolution validée MFN — à réaliser
 
-La cible D-437 à D-440 comprend le mouvement partagé, la filiation systématique, les niveaux linéaires, la recherche de gestes locaux, la correction partagée et le verrouillage des occurrences. Elle est validée fonctionnellement ; elle n’est pas déclarée livrée par les tranches existantes. Ordre de réalisation : modèle/initialisation sur base vierge, services et copie, éditeur et phases partagées, Catalogue/niveaux, propagation vers instantanés puis recette transverse.
+La cible D-437 à D-440 comprend le mouvement partagé, la filiation systématique, les niveaux linéaires, la recherche de mouvements locaux, la correction partagée et le verrouillage des occurrences. Elle est validée fonctionnellement ; elle n’est pas déclarée livrée par les tranches existantes. Ordre de réalisation : modèle/initialisation sur base vierge, services et copie, éditeur et phases partagées, Catalogue/niveaux, propagation vers instantanés puis recette transverse.
 
 Aucune migration de données antérieures n’est exigée. La réinitialisation est une opération ponctuelle de transition ; les données recréées survivent aux redémarrages. Hors périmètre : moteur et écran des records, mesures réalisées supplémentaires, fusion rétroactive, progression automatique et ramifiée. D-403 n’est pas rouvert. Référence : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
 
@@ -502,3 +502,37 @@ Le document Programme / Modèle de Programme V1.2 cité par le brief n’a pas �
 ## Suivi et historique des séances — Filtres
 
 Les filtres avancés du Suivi ne font pas partie du MVP. Ils sont reportés à une version ultérieure.
+
+
+## Portée niveaux / recherche — relevé du 25/10
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+### Phases — clarification PHC-20261026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.

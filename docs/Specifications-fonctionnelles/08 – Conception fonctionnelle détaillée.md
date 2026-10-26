@@ -1,5 +1,8 @@
 # Conception fonctionnelle par fonctionnalité
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 Ce chapitre décrit, fonctionnalité par fonctionnalité, les enchaînements, états et transitions. Les règles testables sont énoncées au chapitre 10 et citées ici par leur identifiant ; les champs et contrôles d’écran sont définis par les contrats du chapitre 13.
 
 ## Sommaire
@@ -173,11 +176,11 @@ Cet instantané est utilisé pour garantir la cohérence de l'historique, même 
 
 D-437 à D-439 complètent les parcours ci-dessous. Le Catalogue regroupe les exercices par geste ; sélection, insertion et lancement désignent toujours une définition précise, distinguée par son résumé de paramètres, sans alias. Les niveaux sont accessibles depuis la fiche ; nouveau niveau après l’origine, ordre modifiable par glissement, rang masqué pour un groupe réduit à un membre.
 
-L’éditeur s’ouvre directement en édition. Recherche explicite et suggestions portent sur tous les gestes disponibles, même créés localement. Les choix sont même geste/autres paramètres, variante/niveau, geste indépendant. Une sélection n’écrase pas silencieusement la saisie. Cette recherche spécialisée ne modifie pas l’absence de recherche générale dans les listes Catalogue.
+L’éditeur s’ouvre directement en édition. Recherche explicite et suggestions portent sur tous les mouvements disponibles, même créés localement. Les choix sont même mouvement/autres paramètres, variante/niveau, mouvement indépendant. Une sélection n’écrase pas silencieusement la saisie. Cette recherche spécialisée ne modifie pas l’absence de recherche générale dans les listes Catalogue.
 
-À l’enregistrement, usage durable + modification de nom/description/média/structure des phases déclenche **Corriger cet exercice / Créer un nouvel exercice / Annuler** en édition Catalogue. En création sur geste repris, les libellés sont **Corriger ce geste / En faire un geste distinct / Annuler**. Le contenu repris est initialement verrouillé, déverrouillable par crayon uniquement dans ce contexte ; les paramètres restent éditables. Une variante explicitement choisie et une reprise inchangée se sauvegardent sans dialogue d’identité. Le [relevé Figma MFN du 23/10](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md) décrit les états et le retour au brouillon. La correction annonce obligatoirement le nombre d’exercices concernés s’il dépasse un. La complétion des durées manquantes des frères est une étape distincte : exercice édité obligatoirement complet, frères pouvant être conservés incomplets et inexécutables. Aucun dialogue pour les seuls paramètres, catégorie, zones ou ordre des niveaux.
+D-445 / MFN-08 : nom changé, dialogue toujours ; nom inchangé et contenu modifié, confirmer si au moins un autre exercice lié ou une exécution enregistrée ; sinon sauvegarde silencieuse. Paramètres seuls ou reclassement seuls : aucun dialogue. Crayon de contenu partagé disponible au Catalogue et en séance ; Niveau reste actif. Variante explicite sans question redondante. Durées nouvelles non inventées ; frères incomplets signalés avant lancement.
 
-L’occurrence présente son contenu copié verrouillé ; paramètres modifiables sous contraintes existantes. L’exception de création locale s’arrête à l’enregistrement de la séance. Annuler le brouillon ne laisse ni mouvement, ni média, ni marque d’utilisation. Les copies déjà enregistrées et les historiques ne se resynchronisent jamais. Détail et recettes : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+L’occurrence référence directement le mouvement et conserve ses paramètres propres ; elle ne dépend pas de la définition Catalogue. Une correction apparaît à la lecture du contenu courant. Annulation sans résidu. Seuls l’instantané, l’exécution démarrée et l’historique restent figés (D-445).
 
 
 ### Catalogue des Exercices — cycle de vie d’un Exercice persistant — MVP T03
@@ -243,120 +246,29 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 ## Phases d’un exercice — MVP
 
-Une phase est une subdivision d’un geste au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent dans leur portée amendée par D-438. Les actions structurelles décrites ci-dessous sont propres au Catalogue ; elles sont verrouillées dans une occurrence.
+Une phase est une subdivision d’un mouvement au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent dans leur portée amendée par D-438. Les actions structurelles décrites ci-dessous sont propres au Catalogue ; elles sont verrouillées dans une occurrence.
 
-### Structure, édition et calcul
+### Structure, édition et calcul — PHC-20261026
 
-#### Structure et éligibilité
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
 
-- Un exercice contient zéro à six phases ordonnées. Zéro correspond à Phases de l’exercice Sans ; la structure comporte sinon 2 à 6 phases. Le retrait explicite 2 → 1 revient à Sans avec la durée restante (D-438).
-- Chaque phase porte un libellé de 20 caractères maximum et une durée.
-- Une phase validée dure au moins 1 s, au pas de 1 s ; la somme des phases est comprise entre 1 et 3 535 s (D-430, 19/10/2026). Le zéro temporaire de saisie et la dernière phase calculée d’un format suivent les règles ci-dessous.
-- Les phases sont réservées au mode Durée avec une cible chiffrée et des séries identiques.
-- Elles sont incompatibles avec le mode Répétitions, une cible À l’échec et les séries variables.
-- Si des phases existent, les choix incompatibles sont indisponibles. L’utilisateur supprime d’abord les phases ; aucune conversion destructive automatique n’est créée.
-- Avec des séries variables ou une cible À l’échec, la création de phases est indisponible. L’interface doit également respecter l’exclusion du mode Répétitions.
-- La séquence de phases est commune à toutes les séries de l’exercice. Elle ne définit ni exercice supplémentaire ni pause entre ses éléments.
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
-#### Création et édition
+Contrôle Avec / Sans, 2 à 6 phases, libellés de 20 caractères maximum, saisie numérique MMSS et réordonnancement conservés. Chaque durée validée ≥ 1 s ; somme 1..3535 s conservée comme borne du motif. La structure se modifie par le crayon du mouvement partagé (D-445), y compris depuis une séance ; les durées locales restent des paramètres. Pas de nettoyage silencieux des valeurs manquantes.
 
-La ligne « Phases de l’exercice » (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Sans phases, Sans est sélectionné et aucun chevron n’est affiché. Hors durée imposée, choisir Avec crée deux phases (D-432) : la première reprend la durée actuelle de la série si elle existe, la seconde reste à renseigner ; sans durée initiale, aucune durée n’est inventée. L’option Avec affiche le nombre de phases (« 2 phases ») et, à droite du nombre, un chevron graphique existant, jamais une flèche ni un caractère (D-410, D-432). Le nombre se règle avec le stepper existant, de 2 à 6 (le retrait explicite à deux phases retourne à Sans selon D-438), révélé au toucher : actif, − et + sont visibles ; inactif, seuls la valeur et le chevron restent visibles. + ajoute une phase en fin de tableau ; − retire la dernière, avec la même annulation que la croix.
+### Calcul, formats et exécution
 
-Lorsque des phases existent, l’appui sur le chevron replie ou déplie leur tableau sans changer le nombre ; le chevron pointe vers le haut quand le tableau est déployé, vers le bas quand il est replié. Le tableau contient le nombre de phases configuré et réutilise les conventions du tableau des séries : poignée de déplacement, numéro, colonnes Libellé et Durée, croix de suppression et ligne active, sans pied, sans ligne « Ajouter une phase » ni boutons +/− propres (D-413, D-432). L’appui sur le libellé ouvre la saisie de texte ; l’appui sur une durée modifiable ouvre son contrôle de durée : clavier numérique, saisie MMSS dans la cellule, sans « À l’échec » (D-434, qui remplace la roulette de durée de phase) ; une dernière phase calculée automatiquement reste non éditable.
+Durée : cible indépendante D ; unilatéral N × (D + P), avec substitutions terminales existantes. Répétitions : estimation nominale R × somme des phases par série, même sans bip ; ne pas additionner une estimation de cadence. Échec : durée non calculable. Le motif ne définit pas un nouvel objectif ou compteur à saisir.
 
-Hors durée imposée, une phase ajoutée (stepper +, D-432) reprend la durée de la dernière phase et reçoit un libellé initial « Phase n ». Toutes les durées sont modifiables ; la durée de série est recalculée. L’ajout est indisponible après la sixième phase, sans créer de septième ligne.
+Un format impose son objectif de série sans modifier les durées des phases. Pas de dernière phase calculée ni d’ajustement proportionnel. Une fenêtre EMOM reste distincte du temps de travail.
 
-Un libellé laissé vide est remplacé par « Phase n » à la validation, suivant la position finale. Les libellés personnalisés restent attachés à leur phase lors d’un déplacement.
+Le timer affiche la phase courante ; à expiration, phase suivante puis retour à la première tant que la série continue. Fin de série prioritaire, même au milieu d’une phase ; Suivant et les transitions de côté gardent leur portée. Nouvelle série à la première phase ; pause conserve la position, reset conserve son périmètre. Annonces sans délai ajouté, priorité des transitions sur le bip conservée ; aucun cycle ajouté au poids des séries dans la progression. Instantané figé.
 
-Une phase à durée nulle ou vide reste présente avec une durée à renseigner ; l’enregistrement de l’exercice édité est bloqué. Aucun nettoyage silencieux (D-438). Une correction partagée peut laisser un frère explicitement incomplet, jamais exécutable. La validation de la feuille applique au brouillon parent ; Annuler restaure son état précédent.
+### Points distincts et recette
 
-#### Suppression et retour sans phases
+Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée.
 
-Au Catalogue, retirer explicitement une phase retire sa contribution ; la croix reste disponible à deux phases. Le retrait 2 → 1 supprime la structure et conserve la durée restante comme durée de série (D-438). Choisir Sans conserve la somme comme durée unique. Dans une occurrence, ces actions structurelles sont indisponibles. Les contraintes du format restent applicables.
-
-Les conventions existantes de suppression et d’annulation doivent être réutilisées : restaurer une suppression restitue l’ordre, les libellés et les durées de l’état précédent, y compris les valeurs calculées affectées par cette suppression.
-
-#### Durée de série et durée totale
-
-Soit D la somme des durées des phases actives. La durée d’une série est D, affichée comme résultat calculé non modifiable. Une somme telle que 6 + 3 = 9 s n’est pas arrondie au pas de la roulette de durée saisie. Elle ne constitue pas une seconde valeur indépendante.
-
-Pour un exercice unilatéral de N séries identiques et une pause P après chaque série :
-
-`T intrinsèque = N × (D + P)`
-
-Le réglage inverse de Durée totale conserve la règle existante du chapitre 13, R-02 : il choisit N lorsque N est libre, sans modifier les durées des phases. Avec un nombre imposé, le total reste en lecture seule.
-
-Cette durée comprend la dernière pause et exclut le compte à rebours et la fin propres. Si une récupération de séance positive R suit l’occurrence, la substitution existante s’applique à sa pause terminale : `T occurrence = T intrinsèque − P + R`, dans ce cas unilatéral exécuté comme bloc complet. Dans un circuit de séries, appliquer la substitution au passage concerné conformément au plan existant, sans transposer aveuglément la formule de bloc.
-
-Exemple validé : phases 6 s et 3 s, trois séries, pause de 15 s : D = 9 s ; T = 3 × (9 + 15) = 72 s, soit 1 min 12 s. C’est la valeur de la ligne Durée de l’exercice des paramètres (D-409). Aucun compte à rebours ni fin n’y est ajouté.
-
-Les règles bilatérales, les deux ordres de côtés, les circuits, les récupérations et les points d’arrêt restent applicables. Chaque passage de travail d’un côté exécute la séquence complète avant la transition déjà prescrite. Les phases n’ajoutent aucune pause de côté ni pause de série.
-
-Une séquence chronométrée a une durée déterminée. Elle n’introduit pas à elle seule un symbole ≈ ou ≥. Le symbole de la séance reste déterminé par l’ensemble de ses contributions. Aucune estimation de 2 s par répétition n’est utilisée.
-
-### Formats imposant une durée de travail
-
-#### Réglage dans le format
-
-Les phases sont autorisées lorsque le format impose une durée de travail compatible avec l’éligibilité ci-dessus. Tabata constitue le cas validé : une série reste de 20 s.
-
-La dernière phase porte automatiquement le temps restant :
-
-`durée dernière phase = durée imposée − somme des phases précédentes`.
-
-Les durées précédentes sont modifiables dans les limites du budget restant ; aucune durée négative n’est produite et aucun blocage de validation pour dépassement n’est ajouté. La dernière phase est calculée et peut temporairement valoir zéro.
-
-| Action | Résultat attendu pour 20 s |
-| --- | --- |
-| Créer la première phase | Une phase calculée de 20 s |
-| Ajouter une deuxième phase | 20 s + 0 s ; aucune division automatique |
-| Régler la première à 12 s | 12 s + 8 s |
-| Ajouter une troisième | 12 s + 8 s + 0 s ; la deuxième devient modifiable |
-| Déplacer une phase | Les durées restent inchangées ; la nouvelle dernière devient calculée |
-| Supprimer 7 s dans 5 + 7 + 8 | 5 + 15 s |
-| Supprimer la dernière dans 5 + 7 + 8 | 5 + 15 s ; la précédente devient calculée |
-| Supprimer l’unique phase | Aucune phase ; série de 20 s toujours imposée |
-| Valider 20 + 0 | Enregistrement refusé : seconde durée à renseigner, structure conservée (D-438) |
-
-#### Intégration d’un exercice déjà décomposé
-
-Si la somme des phases de l’exercice ajouté diffère de la durée imposée, adapter proportionnellement leurs durées dans la copie de séance, à la hausse comme à la baisse. Préserver l’ordre et les libellés. L’exercice source du catalogue reste inchangé.
-
-Avant arrondi, chaque durée est multipliée par le rapport `durée imposée / somme initiale`. Les arrondis sont absorbés par la dernière phase pour conserver exactement le total imposé. Les détails des très petites durées restent à fermer dans les compléments à préciser ci-dessous.
-
-Un message informatif explique l’adaptation, sans demander de confirmation supplémentaire. Exemple : « Les durées des phases ont été ajustées pour respecter les 20 s du format Tabata : 15 s + 15 s deviennent 10 s + 10 s. »
-
-Exemples validés : 15 + 15 devient 10 + 10 ; 6 + 3 devient 13 + 7. Lorsque les totaux sont déjà égaux, aucune adaptation n’est nécessaire. Cette adaptation à l’intégration ne remplace pas le calcul du temps restant pendant l’édition.
-
-#### Limite de généralisation
-
-Une durée globale de séance ou de fenêtre n’est pas nécessairement une durée de travail imposée à l’exercice. Ne pas transformer automatiquement une fenêtre EMOM en durée d’effort : son repos résiduel fait partie de sa définition. L’éligibilité dépend du mode et de la cible de travail réellement prescrits. Les formats prescrivant des répétitions restent incompatibles avec les phases dans cette version ; leurs règles ne sont pas converties pour permettre l’ajout.
-
-### Exécution, audio et progression
-
-Les phases s’enchaînent automatiquement à expiration de leur durée, sans pause ni attente d’une annonce. La fin de la dernière phase termine le passage de travail de la série ; le plan reprend ensuite la pause, le côté ou le passage suivant selon les règles existantes.
-
-Le bip de cadence reste continu à l’intérieur d’une série : un changement de phase ne réinitialise pas son intervalle. Exemple 6 s + 3 s, bip toutes les 4 s : bips à 4 s et 8 s. Les règles existantes de pause manuelle/reprise du bip restent applicables. Si un bip coïncide avec une transition, le signal de transition prime ; aucun double signal.
-
-Si les annonces vocales sont activées, le libellé est annoncé au début de chaque phase, première comprise. Le chronométrage ne l’attend pas. L’annonce de la nouvelle phase interrompt celle de la précédente si elle n’est pas terminée. Aucun empilement d’annonces de phases périmées.
-
-Les commandes gardent leur portée existante. Réinitialiser recommence la série courante en unilatéral, donc depuis sa première phase ; en bilatéral, le périmètre du côté courant reste celui déjà spécifié. Les résultats de l’autre côté et le temps réel cumulé sont conservés. Suivant ne devient pas implicitement une commande « phase suivante » : il garde le périmètre et les confirmations de la série ou du bloc existant.
-
-Pause/Reprendre et reprise technique doivent conserver la position dans la séquence et le temps restant, sans rejouer les phases déjà achevées du passage. L’exécution s’appuie sur son instantané figé, pas sur une relecture du catalogue.
-
-La progression ne doit pas dépendre artificiellement du nombre de subdivisions. Décomposer une série de 9 s en 6 + 3 ne change pas son poids global. Conserver l’unité contributive Série dans la pondération existante et répartir sa progression interne selon le temps ; ne pas augmenter mécaniquement M dans les plans mêlant durées connues et inconnues.
-
-Le placement exact du libellé de phase, le temps montré sur le cadran et la représentation sur les cartes restent à spécifier dans le chantier de présentation annoncé. Aucune nouvelle commande de navigation entre phases n’est créée par ce document.
-
-
-### Compléments à préciser avant les comportements concernés
-
-1. **Durées et arrondis extrêmes.** Durée minimale et pas des phases arbitrés le 19/10/2026 par D-430 : 1 s, pas de 1 s, somme 1..3535 s ; la borne de 5 s par série est supprimée. Une réduction proportionnelle peut produire une durée arrondie à zéro : supprimer cette phase ferait perdre une action. Il faut préciser l’arrondi préservant les phases positives et le traitement d’un budget trop court pour leur nombre, sans inventer de suppression silencieuse à l’intégration. D-438 interdit désormais aussi la suppression des zéros de saisie ; ce cas d’arrondi reste distinct.
-2. **Création sans durée préexistante — clos par D-438.** Aucune durée inventée ; conserver les phases et demander les durées avant enregistrement. Aucun retour à Sans par nettoyage.
-3. **Phrase et présentation.** Rédiger les nouvelles phrases et exemples du corpus, puis préciser le cadran et les cartes dans le chantier séparé. La structure des segments est actée, les textes et dispositions exacts ne le sont pas.
-4. **Écart préexistant de bornes.** RM-234 du chapitre 10 indique 5..3535 s par série, alors que le code canonique inspecté au commit 6656fefc autorise 1..5999 s. La spécification prime ; il faut rattacher la correction au bon lot de développement et ne pas faire de la valeur historique du code une nouvelle décision métier. Cette divergence n’est pas créée par les phases. Depuis D-430 (19/10/2026), la borne spécifiée est 1..3535 s.
-
-Le message d’adaptation et son principe sont validés. Son placement réutilisera la convention de notification existante. L’articulation de l’annonce de première phase avec les annonces existantes de nom/côté doit être précisée à l’intégration audio, sans retarder le plan ni accumuler des annonces périmées.
+Règles complètes, exemples et recettes : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). Le placement graphique précis reste à aligner dans Figma, sans nouvelle capture revendiquée.
 
 ### Champs et comportements des fonctionnalités
 
@@ -852,3 +764,35 @@ L’application conserve autant que possible le contexte de l’utilisateur :
 - la position dans le Suivi.
 
 Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis lequel elle a été ouverte.
+
+
+## États et transitions — mouvement et niveau (25/10)
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
+
+
+## Décisions C01–C09 consolidées — D-445
+
+| ID | Décision validée | Statut |
+|---|---|---|
+| C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
+| C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
+| C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
+| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
+| C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
+| C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
+| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.

@@ -1,5 +1,8 @@
 # Modèle de données fonctionnel
 
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
 ## Sommaire
 
 - [Séances](#séances)
@@ -240,7 +243,7 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 
 - Nouvelle exercice avec un nouvel identifiant.
 - *Texte identique à celui de la section [« Duplication d'une séance »](09%20%E2%80%93%20Mod%C3%A8le%20de%20donn%C3%A9es%20fonctionnel.md#duplication-dune-séance) ; il n’est pas recopié ici.*
-- Copie de toutes les propriétés, notamment Catégorie, Zones corporelles, mode/cible, Séries, Pause, Récupération, Changement de côté, Charge et son activation, valeurs conservées sous Sans comprises (RM-236), Compte à rebours d’Exercice, Fin d’exercice et Description. Les associations média suivent leur règle de copie propre.
+- Copie des paramètres locaux (mode/cible, séries, pauses, récupération, côtés, charge et activation, compte à rebours et fin), même référence au mouvement ; contenu et médias lus au mouvement, sans duplication de contenu (D-445).
 - Aucun Exercice secondaire n’est créée pour la Récupération : sa durée est copiée avec l’Exercice.
 - La copie est insérée immédiatement après la source dans la même zone fonctionnelle avant/dans/après Circuit (valeurs techniques historiques `Avant Tour`, `Dans Tour`, `Après Tour`). Elle reste une copie de Séance indépendante et ne crée aucun Exercice dans le catalogue.
 
@@ -249,9 +252,9 @@ Ce chapitre définit les règles garantissant la cohérence du modèle de donné
 Les règles suivantes s’appliquent aux médias, dont l’import/ajout est inclus au MVP (D-333) :
 
 - Un fichier physique local peut être référencé par plusieurs entités/associations Média, chacune appartenant à une seule Exercice.
-- Le retrait d’un média depuis un Exercice supprime uniquement l’association ciblée.
+- Retirer un média du mouvement partagé change son contenu courant pour les exercices liés, après validation MFN-08 ; les instantanés conservent leurs associations.
 - Le fichier physique local n’est supprimé que lorsqu’aucun Mouvement, Exercice, copie de Séance ni aucun Instantané ne le référence (D-437).
-- Les autres Exercices, Séances et Instantanés conservent leurs associations et restent inchangés.
+- Les instantanés restent inchangés ; les exercices et séances liés lisent les associations courantes du mouvement (D-445).
 
 #### Archivage et suppression
 
@@ -290,17 +293,17 @@ Les propriétés intrinsèques énumérées dans les tableaux d’Exercice ci-de
 
 | Porteur | Données et contraintes |
 |---|---|
-| Mouvement | Identifiant stable ; nom, description ordonnée, médias ordonnés, catégorie obligatoire, zones 1..n ; structure de phases `(id, label)` ordonnée ; compteur monotone de phase ; état durable « déjà utilisé » initialement faux |
+| Mouvement | Identité stable ; nom principal et clé canonique uniques ; alias facultatifs non uniques ; description/médias/classification et structure ordonnée de phases ; compteur monotone de phase ; existence indépendante des exercices. Aucun indicateur durable d’usage à l’insertion. |
 | Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé |
 | ActivityDefinition | Identifiant propre, `movementId` non nul avec intégrité réelle ; paramètres d’exécution propres ; durées associées par `phaseId` ; aucun alias ni contenu partagé modifiable en double |
-| SessionActivity | Identifiant propre ; contenu résolu copié, paramètres contextualisés, `sourceMovementId` non nul et immuable sans contrainte référentielle ; récupération contextuelle inchangée |
+| SessionActivity | Identifiant propre ; movementId obligatoire avec intégrité active ; paramètres locaux complets, durées par phaseId et récupération contextuelle. Le contenu est lu depuis le mouvement courant ; aucun lien de dépendance vers ActivityDefinition. |
 | Instantané | Contenu autonome et filiation copiés au démarrage, sans relecture source ; aucun champ rang/total de niveaux ; résultats rattachés à l’exécution et ses occurrences/séries/côtés/passages |
 
-Les identifiants de phase sont entiers ≥ 1 et uniques dans le mouvement. Leur identité complète est mouvement + phase ; déplacement et clonage les conservent. Un identifiant supprimé n’est jamais réalloué. Le Catalogue persiste les valeurs séparées de la structure ; les copies portent une représentation résolue.
+Les identifiants de phase sont entiers ≥ 1 et uniques dans le mouvement. Leur identité complète est mouvement + phase ; déplacement et clonage les conservent. Un identifiant supprimé n’est jamais réalloué. Le Catalogue persiste les valeurs séparées de la structure ; les instantanés portent une représentation résolue.
 
 Une correction structurelle conserve les durées par identifiant. L’exercice édité doit être complet ; un exercice frère peut être persisté incomplet, avec durée non renseignée, après choix explicite de passer sa complétion. Il reste inexécutable jusqu’à complétion. Cette possibilité doit être portée par les types et la persistance, pas seulement le brouillon.
 
-La suppression d’un mouvement est interdite si une définition le référence. Supprimer la dernière définition ou occurrence ne collecte pas le mouvement. Une suppression explicite autorisée conserve les filiations orphelines. L’utilisation durable s’écrit à l’enregistrement de la séance ou au démarrage direct ; jamais pour un brouillon abandonné. Voir [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#mouvement-filiation-et-niveaux).
+La suppression explicite d’un mouvement est interdite tant qu’une définition ou occurrence vivante le référence. Supprimer le dernier exercice conserve le mouvement. Seule la filiation des instantanés peut être orpheline. Le dialogue utilise le changement de nom, les autres exercices et l’existence d’une exécution selon MFN-08 ; aucun marquage irréversible lors de l’enregistrement de séance. D-445.
 
 **Transition D-440 :** les descriptions de migrations historiques de ce chapitre restent des traces des lots précédents. Elles ne prescrivent ni conversion ni lecteur ancien pour MFN : nouveau schéma sur base vierge, réinitialisation ponctuelle seulement.
 
@@ -383,7 +386,7 @@ Elle ne contient pas directement :
 - Toute `SessionActivity` expose une projection `postActivityRecoverySeconds`, égale à la durée de l’objet `recovery` explicite s’il existe et à `0` sinon ; cette projection n’est pas une seconde source de vérité persistée (RM-209). Une récupération positive crée une phase après l’occurrence et avant `SESSION_END` si elle est la dernière.
 - Ni la Pause ni les récupérations ne créent une entité Exercice associé.
 - La charge est informative : elle ne crée aucune phase et n’entre dans aucun calcul de durée, de pause ou de cadence (RM-235).
-- Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
+- Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel.
 - En Durée uniforme seulement, si l’utilisateur pilote par une Durée totale cible, le calcul inverse porte sur cette durée intrinsèque puis applique l’arrondi validé à `C`. Seul `C` est persisté comme valeur canonique de Séries.
 - Toutes les Exercices peuvent être associées à des zones corporelles.
 - Les exercices peuvent être ajoutées, déplacées, dupliquées et supprimées.
@@ -393,9 +396,9 @@ Elle ne contient pas directement :
 
 <a id="donnees-phases"></a>
 
-La structure ordonnée et les libellés des phases appartiennent au Mouvement ; les paramètres Catalogue portent les durées par identifiant. La copie transporte la liste résolue. Sans phases : liste vide ; sinon 2 à 6 phases. Une durée renseignée vaut au moins 1 s, somme 1..3535 s. Une durée manquante ne supprime jamais la phase : elle bloque l’enregistrement de l’exercice édité et l’exécution ; seule la correction partagée peut persister les frères incomplets (D-438).
+La structure ordonnée et les libellés des phases appartiennent au Mouvement ; les paramètres Catalogue portent les durées par identifiant. La lecture résout la structure avec les paramètres ; seul l’instantané en fige la liste complète. Sans phases : liste vide ; sinon 2 à 6 phases. Une durée renseignée vaut au moins 1 s, somme 1..3535 s. Une durée manquante ne supprime jamais la phase : elle bloque l’enregistrement de l’exercice édité et l’exécution ; seule la correction partagée peut persister les frères incomplets (D-438).
 
-La durée de série est dérivée de la somme ; une éventuelle projection historique est recalculée et ne constitue pas une autre source de vérité. Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
+La cible de série est persistée indépendamment des durées des phases. La somme donne la durée du motif, sans réécriture d’une cible ni d’un instantané historique (PHC-20261026). Le total et les phrases ne sont pas persistés. La séquence n’est pas dupliquée N fois dans la définition : le moteur développe séries, côtés et passages.
 
 L’adaptation au format ne modifie que les durées de la copie de séance. Duplication et copie conservent ordre, libellés et valeurs ; les copies restent indépendantes. L’instantané d’exécution fige les phases effectives après adaptation ; la reprise conserve leur position et le temps restant. Les anciennes définitions sans phases restent inchangées, sans réécriture des résultats historiques.
 
@@ -447,7 +450,7 @@ Un `MediaAsset` possède son identité et ses informations techniques. Les liens
 
 #### Contraintes d’Exercice
 
-`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La charge (activation, valeur commune ou valeurs par Série, en kg) est indépendante de `executionMode`, de la condition d’arrêt et du changement de côté (RM-235). La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
+`executionMode ∈ {DURATION, REPETITIONS}`. Chaque série possède un type de cible explicite : chiffrée (durée ou répétitions selon le mode) ou À l’échec (aucun nombre prescrit). Valeur invalide/absente distincte de l’échec. L’ancien TO_FAILURE est lu/migré vers REPETITIONS avec toutes les cibles À l’échec, sans inventer de relevé historique. Pause, nombre de Séries et Pause entre les côtés restent disponibles dans les deux modes ; la Récupération après exercice appartient à l’occurrence de Séance (D-208). Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Bip entier 0..10 par Série, réglage commun valide dans les deux modes. La charge (activation, valeur commune ou valeurs par Série, en kg) est indépendante de `executionMode`, de la condition d’arrêt et du changement de côté (RM-235). La phrase elle-même n’est pas persistée comme source de vérité (RM-232).
 
 L’ajout d’une définition copie nom, description, zones corporelles, mode, durée ou répétitions, Séries, Pause, Pause entre les côtés (`sideRecoverySeconds`), changement de côté, charge et son activation, valeurs conservées sous Sans comprises (RM-236), et associations média ; la Récupération après exercice n’est pas copiée : elle appartient à l’occurrence et n’est jamais créée automatiquement (D-171 révisée par D-208, D-304). La copie n’a plus de lien fonctionnel avec la définition. La position `BEFORE_TOUR`, `IN_TOUR` ou `AFTER_TOUR` n’existe que sur `SessionActivity`.
 
@@ -469,7 +472,7 @@ Cette section constitue l’unique référence du chapitre 09 pour la distinctio
 
 `ActivityDefinition` est la référence persistante autonome du Catalogue des Exercices. `SessionActivity` est une copie appartenant à une Séance.
 
-Lors d’une insertion depuis le Catalogue, la copie reprend les propriétés métier applicables au moment de la validation : nom, Description, Catégorie, Zones corporelles, mode et cible, nombre de Séries, Pause, Récupération, Changement de côté, charge et son activation (RM-236), Compte à rebours d’Exercice, Fin d’exercice et autres champs persistants applicables. Après insertion, aucune synchronisation ni propagation n’existe entre la définition et la copie.
+Lors d’une insertion Catalogue, l’occurrence reçoit une référence directe au mouvement et une copie locale des paramètres applicables : mode/cible, séries, pauses, côtés, charge et activation, compte à rebours et fin. La récupération contextuelle suit ses règles propres. Les paramètres Catalogue ne se synchronisent pas ; le contenu partagé est lu depuis le mouvement courant. D-445.
 
 La capacité existante de créer directement une `SessionActivity` depuis une Composition ne crée jamais implicitement d’`ActivityDefinition`. Elle est conservée dans le modèle et l’architecture même lorsqu’elle n’est pas exposée dans le parcours utilisateur courant.
 
@@ -910,7 +913,7 @@ Création → Active → Modifier → Archiver → Restaurer
 
 - Une `ActivityDefinition` est autonome et ne porte aucune position de Séance.
 - Un Exercice de Séance (`SessionActivity`) appartient à une seule Séance et occupe exactement une position fonctionnelle avant, dans ou après le Circuit ; les valeurs techniques restent `Avant Tour`, `Dans Tour`, `Après Tour`. La référence technique au conteneur `Tour` n’est obligatoire que pour `Dans Tour`.
-- L’insertion depuis le Catalogue crée une copie indépendante ; aucune synchronisation ultérieure n’existe.
+- L’insertion crée une occurrence indépendante pour ses paramètres, directement liée au mouvement partagé ; aucun lien de dépendance à la définition Catalogue (D-445).
 - La capacité de création directe d’une `SessionActivity` locale à une Séance reste conservée techniquement et fonctionnellement, même si elle n’est pas exposée dans le parcours courant.
 - La suppression définitive d’une `ActivityDefinition` ne supprime ni les `SessionActivity` déjà copiées, ni les Exécutions, ni les Instantanés historiques.
 
@@ -1389,7 +1392,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ID     | Décision                                                                                                                                                                                                     | Version        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-exercice est contextuelle à l’occurrence. | D-208 |
-| DM-002 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
+| DM-002 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
 | DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
 | DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
@@ -1402,7 +1405,7 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | DM-012 | Un Cycle, un Tour et une `SessionActivity` appartiennent à une seule Séance. Une `ActivityDefinition` du MVP T03 est autonome et peut être copiée dans plusieurs Séances ; ses copies ne restent pas liées. | MVP T03 |
 | DM-013 | Un Exercice possède un nombre de Séries propre, entier de 1 à 99 (D-092). Une Série n'est pas une entité autonome. | V1 |
 | DM-014 | Pi est stockée et exécutée après chaque Série, dernière comprise. À la frontière des côtés successifs, PN puis PC se cumulent. Par paire, Pi suit chaque paire, dernière comprise, et PC reste dans chaque paire. Seule la toute dernière Pause est remplacée par la récupération positive qui suit l’occurrence ; aucune récupération en direct. N=1 normalisé uniforme/par côté. Formules et séquences : chapitre 10, Calculs des durées et ordre des phases. | D-247/D-248/v13 |
-| DM-015 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
+| DM-015 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
 | DM-017 | Dans la version actuelle, le Tour ne porte aucun changement de côté exposé. Tout champ technique historique de direction Tour est conservé pour compatibilité mais contraint à `UNILATERAL`. | 24/09/2026 |
 | DM-018 | Un Exercice peut porter un Compte à rebours propre et une Fin d’exercice propre. | 24/09/2026 |
 | DM-019 | Un Point d’arrêt est un élément ordonné de Composition ; son attente n’est pas comptée dans la durée. | 24/09/2026 |
@@ -1443,3 +1446,46 @@ UTILISATEUR
 ```
 
 Les cardinalités représentées correspondent aux règles fonctionnelles du MVP. La représentation technique devra néanmoins conserver Cycles et Tours sous forme de collections ordonnées afin que les cardinalités puissent évoluer ultérieurement.
+
+
+## Données et réserves — actualisation du 25/10
+
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+
+
+
+## Modèle actif et instantanés — D-445
+
+Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
+
+Les corrections du contenu partagé sont visibles à la prochaine lecture des définitions et des séances ; aucun mécanisme de propagation de copies de contenu n’est nécessaire. Modifier les paramètres Catalogue ne modifie pas ceux des séances. Supprimer ou archiver la définition Catalogue ne casse pas les occurrences.
+
+Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
+
+Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+| Objet / propriété | Nullabilité / responsabilité |
+|---|---|
+| Mouvement.id | Identité obligatoire, stable ; existence indépendante des exercices |
+| Mouvement.nom / clé canonique | Nom principal requis et unique selon espaces/casse/accents ; alias non uniques autorisés |
+| ActivityDefinition.movementId | Référence active obligatoire et intègre |
+| SessionActivity.movementId | Référence active directe obligatoire et intègre ; changement de mouvement par remplacement d’occurrence |
+| SessionActivity paramètres | Valeurs locales complètes et indépendantes ; aucune surcharge dépendant d’une définition Catalogue supprimable |
+| Instantané.sourceMovementId | Identité obligatoire, immuable ; pas de cascade ni jointure obligatoire pour afficher/exécuter le contenu figé |
+| Autres exercices / existence d’exécution | Données calculées pour le dialogue, pas un compteur de séries ni un état d’utilisation irréversible |
+| Rang / total / suffixe - Nn | Dérivés, non persistés dans le nom, les exercices ou instantanés |
+
+La structure des phases appartient au mouvement ; les valeurs restent propres à chaque définition et occurrence. Dans une **correction du même mouvement**, conserver les valeurs des phases conservées par `WorkPhase.id` stable ; ne pas réutiliser un identifiant supprimé. Une nouvelle phase n’hérite d’aucune durée inventée. Les exercices concernés peuvent rester explicitement incomplets après la correction partagée ; les signaler et demander la complétion avant leur prochain lancement. L’exercice directement édité reste soumis à sa validation normale. Ne pas imposer la complétion immédiate de tous les autres exercices.
+
+Dans un **changement de mouvement/niveau**, transférer par rang, jamais par égalité d’identifiants entre mouvements : sans→sans, durée reprise ; sans→phases, durées vides ; phases→sans, cible de série conservée (jamais remplacée par la somme) ; phases→phases, rangs communs repris, surplus source abandonné, surplus cible à compléter. Mode, séries, cibles, pauses, charge, côtés, récupération et position sont conservés sous les contraintes existantes. Annuler restitue intégralement l’occurrence précédente.
+
+La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
+
+
+### Phases — clarification PHC-20261026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
