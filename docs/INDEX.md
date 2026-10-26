@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Évolution fonctionnelle validée — D-449 (26/10/2026)** : [Séance comme objet unique, six décisions closes](KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Cette cible remplace la dualité Exercice autonome/Séance, le cycle technique unique et les catalogues séparés par nature. Elle conserve Mouvement et Exercice comme composant de séance ; plusieurs cycles successifs sans imbrication ; lancement de toute la séance ; catalogue unique à vues filtrées. Le code PRE-7 et les visuels existants restent l’état livré antérieur sur ces points.
+
 **D-445 :** huit points clos ; C08 seul différé. [Règles consolidées](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 **Référence fonctionnelle reçue et intégrée — v7 :** [Niveaux, recherche et parcours v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Ses règles remplacent les dispositions antérieures contradictoires dans leur portée, notamment recherche, alias, reprise des phases et classification actuelle. [Consignes Claude Code actualisées](PROMPT-CLAUDE-CODE-NIVEAUX-RECHERCHE-V7.md).

@@ -1,5 +1,22 @@
 # Règles métier et calculs
 
+> **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
+
+## Règles de simplification — D-449
+
+| ID | Règle cible |
+| --- | --- |
+| SU-01 | Mouvement partagé ; Exercice avec paramètres dans la composition ; Séance comme seul contenu enregistré, lançable et planifiable. |
+| SU-02 | L’identité et la nature Séance ne changent pas avec le nombre d’exercices. |
+| SU-03 | Reprendre une séance copie sa composition au niveau principal ; paramètres indépendants, mêmes mouvements, aucune synchronisation ; début/fin de la destination conservés. |
+| SU-04 | Plusieurs cycles successifs, chacun composé de circuits et muni de son compte ; aucun cycle, circuit ou séance imbriqué. |
+| SU-05 | Lancement de la séance entière uniquement ; aucun lancement isolé d’exercice ajouté. |
+| SU-06 | Une collection de séances, vues filtrées un/plusieurs exercices ; compte sans développement des répétitions. |
+| SU-07 | Contenu courant pour les occurrences futures, instantané figé au démarrage ; pas de nouveau dialogue général de modification. |
+| SU-08 | Circuits Tours/Séries conservés ; cibles par série ; aucune table de cibles bouclée par passage. |
+
+RM-028 et les dispositions imposant un cycle technique unique fixé à 1, ainsi que la limitation au circuit unique, sont remplacées dans la cible par SU-04. Les clauses d’exécution autonome ACTIVITY sont remplacées par SU-05. Les règles de paramètres, de mouvement partagé et d’historique restent applicables.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 

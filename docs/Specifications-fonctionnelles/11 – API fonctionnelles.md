@@ -1,5 +1,11 @@
 # API fonctionnelles
 
+> **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
+
+## Contrats fonctionnels cibles — D-449
+
+Les opérations d’enregistrement, de planification et de lancement portent sur la Séance, même lorsqu’elle ne contient qu’un exercice. L’ajout/modification d’un exercice porte sur sa composition et ne crée pas une définition autonome de catalogue. Reprendre une séance copie sa composition et ses paramètres avec de nouveaux identifiants, conserve les références aux mouvements, sans routines ni résultats ni réglages propres début/fin. Le lancement résout les mouvements et fige la séance complète. Les anciennes opérations ActivityDefinition/ACTIVITY ci-dessous documentent le modèle antérieur ; D-449 ne demande pas de lancement isolé ni de sélection d’exercices au démarrage.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
