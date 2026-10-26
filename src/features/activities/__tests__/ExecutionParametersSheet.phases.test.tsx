@@ -55,7 +55,7 @@ const remove = (n: number) => `${row(n)}-remove`;
 
 function params(target: SeriesTarget = numberTarget(9), overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target, pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -179,28 +179,32 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
             { target: numberTarget(9), pauseSeconds: 10, loadKg: 0 },
             { target: numberTarget(12), pauseSeconds: 10, loadKg: 0 },
           ],
+          workPhases: [],
         },
       }),
     ],
-  ])("PRE5-2.8/AC1 (FR-2, conservé par D-446) — %s : option Avec indisponible, Sans affiché, appui sans effet", (_case, parent) => {
+  ])("PRE5-2.8/AC1 — D-446 (complément du 26/10/2026, remplace l'exclusion FR-2) — %s : option Avec disponible ; appui : deux phases à renseigner (Q5), Variables conservé", (_case, parent) => {
     renderSheet(parent);
-    expect(optionState(WITH)).toMatchObject({ disabled: true, selected: false });
+    expect(optionState(WITH)).toMatchObject({ disabled: false, selected: false });
     expect(optionState(WITHOUT)).toMatchObject({ selected: true });
     fireEvent.press(get(WITH));
-    expect(optionState(WITHOUT)).toMatchObject({ selected: true });
-    expect(query(TABLE)).toBeNull();
+    expect(optionState(WITH)).toMatchObject({ selected: true });
+    expect(phaseRows()).toHaveLength(2);
+    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
+    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ selected: true });
   });
 
-  it("PRE5-2.8/AC3 — activation depuis 9 s : « 2 phases », lignes 9 s et « — » (rouge pâle), tableau déployé, chevron haut ; PRE-7 (D-446) : D inchangée et modifiable", () => {
+  it("PRE5-2.8/AC3 — activation depuis 9 s : « 2 phases », Q5 (remplace le préremplissage de D-432) : lignes « — » et « — » (rouge pâle), tableau déployé, chevron haut ; PRE-7 (D-446) : D inchangée et modifiable", () => {
     renderSheet(params());
     expect(get("execution-sheet-target-value")).toBeTruthy();
     fireEvent.press(get(WITH));
     expect(optionState(WITH)).toMatchObject({ selected: true });
     expect(countText()).toBe("2 phases");
     expect(phaseRows()).toHaveLength(2);
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["9 s", "—"]);
+    // Q5 (arbitrage du 26/10/2026) : la Cible de série n'est plus copiée dans la première phase.
+    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
-    expect(styleOf(duration(1)).backgroundColor).toBeUndefined();
+    expect(styleOf(duration(1)).backgroundColor).toBe(colors.dangerSurface);
     expect(get(duration(2)).props.accessibilityValue).toEqual({ text: t.unsetSpoken });
     expect(get(TABLE)).toBeTruthy();
     expect(chevronIcon()).toEqual(UP);
@@ -218,11 +222,30 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     // Largeur de l'option Avec, réglage fermé : 104 (recette du 20/10, RC-16 : marges de « Sans ») ; Sans garde 62.
     expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
     expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
-    // PRE-7 (D-446) : avec des phases, Répétitions et À l'échec restent disponibles ; Variables
-    // seul reste indisponible (FR-2, incompatibilité conservée).
+    // PRE-7 (D-446) : avec des phases, Répétitions et À l'échec restent disponibles ; complément
+    // du 26/10/2026 : Variables aussi (motif commun aux séries identiques et variables).
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: false });
     expect(optionState("execution-sheet-stop-condition-control-FAILURE")).toMatchObject({ disabled: false });
-    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: true });
+    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: false });
+  });
+
+  it("PRE-7 R-2 (D-446, complément du 26/10/2026) — phases en identiques N = 3 : Variables disponible ; le toucher garde la ligne et le tableau des phases, durées comprises", () => {
+    const { onApply } = renderSheet(withPhases([["A", 5], ["B", 2]]));
+    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: false, selected: false });
+    fireEvent.press(get("execution-sheet-series-type-control-VARIABLE"));
+    expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ selected: true });
+    expect(get("execution-sheet-row-phases")).toBeTruthy();
+    expect(optionState(WITH)).toMatchObject({ selected: true });
+    expect(phaseRows()).toHaveLength(2);
+    expect([shownDuration(1), shownDuration(2)]).toEqual(["5 s", "2 s"]);
+    expect([shownLabel(1), shownLabel(2)]).toEqual(["A", "B"]);
+    validate();
+    const series = applied(onApply).series;
+    expect(series.kind).toBe("VARIABLE");
+    expect(series.workPhases).toEqual([
+      { id: 1, label: "A", durationSeconds: 5 },
+      { id: 2, label: "B", durationSeconds: 2 },
+    ]);
   });
 
   it("PRE5-2.8/AC3 — activation depuis « — » : deux durées à renseigner, rien d'inventé", () => {
@@ -449,7 +472,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     hideExecutionSheetKeyboard();
   });
 
-  it("PRE5-2.8/AC7 (FR-8) — Avec → Sans : 6 s + 3 s + 5 s → Sans, « Durée d’une série » 14 s modifiable ; repasser à Avec recrée deux phases (14 s, à renseigner)", () => {
+  it("PRE5-2.8/AC7 (FR-8) — Avec → Sans : 6 s + 3 s + 5 s → Sans, « Durée d’une série » 14 s modifiable ; repasser à Avec recrée deux phases à renseigner (Q5)", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
     fireEvent.press(get(WITHOUT));
     expect(optionState(WITHOUT)).toMatchObject({ selected: true });
@@ -459,13 +482,16 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: false });
     fireEvent.press(get(WITH));
     expect(phaseRows()).toHaveLength(2);
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["14 s", "—"]);
+    // Q5 : aucune durée préremplie (la Cible de série n'est pas copiée).
+    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
     expect([shownLabel(1), shownLabel(2)]).toEqual(["Phase 1", "Phase 2"]);
   });
 
   it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées ; la cellule « — » à renseigner ; D 9 s inchangée (D-446)", () => {
     const { onApply } = renderSheet(params());
     fireEvent.press(get(WITH));
+    // Q5 : la première durée est saisie (plus de préremplissage par la Cible).
+    enterDuration(1, "9");
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
     validate();
     expect(onApply).not.toHaveBeenCalled();
@@ -496,6 +522,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
   it("PRE5-2.8/AC7 (FR-9, QN-3) — ✓ avec [6 « », 3 « Maintien »] : phases « Phase 1 » 6 s et « Maintien » 3 s ; PRE-7 (D-446) : cible 6 s inchangée", () => {
     const { onApply } = renderSheet(params(numberTarget(6)));
     fireEvent.press(get(WITH));
+    // Q5 : la première durée est saisie (plus de préremplissage par la Cible).
+    enterDuration(1, "6");
     enterDuration(2, "3");
     enterLabel(2, "Maintien");
     expect(seriesDurationText()).toBe("6 s");
@@ -673,6 +701,33 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     renderSheet(withPhases([["A", 6], ["B", 3]]));
     expect(seriesDurationText()).toBe("9 s");
     expect(String(get("execution-sheet-total-text").props.children)).toBe("1 min 12 s");
+  });
+
+  it("PRE-7 R-2 (D-446 §4) — Répétitions 3 × 10, cadence 0, phases [5, 2] : Durée de l'exercice « ≈ » (10 × 7 s par série), jamais « Non calculable » ; durée de phase vide : pas « Non calculable »", () => {
+    const repetitions = (seconds: number) =>
+      params(numberTarget(10), {
+        mode: "REPETITIONS",
+        cadenceBeepIntervalSeconds: 0,
+        series: {
+          kind: "UNIFORM",
+          count: 3,
+          target: numberTarget(10),
+          pauseSeconds: 15,
+          loadKg: 0,
+          workPhases: [
+            { id: 1, label: "A", durationSeconds: 5 },
+            { id: 2, label: "B", durationSeconds: seconds },
+          ],
+        },
+      });
+    const totalShown = () => String(get("execution-sheet-total-text").props.children);
+    renderSheet(repetitions(2));
+    // 3 × (10 × 7 s) + 3 × 15 s = 255 s.
+    expect(totalShown()).toBe("≈ 4 min 15 s");
+    screen.unmount();
+    renderSheet(repetitions(0));
+    expect(totalShown()).not.toBe("Non calculable");
+    expect(totalShown()).not.toContain("≈");
   });
 
   it("PRE5-2.8/AC8 (FR-32, NR Δ38) — six phases : six lignes, + indisponible ; le stepper « Nombre de séries » de PRE-4 reste inchangé", () => {

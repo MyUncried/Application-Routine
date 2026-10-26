@@ -45,7 +45,7 @@ const PHOTO: DraftMediaItem = {
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",

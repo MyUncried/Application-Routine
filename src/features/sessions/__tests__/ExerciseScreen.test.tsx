@@ -831,6 +831,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
         { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 },
         { target: { kind: "NUMBER", value: 7 }, pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     };
 
     it("PRE4-3.2/AC12 — 5999 s déplacée en tête, ✓ : Terminer reste disponible et enregistre [5999, 30, 7] et le Bip 11 inchangés", async () => {

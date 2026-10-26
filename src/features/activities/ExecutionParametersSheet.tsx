@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   EXECUTION_BOUNDS,
   WORK_PHASE_LIMITS,
+  hasMissingPhaseDuration,
   isBilateral,
   numberTarget,
   selectorOpeningPosition,
@@ -72,6 +73,7 @@ import {
   computeIntrinsicDuration,
   hasDurationAmount,
   isCalculable,
+  isWorkEstimable,
   totalDurationRange,
 } from "@/domain/activities/executionCalculations";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
@@ -297,7 +299,8 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * PRE-7 (D-446, arbitrage de Hermann du 26/10/2026 : les phases sont un motif cyclique de
  * guidage) : avec des phases, Répétitions et À l'échec restent disponibles, et « Durée d'une
  * série » garde sa pastille modifiable ordinaire (la durée de série n'est plus la somme des
- * phases). Seul Variables reste indisponible avec des phases ; Avec suit `canEnableWorkPhases`.
+ * phases). Complément du 26/10/2026 (R-2) : Variables reste disponible avec des phases, motif
+ * commun à toutes les séries ; Avec suit `canEnableWorkPhases`.
  *
  * PRE-7 (A2.1, D-438, MFN-02, MFN-09, CE-UI-10) : `phaseStructureLocked` (occurrence de Séance)
  * rend indisponibles les contrôles de structure — Avec / Sans, nombre, croix, glisser et Monter /
@@ -723,9 +726,12 @@ export function ExecutionParametersSheet({
   // saisie invalide, ou tableau variable entièrement à l'échec, en attente d'arbitrage) ;
   // sinon la valeur, précédée de son symbole (« ≈ », « ≥ »). Ni formule, ni nature, ni
   // condition de modification changées ; « — » et « Non calculable » ne valent jamais zéro.
+  // PRE-7 (R-2, D-446 §4) : en Répétitions, un motif de phases complet rend le total estimable
+  // (« ≈ », R × motif) ; « Non calculable » reste réservé aux Répétitions sans motif ni cadence.
+  // Un motif dont une durée manque est une donnée manquante (« — »), pas une exclusion.
   const totalNotCalculable =
     effective.mode !== null &&
-    ((effective.mode === "REPETITIONS" && effective.cadenceBeepIntervalSeconds === 0) ||
+    ((!isWorkEstimable(effective) && !hasMissingPhaseDuration(effective)) ||
     (effective.series.kind === "UNIFORM" && effective.series.target.kind === "FAILURE"));
   const totalResult = isCalculable(effective) ? computeIntrinsicDuration(effective) : null;
   const totalNature =
@@ -1358,7 +1364,8 @@ export function ExecutionParametersSheet({
         {
           value: "VARIABLE",
           label: t.seriesTypes.VARIABLE,
-          disabled: hasWorkPhases || single,
+          // PRE-7 (D-446, complément du 26/10/2026) : Variables reste disponible avec des phases.
+          disabled: single,
           accessibilityLabel: single ? `${t.seriesTypes.VARIABLE}, ${t.disabledSuffix}` : undefined,
           chevron: showVariableTable ? (isTableFolded ? "down" : "up") : undefined,
           chevronAccessibilityLabel: isTableFolded ? t.showTable : t.hideTable,
@@ -1817,9 +1824,9 @@ export function ExecutionParametersSheet({
   };
 
   // PRE-5 story 2.8 (FR-2, FR-4, FR-27, FR-28, D-432) : segmenté « Phases de l'exercice ».
-  // Avec n'est disponible que si `canEnableWorkPhases` (PRE-7, D-446 : Mode renseigné et séries
-  // identiques effectives, en Durée ou Répétitions, à l'objectif ou à l'échec) ou si des phases
-  // existent ; sinon indisponible, Sans affiché.
+  // Avec n'est disponible que si `canEnableWorkPhases` (PRE-7, D-446 : Mode renseigné, en Durée
+  // ou Répétitions, à l'objectif ou à l'échec, séries identiques ou variables depuis le complément
+  // du 26/10/2026) ou si des phases existent ; sinon indisponible, Sans affiché.
   // Sélectionné, Avec affiche « n phases » (réglage du nombre révélé au toucher) et le chevron
   // du tableau ; sa largeur suit l'état (constantes `PHASE_OPTION_*`).
   // PRE-7 (A2.1, D-438, MFN-09) : sous structure verrouillée, Avec (sans phase) et Sans (avec

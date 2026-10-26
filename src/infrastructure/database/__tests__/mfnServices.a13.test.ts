@@ -284,7 +284,7 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(groups).toHaveLength(2);
   });
 
-  it("PRE-7 (D-446) — frère en séries variables inéligible à l'ajout de phases → INELIGIBLE_SIBLINGS ; frère en Répétitions éligible, Cible conservée ; durée fournie invalide → INVALID_SIBLING_COMPLETION ; rien écrit", async () => {
+  it("PRE-7 (D-446 ; complément du 26/10/2026) — frère en séries variables éligible à l'ajout de phases (complétion requise, puis lignes conservées) ; frère en Répétitions éligible, Cible conservée ; durée fournie invalide → INVALID_SIBLING_COMPLETION ; rien écrit", async () => {
     const first = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
     const varied = await created(
       await service().createActivityDefinitionWithOrigin(input(variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]] })), {
@@ -293,11 +293,26 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
       }),
     );
     const before = await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id");
+    // D-446 (complément du 26/10/2026) : compatibilité phases + séries variables ; le frère variable
+    // n'est plus inéligible, ses durées de phases sont à compléter comme celles d'un frère identique.
     expect(await service().updateActivityDefinition(first.id, input(phased(phases(6, 3))))).toEqual({
-      status: "INELIGIBLE_SIBLINGS",
-      definitionIds: [varied.id],
+      status: "SIBLING_COMPLETION_REQUIRED",
+      siblings: [{ definitionId: varied.id, missingPhaseIds: [1, 2], missingSeriesDuration: false }],
     });
     expect(await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id")).toEqual(before);
+    const variedCompleted = await service().updateActivityDefinition(first.id, input(phased(phases(6, 3))), [
+      { definitionId: varied.id, phaseDurations: [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }] },
+    ]);
+    expect(variedCompleted.status).toBe("UPDATED");
+    const variedRead = await service().getActivityDefinition(varied.id);
+    expect(variedRead?.missingPhaseIds).toBeUndefined();
+    const variedSeries = variedRead?.executionParameters.series;
+    expect(variedSeries?.kind).toBe("VARIABLE");
+    expect(variedSeries?.kind === "VARIABLE" && variedSeries.rows.map((row) => row.target)).toEqual([
+      { kind: "NUMBER", value: 10 },
+      { kind: "NUMBER", value: 12 },
+    ]);
+    expect(variedSeries?.workPhases.map((phase) => phase.durationSeconds)).toEqual([5, 2]);
 
     // Frère en Répétitions : éligible (D-446), ses durées sont à compléter ; complété, il garde Mode et Cible.
     const lone = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Fente" }), { kind: "INDEPENDENT" }));

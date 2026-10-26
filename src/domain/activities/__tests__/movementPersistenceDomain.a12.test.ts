@@ -60,21 +60,28 @@ describe("PRE-7 A1.2 — forme résolue v4 des copies", () => {
     ]);
     const json = serializeResolvedExecutionParameters(parameters);
     expect(JSON.parse(json).version).toBe(RESOLVED_EXECUTION_PARAMETERS_VERSION);
-    expect(json).toBe(serializeExecutionParameters(parameters).replace('"version":3', '"version":4'));
+    // PRE-7 (D-446, R-2) : forme résolue et forme canonique confondues en v5.
+    expect(RESOLVED_EXECUTION_PARAMETERS_VERSION).toBe(5);
+    expect(json).toBe(serializeExecutionParameters(parameters));
     expect(readResolvedExecutionParameters(json)).toEqual(parameters);
     const variable = variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["FAILURE", 0]] });
     expect(readResolvedExecutionParameters(serializeResolvedExecutionParameters(variable))).toEqual(variable);
   });
 
-  it("strict : v2, v3, Catalogue v4, version inconnue, NULL ou JSON corrompu → ExecutionParametersDataError ; jamais un repli", () => {
+  it("strict : v2, v3, v4 (PRE-7, Q2), Catalogue v5, version inconnue, NULL ou JSON corrompu → ExecutionParametersDataError ; jamais un repli", () => {
     const parameters = phased([{ id: 1, label: "Descente", durationSeconds: 6 }]);
     const catalog = serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters);
-    const v2 = serializeExecutionParameters(variableParameters({ mode: "DURATION", rows: [[30, 10]] })).replace('"version":3', '"version":2');
-    for (const json of [v2, serializeExecutionParameters(parameters), catalog, '{"version":5}', null, "{"]) {
+    const resolved = serializeResolvedExecutionParameters(parameters);
+    const v2 = serializeExecutionParameters(variableParameters({ mode: "DURATION", rows: [[30, 10]] })).replace('"version":5', '"version":2');
+    const v3 = resolved.replace('"version":5', '"version":3');
+    const v4 = resolved.replace('"version":5', '"version":4');
+    expect([v2, v3, v4].every((json) => !json.includes('"version":5'))).toBe(true);
+    for (const json of [v2, v3, v4, catalog, '{"version":5}', '{"version":9}', null, "{"]) {
       expect(() => readResolvedExecutionParameters(json)).toThrow(ExecutionParametersDataError);
     }
-    // Le lecteur v2/v3 du domaine (Instantané, preuves historiques) refuse la v4.
-    expect(() => readExecutionParameters(serializeResolvedExecutionParameters(parameters))).toThrow(ExecutionParametersDataError);
+    // PRE-7 (Q2) : le lecteur du domaine (Instantané, preuves historiques) ne lit plus la v4.
+    expect(() => readExecutionParameters(v4)).toThrow(ExecutionParametersDataError);
+    expect(readExecutionParameters(resolved)).toEqual(parameters);
   });
 
   it("l'écrivain refuse une durée de phase manquante : un frère incomplet ne devient jamais une copie (D-438)", () => {
@@ -124,12 +131,36 @@ describe("PRE-7 A1.2 — allocation des phases par le compteur du Mouvement (MFN
     expect(duplicated.movement.phases.map((phase) => phase.id)).toEqual([1, 4]);
   });
 
-  it("série variable : structure vide, compteur conservé, paramètres inchangés", () => {
+  it("série variable sans phase : structure vide, compteur conservé, paramètres inchangés", () => {
     const variable = variableParameters({ mode: "DURATION", rows: [[30, 10], [40, 10]] });
     const allocation = allocatePhaseIdentities(movement(), variable);
     expect(allocation.movement.phases).toEqual([]);
     expect(allocation.movement.nextPhaseId).toBe(4);
-    expect(allocation.parameters).toBe(variable);
+    expect(allocation.parameters).toEqual(variable);
+  });
+
+  it("PRE-7 (D-446, complément du 26/10/2026) — série variable à phases : même allocation qu'en identiques, lignes inchangées", () => {
+    const variable = variableParameters({
+      mode: "DURATION",
+      rows: [[30, 10], [45, 10]],
+      workPhases: [
+        { id: 2, label: "Montée", durationSeconds: 5 },
+        { id: 3, label: "Pause", durationSeconds: 2 },
+      ],
+    });
+    const allocation = allocatePhaseIdentities(movement(), variable);
+    expect(allocation.movement.phases).toEqual([
+      { id: 2, label: "Montée" },
+      { id: 4, label: "Pause" },
+    ]);
+    expect(allocation.movement.nextPhaseId).toBe(5);
+    expect(allocation.parameters.series).toEqual({
+      ...variable.series,
+      workPhases: [
+        { id: 2, label: "Montée", durationSeconds: 5 },
+        { id: 4, label: "Pause", durationSeconds: 2 },
+      ],
+    });
   });
 });
 

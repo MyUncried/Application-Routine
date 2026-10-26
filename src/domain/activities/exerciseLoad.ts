@@ -54,7 +54,7 @@ export function normalizeLoad<T extends ExecutionParametersInput>(parameters: T)
 function withLoad(series: ExecutionSeries, loadKg: number): ExecutionSeries {
   return series.kind === "UNIFORM"
     ? { ...series, loadKg }
-    : { kind: "VARIABLE", rows: series.rows.map((row) => ({ ...row, loadKg })) };
+    : { ...series, rows: series.rows.map((row) => ({ ...row, loadKg })) };
 }
 
 /**

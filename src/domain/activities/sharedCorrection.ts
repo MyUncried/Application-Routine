@@ -157,10 +157,10 @@ export function planSiblingCorrection(
   const catalog = splitResolvedParameters(sibling.parameters).parameters;
   const { series } = catalog;
   let next: CatalogExecutionParameters;
-  if (nextPhases.length === 0) {
-    if (series.kind !== "UNIFORM") {
-      return { status: "INELIGIBLE" };
-    }
+  if (nextPhases.length === 0 && series.kind === "VARIABLE") {
+    // PRE-7 (D-446) : le motif est retiré ; les cibles des lignes restent celles du frère.
+    next = { ...catalog, series: { ...series, phaseDurations: [] } };
+  } else if (nextPhases.length === 0 && series.kind === "UNIFORM") {
     let target: SeriesTarget;
     if (series.target.kind !== "UNSET") {
       // D-446 : la durée de série n'est plus la somme des phases ; elle reste celle du frère.
@@ -175,10 +175,7 @@ export function planSiblingCorrection(
     }
     next = { ...catalog, series: { ...series, target, phaseDurations: [] } };
   } else {
-    // D-446 : seule l'incompatibilité phases + séries variables est conservée.
-    if (series.kind !== "UNIFORM") {
-      return { status: "INELIGIBLE" };
-    }
+    // PRE-7 (D-446, complément du 26/10/2026) : motif commun, séries identiques comme variables.
     const own = new Map(series.phaseDurations.map((entry) => [entry.phaseId, entry.durationSeconds] as const));
     const previous = new Set(previousPhases.map((phase) => phase.id));
     const provided = new Map((completion?.phaseDurations ?? []).map((entry) => [entry.phaseId, entry.durationSeconds] as const));

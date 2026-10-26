@@ -346,7 +346,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
         ];
         return {
           ...exercise,
-          executionParameters: { ...exercise.executionParameters, series: { kind: "VARIABLE", rows } },
+          executionParameters: { ...exercise.executionParameters, series: { kind: "VARIABLE", rows, workPhases: [] } },
           media: exercise.media?.filter((item) => item.assetId !== "p1"),
         };
       }),
@@ -359,6 +359,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
         { target: { kind: "FAILURE" }, pauseSeconds: 10, loadKg: 0 },
         { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 10, loadKg: 0 },
       ],
+      workPhases: [],
     });
     expect(first!.media?.map((item) => item.assetId)).toEqual(["v1", "p2"]);
     expect(second!.executionParameters).toEqual(ac1Parameters());
@@ -467,6 +468,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
         { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
         { target: { kind: "FAILURE" }, pauseSeconds: 20, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 
@@ -971,8 +973,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(decodeInstructionSteps(exercise.instruction)).toEqual(["Buste droit", "Genoux souples", "Expirer en montant"]);
     }
     const stored = await database.getAllAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities ORDER BY rowid");
-    // PRE-7 (A1.2) : forme résolue v4 des copies.
-    expect(stored.every((row) => row.execution_parameters.startsWith('{"version":4,'))).toBe(true);
+    // PRE-7 (A1.2 ; R-2, D-446) : forme résolue v5 des copies.
+    expect(stored.every((row) => row.execution_parameters.startsWith('{"version":5,'))).toBe(true);
 
     // Instantané : phases et charge sous Sans conservées.
     const snapshot = parseExerciseSnapshot(

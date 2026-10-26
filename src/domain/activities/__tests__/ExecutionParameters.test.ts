@@ -7,6 +7,7 @@ import {
   seriesRowsOf as seriesRowsOfInput,
   EXECUTION_MODES,
   EXECUTION_PARAMETERS_V2,
+  EXECUTION_PARAMETERS_V3,
   EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
   executionParametersEqual,
@@ -73,8 +74,9 @@ describe("PRE4-1.1/AC1 — deux Modes, une Cible typée unique", () => {
     expect(numberTarget(30)).toEqual({ kind: "NUMBER", value: 30 });
     expect(failureTarget()).toEqual({ kind: "FAILURE" });
     expect(unsetTarget()).toEqual({ kind: "UNSET" });
-    // PRE-5 (AD-18) : la version courante est 3 ; la v2 figée garde son littéral.
-    expect(EXECUTION_PARAMETERS_VERSION).toBe(3);
+    // PRE-7 (D-446, R-2) : la version courante est 5 ; la v3 (PRE-5) et la v2 figée gardent leur littéral.
+    expect(EXECUTION_PARAMETERS_VERSION).toBe(5);
+    expect(EXECUTION_PARAMETERS_V3).toBe(3);
     expect(EXECUTION_PARAMETERS_V2).toBe(2);
   });
 
@@ -470,7 +472,7 @@ describe("PRE4-1.1/AC16 — projection scalaire unique", () => {
 describe("Création", () => {
   it("brouillon de création : Mode et côté non renseignés, Série 1 à Cible à renseigner, Pause 0, Bip 0, CR/Fin du Profil", () => {
     expect(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 })).toEqual({
-      version: 3,
+      version: 5,
       mode: null,
       series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
       sideMode: null,
@@ -595,18 +597,26 @@ const withPhases = (workPhases: readonly WorkPhase[], count = 3, pauseSeconds = 
 
 type UniformOf = Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>;
 
-describe("PRE5-1.1/AC2 — écrivain v3 unique (AD-18)", () => {
-  it("forme exacte d'AD-18 : clés et ordre de la v2, loadEnabled après endSeconds, loadKg et workPhases toujours écrits", () => {
+describe("PRE5-1.1/AC2 — écrivain unique (AD-18 ; v5 depuis PRE-7, D-446)", () => {
+  it("forme exacte d'AD-18 : clés et ordre de la v2, loadEnabled après endSeconds, loadKg et workPhases toujours écrits ; PRE-7 (D-446) : workPhases après rows en variables", () => {
     expect(serializeExecutionParameters(durationParameters(30, 3, 10))).toBe(
-      '{"version":3,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":0,"workPhases":[]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":false}',
+      '{"version":5,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":0,"workPhases":[]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":false}',
     );
     expect(
       serializeExecutionParameters(variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], ["FAILURE", 0, 0]], loadEnabled: true })),
     ).toBe(
-      '{"version":3,"mode":"REPETITIONS","series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":12},"pauseSeconds":10,"loadKg":20},{"target":{"kind":"FAILURE"},"pauseSeconds":0,"loadKg":0}]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":true}',
+      '{"version":5,"mode":"REPETITIONS","series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":12},"pauseSeconds":10,"loadKg":20},{"target":{"kind":"FAILURE"},"pauseSeconds":0,"loadKg":0}],"workPhases":[]},"sideMode":"UNILATERAL","sideOrder":"BY_SIDE","sideRecoverySeconds":0,"cadenceBeepIntervalSeconds":0,"countdownSeconds":0,"endSeconds":0,"loadEnabled":true}',
     );
     expect(serializeExecutionParameters(withPhases(phases(["Descente", 6], ["Maintien", 3])))).toContain(
       '"series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":9},"pauseSeconds":15,"loadKg":0,"workPhases":[{"id":1,"label":"Descente","durationSeconds":6},{"id":2,"label":"Maintien","durationSeconds":3}]}',
+    );
+    // PRE-7 (D-446, complément du 26/10/2026) : le motif commun des séries variables, après les lignes.
+    expect(
+      serializeExecutionParameters(
+        variableParameters({ rows: [[30, 10], [45, 10]], workPhases: [{ id: 1, label: "Descente", durationSeconds: 5 }, { id: 2, label: "Maintien", durationSeconds: 2 }] }),
+      ),
+    ).toContain(
+      '"series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":0},{"target":{"kind":"NUMBER","value":45},"pauseSeconds":10,"loadKg":0}],"workPhases":[{"id":1,"label":"Descente","durationSeconds":5},{"id":2,"label":"Maintien","durationSeconds":2}]}',
     );
   });
 
@@ -645,27 +655,34 @@ describe("PRE5-1.1/AC3 — lecteur unique v2 + v3 (AD-18, NFR-10)", () => {
     );
     expect(readExecutionParameters(v2[1])).toEqual(variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["FAILURE", 0]] }));
     for (const json of v2) {
-      // Même lecture que `readV2` (grammaire inchangée) ; un réenregistrement écrit du v3, relu à l'identique.
+      // Même lecture que `readV2` (grammaire inchangée) ; un réenregistrement écrit du v5 (PRE-7), relu à l'identique.
       expect(readExecutionParameters(json)).toEqual(readV2(json));
       const rewritten = serializeExecutionParameters(readExecutionParameters(json));
-      expect(rewritten.startsWith('{"version":3,')).toBe(true);
+      expect(rewritten.startsWith('{"version":5,')).toBe(true);
       expect(readExecutionParameters(rewritten)).toEqual(readV2(json));
     }
   });
 
-  it("v3 : aller-retour exact, charge sous Sans, phases et identités conservées", () => {
+  it("v5 (PRE-7, D-446) : aller-retour exact, charge sous Sans, phases et identités conservées, variables comprises ; la même grammaire en v3 reste lue (variables sans phase)", () => {
     const samples: ExecutionParameters[] = [
       durationParameters(30, 3, 10, { sideMode: "RIGHT_LEFT" }),
       { ...withPhases(phases(["Descente", 6], ["Maintien", 3])), sideMode: "LEFT_RIGHT" },
       uniformParameters({ mode: "REPETITIONS", count: 2, target: 12, loadKg: 2.5, loadEnabled: false }),
       variableParameters({ mode: "REPETITIONS", rows: [[12, 10, 20], [10, 10, 0], ["FAILURE", 0, 1.25]], loadEnabled: true }),
       uniformParameters({ count: 2, target: 7, workPhases: [{ id: 4, label: "Seule", durationSeconds: 7 }] }),
+      variableParameters({ rows: [[30, 10], [45, 10]], workPhases: [{ id: 1, label: "Descente", durationSeconds: 5 }, { id: 2, label: "Maintien", durationSeconds: 2 }] }),
     ];
     for (const sample of samples) {
       const json = serializeExecutionParameters(sample);
-      expect(readV3(json)).toEqual(sample);
+      expect(json.startsWith('{"version":5,')).toBe(true);
       expect(readExecutionParameters(json)).toEqual(sample);
       expect(serializeExecutionParameters(readExecutionParameters(json))).toBe(json);
+      // v3 (PRE-5) : mêmes clés ; en variables, la clé `workPhases` est ignorée (aucune phase).
+      const v3 = json.replace('"version":5', '"version":3');
+      const asV3: ExecutionParameters =
+        sample.series.kind === "VARIABLE" ? { ...sample, series: { ...sample.series, workPhases: [] } } : sample;
+      expect(readV3(v3)).toEqual(asV3);
+      expect(readExecutionParameters(v3)).toEqual(asV3);
     }
   });
 
@@ -684,29 +701,63 @@ describe("PRE5-1.1/AC3 — lecteur unique v2 + v3 (AD-18, NFR-10)", () => {
       variableJson.replace(',"loadKg":2.5', ""),
       variableJson.replace('"loadKg":2.5', '"loadKg":null'),
     ];
+    // PRE-7 : la donnée est écrite en v5 ; la même rupture est refusée en v5 et sous l'étiquette v3.
+    const asV3 = (value: string) => value.replace('"version":5', '"version":3');
     for (const value of broken) {
       expect(value).not.toBe(json);
-      expect(() => readV3(value)).toThrow(ExecutionParametersDataError);
+      expect(() => readV3(asV3(value))).toThrow(ExecutionParametersDataError);
       expect(() => readExecutionParameters(value)).toThrow(ExecutionParametersDataError);
+      expect(() => readExecutionParameters(asV3(value))).toThrow(ExecutionParametersDataError);
     }
     // Une seule ligne VARIABLE sans loadKg (la seconde) suffit à rendre la donnée illisible.
     const secondRowWithoutLoad = variableJson.replace(/(\{"target":\{"kind":"NUMBER","value":30\},"pauseSeconds":10),"loadKg":0\}/, "$1}");
     expect(secondRowWithoutLoad).not.toBe(variableJson);
     expect(secondRowWithoutLoad).toContain('"loadKg":2.5');
-    expect(() => readV3(secondRowWithoutLoad)).toThrow(ExecutionParametersDataError);
+    expect(() => readV3(asV3(secondRowWithoutLoad))).toThrow(ExecutionParametersDataError);
+    expect(() => readExecutionParameters(secondRowWithoutLoad)).toThrow(ExecutionParametersDataError);
+    // PRE-7 (D-446) : en v5, le motif des séries variables est obligatoire et strict ; en v3, il est absent.
+    const variableWithoutPhases = variableJson.replace(',"workPhases":[]', "");
+    expect(variableWithoutPhases).not.toBe(variableJson);
+    expect(() => readExecutionParameters(variableWithoutPhases)).toThrow(ExecutionParametersDataError);
+    expect(() => readExecutionParameters(variableJson.replace('"workPhases":[]', '"workPhases":{}'))).toThrow(ExecutionParametersDataError);
+    expect(readV3(asV3(variableWithoutPhases)).series.workPhases).toEqual([]);
     expect(readExecutionParameters(json.replace('"loadEnabled":false', '"loadEnabled":false,"futureKey":1'))).toEqual(
       readExecutionParameters(json),
     );
   });
 
-  it("version inconnue (7), v1, NULL ou JSON corrompu → ExecutionParametersDataError ; readV2 refuse la v3 et readV3 la v2", () => {
-    const v3 = serializeExecutionParameters(durationParameters(30));
-    for (const json of [null, undefined, "{not json", "[]", v3.replace('"version":3', '"version":7'), v3.replace('"version":3', '"version":1')]) {
+  it("PRE-7 (D-446, R-2) — v3 variable avec une clé workPhases parasite : ignorée (workPhases: []) ; v5 variable sans workPhases → ExecutionParametersDataError", () => {
+    const v5 = serializeExecutionParameters(
+      variableParameters({ rows: [[30, 10], [45, 10]], workPhases: [{ id: 1, label: "Descente", durationSeconds: 5 }] }),
+    );
+    expect(v5).toContain('"workPhases":[{"id":1,"label":"Descente","durationSeconds":5}]');
+    const v3 = v5.replace('"version":5', '"version":3');
+    expect(readExecutionParameters(v3).series.workPhases).toEqual([]);
+    expect(readExecutionParameters(v3)).toEqual(variableParameters({ rows: [[30, 10], [45, 10]] }));
+    const withoutPhases = v5.replace(/,"workPhases":\[[^\]]*\]/, "");
+    expect(withoutPhases).not.toContain("workPhases");
+    expect(() => readExecutionParameters(withoutPhases)).toThrow(ExecutionParametersDataError);
+  });
+
+  it("version inconnue (7), v1, v4 (PRE-7, Q2), NULL ou JSON corrompu → ExecutionParametersDataError ; readV2 refuse la v3 et la v5, readV3 la v2 et la v5", () => {
+    const v5 = serializeExecutionParameters(durationParameters(30));
+    const v3 = v5.replace('"version":5', '"version":3');
+    for (const json of [
+      null,
+      undefined,
+      "{not json",
+      "[]",
+      v5.replace('"version":5', '"version":7'),
+      v5.replace('"version":5', '"version":1'),
+      v5.replace('"version":5', '"version":4'),
+    ]) {
       expect(() => readExecutionParameters(json)).toThrow(ExecutionParametersDataError);
     }
     // Un build PRE-4 (lecteur v2 seul) ne lit pas une ligne v3 : erreur explicite, jamais une perte silencieuse.
     expect(() => readV2(v3)).toThrow(ExecutionParametersDataError);
+    expect(() => readV2(v5)).toThrow(ExecutionParametersDataError);
     expect(() => readV3(serializeV2(durationParameters(30)))).toThrow(ExecutionParametersDataError);
+    expect(() => readV3(v5)).toThrow(ExecutionParametersDataError);
   });
 });
 
@@ -797,6 +848,12 @@ describe("PRE5-1.1/AC5 — invariant des phases (AD-20, FR-1, FR-3, FR-40)", () 
     expect(hasMissingPhaseDuration(valid)).toBe(false);
     expect(hasMissingPhaseDuration(withPhases([{ id: 1, label: "a", durationSeconds: 6 }, { id: 2, label: "b", durationSeconds: 0 }]))).toBe(true);
     expect(hasMissingPhaseDuration(uniformParameters({ target: 30 }))).toBe(false);
+    // PRE-7 (D-446, complément du 26/10/2026) : même prédicat pour le motif commun des séries variables.
+    const variableMotif = (seconds: number) =>
+      variableParameters({ rows: [[30, 10], [45, 10]], workPhases: [{ id: 1, label: "a", durationSeconds: 5 }, { id: 2, label: "b", durationSeconds: seconds }] });
+    expect(hasMissingPhaseDuration(variableMotif(0))).toBe(true);
+    expect(hasMissingPhaseDuration(variableMotif(2))).toBe(false);
+    expect(hasMissingPhaseDuration(variableParameters({ rows: [[30, 10], [45, 10]] }))).toBe(false);
   });
 
   it("workPhases absent ou mal typé → violation structurelle", () => {
@@ -965,6 +1022,21 @@ describe("PRE5-1.1/AC12 — égalité et clone (AD-9, AD-19, FR-41)", () => {
     expect(executionParametersEqual(base, { ...base, series: { ...series, workPhases: [first!, { ...second!, label: "Pause" }] } })).toBe(false);
     expect(executionParametersEqual(base, { ...base, series: { ...series, workPhases: [second!, first!] } })).toBe(false);
     expect(executionParametersEqual(variableParameters({ rows: [[30, 10, 1]] }), variableParameters({ rows: [[30, 10, 2]] }))).toBe(false);
+  });
+
+  it("PRE-7 (D-446, complément du 26/10/2026) — en variables, le motif des phases participe à l'égalité : durée, libellé et ordre", () => {
+    const motif: WorkPhase[] = [
+      { id: 1, label: "Descente", durationSeconds: 5 },
+      { id: 2, label: "Montée", durationSeconds: 2 },
+    ];
+    const variable = (workPhases: readonly WorkPhase[]) => variableParameters({ rows: [[30, 10], [45, 10]], workPhases });
+    const [first, second] = motif;
+    expect(executionParametersEqual(variable(motif), variable(motif.map((phase) => ({ ...phase }))))).toBe(true);
+    expect(executionParametersEqual(variable(motif), cloneExecutionParameters(variable(motif)))).toBe(true);
+    expect(executionParametersEqual(variable(motif), variable([first!, { ...second!, durationSeconds: 3 }]))).toBe(false);
+    expect(executionParametersEqual(variable(motif), variable([first!, { ...second!, label: "Pause" }]))).toBe(false);
+    expect(executionParametersEqual(variable(motif), variable([second!, first!]))).toBe(false);
+    expect(executionParametersEqual(variable(motif), variable([]))).toBe(false);
   });
 
   it("clone profond : phases et lignes jamais partagées ; modifier la copie ne modifie pas la source", () => {

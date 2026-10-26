@@ -75,7 +75,7 @@ jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -96,6 +96,7 @@ const variableRows = (rows: [number | null, number][]) => ({
     pauseSeconds,
     loadKg: 0,
   })),
+  workPhases: [],
 });
 
 function renderSheetView(
@@ -2933,7 +2934,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       mode: "DURATION",
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
-      series: { kind: "VARIABLE", rows: [{ target: numberTarget(40) }, { target: numberTarget(40) }, { target: numberTarget(40) }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(40) }, { target: numberTarget(40) }, { target: numberTarget(40) }], workPhases: [] },
     });
     expect(android).toEqual(ios);
     expect(web).toEqual(ios);
@@ -3149,6 +3150,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
           { target, pauseSeconds: 15, loadKg: 0 },
           { target: numberTarget(45), pauseSeconds: 15, loadKg: 0 },
         ],
+        workPhases: [],
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
@@ -3329,6 +3331,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
           { target, pauseSeconds: 15, loadKg: 0 },
           { target: numberTarget(8), pauseSeconds: 15, loadKg: 0 },
         ],
+        workPhases: [],
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
@@ -3534,7 +3537,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   const variableSheet = (rows: [Cell, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
       mode,
-      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds, loadKg: 0 })) },
+      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds, loadKg: 0 })), workPhases: [] },
       ...overrides,
     });
   const hidden = { includeHiddenElements: true } as const;
@@ -3682,6 +3685,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 
@@ -3856,6 +3860,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
         { target: numberTarget(5999), pauseSeconds: 300, loadKg: 0 },
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
       ],
+      workPhases: [],
     });
     view.unmount();
 
@@ -4506,6 +4511,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
             { target: numberTarget(3535), pauseSeconds: 10, loadKg: 0 },
             { target: numberTarget(4000), pauseSeconds: 10, loadKg: 0 },
           ],
+          workPhases: [],
         },
       }),
     );
@@ -4566,6 +4572,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
               { target: unsetTarget(), pauseSeconds: 20, loadKg: 0 },
               { target: failureTarget(), pauseSeconds: 30, loadKg: 0 },
             ],
+            workPhases: [],
           },
         }),
       ];
@@ -4915,7 +4922,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
   const toTarget = (value: Cell): SeriesTarget =>
     value === "FAILURE" ? failureTarget() : value === null ? unsetTarget() : numberTarget(value);
   const variableSheet = (cells: Cell[], mode: "DURATION" | "REPETITIONS" = "DURATION") =>
-    params({ mode, series: { kind: "VARIABLE", rows: cells.map((cell) => ({ target: toTarget(cell), pauseSeconds: 10, loadKg: 0 })) } });
+    params({ mode, series: { kind: "VARIABLE", rows: cells.map((cell) => ({ target: toTarget(cell), pauseSeconds: 10, loadKg: 0 })), workPhases: [] } });
   const stopSelected = () => selectedValue(STOP_CONTROL, ["FAILURE", "TARGET"]);
   /** Options rendues du résultat dérivé (lecture seule : tuiles fixes, sans zone de sélection). */
   const derivedOptions = () =>
@@ -5110,20 +5117,22 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 2, target: failureTarget() });
   });
 
-  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : PRE-7 (D-446) Répétitions et À l’échec disponibles et appliqués ; Variables seul indisponible (Durée, À la cible, Identiques au départ)", () => {
+  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : PRE-7 (D-446) Répétitions et À l’échec disponibles et appliqués ; complément du 26/10/2026 : Variables disponible et appliqué, phases conservées (Durée, À la cible, Identiques au départ)", () => {
     renderSheet(twoPhases());
     const option = (control: string, value: string) => get(`${control}-${value}`).props.accessibilityState;
     expect(option(MODE_CONTROL, "REPETITIONS")).toMatchObject({ disabled: false, selected: false });
     expect(option(MODE_CONTROL, "DURATION")).toMatchObject({ disabled: false, selected: true });
     expect(option(STOP_CONTROL, "FAILURE")).toMatchObject({ disabled: false, selected: false });
     expect(option(STOP_CONTROL, "TARGET")).toMatchObject({ disabled: false, selected: true });
-    expect(option(SERIES_TYPE, "VARIABLE")).toMatchObject({ disabled: true, selected: false });
+    // D-446 (complément du 26/10/2026) : compatibilité phases + séries variables.
+    expect(option(SERIES_TYPE, "VARIABLE")).toMatchObject({ disabled: false, selected: false });
     expect(option(SERIES_TYPE, "UNIFORM")).toMatchObject({ disabled: false, selected: true });
-    fireEvent.press(get(`${SERIES_TYPE}-VARIABLE`));
-    expect(seriesTypeText()).toBe("Identiques");
     fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
     fireEvent.press(get(`${MODE_CONTROL}-REPETITIONS`));
     expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Répétitions", "FAILURE", "Identiques"]);
+    fireEvent.press(get(`${SERIES_TYPE}-VARIABLE`));
+    expect(seriesTypeText()).toBe("Variables");
+    expect(get("execution-sheet-phases-control-WITH").props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À l’objectif » ; choisir un Mode ferme le champ ± ouvert", () => {
@@ -5238,6 +5247,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
         { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 
@@ -5360,7 +5370,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: enabled });
   const variableLoads = (loads: number[], enabled = true) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
     });
   const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
@@ -5650,7 +5660,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: true });
   const variableLoads = (loads: number[], enabled = true) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
     });
   /** Identifiants des entrées sur lesquelles la méthode espionnée a été appelée. */
@@ -6292,7 +6302,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     });
   const variableLoads = (loads: number[], enabled = true, overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(10 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(10 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
       ...overrides,
     });
@@ -6867,7 +6877,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
   const shown = (id: string) => String(get(`${id}-value`).props.children);
   const failureButton = () => query("execution-sheet-keyboard-failure");
   const variable = (rows: [SeriesTarget, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", loadEnabled = false) =>
-    params({ mode, loadEnabled, series: { kind: "VARIABLE", rows: rows.map(([rowTarget, pauseSeconds]) => ({ target: rowTarget, pauseSeconds, loadKg: 20 })) } });
+    params({ mode, loadEnabled, series: { kind: "VARIABLE", rows: rows.map(([rowTarget, pauseSeconds]) => ({ target: rowTarget, pauseSeconds, loadKg: 20 })), workPhases: [] } });
 
   it("Durée : au repos en unités explicites (5 s, 1 min 5 s, 1 min 30 s, 12 min, 0 s), en saisie « MM:SS » dans la même cellule, sur fond #EAEAFF ; aucun champ supplémentaire", () => {
     renderSheet(variable([[numberTarget(5), 0], [numberTarget(65), 90], [numberTarget(720), 30]]));
@@ -6907,6 +6917,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
         { target: numberTarget(3535), pauseSeconds: 20, loadKg: 20 },
         { target: numberTarget(1), pauseSeconds: 30, loadKg: 20 },
       ],
+      workPhases: [],
     });
   });
 
@@ -7200,7 +7211,7 @@ describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
     const activeCell = (id: string) => StyleSheet.flatten(get(id).props.style)?.backgroundColor === "#EAEAFF";
     const variableLoads = (loads: number[], enabled: boolean) =>
       params({
-        series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+        series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
         loadEnabled: enabled,
       });
     let keyboard: ReturnType<typeof captureKeyboard>;

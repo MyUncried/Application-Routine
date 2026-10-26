@@ -96,12 +96,12 @@ const LOAD_LIST_MAX_COUNT = 3;
  * PRE-5 (story 1.2, FR-43, AD-29, QP5-09) — mention des phases de l'exercice :
  * « (Descente : **6 s** - Maintien : **3 s**) », exhaustive même pour une seule
  * phase, libellés et durées effectifs dans l'ordre d'exécution ; durées en
- * gras, libellés en texte normal. Les phases ne vivent que sur une série
- * uniforme (état effectif) ; sans phases, aucun segment.
+ * gras, libellés en texte normal. PRE-7 (D-446) : motif commun aux séries
+ * identiques et variables ; sans phases, aucun segment.
  */
 export function workPhasesClause(parameters: ExecutionParametersInput): readonly PhraseSegment[] {
   const { series } = normalizeEffective(parameters);
-  if (series.kind !== "UNIFORM" || series.workPhases.length === 0) {
+  if (series.workPhases.length === 0) {
     return [];
   }
   const builder = new SegmentBuilder().text(" (");

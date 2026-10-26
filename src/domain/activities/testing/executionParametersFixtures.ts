@@ -90,6 +90,8 @@ export function variableParameters(
     readonly mode?: ExecutionMode;
     /** `[cible, pause]` ou `[cible, pause, charge]` (PRE-5, AD-19 ; charge 0 par défaut). */
     readonly rows: readonly (readonly [FixtureTarget, number, number?])[];
+    /** PRE-7 (D-446) : motif commun des phases (aucune par défaut). */
+    readonly workPhases?: readonly WorkPhase[];
   },
 ): ExecutionParameters {
   return {
@@ -98,6 +100,7 @@ export function variableParameters(
     series: {
       kind: "VARIABLE",
       rows: options.rows.map(([target, pauseSeconds, loadKg]) => ({ target: toTarget(target), pauseSeconds, loadKg: loadKg ?? 0 })),
+      workPhases: options.workPhases ?? [],
     },
     ...common(options),
   };

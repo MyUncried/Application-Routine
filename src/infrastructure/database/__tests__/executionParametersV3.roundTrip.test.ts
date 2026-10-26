@@ -120,7 +120,9 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
 
   it("PRE-7 (A1.2, D-440) — Définition PRE-4 (v2) ou PRE-5 (v3) restée en base : refusée, jamais relue ni convertie", async () => {
     const created = await definitions().create(input(pre4()));
-    for (const legacy of [serializeV2(pre4()), serializeExecutionParameters(pre4())]) {
+    // PRE-7 (R-2) : la forme canonique v5, et la même grammaire sous l'étiquette v3, sont refusées.
+    const canonical = serializeExecutionParameters(pre4());
+    for (const legacy of [serializeV2(pre4()), canonical, canonical.replace('"version":5', '"version":3')]) {
       await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [legacy, created.id]);
       await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
     }
@@ -150,11 +152,13 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     expect(row).toEqual({ execution_mode: "DURATION", duration_seconds: 9, series_count: 3, pause_seconds: 15, side_mode: "LEFT_RIGHT" });
   });
 
-  it("Copie de Séance v2 ou v3 restée en base refusée (D-440) ; copie résolue v4 à phases et charge sous Sans relue à l'identique", async () => {
+  it("Copie de Séance v2, v3 ou v4 restée en base refusée (D-440 ; PRE-7, Q2) ; copie résolue v5 à phases et charge sous Sans relue à l'identique", async () => {
     const pre4Definition = (await definitions().findById((await definitions().create(input(pre4()))).id))!;
     const session = await continueNew(pre4Definition, "occ-1");
     expect(await storedActivityJsons()).toEqual([serializeResolvedExecutionParameters(pre4())]);
-    for (const legacy of [serializeV2(pre4()), serializeExecutionParameters(pre4())]) {
+    // PRE-7 (R-2, D-446) : forme canonique et forme résolue confondues en v5 ; la v3 et la v4 ne sont plus lues des copies.
+    const current = serializeExecutionParameters(pre4());
+    for (const legacy of [serializeV2(pre4()), current.replace('"version":5', '"version":3'), current.replace('"version":5', '"version":4')]) {
       await database.runAsync("UPDATE activities SET execution_parameters = ? WHERE type = 'EXERCISE'", [legacy]);
       await expect(sessions().findById(session.id)).rejects.toThrow(ExecutionParametersDataError);
     }
@@ -173,10 +177,16 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     expect((await storedActivityJsons())[1]).toBe(serializeResolvedExecutionParameters(phased()));
   });
 
-  it("une ligne v4 incomplète ou de version inconnue lève ExecutionParametersDataError (sans perte silencieuse)", async () => {
+  it("une ligne Catalogue v5 incomplète, v3, v4 (PRE-7, Q2) ou de version inconnue lève ExecutionParametersDataError (sans perte silencieuse)", async () => {
     const created = await definitions().create(input(phased()));
     const json = await storedDefinitionJson(created.id);
-    for (const corrupt of [json.replace(',"loadEnabled":false', ""), json.replace('"version":4', '"version":3'), json.replace('"version":4', '"version":5')]) {
+    expect(json.startsWith('{"version":5,')).toBe(true);
+    for (const corrupt of [
+      json.replace(',"loadEnabled":false', ""),
+      json.replace('"version":5', '"version":3'),
+      json.replace('"version":5', '"version":4'),
+      json.replace('"version":5', '"version":9'),
+    ]) {
       await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [corrupt, created.id]);
       await expect(definitions().findById(created.id)).rejects.toThrow(ExecutionParametersDataError);
     }

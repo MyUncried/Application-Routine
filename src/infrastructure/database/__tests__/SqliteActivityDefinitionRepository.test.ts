@@ -397,6 +397,7 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
@@ -525,12 +526,12 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
   it("P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const equal = canonical({
-      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: numberTarget(30), pauseSeconds: 10, loadKg: 0 })) },
+      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: numberTarget(30), pauseSeconds: 10, loadKg: 0 })), workPhases: [] },
     });
     expect((await repository.findById((await save(repository, input(equal))).id))?.executionParameters?.series).toEqual(equal.series);
 
     const shrunk = canonical({
-      series: { kind: "VARIABLE", rows: [{ target: numberTarget(10), pauseSeconds: 1, loadKg: 0 }, { target: numberTarget(20), pauseSeconds: 2, loadKg: 0 }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(10), pauseSeconds: 1, loadKg: 0 }, { target: numberTarget(20), pauseSeconds: 2, loadKg: 0 }], workPhases: [] },
     });
     const reread = await repository.findById((await save(repository, input(shrunk))).id);
     expect(reread?.executionParameters?.series).toEqual(shrunk.series);
@@ -657,7 +658,7 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       const repository = new SqliteActivityDefinitionRepository(fileDatabase, ids("def"));
       const extremes = [
         canonical({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 99, target: numberTarget(100), pauseSeconds: 300, loadKg: 0, workPhases: [] } }),
-        canonical({ mode: "REPETITIONS", series: { kind: "VARIABLE", rows: [{ target: toTarget("FAILURE"), pauseSeconds: 0, loadKg: 0 }, { target: toTarget("FAILURE"), pauseSeconds: 300, loadKg: 0 }] } }),
+        canonical({ mode: "REPETITIONS", series: { kind: "VARIABLE", rows: [{ target: toTarget("FAILURE"), pauseSeconds: 0, loadKg: 0 }, { target: toTarget("FAILURE"), pauseSeconds: 300, loadKg: 0 }], workPhases: [] } }),
         canonical({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: numberTarget(5999), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideOrder: "BY_SIDE" }),
       ];
       const media = [
@@ -758,7 +759,7 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     };
   }
 
-  it("PRE4-1.1/AC16, PRE-7 A1.2 — aucune colonne scalaire : forme Catalogue v4 seule ; Cibles FAILURE et Répétitions 12 × 3 relues typées", async () => {
+  it("PRE4-1.1/AC16, PRE-7 A1.2 — aucune colonne scalaire : forme Catalogue seule (v5, R-2) ; Cibles FAILURE et Répétitions 12 × 3 relues typées", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const mixed = variableParameters({ mode: "DURATION", rows: [["FAILURE", 10], [30, 10]] });
     const created = await repository.create(definitionInput(mixed));
@@ -772,7 +773,8 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
           [id],
         ))!.execution_parameters,
       );
-    expect((await json(created.id)).version).toBe(4);
+    // PRE-7 (R-2, D-446) : forme Catalogue v5.
+    expect((await json(created.id)).version).toBe(5);
     expect((await json(created.id)).series.rows.map((row: { target: unknown }) => row.target)).toEqual([
       { kind: "FAILURE" },
       { kind: "NUMBER", value: 30 },

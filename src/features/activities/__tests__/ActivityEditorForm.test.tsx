@@ -68,7 +68,7 @@ function fakeReferentialService(bodyZones: readonly BodyZone[] = BODY_ZONE_FIXTU
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -85,6 +85,7 @@ function parameters(overrides: Partial<ExecutionParametersInput> = {}): Executio
 const variable = (rows: [number | null, number][]) => ({
   kind: "VARIABLE" as const,
   rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds, loadKg: 0 })),
+  workPhases: [],
 });
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {

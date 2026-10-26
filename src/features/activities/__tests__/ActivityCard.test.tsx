@@ -141,7 +141,7 @@ describe("ActivityCard", () => {
  */
 describe("ActivityCard — PRE-3", () => {
   const canonical = (overrides: Partial<ExecutionParameters>): ExecutionParameters => ({
-    version: 3 as const,
+    version: 5 as const,
     mode: "DURATION" as const,
     series: { kind: "UNIFORM" as const, count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL" as const,

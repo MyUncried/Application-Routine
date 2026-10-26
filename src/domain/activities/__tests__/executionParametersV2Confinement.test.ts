@@ -88,7 +88,10 @@ describe("PRE5-1.1/AC4 — garde de cantonnement de serializeV2 et readV2 (AD-18
     expect(ep.match(/\breadV2\s*\(/g)).toHaveLength(1);
     expect(ep).toMatch(/export function readV2\s*\(/);
     // `readExecutionParameters` délègue la v2 à la grammaire de `readV2` (même lecteur interne).
-    expect(ep).toMatch(/export function readExecutionParameters[\s\S]*?readV2Object\(value\)[\s\S]*?readV3Object\(value\)/);
+    // PRE-7 (D-446, R-2) : la v3 et la v5 partagent le lecteur de la grammaire résolue.
+    expect(ep).toMatch(
+      /export function readExecutionParameters[\s\S]*?readV2Object\(value\)[\s\S]*?readResolvedObject\(value, false\)[\s\S]*?readResolvedObject\(value, true\)/,
+    );
   });
 
   it("l'Instantané passe par readExecutionParameters et serializeExecutionParameters", () => {

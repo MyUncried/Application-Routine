@@ -30,7 +30,7 @@ const STEPPER = "execution-sheet-series";
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -48,6 +48,7 @@ const variable = (count: number): Partial<ExecutionParametersInput> => ({
   series: {
     kind: "VARIABLE",
     rows: Array.from({ length: count }, (_, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg: 0 })),
+    workPhases: [],
   },
 });
 

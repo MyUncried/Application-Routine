@@ -29,7 +29,7 @@ import {
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 20, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -45,7 +45,7 @@ function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPar
 
 const variable = (loads: number[]) =>
   params({
-    series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+    series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
   });
 
 describe("PRE5-2.2 — ordre de navigation des champs de charge (FR-25)", () => {
@@ -131,7 +131,7 @@ describe("D-434 — champs clavier des cellules du tableau des séries", () => {
       params({
         mode,
         loadEnabled,
-        series: { kind: "VARIABLE", rows: targets.map((target, index) => ({ target, pauseSeconds: 10 * index, loadKg: 0 })) },
+        series: { kind: "VARIABLE", rows: targets.map((target, index) => ({ target, pauseSeconds: 10 * index, loadKg: 0 })), workPhases: [] },
       }),
     );
 

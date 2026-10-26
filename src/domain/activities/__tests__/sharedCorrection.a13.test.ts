@@ -178,9 +178,45 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     expect(resolution).toEqual(expect.objectContaining({ status: "INCOMPLETE", missingPhaseIds: [] }));
   });
 
-  it("Sans → Avec (PRE-7, D-446) : seul un frère en séries variables est INELIGIBLE ; Répétitions et à l'échec éligibles, Cible conservée", () => {
-    expect(planSiblingCorrection([], structure(1, 2), sibling(variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 10]] })))).toEqual({
-      status: "INELIGIBLE",
+  it("Sans → Avec (PRE-7, D-446 ; complément du 26/10/2026) : un frère en séries variables suit la même règle ; Répétitions et à l'échec éligibles, Cible conservée", () => {
+    // D-446 (complément du 26/10/2026) : compatibilité phases + séries variables, motif commun aux lignes.
+    const variable = variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 10], ["FAILURE", 10]] });
+    expect(planSiblingCorrection([], structure(1, 2), sibling(variable))).toEqual({
+      status: "NEEDS_COMPLETION",
+      gap: { definitionId: "def-2", missingPhaseIds: [1, 2], missingSeriesDuration: false },
+    });
+    const variableCompleted = planSiblingCorrection([], structure(1, 2), sibling(variable), {
+      definitionId: "def-2",
+      phaseDurations: [
+        { phaseId: 1, durationSeconds: 5 },
+        { phaseId: 2, durationSeconds: 2 },
+      ],
+    });
+    expect(variableCompleted.status).toBe("READY");
+    if (variableCompleted.status !== "READY") return;
+    expect(variableCompleted.incomplete).toBe(false);
+    expect(variableCompleted.parameters.series).toEqual({
+      kind: "VARIABLE",
+      rows: variable.series.kind === "VARIABLE" ? variable.series.rows : [],
+      phaseDurations: [
+        { phaseId: 1, durationSeconds: 5 },
+        { phaseId: 2, durationSeconds: 2 },
+      ],
+    });
+    // Avec → Sans : le motif est retiré, les lignes restent celles du frère.
+    const withPattern = variableParameters({
+      mode: "DURATION",
+      rows: [[30, 10], [45, 10]],
+      workPhases: [
+        { id: 1, label: "Phase 1", durationSeconds: 5 },
+        { id: 2, label: "Phase 2", durationSeconds: 2 },
+      ],
+    });
+    const removed = planSiblingCorrection(structure(1, 2), [], sibling(withPattern));
+    expect(removed.status === "READY" && removed.parameters.series).toEqual({
+      kind: "VARIABLE",
+      rows: withPattern.series.kind === "VARIABLE" ? withPattern.series.rows : [],
+      phaseDurations: [],
     });
     // Séries identiques, tout Mode, toute Cible : éligible, toutes ses phases sont à compléter.
     const eligible: readonly ExecutionParameters[] = [
@@ -221,11 +257,12 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     }
   });
 
-  it("plan des frères : refus par priorité (inéligible, puis complétion invalide, puis complétions manquantes) ; complétion d'un non-frère ignorée", () => {
+  it("plan des frères : refus par priorité (complétion invalide, puis complétions manquantes, séries variables comprises) ; complétion d'un non-frère ignorée", () => {
     const ok = { definitionId: "def-ok", parameters: phased(phases(8, 4)) };
     const missing = { definitionId: "def-missing", parameters: phased(phases(5, 5)) };
-    // PRE-7 (D-446) : seul un frère en séries variables est inéligible.
-    const ineligible = { definitionId: "def-reps", parameters: variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]] }) };
+    // PRE-7 (D-446, complément du 26/10/2026) : un frère en séries variables n'est plus inéligible ;
+    // comme un frère identique, ses phases nouvelles sont à compléter.
+    const variable = { definitionId: "def-reps", parameters: variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]] }) };
     const completion = { definitionId: "def-ok", phaseDurations: [{ phaseId: 3, durationSeconds: 2 }] };
     expect(planSiblingsCorrection(structure(1, 2), structure(1, 2, 3), [ok, missing], [completion])).toEqual({
       status: "REFUSED",
@@ -236,14 +273,20 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
         { ...completion, phaseDurations: [{ phaseId: 3, durationSeconds: 0 }] },
       ]),
     ).toEqual({ status: "REFUSED", refusal: { kind: "INVALID_SIBLING_COMPLETION", definitionIds: ["def-ok"] } });
-    expect(planSiblingsCorrection([], structure(1), [ineligible, { definitionId: "def-d", parameters: durationParameters(30, 3, 10) }])).toEqual({
+    expect(planSiblingsCorrection([], structure(1), [variable, { definitionId: "def-d", parameters: durationParameters(30, 3, 10) }])).toEqual({
       status: "REFUSED",
-      refusal: { kind: "INELIGIBLE_SIBLINGS", definitionIds: ["def-reps"] },
+      refusal: {
+        kind: "SIBLING_COMPLETION_REQUIRED",
+        siblings: [
+          { definitionId: "def-reps", missingPhaseIds: [1], missingSeriesDuration: false },
+          { definitionId: "def-d", missingPhaseIds: [1], missingSeriesDuration: false },
+        ],
+      },
     });
     const ready = planSiblingsCorrection(structure(1, 2), structure(1, 2, 3), [ok], [completion, { definitionId: "ailleurs", seriesDurationSeconds: 9 }]);
     expect(ready.status === "READY" && ready.updates.map((update) => update.definitionId)).toEqual(["def-ok"]);
     // Ensemble inchangé : aucun frère réécrit.
-    expect(planSiblingsCorrection(structure(1, 2), structure(2, 1), [ok, ineligible])).toEqual({ status: "READY", updates: [] });
+    expect(planSiblingsCorrection(structure(1, 2), structure(2, 1), [ok, variable])).toEqual({ status: "READY", updates: [] });
   });
 });
 
@@ -410,5 +453,17 @@ describe("PRE-7 A1.3 — Instantané avec filiation (MFN-03, MFN-11)", () => {
     expect(() =>
       createExerciseSnapshot({ ...source, executionParameters: uniformParameters({ mode: "DURATION", count: 3, target: "UNSET", pauseSeconds: 10 }) }),
     ).toThrow(ExerciseSnapshotDataError);
+    // PRE-7 (D-446, complément du 26/10/2026) : séries variables à motif incomplet (durée 0) → même refus.
+    const variableMotif = (seconds: number) =>
+      variableParameters({
+        mode: "DURATION",
+        rows: [[30, 10], [45, 10]],
+        workPhases: [
+          { id: 1, label: "a", durationSeconds: 5 },
+          { id: 2, label: "b", durationSeconds: seconds },
+        ],
+      });
+    expect(() => createExerciseSnapshot({ ...source, executionParameters: variableMotif(0) })).toThrow(ExerciseSnapshotDataError);
+    expect(createExerciseSnapshot({ ...source, executionParameters: variableMotif(2) }).executionParameters).toEqual(variableMotif(2));
   });
 });

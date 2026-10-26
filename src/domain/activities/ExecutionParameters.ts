@@ -39,13 +39,27 @@
  * (Instantané, A1.3 ; preuves des migrations historiques), sans appelant de
  * persistance.
  *
+ * PRE-7 (D-446, complément de Hermann du 26/10/2026 ; R-2) : les phases sont
+ * un motif commun aux séries identiques ET variables (`ExecutionSeries.workPhases`).
+ * Les trois formes passent en version 5 — représentation en mémoire et forme
+ * canonique (`serializeExecutionParameters`), forme RÉSOLUE, forme CATALOGUE —
+ * avec les phases (ou leurs durées) dans les deux régimes. La v4 n'est plus lue :
+ * la migration 013 réinitialise les Exercices et les Séances (Q2). La v3 reste
+ * lue par `readExecutionParameters` (régime variable sans phase).
+ *
  * Fonctions pures — sans React, SQLite, Expo, Profil implicite ni horloge.
  */
 
 import { isSideMode, type SideMode } from "@/domain/sessions/sideMode";
 
-/** Version du JSON canonique (AD-18, FR-39) : v3, écrite par `serializeExecutionParameters`. */
-export const EXECUTION_PARAMETERS_VERSION = 3 as const;
+/**
+ * Version du JSON canonique (AD-18, FR-39), écrite par `serializeExecutionParameters`.
+ * PRE-7 (D-446, R-2) : v5, phases dans les deux régimes de séries.
+ */
+export const EXECUTION_PARAMETERS_VERSION = 5 as const;
+
+/** Version PRE-5 (AD-18) : phases dans le seul régime identique ; lue par `readExecutionParameters`. */
+export const EXECUTION_PARAMETERS_V3 = 3 as const;
 
 /**
  * Version figée par `migration010` (AD-4, AD-18) : `readV2` et `serializeV2`
@@ -176,8 +190,12 @@ export type SeriesRow = {
 
 /**
  * Séries identiques. PRE-5 : `loadKg` est la charge commune (AD-19) et
- * `workPhases` les phases de l'exercice (AD-20 ; `[]` = « Aucune »). Une
- * série `VARIABLE` ne porte aucune phase, par construction.
+ * `workPhases` les phases de l'exercice (AD-20 ; `[]` = « Aucune »).
+ *
+ * PRE-7 (D-446, complément de Hermann du 26/10/2026) : les phases sont un
+ * motif commun à TOUTES les séries, identiques comme variables. Elles sont
+ * portées par l'ensemble des séries (`ExecutionSeries.workPhases`), jamais
+ * par une ligne : aucune durée de phase n'est propre à une série.
  */
 export type UniformSeries = {
   readonly kind: "UNIFORM";
@@ -188,10 +206,14 @@ export type UniformSeries = {
   readonly workPhases: readonly WorkPhase[];
 };
 
-/** Régime variables explicite : la longueur de `rows` est N. Aucune valeur commune concurrente. */
+/**
+ * Régime variables explicite : la longueur de `rows` est N. Aucune valeur commune concurrente,
+ * hormis le motif des phases (D-446 : une seule séquence, mêmes durées, pour toutes les lignes).
+ */
 export type VariableSeries = {
   readonly kind: "VARIABLE";
   readonly rows: readonly SeriesRow[];
+  readonly workPhases: readonly WorkPhase[];
 };
 
 export type ExecutionSeries = UniformSeries | VariableSeries;
@@ -368,7 +390,7 @@ export function resizeSeriesWithReserve(
     // Régime variables sans ligne (forme invalide, lue défensivement) : Série à renseigner.
     last === undefined ? { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 } : copySeriesRow(last),
   );
-  return { series: { kind: "VARIABLE", rows: resized.active }, reserve: resized.reserve };
+  return { series: { kind: "VARIABLE", rows: resized.active, workPhases: series.workPhases }, reserve: resized.reserve };
 }
 
 /** Vrai si toutes les Cibles effectives sont à l'échec (gabarit « tout échec », P26). */
@@ -393,8 +415,7 @@ export function hasUnsetTarget(parameters: { readonly series: ExecutionSeries })
  * indépendante des phases, elles lisent aussi ce prédicat. Aucune règle nouvelle.
  */
 export function hasMissingPhaseDuration(parameters: { readonly series: ExecutionSeries }): boolean {
-  const { series } = parameters;
-  return series.kind === "UNIFORM" && series.workPhases.some((phase) => !(phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
+  return parameters.series.workPhases.some((phase) => !(phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
 }
 
 /** Condition d'arrêt dérivée (AD-23, FR-20) : jamais persistée. */
@@ -418,7 +439,7 @@ export function stopConditionOf(parameters: ExecutionParametersInput): StopCondi
   }
   // Seules les lignes renseignées comptent (QN-2) : les prédicats existants s'appliquent à elles.
   const rows = hasUnsetTarget(effective) ? effective.series.rows.filter((row) => row.target.kind !== "UNSET") : effective.series.rows;
-  const filled = { series: { kind: "VARIABLE", rows } } as const;
+  const filled = { series: { kind: "VARIABLE", rows, workPhases: [] } } as const;
   if (rows.length === 0) {
     return "NONE";
   }
@@ -534,10 +555,17 @@ export function normalizeEffective<T extends ExecutionParametersInput>(parameter
   const count = seriesCountOf(parameters);
   let series = parameters.series;
   if (count === 1 && series.kind === "VARIABLE") {
-    // PRE-5 (AD-19, AD-20) : l'uniforme reprend la charge de la première ligne, sans phase ;
-    // `loadEnabled` est inchangé. Une série déjà uniforme garde ses phases.
+    // PRE-5 (AD-19, AD-20) : l'uniforme reprend la charge de la première ligne ; `loadEnabled`
+    // est inchangé. PRE-7 (D-446) : le motif commun des phases est conservé.
     const first = series.rows[0]!;
-    series = { kind: "UNIFORM", count: 1, target: first.target, pauseSeconds: first.pauseSeconds, loadKg: first.loadKg, workPhases: [] };
+    series = {
+      kind: "UNIFORM",
+      count: 1,
+      target: first.target,
+      pauseSeconds: first.pauseSeconds,
+      loadKg: first.loadKg,
+      workPhases: series.workPhases,
+    };
   }
   return {
     ...parameters,
@@ -993,23 +1021,15 @@ export function validateForSave(
     checkStructuralLoad(row.loadKg, violations, seriesNumber);
   };
 
-  let count: number | null = null;
-  if (typeof series !== "object" || series === null || Array.isArray(series)) {
-    violations.push({ code: "UNRECOGNIZED", field: "series", level: "STRUCTURE" });
-  } else if (series.kind === "UNIFORM") {
-    if (checkStructuralNumber(series.count, "seriesCount", violations, { min: 1 })) {
-      count = series.count as number;
-    }
-    // En uniforme, une seule Cible et une seule Pause communes : signalées une fois.
-    const common = { target: series.target, pauseSeconds: series.pauseSeconds, loadKg: series.loadKg };
-    checkRow(common, alignmentFor([common])[0] ?? null, undefined);
-    // PRE-5 (AD-20, FR-3) : invariant des phases, structurel, sans tolérance de ligne de base.
-    if (series.workPhases === null || series.workPhases === undefined) {
+  // PRE-5 (AD-20, FR-3) : invariant des phases, structurel, sans tolérance de ligne de base.
+  // PRE-7 (D-446) : appliqué au motif commun, en séries identiques comme variables.
+  const checkWorkPhases = (workPhases: unknown) => {
+    if (workPhases === null || workPhases === undefined) {
       violations.push({ code: "REQUIRED", field: "workPhases", level: "STRUCTURE" });
-    } else if (!Array.isArray(series.workPhases)) {
+    } else if (!Array.isArray(workPhases)) {
       violations.push({ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" });
     } else {
-      const problem = workPhasesProblem(series.workPhases);
+      const problem = workPhasesProblem(workPhases);
       if (problem !== null && problem.kind === "MISSING") {
         // PRE-7 (A1.1, D-438, MFN/AC15, AC25) : une violation par durée manquante, la phase
         // restant présente ; ✓ et enregistrement de l'Exercice édité refusés.
@@ -1028,6 +1048,19 @@ export function validateForSave(
         });
       }
     }
+  };
+
+  let count: number | null = null;
+  if (typeof series !== "object" || series === null || Array.isArray(series)) {
+    violations.push({ code: "UNRECOGNIZED", field: "series", level: "STRUCTURE" });
+  } else if (series.kind === "UNIFORM") {
+    if (checkStructuralNumber(series.count, "seriesCount", violations, { min: 1 })) {
+      count = series.count as number;
+    }
+    // En uniforme, une seule Cible et une seule Pause communes : signalées une fois.
+    const common = { target: series.target, pauseSeconds: series.pauseSeconds, loadKg: series.loadKg };
+    checkRow(common, alignmentFor([common])[0] ?? null, undefined);
+    checkWorkPhases(series.workPhases);
   } else if (series.kind === "VARIABLE") {
     if (!Array.isArray(series.rows) || series.rows.length === 0) {
       violations.push({ code: "REQUIRED", field: "series", level: "STRUCTURE" });
@@ -1036,6 +1069,7 @@ export function validateForSave(
       const alignment = alignmentFor(series.rows);
       series.rows.forEach((row: unknown, index: number) => checkRow(row, alignment[index] ?? null, index + 1));
     }
+    checkWorkPhases(series.workPhases);
   } else {
     violations.push({ code: "UNRECOGNIZED", field: "series", level: "STRUCTURE" });
   }
@@ -1084,7 +1118,7 @@ export function serializeV2(parameters: ExecutionParameters): string {
   if (
     parameters.loadEnabled ||
     loads.some((loadKg) => loadKg !== 0) ||
-    (series.kind === "UNIFORM" && series.workPhases.length > 0)
+    series.workPhases.length > 0
   ) {
     throw new Error("serializeV2 cannot carry work phases or a load (AD-18).");
   }
@@ -1124,11 +1158,8 @@ export function serializeExecutionParameters(parameters: ExecutionParameters): s
   return encodeResolvedParameters(parameters, EXECUTION_PARAMETERS_VERSION);
 }
 
-/** Encodage canonique de la représentation résolue sous la version donnée (v3, ou forme résolue v4 des copies). */
-function encodeResolvedParameters(
-  parameters: ExecutionParameters,
-  version: typeof EXECUTION_PARAMETERS_VERSION | typeof RESOLVED_EXECUTION_PARAMETERS_VERSION,
-): string {
+/** Encodage canonique de la représentation résolue (v5 : forme canonique et forme résolue des copies). */
+function encodeResolvedParameters(parameters: ExecutionParameters, version: typeof EXECUTION_PARAMETERS_VERSION): string {
   const { series } = parameters;
   const encoded =
     series.kind === "UNIFORM"
@@ -1150,6 +1181,12 @@ function encodeResolvedParameters(
             target: encodeTarget(row.target),
             pauseSeconds: row.pauseSeconds,
             loadKg: row.loadKg,
+          })),
+          // PRE-7 (D-446) : motif commun, après les lignes.
+          workPhases: series.workPhases.map((phase) => ({
+            id: phase.id,
+            label: phase.label,
+            durationSeconds: phase.durationSeconds,
           })),
         };
   return JSON.stringify({
@@ -1273,15 +1310,32 @@ function readV2Object(value: Record<string, unknown>): ExecutionParameters {
     const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg: 0, workPhases: [] };
   } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
-    series = { kind: "VARIABLE", rows: seriesValue.rows.map((row) => ({ ...readTargetAndPause(row), loadKg: 0 })) };
+    series = { kind: "VARIABLE", rows: seriesValue.rows.map((row) => ({ ...readTargetAndPause(row), loadKg: 0 })), workPhases: [] };
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
   }
   return { version: EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: false };
 }
 
-/** Lecture v3 stricte (AD-18) : clé absente ou mal typée, ou invariant des phases rompu → erreur. */
-function readV3Object(value: Record<string, unknown>): ExecutionParameters {
+/** Phases lues strictement : invariant rompu (durée manquante comprise) → erreur. */
+function readWorkPhases(value: unknown): WorkPhase[] {
+  const problem = workPhasesProblem(value);
+  if (problem !== null) {
+    throw new ExecutionParametersDataError(`Malformed work phases: ${workPhasesProblemReason(problem)}.`);
+  }
+  return (value as WorkPhase[]).map((phase) => ({
+    id: phase.id,
+    label: phase.label,
+    durationSeconds: phase.durationSeconds,
+  }));
+}
+
+/**
+ * Lecture stricte de la grammaire résolue (AD-18) : clé absente ou mal typée, ou invariant des
+ * phases rompu → erreur. `variablePhases` : v5 (D-446), le régime variable porte `workPhases`
+ * (obligatoire) ; v3, il n'en porte aucune (`[]`, clé ignorée).
+ */
+function readResolvedObject(value: Record<string, unknown>, variablePhases: boolean): ExecutionParameters {
   const { mode, seriesValue, root } = readRootFields(value);
   if (typeof value.loadEnabled !== "boolean") {
     throw new ExecutionParametersDataError("Malformed loadEnabled.");
@@ -1291,15 +1345,7 @@ function readV3Object(value: Record<string, unknown>): ExecutionParameters {
     const count = readUniformCount(seriesValue);
     const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     const loadKg = readLoadKg(seriesValue.loadKg);
-    const problem = workPhasesProblem(seriesValue.workPhases);
-    if (problem !== null) {
-      throw new ExecutionParametersDataError(`Malformed work phases: ${workPhasesProblemReason(problem)}.`);
-    }
-    const workPhases = (seriesValue.workPhases as WorkPhase[]).map((phase) => ({
-      id: phase.id,
-      label: phase.label,
-      durationSeconds: phase.durationSeconds,
-    }));
+    const workPhases = readWorkPhases(seriesValue.workPhases);
     series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg, workPhases };
   } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
     series = {
@@ -1308,6 +1354,7 @@ function readV3Object(value: Record<string, unknown>): ExecutionParameters {
         ...readTargetAndPause(row),
         loadKg: readLoadKg((row as { loadKg?: unknown }).loadKg),
       })),
+      workPhases: variablePhases ? readWorkPhases(seriesValue.workPhases) : [],
     };
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
@@ -1338,10 +1385,10 @@ export function readV2(json: string | null | undefined): ExecutionParameters {
  */
 export function readV3(json: string | null | undefined): ExecutionParameters {
   const value = parseParametersJson(json);
-  if (value.version !== EXECUTION_PARAMETERS_VERSION) {
+  if (value.version !== EXECUTION_PARAMETERS_V3) {
     unknownVersion(value.version);
   }
-  return readV3Object(value);
+  return readResolvedObject(value, false);
 }
 
 /**
@@ -1356,23 +1403,27 @@ export function readExecutionParameters(json: string | null | undefined): Execut
   if (value.version === EXECUTION_PARAMETERS_V2) {
     return readV2Object(value);
   }
+  if (value.version === EXECUTION_PARAMETERS_V3) {
+    return readResolvedObject(value, false);
+  }
   if (value.version === EXECUTION_PARAMETERS_VERSION) {
-    return readV3Object(value);
+    return readResolvedObject(value, true);
   }
   return unknownVersion(value.version);
 }
 
-// --- Format Catalogue v4 (PRE-7, A1.1, D-437, D-438, MFN-02) ------------------
+// --- Format Catalogue (PRE-7, A1.1, D-437, D-438, MFN-02 ; v5 depuis R-2) ------
 
 /**
  * PRE-7 (A1.1, MFN-02, ch09 « contrat canonique versionné », ch12 §12.5) —
  * version de la forme CATALOGUE des paramètres d'exécution : valeurs propres à
  * un Exercice du Catalogue, sans libellé de phase. La structure des phases
  * `(id, label)` appartient au Mouvement (`Movement.ts`) ; la représentation
- * RÉSOLUE (`ExecutionParameters`, v3, avec les libellés) reste celle des
+ * RÉSOLUE (`ExecutionParameters`, avec les libellés) reste celle des
  * copies, de la Feuille, de la phrase, des calculs et de l'Instantané.
+ * PRE-7 (R-2, D-446) : version 5, durées de phases dans les deux régimes.
  */
-export const CATALOG_EXECUTION_PARAMETERS_VERSION = 4 as const;
+export const CATALOG_EXECUTION_PARAMETERS_VERSION = 5 as const;
 
 /**
  * Durée d'une phase dans la forme Catalogue (MFN-02) : associée à la phase du
@@ -1390,9 +1441,14 @@ export type CatalogUniformSeries = Omit<UniformSeries, "workPhases"> & {
   readonly phaseDurations: readonly PhaseDuration[];
 };
 
-export type CatalogExecutionSeries = CatalogUniformSeries | VariableSeries;
+/** PRE-7 (D-446, R-2) : séries variables de la forme Catalogue v5, motif commun compris. */
+export type CatalogVariableSeries = Omit<VariableSeries, "workPhases"> & {
+  readonly phaseDurations: readonly PhaseDuration[];
+};
 
-/** Paramètres Catalogue v4 : mêmes champs racine que la v3, séries Catalogue. */
+export type CatalogExecutionSeries = CatalogUniformSeries | CatalogVariableSeries;
+
+/** Paramètres Catalogue v5 : mêmes champs racine que la forme résolue, séries Catalogue. */
 export type CatalogExecutionParameters = Omit<ExecutionParameters, "version" | "series"> & {
   readonly version: typeof CATALOG_EXECUTION_PARAMETERS_VERSION;
   readonly series: CatalogExecutionSeries;
@@ -1402,17 +1458,17 @@ export type CatalogExecutionParameters = Omit<ExecutionParameters, "version" | "
  * Invariant des durées de phases de la forme Catalogue (MFN-02, MFN-08,
  * D-430) : liste (vide = « Aucune », toujours valide) ; sinon au plus 6
  * entrées, `phaseId` entier ≥ 1 unique, durée entière ≥ 1 s ou `null`
- * (exercice frère incomplet, aucun total inventé), Cible objet. Toutes
- * renseignées : Σ dans 1..3535. Partagé par le sérialiseur, le lecteur v4 et
- * la résolution (`Movement.ts`). Retourne la raison d'un écart, `null` si
- * l'invariant tient.
+ * (exercice frère incomplet, aucun total inventé). Toutes renseignées : Σ
+ * (durée du motif) dans 1..3535, borne de D-430 conservée par D-446 pour le
+ * motif. Partagé par le sérialiseur, le lecteur Catalogue et la résolution
+ * (`Movement.ts`). Retourne la raison d'un écart, `null` si l'invariant tient.
  *
  * PRE-7 (D-446) : les exigences « Mode `DURATION` », « liste incomplète ⇒
  * Cible `UNSET` » et « liste complète ⇒ Cible `NUMBER` = Σ » sont retirées :
  * la Cible est indépendante du motif (Répétitions, À l'échec ou durée saisie) ;
- * le Mode n'est plus un paramètre.
+ * le Mode n'est plus un paramètre ; la Cible n'est plus contrôlée ici (R-2).
  */
-export function phaseDurationsProblem(target: unknown, phaseDurations: unknown): string | null {
+export function phaseDurationsProblem(phaseDurations: unknown): string | null {
   if (!Array.isArray(phaseDurations)) {
     return "phase durations are not a list";
   }
@@ -1443,9 +1499,6 @@ export function phaseDurationsProblem(target: unknown, phaseDurations: unknown):
     }
     sum += durationSeconds;
   }
-  if (!isRecord(target)) {
-    return "malformed series target";
-  }
   if (incomplete) {
     // D-446 : la Cible d'un frère incomplet est conservée telle quelle (aucun total inventé).
     return null;
@@ -1458,20 +1511,22 @@ export function phaseDurationsProblem(target: unknown, phaseDurations: unknown):
 }
 
 /**
- * Sérialisation canonique v4 (MFN-02) : clés et ordre de la v3, `JSON.stringify`
- * sans espace ; dans l'uniforme, `"phaseDurations"` (couples `phaseId`,
- * `durationSeconds`, `null` compris) remplace `"workPhases"`. Lève une erreur si
- * l'invariant `phaseDurationsProblem` est rompu : une durée 0, une Cible
- * incohérente ou une identité dupliquée n'est jamais écrite.
+ * Sérialisation canonique Catalogue v5 (MFN-02, D-446) : clés et ordre de la forme
+ * résolue, `JSON.stringify` sans espace ; dans les deux régimes, `"phaseDurations"`
+ * (couples `phaseId`, `durationSeconds`, `null` compris) remplace `"workPhases"`.
+ * Lève une erreur si l'invariant `phaseDurationsProblem` est rompu : une durée 0
+ * ou une identité dupliquée n'est jamais écrite.
  */
 export function serializeCatalogExecutionParameters(parameters: CatalogExecutionParameters): string {
   const { series } = parameters;
-  if (series.kind === "UNIFORM") {
-    const problem = phaseDurationsProblem(series.target, series.phaseDurations);
-    if (problem !== null) {
-      throw new Error(`serializeCatalogExecutionParameters: ${problem} (MFN-02).`);
-    }
+  const problem = phaseDurationsProblem(series.phaseDurations);
+  if (problem !== null) {
+    throw new Error(`serializeCatalogExecutionParameters: ${problem} (MFN-02).`);
   }
+  const phaseDurations = series.phaseDurations.map((entry) => ({
+    phaseId: entry.phaseId,
+    durationSeconds: entry.durationSeconds,
+  }));
   const encoded =
     series.kind === "UNIFORM"
       ? {
@@ -1480,10 +1535,7 @@ export function serializeCatalogExecutionParameters(parameters: CatalogExecution
           target: encodeTarget(series.target),
           pauseSeconds: series.pauseSeconds,
           loadKg: series.loadKg,
-          phaseDurations: series.phaseDurations.map((entry) => ({
-            phaseId: entry.phaseId,
-            durationSeconds: entry.durationSeconds,
-          })),
+          phaseDurations,
         }
       : {
           kind: "VARIABLE",
@@ -1492,6 +1544,7 @@ export function serializeCatalogExecutionParameters(parameters: CatalogExecution
             pauseSeconds: row.pauseSeconds,
             loadKg: row.loadKg,
           })),
+          phaseDurations,
         };
   return JSON.stringify({
     version: CATALOG_EXECUTION_PARAMETERS_VERSION,
@@ -1507,14 +1560,23 @@ export function serializeCatalogExecutionParameters(parameters: CatalogExecution
   });
 }
 
+/** Durées de phases lues strictement (`phaseDurationsProblem`), dans les deux régimes (D-446). */
+function readPhaseDurations(value: unknown): PhaseDuration[] {
+  const problem = phaseDurationsProblem(value);
+  if (problem !== null) {
+    throw new ExecutionParametersDataError(`Malformed phase durations: ${problem}.`);
+  }
+  return (value as PhaseDuration[]).map((entry) => ({ phaseId: entry.phaseId, durationSeconds: entry.durationSeconds }));
+}
+
 /**
- * Lecteur v4 STRICT (MFN-02, ch09 : « une version inconnue ne doit jamais être
+ * Lecteur Catalogue STRICT (MFN-02, ch09 : « une version inconnue ne doit jamais être
  * rabattue silencieusement sur une durée scalaire ») : NULL, JSON corrompu,
- * toute version autre que 4 (v3 et v5 comprises), clé `loadEnabled`, `loadKg`
- * ou `phaseDurations` absente ou mal typée, invariant `phaseDurationsProblem`
- * rompu (durée 0, phase dupliquée…) → `ExecutionParametersDataError`, jamais
- * un repli. Grammaire racine, Cible, Pause et charge identiques à la v3 ; les
- * clés inconnues sont ignorées, comme en v2 et v3.
+ * toute version autre que 5 (v4 comprise, R-2), clé `loadEnabled`, `loadKg`
+ * ou `phaseDurations` absente ou mal typée (dans les deux régimes, D-446),
+ * invariant `phaseDurationsProblem` rompu (durée 0, phase dupliquée…) →
+ * `ExecutionParametersDataError`, jamais un repli. Grammaire racine, Cible, Pause
+ * et charge identiques à la forme résolue ; les clés inconnues sont ignorées.
  */
 export function readCatalogExecutionParameters(json: string | null | undefined): CatalogExecutionParameters {
   const value = parseParametersJson(json);
@@ -1530,14 +1592,7 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
     const count = readUniformCount(seriesValue);
     const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     const loadKg = readLoadKg(seriesValue.loadKg);
-    const problem = phaseDurationsProblem(row.target, seriesValue.phaseDurations);
-    if (problem !== null) {
-      throw new ExecutionParametersDataError(`Malformed phase durations: ${problem}.`);
-    }
-    const phaseDurations = (seriesValue.phaseDurations as PhaseDuration[]).map((entry) => ({
-      phaseId: entry.phaseId,
-      durationSeconds: entry.durationSeconds,
-    }));
+    const phaseDurations = readPhaseDurations(seriesValue.phaseDurations);
     series = { kind: "UNIFORM", count, target: row.target, pauseSeconds: row.pauseSeconds, loadKg, phaseDurations };
   } else if (seriesValue.kind === "VARIABLE" && Array.isArray(seriesValue.rows) && seriesValue.rows.length >= 1) {
     series = {
@@ -1546,6 +1601,7 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
         ...readTargetAndPause(row),
         loadKg: readLoadKg((row as { loadKg?: unknown }).loadKg),
       })),
+      phaseDurations: readPhaseDurations(seriesValue.phaseDurations),
     };
   } else {
     throw new ExecutionParametersDataError("Unknown series kind.");
@@ -1553,51 +1609,48 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
   return { version: CATALOG_EXECUTION_PARAMETERS_VERSION, mode, series, ...root, loadEnabled: value.loadEnabled };
 }
 
-// --- Forme résolue v4 des copies (PRE-7, A1.2, D-437, D-440, MFN-02) ---------
+// --- Forme résolue des copies (PRE-7, A1.2, D-437, D-440, MFN-02 ; v5 depuis R-2) ---
 
 /**
  * PRE-7 (A1.2, ch12 « Architecture cible MFN » : « phases résolues dans les
  * copies ») — version de la forme RÉSOLUE persistée par les copies de Séance
- * (`activities.execution_parameters`) après la migration 012 : grammaire de la
- * v3 (libellés de phases compris), version 4. La colonne détermine la forme :
- * `activity_definitions` porte la forme Catalogue v4, `activities` la forme
- * résolue v4. La représentation en mémoire reste `ExecutionParameters`
- * (`version: 3`).
+ * (`activities.execution_parameters`) après la migration 012 : grammaire
+ * canonique (libellés de phases compris). La colonne détermine la forme :
+ * `activity_definitions` porte la forme Catalogue, `activities` la forme
+ * résolue. PRE-7 (R-2, D-446) : version 5, égale à la version canonique en
+ * mémoire ; les deux formes ne se distinguent plus par leur numéro, seulement
+ * par la colonne (phases avec libellés ou durées par `phaseId`).
  */
-export const RESOLVED_EXECUTION_PARAMETERS_VERSION = 4 as const;
+export const RESOLVED_EXECUTION_PARAMETERS_VERSION = EXECUTION_PARAMETERS_VERSION;
 
 /**
- * Écrivain STRICT de la forme résolue v4 (MFN-02, D-438) : clés et ordre de
- * `serializeExecutionParameters`, version 4. Lève si l'invariant des phases
+ * Écrivain STRICT de la forme résolue v5 (MFN-02, D-438) : clés et ordre de
+ * `serializeExecutionParameters`. Lève si l'invariant des phases
  * est rompu, durée manquante comprise : une copie de Séance n'est produite que
  * d'une résolution exécutable (ch11 « refuser les exercices incomplets ») ; un
  * exercice frère incomplet ne persiste que sous la forme Catalogue.
  */
 export function serializeResolvedExecutionParameters(parameters: ExecutionParameters): string {
-  const { series } = parameters;
-  if (series.kind === "UNIFORM") {
-    const problem = workPhasesProblem(series.workPhases);
-    if (problem !== null) {
-      throw new Error(`serializeResolvedExecutionParameters: ${workPhasesProblemReason(problem)} (MFN-02).`);
-    }
+  const problem = workPhasesProblem(parameters.series.workPhases);
+  if (problem !== null) {
+    throw new Error(`serializeResolvedExecutionParameters: ${workPhasesProblemReason(problem)} (MFN-02).`);
   }
   return encodeResolvedParameters(parameters, RESOLVED_EXECUTION_PARAMETERS_VERSION);
 }
 
 /**
- * Lecteur STRICT de la forme résolue v4 (D-440 : aucune lecture v2/v3 dans la
- * persistance après 012) : NULL, JSON corrompu, toute version autre que 4, et
- * toute violation de la grammaire v3 (`readV3Object`, invariant des phases
- * compris ; une forme Catalogue, sans `workPhases`, est refusée) →
- * `ExecutionParametersDataError`. Retourne la représentation en mémoire
- * (`version: 3`).
+ * Lecteur STRICT de la forme résolue v5 (D-440 : aucune lecture v2/v3 dans la
+ * persistance après 012 ; R-2 : ni v4) : NULL, JSON corrompu, toute version autre
+ * que 5, et toute violation de la grammaire (`readResolvedObject`, invariant des
+ * phases compris ; une forme Catalogue, sans `workPhases`, est refusée) →
+ * `ExecutionParametersDataError`.
  */
 export function readResolvedExecutionParameters(json: string | null | undefined): ExecutionParameters {
   const value = parseParametersJson(json);
   if (value.version !== RESOLVED_EXECUTION_PARAMETERS_VERSION) {
     unknownVersion(value.version);
   }
-  return readV3Object(value);
+  return readResolvedObject(value, true);
 }
 
 /**
@@ -1709,13 +1762,15 @@ export function executionParametersEqual(
   ) {
     return false;
   }
+  if (!workPhasesEqual(a.series.workPhases, b.series.workPhases)) {
+    return false;
+  }
   if (a.series.kind === "UNIFORM" && b.series.kind === "UNIFORM") {
     return (
       a.series.count === b.series.count &&
       targetsEqual(a.series.target, b.series.target) &&
       a.series.pauseSeconds === b.series.pauseSeconds &&
-      a.series.loadKg === b.series.loadKg &&
-      workPhasesEqual(a.series.workPhases, b.series.workPhases)
+      a.series.loadKg === b.series.loadKg
     );
   }
   const rowsA = seriesRowsOf(a);
@@ -1755,6 +1810,11 @@ export function cloneExecutionParameters<T extends ExecutionParametersInput>(par
               target: cloneTarget(row.target),
               pauseSeconds: row.pauseSeconds,
               loadKg: row.loadKg,
+            })),
+            workPhases: parameters.series.workPhases.map((phase) => ({
+              id: phase.id,
+              label: phase.label,
+              durationSeconds: phase.durationSeconds,
             })),
           },
   };

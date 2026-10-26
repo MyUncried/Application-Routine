@@ -45,7 +45,7 @@ const DOWN = [require("../../../../assets/icons/control-chevron-down.svg")];
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -63,6 +63,7 @@ const variable = (count: number): Partial<ExecutionParametersInput> => ({
   series: {
     kind: "VARIABLE",
     rows: Array.from({ length: count }, (_, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg: 0 })),
+    workPhases: [],
   },
 });
 
@@ -289,6 +290,7 @@ describe("RC-17 — Séries : jamais stepper et chevron actifs en même temps (r
     series: {
       kind: "VARIABLE",
       rows: Array.from({ length: count }, (_, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg: 5 * index })),
+      workPhases: [],
     },
   });
   const chevronState = () => get(CHEVRON).props.accessibilityState as { disabled?: boolean; expanded?: boolean };

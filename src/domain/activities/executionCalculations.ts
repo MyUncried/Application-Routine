@@ -19,6 +19,11 @@
  * (`knownSeconds` : travail connu, toutes les Pauses et PC) restent
  * disponibles pour l'agrégation de Séance (`lowerBound`). Compte à rebours
  * et Fin propres sont exclus du total intrinsèque.
+ *
+ * PRE-7 (R-2, D-446 §4, PHC-20261026) : en Répétitions, un motif de phases
+ * complet rend le travail estimable — Ti = Ri × durée du motif (« ≈ »),
+ * prioritaire sur l'estimation par la cadence (un passage du motif est une
+ * répétition guidée). En Durée, Ti reste la cible, indépendante du motif.
  */
 
 import {
@@ -32,6 +37,7 @@ import {
   type SeriesRow,
   type SeriesTarget,
 } from "./ExecutionParameters";
+import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "./phaseGuidance";
 
 export type LedgerSide = "NONE" | "RIGHT" | "LEFT";
 
@@ -116,10 +122,27 @@ function workSeconds(parameters: CalculableParameters, target: SeriesTarget): nu
   if (parameters.mode === "DURATION") {
     return target.value;
   }
+  // D-446 §4 : durée nominale du guidage = nombre cible × durée du motif (règle de `phaseGuidance.ts`).
+  const nominal = nominalGuidanceSeconds(parameters.mode, target, parameters.series.workPhases);
+  if (nominal !== null) {
+    return nominal;
+  }
   if (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds > 0) {
     return target.value * parameters.cadenceBeepIntervalSeconds;
   }
   return null;
+}
+
+/**
+ * PRE-7 (D-446) : vrai si le travail d'une Cible `NUMBER` est connu ou estimable — Durée,
+ * ou Répétitions avec un motif de phases complet ou une cadence.
+ */
+export function isWorkEstimable(parameters: ExecutionParametersInput): boolean {
+  return (
+    parameters.mode === "DURATION" ||
+    (parameters.mode === "REPETITIONS" &&
+      (parameters.cadenceBeepIntervalSeconds > 0 || workPhasesCycleSeconds(parameters.series.workPhases) !== null))
+  );
 }
 
 /**
@@ -208,10 +231,7 @@ function summarizeTargets(
     kind = "incomplete";
   } else if (!unknown) {
     kind = parameters.mode === "REPETITIONS" ? "estimated" : "exact";
-  } else if (
-    (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds === 0) ||
-    targets.every((target) => target.kind === "FAILURE")
-  ) {
+  } else if (!isWorkEstimable(parameters) || targets.every((target) => target.kind === "FAILURE")) {
     kind = "omitted";
   } else {
     kind = "lowerBound";

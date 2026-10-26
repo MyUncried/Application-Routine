@@ -98,7 +98,8 @@ function deepFreeze<T>(value: T): T {
  */
 function isIncompleteSibling(parameters: ExecutionParameters): boolean {
   const { series } = parameters;
-  return series.kind === "UNIFORM" && (series.target.kind === "UNSET" || series.workPhases.some((phase) => phase.durationSeconds < 1));
+  // PRE-7 (D-446) : une durée de phase manquante rend incomplet quel que soit le régime.
+  return series.workPhases.some((phase) => phase.durationSeconds < 1) || (series.kind === "UNIFORM" && series.target.kind === "UNSET");
 }
 
 /**

@@ -30,8 +30,8 @@ development_status:
   # recette-ja-d446-2 fusionnée dans r-2
   # Reprise après D-445 et PHC (proposition du 26/10/2026, validée : arbitrage-2026-10-26-reprise-q1-q11.md)
   epic-r: in-progress
-  r-1-lot-documentaire-de-consolidation: backlog
-  r-2-phases-motif-commun-calculs-et-guidage: backlog
+  r-1-lot-documentaire-de-consolidation: done
+  r-2-phases-motif-commun-calculs-et-guidage: review
   r-3-modèle-d445-occurrence-sans-copie-migration-013: backlog
   r-4-dialogue-de-sauvegarde-c03-et-crayon: backlog
   r-5-création-unicité-variante-et-recherche: backlog

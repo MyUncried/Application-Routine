@@ -652,7 +652,7 @@ describe("circuit — entrée et sortie (PRE-6, story 1.4, AD-39)", () => {
     const incoming = deepFreeze(exercise("E", variableParameters({ rows: [[10, 0], [20, 0], [30, 0]] }), { structuralPosition: "BEFORE_TOUR" }));
     expect(prepareEnterCircuit(draft, incoming)).toEqual({ losses: [{ occurrenceId: "E", lostSeriesCount: 1 }] });
     const entered = enterCircuit(draft, incoming);
-    expect(entered.executionParameters.series).toEqual({ kind: "VARIABLE", rows: [row(10), row(20)] });
+    expect(entered.executionParameters.series).toEqual({ kind: "VARIABLE", rows: [row(10), row(20)], workPhases: [] });
     expect(rowsOf({ ...draft, exercises: [incoming] }, "E")).toHaveLength(3);
   });
 

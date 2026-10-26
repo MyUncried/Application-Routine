@@ -91,7 +91,6 @@ import {
   alignRowsToBaseline,
   clampSeriesCount,
   cloneExecutionParameters,
-  EXECUTION_BOUNDS,
   EXECUTION_PARAMETERS_VERSION,
   failureTarget,
   normalizeEffective,
@@ -251,7 +250,8 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
   const lastNumberById: Record<number, NumbersByMode> = {};
   const first = rows[0];
   const uniform = first ? plain(first) : { target: unsetTarget(), pauseSeconds: 0, loadKg: 0 };
-  const workPhases: readonly WorkPhase[] = parameters.series.kind === "UNIFORM" ? parameters.series.workPhases : [];
+  // PRE-7 (D-446) : motif commun, lu dans les deux régimes.
+  const workPhases: readonly WorkPhase[] = parameters.series.workPhases;
   if (parameters.mode !== null) {
     const mode = parameters.mode;
     // PRE-5 (AD-23) : les Cibles `NUMBER` ouvertes sont les premières valeurs connues « À la cible ».
@@ -327,22 +327,24 @@ function plain(row: SeriesRow): SeriesRow {
  * validation refuse. Exportée pour le test d'aller-retour.
  */
 export function requestedParameters(draft: ExecutionSheetDraft): ExecutionParametersInput {
+  // PRE-7 (D-446) : une seule liste de phases, écrite dans le régime courant.
+  const workPhases = draft.workPhases.map((phase) => ({
+    id: phase.id,
+    label: phase.label,
+    durationSeconds: phase.durationSeconds ?? 0,
+  }));
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: draft.mode,
     series: draft.variable
-      ? { kind: "VARIABLE", rows: draft.rows.map(plain) }
+      ? { kind: "VARIABLE", rows: draft.rows.map(plain), workPhases }
       : {
           kind: "UNIFORM",
           count: draft.count,
           target: draft.uniform.target,
           pauseSeconds: draft.uniform.pauseSeconds,
           loadKg: draft.uniform.loadKg,
-          workPhases: draft.workPhases.map((phase) => ({
-            id: phase.id,
-            label: phase.label,
-            durationSeconds: phase.durationSeconds ?? 0,
-          })),
+          workPhases,
         },
     sideMode: draft.sideMode,
     sideOrder: draft.sideOrder,
@@ -495,9 +497,11 @@ export function setSeriesCount(draft: ExecutionSheetDraft, requested: number): E
  * Désactivation : l'uniforme reprend la PREMIÈRE ligne dans l'ordre courant.
  * Jamais déduit de l'égalité des valeurs.
  *
- * PRE-5 (story 2.1) : avec des phases, l'activation est refusée (FR-2, AD-20 :
- * aucune conversion destructive ; seule incompatibilité conservée par D-446) ; la désactivation est suivie de `normalizeLoad`
- * (AD-19, AD-23, §9-9) : une charge commune reprise à 0 fait passer à Sans.
+ * PRE-5 (story 2.1) : avec des phases, l'activation était refusée (FR-2, AD-20). PRE-7
+ * (D-446, complément de Hermann du 26/10/2026, qui remplace ce refus) : elle est permise,
+ * phases et durées conservées telles quelles dans les deux sens (motif commun). La
+ * désactivation est suivie de `normalizeLoad` (AD-19, AD-23, §9-9) : une charge commune
+ * reprise à 0 fait passer à Sans.
  */
 export function setVariable(draft: ExecutionSheetDraft, variable: boolean): ExecutionSheetDraft {
   if (variable === draft.variable) {
@@ -505,9 +509,6 @@ export function setVariable(draft: ExecutionSheetDraft, variable: boolean): Exec
   }
   if (!variable) {
     return normalizeDraftLoad(toUniform(draft));
-  }
-  if (draft.workPhases.length > 0) {
-    return draft;
   }
   return toVariable(draft);
 }
@@ -926,12 +927,12 @@ function effectiveUniformTarget(draft: ExecutionSheetDraft): SeriesTarget {
 
 /**
  * Prédicat UNIQUE d'éligibilité des phases (FR-2, AD-20). PRE-7 (D-446, qui
- * retire « Mode `DURATION` » et « Cible non `FAILURE` ») : Mode renseigné et
- * séries identiques effectives (N = 1 compris), en Durée comme en Répétitions,
- * à la cible comme à l'échec. Les séries variables N ≥ 2 restent inéligibles.
+ * retire « Mode `DURATION` » et « Cible non `FAILURE` ») : Mode renseigné, en
+ * Durée comme en Répétitions, à la cible comme à l'échec. Complément de Hermann du
+ * 26/10/2026 : les séries variables sont éligibles (motif commun à toutes les lignes).
  */
 export function canEnableWorkPhases(draft: ExecutionSheetDraft): boolean {
-  return draft.mode !== null && isEffectivelyUniform(draft);
+  return draft.mode !== null;
 }
 
 /**
@@ -946,10 +947,10 @@ function withWorkPhases(draft: ExecutionSheetDraft, workPhases: readonly DraftWo
 /**
  * Phases Avec / Sans (FR-5, FR-8, D-432, décision de Hermann du 19/10).
  * - Avec, sans phase et si `canEnableWorkPhases` : DEUX phases à libellé vide,
- *   identités tirées de `nextPhaseId` ; la première à la durée de la Cible
- *   `NUMBER` courante si le Mode est Durée et la valeur dans 1..3535 (D-432,
- *   préremplissage conservé), sinon `null` ; la seconde `null` (à renseigner).
- *   Rien n'est inventé. Sinon : refus, Brouillon inchangé.
+ *   identités tirées de `nextPhaseId`, durées `null` (à renseigner). PRE-7 (Q5,
+ *   arbitrage de Hermann du 26/10/2026, PHC-20261026 : « activer les phases ne
+ *   copie pas la cible de série comme durée du motif ») : le préremplissage de la
+ *   première phase par D-432 est retiré. Sinon : refus, Brouillon inchangé.
  * - Sans : `workPhases = []` ; aucune mémoire des anciennes phases (revenir à
  *   Avec recrée deux phases).
  *
@@ -963,16 +964,11 @@ export function setWorkPhasesEnabled(draft: ExecutionSheetDraft, enabled: boolea
   if (draft.workPhases.length > 0 || !canEnableWorkPhases(draft)) {
     return draft;
   }
+  // AD-20 : à N = 1 en état variable demandé, la transition passe par l'uniforme effectif.
   const uniform = effectiveUniform(draft);
-  const current = uniform.uniform.target;
-  const bounds = EXECUTION_BOUNDS.durationTarget;
-  const firstDuration =
-    uniform.mode === "DURATION" && current.kind === "NUMBER" && current.value >= bounds.min && current.value <= bounds.max
-      ? current.value
-      : null;
   const id = uniform.nextPhaseId;
   return withWorkPhases({ ...uniform, nextPhaseId: id + 2 }, [
-    { id, label: "", durationSeconds: firstDuration },
+    { id, label: "", durationSeconds: null },
     { id: id + 1, label: "", durationSeconds: null },
   ]);
 }

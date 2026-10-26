@@ -1074,6 +1074,7 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
         { target: { kind: "UNSET" }, pauseSeconds: 10, loadKg: 0 },
         { target: { kind: "NUMBER", value: 12 }, pauseSeconds: 10, loadKg: 0 },
       ],
+      workPhases: [],
     });
     expect(JSON.stringify(copy.executionParameters)).not.toContain("FAILURE");
     const continued = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [copy] });

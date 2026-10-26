@@ -281,31 +281,34 @@ export type SplitParameters = {
  * incomplet) devient `null`, seule absence stockable. PRE-7 (D-446) : la Cible
  * est conservée telle quelle, liste complète ou non — elle est indépendante du
  * motif des phases (elle n'était forcée à `UNSET` que parce qu'elle valait Σ).
- * Une série variable n'a ni phase ni durée. Aucune validation : le sérialiseur
- * et la résolution appliquent l'invariant.
+ * PRE-7 (D-446, R-2) : le motif est commun aux deux régimes ; une série variable porte
+ * les mêmes durées de phases qu'une série identique. Aucune validation : le
+ * sérialiseur et la résolution appliquent l'invariant.
  */
 export function splitResolvedParameters(parameters: ExecutionParameters): SplitParameters {
   const { series } = parameters;
   const root = { ...parameters, version: CATALOG_EXECUTION_PARAMETERS_VERSION };
+  const phaseDurations: PhaseDuration[] = series.workPhases.map((phase) => ({
+    phaseId: phase.id,
+    durationSeconds: phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin ? phase.durationSeconds : null,
+  }));
+  const phases = series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
   if (series.kind === "VARIABLE") {
     return {
-      phases: [],
+      phases,
       parameters: {
         ...root,
         series: {
           kind: "VARIABLE",
           rows: series.rows.map((row) => ({ target: { ...row.target }, pauseSeconds: row.pauseSeconds, loadKg: row.loadKg })),
+          phaseDurations,
         },
       },
     };
   }
-  const phaseDurations: PhaseDuration[] = series.workPhases.map((phase) => ({
-    phaseId: phase.id,
-    durationSeconds: phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin ? phase.durationSeconds : null,
-  }));
   const { workPhases: _workPhases, ...uniform } = series;
   return {
-    phases: series.workPhases.map((phase) => ({ id: phase.id, label: phase.label })),
+    phases,
     parameters: {
       ...root,
       series: { ...uniform, target: { ...series.target }, phaseDurations },
@@ -338,7 +341,7 @@ export type CatalogResolution =
  * paramètres Catalogue (MFN-02, ch10 « Nature, libellés et ordre des phases →
  * Mouvement ») : l'ordre et les libellés sont ceux de la structure, les durées
  * sont associées par `phaseId`. Les identités doivent être EXACTEMENT les mêmes
- * des deux côtés (vide ⇔ vide ; série variable ⇔ structure vide) ; un écart,
+ * des deux côtés (vide ⇔ vide ; D-446 : dans les deux régimes de séries) ; un écart,
  * une structure invalide ou un invariant rompu est une donnée corrompue →
  * `ExecutionParametersDataError`, jamais une association approchée.
  */
@@ -355,22 +358,7 @@ export function resolveCatalogParameters(
   }
   const { series } = parameters;
   const root = { ...parameters, version: EXECUTION_PARAMETERS_VERSION };
-  if (series.kind === "VARIABLE") {
-    if (phases.length > 0) {
-      throw new ExecutionParametersDataError("Movement phases without phase durations (variable series).");
-    }
-    return {
-      status: "EXECUTABLE",
-      parameters: {
-        ...root,
-        series: {
-          kind: "VARIABLE",
-          rows: series.rows.map((row) => ({ target: { ...row.target }, pauseSeconds: row.pauseSeconds, loadKg: row.loadKg })),
-        },
-      },
-    };
-  }
-  const durationsProblem = phaseDurationsProblem(series.target, series.phaseDurations);
+  const durationsProblem = phaseDurationsProblem(series.phaseDurations);
   if (durationsProblem !== null) {
     throw new ExecutionParametersDataError(`Malformed phase durations: ${durationsProblem}.`);
   }
@@ -384,14 +372,28 @@ export function resolveCatalogParameters(
     durationSeconds: byId.get(phase.id) ?? 0,
   }));
   const missingPhaseIds = phases.filter((phase) => byId.get(phase.id) === null).map((phase) => phase.id);
-  const { phaseDurations: _phaseDurations, ...uniform } = series;
-  const resolved: ExecutionParameters = {
-    ...root,
-    series: { ...uniform, target: { ...series.target }, workPhases },
-  };
+  let resolved: ExecutionParameters;
+  let unsetTargetPresent: boolean;
+  if (series.kind === "VARIABLE") {
+    resolved = {
+      ...root,
+      series: {
+        kind: "VARIABLE",
+        rows: series.rows.map((row) => ({ target: { ...row.target }, pauseSeconds: row.pauseSeconds, loadKg: row.loadKg })),
+        workPhases,
+      },
+    };
+    // Une Cible `UNSET` dans une ligne variable reste admise comme avant (PRE-4, story 2.1 AC8) :
+    // seule une durée de phase manquante rend une série variable incomplète.
+    unsetTargetPresent = false;
+  } else {
+    const { phaseDurations: _phaseDurations, ...uniform } = series;
+    resolved = { ...root, series: { ...uniform, target: { ...series.target }, workPhases } };
+    unsetTargetPresent = series.target.kind === "UNSET";
+  }
   // PRE-7 (A1.3) : une Cible `UNSET` n'est jamais exécutable — sans phase
   // manquante, c'est la durée de série elle-même qui reste à renseigner.
-  if (missingPhaseIds.length > 0 || series.target.kind === "UNSET") {
+  if (missingPhaseIds.length > 0 || unsetTargetPresent) {
     return { status: "INCOMPLETE", parameters: resolved, missingPhaseIds };
   }
   const problem = resolvedWorkPhasesProblem(workPhases);
@@ -490,8 +492,8 @@ export type PhaseAllocation = {
  * (structure [1, 2, 3], 3 retirée puis rajoutée dans la même Feuille), elle est
  * gardée comme la phase 3 d'origine. Fermer ce cas suppose que la Feuille
  * reçoive le compteur du Mouvement (`openSheetDraft(…, { nextPhaseId })`,
- * câblage A2.1). Une série variable n'a aucune phase : la structure devient
- * vide, le compteur est conservé.
+ * câblage A2.1). PRE-7 (D-446, R-2) : même allocation pour une série variable,
+ * dont le motif est commun à toutes les lignes.
  *
  * L'ordre et les libellés sont ceux des paramètres reçus ; les durées sont
  * reportées sur l'identité allouée. Aucune validation : le sérialiseur et la
@@ -499,9 +501,6 @@ export type PhaseAllocation = {
  */
 export function allocatePhaseIdentities(movement: Movement, parameters: ExecutionParameters): PhaseAllocation {
   const { series } = parameters;
-  if (series.kind === "VARIABLE") {
-    return { movement: withPhaseStructure(movement, [], movement.nextPhaseId), parameters };
-  }
   const present = new Set(movement.phases.map((phase) => phase.id));
   const kept = new Set<number>();
   let counter = movement.nextPhaseId;

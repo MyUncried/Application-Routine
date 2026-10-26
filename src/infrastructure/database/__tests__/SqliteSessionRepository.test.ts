@@ -2199,6 +2199,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SIDE",
@@ -2394,6 +2395,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
           { target: toTarget("FAILURE"), pauseSeconds: 45, loadKg: 0 },
           { target: toTarget("FAILURE"), pauseSeconds: 60, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "UNILATERAL",
     });
@@ -2441,8 +2443,8 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map((c) => c.name);
     expect(columns.some((name) => /phrase|segment|summary/i.test(name))).toBe(false);
     const row = await database.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities");
-    // PRE-7 (A1.2) : forme résolue v4 des copies.
-    expect(JSON.parse(row!.execution_parameters)).toEqual({ ...parameters(), version: 4 });
+    // PRE-7 (A1.2 ; R-2, D-446) : forme résolue des copies, v5.
+    expect(JSON.parse(row!.execution_parameters)).toEqual({ ...parameters(), version: 5 });
   });
 
   it("P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables", async () => {
@@ -2483,7 +2485,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       await migrateDatabase(fileDatabase);
       const extremes = parameters({
         mode: "REPETITIONS",
-        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300, loadKg: 0 }, { target: numberTarget(1), pauseSeconds: 0, loadKg: 0 }] },
+        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300, loadKg: 0 }, { target: numberTarget(1), pauseSeconds: 0, loadKg: 0 }], workPhases: [] },
         sideOrder: "BY_SERIES",
         cadenceBeepIntervalSeconds: 10,
       });

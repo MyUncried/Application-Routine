@@ -16,7 +16,7 @@ import {
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 
 /**
- * PRE-7 (A1.1, D-437, D-438, MFN-02) — forme Catalogue v4 des paramètres
+ * PRE-7 (A1.1, D-437, D-438, MFN-02) — forme Catalogue (v4, puis v5 en R-2, D-446) des paramètres
  * d'exécution : couples `{ phaseId, durationSeconds | null }` sans libellé,
  * sérialiseur et lecteur stricts (ch09 : « une version inconnue ne doit jamais
  * être rabattue silencieusement sur une durée scalaire »).
@@ -62,25 +62,34 @@ function withSeries(patch: Record<string, unknown>, root: Record<string, unknown
   return JSON.stringify({ ...raw, ...root, series: { ...(raw.series as Record<string, unknown>), ...patch } });
 }
 
-describe("PRE7-A1.1 — sérialiseur v4 (MFN-02)", () => {
+describe("PRE7-A1.1 — sérialiseur Catalogue (MFN-02 ; v5 depuis R-2, D-446)", () => {
   it("forme exacte : clés et ordre de la v3, phaseDurations à la place de workPhases, sans libellé", () => {
     expect(serializeCatalogExecutionParameters(complete)).toBe(
-      '{"version":4,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":9},"pauseSeconds":15,"loadKg":2.5,"phaseDurations":[{"phaseId":1,"durationSeconds":6},{"phaseId":2,"durationSeconds":3}]},"sideMode":"RIGHT_LEFT","sideOrder":"BY_SERIES","sideRecoverySeconds":8,"cadenceBeepIntervalSeconds":0,"countdownSeconds":10,"endSeconds":5,"loadEnabled":true}',
+      '{"version":5,"mode":"DURATION","series":{"kind":"UNIFORM","count":3,"target":{"kind":"NUMBER","value":9},"pauseSeconds":15,"loadKg":2.5,"phaseDurations":[{"phaseId":1,"durationSeconds":6},{"phaseId":2,"durationSeconds":3}]},"sideMode":"RIGHT_LEFT","sideOrder":"BY_SERIES","sideRecoverySeconds":8,"cadenceBeepIntervalSeconds":0,"countdownSeconds":10,"endSeconds":5,"loadEnabled":true}',
     );
     expect(serializeCatalogExecutionParameters(complete)).not.toContain("label");
   });
 
-  it("une durée non renseignée s'écrit null (seule absence) ; séries variables : lignes de la v3", () => {
+  it("une durée non renseignée s'écrit null (seule absence) ; séries variables : lignes de la v3, puis PRE-7 (D-446) le motif commun", () => {
     expect(serializeCatalogExecutionParameters(incomplete)).toContain('"target":{"kind":"UNSET"}');
     expect(serializeCatalogExecutionParameters(incomplete)).toContain('{"phaseId":3,"durationSeconds":null}');
     const variable: CatalogExecutionParameters = {
       ...complete,
-      series: { kind: "VARIABLE", rows: [{ target: numberTarget(30), pauseSeconds: 10, loadKg: 1 }, { target: { kind: "FAILURE" }, pauseSeconds: 0, loadKg: 0 }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(30), pauseSeconds: 10, loadKg: 1 }, { target: { kind: "FAILURE" }, pauseSeconds: 0, loadKg: 0 }], phaseDurations: [] },
     };
     expect(serializeCatalogExecutionParameters(variable)).toContain(
-      '"series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":1},{"target":{"kind":"FAILURE"},"pauseSeconds":0,"loadKg":0}]}',
+      '"series":{"kind":"VARIABLE","rows":[{"target":{"kind":"NUMBER","value":30},"pauseSeconds":10,"loadKg":1},{"target":{"kind":"FAILURE"},"pauseSeconds":0,"loadKg":0}],"phaseDurations":[]}',
     );
     expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(variable))).toEqual(variable);
+    // PRE-7 (D-446, complément du 26/10/2026) : variables à phases, durées par identité, null pour un frère incomplet.
+    const phased: CatalogExecutionParameters = {
+      ...variable,
+      series: { ...variable.series, phaseDurations: [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: null }] },
+    };
+    expect(serializeCatalogExecutionParameters(phased)).toContain(
+      '"pauseSeconds":0,"loadKg":0}],"phaseDurations":[{"phaseId":1,"durationSeconds":5},{"phaseId":2,"durationSeconds":null}]}',
+    );
+    expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(phased))).toEqual(phased);
   });
 
   it("refuse d'écrire une durée 0 ou une identité dupliquée ; PRE-7 (D-446) : une Cible indépendante de Σ s'écrit", () => {
@@ -95,7 +104,7 @@ describe("PRE7-A1.1 — sérialiseur v4 (MFN-02)", () => {
   });
 });
 
-describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
+describe("PRE7-A1.1 — lecteur Catalogue strict (MFN-02, ch09 ; v5 depuis R-2, D-446)", () => {
   it("aller-retour exact, complet et incomplet ; sans phases", () => {
     expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(complete))).toEqual(complete);
     expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(incomplete))).toEqual(incomplete);
@@ -103,11 +112,12 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
     expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(none))).toEqual(none);
   });
 
-  it("JSON v3, v5, NULL, absent ou corrompu → ExecutionParametersDataError, jamais de repli", () => {
+  it("JSON canonique, v3, v4 (PRE-7, Q2), NULL, absent ou corrompu → ExecutionParametersDataError, jamais de repli", () => {
     const refused: readonly (string | null | undefined)[] = [
       serializeExecutionParameters(durationParameters(30, 3, 10)),
-      JSON.stringify({ ...rawComplete(), version: 5 }),
-      JSON.stringify({ ...rawComplete(), version: "4" }),
+      JSON.stringify({ ...rawComplete(), version: 3 }),
+      JSON.stringify({ ...rawComplete(), version: 4 }),
+      JSON.stringify({ ...rawComplete(), version: "5" }),
       null,
       undefined,
       "{",
@@ -116,7 +126,7 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
     for (const json of refused) {
       expect(() => readCatalogExecutionParameters(json)).toThrow(ExecutionParametersDataError);
     }
-    // Le lecteur v3 ne lit pas la v4 non plus (aucune lecture croisée).
+    // Le lecteur canonique ne lit pas la forme Catalogue non plus (aucune lecture croisée).
     expect(() => readExecutionParameters(serializeCatalogExecutionParameters(complete))).toThrow(ExecutionParametersDataError);
   });
 
@@ -135,12 +145,24 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
       ["workPhases v3 à la place", withSeries({ phaseDurations: undefined, workPhases: [{ id: 1, label: "a", durationSeconds: 9 }] })],
       ["loadKg absent", withSeries({ loadKg: undefined })],
       ["loadEnabled absent", withSeries({}, { loadEnabled: undefined })],
-      ["variables sans ligne", JSON.stringify({ ...rawComplete(), series: { kind: "VARIABLE", rows: [] } })],
+      ["variables sans ligne", JSON.stringify({ ...rawComplete(), series: { kind: "VARIABLE", rows: [], phaseDurations: [] } })],
+      // PRE-7 (D-446) : en v5, les séries variables portent toujours leurs durées de phases.
+      [
+        "variables sans phaseDurations",
+        JSON.stringify({ ...rawComplete(), series: { kind: "VARIABLE", rows: [{ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 }] } }),
+      ],
+      [
+        "variables : durée 0",
+        JSON.stringify({
+          ...rawComplete(),
+          series: { kind: "VARIABLE", rows: [{ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 }], phaseDurations: [{ phaseId: 1, durationSeconds: 0 }] },
+        }),
+      ],
       [
         "ligne variable sans loadKg",
         JSON.stringify({
           ...rawComplete(),
-          series: { kind: "VARIABLE", rows: [{ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 }, { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 }] },
+          series: { kind: "VARIABLE", rows: [{ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 }, { target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10 }], phaseDurations: [] },
         }),
       ],
       ["genre de séries inconnu", withSeries({ kind: "OTHER" })],
@@ -156,23 +178,19 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
     }
   });
 
-  it("phaseDurationsProblem : liste vide toujours valide ; PRE-7 (D-446) : Cible indépendante des phases, tout Mode ; Σ bornée à 1..3535", () => {
-    expect(phaseDurationsProblem(numberTarget(12), [])).toBeNull();
-    expect(phaseDurationsProblem(unsetTarget(), [{ phaseId: 1, durationSeconds: null }])).toBeNull();
-    expect(phaseDurationsProblem(numberTarget(5), [{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
-    // D-446 : une Cible chiffrée avec une durée manquante, une Cible à renseigner avec des durées
-    // complètes, une Cible ≠ Σ, le Mode Répétitions et À l'échec sont admis.
-    expect(phaseDurationsProblem(numberTarget(5), [{ phaseId: 1, durationSeconds: null }])).toBeNull();
-    expect(phaseDurationsProblem(unsetTarget(), [{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
-    expect(phaseDurationsProblem(numberTarget(120), [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
-    expect(phaseDurationsProblem(numberTarget(10), [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
-    expect(phaseDurationsProblem({ kind: "FAILURE" }, [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
-    // Σ (durée du motif) reste bornée ; la Cible reste un objet.
-    expect(phaseDurationsProblem(numberTarget(10), [{ phaseId: 1, durationSeconds: 3000 }, { phaseId: 2, durationSeconds: 536 }])).not.toBeNull();
-    expect(phaseDurationsProblem(null, [{ phaseId: 1, durationSeconds: 5 }])).not.toBeNull();
+  it("phaseDurationsProblem : liste vide toujours valide ; PRE-7 (D-446, R-2) : sans Cible en paramètre, motif commun aux deux régimes ; Σ bornée à 1..3535", () => {
+    expect(phaseDurationsProblem([])).toBeNull();
+    expect(phaseDurationsProblem([{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
+    // D-446 : une durée manquante (frère incomplet) est admise ; la Cible n'est plus examinée (R-2).
+    expect(phaseDurationsProblem([{ phaseId: 1, durationSeconds: null }])).toBeNull();
+    expect(phaseDurationsProblem([{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: null }])).toBeNull();
+    expect(phaseDurationsProblem([{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
+    // Σ (durée du motif) reste bornée ; une liste reste exigée.
+    expect(phaseDurationsProblem([{ phaseId: 1, durationSeconds: 3000 }, { phaseId: 2, durationSeconds: 536 }])).not.toBeNull();
+    expect(phaseDurationsProblem(null)).not.toBeNull();
   });
 
-  it("PRE-7 (D-446) — aller-retour v4 identique : Répétitions et à l'échec avec phases, Cible ≠ Σ ; donnée antérieure (Cible = Σ) inchangée", () => {
+  it("PRE-7 (D-446) — aller-retour v5 identique : Répétitions et à l'échec avec phases, Cible ≠ Σ ; donnée antérieure (Cible = Σ) inchangée", () => {
     const series = complete.series as Extract<CatalogExecutionParameters["series"], { kind: "UNIFORM" }>;
     const cases: readonly CatalogExecutionParameters[] = [
       complete,

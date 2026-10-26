@@ -53,6 +53,7 @@ function canonical(): ExecutionParameters {
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     },
     sideMode: "RIGHT_LEFT",
     sideOrder: "BY_SERIES",
@@ -157,7 +158,8 @@ describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
     expect(EXERCISE_SNAPSHOT_VERSION).toBe(3);
     const raw = JSON.parse(serializeExerciseSnapshot(snapshot));
     expect(raw.snapshotVersion).toBe(3);
-    expect(raw.executionParameters.version).toBe(3);
+    // PRE-7 (D-446, R-2) : paramètres sérialisés dans la version courante, v5.
+    expect(raw.executionParameters.version).toBe(5);
     expect(raw.executionParameters.series.rows[0]).toEqual({ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 });
     expect(parseExerciseSnapshot(serializeExerciseSnapshot(snapshot))).toEqual(snapshot);
   });
@@ -304,6 +306,7 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
           { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(45), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       cadenceBeepIntervalSeconds: 2,

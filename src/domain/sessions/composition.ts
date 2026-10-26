@@ -279,10 +279,9 @@ function copyBaseName(name: string): string {
   return current;
 }
 
-/** Structure des phases (identités, libellés, ordre) d'une occurrence ; vide en séries variables. */
+/** Structure des phases (identités, libellés, ordre) d'une occurrence, dans les deux régimes (D-446). */
 function phaseStructureOf(exercise: SessionDraftExercise): readonly { readonly id: number; readonly label: string }[] {
-  const { series } = exercise.executionParameters;
-  return series.kind === "UNIFORM" ? series.workPhases.map((phase) => ({ id: phase.id, label: phase.label })) : [];
+  return exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
 }
 
 /**

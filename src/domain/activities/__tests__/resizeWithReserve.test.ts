@@ -57,6 +57,7 @@ describe("resizeSeriesWithReserve — adaptation d'une ExecutionSeries à N (PRE
         { target: numberTarget(40), pauseSeconds: 20, loadKg: 7.5 },
         { target: numberTarget(40), pauseSeconds: 20, loadKg: 7.5 },
       ],
+      workPhases: [],
     });
     const rows = (result.series as { rows: readonly SeriesRow[] }).rows;
     expect(rows[2]).not.toBe(rows[1]);

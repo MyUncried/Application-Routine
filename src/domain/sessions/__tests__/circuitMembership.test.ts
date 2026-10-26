@@ -140,8 +140,8 @@ describe("settleCircuitMembership — N du dialogue / copyCircuitReserveEntry (P
     };
     const at2 = setCircuitCount(withCopy, 2);
     expect(at2.exercises.map((item) => item.executionParameters.series)).toEqual([
-      { kind: "VARIABLE", rows: [row(1), row(2)] },
-      { kind: "VARIABLE", rows: [row(1), row(2)] },
+      { kind: "VARIABLE", rows: [row(1), row(2)], workPhases: [] },
+      { kind: "VARIABLE", rows: [row(1), row(2)], workPhases: [] },
     ]);
   });
 

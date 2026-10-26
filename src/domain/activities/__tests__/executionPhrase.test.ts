@@ -153,7 +153,7 @@ function buildInput(
     mode,
     series:
       parameters.seriesKind === "VARIABLE"
-        ? { kind: "VARIABLE", rows }
+        ? { kind: "VARIABLE", rows, workPhases: [] }
         : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds, loadKg: 0, workPhases: [] },
     sideMode: parameters.side,
     sideOrder: parameters.order,
@@ -320,7 +320,7 @@ describe("PRE4-2.3/AC13 — les 92 anciennes entrées « À l’échec », adapt
           mode,
           series:
             p.seriesKind === "VARIABLE"
-              ? { kind: "VARIABLE", rows: p.pauses.map((pauseSeconds) => ({ target: failureTarget(), pauseSeconds, loadKg: 0 })) }
+              ? { kind: "VARIABLE", rows: p.pauses.map((pauseSeconds) => ({ target: failureTarget(), pauseSeconds, loadKg: 0 })), workPhases: [] }
               : { kind: "UNIFORM", count: p.pauses.length, target: failureTarget(), pauseSeconds: p.pauses[0], loadKg: 0, workPhases: [] },
           sideMode: p.side,
           sideOrder: p.order,
@@ -389,6 +389,7 @@ describe("P3-15/grammar-edges", () => {
     const rows = (targets: readonly number[]) => ({
       kind: "VARIABLE" as const,
       rows: targets.map((target) => ({ target: numberTarget(target), pauseSeconds: 20, loadKg: 0 })),
+      workPhases: [],
     });
     expect(text(duration({ series: rows([45, 30]) }))).toBe(
       "2 séries de durée variable (45 s puis 30 s). Durée totale : 1 min 55 s.",
@@ -414,6 +415,7 @@ describe("P3-15/grammar-edges", () => {
           { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         ],
+        workPhases: [],
       },
     });
     expect(text(input)).not.toMatch(/pause/);
@@ -474,7 +476,7 @@ describe("executionPhrase — PRE-4 story 2.1", () => {
   const rows = (targets: readonly SeriesTarget[]): ExecutionParametersInput => ({
     version: EXECUTION_PARAMETERS_VERSION,
     mode: "DURATION",
-    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10, loadKg: 0 })) },
+    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10, loadKg: 0 })), workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
@@ -566,7 +568,7 @@ function fromCompact(input: CompactInput): ExecutionParametersInput {
     mode: input.mode,
     series:
       input.series === "VARIABLE"
-        ? { kind: "VARIABLE", rows }
+        ? { kind: "VARIABLE", rows, workPhases: [] }
         : { kind: "UNIFORM", count: rows.length, target: rows[0]!.target, pauseSeconds: rows[0]!.pauseSeconds, loadKg: 0, workPhases: [] },
     sideMode: input.side ?? "UNILATERAL",
     sideOrder: input.order ?? "BY_SIDE",
@@ -1072,7 +1074,7 @@ function fromPre5(input: Pre5Input): ExecutionParametersInput {
   const series =
     base.series.kind === "UNIFORM"
       ? { ...base.series, loadKg: input.loads[0] ?? 0, workPhases }
-      : { kind: "VARIABLE" as const, rows: base.series.rows.map((row, index) => ({ ...row, loadKg: input.loads[index] ?? 0 })) };
+      : { kind: "VARIABLE" as const, rows: base.series.rows.map((row, index) => ({ ...row, loadKg: input.loads[index] ?? 0 })), workPhases: [] };
   return { ...base, series, loadEnabled: input.loadEnabled };
 }
 
@@ -1147,13 +1149,32 @@ describe("PRE5-1.2 — Phrase avec phases et charge (fixtures/phrases-pre5.json)
     const spaced = { ...input, series: { ...uniform!, workPhases: uniform!.workPhases.map((phase) => ({ ...phase, label: ` ${phase.label}  ` })) } };
     expect(phraseText(workPhasesClause(spaced))).toBe(" (Descente : 6 s - Maintien : 3 s)");
     expect(spaced.series.workPhases[0]!.label).toBe(" Descente  ");
+    // PRE-7 (D-446, complément du 26/10/2026) : même clause pour le motif commun des séries variables.
+    const variable = duration({
+      series: {
+        kind: "VARIABLE",
+        rows: [30, 45].map((seconds) => ({ target: numberTarget(seconds), pauseSeconds: 10, loadKg: 0 })),
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: 5 },
+          { id: 2, label: "Montée", durationSeconds: 2 },
+        ],
+      },
+    });
+    expect(workPhasesClause(variable)).toEqual([
+      { texte: " (Descente : ", gras: false },
+      { texte: "5 s", gras: true },
+      { texte: " - Montée : ", gras: false },
+      { texte: "2 s", gras: true },
+      { texte: ")", gras: false },
+    ]);
+    expect(phraseText(generateExecutionPhrase(variable)!)).toContain(" (Descente : 5 s - Montée : 2 s)");
   });
 
   it("PRE5-1.2/AC1 — `loadClause` : formes D-414, en texte normal ; Sans et toutes nulles → aucun segment", () => {
     const uniform = (loadKg: number, loadEnabled = true) =>
       duration({ series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 0, loadKg, workPhases: [] }, loadEnabled });
     const variable = (loads: readonly number[], loadEnabled = true) =>
-      duration({ series: { kind: "VARIABLE", rows: loads.map((loadKg) => ({ target: numberTarget(30), pauseSeconds: 0, loadKg })) }, loadEnabled });
+      duration({ series: { kind: "VARIABLE", rows: loads.map((loadKg) => ({ target: numberTarget(30), pauseSeconds: 0, loadKg })), workPhases: [] }, loadEnabled });
     expect(loadClause(uniform(20))).toEqual([{ texte: " (charge : 20 kg)", gras: false }]);
     expect(phraseText(loadClause(uniform(2.5)))).toBe(" (charge : 2,5 kg)");
     expect(phraseText(loadClause(variable([20, 12, 13])))).toBe(" (charges : 20, 12, 13 kg)");
