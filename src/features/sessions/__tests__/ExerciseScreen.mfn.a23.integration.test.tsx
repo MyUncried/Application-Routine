@@ -319,7 +319,7 @@ describe("PRE-7 A2.3 — suggestion d'un geste proche (Catalogue)", () => {
     expect(screen.queryByTestId("activity-editor-movement-search")).toBeNull();
     fillPhaseDurations();
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(2);
@@ -346,7 +346,7 @@ describe("PRE-7 A2.3 — suggestion d'un geste proche (Catalogue)", () => {
     fillDurationParameters();
     await finish();
 
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(2);

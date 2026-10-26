@@ -413,8 +413,16 @@ export class SqliteMovementRepository implements MovementRepository {
     return rows.map((row) => records.get(row.id)!.movement);
   }
 
-  async countOccurrences(id: string): Promise<number> {
-    return countMovementOccurrences(this.database, id);
+  async countOccurrences(id: string, excludingSessionId?: string): Promise<number> {
+    if (excludingSessionId === undefined) {
+      return countMovementOccurrences(this.database, id);
+    }
+    // PRE-7 (R-4, C04) : occurrences des AUTRES Séances seulement.
+    const row = await this.database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM activities WHERE source_movement_id = ? AND session_id <> ?",
+      [id, excludingSessionId],
+    );
+    return row?.count ?? 0;
   }
 
   async countDefinitions(id: string): Promise<number> {

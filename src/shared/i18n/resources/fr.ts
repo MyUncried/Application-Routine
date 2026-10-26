@@ -236,38 +236,40 @@ export const fr = {
         finishAction: "Terminer",
         saveError: "L’exercice n’a pas pu être enregistré. Réessayez.",
         // PRE-7 story A2.2 (D-438, CE-T03-04 §3, relevé Figma MFN du 23/10, `9952:44374`) :
-        // crayon de la création sur geste repris, annoncé « Modifier le geste ».
-        editMovement: "Modifier le geste",
+        // crayon de la création sur geste repris. PRE-7 story R-4 (v7 §1) : « geste » devient
+        // « mouvement » dans tous les textes d’interface (identifiants inchangés, D-201) ; même
+        // crayon sur une occurrence de Séance (D-445 C04).
+        editMovement: "Modifier le mouvement",
         // PRE-7 story A2.3 (MFN-06, D-439 ; feuille `9882:19125` de `9882:19049`) : suggestion d’un
         // geste proche à la création. Textes de la feuille ; « {name} » = geste RÉELLEMENT proposé,
         // jamais l’exemple Squats. Le relevé du 23/10 demande d’adapter « déjà dans votre catalogue »
         // à l’origine du résultat : un geste sans Exercice au Catalogue (créé dans une séance) reçoit
         // la formulation neutre `localMessage` (point soumis à Hermann).
         movementSuggestion: {
-          title: "Un geste proche existe",
+          title: "Un mouvement proche existe",
           catalogueMessage: "{name} est déjà dans votre catalogue. Voulez-vous le réutiliser ?",
           localMessage: "{name} existe déjà. Voulez-vous le réutiliser ?",
-          sameMovement: "Même geste, autres paramètres",
+          sameMovement: "Même mouvement, autres paramètres",
           sameMovementDetail: "Reprend la description et le média de {name}",
-          variant: "Variante de ce geste",
+          variant: "Variante de ce mouvement",
           variantDetail: "Crée un niveau de plus dans la progression",
-          independent: "Geste indépendant",
+          independent: "Mouvement indépendant",
           independentDetail: "Aucun lien avec {name}",
-          searchOther: "Rechercher un autre geste",
+          searchOther: "Rechercher un autre mouvement",
         },
         // PRE-7 story A2.3 (MFN-04, MFN-06, D-439 ; écran `9959:19623`) : recherche spécialisée des
         // gestes, locaux compris. Titre, champ et note de `9959:19623` ; sous-titre des cartes
         // « Niveau r sur t · n exercices », rang et nombre calculés. `open` : accès depuis le
         // formulaire, sans frame (NON VÉRIFIABLE), libellé repris du champ de recherche.
         movementSearch: {
-          title: "Choisir un geste",
-          placeholder: "Rechercher un geste",
-          localNote: "Les gestes créés dans une séance apparaissent aussi.",
+          title: "Choisir un mouvement",
+          placeholder: "Rechercher un mouvement",
+          localNote: "Les mouvements créés dans une séance apparaissent aussi.",
           level: "Niveau {rank} sur {total}",
           exerciseCountSingular: "{n} exercice",
           exerciseCountPlural: "{n} exercices",
           separator: " · ",
-          open: "Rechercher un geste",
+          open: "Rechercher un mouvement",
           closeAccessibilityLabel: "Retour",
         },
         // PRE-7 story A3.1 (D-439, MFN-05, MFN-07 ; CE-T03-04 §9 ; Figma `9925:41506` / `9925:41515`,
@@ -303,26 +305,23 @@ export const fr = {
           retry: "Réessayer",
           saveError: "La modification n’a pas pu être enregistrée. Réessayez.",
         },
-        // PRE-7 story A2.2 (D-438, MFN-08, CE-T03-04 §14 ; feuille basse `9952:44349`) : question
-        // d’identité. Libellés des choix : MFN-08 (modification Catalogue) et complément de
-        // présentation D-438 (création sur geste repris). Titre, portée et explications : textes
-        // de `9952:44349`, nombres calculés (`correctionScope`). Accord au singulier ajouté pour
-        // un seul autre exercice ; l’explication du second choix n’existe que pour la reprise.
-        identityDecision: {
-          title: "Vous avez modifié {name}",
-          otherCountPlural: "{n} autres exercices utilisent ce geste.",
-          otherCountSingular: "{n} autre exercice utilise ce geste.",
-          correctScope: "La correction s’applique aux {n} exercices qui l’utilisent",
-          catalogue: {
-            correct: "Corriger cet exercice",
-            newIdentity: "Créer un nouvel exercice",
-          },
-          reprise: {
-            correct: "Corriger ce geste",
-            newIdentity: "En faire un geste distinct",
-            newIdentityScope: "Seul cet exercice change, {name} reste intact",
-          },
+        // PRE-7 story R-4 (D-445 C03, v7 §3) : dialogue unique de sauvegarde du mouvement. Textes
+        // du relevé utilisateur (`docs/figma-niveaux-2026-10-25/releve-utilisateur.md` §4) et des
+        // frames `9952:44349`, `10253:20414`, `10257:20651` ; nombres calculés. « Aucun autre
+        // exercice… » : portée zéro, jamais masquée (C03), texte composé sur le même modèle.
+        movementSave: {
+          choiceTitle: "Vous souhaitez :",
+          confirmTitle: "Vous avez modifié ce mouvement",
+          otherPlural: "{n} autres exercices utilisent ce mouvement.",
+          otherSingular: "{n} autre exercice utilise ce mouvement.",
+          noOther: "Aucun autre exercice n’utilise ce mouvement.",
+          appliesToAll: "La modification s’appliquera à tous.",
+          update: "Mettre à jour ce mouvement",
+          updateDetail: "Pour tous les exercices qui l’utilisent",
+          newMovement: "Créer un nouveau mouvement",
+          newMovementDetail: "Uniquement pour cet exercice",
           cancel: "Annuler",
+          confirm: "Confirmer",
         },
         // PRE-7 story A2.2 (MFN-08 « Étape d’écran après choix de correction structurelle »,
         // CE-T03-04 §11 et §14) : étape distincte, sans frame Figma (NON VÉRIFIABLE). Libellés

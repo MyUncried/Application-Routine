@@ -229,7 +229,7 @@ describe("PRE-7 A3.2 — écran des niveaux depuis la fiche", () => {
     await settle(20);
     expect(levelNames()).toEqual(["Squats", "Squats assistés", "Squats sautés"]);
     // Aucune question d'identité, aucune navigation, aucun Exercice touché (MFN-05, MFN-08).
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockReplace).not.toHaveBeenCalled();
     expect(await definitionsRows()).toEqual(definitionsBefore);
     const strip = (row: Record<string, unknown>) => {

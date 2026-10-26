@@ -57,12 +57,11 @@ export type CreateActivityDefinitionResult =
 /**
  * PRE-7 (A1.3, MFN-08) : refus d'une correction partagée, sans écriture —
  * complétion des frères attendue (étape distincte de saisie des durées
- * manquantes), frère inéligible à la nouvelle structure, ou durée fournie
- * invalide.
+ * manquantes) ou durée fournie invalide. PRE-7 (R-4, report de R-2) : le refus
+ * « frère inéligible », inatteignable depuis D-446, est retiré.
  */
 export type SharedCorrectionRefusedResult =
   | { readonly status: "SIBLING_COMPLETION_REQUIRED"; readonly siblings: readonly SiblingGap[] }
-  | { readonly status: "INELIGIBLE_SIBLINGS"; readonly definitionIds: readonly string[] }
   | { readonly status: "INVALID_SIBLING_COMPLETION"; readonly definitionIds: readonly string[] };
 
 export type UpdateActivityDefinitionResult =
@@ -145,7 +144,6 @@ function refusedResult(refusal: SharedCorrectionRefusal): SharedCorrectionRefuse
   switch (refusal.kind) {
     case "SIBLING_COMPLETION_REQUIRED":
       return { status: refusal.kind, siblings: refusal.siblings };
-    case "INELIGIBLE_SIBLINGS":
     case "INVALID_SIBLING_COMPLETION":
       return { status: refusal.kind, definitionIds: refusal.definitionIds };
   }
@@ -290,13 +288,16 @@ export class ActivityDefinitionService {
   /**
    * PRE-7 (A1.3, MFN-08 ; ch11 « Vérifier usage durable et champs sensibles ;
    * transmettre le choix et le nombre de définitions touchées ») — évaluation
-   * SANS écriture d'une correction, avant l'enregistrement : la question
-   * d'identité est due si le geste est « déjà utilisé » et que son nom, sa
-   * description, ses médias ou sa structure de phases changent ; l'évaluation
-   * donne aussi le nombre de définitions qui le partagent et les durées
-   * manquantes des frères. Le choix « Corriger » se transmet par
+   * SANS écriture d'une correction, avant l'enregistrement. PRE-7 (R-4, D-445
+   * C03) : l'évaluation porte la décision de sauvegarde (`decideMovementSave`) —
+   * avant = Mouvement enregistré (nom, alias, description, médias, Catégorie,
+   * Zones, phases) ; après = saisie validée, phases allouées par le compteur du
+   * Mouvement ; autres exercices = définitions hors Exercice édité et
+   * occurrences de Séance persistées ; exécutions = 0 (avant T04). Elle donne
+   * aussi le nombre de définitions qui le partagent et les durées manquantes
+   * des frères. « Mettre à jour ce mouvement » se transmet par
    * `updateActivityDefinition` (ou l'origine `SAME_MOVEMENT`), « Créer un
-   * nouvel exercice » par l'origine `VARIANT`. Lève sans `MovementRepository`.
+   * nouveau mouvement » par l'origine `VARIANT`. Lève sans `MovementRepository`.
    */
   async assessActivityDefinitionCorrection(
     target: CorrectionTarget,
@@ -338,14 +339,35 @@ export class ActivityDefinitionService {
         description: validated.value.description,
         ...(input.media !== undefined ? { mediaAssetIds: input.media.map((item) => item.assetId) } : {}),
         phases: allocation.movement.phases,
+        // R-4 (C03) : une Catégorie nouvelle (à créer) diffère toujours de celle du Mouvement.
+        categoryId: validated.value.category.kind === "EXISTING" ? validated.value.category.categoryId : null,
+        bodyZoneIds: validated.value.bodyZoneIds,
       },
       sharing
         .filter((definition) => definition.id !== editedId)
         .map((definition) => ({ definitionId: definition.id, parameters: definition.executionParameters })),
-      sharing.length,
       otherUsageCount,
+      // D-445 C03 : exécutions enregistrées du Mouvement — aucune avant le moteur T04.
+      0,
     );
     return { status: "ASSESSED", assessment, phases: allocation.movement.phases };
+  }
+
+  /**
+   * PRE-7 (R-4, D-445 C03, C04) : nombre d'exercices enregistrés qui utilisent le Mouvement,
+   * vus depuis le brouillon d'une Séance — définitions du Catalogue qui le partagent, plus
+   * occurrences persistées des AUTRES Séances (`excludingSessionId` : Séance en cours de
+   * modification, dont les occurrences sont celles du brouillon, comptées par l'éditeur). Aucun
+   * changement de schéma. Lève sans `MovementRepository`.
+   */
+  async countMovementUsage(movementId: string, excludingSessionId: string | null): Promise<number> {
+    if (!this.movementRepository) {
+      throw new Error("ActivityDefinitionService was constructed without a MovementRepository.");
+    }
+    return (
+      (await this.movementRepository.countDefinitions(movementId)) +
+      (await this.movementRepository.countOccurrences(movementId, excludingSessionId ?? undefined))
+    );
   }
 
   /**

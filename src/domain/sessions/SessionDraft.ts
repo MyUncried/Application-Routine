@@ -30,6 +30,7 @@ import {
   type SeriesRow,
 } from "@/domain/activities/ExecutionParameters";
 import type { MovementPhase } from "@/domain/activities/Movement";
+import type { MovementContentSnapshot } from "@/domain/activities/movementSave";
 import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 
 import type {
@@ -61,7 +62,7 @@ import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
 import type { SideMode } from "./sideMode";
 import { stopPointKey, type StopPoint } from "./StopPoint";
-import { validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
+import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
  * Mode d'exécution d'un Exercice dans un brouillon : celui du domaine des
@@ -475,6 +476,69 @@ export function withDraftMovement(draft: SessionDraft, movement: DraftMovement):
     };
   });
   return { exercises, movements };
+}
+
+/**
+ * PRE-7 (R-4, D-445 C03, C04) : contenu comparé par la décision de sauvegarde
+ * (`decideMovementSave`) d'un Mouvement du brouillon — entrée `EDITED` déjà inscrite (avant),
+ * ou contenu d'une occurrence terminée (`draftMovementOf`, après). Nom et description sont
+ * normalisés comme à l'enregistrement de la Séance (`normalizeName`, `normalizeInstruction`) :
+ * des espaces ajoutés ne sont pas un changement de nom.
+ */
+export function movementContentOfDraft(movement: DraftMovement): MovementContentSnapshot {
+  return {
+    name: normalizeName(movement.name),
+    aliases: movement.aliases,
+    description: normalizeInstruction(movement.description),
+    mediaAssetIds: movement.media.map((item) => item.assetId),
+    categoryId: movement.categoryId,
+    bodyZoneIds: movement.bodyZoneIds,
+    phases: movement.phases,
+  };
+}
+
+/**
+ * PRE-7 (R-4, D-445 C03, C04, Q10) : « Créer un nouveau mouvement » depuis le crayon d'une
+ * occurrence de Séance. `edited` est l'occurrence terminée dans l'éditeur (contenu et structure
+ * modifiés, paramètres saisis), sous son identifiant d'origine. Elle est remplacée, à la MÊME
+ * place, par une nouvelle occurrence (`ids.occurrenceId`) qui référence un Mouvement `NEW`
+ * (`ids.movementId`) portant son contenu ; ses paramètres sont ceux de l'occurrence éditée
+ * (durées par identité de phase, structure éditée), sans numéro de copie. L'ancienne occurrence
+ * quitte le brouillon ; les autres occurrences gardent l'ancien Mouvement, inchangé. Aucun
+ * rattachement au groupe de niveaux (Q10) et aucun alias repris (les alias appartiennent à
+ * l'ancien Mouvement). L'entrée de réserve de Circuit éventuelle suit l'occurrence. Le compteur
+ * de phase ne recule jamais sous `nextPhaseId`. Un nom déjà pris est refusé à l'enregistrement
+ * de la Séance (`DuplicateMovementNameError`, C01). Fonction pure ; une occurrence absente du
+ * brouillon lève (entrée invalide).
+ */
+export function replaceOccurrenceWithNewMovement(
+  draft: SessionDraft,
+  edited: SessionDraftExercise,
+  ids: { readonly occurrenceId: string; readonly movementId: string },
+  options: { readonly nextPhaseId?: number } = {},
+): Pick<SessionDraft, "exercises" | "movements" | "circuitSeriesReserve"> {
+  if (!draft.exercises.some((exercise) => exercise.id === edited.id)) {
+    throw new Error("replaceOccurrenceWithNewMovement: the edited occurrence is not in the draft.");
+  }
+  const replacement: SessionDraftExercise = {
+    ...edited,
+    id: ids.occurrenceId,
+    sourceMovementId: ids.movementId,
+    copyNumber: null,
+  };
+  const movement = draftMovementOf(replacement, "NEW", { nextPhaseId: options.nextPhaseId, aliases: [] });
+  const exercises = draft.exercises.map((exercise) => (exercise.id === edited.id ? replacement : exercise));
+  const reserve = draft.circuitSeriesReserve;
+  let circuitSeriesReserve = reserve;
+  if (reserve !== undefined && Object.prototype.hasOwnProperty.call(reserve, edited.id)) {
+    const { [edited.id]: rows, ...rest } = reserve;
+    circuitSeriesReserve = { ...rest, [ids.occurrenceId]: rows! };
+  }
+  return {
+    exercises,
+    movements: { ...(draft.movements ?? {}), [movement.id]: movement },
+    ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}),
+  };
 }
 
 /**

@@ -104,3 +104,19 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
   summary: La traduction d'une violation de l'index UNIQUE en `DuplicateMovementNameError` (`withNameUniqueness`) n'est couverte par aucun test.
   evidence: Les tests passent toujours par la vérification préalable `assertNameAvailable` ; il faudrait un cas où cette vérification passe et l'index refuse l'écriture.
+
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
+  summary: Reports R-2 « cas `INELIGIBLE` / `INELIGIBLE_SIBLINGS` inatteignable » et R-3 « portée affichée sans les occurrences » traités par R-4 — le cas est retiré (`sharedCorrection.ts`, `ActivityDefinitionService.ts`) ; le dialogue C03 annonce les autres exercices (définitions et occurrences persistées).
+  evidence: `assessSharedCorrection` rend `decision` (`decideMovementSave`) ; tests `sharedCorrection.a13.test.ts`, `ExerciseScreen.mfn.a22.integration.test.tsx`.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
+  summary: Crayon en Séance (C04) + « Mettre à jour » qui change l'ENSEMBLE des phases : le Mouvement est réécrit à l'enregistrement de la Séance, mais les Exercices du Catalogue qui le partagent ne passent par aucune étape de complétion (leurs durées des phases nouvelles manquent).
+  evidence: `writeSessionMovements` (`SqliteSessionRepository.ts`) appelle `updateMovementContent` sans plan des frères (comportement R-3 inchangé). À vérifier (lecture d'un frère après une telle correction) et à arbitrer par Hermann : étape de complétion depuis la Séance, ou frère laissé incomplet.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
+  summary: Le crayon n'est proposé que sur une occurrence EXISTANTE d'un Mouvement enregistré ; une occurrence en cours de création reprise par « Même mouvement » (suggestion ou recherche) reste verrouillée sans crayon (MFN-09, option la plus simple).
+  evidence: `ExerciseScreen.tsx` (`canUnlockMovement`, `repriseLocked`). Une lecture en échec de l'usage du Mouvement à `Terminer` laisse l'éditeur ouvert sans message (journal seulement).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
+  summary: « Créer un nouveau mouvement » avec un nom déjà pris (y compris un changement de casse seul, même nom normalisé) échoue à l'enregistrement avec l'erreur générique.
+  evidence: `replaceOccurrenceWithNewMovement` et `chooseNewIdentity` laissent l'unicité au repository (`DuplicateMovementNameError`). À traiter avec R-5 (contrôle pendant la saisie, C01), comme le report R-3 sur les noms en double.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
+  summary: Un échec de lecture du Mouvement au déverrouillage par le crayon n'est que journalisé ; le crayon reste actif sans message.
+  evidence: `unlockMovement` dans `ExerciseScreen.tsx` : `console.error` seul.

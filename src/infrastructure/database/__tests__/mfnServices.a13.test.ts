@@ -131,6 +131,25 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     return { first, second };
   }
 
+  // PRE-7 (R-4, D-445 C03) : Catégorie et Zones font partie du contenu du Mouvement.
+  it("évaluation C03 : Zones seules, Catégorie existante seule ou nouvelle Catégorie modifiées, un frère → confirmation", async () => {
+    const { first } = await twoSharing();
+    const decisionOf = async (overrides: Partial<CreateActivityDefinitionInput>) => {
+      const assessed = await service().assessActivityDefinitionCorrection(
+        { kind: "UPDATE", definitionId: first.id },
+        input(phased(phases(6, 3)), overrides),
+      );
+      return assessed.status === "ASSESSED" ? assessed.assessment.decision : assessed.status;
+    };
+    expect(await decisionOf({})).toEqual({ kind: "NONE" });
+    expect(await decisionOf({ bodyZoneIds: ["cuisses", "dos"] })).toEqual({ kind: "CONFIRM", otherCount: 1 });
+    expect(await decisionOf({ category: { kind: "EXISTING", categoryId: "force" } })).toEqual({ kind: "CONFIRM", otherCount: 1 });
+    expect(await decisionOf({ category: { kind: "NEW", name: "Mobilité", color: "#2E9B62" } })).toEqual({
+      kind: "CONFIRM",
+      otherCount: 1,
+    });
+  });
+
   it("même geste : nouvelle définition sur le même Mouvement ; le contenu saisi est appliqué au geste partagé ; Mouvement inconnu → MOVEMENT_NOT_FOUND", async () => {
     const { first, second } = await twoSharing();
     expect(second.movementId).toBe(first.movementId);
@@ -206,10 +225,9 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(assessed).toEqual({
       status: "ASSESSED",
       assessment: expect.objectContaining({
-        movementUsed: true,
-        requiresIdentityDecision: true,
+        // PRE-7 (R-4, D-445 C03) : nom inchangé, structure modifiée, un frère et une occurrence.
+        decision: { kind: "CONFIRM", otherCount: 2 },
         structuralChange: true,
-        affectedDefinitionCount: 2,
         siblingGaps: [{ definitionId: second.id, missingPhaseIds: [3], missingSeriesDuration: false }],
       }),
       // PRE-7 A2.2 : structure allouée rendue pour l'étape de complétion (libellés par `phaseId`).
@@ -455,7 +473,8 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     const assessed = await service().assessActivityDefinitionCorrection({ kind: "SAME_MOVEMENT", movementId: first.movementId }, added);
     expect(assessed.status === "ASSESSED" && assessed.assessment).toEqual(
       expect.objectContaining({
-        affectedDefinitionCount: 2,
+        // PRE-7 (R-4, C03) : deux définitions partagent déjà le Mouvement, structure modifiée.
+        decision: { kind: "CONFIRM", otherCount: 2 },
         structuralChange: true,
         siblingGaps: expect.arrayContaining([
           { definitionId: first.id, missingPhaseIds: [3], missingSeriesDuration: false },

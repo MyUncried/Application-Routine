@@ -34,10 +34,13 @@ import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
  * PRE-7 story A2.2 (D-437, D-438, MFN-06, MFN-08, MFN-09 ; CE-T03-04 §3, §14 ; matrice de la spec
  * `spec-a2-2-contenu-partage-verrouillage.md`) — l'Éditeur d'Exercice sur les VRAIS services A1.3
  * et une base SQLite réelle (`node:sqlite`, schéma 012) : évaluation avant chaque enregistrement,
- * question d'identité conditionnelle et comptée (feuille `9952:44349`), Annuler sans écriture,
  * correction partagée, nouvelle identité, étape de complétion des durées manquantes des frères
  * (complétion passée → frère incomplet), création sur geste repris (lecture seule + crayon),
- * contenu d'occurrence verrouillé. Rappel : ces tests ne valent pas recette sur iPhone (JA).
+ * contenu d'occurrence verrouillé. PRE-7 (R-4, D-445 C03) : la question d'identité de MFN-08 est
+ * remplacée par le dialogue unique de sauvegarde (`MovementSaveDialog`) — nom modifié → choix,
+ * contenu modifié avec d'autres exercices → confirmation, sinon silence ; portée = autres
+ * exercices (définitions et occurrences persistées). Rappel : ces tests ne valent pas recette sur
+ * iPhone (JA).
  */
 
 jest.mock("expo-haptics", () => ({
@@ -72,7 +75,7 @@ const CARDIO: Category = {
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 const editor = strings.screens.activities.editor;
-const identity = editor.identityDecision;
+const movementSave = editor.movementSave;
 const completion = editor.siblingCompletion;
 
 let database: NodeSqliteDatabase;
@@ -226,6 +229,20 @@ function decrementSeries() {
 
 const nameInput = () => screen.getByTestId("exercise-name-input");
 
+/** PRE-7 (R-4, C03) : choix explicite du dialogue de nom modifié, puis Confirmer. */
+async function chooseAndConfirm(choice: "UPDATE" | "NEW_MOVEMENT") {
+  fireEvent.press(screen.getByTestId(`movement-save-choice-${choice}`));
+  await confirmSave();
+}
+
+/** PRE-7 (R-4, C03) : Confirmer du dialogue de sauvegarde. */
+async function confirmSave() {
+  await act(async () => {
+    fireEvent.press(screen.getByTestId("movement-save-confirm"));
+  });
+  await settle(50);
+}
+
 describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () => {
   it("paramètres seuls, geste utilisé et partagé : enregistrement direct, aucune question (MFN/AC09)", async () => {
     const { first, second } = await twoSharing();
@@ -234,14 +251,14 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
     expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
     decrementSeries();
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     const reread = await service().getActivityDefinition(first.id);
     expect(reread?.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 2 });
     expect((await service().getActivityDefinition(second.id))?.executionParameters.series).toMatchObject({ count: 4 });
   });
 
-  it("nom changé, geste utilisé : feuille « Vous avez modifié Squat », portée calculée, libellés Catalogue ; Annuler rend le brouillon intact, rien n'est écrit (MFN/AC10)", async () => {
+  it("nom changé, mouvement utilisé : dialogue « Vous souhaitez : », portée calculée (frère + occurrence), aucune présélection ; Annuler rend le brouillon intact, rien n'est écrit (C03)", async () => {
     const { first } = await twoSharing();
     const definitionsBefore = await definitionsRows();
     const movementsBefore = await movementsRows();
@@ -249,18 +266,16 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
 
-    const sheet = screen.getByTestId("identity-decision-sheet");
-    expect(within(sheet).getByText(identity.title.replace("{name}", "Squat"))).toBeTruthy();
-    expect(within(sheet).getByText("1 autre exercice utilise ce geste.")).toBeTruthy();
-    expect(within(sheet).getByText(identity.catalogue.correct)).toBeTruthy();
-    expect(within(sheet).getByText(identity.catalogue.newIdentity)).toBeTruthy();
-    expect(within(sheet).getByText("La correction s’applique aux 2 exercices qui l’utilisent")).toBeTruthy();
-    expect(screen.queryByTestId("identity-decision-new-identity-detail")).toBeNull();
-    expect(within(sheet).queryByText(identity.reprise.correct)).toBeNull();
+    const dialog = screen.getByTestId("movement-save-dialog");
+    expect(within(dialog).getByText(movementSave.choiceTitle)).toBeTruthy();
+    expect(within(dialog).getByText("2 autres exercices utilisent ce mouvement.")).toBeTruthy();
+    expect(within(dialog).getByText(movementSave.update)).toBeTruthy();
+    expect(within(dialog).getByText(movementSave.newMovement)).toBeTruthy();
+    expect(screen.getByTestId("movement-save-confirm").props.accessibilityState).toMatchObject({ disabled: true });
 
-    fireEvent.press(screen.getByTestId("identity-decision-cancel"));
+    fireEvent.press(screen.getByTestId("movement-save-cancel"));
     await settle();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(nameInput().props.value).toBe("Squat sauté");
     expect(mockBack).not.toHaveBeenCalled();
     expect(await definitionsRows()).toEqual(definitionsBefore);
@@ -268,29 +283,23 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
     expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
-  it("Corriger cet exercice : le geste partagé est corrigé, tous ses Exercices relisent le nouveau nom (MFN/AC11)", async () => {
+  it("Mettre à jour ce mouvement : le mouvement partagé est corrigé, tous ses Exercices relisent le nouveau nom (MFN/AC11, C03)", async () => {
     const { first, second } = await twoSharing();
     await renderEditor({ catalogueDefinitionId: first.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    await chooseAndConfirm("UPDATE");
     expect(mockBack).toHaveBeenCalled();
     expect((await service().getActivityDefinition(first.id))?.name).toBe("Squat sauté");
     expect((await service().getActivityDefinition(second.id))?.name).toBe("Squat sauté");
   });
 
-  it("Créer un nouvel exercice : nouveau geste portant le brouillon, sans rattachement ; l'original et son frère restent intacts (MFN/AC34)", async () => {
+  it("Créer un nouveau mouvement : nouveau mouvement portant le brouillon, sans rattachement (Q10) ; l'original et son frère restent intacts (MFN/AC34, C03)", async () => {
     const { first, second } = await twoSharing();
     await renderEditor({ catalogueDefinitionId: first.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-new-identity"));
-    });
-    await settle(50);
+    await chooseAndConfirm("NEW_MOVEMENT");
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(3);
@@ -302,42 +311,38 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
     expect((await movements().findById(created.movementId))?.levelGroup).toBeNull();
   });
 
-  // PRE-7 (R-3, D-445 C03) : « utilisé » = au moins un AUTRE exercice (définitions et occurrences
-  // persistées). Un Exercice seul, sans occurrence : enregistrement direct ; un frère suffit à poser
-  // la question, même sans aucune occurrence de Séance.
-  it("geste non utilisé (seul Exercice, aucune occurrence) : nom changé, enregistrement direct sans question", async () => {
+  // PRE-7 (R-4, D-445 C03) : un nom enregistré modifié ouvre TOUJOURS le choix, même sans autre
+  // exercice (portée zéro annoncée) ; « autres exercices » = définitions et occurrences persistées.
+  it("mouvement seul (aucun autre exercice) : nom changé → choix, « Aucun autre exercice… » ; Mettre à jour → nom enregistré", async () => {
     const only = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
     await renderEditor({ catalogueDefinitionId: only.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(within(screen.getByTestId("movement-save-dialog")).getByText(movementSave.noOther)).toBeTruthy();
+    expect(mockBack).not.toHaveBeenCalled();
+    await chooseAndConfirm("UPDATE");
     expect(mockBack).toHaveBeenCalled();
     expect((await service().getActivityDefinition(only.id))?.name).toBe("Squat sauté");
   });
 
-  it("geste partagé par un frère, sans occurrence de Séance (C03) : question posée ; Corriger → le frère relit le nom", async () => {
+  it("mouvement partagé par un frère, sans occurrence de Séance : choix, « 1 autre exercice… » ; Mettre à jour → le frère relit le nom", async () => {
     const { first, second } = await twoSharing(undefined, false);
     await renderEditor({ catalogueDefinitionId: first.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    expect(screen.getByTestId("identity-decision-sheet")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    expect(within(screen.getByTestId("movement-save-dialog")).getByText("1 autre exercice utilise ce mouvement.")).toBeTruthy();
+    await chooseAndConfirm("UPDATE");
     expect(mockBack).toHaveBeenCalled();
     expect((await service().getActivityDefinition(second.id))?.name).toBe("Squat sauté");
   });
 
-  it("geste utilisé par un seul Exercice : question sans nombre (au-delà d'un seulement)", async () => {
+  it("mouvement utilisé par une seule occurrence de Séance : l'occurrence compte comme autre exercice", async () => {
     const only = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
     await persistOccurrenceOf(only.movementId);
     await renderEditor({ catalogueDefinitionId: only.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    expect(screen.getByTestId("identity-decision-sheet")).toBeTruthy();
-    expect(screen.queryByTestId("identity-decision-others")).toBeNull();
-    expect(screen.queryByTestId("identity-decision-correct-detail")).toBeNull();
+    expect(within(screen.getByTestId("movement-save-dialog")).getByText("1 autre exercice utilise ce mouvement.")).toBeTruthy();
   });
 });
 
@@ -371,11 +376,14 @@ describe("PRE-7 A2.2 — correction structurelle et étape de complétion (MFN-0
     await renderEditor({ catalogueDefinitionId: first.id });
     await addThirdPhase();
     await finish();
-    expect(within(screen.getByTestId("identity-decision-sheet")).getByText("1 autre exercice utilise ce geste.")).toBeTruthy();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    // PRE-7 (R-4, C03) : nom inchangé, structure modifiée, frère et occurrence → confirmation.
+    const dialog = screen.getByTestId("movement-save-dialog");
+    expect(within(dialog).getByText(movementSave.confirmTitle)).toBeTruthy();
+    expect(
+      within(dialog).getByText(`2 autres exercices utilisent ce mouvement. ${movementSave.appliesToAll}`),
+    ).toBeTruthy();
+    expect(screen.queryByTestId("movement-save-choice-UPDATE")).toBeNull();
+    await confirmSave();
 
     const step = screen.getByTestId("sibling-completion-step");
     expect(within(step).getByText(completion.title)).toBeTruthy();
@@ -414,10 +422,7 @@ describe("PRE-7 A2.2 — correction structurelle et étape de complétion (MFN-0
     await renderEditor({ catalogueDefinitionId: first.id });
     await addThirdPhase();
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    await confirmSave();
     fireEvent.press(screen.getByTestId("sibling-completion-cancel"));
     await settle();
     expect(screen.queryByTestId("sibling-completion-step")).toBeNull();
@@ -425,10 +430,7 @@ describe("PRE-7 A2.2 — correction structurelle et étape de complétion (MFN-0
     expect(mockBack).not.toHaveBeenCalled();
 
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    await confirmSave();
     fireEvent.changeText(screen.getByTestId(`sibling-completion-${second.id}-phase-3`), "5");
     expect(screen.getByTestId(`sibling-completion-${second.id}-phase-3`).props.value).toBe("00:05");
     await act(async () => {
@@ -463,7 +465,7 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
   }
 
-  it("reprise inchangée : contenu verrouillé, crayon « Modifier le geste », structure du geste reprise ; Terminer → même geste, aucune question", async () => {
+  it("reprise inchangée : contenu verrouillé, crayon « Modifier le mouvement », structure reprise ; Terminer → même mouvement, aucun dialogue", async () => {
     const { first } = await twoSharing([phased(phases(6, 3)), phased(phases(8, 4))]);
     await renderEditor({ catalogueDefinitionId: "new", movementId: first.movementId });
     expect(screen.getByText(editor.titleAdd)).toBeTruthy();
@@ -481,7 +483,7 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
 
     fillRepriseParameters();
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(3);
@@ -490,7 +492,7 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     expect(phasesRows).toHaveLength(2);
   });
 
-  it("crayon puis nom changé, geste utilisé : libellés de reprise, création en cours comptée ; En faire un geste distinct → nouveau geste, original intact", async () => {
+  it("crayon puis nom changé : choix, autres exercices = deux définitions + une occurrence ; Créer un nouveau mouvement → nouveau mouvement, original intact", async () => {
     const { first, second } = await twoSharing([phased(phases(6, 3)), phased(phases(8, 4))]);
     await renderEditor({ catalogueDefinitionId: "new", movementId: first.movementId });
     fireEvent.press(screen.getByTestId("activity-editor-edit-movement"));
@@ -507,18 +509,10 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     fillRepriseParameters();
     await finish();
 
-    const sheet = screen.getByTestId("identity-decision-sheet");
-    expect(within(sheet).getByText("2 autres exercices utilisent ce geste.")).toBeTruthy();
-    expect(within(sheet).getByText(identity.reprise.correct)).toBeTruthy();
-    expect(within(sheet).getByText(identity.reprise.newIdentity)).toBeTruthy();
-    expect(within(sheet).getByText("La correction s’applique aux 3 exercices qui l’utilisent")).toBeTruthy();
-    expect(within(sheet).getByText("Seul cet exercice change, Squat reste intact")).toBeTruthy();
-    expect(within(sheet).queryByText(identity.catalogue.correct)).toBeNull();
-
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-new-identity"));
-    });
-    await settle(50);
+    const dialog = screen.getByTestId("movement-save-dialog");
+    expect(within(dialog).getByText(movementSave.choiceTitle)).toBeTruthy();
+    expect(within(dialog).getByText("3 autres exercices utilisent ce mouvement.")).toBeTruthy();
+    await chooseAndConfirm("NEW_MOVEMENT");
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(3);
@@ -528,17 +522,14 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     expect((await service().getActivityDefinition(first.id))?.name).toBe("Squat");
   });
 
-  it("crayon puis nom changé, Corriger ce geste : un seul Exercice créé, le geste partagé est corrigé", async () => {
+  it("crayon puis nom changé, Mettre à jour ce mouvement : un seul Exercice créé, le mouvement partagé est corrigé", async () => {
     const { first, second } = await twoSharing([phased(phases(6, 3)), phased(phases(8, 4))]);
     await renderEditor({ catalogueDefinitionId: "new", movementId: first.movementId });
     fireEvent.press(screen.getByTestId("activity-editor-edit-movement"));
     fireEvent.changeText(nameInput(), "Squat sumo");
     fillRepriseParameters();
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    await chooseAndConfirm("UPDATE");
     expect(mockBack).toHaveBeenCalled();
     const all = await service().listActivityDefinitions();
     expect(all).toHaveLength(3);
@@ -546,17 +537,15 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     expect((await service().getActivityDefinition(second.id))?.name).toBe("Squat sumo");
   });
 
-  it("crayon puis phase ajoutée, Corriger ce geste : étape de complétion des deux frères (une durée saisie, l'autre passée) ; création sur le même geste", async () => {
+  it("crayon puis phase ajoutée, Confirmer : étape de complétion des deux frères (une durée saisie, l'autre passée) ; création sur le même mouvement", async () => {
     const { first, second } = await twoSharing([phased(phases(6, 3)), phased(phases(8, 4))]);
     await renderEditor({ catalogueDefinitionId: "new", movementId: first.movementId });
     fireEvent.press(screen.getByTestId("activity-editor-edit-movement"));
     fillRepriseParameters();
     addThirdPhase();
     await finish();
-    await act(async () => {
-      fireEvent.press(screen.getByTestId("identity-decision-correct"));
-    });
-    await settle(50);
+    expect(within(screen.getByTestId("movement-save-dialog")).getByText(movementSave.confirmTitle)).toBeTruthy();
+    await confirmSave();
     fireEvent.changeText(screen.getByTestId(`sibling-completion-${first.id}-phase-3`), "4");
     skipSibling(second.id);
     await act(async () => {
@@ -603,7 +592,7 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
     expect(screen.queryByTestId("media-add")).toBeNull();
     fillRepriseParameters();
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalled();
     expect(await database.getAllAsync("SELECT movement_id, asset_id FROM movement_media")).toEqual([
       { movement_id: first.movementId, asset_id: "p1" },
@@ -628,13 +617,13 @@ describe("PRE-7 A2.2 — occurrence de Séance (MFN-09, MFN/AC28, MFN/AC29)", ()
     ...overrides,
   });
 
-  it("occurrence portant une filiation : nom, description, Catégorie, Zones verrouillés, aucun crayon ; paramètres accessibles", async () => {
+  it("occurrence d'un Mouvement enregistré : nom, description, Catégorie, Zones verrouillés, crayon « Modifier le mouvement » (R-4, C04) ; paramètres accessibles", async () => {
     await renderEditor({ exerciseId: "occ-1" }, [occurrence({ sourceMovementId: "mov-1", instruction: "Dos droit" })]);
     expect(nameInput().props.editable).toBe(false);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
+    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityLabel).toBe(editor.editMovement);
     expect(screen.queryByTestId("media-add")).toBeNull();
     expectReferenceAccessesClosed();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));

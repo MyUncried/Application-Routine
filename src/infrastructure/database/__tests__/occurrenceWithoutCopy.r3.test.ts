@@ -228,4 +228,24 @@ describe("PRE7-R3 — occurrence sans copie de contenu (SqliteSessionRepository,
     expect(await movements().findById("mov-squat")).not.toBeNull();
     expect(await movements().delete("mov-squat")).toEqual({ status: "DELETED" });
   });
+
+  // PRE-7 (R-4, D-445 C04) : décompte vu depuis le brouillon d'une Séance — ses propres
+  // occurrences en sont exclues, celles des autres Séances comptent.
+  it("countOccurrences(id, excludingSessionId) : occurrences de deux Séances, l'exclusion de A rend le nombre de B", async () => {
+    await movements().create(movement());
+    const occurrence = (id: string) => ({
+      id,
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      executionParameters: durationParameters(30),
+      postActivityRecoverySeconds: 0,
+      sourceMovementId: "mov-squat",
+    });
+    const a = await sessions().create(session([occurrence("occ-a1"), occurrence("occ-a2")]));
+    const b = await sessions().create({ ...session([occurrence("occ-b1")]), name: "Jambes B" });
+    expect(await movements().countOccurrences("mov-squat")).toBe(3);
+    expect(await movements().countOccurrences("mov-squat", a.id)).toBe(1);
+    expect(await movements().countOccurrences("mov-squat", b.id)).toBe(2);
+    expect(await movements().countOccurrences("mov-squat", "inconnue")).toBe(3);
+  });
 });

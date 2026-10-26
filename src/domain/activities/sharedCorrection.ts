@@ -6,9 +6,9 @@
  * Exercices du Catalogue qui le référencent (« Corriger cet exercice »).
  *
  * - `assessSharedCorrection` : ce que l'interface doit savoir AVANT
- *   d'enregistrer — usage durable, changement d'un champ sensible (nom,
- *   description, médias, structure des phases : MFN-08), nombre de définitions
- *   touchées, durées manquantes des Exercices frères, frères inéligibles.
+ *   d'enregistrer — usage par d'autres exercices, décision de sauvegarde C03
+ *   (R-4, `movementSave.ts`, qui remplace la question d'identité de MFN-08),
+ *   nombre de définitions touchées, durées manquantes des Exercices frères.
  * - `planSiblingCorrection` / `planSiblingsCorrection` : nouveaux paramètres
  *   Catalogue de chaque frère après un changement de l'ENSEMBLE des phases :
  *   valeurs déjà présentes conservées par `phaseId`, durées manquantes jamais
@@ -37,6 +37,7 @@ import {
   type Movement,
   type MovementPhase,
 } from "./Movement";
+import { decideMovementSave, movementContentOf, type MovementSaveDecision } from "./movementSave";
 
 /**
  * Complétion d'un Exercice frère, fournie par l'étape distincte de saisie des
@@ -76,18 +77,15 @@ export type SiblingPlan =
   | { readonly status: "READY"; readonly parameters: CatalogExecutionParameters; readonly incomplete: boolean }
   | { readonly status: "NEEDS_COMPLETION"; readonly gap: SiblingGap }
   /**
-   * La nouvelle structure porte des phases et le frère ne peut pas en avoir.
-   * PRE-7 (D-446) : seule une série variable est inéligible (les phases sont
-   * compatibles avec les deux Modes et avec À l'échec).
+   * Une durée fournie est invalide (entier ≥ 1 s, somme et bornes du format).
+   * PRE-7 (R-4, report de R-2) : le cas « frère inéligible » est retiré — depuis D-446 et R-2,
+   * le motif de phases est commun aux séries identiques et variables, aucun frère ne l'est.
    */
-  | { readonly status: "INELIGIBLE" }
-  /** Une durée fournie est invalide (entier ≥ 1 s, somme et bornes du format). */
   | { readonly status: "INVALID_COMPLETION" };
 
 /** Refus d'une correction partagée : rien n'est écrit. */
 export type SharedCorrectionRefusal =
   | { readonly kind: "SIBLING_COMPLETION_REQUIRED"; readonly siblings: readonly SiblingGap[] }
-  | { readonly kind: "INELIGIBLE_SIBLINGS"; readonly definitionIds: readonly string[] }
   | { readonly kind: "INVALID_SIBLING_COMPLETION"; readonly definitionIds: readonly string[] };
 
 export type SiblingsPlan =
@@ -100,8 +98,8 @@ export type SiblingsPlan =
 
 /**
  * Garde du repository (entrée invalide, lève) : une correction partagée dont
- * les frères ne sont pas prêts (complétion absente, frère inéligible, durée
- * invalide) n'est jamais écrite. `ActivityDefinitionService` la rend en union.
+ * les frères ne sont pas prêts (complétion absente, durée invalide) n'est
+ * jamais écrite. `ActivityDefinitionService` la rend en union.
  */
 export class SharedCorrectionRefusedError extends Error {
   constructor(readonly refusal: SharedCorrectionRefusal) {
@@ -134,9 +132,8 @@ export function phaseSetChanged(
  *   (D-446 : elle est indépendante des phases) ; seule une Cible `UNSET`
  *   (durée de série à renseigner) demande la complétion
  *   (`seriesDurationSeconds`, `null` = passer → Cible `UNSET`, incomplet) ;
- * - nouvelle structure non vide : le frère doit avoir des séries identiques
- *   (tout Mode, toute Cible, D-446), sinon `INELIGIBLE` (série variable) ;
- *   une phase conservée garde la durée du frère ; une phase nouvelle, ou dont
+ * - nouvelle structure non vide (séries identiques ou variables, tout Mode,
+ *   toute Cible, D-446, R-2) : une phase conservée garde la durée du frère ; une phase nouvelle, ou dont
  *   la durée du frère manquait déjà, prend la complétion fournie (`null`
  *   admis) ; sans complétion → `NEEDS_COMPLETION`. La Cible est conservée :
  *   ni somme ni `UNSET` forcé (D-446 remplace « Cible = somme »).
@@ -212,10 +209,9 @@ export function planSiblingCorrection(
 }
 
 /**
- * Plan de tous les frères (`planSiblingCorrection`). Refus, par priorité : un
- * frère inéligible, puis une complétion invalide, puis des complétions
- * manquantes (toutes listées, dans l'ordre des frères). Rien n'est écrit sur
- * refus.
+ * Plan de tous les frères (`planSiblingCorrection`). Refus, par priorité : une
+ * complétion invalide, puis des complétions manquantes (toutes listées, dans
+ * l'ordre des frères). Rien n'est écrit sur refus.
  */
 export function planSiblingsCorrection(
   previousPhases: readonly MovementPhase[],
@@ -224,24 +220,18 @@ export function planSiblingsCorrection(
   completions: readonly SiblingCompletion[] = [],
 ): SiblingsPlan {
   const byId = new Map(completions.map((completion) => [completion.definitionId, completion] as const));
-  const ineligible: string[] = [];
   const invalid: string[] = [];
   const gaps: SiblingGap[] = [];
   const updates: { definitionId: string; parameters: CatalogExecutionParameters }[] = [];
   for (const sibling of siblings) {
     const plan = planSiblingCorrection(previousPhases, nextPhases, sibling, byId.get(sibling.definitionId));
-    if (plan.status === "INELIGIBLE") {
-      ineligible.push(sibling.definitionId);
-    } else if (plan.status === "INVALID_COMPLETION") {
+    if (plan.status === "INVALID_COMPLETION") {
       invalid.push(sibling.definitionId);
     } else if (plan.status === "NEEDS_COMPLETION") {
       gaps.push(plan.gap);
     } else if (plan.status === "READY") {
       updates.push({ definitionId: sibling.definitionId, parameters: plan.parameters });
     }
-  }
-  if (ineligible.length > 0) {
-    return { status: "REFUSED", refusal: { kind: "INELIGIBLE_SIBLINGS", definitionIds: ineligible } };
   }
   if (invalid.length > 0) {
     return { status: "REFUSED", refusal: { kind: "INVALID_SIBLING_COMPLETION", definitionIds: invalid } };
@@ -252,7 +242,11 @@ export function planSiblingsCorrection(
   return { status: "READY", updates };
 }
 
-/** Contenu saisi, comparé au Mouvement (nom et description déjà normalisés par la validation de l'Exercice). */
+/**
+ * Contenu saisi, comparé au Mouvement (nom et description déjà normalisés par la validation de
+ * l'Exercice). PRE-7 (R-4, C03) : un champ facultatif absent vaut « inchangé » (médias, alias,
+ * Catégorie, Zones).
+ */
 export type CorrectionEdit = {
   readonly name: string;
   readonly description: string | null;
@@ -260,103 +254,71 @@ export type CorrectionEdit = {
   readonly mediaAssetIds?: readonly string[];
   /** Structure après allocation des identités par le compteur du Mouvement (`allocatePhaseIdentities`). */
   readonly phases: readonly MovementPhase[];
+  /** Alias saisis ; `undefined` = inchangés (aucune saisie d'alias dans l'éditeur avant R-5). */
+  readonly aliases?: readonly string[];
+  /** Catégorie saisie ; `undefined` = inchangée, `null` = nouvelle Catégorie à créer (donc modifiée). */
+  readonly categoryId?: string | null;
+  /** Zones saisies ; `undefined` = inchangées. */
+  readonly bodyZoneIds?: readonly string[];
 };
 
-/** Ce que l'interface doit savoir avant d'enregistrer une correction (MFN-08, ch11). */
+/** Ce que l'interface doit savoir avant d'enregistrer une correction (MFN-08, ch11, D-445 C03). */
 export type CorrectionAssessment = {
   /**
-   * PRE-7 (R-3, D-445 C03, qui retire l'indicateur irréversible « déjà utilisé » de MFN-08) :
-   * le Mouvement est utilisé par au moins un AUTRE exercice — définitions du Catalogue et
-   * occurrences de Séance persistées, comptées une fois, hors exercice édité — ou par une
-   * exécution enregistrée (aucune avant le moteur T04).
+   * PRE-7 (R-4, D-445 C03, v7 §3) : décision unique de sauvegarde (`decideMovementSave`) —
+   * dialogue de choix (nom modifié), confirmation, sauvegarde silencieuse ou aucune question.
+   * Remplace `requiresIdentityDecision` (MFN-08) ; l'usage par d'autres exercices
+   * (`movementUsed`, R-3) et le nombre de définitions touchées (`affectedDefinitionCount`) ne
+   * sont plus exposés : la portée annoncée est `decision.otherCount`.
    */
-  readonly movementUsed: boolean;
-  /** Nom, description, médias ou structure des phases (identités, libellés, ordre) modifiés. */
-  readonly sensitiveChange: boolean;
+  readonly decision: MovementSaveDecision;
   /** L'ensemble des identités de phases change (étape de complétion possible). */
   readonly structuralChange: boolean;
-  /** Utilisé par un autre exercice ET changement sensible : la question d'identité doit être posée. */
-  readonly requiresIdentityDecision: boolean;
-  /** Nombre de définitions du Catalogue qui partagent déjà le Mouvement (portée affichée du dialogue). */
-  readonly affectedDefinitionCount: number;
   /** Frères dont des durées manquent avec la nouvelle structure. */
   readonly siblingGaps: readonly SiblingGap[];
-  /** Frères qui ne peuvent pas porter la nouvelle structure (la correction serait refusée). */
-  readonly ineligibleDefinitionIds: readonly string[];
 };
 
-function samePhases(a: readonly MovementPhase[], b: readonly MovementPhase[]): boolean {
-  return a.length === b.length && a.every((phase, index) => phase.id === b[index]!.id && phase.label === b[index]!.label);
-}
-
 /**
- * Évaluation d'une correction du Mouvement `movement` (MFN-08) : `siblings`
+ * Évaluation d'une correction du Mouvement `movement` (MFN-08, D-445 C03) : `siblings`
  * sont les AUTRES définitions qui le partagent (hors Exercice édité),
- * `affectedDefinitionCount` le nombre de définitions qui le partagent déjà,
  * `otherUsageCount` (R-3, C03) le nombre d'AUTRES exercices qui l'utilisent
- * (définitions hors Exercice édité, plus occurrences de Séance persistées).
- * Une modification limitée aux paramètres, à la Catégorie ou aux Zones n'est
- * pas sensible. Aucun effet ; la décision appartient à l'interface (A2.2).
+ * (définitions hors Exercice édité, plus occurrences de Séance persistées),
+ * `executionCount` les exécutions enregistrées (0 avant T04). Le contenu comparé
+ * est celui de C03 (`movementSave.ts`) : nom, alias, description, médias,
+ * Catégorie, Zones et structure des phases ; les paramètres n'en font jamais
+ * partie. Aucun effet ; la décision appartient à l'interface (R-4).
  */
 export function assessSharedCorrection(
   movement: Movement,
   edit: CorrectionEdit,
   siblings: readonly SiblingDefinition[],
-  affectedDefinitionCount: number,
   otherUsageCount: number,
+  executionCount = 0,
 ): CorrectionAssessment {
-  const mediaChanged =
-    edit.mediaAssetIds !== undefined && edit.mediaAssetIds.join("\u0000") !== movement.media.map((item) => item.assetId).join("\u0000");
-  const sensitiveChange =
-    edit.name !== movement.name ||
-    (edit.description ?? null) !== (movement.description ?? null) ||
-    mediaChanged ||
-    !samePhases(edit.phases, movement.phases);
+  const before = movementContentOf(movement);
+  const decision = decideMovementSave(
+    before,
+    {
+      name: edit.name,
+      aliases: edit.aliases ?? before.aliases,
+      description: edit.description,
+      mediaAssetIds: edit.mediaAssetIds ?? before.mediaAssetIds,
+      categoryId: edit.categoryId === undefined ? before.categoryId : edit.categoryId,
+      bodyZoneIds: edit.bodyZoneIds ?? before.bodyZoneIds,
+      phases: edit.phases,
+    },
+    otherUsageCount,
+    executionCount,
+  );
   const structuralChange = phaseSetChanged(movement.phases, edit.phases);
-  const ineligibleDefinitionIds: string[] = [];
   const siblingGaps: SiblingGap[] = [];
   for (const sibling of siblings) {
     const plan = planSiblingCorrection(movement.phases, edit.phases, sibling);
-    if (plan.status === "INELIGIBLE") {
-      ineligibleDefinitionIds.push(sibling.definitionId);
-    } else if (plan.status === "NEEDS_COMPLETION") {
+    if (plan.status === "NEEDS_COMPLETION") {
       siblingGaps.push(plan.gap);
     }
   }
-  return {
-    movementUsed: otherUsageCount > 0,
-    sensitiveChange,
-    structuralChange,
-    requiresIdentityDecision: otherUsageCount > 0 && sensitiveChange,
-    affectedDefinitionCount,
-    siblingGaps,
-    ineligibleDefinitionIds,
-  };
-}
-
-/**
- * PRE-7 (A2.2, D-438, MFN-08 ; relevé Figma MFN du 23/10) : portée annoncée par
- * la question d'identité, calculée et jamais copiée de la maquette.
- *
- * - `UPDATE` (Exercice du Catalogue modifié) : `affectedDefinitionCount`
- *   compte déjà l'Exercice édité ; les autres en sont retirés.
- * - `SAME_MOVEMENT` (création sur un geste repris) : la création en cours
- *   « compte dans le total annoncé après sauvegarde, pas comme exercice déjà
- *   enregistré » : autres = définitions qui partagent déjà le geste.
- *
- * `showCount` : le nombre n'est indiqué qu'« au-delà d'un exercice concerné ».
- */
-export type CorrectionScope = {
-  readonly otherCount: number;
-  readonly totalCount: number;
-  readonly showCount: boolean;
-};
-
-export function correctionScope(kind: "UPDATE" | "SAME_MOVEMENT", affectedDefinitionCount: number): CorrectionScope {
-  const shared = Math.max(0, Math.trunc(affectedDefinitionCount));
-  const totalCount = kind === "UPDATE" ? Math.max(1, shared) : shared + 1;
-  const otherCount = totalCount - 1;
-  return { otherCount, totalCount, showCount: totalCount > 1 };
+  return { decision, structuralChange, siblingGaps };
 }
 
 /**

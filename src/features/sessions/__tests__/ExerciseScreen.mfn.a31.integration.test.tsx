@@ -332,7 +332,7 @@ describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08)", () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
     await settle(50);
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(mockBack).toHaveBeenCalledTimes(1);
 
     const created = (await service().listActivityDefinitions()).find((definition) => definition.name === "Squats sautés");

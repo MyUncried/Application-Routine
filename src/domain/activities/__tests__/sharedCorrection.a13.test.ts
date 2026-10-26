@@ -298,27 +298,32 @@ describe("PRE-7 A1.3 — évaluation avant enregistrement (MFN-08, ch11 « Enreg
     ...overrides,
   });
 
-  // PRE-7 (R-3, D-445 C03) : « utilisé » = au moins un AUTRE exercice (définitions et occurrences
-  // persistées) — dernier argument —, plus l'indicateur irréversible `used`.
-  it("question d'identité : seulement si utilisé par un autre exercice (C03) ET nom, description, médias ou structure modifiés", () => {
-    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 1, 1).requiresIdentityDecision).toBe(true);
-    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 1, 0)).toEqual(
-      expect.objectContaining({ sensitiveChange: true, requiresIdentityDecision: false }),
-    );
-    expect(assessSharedCorrection(movement(), edit({ description: "Dos droit" }), [], 1, 1).requiresIdentityDecision).toBe(true);
-    expect(assessSharedCorrection(movement(), edit({ mediaAssetIds: ["p1"] }), [], 1, 1).requiresIdentityDecision).toBe(true);
-    // Libellé de phase : sensible (structure du geste) sans changement d'ensemble.
-    const relabeled = assessSharedCorrection(movement(), edit({ phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Phase 2" }] }), [], 1, 1);
-    expect(relabeled).toEqual(expect.objectContaining({ requiresIdentityDecision: true, structuralChange: false }));
-    // Paramètres, Catégorie ou Zones seuls (absents de l'édition comparée) : aucune question.
-    expect(assessSharedCorrection(movement(), edit(), [], 1, 1)).toEqual(
-      expect.objectContaining({ sensitiveChange: false, requiresIdentityDecision: false, structuralChange: false }),
+  // PRE-7 (R-4, D-445 C03) : décision unique de sauvegarde (`decideMovementSave`) ; « autres
+  // exercices » = avant-dernier argument (définitions et occurrences persistées), exécutions =
+  // dernier (0 par défaut, avant T04).
+  it("décision C03 : nom modifié → choix (même sans autre exercice) ; contenu modifié → confirmation ou silence ; paramètres seuls → rien", () => {
+    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 1).decision).toEqual({ kind: "CHOICE", otherCount: 1 });
+    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 0).decision).toEqual({ kind: "CHOICE", otherCount: 0 });
+    expect(assessSharedCorrection(movement(), edit({ description: "Dos droit" }), [], 1).decision).toEqual({ kind: "CONFIRM", otherCount: 1 });
+    expect(assessSharedCorrection(movement(), edit({ description: "Dos droit" }), [], 0).decision).toEqual({ kind: "SILENT" });
+    // Une exécution enregistrée suffit à demander la confirmation.
+    expect(assessSharedCorrection(movement(), edit({ description: "Dos droit" }), [], 0, 1).decision).toEqual({ kind: "CONFIRM", otherCount: 0 });
+    expect(assessSharedCorrection(movement(), edit({ mediaAssetIds: ["p1"] }), [], 1).decision.kind).toBe("CONFIRM");
+    // Catégorie et Zones font désormais partie du contenu (C03).
+    expect(assessSharedCorrection(movement(), edit({ categoryId: "force" }), [], 1).decision.kind).toBe("CONFIRM");
+    expect(assessSharedCorrection(movement(), edit({ bodyZoneIds: ["dos"] }), [], 0).decision.kind).toBe("SILENT");
+    // Libellé de phase : contenu (structure du mouvement) sans changement d'ensemble.
+    const relabeled = assessSharedCorrection(movement(), edit({ phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Phase 2" }] }), [], 1);
+    expect(relabeled).toEqual(expect.objectContaining({ decision: { kind: "CONFIRM", otherCount: 1 }, structuralChange: false }));
+    // Paramètres seuls (champs facultatifs absents = inchangés) : aucune question.
+    expect(assessSharedCorrection(movement(), edit(), [], 1)).toEqual(
+      expect.objectContaining({ decision: { kind: "NONE" }, structuralChange: false }),
     );
     // Médias non transmis : inchangés.
-    expect(assessSharedCorrection(movement({ media: [{ assetId: "p1" }] as unknown as Movement["media"] }), edit(), [], 1, 1).sensitiveChange).toBe(false);
+    expect(assessSharedCorrection(movement({ media: [{ assetId: "p1" }] as unknown as Movement["media"] }), edit(), [], 1).decision.kind).toBe("NONE");
   });
 
-  it("portée : nombre de définitions, frères à compléter et frères inéligibles", () => {
+  it("portée : décision et frères à compléter", () => {
     const assessment = assessSharedCorrection(
       movement(),
       edit({ phases: structure(1, 2, 3) }),
@@ -326,20 +331,15 @@ describe("PRE-7 A1.3 — évaluation avant enregistrement (MFN-08, ch11 « Enreg
         { definitionId: "def-2", parameters: phased(phases(6, 3)) },
         { definitionId: "def-3", parameters: phased(phases(5, 5)) },
       ],
-      3,
       2,
     );
     expect(assessment).toEqual({
-      movementUsed: true,
-      sensitiveChange: true,
+      decision: { kind: "CONFIRM", otherCount: 2 },
       structuralChange: true,
-      requiresIdentityDecision: true,
-      affectedDefinitionCount: 3,
       siblingGaps: [
         { definitionId: "def-2", missingPhaseIds: [3], missingSeriesDuration: false },
         { definitionId: "def-3", missingPhaseIds: [3], missingSeriesDuration: false },
       ],
-      ineligibleDefinitionIds: [],
     });
   });
 });

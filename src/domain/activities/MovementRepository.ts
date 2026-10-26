@@ -51,8 +51,10 @@ export interface MovementRepository {
   /**
    * PRE-7 (R-3, D-445 C03, C05) : nombre d'occurrences de Séance persistées qui référencent
    * le Mouvement (remplace `markUsed` : aucun indicateur d'utilisation irréversible).
+   * PRE-7 (R-4, C04) : `excludingSessionId` retire du compte les occurrences de cette Séance
+   * (celle du brouillon en cours, dont l'éditeur compte lui-même les occurrences).
    */
-  countOccurrences(id: string): Promise<number>;
+  countOccurrences(id: string, excludingSessionId?: string): Promise<number>;
   /** Nombre de définitions du Catalogue qui référencent le Mouvement. */
   countDefinitions(id: string): Promise<number>;
   /** Suppression explicite, refusée si une définition ou une occurrence de Séance le référence (MFN-03, R-3). */

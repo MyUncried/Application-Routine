@@ -13,6 +13,12 @@ import {
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { repriseExecutionParameters, type Movement, type MovementPhase } from "@/domain/activities/Movement";
+import {
+  decideMovementSave,
+  movementContentOf,
+  type MovementContentSnapshot,
+  type MovementSaveDecision,
+} from "@/domain/activities/movementSave";
 import type { CorrectionAssessment, SiblingCompletion, SiblingGap } from "@/domain/activities/sharedCorrection";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
@@ -30,6 +36,8 @@ import {
   createExerciseDraft,
   draftMovementOf,
   exerciseEquals,
+  movementContentOfDraft,
+  replaceOccurrenceWithNewMovement,
   withDraftMovement,
   type SessionDraft,
   type SessionDraftExercise,
@@ -48,9 +56,9 @@ import type {
   MovementLevels,
 } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
-import { IdentityDecisionSheet } from "@/features/activities/IdentityDecisionSheet";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
 import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
+import { MovementSaveDialog } from "@/features/activities/MovementSaveDialog";
 import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
 import { useProfileService } from "@/features/preferences/ProfileServiceContext";
@@ -264,9 +272,12 @@ function formValueEquals(left: ActivityEditorFormValue, right: ActivityEditorFor
  *   édition ;
  * - création sur un geste repris (`catalogueDefinitionId=new&movementId=<id>`, point d'entrée
  *   branché par la recherche et les suggestions d'A2.3) : contenu du geste en lecture seule,
- *   déverrouillé dans le brouillon par le crayon « Modifier le geste », paramètres modifiables ;
- * - occurrence de Séance portant une filiation : contenu verrouillé, sans crayon ; une création
- *   locale (sans filiation) reste modifiable jusqu'au premier enregistrement de la Séance.
+ *   déverrouillé dans le brouillon par le crayon « Modifier le mouvement », paramètres modifiables ;
+ * - occurrence de Séance d'un Mouvement enregistré : contenu verrouillé, déverrouillé par le même
+ *   crayon (PRE-7 R-4, D-445 C04) ; une création locale reste modifiable.
+ *
+ * PRE-7 (R-4, D-445 C03, v7 §3) : dans les trois contextes, la sauvegarde d'un Mouvement existant
+ * modifié suit la décision unique `decideMovementSave` et le dialogue centré `MovementSaveDialog`.
  *
  * Commun : ✓ de la feuille Paramètres n'applique qu'au brouillon parent
  * (aucune écriture) ; garde d'abandon (Annuler conserve tout, Confirmer
@@ -316,10 +327,17 @@ type SaveOutcome = Promise<boolean>;
 /** Entrée d'une écriture Catalogue préparée à `Terminer`, conservée pendant la feuille et l'étape. */
 type DefinitionInput = CreateActivityDefinitionInput;
 
-/** PRE-7 (A2.2, D-438) : question d'identité en attente (feuille basse `9952:44349`). */
-type PendingIdentityDecision = {
+/** Décision C03 qui ouvre le dialogue de sauvegarde (nom modifié, ou confirmation). */
+type DialogDecision = Extract<MovementSaveDecision, { readonly kind: "CHOICE" | "CONFIRM" }>;
+
+/**
+ * PRE-7 (R-4, D-445 C03) : dialogue de sauvegarde en attente (`9952:44349`, `10253:20414`) ;
+ * rien n'est écrit avant Confirmer.
+ */
+type PendingMovementSave = {
   readonly input: DefinitionInput;
   readonly assessment: CorrectionAssessment;
+  readonly decision: DialogDecision;
   readonly phases: readonly MovementPhase[];
 };
 
@@ -332,8 +350,8 @@ type PendingSiblingCompletion = {
 };
 
 /**
- * PRE-7 (A2.2, D-438, relevé Figma MFN du 23/10 `9952:44374`) : action « Modifier le geste » de
- * l'en-tête — 40 × 32, fond `#F3F4F9`, rayon 10, crayon au trait 20 × 20 ; cible portée à 44 par
+ * PRE-7 (A2.2, D-438, relevé Figma MFN du 23/10 `9952:44374`) : action « Modifier le mouvement » de
+ * l'en-tête (création sur geste repris, et occurrence de Séance d'un Mouvement enregistré, R-4, C04) — 40 × 32, fond `#F3F4F9`, rayon 10, crayon au trait 20 × 20 ; cible portée à 44 par
  * `hitSlop`. Constantes locales, `tokens.ts` inchangé.
  */
 const EDIT_MOVEMENT_ACTION = { width: 40, height: 32, radius: 10, background: "#F3F4F9" } as const;
@@ -447,8 +465,8 @@ function CatalogueActivityEditorScreen({
   // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition (ou
   // le geste repris), transmis à la Feuille ; absent en création indépendante (max + 1).
   const [movementNextPhaseId, setMovementNextPhaseId] = useState<number | undefined>(undefined);
-  // PRE-7 (A2.2, D-438) : geste d'origine — identité (variante « Créer un nouvel exercice » /
-  // « En faire un geste distinct ») et nom AVANT modification (titre de la question d'identité).
+  // PRE-7 (A2.2, D-438 ; R-4, C03) : geste d'origine — identité (nouveau mouvement « Créer un
+  // nouveau mouvement ») et nom AVANT modification.
   const [origin, setOrigin] = useState<{ readonly movementId: string; readonly name: string } | null>(null);
   // PRE-7 (A2.2, D-438, CE-T03-04 §3) : création sur geste repris — contenu en lecture seule
   // jusqu'au crayon « Modifier le geste » ; le crayon ne persiste rien (brouillon seul).
@@ -468,7 +486,7 @@ function CatalogueActivityEditorScreen({
   const [isDone, setIsDone] = useState(false);
   const [saveError, setSaveError] = useState(false);
   const isSavingRef = useRef(false);
-  const [pendingDecision, setPendingDecision] = useState<PendingIdentityDecision | null>(null);
+  const [pendingDecision, setPendingDecision] = useState<PendingMovementSave | null>(null);
   const [pendingCompletion, setPendingCompletion] = useState<PendingSiblingCompletion | null>(null);
   const t = strings.screens.activities.editor;
   const loadErrorStrings = strings.screens.activities.error;
@@ -686,8 +704,9 @@ function CatalogueActivityEditorScreen({
   }
 
   /**
-   * « Corriger » (ou correction sans question d'identité) : contenu partagé appliqué à tous les
-   * Exercices du geste, durées des frères selon `completions` (MFN-08, services A1.3).
+   * « Mettre à jour ce mouvement », confirmation, ou sauvegarde silencieuse (C03) : contenu
+   * partagé appliqué à tous les Exercices du Mouvement, durées des frères selon `completions`
+   * (MFN-08, services A1.3).
    */
   async function writeCorrection(input: DefinitionInput, completions?: readonly SiblingCompletion[]): Promise<boolean> {
     if (definitionId !== null) {
@@ -705,10 +724,9 @@ function CatalogueActivityEditorScreen({
   }
 
   /**
-   * « Créer un nouvel exercice » / « En faire un geste distinct » (MFN-08) : nouveau geste et
-   * nouvel Exercice portant le brouillon ; l'original et ses autres Exercices restent intacts.
-   * Rattachement au groupe de niveaux : aucun (aucun rattachement automatique, MFN-05 ; la
-   * proposition sans présélection reste à présenter, point renvoyé à Hermann, spec A2.2).
+   * « Créer un nouveau mouvement » (C03) : nouveau Mouvement et nouvel Exercice portant le
+   * brouillon ; l'original et ses autres Exercices restent intacts. Rattachement au groupe de
+   * niveaux : aucun (Q10, aucun rattachement automatique, MFN-05).
    */
   async function writeNewIdentity(input: DefinitionInput): Promise<boolean> {
     if (origin === null) {
@@ -723,15 +741,11 @@ function CatalogueActivityEditorScreen({
   }
 
   /**
-   * Correction retenue (choix « Corriger », ou aucune question due) : un frère inéligible à la
-   * nouvelle structure fait refuser l'écriture (message d'erreur existant) ; des durées manquantes
-   * chez les frères ouvrent l'étape de complétion ; sinon écriture directe. Appelée verrou pris.
+   * Correction retenue (« Mettre à jour ce mouvement », Confirmer, ou sauvegarde silencieuse) :
+   * des durées manquantes chez les frères ouvrent l'étape de complétion ; sinon écriture directe.
+   * Appelée verrou pris.
    */
   async function proceedWithCorrection(input: DefinitionInput, assessment: CorrectionAssessment, phases: readonly MovementPhase[]) {
-    if (assessment.ineligibleDefinitionIds.length > 0) {
-      releaseSave(true);
-      return;
-    }
     if (assessment.siblingGaps.length > 0) {
       const labels: Record<string, string> = {};
       for (const gap of assessment.siblingGaps) {
@@ -808,10 +822,13 @@ function CatalogueActivityEditorScreen({
         releaseSave(true);
         return;
       }
-      if (assessed.assessment.requiresIdentityDecision) {
-        // D-438 : une seule question, à l'enregistrement ; rien n'est écrit avant le choix.
+      // PRE-7 (R-4, D-445 C03) : nom modifié → choix ; contenu modifié avec d'autres exercices →
+      // confirmation ; rien n'est écrit avant Confirmer. Sauvegarde silencieuse ou paramètres
+      // seuls : correction directe, sans dialogue.
+      const { decision } = assessed.assessment;
+      if (decision.kind === "CHOICE" || decision.kind === "CONFIRM") {
         releaseSave(false);
-        setPendingDecision({ input: definitionInput, assessment: assessed.assessment, phases: assessed.phases });
+        setPendingDecision({ input: definitionInput, assessment: assessed.assessment, decision, phases: assessed.phases });
         return;
       }
       await proceedWithCorrection(definitionInput, assessed.assessment, assessed.phases);
@@ -821,7 +838,7 @@ function CatalogueActivityEditorScreen({
     }
   }
 
-  async function chooseCorrection(decision: PendingIdentityDecision) {
+  async function chooseCorrection(decision: PendingMovementSave) {
     setPendingDecision(null);
     if (isSavingRef.current) return;
     beginSave();
@@ -833,7 +850,7 @@ function CatalogueActivityEditorScreen({
     }
   }
 
-  async function chooseNewIdentity(decision: PendingIdentityDecision) {
+  async function chooseNewIdentity(decision: PendingMovementSave) {
     setPendingDecision(null);
     if (isSavingRef.current) return;
     beginSave();
@@ -1007,19 +1024,31 @@ function CatalogueActivityEditorScreen({
         <ExerciseExitConfirmModal isCreation={!isEditingExisting} onCancel={cancelExit} onConfirm={confirmExit} />
       ) : null}
 
-      {pendingDecision !== null && origin !== null ? (
-        <IdentityDecisionSheet
-          context={isEditingExisting ? "CATALOGUE" : "REPRISE"}
-          movementName={origin.name}
-          affectedDefinitionCount={pendingDecision.assessment.affectedDefinitionCount}
-          onCorrect={() => {
-            void chooseCorrection(pendingDecision);
-          }}
-          onNewIdentity={() => {
-            void chooseNewIdentity(pendingDecision);
-          }}
-          onCancel={() => setPendingDecision(null)}
-        />
+      {/* PRE-7 (R-4, D-445 C03) : Annuler rend le brouillon intact, sans écriture. */}
+      {pendingDecision !== null ? (
+        pendingDecision.decision.kind === "CHOICE" ? (
+          <MovementSaveDialog
+            variant="CHOICE"
+            otherCount={pendingDecision.decision.otherCount}
+            onConfirm={(choice) => {
+              if (choice === "UPDATE") {
+                void chooseCorrection(pendingDecision);
+              } else {
+                void chooseNewIdentity(pendingDecision);
+              }
+            }}
+            onCancel={() => setPendingDecision(null)}
+          />
+        ) : (
+          <MovementSaveDialog
+            variant="CONFIRM"
+            otherCount={pendingDecision.decision.otherCount}
+            onConfirm={() => {
+              void chooseCorrection(pendingDecision);
+            }}
+            onCancel={() => setPendingDecision(null)}
+          />
+        )
       ) : null}
 
       {pendingCompletion !== null ? (
@@ -1089,10 +1118,28 @@ type OpenedOccurrence = {
    * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : une occurrence dont le Mouvement
    * est NOUVEAU dans le brouillon (création locale, original comme copie) a son contenu et sa
    * structure modifiables ; la modification s'inscrit dans ce Mouvement partagé
-   * (`withDraftMovement`), sans mécanisme propre aux copies. Le crayon d'un Mouvement enregistré
-   * relève de R-4 (C04).
+   * (`withDraftMovement`), sans mécanisme propre aux copies.
+   * PRE-7 (R-4, D-445 C04) : le crayon « Modifier le mouvement » déverrouille contenu et
+   * structure d'un Mouvement enregistré (`UnlockedMovement`).
    */
   readonly phaseStructureLocked: boolean;
+};
+
+/**
+ * PRE-7 (R-4, D-445 C03, C04) : Mouvement enregistré déverrouillé par le crayon — son contenu
+ * courant (entrée `EDITED` du brouillon si présente, sinon relu par le service), base de la
+ * décision de sauvegarde à `Terminer`, et son compteur de phase (Feuille, MFN/AC30).
+ */
+type UnlockedMovement = {
+  readonly id: string;
+  readonly content: MovementContentSnapshot;
+  readonly nextPhaseId: number;
+};
+
+/** PRE-7 (R-4, C03) : dialogue de sauvegarde d'une occurrence déverrouillée, en attente. */
+type PendingOccurrenceSave = {
+  readonly occurrence: SessionDraftExercise;
+  readonly decision: DialogDecision;
 };
 
 function openedOccurrenceOf(
@@ -1200,6 +1247,15 @@ function CompositionExerciseEditor() {
   const finishingRef = useRef(false);
   // PRE-6 (story 2.3) : ajout adapté au Circuit de Séries, en attente de confirmation de perte.
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<{ readonly targetCount: number } | null>(null);
+  // PRE-7 (R-4, D-445 C04) : crayon d'une occurrence d'un Mouvement enregistré — contenu et
+  // structure déverrouillés dans l'éditeur seulement ; rien n'est inscrit avant `Terminer`.
+  const [unlockedMovement, setUnlockedMovement] = useState<UnlockedMovement | null>(null);
+  const [isUnlocking, setIsUnlocking] = useState(false);
+  const [pendingOccurrenceSave, setPendingOccurrenceSave] = useState<PendingOccurrenceSave | null>(null);
+  const movementLocked = phaseStructureLocked && unlockedMovement === null;
+  // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
+  const canUnlockMovement =
+    isEditingExisting && movementLocked && activityDefinitionService.supportsSharedCorrection === true;
 
   // Nouvelle occurrence : défauts CR/Fin du Profil appliqués à leur lecture
   // si le brouillon est intact — ajustement d'état pendant le rendu, une fois.
@@ -1337,8 +1393,122 @@ function CompositionExerciseEditor() {
     return { ...plan, exercises: shared.exercises, movements: shared.movements };
   }
 
+  /**
+   * PRE-7 (R-4, D-445 C04) : crayon — contenu courant du Mouvement : entrée `EDITED` du
+   * brouillon si présente (correction déjà inscrite, non enregistrée), sinon Mouvement relu.
+   * Mouvement introuvable ou lecture en échec : l'occurrence reste verrouillée.
+   */
+  function unlockMovement() {
+    if (local === null || isUnlocking || unlockedMovement !== null) {
+      return;
+    }
+    const movementId = (local.sourceMovementId ?? "").trim();
+    const entry = draft.movements?.[movementId];
+    if (entry !== undefined) {
+      setUnlockedMovement({ id: movementId, content: movementContentOfDraft(entry), nextPhaseId: entry.nextPhaseId });
+      return;
+    }
+    setIsUnlocking(true);
+    activityDefinitionService.getMovement(movementId).then(
+      (movement) => {
+        setIsUnlocking(false);
+        if (movement === null) {
+          console.error("Le mouvement de l'occurrence est introuvable.");
+          return;
+        }
+        // Description « avant » normalisée comme la saisie (étapes décodées puis réencodées, D-425) :
+        // une ancienne description non modifiée n'est pas un changement de contenu.
+        const content = movementContentOf(movement);
+        setUnlockedMovement({
+          id: movement.id,
+          content: { ...content, description: encodeInstructionSteps(decodeInstructionSteps(movement.description)) },
+          nextPhaseId: movement.nextPhaseId,
+        });
+      },
+      (error: unknown) => {
+        setIsUnlocking(false);
+        console.error("Le mouvement de l'occurrence n'a pas pu être chargé.", error);
+      },
+    );
+  }
+
+  /**
+   * PRE-7 (R-4, D-445 C03, C04) : `Terminer` d'une occurrence déverrouillée — décision unique de
+   * sauvegarde contre le contenu courant du Mouvement. Autres exercices : définitions du
+   * Catalogue et occurrences persistées des AUTRES Séances (service), plus les autres occurrences
+   * du brouillon qui le référencent, l'occurrence éditée exclue ; exécutions : 0 (avant T04).
+   * Paramètres seuls : comportement de `Terminer` inchangé. Une lecture en échec laisse l'éditeur
+   * ouvert, brouillon intact.
+   */
+  async function finishUnlocked(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    finishingRef.current = true;
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    const after = movementContentOfDraft(
+      draftMovementOf(finished, "EDITED", { nextPhaseId: unlocked.nextPhaseId, aliases: unlocked.content.aliases }),
+    );
+    const inDraft = draft.exercises.filter(
+      (exercise) => exercise.id !== finished.id && exercise.sourceMovementId === unlocked.id,
+    ).length;
+    let decision: MovementSaveDecision;
+    try {
+      const persisted = await activityDefinitionService.countMovementUsage(unlocked.id, draft.sourceSessionId ?? null);
+      decision = decideMovementSave(unlocked.content, after, persisted + inDraft, 0);
+    } catch (error) {
+      console.error("L'utilisation du mouvement n'a pas pu être lue.", error);
+      finishingRef.current = false;
+      return;
+    }
+    if (decision.kind === "NONE") {
+      const plan = planFinish(current);
+      commitFinished(plan.exercises, plan.movements);
+      return;
+    }
+    if (decision.kind === "SILENT") {
+      commitMovementUpdate(current, unlocked);
+      return;
+    }
+    finishingRef.current = false;
+    setPendingOccurrenceSave({ occurrence: current, decision });
+  }
+
+  /**
+   * PRE-7 (R-4, C04) : « Mettre à jour ce mouvement » (ou confirmation, ou sauvegarde silencieuse)
+   * — le Mouvement corrigé est inscrit `EDITED` dans la table du brouillon : toutes ses
+   * occurrences l'affichent (`withDraftMovement`) ; le repository le met à jour à
+   * l'enregistrement de la Séance.
+   */
+  function commitMovementUpdate(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    const exercises = draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise));
+    const shared = withDraftMovement(
+      { ...draft, exercises },
+      draftMovementOf(finished, "EDITED", { nextPhaseId: unlocked.nextPhaseId, aliases: unlocked.content.aliases }),
+    );
+    commitFinished(shared.exercises, shared.movements);
+  }
+
+  /**
+   * PRE-7 (R-4, C04, Q10) : « Créer un nouveau mouvement » — l'occurrence est remplacée, à la même
+   * place, par une nouvelle occurrence d'un nouveau Mouvement `NEW`
+   * (`replaceOccurrenceWithNewMovement`) ; les autres occurrences gardent l'ancien Mouvement.
+   */
+  function commitNewMovement(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    const replaced = replaceOccurrenceWithNewMovement(
+      draft,
+      finished,
+      { occurrenceId: Crypto.randomUUID(), movementId: Crypto.randomUUID() },
+      { nextPhaseId: unlocked.nextPhaseId },
+    );
+    commitFinished(replaced.exercises, replaced.movements, replaced.circuitSeriesReserve);
+  }
+
   function handleTerminer() {
     if (finishingRef.current || local === null) {
+      return;
+    }
+    if (unlockedMovement !== null) {
+      void finishUnlocked(local, unlockedMovement);
       return;
     }
     const plan = planFinish(local);
@@ -1351,7 +1521,11 @@ function CompositionExerciseEditor() {
     commitFinished(plan.exercises, plan.movements);
   }
 
-  function commitFinished(nextExercises: readonly SessionDraftExercise[], nextMovements: SessionDraft["movements"]) {
+  function commitFinished(
+    nextExercises: readonly SessionDraftExercise[],
+    nextMovements: SessionDraft["movements"],
+    nextReserve?: SessionDraft["circuitSeriesReserve"],
+  ) {
     // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
     // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
     // retrait que sa sortie du Circuit, `exitCircuit`), dans la MÊME mise à jour, fonctionnelle,
@@ -1372,7 +1546,12 @@ function CompositionExerciseEditor() {
         circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve,
       }));
     } else {
-      updateDraft({ exercises: nextExercises, ...(nextMovements !== undefined ? { movements: nextMovements } : {}) });
+      // PRE-7 (R-4, C04) : `nextReserve` — réserve dont l'entrée a suivi l'occurrence remplacée.
+      updateDraft({
+        exercises: nextExercises,
+        ...(nextMovements !== undefined ? { movements: nextMovements } : {}),
+        ...(nextReserve !== undefined ? { circuitSeriesReserve: nextReserve } : {}),
+      });
     }
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
@@ -1396,8 +1575,12 @@ function CompositionExerciseEditor() {
     value !== null &&
     isActivityEditorFormValid(value, {
       // PRE-7 (R-3, C05) : une occurrence dont le Mouvement est NOUVEAU porte le contenu de ce
-      // Mouvement, dont la Catégorie et les Zones sont requises à l'enregistrement.
-      requireReferences: !isEditingExisting || (local !== null && !isPersistedMovementOccurrence(local, draft.movements)),
+      // Mouvement, dont la Catégorie et les Zones sont requises à l'enregistrement ; de même pour
+      // un Mouvement enregistré déverrouillé par le crayon (R-4, C04), réécrit à l'enregistrement.
+      requireReferences:
+        !isEditingExisting ||
+        unlockedMovement !== null ||
+        (local !== null && !isPersistedMovementOccurrence(local, draft.movements)),
       hasCategory: Boolean(local?.categoryId),
       baseline: baselineParameters,
     }) &&
@@ -1409,6 +1592,7 @@ function CompositionExerciseEditor() {
         title={isEditingExisting ? t.titleEdit : t.titleAdd}
         onClose={() => router.back()}
         accessibilityLabel={t.backAccessibilityLabel}
+        trailing={canUnlockMovement ? <EditMovementAction onPress={unlockMovement} /> : null}
       />
 
       {value !== null ? (
@@ -1427,12 +1611,14 @@ function CompositionExerciseEditor() {
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
-          phaseStructureLocked={phaseStructureLocked}
+          phaseStructureLocked={movementLocked}
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
-          // occurrence portant une filiation a son contenu (nom, description, médias, Catégorie,
-          // Zones) verrouillé, sans crayon ; une création locale non enregistrée reste modifiable,
-          // ainsi que sa copie en attente (recette JA, décision de Hermann du 26/10/2026).
-          contentLocked={phaseStructureLocked || repriseLocked}
+          // occurrence d'un Mouvement enregistré a son contenu (nom, description, médias, Catégorie,
+          // Zones) verrouillé jusqu'au crayon (R-4, D-445 C04) ; une création locale non enregistrée
+          // reste modifiable, ainsi que sa copie en attente (recette JA, décision du 26/10/2026).
+          contentLocked={movementLocked || repriseLocked}
+          // PRE-7 (R-4, MFN/AC30) : compteur du Mouvement déverrouillé, jamais max + 1.
+          nextPhaseId={unlockedMovement?.nextPhaseId}
           onNameEndEditing={() => originChoice.proposeFor(value.name)}
           movementSearchAction={
             originChoice.canSearch
@@ -1492,6 +1678,41 @@ function CompositionExerciseEditor() {
             commitFinished(replayed.exercises, replayed.movements);
           }}
         />
+      ) : null}
+
+      {/* PRE-7 (R-4, D-445 C03, C04) : Annuler rend l'éditeur et son brouillon intacts, rien n'est inscrit. */}
+      {pendingOccurrenceSave !== null && unlockedMovement !== null ? (
+        pendingOccurrenceSave.decision.kind === "CHOICE" ? (
+          <MovementSaveDialog
+            variant="CHOICE"
+            otherCount={pendingOccurrenceSave.decision.otherCount}
+            onConfirm={(choice) => {
+              const { occurrence } = pendingOccurrenceSave;
+              setPendingOccurrenceSave(null);
+              if (finishingRef.current) return;
+              finishingRef.current = true;
+              if (choice === "UPDATE") {
+                commitMovementUpdate(occurrence, unlockedMovement);
+              } else {
+                commitNewMovement(occurrence, unlockedMovement);
+              }
+            }}
+            onCancel={() => setPendingOccurrenceSave(null)}
+          />
+        ) : (
+          <MovementSaveDialog
+            variant="CONFIRM"
+            otherCount={pendingOccurrenceSave.decision.otherCount}
+            onConfirm={() => {
+              const { occurrence } = pendingOccurrenceSave;
+              setPendingOccurrenceSave(null);
+              if (finishingRef.current) return;
+              finishingRef.current = true;
+              commitMovementUpdate(occurrence, unlockedMovement);
+            }}
+            onCancel={() => setPendingOccurrenceSave(null)}
+          />
+        )
       ) : null}
 
       {originChoice.overlays}

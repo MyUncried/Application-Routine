@@ -5,33 +5,17 @@ import { repriseExecutionParameters, type Movement } from "../Movement";
 import {
   buildSiblingCompletions,
   completionEntriesReady,
-  correctionScope,
   initialCompletionEntries,
   type SiblingGap,
 } from "../sharedCorrection";
 
 /**
  * PRE-7 story A2.2 (D-438, MFN-02, MFN-06, MFN-08 ; relevé Figma MFN du 23/10) — états dérivés
- * du domaine pour l'Éditeur : portée de la question d'identité (nombres calculés, création en
- * cours comptée), brouillon de l'étape de complétion (aucune valeur inventée, complétion passée
- * explicite) et paramètres initiaux d'une création sur un geste repris.
+ * du domaine pour l'Éditeur : brouillon de l'étape de complétion (aucune valeur inventée,
+ * complétion passée explicite) et paramètres initiaux d'une création sur un geste repris.
+ * PRE-7 (R-4) : la portée de l'ancienne question d'identité (`correctionScope`) est retirée avec
+ * elle ; la portée du dialogue C03 est le nombre d'autres exercices (`decideMovementSave`).
  */
-
-describe("correctionScope — portée de la question d'identité", () => {
-  it("modification Catalogue : l'Exercice édité est déjà compté, les autres en sont retirés", () => {
-    expect(correctionScope("UPDATE", 3)).toEqual({ otherCount: 2, totalCount: 3, showCount: true });
-    expect(correctionScope("UPDATE", 2)).toEqual({ otherCount: 1, totalCount: 2, showCount: true });
-  });
-
-  it("au plus un Exercice concerné : aucun nombre affiché", () => {
-    expect(correctionScope("UPDATE", 1)).toEqual({ otherCount: 0, totalCount: 1, showCount: false });
-    expect(correctionScope("SAME_MOVEMENT", 0)).toEqual({ otherCount: 0, totalCount: 1, showCount: false });
-  });
-
-  it("création sur geste repris : la création en cours compte dans le total, pas parmi les autres", () => {
-    expect(correctionScope("SAME_MOVEMENT", 2)).toEqual({ otherCount: 2, totalCount: 3, showCount: true });
-  });
-});
 
 const GAPS: readonly SiblingGap[] = [
   { definitionId: "def-a", missingPhaseIds: [3, 4], missingSeriesDuration: false },
