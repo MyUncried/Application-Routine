@@ -13,3 +13,6 @@ Formulaire de variante : description/médias vierges ; catégorie/zones reprises
 Tests automatiques dans la CI existante : corpus R07 de recherche complet, unicité et collisions, toutes les branches MFN-08 avec zéro/autres exercices et historique, variante et annulation, indépendance des paramètres, lecture du contenu courant, suppression de définition sans cassure de séance, mouvement sans exercice, phases et instantanés figés. Tester résultats de recherche, ordre et déduplication, jamais recopier la formule comme oracle. Ajouter tout défaut corrigé au corpus. Base vierge : aucune migration exigée.
 
 Réutiliser composants/tokens existants. Carte Résultat 107 pt distincte de carte simple 80 pt ; les écarts Figma sont connus et ne remplacent pas D-445. Livrer ce qui est effectivement réalisé et vérifié, avec limites restantes distinctes des arbitrages clos.
+
+
+Lire également `docs/KODJO-Phases-Guidage-Cyclique-2026-10-26.md` (PHC-20261026), prioritaire sur les anciennes restrictions : phases cycliques compatibles avec Répétitions et À l’échec ; cible de série indépendante ; aucune adaptation proportionnelle. Remplacer le transfert phases→sans par conservation de la cible. Rapprocher D-446 locale de cette clarification. Les tests PHC/AC01–12 sont à implémenter ; arrêt mixte et guidage après cible avant Suivant restent explicitement distincts.

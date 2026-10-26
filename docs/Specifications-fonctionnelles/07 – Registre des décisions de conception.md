@@ -843,6 +843,8 @@ La V2 est amendée par ces décisions, notamment : réglages éditables ; organi
 
 ### Phases d’exercice — décisions du 15 octobre 2026
 
+**Historique partiellement remplacé le 26/10 par PHC-20261026 :** éligibilité Durée/Répétitions et échec, motif cyclique, cible indépendante ; suppression du budget de dernière phase et de l’adaptation proportionnelle. Voir la clarification en fin de registre.
+
 | ID | Décision |
 |---|---|
 | D-370 | Phases au MVP ; 0 à 6 phases ordonnées, libellé 20 caractères maximum ; Durée chiffrée et séries identiques uniquement ; une série joue une fois le motif sans pause interne. |
@@ -915,3 +917,14 @@ Dans un **changement de mouvement/niveau**, transférer par rang, jamais par ég
 La lecture partagée supprime la synchronisation du contenu, pas la vérification de compatibilité des paramètres. Le moteur ne lance pas un exercice incomplet et ne relit aucun mouvement après création de l’instantané.
 
 Les recommandations d’ajouter une seconde commande de création distincte ou d’utiliser un seuil graphique non validé ne sont pas promues en décisions. Les huit points sont clos ; C08 reste un choix de périmètre à venir.
+
+
+### PHC-20261026 — Phases cycliques, clarification du 26 octobre 2026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée.
+
+Remplace les dispositions contraires D-370/D-372/D-374 et les transferts de durée D-371/D-432/D-438 ; conserve le reste. [Texte normatif et recette](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). D-446 locale à rapprocher, sans numéro réattribué.

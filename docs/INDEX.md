@@ -66,3 +66,5 @@ Les corrections du contenu partagé sont visibles à la prochaine lecture des d�
 Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice puis construire un instantané autonome. Cet instantané, l’exécution déjà démarrée et les historiques ne changent plus avec le mouvement. Leur `sourceMovementId` conserve l’identité exécutée, sans rang stocké ; la classification actuelle peut être résolue séparément à la lecture.
 
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
+
+- [PHC-20261026 — phases cycliques, compatibilité Répétitions/échec, cible de série indépendante](KODJO-Phases-Guidage-Cyclique-2026-10-26.md) : clarification normative du 26/10/2026 ; remplace les règles contraires antérieures.
