@@ -243,6 +243,9 @@ export const fr = {
         // « mouvement » dans tous les textes d’interface (identifiants inchangés, D-201) ; même
         // crayon sur une occurrence de Séance (D-445 C04).
         editMovement: "Modifier le mouvement",
+        // PRE-7 story R-9 (D-448 point 10) : indication VoiceOver du crayon actif en Séance (aucun
+        // texte documenté).
+        editMovementActiveHint: "Touchez pour quitter la modification du mouvement",
         // PRE-7 story R-5 (D-445 C01, C02, v7 §6 R03-R04 ; maquettes `9882:19049`, `10175:20349`,
         // `10140:20180`, `10187:20340`, carte `10199:22268`) : panneau sous le nom, pendant la saisie
         // (remplace la feuille à trois choix d’A2.3). Textes relevés : message d’unicité, actions de
@@ -288,14 +291,18 @@ export const fr = {
           unsetLabel: "Niveau",
           unsetAccessibilityLabel: "Niveau — non renseigné",
           rank: "Niveau {rank}",
+          // PRE-7 story R-9 (D-448 point 9) : intitulé du sous-menu des niveaux au Catalogue en
+          // modification (choix par Exercice) ; « Changer de niveau » reste en Séance et en reprise.
+          navigateTo: "Naviguer vers",
           changeLevel: "Changer de niveau",
           addLevel: "Ajouter un niveau",
           // PRE-7 (R-6, MFN-07 l.371, déploiement `10152:20369`) : sens du niveau ajouté.
           addEasier: "Plus facile",
           addHarder: "Plus difficile",
           levelOption: "Niveau {rank} sur {total} · {name}",
-          // PRE-7 story A3.2 : accès à l’écran des niveaux, en fin du sous-menu « Changer de niveau »
-          // (aucun libellé documenté ; verbe de ch03 l.154 « glisser réordonne les niveaux »).
+          // PRE-7 story A3.2 : accès à l’écran des niveaux (aucun libellé documenté ; verbe de ch03
+          // l.154 « glisser réordonne les niveaux »). R-9 (D-448 point 9) : troisième entrée de la
+          // racine du menu, retirée du sous-menu des niveaux.
           reorderLevels: "Réordonner les niveaux",
         },
         // PRE-7 story A3.2 (D-439, MFN-05, MFN/AC07) : écran des niveaux d’un groupe, sans frame

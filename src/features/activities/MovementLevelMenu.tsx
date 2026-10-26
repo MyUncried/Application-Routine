@@ -50,6 +50,11 @@ import { colors, fixedRadii, spacing, type } from "@/shared/ui/tokens";
  *   mouvement du groupe, local compris : chaque niveau est alors un bouton, le mouvement courant coché.
  *   « Ajouter un niveau » est un sous-menu natif « Plus facile / Plus difficile » (déploiement
  *   `10152:20369`, MFN-07 : insertion avant / après l'origine) ; indisponible sans `onAddLevel`.
+ * - PRE-7 story R-9 (D-448 point 9, recette JA2 ; remplace la place de « Réordonner » fixée par
+ *   A3.2) : racine à trois entrées dans les trois contextes — sous-menu des niveaux, intitulé
+ *   « Naviguer vers » au Catalogue (choix par Exercice) et « Changer de niveau » en Séance et en
+ *   reprise (`movementChoice`) ; « Ajouter un niveau » ; « Réordonner les niveaux », sorti du
+ *   sous-menu des niveaux, indisponible comme lui sous deux niveaux. Comportements inchangés.
  * - Android et web : bouton (cible 44) et panneau `AnchoredPanel` à étapes (racine, niveaux,
  *   Exercices), hébergé par l'Éditeur dans un parent qui le contient entièrement — rendu
  *   `NON VÉRIFIABLE` (Figma ne dessine que le rendu iOS), lignes du panneau de `CircuitNatureMenu`.
@@ -125,9 +130,22 @@ export function levelOptionLabel(level: LevelOption): string {
   });
 }
 
-/** « Changer de niveau » disponible : au moins deux niveaux (aucun groupe singleton). */
+/**
+ * Sous-menu des niveaux et « Réordonner les niveaux » disponibles : au moins deux niveaux (aucun
+ * groupe singleton).
+ */
 function canChangeLevel(menu: MovementLevelMenuModel): boolean {
   return menu.levels.length >= 2;
+}
+
+/**
+ * PRE-7 (R-9, D-448 point 9, précision de Hermann « Structure partout, libellé adapté ») : « Naviguer
+ * vers » au Catalogue en modification (choix par Exercice) ; « Changer de niveau » en Séance et en
+ * reprise (choix par mouvement, qui remplace le mouvement de l'occurrence).
+ */
+function levelsSubmenuLabel(menu: MovementLevelMenuModel): string {
+  const t = strings.screens.activities.editor.levelMenu;
+  return menu.movementChoice === undefined ? t.navigateTo : t.changeLevel;
 }
 
 /**
@@ -253,12 +271,10 @@ export function MovementLevelMenu({
             }
             modifiers={[swiftUIAccessibilityLabel(label)]}
           >
-            <Menu label={t.changeLevel} modifiers={[swiftUIDisabled(!canChangeLevel(menu))]} testID={`${testID}-change`}>
+            <Menu label={levelsSubmenuLabel(menu)} modifiers={[swiftUIDisabled(!canChangeLevel(menu))]} testID={`${testID}-change`}>
               {menu.levels.map((option) => (
                 <NativeLevelItem key={option.rank} option={option} menu={menu} testID={`${testID}-level-${option.rank}`} />
               ))}
-              {/* PRE-7 (A3.2) : écran des niveaux, en fin du sous-menu (mêmes conditions d'accès). */}
-              <SwiftUIButton label={t.reorderLevels} onPress={menu.onReorderLevels} testID={`${testID}-reorder`} />
             </Menu>
             {/* PRE-7 (R-6, MFN-07, `10152:20369`) : sens explicite, avant / après l'origine. */}
             <Menu
@@ -269,6 +285,13 @@ export function MovementLevelMenu({
               <SwiftUIButton label={t.addEasier} onPress={() => menu.onAddLevel?.("BEFORE_ORIGIN")} testID={`${testID}-add-easier`} />
               <SwiftUIButton label={t.addHarder} onPress={() => menu.onAddLevel?.("AFTER_ORIGIN")} testID={`${testID}-add-harder`} />
             </Menu>
+            {/* PRE-7 (A3.2 ; R-9, D-448 point 9) : écran des niveaux, à la racine (au moins deux niveaux). */}
+            <SwiftUIButton
+              label={t.reorderLevels}
+              modifiers={[swiftUIDisabled(!canChangeLevel(menu))]}
+              onPress={menu.onReorderLevels}
+              testID={`${testID}-reorder`}
+            />
           </Menu>
         </Host>
       </View>
@@ -382,7 +405,8 @@ export type MovementLevelPanelProps = {
 };
 
 /**
- * Android et web : panneau à étapes — « Changer de niveau » / « Ajouter un niveau », puis les niveaux,
+ * Android et web : panneau à étapes — « Naviguer vers » (ou « Changer de niveau ») / « Ajouter un
+ * niveau » / « Réordonner les niveaux » (R-9), puis les niveaux,
  * puis les Exercices d'un niveau qui en compte plusieurs. Choisir ferme le panneau.
  */
 export function MovementLevelPanel({ menu, placement, onDismiss, testID }: MovementLevelPanelProps) {
@@ -397,8 +421,18 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
   let rows: readonly PanelRowProps[];
   if (step.kind === "ROOT") {
     rows = [
-      { id: "change", label: t.changeLevel, disabled: !canChangeLevel(menu), onPress: () => setStep({ kind: "LEVELS" }) },
+      { id: "change", label: levelsSubmenuLabel(menu), disabled: !canChangeLevel(menu), onPress: () => setStep({ kind: "LEVELS" }) },
       { id: "add", label: t.addLevel, disabled: menu.onAddLevel === null, onPress: () => setStep({ kind: "ADD" }) },
+      // PRE-7 (A3.2 ; R-9, D-448 point 9) : écran des niveaux, à la racine (comme dans le menu natif).
+      {
+        id: "reorder",
+        label: t.reorderLevels,
+        disabled: !canChangeLevel(menu),
+        onPress: () => {
+          onDismiss();
+          menu.onReorderLevels();
+        },
+      },
     ];
   } else if (step.kind === "ADD") {
     // PRE-7 (R-6, MFN-07) : sens explicite, avant / après l'origine.
@@ -412,7 +446,7 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
     ];
   } else if (step.kind === "LEVELS") {
     const choice = menu.movementChoice;
-    const levelRows = menu.levels.map((option): PanelRowProps => {
+    rows = menu.levels.map((option): PanelRowProps => {
       if (choice !== undefined) {
         // PRE-7 (R-6) : choix par mouvement, une ligne par niveau.
         return {
@@ -438,18 +472,6 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
         },
       };
     });
-    // PRE-7 (A3.2) : écran des niveaux, en fin de l'étape (comme dans le sous-menu natif).
-    rows = [
-      ...levelRows,
-      {
-        id: "reorder",
-        label: t.reorderLevels,
-        onPress: () => {
-          onDismiss();
-          menu.onReorderLevels();
-        },
-      },
-    ];
   } else {
     const option = menu.levels.find((candidate) => candidate.rank === step.rank);
     rows = (option?.exercises ?? []).map((exercise) => ({

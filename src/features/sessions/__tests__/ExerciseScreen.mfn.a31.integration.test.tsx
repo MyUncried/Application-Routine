@@ -214,12 +214,13 @@ describe("PRE-7 A3.1 — pastille de Niveau (rangée de classification)", () => 
     expect(screen.getByTestId("exercise-body-zones-open").props.hitSlop).toMatchObject({ left: 6, right: 6, top: 1, bottom: 17 });
   });
 
-  it("geste sans groupe, puis singleton : pastille vide « Niveau », « Changer de niveau » indisponible", async () => {
+  it("geste sans groupe, puis singleton : pastille vide « Niveau », « Naviguer vers » indisponible (R-9, D-448)", async () => {
     const alone = await create({ name: "Pompes" });
     await renderEditor({ catalogueDefinitionId: alone.id });
     expect(pastilleLabel()).toBe("Niveau");
     expect(screen.getByTestId("activity-editor-level-focus", anyNode)).toBeTruthy();
     expect(JSON.stringify(nativeMenu("activity-editor-level-change")?.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(true)));
+    expect(nativeMenu("activity-editor-level-change")?.props.label).toBe("Naviguer vers");
     screen.unmount();
 
     const { assisted, squats } = await twoLevels();
@@ -253,7 +254,7 @@ describe("PRE-7 A3.1 — pastille de Niveau (rangée de classification)", () => 
   });
 });
 
-describe("PRE-7 A3.1 — Changer de niveau (MFN-07, MFN/AC16)", () => {
+describe("PRE-7 A3.1 — Naviguer vers (ex-« Changer de niveau », R-9 ; MFN-07, MFN/AC16)", () => {
   it("niveau à un Exercice : ouverture directe de cet Exercice ; l'Exercice ouvert est coché, sans effet", async () => {
     const { assisted, squats } = await twoLevels();
     await renderEditor({ catalogueDefinitionId: squats.id });

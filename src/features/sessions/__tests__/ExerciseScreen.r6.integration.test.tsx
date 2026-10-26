@@ -325,6 +325,10 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
     expect(screen.queryByTestId("activity-editor-level-level-2", anyNode)).toBeNull();
     expect(pastilleLabel()).toBe("Niveau 1");
     expect(screen.getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 1");
+    // PRE-7 (R-9, D-448 point 10) : crayon actif ; le retoucher sans changement rend le menu.
+    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityState).toMatchObject({ selected: true });
+    await press("activity-editor-edit-movement");
+    expect(screen.getByTestId("activity-editor-level-level-2", anyNode)).toBeTruthy();
     screen.unmount();
 
     await renderEditor({ exerciseId: "occ-1" }, draft);

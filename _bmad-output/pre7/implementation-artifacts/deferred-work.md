@@ -185,3 +185,9 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-8-recherche-prefixe-variante.md`
   summary: L'écran de recherche (`MovementSearchScreen`), `openSearch`, `overlays` et `canSearch` restent sans point d'entrée ni test d'intégration depuis le retrait du lien de l'éditeur.
   evidence: Précision de Hermann du 26/10/2026 (« Conservé sans accès pour l'instant ») ; seul `MovementSearchScreen.r8.test.tsx` teste l'écran isolé. À rebrancher avec un futur accès.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-9-menu-niveau-crayon.md`
+  summary: Abandonner l'édition du mouvement après avoir ajouté un média laisse des copies orphelines validées à Terminer.
+  evidence: `abandonMovementEdit` restaure `local` sans retirer du brouillon de médias les copies ajoutées depuis le déverrouillage ; `commitMediaDraft(mediaDraftId)` les valide.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-9-menu-niveau-crayon.md`
+  summary: La sortie d'écran pendant une confirmation de reverrouillage (une seule modale, celle de la sortie) n'est couverte par aucun test.
+  evidence: `ExerciseScreen.r9.integration.test.tsx` simule `useCompositionExitGuard` avec `isPendingExit: false`.

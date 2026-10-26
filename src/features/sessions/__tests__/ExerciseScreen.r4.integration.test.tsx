@@ -259,7 +259,8 @@ describe("PRE-7 R-4 — occurrence de Séance, crayon (C04)", () => {
     await renderEditor({ exerciseId: "occ-1" }, draft);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
     await press("activity-editor-edit-movement");
-    expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
+    // PRE-7 (R-9, D-448 point 10) : le crayon reste affiché, à l'état actif, pendant l'édition.
+    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByTestId("exercise-instruction-input").props.editable).not.toBe(false);
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit");
     await press("exercise-finish-action");

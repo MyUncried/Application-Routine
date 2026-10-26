@@ -17,6 +17,7 @@ import { DuplicateMovementNameError } from "@/domain/activities/MovementReposito
 import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
   decideMovementSave,
+  movementContentChanged,
   movementContentOf,
   type MovementContentSnapshot,
   type MovementSaveDecision,
@@ -367,23 +368,35 @@ type PendingSiblingCompletion = {
  */
 const EDIT_MOVEMENT_ACTION = { width: 40, height: 32, radius: 10, background: "#F3F4F9" } as const;
 
-function EditMovementAction({ onPress }: { onPress: () => void }) {
+/**
+ * PRE-7 (R-9, D-448 point 10, recette JA2 nv-9) : `active` — édition du mouvement en cours sur une
+ * occurrence de Séance : le crayon reste affiché, à l'état actif (`accessibilityState.selected`,
+ * fond `colors.primary` et crayon `colors.background`, jetons existants ; rendu `NON VÉRIFIABLE`,
+ * Figma ne dessine pas cet état). Le toucher alors quitte l'édition (`CompositionExerciseEditor`).
+ */
+function EditMovementAction({ onPress, active = false }: { onPress: () => void; active?: boolean }) {
   const label = strings.screens.activities.editor.editMovement;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      accessibilityHint={active ? strings.screens.activities.editor.editMovementActiveHint : undefined}
       hitSlop={{
         top: (minTouchTarget - EDIT_MOVEMENT_ACTION.height) / 2,
         bottom: (minTouchTarget - EDIT_MOVEMENT_ACTION.height) / 2,
         left: (minTouchTarget - EDIT_MOVEMENT_ACTION.width) / 2,
         right: (minTouchTarget - EDIT_MOVEMENT_ACTION.width) / 2,
       }}
-      style={styles.editMovementAction}
+      style={[styles.editMovementAction, active ? styles.editMovementActionActive : null]}
       testID="activity-editor-edit-movement"
     >
-      <KodjoIcon name="edit-movement" testID="activity-editor-edit-movement-icon" />
+      <KodjoIcon
+        name="edit-movement"
+        tintColor={active ? colors.background : undefined}
+        testID="activity-editor-edit-movement-icon"
+      />
     </Pressable>
   );
 }
@@ -1276,7 +1289,60 @@ type UnlockedMovement = {
   readonly id: string;
   readonly content: MovementContentSnapshot;
   readonly nextPhaseId: number;
+  /**
+   * PRE-7 (R-9, D-448 point 10) : occurrence et étapes de description au toucher du crayon —
+   * référence des changements (contenu et structure de phases) et état restauré à la sortie.
+   */
+  readonly before: UnlockSnapshot;
 };
+
+/** PRE-7 (R-9) : état de l'éditeur au déverrouillage du mouvement. */
+type UnlockSnapshot = {
+  readonly local: SessionDraftExercise;
+  readonly instructionSteps: readonly string[];
+};
+
+/**
+ * PRE-7 (R-9, D-448 point 10 ; arbitrage `arbitrage-2026-10-26-recette-ja2-d448.md`) : contenu du
+ * mouvement ou structure des phases changés depuis le toucher du crayon — même comparaison que la
+ * décision C03 (`movementContentChanged` : nom et description normalisés, une étape vide n'est pas
+ * un changement ; médias, Catégorie, Zones ; phases par identité, libellé et ordre). Les autres
+ * paramètres, durées de phase comprises, n'en font pas partie.
+ */
+function changedSinceUnlock(
+  local: SessionDraftExercise,
+  instructionSteps: readonly string[],
+  before: UnlockSnapshot,
+): boolean {
+  const contentOf = (exercise: SessionDraftExercise, steps: readonly string[]) =>
+    movementContentOfDraft(draftMovementOf({ ...exercise, instruction: encodeInstructionSteps(steps) }, "EDITED"));
+  return movementContentChanged(contentOf(before.local, before.instructionSteps), contentOf(local, instructionSteps));
+}
+
+/**
+ * PRE-7 (R-9) : abandon de l'édition du mouvement — contenu et structure des phases d'avant le
+ * déverrouillage reportés sur l'occurrence COURANTE ; les autres paramètres restent tels que saisis,
+ * et une phase restaurée garde sa durée courante si elle existe encore.
+ */
+function withContentRestored(current: SessionDraftExercise, before: SessionDraftExercise): SessionDraftExercise {
+  const durations = new Map(current.executionParameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds] as const));
+  const workPhases = before.executionParameters.series.workPhases.map((phase) => ({
+    ...phase,
+    durationSeconds: durations.get(phase.id) ?? phase.durationSeconds,
+  }));
+  return {
+    ...current,
+    name: before.name,
+    instruction: before.instruction,
+    categoryId: before.categoryId,
+    bodyZoneIds: before.bodyZoneIds,
+    media: before.media,
+    executionParameters: {
+      ...current.executionParameters,
+      series: { ...current.executionParameters.series, workPhases },
+    },
+  };
+}
 
 /** PRE-7 (R-4, C03) : dialogue de sauvegarde d'une occurrence déverrouillée, en attente. */
 type PendingOccurrenceSave = {
@@ -1394,6 +1460,9 @@ function CompositionExerciseEditor() {
   const [unlockedMovement, setUnlockedMovement] = useState<UnlockedMovement | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [pendingOccurrenceSave, setPendingOccurrenceSave] = useState<PendingOccurrenceSave | null>(null);
+  // PRE-7 (R-9, D-448 point 10) : sortie de l'édition du mouvement par le crayon, en attente de la
+  // confirmation d'abandon (changements depuis le déverrouillage).
+  const [isPendingRelock, setIsPendingRelock] = useState(false);
   const movementLocked = phaseStructureLocked && unlockedMovement === null;
   // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
   // PRE-7 (R-6) : après un changement de niveau, plus de crayon jusqu'à `Terminer` — une correction
@@ -1506,6 +1575,12 @@ function CompositionExerciseEditor() {
   // (ajustement d'état pendant le rendu ; `finishingRef` n'est jamais engagé tant qu'il attend).
   if (isPendingExit && pendingCircuitEntry !== null) {
     setPendingCircuitEntry(null);
+  }
+  // PRE-7 (R-9) : de même, la sortie de l'écran l'emporte sur la sortie de l'édition du mouvement.
+  // … et une confirmation de sortie de l'édition ne survit jamais au reverrouillage, quel qu'en soit
+  // le chemin (`Terminer`, abandon, etc.).
+  if (isPendingRelock && (isPendingExit || unlockedMovement === null)) {
+    setIsPendingRelock(false);
   }
 
   useEffect(() => {
@@ -1714,10 +1789,12 @@ function CompositionExerciseEditor() {
     if (local === null || isUnlocking || unlockedMovement !== null) {
       return;
     }
+    // PRE-7 (R-9) : état au toucher — le contenu reste verrouillé pendant une relecture éventuelle.
+    const before: UnlockSnapshot = { local, instructionSteps };
     const movementId = (local.sourceMovementId ?? "").trim();
     const entry = draft.movements?.[movementId];
     if (entry !== undefined) {
-      setUnlockedMovement({ id: movementId, content: movementContentOfDraft(entry), nextPhaseId: entry.nextPhaseId });
+      setUnlockedMovement({ id: movementId, content: movementContentOfDraft(entry), nextPhaseId: entry.nextPhaseId, before });
       return;
     }
     setIsUnlocking(true);
@@ -1735,6 +1812,7 @@ function CompositionExerciseEditor() {
           id: movement.id,
           content: { ...content, description: encodeInstructionSteps(decodeInstructionSteps(movement.description)) },
           nextPhaseId: movement.nextPhaseId,
+          before,
         });
       },
       (error: unknown) => {
@@ -1742,6 +1820,43 @@ function CompositionExerciseEditor() {
         console.error("Le mouvement de l'occurrence n'a pas pu être chargé.", error);
       },
     );
+  }
+
+  /**
+   * PRE-7 (R-9, D-448 point 10, recette JA2 nv-9) : nouveau toucher du crayon pendant l'édition du
+   * mouvement — sortie de l'édition. Sans changement depuis le déverrouillage : reverrouillage
+   * immédiat ; sinon, confirmation d'abandon (`ExerciseExitConfirmModal`). La garde de navigation
+   * n'est pas concernée.
+   */
+  function toggleMovementEdit() {
+    if (unlockedMovement === null) {
+      unlockMovement();
+      return;
+    }
+    if (finishingRef.current || local === null || pendingOccurrenceSave !== null) {
+      return;
+    }
+    if (changedSinceUnlock(local, instructionSteps, unlockedMovement.before)) {
+      setIsPendingRelock(true);
+      return;
+    }
+    setUnlockedMovement(null);
+  }
+
+  /**
+   * PRE-7 (R-9) : Confirmer — contenu et structure des phases d'avant le déverrouillage restaurés
+   * (`withContentRestored`), autres paramètres conservés ; contenu reverrouillé.
+   */
+  function abandonMovementEdit() {
+    setIsPendingRelock(false);
+    if (finishingRef.current || unlockedMovement === null) {
+      return;
+    }
+    const { before } = unlockedMovement;
+    nameRef.current = before.local.name;
+    setInstructionSteps(before.instructionSteps);
+    setLocal((current) => (current ? withContentRestored(current, before.local) : current));
+    setUnlockedMovement(null);
   }
 
   /**
@@ -1904,7 +2019,13 @@ function CompositionExerciseEditor() {
         title={isEditingExisting ? t.titleEdit : t.titleAdd}
         onClose={() => router.back()}
         accessibilityLabel={t.backAccessibilityLabel}
-        trailing={canUnlockMovement ? <EditMovementAction onPress={unlockMovement} /> : null}
+        // PRE-7 (R-9, D-448 point 10) : crayon interrupteur — affiché et actif pendant l'édition du
+        // mouvement, qu'un nouveau toucher quitte.
+        trailing={
+          canUnlockMovement || unlockedMovement !== null ? (
+            <EditMovementAction onPress={toggleMovementEdit} active={unlockedMovement !== null} />
+          ) : null
+        }
       />
 
       {value !== null && !levelsPending ? (
@@ -1969,6 +2090,11 @@ function CompositionExerciseEditor() {
       {/* Q18 (FR-02-12) : textes de création en CS, de modification en MS (intention de la route). */}
       {isPendingExit ? (
         <ExerciseExitConfirmModal isCreation={isCreationRoute} onCancel={cancelExit} onConfirm={confirmExit} />
+      ) : null}
+
+      {/* PRE-7 (R-9, D-448 point 10) : sortie de l'édition du mouvement ; Annuler la laisse ouverte. */}
+      {isPendingRelock && unlockedMovement !== null ? (
+        <ExerciseExitConfirmModal onCancel={() => setIsPendingRelock(false)} onConfirm={abandonMovementEdit} />
       ) : null}
 
       {pendingCircuitEntry !== null ? (
@@ -2075,5 +2201,9 @@ const styles = StyleSheet.create({
     backgroundColor: EDIT_MOVEMENT_ACTION.background,
     alignItems: "center",
     justifyContent: "center",
+  },
+  // PRE-7 (R-9, D-448 point 10) : crayon actif pendant l'édition du mouvement en Séance.
+  editMovementActionActive: {
+    backgroundColor: colors.primary,
   },
 });

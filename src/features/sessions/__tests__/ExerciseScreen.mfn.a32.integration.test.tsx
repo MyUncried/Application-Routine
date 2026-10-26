@@ -270,7 +270,7 @@ describe("PRE-7 A3.2 — écran des niveaux depuis la fiche", () => {
     expect(await database.getFirstAsync("SELECT name FROM movements WHERE id = ?", [squats.movementId])).toEqual({ name: "Squats" });
   });
 
-  it("Android : ligne « Réordonner les niveaux » de l'étape des niveaux du panneau → écran des niveaux", async () => {
+  it("Android : ligne « Réordonner les niveaux » de la racine du panneau (R-9, D-448) → écran des niveaux", async () => {
     const os = jest.replaceProperty(Platform, "OS", "android");
     try {
       const { squats } = await threeLevels();
@@ -290,7 +290,6 @@ describe("PRE-7 A3.2 — écran des niveaux depuis la fiche", () => {
         fireEvent.press(screen.getByTestId("activity-editor-level"));
       });
       measure.mockRestore();
-      fireEvent.press(screen.getByTestId("activity-editor-level-panel-change"));
       await act(async () => {
         fireEvent.press(screen.getByTestId("activity-editor-level-panel-reorder"));
       });
@@ -302,11 +301,14 @@ describe("PRE-7 A3.2 — écran des niveaux depuis la fiche", () => {
     }
   });
 
-  it("geste sans groupe : l'entrée est dans le sous-menu indisponible", async () => {
+  it("geste sans groupe : « Naviguer vers » et « Réordonner les niveaux » indisponibles (R-9, D-448)", async () => {
     const alone = await create({ name: "Pompes" });
     await renderEditor({ catalogueDefinitionId: alone.id });
     const change = nativeMenu("activity-editor-level-change");
     expect(JSON.stringify(change?.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(true)));
-    expect(within(screen.getByTestId("activity-editor-level", anyNode)).getByTestId("activity-editor-level-reorder", anyNode)).toBeTruthy();
+    expect(change?.props.label).toBe("Naviguer vers");
+    const reorder = screen.getByTestId("activity-editor-level-reorder", anyNode);
+    expect(within(change!).queryByTestId("activity-editor-level-reorder", anyNode)).toBeNull();
+    expect(JSON.stringify(reorder.props.modifiers)).toContain(JSON.stringify(swiftUIDisabled(true)));
   });
 });

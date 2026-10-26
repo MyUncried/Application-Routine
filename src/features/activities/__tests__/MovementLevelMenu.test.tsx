@@ -126,7 +126,7 @@ describe("PRE-7 A3.1 — MovementLevelMenu", () => {
     expect(reachedSegments("level-gauge")).toEqual([1, 2, 3]);
   });
 
-  it("iOS : la pastille est le libellé d'un Menu SwiftUI natif — Changer de niveau (sous-menus), Ajouter un niveau", () =>
+  it("iOS : la pastille est le libellé d'un Menu SwiftUI natif — Naviguer vers (sous-menus), Ajouter un niveau", () =>
     withPlatform("ios", () => {
       const model = menuModel();
       renderMenu({ position: { rank: 2, total: 3 }, menu: model });
@@ -150,7 +150,8 @@ describe("PRE-7 A3.1 — MovementLevelMenu", () => {
       });
 
       const change = screen.getByTestId("level-change", anyNode);
-      expect(change.props.label).toBe("Changer de niveau");
+      // PRE-7 (R-9, D-448 point 9) : au Catalogue (choix par Exercice), « Naviguer vers ».
+      expect(change.props.label).toBe("Naviguer vers");
       expect(hasDisabled(change.props.modifiers, false)).toBe(true);
       // Niveau 1 : un Exercice → bouton ; niveau 2 : deux Exercices → sous-menu des résumés, coché ;
       // niveau 3 : geste local sans Exercice → indisponible.
@@ -188,7 +189,7 @@ describe("PRE-7 A3.1 — MovementLevelMenu", () => {
       expect(model.onAddLevel).toHaveBeenCalledTimes(2);
     }));
 
-  it("iOS, sans groupe : pastille vide, « Changer de niveau » indisponible, « Ajouter un niveau » disponible", () =>
+  it("iOS, sans groupe : pastille vide, « Naviguer vers » indisponible, « Ajouter un niveau » disponible", () =>
     withPlatform("ios", () => {
       renderMenu({ position: null, menu: menuModel({ levels: [] }) });
       expect(screen.getByTestId("level-label", anyNode).props.children).toBe("Niveau");
@@ -231,7 +232,7 @@ describe("PRE-7 A3.1 — MovementLevelPanel (repli Android / web)", () => {
     const model = menuModel();
     const onDismiss = jest.fn();
     render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
-    expect(screen.getByTestId("panel-change").props.accessibilityLabel).toBe("Changer de niveau");
+    expect(screen.getByTestId("panel-change").props.accessibilityLabel).toBe("Naviguer vers");
     expect(screen.getByTestId("panel-add").props.accessibilityLabel).toBe("Ajouter un niveau");
     fireEvent.press(screen.getByTestId("panel-change"));
     expect(screen.getByTestId("panel-level-1").props.accessibilityLabel).toBe("Niveau 1 sur 3 · Squats assistés");
@@ -246,7 +247,7 @@ describe("PRE-7 A3.1 — MovementLevelPanel (repli Android / web)", () => {
     expect(model.onChangeLevel).toHaveBeenCalledWith("d3");
   });
 
-  it("niveau à un Exercice : ouvert directement ; Ajouter un niveau ; sans groupe : Changer indisponible", () => {
+  it("niveau à un Exercice : ouvert directement ; Ajouter un niveau ; sans groupe : Naviguer et Réordonner indisponibles", () => {
     const model = menuModel();
     const onDismiss = jest.fn();
     render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
@@ -258,6 +259,7 @@ describe("PRE-7 A3.1 — MovementLevelPanel (repli Android / web)", () => {
     const alone = menuModel({ levels: [] });
     render(<MovementLevelPanel menu={alone} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
     expect(screen.getByTestId("panel-change").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    expect(screen.getByTestId("panel-reorder").props.accessibilityState).toEqual({ selected: false, disabled: true });
     // PRE-7 (R-6, MFN-07) : « Ajouter un niveau » déploie le choix du sens.
     fireEvent.press(screen.getByTestId("panel-add"));
     expect(alone.onAddLevel).not.toHaveBeenCalled();
@@ -296,6 +298,8 @@ describe("PRE-7 R-6 — choix par mouvement (C09, MFN-09)", () => {
         "level-change",
         "level-add",
       ]);
+      // PRE-7 (R-9, D-448 point 9) : en Séance et en reprise, le sous-menu garde « Changer de niveau ».
+      expect(screen.getByTestId("level-change", anyNode).props.label).toBe("Changer de niveau");
       const level2 = screen.getByTestId("level-level-2", anyNode);
       expect([level2.props.label, level2.props.systemImage]).toEqual(["Niveau 2 sur 3 · Squats", "checkmark"]);
       const level3 = screen.getByTestId("level-level-3", anyNode);
@@ -314,6 +318,7 @@ describe("PRE-7 R-6 — choix par mouvement (C09, MFN-09)", () => {
     const onDismiss = jest.fn();
     render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
     expect(screen.getByTestId("panel-add").props.accessibilityState).toEqual({ selected: false, disabled: true });
+    expect(screen.getByTestId("panel-change").props.accessibilityLabel).toBe("Changer de niveau");
     fireEvent.press(screen.getByTestId("panel-change"));
     expect(screen.getByTestId("panel-level-2").props.accessibilityState).toEqual({ selected: true, disabled: false });
     fireEvent.press(screen.getByTestId("panel-level-1"));
@@ -323,8 +328,12 @@ describe("PRE-7 R-6 — choix par mouvement (C09, MFN-09)", () => {
   });
 });
 
-describe("PRE-7 A3.2 — accès à l'écran des niveaux", () => {
-  it("iOS : « Réordonner les niveaux », dernière entrée du sous-menu « Changer de niveau » ; racine inchangée", () =>
+type MenuEntry = { props: { testID: string } };
+const menuEntries = (node: { props: { children?: unknown } }) =>
+  ([node.props.children] as unknown[]).flat(2).filter(Boolean) as MenuEntry[];
+
+describe("PRE-7 A3.2 / R-9 — accès à l'écran des niveaux (D-448 point 9)", () => {
+  it("iOS : racine à trois entrées — Naviguer vers, Ajouter un niveau, Réordonner les niveaux", () =>
     withPlatform("ios", () => {
       const model = menuModel();
       renderMenu({ position: { rank: 2, total: 3 }, menu: model });
@@ -332,37 +341,43 @@ describe("PRE-7 A3.2 — accès à l'écran des niveaux", () => {
       const change = within(host).UNSAFE_getAllByType(Menu).find((menu) => menu.props.testID === "level-change")!;
       const reorder = screen.getByTestId("level-reorder", anyNode);
       expect(reorder.props.label).toBe("Réordonner les niveaux");
-      expect(within(change).getByTestId("level-reorder", anyNode)).toBeTruthy();
-      const entries = (change.props.children as unknown[]).flat().filter(Boolean) as { props: { testID: string } }[];
-      expect(entries[entries.length - 1]!.props.testID).toBe("level-reorder");
-      // Racine du popover : les deux actions documentées seulement (`9577:19843`).
+      expect(hasDisabled(reorder.props.modifiers, false)).toBe(true);
+      // Retiré du sous-menu des niveaux.
+      expect(within(change).queryByTestId("level-reorder", anyNode)).toBeNull();
       const root = within(host).UNSAFE_getAllByType(Menu)[0]!;
-      const rootEntries = (root.props.children as unknown[]).flat().filter(Boolean) as { props: { testID: string } }[];
-      expect(rootEntries.map((entry) => entry.props.testID)).toEqual(["level-change", "level-add"]);
+      expect(menuEntries(root).map((entry) => entry.props.testID)).toEqual(["level-change", "level-add", "level-reorder"]);
+      expect(change.props.label).toBe("Naviguer vers");
       act(() => fireEvent(reorder, "buttonPress"));
       expect(model.onReorderLevels).toHaveBeenCalledTimes(1);
       expect(model.onChangeLevel).not.toHaveBeenCalled();
     }));
 
-  it("iOS, sans groupe : l'entrée appartient au sous-menu indisponible", () =>
+  it("iOS, Séance ou reprise : même racine, sous-menu « Changer de niveau »", () =>
     withPlatform("ios", () => {
-      renderMenu({ position: null, menu: menuModel({ levels: [] }) });
-      const change = within(screen.getByTestId("level", anyNode))
-        .UNSAFE_getAllByType(Menu)
-        .find((menu) => menu.props.testID === "level-change")!;
-      expect(hasDisabled(change.props.modifiers, true)).toBe(true);
-      expect(within(change).getByTestId("level-reorder", anyNode)).toBeTruthy();
+      renderMenu({ position: { rank: 2, total: 3 }, menu: movementMenuModel() });
+      const root = within(screen.getByTestId("level", anyNode)).UNSAFE_getAllByType(Menu)[0]!;
+      expect(menuEntries(root).map((entry) => entry.props.testID)).toEqual(["level-change", "level-add", "level-reorder"]);
+      expect(screen.getByTestId("level-change", anyNode).props.label).toBe("Changer de niveau");
     }));
 
-  it("panneau de repli : dernière ligne de l'étape des niveaux, qui ferme le panneau puis ouvre l'écran", () => {
+  it("iOS, sans groupe : « Réordonner les niveaux » indisponible, comme le sous-menu des niveaux", () =>
+    withPlatform("ios", () => {
+      renderMenu({ position: null, menu: menuModel({ levels: [] }) });
+      expect(hasDisabled(screen.getByTestId("level-change", anyNode).props.modifiers, true)).toBe(true);
+      expect(hasDisabled(screen.getByTestId("level-reorder", anyNode).props.modifiers, true)).toBe(true);
+    }));
+
+  it("panneau de repli : troisième ligne de la racine, qui ferme le panneau puis ouvre l'écran", () => {
     const model = menuModel();
     const onDismiss = jest.fn();
     render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
-    expect(screen.queryByTestId("panel-reorder")).toBeNull();
-    fireEvent.press(screen.getByTestId("panel-change"));
-    const rows = screen.getAllByRole("button").map((row) => row.props.testID);
-    expect(rows[rows.length - 1]).toBe("panel-reorder");
+    expect(screen.getAllByRole("button").map((row) => row.props.testID)).toEqual(["panel-change", "panel-add", "panel-reorder"]);
     expect(screen.getByTestId("panel-reorder").props.accessibilityLabel).toBe("Réordonner les niveaux");
+    // L'étape des niveaux ne la contient plus.
+    fireEvent.press(screen.getByTestId("panel-change"));
+    expect(screen.queryByTestId("panel-reorder")).toBeNull();
+    screen.unmount();
+    render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={onDismiss} testID="panel" />);
     fireEvent.press(screen.getByTestId("panel-reorder"));
     expect(onDismiss).toHaveBeenCalledTimes(1);
     expect(model.onReorderLevels).toHaveBeenCalledTimes(1);

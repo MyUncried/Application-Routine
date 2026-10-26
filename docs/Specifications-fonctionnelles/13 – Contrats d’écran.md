@@ -736,7 +736,7 @@ Liste active ; vide 4521:6220 ; filtre étendu Aucun ; filtre appliqué ; archiv
 
 #### 12. Contrôles et interactions
 
-Créer une variante/un niveau est accessible depuis le popover de niveau de la fiche : « Changer de niveau / Ajouter un niveau » (`9577:19843`). Aucun Nouveau niveau dans les actions glissées : conserver Planifier / Dupliquer / Archiver (D-196). Nouveau niveau avant/après l’origine selon la difficulté déclarée, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
+Créer une variante/un niveau est accessible depuis le popover de niveau de la fiche : « Changer de niveau / Ajouter un niveau » (`9577:19843`) [remplacé par D-448 du 26/10/2026 : racine « Naviguer vers » (Catalogue en modification) ou « Changer de niveau » (séance et reprise), « Ajouter un niveau », « Réordonner les niveaux »]. Aucun Nouveau niveau dans les actions glissées : conserver Planifier / Dupliquer / Archiver (D-196). Nouveau niveau avant/après l’origine selon la difficulté déclarée, ordre modifiable par glissement ; groupe réduit à un membre : rang et total masqués. Les corrections de contenu se partagent entre définitions ; aucune modification d’occurrence existante.
 
 Surface carte = ouvrir/modifier ; Lecture = exécution directe. Aucun contrôle Déployer, visible ou invisible, quel que soit le média. La gouttière existe toujours ; le booléen Photo ne change que son contenu. Filtrer ouvre ses options ; Trier sans événement ; Créer ouvre directement la création persistante.
 
@@ -896,7 +896,7 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
-Le crayon ne persiste rien. Terminer valide le brouillon et applique l’opération atomiquement ; Annuler le dialogue conserve le brouillon. Aucun compteur irréversible d’usage à l’enregistrement d’une séance. Les phrases de synthèse restent dérivées des paramètres, jamais persistées comme vérité indépendante.
+Le crayon ne persiste rien. Terminer valide le brouillon et applique l’opération atomiquement ; Annuler le dialogue conserve le brouillon. [D-448 du 26/10/2026, point 10 de `_bmad-output/pre7/planning-artifacts/arbitrage-2026-10-26-recette-ja2-d448.md` : sur une occurrence de séance, le crayon reste affiché, à l’état actif, pendant l’édition du mouvement ; le toucher à nouveau quitte l’édition. La confirmation ne concerne que le contenu du mouvement (nom, description, médias, catégorie, zones) et la structure des phases (nombre, identités, libellés) : sans changement de ces éléments depuis le déverrouillage, retour immédiat au contenu verrouillé, les autres paramètres saisis étant conservés ; sinon, confirmation « Abandonner les modifications ? » — Confirmer restaure ce contenu et cette structure d’avant le déverrouillage, sans toucher aux autres paramètres, et reverrouille ; Annuler laisse l’édition ouverte. Les crayons du Catalogue et de la reprise gardent leur comportement (masqués une fois le contenu déverrouillé).] Aucun compteur irréversible d’usage à l’enregistrement d’une séance. Les phrases de synthèse restent dérivées des paramètres, jamais persistées comme vérité indépendante.
 
 #### 16. Navigation et conservation d’état
 
@@ -5460,11 +5460,11 @@ Identifiant du mouvement, groupe et ordre courant ; rang et total calculés. Nom
 
 #### 6. Classification des valeurs Figma
 
-Libellés Changer / Ajouter / Réordonner statiques. Noms, descriptions, rangs, comptes et photos dynamiques. Squats et Niveau 3 sont des exemples.
+Libellés Changer / Ajouter / Réordonner statiques [remplacé par D-448 du 26/10/2026 : libellé du sous-menu des niveaux selon le contexte — « Naviguer vers » au Catalogue en modification, « Changer de niveau » en séance et en reprise ; « Ajouter un niveau » et « Réordonner les niveaux » statiques]. Noms, descriptions, rangs, comptes et photos dynamiques. Squats et Niveau 3 sont des exemples.
 
 #### 7. Structure de l’écran
 
-Popover à trois options ; Changer et Ajouter se déploient en place, chevrons droite/bas. Ordre : rang fixe à gauche, carte avec vignette, nom et description sur deux lignes.
+Popover à trois options ; Changer et Ajouter se déploient en place, chevrons droite/bas. [remplacé par D-448 du 26/10/2026 : trois entrées de premier niveau dans tous les contextes — sous-menu des niveaux intitulé « Naviguer vers » au Catalogue en modification et « Changer de niveau » en séance et en reprise ; « Ajouter un niveau » (Plus facile / Plus difficile) ; « Réordonner les niveaux », hors du sous-menu des niveaux, disponible à partir de deux niveaux] Ordre : rang fixe à gauche, carte avec vignette, nom et description sur deux lignes.
 
 #### 8. Éléments obligatoires
 
