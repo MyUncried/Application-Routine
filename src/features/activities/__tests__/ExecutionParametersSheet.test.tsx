@@ -5110,19 +5110,20 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 2, target: failureTarget() });
   });
 
-  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : Répétitions, À l’échec et Variables indisponibles, valeur réelle affichée (Durée, À la cible, Identiques)", () => {
+  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : PRE-7 (D-446) Répétitions et À l’échec disponibles et appliqués ; Variables seul indisponible (Durée, À la cible, Identiques au départ)", () => {
     renderSheet(twoPhases());
     const option = (control: string, value: string) => get(`${control}-${value}`).props.accessibilityState;
-    expect(option(MODE_CONTROL, "REPETITIONS")).toMatchObject({ disabled: true, selected: false });
+    expect(option(MODE_CONTROL, "REPETITIONS")).toMatchObject({ disabled: false, selected: false });
     expect(option(MODE_CONTROL, "DURATION")).toMatchObject({ disabled: false, selected: true });
-    expect(option(STOP_CONTROL, "FAILURE")).toMatchObject({ disabled: true, selected: false });
+    expect(option(STOP_CONTROL, "FAILURE")).toMatchObject({ disabled: false, selected: false });
     expect(option(STOP_CONTROL, "TARGET")).toMatchObject({ disabled: false, selected: true });
     expect(option(SERIES_TYPE, "VARIABLE")).toMatchObject({ disabled: true, selected: false });
     expect(option(SERIES_TYPE, "UNIFORM")).toMatchObject({ disabled: false, selected: true });
-    fireEvent.press(get(`${MODE_CONTROL}-REPETITIONS`));
-    fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
     fireEvent.press(get(`${SERIES_TYPE}-VARIABLE`));
-    expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Durée", "TARGET", "Identiques"]);
+    expect(seriesTypeText()).toBe("Identiques");
+    fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
+    fireEvent.press(get(`${MODE_CONTROL}-REPETITIONS`));
+    expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Répétitions", "FAILURE", "Identiques"]);
   });
 
   it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À l’objectif » ; choisir un Mode ferme le champ ± ouvert", () => {

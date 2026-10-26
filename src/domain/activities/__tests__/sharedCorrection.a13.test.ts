@@ -3,8 +3,11 @@ import { describe, expect, it } from "@jest/globals";
 import { groupDefinitionsByMovement, type ActivityDefinition } from "@/domain/activities/ActivityDefinition";
 import {
   CATALOG_EXECUTION_PARAMETERS_VERSION,
+  failureTarget,
+  numberTarget,
   unsetTarget,
   type ExecutionParameters,
+  type SeriesTarget,
   type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
 import {
@@ -50,6 +53,12 @@ const phased = (workPhases: readonly WorkPhase[]): ExecutionParameters =>
     workPhases: [...workPhases],
   });
 
+/** PRE-7 (D-446) : Cible indépendante de la somme des phases. */
+const withTarget = (parameters: ExecutionParameters, target: SeriesTarget): ExecutionParameters => ({
+  ...parameters,
+  series: { ...(parameters.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>), target },
+});
+
 const structure = (...ids: number[]): MovementPhase[] => ids.map((id) => ({ id, label: `Phase ${id}` }));
 
 const sibling = (parameters: ExecutionParameters) => ({ definitionId: "def-2", parameters });
@@ -88,7 +97,7 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     });
   });
 
-  it("phase ajoutée sans complétion → NEEDS_COMPLETION (phase 3) ; durée fournie → complet, Cible = somme ; null → incomplet, Cible UNSET", () => {
+  it("phase ajoutée sans complétion → NEEDS_COMPLETION (phase 3) ; durée fournie → complet ; null → incomplet ; PRE-7 (D-446) : Cible du frère conservée", () => {
     const own = sibling(phased(phases(8, 4)));
     expect(planSiblingCorrection(structure(1, 2), structure(1, 2, 3), own)).toEqual({
       status: "NEEDS_COMPLETION",
@@ -103,7 +112,8 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     if (completed.status !== "READY") return;
     expect(completed.incomplete).toBe(false);
     expect(completed.parameters.version).toBe(CATALOG_EXECUTION_PARAMETERS_VERSION);
-    expect(uniformOf(completed.parameters).target).toEqual({ kind: "NUMBER", value: 17 });
+    // D-446 : la Cible n'est plus la somme des phases (8 + 4 + 5) ; elle reste celle du frère.
+    expect(uniformOf(completed.parameters).target).toEqual({ kind: "NUMBER", value: 12 });
     // Valeurs déjà présentes conservées par identifiant, jamais inventées.
     expect(uniformOf(completed.parameters).phaseDurations).toEqual([
       { phaseId: 1, durationSeconds: 8 },
@@ -118,7 +128,8 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     expect(skipped.status).toBe("READY");
     if (skipped.status !== "READY") return;
     expect(skipped.incomplete).toBe(true);
-    expect(uniformOf(skipped.parameters).target).toEqual(unsetTarget());
+    // D-446 : Cible conservée (plus d'`UNSET` forcé) ; l'incomplétude vient de la durée manquante.
+    expect(uniformOf(skipped.parameters).target).toEqual({ kind: "NUMBER", value: 12 });
     expect(uniformOf(skipped.parameters).phaseDurations.map((entry) => entry.durationSeconds)).toEqual([8, 4, null]);
   });
 
@@ -130,17 +141,27 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
       { phaseId: 3, durationSeconds: 2 },
       { phaseId: 1, durationSeconds: 6 },
     ]);
-    expect(uniformOf(plan.parameters).target).toEqual({ kind: "NUMBER", value: 8 });
+    // PRE-7 (D-446) : Cible du frère conservée (11 s), jamais recalculée sur les phases restantes.
+    expect(uniformOf(plan.parameters).target).toEqual({ kind: "NUMBER", value: 11 });
   });
 
-  it("Avec → Sans : frère complet → durée de série = somme (proposition conservatrice) ; frère incomplet → durée de série à compléter, null → Cible UNSET", () => {
-    const complete = planSiblingCorrection(structure(1, 2), [], sibling(phased(phases(6, 3))));
+  it("Avec → Sans (PRE-7, D-446) : Cible du frère conservée, complet ou non ; Cible à renseigner → durée de série à compléter, null → Cible UNSET", () => {
+    const independent = phased(phases(6, 3));
+    const complete = planSiblingCorrection(structure(1, 2), [], sibling(withTarget(independent, numberTarget(120))));
     expect(complete.status).toBe("READY");
     if (complete.status !== "READY") return;
-    expect(uniformOf(complete.parameters)).toEqual(expect.objectContaining({ target: { kind: "NUMBER", value: 9 }, phaseDurations: [] }));
+    expect(uniformOf(complete.parameters)).toEqual(expect.objectContaining({ target: { kind: "NUMBER", value: 120 }, phaseDurations: [] }));
 
-    // Frère déjà incomplet (durée 0 de la représentation résolue = manquante).
-    const incomplete = sibling(phased([{ id: 1, label: "a", durationSeconds: 6 }, { id: 2, label: "b", durationSeconds: 0 }]));
+    // Frère incomplet (durée 0 de la représentation résolue = manquante) à Cible chiffrée : conservée.
+    const partial = phased([{ id: 1, label: "a", durationSeconds: 6 }, { id: 2, label: "b", durationSeconds: 0 }]);
+    const kept = planSiblingCorrection(structure(1, 2), [], sibling(partial));
+    expect(kept.status === "READY" && uniformOf(kept.parameters).target).toEqual({ kind: "NUMBER", value: 6 });
+    // À l'échec : conservée aussi.
+    const failure = planSiblingCorrection(structure(1, 2), [], sibling(withTarget(independent, failureTarget())));
+    expect(failure.status === "READY" && uniformOf(failure.parameters).target).toEqual(failureTarget());
+
+    // Frère à durée de série à renseigner (Cible UNSET) : seule cette Cible demande la complétion.
+    const incomplete = sibling(withTarget(partial, unsetTarget()));
     expect(planSiblingCorrection(structure(1, 2), [], incomplete)).toEqual({
       status: "NEEDS_COMPLETION",
       gap: { definitionId: "def-2", missingPhaseIds: [], missingSeriesDuration: true },
@@ -157,19 +178,35 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
     expect(resolution).toEqual(expect.objectContaining({ status: "INCOMPLETE", missingPhaseIds: [] }));
   });
 
-  it("Sans → Avec : frère en Répétitions, à l'échec ou en séries variables → INELIGIBLE (MFN-02, éligibilité conservée)", () => {
-    for (const parameters of [
+  it("Sans → Avec (PRE-7, D-446) : seul un frère en séries variables est INELIGIBLE ; Répétitions et à l'échec éligibles, Cible conservée", () => {
+    expect(planSiblingCorrection([], structure(1, 2), sibling(variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 10]] })))).toEqual({
+      status: "INELIGIBLE",
+    });
+    // Séries identiques, tout Mode, toute Cible : éligible, toutes ses phases sont à compléter.
+    const eligible: readonly ExecutionParameters[] = [
+      durationParameters(30, 3, 10),
       repetitionParameters(10, 3, 10),
       uniformParameters({ mode: "DURATION", count: 3, target: "FAILURE", pauseSeconds: 10 }),
-      variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 10]] }),
-    ]) {
-      expect(planSiblingCorrection([], structure(1, 2), sibling(parameters))).toEqual({ status: "INELIGIBLE" });
+      uniformParameters({ mode: "REPETITIONS", count: 3, target: "FAILURE", pauseSeconds: 10 }),
+    ];
+    for (const parameters of eligible) {
+      expect(planSiblingCorrection([], structure(1, 2), sibling(parameters))).toEqual({
+        status: "NEEDS_COMPLETION",
+        gap: { definitionId: "def-2", missingPhaseIds: [1, 2], missingSeriesDuration: false },
+      });
+      const completed = planSiblingCorrection([], structure(1, 2), sibling(parameters), {
+        definitionId: "def-2",
+        phaseDurations: [
+          { phaseId: 1, durationSeconds: 5 },
+          { phaseId: 2, durationSeconds: 2 },
+        ],
+      });
+      expect(completed.status).toBe("READY");
+      if (completed.status !== "READY") return;
+      expect(completed.incomplete).toBe(false);
+      expect(completed.parameters.mode).toBe(parameters.mode);
+      expect(uniformOf(completed.parameters).target).toEqual((parameters.series as { readonly target: unknown }).target);
     }
-    // Un frère en Durée à séries identiques est éligible : toutes ses phases sont à compléter.
-    expect(planSiblingCorrection([], structure(1, 2), sibling(durationParameters(30, 3, 10)))).toEqual({
-      status: "NEEDS_COMPLETION",
-      gap: { definitionId: "def-2", missingPhaseIds: [1, 2], missingSeriesDuration: false },
-    });
   });
 
   it("durée fournie invalide (0 s, somme > 3 535 s) → INVALID_COMPLETION", () => {
@@ -187,7 +224,8 @@ describe("PRE-7 A1.3 — plan d'un Exercice frère (MFN-08, durées par phaseId)
   it("plan des frères : refus par priorité (inéligible, puis complétion invalide, puis complétions manquantes) ; complétion d'un non-frère ignorée", () => {
     const ok = { definitionId: "def-ok", parameters: phased(phases(8, 4)) };
     const missing = { definitionId: "def-missing", parameters: phased(phases(5, 5)) };
-    const ineligible = { definitionId: "def-reps", parameters: repetitionParameters(10, 3, 10) };
+    // PRE-7 (D-446) : seul un frère en séries variables est inéligible.
+    const ineligible = { definitionId: "def-reps", parameters: variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]] }) };
     const completion = { definitionId: "def-ok", phaseDurations: [{ phaseId: 3, durationSeconds: 2 }] };
     expect(planSiblingsCorrection(structure(1, 2), structure(1, 2, 3), [ok, missing], [completion])).toEqual({
       status: "REFUSED",

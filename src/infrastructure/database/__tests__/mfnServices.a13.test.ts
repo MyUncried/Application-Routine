@@ -10,6 +10,7 @@ import {
   durationParameters,
   repetitionParameters,
   uniformParameters,
+  variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
 import { duplicateActivity } from "@/domain/sessions/composition";
 import type { Session } from "@/domain/sessions/Session";
@@ -233,7 +234,8 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     ]);
     const siblingRead = await service().getActivityDefinition(second.id);
     expect(siblingRead?.missingPhaseIds).toEqual([3]);
-    expect(seriesOf(siblingRead).target).toEqual({ kind: "UNSET" });
+    // PRE-7 (D-446) : la Cible du frère est conservée (plus d'`UNSET` forcé) ; l'incomplétude vient de la phase 3.
+    expect(seriesOf(siblingRead).target).toEqual({ kind: "NUMBER", value: 12 });
     expect(seriesOf(siblingRead).workPhases.map((phase) => [phase.id, phase.label, phase.durationSeconds])).toEqual([
       [1, "Phase 1", 8],
       [2, "Phase 2", 4],
@@ -255,19 +257,20 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(seriesOf(completedRead).target).toEqual({ kind: "NUMBER", value: 17 });
   });
 
-  it("complétion fournie : frère complet ; Avec → Sans : durée de série = somme des durées du frère ; liste regroupée par geste", async () => {
+  it("complétion fournie : frère complet ; PRE-7 (D-446) : Cible du frère conservée à l'ajout comme à Avec → Sans ; liste regroupée par geste", async () => {
     const { first, second } = await twoSharing();
     const added = await service().updateActivityDefinition(first.id, input(phased(phases(6, 3, 2))), [
       { definitionId: second.id, phaseDurations: [{ phaseId: 3, durationSeconds: 1 }] },
     ]);
     expect(added.status).toBe("UPDATED");
-    expect(seriesOf(await service().getActivityDefinition(second.id)).target).toEqual({ kind: "NUMBER", value: 13 });
+    // D-446 : 12 s (Cible du frère), non la somme 8 + 4 + 1.
+    expect(seriesOf(await service().getActivityDefinition(second.id)).target).toEqual({ kind: "NUMBER", value: 12 });
 
     const removed = await service().updateActivityDefinition(first.id, input(durationParameters(40, 3, 10)));
     expect(removed.status).toBe("UPDATED");
     const sibling = seriesOf(await service().getActivityDefinition(second.id));
     expect(sibling.workPhases).toEqual([]);
-    expect(sibling.target).toEqual({ kind: "NUMBER", value: 13 });
+    expect(sibling.target).toEqual({ kind: "NUMBER", value: 12 });
     expect(await database.getAllAsync("SELECT * FROM movement_phases")).toEqual([]);
 
     const independent = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
@@ -281,17 +284,39 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(groups).toHaveLength(2);
   });
 
-  it("frère inéligible (Répétitions) à l'ajout de phases → INELIGIBLE_SIBLINGS ; durée fournie invalide → INVALID_SIBLING_COMPLETION ; rien écrit", async () => {
+  it("PRE-7 (D-446) — frère en séries variables inéligible à l'ajout de phases → INELIGIBLE_SIBLINGS ; frère en Répétitions éligible, Cible conservée ; durée fournie invalide → INVALID_SIBLING_COMPLETION ; rien écrit", async () => {
     const first = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
-    const reps = await created(
-      await service().createActivityDefinitionWithOrigin(input(repetitionParameters(10, 3, 10)), { kind: "SAME_MOVEMENT", movementId: first.movementId }),
+    const varied = await created(
+      await service().createActivityDefinitionWithOrigin(input(variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]] })), {
+        kind: "SAME_MOVEMENT",
+        movementId: first.movementId,
+      }),
     );
     const before = await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id");
     expect(await service().updateActivityDefinition(first.id, input(phased(phases(6, 3))))).toEqual({
       status: "INELIGIBLE_SIBLINGS",
-      definitionIds: [reps.id],
+      definitionIds: [varied.id],
     });
     expect(await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id")).toEqual(before);
+
+    // Frère en Répétitions : éligible (D-446), ses durées sont à compléter ; complété, il garde Mode et Cible.
+    const lone = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Fente" }), { kind: "INDEPENDENT" }));
+    const reps = await created(
+      await service().createActivityDefinitionWithOrigin(input(repetitionParameters(10, 3, 10), { name: "Fente" }), { kind: "SAME_MOVEMENT", movementId: lone.movementId }),
+    );
+    expect(await service().updateActivityDefinition(lone.id, input(phased(phases(6, 3)), { name: "Fente" }))).toEqual({
+      status: "SIBLING_COMPLETION_REQUIRED",
+      siblings: [{ definitionId: reps.id, missingPhaseIds: [1, 2], missingSeriesDuration: false }],
+    });
+    const completed = await service().updateActivityDefinition(lone.id, input(phased(phases(6, 3)), { name: "Fente" }), [
+      { definitionId: reps.id, phaseDurations: [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }] },
+    ]);
+    expect(completed.status).toBe("UPDATED");
+    const repsRead = await service().getActivityDefinition(reps.id);
+    expect(repsRead?.missingPhaseIds).toBeUndefined();
+    expect(repsRead?.executionParameters.mode).toBe("REPETITIONS");
+    expect(seriesOf(repsRead).target).toEqual({ kind: "NUMBER", value: 10 });
+    expect(seriesOf(repsRead).workPhases.map((phase) => phase.durationSeconds)).toEqual([5, 2]);
 
     const { first: a, second: b } = await twoSharing();
     expect(
@@ -425,7 +450,8 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
       }),
     );
     expect(third.movementId).toBe(first.movementId);
-    expect(seriesOf(await service().getActivityDefinition(first.id)).target).toEqual({ kind: "NUMBER", value: 10 });
+    // PRE-7 (D-446) : Cible du frère conservée (9 s), non la somme 6 + 3 + 1.
+    expect(seriesOf(await service().getActivityDefinition(first.id)).target).toEqual({ kind: "NUMBER", value: 9 });
     expect((await service().getActivityDefinition(second.id))?.missingPhaseIds).toEqual([3]);
   });
 
@@ -451,7 +477,7 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(await database.getAllAsync("SELECT movement_id, asset_id FROM movement_media")).toEqual([{ movement_id: first.movementId, asset_id: "p1" }]);
   });
 
-  it("Avec → Sans avec un frère incomplet : durée de série à compléter ; passée → relu INCOMPLETE sans phase manquante, Cible UNSET, jamais copiable en Séance", async () => {
+  it("PRE-7 (D-446) — Avec → Sans avec un frère incomplet à Cible chiffrée : Cible conservée, aucune complétion demandée ; relu sans phase, exécutable", async () => {
     const { first, second } = await twoSharing();
     expect(
       (
@@ -460,6 +486,33 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
         ])
       ).status,
     ).toBe("UPDATED");
+    // La durée de série n'est demandée que pour une Cible à renseigner (couvert par sharedCorrection.a13).
+    expect((await service().updateActivityDefinition(first.id, input(durationParameters(40, 3, 10)))).status).toBe("UPDATED");
+    const sibling = await service().getActivityDefinition(second.id);
+    expect(sibling?.missingPhaseIds).toBeUndefined();
+    expect(seriesOf(sibling).target).toEqual({ kind: "NUMBER", value: 12 });
+    expect(seriesOf(sibling).workPhases).toEqual([]);
+  });
+
+  it("Avec → Sans avec un frère incomplet à Cible à renseigner (donnée antérieure à D-446) : durée de série à compléter, rien écrit ; passée → relu INCOMPLETE sans phase manquante, Cible UNSET, jamais copiable en Séance", async () => {
+    const { first, second } = await twoSharing();
+    expect(
+      (
+        await service().updateActivityDefinition(first.id, input(phased(phases(6, 3, 2))), [
+          { definitionId: second.id, phaseDurations: [{ phaseId: 3, durationSeconds: null }] },
+        ])
+      ).status,
+    ).toBe("UPDATED");
+    // Frère incomplet enregistré avant D-446 : sa Cible était alors forcée à `UNSET`.
+    const stored = await database.getFirstAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activity_definitions WHERE id = ?",
+      [second.id],
+    );
+    const legacy = JSON.parse(stored!.execution_parameters) as { series: { target: unknown } };
+    legacy.series.target = { kind: "UNSET" };
+    await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = ?", [JSON.stringify(legacy), second.id]);
+    expect(seriesOf(await service().getActivityDefinition(second.id)).target).toEqual({ kind: "UNSET" });
+
     const before = await database.getAllAsync("SELECT * FROM activity_definitions ORDER BY id");
     expect(await service().updateActivityDefinition(first.id, input(durationParameters(40, 3, 10)))).toEqual({
       status: "SIBLING_COMPLETION_REQUIRED",

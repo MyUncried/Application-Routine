@@ -289,10 +289,15 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  *   surface) et rend le chevron actif ;
  * - tableau des phases (`WorkPhasesTable`) : libellé au clavier texte et durée au clavier
  *   numérique MMSS (`keyboard(phaseLabel | phaseDuration)`), glisser, actions accessibles,
- *   croix (PRE-7 A2.1, D-438 : disponible dès deux phases, 2 → Sans à la durée restante) ;
- * - avec des phases, « Durée d'une série » est la somme, en lecture seule (PRE-7 A2.1, D-384 :
- *   « — » à renseigner tant qu'une durée manque, jamais une somme partielle) ;
+ *   croix (PRE-7 A2.1, D-438 : disponible dès deux phases, 2 → Sans ; Cible conservée, D-446) ;
+ * - avec des phases, « Durée d'une série » était la somme, en lecture seule (PRE-7 A2.1, D-384) ;
+ *   remplacé par D-446 (ci-dessous) ;
  * - ✓ : `commitSheetDraft` reçoit le libellé par défaut « Phase n » (normalisation FR-9).
+ *
+ * PRE-7 (D-446, arbitrage de Hermann du 26/10/2026 : les phases sont un motif cyclique de
+ * guidage) : avec des phases, Répétitions et À l'échec restent disponibles, et « Durée d'une
+ * série » garde sa pastille modifiable ordinaire (la durée de série n'est plus la somme des
+ * phases). Seul Variables reste indisponible avec des phases ; Avec suit `canEnableWorkPhases`.
  *
  * PRE-7 (A2.1, D-438, MFN-02, MFN-09, CE-UI-10) : `phaseStructureLocked` (occurrence de Séance)
  * rend indisponibles les contrôles de structure — Avec / Sans, nombre, croix, glisser et Monter /
@@ -685,15 +690,18 @@ export function ExecutionParametersSheet({
   );
   const uniformTargetViolation =
     !validation.ok && !showVariableTable
-      ? // PRE-5 story 2.8 (FR-3, revue) : une somme des phases hors de 1..3535 (violation
-        // `workPhases`) marque aussi « Durée d'une série », qui l'affiche. PRE-7 (A1.1, D-438) : la
-        // violation d'une durée de phase manquante (`phaseId`) marque sa seule cellule ; depuis A2.1
-        // (D-384), D est alors `UNSET` (« — ») et sa propre violation `target` la marque à renseigner,
-        // comme l'état existant « deux phases à renseigner ».
-        validation.violations.find(
-          (violation) => violation.field === "target" || (violation.field === "workPhases" && violation.phaseId === undefined),
-        )
+      ? // PRE-7 (D-446) : seule la violation `target` marque la Cible commune, indépendante des
+        // phases. La violation d'une durée de phase manquante (`phaseId`, D-438) marque sa seule
+        // cellule ; une somme des phases hors de 1..3535 (`workPhases` sans `phaseId`, durée du
+        // motif) marque les cellules de durée du tableau (`phaseSumOutOfRange`), jamais la Cible.
+        validation.violations.find((violation) => violation.field === "target")
       : undefined;
+  // PRE-7 (D-446) : somme des phases (durée du motif) hors de 1..3535 — même état invalide qu'une
+  // durée manquante, sur toutes les cellules de durée, avec l'indice de la valeur non admise.
+  const phaseSumViolation = validation.ok
+    ? undefined
+    : validation.violations.find((violation) => violation.field === "workPhases" && violation.phaseId === undefined);
+  const phaseSumHint = phaseSumViolation ? invalidHintFor(phaseSumViolation.code) : undefined;
   const uniformTargetInvalid = uniformTargetViolation !== undefined;
   const uniformTargetHint = uniformTargetViolation ? invalidHintFor(uniformTargetViolation.code) : undefined;
   // Décision propriétaire D-2 (recette 1) : aucun message « Renseignez … » ; la saisie
@@ -828,7 +836,7 @@ export function ExecutionParametersSheet({
    * PRE-5 story 2.8 (FR-8, QR-1, AD-27) : croix de la phase d'identité `phaseId`, sur le modèle
    * de `handleRemove`. Sans surface ouverte : `removeWorkPhase` et « Phase supprimée — Annuler ».
    * Sinon l'appui range la surface ouverte sans retirer. PRE-7 (A2.1, D-438) : croix disponible dès
-   * deux phases ; à deux, le retrait donne Sans, la durée restante devenant la durée de série, avec
+   * deux phases ; à deux, le retrait donne Sans, la Cible étant conservée (D-446), avec
    * le même message annulable (Annuler restitue les deux phases). Sous structure verrouillée : aucun
    * retrait (croix indisponible).
    */
@@ -1117,9 +1125,9 @@ export function ExecutionParametersSheet({
 
   // Story 3.4 (FR-08-02) ; PRE-5 story 2.4 (FR-21) : la roue de la Cible commune ne
   // s'ouvre que si sa ligne est affichée (masquée à l'échec).
-  // PRE-5 story 2.8 (FR-3) : avec des phases, D est la somme, en lecture seule — la roue ne
-  // s'ouvre pas.
-  const uniformDurationAvailable = uniformTargetShown && effective.mode === "DURATION" && !hasWorkPhases;
+  // PRE-7 (D-446, remplace PRE-5 story 2.8 FR-3 « D = somme, en lecture seule ») : la roue
+  // s'ouvre aussi avec des phases, la durée de série étant indépendante du motif.
+  const uniformDurationAvailable = uniformTargetShown && effective.mode === "DURATION";
   // Story 3.5 (AC1) : même Sélecteur de la Cible commune en Répétitions.
   const uniformRepetitionsAvailable = uniformTargetShown && effective.mode === "REPETITIONS";
   // Story 3.7 (AC3, FR-14-02) : roulette seulement si l'Inversion est disponible (Durée,
@@ -1221,14 +1229,14 @@ export function ExecutionParametersSheet({
   );
 
   // PRE-5 story 2.4 (AC3, FR-27, R-01) : Mode en segmenté `inline`, « Répétitions | Durée »
-  // (PR-01, Figma `8328:38193`) ; `null` : aucun segment sélectionné. Avec des phases,
-  // Répétitions est indisponible et la valeur réelle reste affichée (FR-2).
+  // (PR-01, Figma `8328:38193`) ; `null` : aucun segment sélectionné. PRE-7 (D-446) :
+  // Répétitions reste disponible avec des phases (durées toujours en secondes).
   const modeControl = (
     <SegmentedControl<ExecutionMode>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.wide}
       options={[
-        { value: "REPETITIONS", label: t.modes.REPETITIONS, disabled: hasWorkPhases },
+        { value: "REPETITIONS", label: t.modes.REPETITIONS },
         { value: "DURATION", label: t.modes.DURATION },
       ]}
       value={draft.mode}
@@ -1240,8 +1248,8 @@ export function ExecutionParametersSheet({
 
   // PRE-5 story 2.4 (AC4, AC5 ; FR-19, FR-20 ; AD-23) : Condition d'arrêt. Identiques
   // effectives → segmenté « À l'échec | À l'objectif » sur `stopConditionOf` (À l'objectif
-  // par défaut, Mode non renseigné compris), qui appelle `setStopCondition` ; avec des
-  // phases, À l'échec est indisponible. Variables → résultat dérivé, recalculé à chaque
+  // par défaut, Mode non renseigné compris), qui appelle `setStopCondition` ; PRE-7
+  // (D-446) : À l'échec reste disponible avec des phases. Variables → résultat dérivé, recalculé à chaque
   // rendu, en lecture seule (violet atténué, UX-DR2) : deux options si homogène, une seule
   // « À l'objectif et à l'échec » si mixte ; aucune cellule renseignée → « — », annoncé
   // « Condition d'arrêt, aucune valeur ». Aucune validation ajoutée.
@@ -1253,7 +1261,7 @@ export function ExecutionParametersSheet({
     <SegmentedControl<StopConditionChoice>
       variant="inline"
       optionWidth={INLINE_OPTION_WIDTHS.wide}
-      options={stopConditionOptions.map((option) => (option.value === "FAILURE" ? { ...option, disabled: hasWorkPhases } : option))}
+      options={stopConditionOptions}
       value={stopCondition === "FAILURE" ? "FAILURE" : "TARGET"}
       onChange={(condition) => chooseInline((base) => setStopCondition(base, condition))}
       accessibilityLabel={t.stopCondition}
@@ -1797,8 +1805,8 @@ export function ExecutionParametersSheet({
         displayValue={text}
         // Story 3.8 (AC2) : « — » annoncé « aucune valeur », jamais « tiret ».
         spokenDisplayValue={spokenValue(text)}
-        invalid={missing}
-        accessibilityHint={missing ? t.invalidHint : undefined}
+        invalid={missing || phaseSumViolation !== undefined}
+        accessibilityHint={missing ? t.invalidHint : phaseSumHint}
         accessibilityLabel={t.phaseDuration.replace("{n}", String(number))}
         style={[tableCellStyle, styles.keyboardCell]}
         valueStyle={tableCellValueStyle}
@@ -1809,8 +1817,9 @@ export function ExecutionParametersSheet({
   };
 
   // PRE-5 story 2.8 (FR-2, FR-4, FR-27, FR-28, D-432) : segmenté « Phases de l'exercice ».
-  // Avec n'est disponible que si `canEnableWorkPhases` (Mode Durée, À l'objectif, séries
-  // identiques effectives) ou si des phases existent ; sinon indisponible, Sans affiché.
+  // Avec n'est disponible que si `canEnableWorkPhases` (PRE-7, D-446 : Mode renseigné et séries
+  // identiques effectives, en Durée ou Répétitions, à l'objectif ou à l'échec) ou si des phases
+  // existent ; sinon indisponible, Sans affiché.
   // Sélectionné, Avec affiche « n phases » (réglage du nombre révélé au toucher) et le chevron
   // du tableau ; sa largeur suit l'état (constantes `PHASE_OPTION_*`).
   // PRE-7 (A2.1, D-438, MFN-09) : sous structure verrouillée, Avec (sans phase) et Sans (avec
@@ -2134,14 +2143,6 @@ export function ExecutionParametersSheet({
                       <Row
                         label={t.durationTarget}
                         selected={isOpen(TARGET_SELECTOR)}
-                        // PRE-5 story 2.8 (FR-3) : avec des phases, valeur annoncée non modifiable.
-                        accessibilityLabel={
-                          hasWorkPhases
-                            ? [t.durationTarget, spokenValue(uniformDurationText), t.totalReadOnlySpoken, uniformTargetInvalid ? uniformTargetHint : null]
-                                .filter((part) => part !== null && part !== undefined)
-                                .join(", ")
-                            : undefined
-                        }
                         onLayout={trackRow("uniformDuration")}
                         below={
                           // Q41 : Android et web — roulette en ligne, dans le cadre de sélection.
@@ -2153,20 +2154,9 @@ export function ExecutionParametersSheet({
                         }
                         testID="execution-sheet-row-target"
                       >
-                        {/* PRE-5 story 2.8 (FR-3, AC6) : D = Σ des phases, sans roue ni pastille modifiable. */}
-                        {hasWorkPhases ? (
-                          // Valeur en violation (✓ indisponible) : marquée comme une valeur à renseigner (Q35).
-                          <View
-                            style={uniformTargetInvalid ? [styles.valuePill, styles.valuePillInvalid] : null}
-                            testID="execution-sheet-target-static"
-                          >
-                            <Text style={styles.staticValue} testID="execution-sheet-target-text">
-                              {uniformDurationText}
-                            </Text>
-                          </View>
-                        ) : (
-                          uniformDurationPill
-                        )}
+                        {/* PRE-7 (D-446, remplace PRE-5 story 2.8 FR-3, AC6) : pastille modifiable
+                            ordinaire, avec ou sans phases (durée de série indépendante du motif). */}
+                        {uniformDurationPill}
                       </Row>
                     </>
                   ) : null}

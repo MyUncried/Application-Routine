@@ -2,6 +2,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import {
   allTargetsFailure,
+  hasMissingPhaseDuration,
   hasUnsetTarget,
   isBilateral,
   seriesCountOf,
@@ -219,6 +220,12 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
     exerciseRow.seriesPlural,
   )}${isOwnBilateral ? ` ${exerciseRow.perSide}` : ""}`;
 
+  // PRE-7 (D-446) : une durée de phase manquante (Exercice frère incomplet) ne force plus la
+  // Cible à `UNSET` ; elle reste « Paramètres à compléter. » (MFN-08), avant tout échec.
+  if (hasMissingPhaseDuration(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+
   // Tout échec : aucune Cible numérique ; le nom n'est jamais répété dans la
   // synthèse compacte. Clause de Pause omise à 0 s, en Régime variables, ou
   // lorsqu'une seule Série ne crée aucun intervalle.
@@ -363,6 +370,11 @@ export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "ex
 
   // Aucune série : paramètres à compléter (`[].every()` rendrait sinon « tout à l'échec »).
   if (count === 0) {
+    return strings.executionParameters.card.incomplete;
+  }
+  // PRE-7 (D-446) : une durée de phase manquante (Exercice frère incomplet) ne force plus la
+  // Cible à `UNSET` ; elle reste « Paramètres à compléter. » (MFN-08), avant tout échec.
+  if (hasMissingPhaseDuration(parameters)) {
     return strings.executionParameters.card.incomplete;
   }
   // Toutes les cibles à l'échec : libellé métier existant, celui de `formatExerciseRowSummary`

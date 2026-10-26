@@ -747,6 +747,22 @@ describe("formatOccurrenceSummary (PRE-6 story 2.2, D-238)", () => {
     expect(summaryOf({ ...durationParameters(45), mode: null } as unknown as ExecutionParameters)).toBe(
       strings.executionParameters.card.incomplete,
     );
+    // PRE-7 (D-446, MFN-08) : frère incomplet (durée de phase manquante) à Cible chiffrée ou à
+    // l'échec — « Paramètres à compléter. » dans la synthèse d'occurrence et dans celle de la ligne.
+    for (const target of [6, "FAILURE"] as const) {
+      const incomplete = uniformParameters({
+        mode: "DURATION",
+        count: 3,
+        target,
+        pauseSeconds: 10,
+        workPhases: [
+          { id: 1, label: "a", durationSeconds: 6 },
+          { id: 2, label: "b", durationSeconds: 0 },
+        ],
+      });
+      expect(summaryOf(incomplete)).toBe(strings.executionParameters.card.incomplete);
+      expect(formatExerciseRowSummary({ executionParameters: incomplete })).toBe(strings.executionParameters.card.incomplete);
+    }
   });
 
   it("never repeats the name nor the mode, never shows a pause or a recovery", () => {

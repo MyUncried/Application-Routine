@@ -25,3 +25,6 @@ development_status:
   a3-2-consultation-et-réordonnancement-des-niveaux: review
   epic-a4: in-progress
   a4-1-catalogue-par-geste-et-sélection: review
+  # Correction de recette JA du 26/10/2026 (arbitrage de Hermann, phases comme motif cyclique) : 1/3 fait ; 2/3 (guidage, calculs) prêt, non commencé ; 3/3 (documentation) abandonné, origin/main (PR #398) le couvre
+  recette-ja-d446-1-phases-modele-brouillon-feuille: review
+  recette-ja-d446-2-phases-guidage-calculs: ready-for-dev

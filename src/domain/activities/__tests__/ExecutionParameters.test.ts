@@ -17,6 +17,7 @@ import {
   numberTarget,
   projectScalars,
   readExecutionParameters,
+  hasMissingPhaseDuration,
   readV2,
   readV3,
   selectorOpeningPosition,
@@ -737,10 +738,9 @@ describe("PRE5-1.1/AC5 — invariant des phases (AD-20, FR-1, FR-3, FR-40)", () 
 
   it("chaque écart est une violation structurelle (STORAGE compris), sans tolérance de ligne de base ; readV3 le refuse aussi", () => {
     const series = valid.series as UniformOf;
+    // PRE-7 (D-446) : « somme ≠ Cible », « Mode Répétitions » et « Cible à l'échec » ne sont
+    // plus des écarts (test « D-446 » ci-dessous).
     const refused: readonly [string, ExecutionParameters][] = [
-      ["somme ≠ Cible", { ...valid, series: { ...series, target: numberTarget(10) } }],
-      ["Mode Répétitions", { ...valid, mode: "REPETITIONS" }],
-      ["Cible à l'échec", { ...valid, series: { ...series, target: failureTarget() } }],
       ["phase de 0 s", withPhases([{ id: 1, label: "a", durationSeconds: 0 }, { id: 2, label: "b", durationSeconds: 9 }])],
       ["durée non entière", withPhases([{ id: 1, label: "a", durationSeconds: 1.5 }, { id: 2, label: "b", durationSeconds: 7.5 }])],
       ["libellé vide", withPhases(phases(["", 6], ["Maintien", 3]))],
@@ -761,11 +761,42 @@ describe("PRE5-1.1/AC5 — invariant des phases (AD-20, FR-1, FR-3, FR-40)", () 
       const json = serializeExecutionParameters(input);
       expect({ label, readable: readable(json) }).toEqual({ label, readable: false });
     }
-    // Mode non renseigné ou Cible à renseigner avec des phases : violation structurelle des phases.
+    // PRE-7 (D-446) : Mode non renseigné ou Cible à renseigner avec des phases ne sont plus des
+    // écarts des phases ; ils restent refusés par leurs propres violations (`mode`, `target`).
     const phaseViolation = (input: ExecutionParametersInput) =>
       violations(input, "STORAGE").some((violation) => violation.field === "workPhases" && violation.level === "STRUCTURE");
-    expect(phaseViolation({ ...valid, mode: null })).toBe(true);
-    expect(phaseViolation({ ...valid, series: { ...series, target: unsetTarget() } })).toBe(true);
+    expect(phaseViolation({ ...valid, mode: null })).toBe(false);
+    expect(violations({ ...valid, mode: null }, "STORAGE").some((violation) => violation.field === "mode")).toBe(true);
+    expect(phaseViolation({ ...valid, series: { ...series, target: unsetTarget() } })).toBe(false);
+    expect(violations({ ...valid, series: { ...series, target: unsetTarget() } }, "STORAGE").some((violation) => violation.field === "target")).toBe(true);
+  });
+
+  it("PRE-7 (D-446) — phases compatibles avec Durée et Répétitions, à l'objectif et à l'échec ; Cible indépendante de Σ ; données antérieures (Cible = Σ) inchangées", () => {
+    const series = valid.series as UniformOf;
+    const compatible: readonly [string, ExecutionParameters][] = [
+      ["Durée, Cible = Σ (donnée antérieure)", valid],
+      ["Durée, Cible 120 s ≠ Σ", { ...valid, series: { ...series, target: numberTarget(120) } }],
+      ["Durée, à l'échec", { ...valid, series: { ...series, target: failureTarget() } }],
+      ["Répétitions, Cible 10", { ...valid, mode: "REPETITIONS", series: { ...series, target: numberTarget(10) } }],
+      ["Répétitions, à l'échec", { ...valid, mode: "REPETITIONS", series: { ...series, target: failureTarget() } }],
+    ];
+    for (const [label, input] of compatible) {
+      for (const baseline of ["STORAGE", null, input] as const) {
+        expect({ label, accepted: accepted(input, baseline) }).toEqual({ label, accepted: true });
+      }
+      // Aller-retour v3 identique : les phases et la Cible sont relues telles quelles.
+      expect({ label, read: readExecutionParameters(serializeExecutionParameters(input)) }).toEqual({ label, read: input });
+    }
+    // Σ reste bornée à 1..3535 (durée du motif, D-430) quel que soit le Mode.
+    const outOfRange = withPhases(phases(["a", 3000], ["b", 536]));
+    const repetitions = { ...outOfRange, mode: "REPETITIONS" as const, series: { ...(outOfRange.series as UniformOf), target: numberTarget(10) } };
+    expect(violations(repetitions, null)).toEqual([
+      { code: "OUT_OF_RANGE", field: "workPhases", level: "STRUCTURE", details: { min: 1, max: 3535 } },
+    ]);
+    // hasMissingPhaseDuration : présentation d'un frère incomplet, indépendante de la Cible.
+    expect(hasMissingPhaseDuration(valid)).toBe(false);
+    expect(hasMissingPhaseDuration(withPhases([{ id: 1, label: "a", durationSeconds: 6 }, { id: 2, label: "b", durationSeconds: 0 }]))).toBe(true);
+    expect(hasMissingPhaseDuration(uniformParameters({ target: 30 }))).toBe(false);
   });
 
   it("workPhases absent ou mal typé → violation structurelle", () => {

@@ -278,10 +278,11 @@ export type SplitParameters = {
  * Scinde des paramètres RÉSOLUS (v3) en structure `(id, label)` du Mouvement et
  * paramètres Catalogue v4 `{ phaseId, durationSeconds }` (MFN-02, MFN/AC35), dans
  * l'ordre des phases. Une durée < 1 s (0 de la représentation résolue d'un frère
- * incomplet) devient `null`, seule absence stockable ; une liste incomplète
- * porte alors la Cible `UNSET` (aucun total inventé). Une série variable n'a ni
- * phase ni durée. Aucune validation : le sérialiseur et la résolution appliquent
- * l'invariant.
+ * incomplet) devient `null`, seule absence stockable. PRE-7 (D-446) : la Cible
+ * est conservée telle quelle, liste complète ou non — elle est indépendante du
+ * motif des phases (elle n'était forcée à `UNSET` que parce qu'elle valait Σ).
+ * Une série variable n'a ni phase ni durée. Aucune validation : le sérialiseur
+ * et la résolution appliquent l'invariant.
  */
 export function splitResolvedParameters(parameters: ExecutionParameters): SplitParameters {
   const { series } = parameters;
@@ -302,13 +303,12 @@ export function splitResolvedParameters(parameters: ExecutionParameters): SplitP
     phaseId: phase.id,
     durationSeconds: phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin ? phase.durationSeconds : null,
   }));
-  const incomplete = phaseDurations.some((entry) => entry.durationSeconds === null);
   const { workPhases: _workPhases, ...uniform } = series;
   return {
     phases: series.workPhases.map((phase) => ({ id: phase.id, label: phase.label })),
     parameters: {
       ...root,
-      series: { ...uniform, target: incomplete ? unsetTarget() : { ...series.target }, phaseDurations },
+      series: { ...uniform, target: { ...series.target }, phaseDurations },
     },
   };
 }
@@ -318,7 +318,7 @@ export function splitResolvedParameters(parameters: ExecutionParameters): SplitP
  * - `EXECUTABLE` : toutes les durées renseignées, paramètres résolus complets ;
  * - `INCOMPLETE` : au moins une durée `null` (exercice frère incomplet) ;
  *   `parameters` reste éditable (durée manquante à 0, ouverte `null` par le
- *   Brouillon ; Cible `UNSET`) et `missingPhaseIds` liste les phases à
+ *   Brouillon ; Cible conservée, D-446) et `missingPhaseIds` liste les phases à
  *   compléter dans l'ordre de la structure. Jamais exécutable.
  *   PRE-7 (A1.3, MFN-08) : `missingPhaseIds` est VIDE pour un frère sans phase
  *   dont la durée de série reste à renseigner (Cible `UNSET` : structure
@@ -370,7 +370,7 @@ export function resolveCatalogParameters(
       },
     };
   }
-  const durationsProblem = phaseDurationsProblem(parameters.mode, series.target, series.phaseDurations);
+  const durationsProblem = phaseDurationsProblem(series.target, series.phaseDurations);
   if (durationsProblem !== null) {
     throw new ExecutionParametersDataError(`Malformed phase durations: ${durationsProblem}.`);
   }
@@ -394,7 +394,7 @@ export function resolveCatalogParameters(
   if (missingPhaseIds.length > 0 || series.target.kind === "UNSET") {
     return { status: "INCOMPLETE", parameters: resolved, missingPhaseIds };
   }
-  const problem = resolvedWorkPhasesProblem(resolved.mode, resolved.series.kind === "UNIFORM" ? resolved.series.target : null, workPhases);
+  const problem = resolvedWorkPhasesProblem(workPhases);
   if (problem !== null) {
     throw new ExecutionParametersDataError(`Malformed resolved work phases: ${problem}.`);
   }
@@ -544,9 +544,11 @@ export function normalizeMovementName(name: string): string {
  * PRE-7 (A2.2, MFN-02, MFN-06 « Même geste, autres paramètres » : « reprendre son contenu ;
  * saisir les paramètres du nouvel exercice ») — paramètres initiaux d'une création sur un geste
  * repris : ceux du brouillon vide `base`, et, si le geste a des phases, sa STRUCTURE (identités et
- * libellés) portée par une série identique en mode Durée — seul mode éligible aux phases (MFN-02) —
- * avec des durées à renseigner (0, Cible `UNSET`) : aucune valeur n'est inventée, et une reprise
- * inchangée n'est pas une modification de la structure du geste. Fonction pure.
+ * libellés) portée par une série identique en mode Durée avec des durées à renseigner (0, Cible
+ * `UNSET`) : aucune valeur n'est inventée, et une reprise inchangée n'est pas une modification de la
+ * structure du geste. Fonction pure. PRE-7 (D-446) : le mode Durée n'est plus le seul éligible aux
+ * phases (Répétitions et À l'échec le sont aussi) ; il reste le mode initial de la reprise,
+ * comportement inchangé, l'utilisateur pouvant ensuite choisir Répétitions ou À l'échec.
  */
 export function repriseExecutionParameters(movement: Movement, base: ExecutionParametersInput): ExecutionParametersInput {
   if (movement.phases.length === 0 || base.series.kind !== "UNIFORM") {

@@ -49,7 +49,8 @@ const handle = (n: number) => `${row(n)}-handle`;
 const phaseRows = () => screen.queryAllByTestId(/^execution-sheet-phase-row-\d+$/, hidden);
 const shownDuration = (n: number) => String(get(`${duration(n)}-value`).props.children);
 const shownLabel = (n: number) => String(get(label(n)).props.value);
-const seriesDurationText = () => String(get("execution-sheet-target-text").props.children);
+/** PRE-7 (D-446) : « Durée d'une série » garde sa pastille modifiable avec des phases. */
+const seriesDurationText = () => String(get("execution-sheet-target-value-text").props.children);
 const validate = () => fireEvent.press(get("execution-sheet-validate"));
 const validateDisabled = () => stateOf("execution-sheet-validate").disabled === true;
 
@@ -112,14 +113,15 @@ function stepperTap(button: "increment" | "decrement") {
 }
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (D-438, MFN/AC26)", () => {
-  it("[A 6 s, B 3 s], croix de B : Sans, « Durée d'une série » 6 s modifiable, « Phase supprimée — Annuler » ; Annuler restitue les deux phases", () => {
+  it("[A 6 s, B 3 s], croix de B : Sans ; PRE-7 (D-446 §4) : « Durée d'une série » 9 s inchangée, modifiable ; « Phase supprimée — Annuler » ; Annuler restitue les deux phases", () => {
     const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]));
     expect(stateOf(remove(1)).disabled).toBe(false);
     expect(stateOf(remove(2)).disabled).toBe(false);
     fireEvent.press(get(remove(2)));
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
     expect(query(TABLE)).toBeNull();
-    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("6 s");
+    // D-446 §4 remplace « durée restante = durée de série » (D-438) : la Cible est inchangée.
+    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("9 s");
     expect(within(get("execution-sheet-adjusted")).getByText(t.phaseRemoved, hidden)).toBeTruthy();
     fireEvent.press(get("execution-sheet-adjusted-undo"));
     expect(phaseRows()).toHaveLength(2);
@@ -128,15 +130,42 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
     expect(seriesDurationText()).toBe("9 s");
     fireEvent.press(get(remove(1)));
     validate();
-    expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(3), workPhases: [] });
+    expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(9), workPhases: [] });
   });
 
-  it("croix à deux phases, durée restante non renseignée : Sans, Cible « — » à renseigner (aucune durée inventée)", () => {
+  it("PRE-7 (D-446) — croix à deux phases, durée restante non renseignée : Sans, Cible conservée — « — » seulement si elle était déjà à renseigner (aucune durée inventée)", () => {
+    // Fixture `withPhases` : frère incomplet antérieur à D-446, Cible lue `UNSET` — elle reste « — ».
     renderSheet(withPhases([[1, "A", 6], [2, "B", 0]]));
+    expect(String(get("execution-sheet-target-value-text").props.children)).toBe(t.unset);
     fireEvent.press(get(remove(1)));
     expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
     expect(String(get("execution-sheet-target-value-text").props.children)).toBe(t.unset);
     expect(validateDisabled()).toBe(true);
+  });
+
+  it("PRE-7 (D-446) — croix à deux phases, durée restante non renseignée, Cible chiffrée 6 s : Sans, Cible 6 s conservée, ✓ disponible", () => {
+    const { onApply } = renderSheet(
+      params({
+        series: {
+          kind: "UNIFORM",
+          count: 3,
+          target: numberTarget(6),
+          pauseSeconds: 15,
+          loadKg: 0,
+          workPhases: [
+            { id: 1, label: "A", durationSeconds: 6 },
+            { id: 2, label: "B", durationSeconds: 0 },
+          ],
+        },
+      }),
+    );
+    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("6 s");
+    fireEvent.press(get(remove(1)));
+    expect(stateOf(WITHOUT)).toMatchObject({ selected: true });
+    expect(String(get("execution-sheet-target-value-text").props.children)).toBe("6 s");
+    expect(validateDisabled()).toBe(false);
+    validate();
+    expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", target: numberTarget(6), workPhases: [] });
   });
 
   it("phase unique relue des données : croix indisponible (Sans reste le geste)", () => {
@@ -146,20 +175,21 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : croix à deux phases (
 });
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-438, D-384, MFN/AC15, AC25)", () => {
-  it("[9 s, —] : D « — » à renseigner, cellule « — » rouge pâle, Durée de l'exercice « — », ✓ indisponible, phases conservées", () => {
+  it("[9 s, —], Cible lue « — » (frère incomplet antérieur) : D « — » à renseigner, cellule « — » rouge pâle, Durée de l'exercice « — », ✓ indisponible, phases conservées ; PRE-7 (D-446) : compléter la durée ne renseigne pas D", () => {
     const { onApply } = renderSheet(withPhases([[1, "A", 9], [2, "B", 0]]));
     expect(shownDuration(2)).toBe(t.unset);
     expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
     expect(seriesDurationText()).toBe(t.unset);
-    expect(styleOf("execution-sheet-target-static").backgroundColor).toBe(colors.dangerSurface);
+    expect(styleOf("execution-sheet-target-value").backgroundColor).toBe(colors.dangerSurface);
     expect(String(get("execution-sheet-total-text").props.children)).toBe(t.unset);
     expect(validateDisabled()).toBe(true);
     validate();
     expect(onApply).not.toHaveBeenCalled();
     expect(phaseRows()).toHaveLength(2);
     enterDuration(2, "4");
-    expect(seriesDurationText()).toBe("13 s");
-    expect(validateDisabled()).toBe(false);
+    // D-446 : D n'est plus la somme ; elle reste à renseigner, ✓ toujours indisponible.
+    expect(seriesDurationText()).toBe(t.unset);
+    expect(validateDisabled()).toBe(true);
   });
 
   it("Avec → Sans avec une durée manquante : durée de série « — » à renseigner, jamais la somme partielle", () => {
@@ -171,7 +201,7 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : durée manquante (D-43
 });
 
 describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée d'une occurrence (D-438, MFN-09, MFN/AC28)", () => {
-  it("avec phases : Sans, nombre, croix, poignées et libellés indisponibles ; chevron actif ; durées modifiables, D redérivée", () => {
+  it("avec phases : Sans, nombre, croix, poignées et libellés indisponibles ; chevron actif ; durées modifiables, D inchangée (D-446)", () => {
     const { onApply } = renderSheet(withPhases([[1, "Descente", 6], [2, "Maintien", 3]]), { phaseStructureLocked: true });
     expect(stateOf(WITHOUT).disabled).toBe(true);
     fireEvent.press(get(WITHOUT));
@@ -203,13 +233,13 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
     expect(query(TABLE)).toBeNull();
     fireEvent.press(get(CHEVRON));
     expect(phaseRows()).toHaveLength(2);
-    // Durées modifiables : D redérivée.
+    // Durées modifiables ; PRE-7 (D-446) : D inchangée.
     enterDuration(1, "8");
-    expect(seriesDurationText()).toBe("11 s");
+    expect(seriesDurationText()).toBe("9 s");
     validate();
     expect(applied(onApply).series).toMatchObject({
       kind: "UNIFORM",
-      target: numberTarget(11),
+      target: numberTarget(9),
       workPhases: [
         { id: 1, label: "Descente", durationSeconds: 8 },
         { id: 2, label: "Maintien", durationSeconds: 3 },
@@ -227,16 +257,26 @@ describe("ExecutionParametersSheet — PRE-7 story A2.1 : structure verrouillée
   });
 
   it("avec phases, re-choisir Avec pendant une saisie de durée : la saisie est appliquée, aucune surface ne reste ouverte (aucun réglage du nombre)", () => {
-    renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]), { phaseStructureLocked: true });
+    const { onApply } = renderSheet(withPhases([[1, "A", 6], [2, "B", 3]]), { phaseStructureLocked: true });
     fireEvent(get(`${duration(2)}-input`), "focus");
     typeInExecutionSheetCell(duration(2), "5");
     fireEvent.press(get(WITH));
-    // Saisie appliquée au Brouillon (D redérivée) ; le focus natif simulé n'est pas rendu par Jest.
-    expect(seriesDurationText()).toBe("11 s");
+    // PRE-7 (D-446) : D inchangée ; la saisie appliquée au Brouillon se lit ci-dessous, dans les
+    // paramètres validés (le focus natif simulé n'est pas rendu par Jest).
+    expect(seriesDurationText()).toBe("9 s");
     expect(phaseRows()).toHaveLength(2);
     // Aucune surface cachée : le premier toucher d'une autre durée ouvre directement sa saisie.
     fireEvent(get(`${duration(1)}-input`), "focus");
     expect(styleOf(duration(1)).backgroundColor).toBe("#EAEAFF");
+    fireEvent(get(`${duration(1)}-input`), "blur");
+    validate();
+    expect(applied(onApply).series).toMatchObject({
+      target: numberTarget(9),
+      workPhases: [
+        { id: 1, label: "A", durationSeconds: 6 },
+        { id: 2, label: "B", durationSeconds: 5 },
+      ],
+    });
   });
 
   it("sans phase : Avec indisponible, Sans sélectionné", () => {

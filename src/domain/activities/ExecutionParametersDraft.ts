@@ -55,11 +55,13 @@
  * PRE-5 (story 2.1, AD-19, AD-20, AD-21, AD-23, AD-25) : transitions pures des
  * phases (`canEnableWorkPhases`, `setWorkPhasesEnabled`, `setWorkPhaseCount`,
  * `removeWorkPhase`, `moveWorkPhase`, `setWorkPhaseLabel`, `setWorkPhaseDuration`,
- * `normalizeWorkPhases` ; `deriveSeriesDuration` seul écrivain de D), de la charge
+ * `normalizeWorkPhases` ; `deriveSeriesDuration` seul écrivain de D, supprimée par
+ * D-446), de la charge
  * (`setLoadEnabled`, `setLoadValue`, `normalizeDraftLoad`, par `exerciseLoad.ts`
  * seulement) et de la Condition d'arrêt (`setStopCondition`, mémoire « À la cible »
- * `lastNumberById`, jamais persistée). Avec des phases, Répétitions, À l'échec,
- * Variables et la Cible commune sont refusés (FR-2, aucune conversion destructive).
+ * `lastNumberById`, jamais persistée). Avec des phases, seules les séries
+ * Variables sont refusées (FR-2, aucune conversion destructive) ; Répétitions,
+ * À l'échec et la Cible commune, refusés par PRE-5, sont permis depuis D-446.
  * `pendingRemoval` couvre une série ou une phase (une seule annulation en attente).
  * Le ✓ passe par la fonction unique `sheetDraftResult` (phases, charge, puis
  * `validateForSave`), qui sert aussi la disponibilité du ✓ (FR-3, FR-9).
@@ -68,10 +70,21 @@
  * 0 ou `null` reste présente, non renseignée (ouverte `null`), et bloque le ✓
  * (`REQUIRED` `workPhases` par `phaseId`) ; `normalizeWorkPhases` ne fait plus
  * que le nommage par défaut. Le retrait est explicite : la croix est permise dès
- * deux phases et le passage de 2 à 1 donne Sans, la durée restante devenant la
- * durée de série (D-371 au geste de retrait), annulable. Le compteur d'identités
+ * deux phases et le passage de 2 à 1 donne Sans, annulable ; la Cible est
+ * conservée (D-446 §4 remplace « la durée restante devient la durée de série »). Le compteur d'identités
  * de phase est monotone : `openSheetDraft(…, { nextPhaseId })` reçoit celui du
  * Mouvement, jamais rabaissé sous max(`id`) + 1.
+ *
+ * PRE-7 (D-446, arbitrage de Hermann du 26/10/2026) : les phases sont un motif
+ * cyclique de guidage, compatibles avec les deux Modes (durées toujours en
+ * secondes) et avec À l'échec. `canEnableWorkPhases` n'exige plus que des
+ * séries identiques effectives et un Mode renseigné ; `setMode`,
+ * `setUniformTarget` et `setStopCondition` ne sont plus refusés avec des
+ * phases ; seul `setVariable(true)` l'est encore (phases + séries variables).
+ * La durée de série n'est plus la somme des phases : `deriveSeriesDuration`
+ * est supprimée, la Cible reste saisie, indépendante, et aucune transition de
+ * phase (activation, ajout, retrait, durée, Sans, retrait 2 → Sans,
+ * annulation) ne la modifie ; aucune transition ne redimensionne les phases.
  */
 
 import {
@@ -285,10 +298,9 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
     loadEnabled: parameters.loadEnabled,
   };
-  // PRE-7 (A2.1, D-384) : avec une durée de phase non renseignée (frère incomplet), D est ouverte
-  // à renseigner, comme `deriveSeriesDuration` la tient ensuite ; une liste complète garde la Cible
-  // lue telle quelle (`requestedParameters(openSheetDraft(p))` = `p`).
-  return opened.workPhases.some((phase) => phase.durationSeconds === null) ? deriveSeriesDuration(opened) : opened;
+  // PRE-7 (D-446, remplace l'ouverture de D à renseigner d'A2.1) : la Cible est lue telle quelle,
+  // liste de phases complète ou non (`requestedParameters(openSheetDraft(p))` = `p`).
+  return opened;
 }
 
 /**
@@ -484,7 +496,7 @@ export function setSeriesCount(draft: ExecutionSheetDraft, requested: number): E
  * Jamais déduit de l'égalité des valeurs.
  *
  * PRE-5 (story 2.1) : avec des phases, l'activation est refusée (FR-2, AD-20 :
- * aucune conversion destructive) ; la désactivation est suivie de `normalizeLoad`
+ * aucune conversion destructive ; seule incompatibilité conservée par D-446) ; la désactivation est suivie de `normalizeLoad`
  * (AD-19, AD-23, §9-9) : une charge commune reprise à 0 fait passer à Sans.
  */
 export function setVariable(draft: ExecutionSheetDraft, variable: boolean): ExecutionSheetDraft {
@@ -592,11 +604,12 @@ function toVariable(draft: ExecutionSheetDraft): ExecutionSheetDraft {
  * non renseigné) en Répétitions uniforme : cible initiale 1. PRE-4 : une
  * Cible `FAILURE` est conservée telle quelle (AC22, H27).
  *
- * PRE-5 (story 2.1, FR-2, AD-20) : avec des phases, tout changement de Mode est
- * refusé (Brouillon inchangé) ; la mémoire des Cibles par Mode est conservée.
+ * PRE-7 (D-446, remplace le refus de PRE-5 story 2.1, FR-2) : le changement de
+ * Mode est permis avec des phases, qui sont conservées telles quelles (durées en
+ * secondes dans les deux Modes) ; la Cible suit la règle ordinaire ci-dessus.
  */
 export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): ExecutionSheetDraft {
-  if (mode === draft.mode || draft.workPhases.length > 0) {
+  if (mode === draft.mode) {
     return draft;
   }
   const memory = rememberCurrentTargets(draft);
@@ -629,10 +642,7 @@ export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): Execut
  * ligne (aucun contrôle actif sans effet, REV-02), et la valeur uniforme.
  */
 export function setUniformTarget(draft: ExecutionSheetDraft, target: SeriesTarget): ExecutionSheetDraft {
-  // PRE-5 (story 2.1, AD-20) : tant que des phases existent, D est dérivée ; régler la Cible commune est sans effet.
-  if (draft.workPhases.length > 0) {
-    return draft;
-  }
+  // PRE-7 (D-446) : la Cible commune reste réglable avec des phases (elle n'est plus Σ).
   const rows = draft.variable && draft.rows.length > 0 ? draft.rows.map((row, index) => (index === 0 ? { ...row, target } : row)) : draft.rows;
   return withUniformTarget({ ...draft, pendingRemoval: null, rows }, target);
 }
@@ -744,7 +754,7 @@ export function removeRow(draft: ExecutionSheetDraft, index: number): ExecutionS
  * Mode et sa ligne de base). Sans annulation valide, ou si sa position
  * n'existe plus (état incohérent), Brouillon inchangé, sans recalage.
  * PRE-5 (story 2.1, AD-25, FR-8) : une phase retirée revient à sa position avec
- * son identité, son libellé et sa durée ; D est redérivée.
+ * son identité, son libellé et sa durée ; la Cible est inchangée (D-446).
  */
 export function undoRemoval(draft: ExecutionSheetDraft): ExecutionSheetDraft {
   const pending = draft.pendingRemoval;
@@ -915,54 +925,36 @@ function effectiveUniformTarget(draft: ExecutionSheetDraft): SeriesTarget {
 }
 
 /**
- * Prédicat UNIQUE d'éligibilité des phases (FR-2, AD-20) : Mode `DURATION`,
- * séries identiques effectives (N = 1 compris), Cible commune non `FAILURE`.
+ * Prédicat UNIQUE d'éligibilité des phases (FR-2, AD-20). PRE-7 (D-446, qui
+ * retire « Mode `DURATION` » et « Cible non `FAILURE` ») : Mode renseigné et
+ * séries identiques effectives (N = 1 compris), en Durée comme en Répétitions,
+ * à la cible comme à l'échec. Les séries variables N ≥ 2 restent inéligibles.
  */
 export function canEnableWorkPhases(draft: ExecutionSheetDraft): boolean {
-  return draft.mode === "DURATION" && isEffectivelyUniform(draft) && effectiveUniformTarget(draft).kind !== "FAILURE";
+  return draft.mode !== null && isEffectivelyUniform(draft);
 }
 
 /**
- * SEUL écrivain de D tant que des phases existent (AD-20, FR-3) : Cible commune
- * = `NUMBER(Σ)` si Σ ≥ 1, sinon `UNSET`. Appelée seulement par une transition
- * qui laisse une liste non vide (activation, ajout, retrait, annulation d'un
- * retrait, réglage d'une durée, y compris sur une phase seule relue des données)
- * et par la normalisation d'une liste non vide ; jamais de calcul de la dernière
- * phase sur le restant (réservé aux formats, D-372).
- *
- * PRE-7 (A2.1, D-384, MFN-02 ; CE-UI-10 « donnée nécessaire au calcul manquante :
- * — ») : dès qu'une durée manque (`null` ou < 1 s), D est `UNSET` (« — »), jamais
- * la somme partielle des durées connues — comme la forme Catalogue v4 d'un frère
- * incomplet. Avec → Sans garde cette D : la durée de série reste alors à renseigner.
- */
-export function deriveSeriesDuration(draft: ExecutionSheetDraft): ExecutionSheetDraft {
-  const missing = draft.workPhases.some(
-    (phase) => phase.durationSeconds === null || phase.durationSeconds < WORK_PHASE_LIMITS.durationMin,
-  );
-  const sum = draft.workPhases.reduce((total, phase) => total + (phase.durationSeconds ?? 0), 0);
-  return withUniformTarget(draft, !missing && sum >= 1 ? numberTarget(sum) : unsetTarget());
-}
-
-/**
- * Phases modifiées par une transition : D est redérivée dès que la liste est non vide
- * (AD-20, « pour une liste non vide seulement »), ce qui couvre une phase seule relue
- * des données (le modèle l'admet) et garde D = Σ pour un passage ultérieur à Sans.
+ * Phases modifiées par une transition. PRE-7 (D-446) : la Cible n'est plus
+ * redérivée (`deriveSeriesDuration`, seul écrivain de D = Σ, est supprimée) ;
+ * modifier les phases ne touche jamais la Cible.
  */
 function withWorkPhases(draft: ExecutionSheetDraft, workPhases: readonly DraftWorkPhase[]): ExecutionSheetDraft {
-  const next = { ...draft, workPhases, pendingRemoval: null };
-  return workPhases.length > 0 ? deriveSeriesDuration(next) : next;
+  return { ...draft, workPhases, pendingRemoval: null };
 }
 
 /**
  * Phases Avec / Sans (FR-5, FR-8, D-432, décision de Hermann du 19/10).
  * - Avec, sans phase et si `canEnableWorkPhases` : DEUX phases à libellé vide,
  *   identités tirées de `nextPhaseId` ; la première à la durée de la Cible
- *   `NUMBER` courante si elle est dans 1..3535, sinon `null` ; la seconde `null`
- *   (à renseigner). Rien n'est inventé. Sinon : refus, Brouillon inchangé.
- * - Sans : `workPhases = []` ; la Cible garde la dernière somme, qui devient la
- *   durée unique de série modifiable (`UNSET` si la somme était nulle ou, depuis
- *   PRE-7 A2.1, si une durée manquait) ; aucune mémoire des anciennes phases
- *   (revenir à Avec recrée deux phases).
+ *   `NUMBER` courante si le Mode est Durée et la valeur dans 1..3535 (D-432,
+ *   préremplissage conservé), sinon `null` ; la seconde `null` (à renseigner).
+ *   Rien n'est inventé. Sinon : refus, Brouillon inchangé.
+ * - Sans : `workPhases = []` ; aucune mémoire des anciennes phases (revenir à
+ *   Avec recrée deux phases).
+ *
+ * PRE-7 (D-446) : la Cible est inchangée dans les deux sens (elle n'est plus la
+ * somme des phases).
  */
 export function setWorkPhasesEnabled(draft: ExecutionSheetDraft, enabled: boolean): ExecutionSheetDraft {
   if (!enabled) {
@@ -974,7 +966,10 @@ export function setWorkPhasesEnabled(draft: ExecutionSheetDraft, enabled: boolea
   const uniform = effectiveUniform(draft);
   const current = uniform.uniform.target;
   const bounds = EXECUTION_BOUNDS.durationTarget;
-  const firstDuration = current.kind === "NUMBER" && current.value >= bounds.min && current.value <= bounds.max ? current.value : null;
+  const firstDuration =
+    uniform.mode === "DURATION" && current.kind === "NUMBER" && current.value >= bounds.min && current.value <= bounds.max
+      ? current.value
+      : null;
   const id = uniform.nextPhaseId;
   return withWorkPhases({ ...uniform, nextPhaseId: id + 2 }, [
     { id, label: "", durationSeconds: firstDuration },
@@ -1020,13 +1015,13 @@ function workPhaseIndex(draft: ExecutionSheetDraft, phaseId: number): number {
 /**
  * Retrait annulable d'une phase par sa croix, ou de la dernière par le stepper −
  * (FR-8, AD-25, Q29) : `pendingRemoval` de type `phase` remplace toute annulation
- * en attente (série ou phase) ; D est redérivée. Refusé pour une identité inconnue.
+ * en attente (série ou phase). Refusé pour une identité inconnue.
  *
  * PRE-7 (A1.1, D-438, qui remplace D-371 et D-432 pour le retrait seulement) :
  * permis dès deux phases. Le retrait de l'avant-dernière efface la structure
- * (Sans) : la durée restante devient la durée de série (`UNSET` si elle n'est pas
- * renseignée), et `pendingRemoval.clearedPhases` garde les deux phases pour
- * l'annulation. Une phase seule (relue des données) n'est pas retirable par la
+ * (Sans), et `pendingRemoval.clearedPhases` garde les deux phases pour
+ * l'annulation. PRE-7 (D-446 §4, qui remplace « durée restante = durée de
+ * série » de D-438) : la Cible est inchangée. Une phase seule (relue des données) n'est pas retirable par la
  * croix : Sans reste le geste. Le stepper reste borné à 2..6 (`setWorkPhaseCount`).
  */
 export function removeWorkPhase(draft: ExecutionSheetDraft, phaseId: number): ExecutionSheetDraft {
@@ -1037,10 +1032,9 @@ export function removeWorkPhase(draft: ExecutionSheetDraft, phaseId: number): Ex
   const workPhases = [...draft.workPhases];
   const [removed] = workPhases.splice(index, 1);
   if (workPhases.length === 1) {
-    const remaining = workPhases[0]!.durationSeconds;
-    const target = remaining !== null && remaining >= WORK_PHASE_LIMITS.durationMin ? numberTarget(remaining) : unsetTarget();
     return {
-      ...withUniformTarget({ ...draft, workPhases: [] }, target),
+      ...draft,
+      workPhases: [],
       pendingRemoval: { kind: "phase", index, phase: removed!, clearedPhases: [...draft.workPhases] },
     };
   }
@@ -1048,7 +1042,7 @@ export function removeWorkPhase(draft: ExecutionSheetDraft, phaseId: number): Ex
 }
 
 /**
- * Annulation du retrait d'une phase : ordre, libellé, durée, identité, nombre et D restitués.
+ * Annulation du retrait d'une phase : ordre, libellé, durée, identité et nombre restitués (D-446 : Cible inchangée).
  * PRE-7 (D-438) : après un passage à Sans par la croix, les deux phases sont restituées.
  */
 function undoWorkPhaseRemoval(
@@ -1076,7 +1070,7 @@ function undoWorkPhaseRemoval(
 
 /**
  * Déplace une phase (FR-4, AD-27) : libellé, durée et identité voyagent ensemble ;
- * D est inchangée (même somme). Indices hors bornes ou sur place : Brouillon inchangé.
+ * la Cible est inchangée. Indices hors bornes ou sur place : Brouillon inchangé.
  */
 export function moveWorkPhase(draft: ExecutionSheetDraft, from: number, to: number): ExecutionSheetDraft {
   const length = draft.workPhases.length;
@@ -1111,7 +1105,7 @@ export function setWorkPhaseLabel(draft: ExecutionSheetDraft, phaseId: number, l
 /**
  * Durée d'une phase (FR-7) : entier ≥ 0 ou `null` (à renseigner), sans borne
  * propre hors celle de la somme (contrôlée au ✓) ; sinon, ou pour une identité
- * inconnue, Brouillon inchangé. D est redérivée.
+ * inconnue, Brouillon inchangé. PRE-7 (D-446) : la Cible est inchangée.
  */
 export function setWorkPhaseDuration(
   draft: ExecutionSheetDraft,
@@ -1132,7 +1126,7 @@ export function setWorkPhaseDuration(
  * Normalisation des phases au ✓ (FR-9, AD-20, QN-3) : un libellé vide (après
  * suppression des espaces extérieurs) devient `defaultLabel(n)` selon sa
  * position, stocké ensuite comme un libellé ordinaire (sans `defaultLabel`, il
- * reste vide et la validation le refuse) ; D est redérivée.
+ * reste vide et la validation le refuse). PRE-7 (D-446) : la Cible est inchangée.
  *
  * PRE-7 (A1.1, D-438, MFN-02 ; D-438 remplace D-373 pour la suppression silencieuse
  * et écarte les consignes de nettoyage FR-3/FR-9/AD-20, le nommage par défaut restant) :
@@ -1147,7 +1141,7 @@ export function normalizeWorkPhases(draft: ExecutionSheetDraft, defaultLabel?: D
   const named = draft.workPhases.map((phase, index) =>
     phase.label.trim() === "" && defaultLabel !== undefined ? { ...phase, label: defaultLabel(index + 1) } : phase,
   );
-  return deriveSeriesDuration({ ...draft, workPhases: named });
+  return { ...draft, workPhases: named };
 }
 
 // --- PRE-5 story 2.1 : charge (AD-19, FR-10 à FR-14, Δ16 à Δ20, Δ48) -----------
@@ -1249,12 +1243,13 @@ export type StopConditionChoice = "FAILURE" | "TARGET";
  * `FAILURE` dans la Cible commune (toutes les séries) après avoir mémorisé la
  * valeur `NUMBER` courante ; À la cible restaure la dernière valeur `NUMBER`
  * connue dans le Brouillon pour cette identité et ce Mode (`lastNumberById`),
- * sinon `UNSET`. Refusée en variables effectives (N ≥ 2 : résultat dérivé, FR-20)
- * et, vers À l'échec, avec des phases (FR-2). À N = 1 en état variable demandé,
+ * sinon `UNSET`. Refusée en variables effectives (N ≥ 2 : résultat dérivé, FR-20).
+ * PRE-7 (D-446, remplace le refus vers À l'échec avec des phases, FR-2) : permise
+ * avec des phases, qui sont conservées. À N = 1 en état variable demandé,
  * l'uniforme est pris d'abord. Choix déjà en vigueur : Brouillon inchangé.
  */
 export function setStopCondition(draft: ExecutionSheetDraft, condition: StopConditionChoice): ExecutionSheetDraft {
-  if (!isEffectivelyUniform(draft) || (condition === "FAILURE" && draft.workPhases.length > 0)) {
+  if (!isEffectivelyUniform(draft)) {
     return draft;
   }
   const current = effectiveUniformTarget(draft);

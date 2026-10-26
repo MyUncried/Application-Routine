@@ -1867,7 +1867,8 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
     expect(finished.executionParameters.series).toMatchObject({
       kind: "UNIFORM",
-      target: { kind: "NUMBER", value: 11 },
+      // PRE-7 (D-446) : la durée de série (9 s) n'est plus redérivée de la somme des phases.
+      target: { kind: "NUMBER", value: 9 },
       workPhases: [
         { id: 1, label: "Descente", durationSeconds: 8 },
         { id: 2, label: "Maintien", durationSeconds: 3 },
@@ -1983,7 +1984,41 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     openSheet();
     const sheet = strings.executionParameters.sheet;
     expect(String(screen.getByTestId("execution-sheet-phase-row-2-duration-value").props.children)).toBe(sheet.unset);
-    expect(String(screen.getByTestId("execution-sheet-target-text").props.children)).toBe(sheet.unset);
+    // PRE-7 (D-446) : « Durée d'une série » garde sa pastille modifiable, ici « — » (Cible lue à renseigner).
+    expect(String(screen.getByTestId("execution-sheet-target-value-text").props.children)).toBe(sheet.unset);
     expect(screen.getByTestId("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("PRE-7 (D-446) — frère incomplet à Cible chiffrée ouvert au Catalogue : Carte « Paramètres à compléter. », Terminer inactif", async () => {
+    const incomplete: ExecutionParameters = {
+      ...PHASED,
+      series: {
+        ...(PHASED.series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
+        target: { kind: "NUMBER", value: 6 },
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: 6 },
+          { id: 2, label: "Maintien", durationSeconds: 0 },
+        ],
+      },
+    };
+    const definition: ActivityDefinition = {
+      id: "def-3",
+      movementId: "mov-1",
+      movementNextPhaseId: 3,
+      missingPhaseIds: [2],
+      name: "Planche",
+      description: "",
+      categoryId: "cardio",
+      bodyZoneIds: ["cuisses"],
+      sideMode: "UNILATERAL",
+      executionParameters: incomplete,
+      media: [],
+      createdAt: "now",
+      updatedAt: "now",
+    };
+    renderRoute({ params: { catalogueDefinitionId: "def-3" }, service: { getActivityDefinition: jest.fn(async () => definition) } });
+    await screen.findByDisplayValue("Planche");
+    expect(String(screen.getByTestId("exercise-parameters-phrase").props.children)).toBe(strings.executionParameters.card.incomplete);
+    expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
   });
 });

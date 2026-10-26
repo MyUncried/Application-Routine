@@ -33,8 +33,8 @@ import { colors } from "@/shared/ui/tokens";
  * leur rang : le libellé suit sa phase lors d'un déplacement (`moveWorkPhase`).
  *
  * Croix : PRE-7 (A2.1, D-438, qui remplace D-371 et D-432 pour le retrait ; QR-1, croix indisponible à deux, en découlait) — disponible dès deux
- * phases ; le retrait de l'avant-dernière donne Sans, la durée restante devenant la durée de série
- * (transition du domaine `removeWorkPhase`). Une phase seule relue des données n'a pas de croix
+ * phases ; le retrait de l'avant-dernière donne Sans, la Cible étant conservée (D-446, transition du
+ * domaine `removeWorkPhase`). Une phase seule relue des données n'a pas de croix
  * disponible (Sans reste le geste). Comme pour les séries, un appui pendant qu'une surface est
  * ouverte la range sans retirer (`removalActive`, décidé par la Feuille).
  *

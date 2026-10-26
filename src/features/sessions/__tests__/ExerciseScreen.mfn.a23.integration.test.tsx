@@ -245,6 +245,11 @@ function fillPhaseDurations() {
   fireEvent.press(screen.getByTestId("exercise-parameters-card"));
   enterExecutionSheetCell("execution-sheet-phase-row-1-duration", "7");
   enterExecutionSheetCell("execution-sheet-phase-row-2-duration", "2");
+  // PRE-7 (D-446) : la durée de série, à renseigner, n'est plus la somme des phases — 9 s saisies.
+  fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
+  fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 0 } });
+  fireEvent(screen.getByTestId("duration-wheel-seconds"), "selectionChange", { nativeEvent: { selection: 9 } });
+  pressInExecutionSheet(screen.getByTestId("duration-wheel-validate"));
   chooseExecutionSide("Sans");
   fireEvent.press(screen.getByTestId("execution-sheet-validate"));
   expect(screen.queryByTestId("execution-sheet")).toBeNull();

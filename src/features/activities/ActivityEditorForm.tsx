@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import {
+  hasMissingPhaseDuration,
   validateForSave,
   type ExecutionParameters,
   type ExecutionParametersInput,
@@ -378,7 +379,9 @@ export function ActivityEditorForm({
     const subscription = Keyboard.addListener("keyboardDidShow", () => revealDescription());
     return () => subscription.remove();
   }, [isDescriptionFocused]);
-  const segments = parameters.mode === null ? null : generateExecutionPhrase(parameters);
+  // PRE-7 (D-446, MFN-08) : durée de phase manquante → « Paramètres à compléter. », comme lorsque
+  // la Cible d'un frère incomplet était forcée à `UNSET` (phrase `null`) avant D-446.
+  const segments = parameters.mode === null || hasMissingPhaseDuration(parameters) ? null : generateExecutionPhrase(parameters);
   // Recette iPhone du 2026-10-18 (E-21, décision de Hermann) : l'invite H22 de la Carte
   // vide est retirée ; sans Mode validé, la Carte reste vide comme en PRE-3 (Phrase vide).
   const phrase = segments ? phraseText(segments) : parameters.mode === null ? "" : card.incomplete;

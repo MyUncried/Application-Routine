@@ -76,9 +76,9 @@ export type SiblingPlan =
   | { readonly status: "READY"; readonly parameters: CatalogExecutionParameters; readonly incomplete: boolean }
   | { readonly status: "NEEDS_COMPLETION"; readonly gap: SiblingGap }
   /**
-   * La nouvelle structure porte des phases et le frère ne peut pas en avoir
-   * (MFN-02, éligibilité conservée : mode Durée, Cible chiffrée, séries
-   * identiques).
+   * La nouvelle structure porte des phases et le frère ne peut pas en avoir.
+   * PRE-7 (D-446) : seule une série variable est inéligible (les phases sont
+   * compatibles avec les deux Modes et avec À l'échec).
    */
   | { readonly status: "INELIGIBLE" }
   /** Une durée fournie est invalide (entier ≥ 1 s, somme et bornes du format). */
@@ -125,25 +125,21 @@ export function phaseSetChanged(
   return idSet(previous) !== idSet(next);
 }
 
-function sumOf(entries: readonly PhaseDuration[]): number {
-  return entries.reduce((total, entry) => total + (entry.durationSeconds ?? 0), 0);
-}
-
 /**
  * Plan d'un Exercice frère après une correction de la structure (MFN-08,
  * ch09 « Une correction structurelle conserve les durées par identifiant ») :
  *
  * - ensemble inchangé → `UNCHANGED` ;
- * - Avec → Sans (nouvelle structure vide) : frère complet → durée de série =
- *   somme de ses durées ; sinon la durée de série est à compléter
- *   (`seriesDurationSeconds`, `null` = passer → Cible `UNSET`, incomplet).
- *   Option conservatrice renvoyée à Hermann (spec A1.3, Design Notes) ;
- * - nouvelle structure non vide : le frère doit être éligible aux phases
- *   (Durée, séries identiques, Cible chiffrée ou à renseigner), sinon
- *   `INELIGIBLE` ; une phase conservée garde la durée du frère ; une phase
- *   nouvelle, ou dont la durée du frère manquait déjà, prend la complétion
- *   fournie (`null` admis) ; sans complétion → `NEEDS_COMPLETION`. Toutes les
- *   durées connues → Cible = somme ; sinon Cible `UNSET` (incomplet).
+ * - Avec → Sans (nouvelle structure vide) : la Cible du frère est conservée
+ *   (D-446 : elle est indépendante des phases) ; seule une Cible `UNSET`
+ *   (durée de série à renseigner) demande la complétion
+ *   (`seriesDurationSeconds`, `null` = passer → Cible `UNSET`, incomplet) ;
+ * - nouvelle structure non vide : le frère doit avoir des séries identiques
+ *   (tout Mode, toute Cible, D-446), sinon `INELIGIBLE` (série variable) ;
+ *   une phase conservée garde la durée du frère ; une phase nouvelle, ou dont
+ *   la durée du frère manquait déjà, prend la complétion fournie (`null`
+ *   admis) ; sans complétion → `NEEDS_COMPLETION`. La Cible est conservée :
+ *   ni somme ni `UNSET` forcé (D-446 remplace « Cible = somme »).
  *
  * Le résultat est validé en portée `SIBLING_ACCEPTED` (`validateCatalogParameters`) :
  * hors incomplétude, toute violation donne `INVALID_COMPLETION`. Aucune
@@ -165,11 +161,10 @@ export function planSiblingCorrection(
     if (series.kind !== "UNIFORM") {
       return { status: "INELIGIBLE" };
     }
-    const known = series.phaseDurations;
-    const complete = known.length > 0 && known.every((entry) => entry.durationSeconds !== null);
     let target: SeriesTarget;
-    if (complete) {
-      target = numberTarget(sumOf(known));
+    if (series.target.kind !== "UNSET") {
+      // D-446 : la durée de série n'est plus la somme des phases ; elle reste celle du frère.
+      target = series.target;
     } else if (completion !== undefined && completion.seriesDurationSeconds !== undefined) {
       target = completion.seriesDurationSeconds === null ? unsetTarget() : numberTarget(completion.seriesDurationSeconds);
     } else {
@@ -180,11 +175,8 @@ export function planSiblingCorrection(
     }
     next = { ...catalog, series: { ...series, target, phaseDurations: [] } };
   } else {
-    if (
-      catalog.mode !== "DURATION" ||
-      series.kind !== "UNIFORM" ||
-      (series.target.kind !== "NUMBER" && series.target.kind !== "UNSET")
-    ) {
+    // D-446 : seule l'incompatibilité phases + séries variables est conservée.
+    if (series.kind !== "UNIFORM") {
       return { status: "INELIGIBLE" };
     }
     const own = new Map(series.phaseDurations.map((entry) => [entry.phaseId, entry.durationSeconds] as const));
@@ -208,9 +200,8 @@ export function planSiblingCorrection(
         gap: { definitionId: sibling.definitionId, missingPhaseIds: missing, missingSeriesDuration: false },
       };
     }
-    const incomplete = phaseDurations.some((entry) => entry.durationSeconds === null);
-    const target = incomplete ? unsetTarget() : numberTarget(sumOf(phaseDurations));
-    next = { ...catalog, series: { ...series, target, phaseDurations } };
+    // D-446 : Cible du frère conservée, indépendante de la somme des phases.
+    next = { ...catalog, series: { ...series, phaseDurations } };
   }
   const validated = validateCatalogParameters(nextPhases, next, "SIBLING_ACCEPTED");
   if (!validated.ok) {

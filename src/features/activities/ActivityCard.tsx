@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
+import { hasMissingPhaseDuration } from "@/domain/activities/ExecutionParameters";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
@@ -118,6 +119,11 @@ export type ActivityCardProps = {
  * de remplacement. PRE-4 : lit les paramètres typés obligatoires (AD-3).
  */
 export function catalogueDuration(definition: ActivityDefinition): string | null {
+  // PRE-7 (D-446, MFN-08) : un Exercice frère incomplet (durée de phase manquante) garde une
+  // durée absente, comme lorsque sa Cible était forcée à `UNSET` avant D-446.
+  if (hasMissingPhaseDuration(definition.executionParameters)) {
+    return null;
+  }
   // Story 2.1 (AC9) : même montant et même symbole que la clause de la Phrase sans arrondi (Q20).
   return totalClauseAmount(computeIntrinsicDuration(definition.executionParameters));
 }

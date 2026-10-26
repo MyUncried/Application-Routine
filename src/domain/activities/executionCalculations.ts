@@ -22,6 +22,7 @@
  */
 
 import {
+  hasMissingPhaseDuration,
   isBilateral,
   normalizeEffective,
   seriesCountOf,
@@ -201,7 +202,9 @@ function summarizeTargets(
     }
   }
   let kind: ExerciseDurationKind;
-  if (targets.some((target) => target.kind === "UNSET")) {
+  // PRE-7 (D-446, MFN-08) : une durée de phase manquante (frère incomplet) ne force plus la Cible
+  // à `UNSET` ; elle rend la durée incomplète avec la même priorité.
+  if (targets.some((target) => target.kind === "UNSET") || hasMissingPhaseDuration(parameters)) {
     kind = "incomplete";
   } else if (!unknown) {
     kind = parameters.mode === "REPETITIONS" ? "estimated" : "exact";

@@ -386,6 +386,17 @@ export function hasUnsetTarget(parameters: { readonly series: ExecutionSeries })
   return seriesRowsOf(parameters).some((row) => row.target.kind === "UNSET");
 }
 
+/**
+ * PRE-7 (D-446, MFN-08) : vrai si une durée de phase manque (< 1 s, 0 de la représentation
+ * résolue d'un Exercice frère incomplet). Avant D-446, ce cas imposait la Cible `UNSET`, que
+ * les présentations lisaient seule (« Paramètres à compléter. ») ; la Cible étant désormais
+ * indépendante des phases, elles lisent aussi ce prédicat. Aucune règle nouvelle.
+ */
+export function hasMissingPhaseDuration(parameters: { readonly series: ExecutionSeries }): boolean {
+  const { series } = parameters;
+  return series.kind === "UNIFORM" && series.workPhases.some((phase) => !(phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
+}
+
 /** Condition d'arrêt dérivée (AD-23, FR-20) : jamais persistée. */
 export type StopCondition = "TARGET" | "FAILURE" | "MIXED" | "NONE";
 
@@ -738,20 +749,30 @@ function invalidPhases(reason: string): WorkPhasesProblem {
 /**
  * PRE-5 (AD-20, FR-1, FR-3, FR-40) — invariant structurel des phases, partagé
  * par `validateForSave` et `readV3`. Une liste vide (« Aucune ») est toujours
- * valide. Sinon : Mode `DURATION`, Cible `NUMBER`, 1 à 6 phases, `id` entier
- * ≥ 1 unique, durée entière ≥ 1 s (D-430), libellé de 1 à 20 points de code non
- * blanc, `target.value` = Σ des durées, Σ dans 1..3535. Aucune tolérance de
- * ligne de base (H25 ne s'applique pas à la somme).
+ * valide. Sinon : 1 à 6 phases, `id` entier ≥ 1 unique, durée entière ≥ 1 s
+ * (D-430), libellé de 1 à 20 points de code non blanc, Σ dans 1..3535. Aucune
+ * tolérance de ligne de base (H25 ne s'applique pas à la somme). Les exigences
+ * PRE-5 « Mode `DURATION` », « Cible `NUMBER` » et « `target.value` = Σ » sont
+ * retirées par D-446 (ci-dessous).
  *
  * PRE-7 (A1.1, D-438, MFN-02, ch11 « Contrats internes des phases ») : une
  * durée 0 ou `null` est une durée NON RENSEIGNÉE, distinguée d'une forme
- * invalide (`MISSING`, identités dans l'ordre de la liste) ; la Cible et la
- * somme ne sont alors pas contrôlées (aucun total à comparer). Les autres
- * contrôles (nombre, Mode, identités, libellés, durée négative ou non entière)
- * priment. `readV3` refuse les deux cas : une donnée stockée n'est jamais
- * effacée ni complétée silencieusement.
+ * invalide (`MISSING`, identités dans l'ordre de la liste) ; la somme n'est
+ * alors pas contrôlée (aucun total à comparer). Les autres contrôles (nombre,
+ * identités, libellés, durée négative ou non entière) priment. `readV3` refuse
+ * les deux cas (durée manquante, forme invalide) : une donnée stockée n'est
+ * jamais effacée ni complétée silencieusement. Depuis D-446, il ne refuse plus
+ * un Mode Répétitions, une Cible à l'échec ni une Cible ≠ Σ.
+ *
+ * PRE-7 (D-446, arbitrage de Hermann du 26/10/2026) : les phases sont un motif
+ * cyclique de guidage, compatibles avec les deux Modes (durées toujours en
+ * secondes) et avec une Cible `NUMBER` ou À l'échec. Les exigences « Mode
+ * `DURATION` », « Cible `NUMBER` » et « Cible = Σ » sont retirées : la Cible
+ * est indépendante du motif et contrôlée par `checkRow` selon le Mode. Σ
+ * reste bornée à 1..3535 (D-430, borne de la durée du motif). Une donnée
+ * antérieure (Durée, Cible = Σ) reste valide.
  */
-function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): WorkPhasesProblem | null {
+function workPhasesProblem(workPhases: unknown): WorkPhasesProblem | null {
   if (!Array.isArray(workPhases)) {
     return invalidPhases("work phases are not a list");
   }
@@ -760,9 +781,6 @@ function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown):
   }
   if (workPhases.length > WORK_PHASE_LIMITS.maxCount) {
     return invalidPhases("too many work phases");
-  }
-  if (mode !== "DURATION") {
-    return invalidPhases("work phases require the DURATION mode");
   }
   const ids = new Set<number>();
   const missing: number[] = [];
@@ -796,15 +814,10 @@ function workPhasesProblem(mode: unknown, target: unknown, workPhases: unknown):
   if (missing.length > 0) {
     return { kind: "MISSING", phaseIds: missing };
   }
-  if (!isRecord(target) || target.kind !== "NUMBER") {
-    return invalidPhases("work phases require a NUMBER target");
-  }
+  // D-446 : seule la durée du motif est bornée ; la Cible n'est plus comparée à Σ.
   const bounds = EXECUTION_BOUNDS.durationTarget;
   if (sum < bounds.min || sum > bounds.max) {
     return { kind: "INVALID", reason: "work phases sum out of range", sumOutOfRange: true };
-  }
-  if (target.value !== sum) {
-    return invalidPhases("series target differs from the work phases sum");
   }
   return null;
 }
@@ -996,7 +1009,7 @@ export function validateForSave(
     } else if (!Array.isArray(series.workPhases)) {
       violations.push({ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" });
     } else {
-      const problem = workPhasesProblem(mode, series.target, series.workPhases);
+      const problem = workPhasesProblem(series.workPhases);
       if (problem !== null && problem.kind === "MISSING") {
         // PRE-7 (A1.1, D-438, MFN/AC15, AC25) : une violation par durée manquante, la phase
         // restant présente ; ✓ et enregistrement de l'Exercice édité refusés.
@@ -1278,7 +1291,7 @@ function readV3Object(value: Record<string, unknown>): ExecutionParameters {
     const count = readUniformCount(seriesValue);
     const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     const loadKg = readLoadKg(seriesValue.loadKg);
-    const problem = workPhasesProblem(mode, row.target, seriesValue.workPhases);
+    const problem = workPhasesProblem(seriesValue.workPhases);
     if (problem !== null) {
       throw new ExecutionParametersDataError(`Malformed work phases: ${workPhasesProblemReason(problem)}.`);
     }
@@ -1388,13 +1401,18 @@ export type CatalogExecutionParameters = Omit<ExecutionParameters, "version" | "
 /**
  * Invariant des durées de phases de la forme Catalogue (MFN-02, MFN-08,
  * D-430) : liste (vide = « Aucune », toujours valide) ; sinon au plus 6
- * entrées, Mode `DURATION`, `phaseId` entier ≥ 1 unique, durée entière ≥ 1 s
- * ou `null`. Au moins une durée `null` (exercice frère incomplet) : Cible
- * `UNSET`, aucun total inventé. Toutes renseignées : Cible `NUMBER` = Σ, Σ dans
- * 1..3535. Partagé par le sérialiseur, le lecteur v4 et la résolution
- * (`Movement.ts`). Retourne la raison d'un écart, `null` si l'invariant tient.
+ * entrées, `phaseId` entier ≥ 1 unique, durée entière ≥ 1 s ou `null`
+ * (exercice frère incomplet, aucun total inventé), Cible objet. Toutes
+ * renseignées : Σ dans 1..3535. Partagé par le sérialiseur, le lecteur v4 et
+ * la résolution (`Movement.ts`). Retourne la raison d'un écart, `null` si
+ * l'invariant tient.
+ *
+ * PRE-7 (D-446) : les exigences « Mode `DURATION` », « liste incomplète ⇒
+ * Cible `UNSET` » et « liste complète ⇒ Cible `NUMBER` = Σ » sont retirées :
+ * la Cible est indépendante du motif (Répétitions, À l'échec ou durée saisie) ;
+ * le Mode n'est plus un paramètre.
  */
-export function phaseDurationsProblem(mode: unknown, target: unknown, phaseDurations: unknown): string | null {
+export function phaseDurationsProblem(target: unknown, phaseDurations: unknown): string | null {
   if (!Array.isArray(phaseDurations)) {
     return "phase durations are not a list";
   }
@@ -1403,9 +1421,6 @@ export function phaseDurationsProblem(mode: unknown, target: unknown, phaseDurat
   }
   if (phaseDurations.length > WORK_PHASE_LIMITS.maxCount) {
     return "too many phase durations";
-  }
-  if (mode !== "DURATION") {
-    return "phase durations require the DURATION mode";
   }
   const ids = new Set<number>();
   let sum = 0;
@@ -1432,16 +1447,14 @@ export function phaseDurationsProblem(mode: unknown, target: unknown, phaseDurat
     return "malformed series target";
   }
   if (incomplete) {
-    return target.kind === "UNSET" ? null : "an incomplete phase list requires an UNSET target";
-  }
-  if (target.kind !== "NUMBER") {
-    return "complete phase durations require a NUMBER target";
+    // D-446 : la Cible d'un frère incomplet est conservée telle quelle (aucun total inventé).
+    return null;
   }
   const bounds = EXECUTION_BOUNDS.durationTarget;
   if (sum < bounds.min || sum > bounds.max) {
     return "phase durations sum out of range";
   }
-  return target.value === sum ? null : "series target differs from the phase durations sum";
+  return null;
 }
 
 /**
@@ -1454,7 +1467,7 @@ export function phaseDurationsProblem(mode: unknown, target: unknown, phaseDurat
 export function serializeCatalogExecutionParameters(parameters: CatalogExecutionParameters): string {
   const { series } = parameters;
   if (series.kind === "UNIFORM") {
-    const problem = phaseDurationsProblem(parameters.mode, series.target, series.phaseDurations);
+    const problem = phaseDurationsProblem(series.target, series.phaseDurations);
     if (problem !== null) {
       throw new Error(`serializeCatalogExecutionParameters: ${problem} (MFN-02).`);
     }
@@ -1517,7 +1530,7 @@ export function readCatalogExecutionParameters(json: string | null | undefined):
     const count = readUniformCount(seriesValue);
     const row = readTargetAndPause({ target: seriesValue.target, pauseSeconds: seriesValue.pauseSeconds });
     const loadKg = readLoadKg(seriesValue.loadKg);
-    const problem = phaseDurationsProblem(mode, row.target, seriesValue.phaseDurations);
+    const problem = phaseDurationsProblem(row.target, seriesValue.phaseDurations);
     if (problem !== null) {
       throw new ExecutionParametersDataError(`Malformed phase durations: ${problem}.`);
     }
@@ -1563,7 +1576,7 @@ export const RESOLVED_EXECUTION_PARAMETERS_VERSION = 4 as const;
 export function serializeResolvedExecutionParameters(parameters: ExecutionParameters): string {
   const { series } = parameters;
   if (series.kind === "UNIFORM") {
-    const problem = workPhasesProblem(parameters.mode, series.target, series.workPhases);
+    const problem = workPhasesProblem(series.workPhases);
     if (problem !== null) {
       throw new Error(`serializeResolvedExecutionParameters: ${workPhasesProblemReason(problem)} (MFN-02).`);
     }
@@ -1590,10 +1603,10 @@ export function readResolvedExecutionParameters(json: string | null | undefined)
 /**
  * Invariant des phases RÉSOLUES (v3), exposé pour la résolution Catalogue
  * (`Movement.ts`) : raison d'un écart, `null` s'il tient. Une durée manquante
- * (0) y est un écart.
+ * (0) y est un écart. D-446 : ni le Mode ni la Cible n'y entrent plus.
  */
-export function resolvedWorkPhasesProblem(mode: unknown, target: unknown, workPhases: unknown): string | null {
-  const problem = workPhasesProblem(mode, target, workPhases);
+export function resolvedWorkPhasesProblem(workPhases: unknown): string | null {
+  const problem = workPhasesProblem(workPhases);
   return problem === null ? null : workPhasesProblemReason(problem);
 }
 

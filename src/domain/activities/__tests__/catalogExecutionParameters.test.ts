@@ -83,13 +83,15 @@ describe("PRE7-A1.1 — sérialiseur v4 (MFN-02)", () => {
     expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(variable))).toEqual(variable);
   });
 
-  it("refuse d'écrire une durée 0, une identité dupliquée ou une Cible incohérente", () => {
+  it("refuse d'écrire une durée 0 ou une identité dupliquée ; PRE-7 (D-446) : une Cible indépendante de Σ s'écrit", () => {
     const zero = catalog([{ phaseId: 1, durationSeconds: 0 }, { phaseId: 2, durationSeconds: 3 }]);
     expect(() => serializeCatalogExecutionParameters(zero)).toThrow();
     const duplicated = catalog([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 1, durationSeconds: 3 }]);
     expect(() => serializeCatalogExecutionParameters(duplicated)).toThrow();
+    // D-446 : la Cible n'est plus liée aux phases (une liste incomplète garde une Cible chiffrée).
     const series = incomplete.series as Extract<CatalogExecutionParameters["series"], { kind: "UNIFORM" }>;
-    expect(() => serializeCatalogExecutionParameters({ ...incomplete, series: { ...series, target: numberTarget(9) } })).toThrow();
+    const chiffre = { ...incomplete, series: { ...series, target: numberTarget(9) } };
+    expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(chiffre))).toEqual(chiffre);
   });
 });
 
@@ -125,12 +127,10 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
       ["identité 0", withSeries({ phaseDurations: [{ phaseId: 0, durationSeconds: 6 }, { phaseId: 1, durationSeconds: 3 }] })],
       ["durée non entière", withSeries({ phaseDurations: [{ phaseId: 1, durationSeconds: 4.5 }, { phaseId: 2, durationSeconds: 4.5 }] })],
       ["durée absente", withSeries({ phaseDurations: [{ phaseId: 1 }, { phaseId: 2, durationSeconds: 3 }] })],
-      ["somme ≠ Cible", withSeries({ target: { kind: "NUMBER", value: 10 } })],
-      ["complète à renseigner", withSeries({ target: { kind: "UNSET" } })],
-      ["incomplète chiffrée", withSeries({ phaseDurations: [{ phaseId: 1, durationSeconds: 9 }, { phaseId: 2, durationSeconds: null }] })],
+      // PRE-7 (D-446) : « somme ≠ Cible », « complète à renseigner », « incomplète chiffrée » et
+      // « Mode Répétitions » ne sont plus des écarts (test « D-446 » ci-dessous).
       ["sept phases", withSeries({ phaseDurations: [1, 2, 3, 4, 5, 6, 7].map((phaseId) => ({ phaseId, durationSeconds: 1 })), target: { kind: "NUMBER", value: 7 } })],
       ["somme de 3 536 s", withSeries({ phaseDurations: [{ phaseId: 1, durationSeconds: 3000 }, { phaseId: 2, durationSeconds: 536 }], target: { kind: "NUMBER", value: 3536 } })],
-      ["Mode Répétitions", withSeries({}, { mode: "REPETITIONS" })],
       ["phaseDurations absent", withSeries({ phaseDurations: undefined })],
       ["workPhases v3 à la place", withSeries({ phaseDurations: undefined, workPhases: [{ id: 1, label: "a", durationSeconds: 9 }] })],
       ["loadKg absent", withSeries({ loadKg: undefined })],
@@ -156,11 +156,33 @@ describe("PRE7-A1.1 — lecteur v4 strict (MFN-02, ch09)", () => {
     }
   });
 
-  it("phaseDurationsProblem : liste vide toujours valide ; incomplète ⇔ Cible UNSET ; complète ⇔ Cible = Σ", () => {
-    expect(phaseDurationsProblem("REPETITIONS", numberTarget(12), [])).toBeNull();
-    expect(phaseDurationsProblem("DURATION", unsetTarget(), [{ phaseId: 1, durationSeconds: null }])).toBeNull();
-    expect(phaseDurationsProblem("DURATION", numberTarget(5), [{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
-    expect(phaseDurationsProblem("DURATION", numberTarget(5), [{ phaseId: 1, durationSeconds: null }])).not.toBeNull();
-    expect(phaseDurationsProblem("DURATION", unsetTarget(), [{ phaseId: 1, durationSeconds: 5 }])).not.toBeNull();
+  it("phaseDurationsProblem : liste vide toujours valide ; PRE-7 (D-446) : Cible indépendante des phases, tout Mode ; Σ bornée à 1..3535", () => {
+    expect(phaseDurationsProblem(numberTarget(12), [])).toBeNull();
+    expect(phaseDurationsProblem(unsetTarget(), [{ phaseId: 1, durationSeconds: null }])).toBeNull();
+    expect(phaseDurationsProblem(numberTarget(5), [{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
+    // D-446 : une Cible chiffrée avec une durée manquante, une Cible à renseigner avec des durées
+    // complètes, une Cible ≠ Σ, le Mode Répétitions et À l'échec sont admis.
+    expect(phaseDurationsProblem(numberTarget(5), [{ phaseId: 1, durationSeconds: null }])).toBeNull();
+    expect(phaseDurationsProblem(unsetTarget(), [{ phaseId: 1, durationSeconds: 5 }])).toBeNull();
+    expect(phaseDurationsProblem(numberTarget(120), [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
+    expect(phaseDurationsProblem(numberTarget(10), [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
+    expect(phaseDurationsProblem({ kind: "FAILURE" }, [{ phaseId: 1, durationSeconds: 5 }, { phaseId: 2, durationSeconds: 2 }])).toBeNull();
+    // Σ (durée du motif) reste bornée ; la Cible reste un objet.
+    expect(phaseDurationsProblem(numberTarget(10), [{ phaseId: 1, durationSeconds: 3000 }, { phaseId: 2, durationSeconds: 536 }])).not.toBeNull();
+    expect(phaseDurationsProblem(null, [{ phaseId: 1, durationSeconds: 5 }])).not.toBeNull();
+  });
+
+  it("PRE-7 (D-446) — aller-retour v4 identique : Répétitions et à l'échec avec phases, Cible ≠ Σ ; donnée antérieure (Cible = Σ) inchangée", () => {
+    const series = complete.series as Extract<CatalogExecutionParameters["series"], { kind: "UNIFORM" }>;
+    const cases: readonly CatalogExecutionParameters[] = [
+      complete,
+      { ...complete, series: { ...series, target: numberTarget(120) } },
+      { ...complete, series: { ...series, target: { kind: "FAILURE" } } },
+      { ...complete, mode: "REPETITIONS", series: { ...series, target: numberTarget(10) } },
+      { ...complete, mode: "REPETITIONS", series: { ...series, target: { kind: "FAILURE" } } },
+    ];
+    for (const parameters of cases) {
+      expect(readCatalogExecutionParameters(serializeCatalogExecutionParameters(parameters))).toEqual(parameters);
+    }
   });
 });

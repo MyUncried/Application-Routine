@@ -17,6 +17,7 @@ import {
   openSheetDraft,
   removeWorkPhase,
   setWorkPhaseCount,
+  setUniformTarget,
   setWorkPhaseDuration,
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
@@ -297,15 +298,16 @@ describe("PRE7-A1.1 — scission et résolution (MFN-02, MFN/AC14, AC35)", () =>
     expect(series.kind === "UNIFORM" && series.target).toEqual(unsetTarget());
     const draft = openSheetDraft(resolution.parameters);
     expect(durations(draft)).toEqual([6, 3, null]);
-    // Compléter la durée rend l'exercice exécutable ; sa scission ne porte plus de null.
-    const completed = committed(setWorkPhaseDuration(draft, 3, 4));
+    // Compléter la durée et — PRE-7 (D-446) : la Cible n'est plus dérivée de Σ — renseigner la
+    // durée de série rend l'exercice exécutable ; sa scission ne porte plus de null.
+    const completed = committed(setUniformTarget(setWorkPhaseDuration(draft, 3, 4), numberTarget(120)));
     const split = splitResolvedParameters(completed);
     expect(resolveCatalogParameters(split.phases, split.parameters).status).toBe("EXECUTABLE");
     // Et la scission de la forme incomplète la restitue telle quelle.
     expect(splitResolvedParameters(resolution.parameters)).toEqual({ phases: structure, parameters: catalog });
   });
 
-  it("scission d'un exercice résolu incomplet : durée < 1 s → null, Cible UNSET (aucun total inventé)", () => {
+  it("scission d'un exercice résolu incomplet : durée < 1 s → null ; PRE-7 (D-446) : Cible conservée", () => {
     const partial = resolvedWithPhases([
       { id: 1, label: "a", durationSeconds: 9 },
       { id: 2, label: "b", durationSeconds: 0 },
@@ -314,7 +316,7 @@ describe("PRE7-A1.1 — scission et résolution (MFN-02, MFN/AC14, AC35)", () =>
     expect(parameters.version).toBe(CATALOG_EXECUTION_PARAMETERS_VERSION);
     expect(parameters.series).toEqual(
       expect.objectContaining({
-        target: unsetTarget(),
+        target: numberTarget(9),
         phaseDurations: [
           { phaseId: 1, durationSeconds: 9 },
           { phaseId: 2, durationSeconds: null },
@@ -337,8 +339,12 @@ describe("PRE7-A1.1 — scission et résolution (MFN-02, MFN/AC14, AC35)", () =>
       ["structure sur une série variable", structure, variable],
       ["structure invalide", [{ id: 1, label: "" }, { id: 2, label: "b" }], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9))],
       ["durée 0", structure, catalogWith([{ phaseId: 1, durationSeconds: 0 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(3))],
-      ["incomplet chiffré", structure, catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: null }], numberTarget(6))],
     ];
+    // PRE-7 (D-446) : un frère incomplet à Cible chiffrée n'est plus une donnée corrompue ; il
+    // reste INCOMPLETE, Cible conservée.
+    const chiffre = resolveCatalogParameters(structure, catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: null }], numberTarget(6)));
+    expect(chiffre.status).toBe("INCOMPLETE");
+    expect(chiffre.parameters.series.kind === "UNIFORM" && chiffre.parameters.series.target).toEqual(numberTarget(6));
     for (const [label, phases, catalog] of refused) {
       let error: unknown = null;
       try {
