@@ -1851,32 +1851,52 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     screen.getByTestId("execution-sheet-phase-row-1-remove").props.accessibilityState?.disabled === true &&
     screen.getByTestId("execution-sheet-phases-control-WITHOUT").props.accessibilityState?.disabled === true;
 
-  it("occurrence copiée d'un geste (filiation), y compris une copie d'occurrence locale en attente : structure verrouillée, durées modifiables", () => {
-    for (const filiation of [{ sourceMovementId: "mov-1" }, { sourceMovementId: "occ-0", pendingLocalMovement: true as const }]) {
-      const { updateDraft } = renderRoute({
-        params: { exerciseId: "occ-1" },
-        exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", ...filiation })],
-      });
-      openSheet();
-      expect(isStructureLocked()).toBe(true);
-      expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
-      fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "focus");
-      fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "8");
-      fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "blur");
-      fireEvent.press(screen.getByTestId("execution-sheet-validate"));
-      fireEvent.press(screen.getByTestId("exercise-finish-action"));
-      const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
-      expect(finished.executionParameters.series).toMatchObject({
-        kind: "UNIFORM",
-        target: { kind: "NUMBER", value: 11 },
-        workPhases: [
-          { id: 1, label: "Descente", durationSeconds: 8 },
-          { id: 2, label: "Maintien", durationSeconds: 3 },
-        ],
-      });
-      expect(finished.sourceMovementId).toBe(filiation.sourceMovementId);
-      screen.unmount();
-    }
+  it("occurrence copiée d'un geste (filiation persistée) : structure verrouillée, durées modifiables", () => {
+    const { updateDraft } = renderRoute({
+      params: { exerciseId: "occ-1" },
+      exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", sourceMovementId: "mov-1" })],
+    });
+    openSheet();
+    expect(isStructureLocked()).toBe(true);
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
+    fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "focus");
+    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "8");
+    fireEvent(screen.getByTestId("execution-sheet-phase-row-1-duration-input"), "blur");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
+    expect(finished.executionParameters.series).toMatchObject({
+      kind: "UNIFORM",
+      target: { kind: "NUMBER", value: 11 },
+      workPhases: [
+        { id: 1, label: "Descente", durationSeconds: 8 },
+        { id: 2, label: "Maintien", durationSeconds: 3 },
+      ],
+    });
+    expect(finished.sourceMovementId).toBe("mov-1");
+  });
+
+  it("recette JA (Hermann, 26/10/2026) : copie en attente d'une occurrence locale — contenu et structure modifiables comme la source, filiation pré-allouée conservée dans le brouillon", () => {
+    const { updateDraft } = renderRoute({
+      params: { exerciseId: "occ-1" },
+      exercises: [
+        canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", sourceMovementId: "occ-0", pendingLocalMovement: true }),
+      ],
+    });
+    expect(screen.getByTestId("exercise-name-input").props.editable).toBe(true);
+    expect(screen.getByTestId("exercise-instruction-input").props.editable).not.toBe(false);
+    expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState?.disabled).not.toBe(true);
+    expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityState?.disabled).not.toBe(true);
+    openSheet();
+    expect(isStructureLocked()).toBe(false);
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBeUndefined();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes lentes");
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
+    expect(finished.name).toBe("Fentes lentes");
+    // La décision de filiation est prise à la conversion (`settlePendingLocalCopies`), jamais ici.
+    expect(finished).toMatchObject({ sourceMovementId: "occ-0", pendingLocalMovement: true });
   });
 
   it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure modifiable (exception MFN-09)", () => {

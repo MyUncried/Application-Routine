@@ -18,6 +18,7 @@ import {
   removeOccurrence,
   removeOccurrenceOutcome,
   resolveTourBoundaryConflict,
+  settlePendingLocalCopies,
   stepOccurrence,
   type CompositionState,
 } from "@/domain/sessions/composition";
@@ -1129,5 +1130,106 @@ describe("story 7.1 — revue : pas, retrait itératif, conflits à plusieurs po
       tourRepeatCount: 2,
     };
     expect(moveStopPoint(state, "T", { scope: "IN_TOUR", position: 1 })).toMatchObject({ status: "APPLIED" });
+  });
+});
+
+/**
+ * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
+ * déverrouillée ») : une copie en attente reste modifiable ; à la conversion, elle ne garde la
+ * filiation pré-allouée que si son geste est identique à celui de sa référence (MFN-03, MFN-09).
+ */
+describe("settlePendingLocalCopies (recette JA)", () => {
+  const phased = (labels: readonly string[]) => {
+    const base = durationParameters(9, 3, 15);
+    if (base.series.kind !== "UNIFORM") throw new Error("uniform expected");
+    return {
+      ...base,
+      series: { ...base.series, workPhases: labels.map((label, index) => ({ id: index + 1, label, durationSeconds: 3 })) },
+    };
+  };
+  const source = anActivity("S", "IN_TOUR", {
+    name: "Fentes",
+    instruction: "Dos droit",
+    categoryId: "cat-1",
+    bodyZoneIds: ["jambes", "fessiers"],
+    executionParameters: phased(["Descente", "Remontée"]),
+    media: [{ assetId: "a-1", asset: { id: "a-1", kind: "PHOTO", uri: "file:///a-1.jpg", mimeType: "image/jpeg" } as never }],
+  });
+  const withCopy = () => duplicateActivity([source], "S", "C1");
+  const copyOf = (activities: readonly SessionDraftExercise[], id: string) => activities.find((activity) => activity.id === id)!;
+  const isDetached = (activity: SessionDraftExercise) =>
+    activity.sourceMovementId === undefined && activity.pendingLocalMovement === undefined;
+
+  it("copie intacte : filiation pré-allouée et marque conservées, collection inchangée", () => {
+    const activities = withCopy();
+    const settled = settlePendingLocalCopies(activities);
+    expect(settled).toBe(activities);
+    expect(copyOf(settled, "C1")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
+  });
+
+  it("copie dont seuls les paramètres propres changent (durées, séries) : filiation conservée", () => {
+    const activities = withCopy().map((activity) =>
+      activity.id === "C1" ? { ...activity, executionParameters: { ...activity.executionParameters, countdownSeconds: 7 } } : activity,
+    );
+    expect(copyOf(settlePendingLocalCopies(activities), "C1")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
+  });
+
+  it("nom de copie de rang N, nom identique ou copie d'une copie : même nom modulo suffixe", () => {
+    for (const name of ["Fentes", "Fentes (copie 3)", "Fentes (copie) (copie)", "  Fentes   (copie) "]) {
+      const activities = withCopy().map((activity) => (activity.id === "C1" ? { ...activity, name } : activity));
+      expect(copyOf(settlePendingLocalCopies(activities), "C1").sourceMovementId).toBe("S");
+    }
+  });
+
+  it.each([
+    ["phase", { executionParameters: phased(["Descente", "Maintien"]) }],
+    ["structure retirée", { executionParameters: phased([]) }],
+    ["description", { instruction: "Genou aligné" }],
+    ["média", { media: [] }],
+    ["catégorie", { categoryId: "cat-2" }],
+    ["zone", { bodyZoneIds: ["jambes"] }],
+    ["nom", { name: "Fentes sautées" }],
+  ] satisfies [string, Partial<SessionDraftExercise>][])("copie modifiée (%s) : émise sans filiation (Mouvement propre)", (_label, change) => {
+    const activities = withCopy().map((activity) => (activity.id === "C1" ? { ...activity, ...change } : activity));
+    const settled = settlePendingLocalCopies(activities);
+    expect(settled).not.toBe(activities);
+    expect(isDetached(copyOf(settled, "C1"))).toBe(true);
+    expect(copyOf(settled, "C1").name).toBe(copyOf(activities, "C1").name);
+    expect(copyOf(settled, "S")).toBe(source);
+  });
+
+  it("zones dans un autre ordre : identiques (ensemble)", () => {
+    const activities = withCopy().map((activity) =>
+      activity.id === "C1" ? { ...activity, bodyZoneIds: ["fessiers", "jambes"] } : activity,
+    );
+    expect(copyOf(settlePendingLocalCopies(activities), "C1").sourceMovementId).toBe("S");
+  });
+
+  it("source modifiée après duplication, copie intacte : copie émise sans filiation", () => {
+    const activities = withCopy().map((activity) => (activity.id === "S" ? { ...activity, instruction: "Autre" } : activity));
+    expect(isDetached(copyOf(settlePendingLocalCopies(activities), "C1"))).toBe(true);
+  });
+
+  it("source supprimée : la 1re copie est la référence ; la 2e partage si identique, sinon détachée", () => {
+    const two = duplicateActivity(withCopy(), "S", "C2").filter((activity) => activity.id !== "S");
+    expect(two.map((activity) => activity.id)).toEqual(["C2", "C1"]);
+    const shared = settlePendingLocalCopies(two);
+    expect(shared).toBe(two);
+    const changed = two.map((activity) => (activity.id === "C1" ? { ...activity, categoryId: "cat-9" } : activity));
+    const settled = settlePendingLocalCopies(changed);
+    expect(copyOf(settled, "C2")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
+    expect(isDetached(copyOf(settled, "C1"))).toBe(true);
+  });
+
+  it("nom de source à la longueur maximale : la copie au nom tronqué garde la filiation", () => {
+    const long = anActivity("L", "IN_TOUR", { name: "é".repeat(NAME_MAX_LENGTH) });
+    const activities = duplicateActivity([long], "L", "LC");
+    expect(copyOf(activities, "LC").name).not.toBe(long.name);
+    expect(copyOf(settlePendingLocalCopies(activities), "LC")).toMatchObject({ sourceMovementId: "L", pendingLocalMovement: true });
+  });
+
+  it("filiation persistée (sans marque) : jamais modifiée", () => {
+    const activities = [source, anActivity("X", "IN_TOUR", { name: "Autre", sourceMovementId: "S" })];
+    expect(settlePendingLocalCopies(activities)).toBe(activities);
   });
 });

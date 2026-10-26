@@ -228,15 +228,135 @@ const COPY_SUFFIX_WORD = "copie";
  */
 export function nextCopyName(name: string, takenNames: Iterable<string>): string {
   const taken = new Set(Array.from(takenNames, normalizeName));
-  const base = Array.from(normalizeName(name));
   for (let rank = 1; ; rank += 1) {
-    const suffix = rank === 1 ? ` (${COPY_SUFFIX_WORD})` : ` (${COPY_SUFFIX_WORD} ${rank})`;
-    const head = base.slice(0, Math.max(NAME_MAX_LENGTH - Array.from(suffix).length, 0)).join("").trimEnd();
-    const candidate = `${head}${suffix}`;
+    const candidate = copyNameOfRank(name, rank);
     if (!taken.has(normalizeName(candidate))) {
       return candidate;
     }
   }
+}
+
+/** Nom de copie de rang `rank` (1 = `{nom} (copie)`), base tronquée pour tenir dans `NAME_MAX_LENGTH`. */
+function copyNameOfRank(name: string, rank: number): string {
+  const base = Array.from(normalizeName(name));
+  const suffix = rank === 1 ? ` (${COPY_SUFFIX_WORD})` : ` (${COPY_SUFFIX_WORD} ${rank})`;
+  const head = base.slice(0, Math.max(NAME_MAX_LENGTH - Array.from(suffix).length, 0)).join("").trimEnd();
+  return `${head}${suffix}`;
+}
+
+const COPY_NAME_PATTERN = new RegExp(`^(.*) \\(${COPY_SUFFIX_WORD}(?: ([0-9]+))?\\)$`, "u");
+
+/**
+ * Le nom `name` est-il celui de `referenceName`, modulo un ou plusieurs suffixes de copie
+ * (`nextCopyName`) ? Comparaison normalisée ; une base tronquée n'est reconnue qu'au premier
+ * suffixe (forme exacte produite par `nextCopyName`).
+ */
+function isNameOrCopyNameOf(name: string, referenceName: string): boolean {
+  const target = normalizeName(referenceName);
+  let current = normalizeName(name);
+  for (;;) {
+    if (current === target) {
+      return true;
+    }
+    const match = COPY_NAME_PATTERN.exec(current);
+    if (match === null) {
+      return false;
+    }
+    const rank = match[2] === undefined ? 1 : Number(match[2]);
+    if (rank >= 1 && normalizeName(copyNameOfRank(referenceName, rank)) === current) {
+      return true;
+    }
+    current = match[1]!;
+  }
+}
+
+/** Nom débarrassé de ses suffixes de copie (`{nom} (copie[ N])`, répétés), normalisé. */
+function copyBaseName(name: string): string {
+  let current = normalizeName(name);
+  for (let match = COPY_NAME_PATTERN.exec(current); match !== null; match = COPY_NAME_PATTERN.exec(current)) {
+    current = match[1]!;
+  }
+  return current;
+}
+
+/** Structure des phases (identités, libellés, ordre) d'une occurrence ; vide en séries variables. */
+function phaseStructureOf(exercise: SessionDraftExercise): readonly { readonly id: number; readonly label: string }[] {
+  const { series } = exercise.executionParameters;
+  return series.kind === "UNIFORM" ? series.workPhases.map((phase) => ({ id: phase.id, label: phase.label })) : [];
+}
+
+/**
+ * Le geste de la copie `copy` est-il identique à celui de sa référence `reference` (MFN-03) :
+ * nom (modulo suffixe de copie), description, médias (ordre compris), Catégorie, Zones (ensemble)
+ * et structure des phases. Les paramètres d'exécution propres ne comptent pas.
+ */
+function sameMovementContent(copy: SessionDraftExercise, reference: SessionDraftExercise): boolean {
+  const copyZones = new Set(copy.bodyZoneIds);
+  const referencePhases = phaseStructureOf(reference);
+  const copyPhases = phaseStructureOf(copy);
+  return (
+    (isNameOrCopyNameOf(copy.name, reference.name) ||
+      // Référence elle-même copie en attente (source supprimée) : nom de base sans ses suffixes.
+      (reference.pendingLocalMovement === true && isNameOrCopyNameOf(copy.name, copyBaseName(reference.name)))) &&
+    (copy.instruction ?? null) === (reference.instruction ?? null) &&
+    (copy.media ?? []).map((item) => item.assetId).join("\u0000") ===
+      (reference.media ?? []).map((item) => item.assetId).join("\u0000") &&
+    (copy.categoryId ?? null) === (reference.categoryId ?? null) &&
+    copyZones.size === new Set(reference.bodyZoneIds).size &&
+    reference.bodyZoneIds.every((id) => copyZones.has(id)) &&
+    copyPhases.length === referencePhases.length &&
+    copyPhases.every((phase, index) => phase.id === referencePhases[index]!.id && phase.label === referencePhases[index]!.label)
+  );
+}
+
+/**
+ * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
+ * déverrouillée ») : une copie en attente (`pendingLocalMovement`, `duplicateActivity`) reste
+ * modifiable jusqu'au premier enregistrement de la Séance, comme sa source (exception de création
+ * locale MFN-09). Avant la conversion pour l'enregistrement, chaque copie en attente est réglée sur
+ * l'état FINAL du brouillon (source et copie éditables dans n'importe quel ordre) :
+ *
+ * - référence = la source locale (Exercice d'identifiant `sourceMovementId`, sans filiation) si elle
+ *   est encore dans le brouillon ; sinon (source supprimée) la première copie en attente vers ce
+ *   Mouvement, qui garde sa filiation et créera le Mouvement (repository) ;
+ * - une copie dont le geste est identique à celui de sa référence (`sameMovementContent`) garde la
+ *   filiation pré-allouée (MFN-09 l.448, MFN/AC32) ;
+ * - sinon elle devient une création locale indépendante (filiation et marque retirées) : le
+ *   repository crée son propre Mouvement à son identifiant. Choix conservateur : un Mouvement
+ *   partagé de contenus différents serait incohérent (MFN-03).
+ *
+ * Fonction pure ; rien n'est écrit dans le brouillon. Collection inchangée (même référence) si
+ * aucune copie n'est détachée.
+ */
+export function settlePendingLocalCopies(
+  activities: readonly SessionDraftExercise[],
+): readonly SessionDraftExercise[] {
+  const localSources = new Map<string, SessionDraftExercise>();
+  for (const activity of activities) {
+    if (activity.type === "EXERCISE" && (activity.sourceMovementId ?? "").trim().length === 0) {
+      localSources.set(activity.id, activity);
+    }
+  }
+  const references = new Map<string, SessionDraftExercise>();
+  let detached = false;
+  const settled = activities.map((activity) => {
+    const movementId = activity.sourceMovementId ?? "";
+    if (activity.pendingLocalMovement !== true || movementId.trim().length === 0) {
+      return activity;
+    }
+    const reference = localSources.get(movementId) ?? references.get(movementId);
+    if (reference === undefined) {
+      references.set(movementId, activity);
+      return activity;
+    }
+    if (sameMovementContent(activity, reference)) {
+      return activity;
+    }
+    detached = true;
+    const { sourceMovementId: _sourceMovementId, pendingLocalMovement: _pending, ...independent } = activity;
+    return independent;
+  });
+  return detached ? settled : activities;
 }
 
 /**

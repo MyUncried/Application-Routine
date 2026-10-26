@@ -55,6 +55,7 @@ import {
   DEFAULT_TOUR_REPEAT_COUNT,
 } from "./defaults";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
+import { settlePendingLocalCopies } from "./composition";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
 import type { SideMode } from "./sideMode";
@@ -565,7 +566,9 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
-    exercises: draft.exercises.map((exercise) => ({
+    // Recette JA (décision de Hermann du 26/10/2026) : une copie en attente modifiée, ou dont la
+    // source a changé, est émise sans filiation (création locale indépendante).
+    exercises: settlePendingLocalCopies(draft.exercises).map((exercise) => ({
       id: exercise.id,
       structuralPosition: exercise.structuralPosition,
       name: exercise.name,
@@ -600,7 +603,8 @@ export function toUpdateSessionInput(
   }
 
   const positionByZone = new Map<StructuralPosition, number>();
-  const activities: UpdateSessionActivityInput[] = draft.exercises.map((exercise) => {
+  // Recette JA (décision de Hermann du 26/10/2026) : comme `toCreateSessionInput`.
+  const activities: UpdateSessionActivityInput[] = settlePendingLocalCopies(draft.exercises).map((exercise) => {
     const zone = exercise.structuralPosition;
     const position = positionByZone.get(zone) ?? 0;
     positionByZone.set(zone, position + 1);

@@ -1278,3 +1278,59 @@ describe("PRE6-1.2 — Points d'arrêt portés par le brouillon", () => {
     expect(sessionDraftsEqual({ ...placed, stopPoints: undefined }, { ...placed, stopPoints: [] })).toBe(true);
   });
 });
+
+/**
+ * Recette JA, décision de Hermann du 26/10/2026 : la conversion règle les copies en attente
+ * (`settlePendingLocalCopies`) avant création et modification — une copie intacte garde la
+ * filiation pré-allouée, une copie modifiée devient une création locale indépendante.
+ */
+describe("recette JA — copies locales en attente à la conversion", () => {
+  function draftWithCopy(change: Partial<SessionDraftExercise> = {}): SessionDraft {
+    const source: SessionDraftExercise = {
+      ...createExerciseDraft("S"),
+      name: "Gainage",
+      executionParameters: durationParameters(30),
+    };
+    const [first, copy] = duplicateActivity([source], "S", "C1");
+    return { ...createEmptyDraft(), name: "Séance", exercises: [first!, { ...copy!, ...change }] };
+  }
+  const filiationOf = (activities: readonly { readonly id?: string; readonly sourceMovementId?: string; readonly pendingLocalMovement?: true }[]) =>
+    activities.map((activity) => [activity.id, activity.sourceMovementId, activity.pendingLocalMovement]);
+
+  it("création : copie intacte → filiation pré-allouée ; copie modifiée → sans filiation", () => {
+    const intact = toCreateSessionInput(draftWithCopy());
+    expect(intact.ok).toBe(true);
+    if (intact.ok) {
+      expect(filiationOf(intact.value.exercises)).toEqual([
+        ["S", undefined, undefined],
+        ["C1", "S", true],
+      ]);
+    }
+    const changed = toCreateSessionInput(draftWithCopy({ instruction: "Dos droit" }));
+    expect(changed.ok).toBe(true);
+    if (changed.ok) {
+      expect(filiationOf(changed.value.exercises)).toEqual([
+        ["S", undefined, undefined],
+        ["C1", undefined, undefined],
+      ]);
+    }
+  });
+
+  it("modification : même règle ; le brouillon n'est jamais réécrit", () => {
+    const draft = { ...draftWithCopy({ name: "Planche" }), sourceSessionId: "session-1" };
+    const result = toUpdateSessionInput(draft);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(filiationOf(result.value.activities)).toEqual([
+        ["S", undefined, undefined],
+        ["C1", undefined, undefined],
+      ]);
+    }
+    expect(draft.exercises[1]).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
+    const intact = toUpdateSessionInput({ ...draftWithCopy(), sourceSessionId: "session-1" });
+    expect(intact.ok && filiationOf(intact.value.activities)).toEqual([
+      ["S", undefined, undefined],
+      ["C1", "S", true],
+    ]);
+  });
+});

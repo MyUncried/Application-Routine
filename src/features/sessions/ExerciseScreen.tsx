@@ -1080,6 +1080,11 @@ type OpenedOccurrence = {
    * PRE-7 (A2.1, D-437, D-438, MFN-09 ; CE-UI-10) : structure des phases verrouillée — occurrence
    * portant une filiation (copie du Catalogue, Séance enregistrée, duplication). Une occurrence
    * sans filiation est une création locale non encore enregistrée : modifiable (exception MFN-09).
+   * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
+   * déverrouillée ») : une copie en attente (`pendingLocalMovement`, filiation pré-allouée vers une
+   * source locale non enregistrée) est traitée comme sa source — contenu et structure modifiables
+   * jusqu'au premier enregistrement de la Séance ; sa filiation n'est gardée à l'enregistrement que
+   * si son geste est resté identique à celui de sa référence (`settlePendingLocalCopies`, domaine).
    */
   readonly phaseStructureLocked: boolean;
 };
@@ -1096,7 +1101,7 @@ function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: Circu
       exercise.type === "EXERCISE" &&
       (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
     openedParameters: validated.ok ? [opened, validated.value] : [opened],
-    phaseStructureLocked: (exercise.sourceMovementId ?? "").trim().length > 0,
+    phaseStructureLocked: (exercise.sourceMovementId ?? "").trim().length > 0 && exercise.pendingLocalMovement !== true,
   };
 }
 
@@ -1388,7 +1393,8 @@ function CompositionExerciseEditor() {
           phaseStructureLocked={phaseStructureLocked}
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
           // occurrence portant une filiation a son contenu (nom, description, médias, Catégorie,
-          // Zones) verrouillé, sans crayon ; une création locale non enregistrée reste modifiable.
+          // Zones) verrouillé, sans crayon ; une création locale non enregistrée reste modifiable,
+          // ainsi que sa copie en attente (recette JA, décision de Hermann du 26/10/2026).
           contentLocked={phaseStructureLocked || repriseLocked}
           onNameEndEditing={() => originChoice.proposeFor(value.name)}
           movementSearchAction={

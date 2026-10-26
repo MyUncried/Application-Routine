@@ -396,6 +396,14 @@ export function ActivityEditorForm({
   // (Paramètres, Catégorie, Zones) ne propose pas de geste proche — sinon la feuille de suggestion
   // se présenterait par-dessus cette feuille (deux présentations natives simultanées sur iOS).
   const nameEndSuppressedRef = useRef(false);
+  // Recette JA, décision de Hermann du 26/10/2026 (« un appui sur une zone de l'écran doit fermer
+  // le clavier et ne doit pas ouvrir les paramètres ou éditer la zone de description ») : tant que
+  // le Nom a le focus, le corps défilant passe en `keyboardShouldPersistTaps="never"` — la
+  // ScrollView native capture le premier appui hors champ de saisie et ne fait que fermer le
+  // clavier — et la zone des étapes de Description ne reçoit pas le toucher (sinon l'appui sur
+  // un champ d'étape, exclu de cette capture, y déplacerait la saisie). Hors saisie du Nom,
+  // `handled` est inchangé (barre d'accessoire, ↑ de la Description D-351, étapes D-425).
+  const [isNameFocused, setIsNameFocused] = useState(false);
 
   function openSheet() {
     nameEndSuppressedRef.current = true;
@@ -447,11 +455,13 @@ export function ActivityEditorForm({
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
+          onFocus={() => {
+            nameEndSuppressedRef.current = false;
+            setIsNameFocused(true);
+          }}
+          onBlur={() => setIsNameFocused(false)}
           {...(onNameEndEditing
             ? {
-                onFocus: () => {
-                  nameEndSuppressedRef.current = false;
-                },
                 onEndEditing: () => {
                   if (nameEndSuppressedRef.current) {
                     nameEndSuppressedRef.current = false;
@@ -594,7 +604,8 @@ export function ActivityEditorForm({
           style={styles.body}
           contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: actionZone.scrollReserve }]}
           scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
-          keyboardShouldPersistTaps="handled"
+          // Recette JA (26/10/2026) : `never` pendant la saisie du Nom seulement (voir `isNameFocused`).
+          keyboardShouldPersistTaps={isNameFocused ? "never" : "handled"}
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
             if (isDescriptionFocused) revealDescription();
@@ -630,6 +641,8 @@ export function ActivityEditorForm({
                 Entrée crée l'étape suivante. La place de ↑ reste réservée à droite. */}
             <View
               style={styles.descriptionStepsWithSend}
+              // Recette JA (26/10/2026) : aucun toucher pendant la saisie du Nom (voir `isNameFocused`).
+              pointerEvents={isNameFocused ? "none" : "auto"}
               onLayout={(event) => {
                 descriptionLayoutRef.current.stepsY = event.nativeEvent.layout.y;
                 if (isDescriptionFocused) revealDescription();

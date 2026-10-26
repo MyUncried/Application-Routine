@@ -2239,3 +2239,33 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
     }
   });
 });
+
+/**
+ * Recette JA, décision de Hermann du 26/10/2026 (« un appui sur une zone de l'écran doit fermer le
+ * clavier et ne doit pas ouvrir les paramètres ou éditer la zone de description ») : la fermeture
+ * est portée par la primitive native (`keyboardShouldPersistTaps="never"`, capture du premier
+ * appui) ; l'effet tactile réel se constate sur iPhone.
+ */
+describe("ActivityEditorForm — recette JA (Nom en saisie, appui ailleurs)", () => {
+  const body = () => screen.getByTestId("exercise-body");
+  const stepsArea = () => screen.getByTestId("exercise-description-steps-area");
+
+  it("Nom en saisie : corps en `never`, étapes de Description sans toucher ; fin de saisie : retour à `handled`", () => {
+    render(<Harness />);
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+    fireEvent(screen.getByTestId("exercise-name-input"), "focus");
+    expect(body().props.keyboardShouldPersistTaps).toBe("never");
+    expect(stepsArea().props.pointerEvents).toBe("none");
+    fireEvent(screen.getByTestId("exercise-name-input"), "blur");
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+  });
+
+  it("Description en saisie : corps en `handled` (barre d'accessoire, ↑ D-351, étapes D-425 inchangés)", () => {
+    render(<Harness />);
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+  });
+});
