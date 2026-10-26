@@ -246,27 +246,27 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 ## Phases d’un exercice — MVP
 
-Une phase est une subdivision d’un mouvement au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent dans leur portée amendée par D-438. Les actions structurelles décrites ci-dessous sont propres au Catalogue ; elles sont verrouillées dans une occurrence.
+Une phase est une subdivision d’un mouvement au sein d’une série, distincte des phases structurelles du plan. Les décisions D-370 à D-375 s’appliquent dans leur portée amendée par D-438. [puis par PHC-20261026 et D-446 du 26/10/2026] Les actions structurelles décrites ci-dessous sont propres au Catalogue ; elles sont verrouillées dans une occurrence.
 
 ### Structure, édition et calcul — PHC-20261026
 
-Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. [remplacé par D-446 du 26/10/2026 : les phases sont aussi compatibles avec les séries variables ; une seule séquence de phases et de durées, commune à toutes les séries] La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
-Contrôle Avec / Sans, 2 à 6 phases, libellés de 20 caractères maximum, saisie numérique MMSS et réordonnancement conservés. Chaque durée validée ≥ 1 s ; somme 1..3535 s conservée comme borne du motif. La structure se modifie par le crayon du mouvement partagé (D-445), y compris depuis une séance ; les durées locales restent des paramètres. Pas de nettoyage silencieux des valeurs manquantes.
+Contrôle Avec / Sans, 2 à 6 phases, libellés de 20 caractères maximum, saisie numérique MMSS et réordonnancement conservés. Chaque durée validée ≥ 1 s ; somme 1..3535 s conservée comme borne du motif. La structure se modifie par le crayon du mouvement partagé (D-445), y compris depuis une séance ; les durées locales restent des paramètres. Pas de nettoyage silencieux des valeurs manquantes. [D-446 du 26/10/2026 (Q5) : Avec crée deux phases aux durées vides, sans préremplissage D-432]
 
 ### Calcul, formats et exécution
 
 Durée : cible indépendante D ; unilatéral N × (D + P), avec substitutions terminales existantes. Répétitions : estimation nominale R × somme des phases par série, même sans bip ; ne pas additionner une estimation de cadence. Échec : durée non calculable. Le motif ne définit pas un nouvel objectif ou compteur à saisir.
 
-Un format impose son objectif de série sans modifier les durées des phases. Pas de dernière phase calculée ni d’ajustement proportionnel. Une fenêtre EMOM reste distincte du temps de travail.
+Un format impose son objectif de série sans modifier les durées des phases. [D-446 du 26/10/2026 (Q9) : phases compatibles avec tous les formats ; les contraintes du format portent sur le mode, la cible et les séries seulement] Pas de dernière phase calculée ni d’ajustement proportionnel. Une fenêtre EMOM reste distincte du temps de travail.
 
 Le timer affiche la phase courante ; à expiration, phase suivante puis retour à la première tant que la série continue. Fin de série prioritaire, même au milieu d’une phase ; Suivant et les transitions de côté gardent leur portée. Nouvelle série à la première phase ; pause conserve la position, reset conserve son périmètre. Annonces sans délai ajouté, priorité des transitions sur le bip conservée ; aucun cycle ajouté au poids des séries dans la progression. Instantané figé.
 
 ### Points distincts et recette
 
-Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée.
+Deux points restent distincts des trois corrections validées : (1) le comportement du guidage entre l’atteinte du nombre cible de répétitions et la validation manuelle Suivant doit être vérifié dans la règle existante, puis précisé si elle ne tranche pas ; ne pas introduire de fin automatique ; (2) « deux séries à la cible, dernière à l’échec » est actuellement représenté par des séries variables. Ne pas autoriser implicitement phases + variables ni inventer un réglage de dernière série. L’arrêt mixte avec paramètres communs demande une spécification séparée. [remplacé par D-446 du 26/10/2026 : point (1) tranché, le motif continue de boucler sans signal jusqu’à Suivant, sans fin automatique ; point (2) clos, les phases sont autorisées avec les séries variables, qui représentent `30 s / 45 s / échec` ou `10 / 12 / échec` sans réglage de dernière série ; libellé « À la cible » devenu « À l’objectif » (D-447)]
 
 Règles complètes, exemples et recettes : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). Le placement graphique précis reste à aligner dans Figma, sans nouvelle capture revendiquée.
 
@@ -768,7 +768,7 @@ Après la fermeture d’une modale, l’utilisateur retrouve le contexte depuis 
 
 ## États et transitions — mouvement et niveau (25/10)
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
 

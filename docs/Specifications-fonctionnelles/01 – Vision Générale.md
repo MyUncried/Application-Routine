@@ -216,7 +216,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 #### Phases d’un exercice
 
-Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Le motif de phases se répète au sein de chaque série, sans pause entre phases ; un passage complet est une répétition guidée. Cette capacité appartient au MVP en Durée ou Répétitions, à cible chiffrée ou à l’échec, avec séries identiques (PHC-20261026). Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
+Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Le motif de phases se répète au sein de chaque série, sans pause entre phases ; un passage complet est une répétition guidée. Cette capacité appartient au MVP en Durée ou Répétitions, à cible chiffrée ou à l’échec, avec séries identiques (PHC-20261026) [et variables depuis D-446 du 26/10/2026 : une seule séquence de phases et de durées commune à toutes les séries]. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
 
 #### 4. Concepts de planification
 
@@ -422,7 +422,7 @@ Les libellés des champs ne créent pas d’entités persistantes supplémentair
 
 ## Vocabulaire courant — niveaux
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
 
