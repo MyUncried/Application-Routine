@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-7 (plan approuvé le 24/10/2026)
 generated: 10-24-2026 09:00
-last_updated: 10-26-2026 17:45
+last_updated: 10-26-2026 19:00
 project: kodjo-pre7
 project_key: NOKEY
 tracking_system: file-system
@@ -40,3 +40,5 @@ development_status:
   r-7-phases-durées-et-signalements: review
   r-8-recherche-par-début-de-mot-et-variante: review
   r-9-menu-niveau-et-crayon: review
+  # Recette JA3 du 26/10/2026 (cahier « Recette JA3 PRE-7 ») : r8-5, r9-5
+  r-10-recette-ja3-variante-et-crayon: review

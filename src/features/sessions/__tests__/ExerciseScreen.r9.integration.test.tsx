@@ -34,8 +34,8 @@ import { colors } from "@/shared/ui/tokens";
  * - menu Niveau à trois entrées de premier niveau dans les trois contextes (Catalogue en
  *   modification « Naviguer vers », Séance et reprise « Changer de niveau ») ;
  * - crayon de l'occurrence de Séance : interrupteur actif ; sortie sans changement immédiate ; avec
- *   changements, confirmation d'abandon (Annuler laisse l'édition ouverte, Confirmer restaure et
- *   reverrouille). Rappel : ces tests ne valent pas recette sur iPhone (JA2).
+ *   changements, depuis R-10 (recette JA3 r9-5), dialogue de sauvegarde C03 (Annuler laisse
+ *   l'édition ouverte, Confirmer inscrit et reverrouille). Rappel : ces tests ne valent pas recette sur iPhone (JA3, R-10).
  */
 
 jest.mock("expo-haptics", () => ({
@@ -71,7 +71,7 @@ const CARDIO: Category = {
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 const anyNode = { includeHiddenElements: true } as const;
-const exitModal = strings.screens.exercise.exitConfirmModal;
+const movementSave = strings.screens.activities.editor.movementSave;
 
 let database: NodeSqliteDatabase;
 let sequence = 0;
@@ -215,13 +215,6 @@ async function press(testID: string) {
   await settle(50);
 }
 
-async function pressInModal(label: string) {
-  await act(async () => {
-    fireEvent.press(within(screen.getByTestId("exercise-exit-confirm-card")).getByLabelText(label));
-  });
-  await settle();
-}
-
 /** Entrées de la racine du menu natif, dans l'ordre. */
 function rootEntries(): string[] {
   const root = within(screen.getByTestId("activity-editor-level", anyNode)).UNSAFE_getAllByType(Menu)[0]!;
@@ -282,7 +275,9 @@ describe("PRE-7 R-9 — crayon interrupteur de l'occurrence de Séance (D-448 po
     expect(updateDraft).not.toHaveBeenCalled();
   });
 
-  it("avec changement : confirmation d'abandon ; Annuler laisse l'édition ouverte ; Confirmer restaure la description et reverrouille", async () => {
+  // PRE-7 (R-10, recette JA3 r9-5) : avec changements, le crayon retouché ouvre le dialogue de
+  // sauvegarde C03 (et non plus la confirmation d'abandon de R-9) ; cas détaillés dans `.r10`.
+  it("avec changement : dialogue C03 (« Vous avez modifié ce mouvement »), jamais la confirmation d'abandon ; Annuler laisse l'édition ouverte ; Confirmer inscrit et reverrouille", async () => {
     const { draft } = await sessionWithSquats();
     await renderEditor({ exerciseId: "occ-1" }, draft);
     await press("activity-editor-edit-movement");
@@ -290,29 +285,29 @@ describe("PRE-7 R-9 — crayon interrupteur de l'occurrence de Séance (D-448 po
     await settle();
 
     await press("activity-editor-edit-movement");
-    const card = screen.getByTestId("exercise-exit-confirm-card");
-    expect(within(card).getByText(exitModal.title)).toBeTruthy();
-
-    await pressInModal(exitModal.continueEditing);
     expect(screen.queryByTestId("exercise-exit-confirm-card")).toBeNull();
+    const dialog = screen.getByTestId("movement-save-dialog");
+    expect(within(dialog).getByText(movementSave.confirmTitle)).toBeTruthy();
+
+    await press("movement-save-cancel");
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
     expect(pencil().props.accessibilityState).toMatchObject({ selected: true });
     expect(instruction().props.editable).not.toBe(false);
     expect(instruction().props.value).toBe("Dos droit");
+    expect(updateDraft).not.toHaveBeenCalled();
 
     await press("activity-editor-edit-movement");
-    await pressInModal(exitModal.abandon);
-    expect(screen.queryByTestId("exercise-exit-confirm-card")).toBeNull();
-    expect(instruction().props.value).toBe("Buste droit");
+    await press("movement-save-confirm");
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
+    expect(instruction().props.value).toBe("Dos droit");
     expect(instruction().props.editable).toBe(false);
     expect(pencil().props.accessibilityState).toMatchObject({ selected: false });
-    expect(updateDraft).not.toHaveBeenCalled();
     expect(mockBack).not.toHaveBeenCalled();
-
-    // `Terminer` après l'abandon : aucune correction du mouvement, occurrence inchangée.
-    await press("exercise-finish-action");
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(currentDraft.exercises[0]!.instruction).toBe("Buste droit");
-    expect(currentDraft.movements?.[draft.exercises[0]!.sourceMovementId!]).toBeUndefined();
+    expect(currentDraft.exercises[0]!.instruction).toBe("Dos droit");
+    expect(currentDraft.movements?.[draft.exercises[0]!.sourceMovementId!]).toMatchObject({
+      change: "EDITED",
+      description: "Dos droit",
+    });
   });
 
   it("indication VoiceOver du crayon actif seulement", async () => {
@@ -323,7 +318,7 @@ describe("PRE-7 R-9 — crayon interrupteur de l'occurrence de Séance (D-448 po
     expect(pencil().props.accessibilityHint).toBe(strings.screens.activities.editor.editMovementActiveHint);
   });
 
-  it("structure des phases seule (phase ajoutée) : confirmation ; Confirmer restaure le tableau des phases", async () => {
+  it("structure des phases seule (phase ajoutée) : dialogue C03 ; Confirmer inscrit la nouvelle structure et reverrouille", async () => {
     const draft = await sessionWithPhases();
     await renderEditor({ exerciseId: "occ-p" }, draft);
     await press("activity-editor-edit-movement");
@@ -336,31 +331,30 @@ describe("PRE-7 R-9 — crayon interrupteur de l'occurrence de Séance (D-448 po
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
 
     await press("activity-editor-edit-movement");
-    expect(screen.getByTestId("exercise-exit-confirm-card")).toBeTruthy();
-    await pressInModal(exitModal.abandon);
+    expect(screen.queryByTestId("exercise-exit-confirm-card")).toBeNull();
+    expect(within(screen.getByTestId("movement-save-dialog")).getByText(movementSave.confirmTitle)).toBeTruthy();
+    await press("movement-save-confirm");
     expect(pencil().props.accessibilityState).toMatchObject({ selected: false });
-
-    await press("exercise-finish-action");
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(currentDraft.exercises[0]!.executionParameters.series.workPhases).toEqual([
-      { id: 1, label: "Montée", durationSeconds: 6 },
-      { id: 2, label: "Descente", durationSeconds: 3 },
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(currentDraft.exercises[0]!.executionParameters.series.workPhases.map((phase) => phase.id)).toEqual([1, 2, 3]);
+    expect(currentDraft.movements?.[draft.exercises[0]!.sourceMovementId!]?.phases.map((phase) => phase.id)).toEqual([
+      1, 2, 3,
     ]);
   });
 
-  it("nom modifié puis abandonné : le nom d'origine est rétabli dans le brouillon après Terminer", async () => {
+  it("nom modifié : dialogue à deux choix ; Annuler garde le nom saisi et l'édition ouverte", async () => {
     const { draft } = await sessionWithSquats();
     await renderEditor({ exerciseId: "occ-1" }, draft);
     await press("activity-editor-edit-movement");
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squats lents");
     await settle();
     await press("activity-editor-edit-movement");
-    await pressInModal(exitModal.abandon);
-    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squats");
-
-    await press("exercise-finish-action");
-    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
-    expect(currentDraft.exercises[0]!.name).toBe("Squats");
+    expect(screen.queryByTestId("exercise-exit-confirm-card")).toBeNull();
+    expect(screen.getByTestId("movement-save-choice-UPDATE")).toBeTruthy();
+    await press("movement-save-cancel");
+    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squats lents");
+    expect(pencil().props.accessibilityState).toMatchObject({ selected: true });
+    expect(updateDraft).not.toHaveBeenCalled();
   });
 
   it("paramètre seul (durée de série) pendant l'édition : reverrouillage sans confirmation, paramètre conservé", async () => {

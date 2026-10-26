@@ -580,8 +580,9 @@ function CatalogueActivityEditorScreen({
         // repris de l'original, tous modifiables ; nom à saisir.
         // PRE-7 (R-6, MFN-07 l.371-373, C02 ; report R-5) : description et médias VIERGES, Catégorie
         // et Zones reprises ; inséré avant (Plus facile) ou après (Plus difficile) l'origine ; la
-        // pastille montre le rang prévu (affichage seulement). Option conservatrice : nom vide,
-        // sans invite (aucun nom n'a été commencé).
+        // pastille montre le rang prévu (affichage seulement).
+        // PRE-7 (R-10, recette JA3 r8-5) : nom de l'origine repris, avec l'invite grise « (compléter
+        // le nom) », comme la variante du panneau (R-5, C02) ; l'unicité C01 s'applique de même.
         let originDefinition: ActivityDefinition | null = null;
         activityDefinitionService
           .getActivityDefinition(levelOriginDefinitionId)
@@ -601,7 +602,7 @@ function CatalogueActivityEditorScreen({
               return;
             }
             const loaded: ActivityEditorFormValue = {
-              name: "",
+              name: definition.name,
               instructionSteps: [],
               executionParameters: cloneExecutionParameters(definition.executionParameters),
               bodyZoneIds: [...definition.bodyZoneIds],
@@ -615,6 +616,7 @@ function CatalogueActivityEditorScreen({
                 ? null
                 : { position: variantLevelPosition(originLevels.position, levelPlacement), menu: null },
             );
+            setNameHintVisible(true);
             setInitial(loaded);
             setValue(loaded);
             setCategoryId(definition.categoryId ?? null);
@@ -1290,8 +1292,9 @@ type UnlockedMovement = {
   readonly content: MovementContentSnapshot;
   readonly nextPhaseId: number;
   /**
-   * PRE-7 (R-9, D-448 point 10) : occurrence et étapes de description au toucher du crayon —
-   * référence des changements (contenu et structure de phases) et état restauré à la sortie.
+   * PRE-7 (R-9, D-448 point 10 ; R-10) : occurrence et étapes de description au toucher du crayon —
+   * seule référence des changements (contenu et structure de phases), comparée au nouveau toucher ;
+   * plus aucune restauration (R-10, r9-5).
    */
   readonly before: UnlockSnapshot;
 };
@@ -1320,35 +1323,32 @@ function changedSinceUnlock(
 }
 
 /**
- * PRE-7 (R-9) : abandon de l'édition du mouvement — contenu et structure des phases d'avant le
- * déverrouillage reportés sur l'occurrence COURANTE ; les autres paramètres restent tels que saisis,
- * et une phase restaurée garde sa durée courante si elle existe encore.
+ * PRE-7 (R-4, C03) : dialogue de sauvegarde d'une occurrence déverrouillée, en attente.
+ * PRE-7 (R-10, recette JA3 r9-5) : `origin` — `Terminer` (inscription puis fermeture) ou crayon
+ * retouché (inscription et reverrouillage, l'éditeur restant ouvert).
  */
-function withContentRestored(current: SessionDraftExercise, before: SessionDraftExercise): SessionDraftExercise {
-  const durations = new Map(current.executionParameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds] as const));
-  const workPhases = before.executionParameters.series.workPhases.map((phase) => ({
-    ...phase,
-    durationSeconds: durations.get(phase.id) ?? phase.durationSeconds,
-  }));
-  return {
-    ...current,
-    name: before.name,
-    instruction: before.instruction,
-    categoryId: before.categoryId,
-    bodyZoneIds: before.bodyZoneIds,
-    media: before.media,
-    executionParameters: {
-      ...current.executionParameters,
-      series: { ...current.executionParameters.series, workPhases },
-    },
-  };
-}
-
-/** PRE-7 (R-4, C03) : dialogue de sauvegarde d'une occurrence déverrouillée, en attente. */
 type PendingOccurrenceSave = {
   readonly occurrence: SessionDraftExercise;
   readonly decision: DialogDecision;
+  readonly origin: "FINISH" | "PENCIL";
 };
+
+/** PRE-7 (R-10) : inscription préparée d'une correction du mouvement, et occurrence qui en résulte. */
+type InscriptionPlan = {
+  readonly exercises: readonly SessionDraftExercise[];
+  readonly movements: SessionDraft["movements"];
+  readonly reserve?: SessionDraft["circuitSeriesReserve"];
+  readonly occurrence: SessionDraftExercise;
+};
+
+/** PRE-7 (R-10) : occurrence inscrite, relue par identifiant dans les occurrences du plan. */
+function occurrenceIn(exercises: readonly SessionDraftExercise[], id: string): SessionDraftExercise {
+  const found = exercises.find((exercise) => exercise.id === id);
+  if (found === undefined) {
+    throw new Error("occurrenceIn: the inscribed occurrence is not in the plan.");
+  }
+  return found;
+}
 
 function openedOccurrenceOf(
   exercise: SessionDraftExercise | null,
@@ -1395,12 +1395,15 @@ function CompositionExerciseEditor() {
   const profile = useProfileDefaults();
   const params = useLocalSearchParams<{ exerciseId?: string }>();
 
-  const requestedExerciseId = params.exerciseId;
+  // PRE-7 (R-10, recette JA3 r9-5) : occurrence remplacée par « Créer un nouveau mouvement » au
+  // crayon, l'éditeur restant ouvert — son nouvel identifiant remplace celui de la route.
+  const [replacedOccurrenceId, setReplacedOccurrenceId] = useState<string | null>(null);
+  const requestedExerciseId = replacedOccurrenceId ?? params.exerciseId;
   const existingExercise =
     typeof requestedExerciseId === "string"
       ? (draft.exercises.find((exercise) => exercise.id === requestedExerciseId) ?? null)
       : null;
-  const isEditingExisting = existingExercise !== null;
+  const isEditingExisting = existingExercise !== null || replacedOccurrenceId !== null;
   // Story 4.2 (Q18, revue) : le texte du dialogue d'abandon suit l'INTENTION de la
   // route — création seulement sans `exerciseId` (ou `new`) ; un `exerciseId` absent
   // du Brouillon reste une modification et n'annonce jamais « ne sera pas créé ».
@@ -1456,13 +1459,11 @@ function CompositionExerciseEditor() {
   // PRE-6 (story 2.3) : ajout adapté au Circuit de Séries, en attente de confirmation de perte.
   const [pendingCircuitEntry, setPendingCircuitEntry] = useState<{ readonly targetCount: number } | null>(null);
   // PRE-7 (R-4, D-445 C04) : crayon d'une occurrence d'un Mouvement enregistré — contenu et
-  // structure déverrouillés dans l'éditeur seulement ; rien n'est inscrit avant `Terminer`.
+  // structure déverrouillés dans l'éditeur seulement ; rien n'est inscrit avant `Terminer` ou, R-10,
+  // avant le nouveau toucher du crayon.
   const [unlockedMovement, setUnlockedMovement] = useState<UnlockedMovement | null>(null);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [pendingOccurrenceSave, setPendingOccurrenceSave] = useState<PendingOccurrenceSave | null>(null);
-  // PRE-7 (R-9, D-448 point 10) : sortie de l'édition du mouvement par le crayon, en attente de la
-  // confirmation d'abandon (changements depuis le déverrouillage).
-  const [isPendingRelock, setIsPendingRelock] = useState(false);
   const movementLocked = phaseStructureLocked && unlockedMovement === null;
   // Service sans `MovementRepository` (doublures antérieures à MFN) : aucun crayon.
   // PRE-7 (R-6) : après un changement de niveau, plus de crayon jusqu'à `Terminer` — une correction
@@ -1504,6 +1505,21 @@ function CompositionExerciseEditor() {
   useEffect(() => {
     nameRef.current = local?.name;
   }, [local?.name]);
+  // PRE-7 (R-10, r9-5) : dernier état saisi et montage, relus après la lecture asynchrone du crayon
+  // retouché (`relockUnlocked`) — une saisie pendant la lecture, ou une sortie, l'annule.
+  const latestLocalRef = useRef(local);
+  const latestStepsRef = useRef(instructionSteps);
+  useEffect(() => {
+    latestLocalRef.current = local;
+    latestStepsRef.current = instructionSteps;
+  }, [local, instructionSteps]);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
   const repriseLocked = !isEditingExisting && (local?.sourceMovementId ?? "").trim().length > 0;
   const occurrenceOnlyNamed =
     local !== null &&
@@ -1575,12 +1591,6 @@ function CompositionExerciseEditor() {
   // (ajustement d'état pendant le rendu ; `finishingRef` n'est jamais engagé tant qu'il attend).
   if (isPendingExit && pendingCircuitEntry !== null) {
     setPendingCircuitEntry(null);
-  }
-  // PRE-7 (R-9) : de même, la sortie de l'écran l'emporte sur la sortie de l'édition du mouvement.
-  // … et une confirmation de sortie de l'édition ne survit jamais au reverrouillage, quel qu'en soit
-  // le chemin (`Terminer`, abandon, etc.).
-  if (isPendingRelock && (isPendingExit || unlockedMovement === null)) {
-    setIsPendingRelock(false);
   }
 
   useEffect(() => {
@@ -1825,8 +1835,10 @@ function CompositionExerciseEditor() {
   /**
    * PRE-7 (R-9, D-448 point 10, recette JA2 nv-9) : nouveau toucher du crayon pendant l'édition du
    * mouvement — sortie de l'édition. Sans changement depuis le déverrouillage : reverrouillage
-   * immédiat ; sinon, confirmation d'abandon (`ExerciseExitConfirmModal`). La garde de navigation
-   * n'est pas concernée.
+   * immédiat. La garde de navigation n'est pas concernée.
+   * PRE-7 (R-10, recette JA3 r9-5) : avec changements, décision de sauvegarde C03 — la même que
+   * `Terminer` (`decideUnlockedSave`) — au lieu de la confirmation d'abandon ; la correction retenue
+   * est inscrite dans le brouillon sans quitter l'éditeur (`inscribeAndRelock`).
    */
   function toggleMovementEdit() {
     if (unlockedMovement === null) {
@@ -1837,25 +1849,53 @@ function CompositionExerciseEditor() {
       return;
     }
     if (changedSinceUnlock(local, instructionSteps, unlockedMovement.before)) {
-      setIsPendingRelock(true);
+      void relockUnlocked(local, unlockedMovement);
       return;
     }
     setUnlockedMovement(null);
   }
 
   /**
-   * PRE-7 (R-9) : Confirmer — contenu et structure des phases d'avant le déverrouillage restaurés
-   * (`withContentRestored`), autres paramètres conservés ; contenu reverrouillé.
+   * PRE-7 (R-10, r9-5) : crayon retouché après un changement du contenu ou de la structure des
+   * phases — nom modifié : choix ; mouvement partagé : confirmation ; sinon (`SILENT`) correction
+   * inscrite sans dialogue ; `NONE` (contenu égal à celui du mouvement) : reverrouillage seul. Une
+   * lecture en échec laisse l'édition ouverte. `finishingRef` sert de verrou pendant la lecture.
    */
-  function abandonMovementEdit() {
-    setIsPendingRelock(false);
-    if (finishingRef.current || unlockedMovement === null) {
+  async function relockUnlocked(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    const steps = instructionSteps;
+    finishingRef.current = true;
+    const decision = await decideUnlockedSave(current, unlocked);
+    finishingRef.current = false;
+    if (decision === null || !mountedRef.current) return;
+    // Saisie pendant la lecture : la décision ne porte plus sur l'état courant — édition laissée ouverte.
+    if (latestLocalRef.current !== current || latestStepsRef.current !== steps) return;
+    if (decision.kind === "NONE") {
+      setUnlockedMovement(null);
       return;
     }
-    const { before } = unlockedMovement;
-    nameRef.current = before.local.name;
-    setInstructionSteps(before.instructionSteps);
-    setLocal((current) => (current ? withContentRestored(current, before.local) : current));
+    if (decision.kind === "SILENT") {
+      inscribeAndRelock(movementUpdatePlan(current, unlocked));
+      return;
+    }
+    setPendingOccurrenceSave({ occurrence: current, decision, origin: "PENCIL" });
+  }
+
+  /**
+   * PRE-7 (R-10, r9-5) : correction inscrite dans le brouillon (« Mettre à jour », confirmation,
+   * sauvegarde silencieuse, ou remplacement par un nouveau mouvement), l'éditeur restant ouvert :
+   * l'occurrence inscrite devient l'état courant ET l'état de référence de l'éditeur (la garde de
+   * sortie ne la propose plus à l'abandon), le contenu est reverrouillé et le crayon redevient
+   * inactif. Rien n'est écrit en base avant l'enregistrement de la Séance.
+   */
+  function inscribeAndRelock(plan: InscriptionPlan) {
+    writeDraft(plan.exercises, plan.movements, plan.reserve);
+    const { occurrence } = plan;
+    nameRef.current = occurrence.name;
+    if (local !== null && occurrence.id !== local.id) {
+      setReplacedOccurrenceId(occurrence.id);
+    }
+    setInitialSnapshot(occurrence);
+    setLocal(occurrence);
     setUnlockedMovement(null);
   }
 
@@ -1869,19 +1909,8 @@ function CompositionExerciseEditor() {
    */
   async function finishUnlocked(current: SessionDraftExercise, unlocked: UnlockedMovement) {
     finishingRef.current = true;
-    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
-    const after = movementContentOfDraft(
-      draftMovementOf(finished, "EDITED", { nextPhaseId: unlocked.nextPhaseId, aliases: unlocked.content.aliases }),
-    );
-    const inDraft = draft.exercises.filter(
-      (exercise) => exercise.id !== finished.id && exercise.sourceMovementId === unlocked.id,
-    ).length;
-    let decision: MovementSaveDecision;
-    try {
-      const persisted = await activityDefinitionService.countMovementUsage(unlocked.id, draft.sourceSessionId ?? null);
-      decision = decideMovementSave(unlocked.content, after, persisted + inDraft, 0);
-    } catch (error) {
-      console.error("L'utilisation du mouvement n'a pas pu être lue.", error);
+    const decision = await decideUnlockedSave(current, unlocked);
+    if (decision === null) {
       finishingRef.current = false;
       return;
     }
@@ -1895,7 +1924,32 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = false;
-    setPendingOccurrenceSave({ occurrence: current, decision });
+    setPendingOccurrenceSave({ occurrence: current, decision, origin: "FINISH" });
+  }
+
+  /**
+   * PRE-7 (R-4, C03 ; R-10, r9-5) : décision de sauvegarde d'une occurrence déverrouillée, commune à
+   * `Terminer` et au crayon retouché (voir `finishUnlocked`). `null` : lecture du nombre
+   * d'utilisations en échec.
+   */
+  async function decideUnlockedSave(
+    current: SessionDraftExercise,
+    unlocked: UnlockedMovement,
+  ): Promise<MovementSaveDecision | null> {
+    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    const after = movementContentOfDraft(
+      draftMovementOf(finished, "EDITED", { nextPhaseId: unlocked.nextPhaseId, aliases: unlocked.content.aliases }),
+    );
+    const inDraft = draft.exercises.filter(
+      (exercise) => exercise.id !== finished.id && exercise.sourceMovementId === unlocked.id,
+    ).length;
+    try {
+      const persisted = await activityDefinitionService.countMovementUsage(unlocked.id, draft.sourceSessionId ?? null);
+      return decideMovementSave(unlocked.content, after, persisted + inDraft, 0);
+    } catch (error) {
+      console.error("L'utilisation du mouvement n'a pas pu être lue.", error);
+      return null;
+    }
   }
 
   /**
@@ -1904,14 +1958,28 @@ function CompositionExerciseEditor() {
    * occurrences l'affichent (`withDraftMovement`) ; le repository le met à jour à
    * l'enregistrement de la Séance.
    */
-  function commitMovementUpdate(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+  function movementUpdatePlan(current: SessionDraftExercise, unlocked: UnlockedMovement): InscriptionPlan {
     const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
     const exercises = draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise));
+    // PRE-7 (R-10) : un Mouvement encore `NEW` dans le brouillon (créé par « Créer un nouveau
+    // mouvement » au crayon) reste `NEW`, avec son origine de niveau éventuelle — sinon
+    // l'enregistrement de la Séance chercherait à mettre à jour un Mouvement inexistant.
+    const previous = draft.movements?.[unlocked.id];
+    const change = previous?.change === "NEW" ? "NEW" : "EDITED";
     const shared = withDraftMovement(
       { ...draft, exercises },
-      draftMovementOf(finished, "EDITED", { nextPhaseId: unlocked.nextPhaseId, aliases: unlocked.content.aliases }),
+      draftMovementOf(finished, change, {
+        nextPhaseId: unlocked.nextPhaseId,
+        aliases: unlocked.content.aliases,
+        ...(previous?.levelOrigin !== undefined ? { levelOrigin: previous.levelOrigin } : {}),
+      }),
     );
-    commitFinished(shared.exercises, shared.movements);
+    return { exercises: shared.exercises, movements: shared.movements, occurrence: occurrenceIn(shared.exercises, finished.id) };
+  }
+
+  function commitMovementUpdate(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    const plan = movementUpdatePlan(current, unlocked);
+    commitFinished(plan.exercises, plan.movements);
   }
 
   /**
@@ -1919,15 +1987,50 @@ function CompositionExerciseEditor() {
    * place, par une nouvelle occurrence d'un nouveau Mouvement `NEW`
    * (`replaceOccurrenceWithNewMovement`) ; les autres occurrences gardent l'ancien Mouvement.
    */
-  function commitNewMovement(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+  function newMovementPlan(current: SessionDraftExercise, unlocked: UnlockedMovement): InscriptionPlan {
     const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
-    const replaced = replaceOccurrenceWithNewMovement(
-      draft,
-      finished,
-      { occurrenceId: Crypto.randomUUID(), movementId: Crypto.randomUUID() },
-      { nextPhaseId: unlocked.nextPhaseId },
-    );
-    commitFinished(replaced.exercises, replaced.movements, replaced.circuitSeriesReserve);
+    const ids = { occurrenceId: Crypto.randomUUID(), movementId: Crypto.randomUUID() };
+    const replaced = replaceOccurrenceWithNewMovement(draft, finished, ids, { nextPhaseId: unlocked.nextPhaseId });
+    // PRE-7 (R-10) : l'ancien Mouvement, s'il était `NEW` dans le brouillon et n'est plus référencé
+    // par aucune occurrence, est retiré — il ne doit pas être créé à l'enregistrement.
+    let movements = replaced.movements;
+    if (
+      movements?.[unlocked.id]?.change === "NEW" &&
+      !replaced.exercises.some((exercise) => exercise.sourceMovementId === unlocked.id)
+    ) {
+      const rest = { ...movements };
+      delete rest[unlocked.id];
+      movements = rest;
+    }
+    return {
+      exercises: replaced.exercises,
+      movements,
+      reserve: replaced.circuitSeriesReserve,
+      occurrence: occurrenceIn(replaced.exercises, ids.occurrenceId),
+    };
+  }
+
+  function commitNewMovement(current: SessionDraftExercise, unlocked: UnlockedMovement) {
+    const plan = newMovementPlan(current, unlocked);
+    commitFinished(plan.exercises, plan.movements, plan.reserve);
+  }
+
+  /**
+   * PRE-7 (R-4, C03 ; R-10, r9-5) : choix du dialogue de sauvegarde — à `Terminer`, inscription puis
+   * fermeture ; au crayon, inscription et reverrouillage, l'éditeur restant ouvert.
+   */
+  function applyOccurrenceSave(save: PendingOccurrenceSave, unlocked: UnlockedMovement, choice: "UPDATE" | "NEW_MOVEMENT") {
+    const { occurrence } = save;
+    if (save.origin === "PENCIL") {
+      inscribeAndRelock(choice === "UPDATE" ? movementUpdatePlan(occurrence, unlocked) : newMovementPlan(occurrence, unlocked));
+      return;
+    }
+    finishingRef.current = true;
+    if (choice === "UPDATE") {
+      commitMovementUpdate(occurrence, unlocked);
+    } else {
+      commitNewMovement(occurrence, unlocked);
+    }
   }
 
   function handleTerminer() {
@@ -1949,6 +2052,19 @@ function CompositionExerciseEditor() {
   }
 
   function commitFinished(
+    nextExercises: readonly SessionDraftExercise[],
+    nextMovements: SessionDraft["movements"],
+    nextReserve?: SessionDraft["circuitSeriesReserve"],
+  ) {
+    writeDraft(nextExercises, nextMovements, nextReserve);
+    setIsFinishing(true);
+  }
+
+  /**
+   * Inscription dans le brouillon de Séance, sans fermer l'éditeur (`commitFinished` ferme ensuite ;
+   * le crayon, R-10, reste dans l'éditeur).
+   */
+  function writeDraft(
     nextExercises: readonly SessionDraftExercise[],
     nextMovements: SessionDraft["movements"],
     nextReserve?: SessionDraft["circuitSeriesReserve"],
@@ -1983,7 +2099,6 @@ function CompositionExerciseEditor() {
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
     activityDefinitionService.commitMediaDraft(mediaDraftId);
-    setIsFinishing(true);
   }
 
   const t = strings.screens.exercise;
@@ -2092,11 +2207,6 @@ function CompositionExerciseEditor() {
         <ExerciseExitConfirmModal isCreation={isCreationRoute} onCancel={cancelExit} onConfirm={confirmExit} />
       ) : null}
 
-      {/* PRE-7 (R-9, D-448 point 10) : sortie de l'édition du mouvement ; Annuler la laisse ouverte. */}
-      {isPendingRelock && unlockedMovement !== null ? (
-        <ExerciseExitConfirmModal onCancel={() => setIsPendingRelock(false)} onConfirm={abandonMovementEdit} />
-      ) : null}
-
       {pendingCircuitEntry !== null ? (
         <CircuitEntryConfirmModal
           kind="ADD"
@@ -2116,25 +2226,20 @@ function CompositionExerciseEditor() {
         />
       ) : null}
 
-      {/* PRE-7 (R-4, D-445 C03, C04) : Annuler rend l'éditeur et son brouillon intacts, rien n'est inscrit. */}
+      {/* PRE-7 (R-4, D-445 C03, C04) : Annuler rend l'éditeur et son brouillon intacts, rien n'est inscrit.
+          PRE-7 (R-10, r9-5) : mêmes dialogues au crayon retouché ; Annuler y laisse l'édition ouverte. */}
       {pendingOccurrenceSave !== null && unlockedMovement !== null ? (
         pendingOccurrenceSave.decision.kind === "CHOICE" ? (
           <MovementSaveDialog
             variant="CHOICE"
             otherCount={pendingOccurrenceSave.decision.otherCount}
             onConfirm={(choice) => {
-              const { occurrence } = pendingOccurrenceSave;
               setPendingOccurrenceSave(null);
               if (finishingRef.current) return;
               // PRE-7 (R-5, C01, v7 l.67 ; report R-4) : « Créer un nouveau mouvement » exige une clé
               // libre parmi TOUS les mouvements, l'original compris ; sinon le nom est signalé.
-              if (choice !== "UPDATE" && !originChoice.checkDistinctName(occurrence.name)) return;
-              finishingRef.current = true;
-              if (choice === "UPDATE") {
-                commitMovementUpdate(occurrence, unlockedMovement);
-              } else {
-                commitNewMovement(occurrence, unlockedMovement);
-              }
+              if (choice !== "UPDATE" && !originChoice.checkDistinctName(pendingOccurrenceSave.occurrence.name)) return;
+              applyOccurrenceSave(pendingOccurrenceSave, unlockedMovement, choice);
             }}
             onCancel={() => setPendingOccurrenceSave(null)}
           />
@@ -2143,11 +2248,9 @@ function CompositionExerciseEditor() {
             variant="CONFIRM"
             otherCount={pendingOccurrenceSave.decision.otherCount}
             onConfirm={() => {
-              const { occurrence } = pendingOccurrenceSave;
               setPendingOccurrenceSave(null);
               if (finishingRef.current) return;
-              finishingRef.current = true;
-              commitMovementUpdate(occurrence, unlockedMovement);
+              applyOccurrenceSave(pendingOccurrenceSave, unlockedMovement, "UPDATE");
             }}
             onCancel={() => setPendingOccurrenceSave(null)}
           />

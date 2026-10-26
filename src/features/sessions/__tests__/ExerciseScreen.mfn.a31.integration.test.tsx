@@ -319,7 +319,8 @@ describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08 ; R-6 : sens 
     const definitionsBefore = await definitionsRows();
     const movementsBefore = await movementsRows();
     await renderEditor({ catalogueDefinitionId: "new", levelOriginDefinitionId: assisted.id, levelPlacement: "AFTER_ORIGIN" });
-    expect(screen.getByTestId("exercise-name-input").props.value).toBe("");
+    // PRE-7 (R-10, recette JA3 r8-5) : nom de l'origine repris, à compléter (invite grise).
+    expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squats assistés");
     // PRE-7 (R-6, MFN-07 l.373, C02) : description vierge.
     expect(screen.queryByDisplayValue("Buste droit")).toBeNull();
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityLabel).toBe("Catégorie Cardio");
