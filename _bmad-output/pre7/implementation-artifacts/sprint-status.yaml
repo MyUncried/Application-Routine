@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-7 (plan approuvé le 24/10/2026)
 generated: 10-24-2026 09:00
-last_updated: 10-24-2026 23:59
+last_updated: 10-26-2026 12:00
 project: kodjo-pre7
 project_key: NOKEY
 tracking_system: file-system
@@ -26,5 +26,13 @@ development_status:
   epic-a4: in-progress
   a4-1-catalogue-par-geste-et-sélection: review
   # Correction de recette JA du 26/10/2026 (arbitrage de Hermann, phases comme motif cyclique) : 1/3 fait ; 2/3 (guidage, calculs) prêt, non commencé ; 3/3 (documentation) abandonné, origin/main (PR #398) le couvre
-  recette-ja-d446-1-phases-modele-brouillon-feuille: review
-  recette-ja-d446-2-phases-guidage-calculs: ready-for-dev
+  recette-ja-d446-1-phases-modele-brouillon-feuille: done  # complété par r-2
+  # recette-ja-d446-2 fusionnée dans r-2
+  # Reprise après D-445 et PHC (proposition du 26/10/2026, validée : arbitrage-2026-10-26-reprise-q1-q11.md)
+  epic-r: in-progress
+  r-1-lot-documentaire-de-consolidation: backlog
+  r-2-phases-motif-commun-calculs-et-guidage: backlog
+  r-3-modèle-d445-occurrence-sans-copie-migration-013: backlog
+  r-4-dialogue-de-sauvegarde-c03-et-crayon: backlog
+  r-5-création-unicité-variante-et-recherche: backlog
+  r-6-niveaux-dans-tous-les-contextes: backlog
