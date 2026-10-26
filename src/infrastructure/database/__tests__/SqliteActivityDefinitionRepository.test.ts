@@ -430,9 +430,11 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     durationMs: 3000,
   });
 
+  // PRE-7 (R-3, C01) : nom de Mouvement unique — chaque définition indépendante reçoit le sien.
+  let names = 0;
   function input(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
     return {
-      name: "Fentes",
+      name: `Fentes ${++names}`,
       description: null,
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
@@ -494,20 +496,19 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
       exercises: [
+        // PRE-7 (R-3, C05) : la copie référence le Mouvement de la définition, sans contenu propre.
         {
           id: copy.id,
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
-          name: copy.name,
           postActivityRecoverySeconds: 0,
-          bodyZoneIds: copy.bodyZoneIds,
           executionParameters: canonical({ cadenceBeepIntervalSeconds: 1 }),
-          categoryId: copy.categoryId,
-          media: copy.media?.map((item) => ({ assetId: item.assetId })),
+          sourceMovementId: copy.sourceMovementId,
         },
       ],
     });
     expect(await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = ?", [definition.id])).toEqual(before);
+    expect(await database.getFirstAsync("SELECT COUNT(*) AS n FROM movements")).toEqual({ n: 1 });
     expect((await definitions.findById(definition.id))?.executionParameters?.cadenceBeepIntervalSeconds).toBe(4);
   });
 
@@ -564,8 +565,8 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
   it("P3-17/corrupt-version (PRE-4 AD-3, PRE-7 A1.2) — JSON corrompu, v1, v2, v3 ou version inconnue : erreur de donnée explicite, jamais un repli", async () => {
     // PRE-7 (A1.2, D-440) : la colonne est NOT NULL et seule la forme Catalogue v4 est lue.
     await database.runAsync(
-      `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, used, created_at, updated_at)
-       VALUES ('mov-legacy', 'Ancien', 'ancien', NULL, 'cardio', 1, 0, 'now', 'now')`,
+      `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, created_at, updated_at)
+       VALUES ('mov-legacy', 'Ancien', 'ancien', NULL, 'cardio', 1, 'now', 'now')`,
     );
     await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mov-legacy', 'cuisses')");
     await database.runAsync(
@@ -725,9 +726,11 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     database.close();
   });
 
+  // PRE-7 (R-3, C01) : nom de Mouvement unique par définition indépendante.
+  let names = 0;
   function definitionInput(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
     return {
-      name: "Gainage",
+      name: `Gainage ${++names}`,
       description: "Dos plat",
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["dos", "cuisses"],
@@ -900,9 +903,10 @@ describe("SqliteActivityDefinitionRepository — PRE-4 Q53 (8)", () => {
     const repository = new SqliteActivityDefinitionRepository(database, makeUuidFactory("def"), makeClock("2026-01-01T00:00:00.000Z"));
     const first = await repository.create(input("cardio"));
     await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
-    const second = await repository.create(input("cardio"));
+    // PRE-7 (R-3, C01) : noms distincts (une définition indépendante crée son Mouvement).
+    const second = await repository.create({ ...input("cardio"), name: "Squat sauté" });
     expect(second.categoryId).toBe("cardio");
-    await expect(repository.create(input("mobilite"))).rejects.toThrow(/retired/i);
+    await expect(repository.create({ ...input("mobilite"), name: "Squat lent mobile" })).rejects.toThrow(/retired/i);
     // Modification : seule la Catégorie déjà affectée à cette Définition est conservable.
     const other = await repository.create({ ...input("renforcement"), name: "Fentes" });
     await expect(repository.update(other.id, { ...input("cardio"), name: "Fentes" })).rejects.toThrow(/retired/i);

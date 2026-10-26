@@ -4,6 +4,7 @@ import type {
   ExecutionParametersInput,
 } from "@/domain/activities/ExecutionParameters";
 import type { SessionDurationKind } from "@/domain/activities/executionCalculations";
+import type { MovementPhase } from "@/domain/activities/Movement";
 import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/media/ActivityMedia";
 
 import type { SideMode } from "./sideMode";
@@ -147,14 +148,24 @@ export type Activity = {
   /** PRE-3 : médias ordonnés de l'occurrence (liens propres, fichiers partagés). */
   media?: readonly SessionActivityMediaWithAsset[];
   /**
-   * PRE-7 (A1.2, D-437, MFN-03, MFN-12) : filiation de la copie — identifiant
-   * du Mouvement dont elle est issue, non nul et immuable, SANS clé étrangère
-   * (`activities.source_movement_id`) : jamais lu pour charger un contenu à
-   * afficher ou à exécuter ; une filiation orpheline est conservée telle quelle.
-   * Toujours renseignée par le repository après la migration 012 ; optionnelle
-   * sur ce type LU pour les fixtures (convention de transition).
+   * PRE-7 (A1.2, D-437, MFN-03) : Mouvement de l'occurrence.
+   *
+   * PRE-7 (R-3, `migration013`, D-445 C05, Q1 de Hermann du 26/10/2026) :
+   * référence ACTIVE, avec clé étrangère RESTRICT (`activities.source_movement_id`,
+   * nom historique conservé, D-201). L'occurrence lit son contenu courant dans ce
+   * Mouvement : `name`, `instruction`, `categoryId`, `bodyZoneIds`, `media` et
+   * la structure des phases de `executionParameters` sont RÉSOLUS à la lecture,
+   * jamais stockés dans l'occurrence. Toujours renseigné par le repository ;
+   * optionnel sur ce type LU pour les fixtures (convention de transition).
    */
   sourceMovementId?: string;
+  /**
+   * PRE-7 (R-3, Q3 de Hermann du 26/10/2026) : numéro de copie, attribut propre
+   * non éditable de l'occurrence (`activities.copy_number`) — `null`/absent pour
+   * l'original, 1 pour « (copie) », n pour « (copie n) », affiché après le nom du
+   * Mouvement (`occurrenceDisplayName`), qu'il ne renomme jamais.
+   */
+  copyNumber?: number | null;
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */
@@ -258,35 +269,44 @@ export type CreateSessionActivityInput = {
   readonly id?: string;
   readonly type: ActivityType;
   readonly structuralPosition: StructuralPosition;
-  readonly name: string;
   /** Paramètres typés, validés au niveau structurel (`validateForSave(…, "STORAGE")`). */
   readonly executionParameters: ExecutionParametersInput;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s. PRE-6 (AD-35) : `null` = absente, `0` = présente à 0 (voir `Activity.postActivityRecoverySeconds`). */
   readonly postActivityRecoverySeconds: number | null;
-  readonly instruction?: string | null;
-  readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
-  /** PRE-3 : Catégorie de la copie (`null` = aucune). */
-  readonly categoryId?: string | null;
-  /** PRE-3 : médias ordonnés ; l'ordre du tableau est la position. */
-  readonly media?: readonly MediaLinkInput[];
   /**
-   * PRE-7 (A1.2, MFN-03, MFN-04) : filiation portée par le brouillon (copie du
-   * Catalogue, duplication) et écrite telle quelle. Absente : occurrence créée
-   * localement — le repository crée son Mouvement local dans la transaction de
-   * la Séance et prend son identifiant (celui de l'occurrence) pour filiation.
+   * PRE-7 (R-3, D-445 C05) : Mouvement de l'occurrence, OBLIGATOIRE pour un
+   * Exercice — Mouvement persisté (ajout depuis le Catalogue, reprise, Séance
+   * relue) ou Mouvement nouveau du brouillon (`CreateSessionInput.movements`).
+   * Aucun contenu n'accompagne l'occurrence : nom, description, médias,
+   * Catégorie, Zones et libellés de phases appartiennent au Mouvement ; seules
+   * les durées de phase de `executionParameters` sont écrites, par `phaseId`.
    */
   readonly sourceMovementId?: string;
-  /**
-   * PRE-7 (A1.3, MFN-03, MFN-04) : copie d'une occurrence créée localement et
-   * pas encore enregistrée (`duplicateActivity`) — `sourceMovementId` porte
-   * alors l'identifiant PRÉ-ALLOUÉ du Mouvement local de la source (celui de
-   * l'occurrence source). Le repository crée ce Mouvement à l'enregistrement
-   * s'il n'existe pas et si la source n'est pas enregistrée avec la Séance ;
-   * sinon la filiation est écrite telle quelle. Jamais persisté.
-   */
-  readonly pendingLocalMovement?: true;
+  /** PRE-7 (R-3, Q3) : numéro de copie (voir `Activity.copyNumber`) ; absent/`null` = original. */
+  readonly copyNumber?: number | null;
+};
+
+/**
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : Mouvement créé
+ * (`NEW`, création locale en Séance, identifiant pré-alloué) ou corrigé
+ * (`EDITED`) depuis le brouillon de Séance, écrit dans la MÊME transaction que
+ * la Séance, avant les occurrences qui le référencent. Seule source du contenu
+ * à enregistrer : les occurrences n'en portent aucune copie.
+ */
+export type SessionMovementInput = {
+  readonly id: string;
+  readonly change: "NEW" | "EDITED";
+  readonly name: string;
+  readonly description: string | null;
+  readonly categoryId: string;
+  readonly bodyZoneIds: readonly string[];
+  /** Médias ordonnés ; l'ordre du tableau est la position. */
+  readonly media: readonly MediaLinkInput[];
+  readonly phases: readonly MovementPhase[];
+  readonly nextPhaseId: number;
+  readonly aliases: readonly string[];
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */
@@ -336,6 +356,8 @@ export type CreateSessionInput = {
    * (chaque zone est numérotée séparément — voir `CreateSessionActivityInput`).
    */
   exercises: readonly CreateSessionActivityInput[];
+  /** PRE-7 (R-3) : Mouvements nouveaux ou corrigés du brouillon (voir `SessionMovementInput`) ; `[]` par défaut. */
+  movements?: readonly SessionMovementInput[];
   /**
    * V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : Points d'arrêt à
    * persister, optionnel — `[]` par défaut. PRE-6 (story 1.2) : alimenté par
@@ -362,27 +384,21 @@ export type UpdateSessionActivityInput = {
   readonly type: ActivityType;
   readonly structuralPosition: StructuralPosition;
   readonly position: number;
-  readonly name: string;
   /** PRE-4 : paramètres typés obligatoires (voir `CreateSessionActivityInput.executionParameters`). */
   readonly executionParameters: ExecutionParametersInput;
   /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s. PRE-6 (AD-35) : `null` = absente, `0` = présente à 0 (voir `Activity.postActivityRecoverySeconds`). */
   readonly postActivityRecoverySeconds: number | null;
-  readonly instruction?: string | null;
-  readonly bodyZoneIds: readonly string[];
   /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`) — optionnel, `DEFAULT_SIDE_MODE` si absent. */
   readonly sideMode?: SideMode;
-  /** PRE-3 : `undefined` conserve la Catégorie persistée d'une occurrence existante. */
-  readonly categoryId?: string | null;
-  /** PRE-3 : `undefined` conserve les liens persistés ; `[]` explicite les retire (jamais l'asset). */
-  readonly media?: readonly MediaLinkInput[];
   /**
-   * PRE-7 (A1.2, MFN-03) : filiation. Occurrence existante : la filiation
-   * persistée est IMMUABLE et conservée quelle que soit cette valeur. Occurrence
-   * nouvelle : comme `CreateSessionActivityInput.sourceMovementId`.
+   * PRE-7 (R-3, C05) : Mouvement de l'occurrence, comme
+   * `CreateSessionActivityInput.sourceMovementId`. Occurrence existante : la
+   * référence persistée est conservée (le remplacement d'occurrence de C04 crée
+   * une nouvelle occurrence).
    */
   readonly sourceMovementId?: string;
-  /** PRE-7 (A1.3) : comme `CreateSessionActivityInput.pendingLocalMovement` (occurrence nouvelle seulement). */
-  readonly pendingLocalMovement?: true;
+  /** PRE-7 (R-3, Q3) : numéro de copie, comme `CreateSessionActivityInput.copyNumber`. */
+  readonly copyNumber?: number | null;
 };
 
 /**
@@ -405,6 +421,8 @@ export type UpdateSessionInput = {
   readonly circuitNature?: CircuitNature;
   /** TOUTES les Activités de la Séance modifiée, dans l'ordre, toutes zones structurelles confondues — au moins une (une Séance sans Activité reste invalide). */
   readonly activities: readonly UpdateSessionActivityInput[];
+  /** PRE-7 (R-3) : voir `CreateSessionInput.movements`. */
+  readonly movements?: readonly SessionMovementInput[];
   /** V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : voir `CreateSessionInput.stopPoints`. */
   readonly stopPoints?: readonly CreateStopPointInput[];
   /**

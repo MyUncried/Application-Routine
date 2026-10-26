@@ -802,6 +802,15 @@ describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel
     ).toBe("Exercice, Gainage, 2 sur 2, 3 min");
   });
 
+  it("PRE-7 (R-3, Q3) : accessibility label of a copy carries its derived suffix", () => {
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45), copyNumber: 1 }), { index: 0, count: 1 }),
+    ).toBe("Exercice, Gainage (copie), 1 sur 1, 1 min");
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45), copyNumber: 2 }), { index: 0, count: 1 }),
+    ).toBe("Exercice, Gainage (copie 2), 1 sur 1, 1 min");
+  });
+
   it("accessibility label: omits a duration without amount (never « ≥ 0 min »), appends « changement de côté » when bilateral", () => {
     expect(
       formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: repetitionParameters(10, 3, 30) }), { index: 0, count: 1 }),

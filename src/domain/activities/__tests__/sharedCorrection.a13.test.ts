@@ -83,7 +83,7 @@ const movement = (overrides: Partial<Movement> = {}): Movement => ({
   bodyZoneIds: ["cuisses"],
   phases: structure(1, 2),
   nextPhaseId: 3,
-  used: false,
+  aliases: [],
   levelGroup: null,
   ...overrides,
 });
@@ -298,33 +298,36 @@ describe("PRE-7 A1.3 — évaluation avant enregistrement (MFN-08, ch11 « Enreg
     ...overrides,
   });
 
-  it("question d'identité : seulement si « déjà utilisé » ET nom, description, médias ou structure modifiés", () => {
-    expect(assessSharedCorrection(movement({ used: true }), edit({ name: "Squat sauté" }), [], 1).requiresIdentityDecision).toBe(true);
-    expect(assessSharedCorrection(movement({ used: false }), edit({ name: "Squat sauté" }), [], 1)).toEqual(
+  // PRE-7 (R-3, D-445 C03) : « utilisé » = au moins un AUTRE exercice (définitions et occurrences
+  // persistées) — dernier argument —, plus l'indicateur irréversible `used`.
+  it("question d'identité : seulement si utilisé par un autre exercice (C03) ET nom, description, médias ou structure modifiés", () => {
+    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 1, 1).requiresIdentityDecision).toBe(true);
+    expect(assessSharedCorrection(movement(), edit({ name: "Squat sauté" }), [], 1, 0)).toEqual(
       expect.objectContaining({ sensitiveChange: true, requiresIdentityDecision: false }),
     );
-    expect(assessSharedCorrection(movement({ used: true }), edit({ description: "Dos droit" }), [], 1).requiresIdentityDecision).toBe(true);
-    expect(assessSharedCorrection(movement({ used: true }), edit({ mediaAssetIds: ["p1"] }), [], 1).requiresIdentityDecision).toBe(true);
+    expect(assessSharedCorrection(movement(), edit({ description: "Dos droit" }), [], 1, 1).requiresIdentityDecision).toBe(true);
+    expect(assessSharedCorrection(movement(), edit({ mediaAssetIds: ["p1"] }), [], 1, 1).requiresIdentityDecision).toBe(true);
     // Libellé de phase : sensible (structure du geste) sans changement d'ensemble.
-    const relabeled = assessSharedCorrection(movement({ used: true }), edit({ phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Phase 2" }] }), [], 1);
+    const relabeled = assessSharedCorrection(movement(), edit({ phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Phase 2" }] }), [], 1, 1);
     expect(relabeled).toEqual(expect.objectContaining({ requiresIdentityDecision: true, structuralChange: false }));
     // Paramètres, Catégorie ou Zones seuls (absents de l'édition comparée) : aucune question.
-    expect(assessSharedCorrection(movement({ used: true }), edit(), [], 1)).toEqual(
+    expect(assessSharedCorrection(movement(), edit(), [], 1, 1)).toEqual(
       expect.objectContaining({ sensitiveChange: false, requiresIdentityDecision: false, structuralChange: false }),
     );
     // Médias non transmis : inchangés.
-    expect(assessSharedCorrection(movement({ used: true, media: [{ assetId: "p1" }] as unknown as Movement["media"] }), edit(), [], 1).sensitiveChange).toBe(false);
+    expect(assessSharedCorrection(movement({ media: [{ assetId: "p1" }] as unknown as Movement["media"] }), edit(), [], 1, 1).sensitiveChange).toBe(false);
   });
 
   it("portée : nombre de définitions, frères à compléter et frères inéligibles", () => {
     const assessment = assessSharedCorrection(
-      movement({ used: true }),
+      movement(),
       edit({ phases: structure(1, 2, 3) }),
       [
         { definitionId: "def-2", parameters: phased(phases(6, 3)) },
         { definitionId: "def-3", parameters: phased(phases(5, 5)) },
       ],
       3,
+      2,
     );
     expect(assessment).toEqual({
       movementUsed: true,
@@ -354,26 +357,31 @@ describe("PRE-7 A1.3 — liste regroupée par geste (MFN-10)", () => {
 });
 
 describe("PRE-7 A1.3 — filiation des duplications (MFN-03, MFN-09, MFN/AC32, MFN/AC04)", () => {
+  // PRE-7 (R-3, C05) : une création locale terminée référence son Mouvement NEW, à son identifiant.
   const local: SessionDraftExercise = {
     ...createExerciseDraft("occ-local"),
+    sourceMovementId: "occ-local",
     name: "Gainage",
     categoryId: "cardio",
     bodyZoneIds: ["dos"],
   };
 
-  it("occurrence locale non enregistrée : la copie reçoit la filiation pré-allouée (identifiant de la source) et pendingLocalMovement ; la source est inchangée", () => {
+  // PRE-7 (R-3, Q3) : `pendingLocalMovement` est retiré ; la copie référence le même Mouvement
+  // (NEW du brouillon) et reçoit un numéro de copie, jamais un nom suffixé.
+  it("occurrence locale non enregistrée : la copie référence le même Mouvement, même nom, numéro de copie 1 ; la source est inchangée", () => {
     const [source, copy] = duplicateActivity([local], "occ-local", "occ-copy");
     expect(source).toBe(local);
-    expect(copy).toEqual(expect.objectContaining({ id: "occ-copy", name: "Gainage (copie)", sourceMovementId: "occ-local", pendingLocalMovement: true }));
-    // Copie de la copie : même filiation, toujours en attente.
+    expect(copy).toEqual(expect.objectContaining({ id: "occ-copy", name: "Gainage", sourceMovementId: "occ-local", copyNumber: 1 }));
+    expect(copy).not.toHaveProperty("pendingLocalMovement");
+    // Copie de la copie : même Mouvement, numéro suivant.
     const again = duplicateActivity([local, copy!], "occ-copy", "occ-copy-2")[2];
-    expect(again).toEqual(expect.objectContaining({ sourceMovementId: "occ-local", pendingLocalMovement: true }));
+    expect(again).toEqual(expect.objectContaining({ sourceMovementId: "occ-local", copyNumber: 2 }));
   });
 
-  it("occurrence à filiation : conservée à l'identique, sans attente ; Récupération : aucune filiation inventée", () => {
+  it("occurrence à filiation : conservée à l'identique ; Récupération : aucune filiation inventée", () => {
     const copied = duplicateActivity([{ ...local, sourceMovementId: "mov-cat" }], "occ-local", "occ-copy")[1];
     expect(copied?.sourceMovementId).toBe("mov-cat");
-    expect(copied).not.toHaveProperty("pendingLocalMovement");
+    expect(copied?.copyNumber).toBe(1);
     const recovery: SessionDraftExercise = { ...createExerciseDraft("rec-1"), type: "RECOVERY", name: "Récupération" };
     expect(duplicateActivity([recovery], "rec-1", "rec-2")[1]).not.toHaveProperty("sourceMovementId");
   });

@@ -42,7 +42,7 @@ const localMovement = (id: string, name: string): Movement => ({
   bodyZoneIds: ["cuisses"],
   phases: [],
   nextPhaseId: 1,
-  used: true,
+  aliases: [],
   levelGroup: null,
 });
 

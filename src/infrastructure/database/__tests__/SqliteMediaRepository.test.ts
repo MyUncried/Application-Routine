@@ -10,7 +10,8 @@ import type { MediaAsset } from "@/domain/media/MediaAsset";
 
 /** PRE-7 (A1.2) : définition et son Mouvement `mov-{id}`, qui porte les médias. */
 async function seedActivityDefinition(database: NodeSqliteDatabase, id: string): Promise<void> {
-  await seedCatalogueDefinition(database, { id });
+  // PRE-7 (R-3, C01) : un nom de Mouvement par définition (nom unique).
+  await seedCatalogueDefinition(database, { id, name: `Squat ${id}` });
 }
 
 describe("SqliteMediaRepository", () => {
@@ -135,7 +136,7 @@ describe("SqliteMediaRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
   });
 
-  it("P3-23/file-preservation — retirer tous les liens ne supprime jamais l'asset ; références comptées sur définitions et occurrences", async () => {
+  it("P3-23/file-preservation — retirer tous les liens ne supprime jamais l'asset ; références comptées sur les liens des Mouvements (R-3)", async () => {
     await database.withExclusiveTransactionAsync((transaction) =>
       replaceMovementMediaLinks(transaction, "mov-def-1", [{ assetId: "a", asset: asset("a") }], uuid),
     );

@@ -29,6 +29,7 @@ import {
   type ExecutionParametersInput,
   type SeriesRow,
 } from "@/domain/activities/ExecutionParameters";
+import type { MovementPhase } from "@/domain/activities/Movement";
 import { draftMediaEqual, toDraftMediaItems, type DraftMediaItem } from "@/domain/media/ActivityMedia";
 
 import type {
@@ -37,6 +38,7 @@ import type {
   CreateSessionInput,
   ExerciseExecutionMode,
   Session,
+  SessionMovementInput,
   StructuralPosition,
   UpdateSessionActivityInput,
   UpdateSessionInput,
@@ -55,7 +57,6 @@ import {
   DEFAULT_TOUR_REPEAT_COUNT,
 } from "./defaults";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
-import { settlePendingLocalCopies } from "./composition";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
 import type { SideMode } from "./sideMode";
@@ -148,19 +149,38 @@ export type SessionDraftExercise = {
   /** PRE-3 : médias ordonnés de l'occurrence (assets partagés, liens propres). */
   readonly media?: readonly DraftMediaItem[];
   /**
-   * PRE-7 (A1.2, D-437, MFN-03) : filiation de l'occurrence vers son Mouvement
-   * — portée par le brouillon pour que la réécriture des occurrences à chaque
-   * mise à jour de Séance ne la perde pas ; conservée à la duplication
-   * (étalement). Absente pour une occurrence créée localement et pas encore
-   * enregistrée (le repository crée alors son Mouvement local).
+   * PRE-7 (A1.2, D-437, MFN-03) : Mouvement de l'occurrence, conservé à la duplication.
+   *
+   * PRE-7 (R-3, D-445 C05) : référence active. `name`, `instruction`, `categoryId`,
+   * `bodyZoneIds`, `media` et la structure des phases de `executionParameters` sont une VUE
+   * du contenu de ce Mouvement — relue de la Séance, reprise du Catalogue, ou tenue par la table
+   * des Mouvements du brouillon (`SessionDraft.movements`, `withDraftMovement`) —, jamais
+   * persistée avec l'occurrence. Une occurrence créée dans la Séance reçoit un Mouvement `NEW`
+   * à son identifiant ; absent seulement tant qu'elle n'est pas terminée (éditeur).
    */
   readonly sourceMovementId?: string;
-  /**
-   * PRE-7 (A1.3, MFN-04) : copie d'une occurrence locale non enregistrée —
-   * `sourceMovementId` est l'identifiant pré-alloué du Mouvement local de la
-   * source (voir `CreateSessionActivityInput.pendingLocalMovement`).
-   */
-  readonly pendingLocalMovement?: true;
+  /** PRE-7 (R-3, Q3) : numéro de copie (`Activity.copyNumber`) ; absent/`null` = original. */
+  readonly copyNumber?: number | null;
+};
+
+/**
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : Mouvement créé (`NEW`) ou
+ * corrigé (`EDITED`) dans le brouillon de Séance, avant tout enregistrement. Seule source du
+ * contenu à écrire : un seul Mouvement, quel que soit le nombre de ses occurrences (original
+ * et copies) dans la Composition. Volatil : jamais persisté hors de l'enregistrement de la
+ * Séance (`toCreateSessionInput`, `toUpdateSessionInput`).
+ */
+export type DraftMovement = {
+  readonly id: string;
+  readonly change: "NEW" | "EDITED";
+  readonly name: string;
+  readonly description: string | null;
+  readonly categoryId: string | null;
+  readonly bodyZoneIds: readonly string[];
+  readonly media: readonly DraftMediaItem[];
+  readonly phases: readonly MovementPhase[];
+  readonly nextPhaseId: number;
+  readonly aliases: readonly string[];
 };
 
 export type SessionDraft = {
@@ -233,6 +253,12 @@ export type SessionDraft = {
    * construction à l'enregistrement). Absent = réserve vide.
    */
   readonly circuitSeriesReserve?: Readonly<Record<string, readonly SeriesRow[]>>;
+  /**
+   * PRE-7 (R-3, D-445 C05) : Mouvements nouveaux ou corrigés du brouillon, par identifiant
+   * (voir `DraftMovement`). Absent = aucun. Un Mouvement sans occurrence restante n'est pas
+   * enregistré. Champ optionnel de transition, comme `stopPoints`.
+   */
+  readonly movements?: Readonly<Record<string, DraftMovement>>;
 };
 
 /**
@@ -377,9 +403,110 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     // PRE-3 : transport complet et indépendant (copies profondes).
     ...(activity.categoryId !== undefined ? { categoryId: activity.categoryId } : {}),
     ...(activity.media ? { media: toDraftMediaItems(activity.media) } : {}),
-    // PRE-7 (A1.2, MFN-03) : filiation relue, transportée telle quelle.
+    // PRE-7 (A1.2, MFN-03 ; R-3, C05) : Mouvement relu, contenu courant déjà résolu par le repository.
     ...(activity.sourceMovementId !== undefined ? { sourceMovementId: activity.sourceMovementId } : {}),
+    ...(activity.copyNumber !== undefined && activity.copyNumber !== null ? { copyNumber: activity.copyNumber } : {}),
   };
+}
+
+/**
+ * PRE-7 (R-3, D-445 C05) : entrée de la table des Mouvements du brouillon tirée du contenu d'une
+ * occurrence terminée dans l'éditeur (vue du Mouvement) : nom, description, Catégorie, Zones,
+ * médias et structure des phases (identités, libellés, ordre) de ses paramètres. Le compteur ne
+ * recule jamais sous `nextPhaseId` (celui du Mouvement ou de la Feuille).
+ */
+export function draftMovementOf(
+  exercise: SessionDraftExercise,
+  change: DraftMovement["change"],
+  options: { readonly nextPhaseId?: number; readonly aliases?: readonly string[] } = {},
+): DraftMovement {
+  const phases = exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
+  const floor = phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
+  return {
+    id: exercise.sourceMovementId ?? exercise.id,
+    change,
+    name: exercise.name,
+    description: exercise.instruction,
+    categoryId: exercise.categoryId ?? null,
+    bodyZoneIds: [...exercise.bodyZoneIds],
+    media: (exercise.media ?? []).map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })),
+    phases,
+    nextPhaseId: Math.max(floor, options.nextPhaseId ?? 0),
+    aliases: [...(options.aliases ?? [])],
+  };
+}
+
+/**
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026 : « Le contenu du mouvement est
+ * désormais partagé… N'ajoute pas de mécanisme particulier ») : inscrit `movement` dans la table
+ * des Mouvements du brouillon. Chaque occurrence qui le référence — original et copies, sans
+ * distinction — affiche alors ce contenu : sa vue (nom, description, Catégorie, Zones, médias)
+ * est celle du Mouvement, et la structure de ses phases suit celle du Mouvement en gardant ses
+ * PROPRES durées par identité de phase (une phase nouvelle reste à renseigner, 0, D-438 ; aucune
+ * durée inventée). Les autres paramètres de chaque occurrence restent indépendants.
+ * Fonction pure : rend toujours une nouvelle table et de nouvelles vues pour les occurrences du
+ * Mouvement, même si leur contenu est inchangé.
+ */
+export function withDraftMovement(draft: SessionDraft, movement: DraftMovement): Pick<SessionDraft, "exercises" | "movements"> {
+  const movements = { ...(draft.movements ?? {}), [movement.id]: movement };
+  const exercises = draft.exercises.map((exercise) => {
+    if (exercise.sourceMovementId !== movement.id) {
+      return exercise;
+    }
+    const durations = new Map(
+      exercise.executionParameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds] as const),
+    );
+    const workPhases = movement.phases.map((phase) => ({
+      id: phase.id,
+      label: phase.label,
+      durationSeconds: durations.get(phase.id) ?? 0,
+    }));
+    return {
+      ...exercise,
+      name: movement.name,
+      instruction: movement.description,
+      categoryId: movement.categoryId,
+      bodyZoneIds: [...movement.bodyZoneIds],
+      media: movement.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })),
+      executionParameters: {
+        ...exercise.executionParameters,
+        series: { ...exercise.executionParameters.series, workPhases },
+      },
+    };
+  });
+  return { exercises, movements };
+}
+
+/**
+ * PRE-7 (R-3) : Mouvements du brouillon à enregistrer — ceux qu'au moins une occurrence
+ * référence encore, dans l'ordre de première occurrence ; un Mouvement dont toutes les
+ * occurrences ont été retirées n'est pas créé.
+ */
+function toSessionMovementInputs(draft: SessionDraft): SessionMovementInput[] {
+  const table = draft.movements ?? {};
+  const seen = new Set<string>();
+  const inputs: SessionMovementInput[] = [];
+  for (const exercise of draft.exercises) {
+    const id = exercise.sourceMovementId;
+    if (id === undefined || seen.has(id) || table[id] === undefined) {
+      continue;
+    }
+    seen.add(id);
+    const movement = table[id];
+    inputs.push({
+      id: movement.id,
+      change: movement.change,
+      name: movement.name,
+      description: movement.description,
+      categoryId: movement.categoryId ?? "",
+      bodyZoneIds: [...movement.bodyZoneIds],
+      media: movement.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })),
+      phases: movement.phases.map((phase) => ({ id: phase.id, label: phase.label })),
+      nextPhaseId: movement.nextPhaseId,
+      aliases: [...movement.aliases],
+    });
+  }
+  return inputs;
 }
 
 function bodyZoneIdSetsEqual(a: readonly string[], b: readonly string[]): boolean {
@@ -419,7 +546,10 @@ export function exerciseEquals(
     a.sideMode === b.sideMode &&
     executionParametersEqual(a.executionParameters, b.executionParameters) &&
     (a.categoryId ?? null) === (b.categoryId ?? null) &&
-    draftMediaEqual(a.media, b.media)
+    draftMediaEqual(a.media, b.media) &&
+    // PRE-7 (R-3) : Mouvement référencé et numéro de copie.
+    (a.sourceMovementId ?? null) === (b.sourceMovementId ?? null) &&
+    (a.copyNumber ?? null) === (b.copyNumber ?? null)
   );
 }
 
@@ -514,30 +644,19 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
       type: "RECOVERY" as const,
       executionParameters: cloneExecutionParameters(exercise.executionParameters),
       postActivityRecoverySeconds: null,
-      instruction: exercise.instruction,
-      bodyZoneIds: [] as readonly string[],
       sideMode: exercise.sideMode,
     };
   }
   return {
     type: "EXERCISE" as const,
-    // PRE-4 : paramètres typés (seule source du Mode, des Cibles, de N et des
-    // Pauses), Catégorie et médias ordonnés voyagent jusqu'à la transaction
-    // de Séance (Continuer) — jamais persistés avant. Story 1.3 (AD-9) : clonés.
+    // PRE-4 : paramètres typés (seule source du Mode, des Cibles, de N et des Pauses), voyagent
+    // jusqu'à la transaction de Séance (Continuer) — jamais persistés avant. Story 1.3 (AD-9) :
+    // clonés. PRE-7 (R-3, C05) : aucun contenu ; seules les durées de phase seront écrites.
     executionParameters: cloneExecutionParameters(exercise.executionParameters),
     postActivityRecoverySeconds: exercise.postActivityRecoverySeconds,
-    instruction: exercise.instruction,
-    bodyZoneIds: [...exercise.bodyZoneIds],
     sideMode: exercise.sideMode,
-    ...(exercise.categoryId !== undefined ? { categoryId: exercise.categoryId } : {}),
-    ...(exercise.media
-      ? // PRE-4 (story 1.3, AD-9) : actif cloné, le brouillon et l'entrée persistable ne partagent rien.
-        { media: exercise.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) }
-      : {}),
-    // PRE-7 (A1.2, MFN-03) : filiation transportée jusqu'à la transaction de Séance.
     ...(exercise.sourceMovementId !== undefined ? { sourceMovementId: exercise.sourceMovementId } : {}),
-    // PRE-7 (A1.3, MFN-04) : Mouvement local pré-alloué d'une copie non enregistrée.
-    ...(exercise.pendingLocalMovement === true ? { pendingLocalMovement: true as const } : {}),
+    ...(exercise.copyNumber !== undefined && exercise.copyNumber !== null ? { copyNumber: exercise.copyNumber } : {}),
   };
 }
 
@@ -566,14 +685,13 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     finalPhaseSeconds: draft.finalPhaseSeconds,
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
-    // Recette JA (décision de Hermann du 26/10/2026) : une copie en attente modifiée, ou dont la
-    // source a changé, est émise sans filiation (création locale indépendante).
-    exercises: settlePendingLocalCopies(draft.exercises).map((exercise) => ({
+    exercises: draft.exercises.map((exercise) => ({
       id: exercise.id,
       structuralPosition: exercise.structuralPosition,
-      name: exercise.name,
       ...toDraftActivityParameters(exercise),
     })),
+    // PRE-7 (R-3, C05) : Mouvements nouveaux ou corrigés, écrits avant les occurrences.
+    movements: toSessionMovementInputs(draft),
     stopPoints: toStopPointInputs(draft),
   });
 }
@@ -603,8 +721,7 @@ export function toUpdateSessionInput(
   }
 
   const positionByZone = new Map<StructuralPosition, number>();
-  // Recette JA (décision de Hermann du 26/10/2026) : comme `toCreateSessionInput`.
-  const activities: UpdateSessionActivityInput[] = settlePendingLocalCopies(draft.exercises).map((exercise) => {
+  const activities: UpdateSessionActivityInput[] = draft.exercises.map((exercise) => {
     const zone = exercise.structuralPosition;
     const position = positionByZone.get(zone) ?? 0;
     positionByZone.set(zone, position + 1);
@@ -613,7 +730,6 @@ export function toUpdateSessionInput(
       id: exercise.id,
       structuralPosition: zone,
       position,
-      name: exercise.name,
       ...toDraftActivityParameters(exercise),
     };
   });
@@ -627,6 +743,7 @@ export function toUpdateSessionInput(
     tourRepeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
     ...(draft.circuitNature !== undefined ? { circuitNature: draft.circuitNature } : {}),
     activities,
+    movements: toSessionMovementInputs(draft),
     stopPoints: toStopPointInputs(draft),
     ...(draft.persistedExerciseIds !== undefined ? { persistedActivityIds: [...draft.persistedExerciseIds] } : {}),
   });

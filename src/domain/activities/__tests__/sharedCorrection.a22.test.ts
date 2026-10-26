@@ -85,7 +85,7 @@ describe("repriseExecutionParameters — création sur un geste repris (MFN-06)"
     bodyZoneIds: ["cuisses"],
     phases,
     nextPhaseId: 6,
-    used: true,
+    aliases: [],
     levelGroup: null,
   });
 

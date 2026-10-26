@@ -25,6 +25,7 @@ import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
+import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -126,7 +127,31 @@ async function created(result: Awaited<ReturnType<ActivityDefinitionService["cre
   return result.value;
 }
 
-/** Deux Exercices du même geste ; `used` : geste « déjà utilisé » (MFN-08). */
+/**
+ * PRE-7 (R-3, D-445 C03, qui retire l'indicateur irréversible « déjà utilisé » de MFN-08) : un
+ * Mouvement est utilisé par un autre exercice — ici une occurrence de Séance persistée qui le
+ * référence (identifiants de Séance propres, sans effet sur ceux des définitions).
+ */
+let sessionSequence = 0;
+async function persistOccurrenceOf(movementId: string): Promise<void> {
+  await new SqliteSessionRepository(database, () => `ses-${++sessionSequence}`, () => NOW).create({
+    name: "Utilisation",
+    initialCountdownSeconds: 10,
+    finalPhaseSeconds: 5,
+    tourRepeatCount: 1,
+    exercises: [
+      {
+        type: "EXERCISE",
+        structuralPosition: "IN_TOUR",
+        executionParameters: durationParameters(30, 3, 10),
+        postActivityRecoverySeconds: null,
+        sourceMovementId: movementId,
+      },
+    ],
+  });
+}
+
+/** Deux Exercices du même geste ; `used` : geste aussi utilisé par une occurrence de Séance (C03). */
 async function twoSharing(
   parameters: readonly [ExecutionParameters, ExecutionParameters] = [durationParameters(30, 3, 10), durationParameters(45, 4, 10)],
   used = true,
@@ -135,7 +160,7 @@ async function twoSharing(
   const second = await created(
     await service().createActivityDefinitionWithOrigin(input(parameters[1]), { kind: "SAME_MOVEMENT", movementId: first.movementId }),
   );
-  if (used) await movements().markUsed([first.movementId]);
+  if (used) await persistOccurrenceOf(first.movementId);
   return { first, second };
 }
 
@@ -277,19 +302,36 @@ describe("PRE-7 A2.2 — Exercice du Catalogue existant (édition directe)", () 
     expect((await movements().findById(created.movementId))?.levelGroup).toBeNull();
   });
 
-  it("geste non utilisé : nom changé, enregistrement direct sans question ; le frère relit le nom", async () => {
+  // PRE-7 (R-3, D-445 C03) : « utilisé » = au moins un AUTRE exercice (définitions et occurrences
+  // persistées). Un Exercice seul, sans occurrence : enregistrement direct ; un frère suffit à poser
+  // la question, même sans aucune occurrence de Séance.
+  it("geste non utilisé (seul Exercice, aucune occurrence) : nom changé, enregistrement direct sans question", async () => {
+    const only = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
+    await renderEditor({ catalogueDefinitionId: only.id });
+    fireEvent.changeText(nameInput(), "Squat sauté");
+    await finish();
+    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(mockBack).toHaveBeenCalled();
+    expect((await service().getActivityDefinition(only.id))?.name).toBe("Squat sauté");
+  });
+
+  it("geste partagé par un frère, sans occurrence de Séance (C03) : question posée ; Corriger → le frère relit le nom", async () => {
     const { first, second } = await twoSharing(undefined, false);
     await renderEditor({ catalogueDefinitionId: first.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
-    expect(screen.queryByTestId("identity-decision-sheet")).toBeNull();
+    expect(screen.getByTestId("identity-decision-sheet")).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("identity-decision-correct"));
+    });
+    await settle(50);
     expect(mockBack).toHaveBeenCalled();
     expect((await service().getActivityDefinition(second.id))?.name).toBe("Squat sauté");
   });
 
   it("geste utilisé par un seul Exercice : question sans nombre (au-delà d'un seulement)", async () => {
     const only = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
-    await movements().markUsed([only.movementId]);
+    await persistOccurrenceOf(only.movementId);
     await renderEditor({ catalogueDefinitionId: only.id });
     fireEvent.changeText(nameInput(), "Squat sauté");
     await finish();
@@ -554,7 +596,7 @@ describe("PRE-7 A2.2 — création sur un geste repris (contenu en lecture seule
         kind: "INDEPENDENT",
       }),
     );
-    await movements().markUsed([first.movementId]);
+    await persistOccurrenceOf(first.movementId);
     await renderEditor({ catalogueDefinitionId: "new", movementId: first.movementId });
     expect(screen.getByTestId("media-item-1")).toBeTruthy();
     expect(screen.getByTestId("media-item-1").props.accessibilityActions).toEqual([]);

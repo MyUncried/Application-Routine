@@ -15,7 +15,8 @@ import type { StructuralPosition } from "@/domain/sessions/Session";
 import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { DATABASE_VERSION } from "@/infrastructure/database/constants";
+import { ViewedSessionRepository } from "@/infrastructure/database/testing/sessionMovements";
 import { buildVersion10 } from "@/infrastructure/database/testing/buildVersion10";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
 import { withoutMigration011Columns } from "@/infrastructure/database/testing/migration011Columns";
@@ -358,7 +359,8 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
    * Séance (nature et récupération inchangées) est prouvé sur le schéma 012 par
    * `SqliteSessionRepository.test.ts` (« PRE6-1.1 »).
    */
-  it("chaîne complète v10 → 12 (démarrage) : Séances supprimées une fois avec un avis, référentiels conservés, relance sans effet", async () => {
+  // PRE-7 (R-3) : le démarrage enchaîne `migration013` ; la base vide après 012 ne produit aucun second avis.
+  it("chaîne complète v10 → courante (démarrage) : Séances supprimées une fois avec un avis, référentiels conservés, relance sans effet", async () => {
     let database = await seededVersion10();
     const kept = async (db: Database) => ({
       profiles: await db.getAllAsync("SELECT * FROM profiles"),
@@ -371,9 +373,9 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(12);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await kept(database)).toEqual(before);
-    for (const table of ["sessions", "cycles", "tours", "activities", "activity_body_zones", "session_stop_points", "activity_definitions", "movements"]) {
+    for (const table of ["sessions", "cycles", "tours", "activities", "movement_body_zones", "session_stop_points", "activity_definitions", "movements"]) {
       expect({ table, rows: await database.getAllAsync(`SELECT * FROM ${table}`) }).toEqual({ table, rows: [] });
     }
     expect(await database.getAllAsync("SELECT kind, count FROM migration_notices ORDER BY id")).toEqual([
@@ -382,7 +384,8 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
 
     // Relance après recréation : aucune suppression ni nouvel avis.
-    const repository = new SqliteSessionRepository(database, ids("ses"), () => NOW);
+    // PRE-7 (R-3, C05) : occurrence décrite par sa vue, Mouvement écrit explicitement.
+    const repository = new ViewedSessionRepository(database, ids("ses"), () => NOW);
     await repository.create({
       name: "Après",
       initialCountdownSeconds: 10,

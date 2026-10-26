@@ -41,6 +41,7 @@ import {
   duplicateOccurrence,
   moveOccurrenceInSequence,
   moveStopPoint,
+  occurrenceDisplayName,
   removeOccurrenceOutcome,
   stepOccurrence,
   type CompositionOutcome,
@@ -3660,9 +3661,11 @@ function stopPointAnchor(
       (item): item is Extract<ZoneItem, { kind: "OCCURRENCE" }> => item.kind === "OCCURRENCE" && isSequenceSeparator(item.occurrence),
     );
   if (preceding === undefined) return null;
-  const name = preceding.occurrence.name;
+  // PRE-7 (R-3, Q3) : nom affiché, suffixe de copie compris.
+  const name = occurrenceDisplayName(preceding.occurrence.name, preceding.occurrence.copyNumber);
   // Homonymes : la notation de position des cartes (« n sur m » dans la zone) les distingue.
-  const homonyms = allOccurrences.filter((occurrence) => occurrence.name === name).length > 1;
+  const homonyms =
+    allOccurrences.filter((occurrence) => occurrenceDisplayName(occurrence.name, occurrence.copyNumber) === name).length > 1;
   if (!homonyms) return name;
   const inZone = items.filter((item) => item.kind === "OCCURRENCE");
   const position = strings.screens.composition.occurrenceCard.accessibilityPosition
@@ -4832,7 +4835,7 @@ function CompositionActivityRow({
     recoveryNode = (
       <PlacementRecoveryFrame
         occurrenceId={activity.id}
-        exerciseName={activity.name}
+        exerciseName={occurrenceDisplayName(activity.name, activity.copyNumber)}
         selectedSeconds={displayedRecoverySeconds ?? null}
         existing={placementRecovery.kind === "EXISTING"}
         onPress={placement.onPressRecovery}
@@ -5053,7 +5056,7 @@ function CompositionActivityRow({
          * sélectionnable ; le reste de la carte est inactif (story 4.1).
          */}
         <OccurrenceCard
-          name={activity.name}
+          name={occurrenceDisplayName(activity.name, activity.copyNumber)}
           category={category}
           bodyZones={bodyZones}
           summary={formatOccurrenceSummary(activity)}

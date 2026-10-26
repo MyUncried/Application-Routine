@@ -287,7 +287,7 @@ describe("PRE-7 A3.1 — Changer de niveau (MFN-07, MFN/AC16)", () => {
       bodyZoneIds: ["cuisses"],
       phases: [],
       nextPhaseId: 1,
-      used: true,
+      aliases: [],
       levelGroup: null,
     });
     await movements().attachToGroup("genou", assisted.movementId);

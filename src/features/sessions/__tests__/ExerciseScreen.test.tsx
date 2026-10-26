@@ -18,7 +18,7 @@ import type { ImportItem } from "@/domain/media/ActivityMediaImportService";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
-import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { createExerciseDraft, draftMovementOf, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { EDITOR_HEADER, editorSideMargin, isActivityEditorFormValid } from "@/features/activities/ActivityEditorForm";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -1878,12 +1878,15 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(finished.sourceMovementId).toBe("mov-1");
   });
 
-  it("recette JA (Hermann, 26/10/2026) : copie en attente d'une occurrence locale — contenu et structure modifiables comme la source, filiation pré-allouée conservée dans le brouillon", () => {
+  // PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : la copie d'une création locale
+  // référence le même Mouvement NEW du brouillon (`pendingLocalMovement` retiré) ; contenu et
+  // structure modifiables comme la source, la modification s'inscrit dans ce Mouvement partagé.
+  it("recette JA (Hermann, 26/10/2026), R-3 : copie d'une occurrence locale — contenu et structure modifiables comme la source ; Mouvement NEW partagé mis à jour, original et copie relisent le nouveau nom", () => {
+    const source = canonicalOccurrence({ id: "occ-0", executionParameters: PHASED, sideMode: "UNILATERAL", sourceMovementId: "occ-0" });
     const { updateDraft } = renderRoute({
       params: { exerciseId: "occ-1" },
-      exercises: [
-        canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL", sourceMovementId: "occ-0", pendingLocalMovement: true }),
-      ],
+      exercises: [source, { ...source, id: "occ-1", copyNumber: 1 }],
+      draft: { movements: { "occ-0": draftMovementOf(source, "NEW") } },
     });
     expect(screen.getByTestId("exercise-name-input").props.editable).toBe(true);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).not.toBe(false);
@@ -1895,10 +1898,13 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes lentes");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
-    const finished = (updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>).exercises![0]!;
-    expect(finished.name).toBe("Fentes lentes");
-    // La décision de filiation est prise à la conversion (`settlePendingLocalCopies`), jamais ici.
-    expect(finished).toMatchObject({ sourceMovementId: "occ-0", pendingLocalMovement: true });
+    const patch = updateDraft.mock.calls[0]![0] as Partial<SessionDraftContextValue["draft"]>;
+    expect(patch.exercises!.map((exercise) => [exercise.id, exercise.name, exercise.sourceMovementId, exercise.copyNumber ?? null])).toEqual([
+      ["occ-0", "Fentes lentes", "occ-0", null],
+      ["occ-1", "Fentes lentes", "occ-0", 1],
+    ]);
+    expect(patch.movements?.["occ-0"]).toMatchObject({ change: "NEW", name: "Fentes lentes" });
+    expect(patch.exercises![1]).not.toHaveProperty("pendingLocalMovement");
   });
 
   it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure modifiable (exception MFN-09)", () => {

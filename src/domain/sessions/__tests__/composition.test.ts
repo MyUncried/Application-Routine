@@ -13,16 +13,25 @@ import {
   moveOccurrenceOutcome,
   moveStopPoint,
   nextCopyName,
+  nextCopyNumber,
+  occurrenceDisplayName,
   orderActivitiesByZone,
   removeActivity,
   removeOccurrence,
   removeOccurrenceOutcome,
   resolveTourBoundaryConflict,
-  settlePendingLocalCopies,
   stepOccurrence,
   type CompositionState,
 } from "@/domain/sessions/composition";
-import { createExerciseDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import {
+  createEmptyDraft,
+  createExerciseDraft,
+  draftMovementOf,
+  toCreateSessionInput,
+  withDraftMovement,
+  type SessionDraft,
+  type SessionDraftExercise,
+} from "@/domain/sessions/SessionDraft";
 import type { StructuralPosition } from "@/domain/sessions/Session";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -324,17 +333,22 @@ describe("appendActivityAfterLastDisplayed", () => {
 });
 
 describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
+  // PRE-7 (R-3, C05) : chaque occurrence terminée référence son Mouvement (création locale :
+  // Mouvement NEW à l'identifiant de l'occurrence).
   const activities = [
-    anActivity("before-1", "BEFORE_TOUR", { name: "Échauffement" }),
+    anActivity("before-1", "BEFORE_TOUR", { name: "Échauffement", sourceMovementId: "before-1" }),
     anActivity("in-1", "IN_TOUR", {
       name: "Gainage",
       executionParameters: durationParameters(45, 3, 20),
       postActivityRecoverySeconds: 90,
       instruction: "Dos droit",
       bodyZoneIds: ["dos"],
+      sourceMovementId: "in-1",
     }),
-    anActivity("in-2", "IN_TOUR", { name: "Squats" }),
+    anActivity("in-2", "IN_TOUR", { name: "Squats", sourceMovementId: "in-2" }),
   ];
+  const displayed = (list: readonly SessionDraftExercise[]) =>
+    list.map((activity) => occurrenceDisplayName(activity.name, activity.copyNumber));
 
   it("inserts the copy immediately after its source, in the same structural zone", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
@@ -343,21 +357,26 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
   });
 
   /**
-   * PRE-6 (story 2.3, D-124, RM-021, ch13) : la copie est nommée
+   * PRE-6 (story 2.3, D-124, RM-021, ch13) : la copie est affichée
    * `{nom} (copie)`, puis `{nom} (copie 2)`… sans collision (remplace
-   * l'attente T02-S02 d'un titre identique).
+   * l'attente T02-S02 d'un titre identique). PRE-7 (R-3, Q3 de Hermann du
+   * 26/10/2026) : le suffixe est le numéro de copie, attribut non éditable de
+   * l'occurrence ; le nom reste celui du Mouvement, jamais renommé.
    */
-  it("gives the copy a new identifier and the « (copie) » suffix, leaving the source untouched", () => {
+  it("gives the copy a new identifier, the same Movement and name, and copy number 1 (« (copie) »), leaving the source untouched", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
     expect(next[2]?.id).toBe("copy-1");
-    expect(next[2]?.name).toBe("Gainage (copie)");
+    expect(next[2]?.name).toBe("Gainage");
+    expect(next[2]?.sourceMovementId).toBe("in-1");
+    expect(next[2]?.copyNumber).toBe(1);
+    expect(displayed(next)[2]).toBe("Gainage (copie)");
     expect(next[1]).toBe(activities[1]);
   });
 
   it("copies every parameter and association of the source, Récupération attachée included", () => {
     const next = duplicateActivity(activities, "in-1", "copy-1");
-    // PRE-7 (A1.3) : source locale non enregistrée → filiation pré-allouée (identifiant de la source).
-    expect(next[2]).toEqual({ ...activities[1], id: "copy-1", name: "Gainage (copie)", sourceMovementId: "in-1", pendingLocalMovement: true });
+    // PRE-7 (R-3, C05) : même Mouvement que la source, numéro de copie propre ; aucune marque d'attente.
+    expect(next[2]).toEqual({ ...activities[1], id: "copy-1", copyNumber: 1 });
     expect(next[2]?.postActivityRecoverySeconds).toBe(90);
     expect(next[2]?.executionParameters).toEqual(durationParameters(45, 3, 20));
     // AD-9 : clonage profond — aucune référence partagée des paramètres.
@@ -374,7 +393,9 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     const once = duplicateActivity(activities, "in-1", "copy-1");
     const twice = duplicateActivity(once, "in-1", "copy-2");
     const thrice = duplicateActivity(twice, "in-1", "copy-3");
-    expect(thrice.map((activity) => activity.name)).toEqual([
+    expect(thrice.map((activity) => activity.copyNumber ?? null)).toEqual([null, null, 3, 2, 1, null]);
+    expect(new Set(thrice.slice(1, 5).map((activity) => activity.sourceMovementId))).toEqual(new Set(["in-1"]));
+    expect(displayed(thrice)).toEqual([
       "Échauffement",
       "Gainage",
       "Gainage (copie 3)",
@@ -386,10 +407,37 @@ describe("duplicateActivity (AC-06 ; T02-S02, D-138)", () => {
     expect(new Set(ids(thrice)).size).toBe(thrice.length);
   });
 
-  it("names a copy of a copy from its exact source name", () => {
+  // PRE-7 (R-3, Q3) : la copie d'une copie est une occurrence du même Mouvement — numéro suivant,
+  // jamais un suffixe empilé (« (copie) (copie) »).
+  it("numbers a copy of a copy within the same Movement (« (copie 2) »)", () => {
     const once = duplicateActivity(activities, "in-1", "copy-1");
     const ofCopy = duplicateActivity(once, "copy-1", "copy-2");
-    expect(ofCopy.find((activity) => activity.id === "copy-2")?.name).toBe("Gainage (copie) (copie)");
+    const copy = ofCopy.find((activity) => activity.id === "copy-2");
+    expect([copy?.name, copy?.sourceMovementId, copy?.copyNumber]).toEqual(["Gainage", "in-1", 2]);
+    expect(occurrenceDisplayName(copy!.name, copy!.copyNumber)).toBe("Gainage (copie 2)");
+  });
+
+  it("R-3 : deux copies → 1 puis 2, même Mouvement et même nom ; copie 1 supprimée puis nouvelle copie → 1 réattribué", () => {
+    const twice = duplicateActivity(duplicateActivity(activities, "in-1", "copy-1"), "in-1", "copy-2");
+    const copies = twice.filter((activity) => activity.id.startsWith("copy-"));
+    expect(copies.map((activity) => [activity.id, activity.copyNumber, activity.sourceMovementId, activity.name])).toEqual([
+      ["copy-2", 2, "in-1", "Gainage"],
+      ["copy-1", 1, "in-1", "Gainage"],
+    ]);
+    const withoutFirst = removeActivity(twice, "copy-1");
+    expect(nextCopyNumber(withoutFirst, "in-1")).toBe(1);
+    const again = duplicateActivity(withoutFirst, "in-1", "copy-3");
+    expect(again.find((activity) => activity.id === "copy-3")?.copyNumber).toBe(1);
+    // Numérotation propre à chaque Mouvement : « Squats » a sa propre suite.
+    expect(duplicateActivity(again, "in-2", "copy-4").find((activity) => activity.id === "copy-4")?.copyNumber).toBe(1);
+  });
+
+  it("occurrenceDisplayName (R-3, Q3) : nom seul pour l'original, « (copie) » pour 1, « (copie n) » au-delà", () => {
+    expect(occurrenceDisplayName("Squat", null)).toBe("Squat");
+    expect(occurrenceDisplayName("Squat", undefined)).toBe("Squat");
+    expect(occurrenceDisplayName("Squat", 1)).toBe("Squat (copie)");
+    expect(occurrenceDisplayName("Squat", 2)).toBe("Squat (copie 2)");
+    expect(occurrenceDisplayName("Squat", 12)).toBe("Squat (copie 12)");
   });
 
   it("nextCopyName takes the first free suffix, filling a gap", () => {
@@ -1134,102 +1182,116 @@ describe("story 7.1 — revue : pas, retrait itératif, conflits à plusieurs po
 });
 
 /**
- * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
- * déverrouillée ») : une copie en attente reste modifiable ; à la conversion, elle ne garde la
- * filiation pré-allouée que si son geste est identique à celui de sa référence (MFN-03, MFN-09).
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026 : « Le contenu du mouvement est
+ * désormais partagé… N'ajoute pas de mécanisme particulier ») : `settlePendingLocalCopies` et
+ * `pendingLocalMovement` sont retirés. La copie d'une création locale référence le même Mouvement
+ * NEW du brouillon ; corriger ce Mouvement (`withDraftMovement`), depuis l'original ou depuis la
+ * copie, met à jour la vue de toutes ses occurrences, chacune gardant ses paramètres propres.
  */
-describe("settlePendingLocalCopies (recette JA)", () => {
-  const phased = (labels: readonly string[]) => {
+describe("copies d'un Mouvement local : contenu partagé (R-3, withDraftMovement)", () => {
+  const phased = (durations: readonly [number, number], countdownSeconds = 0) => {
     const base = durationParameters(9, 3, 15);
     if (base.series.kind !== "UNIFORM") throw new Error("uniform expected");
     return {
       ...base,
-      series: { ...base.series, workPhases: labels.map((label, index) => ({ id: index + 1, label, durationSeconds: 3 })) },
+      countdownSeconds,
+      series: {
+        ...base.series,
+        workPhases: [
+          { id: 1, label: "Descente", durationSeconds: durations[0] },
+          { id: 2, label: "Remontée", durationSeconds: durations[1] },
+        ],
+      },
     };
   };
   const source = anActivity("S", "IN_TOUR", {
     name: "Fentes",
     instruction: "Dos droit",
     categoryId: "cat-1",
-    bodyZoneIds: ["jambes", "fessiers"],
-    executionParameters: phased(["Descente", "Remontée"]),
-    media: [{ assetId: "a-1", asset: { id: "a-1", kind: "PHOTO", uri: "file:///a-1.jpg", mimeType: "image/jpeg" } as never }],
+    bodyZoneIds: ["jambes"],
+    sourceMovementId: "S",
+    executionParameters: phased([3, 6]),
   });
-  const withCopy = () => duplicateActivity([source], "S", "C1");
-  const copyOf = (activities: readonly SessionDraftExercise[], id: string) => activities.find((activity) => activity.id === id)!;
-  const isDetached = (activity: SessionDraftExercise) =>
-    activity.sourceMovementId === undefined && activity.pendingLocalMovement === undefined;
-
-  it("copie intacte : filiation pré-allouée et marque conservées, collection inchangée", () => {
-    const activities = withCopy();
-    const settled = settlePendingLocalCopies(activities);
-    expect(settled).toBe(activities);
-    expect(copyOf(settled, "C1")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
-  });
-
-  it("copie dont seuls les paramètres propres changent (durées, séries) : filiation conservée", () => {
-    const activities = withCopy().map((activity) =>
-      activity.id === "C1" ? { ...activity, executionParameters: { ...activity.executionParameters, countdownSeconds: 7 } } : activity,
+  const draftWithCopy = (): SessionDraft => {
+    const exercises = duplicateActivity([source], "S", "C1").map((activity) =>
+      activity.id === "C1" ? { ...activity, executionParameters: phased([4, 5], 7), postActivityRecoverySeconds: 30 } : activity,
     );
-    expect(copyOf(settlePendingLocalCopies(activities), "C1")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
-  });
+    return { ...createEmptyDraft(), exercises, movements: { S: draftMovementOf(source, "NEW") } };
+  };
+  const byId = (draft: Pick<SessionDraft, "exercises">, id: string) => draft.exercises.find((activity) => activity.id === id)!;
 
-  it("nom de copie de rang N, nom identique ou copie d'une copie : même nom modulo suffixe", () => {
-    for (const name of ["Fentes", "Fentes (copie 3)", "Fentes (copie) (copie)", "  Fentes   (copie) "]) {
-      const activities = withCopy().map((activity) => (activity.id === "C1" ? { ...activity, name } : activity));
-      expect(copyOf(settlePendingLocalCopies(activities), "C1").sourceMovementId).toBe("S");
+  it("Mouvement NEW corrigé depuis la copie : l'original et la copie affichent le nouveau contenu ; paramètres distincts ; durées conservées par identité de phase", () => {
+    const draft = draftWithCopy();
+    const copy = byId(draft, "C1");
+    expect([copy.sourceMovementId, copy.copyNumber, copy.name]).toEqual(["S", 1, "Fentes"]);
+    const corrected = {
+      ...draftMovementOf(copy, "NEW"),
+      name: "Fentes arrière",
+      description: "Genou aligné",
+      categoryId: "cat-2",
+      bodyZoneIds: ["jambes", "genoux"],
+      // Ordre et libellé changés, phase 3 ajoutée : identités 2 et 1 conservées.
+      phases: [
+        { id: 2, label: "Remontée lente" },
+        { id: 1, label: "Descente" },
+        { id: 3, label: "Maintien" },
+      ],
+      nextPhaseId: 4,
+    };
+    const next = withDraftMovement(draft, corrected);
+
+    expect(next.movements).toEqual({ S: corrected });
+    for (const id of ["S", "C1"]) {
+      expect(byId(next, id)).toMatchObject({
+        name: "Fentes arrière",
+        instruction: "Genou aligné",
+        categoryId: "cat-2",
+        bodyZoneIds: ["jambes", "genoux"],
+        sourceMovementId: "S",
+      });
     }
+    expect(byId(next, "S").executionParameters.series.workPhases).toEqual([
+      { id: 2, label: "Remontée lente", durationSeconds: 6 },
+      { id: 1, label: "Descente", durationSeconds: 3 },
+      { id: 3, label: "Maintien", durationSeconds: 0 },
+    ]);
+    expect(byId(next, "C1").executionParameters.series.workPhases).toEqual([
+      { id: 2, label: "Remontée lente", durationSeconds: 5 },
+      { id: 1, label: "Descente", durationSeconds: 4 },
+      { id: 3, label: "Maintien", durationSeconds: 0 },
+    ]);
+    // Paramètres propres de chaque occurrence : inchangés et indépendants.
+    expect([byId(next, "S").executionParameters.countdownSeconds, byId(next, "C1").executionParameters.countdownSeconds]).toEqual([0, 7]);
+    expect([byId(next, "S").postActivityRecoverySeconds, byId(next, "C1").postActivityRecoverySeconds]).toEqual([null, 30]);
+    expect(byId(next, "C1").copyNumber).toBe(1);
+    // Le brouillon d'origine n'est pas modifié (fonction pure).
+    expect(byId(draft, "S").name).toBe("Fentes");
   });
 
-  it.each([
-    ["phase", { executionParameters: phased(["Descente", "Maintien"]) }],
-    ["structure retirée", { executionParameters: phased([]) }],
-    ["description", { instruction: "Genou aligné" }],
-    ["média", { media: [] }],
-    ["catégorie", { categoryId: "cat-2" }],
-    ["zone", { bodyZoneIds: ["jambes"] }],
-    ["nom", { name: "Fentes sautées" }],
-  ] satisfies [string, Partial<SessionDraftExercise>][])("copie modifiée (%s) : émise sans filiation (Mouvement propre)", (_label, change) => {
-    const activities = withCopy().map((activity) => (activity.id === "C1" ? { ...activity, ...change } : activity));
-    const settled = settlePendingLocalCopies(activities);
-    expect(settled).not.toBe(activities);
-    expect(isDetached(copyOf(settled, "C1"))).toBe(true);
-    expect(copyOf(settled, "C1").name).toBe(copyOf(activities, "C1").name);
-    expect(copyOf(settled, "S")).toBe(source);
+  it("une occurrence d'un autre Mouvement n'est jamais touchée ; un seul Mouvement émis à l'enregistrement", () => {
+    const other = anActivity("O", "IN_TOUR", { name: "Gainage", sourceMovementId: "mov-cat" });
+    const draft = { ...draftWithCopy(), name: "Séance", exercises: [...draftWithCopy().exercises, other] };
+    const next = { ...draft, ...withDraftMovement(draft, { ...draftMovementOf(source, "NEW"), name: "Fentes avant" }) };
+    expect(byId(next, "O")).toBe(other);
+    const input = toCreateSessionInput({
+      ...next,
+      exercises: next.exercises.map((activity) => (activity.id === "O" ? activity : { ...activity, categoryId: "cardio" })),
+      movements: { S: { ...next.movements!.S!, categoryId: "cardio", bodyZoneIds: ["cuisses"] } },
+    });
+    expect(input.ok).toBe(true);
+    if (!input.ok) return;
+    expect(input.value.movements?.map((movement) => [movement.id, movement.change, movement.name])).toEqual([["S", "NEW", "Fentes avant"]]);
+    expect(input.value.exercises.map((activity) => [activity.id, activity.sourceMovementId, activity.copyNumber ?? null])).toEqual([
+      ["S", "S", null],
+      ["C1", "S", 1],
+      ["O", "mov-cat", null],
+    ]);
   });
 
-  it("zones dans un autre ordre : identiques (ensemble)", () => {
-    const activities = withCopy().map((activity) =>
-      activity.id === "C1" ? { ...activity, bodyZoneIds: ["fessiers", "jambes"] } : activity,
-    );
-    expect(copyOf(settlePendingLocalCopies(activities), "C1").sourceMovementId).toBe("S");
-  });
-
-  it("source modifiée après duplication, copie intacte : copie émise sans filiation", () => {
-    const activities = withCopy().map((activity) => (activity.id === "S" ? { ...activity, instruction: "Autre" } : activity));
-    expect(isDetached(copyOf(settlePendingLocalCopies(activities), "C1"))).toBe(true);
-  });
-
-  it("source supprimée : la 1re copie est la référence ; la 2e partage si identique, sinon détachée", () => {
-    const two = duplicateActivity(withCopy(), "S", "C2").filter((activity) => activity.id !== "S");
-    expect(two.map((activity) => activity.id)).toEqual(["C2", "C1"]);
-    const shared = settlePendingLocalCopies(two);
-    expect(shared).toBe(two);
-    const changed = two.map((activity) => (activity.id === "C1" ? { ...activity, categoryId: "cat-9" } : activity));
-    const settled = settlePendingLocalCopies(changed);
-    expect(copyOf(settled, "C2")).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
-    expect(isDetached(copyOf(settled, "C1"))).toBe(true);
-  });
-
-  it("nom de source à la longueur maximale : la copie au nom tronqué garde la filiation", () => {
-    const long = anActivity("L", "IN_TOUR", { name: "é".repeat(NAME_MAX_LENGTH) });
-    const activities = duplicateActivity([long], "L", "LC");
-    expect(copyOf(activities, "LC").name).not.toBe(long.name);
-    expect(copyOf(settlePendingLocalCopies(activities), "LC")).toMatchObject({ sourceMovementId: "L", pendingLocalMovement: true });
-  });
-
-  it("filiation persistée (sans marque) : jamais modifiée", () => {
-    const activities = [source, anActivity("X", "IN_TOUR", { name: "Autre", sourceMovementId: "S" })];
-    expect(settlePendingLocalCopies(activities)).toBe(activities);
+  it("Mouvement dont toutes les occurrences sont retirées : non émis", () => {
+    const draft = { ...draftWithCopy(), name: "Séance" };
+    const withoutLocal = { ...draft, exercises: [anActivity("O", "IN_TOUR", { name: "Gainage", sourceMovementId: "mov-cat" })] };
+    const input = toCreateSessionInput(withoutLocal);
+    expect(input.ok && input.value.movements).toEqual([]);
   });
 });

@@ -264,13 +264,18 @@ export type CorrectionEdit = {
 
 /** Ce que l'interface doit savoir avant d'enregistrer une correction (MFN-08, ch11). */
 export type CorrectionAssessment = {
-  /** État durable « déjà utilisé » du Mouvement. */
+  /**
+   * PRE-7 (R-3, D-445 C03, qui retire l'indicateur irréversible « déjà utilisé » de MFN-08) :
+   * le Mouvement est utilisé par au moins un AUTRE exercice — définitions du Catalogue et
+   * occurrences de Séance persistées, comptées une fois, hors exercice édité — ou par une
+   * exécution enregistrée (aucune avant le moteur T04).
+   */
   readonly movementUsed: boolean;
   /** Nom, description, médias ou structure des phases (identités, libellés, ordre) modifiés. */
   readonly sensitiveChange: boolean;
   /** L'ensemble des identités de phases change (étape de complétion possible). */
   readonly structuralChange: boolean;
-  /** « Déjà utilisé » ET changement sensible : la question d'identité doit être posée (MFN-08). */
+  /** Utilisé par un autre exercice ET changement sensible : la question d'identité doit être posée. */
   readonly requiresIdentityDecision: boolean;
   /** Nombre de définitions du Catalogue qui partagent déjà le Mouvement (portée affichée du dialogue). */
   readonly affectedDefinitionCount: number;
@@ -287,7 +292,9 @@ function samePhases(a: readonly MovementPhase[], b: readonly MovementPhase[]): b
 /**
  * Évaluation d'une correction du Mouvement `movement` (MFN-08) : `siblings`
  * sont les AUTRES définitions qui le partagent (hors Exercice édité),
- * `affectedDefinitionCount` le nombre de définitions qui le partagent déjà.
+ * `affectedDefinitionCount` le nombre de définitions qui le partagent déjà,
+ * `otherUsageCount` (R-3, C03) le nombre d'AUTRES exercices qui l'utilisent
+ * (définitions hors Exercice édité, plus occurrences de Séance persistées).
  * Une modification limitée aux paramètres, à la Catégorie ou aux Zones n'est
  * pas sensible. Aucun effet ; la décision appartient à l'interface (A2.2).
  */
@@ -296,6 +303,7 @@ export function assessSharedCorrection(
   edit: CorrectionEdit,
   siblings: readonly SiblingDefinition[],
   affectedDefinitionCount: number,
+  otherUsageCount: number,
 ): CorrectionAssessment {
   const mediaChanged =
     edit.mediaAssetIds !== undefined && edit.mediaAssetIds.join("\u0000") !== movement.media.map((item) => item.assetId).join("\u0000");
@@ -316,10 +324,10 @@ export function assessSharedCorrection(
     }
   }
   return {
-    movementUsed: movement.used,
+    movementUsed: otherUsageCount > 0,
     sensitiveChange,
     structuralChange,
-    requiresIdentityDecision: movement.used && sensitiveChange,
+    requiresIdentityDecision: otherUsageCount > 0 && sensitiveChange,
     affectedDefinitionCount,
     siblingGaps,
     ineligibleDefinitionIds,

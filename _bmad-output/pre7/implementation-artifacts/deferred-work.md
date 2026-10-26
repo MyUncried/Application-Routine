@@ -88,3 +88,19 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-2-phases-motif-commun.md`
   summary: Retirer le cas `INELIGIBLE` / `INELIGIBLE_SIBLINGS`, devenu inatteignable depuis R-2 (sharedCorrection.ts:83, 90, 233, 312 ; ActivityDefinitionService.ts:65, 148).
   evidence: `planSiblingCorrection` ne renvoie plus `INELIGIBLE` (phases communes aux séries variables) ; à traiter avec R-4, qui réécrit la condition de correction partagée.
+
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
+  summary: Nom de Mouvement déjà pris ou en double dans le brouillon : la Séance n'est pas enregistrée, mais l'interface n'en dit pas la cause (erreur générique, ou `Continuer` inactif).
+  evidence: `CompositionScreen.handleSave` capte `DuplicateMovementNameError` comme une erreur quelconque ; `validateSessionMovements` rend `DUPLICATE` sur `exercise.name`. À traiter avec R-5 (contrôle d'unicité pendant la saisie, C01).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
+  summary: Un Mouvement créé depuis une Séance reste en base après le retrait de sa dernière occurrence et garde son nom (medium, non vérifié).
+  evidence: Il reste trouvable par `MovementRepository.search`. À vérifier avec R-5 (écran de recherche R03) : il y est visible, et il peut être supprimé ou réutilisé.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
+  summary: La portée affichée d'une correction du Catalogue doit inclure les occurrences de Séance.
+  evidence: `affectedDefinitionCount` ne compte que les définitions ; R-4 refait le dialogue avec le décompte définitions plus occurrences.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
+  summary: migration013, comme la 012, laisse sur l'appareil les fichiers des médias dont les lignes sont supprimées.
+  evidence: L'en-tête de `migration013.ts` le dit (« les fichiers physiques ne sont pas touchés ») ; aucune purge n'est prévue.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-3-occurrence-sans-copie-migration-013.md`
+  summary: La traduction d'une violation de l'index UNIQUE en `DuplicateMovementNameError` (`withNameUniqueness`) n'est couverte par aucun test.
+  evidence: Les tests passent toujours par la vérification préalable `assertNameAvailable` ; il faudrait un cas où cette vérification passe et l'index refuse l'écriture.

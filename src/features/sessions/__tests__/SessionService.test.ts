@@ -23,6 +23,7 @@ import {
 } from "@/domain/sessions/defaults";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionValidationError } from "@/domain/sessions/errors";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import type {
   SessionRepository,
   SessionStatus,
@@ -84,11 +85,28 @@ function aSession(overrides: Partial<Session> = {}): Session {
   };
 }
 
+/** PRE-7 (R-3, C05) : Exercice créé localement (Mouvement NEW à son identifiant, `withLocalMovements`). */
 function aValidDraft(): SessionDraft {
-  return {
+  return withLocalMovements({
     ...createEmptyDraft(),
     name: "Séance simple",
     exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
+  });
+}
+
+/** PRE-7 (R-3) : Mouvement NEW émis pour une création locale (Catégorie et Zone par défaut des tests). */
+function newMovement(id: string, name: string) {
+  return {
+    id,
+    change: "NEW",
+    name,
+    description: null,
+    categoryId: "cardio",
+    bodyZoneIds: ["cuisses"],
+    media: [],
+    phases: [],
+    nextPhaseId: 1,
+    aliases: [],
   };
 }
 
@@ -100,11 +118,11 @@ function normalizedExercise() {
     id: "ex-1",
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
-    name: "Gainage",
     executionParameters: durationParameters(30, 1, 0),
     postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
-    instruction: null,
-    bodyZoneIds: [],
+    // PRE-7 (R-3, C05) : référence au Mouvement, aucun contenu.
+    sourceMovementId: "ex-1",
+    copyNumber: null,
   };
 }
 
@@ -140,11 +158,11 @@ describe("SessionService.createSession", () => {
     repository.create.mockResolvedValue(created);
     const service = new SessionService(repository);
 
-    const draft: SessionDraft = {
-      ...aValidDraft(),
+    const draft: SessionDraft = withLocalMovements({
+      ...createEmptyDraft(),
       name: "  Séance   simple  ",
       exercises: [{ ...createExerciseDraft("ex-1"), name: "  Gainage  " }],
-    };
+    });
 
     const result = await service.createSession(draft);
 
@@ -156,6 +174,8 @@ describe("SessionService.createSession", () => {
       finalPhaseSeconds: 5,
       tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
       exercises: [normalizedExercise()],
+      // PRE-7 (R-3, C05) : le contenu va au Mouvement NEW, nom normalisé.
+      movements: [newMovement("ex-1", "Gainage")],
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : `[]` par défaut —
       // aucun Point d'arrêt porté par le brouillon.
       stopPoints: [],
@@ -172,20 +192,22 @@ describe("SessionService.createSession", () => {
     repository.create.mockResolvedValue(aSession());
     const service = new SessionService(repository);
 
-    const draft: SessionDraft = {
-      ...aValidDraft(),
+    const draft: SessionDraft = withLocalMovements({
+      ...createEmptyDraft(),
+      name: "Séance simple",
       exercises: [
         { ...createExerciseDraft("ex-1"), name: "Gainage" },
         { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(45) },
       ],
       labelId: "label-1",
-    };
+    });
 
     await service.createSession(draft);
 
     expect(repository.create).toHaveBeenCalledWith(
       expect.objectContaining({
-        exercises: [normalizedExercise(), expect.objectContaining({ name: "Squats", executionParameters: durationParameters(45) })],
+        exercises: [normalizedExercise(), expect.objectContaining({ sourceMovementId: "ex-2", executionParameters: durationParameters(45) })],
+        movements: [newMovement("ex-1", "Gainage"), newMovement("ex-2", "Squats")],
         labelId: "label-1",
       }),
     );
@@ -216,11 +238,11 @@ describe("SessionService.createSession", () => {
     repository.create.mockResolvedValue(aSession());
     const service = new SessionService(repository);
 
-    const draft: SessionDraft = {
+    const draft: SessionDraft = withLocalMovements({
       ...createEmptyDraft(),
       name: "Séance simple",
       exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage" }],
-    };
+    });
 
     await service.createSession(draft);
 
@@ -275,12 +297,12 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
     repository.update.mockResolvedValue(outcome);
     const service = new SessionService(repository);
 
-    const draft: SessionDraft = {
-      ...anEditDraft(),
+    const draft: SessionDraft = withLocalMovements({
+      ...createEmptyDraft(),
       sourceSessionId: "stale-id",
       name: "  Nom modifié  ",
       exercises: [{ ...createExerciseDraft("act-1"), name: "  Gainage  " }],
-    };
+    });
 
     const result = await service.updateSession("session-1", draft);
 
@@ -298,13 +320,13 @@ describe("SessionService.updateSession (T01-S10, Q3-A — toUpdateSessionInput)"
           type: "EXERCISE",
           structuralPosition: "BEFORE_TOUR",
           position: 0,
-          name: "Gainage",
           executionParameters: durationParameters(30, 1, 0),
           postActivityRecoverySeconds: null, // PRE-6 (story 1.1, AD-35) : née sans récupération
-          instruction: null,
-          bodyZoneIds: [],
+          sourceMovementId: "act-1",
+          copyNumber: null,
         },
       ],
+      movements: [newMovement("act-1", "Gainage")],
       stopPoints: [],
     });
     expect(result).toEqual(outcome);
@@ -465,13 +487,16 @@ describe("SessionService.createSession — plus d'écrasement de la récupérati
     sessionRepository.create.mockResolvedValue(aSession());
     const service = new SessionService(sessionRepository);
 
-    await service.createSession({
-      ...aValidDraft(),
-      exercises: [
-        { ...createExerciseDraft("ex-1", 30), name: "Gainage" },
-        { ...createExerciseDraft("ex-2", 45), name: "Squats" },
-      ],
-    });
+    await service.createSession(
+      withLocalMovements({
+        ...createEmptyDraft(),
+        name: "Séance simple",
+        exercises: [
+          { ...createExerciseDraft("ex-1", 30), name: "Gainage" },
+          { ...createExerciseDraft("ex-2", 45), name: "Squats" },
+        ],
+      }),
+    );
 
     expect(sessionRepository.create).toHaveBeenCalledWith(
       expect.objectContaining({

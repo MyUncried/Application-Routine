@@ -1,8 +1,4 @@
-import type {
-  ActivityMediaWithAsset,
-  MediaLinkInput,
-  SessionActivityMediaWithAsset,
-} from "@/domain/media/ActivityMedia";
+import type { ActivityMediaWithAsset, MediaLinkInput } from "@/domain/media/ActivityMedia";
 import { isValidNewMediaAsset, type MediaAsset } from "@/domain/media/MediaAsset";
 import type { MediaRepository } from "@/domain/media/MediaRepository";
 import type { Database } from "@/infrastructure/database/Database";
@@ -10,10 +6,7 @@ import type {
   JoinedMediaAssetColumns,
   MovementMediaRow,
   MediaAssetRow,
-  SessionActivityMediaRow,
 } from "@/infrastructure/database/types/DatabaseRows";
-
-type UuidFactory = () => string;
 
 /** Colonnes de l'asset jointes à un lien (`asset_*`). */
 export const JOINED_ASSET_COLUMNS = `
@@ -39,8 +32,9 @@ export class MediaAssetWriteError extends Error {
 /**
  * Médias ordonnés (V2-PRE-1, `migration007` ; PRE-3, `migration009`).
  * PRE-7 (A1.2, `migration012`) : les médias d'un Exercice du Catalogue sont
- * ceux de son Mouvement (`movement_media`, contenu partagé) ; les occurrences
- * gardent leurs propres liens (`session_activity_media`).
+ * ceux de son Mouvement (`movement_media`, contenu partagé). PRE-7 (R-3,
+ * `migration013`, D-445 C05) : les occurrences de Séance n'ont plus de liens
+ * propres (`session_activity_media` supprimée) ; elles lisent ceux du Mouvement.
  * Plusieurs médias DISTINCTS peuvent exister pour un même Exercice. Un
  * asset n'est JAMAIS supprimé par ce Repository : retirer un lien ne touche
  * pas au fichier (P3-23/file-preservation), la FK restrictive des liens
@@ -56,12 +50,6 @@ export class SqliteMediaRepository implements MediaRepository {
     return byDefinition.get(activityDefinitionId) ?? [];
   }
 
-  async listForSessionActivities(
-    activityIds: readonly string[],
-  ): Promise<ReadonlyMap<string, readonly SessionActivityMediaWithAsset[]>> {
-    return listSessionActivityMediaByIds(this.database, activityIds);
-  }
-
   async findAsset(assetId: string): Promise<MediaAsset | null> {
     const row = await this.database.getFirstAsync<MediaAssetRow>(
       `SELECT id, uri, created_at, kind, mime_type, file_name, size_bytes, duration_ms, width, height
@@ -74,9 +62,8 @@ export class SqliteMediaRepository implements MediaRepository {
   async countReferences(assetId: string): Promise<number> {
     const row = await this.database.getFirstAsync<{ count: number }>(
       `SELECT
-         (SELECT COUNT(*) FROM movement_media WHERE asset_id = ?)
-         + (SELECT COUNT(*) FROM session_activity_media WHERE asset_id = ?) AS count`,
-      [assetId, assetId],
+         (SELECT COUNT(*) FROM movement_media WHERE asset_id = ?) AS count`,
+      [assetId],
     );
     return row?.count ?? 0;
   }
@@ -123,16 +110,6 @@ function mapDefinitionMediaRow(row: MovementMediaRow & { activity_definition_id:
   };
 }
 
-function mapSessionActivityMediaRow(row: SessionActivityMediaRow): SessionActivityMediaWithAsset {
-  return {
-    id: row.id,
-    activityId: row.activity_id,
-    assetId: row.asset_id,
-    position: row.position,
-    asset: mapJoinedAsset(row.asset_id, row),
-  };
-}
-
 function placeholders(values: readonly unknown[]): string {
   return values.map(() => "?").join(", ");
 }
@@ -165,36 +142,6 @@ export async function listDefinitionMediaByIds(
     const list = byId.get(row.activity_definition_id) ?? [];
     list.push(mapDefinitionMediaRow(row));
     byId.set(row.activity_definition_id, list);
-  }
-  return byId;
-}
-
-/** Liens ordonnés de plusieurs occurrences en UNE requête (aucun N+1). */
-export async function listSessionActivityMediaByIds(
-  database: Database,
-  activityIds: readonly string[],
-): Promise<ReadonlyMap<string, readonly SessionActivityMediaWithAsset[]>> {
-  const byId = new Map<string, SessionActivityMediaWithAsset[]>();
-  if (activityIds.length === 0) {
-    return byId;
-  }
-  const rows = await database.getAllAsync<SessionActivityMediaRow>(
-    `SELECT
-       session_activity_media.id AS id,
-       session_activity_media.activity_id AS activity_id,
-       session_activity_media.asset_id AS asset_id,
-       session_activity_media.position AS position,
-       ${JOINED_ASSET_COLUMNS}
-     FROM session_activity_media
-     JOIN media_assets ON media_assets.id = session_activity_media.asset_id
-     WHERE session_activity_media.activity_id IN (${placeholders(activityIds)})
-     ORDER BY session_activity_media.activity_id ASC, session_activity_media.position ASC`,
-    activityIds,
-  );
-  for (const row of rows) {
-    const list = byId.get(row.activity_id) ?? [];
-    list.push(mapSessionActivityMediaRow(row));
-    byId.set(row.activity_id, list);
   }
   return byId;
 }
@@ -238,26 +185,6 @@ export async function ensureMediaAssets(
         asset.width ?? null,
         asset.height ?? null,
       ],
-    );
-  }
-}
-
-/**
- * Remplace les liens d'une occurrence (PRE-3) — identités propres, mêmes
- * fichiers physiques que la source. Les assets restent intacts.
- */
-export async function replaceSessionActivityMediaLinks(
-  transaction: Database,
-  activityId: string,
-  items: readonly MediaLinkInput[],
-  uuidFactory: UuidFactory,
-): Promise<void> {
-  await ensureMediaAssets(transaction, items);
-  await transaction.runAsync(`DELETE FROM session_activity_media WHERE activity_id = ?`, [activityId]);
-  for (const [position, item] of items.entries()) {
-    await transaction.runAsync(
-      `INSERT INTO session_activity_media (id, activity_id, asset_id, position) VALUES (?, ?, ?, ?)`,
-      [uuidFactory(), activityId, item.assetId, position],
     );
   }
 }

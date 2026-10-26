@@ -29,7 +29,7 @@ import type { Session } from "@/domain/sessions/Session";
 import { createEmptyDraft, toCreateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import type { Database } from "@/infrastructure/database/Database";
-import { STANDARD_PRAGMAS } from "@/infrastructure/database/constants";
+import { DATABASE_VERSION, STANDARD_PRAGMAS } from "@/infrastructure/database/constants";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
@@ -1088,9 +1088,10 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(12);
+    // PRE-7 (R-3) : le démarrage enchaîne `migration013` (aucun second avis : 012 a tout vidé).
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await kept(database)).toEqual(referentials);
-    for (const table of ["activity_definitions", "movements", "sessions", "activities", "media_assets", "session_activity_media"]) {
+    for (const table of ["activity_definitions", "movements", "sessions", "activities", "media_assets", "movement_media"]) {
       expect({ table, rows: await database.getAllAsync(`SELECT * FROM ${table}`) }).toEqual({ table, rows: [] });
     }
     expect(await database.getAllAsync("SELECT kind, count FROM migration_notices")).toEqual([

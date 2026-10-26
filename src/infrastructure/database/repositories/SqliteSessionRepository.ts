@@ -5,13 +5,13 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   numberTarget,
   projectScalars,
-  readResolvedExecutionParameters,
-  serializeResolvedExecutionParameters,
+  readCatalogExecutionParameters,
+  serializeCatalogExecutionParameters,
   unsetTarget,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
-import { splitResolvedParameters } from "@/domain/activities/Movement";
-import type { MediaLinkInput } from "@/domain/media/ActivityMedia";
+import { resolveCatalogParameters, splitResolvedParameters } from "@/domain/activities/Movement";
+import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
 import {
   computeActivityCount,
   computeStructuredSessionDuration,
@@ -29,6 +29,7 @@ import {
   type CreateStopPointInput,
   type Session,
   type SessionColor,
+  type SessionMovementInput,
   type SessionSummary,
   type StructuralPosition,
   type UpdateSessionActivityInput,
@@ -48,14 +49,12 @@ import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
-  ActivityBodyZoneRow,
   SessionAggregateQueryRow,
   SessionAggregateRow,
   SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
-import { listSessionActivityMediaByIds, replaceSessionActivityMediaLinks } from "./SqliteMediaRepository";
-import { insertMovement, markMovementsUsed } from "./SqliteMovementRepository";
+import { insertMovement, readMovementRecords, updateMovementContent, type MovementRecord } from "./SqliteMovementRepository";
 
 type LocalUserRow = { id: string };
 type UuidFactory = () => string;
@@ -78,7 +77,9 @@ export class RetiredLabelError extends Error {
 /**
  * PRE-3 : même garde (T16, D-210) pour la Catégorie transportée par une
  * copie — la Catégorie déjà affectée reste permise même retirée ; une
- * NOUVELLE affectation vers une Catégorie retirée est refusée.
+ * NOUVELLE affectation vers une Catégorie retirée est refusée. PRE-7 (R-3,
+ * C05) : la Catégorie appartient au Mouvement ; la garde s'applique aux
+ * Mouvements nouveaux ou corrigés depuis la Séance.
  */
 export class RetiredOccurrenceCategoryError extends Error {
   constructor() {
@@ -213,29 +214,21 @@ async function assertBodyZonesAssignable(
   }
 }
 
-/** Q53 (8) : la Catégorie est-elle affectée à au moins une Définition ou une occurrence ? */
+/** Q53 (8) : la Catégorie est-elle affectée à au moins un Mouvement (R-3 : seul porteur de la Catégorie) ? */
 async function isCategoryAssignedAnywhere(transaction: Database, categoryId: string): Promise<boolean> {
-  const row = await transaction.getFirstAsync<{ id: string }>(
-    `SELECT id FROM activities WHERE category_id = ?
-     UNION ALL
-     SELECT id FROM movements WHERE category_id = ?
-     LIMIT 1`,
-    [categoryId, categoryId],
-  );
+  const row = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE category_id = ? LIMIT 1", [
+    categoryId,
+  ]);
   return row !== null && row !== undefined;
 }
 
 /**
- * Q53 : Zones affectées à au moins une Définition du Catalogue ou une
- * occurrence de Séance, lues AVANT toute écriture de la transaction (voir
+ * Q53 : Zones affectées à au moins un Mouvement (R-3, C05 : seul porteur des
+ * Zones), lues AVANT toute écriture de la transaction (voir
  * `assertBodyZonesAssignable`).
  */
 async function getInheritableBodyZoneIds(transaction: Database): Promise<ReadonlySet<string>> {
-  const rows = await transaction.getAllAsync<{ body_zone_id: string }>(
-    `SELECT body_zone_id FROM activity_body_zones
-     UNION
-     SELECT body_zone_id FROM movement_body_zones`,
-  );
+  const rows = await transaction.getAllAsync<{ body_zone_id: string }>("SELECT DISTINCT body_zone_id FROM movement_body_zones");
   return new Set(rows.map((row) => row.body_zone_id));
 }
 
@@ -254,6 +247,10 @@ function structuralOrderSql(column: string): string {
 const STRUCTURAL_ORDER_SQL = structuralOrderSql("activities.structural_position");
 
 /**
+ * PRE-7 (R-3, D-445 C05) : l'occurrence ne porte aucun contenu ; nom,
+ * description, Catégorie, Zones, médias et structure des phases sont relus
+ * dans son Mouvement (`readMovementRecords`, une requête par table).
+ *
  * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles,
  * voir `DatabaseRows.ts`) — regroupées par `SqliteSessionRepository` avant
  * assemblage, jamais consommées une par une par l'appelant. La jointure
@@ -289,7 +286,6 @@ SELECT
   tours.nature AS tour_nature,
   activities.id AS activity_id,
   activities.type AS activity_type,
-  activities.name AS activity_name,
   activities.structural_position,
   activities.position AS activity_position,
   activities.execution_mode,
@@ -299,11 +295,10 @@ SELECT
   activities.pause_seconds,
   activities.post_activity_recovery_seconds,
   activities.post_activity_recovery_present,
-  activities.instruction,
   activities.side_mode AS activity_side_mode,
   activities.execution_parameters AS activity_execution_parameters,
-  activities.category_id AS activity_category_id,
-  activities.source_movement_id AS activity_source_movement_id
+  activities.source_movement_id AS activity_source_movement_id,
+  activities.copy_number AS activity_copy_number
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id
 JOIN cycles ON cycles.session_id = sessions.id
@@ -402,17 +397,9 @@ export class SqliteSessionRepository implements SessionRepository {
         [tourId, cycleId, sessionId, normalized.tourRepeatCount, normalized.circuitNature ?? DEFAULT_CIRCUIT_NATURE],
       );
 
-      await insertActivities(
-        transaction,
-        sessionId,
-        cycleId,
-        tourId,
-        normalized.exercises,
-        this.uuidFactory,
-        timestamp,
-      );
+      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp);
+      await insertActivities(transaction, sessionId, cycleId, tourId, normalized.exercises, this.uuidFactory, timestamp);
       await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
-      await markSessionMovementsUsed(transaction, sessionId, timestamp);
 
       created = await readSession(transaction, sessionId, user.id);
     });
@@ -501,6 +488,7 @@ export class SqliteSessionRepository implements SessionRepository {
         [normalized.tourRepeatCount, normalized.circuitNature ?? null, existingRow.tour_id, sessionId],
       );
 
+      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp);
       await mergeActivities(
         transaction,
         sessionId,
@@ -509,8 +497,6 @@ export class SqliteSessionRepository implements SessionRepository {
         existingRows.map((row) => row.activity_id),
         normalized.activities,
         timestamp,
-        this.uuidFactory,
-        new Map(existingRows.map((row) => [row.activity_id, row.activity_category_id ?? null])),
       );
 
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
@@ -523,7 +509,6 @@ export class SqliteSessionRepository implements SessionRepository {
         sessionId,
       ]);
       await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
-      await markSessionMovementsUsed(transaction, sessionId, timestamp);
 
       const session = await readSession(transaction, sessionId, user.id);
       if (!session) {
@@ -604,13 +589,82 @@ async function getLocalUser(database: Database): Promise<LocalUserRow> {
 }
 
 /**
- * Insère une Activité par élément de `activities`, puis ses Zones corporelles
- * associées.
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : écrit les
+ * Mouvements NOUVEAUX (création locale en Séance, identifiant pré-alloué par
+ * le brouillon) et CORRIGÉS du brouillon, dans la transaction de la Séance et
+ * AVANT les occurrences qui les référencent. Un échec annule la Séance entière :
+ * une création annulée ne laisse aucun Mouvement. Un nom déjà pris lève
+ * `DuplicateMovementNameError` (C01).
  *
- * **T02-S01 (plan §6.2/§10.3)** — l'insertion portait jusqu'ici trois
- * littéraux fixes (`'EXERCISE'`, `FIXED_ACTIVITY_STRUCTURAL_POSITION`, le
- * `tourId` du Tour pour TOUTE Activité) et dérivait `position` de l'index
- * GLOBAL de la collection. Elle applique désormais la structure réelle :
+ * Garde des référentiels retirés (T16, D-210, Q53) : un Mouvement nouveau peut
+ * garder une Catégorie ou une Zone retirée déjà affectée à un Mouvement ; un
+ * Mouvement corrigé garde ses propres affectations. Les liens de médias d'un
+ * Mouvement nouveau dérivent leur identité du Mouvement (aucun identifiant
+ * supplémentaire consommé) ; un Mouvement corrigé garde son groupe de niveaux.
+ */
+async function writeSessionMovements(
+  transaction: Database,
+  movements: readonly SessionMovementInput[],
+  timestamp: string,
+): Promise<void> {
+  if (movements.length === 0) {
+    return;
+  }
+  const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
+  const edited = await readMovementRecords(
+    transaction,
+    movements.filter((movement) => movement.change === "EDITED").map((movement) => movement.id),
+  );
+  for (const movement of movements) {
+    const mediaId = (position: number) => `${movement.id}:${position}:${timestamp}`;
+    const content = {
+      id: movement.id,
+      name: movement.name,
+      description: movement.description,
+      media: movement.media,
+      categoryId: movement.categoryId,
+      bodyZoneIds: movement.bodyZoneIds,
+      phases: movement.phases,
+      nextPhaseId: movement.nextPhaseId,
+      aliases: movement.aliases,
+    };
+    if (movement.change === "NEW") {
+      await assertOccurrenceCategoryAssignable(transaction, movement.categoryId, null, true);
+      await assertBodyZonesAssignable(transaction, movement.bodyZoneIds, new Set(), inheritedBodyZoneIds);
+      await insertMovement(transaction, { ...content, levelGroup: null }, timestamp, mediaId);
+      continue;
+    }
+    const current = edited.get(movement.id);
+    if (!current) {
+      throw new MovementNotFoundError(movement.id);
+    }
+    await assertOccurrenceCategoryAssignable(transaction, movement.categoryId, current.movement.categoryId);
+    await assertBodyZonesAssignable(transaction, movement.bodyZoneIds, new Set(current.movement.bodyZoneIds));
+    await updateMovementContent(transaction, { ...content, levelGroup: current.movement.levelGroup }, timestamp, mediaId);
+  }
+}
+
+/**
+ * PRE-7 (R-3, C05) : le Mouvement référencé par une occurrence d'Exercice doit
+ * exister (clé étrangère RESTRICT) ; un identifiant inconnu lève
+ * `MovementNotFoundError`, la Séance entière est annulée.
+ */
+async function assertOccurrenceMovement(transaction: Database, type: ActivityType, movementId: string | undefined): Promise<string> {
+  const id = movementId ?? "";
+  const row = id.length > 0 ? await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE id = ?", [id]) : null;
+  if (!row) {
+    if (type === "RECOVERY") {
+      throw new Error("A standalone recovery has no movement and cannot be written (D-041).");
+    }
+    throw new MovementNotFoundError(id);
+  }
+  return row.id;
+}
+
+/**
+ * Insère une Activité par élément de `activities`.
+ *
+ * **T02-S01 (plan §6.2/§10.3)** — la structure réelle est appliquée :
  *
  * - `type` et `structural_position` proviennent de l'entrée validée ;
  * - `position` est renumérotée SÉPARÉMENT DANS CHAQUE ZONE (0-indexée),
@@ -620,6 +674,10 @@ async function getLocalUser(database: Database): Promise<LocalUserRow> {
  *   `BEFORE_TOUR`/`AFTER_TOUR` (`CHECK` de `migration001`/`migration003`) ;
  * - l'identifiant du brouillon est conservé lorsqu'il est fourni, généré
  *   sinon.
+ *
+ * PRE-7 (R-3, C05) : seules les données propres de l'occurrence sont écrites
+ * (paramètres en forme Catalogue v5, durées de phase par `phaseId`, position,
+ * récupération, numéro de copie) et sa référence au Mouvement.
  */
 async function insertActivities(
   transaction: Database,
@@ -631,189 +689,67 @@ async function insertActivities(
   timestamp: string,
 ): Promise<void> {
   const positionByZone = new Map<StructuralPosition, number>();
-  // Q53 : Zones héritables, relevées avant la première insertion.
-  const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
-  // PRE-7 (A1.3) : sources locales de cette Séance, qui créent elles-mêmes leur Mouvement.
-  const localSources = localMovementSourceIds(activities);
-
   for (const activity of activities) {
     const zone = activity.structuralPosition;
     const position = positionByZone.get(zone) ?? 0;
     positionByZone.set(zone, position + 1);
-
     const activityId = activity.id ?? uuidFactory();
-    const activityTourId = activityTourIdFor(zone, tourId);
-    const values = toActivitySqlValues(activity);
-    const { bodyZoneIds } = values;
-
-    // T16 (D-210) : une Activité nouvellement créée n'a aucune affectation
-    // propre à conserver — chaque Zone demandée doit être active, sauf une
-    // Zone retirée héritée de sa source (Q53).
-    await assertBodyZonesAssignable(transaction, bodyZoneIds, new Set(), inheritedBodyZoneIds);
-    await assertOccurrenceCategoryAssignable(transaction, activity.categoryId, null, true);
-    const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activityId, activity, timestamp, localSources);
-
-    await transaction.runAsync(
-      `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
-       VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
-      [
-        activityId,
-        sessionId,
-        cycleId,
-        activityTourId,
-        activity.type,
-        zone,
-        position,
-        activity.name,
-        values.executionMode,
-        values.durationSeconds,
-        values.repetitionCount,
-        values.seriesCount,
-        values.pauseSeconds,
-        values.postActivityRecoverySeconds,
-        values.postActivityRecoveryPresent,
-        activity.instruction ?? null,
-        timestamp,
-        timestamp,
-        values.sideMode,
-        values.executionParameters,
-        activity.categoryId ?? null,
-        sourceMovementId,
-      ],
-    );
-
-    for (const bodyZoneId of bodyZoneIds) {
-      await transaction.runAsync(
-        `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)`,
-        [activityId, bodyZoneId],
-      );
-    }
-    // PRE-3 : liens ordonnés propres à cette occurrence (mêmes fichiers).
-    await replaceOccurrenceMedia(transaction, activityId, activity.media, uuidFactory);
+    const movementId = await assertOccurrenceMovement(transaction, activity.type, activity.sourceMovementId);
+    await insertActivityRow(transaction, {
+      id: activityId,
+      sessionId,
+      cycleId,
+      tourId: activityTourIdFor(zone, tourId),
+      zone,
+      position,
+      timestamp,
+      movementId,
+      activity,
+    });
   }
 }
 
-async function replaceOccurrenceMedia(
+/** Une ligne d'occurrence, à la création comme à l'ajout dans une modification (R-3). */
+async function insertActivityRow(
   transaction: Database,
-  activityId: string,
-  media: readonly MediaLinkInput[] | undefined,
-  uuidFactory: UuidFactory,
-): Promise<void> {
-  if (media === undefined) {
-    return;
-  }
-  await replaceSessionActivityMediaLinks(transaction, activityId, media, uuidFactory);
-}
-
-/**
- * PRE-7 (A1.2, D-437, MFN-03, MFN-04) : filiation d'une occurrence NOUVELLE,
- * dans la transaction de la Séance.
- *
- * - filiation portée par le brouillon (copie du Catalogue, duplication) :
- *   écrite telle quelle, sans clé étrangère ni lecture de contenu (une
- *   filiation orpheline est admise) ;
- * - occurrence créée localement (aucune filiation) avec Catégorie et Zones :
- *   son Mouvement local est créé ici (contenu de l'occurrence, structure de
- *   ses phases, sans groupe, sans définition Catalogue) ; son identifiant est
- *   celui de l'occurrence, et les identités de ses liens de médias en sont
- *   dérivées : aucun identifiant supplémentaire n'est consommé. Un échec
- *   annule la Séance entière : une création annulée ne laisse aucun Mouvement ;
- * - sans Catégorie ou sans Zone (entrées hors interface, Récupération
- *   historique) : la filiation reçoit l'identifiant de l'occurrence, sans
- *   Mouvement (orpheline admise par MFN-03) ;
- * - PRE-7 (A1.3) copie d'une occurrence locale non enregistrée
- *   (`pendingLocalMovement`, filiation pré-allouée = identifiant de la
- *   source) : écrite telle quelle ; si la source n'est pas enregistrée avec
- *   cette Séance (`localSources`) et que le Mouvement n'existe pas, la copie
- *   le crée à cet identifiant depuis son propre contenu (même règle
- *   d'éligibilité). Ainsi la source et ses copies partagent un seul Mouvement.
- */
-async function resolveNewOccurrenceFiliation(
-  transaction: Database,
-  activityId: string,
-  activity: {
-    readonly type: ActivityType;
-    readonly name: string;
-    readonly instruction?: string | null;
-    readonly executionParameters: CreateSessionActivityInput["executionParameters"];
-    readonly bodyZoneIds: readonly string[];
-    readonly categoryId?: string | null;
-    readonly media?: readonly MediaLinkInput[];
-    readonly sourceMovementId?: string;
-    readonly pendingLocalMovement?: true;
+  row: {
+    readonly id: string;
+    readonly sessionId: string;
+    readonly cycleId: string;
+    readonly tourId: string | null;
+    readonly zone: StructuralPosition;
+    readonly position: number;
+    readonly timestamp: string;
+    readonly movementId: string;
+    readonly activity: CreateSessionActivityInput | UpdateSessionActivityInput;
   },
-  timestamp: string,
-  localSources: ReadonlySet<string>,
-): Promise<string> {
-  let movementId = activityId;
-  if (activity.sourceMovementId !== undefined && activity.sourceMovementId.length > 0) {
-    if (activity.pendingLocalMovement !== true || localSources.has(activity.sourceMovementId)) {
-      return activity.sourceMovementId;
-    }
-    movementId = activity.sourceMovementId;
-  }
-  const categoryId = activity.categoryId ?? null;
-  if (activity.type !== "EXERCISE" || categoryId === null || activity.bodyZoneIds.length === 0) {
-    return movementId;
-  }
-  const existing = await transaction.getFirstAsync<{ id: string }>("SELECT id FROM movements WHERE id = ?", [movementId]);
-  if (existing) {
-    return movementId;
-  }
-  const { phases } = splitResolvedParameters(activity.executionParameters as ExecutionParameters);
-  await insertMovement(
-    transaction,
-    {
-      id: movementId,
-      name: activity.name,
-      description: activity.instruction ?? null,
-      media: activity.media ?? [],
-      categoryId,
-      bodyZoneIds: activity.bodyZoneIds,
-      phases,
-      nextPhaseId: phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1,
-      // « Déjà utilisé » est écrit au succès de l'enregistrement (`markSessionMovementsUsed`).
-      used: false,
-      levelGroup: null,
-    },
-    timestamp,
-    (position) => `${movementId}:${position}`,
-  );
-  return movementId;
-}
-
-/**
- * PRE-7 (A1.3) : identifiants des occurrences NOUVELLES créées localement
- * (Exercice sans filiation) — chacune crée son Mouvement local à son propre
- * identifiant ; une copie en attente qui la désigne ne le crée pas.
- */
-function localMovementSourceIds(
-  activities: readonly { readonly id?: string; readonly type: ActivityType; readonly sourceMovementId?: string }[],
-): ReadonlySet<string> {
-  const ids = new Set<string>();
-  for (const activity of activities) {
-    if (activity.id !== undefined && activity.type === "EXERCISE" && (activity.sourceMovementId ?? "").length === 0) {
-      ids.add(activity.id);
-    }
-  }
-  return ids;
-}
-
-/**
- * PRE-7 (A1.2, MFN-08) : marque « déjà utilisé » les Mouvements des
- * occurrences de la Séance enregistrée, dans la transaction de succès —
- * jamais pour un brouillon abandonné, irréversible, seule métadonnée écrite
- * sur la source. Une filiation orpheline est ignorée.
- */
-async function markSessionMovementsUsed(transaction: Database, sessionId: string, timestamp: string): Promise<void> {
-  const rows = await transaction.getAllAsync<{ source_movement_id: string }>(
-    "SELECT DISTINCT source_movement_id FROM activities WHERE session_id = ?",
-    [sessionId],
-  );
-  await markMovementsUsed(
-    transaction,
-    rows.map((row) => row.source_movement_id),
-    timestamp,
+): Promise<void> {
+  const values = toActivitySqlValues(row.activity);
+  await transaction.runAsync(
+    `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
+     VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
+    [
+      row.id,
+      row.sessionId,
+      row.cycleId,
+      row.tourId,
+      row.activity.type,
+      row.zone,
+      row.position,
+      values.executionMode,
+      values.durationSeconds,
+      values.repetitionCount,
+      values.seriesCount,
+      values.pauseSeconds,
+      values.postActivityRecoverySeconds,
+      values.postActivityRecoveryPresent,
+      row.timestamp,
+      row.timestamp,
+      values.sideMode,
+      values.executionParameters,
+      row.movementId,
+      row.activity.copyNumber ?? null,
+    ],
   );
 }
 
@@ -842,11 +778,11 @@ async function insertStopPoints(
 
 const ACTIVITY_ROW_COLUMNS = `
   id, session_id, cycle_id, tour_id, type, structural_position,
-  position, name, execution_mode, duration_seconds,
+  position, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
-  instruction, created_at, updated_at, side_mode, execution_parameters, category_id,
-  source_movement_id
+  created_at, updated_at, side_mode, execution_parameters,
+  source_movement_id, copy_number
 `;
 
 /**
@@ -873,7 +809,6 @@ type ActivitySqlValues = {
   readonly postActivityRecoverySeconds: number;
   /** PRE-6 (AD-35) : `value === null ? 0 : 1`. */
   readonly postActivityRecoveryPresent: 0 | 1;
-  readonly bodyZoneIds: readonly string[];
   readonly sideMode: SideMode;
   readonly executionParameters: string | null;
 };
@@ -913,20 +848,20 @@ function recoveryExecutionParameters(durationSeconds: number | null): ExecutionP
  * PRE-4 (story 1.1, AD-3) : les paramètres ont déjà été validés au niveau
  * structurel par `validateCreateSessionInput`/`validateUpdateSessionInput` ;
  * les colonnes historiques reçoivent la projection scalaire UNIQUE
- * (`projectScalars`) et `execution_parameters` le JSON v3 (PRE-5, AD-18). Les colonnes du
+ * (`projectScalars`) et `execution_parameters` la forme Catalogue v5 (PRE-7, R-3 :
+ * durées de phase par `phaseId`, sans libellé ; la structure est celle du Mouvement). Les colonnes du
  * CHECK composite sont contrôlées AVANT l'écriture (`assertActivityColumns`,
  * miroir du CHECK de `migration010`) : une Copie dont la projection violerait
  * le CHECK est refusée sans écriture (AC5).
  *
  * Une ancienne Récupération autonome (défense en profondeur, jamais produite
  * par le Domaine — D-041) garde `execution_mode = 'DURATION'`, sans Séries,
- * pause, Récupération attachée, Zone ni JSON, et n'est jamais côtée.
+ * pause, Récupération attachée, ni JSON, et n'est jamais côtée.
  */
 function toActivitySqlValues(activity: {
   readonly type: ActivityType;
   readonly executionParameters: CreateSessionActivityInput["executionParameters"];
   readonly postActivityRecoverySeconds: number | null;
-  readonly bodyZoneIds: readonly string[];
 }): ActivitySqlValues {
   const parameters = activity.executionParameters as ExecutionParameters;
   let values: ActivitySqlValues;
@@ -940,7 +875,6 @@ function toActivitySqlValues(activity: {
       pauseSeconds: 0,
       postActivityRecoverySeconds: 0,
       postActivityRecoveryPresent: 0,
-      bodyZoneIds: [],
       sideMode: "UNILATERAL",
       executionParameters: null,
     };
@@ -955,9 +889,8 @@ function toActivitySqlValues(activity: {
       // PRE-6 (story 1.1, AD-35) : absente → secondes 0, présence 0.
       postActivityRecoverySeconds: activity.postActivityRecoverySeconds ?? 0,
       postActivityRecoveryPresent: activity.postActivityRecoverySeconds === null ? 0 : 1,
-      bodyZoneIds: activity.bodyZoneIds,
       sideMode: projection.sideMode,
-      executionParameters: serializeResolvedExecutionParameters(parameters),
+      executionParameters: serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters),
     };
   }
   assertActivityColumns({
@@ -975,16 +908,17 @@ function toActivitySqlValues(activity: {
 /**
  * Fusionne les Activités d'un `UpdateSessionInput` avec celles déjà
  * persistées (T01-S10, plan §5.2 étapes 6–10). Fusion PAR IDENTITÉ :
- * - une Activité retirée est supprimée (Zones en cascade) ;
- * - une Activité conservée est mise à jour EN PLACE (identifiant et
- *   `created_at` inchangés) ;
+ * - une Activité retirée est supprimée ;
+ * - une Activité conservée est mise à jour EN PLACE (identifiant,
+ *   `created_at` et référence au Mouvement inchangés) ;
  * - une nouvelle Activité est insérée avec l'identifiant fourni.
  *
  * Les positions des Activités conservées sont d'abord écartées vers une
  * plage haute avant réécriture des positions finales, pour ne jamais violer
  * `UNIQUE(session_id, structural_position, position)` pendant une
  * réorganisation. Les positions finales sont recalculées par zone dans
- * l'ordre du brouillon.
+ * l'ordre du brouillon. PRE-7 (R-3, C05) : aucune donnée de contenu n'est
+ * écrite dans l'occurrence.
  */
 async function mergeActivities(
   transaction: Database,
@@ -994,32 +928,13 @@ async function mergeActivities(
   existingActivityIds: readonly string[],
   activities: readonly UpdateSessionActivityInput[],
   timestamp: string,
-  uuidFactory: UuidFactory,
-  currentCategoryByActivity: ReadonlyMap<string, string | null>,
 ): Promise<void> {
   const existing = new Set(existingActivityIds);
   const incoming = new Set(activities.map((activity) => activity.id));
-  // PRE-7 (A1.3) : sources locales NOUVELLES, qui créent elles-mêmes leur Mouvement.
-  const localSources = localMovementSourceIds(activities.filter((activity) => !existing.has(activity.id)));
-
-  // T16 (D-210) : capturée AVANT toute suppression — les Zones déjà
-  // affectées à une Activité CONSERVÉE restent permises même retirées ;
-  // une Activité nouvellement ajoutée n'a par construction aucune entrée ici.
-  const currentBodyZoneIdsByActivity = await getCurrentBodyZoneIdsByActivity(
-    transaction,
-    existingActivityIds,
-  );
-  // Q53 : relevées avant toute suppression — une occurrence NOUVELLE peut
-  // garder une Zone retirée héritée de sa source.
-  const inheritedBodyZoneIds = await getInheritableBodyZoneIds(transaction);
 
   for (const id of existingActivityIds) {
     if (!incoming.has(id)) {
-      await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [id]);
-      await transaction.runAsync(`DELETE FROM activities WHERE id = ? AND session_id = ?`, [
-        id,
-        sessionId,
-      ]);
+      await transaction.runAsync(`DELETE FROM activities WHERE id = ? AND session_id = ?`, [id, sessionId]);
     }
   }
 
@@ -1034,48 +949,30 @@ async function mergeActivities(
     }
   }
 
-  const positionByZone = new Map<string, number>();
+  const positionByZone = new Map<StructuralPosition, number>();
   for (const activity of activities) {
     const zone = activity.structuralPosition;
     const position = positionByZone.get(zone) ?? 0;
     positionByZone.set(zone, position + 1);
-
     const activityTourId = activityTourIdFor(zone, tourId);
-    const values = toActivitySqlValues(activity);
-    const { bodyZoneIds } = values;
-    const instruction = activity.instruction ?? null;
-
-    await assertBodyZonesAssignable(
-      transaction,
-      bodyZoneIds,
-      currentBodyZoneIdsByActivity.get(activity.id) ?? new Set(),
-      existing.has(activity.id) ? new Set() : inheritedBodyZoneIds,
-    );
-    const currentCategoryId = currentCategoryByActivity.get(activity.id) ?? null;
-    await assertOccurrenceCategoryAssignable(
-      transaction,
-      activity.categoryId,
-      currentCategoryId,
-      !existing.has(activity.id),
-    );
 
     if (existing.has(activity.id)) {
-      // PRE-4 : une occurrence existante reçoit son JSON v3 (PRE-5, AD-18) et la projection
-      // scalaire unique (AD-3). Catégorie `undefined` = conservée.
+      const values = toActivitySqlValues(activity);
+      // PRE-4 : une occurrence existante reçoit ses paramètres (forme Catalogue v5, R-3) et la
+      // projection scalaire unique (AD-3) ; sa référence au Mouvement est conservée.
       await transaction.runAsync(
         `UPDATE activities SET
-           type = ?, structural_position = ?, position = ?, name = ?,
+           type = ?, structural_position = ?, position = ?,
            execution_mode = ?, duration_seconds = ?, repetition_count = ?,
            series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
-           post_activity_recovery_present = ?, instruction = ?,
+           post_activity_recovery_present = ?,
            tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?,
-           execution_parameters = ?, category_id = ?
+           execution_parameters = ?, copy_number = ?
          WHERE id = ? AND session_id = ?`,
         [
           activity.type,
           zone,
           position,
-          activity.name,
           values.executionMode,
           values.durationSeconds,
           values.repetitionCount,
@@ -1083,61 +980,30 @@ async function mergeActivities(
           values.pauseSeconds,
           values.postActivityRecoverySeconds,
           values.postActivityRecoveryPresent,
-          instruction,
           activityTourId,
           cycleId,
           timestamp,
           values.sideMode,
           values.executionParameters,
-          activity.categoryId === undefined ? currentCategoryId : activity.categoryId,
+          activity.copyNumber ?? null,
           activity.id,
           sessionId,
         ],
       );
-      await transaction.runAsync(`DELETE FROM activity_body_zones WHERE activity_id = ?`, [
-        activity.id,
-      ]);
     } else {
-      const sourceMovementId = await resolveNewOccurrenceFiliation(transaction, activity.id, activity, timestamp, localSources);
-      await transaction.runAsync(
-        `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
-         VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
-        [
-          activity.id,
-          sessionId,
-          cycleId,
-          activityTourId,
-          activity.type,
-          zone,
-          position,
-          activity.name,
-          values.executionMode,
-          values.durationSeconds,
-          values.repetitionCount,
-          values.seriesCount,
-          values.pauseSeconds,
-          values.postActivityRecoverySeconds,
-          values.postActivityRecoveryPresent,
-          instruction,
-          timestamp,
-          timestamp,
-          values.sideMode,
-          values.executionParameters,
-          activity.categoryId ?? null,
-          sourceMovementId,
-        ],
-      );
+      const movementId = await assertOccurrenceMovement(transaction, activity.type, activity.sourceMovementId);
+      await insertActivityRow(transaction, {
+        id: activity.id,
+        sessionId,
+        cycleId,
+        tourId: activityTourId,
+        zone,
+        position,
+        timestamp,
+        movementId,
+        activity,
+      });
     }
-
-    for (const bodyZoneId of bodyZoneIds) {
-      await transaction.runAsync(
-        `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES (?, ?)`,
-        [activity.id, bodyZoneId],
-      );
-    }
-    // PRE-3 : `media` absent conserve les liens d'une occurrence existante ;
-    // une liste explicite les remplace (jamais les assets).
-    await replaceOccurrenceMedia(transaction, activity.id, activity.media, uuidFactory);
   }
 }
 
@@ -1161,19 +1027,13 @@ async function readSession(
   }
 
   // PRE-4 (story 1.2, P39) : une Séance sans occurrence n'a aucune Activité à relire.
-  const activityIds = rows.filter(isSessionOccurrenceRow).map((row) => row.activity_id);
-  const bodyZoneRows = await getBodyZonesForActivities(database, activityIds);
-  const bodyZonesByActivity = new Map<string, string[]>();
-  for (const zoneRow of bodyZoneRows) {
-    const list = bodyZonesByActivity.get(zoneRow.activity_id) ?? [];
-    list.push(zoneRow.body_zone_id);
-    bodyZonesByActivity.set(zoneRow.activity_id, list);
-  }
-
+  // PRE-7 (R-3, C05) : contenu courant des Mouvements référencés, en une requête par table.
+  const movements = await readMovementRecords(
+    database,
+    rows.filter(isSessionOccurrenceRow).map((row) => row.activity_source_movement_id),
+  );
   const stopPoints = await getStopPoints(database, sessionId);
-  const mediaByActivity = await listSessionActivityMediaByIds(database, activityIds);
-
-  return assembleSession(rows, bodyZonesByActivity, stopPoints, mediaByActivity);
+  return assembleSession(rows, movements, stopPoints);
 }
 
 /**
@@ -1194,45 +1054,13 @@ async function getStopPoints(
   return rows.map((row) => ({ id: row.id, scope: row.scope, position: row.position }));
 }
 
-/** T16 (D-210) : Zones déjà affectées à chacune des Activités données, avant toute modification — même requête que `getBodyZonesForActivities`, regroupée par Activité pour `assertBodyZonesAssignable`. */
-async function getCurrentBodyZoneIdsByActivity(
-  transaction: Database,
-  activityIds: readonly string[],
-): Promise<ReadonlyMap<string, ReadonlySet<string>>> {
-  const rows = await getBodyZonesForActivities(transaction, activityIds);
-  const byActivity = new Map<string, Set<string>>();
-  for (const row of rows) {
-    const set = byActivity.get(row.activity_id) ?? new Set<string>();
-    set.add(row.body_zone_id);
-    byActivity.set(row.activity_id, set);
-  }
-  return byActivity;
-}
-
-async function getBodyZonesForActivities(
-  database: Database,
-  activityIds: readonly string[],
-): Promise<readonly ActivityBodyZoneRow[]> {
-  if (activityIds.length === 0) {
-    return [];
-  }
-  // `activityIds` provient toujours de lignes déjà relues depuis SQLite
-  // (jamais une saisie utilisateur directe) : la construction de la liste
-  // de paramètres liés ci-dessous reste sûre (aucune concaténation de
-  // valeur dans le texte de la requête elle-même).
-  const placeholders = activityIds.map(() => "?").join(", ");
-  return database.getAllAsync<ActivityBodyZoneRow>(
-    `SELECT activity_id, body_zone_id FROM activity_body_zones WHERE activity_id IN (${placeholders})`,
-    activityIds,
-  );
-}
-
 /**
  * Noms des Zones corporelles couvertes par chacune des Séances données
  * (T01-S09, correction VISUAL tentative 2, point B) — union SANS PERTE de
  * `bodyZoneIds` de TOUTES les Activités persistées de chaque Séance (jamais
  * une seule Activité), dédupliquée puis ordonnée selon le référentiel
  * (`BODY_ZONES`, `order` croissant) — jamais l'ordre d'insertion en base.
+ * PRE-7 (R-3, C05) : Zones lues dans le Mouvement de chaque occurrence.
  */
 async function getBodyZoneNamesBySession(
   database: Database,
@@ -1246,9 +1074,9 @@ async function getBodyZoneNamesBySession(
   // de paramètres liés ci-dessous reste sûre.
   const placeholders = sessionIds.map(() => "?").join(", ");
   const rows = await database.getAllAsync<{ session_id: string; body_zone_id: string }>(
-    `SELECT DISTINCT activities.session_id AS session_id, activity_body_zones.body_zone_id AS body_zone_id
+    `SELECT DISTINCT activities.session_id AS session_id, movement_body_zones.body_zone_id AS body_zone_id
      FROM activities
-     JOIN activity_body_zones ON activity_body_zones.activity_id = activities.id
+     JOIN movement_body_zones ON movement_body_zones.movement_id = activities.source_movement_id
      WHERE activities.session_id IN (${placeholders})`,
     sessionIds,
   );
@@ -1271,49 +1099,67 @@ async function getBodyZoneNamesBySession(
 }
 
 /**
- * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. PRE-7 (A1.2,
- * D-440) : `readResolvedExecutionParameters` (forme résolue v4) est le seul
- * lecteur d'un Exercice (NULL, JSON corrompu, v2, v3 ou version inconnue
- * → `ExecutionParametersDataError`, jamais un repli sur les scalaires) ; une
- * ancienne Récupération autonome est lue défensivement depuis sa durée.
+ * PRE-4 (story 1.1, AD-3) : paramètres d'une ligne d'occurrence. PRE-7 (R-3,
+ * D-445 C05) : forme Catalogue v5 (`readCatalogExecutionParameters`, strict :
+ * NULL, JSON corrompu ou autre version → `ExecutionParametersDataError`),
+ * résolue avec la structure COURANTE des phases du Mouvement
+ * (`resolveCatalogParameters` : une phase sans durée reste manquante, jamais
+ * inventée). Une ancienne Récupération autonome est lue défensivement depuis sa
+ * durée.
  */
 function rowExecutionParameters(
   type: ActivityType,
   json: string | null,
   durationSeconds: number | null,
+  movement: MovementRecord | undefined,
 ): ExecutionParameters {
-  return type === "RECOVERY" ? recoveryExecutionParameters(durationSeconds) : readResolvedExecutionParameters(json);
+  if (type === "RECOVERY") {
+    return recoveryExecutionParameters(durationSeconds);
+  }
+  if (!movement) {
+    throw new Error("Persisted session does not satisfy the aggregate contract.");
+  }
+  return resolveCatalogParameters(movement.movement.phases, readCatalogExecutionParameters(json)).parameters;
 }
 
-function toActivity(
-  row: SessionAggregateRow,
-  bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
-  mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
-): Activity {
+function toActivity(row: SessionAggregateRow, movements: ReadonlyMap<string, MovementRecord>): Activity {
   const isRecovery = row.activity_type === "RECOVERY";
+  const record = movements.get(row.activity_source_movement_id);
   const executionParameters = rowExecutionParameters(
     row.activity_type,
     row.activity_execution_parameters,
     row.duration_seconds,
+    record,
   );
+  const movement = record?.movement;
   return {
     executionParameters,
-    ...(row.activity_category_id !== undefined ? { categoryId: row.activity_category_id } : {}),
-    ...(isRecovery ? {} : { media: mediaByActivity.get(row.activity_id) ?? [] }),
+    // PRE-7 (R-3, C05) : contenu courant lu dans le Mouvement, jamais dans l'occurrence.
+    categoryId: movement?.categoryId ?? null,
+    media: isRecovery
+      ? []
+      : (record?.mediaLinks ?? []).map((link) => ({
+          id: link.id,
+          activityId: row.activity_id,
+          assetId: link.assetId,
+          position: link.position,
+          asset: link.asset,
+        })),
     sourceMovementId: row.activity_source_movement_id,
+    copyNumber: row.activity_copy_number,
     id: row.activity_id,
     type: row.activity_type,
     structuralPosition: row.structural_position,
     position: row.activity_position,
-    name: row.activity_name,
+    name: movement?.name ?? "",
     // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`).
     // PRE-6 (story 1.1, AD-35) : `null` quand elle est absente
     // (`post_activity_recovery_present = 0`, `migration011`) ; une ancienne
     // ligne `RECOVERY` n'en porte jamais (`CHECK` SQL).
     postActivityRecoverySeconds:
       !isRecovery && row.post_activity_recovery_present === 1 ? row.post_activity_recovery_seconds : null,
-    instruction: row.instruction,
-    bodyZoneIds: isRecovery ? [] : (bodyZonesByActivity.get(row.activity_id) ?? []),
+    instruction: movement?.description ?? null,
+    bodyZoneIds: isRecovery ? [] : [...(movement?.bodyZoneIds ?? [])],
     // V2-BILAT-01 : direction relue des paramètres (AD-3) ; une Récupération
     // n'est jamais elle-même côtée (D-041).
     sideMode: executionParameters.sideMode,
@@ -1338,9 +1184,8 @@ export function isSessionOccurrenceRow(row: SessionAggregateQueryRow): row is Se
  */
 export function assembleSession(
   rows: readonly SessionAggregateQueryRow[],
-  bodyZonesByActivity: ReadonlyMap<string, readonly string[]>,
+  movements: ReadonlyMap<string, MovementRecord>,
   stopPoints: readonly StopPoint[] = [],
-  mediaByActivity: ReadonlyMap<string, NonNullable<Activity["media"]>> = new Map(),
 ): Session {
   const first = rows[0];
   if (!first) {
@@ -1362,7 +1207,7 @@ export function assembleSession(
   const inTour: Activity[] = [];
   const afterTour: Activity[] = [];
   for (const row of occurrenceRows) {
-    const activity = toActivity(row, bodyZonesByActivity, mediaByActivity);
+    const activity = toActivity(row, movements);
     if (activity.structuralPosition === "BEFORE_TOUR") {
       beforeTour.push(activity);
     } else if (activity.structuralPosition === "AFTER_TOUR") {
@@ -1409,12 +1254,13 @@ export function assembleSession(
 }
 
 /** @deprecated Conservé pour compatibilité de test direct (une seule ligne) — voir `assembleSession` pour l'assemblage réel multi-lignes. */
-export function mapSessionRow(row: SessionAggregateRow): Session {
-  return assembleSession([row], new Map());
+export function mapSessionRow(row: SessionAggregateRow, movements: ReadonlyMap<string, MovementRecord> = new Map()): Session {
+  return assembleSession([row], movements);
 }
 
 type DurationFactsRow = {
   session_id: string;
+  source_movement_id: string;
   type: ActivityType;
   structural_position: StructuralPosition;
   duration_seconds: number | null;
@@ -1434,7 +1280,7 @@ const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
  * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
  * en UNE requête groupée — total ensuite calculé par l'autorité unique du
  * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
- * PRE-4 (story 1.1, AD-3) ; PRE-7 (A1.2) : `readResolvedExecutionParameters` seul, aucun fait scalaire.
+ * PRE-4 (story 1.1, AD-3) ; PRE-7 (R-3) : forme Catalogue v5 résolue avec le Mouvement, aucun fait scalaire.
  */
 async function getDurationFactsBySession(
   database: Database,
@@ -1446,18 +1292,28 @@ async function getDurationFactsBySession(
   // `sessionIds` provient de lignes déjà relues depuis SQLite.
   const placeholders = sessionIds.map(() => "?").join(", ");
   const rows = await database.getAllAsync<DurationFactsRow>(
-    `SELECT session_id, type, structural_position, duration_seconds,
+    `SELECT session_id, source_movement_id, type, structural_position, duration_seconds,
             post_activity_recovery_seconds, execution_parameters
      FROM activities
      WHERE session_id IN (${placeholders})
      ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, position ASC`,
     sessionIds,
   );
+  // PRE-7 (R-3, C05) : structure courante des phases des Mouvements référencés.
+  const movements = await readMovementRecords(
+    database,
+    rows.map((row) => row.source_movement_id),
+  );
   const bySession = new Map<string, { beforeTour: ActivityDurationFacts[]; inTour: ActivityDurationFacts[]; afterTour: ActivityDurationFacts[] }>();
   for (const row of rows) {
     const zones = bySession.get(row.session_id) ?? { beforeTour: [], inTour: [], afterTour: [] };
     const isRecovery = row.type === "RECOVERY";
-    const executionParameters = rowExecutionParameters(row.type, row.execution_parameters, row.duration_seconds);
+    const executionParameters = rowExecutionParameters(
+      row.type,
+      row.execution_parameters,
+      row.duration_seconds,
+      movements.get(row.source_movement_id),
+    );
     const facts: ActivityDurationFacts = {
       type: row.type,
       executionParameters,

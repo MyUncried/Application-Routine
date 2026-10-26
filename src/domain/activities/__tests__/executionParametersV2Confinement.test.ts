@@ -102,7 +102,9 @@ describe("PRE5-1.1/AC4 — garde de cantonnement de serializeV2 et readV2 (AD-18
   });
 
   // PRE-7 (A1.2, D-440) : après la migration 012, la persistance ne lit ni n'écrit plus la v2 ni la v3.
-  it("PRE-7 A1.2 — les repositories lisent et écrivent la seule v4 (Catalogue pour les définitions, résolue pour les copies)", () => {
+  // PRE-7 (R-3, D-445 C05) : les occurrences de Séance stockent, comme les définitions, la forme
+  // Catalogue (durées par `phaseId`) ; la structure des phases est relue dans le Mouvement.
+  it("PRE-7 A1.2, R-3 — les repositories lisent et écrivent la seule forme Catalogue (définitions et occurrences)", () => {
     const code = (path: string) => FILES.find((file) => file.path === path)!.code;
     const persistence = FILES.filter((file) => file.path.startsWith("src/infrastructure/database/repositories/"));
     expect(persistence.length).toBeGreaterThan(0);
@@ -115,7 +117,8 @@ describe("PRE5-1.1/AC4 — garde de cantonnement de serializeV2 et readV2 (AD-18
     expect(/\breadCatalogExecutionParameters\(/.test(definitions)).toBe(true);
     expect(/\bserializeCatalogExecutionParameters\(/.test(definitions)).toBe(true);
     const sessions = code("src/infrastructure/database/repositories/SqliteSessionRepository.ts");
-    expect(/\breadResolvedExecutionParameters\(/.test(sessions)).toBe(true);
-    expect(/\bserializeResolvedExecutionParameters\(/.test(sessions)).toBe(true);
+    expect(/\breadCatalogExecutionParameters\(/.test(sessions)).toBe(true);
+    expect(/\bserializeCatalogExecutionParameters\(/.test(sessions)).toBe(true);
+    expect(/\b(readResolvedExecutionParameters|serializeResolvedExecutionParameters)\(/.test(sessions)).toBe(false);
   });
 });

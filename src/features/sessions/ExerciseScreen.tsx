@@ -26,7 +26,14 @@ import {
 import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
-import { createExerciseDraft, exerciseEquals, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import {
+  createExerciseDraft,
+  draftMovementOf,
+  exerciseEquals,
+  withDraftMovement,
+  type SessionDraft,
+  type SessionDraftExercise,
+} from "@/domain/sessions/SessionDraft";
 import {
   ActivityEditorForm,
   EDITOR_HEADER,
@@ -1078,18 +1085,21 @@ type OpenedOccurrence = {
   readonly openedParameters: readonly ExecutionParametersInput[];
   /**
    * PRE-7 (A2.1, D-437, D-438, MFN-09 ; CE-UI-10) : structure des phases verrouillée — occurrence
-   * portant une filiation (copie du Catalogue, Séance enregistrée, duplication). Une occurrence
-   * sans filiation est une création locale non encore enregistrée : modifiable (exception MFN-09).
-   * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
-   * déverrouillée ») : une copie en attente (`pendingLocalMovement`, filiation pré-allouée vers une
-   * source locale non enregistrée) est traitée comme sa source — contenu et structure modifiables
-   * jusqu'au premier enregistrement de la Séance ; sa filiation n'est gardée à l'enregistrement que
-   * si son geste est resté identique à celui de sa référence (`settlePendingLocalCopies`, domaine).
+   * d'un Mouvement déjà enregistré (copie du Catalogue, Séance enregistrée, reprise).
+   * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : une occurrence dont le Mouvement
+   * est NOUVEAU dans le brouillon (création locale, original comme copie) a son contenu et sa
+   * structure modifiables ; la modification s'inscrit dans ce Mouvement partagé
+   * (`withDraftMovement`), sans mécanisme propre aux copies. Le crayon d'un Mouvement enregistré
+   * relève de R-4 (C04).
    */
   readonly phaseStructureLocked: boolean;
 };
 
-function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: CircuitNature | undefined): OpenedOccurrence | null {
+function openedOccurrenceOf(
+  exercise: SessionDraftExercise | null,
+  nature: CircuitNature | undefined,
+  movements: SessionDraft["movements"],
+): OpenedOccurrence | null {
   if (exercise === null) {
     return null;
   }
@@ -1101,8 +1111,17 @@ function openedOccurrenceOf(exercise: SessionDraftExercise | null, nature: Circu
       exercise.type === "EXERCISE" &&
       (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
     openedParameters: validated.ok ? [opened, validated.value] : [opened],
-    phaseStructureLocked: (exercise.sourceMovementId ?? "").trim().length > 0 && exercise.pendingLocalMovement !== true,
+    phaseStructureLocked: isPersistedMovementOccurrence(exercise, movements),
   };
+}
+
+/**
+ * PRE-7 (R-3, C05) : l'occurrence référence un Mouvement déjà enregistré (et non un Mouvement
+ * NOUVEAU de la table du brouillon) — son contenu n'est pas modifiable sans le crayon (R-4).
+ */
+function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): boolean {
+  const movementId = (exercise.sourceMovementId ?? "").trim();
+  return movementId.length > 0 && movements?.[movementId]?.change !== "NEW";
 }
 
 /**
@@ -1144,9 +1163,11 @@ function CompositionExerciseEditor() {
   //   sortie du Circuit (ou passée en Tours) est donc libre à sa prochaine ouverture. Une nouvelle
   //   occurrence n'est pas encore dans le Circuit : elle y est adaptée à `Terminer` (story 2.3) ;
   // - paramètres à l'ouverture, référence de la règle de réserve (`commitFinished`).
-  const [openedOccurrence, setOpenedOccurrence] = useState(() => openedOccurrenceOf(existingExercise, draft.circuitNature));
+  const [openedOccurrence, setOpenedOccurrence] = useState(() =>
+    openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements),
+  );
   if (openedOccurrence === null && existingExercise !== null) {
-    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature));
+    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements));
   }
   const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
   const phaseStructureLocked = openedOccurrence?.phaseStructureLocked ?? false;
@@ -1292,15 +1313,28 @@ function CompositionExerciseEditor() {
    */
   function planFinish(current: SessionDraftExercise) {
     // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
-    const finished: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
-    if (draft.exercises.some((exercise) => exercise.id === finished.id)) {
-      return {
-        exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
-        losses: [],
-        targetCount: 0,
-      };
+    // PRE-7 (R-3, C05) : une création locale reçoit un Mouvement NOUVEAU à son identifiant.
+    const encoded: SessionDraftExercise = { ...current, instruction: encodeInstructionSteps(instructionSteps) };
+    const createsMovement = encoded.type === "EXERCISE" && (encoded.sourceMovementId ?? "").trim().length === 0;
+    const finished: SessionDraftExercise = createsMovement ? { ...encoded, sourceMovementId: encoded.id } : encoded;
+    const plan = draft.exercises.some((exercise) => exercise.id === finished.id)
+      ? {
+          exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
+          losses: [],
+          targetCount: 0,
+        }
+      : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+    if (!createsMovement && isPersistedMovementOccurrence(finished, draft.movements)) {
+      return { ...plan, movements: draft.movements };
     }
-    return settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+    // Mouvement NOUVEAU du brouillon : son contenu est celui de l'occurrence terminée, partagé par
+    // toutes ses occurrences (original et copies), paramètres de chacune inchangés.
+    const previous = draft.movements?.[finished.sourceMovementId!];
+    const shared = withDraftMovement(
+      { ...draft, exercises: plan.exercises },
+      draftMovementOf(finished, "NEW", { nextPhaseId: previous?.nextPhaseId, aliases: previous?.aliases }),
+    );
+    return { ...plan, exercises: shared.exercises, movements: shared.movements };
   }
 
   function handleTerminer() {
@@ -1314,10 +1348,10 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = true;
-    commitFinished(plan.exercises);
+    commitFinished(plan.exercises, plan.movements);
   }
 
-  function commitFinished(nextExercises: readonly SessionDraftExercise[]) {
+  function commitFinished(nextExercises: readonly SessionDraftExercise[], nextMovements: SessionDraft["movements"]) {
     // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
     // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
     // retrait que sa sortie du Circuit, `exitCircuit`), dans la MÊME mise à jour, fonctionnelle,
@@ -1334,10 +1368,11 @@ function CompositionExerciseEditor() {
     if (seriesChanged && hasReserveEntry) {
       updateDraft((current) => ({
         exercises: nextExercises,
+        ...(nextMovements !== undefined ? { movements: nextMovements } : {}),
         circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve,
       }));
     } else {
-      updateDraft({ exercises: nextExercises });
+      updateDraft({ exercises: nextExercises, ...(nextMovements !== undefined ? { movements: nextMovements } : {}) });
     }
     // Les copies préparées deviennent des références du brouillon de Séance ;
     // « Continuer » (Composition) les persiste dans sa transaction.
@@ -1360,7 +1395,9 @@ function CompositionExerciseEditor() {
   const isValid =
     value !== null &&
     isActivityEditorFormValid(value, {
-      requireReferences: !isEditingExisting,
+      // PRE-7 (R-3, C05) : une occurrence dont le Mouvement est NOUVEAU porte le contenu de ce
+      // Mouvement, dont la Catégorie et les Zones sont requises à l'enregistrement.
+      requireReferences: !isEditingExisting || (local !== null && !isPersistedMovementOccurrence(local, draft.movements)),
       hasCategory: Boolean(local?.categoryId),
       baseline: baselineParameters,
     }) &&
@@ -1451,7 +1488,8 @@ function CompositionExerciseEditor() {
             }
             // Ajout rejoué sur le brouillon courant (aucun instantané rejoué).
             finishingRef.current = true;
-            commitFinished(planFinish(local).exercises);
+            const replayed = planFinish(local);
+            commitFinished(replayed.exercises, replayed.movements);
           }}
         />
       ) : null}

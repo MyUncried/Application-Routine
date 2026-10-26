@@ -18,7 +18,7 @@ function movement(id: string, name: string, overrides: Partial<Movement> = {}): 
     bodyZoneIds: ["cuisses"],
     phases: [],
     nextPhaseId: 1,
-    used: false,
+    aliases: [],
     levelGroup: null,
     ...overrides,
   };

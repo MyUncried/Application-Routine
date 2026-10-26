@@ -5,7 +5,8 @@ import type { Database } from "@/infrastructure/database/Database";
 
 /**
  * Tests seulement (PRE-7, A1.2) — insère directement en SQL, sur le schéma de
- * `migration012`, un Exercice du Catalogue et son Mouvement : ligne
+ * `migration013` (PRE-7, R-3 : plus de colonne `used`, nom normalisé UNIQUE —
+ * deux appels de même nom lèvent), un Exercice du Catalogue et son Mouvement : ligne
  * `movements` (identifiant `mov-{id}` par défaut), Zones du Mouvement et
  * définition aux paramètres Catalogue v4 (Durée 30 s × 3, Pause 10 s).
  * Remplace les anciennes insertions directes dans `activity_definitions`
@@ -24,8 +25,8 @@ export async function seedCatalogueDefinition(
   const movementId = options.movementId ?? `mov-${options.id}`;
   const name = options.name ?? "Squat";
   await database.runAsync(
-    `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, used, created_at, updated_at)
-     VALUES (?, ?, ?, NULL, ?, 1, 0, 'now', 'now')`,
+    `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, created_at, updated_at)
+     VALUES (?, ?, ?, NULL, ?, 1, 'now', 'now')`,
     [movementId, name, normalizeMovementName(name), options.categoryId ?? "cardio"],
   );
   for (const bodyZoneId of options.bodyZoneIds ?? ["cuisses"]) {

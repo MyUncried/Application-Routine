@@ -4,12 +4,14 @@ import { DEFAULT_SESSION_COLOR, type Activity, type Session } from "@/domain/ses
 import {
   createEmptyDraft,
   createExerciseDraft,
+  draftMovementOf,
   exerciseEquals,
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
   toSessionDraft,
   toUpdateSessionInput,
+  withDraftMovement,
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
@@ -36,6 +38,7 @@ import {
 } from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 
 describe("createEmptyDraft", () => {
   it("initializes every field from the canonical defaults, with no Activity and no Category yet", () => {
@@ -170,6 +173,8 @@ function anActivity(overrides: Partial<Activity> = {}): Activity {
     postActivityRecoverySeconds: 0,
     instruction: null,
     bodyZoneIds: [],
+    // PRE-7 (R-3, C05) : toute occurrence relue référence son Mouvement.
+    sourceMovementId: "mov-gainage",
     ...overrides,
   };
 }
@@ -226,6 +231,8 @@ describe("toSessionDraft", () => {
           // transition — `anActivity()` ne le transmet pas, la conversion
           // retombe donc sur `DEFAULT_SIDE_MODE`.
           sideMode: DEFAULT_SIDE_MODE,
+          // PRE-7 (R-3, C05) : Mouvement relu, contenu courant (vue).
+          sourceMovementId: "mov-gainage",
         },
       ],
       // PRE-4 story 4.1 (AC13) : occurrences chargées, champ de transport non comparé.
@@ -325,13 +332,15 @@ describe("toSessionDraft", () => {
             id: "activity-1",
             type: "EXERCISE",
             structuralPosition: "IN_TOUR",
-            name: "Gainage",
             executionParameters: durationParameters(30),
             postActivityRecoverySeconds: 0,
-            instruction: null,
-            bodyZoneIds: [],
+            // PRE-7 (R-3, C05) : aucun contenu ; la référence au Mouvement relu est conservée.
+            sourceMovementId: "mov-gainage",
+            copyNumber: null,
           },
         ],
+        // Mouvement relu, ni nouveau ni corrigé : rien à écrire.
+        movements: [],
         stopPoints: [],
       },
     });
@@ -438,14 +447,15 @@ describe("exerciseEquals (exported for ExerciseScreen, T01-S08)", () => {
 });
 
 describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
+  // PRE-7 (R-3, C05) : Exercice créé localement — Mouvement NEW à son identifiant (`withLocalMovements`).
   function completeDraft(): SessionDraft {
-    return {
+    return withLocalMovements({
       name: "Séance simple",
       labelId: null,
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
-    };
+    });
   }
 
   it("fails on an empty draft and reports every violation at once (session name + zero Activity)", () => {
@@ -475,12 +485,26 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
             id: "ex-1",
             type: DEFAULT_ACTIVITY_TYPE,
             structuralPosition: DEFAULT_STRUCTURAL_POSITION,
-            name: "Gainage",
             executionParameters: durationParameters(30),
             // PRE-6 (story 1.1, AD-35) : occurrence née sans récupération.
             postActivityRecoverySeconds: null,
-            instruction: null,
-            bodyZoneIds: [],
+            // PRE-7 (R-3, C05) : l'occurrence ne porte que sa référence ; le contenu va au Mouvement.
+            sourceMovementId: "ex-1",
+            copyNumber: null,
+          },
+        ],
+        movements: [
+          {
+            id: "ex-1",
+            change: "NEW",
+            name: "Gainage",
+            description: null,
+            categoryId: "cardio",
+            bodyZoneIds: ["cuisses"],
+            media: [],
+            phases: [],
+            nextPhaseId: 1,
+            aliases: [],
           },
         ],
         stopPoints: [],
@@ -524,7 +548,7 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
       ],
     };
 
-    const result = toCreateSessionInput(draft);
+    const result = toCreateSessionInput(withLocalMovements(draft));
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.tourRepeatCount).toBe(4);
@@ -584,12 +608,13 @@ describe("toCreateSessionInput (T01-S09, multi-exercise)", () => {
         { ...createExerciseDraft("ex-2"), name: "Squats", executionParameters: durationParameters(45, 3) },
       ],
     };
-    const result = toCreateSessionInput(draft);
+    const result = toCreateSessionInput(withLocalMovements(draft));
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.exercises).toHaveLength(2);
-      expect(result.value.exercises.map((exercise) => exercise.name)).toEqual(["Gainage", "Squats"]);
-      expect(result.value.exercises[1]).toMatchObject({ name: "Squats", executionParameters: durationParameters(45, 3) });
+      // PRE-7 (R-3, C05) : un Mouvement par création locale, dans l'ordre des occurrences.
+      expect(result.value.movements?.map((movement) => movement.name)).toEqual(["Gainage", "Squats"]);
+      expect(result.value.exercises[1]).toMatchObject({ sourceMovementId: "ex-2", executionParameters: durationParameters(45, 3) });
     }
   });
 
@@ -650,8 +675,9 @@ describe("toSessionDraft — Récupération, positions structurelles et répéti
 });
 
 describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)", () => {
+  // PRE-7 (R-3, C05) : Exercices créés localement (Mouvements NEW, `withLocalMovements`).
   function editDraft(overrides: Partial<SessionDraft> = {}): SessionDraft {
-    return {
+    return withLocalMovements({
       ...createEmptyDraft(),
       sourceSessionId: "session-42",
       name: "Séance à modifier",
@@ -660,7 +686,7 @@ describe("toUpdateSessionInput (T01-S10, Q3-A — jamais toCreateSessionInput)",
         { ...createExerciseDraft("act-1"), name: "Gainage", executionParameters: durationParameters(30) },
       ],
       ...overrides,
-    };
+    });
   }
 
   it("fails with REQUIRED session.sourceSessionId when the draft is a creation draft", () => {
@@ -791,22 +817,26 @@ describe("side mode across the draft (V2-BILAT-01, portée exclusivement par l'E
       },
     ];
 
-    const created = toCreateSessionInput({
-      ...createEmptyDraft(),
-      name: "Séance",
-      exercises,
-    });
+    const created = toCreateSessionInput(
+      withLocalMovements({
+        ...createEmptyDraft(),
+        name: "Séance",
+        exercises,
+      }),
+    );
     expect(created.ok).toBe(true);
     if (created.ok) {
       expect(created.value.exercises[0]?.sideMode).toBe("RIGHT_LEFT");
     }
 
-    const updated = toUpdateSessionInput({
-      ...createEmptyDraft(),
-      sourceSessionId: "session-1",
-      name: "Séance",
-      exercises,
-    });
+    const updated = toUpdateSessionInput(
+      withLocalMovements({
+        ...createEmptyDraft(),
+        sourceSessionId: "session-1",
+        name: "Séance",
+        exercises,
+      }),
+    );
     expect(updated.ok).toBe(true);
     if (updated.ok) {
       expect(updated.value.activities[0]?.sideMode).toBe("RIGHT_LEFT");
@@ -861,17 +891,15 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
       ["p1", "kodjo-media/p1.jpg"],
     ]);
     expect(copy.postActivityRecoverySeconds).toBe(0);
+    // PRE-7 (R-3, C05) : la copie du Catalogue référence le Mouvement de la définition ; Catégorie
+    // et médias restent ceux du Mouvement (vue), jamais émis avec l'occurrence ni recopiés.
     const created = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [copy] });
     expect(created.ok && created.value.exercises[0]).toEqual(
-      expect.objectContaining({
-        executionParameters: parameters,
-        categoryId: "cardio",
-        media: [
-          { assetId: "v1", asset: video },
-          { assetId: "p1", asset: photo },
-        ],
-      }),
+      expect.objectContaining({ executionParameters: parameters, sourceMovementId: "mov-1" }),
     );
+    expect(created.ok && created.value.exercises[0]).not.toHaveProperty("media");
+    expect(created.ok && created.value.exercises[0]).not.toHaveProperty("categoryId");
+    expect(created.ok && created.value.movements).toEqual([]);
   });
 
   it("P3-01/copy-isolation — deux copies et la définition gardent leurs propres valeurs et médias", () => {
@@ -913,6 +941,7 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
       executionParameters: parameters,
       categoryId: "cardio",
       media: [{ id: "sl1", activityId: "occ-9", assetId: "v1", position: 0, asset: video }],
+      sourceMovementId: "mov-1",
     };
     const session: Session = {
       id: "s",
@@ -931,11 +960,13 @@ describe("PRE-3 — copie Catalogue → Séance et duplication (paramètres, Cat
       expect.objectContaining({
         id: "occ-9",
         executionParameters: parameters,
-        categoryId: "cardio",
-        media: [{ assetId: "v1", asset: video }],
+        // PRE-7 (R-3, C05) : référence au Mouvement conservée ; son contenu n'est pas réémis.
+        sourceMovementId: "mov-1",
         postActivityRecoverySeconds: 30,
       }),
     );
+    expect(update.ok && update.value.activities[0]).not.toHaveProperty("media");
+    expect(update.ok && update.value.movements).toEqual([]);
   });
 });
 
@@ -1037,6 +1068,7 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
       executionParameters: typedRows(),
       categoryId: "cardio",
       media: [{ id: "sl1", activityId: "occ-9", assetId: "v1", position: 0, asset: video }],
+      sourceMovementId: "mov-1",
     };
     const reopened = toSessionDraft(sessionWith(activity)).exercises[0]!;
     expect(reopened.bodyZoneIds).toEqual(activity.bodyZoneIds);
@@ -1044,25 +1076,31 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
     expect(reopened.executionParameters).not.toBe(activity.executionParameters);
     expect(reopened.media![0]!.asset).not.toBe(activity.media![0]!.asset);
 
-    // Brouillon → entrée persistable (Continuer) : Zones et actifs clonés.
+    // Brouillon → entrée persistable (Continuer) : paramètres clonés. PRE-7 (R-3, C05) : le contenu
+    // n'est émis que par un Mouvement du brouillon, dont Zones et actifs sont clonés eux aussi.
     const draft = toSessionDraft(sessionWith(activity));
     const update = toUpdateSessionInput(draft);
     expect(update.ok).toBe(true);
     const emitted = update.ok ? update.value.activities[0]! : null;
-    expect(emitted?.media?.[0]?.asset).toEqual(video);
-    expect(emitted?.media?.[0]?.asset).not.toBe(draft.exercises[0]!.media![0]!.asset);
-    expect(emitted?.bodyZoneIds).not.toBe(draft.exercises[0]!.bodyZoneIds);
     expect(emitted?.executionParameters).toEqual(draft.exercises[0]!.executionParameters);
     expect(emitted?.executionParameters).not.toBe(draft.exercises[0]!.executionParameters);
     const draftCopy = activityDefinitionToDraftExercise(definition, "occ-2", 0);
     const created = toCreateSessionInput({ ...createEmptyDraft(), name: "S", exercises: [draftCopy] });
     expect(created.ok).toBe(true);
     const createdActivity = created.ok ? created.value.exercises[0]! : null;
-    expect(createdActivity?.bodyZoneIds).not.toBe(draftCopy.bodyZoneIds);
     expect(createdActivity?.executionParameters).toEqual(draftCopy.executionParameters);
     expect(createdActivity?.executionParameters).not.toBe(draftCopy.executionParameters);
-    expect(createdActivity?.media).toHaveLength(3);
-    createdActivity?.media?.forEach((item, index) => expect(item.asset).not.toBe(draftCopy.media![index]!.asset));
+    const local = withLocalMovements({
+      ...createEmptyDraft(),
+      name: "S",
+      exercises: [{ ...draftCopy, id: "occ-3", sourceMovementId: undefined, name: "Fentes locales" }],
+    });
+    const localCreated = toCreateSessionInput(local);
+    const movement = localCreated.ok ? localCreated.value.movements![0]! : null;
+    expect(movement?.bodyZoneIds).toEqual(["cuisses", "jambes"]);
+    expect(movement?.bodyZoneIds).not.toBe(local.movements!["occ-3"]!.bodyZoneIds);
+    expect(movement?.media).toHaveLength(3);
+    movement?.media.forEach((item, index) => expect(item.asset).not.toBe(local.movements!["occ-3"]!.media[index]!.asset));
   });
 
   it("PRE4-1.3/AC4 — Cible héritée UNSET : copiée UNSET (jamais FAILURE) dans le brouillon ; Continuer la refuse", () => {
@@ -1115,13 +1153,15 @@ describe("PRE-4 story 1.3 — copies et duplications à Cibles typées (domaine)
  * comme `tourRepeatCount` ; récupération à trois états ; garde de sortie.
  */
 describe("PRE6-1.1 — nature du Circuit et récupération nullable dans le brouillon", () => {
-  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft => ({
-    ...createEmptyDraft(),
-    name: "Séance",
-    tourRepeatCount: 4,
-    exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
-    ...overrides,
-  });
+  // PRE-7 (R-3, C05) : Exercice créé localement (Mouvement NEW, `withLocalMovements`).
+  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft =>
+    withLocalMovements({
+      ...createEmptyDraft(),
+      name: "Séance",
+      tourRepeatCount: 4,
+      exercises: [{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(30) }],
+      ...overrides,
+    });
   const sessionWith = (activity: Activity, nature?: "TOURS" | "SERIES"): Session => ({
     id: "session-1",
     ownerId: "usr_test",
@@ -1204,16 +1244,18 @@ describe("PRE6-1.2 — Points d'arrêt portés par le brouillon", () => {
     structuralPosition,
     executionParameters: durationParameters(30),
   });
-  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft => ({
-    ...createEmptyDraft(),
-    name: "Séance",
-    exercises: [exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR"), exercise("Z", "AFTER_TOUR")],
-    stopPoints: [
-      { id: "s1", scope: "IN_TOUR", position: 1 },
-      { id: "s2", scope: "AFTER_TOUR", position: 0 },
-    ],
-    ...overrides,
-  });
+  // PRE-7 (R-3, C05) : Exercices créés localement (Mouvements NEW, `withLocalMovements`).
+  const draftWith = (overrides: Partial<SessionDraft> = {}): SessionDraft =>
+    withLocalMovements({
+      ...createEmptyDraft(),
+      name: "Séance",
+      exercises: [exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR"), exercise("Z", "AFTER_TOUR")],
+      stopPoints: [
+        { id: "s1", scope: "IN_TOUR", position: 1 },
+        { id: "s2", scope: "AFTER_TOUR", position: 0 },
+      ],
+      ...overrides,
+    });
 
   it("toCreateSessionInput et toUpdateSessionInput transmettent { scope, position }, sans identifiant", () => {
     const expected = [
@@ -1281,57 +1323,57 @@ describe("PRE6-1.2 — Points d'arrêt portés par le brouillon", () => {
 });
 
 /**
- * Recette JA, décision de Hermann du 26/10/2026 : la conversion règle les copies en attente
- * (`settlePendingLocalCopies`) avant création et modification — une copie intacte garde la
- * filiation pré-allouée, une copie modifiée devient une création locale indépendante.
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : la conversion ne règle plus de
+ * copies en attente (`settlePendingLocalCopies` retiré). La copie d'une création locale référence
+ * le même Mouvement NEW du brouillon ; un seul Mouvement est émis, avec le contenu courant de la
+ * table des Mouvements, et chaque occurrence porte sa référence et son numéro de copie.
  */
-describe("recette JA — copies locales en attente à la conversion", () => {
-  function draftWithCopy(change: Partial<SessionDraftExercise> = {}): SessionDraft {
+describe("R-3 — copies d'une création locale à la conversion", () => {
+  function draftWithCopy(): SessionDraft {
     const source: SessionDraftExercise = {
       ...createExerciseDraft("S"),
       name: "Gainage",
       executionParameters: durationParameters(30),
     };
-    const [first, copy] = duplicateActivity([source], "S", "C1");
-    return { ...createEmptyDraft(), name: "Séance", exercises: [first!, { ...copy!, ...change }] };
+    const local = withLocalMovements({ ...createEmptyDraft(), name: "Séance", exercises: [source] });
+    return { ...local, exercises: duplicateActivity(local.exercises, "S", "C1") };
   }
-  const filiationOf = (activities: readonly { readonly id?: string; readonly sourceMovementId?: string; readonly pendingLocalMovement?: true }[]) =>
-    activities.map((activity) => [activity.id, activity.sourceMovementId, activity.pendingLocalMovement]);
+  const referencesOf = (activities: readonly { readonly id?: string; readonly sourceMovementId?: string; readonly copyNumber?: number | null }[]) =>
+    activities.map((activity) => [activity.id, activity.sourceMovementId, activity.copyNumber ?? null]);
 
-  it("création : copie intacte → filiation pré-allouée ; copie modifiée → sans filiation", () => {
-    const intact = toCreateSessionInput(draftWithCopy());
-    expect(intact.ok).toBe(true);
-    if (intact.ok) {
-      expect(filiationOf(intact.value.exercises)).toEqual([
-        ["S", undefined, undefined],
-        ["C1", "S", true],
+  it("création : un seul Mouvement NEW, référencé par l'original et la copie (numéro 1)", () => {
+    const created = toCreateSessionInput(draftWithCopy());
+    expect(created.ok).toBe(true);
+    if (created.ok) {
+      expect(referencesOf(created.value.exercises)).toEqual([
+        ["S", "S", null],
+        ["C1", "S", 1],
       ]);
-    }
-    const changed = toCreateSessionInput(draftWithCopy({ instruction: "Dos droit" }));
-    expect(changed.ok).toBe(true);
-    if (changed.ok) {
-      expect(filiationOf(changed.value.exercises)).toEqual([
-        ["S", undefined, undefined],
-        ["C1", undefined, undefined],
-      ]);
+      expect(created.value.movements?.map((movement) => [movement.id, movement.change, movement.name])).toEqual([["S", "NEW", "Gainage"]]);
     }
   });
 
-  it("modification : même règle ; le brouillon n'est jamais réécrit", () => {
-    const draft = { ...draftWithCopy({ name: "Planche" }), sourceSessionId: "session-1" };
+  it("modification : contenu corrigé depuis la copie émis une fois ; le brouillon n'est jamais réécrit", () => {
+    const base = draftWithCopy();
+    const copy = base.exercises.find((exercise) => exercise.id === "C1")!;
+    const draft = {
+      ...base,
+      ...withDraftMovement(base, { ...draftMovementOf(copy, "NEW"), name: "Planche", description: "Dos droit" }),
+      sourceSessionId: "session-1",
+    };
     const result = toUpdateSessionInput(draft);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(filiationOf(result.value.activities)).toEqual([
-        ["S", undefined, undefined],
-        ["C1", undefined, undefined],
+      expect(referencesOf(result.value.activities)).toEqual([
+        ["S", "S", null],
+        ["C1", "S", 1],
       ]);
+      expect(result.value.movements?.map((movement) => [movement.id, movement.name, movement.description])).toEqual([
+        ["S", "Planche", "Dos droit"],
+      ]);
+      expect(result.value.activities[1]).not.toHaveProperty("name");
     }
-    expect(draft.exercises[1]).toMatchObject({ sourceMovementId: "S", pendingLocalMovement: true });
-    const intact = toUpdateSessionInput({ ...draftWithCopy(), sourceSessionId: "session-1" });
-    expect(intact.ok && filiationOf(intact.value.activities)).toEqual([
-      ["S", undefined, undefined],
-      ["C1", "S", true],
-    ]);
+    expect(draft.exercises.map((exercise) => exercise.name)).toEqual(["Planche", "Planche"]);
+    expect(draft.exercises[1]).not.toHaveProperty("pendingLocalMovement");
   });
 });

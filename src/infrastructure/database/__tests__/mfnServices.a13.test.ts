@@ -5,7 +5,7 @@ import {
   type ActivityDefinition,
   type CreateActivityDefinitionInput,
 } from "@/domain/activities/ActivityDefinition";
-import { type ExecutionParameters, type WorkPhase } from "@/domain/activities/ExecutionParameters";
+import { hasMissingPhaseDuration, type ExecutionParameters, type WorkPhase } from "@/domain/activities/ExecutionParameters";
 import {
   durationParameters,
   repetitionParameters,
@@ -22,6 +22,7 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { SessionService } from "@/features/sessions/SessionService";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
@@ -38,6 +39,10 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  * écriture, échec au milieu), évaluation avant enregistrement, liste
  * regroupée, filiation d'une occurrence locale dupliquée avant le premier
  * enregistrement, duplication de Séance.
+ *
+ * PRE-7 (R-3, D-445 C05) : les occurrences de Séance relisent le contenu et la
+ * structure de leur Mouvement ; une copie d'une création locale référence le
+ * même Mouvement NEW du brouillon (`withLocalMovements`, comme l'éditeur).
  */
 
 const NOW = "2026-10-24T09:00:00.000Z";
@@ -103,8 +108,9 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     return result.value;
   }
 
+  // PRE-7 (R-3, C05) : Exercices créés dans la Séance = créations locales terminées (Mouvements NEW).
   async function save(draft: SessionDraft): Promise<Session> {
-    const result = await sessionService().createSession(draft);
+    const result = await sessionService().createSession(withLocalMovements(draft));
     if (!result.ok) {
       throw new Error(JSON.stringify(result.violations));
     }
@@ -114,8 +120,8 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
   const occurrencesOf = (session: Session) => [...(session.cycle.beforeTour ?? []), ...session.cycle.tour.exercises, ...(session.cycle.afterTour ?? [])];
 
   /** Deux Exercices du même geste à phases [6, 3] et [8, 4]. */
-  async function twoSharing() {
-    const first = await created(await service().createActivityDefinitionWithOrigin(input(phased(phases(6, 3))), { kind: "INDEPENDENT" }));
+  async function twoSharing(name = "Squat") {
+    const first = await created(await service().createActivityDefinitionWithOrigin(input(phased(phases(6, 3)), { name }), { kind: "INDEPENDENT" }));
     const second = await created(
       await service().createActivityDefinitionWithOrigin(input(phased(phases(8, 4)), { name: first.name }), {
         kind: "SAME_MOVEMENT",
@@ -188,7 +194,7 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect((await movements().findById(alone.movementId))?.levelGroup).toBeNull();
   });
 
-  it("correction structurelle : sans complétion → SIBLING_COMPLETION_REQUIRED sans écriture ; complétion passée → frère INCOMPLET par phaseId, édité exécutable ; copies de Séance inchangées", async () => {
+  it("correction structurelle : sans complétion → SIBLING_COMPLETION_REQUIRED sans écriture ; complétion passée → frère INCOMPLET par phaseId, édité exécutable ; occurrence de Séance : nouvelle phase manquante (R-3)", async () => {
     const { first, second } = await twoSharing();
     const session = await save({ ...createEmptyDraft(), name: "Jambes", exercises: [activityDefinitionToDraftExercise(second, "occ-1", null)] });
     const copyBefore = occurrencesOf(session)[0]!.executionParameters;
@@ -241,9 +247,15 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
       [2, "Phase 2", 4],
       [3, "Remontée", 0],
     ]);
-    // La copie déjà posée n'est jamais synchronisée (MFN-03, MFN-08).
+    // PRE-7 (R-3, D-445 C05, v7 §2) : l'occurrence relit la structure du Mouvement — ses propres durées
+    // sont conservées par identité, la phase 3 ajoutée est manquante (0, signalée), aucune durée inventée.
     const reread = await sessionService().getSession(session.id);
-    expect(occurrencesOf(reread!)[0]!.executionParameters).toEqual(copyBefore);
+    const rereadParameters = occurrencesOf(reread!)[0]!.executionParameters;
+    expect(rereadParameters).toEqual({
+      ...copyBefore,
+      series: { ...copyBefore.series, workPhases: [...copyBefore.series.workPhases, { id: 3, label: "Remontée", durationSeconds: 0 }] },
+    });
+    expect(hasMissingPhaseDuration(rereadParameters)).toBe(true);
 
     // Un frère incomplet ne devient jamais une copie de Séance enregistrable.
     const draft = { ...createEmptyDraft(), name: "Essai", exercises: [activityDefinitionToDraftExercise(siblingRead!, "occ-x", null)] };
@@ -273,7 +285,10 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(sibling.target).toEqual({ kind: "NUMBER", value: 12 });
     expect(await database.getAllAsync("SELECT * FROM movement_phases")).toEqual([]);
 
-    const independent = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
+    // PRE-7 (R-3, C01) : un Exercice indépendant crée un Mouvement de nom distinct.
+    const independent = await created(
+      await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Squat indépendant" }), { kind: "INDEPENDENT" }),
+    );
     const groups = await service().listActivityDefinitionsByMovement();
     expect(groups.map((group) => [group.movementId, group.definitions.map((definition) => definition.id).sort()])).toEqual(
       expect.arrayContaining([
@@ -333,7 +348,7 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(seriesOf(repsRead).target).toEqual({ kind: "NUMBER", value: 10 });
     expect(seriesOf(repsRead).workPhases.map((phase) => phase.durationSeconds)).toEqual([5, 2]);
 
-    const { first: a, second: b } = await twoSharing();
+    const { first: a, second: b } = await twoSharing("Squat partagé");
     expect(
       await service().updateActivityDefinition(a.id, input(phased(phases(6, 3, 2))), [
         { definitionId: b.id, phaseDurations: [{ phaseId: 3, durationSeconds: 0 }] },
@@ -362,7 +377,13 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     expect(await snapshot()).toEqual(before);
   });
 
-  it("occurrence locale dupliquée avant le premier enregistrement : un seul Mouvement, filiations égales ; source retirée → Mouvement créé depuis la copie à l'identifiant pré-alloué", async () => {
+  /** PRE-7 (R-3) : brouillon dont `exercise` est une création locale terminée, puis dupliquée. */
+  function localWithCopy(exercise: SessionDraftExercise, copyId: string, name: string): SessionDraft {
+    const draft = withLocalMovements({ ...createEmptyDraft(), name, exercises: [exercise] });
+    return { ...draft, exercises: duplicateActivity(draft.exercises, exercise.id, copyId) };
+  }
+
+  it("occurrence locale dupliquée avant le premier enregistrement : un seul Mouvement, références égales, numéro de copie ; source retirée → Mouvement du brouillon créé pour la copie", async () => {
     const local: SessionDraftExercise = {
       ...createExerciseDraft("occ-local"),
       name: "Gainage",
@@ -370,31 +391,27 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
       categoryId: "cardio",
       executionParameters: phased(phases(20, 10)),
     };
-    const exercises = duplicateActivity([local], "occ-local", "occ-copy");
-    const session = await save({ ...createEmptyDraft(), name: "Gainage", exercises });
-    expect(occurrencesOf(session).map((item) => [item.id, item.sourceMovementId])).toEqual([
-      ["occ-local", "occ-local"],
-      ["occ-copy", "occ-local"],
+    const session = await save(localWithCopy(local, "occ-copy", "Gainage"));
+    expect(occurrencesOf(session).map((item) => [item.id, item.sourceMovementId, item.copyNumber, item.name])).toEqual([
+      ["occ-local", "occ-local", null, "Gainage"],
+      ["occ-copy", "occ-local", 1, "Gainage"],
     ]);
-    expect(await database.getAllAsync("SELECT id, name, used FROM movements")).toEqual([{ id: "occ-local", name: "Gainage", used: 1 }]);
+    expect(await database.getAllAsync("SELECT id, name FROM movements")).toEqual([{ id: "occ-local", name: "Gainage" }]);
 
-    // Copie déplacée avant la source : même résultat (la source crée son Mouvement).
-    const other: SessionDraftExercise = { ...local, id: "occ-b" };
-    const reversed = [...duplicateActivity([other], "occ-b", "occ-b2")].reverse();
-    await save({ ...createEmptyDraft(), name: "Inverse", exercises: reversed });
-    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-b'")).toEqual({ id: "occ-b", name: "Gainage" });
+    // Copie déplacée avant la source : même résultat (un seul Mouvement, celui du brouillon).
+    const other: SessionDraftExercise = { ...local, id: "occ-b", name: "Gainage latéral" };
+    const withCopy = localWithCopy(other, "occ-b2", "Inverse");
+    await save({ ...withCopy, exercises: [...withCopy.exercises].reverse() });
+    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-b'")).toEqual({ id: "occ-b", name: "Gainage latéral" });
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM movements WHERE id = 'occ-b2'")).toEqual({ count: 0 });
 
-    // Source retirée du brouillon avant l'enregistrement : la copie crée le Mouvement pré-alloué.
-    const lone: SessionDraftExercise = { ...local, id: "occ-c" };
-    const onlyCopy = duplicateActivity([lone], "occ-c", "occ-c2").filter((item) => item.id !== "occ-c");
-    const saved = await save({ ...createEmptyDraft(), name: "Seule", exercises: onlyCopy });
-    expect(occurrencesOf(saved).map((item) => item.sourceMovementId)).toEqual(["occ-c"]);
-    expect(await database.getFirstAsync("SELECT id, name, used FROM movements WHERE id = 'occ-c'")).toEqual({
-      id: "occ-c",
-      name: "Gainage (copie)",
-      used: 1,
-    });
+    // Source retirée du brouillon avant l'enregistrement : le Mouvement du brouillon, encore référencé par
+    // la copie, est créé ; son nom n'est jamais suffixé (le suffixe est le numéro de copie).
+    const lone: SessionDraftExercise = { ...local, id: "occ-c", name: "Gainage lent" };
+    const loneDraft = localWithCopy(lone, "occ-c2", "Seule");
+    const saved = await save({ ...loneDraft, exercises: loneDraft.exercises.filter((item) => item.id !== "occ-c") });
+    expect(occurrencesOf(saved).map((item) => [item.sourceMovementId, item.copyNumber])).toEqual([["occ-c", 1]]);
+    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-c'")).toEqual({ id: "occ-c", name: "Gainage lent" });
   });
 
   it("duplication de Séance : nouvelle Séance « (copie) » puis « (copie 2) », nouveaux identifiants, filiations identiques ; inconnue → NOT_FOUND", async () => {
@@ -557,19 +574,27 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
       categoryId: "cardio",
       executionParameters: durationParameters(30, 2, 10),
     };
-    const reversed = [...duplicateActivity([local], "occ-new", "occ-new-copy")].reverse();
+    // PRE-7 (R-3) : création locale et sa copie, la copie placée avant ; un seul Mouvement NEW.
+    const withCopy = localWithCopy(local, "occ-new-copy", "Base");
     const base = toSessionDraft(session);
-    expect((await sessionService().updateSession(session.id, { ...base, exercises: [...base.exercises, ...reversed] })).status).toBe("UPDATED");
-    expect(await database.getFirstAsync("SELECT id, name, used FROM movements WHERE id = 'occ-new'")).toEqual({ id: "occ-new", name: "Planche", used: 1 });
+    const added = { ...base, exercises: [...base.exercises, ...[...withCopy.exercises].reverse()], movements: withCopy.movements };
+    expect((await sessionService().updateSession(session.id, added)).status).toBe("UPDATED");
+    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-new'")).toEqual({ id: "occ-new", name: "Planche" });
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM movements WHERE id = 'occ-new-copy'")).toEqual({ count: 0 });
 
-    const lone: SessionDraftExercise = { ...local, id: "occ-lone" };
-    const onlyCopy = duplicateActivity([lone], "occ-lone", "occ-lone-copy").filter((item) => item.id !== "occ-lone");
+    const lone: SessionDraftExercise = { ...local, id: "occ-lone", name: "Planche latérale" };
+    const loneDraft = localWithCopy(lone, "occ-lone-copy", "Base");
     const again = toSessionDraft((await sessionService().getSession(session.id))!);
-    expect((await sessionService().updateSession(session.id, { ...again, exercises: [...again.exercises, ...onlyCopy] })).status).toBe("UPDATED");
-    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-lone'")).toEqual({ id: "occ-lone", name: "Planche (copie)" });
+    const onlyCopy = {
+      ...again,
+      exercises: [...again.exercises, ...loneDraft.exercises.filter((item) => item.id !== "occ-lone")],
+      movements: loneDraft.movements,
+    };
+    expect((await sessionService().updateSession(session.id, onlyCopy)).status).toBe("UPDATED");
+    expect(await database.getFirstAsync("SELECT id, name FROM movements WHERE id = 'occ-lone'")).toEqual({ id: "occ-lone", name: "Planche latérale" });
     const final = await sessionService().getSession(session.id);
-    expect(occurrencesOf(final!).find((item) => item.id === "occ-lone-copy")?.sourceMovementId).toBe("occ-lone");
+    const copy = occurrencesOf(final!).find((item) => item.id === "occ-lone-copy");
+    expect([copy?.sourceMovementId, copy?.copyNumber, copy?.name]).toEqual(["occ-lone", 1, "Planche latérale"]);
   });
 
   it("duplication d'une Séance archivée → NOT_FOUND, rien créé", async () => {

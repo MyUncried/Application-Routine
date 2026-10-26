@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import { activityDefinitionToDraftExercise, validateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { projectScalars, serializeExecutionParameters, type ExecutionParameters } from "@/domain/activities/ExecutionParameters";
-import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, toCreateSessionInput } from "@/domain/sessions/SessionDraft";
 import { DATABASE_VERSION } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
@@ -28,6 +28,11 @@ import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqlite
  * Exercices, Séances, occurrences, médias, Points d'arrêt), migrée par le
  * chemin du démarrage (`initializeDatabase`), puis relue par une NOUVELLE
  * connexion. Une suite verte ne vaut pas recette sur appareil (jalon JA1).
+ *
+ * PRE-7 (R-3) : le démarrage enchaîne désormais `migration013`. Les preuves
+ * propres au schéma 012 migrent avec `targetVersion` 12 (`migrateTo12`) et
+ * vérifient ce schéma en SQL ; celles du démarrage complet (relance, données
+ * recréées) visent la version courante (`DATABASE_VERSION`).
  */
 
 const NOW = "2026-10-24T08:00:00.000Z";
@@ -79,6 +84,11 @@ afterEach(() => {
     }
   }
 });
+
+/** Chaîne arrêtée à la version 12 (`targetVersion`) : schéma et effets de `migration012` seuls. */
+async function migrateTo12(database: Database): Promise<void> {
+  await migrateDatabase(database, () => NOW, 12);
+}
 
 async function version(database: Database): Promise<number> {
   return (await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version ?? -1;
@@ -285,11 +295,12 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     expect(await count(database, "activity_definitions")).toBe(2);
     expect(await count(database, "sessions")).toBe(2);
 
-    await initializeDatabase(database);
+    await migrateTo12(database);
     database = reopen(database);
 
     expect(await version(database)).toBe(12);
-    expect(DATABASE_VERSION).toBe(12);
+    // PRE-7 (R-3) : la version courante est 13 (`migration013`), éprouvée par `migration013.test.ts`.
+    expect(DATABASE_VERSION).toBe(13);
     // Personnalisations conservées, ligne pour ligne (créations, renommages, retraits compris).
     expect(await referentials(database)).toEqual(kept);
     expect(await database.getFirstAsync("SELECT name, is_active FROM categories WHERE id = 'cat-custom'")).toEqual({ name: "Grimpe", is_active: 1 });
@@ -320,7 +331,7 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
 
   it("schéma MFN : movement_id intègre et restrictif, source_movement_id non nul sans clé étrangère, Zones et médias du Mouvement, anciennes tables retirées", async () => {
     let database = await seededVersion11();
-    await initializeDatabase(database);
+    await migrateTo12(database);
     database = reopen(database);
 
     const tables = (await database.getAllAsync<{ name: string }>("SELECT name FROM sqlite_master WHERE type = 'table'")).map((row) => row.name);
@@ -362,28 +373,31 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     await expect(
       database.runAsync("INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at) VALUES ('d', 'ghost', '{}', 'now', 'now')"),
     ).rejects.toThrow();
-    // Les cascades et restrictions des occurrences sont conservées (migration008, AD-4).
-    const sessions = new SqliteSessionRepository(database, ids("ses"), () => NOW);
-    const created = await sessions.create({
-      name: "Séance",
-      initialCountdownSeconds: 10,
-      finalPhaseSeconds: 5,
-      tourRepeatCount: 1,
-      exercises: [
-        {
-          id: "occ-1",
-          type: "EXERCISE",
-          structuralPosition: "IN_TOUR",
-          name: "Gainage",
-          executionParameters: durationParameters(30, 2, 10),
-          postActivityRecoverySeconds: null,
-          bodyZoneIds: ["dos"],
-          categoryId: "cardio",
-        },
-      ],
-    });
+    // Les cascades et restrictions des occurrences sont conservées (migration008, AD-4). PRE-7
+    // (R-3) : écrites en SQL au schéma 012 (les repositories courants visent le schéma 13) —
+    // Mouvement local, Séance, Cycle, Tour, occurrence et sa Zone.
+    await database.runAsync(
+      `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, used, created_at, updated_at)
+       VALUES ('occ-1', 'Gainage', 'gainage', NULL, 'cardio', 1, 1, 'now', 'now')`,
+    );
+    const owner = await database.getFirstAsync<{ id: string }>("SELECT id FROM users");
+    await database.runAsync(
+      `INSERT INTO sessions (id, owner_id, name, status, initial_countdown_seconds, final_phase_seconds, created_at, updated_at)
+       VALUES ('ses-1', ?, 'Séance', 'ACTIVE', 10, 5, 'now', 'now')`,
+      [owner!.id],
+    );
+    await database.runAsync("INSERT INTO cycles (id, session_id, position, repeat_count) VALUES ('cyc-1', 'ses-1', 1, 1)");
+    await database.runAsync(
+      "INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode, nature) VALUES ('tour-1', 'cyc-1', 'ses-1', 1, 1, 'UNILATERAL', 'TOURS')",
+    );
+    await database.runAsync(
+      `INSERT INTO activities (id, session_id, cycle_id, tour_id, type, structural_position, position, name, execution_mode,
+         duration_seconds, series_count, pause_seconds, created_at, updated_at, execution_parameters, category_id, source_movement_id)
+       VALUES ('occ-1', 'ses-1', 'cyc-1', 'tour-1', 'EXERCISE', 'IN_TOUR', 0, 'Gainage', 'DURATION', 30, 2, 10, 'now', 'now', '{}', 'cardio', 'occ-1')`,
+    );
+    await database.runAsync("INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('occ-1', 'dos')");
     await expect(database.runAsync("DELETE FROM body_zones WHERE id = 'dos'")).rejects.toThrow();
-    await database.runAsync("DELETE FROM sessions WHERE id = ?", [created.id]);
+    await database.runAsync("DELETE FROM sessions WHERE id = ?", ["ses-1"]);
     expect(await count(database, "activities")).toBe(0);
     expect(await count(database, "activity_body_zones")).toBe(0);
     // Aucun ramassage : le Mouvement local de l'occurrence reste (MFN-04).
@@ -420,7 +434,8 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(12);
+    // PRE-7 (R-3) : démarrage complet (012 puis 013, une seule fois chacune).
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await dumpAll(database)).toEqual(before);
     expect(await count(database, "migration_notices")).toBe(1);
     expect(await count(database, "activity_definitions")).toBe(1);
@@ -430,7 +445,7 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
   it("base v11 sans Exercice ni Séance : version 12, référentiels conservés, aucun avis", async () => {
     let database = await seededVersion11({ exercises: false });
     const kept = await referentials(database);
-    await initializeDatabase(database);
+    await migrateTo12(database);
     database = reopen(database);
 
     expect(await version(database)).toBe(12);
@@ -439,12 +454,13 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     expect(await new SqliteMigrationNoticeRepository(database).findUnacknowledged()).toBeNull();
   });
 
-  it("installation neuve : version 12 directement, référentiels initiaux, aucun avis", async () => {
+  it("installation neuve : version courante directement, référentiels initiaux, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(12);
+    // PRE-7 (R-3) : le démarrage atteint la version courante (13).
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "migration_notices")).toBe(0);
     expect(await count(database, "categories")).toBeGreaterThan(0);
     expect(await count(database, "body_zones")).toBeGreaterThan(0);
@@ -461,14 +477,14 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     const before = await dumpAll(database);
 
     const failing = failOnWrite(database, pattern);
-    await expect(migrateDatabase(failing.database)).rejects.toThrow("Injected failure");
+    await expect(migrateDatabase(failing.database, () => NOW, 12)).rejects.toThrow("Injected failure");
     expect(failing.state.armed).toBe(false);
     database = reopen(database);
 
     expect(await version(database)).toBe(11);
     expect(await dumpAll(database)).toEqual(before);
 
-    await initializeDatabase(database);
+    await migrateTo12(database);
     database = reopen(database);
     expect(await version(database)).toBe(12);
     expect(await database.getAllAsync("SELECT kind, count FROM migration_notices")).toEqual([
@@ -489,7 +505,7 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
       bodyZoneIds: ["dos"],
       phases: [],
       nextPhaseId: 1,
-      used: false,
+      aliases: [],
       levelGroup: null,
     });
     database = reopen(database);

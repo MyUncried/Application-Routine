@@ -7,7 +7,7 @@ import { moveDraftMedia, placeRetriedMedia, selectionNeighbours, type DraftMedia
 import { ActivityMediaImportService, readyMedia, type MediaPickerPort, type PickedMedia } from "@/domain/media/ActivityMediaImportService";
 import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import {  replaceSessionActivityMediaLinks,
+import {
   SqliteMediaRepository,
 } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { replaceMovementMediaLinks } from "@/infrastructure/database/repositories/SqliteMovementRepository";
@@ -190,7 +190,8 @@ describe("LocalMediaStore — PRE-3 (fichiers temporaires réels)", () => {
       await database.withExclusiveTransactionAsync((transaction) => replaceMovementMediaLinks(transaction, "mov-def-1", [], uuid));
       expect(await repository.findAsset(sharedItem!.assetId)).not.toBeNull();
       expect(store.fileExists(sharedItem!.asset.uri)).toBe(true);
-      expect(typeof replaceSessionActivityMediaLinks).toBe("function");
+      // PRE-7 (R-3, C05) : seuls les Mouvements portent des liens de médias.
+      expect(typeof replaceMovementMediaLinks).toBe("function");
 
       // Un nouveau brouillon prépare `extra` puis est abandonné (confirmé) : seule cette préparation est éligible.
       leases.registerPrepared("draft-abandoned", extraItem!.assetId);

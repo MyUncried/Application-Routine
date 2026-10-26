@@ -65,6 +65,13 @@ import { strings } from "@/shared/i18n";
  * Rappel NFR-04 : ces tests ne valent pas recette sur iPhone.
  */
 
+/**
+ * PRE-7 (R-3, D-445 C05) : l'occurrence ne stocke ni nom ni description — vue SQL des occurrences
+ * avec le contenu courant de leur Mouvement (`name`, `instruction`), pour les relectures directes.
+ */
+const OCCURRENCES =
+  "(SELECT activities.*, movements.name AS name, movements.description AS instruction FROM activities JOIN movements ON movements.id = activities.source_movement_id) AS occurrence_view";
+
 jest.mock("expo-sqlite", () => ({
   useSQLiteContext: () => ({}),
 }));
@@ -671,7 +678,7 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    expect(await database.getAllAsync("SELECT name FROM activities ORDER BY position")).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
+    expect(await database.getAllAsync(`SELECT name FROM ${OCCURRENCES} ORDER BY position`)).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
     expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 });
@@ -745,7 +752,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    const names = (await database.getAllAsync<{ name: string }>("SELECT name FROM activities ORDER BY position")).map((row) => row.name);
+    const names = (await database.getAllAsync<{ name: string }>(`SELECT name FROM ${OCCURRENCES} ORDER BY position`)).map((row) => row.name);
     expect(names).toContain("Pompes");
     expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
@@ -774,7 +781,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    expect(await database.getAllAsync("SELECT id, name FROM activities")).toEqual([{ id: copy.id, name: "Fentes" }]);
+    expect(await database.getAllAsync(`SELECT id, name FROM ${OCCURRENCES}`)).toEqual([{ id: copy.id, name: "Fentes" }]);
     expect(await copySeriesCount()).toBe(1);
   }, 30000);
 });
@@ -799,7 +806,7 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     expect(await definitionRow()).toEqual(definitionBefore);
     const copyAfterMs = await copyRow();
-    expect(copyAfterMs).toMatchObject([{ name: "Fentes" }]);
+    expect(await database.getAllAsync(`SELECT name FROM ${OCCURRENCES}`)).toEqual([{ name: "Fentes" }]);
     expect(await copySeriesCount()).toBe(1);
 
     await openExercisesSegment();
@@ -811,7 +818,9 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
     });
     await settle(300);
     expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes du Catalogue" }]);
+    // Paramètres de la Copie intacts ; PRE-7 (R-3, D-445 C05) : son nom est celui, corrigé, du Mouvement.
     expect(await copyRow()).toEqual(copyAfterMs);
+    expect(await database.getAllAsync(`SELECT name FROM ${OCCURRENCES}`)).toEqual([{ name: "Fentes du Catalogue" }]);
     expect(screen.getAllByTestId("activity-card-open")).toHaveLength(1);
   }, 30000);
 });
@@ -1029,7 +1038,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
 
-    const [created] = await database.getAllAsync<{ id: string }>("SELECT id FROM activities WHERE name = 'Gainage'");
+    const [created] = await database.getAllAsync<{ id: string }>(`SELECT id FROM ${OCCURRENCES} WHERE name = 'Gainage'`);
     editorSpy.mockClear();
     await openSessionFromCatalogue();
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${created!.id}`));
@@ -1264,7 +1273,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
 
-    const [created] = await database.getAllAsync<{ id: string }>("SELECT id FROM activities WHERE name = 'Gainage'");
+    const [created] = await database.getAllAsync<{ id: string }>(`SELECT id FROM ${OCCURRENCES} WHERE name = 'Gainage'`);
     editorSpy.mockClear();
     await openSessionFromCatalogue();
     fireEvent.press(screen.getByTestId(`composition-exercise-row-${created!.id}`));
@@ -1338,7 +1347,7 @@ describe("PRE4-4.2/AC10 — Séance : appuis répétés", () => {
     });
     await settle();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    expect(await database.getAllAsync("SELECT name FROM activities WHERE name = 'Gainage'")).toEqual([{ name: "Gainage" }]);
+    expect(await database.getAllAsync(`SELECT name FROM ${OCCURRENCES} WHERE name = 'Gainage'`)).toEqual([{ name: "Gainage" }]);
     expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Fentes" }]);
   }, 30000);
 });
@@ -1501,7 +1510,7 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
     const saved = await database.getAllAsync<{ name: string; type: string; post_activity_recovery_seconds: number }>(
-      "SELECT name, type, post_activity_recovery_seconds FROM activities ORDER BY position",
+      `SELECT name, type, post_activity_recovery_seconds FROM ${OCCURRENCES} ORDER BY position`,
     );
     expect(saved.map((row) => row.name).sort()).toEqual(["Fentes", "Planche"]);
     expect(saved.every((row) => row.type === "EXERCISE" && row.post_activity_recovery_seconds === 0)).toBe(true);
@@ -1671,9 +1680,10 @@ async function definitionMedia(definitionId: string): Promise<string[]> {
   return rows.map((row) => row.asset_id);
 }
 
+/** PRE-7 (R-3, C05) : médias relus par l'occurrence — ceux de son Mouvement (aucun lien propre). */
 async function copyMedia(activityId: string): Promise<string[]> {
   const rows = await database.getAllAsync<{ asset_id: string }>(
-    "SELECT asset_id FROM session_activity_media WHERE activity_id = ? ORDER BY position",
+    "SELECT asset_id FROM movement_media WHERE movement_id = (SELECT source_movement_id FROM activities WHERE id = ?) ORDER BY position",
     [activityId],
   );
   return rows.map((row) => row.asset_id);
@@ -1745,7 +1755,7 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
 
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    const [created] = await database.getAllAsync<{ id: string }>("SELECT id FROM activities WHERE name = 'Pompes'");
+    const [created] = await database.getAllAsync<{ id: string }>(`SELECT id FROM ${OCCURRENCES} WHERE name = 'Pompes'`);
     expect(await copyMedia(created!.id)).toEqual(added);
     expect(await definitionMedia(definition.id)).toEqual(["p1", "p2"]);
   }, 30000);
@@ -2045,7 +2055,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     await settle();
     await continueAndSave();
     await waitFor(() => expect(router.getPathname()).toBe("/"));
-    const rows = await database.getAllAsync<{ instruction: string | null }>("SELECT instruction FROM activities");
+    const rows = await database.getAllAsync<{ instruction: string | null }>(`SELECT instruction FROM ${OCCURRENCES}`);
     expect(rows).toEqual([{ instruction: "Genou aligné\nDos droit" }]);
     expect(await database.getAllAsync("SELECT * FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual(definitionBefore);
   }, 30000);

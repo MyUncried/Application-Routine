@@ -159,7 +159,7 @@ async function savedDefinition(parameters: ExecutionParameters = PARAMETERS): Pr
 async function dump(): Promise<Record<string, unknown[]>> {
   const result: Record<string, unknown[]> = {};
   // PRE-7 (A1.2) : contenu partagé porté par le Mouvement (`movements` et ses tables).
-  for (const table of ["activity_definitions", "movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets", "sessions", "activities", "session_activity_media", "categories"]) {
+  for (const table of ["activity_definitions", "movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets", "sessions", "activities", "movement_aliases", "categories"]) {
     result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
   }
   return result;

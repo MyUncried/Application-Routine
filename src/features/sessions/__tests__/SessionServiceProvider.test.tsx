@@ -22,6 +22,7 @@ import {
 } from "@/features/reference-data/ReferentialServiceContext";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import {
   LOCAL_PROFILE_SINGLETON_KEY,
   LOCAL_USER_SINGLETON_KEY,
@@ -354,13 +355,14 @@ describe("SessionServiceProvider — câblage réel du Profil et des référenti
       `UPDATE profiles SET post_activity_recovery_seconds_default = ${PROFILE_DEFAULT_SECONDS} WHERE singleton_key = ${LOCAL_PROFILE_SINGLETON_KEY}`,
     );
 
-    const draft = {
+    // PRE-7 (R-3, C05) : Exercice créé localement (Mouvement NEW, `withLocalMovements`).
+    const draft = withLocalMovements({
       ...createEmptyDraft(),
       name: "Séance simple",
       exercises: [
         { ...createExerciseDraft("ex-1", OCCURRENCE_OWN_SECONDS), name: "Gainage" },
       ],
-    };
+    });
 
     const result = await capturedService!.createSession(draft);
     expect(result.ok).toBe(true);

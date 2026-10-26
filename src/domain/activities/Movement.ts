@@ -89,8 +89,13 @@ export type Movement = {
    * n'est jamais réallouée.
    */
   readonly nextPhaseId: number;
-  /** État durable « déjà utilisé » (MFN-08) : faux au départ, irréversible. */
-  readonly used: boolean;
+  /**
+   * PRE-7 (R-3, D-445 C01, v7 §2 et §6) : alias facultatifs, noms alternatifs du Mouvement,
+   * dans l'ordre de saisie ; uniques dans le Mouvement après normalisation, partageables entre
+   * Mouvements (aucun rattachement). Ce ne sont pas des noms d'exercice. Le drapeau « déjà
+   * utilisé » (MFN-08) est retiré : C03, « aucun indicateur d'utilisation irréversible ».
+   */
+  readonly aliases: readonly string[];
   /** Groupe de niveaux, `null` pour un Mouvement neuf (MFN-05). */
   readonly levelGroup: MovementLevelGroup | null;
 };
@@ -104,7 +109,7 @@ export type MovementValidationField =
   | "movement.bodyZoneIds"
   | "movement.phases"
   | "movement.nextPhaseId"
-  | "movement.used"
+  | "movement.aliases"
   | "movement.levelGroup";
 
 export type MovementViolation = {
@@ -161,7 +166,8 @@ function phaseCounterFloor(phases: readonly { readonly id: number }[]): number {
  * `validateInstruction`) ; Catégorie non vide ; Zones corporelles non vides et
  * distinctes ; médias à identifiant non vide et cohérent avec l'asset ; structure
  * des phases (`movementPhasesProblem`) ; compteur entier > max(`id`) (un
- * compteur ≤ max(`id`) pourrait réallouer une identité) ; `used` booléen ; groupe
+ * compteur ≤ max(`id`) pourrait réallouer une identité) ; alias (R-3) : liste de
+ * noms valides, uniques après normalisation ; groupe
  * `null` ou identifiant non vide ET clé de tri finie, toujours ensemble.
  * Succès : Mouvement normalisé (nom et description).
  */
@@ -208,8 +214,12 @@ export function validateMovement(movement: Movement): MovementValidationResult {
   ) {
     violations.push({ code: "OUT_OF_RANGE", field: "movement.nextPhaseId" });
   }
-  if (typeof movement.used !== "boolean") {
-    violations.push({ code: "UNRECOGNIZED", field: "movement.used" });
+  if (!Array.isArray(movement.aliases)) {
+    violations.push({ code: "UNRECOGNIZED", field: "movement.aliases" });
+  } else if (movement.aliases.some((alias) => !validateExerciseName(alias).ok)) {
+    violations.push({ code: "REQUIRED", field: "movement.aliases" });
+  } else if (new Set(movement.aliases.map(normalizeMovementName)).size !== movement.aliases.length) {
+    violations.push({ code: "DUPLICATE", field: "movement.aliases" });
   }
   const group = movement.levelGroup;
   if (
@@ -221,7 +231,10 @@ export function validateMovement(movement: Movement): MovementValidationResult {
   if (violations.length > 0 || !name.ok || !description.ok) {
     return { ok: false, violations };
   }
-  return { ok: true, value: { ...movement, name: name.value, description: description.value } };
+  return {
+    ok: true,
+    value: { ...movement, name: name.value, description: description.value, aliases: movement.aliases.map((alias) => alias.trim()) },
+  };
 }
 
 /**
@@ -259,14 +272,6 @@ export function withPhaseStructure(movement: Movement, phases: readonly Movement
   );
 }
 
-/**
- * Marque le Mouvement « déjà utilisé » (MFN-08) : métadonnée durable,
- * irréversible (aucune fonction inverse), sans modification du contenu ni des
- * paramètres. Déjà utilisé : Mouvement rendu tel quel.
- */
-export function markMovementUsed(movement: Movement): Movement {
-  return movement.used ? movement : { ...movement, used: true };
-}
 
 /** Structure et valeurs Catalogue issues d'une représentation résolue. */
 export type SplitParameters = {
@@ -340,10 +345,16 @@ export type CatalogResolution =
  * Reconstitue la représentation résolue depuis la structure du Mouvement et les
  * paramètres Catalogue (MFN-02, ch10 « Nature, libellés et ordre des phases →
  * Mouvement ») : l'ordre et les libellés sont ceux de la structure, les durées
- * sont associées par `phaseId`. Les identités doivent être EXACTEMENT les mêmes
- * des deux côtés (vide ⇔ vide ; D-446 : dans les deux régimes de séries) ; un écart,
- * une structure invalide ou un invariant rompu est une donnée corrompue →
- * `ExecutionParametersDataError`, jamais une association approchée.
+ * sont associées par `phaseId` (D-446 : dans les deux régimes de séries). Une
+ * structure invalide ou un invariant des durées rompu est une donnée corrompue →
+ * `ExecutionParametersDataError`.
+ *
+ * PRE-7 (R-3, D-445 C05, v7 §2 : « les exercices concernés peuvent rester
+ * explicitement incomplets après la correction partagée ») : le contenu étant lu
+ * dans le Mouvement, sa structure peut avoir changé depuis l'écriture des durées
+ * d'une occurrence ou d'une définition. Une phase du Mouvement sans durée est
+ * MANQUANTE (`INCOMPLETE`, signalée, jamais exécutable) ; une durée dont la phase a
+ * été retirée est ignorée. Aucune durée n'est inventée.
  */
 export function resolveCatalogParameters(
   phases: readonly MovementPhase[],
@@ -363,15 +374,12 @@ export function resolveCatalogParameters(
     throw new ExecutionParametersDataError(`Malformed phase durations: ${durationsProblem}.`);
   }
   const byId = new Map(series.phaseDurations.map((entry) => [entry.phaseId, entry.durationSeconds] as const));
-  if (byId.size !== phases.length || phases.some((phase) => !byId.has(phase.id))) {
-    throw new ExecutionParametersDataError("Movement phases and phase durations differ.");
-  }
   const workPhases: WorkPhase[] = phases.map((phase) => ({
     id: phase.id,
     label: phase.label,
     durationSeconds: byId.get(phase.id) ?? 0,
   }));
-  const missingPhaseIds = phases.filter((phase) => byId.get(phase.id) === null).map((phase) => phase.id);
+  const missingPhaseIds = phases.filter((phase) => (byId.get(phase.id) ?? null) === null).map((phase) => phase.id);
   let resolved: ExecutionParameters;
   let unsetTargetPresent: boolean;
   if (series.kind === "VARIABLE") {

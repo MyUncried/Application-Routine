@@ -157,7 +157,7 @@ async function localGesture(): Promise<Movement> {
       { id: 2, label: "Extension" },
     ],
     nextPhaseId: 3,
-    used: true,
+    aliases: [],
     levelGroup: null,
   });
 }
@@ -464,12 +464,14 @@ describe("PRE-7 A2.3 — création depuis une Séance (locale)", () => {
       bodyZoneIds: ["cuisses"],
       instruction: "Buste droit",
     });
-    expect(patch.exercises[0]!.pendingLocalMovement).toBeUndefined();
+    // PRE-7 (R-3, C05) : reprise d'un Mouvement enregistré — aucun Mouvement nouveau dans le brouillon.
+    expect(patch.exercises[0]).not.toHaveProperty("pendingLocalMovement");
+    expect((patch as { movements?: Record<string, unknown> }).movements?.[squats.movementId]).toBeUndefined();
     expect(await definitionsRows()).toEqual(definitionsBefore);
     expect(await movementsRows()).toEqual(movementsBefore);
   });
 
-  it("Variante : création locale (aucune filiation), contenu vide repris de l'origine, modifiable ; aucune définition publiée", async () => {
+  it("Variante : création locale (Mouvement NEW du brouillon à son identifiant), contenu vide repris de l'origine, modifiable ; aucune définition publiée", async () => {
     await catalogueSquats();
     const definitionsBefore = await definitionsRows();
     await renderEditor({});
@@ -480,9 +482,16 @@ describe("PRE-7 A2.3 — création depuis une Séance (locale)", () => {
     fillDurationParameters();
     await finish("exercise-finish-action");
 
-    const patch = updateDraft.mock.calls[0]![0] as { exercises: readonly SessionDraftExercise[] };
+    const patch = updateDraft.mock.calls[0]![0] as {
+      exercises: readonly SessionDraftExercise[];
+      movements?: Record<string, { change: string; name: string; description: string | null }>;
+    };
     expect(patch.exercises[0]).toMatchObject({ name: "Squats sumo", instruction: "Buste droit", categoryId: "cardio", bodyZoneIds: ["cuisses"] });
-    expect(patch.exercises[0]!.sourceMovementId ?? "").toBe("");
+    // PRE-7 (R-3, D-445 C05) : la variante est une création locale — un Mouvement NEW à l'identifiant de
+    // l'occurrence, distinct du geste d'origine, porte son contenu.
+    const occurrenceId = patch.exercises[0]!.id;
+    expect(patch.exercises[0]!.sourceMovementId).toBe(occurrenceId);
+    expect(patch.movements?.[occurrenceId]).toMatchObject({ change: "NEW", name: "Squats sumo", description: "Buste droit" });
     expect(await definitionsRows()).toEqual(definitionsBefore);
   });
 });

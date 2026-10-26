@@ -19,7 +19,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 import { computeActivityDurationResult, computeStructuredSessionDuration } from "@/domain/sessions/calculations";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
-import { groupActivitiesByZone } from "@/domain/sessions/composition";
+import { groupActivitiesByZone, occurrenceDisplayName } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -493,7 +493,7 @@ export function formatOccurrenceAccessibilityLabel(
   const card = strings.screens.composition.occurrenceCard;
   const parts = [
     card.accessibilityType,
-    exercise.name,
+    occurrenceDisplayName(exercise.name, exercise.copyNumber),
     card.accessibilityPosition
       .replace("{position}", String(position.index + 1))
       .replace("{count}", String(position.count)),

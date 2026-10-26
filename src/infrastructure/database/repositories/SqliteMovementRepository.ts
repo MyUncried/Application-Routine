@@ -6,15 +6,17 @@ import {
   type Movement,
   type MovementPhase,
 } from "@/domain/activities/Movement";
-import type {
-  DeleteMovementOutcome,
-  MovementGroupOutcome,
-  MovementRepository,
+import {
+  DuplicateMovementNameError,
+  type DeleteMovementOutcome,
+  type MovementGroupOutcome,
+  type MovementRepository,
 } from "@/domain/activities/MovementRepository";
 import type { DraftMediaItem, MediaLinkInput } from "@/domain/media/ActivityMedia";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
+  MovementAliasRow,
   MovementBodyZoneRow,
   MovementMediaRow,
   MovementPhaseRow,
@@ -30,10 +32,15 @@ type UuidFactory = () => string;
  * Mouvement (`migration012` : `movements`, `movement_phases`,
  * `movement_body_zones`, `movement_media`). Les fonctions transactionnelles
  * exportées (`insertMovement`, `updateMovementContent`, `readMovementRecords`,
- * `markMovementsUsed`, `countMovementDefinitions`) sont réutilisées par les
+ * `countMovementDefinitions`, `countMovementOccurrences`) sont réutilisées par les
  * repositories de définitions et de Séances, dans LEUR transaction : création
- * Catalogue (Mouvement + définition), création locale en Séance (MFN-04),
- * marquage « déjà utilisé » au succès de l'enregistrement (MFN-08).
+ * Catalogue (Mouvement + définition), création et correction depuis une Séance.
+ *
+ * PRE-7 (R-3, `migration013`, D-445 C01, C03, C05) : nom principal unique sur la
+ * clé canonique — contrôlé avant l'écriture et garanti par l'index UNIQUE en
+ * écriture concurrente, les deux traduits en `DuplicateMovementNameError` ; alias
+ * (`movement_aliases`) ; plus d'indicateur « déjà utilisé » ; les occurrences de
+ * Séance référencent le Mouvement par clé étrangère RESTRICT et lisent son contenu.
  *
  * Aucun ramassage automatique (MFN-04) ; suppression refusée si une définition
  * référence le Mouvement (MFN-03) ; les filiations des copies ne sont jamais
@@ -65,6 +72,43 @@ export type MovementRecord = {
   readonly createdAt: string;
   readonly updatedAt: string;
 };
+
+/**
+ * PRE-7 (R-3, C01) : refuse un nom dont la clé canonique est déjà celle d'un AUTRE
+ * Mouvement (`DuplicateMovementNameError`). L'index UNIQUE reste la garantie finale.
+ */
+async function assertNameAvailable(transaction: Database, movementId: string, name: string): Promise<void> {
+  const key = normalizeMovementName(name);
+  const taken = await transaction.getFirstAsync<{ id: string }>(
+    "SELECT id FROM movements WHERE normalized_name = ? AND id <> ? LIMIT 1",
+    [key, movementId],
+  );
+  if (taken) {
+    throw new DuplicateMovementNameError(key);
+  }
+}
+
+/** Violation de l'index UNIQUE du nom (écriture concurrente) → `DuplicateMovementNameError`. */
+async function withNameUniqueness<T>(name: string, write: () => Promise<T>): Promise<T> {
+  try {
+    return await write();
+  } catch (error) {
+    if (error instanceof Error && /UNIQUE/i.test(error.message) && /normalized_name/i.test(error.message)) {
+      throw new DuplicateMovementNameError(normalizeMovementName(name));
+    }
+    throw error;
+  }
+}
+
+async function replaceAliases(transaction: Database, movementId: string, aliases: readonly string[]): Promise<void> {
+  await transaction.runAsync("DELETE FROM movement_aliases WHERE movement_id = ?", [movementId]);
+  for (const [position, alias] of aliases.entries()) {
+    await transaction.runAsync(
+      "INSERT INTO movement_aliases (movement_id, position, alias, normalized_alias) VALUES (?, ?, ?, ?)",
+      [movementId, position, alias, normalizeMovementName(alias)],
+    );
+  }
+}
 
 /** Contrôle de l'entrée (lève) : `validateMovement`, médias contrôlés à part (liens). */
 function validatedContent(content: MovementContent): MovementContent {
@@ -132,36 +176,40 @@ export async function insertMovement(
   mediaId: (position: number) => string,
 ): Promise<void> {
   const movement = validatedContent(content);
-  await transaction.runAsync(
-    `INSERT INTO movements (
-      id, name, normalized_name, description, category_id, next_phase_id, used,
-      level_group_id, level_sort_key, created_at, updated_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [
-      movement.id,
-      movement.name,
-      normalizeMovementName(movement.name),
-      movement.description,
-      movement.categoryId,
-      movement.nextPhaseId,
-      movement.used ? 1 : 0,
-      movement.levelGroup?.groupId ?? null,
-      movement.levelGroup?.sortKey ?? null,
-      timestamp,
-      timestamp,
-    ],
+  await assertNameAvailable(transaction, movement.id, movement.name);
+  await withNameUniqueness(movement.name, () =>
+    transaction.runAsync(
+      `INSERT INTO movements (
+        id, name, normalized_name, description, category_id, next_phase_id,
+        level_group_id, level_sort_key, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        movement.id,
+        movement.name,
+        normalizeMovementName(movement.name),
+        movement.description,
+        movement.categoryId,
+        movement.nextPhaseId,
+        movement.levelGroup?.groupId ?? null,
+        movement.levelGroup?.sortKey ?? null,
+        timestamp,
+        timestamp,
+      ],
+    ),
   );
+  await replaceAliases(transaction, movement.id, movement.aliases);
   await insertPhases(transaction, movement.id, movement.phases);
   await insertBodyZones(transaction, movement.id, movement.bodyZoneIds);
   await replaceMovementMediaLinks(transaction, movement.id, movement.media, mediaId);
 }
 
 /**
- * Réécrit le contenu partagé d'un Mouvement existant (nom, description,
+ * Réécrit le contenu partagé d'un Mouvement existant (nom, alias, description,
  * Catégorie, Zones, structure et compteur de phase), dans la transaction
- * courante. `media` `undefined` conserve les liens. « Déjà utilisé » et le
- * groupe de niveaux ne sont jamais modifiés ici (MFN-08 : irréversible ;
- * MFN-05 : opérations de groupe dédiées). Le compteur ne recule jamais.
+ * courante. `media` `undefined` conserve les liens. Le groupe de niveaux n'est
+ * jamais modifié ici (MFN-05 : opérations de groupe dédiées). Le compteur ne
+ * recule jamais. Un nom déjà pris par un autre Mouvement lève
+ * `DuplicateMovementNameError` (C01).
  */
 export async function updateMovementContent(
   transaction: Database,
@@ -170,23 +218,27 @@ export async function updateMovementContent(
   mediaId: (position: number) => string,
 ): Promise<void> {
   const movement = validatedContent({ ...content, media: content.media ?? [] });
-  const result = await transaction.runAsync(
-    `UPDATE movements SET name = ?, normalized_name = ?, description = ?, category_id = ?,
-       next_phase_id = MAX(next_phase_id, ?), updated_at = ?
-     WHERE id = ?`,
-    [
-      movement.name,
-      normalizeMovementName(movement.name),
-      movement.description,
-      movement.categoryId,
-      movement.nextPhaseId,
-      timestamp,
-      movement.id,
-    ],
+  await assertNameAvailable(transaction, movement.id, movement.name);
+  const result = await withNameUniqueness(movement.name, () =>
+    transaction.runAsync(
+      `UPDATE movements SET name = ?, normalized_name = ?, description = ?, category_id = ?,
+         next_phase_id = MAX(next_phase_id, ?), updated_at = ?
+       WHERE id = ?`,
+      [
+        movement.name,
+        normalizeMovementName(movement.name),
+        movement.description,
+        movement.categoryId,
+        movement.nextPhaseId,
+        timestamp,
+        movement.id,
+      ],
+    ),
   );
   if (result.changes !== 1) {
     throw new Error("Expected exactly one movement row to be updated.");
   }
+  await replaceAliases(transaction, movement.id, movement.aliases);
   await transaction.runAsync("DELETE FROM movement_phases WHERE movement_id = ?", [movement.id]);
   await insertPhases(transaction, movement.id, movement.phases);
   await transaction.runAsync("DELETE FROM movement_body_zones WHERE movement_id = ?", [movement.id]);
@@ -215,9 +267,7 @@ export async function readMovementRecords(
     return records;
   }
   const rows = await database.getAllAsync<MovementRow>(
-    `SELECT id, name, normalized_name, description, category_id, next_phase_id, used,
-            level_group_id, level_sort_key, created_at, updated_at
-     FROM movements WHERE id IN (${placeholders(unique)})`,
+    `SELECT ${MOVEMENT_COLUMNS} FROM movements WHERE id IN (${placeholders(unique)})`,
     unique,
   );
   return assembleRecords(database, rows);
@@ -254,6 +304,12 @@ async function assembleRecords(
      ORDER BY movement_media.movement_id ASC, movement_media.position ASC`,
     ids,
   );
+  const aliasRows = await database.getAllAsync<MovementAliasRow>(
+    `SELECT movement_id, position, alias FROM movement_aliases
+     WHERE movement_id IN (${placeholders(ids)}) ORDER BY movement_id ASC, position ASC`,
+    ids,
+  );
+  const aliasesById = groupBy(aliasRows, (row) => row.movement_id);
   const phasesById = groupBy(phaseRows, (row) => row.movement_id);
   const zonesById = groupBy(zoneRows, (row) => row.movement_id);
   const mediaById = groupBy(mediaRows, (row) => row.movement_id);
@@ -274,14 +330,14 @@ async function assembleRecords(
       bodyZoneIds: (zonesById.get(row.id) ?? []).map((zone) => zone.body_zone_id),
       phases: (phasesById.get(row.id) ?? []).map((phase) => ({ id: phase.phase_id, label: phase.label })),
       nextPhaseId: row.next_phase_id,
-      used: row.used === 1,
+      aliases: (aliasesById.get(row.id) ?? []).map((alias) => alias.alias),
       levelGroup:
         row.level_group_id !== null && row.level_sort_key !== null
           ? { groupId: row.level_group_id, sortKey: row.level_sort_key }
           : null,
     };
     const checked = validateMovement(movement);
-    if (!checked.ok || (row.used !== 0 && row.used !== 1)) {
+    if (!checked.ok) {
       throw new Error("Persisted movement does not satisfy the movement contract.");
     }
     records.set(row.id, { movement, mediaLinks, createdAt: row.created_at, updatedAt: row.updated_at });
@@ -299,16 +355,13 @@ function groupBy<T>(rows: readonly T[], key: (row: T) => string): Map<string, T[
   return byKey;
 }
 
-/** MFN-08 : marque « déjà utilisé », irréversible ; identifiants inconnus ignorés. */
-export async function markMovementsUsed(transaction: Database, ids: readonly string[], timestamp: string): Promise<void> {
-  const unique = [...new Set(ids)];
-  if (unique.length === 0) {
-    return;
-  }
-  await transaction.runAsync(
-    `UPDATE movements SET used = 1, updated_at = ? WHERE used = 0 AND id IN (${placeholders(unique)})`,
-    [timestamp, ...unique],
+/** PRE-7 (R-3, C03, C05) : nombre d'occurrences de Séance persistées qui référencent le Mouvement. */
+export async function countMovementOccurrences(database: Database, id: string): Promise<number> {
+  const row = await database.getFirstAsync<{ count: number }>(
+    "SELECT COUNT(*) AS count FROM activities WHERE source_movement_id = ?",
+    [id],
   );
+  return row?.count ?? 0;
 }
 
 /** Nombre de définitions du Catalogue qui référencent le Mouvement. */
@@ -320,7 +373,7 @@ export async function countMovementDefinitions(database: Database, id: string): 
   return row?.count ?? 0;
 }
 
-const MOVEMENT_COLUMNS = `id, name, normalized_name, description, category_id, next_phase_id, used,
+const MOVEMENT_COLUMNS = `id, name, normalized_name, description, category_id, next_phase_id,
   level_group_id, level_sort_key, created_at, updated_at`;
 
 export class SqliteMovementRepository implements MovementRepository {
@@ -360,11 +413,8 @@ export class SqliteMovementRepository implements MovementRepository {
     return rows.map((row) => records.get(row.id)!.movement);
   }
 
-  async markUsed(ids: readonly string[]): Promise<void> {
-    const timestamp = this.now();
-    await this.database.withExclusiveTransactionAsync(async (transaction) => {
-      await markMovementsUsed(transaction, ids, timestamp);
-    });
+  async countOccurrences(id: string): Promise<number> {
+    return countMovementOccurrences(this.database, id);
   }
 
   async countDefinitions(id: string): Promise<number> {
@@ -382,12 +432,13 @@ export class SqliteMovementRepository implements MovementRepository {
         return;
       }
       const definitionCount = await countMovementDefinitions(transaction, id);
-      if (definitionCount > 0) {
-        outcome = { status: "REFERENCED", definitionCount };
+      // PRE-7 (R-3, D-445) : une occurrence de Séance est une référence active, intègre.
+      const occurrenceCount = await countMovementOccurrences(transaction, id);
+      if (definitionCount > 0 || occurrenceCount > 0) {
+        outcome = { status: "REFERENCED", definitionCount, occurrenceCount };
         return;
       }
-      // Phases, Zones et liens de médias partent en cascade ; les assets et
-      // les filiations des copies ne sont jamais touchés.
+      // Phases, Zones, alias et liens de médias partent en cascade ; les assets ne sont jamais touchés.
       await transaction.runAsync("DELETE FROM movements WHERE id = ?", [id]);
       // Les autres membres du groupe gardent des clés 0..n-1 contiguës.
       if (existing.level_group_id !== null) {

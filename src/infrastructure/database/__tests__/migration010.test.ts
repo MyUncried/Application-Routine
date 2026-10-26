@@ -944,7 +944,6 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
         tour_side_mode: "UNILATERAL",
         activity_id: `parity-${index}`,
         activity_type: combo.type,
-        activity_name: "x",
         structural_position: "IN_TOUR",
         activity_position: index,
         execution_mode: combo.execution_mode,
@@ -953,10 +952,11 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
         series_count: combo.series_count,
         pause_seconds: combo.pause_seconds,
         post_activity_recovery_seconds: combo.post_activity_recovery_seconds,
-        instruction: null,
         activity_side_mode: "UNILATERAL",
         activity_execution_parameters: null,
-        activity_category_id: null,
+        // PRE-7 (R-3) : ligne d'agrégat sans contenu, référence au Mouvement et numéro de copie.
+        activity_source_movement_id: "mov-x",
+        activity_copy_number: null,
       } as SessionAggregateRow;
       let asserted = true;
       try {
@@ -1141,9 +1141,9 @@ describe("PRE4-1.1/AC19 — refus d'un troisième Mode ou d'une Cible UNSET à l
             {
               type: "EXERCISE",
               structuralPosition: "IN_TOUR",
-              name: "Tractions",
+              // PRE-7 (R-3, C05) : occurrence sans contenu ; refusée sur ses paramètres avant toute écriture.
+              sourceMovementId: "mov-tractions",
               postActivityRecoverySeconds: 0,
-              bodyZoneIds: [],
               executionParameters: executionParameters as ExecutionParametersInput,
             },
           ],

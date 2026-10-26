@@ -101,14 +101,12 @@ async function resolveCategoryId(
     }
     if (row.is_active === 0 && row.id !== currentCategoryId) {
       // PRE-4, décision Q53 (8) : à la création, une Catégorie retirée déjà affectée à un
-      // Mouvement ou une occurrence est acceptée (Catégorie conservée par l'Éditeur après sa
-      // suppression depuis la feuille, ou héritée) ; affectée nulle part, elle reste refusée (D-210).
+      // Mouvement est acceptée (Catégorie conservée par l'Éditeur après sa suppression depuis la
+      // feuille, ou héritée) ; affectée nulle part, elle reste refusée (D-210). PRE-7 (R-3, C05) :
+      // une occurrence ne porte plus de Catégorie, seule celle de son Mouvement compte.
       const used = await transaction.getFirstAsync<{ id: string }>(
-        `SELECT id FROM activities WHERE category_id = ?
-         UNION ALL
-         SELECT id FROM movements WHERE category_id = ?
-         LIMIT 1`,
-        [row.id, row.id],
+        "SELECT id FROM movements WHERE category_id = ? LIMIT 1",
+        [row.id],
       );
       // Création seulement : une modification ne garde que sa propre Catégorie.
       if (!used || currentCategoryId !== null) {
@@ -250,7 +248,8 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
           bodyZoneIds: input.bodyZoneIds,
           phases: split.phases,
           nextPhaseId: split.phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1,
-          used: false,
+          // PRE-7 (R-3) : alias saisis avec le contenu (R-5) ; aucun à la création Catalogue actuelle.
+          aliases: [],
           levelGroup: null,
         },
         timestamp,

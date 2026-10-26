@@ -59,6 +59,13 @@ import { chooseExecutionMode, pressInExecutionSheet } from "@/features/activitie
  * retour sur Composition, absence de doublon au double appui, Continuer.
  */
 
+// PRE-7 (R-3, C05) : une création locale prend l'identifiant de l'occurrence pour son Mouvement —
+// identifiants réels (même patron que `CompositionSaveFlow.integration.test.tsx`).
+jest.mock("expo-crypto", () => ({
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  randomUUID: () => (require("node:crypto") as typeof import("node:crypto")).randomUUID(),
+}));
+
 jest.mock("expo-haptics", () => ({
   selectionAsync: jest.fn<() => Promise<void>>().mockResolvedValue(undefined),
 }));

@@ -11,7 +11,6 @@ import {
   ExecutionParametersDataError,
   serializeCatalogExecutionParameters,
   serializeExecutionParameters,
-  serializeResolvedExecutionParameters,
   serializeV2,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -79,9 +78,11 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
   const definitions = () => new SqliteActivityDefinitionRepository(database, ids("def"));
   const sessions = () => new SqliteSessionRepository(database, ids("ses"));
 
+  // PRE-7 (R-3, C01) : chaque définition créée ici est un Mouvement distinct, de nom unique.
+  let names = 0;
   function input(parameters: ExecutionParameters): CreateActivityDefinitionInput {
     const validated = validateActivityDefinitionInput({
-      name: "Squat",
+      name: `Squat ${++names}`,
       description: "Buste droit\nGenoux souples",
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
@@ -101,6 +102,9 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     );
     return row!.execution_parameters;
   }
+
+  /** PRE-7 (R-3, C05) : une occurrence stocke la forme Catalogue v5 (durées par `phaseId`, sans libellé). */
+  const occurrenceJson = (parameters: ExecutionParameters) => serializeCatalogExecutionParameters(splitResolvedParameters(parameters).parameters);
 
   async function storedActivityJsons(): Promise<string[]> {
     const rows = await database.getAllAsync<{ execution_parameters: string }>(
@@ -152,10 +156,10 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     expect(row).toEqual({ execution_mode: "DURATION", duration_seconds: 9, series_count: 3, pause_seconds: 15, side_mode: "LEFT_RIGHT" });
   });
 
-  it("Copie de Séance v2, v3 ou v4 restée en base refusée (D-440 ; PRE-7, Q2) ; copie résolue v5 à phases et charge sous Sans relue à l'identique", async () => {
+  it("Copie de Séance v2, v3 ou v4 restée en base refusée (D-440 ; PRE-7, Q2) ; copie v5 (forme Catalogue, R-3) à phases et charge sous Sans relue à l'identique", async () => {
     const pre4Definition = (await definitions().findById((await definitions().create(input(pre4()))).id))!;
     const session = await continueNew(pre4Definition, "occ-1");
-    expect(await storedActivityJsons()).toEqual([serializeResolvedExecutionParameters(pre4())]);
+    expect(await storedActivityJsons()).toEqual([occurrenceJson(pre4())]);
     // PRE-7 (R-2, D-446) : forme canonique et forme résolue confondues en v5 ; la v3 et la v4 ne sont plus lues des copies.
     const current = serializeExecutionParameters(pre4());
     for (const legacy of [serializeV2(pre4()), current.replace('"version":5', '"version":3'), current.replace('"version":5', '"version":4')]) {
@@ -167,14 +171,14 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     const phasedSession = await continueNew(phasedDefinition, "occ-2");
     const copy = phasedSession.cycle.beforeTour?.[0] ?? phasedSession.cycle.tour.exercises[0]!;
     expect(copy.executionParameters).toEqual(phased());
-    expect((await storedActivityJsons())[1]).toBe(serializeResolvedExecutionParameters(phased()));
+    expect((await storedActivityJsons())[1]).toBe(occurrenceJson(phased()));
     // Réécrite inchangée à la modification de la Séance.
     const updated = toUpdateSessionInput(toSessionDraft(phasedSession));
     if (!updated.ok) {
       throw new Error(JSON.stringify(updated.violations));
     }
     expect((await sessions().update(phasedSession.id, updated.value)).status).toBe("UPDATED");
-    expect((await storedActivityJsons())[1]).toBe(serializeResolvedExecutionParameters(phased()));
+    expect((await storedActivityJsons())[1]).toBe(occurrenceJson(phased()));
   });
 
   it("une ligne Catalogue v5 incomplète, v3, v4 (PRE-7, Q2) ou de version inconnue lève ExecutionParametersDataError (sans perte silencieuse)", async () => {
@@ -192,10 +196,10 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
     }
   });
 
-  // PRE-5 n'ajoutait aucune migration ; PRE-6 ajoute `migration011`, PRE-7 (A1.2) `migration012`.
-  it("PRE-5 n'ajoute aucune migration : DATABASE_VERSION vaut 12 depuis PRE-7 (A1.2) et la base migrée est en version 12", async () => {
-    expect(DATABASE_VERSION).toBe(12);
+  // PRE-5 n'ajoutait aucune migration ; PRE-6 ajoute `migration011`, PRE-7 `migration012` (A1.2) et `migration013` (R-3).
+  it("PRE-5 n'ajoute aucune migration : DATABASE_VERSION vaut 13 depuis PRE-7 (R-3) et la base migrée est en version 13", async () => {
+    expect(DATABASE_VERSION).toBe(13);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-    expect(version?.user_version).toBe(12);
+    expect(version?.user_version).toBe(13);
   });
 });

@@ -325,6 +325,11 @@ export class ActivityDefinitionService {
     }
     const sharing = (await this.repository.listAll()).filter((definition) => definition.movementId === movementId);
     const editedId = target.kind === "UPDATE" ? target.definitionId : null;
+    // PRE-7 (R-3, D-445 C03) : autres exercices qui utilisent le Mouvement — définitions hors
+    // Exercice édité et occurrences de Séance persistées (aucune exécution enregistrée avant T04).
+    const otherUsageCount =
+      sharing.filter((definition) => definition.id !== editedId).length +
+      (await this.movementRepository.countOccurrences(movementId));
     const allocation = allocatePhaseIdentities(movement, validated.value.executionParameters);
     const assessment = assessSharedCorrection(
       movement,
@@ -338,6 +343,7 @@ export class ActivityDefinitionService {
         .filter((definition) => definition.id !== editedId)
         .map((definition) => ({ definitionId: definition.id, parameters: definition.executionParameters })),
       sharing.length,
+      otherUsageCount,
     );
     return { status: "ASSESSED", assessment, phases: allocation.movement.phases };
   }

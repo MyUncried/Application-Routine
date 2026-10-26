@@ -35,6 +35,7 @@ import {
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import { duplicateActivity } from "@/domain/sessions/composition";
 import { SessionValidationError } from "@/domain/sessions/errors";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import type { Session } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
@@ -224,7 +225,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
 
   /** Continuer : brouillon de Composition → Séance persistée. */
   async function continueNew(exercises: readonly SessionDraftExercise[]): Promise<Session> {
-    const draft: SessionDraft = { ...createEmptyDraft(), name: "Jambes", exercises };
+    // PRE-7 (R-3, C05) : Exercices créés dans la Séance = créations locales terminées (Mouvements NEW).
+    const draft: SessionDraft = withLocalMovements({ ...createEmptyDraft(), name: "Jambes", exercises });
     const input = toCreateSessionInput(draft);
     if (!input.ok) {
       throw new Error(JSON.stringify(input.violations));
@@ -234,7 +236,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
   }
 
   async function continueEdit(session: Session, mutate: (draft: SessionDraft) => SessionDraft): Promise<Session> {
-    const input = toUpdateSessionInput(mutate(toSessionDraft(session)));
+    const input = toUpdateSessionInput(withLocalMovements(mutate(toSessionDraft(session))));
     if (!input.ok) {
       throw new Error(JSON.stringify(input.violations));
     }
@@ -261,7 +263,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       "media_assets",
       "sessions",
       "activities",
-      "session_activity_media",
+      // PRE-7 (R-3, C05) : plus de liens de médias propres aux occurrences.
+      "movement_aliases",
       "categories",
     ]) {
       result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
@@ -331,7 +334,9 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const reread = (await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!;
     expect(exercisesOf(reread).map((copy) => copy.executionParameters)).toEqual([ac1Parameters(), ac1Parameters()]);
 
-    // Copie modifiée : Cible de la ligne 1, ordre des lignes, retrait d'un Média ; Terminer puis Continuer.
+    // Copie modifiée : Cible de la ligne 1, ordre des lignes ; Terminer puis Continuer. PRE-7 (R-3,
+    // D-445 C05) : les Médias appartiennent au Mouvement — une vue modifiée sur l'occurrence n'est
+    // jamais écrite (la correction du Mouvement depuis la Séance passe par le brouillon, R-4).
     const definitionBefore = await dump();
     const edited = await continueEdit(reread, (draft) => ({
       ...draft,
@@ -347,7 +352,6 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
         return {
           ...exercise,
           executionParameters: { ...exercise.executionParameters, series: { kind: "VARIABLE", rows, workPhases: [] } },
-          media: exercise.media?.filter((item) => item.assetId !== "p1"),
         };
       }),
     }));
@@ -361,7 +365,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       ],
       workPhases: [],
     });
-    expect(first!.media?.map((item) => item.assetId)).toEqual(["v1", "p2"]);
+    expect(first!.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
     expect(second!.executionParameters).toEqual(ac1Parameters());
     expect(second!.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
     const after = await dump();
@@ -369,6 +373,16 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(after[table]).toEqual(definitionBefore[table]);
     }
     expect((await readDefinition(definition.id)).executionParameters).toEqual(editedDefinition);
+
+    // PRE-7 (R-3, D-445 C05) : le contenu partagé corrigé depuis le Catalogue est relu sur les deux
+    // occurrences ; leurs paramètres restent les leurs.
+    await updateDefinition(definition.id, {
+      ...activityDefinitionToInput(await readDefinition(definition.id)),
+      description: "Genou aligné",
+    });
+    const corrected = exercisesOf((await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!);
+    expect(corrected.map((copy) => copy.instruction)).toEqual(["Genou aligné", "Genou aligné"]);
+    expect(corrected.map((copy) => copy.executionParameters)).toEqual([first!.executionParameters, ac1Parameters()]);
   });
 
   it("PRE4-1.3/AC4 — Définition à Cible héritée UNSET : la Copie entre au brouillon UNSET ; Continuer refuse, base inchangée", async () => {
@@ -399,11 +413,10 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
             id: copy.id,
             type: "EXERCISE",
             structuralPosition: "IN_TOUR",
-            name: copy.name,
             postActivityRecoverySeconds: 0,
-            bodyZoneIds: copy.bodyZoneIds,
             executionParameters: copy.executionParameters,
-            categoryId: copy.categoryId,
+            // PRE-7 (R-3, C05) : référence au Mouvement de la définition, sans contenu.
+            sourceMovementId: copy.sourceMovementId,
           },
         ],
       })
@@ -596,13 +609,15 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
   it("PRE4-1.3/AC11 — Séance : Terminer n'écrit que dans le brouillon ; la Copie n'est écrite en base qu'au Continuer", async () => {
     const definition = await readDefinition((await ac1Definition()).id);
     const before = await dump();
-    // Ajout, édition de la Copie et Terminer : uniquement des valeurs de brouillon.
+    // Ajout, édition de la Copie et Terminer : uniquement des valeurs de brouillon. PRE-7 (R-3, C05) :
+    // ses paramètres propres sont écrits au Continuer ; son nom est celui du Mouvement.
     const copy = activityDefinitionToDraftExercise(definition, "occ-1", 0);
-    const draft: SessionDraft = { ...createEmptyDraft(), name: "Jambes", exercises: [{ ...copy, name: "Fentes modifiées" }] };
+    const editedParameters = { ...copy.executionParameters, cadenceBeepIntervalSeconds: 7 };
+    const draft: SessionDraft = { ...createEmptyDraft(), name: "Jambes", exercises: [{ ...copy, executionParameters: editedParameters }] };
     expect(toCreateSessionInput(draft).ok).toBe(true);
     expect(await dump()).toEqual(before);
     const session = await continueNew(draft.exercises);
-    expect(exercisesOf(session).map((exercise) => exercise.name)).toEqual(["Fentes modifiées"]);
+    expect(exercisesOf(session).map((exercise) => [exercise.name, exercise.executionParameters])).toEqual([["Fentes sautées", editedParameters]]);
   });
 
   it("PRE4-1.3/AC12 — erreur d'écriture injectée à Terminer : base inchangée, nouvelle tentative réussie ; Définition supprimée : NOT_FOUND, jamais recréée", async () => {
@@ -675,9 +690,9 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     expect(uris).toEqual(["p1", "p2", "p3", "v1"].map((id) => ({ id, uri: `kodjo-media/${id}` })));
     expect(uris.every((row) => store.files.has(row.uri))).toBe(true);
 
-    // Réordonner l'Exercice ne change pas l'ordre des Médias de sa copie.
+    // PRE-7 (R-3, D-445 C05) : la copie relit les Médias de son Mouvement — ordre réordonné compris.
     const copy = exercisesOf((await new SqliteSessionRepository(database, ids("ses")).findById(session.id))!)[0]!;
-    expect(copy.media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
+    expect(copy.media?.map((item) => item.assetId)).toEqual(displayed);
 
     // Copie Catalogue → Séance et duplication : aucun fichier de plus, mêmes fichiers dans le même ordre.
     const fileCount = store.files.size;
@@ -701,7 +716,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       { importService, repository: mediaRepository },
     );
     const definition = await readDefinition((await ac1Definition()).id);
-    const other = await readDefinition((await saveDefinition(definitionInput(ac1Parameters(), [importedAsset("solo")]))).id);
+    // PRE-7 (R-3, C01) : nom de Mouvement distinct.
+    const other = await readDefinition((await saveDefinition({ ...definitionInput(ac1Parameters(), [importedAsset("solo")]), name: "Fentes solo" })).id);
     const session = await continueNew([
       activityDefinitionToDraftExercise(definition, "occ-1", 0),
       activityDefinitionToDraftExercise(definition, "occ-2", 0),
@@ -729,7 +745,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     service.leaseDraftMedia("occurrence:occ-1", ["v1", "p1", "p2"]);
     expect(await service.abandonMediaDraft("occurrence:occ-1")).toEqual([]);
 
-    // Retirer p1 d'une Copie puis Continuer : seul ce lien disparaît.
+    // PRE-7 (R-3, D-445 C05) : une Copie n'a plus de liens propres — retirer p1 de sa vue n'écrit rien ;
+    // les deux Copies relisent les Médias du Mouvement, seule source des références.
     const edited = await continueEdit(session, (draft) => ({
       ...draft,
       exercises: draft.exercises.map((exercise) =>
@@ -737,11 +754,11 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       ),
     }));
     expect(exercisesOf(edited).map((exercise) => exercise.media?.map((item) => item.assetId))).toEqual([
-      ["v1", "p2"],
+      ["v1", "p1", "p2"],
       ["v1", "p1", "p2"],
     ]);
     expect((await readDefinition(definition.id)).media?.map((item) => item.assetId)).toEqual(["v1", "p1", "p2"]);
-    expect(await mediaRepository.countReferences("p2")).toBe(4);
+    expect(await mediaRepository.countReferences("p2")).toBe(1);
 
     expect(store.deleted).toEqual([]);
     for (const uri of ["kodjo-media/v1", "kodjo-media/p1", "kodjo-media/p2", "kodjo-media/solo"]) {
@@ -913,7 +930,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(media?.map((item) => item.asset.id)).toEqual(["v1", "p1", "p2"]);
     }
     expect(await database.getAllAsync("SELECT id FROM movement_media WHERE asset_id = 'p1'")).toHaveLength(1);
-    expect(await database.getAllAsync("SELECT id FROM session_activity_media WHERE asset_id = 'p1'")).toHaveLength(1);
+    // PRE-7 (R-3, C05) : la Copie relit les liens de son Mouvement (mêmes identités), sans lien propre.
+    expect(rereadCopy.media?.map((item) => item.id)).toEqual(rereadDefinition.media?.map((item) => item.id));
   });
 
   it("PRE4-1.3/AC17 — Copie rouverte : mêmes Mode et Cibles typées ; Durée totale par la même fonction que pour la Définition (même montant, même nature)", async () => {
@@ -922,7 +940,8 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       variableParameters({ mode: "DURATION", rows: [[30, 10], [45, 10]] }),
       variableParameters({ mode: "REPETITIONS", rows: [[10, 10], [12, 10]], cadenceBeepIntervalSeconds: 2 }),
     ]) {
-      const definition = await readDefinition((await saveDefinition(definitionInput(parameters, []))).id);
+      // PRE-7 (R-3, C01) : un Mouvement de nom distinct par définition.
+      const definition = await readDefinition((await saveDefinition({ ...definitionInput(parameters, []), name: `Fentes ${++sequence}` })).id);
       const session = await continueNew([activityDefinitionToDraftExercise(definition, `occ-${++sequence}`, 30)]);
       const reopened = toSessionDraft(session).exercises[0]!;
       expect(reopened.executionParameters.mode).toBe(definition.executionParameters.mode);
@@ -973,7 +992,7 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
       expect(decodeInstructionSteps(exercise.instruction)).toEqual(["Buste droit", "Genoux souples", "Expirer en montant"]);
     }
     const stored = await database.getAllAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities ORDER BY rowid");
-    // PRE-7 (A1.2 ; R-2, D-446) : forme résolue v5 des copies.
+    // PRE-7 (R-3, C05) : forme Catalogue v5 des copies (durées par `phaseId`).
     expect(stored.every((row) => row.execution_parameters.startsWith('{"version":5,'))).toBe(true);
 
     // Instantané : phases et charge sous Sans conservées.
@@ -992,10 +1011,19 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     );
     expect(snapshot.executionParameters).toEqual(phased());
 
-    // Modifier les phases et la charge de la copie ne touche ni la source, ni la Définition.
+    // Modifier les durées de phases et la charge de la copie ne touche ni la source, ni la Définition.
+    // PRE-7 (R-3, C05) : la structure des phases (identités, libellés) reste celle du Mouvement.
     const editedParameters: ExecutionParameters = {
       ...phased(),
-      series: { ...(phased().series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>), target: { kind: "NUMBER", value: 10 }, loadKg: 5, workPhases: [{ id: 2, label: "Descente", durationSeconds: 10 }] },
+      series: {
+        ...(phased().series as Extract<ExecutionParameters["series"], { kind: "UNIFORM" }>),
+        target: { kind: "NUMBER", value: 10 },
+        loadKg: 5,
+        workPhases: [
+          { id: 2, label: "Descente", durationSeconds: 7 },
+          { id: 5, label: "Maintien", durationSeconds: 3 },
+        ],
+      },
       loadEnabled: true,
     };
     const edited = await continueEdit(duplicated, (draft) => ({

@@ -14,6 +14,7 @@ import { MIGRATION_009 } from "./migrations/migration009";
 import { applyMigration010 } from "./migrations/migration010";
 import { applyMigration011 } from "./migrations/migration011";
 import { applyMigration012 } from "./migrations/migration012";
+import { applyMigration013 } from "./migrations/migration013";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -177,6 +178,15 @@ export async function migrateDatabase(
     if (pending(11)) {
       await applyMigration012(transaction, now);
       version = 12;
+    }
+
+    // PRE-7 (R-3, D-445 C05, Q1 et Q2 de Hermann du 26/10/2026) : occurrence sans copie de
+    // contenu, nom unique, alias ; réinitialisation PONCTUELLE des Mouvements, Niveaux,
+    // Exercices et Séances, Profil et référentiels conservés, avis ; dans CETTE transaction :
+    // un échec annule tout et laisse `user_version` à 12. Jamais rejouée.
+    if (pending(12)) {
+      await applyMigration013(transaction, now);
+      version = 13;
     }
 
     if (version !== targetVersion) {

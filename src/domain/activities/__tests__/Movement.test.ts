@@ -23,7 +23,6 @@ import {
 } from "@/domain/activities/ExecutionParametersDraft";
 import {
   advancePhaseCounter,
-  markMovementUsed,
   resolveCatalogParameters,
   splitResolvedParameters,
   validateCatalogParameters,
@@ -56,7 +55,7 @@ function movement(overrides: Partial<Movement> = {}): Movement {
       { id: 2, label: "Montée" },
     ],
     nextPhaseId: 3,
-    used: false,
+    aliases: [],
     levelGroup: null,
     ...overrides,
   };
@@ -171,12 +170,24 @@ describe("PRE7-A1.1 — compteur monotone, structure et « déjà utilisé » (M
     ]);
   });
 
-  it("markMovementUsed : faux au départ, vrai ensuite, irréversible et idempotent ; contenu inchangé", () => {
-    const fresh = movement();
-    expect(fresh.used).toBe(false);
-    const used = markMovementUsed(fresh);
-    expect(used).toEqual({ ...fresh, used: true });
-    expect(markMovementUsed(used)).toBe(used);
+  // PRE-7 (R-3, D-445 C01, C03) : le drapeau irréversible « déjà utilisé » (MFN-08) et
+  // `markMovementUsed` sont retirés ; le Mouvement porte des alias, validés ici.
+  it("alias (R-3, C01) : liste ordonnée de noms valides, uniques après normalisation, rognés ; « used » n'existe plus", () => {
+    const validated = validateMovement(movement({ aliases: ["  Flexion ", "Squat libre"] }));
+    expect(validated).toEqual({ ok: true, value: movement({ aliases: ["Flexion", "Squat libre"] }) });
+    expect("used" in movement()).toBe(false);
+    expect(validateMovement(movement({ aliases: ["Flexion", "FLEXION"] }))).toEqual({
+      ok: false,
+      violations: [{ code: "DUPLICATE", field: "movement.aliases" }],
+    });
+    expect(validateMovement(movement({ aliases: ["   "] }))).toEqual({
+      ok: false,
+      violations: [{ code: "REQUIRED", field: "movement.aliases" }],
+    });
+    expect(validateMovement(movement({ aliases: "Flexion" as unknown as readonly string[] }))).toEqual({
+      ok: false,
+      violations: [{ code: "UNRECOGNIZED", field: "movement.aliases" }],
+    });
   });
 
   it("matrice : Mouvement à compteur 5, phases [1, 2] → Brouillon ouvert à 5, phase ajoutée 5, compteur rendu ≥ 6", () => {
@@ -325,18 +336,35 @@ describe("PRE7-A1.1 — scission et résolution (MFN-02, MFN/AC14, AC35)", () =>
     );
   });
 
-  it("matrice : structure ≠ valeurs → ExecutionParametersDataError, jamais une association approchée", () => {
+  it("matrice (R-3, C05, v7 §2) : phase sans durée manquante, durée sans phase ignorée ; donnée corrompue → ExecutionParametersDataError", () => {
     const structure: readonly MovementPhase[] = [
       { id: 1, label: "a" },
       { id: 2, label: "b" },
     ];
     const variable = splitResolvedParameters(variableParameters({ rows: [[30, 10, 0], [45, 15, 0]] })).parameters;
+    // PRE-7 (R-3) : la structure du Mouvement peut avoir changé depuis l'écriture des durées —
+    // tolérance, aucune durée inventée (0 et `missingPhaseIds`).
+    const tolerated: readonly [string, readonly MovementPhase[], CatalogExecutionParameters, readonly number[]][] = [
+      ["phase ajoutée au Mouvement", [...structure, { id: 3, label: "c" }], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9)), [3]],
+      ["phase remplacée", structure, catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 3, durationSeconds: 3 }], numberTarget(9)), [2]],
+      ["structure sans valeurs", structure, catalogWith([], numberTarget(9)), [1, 2]],
+      ["structure sur une série variable", structure, variable, [1, 2]],
+    ];
+    for (const [label, phases, catalog, missing] of tolerated) {
+      const resolution = resolveCatalogParameters(phases, catalog);
+      expect({ label, resolution }).toMatchObject({
+        label,
+        resolution: { status: "INCOMPLETE", missingPhaseIds: missing },
+      });
+      expect(resolution.parameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds])).toEqual(
+        phases.map((phase) => [phase.id, catalog.series.phaseDurations.find((entry) => entry.phaseId === phase.id)?.durationSeconds ?? 0]),
+      );
+    }
+    // Toutes les phases retirées du Mouvement : les durées orphelines sont ignorées.
+    const withoutPhases = resolveCatalogParameters([], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9)));
+    expect(withoutPhases.status).toBe("EXECUTABLE");
+    expect(withoutPhases.parameters.series.workPhases).toEqual([]);
     const refused: readonly [string, readonly MovementPhase[], CatalogExecutionParameters][] = [
-      ["identité absente des valeurs", [...structure, { id: 3, label: "c" }], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9))],
-      ["identité absente de la structure", structure, catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 3, durationSeconds: 3 }], numberTarget(9))],
-      ["valeurs sans structure", [], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9))],
-      ["structure sans valeurs", structure, catalogWith([], numberTarget(9))],
-      ["structure sur une série variable", structure, variable],
       ["structure invalide", [{ id: 1, label: "" }, { id: 2, label: "b" }], catalogWith([{ phaseId: 1, durationSeconds: 6 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(9))],
       ["durée 0", structure, catalogWith([{ phaseId: 1, durationSeconds: 0 }, { phaseId: 2, durationSeconds: 3 }], numberTarget(3))],
     ];
@@ -410,12 +438,20 @@ describe("PRE7-A1.1 — validation Catalogue : exercice édité et frère incomp
     expect(executable.ok && executable.value.parameters.sideOrder).toBe("BY_SIDE");
   });
 
-  it("frère incomplet avec une autre violation : refusé ; structure ≠ valeurs : violation, jamais une exception", () => {
+  it("frère incomplet avec une autre violation : refusé ; durée orpheline ignorée (R-3) ; donnée corrompue : violation, jamais une exception", () => {
     const series = incomplete.series as Extract<CatalogExecutionParameters["series"], { kind: "UNIFORM" }>;
     const badPause = { ...incomplete, series: { ...series, pauseSeconds: -1 } };
     const refused = validateCatalogParameters(structure, badPause, "SIBLING_ACCEPTED");
     expect(refused.ok ? [] : refused.violations.map((violation) => violation.field)).toEqual(["pauseSeconds"]);
-    expect(validateCatalogParameters(structure.slice(0, 2), incomplete, "SIBLING_ACCEPTED")).toEqual({
+    // PRE-7 (R-3, C05) : la phase 3 retirée du Mouvement, sa durée est ignorée — manquante, elle ne
+    // rend plus l'exercice incomplet (seule la Cible non renseignée reste à compléter) ; renseignée,
+    // l'exercice est exécutable sur les phases restantes.
+    const pruned = validateCatalogParameters(structure.slice(0, 2), incomplete, "SIBLING_ACCEPTED");
+    expect(pruned.ok && pruned.value.status === "INCOMPLETE" && pruned.value.missingPhaseIds).toEqual([]);
+    const prunedComplete = validateCatalogParameters(structure.slice(0, 2), complete, "EDITED");
+    expect(prunedComplete.ok && prunedComplete.value.parameters.series.workPhases.map((phase) => phase.id)).toEqual([1, 2]);
+    expect(prunedComplete.ok && prunedComplete.value.status).toBe("EXECUTABLE");
+    expect(validateCatalogParameters([{ id: 1, label: "" }, ...structure.slice(1)], incomplete, "SIBLING_ACCEPTED")).toEqual({
       ok: false,
       violations: [{ code: "UNRECOGNIZED", field: "workPhases", level: "STRUCTURE" }],
     });

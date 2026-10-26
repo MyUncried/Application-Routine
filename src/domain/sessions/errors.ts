@@ -63,6 +63,16 @@ export type ValidationField =
   | "activity.name"
   /** T01-S10 : Zones corporelles d'une Activité — doivent rester absentes sur une Récupération. */
   | "activity.bodyZoneIds"
+  /** PRE-7 (R-3, D-445 C05) : Mouvement d'une occurrence d'Exercice, obligatoire. */
+  | "activity.sourceMovementId"
+  /** PRE-7 (R-3, Q3) : numéro de copie, entier ≥ 1 ou absent. */
+  | "activity.copyNumber"
+  /** PRE-7 (R-3) : Mouvement nouveau ou corrigé du brouillon (identité, Catégorie, Zones, phases, alias). */
+  | "movement.id"
+  | "movement.category"
+  | "movement.bodyZoneIds"
+  | "movement.phases"
+  | "movement.aliases"
   /** T01-S10 : durée d'une Récupération (toujours chronométrée). */
   | "recovery.durationSeconds";
 

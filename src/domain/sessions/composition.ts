@@ -211,7 +211,11 @@ export function removeActivity(
   return activities.filter((activity) => activity.id !== activityId);
 }
 
-/** Mot du suffixe de copie (D-124) : donnée du nom de l'occurrence, persistée avec lui. */
+/**
+ * Mot du suffixe de copie (D-124). PRE-7 (R-3, Q3) : pour une occurrence, le suffixe est dérivé
+ * de son numéro de copie (`occurrenceDisplayName`), jamais stocké dans un nom ; `nextCopyName`
+ * reste le nommage des Séances dupliquées.
+ */
 const COPY_SUFFIX_WORD = "copie";
 
 /**
@@ -244,118 +248,35 @@ function copyNameOfRank(name: string, rank: number): string {
   return `${head}${suffix}`;
 }
 
-const COPY_NAME_PATTERN = new RegExp(`^(.*) \\(${COPY_SUFFIX_WORD}(?: ([0-9]+))?\\)$`, "u");
-
 /**
- * Le nom `name` est-il celui de `referenceName`, modulo un ou plusieurs suffixes de copie
- * (`nextCopyName`) ? Comparaison normalisée ; une base tronquée n'est reconnue qu'au premier
- * suffixe (forme exacte produite par `nextCopyName`).
+ * PRE-7 (R-3, Q3 de Hermann du 26/10/2026) : nom affiché d'une occurrence — nom du Mouvement, puis
+ * « (copie) » pour le numéro 1 et « (copie n) » au-delà ; le suffixe n'est jamais persisté dans un
+ * nom ni éditable, et ne renomme pas le Mouvement. `null`/absent : original, nom seul.
  */
-function isNameOrCopyNameOf(name: string, referenceName: string): boolean {
-  const target = normalizeName(referenceName);
-  let current = normalizeName(name);
-  for (;;) {
-    if (current === target) {
-      return true;
-    }
-    const match = COPY_NAME_PATTERN.exec(current);
-    if (match === null) {
-      return false;
-    }
-    const rank = match[2] === undefined ? 1 : Number(match[2]);
-    if (rank >= 1 && normalizeName(copyNameOfRank(referenceName, rank)) === current) {
-      return true;
-    }
-    current = match[1]!;
+export function occurrenceDisplayName(name: string, copyNumber: number | null | undefined): string {
+  if (copyNumber === null || copyNumber === undefined) {
+    return name;
   }
-}
-
-/** Nom débarrassé de ses suffixes de copie (`{nom} (copie[ N])`, répétés), normalisé. */
-function copyBaseName(name: string): string {
-  let current = normalizeName(name);
-  for (let match = COPY_NAME_PATTERN.exec(current); match !== null; match = COPY_NAME_PATTERN.exec(current)) {
-    current = match[1]!;
-  }
-  return current;
-}
-
-/** Structure des phases (identités, libellés, ordre) d'une occurrence, dans les deux régimes (D-446). */
-function phaseStructureOf(exercise: SessionDraftExercise): readonly { readonly id: number; readonly label: string }[] {
-  return exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
+  return copyNumber === 1 ? `${name} (${COPY_SUFFIX_WORD})` : `${name} (${COPY_SUFFIX_WORD} ${copyNumber})`;
 }
 
 /**
- * Le geste de la copie `copy` est-il identique à celui de sa référence `reference` (MFN-03) :
- * nom (modulo suffixe de copie), description, médias (ordre compris), Catégorie, Zones (ensemble)
- * et structure des phases. Les paramètres d'exécution propres ne comptent pas.
+ * PRE-7 (R-3, Q3) : plus petit numéro de copie libre (≥ 1) parmi les occurrences de la Composition
+ * qui partagent le Mouvement `movementId` — même règle « sans collision » que D-124 et RM-021,
+ * appliquée au seul Mouvement (son nom est unique, C01).
  */
-function sameMovementContent(copy: SessionDraftExercise, reference: SessionDraftExercise): boolean {
-  const copyZones = new Set(copy.bodyZoneIds);
-  const referencePhases = phaseStructureOf(reference);
-  const copyPhases = phaseStructureOf(copy);
-  return (
-    (isNameOrCopyNameOf(copy.name, reference.name) ||
-      // Référence elle-même copie en attente (source supprimée) : nom de base sans ses suffixes.
-      (reference.pendingLocalMovement === true && isNameOrCopyNameOf(copy.name, copyBaseName(reference.name)))) &&
-    (copy.instruction ?? null) === (reference.instruction ?? null) &&
-    (copy.media ?? []).map((item) => item.assetId).join("\u0000") ===
-      (reference.media ?? []).map((item) => item.assetId).join("\u0000") &&
-    (copy.categoryId ?? null) === (reference.categoryId ?? null) &&
-    copyZones.size === new Set(reference.bodyZoneIds).size &&
-    reference.bodyZoneIds.every((id) => copyZones.has(id)) &&
-    copyPhases.length === referencePhases.length &&
-    copyPhases.every((phase, index) => phase.id === referencePhases[index]!.id && phase.label === referencePhases[index]!.label)
+export function nextCopyNumber(activities: readonly SessionDraftExercise[], movementId: string): number {
+  const taken = new Set(
+    activities
+      .filter((activity) => activity.sourceMovementId === movementId)
+      .map((activity) => activity.copyNumber ?? null)
+      .filter((copyNumber): copyNumber is number => copyNumber !== null),
   );
-}
-
-/**
- * Recette JA, décision de Hermann du 26/10/2026 (« La copie d'un exercice local doit être
- * déverrouillée ») : une copie en attente (`pendingLocalMovement`, `duplicateActivity`) reste
- * modifiable jusqu'au premier enregistrement de la Séance, comme sa source (exception de création
- * locale MFN-09). Avant la conversion pour l'enregistrement, chaque copie en attente est réglée sur
- * l'état FINAL du brouillon (source et copie éditables dans n'importe quel ordre) :
- *
- * - référence = la source locale (Exercice d'identifiant `sourceMovementId`, sans filiation) si elle
- *   est encore dans le brouillon ; sinon (source supprimée) la première copie en attente vers ce
- *   Mouvement, qui garde sa filiation et créera le Mouvement (repository) ;
- * - une copie dont le geste est identique à celui de sa référence (`sameMovementContent`) garde la
- *   filiation pré-allouée (MFN-09 l.448, MFN/AC32) ;
- * - sinon elle devient une création locale indépendante (filiation et marque retirées) : le
- *   repository crée son propre Mouvement à son identifiant. Choix conservateur : un Mouvement
- *   partagé de contenus différents serait incohérent (MFN-03).
- *
- * Fonction pure ; rien n'est écrit dans le brouillon. Collection inchangée (même référence) si
- * aucune copie n'est détachée.
- */
-export function settlePendingLocalCopies(
-  activities: readonly SessionDraftExercise[],
-): readonly SessionDraftExercise[] {
-  const localSources = new Map<string, SessionDraftExercise>();
-  for (const activity of activities) {
-    if (activity.type === "EXERCISE" && (activity.sourceMovementId ?? "").trim().length === 0) {
-      localSources.set(activity.id, activity);
-    }
+  let rank = 1;
+  while (taken.has(rank)) {
+    rank += 1;
   }
-  const references = new Map<string, SessionDraftExercise>();
-  let detached = false;
-  const settled = activities.map((activity) => {
-    const movementId = activity.sourceMovementId ?? "";
-    if (activity.pendingLocalMovement !== true || movementId.trim().length === 0) {
-      return activity;
-    }
-    const reference = localSources.get(movementId) ?? references.get(movementId);
-    if (reference === undefined) {
-      references.set(movementId, activity);
-      return activity;
-    }
-    if (sameMovementContent(activity, reference)) {
-      return activity;
-    }
-    detached = true;
-    const { sourceMovementId: _sourceMovementId, pendingLocalMovement: _pending, ...independent } = activity;
-    return independent;
-  });
-  return detached ? settled : activities;
+  return rank;
 }
 
 /**
@@ -366,20 +287,16 @@ export function settlePendingLocalCopies(
  * V2-BILAT-01) comprises** — et s'insère
  * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle.
  *
- * **PRE-6 (story 2.3) — suffixe de copie rétabli.** T02-S02 avait retiré le
- * suffixe en lisant D-138 comme remplaçant la règle de nommage de D-124. Le
- * contrat d'écran actif (ch13 « Consultation et modification d'un
- * Exercice »), RM-021 et la spec de la story 2.3 posent `{nom} (copie)`, puis
- * `{nom} (copie 2)`…, sans collision : la copie reçoit `nextCopyName` sur les
- * noms de la Composition. D-138 (bloc indivisible avec la Récupération) reste
- * respectée : hors nom et identifiant, la copie est identique à sa source.
+ * **PRE-6 (story 2.3) — suffixe de copie rétabli.** Le contrat d'écran actif (ch13
+ * « Consultation et modification d'un Exercice »), RM-021 et la spec de la story 2.3 posent
+ * `{nom} (copie)`, puis `{nom} (copie 2)`…, sans collision. D-138 (bloc indivisible avec la
+ * Récupération) reste respectée : hors identifiant et numéro de copie, la copie est identique à
+ * sa source.
  *
- * PRE-7 (A1.3, MFN-03, MFN-09, MFN/AC32) : la filiation est conservée à
- * l'identique (étalement). Une source créée localement et pas encore
- * enregistrée n'a pas encore de filiation : la copie reçoit l'identifiant
- * PRÉ-ALLOUÉ du Mouvement local de la source (l'identifiant de la source,
- * règle du repository) et `pendingLocalMovement`, pour que les deux
- * occurrences partagent un seul Mouvement à l'enregistrement.
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026, Q3) : la copie référence le MÊME
+ * Mouvement que sa source — créé localement ou non — avec des paramètres d'exécution
+ * indépendants ; son contenu est celui du Mouvement partagé, sans aucun mécanisme propre à la
+ * copie. Le suffixe est son numéro de copie (`nextCopyNumber`), jamais un nom.
  *
  * La source reste inchangée. Un identifiant inconnu retourne la collection
  * inchangée.
@@ -398,21 +315,14 @@ export function duplicateActivity(
   const copy: SessionDraftExercise = {
     ...source,
     id: newId,
-    name: nextCopyName(
-      source.name,
-      activities.map((activity) => activity.name),
-    ),
-    // Les Zones corporelles sont recopiées comme une NOUVELLE collection :
-    // la copie ne doit jamais partager la référence de tableau de sa source.
+    // Vue du contenu du Mouvement : nouvelles collections, jamais partagées avec la source.
     bodyZoneIds: [...source.bodyZoneIds],
-    // PRE-3 (P3-18) : duplication COMPLÈTE et indépendante — paramètres
-    // canoniques clonés en profondeur, Catégorie, médias dans le même ordre
-    // (mêmes fichiers physiques ; de nouveaux liens seront créés pour la
-    // copie à l'enregistrement). La Récupération existante est conservée.
+    // PRE-3 (P3-18) : paramètres clonés en profondeur, indépendants ; la Récupération existante
+    // est conservée.
     executionParameters: cloneExecutionParameters(source.executionParameters),
     ...(source.media ? { media: source.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) } : {}),
-    ...(source.type === "EXERCISE" && (source.sourceMovementId ?? "").trim().length === 0
-      ? { sourceMovementId: source.id, pendingLocalMovement: true as const }
+    ...(source.sourceMovementId !== undefined
+      ? { copyNumber: nextCopyNumber(activities, source.sourceMovementId) }
       : {}),
   };
 

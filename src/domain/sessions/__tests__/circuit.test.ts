@@ -728,6 +728,15 @@ describe("circuit — volumes (PRE-6, story 1.4, AD-39)", () => {
     expect(volumes.rows[1]!.cells).toEqual([numberTarget(10), numberTarget(20), numberTarget(30), null, null]);
   });
 
+  it("PRE-7 (R-3, Q3) : le nom d'une copie porte son suffixe dérivé du numéro de copie", () => {
+    const draft = draftOf("TOURS", 2, [
+      exercise("Squat", durationParameters(30)),
+      exercise("Squat", durationParameters(30), { id: "copy-1", copyNumber: 1 }),
+      exercise("Squat", durationParameters(30), { id: "copy-2", copyNumber: 2 }),
+    ]);
+    expect(circuitVolumes(draft).rows.map((row) => row.name)).toEqual(["Squat", "Squat (copie)", "Squat (copie 2)"]);
+  });
+
   it("réserve exclue ; Circuit vide", () => {
     const draft = draftOf("SERIES", 4, [exercise("B", variableParameters({ rows: [[10, 0], [20, 0], [30, 0], [40, 0]] }))]);
     const at3 = setCircuitCount(draft, 3);

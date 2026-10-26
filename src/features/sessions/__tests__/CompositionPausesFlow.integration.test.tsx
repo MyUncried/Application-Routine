@@ -12,6 +12,7 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { toSessionDurationResult } from "@/domain/sessions/calculations";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
@@ -74,7 +75,8 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
   await migrateDatabase(database);
   const sessionRepository = new SqliteSessionRepository(database);
   const sessionService = new SessionService(sessionRepository, new SqliteCategoryRepository(database));
-  const created = await sessionService.createSession({
+  // PRE-7 (R-3, C05) : Exercices créés localement (Mouvements NEW, `withLocalMovements`).
+  const created = await sessionService.createSession(withLocalMovements({
     ...createEmptyDraft(),
     name: "Pauses",
     tourRepeatCount: 2,
@@ -86,7 +88,7 @@ async function seedAndRender(stopPoints: NonNullable<SessionDraft["stopPoints"]>
       exerciseAt("ex-d", "D", "AFTER_TOUR"),
     ],
     stopPoints,
-  });
+  }));
   if (!created.ok) {
     throw new Error(`seed failed: ${JSON.stringify(created.violations)}`);
   }

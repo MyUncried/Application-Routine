@@ -9,7 +9,7 @@ import {
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
 import { expandComposition } from "@/domain/sessions/circuit";
-import type { UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
+import type { SessionMovementInput, UpdateSessionActivityInput, UpdateSessionInput } from "@/domain/sessions/Session";
 import {
   normalizeInstruction,
   normalizeName,
@@ -32,6 +32,23 @@ import {
   validateCircuitNature,
 } from "@/domain/sessions/validation";
 import { clampSessionBoundarySeconds } from "@/domain/sessions/defaults";
+
+/** PRE-7 (R-3) : Mouvement nouveau du brouillon, complet par défaut. */
+function movementInput(id: string, overrides: Partial<Omit<SessionMovementInput, "id">> = {}): SessionMovementInput {
+  return {
+    id,
+    change: "NEW",
+    name: "Gainage",
+    description: null,
+    categoryId: "cardio",
+    bodyZoneIds: ["dos"],
+    media: [],
+    phases: [],
+    nextPhaseId: 1,
+    aliases: [],
+    ...overrides,
+  };
+}
 
 describe("validateSessionName / validateExerciseName", () => {
   it("accepts 1 character after normalization", () => {
@@ -318,12 +335,11 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
-      name: "Gainage",
+      sourceMovementId: "mov-1",
       // PRE-4 (story 1.1, AD-3) : paramètres typés obligatoires, aucun champ scalaire.
       executionParameters: parameters,
       postActivityRecoverySeconds: 0,
-      instruction: null,
-      bodyZoneIds: [] as string[],
+      copyNumber: null,
       // V2-BILAT-01 : `sideMode` OMIS délibérément — la direction neutre
       // (`UNILATERAL`, explicite ou par défaut) reste ABSENTE de l'agrégat
       // validé (`normalizeSideMode`), pour que ce fixture, structurellement
@@ -344,6 +360,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : présent explicitement
       // ici pour que chaque `{...validInput(), ...}` ci-dessous construise
       // directement la sortie normalisée attendue, jamais retrié ou recalculé.
+      movements: [],
       stopPoints: [] as const,
     };
   }
@@ -382,12 +399,11 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     const result = validateCreateSessionInput({
       ...validInput(),
       exercises: [
-        { ...durationExercise(), name: "Échauffement", structuralPosition: "BEFORE_TOUR" as const },
+        { ...durationExercise(), structuralPosition: "BEFORE_TOUR" as const },
         durationExercise(),
         {
           ...durationExercise(),
           structuralPosition: "AFTER_TOUR" as const,
-          name: "Étirements",
           executionParameters: durationParameters(45),
         },
       ],
@@ -421,7 +437,6 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         {
           ...durationExercise(),
           type: "RECOVERY" as const,
-          name: "Récupération",
           executionParameters: durationParameters(45),
         },
       ],
@@ -513,7 +528,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
       ...validInput(),
       exercises: [
         { ...durationExercise(), id: "act-1" },
-        { ...durationExercise(), id: "act-1", name: "Squats" },
+        { ...durationExercise(), id: "act-1", sourceMovementId: "mov-2" },
       ],
     });
     expect(duplicated.ok).toBe(false);
@@ -536,7 +551,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
   it("validates and assembles every exercise of the collection, in order, never only the first", () => {
     const second = {
       ...durationExercise(durationParameters(45, 3, 15)),
-      name: "Squats",
+      sourceMovementId: "mov-2",
     };
     const result = validateCreateSessionInput({
       ...validInput(),
@@ -568,13 +583,16 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     });
   });
 
+  // PRE-7 (R-3, C05) : le nom appartient au Mouvement (champ historique `exercise.name`) ; les
+  // violations des Mouvements du brouillon précèdent celles des occurrences.
   it("aggregates violations across every invalid exercise of the collection, not just one", () => {
     const result = validateCreateSessionInput({
       ...validInput(),
       exercises: [
-        { ...durationExercise(), name: "" },
-        { ...durationExercise(durationParameters(0)), name: "" },
+        { ...durationExercise(), sourceMovementId: "m-1" },
+        { ...durationExercise(durationParameters(0)), sourceMovementId: "m-2" },
       ],
+      movements: [movementInput("m-1", { name: "" }), movementInput("m-2", { name: "" })],
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -595,7 +613,7 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
     const result = validateCreateSessionInput({
       ...validInput(),
       name: "   ",
-      exercises: [{ ...durationExercise(durationParameters(0)), name: "Exercice" }],
+      exercises: [durationExercise(durationParameters(0))],
     });
 
     expect(result.ok).toBe(false);
@@ -617,11 +635,117 @@ describe("validateCreateSessionInput (aggregated structured result, T01-S09)", (
         initialCountdownSeconds: -1,
         finalPhaseSeconds: -1,
         tourRepeatCount: 0,
-        exercises: [
-          { ...durationExercise(durationParameters(0)), name: "", instruction: "A".repeat(1001) },
+        exercises: [{ ...durationExercise(durationParameters(0)), sourceMovementId: "  " }],
+        movements: [
+          movementInput("", { name: "", description: "A".repeat(1001), categoryId: "", bodyZoneIds: [], phases: [{ id: 0, label: "" }], aliases: [""] }),
         ],
       }),
     ).not.toThrow();
+  });
+});
+
+/**
+ * PRE-7 (R-3, D-445 C01, C05, Q3) : l'occurrence d'Exercice référence obligatoirement un
+ * Mouvement et porte un numéro de copie facultatif ; les Mouvements nouveaux ou corrigés du
+ * brouillon sont validés (nom, description, Catégorie, Zones, phases, alias) et leurs noms
+ * normalisés sont distincts.
+ */
+describe("PRE7-R3 — référence au Mouvement, numéro de copie et Mouvements du brouillon", () => {
+  const occurrence = (overrides: Record<string, unknown> = {}) => ({
+    type: "EXERCISE" as const,
+    structuralPosition: "IN_TOUR" as const,
+    executionParameters: durationParameters(30),
+    postActivityRecoverySeconds: 0,
+    sourceMovementId: "m-1",
+    ...overrides,
+  });
+  const input = (exercises: readonly unknown[], movements: readonly SessionMovementInput[] = []) =>
+    ({
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises,
+      movements,
+    }) as Parameters<typeof validateCreateSessionInput>[0];
+
+  it("Mouvement obligatoire pour un Exercice (absent ou vide : REQUIRED activity.sourceMovementId), rogné sinon", () => {
+    for (const sourceMovementId of [undefined, "", "   "]) {
+      expect(validateCreateSessionInput(input([occurrence({ sourceMovementId })]))).toEqual({
+        ok: false,
+        violations: [{ code: "REQUIRED", field: "activity.sourceMovementId" }],
+      });
+    }
+    const trimmed = validateCreateSessionInput(input([occurrence({ sourceMovementId: "  m-1 " })]));
+    expect(trimmed.ok && trimmed.value.exercises[0]?.sourceMovementId).toBe("m-1");
+  });
+
+  it("numéro de copie : entier ≥ 1 ou absent (null) ; 0, négatif ou fractionnaire refusés", () => {
+    const accepted = validateCreateSessionInput(input([occurrence(), occurrence({ copyNumber: 1 }), occurrence({ copyNumber: 3 })]));
+    expect(accepted.ok && accepted.value.exercises.map((exercise) => exercise.copyNumber)).toEqual([null, 1, 3]);
+    for (const copyNumber of [0, -1, 1.5]) {
+      expect(validateCreateSessionInput(input([occurrence({ copyNumber })]))).toEqual({
+        ok: false,
+        violations: [{ code: "OUT_OF_RANGE", field: "activity.copyNumber" }],
+      });
+    }
+  });
+
+  it("Mouvements du brouillon : normalisés (nom, description, alias rognés) ; deux noms identiques après normalisation : DUPLICATE", () => {
+    const accepted = validateCreateSessionInput(
+      input([occurrence(), occurrence({ sourceMovementId: "m-2" })], [
+        movementInput("m-1", { name: "  Squat ", aliases: [" Flexion "] }),
+        movementInput("m-2", { name: "Fentes" }),
+      ]),
+    );
+    expect(accepted.ok && accepted.value.movements?.map((movement) => [movement.id, movement.name, movement.aliases])).toEqual([
+      ["m-1", "Squat", ["Flexion"]],
+      ["m-2", "Fentes", []],
+    ]);
+    expect(
+      validateCreateSessionInput(input([occurrence()], [movementInput("m-1", { name: "Squat" }), movementInput("m-2", { name: "  SQUAT" })])),
+    ).toEqual({ ok: false, violations: [{ code: "DUPLICATE", field: "exercise.name" }] });
+    expect(validateCreateSessionInput(input([occurrence()], [movementInput("m-1"), movementInput("m-1", { name: "Autre" })]))).toEqual({
+      ok: false,
+      violations: [{ code: "DUPLICATE", field: "movement.id" }],
+    });
+  });
+
+  it("Mouvement du brouillon : Catégorie et Zones obligatoires, structure de phases et compteur cohérents, alias distincts", () => {
+    const violations = (overrides: Partial<SessionMovementInput>) => {
+      const result = validateCreateSessionInput(input([occurrence()], [movementInput("m-1", overrides)]));
+      return result.ok ? [] : result.violations;
+    };
+    expect(violations({ categoryId: " " })).toEqual([{ code: "REQUIRED", field: "movement.category" }]);
+    expect(violations({ bodyZoneIds: [] })).toEqual([{ code: "REQUIRED", field: "movement.bodyZoneIds" }]);
+    expect(violations({ phases: [{ id: 1, label: "Descente" }], nextPhaseId: 1 })).toEqual([{ code: "UNRECOGNIZED", field: "movement.phases" }]);
+    expect(violations({ phases: [{ id: 1, label: "Descente" }], nextPhaseId: 2 })).toEqual([]);
+    expect(violations({ aliases: ["Flexion", "flexion"] })).toEqual([{ code: "DUPLICATE", field: "movement.aliases" }]);
+    expect(violations({ description: "A".repeat(1001) })).toEqual([
+      { code: "TOO_LONG", field: "exercise.instruction", details: { max: 1000 } },
+    ]);
+  });
+
+  it("modification : mêmes règles sur UpdateSessionInput", () => {
+    const result = validateUpdateSessionInput({
+      sourceSessionId: "session-1",
+      name: "Séance",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      activities: [{ ...occurrence({ sourceMovementId: undefined, copyNumber: 0 }), id: "act-1", position: 0 }],
+      movements: [movementInput("m-1", { name: "" })],
+    });
+    expect(result).toEqual({
+      ok: false,
+      violations: [
+        { code: "REQUIRED", field: "exercise.name" },
+        { code: "REQUIRED", field: "activity.sourceMovementId" },
+        { code: "OUT_OF_RANGE", field: "activity.copyNumber" },
+      ],
+    });
   });
 });
 
@@ -671,11 +795,10 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
-      name: "Gainage",
+      sourceMovementId: "mov-1",
       executionParameters: durationParameters(30, 1, 0, bilateral ? { sideMode } : {}),
       postActivityRecoverySeconds: 0,
-      instruction: null,
-      bodyZoneIds: [] as string[],
+      copyNumber: null,
       sideMode: sideMode as never,
     };
   }
@@ -785,13 +908,13 @@ describe("validateCreateSessionInput / validateUpdateSessionInput — side mode 
           {
             type: "EXERCISE",
             structuralPosition: "IN_TOUR",
-            name: "Gainage",
+            sourceMovementId: "mov-1",
             executionParameters: durationParameters(30),
             postActivityRecoverySeconds: 0,
-            instruction: null,
-            bodyZoneIds: [],
+            copyNumber: null,
           },
         ],
+        movements: [],
         stopPoints: [],
       },
     });
@@ -893,11 +1016,10 @@ describe("validateCreateSessionInput — Cibles à l'échec (PRE-4, ancien mode 
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
-      name: "Tractions",
+      sourceMovementId: "mov-1",
       executionParameters: allFailureParameters(3, 30),
       postActivityRecoverySeconds: 0,
-      instruction: null,
-      bodyZoneIds: [],
+      copyNumber: null,
       // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
       // `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
     };
@@ -911,6 +1033,7 @@ describe("validateCreateSessionInput — Cibles à l'échec (PRE-4, ancien mode 
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
       exercises: [toFailureExercise()],
+      movements: [],
       stopPoints: [] as const,
     };
   }
@@ -932,11 +1055,10 @@ describe("PRE4-1.1 — validation de Séance au Continuer (niveau structurel)", 
     return {
       type: "EXERCISE" as const,
       structuralPosition: "IN_TOUR" as const,
-      name: "Copie",
+      sourceMovementId: "mov-1",
       executionParameters: parameters,
       postActivityRecoverySeconds: 0,
-      instruction: null,
-      bodyZoneIds: [] as string[],
+      copyNumber: null,
     };
   }
   const session = (parameters: ExecutionParametersInput) => ({
@@ -1024,11 +1146,10 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
       type: "EXERCISE",
       structuralPosition: "IN_TOUR",
       position: 0,
-      name: "Gainage",
+      sourceMovementId: "mov-1",
       executionParameters: durationParameters(30),
       postActivityRecoverySeconds: 0,
-      instruction: null,
-      bodyZoneIds: [],
+      copyNumber: null,
       // V2-BILAT-01 : `sideMode` OMIS délibérément — voir la note de tête de
       // `durationExercise` dans `validateCreateSessionInput / validateUpdateSessionInput — side mode`.
       ...overrides,
@@ -1103,9 +1224,8 @@ describe("validateUpdateSessionInput (T01-S10, plan §6.2)", () => {
           exerciseActivity({
             id: "rec-1",
             type: "RECOVERY",
-            name: "Récupération",
             executionParameters: durationParameters(60),
-            bodyZoneIds: [],
+            copyNumber: null,
           }),
         ],
       }),
@@ -1165,10 +1285,10 @@ describe("PRE6-1.1 — nature du Circuit et récupération nullable", () => {
     id: "ex-1",
     type: "EXERCISE" as const,
     structuralPosition: "IN_TOUR" as const,
-    name: "Gainage",
+    sourceMovementId: "mov-1",
     executionParameters: durationParameters(30),
     postActivityRecoverySeconds,
-    bodyZoneIds: [] as string[],
+    copyNumber: null,
   });
   const createInput = (overrides: Record<string, unknown> = {}): CreateInput =>
     ({
@@ -1252,10 +1372,10 @@ describe("PRE6-1.2 — Points d'arrêt à l'enregistrement (AD-36, RM-219)", () 
     id,
     type: "EXERCISE" as const,
     structuralPosition,
-    name: id,
+    sourceMovementId: "mov-1",
     executionParameters: durationParameters(30),
     postActivityRecoverySeconds: null,
-    bodyZoneIds: [] as string[],
+    copyNumber: null,
   });
   /** Avant : P ; Circuit : A, B. */
   const occurrences = [exercise("P", "BEFORE_TOUR"), exercise("A", "IN_TOUR"), exercise("B", "IN_TOUR")];

@@ -17,8 +17,8 @@ import type { Movement } from "./Movement";
 export type DeleteMovementOutcome =
   | { readonly status: "DELETED" }
   | { readonly status: "NOT_FOUND" }
-  /** Au moins une définition référence le Mouvement : rien n'est supprimé. */
-  | { readonly status: "REFERENCED"; readonly definitionCount: number };
+  /** Au moins une définition ou une occurrence de Séance (R-3) référence le Mouvement : rien n'est supprimé. */
+  | { readonly status: "REFERENCED"; readonly definitionCount: number; readonly occurrenceCount: number };
 
 /** Issue d'une opération de groupe de niveaux (MFN-05, D-439). */
 export type MovementGroupOutcome =
@@ -37,7 +37,8 @@ export interface MovementRepository {
   /**
    * Crée un Mouvement validé (`validateMovement`, lève sur entrée invalide),
    * avec ses Zones, ses médias (assets créés dans la même transaction) et sa
-   * structure de phases. `used` est écrit tel que fourni (faux au départ).
+   * structure de phases et alias (R-3). Un nom déjà pris (clé canonique) lève
+   * `DuplicateMovementNameError` (C01), aucune fusion ni renommage implicite.
    */
   create(movement: Movement): Promise<Movement>;
   findById(id: string): Promise<Movement | null>;
@@ -47,11 +48,14 @@ export interface MovementRepository {
    * Ordre : nom normalisé puis identifiant.
    */
   search(query: string): Promise<readonly Movement[]>;
-  /** Marque « déjà utilisé » (MFN-08), irréversible ; identifiants inconnus ignorés. */
-  markUsed(ids: readonly string[]): Promise<void>;
+  /**
+   * PRE-7 (R-3, D-445 C03, C05) : nombre d'occurrences de Séance persistées qui référencent
+   * le Mouvement (remplace `markUsed` : aucun indicateur d'utilisation irréversible).
+   */
+  countOccurrences(id: string): Promise<number>;
   /** Nombre de définitions du Catalogue qui référencent le Mouvement. */
   countDefinitions(id: string): Promise<number>;
-  /** Suppression explicite, refusée si une définition le référence (MFN-03). */
+  /** Suppression explicite, refusée si une définition ou une occurrence de Séance le référence (MFN-03, R-3). */
   delete(id: string): Promise<DeleteMovementOutcome>;
   /**
    * Rattache `movementId` au groupe de `originId`, en dernier ; le groupe est
@@ -81,5 +85,18 @@ export class MovementNotFoundError extends Error {
   constructor(readonly movementId: string) {
     super("The referenced movement does not exist.");
     this.name = "MovementNotFoundError";
+  }
+}
+
+/**
+ * PRE-7 (R-3, D-445 C01, v7 §2 : « nom principal unique par clé canonique… garantie à
+ * l'enregistrement, y compris en cas d'écriture concurrente ; aucune fusion implicite ») :
+ * le nom normalisé (`normalizeMovementName`) est déjà celui d'un autre Mouvement. Rien
+ * n'est écrit ; l'interface signale l'erreur et laisse l'utilisateur corriger le nom.
+ */
+export class DuplicateMovementNameError extends Error {
+  constructor(readonly normalizedName: string) {
+    super("A movement with this name already exists.");
+    this.name = "DuplicateMovementNameError";
   }
 }

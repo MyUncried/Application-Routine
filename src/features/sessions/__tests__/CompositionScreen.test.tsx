@@ -14,6 +14,7 @@ import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, createExerciseDraft, sessionDraftsEqual, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import * as circuitModule from "@/domain/sessions/circuit";
 import { scopeSequence, type StopPoint } from "@/domain/sessions/StopPoint";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -245,14 +246,18 @@ function StatefulDraftWrapper({
   draftOverrides?: Partial<SessionDraftContextValue["draft"]>;
   children: React.ReactNode;
 }) {
-  const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() => ({
-    name: "Séance simple",
-    labelId: null,
-    initialCountdownSeconds: 10,
-    finalPhaseSeconds: 5,
-    exercises: initialExercises,
-    ...draftOverrides,
-  }));
+  // PRE-7 (R-3, C05) : les Exercices préremplis sont des créations locales terminées (Mouvement NEW à
+  // leur identifiant, `withLocalMovements`), comme après l'éditeur d'occurrence.
+  const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() =>
+    withLocalMovements({
+      name: "Séance simple",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercises: initialExercises,
+      ...draftOverrides,
+    }),
+  );
   // PRE-6 (story 3.1) : mêmes deux formes que `SessionDraftProvider` (correctif ou fonction).
   const updateDraft = useCallback((update: SessionDraftUpdate) => {
     setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
@@ -2108,7 +2113,8 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
   it("PRE6-5.1 — with a Category but no zone: line 2 carries the Category, line 3 has no zone badge", async () => {
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), categoryId: "renforcement" },
+      // PRE-7 (R-3) : vue d'un Mouvement déjà référencé, rendu seul (sans Zone) — hors création locale.
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), categoryId: "renforcement", sourceMovementId: "mov-gainage" },
     ]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
@@ -2635,7 +2641,8 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   function renderTwo() {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
-      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+      // PRE-7 (R-3) : vue d'un Mouvement déjà référencé (sans Zone) — hors création locale.
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats", sourceMovementId: "mov-squats" }),
     ]);
   }
 
@@ -4782,7 +4789,13 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     a11yAction("ex-1", "duplicate");
     expect(screen.getByText("Squat (copie)")).toBeTruthy();
     a11yAction("ex-1", "duplicate");
-    expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
+    // PRE-7 (R-3, Q3) : même nom (celui du Mouvement), suffixe porté par le numéro de copie.
+    expect(probe.draft!.exercises.map((exercise) => [exercise.name, exercise.copyNumber ?? null])).toEqual([
+      ["Squat", null],
+      ["Squat", 2],
+      ["Squat", 1],
+    ]);
+    expect(screen.getByText("Squat (copie 2)")).toBeTruthy();
   });
 
   it("story 7.5 (D-442 amendée) — Supprimer une occurrence suivie d'un point qui deviendrait premier : appliqué, le point retiré", () => {

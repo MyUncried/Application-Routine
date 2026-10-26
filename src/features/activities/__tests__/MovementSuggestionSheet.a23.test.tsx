@@ -26,7 +26,7 @@ function choice(name: string, definitionCount: number, level: MovementChoice["le
     bodyZoneIds: ["cuisses"],
     phases: [],
     nextPhaseId: 1,
-    used: false,
+    aliases: [],
     levelGroup: null,
   };
   return { movement, definitionCount, level };

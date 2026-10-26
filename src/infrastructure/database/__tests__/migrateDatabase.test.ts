@@ -28,6 +28,7 @@ import {
 import type { Database } from "@/infrastructure/database/Database";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { newMovementInput, ViewedSessionRepository } from "@/infrastructure/database/testing/sessionMovements";
 import { applyMigration011 } from "@/infrastructure/database/migrations/migration011";
 import { buildVersion10 } from "@/infrastructure/database/testing/buildVersion10";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
@@ -395,9 +396,9 @@ describe("migrateDatabase", () => {
     it("PRE4-1.1/AC15 — a fresh database reaches version 10 directly : TO_FAILURE is refused, REPETITIONS without target is admitted", async () => {
       await migrateDatabase(database, undefined, 11);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012`.
+      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(12);
+      expect(DATABASE_VERSION).toBe(13);
 
       await seedStructure(database);
       await expect(
@@ -797,9 +798,9 @@ describe("migrateDatabase", () => {
       await migrateDatabase(database, undefined, 11);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012`.
+      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(12);
+      expect(DATABASE_VERSION).toBe(13);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -1562,7 +1563,8 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     // Catalogue v4 seule) ; l'occurrence garde la projection unique, jamais relue comme source.
     await migrateDatabase(database);
     const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    const sessions = new SqliteSessionRepository(database, ids("ses"));
+    // PRE-7 (R-3, C05) : occurrences décrites par leur vue ; le Mouvement est écrit explicitement.
+    const sessions = new ViewedSessionRepository(database, ids("ses"));
     const canonical = variableRepetitions();
     const definition = await definitions.create({
       name: "Fentes",
@@ -1580,7 +1582,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
         {
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
-          name: "Fentes",
+          name: "Fentes avant",
           postActivityRecoverySeconds: 0,
           bodyZoneIds: ["cuisses"],
           executionParameters: canonical,
@@ -1706,7 +1708,6 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
           (SELECT COUNT(*) FROM media_assets) AS assets,
           (SELECT COUNT(*) FROM movement_media) AS links,
           (SELECT COUNT(*) FROM activities) AS occurrences,
-          (SELECT COUNT(*) FROM session_activity_media) AS occurrenceLinks,
           (SELECT COUNT(*) FROM sessions) AS sessions`,
       );
     const initial = await counts();
@@ -1733,45 +1734,54 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const afterDefinition = await counts();
     expect(afterDefinition).toEqual({ ...initial, definitions: 1, movements: 1, zones: 2, assets: 2, links: 2 });
 
-    // Occurrence : mêmes assets partagés, nouveaux liens, échec à chaque instruction.
-    const sessionInput = {
+    // PRE-7 (R-3, D-445 C05) : une occurrence du Mouvement de la définition (aucun lien propre) et
+    // une création locale (Mouvement NEW, assets partagés, nouveaux liens du Mouvement), échec à
+    // chaque instruction.
+    const occurrence = (id: string, sourceMovementId: string) => ({
+      id,
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      executionParameters: durationParameters(30, 3, 10),
+      postActivityRecoverySeconds: 0,
+      sourceMovementId,
+    });
+    const sessionInput = (movementId: string) => ({
       name: "Cardio",
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      exercises: [
-        {
-          type: "EXERCISE" as const,
-          structuralPosition: "IN_TOUR" as const,
-          name: "Burpees",
-          executionParameters: durationParameters(30, 3, 10),
-          postActivityRecoverySeconds: 0,
+      exercises: [occurrence("occ-catalogue", movementId), occurrence("occ-local", "occ-local")],
+      movements: [
+        newMovementInput("occ-local", {
+          name: "Burpees sautés",
           bodyZoneIds: ["cuisses"],
-          categoryId: "cardio",
           media: media.map((item) => ({ assetId: item.assetId })),
-        },
+        }),
       ],
-    };
+    });
     const sessionProbe = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(sessionProbe);
-    await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
+    const probeDefinition = await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
     const sessionWrites = new FailingDatabase(sessionProbe, Number.POSITIVE_INFINITY);
-    await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput);
+    await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput(probeDefinition.movementId));
     sessionProbe.close();
     for (let failAt = 1; failAt <= sessionWrites.writes; failAt += 1) {
       await expect(
-        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(sessionInput),
+        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(sessionInput(created.movementId)),
       ).rejects.toThrow(`Injected failure at write ${failAt}`);
       expect(await counts()).toEqual(afterDefinition);
     }
-    const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput);
-    expect(session.cycle.tour.exercises[0]?.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
-    // Occurrence créée localement (sans filiation) : son Mouvement local, une Zone et ses deux liens de médias.
+    const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput(created.movementId));
+    // Les deux occurrences relisent les médias de LEUR Mouvement.
+    expect(session.cycle.tour.exercises.map((exercise) => exercise.media?.map((item) => item.assetId))).toEqual([
+      [video.id, photo.id],
+      [video.id, photo.id],
+    ]);
+    // Seule la création locale écrit un Mouvement : une Zone et deux liens ; aucun lien d'occurrence.
     expect(await counts()).toEqual({
       ...afterDefinition,
       sessions: 1,
-      occurrences: 1,
-      occurrenceLinks: 2,
+      occurrences: 2,
       movements: afterDefinition!.movements! + 1,
       zones: afterDefinition!.zones! + 1,
       links: afterDefinition!.links! + 2,

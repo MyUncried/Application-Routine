@@ -315,7 +315,8 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
     expect(toCreateSessionInput(draftHolder.current).ok).toBe(false);
   });
 
-  it("brouillon abandonné : insertion sans enregistrement → geste non marqué « déjà utilisé »", async () => {
+  // PRE-7 (R-3, D-445 C03) : plus d'indicateur « déjà utilisé » ; l'utilisation est le nombre d'occurrences persistées.
+  it("brouillon abandonné : insertion sans enregistrement → aucune occurrence du geste comptée", async () => {
     const { a1 } = await interleaved();
     await renderSelection();
     fireEvent.press(screen.getByTestId(`activity-selection-row-${a1.id}`));
@@ -325,10 +326,10 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
     expect(draftHolder.current.exercises).toHaveLength(1);
     // Brouillon abandonné : écran démonté sans enregistrement.
     screen.unmount();
-    expect(await database.getFirstAsync("SELECT used FROM movements WHERE id = ?", [a1.movementId])).toEqual({ used: 0 });
+    expect(await new SqliteMovementRepository(database).countOccurrences(a1.movementId)).toBe(0);
   });
 
-  it("duplication de l'occurrence (domaine de la Composition, D-124) puis enregistrement : nouvel id, même filiation, « (copie) » ; geste et définitions non renommés ; used = 1", async () => {
+  it("duplication de l'occurrence (domaine de la Composition, D-124) puis enregistrement : nouvel id, même Mouvement, numéro de copie 1 (« (copie) ») ; geste et définitions non renommés ; deux occurrences comptées", async () => {
     const { a1, a2 } = await interleaved();
     await renderSelection();
     fireEvent.press(screen.getByTestId(`activity-selection-row-${a1.id}`));
@@ -340,13 +341,15 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
     const result = await sessionService().createSession({ ...draftHolder.current, exercises });
     if (!result.ok) throw new Error(JSON.stringify(result.violations));
 
-    expect(occurrencesOf(result.value).map((item) => [item.id, item.name, item.sourceMovementId])).toEqual([
-      [occurrence!.id, "Squat", a1.movementId],
-      ["occ-dup", "Squat (copie)", a1.movementId],
+    // PRE-7 (R-3, Q3) : le suffixe est le numéro de copie, jamais un renommage.
+    expect(occurrencesOf(result.value).map((item) => [item.id, item.name, item.copyNumber, item.sourceMovementId])).toEqual([
+      [occurrence!.id, "Squat", null, a1.movementId],
+      ["occ-dup", "Squat", 1, a1.movementId],
     ]);
-    expect(await database.getAllAsync("SELECT id, name, used FROM movements WHERE id = ?", [a1.movementId])).toEqual([
-      { id: a1.movementId, name: "Squat", used: 1 },
+    expect(await database.getAllAsync("SELECT id, name FROM movements WHERE id = ?", [a1.movementId])).toEqual([
+      { id: a1.movementId, name: "Squat" },
     ]);
+    expect(await new SqliteMovementRepository(database).countOccurrences(a1.movementId)).toBe(2);
     expect((await service().getActivityDefinition(a1.id))?.name).toBe("Squat");
     expect((await service().getActivityDefinition(a2.id))?.name).toBe("Squat");
     expect(await database.getFirstAsync("SELECT COUNT(*) AS count FROM movements")).toEqual({ count: 2 });

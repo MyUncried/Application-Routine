@@ -46,7 +46,7 @@ function movement(overrides: Partial<Movement> = {}): Movement {
       { id: 2, label: "Montée" },
     ],
     nextPhaseId: 4,
-    used: false,
+    aliases: [],
     levelGroup: null,
     ...overrides,
   };
