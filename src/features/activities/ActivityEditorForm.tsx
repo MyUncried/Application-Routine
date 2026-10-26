@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
   Keyboard,
@@ -148,10 +148,21 @@ export type ActivityEditorFormProps = {
    */
   nextPhaseId?: number;
   /**
-   * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé) —
-   * l'adaptateur y propose un geste proche. Absent : rien.
+   * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé).
+   * PRE-7 (R-5, R04) : l'adaptateur y ferme le panneau sous le nom — Entrée ne sélectionne jamais
+   * un résultat. Absent : rien.
    */
   onNameEndEditing?: () => void;
+  /**
+   * PRE-7 (R-5, v7 §6 R03-R04, C01) : assistance du nom — panneau des résultats et message « nom
+   * déjà utilisé » (`useMovementOriginChoice`), superposé sous le champ du nom. Absent : rien.
+   */
+  nameAssist?: ReactNode;
+  /**
+   * PRE-7 (R-5, D-445 C02) : invite grise affichée après le nom conservé d'une variante
+   * (« (compléter le nom) »), hors de la valeur. Absent ou `null` : aucune.
+   */
+  nameHint?: string | null;
   /**
    * PRE-7 (A2.3, MFN-06 « recherche explicite accessible indépendamment de la similarité du nom,
    * avant la saisie détaillée ») : lien de recherche des gestes, en tête du contenu ; `null`
@@ -318,6 +329,8 @@ export function ActivityEditorForm({
   contentLocked = false,
   nextPhaseId,
   onNameEndEditing,
+  nameAssist = null,
+  nameHint = null,
   movementSearchAction = null,
   level = null,
   baselineParameters = null,
@@ -331,7 +344,8 @@ export function ActivityEditorForm({
   finishActionTestID,
   errorTestID,
 }: ActivityEditorFormProps) {
-  const sideMargin = editorSideMargin(useWindowDimensions().width);
+  const windowSize = useWindowDimensions();
+  const sideMargin = editorSideMargin(windowSize.width);
   // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
   // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
   const actionZone = usePrimaryActionZone();
@@ -395,10 +409,26 @@ export function ActivityEditorForm({
   const [zonesEmptiedByDeletion, setZonesEmptiedByDeletion] = useState(false);
   const finishDisabled = isFinishDisabled || (zonesEmptiedByDeletion && value.bodyZoneIds.length === 0);
 
-  // PRE-7 (A2.3, revue) : une fin de saisie du nom PROVOQUÉE par l'ouverture d'une feuille
-  // (Paramètres, Catégorie, Zones) ne propose pas de geste proche — sinon la feuille de suggestion
-  // se présenterait par-dessus cette feuille (deux présentations natives simultanées sur iOS).
-  const nameEndSuppressedRef = useRef(false);
+  // PRE-7 (R-5) : la garde A2.3 `nameEndSuppressedRef` est retirée — le panneau sous le nom n'est
+  // plus une présentation native (`nameAssist`), une fin de saisie le ferme toujours sans risque.
+  // PRE-7 (R-5, R04) : position du panneau sous le nom, relevée par `onLayout` (bandeau dans son
+  // parent, champ dans le bandeau) ; l'hôte en surimpression couvre le même parent.
+  const [bandY, setBandY] = useState(0);
+  const [nameLayout, setNameLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  // PRE-7 (R-5, R04) : hauteur du panneau bornée par l'espace disponible au-dessus du clavier
+  // (haut du panneau dans la fenêtre, hauteur du clavier) — ses cartes y défilent, clavier ouvert.
+  const nameAssistRef = useRef<View>(null);
+  const [nameAssistTop, setNameAssistTop] = useState(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", (event) => setKeyboardHeight(event.endCoordinates.height));
+    const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardHeight(0));
+    return () => {
+      shown.remove();
+      hidden.remove();
+    };
+  }, []);
+  const nameAssistMaxHeight = Math.max(NAME_ASSIST_MIN_HEIGHT, windowSize.height - keyboardHeight - nameAssistTop - NAME_ASSIST_GAP);
   // Recette JA, décision de Hermann du 26/10/2026 (« un appui sur une zone de l'écran doit fermer
   // le clavier et ne doit pas ouvrir les paramètres ou éditer la zone de description ») : tant que
   // le Nom a le focus, le corps défilant passe en `keyboardShouldPersistTaps="never"` — la
@@ -409,7 +439,6 @@ export function ActivityEditorForm({
   const [isNameFocused, setIsNameFocused] = useState(false);
 
   function openSheet() {
-    nameEndSuppressedRef.current = true;
     Keyboard.dismiss();
     setIsSheetOpen(true);
   }
@@ -430,7 +459,11 @@ export function ActivityEditorForm({
 
   return (
     <>
-      <View style={[styles.contextBand, { paddingHorizontal: sideMargin }]} testID="exercise-context-band">
+      <View
+        style={[styles.contextBand, { paddingHorizontal: sideMargin }]}
+        onLayout={(event) => setBandY(event.nativeEvent.layout.y)}
+        testID="exercise-context-band"
+      >
         {/* Recette 1 (T-49) — effets figés de la « Zone bleue » (3542:4656, ch. 12 l.1490) :
             fondu vers le fond de l’écran sur les 20 % inférieurs, puis « Halo blanc —
             bouton Annuler » (5752:4044, Ø 59,28) concentrique au bouton Retour de
@@ -458,25 +491,36 @@ export function ActivityEditorForm({
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
-          onFocus={() => {
-            nameEndSuppressedRef.current = false;
-            setIsNameFocused(true);
-          }}
+          onFocus={() => setIsNameFocused(true)}
           onBlur={() => setIsNameFocused(false)}
-          {...(onNameEndEditing
-            ? {
-                onEndEditing: () => {
-                  if (nameEndSuppressedRef.current) {
-                    nameEndSuppressedRef.current = false;
-                    return;
-                  }
-                  onNameEndEditing();
-                },
-              }
-            : {})}
+          {...(onNameEndEditing ? { onEndEditing: onNameEndEditing } : {})}
+          // PRE-7 (R-5, C02) : l'invite grise est annoncée, sans entrer dans la valeur.
+          {...(nameHint ? { accessibilityHint: nameHint } : {})}
+          onLayout={(event) => setNameLayout(event.nativeEvent.layout)}
           style={styles.nameInput}
           testID="exercise-name-input"
         />
+        {nameHint ? (
+          // PRE-7 (R-5, D-445 C02 ; `10187:20340`) : invite grise « (compléter le nom) » après le nom
+          // conservé — un texte superposé au champ (nom transparent puis invite), jamais une partie
+          // de la valeur : elle n'est ni persistée ni comptée dans l'unicité, et disparaît à la
+          // reprise de saisie (l'adaptateur retire `nameHint`) sans effacer le nom.
+          <View
+            pointerEvents="none"
+            style={[
+              styles.nameHintOverlay,
+              { left: nameLayout.x, top: nameLayout.y, width: nameLayout.width, height: nameLayout.height },
+            ]}
+            accessible={false}
+            importantForAccessibility="no-hide-descendants"
+            testID="exercise-name-hint"
+          >
+            <Text style={styles.nameHintText} numberOfLines={1}>
+              <Text style={styles.nameHintMask}>{value.name}</Text>
+              <Text style={styles.nameHintLabel}>{` ${nameHint}`}</Text>
+            </Text>
+          </View>
+        ) : null}
         {/* PRE-4 story 4.3 (FR-02-05, P35 ; AC2) : chaque accès est un bouton icône +
             libellé (`Catégorie`, `Zone corporelle`) quand il n'est pas renseigné ; renseigné,
             glyphe + nom (Catégorie) ou silhouette + noms des Zones avec le séparateur de la
@@ -492,10 +536,7 @@ export function ActivityEditorForm({
         <View style={[styles.referenceRow, level ? styles.referenceRowWithLevel : null]} testID="exercise-reference-row">
           <Pressable
             ref={categoryAccess}
-            onPress={() => {
-              nameEndSuppressedRef.current = true;
-              onOpenCategory();
-            }}
+            onPress={onOpenCategory}
             // PRE-7 (A2.2, MFN-09) : Catégorie du geste verrouillé, affichée sans accès.
             {...(contentLocked ? { disabled: true } : {})}
             accessibilityRole="button"
@@ -532,7 +573,6 @@ export function ActivityEditorForm({
           <Pressable
             ref={bodyZonesAccessRef}
             onPress={() => {
-              nameEndSuppressedRef.current = true;
               Keyboard.dismiss();
               bodyZonesSheet.open();
             }}
@@ -584,7 +624,6 @@ export function ActivityEditorForm({
               isPanelOpen={levelPanelPlacement !== null}
               onClosePanel={() => setLevelPanelPlacement(null)}
               onOpenPanel={(anchor) => {
-                nameEndSuppressedRef.current = true;
                 Keyboard.dismiss();
                 const host = levelPanelHostRef.current;
                 if (!host) return;
@@ -787,6 +826,30 @@ export function ActivityEditorForm({
         />
       ) : null}
 
+      {nameAssist ? (
+        // PRE-7 (R-5, v7 §6 R03-R04 ; `9882:19049`) : panneau superposé sous le nom, clavier visible,
+        // dans un hôte qui couvre l'Éditeur (un toucher hors des limites du parent n'atteint pas ses
+        // enfants sur Android) ; l'hôte laisse passer les touchers hors du panneau.
+        <View pointerEvents="box-none" style={styles.levelPanelHost} testID="exercise-name-assist-host">
+          <View
+            ref={nameAssistRef}
+            onLayout={() => nameAssistRef.current?.measureInWindow((_x, y) => setNameAssistTop(y))}
+            style={[
+              styles.nameAssist,
+              {
+                top: bandY + nameLayout.y + nameLayout.height,
+                left: sideMargin,
+                right: sideMargin,
+                maxHeight: nameAssistMaxHeight,
+              },
+            ]}
+            testID="exercise-name-assist"
+          >
+            {nameAssist}
+          </View>
+        </View>
+      ) : null}
+
       {levelMenu && Platform.OS !== "ios" ? (
         <View ref={levelPanelHostRef} pointerEvents="box-none" style={styles.levelPanelHost} testID="activity-editor-level-panel-host">
           {levelPanelPlacement !== null ? (
@@ -978,6 +1041,11 @@ const ACCESS_ROW_GAP = ACCESS_TARGET_OVERFLOW_BELOW_ROW;
 
 /** G-4 : interligne du Nom (Figma `6981:14889`). */
 const NAME_LINE_HEIGHT = 22;
+/** PRE-7 (R-5, R04) : écart entre le panneau sous le nom et le clavier ; hauteur minimale du panneau. */
+const NAME_ASSIST_GAP = 8;
+const NAME_ASSIST_MIN_HEIGHT = 120;
+/** PRE-7 (R-5, C02) : gris de l'invite « (compléter le nom) », lu sur `10187:20340`. */
+const NAME_HINT_COLOR = "#7A7A80";
 /** G-6 : interligne de la Phrase (Figma « Phrase — texte »). */
 const PHRASE_LINE_HEIGHT = 20;
 
@@ -1082,6 +1150,25 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexShrink: 1,
     minWidth: 0,
+  },
+  nameAssist: {
+    position: "absolute",
+  },
+  nameHintOverlay: {
+    position: "absolute",
+    justifyContent: "center",
+    paddingHorizontal: dimensions.exerciseTextField.paddingHorizontal,
+  },
+  nameHintText: {
+    ...type.screenTitle,
+    lineHeight: NAME_LINE_HEIGHT,
+  },
+  nameHintMask: {
+    color: "transparent",
+  },
+  nameHintLabel: {
+    // Gris de l'invite relevé sur `10187:20340` (valeur de rendu, `tokens.ts` inchangé).
+    color: NAME_HINT_COLOR,
   },
   levelPanelHost: {
     position: "absolute",

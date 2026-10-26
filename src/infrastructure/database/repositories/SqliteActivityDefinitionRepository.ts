@@ -261,12 +261,13 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
         [id, movementId, serializeCatalogExecutionParameters(split.parameters), timestamp, timestamp],
       );
       if (origin.kind === "VARIANT" && origin.joinOriginGroup) {
-        // MFN-07 : « un niveau créé s'insère immédiatement après celui dont il est issu ».
+        // MFN-07 : « un niveau créé s'insère immédiatement après celui dont il est issu » ;
+        // PRE-7 (R-5, C02, MFN-07 l.371) : avant l'origine pour « Plus facile ».
         const joined = await joinMovementGroup(
           transaction,
           movementId,
           origin.originMovementId,
-          "AFTER_ORIGIN",
+          origin.placement ?? "AFTER_ORIGIN",
           this.uuidFactory,
           timestamp,
         );

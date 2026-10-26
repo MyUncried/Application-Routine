@@ -38,6 +38,7 @@ import type {
   ActivityType,
   CreateSessionInput,
   ExerciseExecutionMode,
+  MovementLevelOrigin,
   Session,
   SessionMovementInput,
   StructuralPosition,
@@ -182,6 +183,8 @@ export type DraftMovement = {
   readonly phases: readonly MovementPhase[];
   readonly nextPhaseId: number;
   readonly aliases: readonly string[];
+  /** PRE-7 (R-5, C02) : variante choisie en Séance, rattachée à l'enregistrement (`SessionMovementInput.levelOrigin`). */
+  readonly levelOrigin?: MovementLevelOrigin;
 };
 
 export type SessionDraft = {
@@ -419,7 +422,11 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
 export function draftMovementOf(
   exercise: SessionDraftExercise,
   change: DraftMovement["change"],
-  options: { readonly nextPhaseId?: number; readonly aliases?: readonly string[] } = {},
+  options: {
+    readonly nextPhaseId?: number;
+    readonly aliases?: readonly string[];
+    readonly levelOrigin?: MovementLevelOrigin;
+  } = {},
 ): DraftMovement {
   const phases = exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
   const floor = phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
@@ -434,6 +441,7 @@ export function draftMovementOf(
     phases,
     nextPhaseId: Math.max(floor, options.nextPhaseId ?? 0),
     aliases: [...(options.aliases ?? [])],
+    ...(options.levelOrigin !== undefined ? { levelOrigin: options.levelOrigin } : {}),
   };
 }
 
@@ -568,6 +576,7 @@ function toSessionMovementInputs(draft: SessionDraft): SessionMovementInput[] {
       phases: movement.phases.map((phase) => ({ id: phase.id, label: phase.label })),
       nextPhaseId: movement.nextPhaseId,
       aliases: [...movement.aliases],
+      ...(movement.levelOrigin !== undefined ? { levelOrigin: { ...movement.levelOrigin } } : {}),
     });
   }
   return inputs;

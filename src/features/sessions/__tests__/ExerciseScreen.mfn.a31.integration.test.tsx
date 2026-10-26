@@ -327,7 +327,7 @@ describe("PRE-7 A3.1 — Ajouter un niveau (MFN-07, MFN-05, MFN-08)", () => {
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Squats sautés");
     fireEvent(screen.getByTestId("exercise-name-input"), "endEditing", { nativeEvent: { text: "Squats sautés" } });
     await settle(20);
-    expect(screen.queryByTestId("movement-suggestion-sheet")).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });

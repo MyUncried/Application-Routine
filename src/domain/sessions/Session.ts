@@ -307,6 +307,19 @@ export type SessionMovementInput = {
   readonly phases: readonly MovementPhase[];
   readonly nextPhaseId: number;
   readonly aliases: readonly string[];
+  /**
+   * PRE-7 (R-5, D-445 C02, MFN-07 l.371) : variante choisie en Séance — le Mouvement `NEW` rejoint
+   * le groupe de niveaux de `movementId`, juste avant (Plus facile) ou juste après (Plus difficile)
+   * lui, dans la transaction de la Séance. Absent : aucun rattachement (création indépendante,
+   * « Créer un nouveau mouvement », Q10). Ignoré pour un Mouvement `EDITED`.
+   */
+  readonly levelOrigin?: MovementLevelOrigin;
+};
+
+/** PRE-7 (R-5, C02) : origine de niveau d'une variante et sens de son insertion. */
+export type MovementLevelOrigin = {
+  readonly movementId: string;
+  readonly placement: "BEFORE_ORIGIN" | "AFTER_ORIGIN";
 };
 
 /** @deprecated Nom historique de `CreateSessionActivityInput` (T01, quand la création ne produisait que des Exercices) — conservé pour ne pas casser un import déjà publié. */

@@ -391,21 +391,37 @@ export class ActivityDefinitionService {
   }
 
   /**
-   * PRE-7 (A2.3, MFN-04, MFN-06, D-439) — recherche spécialisée des gestes disponibles, LOCAUX
-   * COMPRIS (créés dans une Séance, absents du Catalogue) : nom normalisé contenant la requête,
-   * requête vide = tous (`MovementRepository.search`). Ce n'est pas une recherche dans les listes
-   * Catalogue (D-221 inchangée) : rien n'est créé ni publié. `[]` sans `MovementRepository`
-   * (doublures antérieures à MFN).
+   * PRE-7 (R-5, D-445 C01, v7 §6 R02 à R05) — TOUS les mouvements disponibles, LOCAUX COMPRIS
+   * (créés dans une Séance, sans Exercice au Catalogue, ou dont le dernier exercice a été retiré :
+   * « un mouvement peut exister sans exercice et reste recherchable », v7 l.27), lus une fois puis
+   * parcourus en mémoire : classement R02 (`rankMovements`) pendant la saisie et contrôle
+   * d'unicité C01 (`findMovementNameConflict`). Ordre rendu = « ordre de parcours du Catalogue »
+   * de la requête vide (R03) : mouvements du Catalogue dans l'ordre de ses groupes (première
+   * apparition dans `listAll`, `updatedAt DESC`), puis les mouvements sans Exercice au Catalogue
+   * dans l'ordre du repository (nom normalisé) — option conservatrice, à valider par Hermann.
+   * Comptes d'Exercices et rangs calculés, jamais persistés. `[]` sans `MovementRepository`
+   * (doublures antérieures à MFN). Remplace `searchMovements` (sous-chaîne, A2.3).
    */
-  async searchMovements(query: string): Promise<readonly MovementChoice[]> {
+  async listMovementChoices(): Promise<readonly MovementChoice[]> {
     const movements = this.movementRepository;
     if (!movements) {
       return [];
     }
-    const found = await movements.search(query);
+    const found = await movements.search("");
+    const definitions = await this.repository.listAll();
+    const catalogueRank = new Map<string, number>();
+    const definitionCounts = new Map<string, number>();
+    for (const definition of definitions) {
+      if (!catalogueRank.has(definition.movementId)) catalogueRank.set(definition.movementId, catalogueRank.size);
+      definitionCounts.set(definition.movementId, (definitionCounts.get(definition.movementId) ?? 0) + 1);
+    }
+    const ordered = [...found].sort(
+      (left, right) =>
+        (catalogueRank.get(left.id) ?? Number.MAX_SAFE_INTEGER) - (catalogueRank.get(right.id) ?? Number.MAX_SAFE_INTEGER),
+    );
     const groups = new Map<string, readonly Movement[]>();
     const choices: MovementChoice[] = [];
-    for (const movement of found) {
+    for (const movement of ordered) {
       let level: MovementLevelPosition | null = null;
       if (movement.levelGroup !== null) {
         const groupId = movement.levelGroup.groupId;
@@ -416,7 +432,7 @@ export class ActivityDefinitionService {
         }
         level = movementLevelPosition(movement, members);
       }
-      choices.push({ movement, definitionCount: await movements.countDefinitions(movement.id), level });
+      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level });
     }
     return choices;
   }

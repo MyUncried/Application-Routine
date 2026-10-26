@@ -120,3 +120,28 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-4-dialogue-sauvegarde-c03-crayon.md`
   summary: Un échec de lecture du Mouvement au déverrouillage par le crayon n'est que journalisé ; le crayon reste actif sans message.
   evidence: `unlockMovement` dans `ExerciseScreen.tsx` : `console.error` seul.
+
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Reports R-3 « nom déjà pris ou en double dans le brouillon, erreur générique » et R-4 « Créer un nouveau mouvement avec un nom déjà pris » traités par R-5 — unicité contrôlée pendant la saisie dans les deux éditeurs (mouvements enregistrés et Mouvements `NEW` / `EDITED` référencés du brouillon, identité éditée exclue), `Terminer` indisponible — c'est ce contrôle qui empêche deux créations de même nom dans le brouillon ; « Créer un nouveau mouvement » refusé si la clé est prise, original compris ; `DuplicateMovementNameError` (nom pris en base entre la saisie et l'enregistrement) → message propre (éditeur Catalogue, Composition). Report R-3 « mouvement sans occurrence visible et réutilisable » vérifié : `listMovementChoices` liste tous les mouvements, l'écran de recherche R03 les montre sur « Voir tous les mouvements » et la reprise fonctionne.
+  evidence: `useMovementOriginChoice.tsx`, `ExerciseScreen.tsx`, `CompositionScreen.tsx` ; tests `ExerciseScreen.r5.integration.test.tsx`, `ExerciseScreen.r4.integration.test.tsx`, `CompositionScreen.test.tsx` (« R-5 »).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Saisie et modification des alias (R05) sans interface : les alias sont recherchés et dédoublonnés, mais aucun champ ne permet d'en saisir (aucune frame, aucun parcours ; DSF l.156 « la saisie/édition des alias … reste à couvrir »).
+  evidence: `Movement.aliases`, `movement_aliases` (R-3) ; `rankMovements` les lit. À décider par Hermann : emplacement et forme du champ (contenu du mouvement, soumis au dialogue C03), puis transport dans `CreateActivityDefinitionInput` (création Catalogue : `aliases: []` codé dans `SqliteActivityDefinitionRepository.create`).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: « Ajouter un niveau » du popover (A3.1) n'applique pas encore C02 : contenu de l'origine repris (description, médias, paramètres), insertion toujours après l'origine, sans le choix Plus facile / Plus difficile du déploiement `10152:20369`.
+  evidence: `ExerciseScreen.tsx` (`levelOriginDefinitionId`), `MovementLevelMenu.tsx` (`onAddLevel`). Le domaine et les repositories acceptent déjà `placement` (`BEFORE_ORIGIN` / `AFTER_ORIGIN`). À traiter avec la commande Niveau (R-6) ou sur décision de Hermann.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Carte Résultat sans Zones corporelles ni mention d'origine locale, que R04 cite parmi le « contexte permettant le choix … si nécessaire » ; la carte `10199:22268` ne dessine que photo, nom, niveau et description.
+  evidence: `MovementResultCard.tsx` suit le relevé ; la note « Les mouvements créés dans une séance apparaissent aussi. » reste sur l'écran de recherche. À trancher en recette JA2 (ajout d'une ligne Zones, ou carte en l'état).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Rendu du panneau sous le nom, de l'invite grise superposée et de l'écran de recherche non constaté sur appareil (position par `onLayout`, ombre, invite alignée sur le texte du champ, clavier visible).
+  evidence: tests fonctionnels seulement ; à constater en recette JA2 (360 / 402 / 440, texte agrandi, Android hors recette).
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Le panneau reste disponible après le choix d'une Catégorie ou de Zones, mais « Utiliser ce mouvement » les remplace par celles du mouvement choisi.
+  evidence: Cohérent avec C05 (le contenu de l'occurrence vient du mouvement), mais contraire à la lettre de MFN-06 (« jamais d'écrasement silencieux »), qui est antérieur. À constater en JA2 et à confirmer par Hermann.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Une variante de Séance dont le mouvement d'origine a disparu avant l'enregistrement bloque la Séance avec l'erreur générique.
+  evidence: `writeSessionMovements` lève sur l'échec de `joinMovementGroup` ; le `levelOrigin` du brouillon n'est jamais retiré.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-5-creation-unicite-variante-recherche.md`
+  summary: Aucune pastille « Niveau N » pour une variante créée en Séance, contrairement au Catalogue.
+  evidence: `CompositionExerciseEditor` ne calcule pas `level` ; la commande Niveau en Séance relève de R-6.

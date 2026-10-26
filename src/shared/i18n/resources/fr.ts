@@ -240,35 +240,38 @@ export const fr = {
         // « mouvement » dans tous les textes d’interface (identifiants inchangés, D-201) ; même
         // crayon sur une occurrence de Séance (D-445 C04).
         editMovement: "Modifier le mouvement",
-        // PRE-7 story A2.3 (MFN-06, D-439 ; feuille `9882:19125` de `9882:19049`) : suggestion d’un
-        // geste proche à la création. Textes de la feuille ; « {name} » = geste RÉELLEMENT proposé,
-        // jamais l’exemple Squats. Le relevé du 23/10 demande d’adapter « déjà dans votre catalogue »
-        // à l’origine du résultat : un geste sans Exercice au Catalogue (créé dans une séance) reçoit
-        // la formulation neutre `localMessage` (point soumis à Hermann).
+        // PRE-7 story R-5 (D-445 C01, C02, v7 §6 R03-R04 ; maquettes `9882:19049`, `10175:20349`,
+        // `10140:20180`, `10187:20340`, carte `10199:22268`) : panneau sous le nom, pendant la saisie
+        // (remplace la feuille à trois choix d’A2.3). Textes relevés : message d’unicité, actions de
+        // la carte, invite grise. « Plus facile / Plus difficile » : libellés de C02, MFN-07 l.371 et du
+        // popover `10152:20369` (la maquette `10140:20180` porte « Moins difficile » ; option
+        // conservatrice, à valider par Hermann). `nameTakenEdit` (correction, variante, Séance : aucune
+        // carte à reprendre) et `backToResults` (nom accessible du chevron) : sans texte relevé (NON
+        // VÉRIFIABLE).
         movementSuggestion: {
-          title: "Un mouvement proche existe",
-          catalogueMessage: "{name} est déjà dans votre catalogue. Voulez-vous le réutiliser ?",
-          localMessage: "{name} existe déjà. Voulez-vous le réutiliser ?",
-          sameMovement: "Même mouvement, autres paramètres",
-          sameMovementDetail: "Reprend la description et le média de {name}",
-          variant: "Variante de ce mouvement",
-          variantDetail: "Crée un niveau de plus dans la progression",
-          independent: "Mouvement indépendant",
-          independentDetail: "Aucun lien avec {name}",
-          searchOther: "Rechercher un autre mouvement",
+          nameTaken: "Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom.",
+          nameTakenEdit: "Ce nom est déjà utilisé. Choisissez un autre nom.",
+          useMovement: "Utiliser ce mouvement",
+          createVariant: "Créer une variante",
+          easier: "Plus facile",
+          harder: "Plus difficile",
+          backToResults: "Retour aux résultats",
+          level: "Niveau {rank}",
+          completeNameHint: "(compléter le nom)",
         },
         // PRE-7 story A2.3 (MFN-04, MFN-06, D-439 ; écran `9959:19623`) : recherche spécialisée des
-        // gestes, locaux compris. Titre, champ et note de `9959:19623` ; sous-titre des cartes
-        // « Niveau r sur t · n exercices », rang et nombre calculés. `open` : accès depuis le
+        // gestes, locaux compris. Titre, champ et note de `9959:19623`. `open` : accès depuis le
         // formulaire, sans frame (NON VÉRIFIABLE), libellé repris du champ de recherche.
+        // PRE-7 story R-5 (v7 §6 R03) : « Voir tous les mouvements » (texte de la v7) ; l’annonce
+        // d’absence de résultat n’a pas de texte relevé (NON VÉRIFIABLE).
         movementSearch: {
           title: "Choisir un mouvement",
           placeholder: "Rechercher un mouvement",
           localNote: "Les mouvements créés dans une séance apparaissent aussi.",
-          level: "Niveau {rank} sur {total}",
+          noResult: "Aucun mouvement ne correspond à cette recherche.",
+          showAll: "Voir tous les mouvements",
           exerciseCountSingular: "{n} exercice",
           exerciseCountPlural: "{n} exercices",
-          separator: " · ",
           open: "Rechercher un mouvement",
           closeAccessibilityLabel: "Retour",
         },
@@ -556,6 +559,10 @@ export const fr = {
         stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
+      // PRE-7 story R-5 (D-445 C01 ; report R-3) : un nom de mouvement de la Séance pris en base entre
+      // la saisie et l’enregistrement (écriture concurrente) est signalé pour ce qu’il est, et non par
+      // l’erreur générique. Aucun texte relevé (NON VÉRIFIABLE).
+      nameTakenError: "Un mouvement de cette séance porte un nom déjà utilisé. Modifiez son nom.",
       // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.

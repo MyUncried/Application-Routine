@@ -542,6 +542,13 @@ export class SqliteMovementRepository implements MovementRepository {
   }
 }
 
+/**
+ * Place d'un Mouvement qui rejoint le groupe de son origine : en dernier (`attachToGroup`), juste
+ * après l'origine (« Ajouter un niveau », Plus difficile) ou, PRE-7 (R-5, C02, MFN-07 l.371),
+ * juste avant elle (Plus facile).
+ */
+export type MovementGroupPlacement = "END" | "AFTER_ORIGIN" | "BEFORE_ORIGIN";
+
 /** Issue de `joinMovementGroup` : identifiant du groupe rejoint, ou cas attendu de refus. */
 export type JoinMovementGroupOutcome =
   | { readonly status: "OK"; readonly groupId: string }
@@ -559,7 +566,7 @@ export async function joinMovementGroup(
   transaction: Database,
   movementId: string,
   originId: string,
-  placement: "END" | "AFTER_ORIGIN",
+  placement: MovementGroupPlacement,
   uuidFactory: UuidFactory,
   timestamp: string,
 ): Promise<JoinMovementGroupOutcome> {
@@ -584,10 +591,12 @@ export async function joinMovementGroup(
   const members = origin.level_group_id === null ? [originId] : await groupMemberIds(transaction, groupId);
   const others = members.filter((id) => id !== movementId);
   const originIndex = others.indexOf(originId);
-  const ordered =
-    placement === "END"
-      ? [...others, movementId]
-      : [...others.slice(0, originIndex + 1), movementId, ...others.slice(originIndex + 1)];
+  // Origine absente de son propre groupe (donnée incohérente) : aucune place à déduire.
+  if (placement !== "END" && originIndex < 0) {
+    return { status: "INVALID_ORDER" };
+  }
+  const insertAt = placement === "END" ? others.length : placement === "BEFORE_ORIGIN" ? originIndex : originIndex + 1;
+  const ordered = [...others.slice(0, insertAt), movementId, ...others.slice(insertAt)];
   await writeGroupOrder(transaction, groupId, ordered, timestamp);
   return { status: "OK", groupId };
 }

@@ -1,158 +1,228 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Platform } from "react-native";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
-import { normalizeMovementName } from "@/domain/activities/Movement";
-import { findCloseMovement } from "@/domain/activities/movementSuggestion";
+import { findMovementNameConflict, normalizeMovementName } from "@/domain/activities/Movement";
+import { rankMovements, type MovementSearchContext } from "@/domain/activities/movementSuggestion";
+import { strings } from "@/shared/i18n";
 
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
+import type { VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
-import { MovementSuggestionSheet, type MovementOriginChoice } from "./MovementSuggestionSheet";
+import { MovementSuggestionPanel } from "./MovementSuggestionPanel";
+
+/** R04 : cinq résultats au maximum dans le panneau sous le nom. */
+const PANEL_RESULT_LIMIT = 5;
+
+/** Nom d'un mouvement pour le contrôle d'unicité (identifiant et nom tel que saisi). */
+export type MovementNameEntry = { readonly id: string; readonly name: string };
 
 export type MovementOriginChoiceOptions = {
   readonly service: ActivityDefinitionService;
+  /** Nom en cours de saisie (brouillon de l'éditeur). */
+  readonly name: string;
   /**
-   * Suggestion et recherche disponibles : création, aucun choix d'origine fait, brouillon ne
-   * portant que le nom (« avant la saisie détaillée », MFN-06 ; aucune sélection ne peut alors
-   * écraser une autre saisie). Relu au rendu : une feuille en attente n'est plus montrée dès que
-   * la disponibilité tombe.
+   * Panneau de résultats et recherche disponibles : création, aucun choix d'origine fait, aucune
+   * saisie détaillée (description, médias, paramètres) — MFN-06 (« sélection explicite, jamais
+   * fusion ni écrasement silencieux des informations saisies »). Catégorie et Zones peuvent être
+   * renseignées : ce sont les signaux de classement de R02.
    */
   readonly available: boolean;
-  /** « Même geste, autres paramètres » ou sélection d'un résultat de recherche. */
+  /** Contrôle d'unicité pendant la saisie (C01). */
+  readonly uniqueness: {
+    /** Mouvement en cours d'édition, exclu de sa propre collision ; `null` pour une création distincte. */
+    readonly excludedMovementId: string | null;
+    /**
+     * Mouvements du brouillon de Séance encore référencés (`NEW`, `EDITED`) : ils remplacent, par
+     * identifiant, le nom enregistré, ou s'ajoutent à la liste. Absent : aucun.
+     */
+    readonly draftMovements?: readonly MovementNameEntry[];
+    /** Contrôle suspendu : contenu verrouillé (nom non modifiable). */
+    readonly suspended?: boolean;
+    /**
+     * Message masqué, contrôle maintenu : invite grise « (compléter le nom) » affichée (C02) — elle
+     * « ne satisfait pas l'unicité » et tient lieu d'explication ; `Terminer` reste indisponible
+     * tant que le nom conservé est celui d'un mouvement existant.
+     */
+    readonly messageHidden?: boolean;
+  };
+  /** R02 : Catégorie et Zones renseignées dans le brouillon (bonus de classement). */
+  readonly context?: MovementSearchContext;
+  /** « Utiliser ce mouvement » (panneau ou écran de recherche). */
   readonly onSameMovement: (choice: MovementChoice) => void;
-  /** « Variante de ce geste ». */
-  readonly onVariant: (choice: MovementChoice) => void;
+  /** « Créer une variante » puis Plus facile / Plus difficile. */
+  readonly onVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
 };
 
 export type MovementOriginChoiceState = {
-  /** Recherche disponible (lien du formulaire). */
+  /** Recherche explicite disponible (lien du formulaire). */
   readonly canSearch: boolean;
-  /** Fin de saisie du nom : propose un geste proche, une seule fois par geste. */
-  readonly proposeFor: (name: string) => void;
   readonly openSearch: () => void;
-  /** Feuille de suggestion et écran de recherche à rendre par l'écran. */
+  /** Fin de la saisie du nom (Entrée, clavier fermé) : le panneau se ferme, aucune sélection. */
+  readonly onNameEndEditing: () => void;
+  /** Nom déjà utilisé (C01) : message affiché, `Terminer` indisponible. */
+  readonly nameTaken: boolean;
+  /**
+   * Création DISTINCTE avec ce nom (« Créer un nouveau mouvement ») : contrôle sans exclusion — « une
+   * création distincte doit disposer d'une clé différente des mouvements existants » (v7 l.67). Faux :
+   * le nom est signalé comme déjà utilisé, rien n'est écrit.
+   */
+  readonly checkDistinctName: (name: string) => boolean;
+  /** `DuplicateMovementNameError` à l'enregistrement (écriture concurrente) : nom signalé. */
+  readonly markNameTaken: (name: string) => void;
+  /** Panneau sous le nom (rendu par l'éditeur en surimpression), `null` : aucun. */
+  readonly nameAssist: ReactNode;
+  /** Écran de recherche à rendre par l'écran. */
   readonly overlays: ReactNode;
 };
 
-type PendingAfterDismiss = "SEARCH" | null;
-
 /**
- * PRE-7 story A2.3 (MFN-05, MFN-06, D-439 ; `9882:19049`, `9959:19623`) — choix explicite de
- * l'origine du geste à la création, commun aux éditeurs Catalogue et Séance :
- * - à la fin de la saisie du nom, un geste au nom proche (`findCloseMovement`, lexical) est proposé
- *   une seule fois dans la feuille à trois choix ; « Geste indépendant » ou le retour système la
- *   ferment sans rien changer, et le geste n'est plus reproposé ;
- * - la recherche explicite reste accessible sans similarité (lien du formulaire, ou « Rechercher
- *   un autre geste ») ; sa sélection reprend le geste choisi ;
- * - rien n'est écrit : l'écran applique le choix à son brouillon, `Terminer` seul persiste.
- *
- * iOS : la feuille en fondu reste montée invisible jusqu'à `onDismiss` avant que l'écran de
- * recherche ne soit présenté (deux présentations natives simultanées échouent) — même procédé que
- * `useReferenceSheet`.
+ * PRE-7 story R-5 (D-445 C01, C02, v7 §6 R02 à R05 ; `9882:19049`, `10175:20349`, `10140:20180`)
+ * — choix explicite de l'origine du mouvement à la création et unicité du nom, communs aux
+ * éditeurs Catalogue et Séance (remplace la suggestion de fin de saisie d'A2.3) :
+ * - la liste des mouvements disponibles, locaux compris, est lue une fois (`listMovementChoices`)
+ *   puis parcourue en mémoire à chaque frappe (R02, `rankMovements`) ;
+ * - « la saisie du nom déclenche la recherche » (R03) : le panneau s'ouvre de lui-même dès qu'un
+ *   mouvement atteint le seuil haut, avec cinq résultats au plus (R04) ; il se ferme à la fin de la
+ *   saisie (Entrée ne sélectionne rien) et se rouvre à la frappe suivante ; l'ordre affiché est
+ *   figé tant qu'un doigt est posé sur le panneau ;
+ * - le nom déjà utilisé (C01, clé canonique, identité éditée exclue) est signalé dès la frappe et
+ *   reste affiché tant qu'il dure ; dans une création, le panneau garde alors ses cartes (« reprenez
+ *   ce mouvement ou choisissez un autre nom ») ;
+ * - la recherche explicite reste accessible (R03) ; rien n'est écrit : l'écran applique le choix à
+ *   son brouillon, `Terminer` seul persiste.
  */
 export function useMovementOriginChoice({
   service,
+  name,
   available,
+  uniqueness,
+  context,
   onSameMovement,
   onVariant,
 }: MovementOriginChoiceOptions): MovementOriginChoiceState {
-  const enabled = available && service.supportsMovementSearch;
-  const [suggestion, setSuggestion] = useState<MovementChoice | null>(null);
-  const [isSuggestionVisible, setIsSuggestionVisible] = useState(false);
+  const t = strings.screens.activities.editor.movementSuggestion;
+  const searchEnabled = available && service.supportsMovementSearch;
+  const [choices, setChoices] = useState<readonly MovementChoice[]>([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const proposedIds = useRef(new Set<string>());
-  const requestRef = useRef(0);
-  const pendingRef = useRef<PendingAfterDismiss>(null);
-  const enabledRef = useRef(enabled);
-  const overlayRef = useRef(false);
+  // Nom pour lequel le panneau a été fermé (fin de saisie) : toute frappe le rouvre.
+  const [dismissedFor, setDismissedFor] = useState<string | null>(null);
+  // Nom refusé par une création distincte ou par le repository, par clé canonique (signalé tant que
+  // la clé est la même). `blocking` : faux pour un refus de « Créer un nouveau mouvement » portant
+  // sur le nom du mouvement édité lui-même — « Mettre à jour » reste valide, `Terminer` disponible.
+  const [takenFor, setTakenFor] = useState<{ readonly key: string; readonly blocking: boolean } | null>(null);
+  // Étape de variante, liée au nom pour lequel elle a été ouverte : toute frappe revient à la liste.
+  const [variantStep, setVariantStep] = useState<{ readonly movementId: string; readonly name: string } | null>(null);
+  const variantOf = variantStep !== null && variantStep.name === name ? variantStep.movementId : null;
+  const setVariantOf = (movementId: string | null) =>
+    setVariantStep(movementId === null ? null : { movementId, name });
+  // R04 : résultats figés pendant un appui sur le panneau (`null` : aucun appui en cours).
+  const [frozen, setFrozen] = useState<readonly MovementChoice[] | null>(null);
+
   useEffect(() => {
-    enabledRef.current = enabled;
-    overlayRef.current = suggestion !== null || isSearchOpen;
-  }, [enabled, suggestion, isSearchOpen]);
-
-  function runPending() {
-    const pending = pendingRef.current;
-    pendingRef.current = null;
-    setSuggestion(null);
-    if (pending === "SEARCH" && enabledRef.current) {
-      setIsSearchOpen(true);
-    }
-  }
-
-  function closeSuggestion(then: PendingAfterDismiss) {
-    pendingRef.current = then;
-    setIsSuggestionVisible(false);
-    if (Platform.OS !== "ios") runPending();
-  }
-
-  function proposeFor(name: string) {
-    if (!enabled || normalizeMovementName(name).length === 0 || suggestion !== null || isSearchOpen) {
-      return;
-    }
-    const request = requestRef.current + 1;
-    requestRef.current = request;
-    service.searchMovements("").then(
-      (choices) => {
-        // Revue : réponse tardive ignorée si la création n'est plus « nom seul », ou si une feuille
-        // (même en fondu de fermeture) ou la recherche est présente : jamais deux présentations.
-        if (requestRef.current !== request || !enabledRef.current || overlayRef.current) return;
-        const close = findCloseMovement(
-          name,
-          choices.map((choice) => choice.movement),
-          proposedIds.current,
-        );
-        const found = close ? choices.find((choice) => choice.movement.id === close.id) : undefined;
-        if (!found) return;
-        proposedIds.current.add(found.movement.id);
-        setSuggestion(found);
-        setIsSuggestionVisible(true);
+    if (!service.supportsMovementSearch) return;
+    let cancelled = false;
+    service.listMovementChoices().then(
+      (found) => {
+        if (!cancelled) setChoices(found);
       },
       (error: unknown) => {
-        // Suggestion facultative : un échec de lecture n'empêche pas la création.
-        console.error("La suggestion de geste n'a pas pu être calculée.", error);
+        // Recherche et contrôle anticipé facultatifs : l'unicité reste garantie à l'enregistrement.
+        console.error("Les mouvements n'ont pas pu être lus.", error);
       },
     );
-  }
+    return () => {
+      cancelled = true;
+    };
+  }, [service]);
 
-  function choose(choice: MovementOriginChoice) {
-    const current = suggestion;
-    closeSuggestion(null);
-    if (current === null) return;
-    if (choice === "SAME_MOVEMENT") onSameMovement(current);
-    if (choice === "VARIANT") onVariant(current);
-  }
-
-  const overlays = (
-    <>
-      {suggestion !== null && enabled ? (
-        <MovementSuggestionSheet
-          visible={isSuggestionVisible}
-          suggestion={suggestion}
-          onChoose={choose}
-          onSearch={() => closeSuggestion("SEARCH")}
-          onDismiss={() => closeSuggestion(null)}
-          onDismissed={runPending}
-        />
-      ) : null}
-      {isSearchOpen && enabled ? (
-        <MovementSearchScreen
-          service={service}
-          onSelect={(choice) => {
-            setIsSearchOpen(false);
-            onSameMovement(choice);
-          }}
-          onClose={() => setIsSearchOpen(false)}
-        />
-      ) : null}
-    </>
+  const byId = useMemo(() => new Map(choices.map((choice) => [choice.movement.id, choice])), [choices]);
+  const ranked = useMemo(
+    () => (searchEnabled ? rankMovements(name, choices.map((choice) => choice.movement), context) : []),
+    [searchEnabled, name, choices, context],
   );
+  const entries = useMemo(() => {
+    const merged = new Map<string, string>(choices.map((choice) => [choice.movement.id, choice.movement.name]));
+    for (const entry of uniqueness.draftMovements ?? []) merged.set(entry.id, entry.name);
+    return [...merged].map(([id, entryName]) => ({ id, name: entryName }));
+  }, [choices, uniqueness.draftMovements]);
+
+  const conflicting =
+    uniqueness.suspended !== true ? findMovementNameConflict(name, entries, uniqueness.excludedMovementId) : null;
+  const conflict = conflicting !== null;
+  const refused = takenFor !== null && takenFor.key === normalizeMovementName(name);
+  const nameTaken = conflict || (refused && takenFor.blocking);
+  const listed = ranked
+    .slice(0, PANEL_RESULT_LIMIT)
+    .map((result) => byId.get(result.id))
+    .filter((choice): choice is MovementChoice => choice !== undefined);
+  // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).
+  const live =
+    searchEnabled && (conflict || (dismissedFor !== name && ranked.some((result) => result.suggested))) ? listed : [];
+  const results = frozen ?? live;
+  const showMessage = (conflict || refused) && uniqueness.messageHidden !== true;
+  const showPanel = results.length > 0 || showMessage;
+  // « Reprenez ce mouvement » seulement si le mouvement en conflit est parmi les cartes affichées.
+  const conflictShown = conflicting !== null && results.some((choice) => choice.movement.id === conflicting.id);
+  const message = showMessage ? (conflictShown ? t.nameTaken : t.nameTakenEdit) : null;
+
+  function checkDistinctName(candidate: string): boolean {
+    const taken = findMovementNameConflict(candidate, entries, null);
+    if (taken === null) return true;
+    setTakenFor({ key: normalizeMovementName(candidate), blocking: taken.id !== uniqueness.excludedMovementId });
+    return false;
+  }
+
+  const nameAssist = showPanel ? (
+    <MovementSuggestionPanel
+      message={message}
+      results={results}
+      variantOf={variantOf}
+      onUse={(choice) => {
+        setVariantOf(null);
+        setFrozen(null);
+        onSameMovement(choice);
+      }}
+      onCreateVariant={(choice) => setVariantOf(choice.movement.id)}
+      onChooseVariant={(choice, placement) => {
+        setVariantOf(null);
+        setFrozen(null);
+        onVariant(choice, placement);
+      }}
+      onBack={() => setVariantOf(null)}
+      onTouchingChange={(touching) => setFrozen(touching ? live : null)}
+    />
+  ) : null;
+
+  const overlays =
+    isSearchOpen && searchEnabled ? (
+      <MovementSearchScreen
+        choices={choices}
+        initialQuery={name}
+        context={context}
+        onUse={(choice) => {
+          setIsSearchOpen(false);
+          onSameMovement(choice);
+        }}
+        onChooseVariant={(choice, placement) => {
+          setIsSearchOpen(false);
+          onVariant(choice, placement);
+        }}
+        onClose={() => setIsSearchOpen(false)}
+      />
+    ) : null;
 
   return {
-    canSearch: enabled,
-    proposeFor,
+    canSearch: searchEnabled,
     openSearch: () => {
-      // Revue : aucune présentation tant que la feuille est montée (fondu de fermeture iOS compris).
-      if (enabled && suggestion === null) setIsSearchOpen(true);
+      if (searchEnabled) setIsSearchOpen(true);
     },
+    onNameEndEditing: () => {
+      setDismissedFor(name);
+      setVariantOf(null);
+    },
+    nameTaken,
+    checkDistinctName,
+    markNameTaken: (taken: string) => setTakenFor({ key: normalizeMovementName(taken), blocking: true }),
+    nameAssist,
     overlays,
   };
 }

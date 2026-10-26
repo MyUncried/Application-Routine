@@ -54,7 +54,13 @@ import type {
   SessionSummaryRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
-import { insertMovement, readMovementRecords, updateMovementContent, type MovementRecord } from "./SqliteMovementRepository";
+import {
+  insertMovement,
+  joinMovementGroup,
+  readMovementRecords,
+  updateMovementContent,
+  type MovementRecord,
+} from "./SqliteMovementRepository";
 
 type LocalUserRow = { id: string };
 type UuidFactory = () => string;
@@ -397,7 +403,7 @@ export class SqliteSessionRepository implements SessionRepository {
         [tourId, cycleId, sessionId, normalized.tourRepeatCount, normalized.circuitNature ?? DEFAULT_CIRCUIT_NATURE],
       );
 
-      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp);
+      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp, this.uuidFactory);
       await insertActivities(transaction, sessionId, cycleId, tourId, normalized.exercises, this.uuidFactory, timestamp);
       await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
 
@@ -488,7 +494,7 @@ export class SqliteSessionRepository implements SessionRepository {
         [normalized.tourRepeatCount, normalized.circuitNature ?? null, existingRow.tour_id, sessionId],
       );
 
-      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp);
+      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp, this.uuidFactory);
       await mergeActivities(
         transaction,
         sessionId,
@@ -606,6 +612,7 @@ async function writeSessionMovements(
   transaction: Database,
   movements: readonly SessionMovementInput[],
   timestamp: string,
+  uuidFactory: UuidFactory,
 ): Promise<void> {
   if (movements.length === 0) {
     return;
@@ -615,7 +622,13 @@ async function writeSessionMovements(
     transaction,
     movements.filter((movement) => movement.change === "EDITED").map((movement) => movement.id),
   );
-  for (const movement of movements) {
+  // PRE-7 (R-5, C01) : corrections (`EDITED`) avant créations (`NEW`) — un renommage A → B libère A
+  // avant qu'une création nommée A ne l'occupe, quel que soit l'ordre des occurrences.
+  const ordered = [
+    ...movements.filter((movement) => movement.change === "EDITED"),
+    ...movements.filter((movement) => movement.change !== "EDITED"),
+  ];
+  for (const movement of ordered) {
     const mediaId = (position: number) => `${movement.id}:${position}:${timestamp}`;
     const content = {
       id: movement.id,
@@ -632,6 +645,22 @@ async function writeSessionMovements(
       await assertOccurrenceCategoryAssignable(transaction, movement.categoryId, null, true);
       await assertBodyZonesAssignable(transaction, movement.bodyZoneIds, new Set(), inheritedBodyZoneIds);
       await insertMovement(transaction, { ...content, levelGroup: null }, timestamp, mediaId);
+      if (movement.levelOrigin !== undefined) {
+        // PRE-7 (R-5, D-445 C02, MFN-07 l.371) : variante choisie en Séance — insérée avant (Plus
+        // facile) ou après (Plus difficile) son origine, groupe créé au besoin. Un refus (origine
+        // supprimée entre-temps) annule toute la Séance.
+        const joined = await joinMovementGroup(
+          transaction,
+          movement.id,
+          movement.levelOrigin.movementId,
+          movement.levelOrigin.placement,
+          uuidFactory,
+          timestamp,
+        );
+        if (joined.status !== "OK") {
+          throw new Error(`The variant could not join the origin level group (${joined.status}).`);
+        }
+      }
       continue;
     }
     const current = edited.get(movement.id);

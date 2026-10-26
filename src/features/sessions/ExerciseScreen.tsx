@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import {
@@ -12,7 +12,9 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
-import { repriseExecutionParameters, type Movement, type MovementPhase } from "@/domain/activities/Movement";
+import { repriseExecutionParameters, type MovementPhase } from "@/domain/activities/Movement";
+import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
+import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
   decideMovementSave,
   movementContentOf,
@@ -42,6 +44,7 @@ import {
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
+import type { MovementLevelOrigin } from "@/domain/sessions/Session";
 import {
   ActivityEditorForm,
   EDITOR_HEADER,
@@ -58,6 +61,7 @@ import type {
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel, MovementLevelMenuModel } from "@/features/activities/MovementLevelMenu";
 import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
+import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { MovementSaveDialog } from "@/features/activities/MovementSaveDialog";
 import { SiblingCompletionStep } from "@/features/activities/SiblingCompletionStep";
 import { useMovementOriginChoice } from "@/features/activities/useMovementOriginChoice";
@@ -378,18 +382,12 @@ function EditMovementAction({ onPress }: { onPress: () => void }) {
 }
 
 /**
- * PRE-7 (A2.3, MFN-06, MFN-07) : champs de contenu VIDES initialisés depuis le geste d'origine
- * d'une variante (description, médias, Zones) ; le nom saisi et toute saisie existante sont
- * conservés — aucune sélection n'écrase silencieusement une information déjà saisie.
+ * PRE-7 (R-5, D-445 C02, v7 l.37, MFN-07 l.373) : contenu d'une variante — description et médias
+ * VIERGES (aucune reprise de l'origine), Zones reprises de l'origine si aucune n'est choisie ; le
+ * nom commencé est conservé. Aucune sélection n'écrase silencieusement une information déjà saisie.
  */
-function withVariantContent(value: ActivityEditorFormValue, origin: Movement): ActivityEditorFormValue {
-  return {
-    ...value,
-    instructionSteps:
-      encodeInstructionSteps(value.instructionSteps) === null ? decodeInstructionSteps(origin.description) : value.instructionSteps,
-    media: value.media.length === 0 ? [...origin.media] : value.media,
-    bodyZoneIds: value.bodyZoneIds.length === 0 ? [...origin.bodyZoneIds] : value.bodyZoneIds,
-  };
+function withVariantContent(value: ActivityEditorFormValue, originBodyZoneIds: readonly string[]): ActivityEditorFormValue {
+  return { ...value, bodyZoneIds: value.bodyZoneIds.length === 0 ? [...originBodyZoneIds] : value.bodyZoneIds };
 }
 
 /**
@@ -441,10 +439,17 @@ function CatalogueActivityEditorScreen({
   // PRE-7 (A2.3, MFN-06 « Créer une variante / un niveau ») : geste d'origine d'une variante
   // choisie ; `Terminer` crée un nouveau geste (`VARIANT`), sans question d'identité (MFN-08).
   // PRE-7 (A3.1, MFN-07) : `joinOriginGroup` vrai pour « Ajouter un niveau » (rattachement explicite,
-  // inséré juste après l'origine) ; faux pour la variante des suggestions (A2.3, aucun rattachement).
-  const [variantOrigin, setVariantOrigin] = useState<{ readonly movementId: string; readonly joinOriginGroup: boolean } | null>(
-    null,
-  );
+  // inséré juste après l'origine). PRE-7 (R-5, C02) : la variante du panneau ou de la recherche est
+  // rattachée par le choix Plus facile / Plus difficile (`placement`, avant / après l'origine).
+  const [variantOrigin, setVariantOrigin] = useState<{
+    readonly movementId: string;
+    readonly joinOriginGroup: boolean;
+    readonly placement?: VariantPlacement;
+  } | null>(null);
+  // PRE-7 (R-5, C02) : invite grise « (compléter le nom) » après le choix d'une variante, retirée à
+  // la reprise de saisie du nom ; position de niveau prévue de la variante (affichage seulement).
+  const [nameHintVisible, setNameHintVisible] = useState(false);
+  const [variantLevel, setVariantLevel] = useState<EditorLevel | null>(null);
   const router = useRouter();
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
@@ -628,16 +633,31 @@ function CatalogueActivityEditorScreen({
   });
 
   // PRE-7 (A2.3, MFN-06, ch03 l.152) : suggestion et recherche des gestes en création, avant tout
-  // choix d'origine et tant que seul le nom est saisi (« avant la saisie détaillée »).
+  // choix d'origine et avant la saisie détaillée. PRE-7 (R-5, R02) : Catégorie et Zones peuvent être
+  // renseignées — ce sont les signaux de classement pendant la saisie.
   const onlyNameEntered =
     value !== null &&
     initial !== null &&
-    formValueEquals({ ...value, name: initial.name }, initial) &&
-    categoryId === initialCategoryId;
+    formValueEquals({ ...value, name: initial.name, bodyZoneIds: initial.bodyZoneIds }, initial);
+  const searchContext = useMemo(
+    () => ({ categoryId, bodyZoneIds: value?.bodyZoneIds ?? [] }),
+    [categoryId, value?.bodyZoneIds],
+  );
   const originChoice = useMovementOriginChoice({
     service: activityDefinitionService,
+    name: value?.name ?? "",
     available:
       !isEditingExisting && repriseMovementId === null && variantOrigin === null && loadState === "ready" && onlyNameEntered,
+    // PRE-7 (R-5, C01) : le mouvement corrigé (Exercice existant, reprise) est exclu de sa propre
+    // collision ; une création indépendante ou une variante ne l'est pas. Contrôle suspendu sur un
+    // contenu verrouillé ; pendant l'invite grise (C02 : elle « ne satisfait pas l'unicité »), le
+    // message est masqué mais `Terminer` reste indisponible si le nom conservé est pris.
+    uniqueness: {
+      excludedMovementId: isEditingExisting || isReprise ? (origin?.movementId ?? null) : null,
+      suspended: contentLocked,
+      messageHidden: nameHintVisible,
+    },
+    context: searchContext,
     onSameMovement: (choice) => {
       // Reprise du geste RÉELLEMENT choisi : contenu en lecture seule + crayon (A2.2), Profil
       // réappliqué au brouillon rechargé. Seul le nom saisi est remplacé, par choix explicite.
@@ -651,12 +671,15 @@ function CatalogueActivityEditorScreen({
       setLoadState("loading");
       setRepriseMovementId(choice.movement.id);
     },
-    onVariant: (choice) => {
+    onVariant: (choice, placement) => {
       setSaveError(false);
-      setVariantOrigin({ movementId: choice.movement.id, joinOriginGroup: false });
-      setValue((current) => (current ? withVariantContent(current, choice.movement) : current));
+      setVariantOrigin({ movementId: choice.movement.id, joinOriginGroup: true, placement });
+      setValue((current) => (current ? withVariantContent(current, choice.movement.bodyZoneIds) : current));
       // MFN-05 l.375, MFN/AC33 : Catégorie reprise de l'origine, puis librement modifiable.
       setCategoryId((current) => current ?? choice.movement.categoryId);
+      setNameHintVisible(true);
+      // C06 : pastille « Niveau N » de la variante, rang prévu dérivé de celui de l'origine.
+      setVariantLevel({ position: variantLevelPosition(choice.level, placement), menu: null });
     },
   });
 
@@ -668,6 +691,8 @@ function CatalogueActivityEditorScreen({
 
   function patch(next: Partial<ActivityEditorFormValue>) {
     setSaveError(false);
+    // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
+    if (next.name !== undefined) setNameHintVisible(false);
     setValue((current) => (current ? { ...current, ...next } : current));
   }
 
@@ -698,6 +723,13 @@ function CatalogueActivityEditorScreen({
         releaseSave(true);
       }
     } catch (error) {
+      if (error instanceof DuplicateMovementNameError) {
+        // PRE-7 (R-5, C01) : nom pris entre la lecture et l'écriture (écriture concurrente) —
+        // signalé pour ce qu'il est, brouillon conservé, jamais l'erreur générique.
+        if (value !== null) originChoice.markNameTaken(value.name);
+        releaseSave(false);
+        return;
+      }
       console.error("L'activité n'a pas pu être enregistrée.", error);
       releaseSave(true);
     }
@@ -791,11 +823,10 @@ function CatalogueActivityEditorScreen({
     if (correctionTarget === null && variantOrigin !== null) {
       // PRE-7 (A2.3, MFN-06, MFN-08) : variante explicitement choisie — nouveau geste et son
       // Exercice, enregistrés directement (aucune question d'identité : l'original n'est pas
-      // touché). Rattachement au groupe d'origine : aucun pour la variante des suggestions (MFN-05,
-      // aucun rattachement automatique ; la proposition sans présélection reste à présenter, point
-      // renvoyé à Hermann) ; explicite pour « Ajouter un niveau » (A3.1, MFN-07 : inséré juste après
-      // l'origine).
-      const { movementId: originMovementId, joinOriginGroup } = variantOrigin;
+      // touché). Rattachement au groupe d'origine, toujours explicite : PRE-7 (R-5, C02) le choix
+      // Plus facile / Plus difficile du panneau ou de la recherche (`placement`, avant / après
+      // l'origine) ; « Ajouter un niveau » (A3.1, MFN-07 : inséré juste après l'origine).
+      const { movementId: originMovementId, joinOriginGroup, placement } = variantOrigin;
       await attempt(
         async () =>
           (
@@ -803,6 +834,7 @@ function CatalogueActivityEditorScreen({
               kind: "VARIANT",
               originMovementId,
               joinOriginGroup,
+              ...(placement !== undefined ? { placement } : {}),
             })
           ).status === "CREATED",
       );
@@ -853,6 +885,10 @@ function CatalogueActivityEditorScreen({
   async function chooseNewIdentity(decision: PendingMovementSave) {
     setPendingDecision(null);
     if (isSavingRef.current) return;
+    // PRE-7 (R-5, C01, v7 l.67 ; report R-4) : une création distincte doit avoir une clé différente
+    // de TOUS les mouvements, l'original compris (une variation de casse seule est refusée) ; le
+    // nom est signalé, rien n'est écrit.
+    if (!originChoice.checkDistinctName(decision.input.name)) return;
     beginSave();
     await attempt(() => writeNewIdentity(decision.input));
   }
@@ -985,17 +1021,19 @@ function CatalogueActivityEditorScreen({
           profileSideRecoverySecondsDefault={profile.sideRecovery}
           contentLocked={contentLocked}
           nextPhaseId={movementNextPhaseId}
-          onNameEndEditing={() => originChoice.proposeFor(value.name)}
+          onNameEndEditing={originChoice.onNameEndEditing}
+          nameAssist={originChoice.nameAssist}
+          nameHint={nameHintVisible ? t.movementSuggestion.completeNameHint : null}
           movementSearchAction={
             originChoice.canSearch ? { label: t.movementSearch.open, onPress: originChoice.openSearch } : null
           }
-          level={editorLevel}
+          level={variantOrigin?.placement !== undefined ? variantLevel : editorLevel}
           baselineParameters={baselineParameters}
           mediaService={activityDefinitionService}
           mediaDraftId={mediaDraftId}
           finishLabel={t.finishAction}
           onFinish={handleFinish}
-          isFinishDisabled={isSaving || !isValid}
+          isFinishDisabled={isSaving || !isValid || originChoice.nameTaken}
           errorMessage={saveError ? t.saveError : null}
           finishSlotTestID="activity-editor-finish-slot"
           finishActionTestID="activity-editor-finish-action"
@@ -1275,18 +1313,49 @@ function CompositionExerciseEditor() {
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(shouldBlockExit, () => {
     activityDefinitionService.abandonMediaDraft(mediaDraftId).catch(() => undefined);
   });
-  // PRE-7 (A2.3, MFN-04, MFN-06, MFN-09) : création depuis une Séance — mêmes suggestion et
-  // recherche qu'au Catalogue, avant tout choix et tant que seul le nom est saisi. « Même geste » :
-  // l'occurrence porte la filiation du geste choisi (contenu verrouillé, sans crayon, MFN-09) ;
-  // « Variante » : création LOCALE (geste local créé à l'enregistrement de la Séance), champs vides
-  // initialisés depuis l'origine. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
-  const [variantChosen, setVariantChosen] = useState(false);
+  // PRE-7 (A2.3, MFN-04, MFN-06, MFN-09) : création depuis une Séance — mêmes panneau et recherche
+  // qu'au Catalogue, avant tout choix et avant la saisie détaillée (R-5 : Catégorie et Zones
+  // permises, signaux R02). « Utiliser ce mouvement » : l'occurrence porte la filiation du mouvement
+  // choisi (contenu verrouillé, MFN-09) ; variante (R-5, C02) : création LOCALE (Mouvement `NEW`
+  // créé à l'enregistrement de la Séance, rattaché avant / après l'origine), description et médias
+  // vierges. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
+  const [variantOrigin, setVariantOrigin] = useState<MovementLevelOrigin | null>(null);
+  const [nameHintVisible, setNameHintVisible] = useState(false);
   const repriseLocked = !isEditingExisting && (local?.sourceMovementId ?? "").trim().length > 0;
   const occurrenceOnlyNamed =
-    local !== null && occurrenceEquals({ ...local, name: initialSnapshot.name }, instructionSteps, initialSnapshot);
+    local !== null &&
+    occurrenceEquals(
+      { ...local, name: initialSnapshot.name, categoryId: initialSnapshot.categoryId, bodyZoneIds: initialSnapshot.bodyZoneIds },
+      instructionSteps,
+      initialSnapshot,
+    );
+  // PRE-7 (R-5, C01) : Mouvements du brouillon encore référencés (créations locales, corrections
+  // renommées), comptés dans l'unicité avec les mouvements enregistrés — deux créations locales de
+  // même nom sont signalées pendant la saisie (report R-3).
+  const draftMovementNames = useMemo(() => {
+    const referenced = new Set(draft.exercises.map((exercise) => exercise.sourceMovementId));
+    return Object.values(draft.movements ?? {})
+      .filter((movement) => referenced.has(movement.id))
+      .map((movement) => ({ id: movement.id, name: movement.name }));
+  }, [draft.exercises, draft.movements]);
+  const searchContext = useMemo(
+    () => ({ categoryId: local?.categoryId ?? null, bodyZoneIds: local?.bodyZoneIds ?? [] }),
+    [local?.categoryId, local?.bodyZoneIds],
+  );
+  const ownMovementId = (local?.sourceMovementId ?? "").trim();
   const originChoice = useMovementOriginChoice({
     service: activityDefinitionService,
-    available: !isEditingExisting && !repriseLocked && !variantChosen && occurrenceOnlyNamed,
+    name: local?.name ?? "",
+    available: !isEditingExisting && !repriseLocked && variantOrigin === null && occurrenceOnlyNamed,
+    // Mouvement de l'occurrence exclu de sa propre collision : Mouvement déverrouillé par le crayon,
+    // Mouvement NOUVEAU du brouillon, ou celui que recevra une création (identifiant de l'occurrence).
+    uniqueness: {
+      excludedMovementId: unlockedMovement?.id ?? (ownMovementId.length > 0 ? ownMovementId : (local?.id ?? null)),
+      draftMovements: draftMovementNames,
+      suspended: movementLocked || repriseLocked,
+      messageHidden: nameHintVisible,
+    },
+    context: searchContext,
     onSameMovement: ({ movement }) => {
       setInstructionSteps(decodeInstructionSteps(movement.description));
       setLocal((current) =>
@@ -1304,16 +1373,14 @@ function CompositionExerciseEditor() {
           : current,
       );
     },
-    onVariant: ({ movement }) => {
-      setVariantChosen(true);
-      setInstructionSteps((current) =>
-        encodeInstructionSteps(current) === null ? decodeInstructionSteps(movement.description) : current,
-      );
+    onVariant: ({ movement }, placement) => {
+      // C02 : description et médias vierges ; Catégorie et Zones reprises si vides ; nom conservé.
+      setVariantOrigin({ movementId: movement.id, placement });
+      setNameHintVisible(true);
       setLocal((current) =>
         current
           ? {
               ...current,
-              media: (current.media ?? []).length === 0 ? [...movement.media] : current.media,
               bodyZoneIds: current.bodyZoneIds.length === 0 ? [...movement.bodyZoneIds] : current.bodyZoneIds,
               categoryId: current.categoryId ?? movement.categoryId,
             }
@@ -1334,6 +1401,8 @@ function CompositionExerciseEditor() {
   }, [isFinishing, shouldBlockExit, router]);
 
   function patchLocal(next: Partial<ActivityEditorFormValue>) {
+    // PRE-7 (R-5, C02) : l'invite grise disparaît à la reprise de saisie, sans effacer le nom.
+    if (next.name !== undefined) setNameHintVisible(false);
     if (next.instructionSteps !== undefined) {
       setInstructionSteps(next.instructionSteps);
     }
@@ -1385,10 +1454,16 @@ function CompositionExerciseEditor() {
     }
     // Mouvement NOUVEAU du brouillon : son contenu est celui de l'occurrence terminée, partagé par
     // toutes ses occurrences (original et copies), paramètres de chacune inchangés.
+    // PRE-7 (R-5, C02) : une variante garde son origine de niveau jusqu'à l'enregistrement.
     const previous = draft.movements?.[finished.sourceMovementId!];
+    const levelOrigin = variantOrigin ?? previous?.levelOrigin;
     const shared = withDraftMovement(
       { ...draft, exercises: plan.exercises },
-      draftMovementOf(finished, "NEW", { nextPhaseId: previous?.nextPhaseId, aliases: previous?.aliases }),
+      draftMovementOf(finished, "NEW", {
+        nextPhaseId: previous?.nextPhaseId,
+        aliases: previous?.aliases,
+        ...(levelOrigin !== undefined ? { levelOrigin } : {}),
+      }),
     );
     return { ...plan, exercises: shared.exercises, movements: shared.movements };
   }
@@ -1619,7 +1694,9 @@ function CompositionExerciseEditor() {
           contentLocked={movementLocked || repriseLocked}
           // PRE-7 (R-4, MFN/AC30) : compteur du Mouvement déverrouillé, jamais max + 1.
           nextPhaseId={unlockedMovement?.nextPhaseId}
-          onNameEndEditing={() => originChoice.proposeFor(value.name)}
+          onNameEndEditing={originChoice.onNameEndEditing}
+          nameAssist={originChoice.nameAssist}
+          nameHint={nameHintVisible ? strings.screens.activities.editor.movementSuggestion.completeNameHint : null}
           movementSearchAction={
             originChoice.canSearch
               ? { label: strings.screens.activities.editor.movementSearch.open, onPress: originChoice.openSearch }
@@ -1630,7 +1707,7 @@ function CompositionExerciseEditor() {
           mediaDraftId={mediaDraftId}
           finishLabel={t.finishAction}
           onFinish={handleTerminer}
-          isFinishDisabled={!isValid}
+          isFinishDisabled={!isValid || originChoice.nameTaken}
           finishSlotTestID="exercise-finish-action-slot"
           finishActionTestID="exercise-finish-action"
         />
@@ -1690,6 +1767,9 @@ function CompositionExerciseEditor() {
               const { occurrence } = pendingOccurrenceSave;
               setPendingOccurrenceSave(null);
               if (finishingRef.current) return;
+              // PRE-7 (R-5, C01, v7 l.67 ; report R-4) : « Créer un nouveau mouvement » exige une clé
+              // libre parmi TOUS les mouvements, l'original compris ; sinon le nom est signalé.
+              if (choice !== "UPDATE" && !originChoice.checkDistinctName(occurrence.name)) return;
               finishingRef.current = true;
               if (choice === "UPDATE") {
                 commitMovementUpdate(occurrence, unlockedMovement);

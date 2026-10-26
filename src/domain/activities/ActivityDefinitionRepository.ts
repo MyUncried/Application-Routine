@@ -22,7 +22,10 @@ import type { SiblingCompletion } from "./sharedCorrection";
  *   exercice » / « En faire un geste distinct » — nouveau Mouvement, original
  *   intact ; `joinOriginGroup` est le choix de l'utilisateur (proposé sans
  *   présélection, MFN-08) : vrai → inséré immédiatement après l'origine dans
- *   son groupe (créé au besoin, MFN-05, MFN-07).
+ *   son groupe (créé au besoin, MFN-05, MFN-07). PRE-7 (R-5, D-445 C02,
+ *   MFN-07 l.371) : `placement` `BEFORE_ORIGIN` (Plus facile) l'insère
+ *   immédiatement AVANT l'origine ; absent ou `AFTER_ORIGIN` (Plus difficile,
+ *   « Ajouter un niveau ») : après.
  */
 export type ActivityDefinitionOrigin =
   | { readonly kind: "INDEPENDENT" }
@@ -31,7 +34,12 @@ export type ActivityDefinitionOrigin =
       readonly movementId: string;
       readonly siblingCompletions?: readonly SiblingCompletion[];
     }
-  | { readonly kind: "VARIANT"; readonly originMovementId: string; readonly joinOriginGroup: boolean };
+  | {
+      readonly kind: "VARIANT";
+      readonly originMovementId: string;
+      readonly joinOriginGroup: boolean;
+      readonly placement?: "BEFORE_ORIGIN" | "AFTER_ORIGIN";
+    };
 
 /**
  * Repository de persistance des `ActivityDefinition` (V2-CAT-01). Aucune

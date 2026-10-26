@@ -332,15 +332,44 @@ describe("PRE-7 R-4 — occurrence de Séance, crayon (C04)", () => {
     expect((await service().getMovement(replaced!.sourceMovementId!))?.levelGroup).toBeNull();
   });
 
-  it("Créer un nouveau mouvement sous un nom déjà pris : refus à l'enregistrement de la Séance (C01)", async () => {
+  it("nom déjà pris : signalé pendant la saisie, Terminer indisponible (R-5, C01, report R-4)", async () => {
     await createDefinition({ name: "Fentes" });
+    const { draft } = await sessionWithTwoOccurrences();
+    await renderEditor({ exerciseId: "occ-1" }, draft);
+    await press("activity-editor-edit-movement");
+    fireEvent.changeText(nameInput(), "fentes ");
+    await settle(20);
+    expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(
+      strings.screens.activities.editor.movementSuggestion.nameTakenEdit,
+    );
+    expect(screen.getByTestId("exercise-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
+    // Le mouvement édité est exclu de sa propre collision : son nom (casse seule changée) est libre.
+    fireEvent.changeText(nameInput(), "SQUAT");
+    await settle(20);
+    expect(screen.queryByTestId("movement-suggestion-message")).toBeNull();
+  });
+
+  it("casse seule + « Créer un nouveau mouvement » : refusé avec le message, rien n'est inscrit (R-5, C01, v7 l.67)", async () => {
     const { session, draft } = await sessionWithTwoOccurrences();
     await renderEditor({ exerciseId: "occ-1" }, draft);
     await press("activity-editor-edit-movement");
-    fireEvent.changeText(nameInput(), "Fentes");
+    fireEvent.changeText(nameInput(), "SQUAT");
     await press("exercise-finish-action");
     fireEvent.press(screen.getByTestId("movement-save-choice-NEW_MOVEMENT"));
     await press("movement-save-confirm");
+    expect(screen.queryByTestId("movement-save-dialog")).toBeNull();
+    expect(screen.getByTestId("movement-suggestion-message").props.children).toBe(
+      strings.screens.activities.editor.movementSuggestion.nameTakenEdit,
+    );
+    expect(mockBack).not.toHaveBeenCalled();
+    expect(currentDraft).toEqual(draft);
+    // Garantie du repository conservée (écriture concurrente) : une Séance portant un doublon est refusée.
+    const occurrence = { ...draft.exercises[0]!, id: "occ-dup", sourceMovementId: "mov-dup", copyNumber: null };
+    currentDraft = {
+      ...draft,
+      exercises: [...draft.exercises, occurrence],
+      movements: { "mov-dup": draftMovementOf({ ...occurrence, name: "squat" }, "NEW") },
+    };
     await expect(saveCurrentDraft(session.id)).rejects.toBeInstanceOf(DuplicateMovementNameError);
   });
 

@@ -22,6 +22,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { isBilateral } from "@/domain/activities/ExecutionParameters";
+import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import { DEFAULT_POST_ACTIVITY_RECOVERY_SECONDS } from "@/domain/preferences/Profile";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import { DEFAULT_SESSION_COLOR, type StructuralPosition } from "@/domain/sessions/Session";
@@ -1021,7 +1022,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // story 2.1, ex-« Enregistrer la séance ») enregistre depuis la Composition (l'écran « Catégories de la séance », vestige, est supprimé). Le service est
   // lu sans exigence de fournisseur : sans lui, l'enregistrement échoue avec le message D-107.
   const sessionService = useContext(SessionServiceContext);
-  const [saveState, setSaveState] = useState<"idle" | "saving" | "error">("idle");
+  // PRE-7 (R-5, D-445 C01 ; report R-3) : `nameTaken` — un nom de mouvement de la Séance pris en base
+  // entre la saisie et l'enregistrement (`DuplicateMovementNameError`, écriture concurrente),
+  // signalé pour ce qu'il est. Deux créations du brouillon de même nom sont empêchées plus tôt, par
+  // le contrôle pendant la saisie et par la validation (`DUPLICATE`).
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "error" | "nameTaken">("idle");
   const isSavingRef = useRef(false);
   // Enregistrement réussi : la garde de sortie est levée avant la fermeture (effet ci-dessous),
   // pour que `dismissTo` ne soit jamais intercepté comme un abandon.
@@ -1106,8 +1111,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setHasSaved(true);
       resetDraft();
     } catch (error) {
-      console.error("La séance n'a pas pu être enregistrée.", error);
       isSavingRef.current = false;
+      if (error instanceof DuplicateMovementNameError) {
+        setSaveState("nameTaken");
+        return;
+      }
+      console.error("La séance n'a pas pu être enregistrée.", error);
       setSaveState("error");
     }
   }
@@ -3224,9 +3233,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-placement-bar"
           />
         ) : null}
-        {placement === null && saveState === "error" ? (
+        {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
-            {composition.saveError}
+            {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
           </Text>
         ) : null}
         {placement === null ? (

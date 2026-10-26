@@ -532,11 +532,12 @@ export function allocatePhaseIdentities(movement: Movement, parameters: Executio
 }
 
 /**
- * Clé de recherche d'un nom de Mouvement (MFN-04, MFN-06 : recherche des
- * gestes disponibles, locaux compris) : espaces réduits, casse et accents
+ * Clé canonique d'un nom de Mouvement : espaces réduits, casse et accents
  * neutralisés — même normalisation que les clés canoniques des référentiels.
- * Aucune contrainte d'unicité n'en découle (MFN-05 : « aucune contrainte
- * d'unicité n'est posée sur les noms »).
+ * PRE-7 (R-3, R-5, D-445 C01, v7 l.35) : clé d'UNICITÉ du nom principal
+ * (index UNIQUE `normalized_name`, `findMovementNameConflict`), qui remplace
+ * l'ancienne règle MFN-05 « aucune contrainte d'unicité ». La proximité de
+ * recherche est un mécanisme distinct (`movementSuggestion.ts`, R02).
  */
 export function normalizeMovementName(name: string): string {
   return name
@@ -545,6 +546,26 @@ export function normalizeMovementName(name: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
+}
+
+/**
+ * PRE-7 (R-5, D-445 C01 ; v7 l.35 et l.67, MFN-06 ch10 l.363) — contrôle d'unicité PENDANT LA
+ * SAISIE : premier mouvement de `movements` dont la clé canonique est celle de `name`, hors
+ * `excludedId` (« le contrôle d'unicité exclut l'identité en cours d'édition ») ; `null` sans
+ * conflit ou pour un nom vide. Une création distincte (nouveau mouvement, variante) passe
+ * `excludedId = null`. L'enregistrement reste garanti par le repository
+ * (`DuplicateMovementNameError`, écriture concurrente comprise).
+ */
+export function findMovementNameConflict<T extends { readonly id: string; readonly name: string }>(
+  name: string,
+  movements: readonly T[],
+  excludedId: string | null,
+): T | null {
+  const key = normalizeMovementName(name);
+  if (key.length === 0) {
+    return null;
+  }
+  return movements.find((movement) => movement.id !== excludedId && normalizeMovementName(movement.name) === key) ?? null;
 }
 
 /**

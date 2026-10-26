@@ -9,6 +9,7 @@ import {
   repetitionParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
+import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
@@ -1739,6 +1740,36 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
       fireEvent.press(screen.getByLabelText(composition.saveAction));
     });
     expect(screen.getByTestId("composition-save-error").props.children).toBe("La séance n’a pas pu être enregistrée. Réessayez.");
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(mockDismissTo).not.toHaveBeenCalled();
+  });
+
+  it("PRE-7 R-5 (C01, report R-3) — nom de mouvement déjà pris à l'enregistrement : message propre, pas l'erreur générique", async () => {
+    const service = {
+      createSession: jest.fn(async () => {
+        throw new DuplicateMovementNameError("gainage");
+      }),
+      updateSession: jest.fn(),
+    } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    expect(screen.getByTestId("composition-save-error").props.children).toBe(composition.nameTakenError);
     expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
     expect(mockDismissTo).not.toHaveBeenCalled();
   });

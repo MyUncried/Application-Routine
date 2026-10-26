@@ -17,6 +17,7 @@ import type { Session } from "@/domain/sessions/Session";
 import {
   createEmptyDraft,
   createExerciseDraft,
+  draftMovementOf,
   toCreateSessionInput,
   toSessionDraft,
   type SessionDraft,
@@ -211,6 +212,77 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     const group = await movements().listGroup(originMovement!.levelGroup!.groupId);
     expect(group.map((movement) => movement.id)).toEqual([origin.movementId, middle.movementId, last.movementId]);
     expect((await movements().findById(alone.movementId))?.levelGroup).toBeNull();
+  });
+
+  it("PRE-7 R-5 (C02, MFN-07 l.371) : Plus facile → insérée juste AVANT l'origine ; première variante = groupe de deux", async () => {
+    const origin = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
+    const easier = await created(
+      await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Squat assisté" }), {
+        kind: "VARIANT",
+        originMovementId: origin.movementId,
+        joinOriginGroup: true,
+        placement: "BEFORE_ORIGIN",
+      }),
+    );
+    const harder = await created(
+      await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Squat sauté" }), {
+        kind: "VARIANT",
+        originMovementId: origin.movementId,
+        joinOriginGroup: true,
+        placement: "AFTER_ORIGIN",
+      }),
+    );
+    const easiest = await created(
+      await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10), { name: "Squat chaise" }), {
+        kind: "VARIANT",
+        originMovementId: easier.movementId,
+        joinOriginGroup: true,
+        placement: "BEFORE_ORIGIN",
+      }),
+    );
+    const group = await movements().listGroup((await movements().findById(origin.movementId))!.levelGroup!.groupId);
+    expect(group.map((movement) => movement.id)).toEqual([easiest.movementId, easier.movementId, origin.movementId, harder.movementId]);
+  });
+
+  it("PRE-7 R-5 (C02) : variante créée en Séance — le Mouvement NEW rejoint le groupe de l'origine à l'enregistrement, avant ou après", async () => {
+    const origin = await created(await service().createActivityDefinitionWithOrigin(input(durationParameters(30, 3, 10)), { kind: "INDEPENDENT" }));
+    const occurrence = (id: string, name: string): SessionDraftExercise => ({
+      ...createExerciseDraft(id, null),
+      name,
+      categoryId: "cardio",
+      bodyZoneIds: ["cuisses"],
+      executionParameters: durationParameters(30, 3, 10),
+      sourceMovementId: id,
+    });
+    const easy = occurrence("occ-easy", "Squat assisté");
+    const hard = occurrence("occ-hard", "Squat sauté");
+    const result = await sessionService().createSession({
+      ...createEmptyDraft(),
+      name: "Jambes",
+      exercises: [easy, hard],
+      movements: {
+        "occ-easy": draftMovementOf(easy, "NEW", { levelOrigin: { movementId: origin.movementId, placement: "BEFORE_ORIGIN" } }),
+        "occ-hard": draftMovementOf(hard, "NEW", { levelOrigin: { movementId: origin.movementId, placement: "AFTER_ORIGIN" } }),
+      },
+    });
+    if (!result.ok) throw new Error(JSON.stringify(result.violations));
+    const group = await movements().listGroup((await movements().findById(origin.movementId))!.levelGroup!.groupId);
+    expect(group.map((movement) => movement.id)).toEqual(["occ-easy", origin.movementId, "occ-hard"]);
+
+    // Origine disparue entre-temps : la Séance entière est refusée, rien n'est écrit.
+    const orphan = occurrence("occ-orphan", "Squat lent");
+    const before = await database.getAllAsync("SELECT id FROM movements ORDER BY id");
+    await expect(
+      sessionService().createSession({
+        ...createEmptyDraft(),
+        name: "Jambes 2",
+        exercises: [orphan],
+        movements: {
+          "occ-orphan": draftMovementOf(orphan, "NEW", { levelOrigin: { movementId: "inconnu", placement: "AFTER_ORIGIN" } }),
+        },
+      }),
+    ).rejects.toThrow();
+    expect(await database.getAllAsync("SELECT id FROM movements ORDER BY id")).toEqual(before);
   });
 
   it("correction structurelle : sans complétion → SIBLING_COMPLETION_REQUIRED sans écriture ; complétion passée → frère INCOMPLET par phaseId, édité exécutable ; occurrence de Séance : nouvelle phase manquante (R-3)", async () => {
