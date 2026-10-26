@@ -223,6 +223,13 @@ export type InlineStepperProps = {
    */
   readonly stepButtonStyle?: Pick<ViewStyle, "backgroundColor">;
   /**
+   * PRE-7 story B.1 (D-447, B3) — ajout additif, absent par défaut : habillage de la pilule
+   * (hauteur, marge, rayon, fond), appliqué après le style de base et avant les états signalé
+   * et désactivé. Sert à la Feuille des paramètres (pilule de 32 sur `color/surface`) sans
+   * changer le rendu du Profil ni du Circuit. Cercles, mécanisme et accessibilité inchangés.
+   */
+  readonly frameStyle?: Pick<ViewStyle, "minHeight" | "padding" | "borderRadius" | "backgroundColor">;
+  /**
    * PRE-6 story 3.1 — ajout additif, absent par défaut : action accessible nommée « close »
    * (libellé fourni) portée par le réglage ajustable lui-même, seul élément focalisé par
    * VoiceOver ; elle appelle `onClose`. Absente : actions inchangées.
@@ -265,6 +272,7 @@ export function InlineStepper({
   accessory,
   hint,
   stepButtonStyle,
+  frameStyle,
   closeAction,
   onValueActivate,
   testID,
@@ -349,6 +357,7 @@ export function InlineStepper({
         styles.controls,
         appearance === "bare" ? styles.controlsBare : null,
         width !== undefined ? { width, justifyContent: "space-between" } : null,
+        frameStyle,
         invalid ? styles.controlsInvalid : null,
         disabled ? styles.controlsDisabled : null,
       ]}

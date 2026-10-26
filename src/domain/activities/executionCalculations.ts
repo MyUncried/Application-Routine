@@ -19,9 +19,15 @@
  * (`knownSeconds` : travail connu, toutes les Pauses et PC) restent
  * disponibles pour l'agrégation de Séance (`lowerBound`). Compte à rebours
  * et Fin propres sont exclus du total intrinsèque.
+ *
+ * PRE-7 (R-2, D-446 §4, PHC-20261026) : en Répétitions, un motif de phases
+ * complet rend le travail estimable — Ti = Ri × durée du motif (« ≈ »),
+ * prioritaire sur l'estimation par la cadence (un passage du motif est une
+ * répétition guidée). En Durée, Ti reste la cible, indépendante du motif.
  */
 
 import {
+  hasMissingPhaseDuration,
   isBilateral,
   normalizeEffective,
   seriesCountOf,
@@ -31,6 +37,7 @@ import {
   type SeriesRow,
   type SeriesTarget,
 } from "./ExecutionParameters";
+import { nominalGuidanceSeconds, workPhasesCycleSeconds } from "./phaseGuidance";
 
 export type LedgerSide = "NONE" | "RIGHT" | "LEFT";
 
@@ -115,10 +122,27 @@ function workSeconds(parameters: CalculableParameters, target: SeriesTarget): nu
   if (parameters.mode === "DURATION") {
     return target.value;
   }
+  // D-446 §4 : durée nominale du guidage = nombre cible × durée du motif (règle de `phaseGuidance.ts`).
+  const nominal = nominalGuidanceSeconds(parameters.mode, target, parameters.series.workPhases);
+  if (nominal !== null) {
+    return nominal;
+  }
   if (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds > 0) {
     return target.value * parameters.cadenceBeepIntervalSeconds;
   }
   return null;
+}
+
+/**
+ * PRE-7 (D-446) : vrai si le travail d'une Cible `NUMBER` est connu ou estimable — Durée,
+ * ou Répétitions avec un motif de phases complet ou une cadence.
+ */
+export function isWorkEstimable(parameters: ExecutionParametersInput): boolean {
+  return (
+    parameters.mode === "DURATION" ||
+    (parameters.mode === "REPETITIONS" &&
+      (parameters.cadenceBeepIntervalSeconds > 0 || workPhasesCycleSeconds(parameters.series.workPhases) !== null))
+  );
 }
 
 /**
@@ -201,14 +225,20 @@ function summarizeTargets(
     }
   }
   let kind: ExerciseDurationKind;
-  if (targets.some((target) => target.kind === "UNSET")) {
+  // PRE-7 (D-446, MFN-08) : une durée de phase manquante (frère incomplet) ne force plus la Cible
+  // à `UNSET` ; elle rend la durée incomplète avec la même priorité.
+  // PRE-7 (D-448, PH-5, recette JA2 du 26/10/2026) : en Durée, le total ne dépend pas des phases
+  // (`workSeconds` ne lit que la Cible) ; une phase vide ne le rend plus incomplet. Le signalement
+  // « Paramètres à compléter. » et le refus d'enregistrement lisent `hasMissingPhaseDuration` à
+  // part. En Répétitions (PHC-20261026), aucune estimation tant qu'une durée manque.
+  if (
+    targets.some((target) => target.kind === "UNSET") ||
+    (parameters.mode !== "DURATION" && hasMissingPhaseDuration(parameters))
+  ) {
     kind = "incomplete";
   } else if (!unknown) {
     kind = parameters.mode === "REPETITIONS" ? "estimated" : "exact";
-  } else if (
-    (parameters.mode === "REPETITIONS" && parameters.cadenceBeepIntervalSeconds === 0) ||
-    targets.every((target) => target.kind === "FAILURE")
-  ) {
+  } else if (!isWorkEstimable(parameters) || targets.every((target) => target.kind === "FAILURE")) {
     kind = "omitted";
   } else {
     kind = "lowerBound";

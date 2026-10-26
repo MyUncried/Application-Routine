@@ -714,12 +714,19 @@ describe("targetSchema — préservation historique et référentiels additifs (
           "labels",
           "profiles",
           "media_assets",
-          "activity_media",
           "session_stop_points",
           // PRE-4 (story 1.1, AD-12) : avis de `migration010`.
           "migration_notices",
+          // PRE-7 (A1.2, `migration012`) : `activity_media` est remplacée par les médias du Mouvement.
+          "movements",
+          "movement_phases",
+          "movement_body_zones",
+          "movement_media",
         ]) {
           expect(tableNames).toContain(expected);
+        }
+        for (const removed of ["activity_media", "activity_definition_body_zones"]) {
+          expect(tableNames).not.toContain(removed);
         }
       } finally {
         database.close();
@@ -750,11 +757,13 @@ describe("targetSchema — préservation historique et référentiels additifs (
     });
   });
 
+  // PRE-7 (A1.2) : ces preuves portent sur le schéma des migrations 007 à 011 ;
+  // elles s'arrêtent à la version 11, avant la transition de `migration012`.
   describe("convergence du schéma existant (plan §7)", () => {
     it("removes session_categories entirely, and sessions no longer has a color column", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
 
         const table = await database.getFirstAsync<{ count: number }>(
           "SELECT COUNT(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'session_categories'",
@@ -774,7 +783,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("adds color/is_active to categories, category_id/side_recovery_seconds to activity_definitions, and removes recovery_seconds from it", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
 
         const categoryColumns = await database.getAllAsync<{ name: string }>(
           "PRAGMA table_info(categories)",
@@ -799,7 +808,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("renames activities.recovery_seconds to post_activity_recovery_seconds", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
 
         const columns = await database.getAllAsync<{ name: string }>(
           "PRAGMA table_info(activities)",
@@ -820,7 +829,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("creates session_stop_points referencing sessions directly, with a unique (session_id, scope, position)", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
 
         const columns = await database.getAllAsync<{ name: string }>(
           "PRAGMA table_info(session_stop_points)",
@@ -889,7 +898,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("rejects a NULL canonical_key on insert for labels and body_zones", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
 
         await expect(
           database.runAsync(
@@ -912,7 +921,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("rejects setting canonical_key to NULL on update for labels and body_zones", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
         await database.runAsync(
           `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
            VALUES ('label-1', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z')`,
@@ -934,7 +943,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("rejects a duplicate canonical_key even against a RETIRED entry (D2 reactivation guarantee, storage level)", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
         await database.runAsync(
           `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
            VALUES ('label-retired', 'Sport', 'sport', '#2E9B62', 0, '2026-01-01T00:00:00.000Z')`,
@@ -954,7 +963,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("cascades activity_body_zones deletion from its Activity (ON DELETE CASCADE preserved)", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
         await seedSessionAndActivity(database);
         await database.runAsync(
           `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('activity-v8', 'dos')`,
@@ -974,7 +983,7 @@ describe("targetSchema — préservation historique et référentiels additifs (
     it("refuses deleting a Zone still referenced by activity_body_zones (ON DELETE RESTRICT, real foreign key)", async () => {
       const database = NodeSqliteDatabase.openInMemory();
       try {
-        await migrateDatabase(database);
+        await migrateDatabase(database, undefined, 11);
         await seedSessionAndActivity(database);
         await database.runAsync(
           `INSERT INTO activity_body_zones (activity_id, body_zone_id) VALUES ('activity-v8', 'dos')`,

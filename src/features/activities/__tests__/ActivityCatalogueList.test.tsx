@@ -8,6 +8,7 @@ import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueLi
 function makeDefinition(id: string): ActivityDefinition {
   return {
     id,
+    movementId: "mov-1",
     name: `Activité ${id}`,
     description: null,
     executionParameters: durationParameters(30),
@@ -44,7 +45,7 @@ describe("ActivityCatalogueList", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
-  it("renders every definition in the order provided (updatedAt DESC upstream)", () => {
+  it("renders every definition in the order provided, without reordering (grouping is done by the hook, A4.1)", () => {
     const definitions = [makeDefinition("b"), makeDefinition("a")];
     render(
       <ActivityCatalogueList

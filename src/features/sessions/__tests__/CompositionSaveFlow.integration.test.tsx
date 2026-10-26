@@ -215,8 +215,11 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     expect(sessionRow?.name).toBe("Circuit complet");
     expect(await database.getAllAsync("SELECT id FROM sessions")).toHaveLength(1);
 
+    // PRE-7 (R-3, D-445 C05) : nom, Zones et Catégorie appartiennent au Mouvement de chaque occurrence.
     const activityRows = await database.getAllAsync<{ name: string; execution_mode: string }>(
-      "SELECT name, execution_mode FROM activities ORDER BY position ASC",
+      `SELECT movements.name AS name, activities.execution_mode AS execution_mode
+       FROM activities JOIN movements ON movements.id = activities.source_movement_id
+       ORDER BY activities.position ASC`,
     );
     expect(activityRows.map((row) => row.name)).toEqual(["Gainage", "Squats"]);
     expect(activityRows.map((row) => row.execution_mode)).toEqual(["DURATION", "REPETITIONS"]);
@@ -224,14 +227,18 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     // PRE-3 : chaque nouvel Exercice porte au moins une Zone (périmètre §5) —
     // une Zone par Activité, chacune persistée sans perte.
     const bodyZoneRows = await database.getAllAsync<{ body_zone_id: string }>(
-      "SELECT body_zone_id FROM activity_body_zones ORDER BY body_zone_id ASC",
+      "SELECT body_zone_id FROM movement_body_zones ORDER BY body_zone_id ASC",
     );
     expect(bodyZoneRows.map((row) => row.body_zone_id)).toEqual(["cuisses", "dos"]);
 
-    // PRE-3 : paramètres canoniques et Catégorie persistés avec chaque occurrence.
+    // PRE-3 : paramètres canoniques persistés avec chaque occurrence ; PRE-7 (R-3) : Catégorie du Mouvement.
     const canonicalRows = await database.getAllAsync<{ execution_parameters: string | null; category_id: string | null }>(
-      "SELECT execution_parameters, category_id FROM activities ORDER BY position ASC",
+      `SELECT activities.execution_parameters AS execution_parameters, movements.category_id AS category_id
+       FROM activities JOIN movements ON movements.id = activities.source_movement_id
+       ORDER BY activities.position ASC`,
     );
+    // Deux créations locales : deux Mouvements, aucune définition Catalogue.
+    expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(2);
     expect(canonicalRows.every((row) => row.execution_parameters !== null && row.category_id !== null)).toBe(true);
 
     database.close();
@@ -272,4 +279,63 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     expect(screen.getByText("Gainage")).toBeTruthy();
     expect(screen.getByLabelText(composition.name).props.value).toBe("Séance qui échoue");
   }, 20000);
+});
+
+/**
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : la copie d'une création locale
+ * référence le même Mouvement NEW du brouillon ; corriger la description depuis la copie corrige
+ * ce Mouvement partagé. À l'enregistrement : un seul Mouvement, deux occurrences qui le
+ * référencent (original et copie 1), la description relue sur les deux. Une suite verte ne vaut
+ * pas recette sur iPhone (jalon JA).
+ */
+describe("R-3 — création locale, copie et description corrigée depuis la copie, puis Continuer", () => {
+  it("un seul Mouvement en base, deux occurrences le référençant, description modifiée relue sur les deux", async () => {
+    const { router, database } = await renderCreationRouter();
+
+    fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage partagé");
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    await fillNewExercise("Gainage", "Durée", "dos");
+    fireEvent.press(screen.getByLabelText(exercise.finishAction));
+
+    // Dupliquer (action accessible, même opération que le balayage).
+    const rowPattern = /^composition-exercise-row-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+    const [sourceRow] = screen.getAllByTestId(rowPattern);
+    const sourceId = String(sourceRow!.props.testID).replace("composition-exercise-row-", "");
+    fireEvent(sourceRow!, "accessibilityAction", { nativeEvent: { actionName: "duplicate" } });
+    const rows = screen.getAllByTestId(rowPattern).map((row) => String(row.props.testID).replace("composition-exercise-row-", ""));
+    expect(rows).toHaveLength(2);
+    const copyId = rows.find((id) => id !== sourceId)!;
+    expect(screen.getByText("Gainage (copie)")).toBeTruthy();
+
+    // Ouvrir la copie : contenu modifiable (Mouvement NEW du brouillon) ; description corrigée.
+    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copyId}`));
+    const step = await screen.findByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
+    fireEvent.changeText(step, "Dos droit");
+    fireEvent.press(screen.getByLabelText(exercise.finishAction));
+    await waitFor(() => expect(router.getPathname()).toBe("/composition"));
+
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    await waitFor(() => expect(router.getPathname()).toBe("/"));
+
+    expect(await database.getAllAsync("SELECT id, name, description FROM movements")).toEqual([
+      { id: sourceId, name: "Gainage", description: "Dos droit" },
+    ]);
+    expect(
+      await database.getAllAsync("SELECT id, source_movement_id, copy_number FROM activities ORDER BY position ASC"),
+    ).toEqual([
+      { id: sourceId, source_movement_id: sourceId, copy_number: null },
+      { id: copyId, source_movement_id: sourceId, copy_number: 1 },
+    ]);
+    const sessionId = (await database.getFirstAsync<{ id: string }>("SELECT id FROM sessions"))!.id;
+    const session = await new SqliteSessionRepository(database).findById(sessionId);
+    const occurrences = [...(session?.cycle.beforeTour ?? []), ...(session?.cycle.tour.exercises ?? []), ...(session?.cycle.afterTour ?? [])];
+    expect(occurrences.map((occurrence) => [occurrence.id, occurrence.name, occurrence.instruction, occurrence.copyNumber])).toEqual([
+      [sourceId, "Gainage", "Dos droit", null],
+      [copyId, "Gainage", "Dos droit", 1],
+    ]);
+    database.close();
+  }, 60000);
 });

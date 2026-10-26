@@ -747,6 +747,22 @@ describe("formatOccurrenceSummary (PRE-6 story 2.2, D-238)", () => {
     expect(summaryOf({ ...durationParameters(45), mode: null } as unknown as ExecutionParameters)).toBe(
       strings.executionParameters.card.incomplete,
     );
+    // PRE-7 (D-446, MFN-08) : frère incomplet (durée de phase manquante) à Cible chiffrée ou à
+    // l'échec — « Paramètres à compléter. » dans la synthèse d'occurrence et dans celle de la ligne.
+    for (const target of [6, "FAILURE"] as const) {
+      const incomplete = uniformParameters({
+        mode: "DURATION",
+        count: 3,
+        target,
+        pauseSeconds: 10,
+        workPhases: [
+          { id: 1, label: "a", durationSeconds: 6 },
+          { id: 2, label: "b", durationSeconds: 0 },
+        ],
+      });
+      expect(summaryOf(incomplete)).toBe(strings.executionParameters.card.incomplete);
+      expect(formatExerciseRowSummary({ executionParameters: incomplete })).toBe(strings.executionParameters.card.incomplete);
+    }
   });
 
   it("never repeats the name nor the mode, never shows a pause or a recovery", () => {
@@ -784,6 +800,15 @@ describe("formatOccurrenceEstimatedDuration / formatOccurrenceAccessibilityLabel
         { circuitNature: "TOURS", tourRepeatCount: 5 },
       ),
     ).toBe("Exercice, Gainage, 2 sur 2, 3 min");
+  });
+
+  it("PRE-7 (R-3, Q3) : accessibility label of a copy carries its derived suffix", () => {
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45), copyNumber: 1 }), { index: 0, count: 1 }),
+    ).toBe("Exercice, Gainage (copie), 1 sur 1, 1 min");
+    expect(
+      formatOccurrenceAccessibilityLabel(occurrence({ executionParameters: durationParameters(45), copyNumber: 2 }), { index: 0, count: 1 }),
+    ).toBe("Exercice, Gainage (copie 2), 1 sur 1, 1 min");
   });
 
   it("accessibility label: omits a duration without amount (never « ≥ 0 min »), appends « changement de côté » when bilateral", () => {

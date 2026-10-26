@@ -11,21 +11,27 @@ import { StyleSheet } from "react-native";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   DEFAULT_SESSION_COLOR,
-  type CreateSessionExerciseInput,
   type CreateSessionInput,
-  type UpdateSessionActivityInput,
   type UpdateSessionInput,
- CreateSessionActivityInput, Session } from "@/domain/sessions/Session";
+ Session } from "@/domain/sessions/Session";
 import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
   assembleSession,
-  SqliteSessionRepository,
  RetiredBodyZoneError,
  RetiredLabelError,
  RetiredOccurrenceCategoryError } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { splitResolvedParameters } from "@/domain/activities/Movement";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import {
+  ViewedSessionRepository,
+  type ViewedCreateActivity,
+  type ViewedCreateSessionInput,
+  type ViewedUpdateActivity,
+  type ViewedUpdateSessionInput,
+} from "@/infrastructure/database/testing/sessionMovements";
 import type { SessionAggregateQueryRow, SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
 import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -35,8 +41,8 @@ import {
   EXECUTION_PARAMETERS_VERSION,
   ExecutionParametersDataError,
   numberTarget,
-  serializeExecutionParameters,
-  serializeV2,
+  serializeCatalogExecutionParameters,
+  serializeResolvedExecutionParameters,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
 import {
@@ -54,11 +60,14 @@ import { duplicateActivity } from "@/domain/sessions/composition";
 import {
   createEmptyDraft,
   createExerciseDraft,
+  draftMovementOf,
   isSessionDraftDirty,
   sessionDraftsEqual,
   toCreateSessionInput,
   toSessionDraft,
   toUpdateSessionInput,
+  withDraftMovement,
+  type DraftMovement,
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
 
@@ -115,7 +124,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("creates, reads and lists a single-Activity aggregate (T01-S01 baseline, still supported)", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
     const created = await repository.create(validInput());
     const reopened = await repository.findById(created.id);
     const summaries = await repository.listActive();
@@ -131,7 +140,11 @@ describe("SqliteSessionRepository", () => {
       position: 0,
       executionParameters: durationParameters(30),
       postActivityRecoverySeconds: 0,
-      bodyZoneIds: [],
+      // PRE-7 (R-3, C05) : Zones relues dans le Mouvement (qui en exige au moins une).
+      name: "Gainage",
+      bodyZoneIds: ["cuisses"],
+      sourceMovementId: "mov:gainage",
+      copyNumber: null,
     });
     expect(created.labelId).toBeNull();
     expect(reopened).toEqual(created);
@@ -151,7 +164,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("persists the exact T01 structural literals via bound parameters after the FIXED_* refactor", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
     const created = await repository.create(validInput());
 
     const cycleRow = await database.getFirstAsync<{ position: number; repeat_count: number }>(
@@ -187,7 +200,7 @@ describe("SqliteSessionRepository", () => {
   // Activité, `repeat_count = 1`). Le round-trip suivant démontre que la
   // structure réelle est conservée de bout en bout.
   it("creates the three structural zones with per-zone positions, a NULL tour_id outside the Tour and the real tour repeat count", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
     const created = await repository.create({
       ...validInput(),
       tourRepeatCount: 99,
@@ -269,7 +282,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("keeps the draft identifier of an Activity when one is provided, and generates one otherwise", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
     const created = await repository.create({
       ...validInput(),
       exercises: [
@@ -285,7 +298,7 @@ describe("SqliteSessionRepository", () => {
 
   it("uses Crypto.randomUUID for all aggregate identifiers by default", async () => {
     jest.mocked(Crypto.randomUUID).mockImplementation(uuidFactory());
-    const repository = new SqliteSessionRepository(database);
+    const repository = new ViewedSessionRepository(database);
 
     const created = await repository.create(validInput());
 
@@ -299,7 +312,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("rejects incomplete or out-of-contract input before persistence with a structured SessionValidationError", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
 
     await expect(repository.create({ ...validInput(), name: "   " })).rejects.toBeInstanceOf(
       SessionValidationError,
@@ -319,7 +332,7 @@ describe("SqliteSessionRepository", () => {
 
   // PRE-6 story 7.8 (D-443) : Compte à rebours initial et Fin de séance bornés à 0..60 s à l'écriture.
   it("story 7.8 — rejects a session boundary above 60 s with OUT_OF_RANGE 0..60, nothing written", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
 
     try {
       await repository.create({ ...validInput(), initialCountdownSeconds: 61, finalPhaseSeconds: 60 });
@@ -335,7 +348,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("exposes the exact violations (code + field) on SessionValidationError, without any message text", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
 
     try {
       await repository.create({ ...validInput(), name: "   " });
@@ -349,7 +362,7 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("validates any CreateSessionInput it receives directly, with no way to bypass validation", async () => {
-    const repository = new SqliteSessionRepository(database, uuidFactory());
+    const repository = new ViewedSessionRepository(database, uuidFactory());
 
     const handCraftedInvalidInput: CreateSessionInput = {
       tourRepeatCount: 1,
@@ -371,7 +384,7 @@ describe("SqliteSessionRepository", () => {
 
   it("rolls the whole aggregate back when activity insertion fails", async () => {
     const failingDatabase = new FailingActivityInsertDatabase(database);
-    const repository = new SqliteSessionRepository(failingDatabase, uuidFactory());
+    const repository = new ViewedSessionRepository(failingDatabase, uuidFactory());
 
     await expect(repository.create(validInput())).rejects.toThrow("forced activity failure");
 
@@ -398,7 +411,7 @@ describe("SqliteSessionRepository", () => {
 
   describe("multi-Activity persistence (T01-S09)", () => {
     it("persists ALL Activities of the collection, in order, without loss — zero loss of data validated in T01-S08", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -437,7 +450,7 @@ describe("SqliteSessionRepository", () => {
       try {
         writer = NodeSqliteDatabase.openFile(filePath);
         await migrateDatabase(writer);
-        const repository = new SqliteSessionRepository(writer, uuidFactory());
+        const repository = new ViewedSessionRepository(writer, uuidFactory());
         const created = await repository.create({
           ...validInput(),
           exercises: [
@@ -451,7 +464,7 @@ describe("SqliteSessionRepository", () => {
         writer = undefined;
 
         reader = NodeSqliteDatabase.openFile(filePath);
-        const rereadRepository = new SqliteSessionRepository(reader);
+        const rereadRepository = new ViewedSessionRepository(reader);
         const reread = await rereadRepository.findById(created.id);
 
         expect(reread?.cycle.tour.exercises.map((exercise) => exercise.name)).toEqual([
@@ -476,7 +489,7 @@ describe("SqliteSessionRepository", () => {
 
     it("rolls the whole aggregate back if a later Activity's insertion fails, keeping none of the earlier ones", async () => {
       const failingDatabase = new FailingSecondActivityInsertDatabase(database);
-      const repository = new SqliteSessionRepository(failingDatabase, uuidFactory());
+      const repository = new ViewedSessionRepository(failingDatabase, uuidFactory());
 
       await expect(
         repository.create({
@@ -494,7 +507,7 @@ describe("SqliteSessionRepository", () => {
 
   describe("body zones persistence (D-093, T01-S09)", () => {
     it("persists and rereads body zones for an Activity", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["dos", "epaules", "bras"] }],
@@ -510,7 +523,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("rejects an unknown body zone id at the database level (defense in depth)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       await expect(
         repository.create({
@@ -531,10 +544,10 @@ describe("SqliteSessionRepository", () => {
   // reste inchangé ; ces tests prouvent seulement ce qu'il fait déjà).
   describe("listActive", () => {
     it("excludes a session archived directly via SQL (no archiving feature exists in code)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const active = await repository.create(validInput());
 
-      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const secondRepository = new ViewedSessionRepository(database, secondUuidFactory());
       const archived = await secondRepository.create({ ...validInput(), name: "À archiver" });
       await database.runAsync(
         "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
@@ -557,7 +570,7 @@ describe("SqliteSessionRepository", () => {
         `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#F7D154', 1, ?)`,
         ["label-yellow", "Jaune", "jaune", "2026-01-01T00:00:00.000Z"],
       );
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({ ...validInput(), labelId: "label-yellow" });
 
       const summaries = await repository.listActive();
@@ -565,18 +578,20 @@ describe("SqliteSessionRepository", () => {
       expect(summary?.color).toBe("#F7D154");
     });
 
-    it("falls back to the default colour with an empty categoryNames and an empty bodyZoneNames for a Session with no Label and no body zone", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+    // PRE-7 (R-3, C05) : une occurrence n'a plus de Zones propres ; celles de la Séance sont
+    // celles de ses Mouvements, qui en portent toujours au moins une.
+    it("falls back to the default colour with an empty categoryNames for a Session with no Label; bodyZoneNames are those of its Movements", async () => {
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
-        exercises: [{ ...anExercise(), bodyZoneIds: [] }],
+        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
       });
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
       expect(summary?.color).toBe(DEFAULT_SESSION_COLOR);
       expect(summary?.categoryNames).toEqual([]);
-      expect(summary?.bodyZoneNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual(["Dos"]);
     });
 
     // Correction REVISION tentative 3 (feedback : « le test actuel via
@@ -629,24 +644,42 @@ describe("SqliteSessionRepository", () => {
         `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, ?, ?, 1, 1)`,
         [tourId, cycleId, sessionId],
       );
+      // PRE-7 (R-3, `migration013`) : l'occurrence référence un Mouvement existant (clé
+      // étrangère RESTRICT) et ne porte que ses paramètres, en forme Catalogue v5.
+      await database.runAsync(
+        `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, created_at, updated_at)
+         VALUES ('mov-historique', 'Gainage historique', 'gainage historique', NULL, 'cardio', 1, ?, ?)`,
+        [timestamp, timestamp],
+      );
+      await database.runAsync(
+        "INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mov-historique', 'dos')",
+      );
       await database.runAsync(
         `INSERT INTO activities (
           id, session_id, cycle_id, tour_id, type, structural_position,
-          position, name, execution_mode, duration_seconds,
-          repetition_count, series_count, pause_seconds, instruction,
-          created_at, updated_at, execution_parameters
-        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, ?, 'DURATION', 30, NULL, 1, 0, NULL, ?, ?, ?)`,
-        [activityId, sessionId, cycleId, tourId, "Gainage historique", timestamp, timestamp, serializeV2(durationParameters(30))],
+          position, execution_mode, duration_seconds,
+          repetition_count, series_count, pause_seconds,
+          created_at, updated_at, execution_parameters, source_movement_id
+        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, 'DURATION', 30, NULL, 1, 0, ?, ?, ?, 'mov-historique')`,
+        [
+          activityId,
+          sessionId,
+          cycleId,
+          tourId,
+          timestamp,
+          timestamp,
+          serializeCatalogExecutionParameters(splitResolvedParameters(durationParameters(30)).parameters),
+        ],
       );
 
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === sessionId);
 
       // Étape 1 : repository → modèle de Catalogue (`SessionSummary`).
       expect(summary).toBeDefined();
       expect(summary?.color).toBe("#F7D154");
-      expect(summary?.bodyZoneNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual(["Dos"]);
 
       // Étape 2 : modèle de Catalogue → composant `SessionCard` — même
       // objet `summary` que ci-dessus, sans reconstruction ni littéral
@@ -659,7 +692,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       await repository.create({
         ...validInput(),
         exercises: [
@@ -672,7 +705,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("applies the canonical formula D = C × A + C × B in SQL when there is no Récupération, exactly like the Domain (T02-S02)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         initialCountdownSeconds: 10,
@@ -700,7 +733,7 @@ describe("SqliteSessionRepository", () => {
      * `computePauseOccurrences`, et non une formule voisine.
      */
     it("switches the pause count in SQL on the presence of a Récupération, exactly like computePauseOccurrences", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const withoutRecovery = await repository.create({
         ...validInput(),
         name: "Sans récupération",
@@ -708,7 +741,7 @@ describe("SqliteSessionRepository", () => {
           { ...anExercise(), executionParameters: durationParameters(30, 3, 10) },
         ],
       });
-      const withRecoveryRepository = new SqliteSessionRepository(
+      const withRecoveryRepository = new ViewedSessionRepository(
         database,
         secondUuidFactory(),
       );
@@ -738,7 +771,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("adds the attached Récupération once per Activity in the SQL projection (T02-S02)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -758,7 +791,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("still counts the pauses of a REPETITIONS Activity C − 1 times, plus its Récupération, without any conventional duration (RM-072/RM-132)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -782,7 +815,7 @@ describe("SqliteSessionRepository", () => {
     // des Activités réellement composées (chacune une fois), tandis que la
     // durée développe `tourRepeatCount` sur la SEULE zone `IN_TOUR`.
     it("counts every Activity once but multiplies only the IN_TOUR duration by the tour repeat count", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         tourRepeatCount: 3,
@@ -817,15 +850,15 @@ describe("SqliteSessionRepository", () => {
     // l'ordre du Catalogue. Ré-écriture du test `COALESCE` historique.
     it("sorts by updated_at DESC, and a later last_executed_at never changes the order (D-110)", async () => {
       const clockOldest = fixedClock(["2026-01-01T00:00:00.000Z"]);
-      const repositoryOldest = new SqliteSessionRepository(database, uuidFactory(), clockOldest);
+      const repositoryOldest = new ViewedSessionRepository(database, uuidFactory(), clockOldest);
       const sessionOldest = await repositoryOldest.create({ ...validInput(), name: "Créée en premier" });
 
       const clockMiddle = fixedClock(["2026-01-02T00:00:00.000Z"]);
-      const repositoryMiddle = new SqliteSessionRepository(database, secondUuidFactory(), clockMiddle);
+      const repositoryMiddle = new ViewedSessionRepository(database, secondUuidFactory(), clockMiddle);
       const sessionMiddle = await repositoryMiddle.create({ ...validInput(), name: "Créée ensuite" });
 
       const clockNewest = fixedClock(["2026-01-03T00:00:00.000Z"]);
-      const repositoryNewest = new SqliteSessionRepository(database, thirdUuidFactory(), clockNewest);
+      const repositoryNewest = new ViewedSessionRepository(database, thirdUuidFactory(), clockNewest);
       const sessionNewest = await repositoryNewest.create({ ...validInput(), name: "Créée en dernier" });
 
       // `last_executed_at` renseigné à l'inverse de `updated_at` : il ne doit
@@ -847,18 +880,19 @@ describe("SqliteSessionRepository", () => {
     // T01-S09, correction VISUAL tentative 2 (point B) : `categoryNames`/
     // `bodyZoneNames`, restaurés sur `SessionSummary` pour la ligne manquante
     // sous le nom de la Séance (CE-T01-03).
-    it("exposes an empty categoryNames and an empty bodyZoneNames when the Session has neither (zero value)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+    // PRE-7 (R-3, C05) : plus de Séance sans Zone — celles de ses Mouvements (au moins une).
+    it("exposes an empty categoryNames (zero value) and the Zones of its Movements as bodyZoneNames", async () => {
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
 
       const summaries = await repository.listActive();
       const summary = summaries.find((item) => item.id === created.id);
       expect(summary?.categoryNames).toEqual([]);
-      expect(summary?.bodyZoneNames).toEqual([]);
+      expect(summary?.bodyZoneNames).toEqual(["Cuisses"]);
     });
 
     it("exposes exactly one bodyZoneName (one value)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["genoux"] }],
@@ -870,7 +904,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("unions bodyZoneNames WITHOUT LOSS across ALL persisted Activities of the Session, deduplicated and ordered by the referential (never insertion order, many values)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -888,18 +922,19 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("scopes bodyZoneNames per Session — never leaks another Session's values (multiple Sessions in the same listActive() call)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const first = await repository.create({
         ...validInput(),
         name: "Première",
-        exercises: [{ ...anExercise(), bodyZoneIds: ["genoux"] }],
+        // PRE-7 (R-3, C05) : deux Mouvements distincts (un même nom serait un même Mouvement).
+        exercises: [{ ...anExercise(), name: "Fentes", bodyZoneIds: ["genoux"] }],
       });
 
-      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const secondRepository = new ViewedSessionRepository(database, secondUuidFactory());
       const second = await secondRepository.create({
         ...validInput(),
         name: "Deuxième",
-        exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
+        exercises: [{ ...anExercise(), name: "Pompes", bodyZoneIds: ["dos"] }],
       });
 
       const summaries = await repository.listActive();
@@ -932,7 +967,7 @@ describe("SqliteSessionRepository", () => {
     // par session/cycle/tour/activités) : ces scénarios persistent aussi des
     // Points d'arrêt, chacun consommant son propre identifiant.
     it("create(): persists stop points at the received position, and rereads them in displayed scope order (D-061) then position", async () => {
-      const repository = new SqliteSessionRepository(database, randomUUID);
+      const repository = new ViewedSessionRepository(database, randomUUID);
 
       const created = await repository.create({
         ...structuredInput(),
@@ -954,7 +989,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("create(): omits stopPoints entirely from the read aggregate when none was given — never an empty array", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       const created = await repository.create(validInput());
 
@@ -962,7 +997,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("create(): rejects a forbidden, out-of-range or duplicate stop point and writes nothing", async () => {
-      const repository = new SqliteSessionRepository(database, randomUUID);
+      const repository = new ViewedSessionRepository(database, randomUUID);
 
       for (const stopPoints of [
         [{ scope: "BEFORE_TOUR" as const, position: 0 }],
@@ -980,7 +1015,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("update(): replaces the previous stop points with the draft's own", async () => {
-      const repository = new SqliteSessionRepository(database, randomUUID);
+      const repository = new ViewedSessionRepository(database, randomUUID);
       const created = await repository.create({
         ...structuredInput(),
         stopPoints: [{ scope: "IN_TOUR", position: 1 }],
@@ -1003,7 +1038,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("update(): a reopened, renamed then saved session keeps its stop points at the same places (R2)", async () => {
-      const repository = new SqliteSessionRepository(database, randomUUID);
+      const repository = new ViewedSessionRepository(database, randomUUID);
       const created = await repository.create({
         ...structuredInput(),
         stopPoints: [
@@ -1030,7 +1065,7 @@ describe("SqliteSessionRepository", () => {
 
   describe("update — modification bout en bout par identité (T01-S10, plan §5.2)", () => {
     it("updates a kept Activity in place: same identifier, session/cycle/tour identifiers preserved", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1061,7 +1096,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("adds a new Activity, removes a dropped one, keeps the survivor's id", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -1095,7 +1130,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("persists tour.repeatCount and rereads it (aggregate + catalogue summary)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1123,7 +1158,7 @@ describe("SqliteSessionRepository", () => {
      * même ligne que l'Exercice qu'elle suit.
      */
     it("persists the attached Récupération through an update and rereads it", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1164,7 +1199,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("persists the attached Récupération of a brand-new Activity created during an update", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1191,7 +1226,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("persists an all-failure Repetitions Activity (former third mode, PRE-4) and rereads it; the estimate becomes a lower bound", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1225,7 +1260,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("rehydrates Activities before / in / after the Tour, in reading order", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1250,7 +1285,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("preserves an Activity's body zones through an in-place update (replace, no loss)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
@@ -1281,7 +1316,7 @@ describe("SqliteSessionRepository", () => {
         `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#E5484D', 1, ?)`,
         ["label-b", "Étiquette B", "etiquette b", "2026-01-01T00:00:00.000Z"],
       );
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         labelId: "label-a",
@@ -1303,7 +1338,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("returns NOT_FOUND and performs no write for an unknown id", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       const outcome = await repository.update(
         "00000000-0000-4000-8000-000000000099",
@@ -1318,7 +1353,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("returns ARCHIVED and performs no write for a session archived via direct SQL", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1346,7 +1381,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("rejects invalid input via SessionValidationError before any write (defense in depth)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
 
       await expect(
@@ -1365,7 +1400,10 @@ describe("SqliteSessionRepository", () => {
     // déterministe du rollback INTÉGRAL sur une défaillance survenant AU
     // MILIEU de la transaction (dernière écriture — `INSERT INTO
     // activity_body_zones` — après mise à jour de la Séance, du Tour, fusion
-    // des Activités et suppression des Zones précédentes). V2-PRE-1 (plan
+    // des Activités et suppression des Zones précédentes). PRE-7 (R-3, C05) : les
+    // Zones appartiennent au Mouvement, réécrit AVANT les occurrences ; l'échec
+    // porte sur l'insertion de l'occurrence nouvelle, après la mise à jour de la
+    // Séance, du Tour, du Mouvement corrigé (nom, Zones) et la fusion des occurrences. V2-PRE-1 (plan
     // §3.3) : la relation `session_categories` disparaît — la preuve
     // équivalente porte désormais sur l'Étiquette (`label_id`), seule
     // référence externe restante de la Séance.
@@ -1378,7 +1416,7 @@ describe("SqliteSessionRepository", () => {
         `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES (?, ?, ?, '#E5484D', 1, ?)`,
         ["label-new", "Nouvelle étiquette", "nouvelle etiquette", "2026-01-01T00:00:00.000Z"],
       );
-      const repository = new SqliteSessionRepository(
+      const repository = new ViewedSessionRepository(
         database,
         uuidFactory(),
         fixedClock(["2026-01-01T00:00:00.000Z"]),
@@ -1409,22 +1447,25 @@ describe("SqliteSessionRepository", () => {
         [created.id],
       );
       const beforeActivityRows = await database.getAllAsync(
-        `SELECT id, name, type, structural_position, position, execution_mode,
+        `SELECT id, source_movement_id, type, structural_position, position, execution_mode,
                 duration_seconds, repetition_count, series_count, pause_seconds,
                 created_at, updated_at
          FROM activities WHERE session_id = ? ORDER BY position ASC`,
         [created.id],
       );
-      const beforeZoneRows = await database.getAllAsync(
-        `SELECT activity_id, body_zone_id FROM activity_body_zones
-         WHERE activity_id IN (?, ?) ORDER BY activity_id, body_zone_id`,
-        [keptId, droppedId],
-      );
+      const zoneRows = () =>
+        database.getAllAsync(
+          `SELECT movement_id, body_zone_id FROM movement_body_zones
+           WHERE movement_id IN ('mov:gainage', 'mov:squats', 'mov:fentes') ORDER BY movement_id, body_zone_id`,
+        );
+      const movementRows = () => database.getAllAsync("SELECT id, name, updated_at FROM movements ORDER BY id");
+      const beforeZoneRows = await zoneRows();
+      const beforeMovementRows = await movementRows();
 
       // update() qui échoue à la dernière écriture, avec une horloge
       // DIFFÉRENTE (jamais rejouée si le rollback est intégral).
-      const failingRepository = new SqliteSessionRepository(
-        new FailingActivityBodyZoneInsertDatabase(database),
+      const failingRepository = new ViewedSessionRepository(
+        new FailingActivityInsertDatabase(database),
         secondUuidFactory(),
         fixedClock(["2026-06-15T12:00:00.000Z"]),
       );
@@ -1451,7 +1492,7 @@ describe("SqliteSessionRepository", () => {
             ],
           }),
         ),
-      ).rejects.toThrow("forced activity_body_zones failure");
+      ).rejects.toThrow("forced activity failure");
 
       // Snapshots APRÈS — strictement identiques.
       expect(await repository.findById(created.id)).toEqual(before);
@@ -1477,7 +1518,7 @@ describe("SqliteSessionRepository", () => {
 
       expect(
         await database.getAllAsync(
-          `SELECT id, name, type, structural_position, position, execution_mode,
+          `SELECT id, source_movement_id, type, structural_position, position, execution_mode,
                   duration_seconds, repetition_count, series_count, pause_seconds,
                   created_at, updated_at
            FROM activities WHERE session_id = ? ORDER BY position ASC`,
@@ -1493,16 +1534,14 @@ describe("SqliteSessionRepository", () => {
       expect(afterActivityIds.sort()).toEqual([keptId, droppedId].sort());
       expect(afterActivityIds).not.toContain("brand-new-activity");
 
-      expect(
-        await database.getAllAsync(
-          `SELECT activity_id, body_zone_id FROM activity_body_zones
-           WHERE activity_id IN (?, ?) ORDER BY activity_id, body_zone_id`,
-          [keptId, droppedId],
-        ),
-      ).toEqual(beforeZoneRows);
-      expect((beforeZoneRows as { body_zone_id: string }[]).map((z) => z.body_zone_id)).toEqual([
-        "dos",
+      expect(await zoneRows()).toEqual(beforeZoneRows);
+      expect(beforeZoneRows).toEqual([
+        { movement_id: "mov:gainage", body_zone_id: "dos" },
+        { movement_id: "mov:squats", body_zone_id: "cuisses" },
       ]);
+      // Le Mouvement corrigé (« Gainage renforcé ») et le Mouvement nouveau (« Fentes ») sont annulés.
+      expect(await movementRows()).toEqual(beforeMovementRows);
+      expect((beforeMovementRows as { name: string }[]).map((row) => row.name)).toEqual(["Gainage", "Squats"]);
     });
   });
 
@@ -1523,7 +1562,7 @@ describe("SqliteSessionRepository", () => {
 
     it("rejects creating a Session with a retired Label", async () => {
       await insertRetiredLabel("label-retired", "jaune-retiree");
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       await expect(
         repository.create({ ...validInput(), labelId: "label-retired" }),
@@ -1537,7 +1576,7 @@ describe("SqliteSessionRepository", () => {
 
     it("rejects creating an Activity with a retired body zone", async () => {
       await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'dos'`);
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       await expect(
         repository.create({
@@ -1554,7 +1593,7 @@ describe("SqliteSessionRepository", () => {
 
     it("rejects switching an update to a retired Label, but keeps an already-assigned Label even if it is retired afterwards", async () => {
       await insertRetiredLabel("label-retired", "jaune-retiree");
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({ ...validInput(), labelId: null });
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1579,7 +1618,7 @@ describe("SqliteSessionRepository", () => {
         `INSERT INTO labels (id, name, canonical_key, color, is_active, created_at)
          VALUES ('label-1', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z')`,
       );
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({ ...validInput(), labelId: "label-1" });
       const keptId = created.cycle.tour.exercises[0]!.id;
 
@@ -1600,7 +1639,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("rejects adding a NEW retired body zone on update, but keeps an already-assigned Zone even if it is retired afterwards", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
@@ -1623,7 +1662,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("keeps an already-assigned, now-retired body zone unchanged when the update resubmits it unchanged", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["dos"] }],
@@ -1654,25 +1693,29 @@ describe("SqliteSessionRepository", () => {
   describe("PRE4-Q53 — Zone retirée héritée de la source", () => {
     let sequence = 0;
     const ids = (prefix: string) => () => `${prefix}-${++sequence}`;
-    async function definitionWithZones(bodyZoneIds: readonly string[]): Promise<void> {
+    // PRE-7 (R-3, C05) : la Copie d'une Définition est une occurrence de SON Mouvement — aucun
+    // contenu recopié, aucune affectation nouvelle ; la garde ne porte que sur les Mouvements
+    // nouveaux ou corrigés depuis la Séance.
+    async function definitionWithZones(bodyZoneIds: readonly string[]): Promise<string> {
       const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53");
-      await definitions.create({
+      const definition = await definitions.create({
         name: "Squat",
         description: null,
         category: { kind: "EXISTING", categoryId: "cardio" },
         bodyZoneIds,
         executionParameters: durationParameters(30),
       });
+      return definition.movementId;
     }
 
     it("PRE4-Q53/create-copy — nouvelle Séance avec la Copie d'un Exercice dont une Zone a été retirée : enregistrée, affectation conservée", async () => {
-      await definitionWithZones(["cuisses", "dos"]);
+      const movementId = await definitionWithZones(["cuisses", "dos"]);
       await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'`);
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
 
       const created = await repository.create({
         ...validInput(),
-        exercises: [{ ...anExercise({ name: "Squat" }), bodyZoneIds: ["cuisses", "dos"] }],
+        exercises: [{ ...anExercise({ name: undefined }), sourceMovementId: movementId }],
       });
 
       expect(created.cycle.tour.exercises[0]?.bodyZoneIds).toEqual(["cuisses", "dos"]);
@@ -1681,7 +1724,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("PRE4-Q53/create-duplicate — deux Copies de la même source dans une Séance, puis une Copie d'une occurrence existante : toutes enregistrées", async () => {
-      const repository = new SqliteSessionRepository(database, ids("ses"));
+      const repository = new ViewedSessionRepository(database, ids("ses"));
       const first = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["cuisses"] }],
@@ -1702,8 +1745,8 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("PRE4-Q53/update-new-copy — Séance existante : une Copie ajoutée garde la Zone retirée de sa source ; l'occurrence existante qui l'avait la garde", async () => {
-      await definitionWithZones(["cuisses"]);
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const movementId = await definitionWithZones(["cuisses", "dos"]);
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [{ ...anExercise(), bodyZoneIds: ["cuisses"] }],
@@ -1717,7 +1760,7 @@ describe("SqliteSessionRepository", () => {
           sourceSessionId: created.id,
           activities: [
             anUpdateActivity({ id: keptId, bodyZoneIds: ["cuisses"] }),
-            anUpdateActivity({ id: "occ-q53-new", position: 1, name: "Squat", bodyZoneIds: ["cuisses", "dos"] }),
+            anUpdateActivity({ id: "occ-q53-new", position: 1, name: undefined, sourceMovementId: movementId }),
           ],
         }),
       );
@@ -1732,7 +1775,7 @@ describe("SqliteSessionRepository", () => {
 
     it("PRE4-Q53/refuse-first-assignment — Zone retirée affectée nulle part : refusée à la création ; Zone retirée ajoutée à une occurrence existante qui ne l'avait pas : refusée, même affectée ailleurs", async () => {
       await database.runAsync(`UPDATE body_zones SET is_active = 0 WHERE id = 'epaules'`);
-      const repository = new SqliteSessionRepository(database, ids("ses"));
+      const repository = new ViewedSessionRepository(database, ids("ses"));
       await expect(
         repository.create({ ...validInput(), exercises: [{ ...anExercise(), bodyZoneIds: ["epaules"] }] }),
       ).rejects.toThrow(RetiredBodyZoneError);
@@ -1767,7 +1810,7 @@ describe("SqliteSessionRepository", () => {
   describe("PRE4-Q53 (8) — Catégorie et Étiquette retirées héritées", () => {
     it("PRE4-Q53/category-copy — nouvelle Séance avec la Copie d'une Définition dont la Catégorie a été retirée : enregistrée ; occurrence existante passant à une autre Catégorie retirée : refusée", async () => {
       const definitions = new SqliteActivityDefinitionRepository(database, () => "def-q53-cat");
-      await definitions.create({
+      const definition = await definitions.create({
         name: "Squat",
         description: null,
         category: { kind: "EXISTING", categoryId: "cardio" },
@@ -1775,10 +1818,11 @@ describe("SqliteSessionRepository", () => {
         executionParameters: durationParameters(30),
       });
       await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
-      const repository = new SqliteSessionRepository(database, () => `q53c-${randomUUID()}`);
+      const repository = new ViewedSessionRepository(database, () => `q53c-${randomUUID()}`);
       const created = await repository.create({
         ...validInput(),
-        exercises: [{ ...anExercise({ name: "Squat" }), categoryId: "cardio", bodyZoneIds: ["cuisses"] }],
+        // PRE-7 (R-3, C05) : occurrence du Mouvement de la Définition, Catégorie relue dans le Mouvement.
+        exercises: [{ ...anExercise({ name: undefined }), sourceMovementId: definition.movementId }],
       });
       expect(created.cycle.tour.exercises[0]?.categoryId).toBe("cardio");
       const keptId = created.cycle.tour.exercises[0]!.id;
@@ -1787,7 +1831,8 @@ describe("SqliteSessionRepository", () => {
           created.id,
           anUpdateInput({
             sourceSessionId: created.id,
-            activities: [anUpdateActivity({ id: keptId, categoryId: "mobilite", bodyZoneIds: ["cuisses"] })],
+            // Correction du Mouvement depuis la Séance vers une autre Catégorie retirée.
+            activities: [anUpdateActivity({ id: keptId, name: "Squat", categoryId: "mobilite", bodyZoneIds: ["cuisses"] })],
           }),
         ),
       ).rejects.toThrow(RetiredOccurrenceCategoryError);
@@ -1802,7 +1847,7 @@ describe("SqliteSessionRepository", () => {
          ('label-a', 'Sport', 'sport', '#2E9B62', 1, '2026-01-01T00:00:00.000Z'),
          ('label-b', 'Yoga', 'yoga', '#3B82F6', 1, '2026-01-01T00:00:00.000Z')`,
       );
-      const repository = new SqliteSessionRepository(database, () => `q53-${randomUUID()}`);
+      const repository = new ViewedSessionRepository(database, () => `q53-${randomUUID()}`);
       const source = await repository.create({ ...validInput(), labelId: "label-a" });
       await database.runAsync("UPDATE labels SET is_active = 0");
       const copy = await repository.create({ ...validInput(), name: "Copie", labelId: "label-a" });
@@ -1820,10 +1865,10 @@ describe("SqliteSessionRepository", () => {
 
   describe("findSessionStatus (T01-S10)", () => {
     it("returns ACTIVE for an active session, ARCHIVED for an archived one, null for an unknown id", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const active = await repository.create(validInput());
 
-      const secondRepository = new SqliteSessionRepository(database, secondUuidFactory());
+      const secondRepository = new ViewedSessionRepository(database, secondUuidFactory());
       const archived = await secondRepository.create({ ...validInput(), name: "Archivée" });
       await database.runAsync(
         "UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?",
@@ -1845,7 +1890,7 @@ describe("SqliteSessionRepository", () => {
    */
   describe("V2-BILAT-01 / V2-PRE-1 — side mode persistence and SQL parity", () => {
     it("persists and round-trips an Activity's own side mode", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         // PRE-4 (AD-3) : la direction écrite et relue est celle des paramètres.
@@ -1859,14 +1904,14 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("defaults a fresh Activity to UNILATERAL when no side mode is provided", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
 
       expect(created.cycle.tour.exercises[0]?.sideMode).toBe("UNILATERAL");
     });
 
     it("updates each Activity's own side mode through update()", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       const activityId = created.cycle.tour.exercises[0]!.id;
 
@@ -1897,7 +1942,7 @@ describe("SqliteSessionRepository", () => {
      * Récupération remplace UNIQUEMENT la Pause terminale, jamais doublée.
      */
     it("doubles the estimated duration for a bilateral Activity, never doubling the Récupération", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -1918,7 +1963,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("applies each Activity's own side mode independently of its structural position", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create({
         ...validInput(),
         exercises: [
@@ -1947,7 +1992,7 @@ describe("SqliteSessionRepository", () => {
     });
 
     it("keeps the aggregate contract check satisfied for the persisted default UNILATERAL side mode (defense in depth)", async () => {
-      const repository = new SqliteSessionRepository(database, uuidFactory());
+      const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
       // La lecture complète (`findById`, qui rappelle `assertSessionAggregateRow`)
       // ne lève jamais pour une Séance persistée normalement.
@@ -1956,7 +2001,7 @@ describe("SqliteSessionRepository", () => {
   });
 });
 
-function validInput(): CreateSessionInput {
+function validInput(): ViewedCreateSessionInput {
   return {
     name: "Séance simple",
     // V2-PRE-1 (plan §3.3) : `color` autonome est retiré — aucune Étiquette
@@ -1970,7 +2015,7 @@ function validInput(): CreateSessionInput {
   };
 }
 
-function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): CreateSessionExerciseInput {
+function anExercise(overrides: Partial<ViewedCreateActivity> = {}): ViewedCreateActivity {
   return {
     type: "EXERCISE",
     structuralPosition: "IN_TOUR",
@@ -1985,8 +2030,8 @@ function anExercise(overrides: Partial<CreateSessionExerciseInput> = {}): Create
 
 /** Activité d'un `UpdateSessionInput` (T01-S10) — Exercice Durée par défaut, `id` explicite (fusion par identité). */
 function anUpdateActivity(
-  overrides: Partial<UpdateSessionActivityInput> = {},
-): UpdateSessionActivityInput {
+  overrides: Partial<ViewedUpdateActivity> = {},
+): ViewedUpdateActivity {
   return {
     id: "act-1",
     type: "EXERCISE",
@@ -2001,7 +2046,7 @@ function anUpdateActivity(
   };
 }
 
-function anUpdateInput(overrides: Partial<UpdateSessionInput> = {}): UpdateSessionInput {
+function anUpdateInput(overrides: Partial<ViewedUpdateSessionInput> = {}): ViewedUpdateSessionInput {
   return {
     sourceSessionId: "placeholder",
     name: "Séance simple",
@@ -2088,29 +2133,6 @@ class FailingSecondActivityInsertDatabase implements Database {
   }
 }
 
-class FailingActivityBodyZoneInsertDatabase implements Database {
-  constructor(private readonly delegate: Database) {}
-
-  execAsync = (source: string) => this.delegate.execAsync(source);
-  getFirstAsync = <T>(source: string, parameters: SqlParameters = []) =>
-    this.delegate.getFirstAsync<T>(source, parameters);
-  getAllAsync = <T>(source: string, parameters: SqlParameters = []) =>
-    this.delegate.getAllAsync<T>(source, parameters);
-
-  runAsync(source: string, parameters: SqlParameters = []) {
-    if (source.includes("INSERT INTO activity_body_zones")) {
-      return Promise.reject(new Error("forced activity_body_zones failure"));
-    }
-    return this.delegate.runAsync(source, parameters);
-  }
-
-  withExclusiveTransactionAsync(task: (transaction: Database) => Promise<void>) {
-    return this.delegate.withExclusiveTransactionAsync((transaction) =>
-      task(new FailingActivityBodyZoneInsertDatabase(transaction)),
-    );
-  }
-}
-
 function validRow(): SessionAggregateRow {
   return {
     session_id: IDS[0]!,
@@ -2136,7 +2158,6 @@ function validRow(): SessionAggregateRow {
     tour_nature: "TOURS",
     activity_id: IDS[3]!,
     activity_type: "EXERCISE",
-    activity_name: "Gainage",
     structural_position: "IN_TOUR",
     activity_position: 0,
     execution_mode: "DURATION",
@@ -2146,12 +2167,13 @@ function validRow(): SessionAggregateRow {
     pause_seconds: 0,
     post_activity_recovery_seconds: 0,
     post_activity_recovery_present: 0,
-    instruction: null,
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
     activity_side_mode: "UNILATERAL",
-    // PRE-4 : JSON v2 obligatoire pour un Exercice (lu par `readV2`).
-    activity_execution_parameters: serializeV2(durationParameters(30)),
-    activity_category_id: null,
+    // PRE-7 (A1.2) : forme résolue v4 obligatoire pour un Exercice (`readResolvedExecutionParameters`).
+    activity_execution_parameters: serializeResolvedExecutionParameters(durationParameters(30)),
+    // PRE-7 (R-3, `migration013`) : Mouvement de l'occurrence (contenu relu dans le Mouvement) et numéro de copie.
+    activity_source_movement_id: "mov-1",
+    activity_copy_number: null,
   };
 }
 
@@ -2198,6 +2220,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SIDE",
@@ -2210,7 +2233,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     };
   }
 
-  function occurrence(overrides: Partial<CreateSessionActivityInput> = {}): CreateSessionActivityInput {
+  function occurrence(overrides: Partial<ViewedCreateActivity> = {}): ViewedCreateActivity {
     return {
       type: "EXERCISE",
       structuralPosition: "IN_TOUR",
@@ -2227,8 +2250,22 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     };
   }
 
-  function sessionInput(exercises: readonly CreateSessionActivityInput[], tourRepeatCount = 1): CreateSessionInput {
+  function sessionInput(exercises: readonly ViewedCreateActivity[], tourRepeatCount = 1): ViewedCreateSessionInput {
     return { name: "Jambes", initialCountdownSeconds: 10, finalPhaseSeconds: 5, tourRepeatCount, exercises };
+  }
+
+  /**
+   * PRE-7 (R-3, D-445 C05) : corrige, dans le brouillon, le Mouvement de l'occurrence
+   * `exerciseId` (`EDITED`, ou `NEW` pour une création locale) ; toutes ses occurrences
+   * affichent le nouveau contenu.
+   */
+  function withMovementChange(
+    draft: SessionDraft,
+    exerciseId: string,
+    change: Partial<Omit<DraftMovement, "id">>,
+  ): SessionDraft {
+    const exercise = draft.exercises.find((candidate) => candidate.id === exerciseId)!;
+    return { ...draft, ...withDraftMovement(draft, { ...draftMovementOf(exercise, "EDITED"), ...change }) };
   }
 
   function updateFromDraft(session: Session, mutate: (draft: SessionDraft) => SessionDraft): UpdateSessionInput {
@@ -2240,7 +2277,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   }
 
   it("P3-01/Session:create, P3-01/Session:edit, P3-01/Catalogue:create, P3-01/Catalogue:edit — la copie se rouvre complète ; Continuer seul la persiste", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence()]));
     const read = (await repository.findById(created.id))!.cycle.tour.exercises[0]!;
     expect(read.executionParameters).toEqual(parameters());
@@ -2249,18 +2286,20 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       ["v1", 0, "VIDEO"],
       ["p1", 1, "PHOTO"],
     ]);
-    // Modification de la copie : cadence, ordre des côtés, ordre des médias.
+    // Modification de la copie : cadence, ordre des côtés ; ordre des médias, porté par le
+    // Mouvement (PRE-7, R-3, C05 : correction du Mouvement depuis le brouillon).
     const edited = parameters({ cadenceBeepIntervalSeconds: 3, sideOrder: "BY_SERIES" });
     const outcome = await repository.update(
       created.id,
-      updateFromDraft(created, (draft) => ({
-        ...draft,
-        exercises: draft.exercises.map((exercise) => ({
-          ...exercise,
-          executionParameters: edited,
-          media: [...(exercise.media ?? [])].reverse(),
-        })),
-      })),
+      updateFromDraft(created, (draft) => {
+        const withParameters = {
+          ...draft,
+          exercises: draft.exercises.map((exercise) => ({ ...exercise, executionParameters: edited })),
+        };
+        return withMovementChange(withParameters, read.id, {
+          media: [...(withParameters.exercises[0]!.media ?? [])].reverse(),
+        });
+      }),
     );
     const updated = outcome.status === "UPDATED" ? outcome.session.cycle.tour.exercises[0]! : null;
     expect(updated?.id).toBe(read.id);
@@ -2272,15 +2311,19 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("PRE4-4.1/AC13 — occurrence existante supprimée entre l'ouverture et l'enregistrement : ACTIVITY_NOT_FOUND, base inchangée ; occurrence nouvelle du Brouillon : insérée", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence(), occurrence({ name: "Squats" })]));
     const [kept, deleted] = created.cycle.tour.exercises;
-    const fresh = { ...toSessionDraft(created).exercises[0]!, id: "occ-new", name: "Pompes" };
-    const input = updateFromDraft(created, (draft) => ({
-      ...draft,
-      name: "Jambes modifiées",
-      exercises: [...draft.exercises.map((exercise) => ({ ...exercise, name: `${exercise.name} bis` })), fresh],
-    }));
+    // PRE-7 (R-3, C05) : renommer = corriger le Mouvement de chaque occurrence ; l'occurrence
+    // nouvelle est une création locale, à son propre Mouvement `NEW`.
+    const fresh = { ...toSessionDraft(created).exercises[0]!, id: "occ-new", sourceMovementId: "occ-new", name: "Pompes" };
+    const input = updateFromDraft(created, (draft) => {
+      let next: SessionDraft = { ...draft, name: "Jambes modifiées", exercises: [...draft.exercises, fresh] };
+      for (const exercise of draft.exercises) {
+        next = withMovementChange(next, exercise.id, { name: `${exercise.name} bis` });
+      }
+      return withMovementChange(next, fresh.id, { change: "NEW" });
+    });
     expect(input.persistedActivityIds).toEqual([kept!.id, deleted!.id]);
 
     await database.runAsync("DELETE FROM activities WHERE id = ?", [deleted!.id]);
@@ -2301,7 +2344,11 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const withoutDeleted = { ...input, activities: input.activities.filter((activity) => activity.id !== deleted!.id) };
     const outcome = await repository.update(created.id, withoutDeleted);
     expect(outcome.status).toBe("UPDATED");
-    const names = (await database.getAllAsync<{ id: string; name: string }>("SELECT id, name FROM activities ORDER BY position"))
+    const names = (
+      await database.getAllAsync<{ id: string; name: string }>(
+        "SELECT activities.id AS id, movements.name AS name FROM activities JOIN movements ON movements.id = activities.source_movement_id ORDER BY activities.position",
+      )
+    )
       .map((row) => [row.id, row.name]);
     expect(names).toEqual([
       [kept!.id, "Fentes bis"],
@@ -2310,7 +2357,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("PRE4-4.1/AC13 — la marque des occurrences chargées n'entre pas dans l'égalité du Brouillon ni dans la base", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence()]));
     const draft = toSessionDraft(created);
     expect(draft.persistedExerciseIds).toEqual([created.cycle.tour.exercises[0]!.id]);
@@ -2321,7 +2368,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("P3-03/reference-retired — Catégorie et Zone retirées conservées ; nouvelle affectation retirée refusée", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence()]));
     await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'cardio'");
     await database.runAsync("UPDATE body_zones SET is_active = 0 WHERE id = 'cuisses'");
@@ -2332,17 +2379,20 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     const activity = kept.status === "UPDATED" ? kept.session.cycle.tour.exercises[0]! : null;
     expect(activity?.categoryId).toBe("cardio");
     expect(activity?.bodyZoneIds).toEqual(["cuisses"]);
-    // PRE-4 Q53 (8) : « cardio » est encore affectée à l'occurrence ci-dessus — une Copie
-    // nouvelle en hérite ; une Catégorie retirée affectée nulle part reste refusée.
-    const copy = await repository.create(sessionInput([occurrence({ categoryId: "cardio", bodyZoneIds: ["dos"], media: [] })]));
+    // PRE-4 Q53 (8) : « cardio » est encore affectée au Mouvement ci-dessus (PRE-7, R-3 : seul
+    // porteur de la Catégorie) — un Mouvement nouveau en hérite ; une Catégorie retirée affectée
+    // nulle part reste refusée.
+    const copy = await repository.create(
+      sessionInput([occurrence({ name: "Fentes sautées", categoryId: "cardio", bodyZoneIds: ["dos"], media: [] })]),
+    );
     expect(copy.cycle.tour.exercises[0]?.categoryId).toBe("cardio");
     await database.runAsync("UPDATE categories SET is_active = 0 WHERE id = 'mobilite'");
     const unused = await database.getFirstAsync<{ n: number }>(
-      "SELECT (SELECT COUNT(*) FROM activities WHERE category_id = 'mobilite') + (SELECT COUNT(*) FROM activity_definitions WHERE category_id = 'mobilite') AS n",
+      "SELECT COUNT(*) AS n FROM movements WHERE category_id = 'mobilite'",
     );
     expect(unused?.n).toBe(0);
     await expect(
-      repository.create(sessionInput([occurrence({ categoryId: "mobilite", bodyZoneIds: ["dos"], media: [] })])),
+      repository.create(sessionInput([occurrence({ name: "Fentes latérales", categoryId: "mobilite", bodyZoneIds: ["dos"], media: [] })])),
     ).rejects.toThrow(RetiredOccurrenceCategoryError);
   });
 
@@ -2354,10 +2404,11 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
    * celle de `migration010`).
    */
   it("P3-17/corrupt-version (PRE-4 AD-3) — occurrence sans JSON, v1, version inconnue ou corrompue : erreur explicite, jamais un repli scalaire", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence({ categoryId: undefined, media: undefined })]));
     const legacy = (await repository.findById(created.id))!.cycle.tour.exercises[0]!;
-    expect(legacy.categoryId).toBeNull();
+    // PRE-7 (R-3, C05) : la Catégorie est celle du Mouvement (obligatoire).
+    expect(legacy.categoryId).toBe("cardio");
     const v1 = JSON.stringify({
       version: 1,
       mode: "DURATION",
@@ -2377,7 +2428,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("P3-13/tours-cycles-list — total de liste = lecture complète par l'autorité unique ; avant/dans/après Circuit, Tours 99, ≈ et ≥", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const estimated = parameters({
       mode: "REPETITIONS",
       series: { kind: "UNIFORM", count: 4, target: numberTarget(15), pauseSeconds: 15, loadKg: 0, workPhases: [] },
@@ -2393,6 +2444,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
           { target: toTarget("FAILURE"), pauseSeconds: 45, loadKg: 0 },
           { target: toTarget("FAILURE"), pauseSeconds: 60, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "UNILATERAL",
     });
@@ -2418,7 +2470,7 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("P3-13/no-auto-R — nouvelle occurrence R absente, occurrence existante R30 inchangée", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence({ postActivityRecoverySeconds: 30, media: [] })]));
     const outcome = await repository.update(
       created.id,
@@ -2435,38 +2487,41 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
   });
 
   it("P3-15/no-storage — aucune colonne de phrase/segment ; seul le JSON canonique est stocké", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     await repository.create(sessionInput([occurrence({ media: [] })]));
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map((c) => c.name);
     expect(columns.some((name) => /phrase|segment|summary/i.test(name))).toBe(false);
     const row = await database.getFirstAsync<{ execution_parameters: string }>("SELECT execution_parameters FROM activities");
-    expect(JSON.parse(row!.execution_parameters)).toEqual(parameters());
+    // PRE-7 (R-3, C05) : forme Catalogue v5 (durées par `phaseId`, structure lue dans le Mouvement).
+    expect(JSON.parse(row!.execution_parameters)).toEqual(
+      JSON.parse(serializeCatalogExecutionParameters(splitResolvedParameters(parameters()).parameters)),
+    );
   });
 
   it("P3-16/failure-doubletap et P3-17/transaction-FK — échec en cours : rollback complet ; réessai unique ; IDs et created_at stables", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     await expect(
       repository.create(sessionInput([occurrence({ media: [{ assetId: "v1", asset: asset("v1", "VIDEO") }, { assetId: "missing" }] })])),
     ).rejects.toThrow();
     const empty = await database.getFirstAsync<Record<string, number>>(
-      "SELECT (SELECT COUNT(*) FROM sessions) AS s, (SELECT COUNT(*) FROM activities) AS a, (SELECT COUNT(*) FROM media_assets) AS m, (SELECT COUNT(*) FROM session_activity_media) AS l",
+      "SELECT (SELECT COUNT(*) FROM sessions) AS s, (SELECT COUNT(*) FROM activities) AS a, (SELECT COUNT(*) FROM movements) AS mv, (SELECT COUNT(*) FROM media_assets) AS m, (SELECT COUNT(*) FROM movement_media) AS l",
     );
-    expect(empty).toEqual({ s: 0, a: 0, m: 0, l: 0 });
+    // PRE-7 (R-3) : le Mouvement nouveau et ses liens sont annulés avec la Séance.
+    expect(empty).toEqual({ s: 0, a: 0, mv: 0, m: 0, l: 0 });
     const created = await repository.create(sessionInput([occurrence()]));
     const createdRow = await database.getFirstAsync<{ id: string; created_at: string }>("SELECT id, created_at FROM activities");
-    // Réordonnancement : jamais de violation UNIQUE(activity_id, position).
+    // Réordonnancement (PRE-7, R-3 : liens du Mouvement) : jamais de violation UNIQUE(movement_id, position).
     const outcome = await repository.update(
       created.id,
-      updateFromDraft(created, (draft) => ({
-        ...draft,
-        exercises: draft.exercises.map((exercise) => ({ ...exercise, media: [...(exercise.media ?? [])].reverse() })),
-      })),
+      updateFromDraft(created, (draft) =>
+        withMovementChange(draft, draft.exercises[0]!.id, { media: [...(draft.exercises[0]!.media ?? [])].reverse() }),
+      ),
     );
     expect(outcome.status).toBe("UPDATED");
     expect(await database.getFirstAsync("SELECT id, created_at FROM activities")).toEqual(createdRow);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
     const positions = await database.getAllAsync<{ asset_id: string; position: number }>(
-      "SELECT asset_id, position FROM session_activity_media ORDER BY position",
+      "SELECT asset_id, position FROM movement_media ORDER BY position",
     );
     expect(positions).toEqual([
       { asset_id: "p1", position: 0 },
@@ -2481,17 +2536,17 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
       await migrateDatabase(fileDatabase);
       const extremes = parameters({
         mode: "REPETITIONS",
-        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300, loadKg: 0 }, { target: numberTarget(1), pauseSeconds: 0, loadKg: 0 }] },
+        series: { kind: "VARIABLE", rows: [{ target: numberTarget(100), pauseSeconds: 300, loadKg: 0 }, { target: numberTarget(1), pauseSeconds: 0, loadKg: 0 }], workPhases: [] },
         sideOrder: "BY_SERIES",
         cadenceBeepIntervalSeconds: 10,
       });
-      const created = await new SqliteSessionRepository(fileDatabase, ids("ses")).create(
+      const created = await new ViewedSessionRepository(fileDatabase, ids("ses")).create(
         sessionInput([occurrence({ executionParameters: extremes })]),
       );
       fileDatabase.close();
       const reopened = NodeSqliteDatabase.openFile(path);
       try {
-        const activity = (await new SqliteSessionRepository(reopened, ids("ses")).findById(created.id))!.cycle.tour.exercises[0]!;
+        const activity = (await new ViewedSessionRepository(reopened, ids("ses")).findById(created.id))!.cycle.tour.exercises[0]!;
         expect(activity.executionParameters).toEqual(extremes);
         // Projection scalaire (jamais relue comme source) : première Cible, N.
         expect(
@@ -2509,8 +2564,10 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     }
   });
 
-  it("P3-18/copy-complete — duplication : nouvelle occurrence et nouveaux liens, mêmes fichiers, aucune mutation croisée", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+  // PRE-7 (R-3, D-445 C05, Q3) : la copie est une nouvelle occurrence du MÊME Mouvement — mêmes
+  // liens de médias (aucun lien propre à l'occurrence), numéro de copie 1, paramètres indépendants.
+  it("P3-18/copy-complete — duplication : nouvelle occurrence du même Mouvement, mêmes liens, paramètres indépendants", async () => {
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionInput([occurrence({ postActivityRecoverySeconds: 30 })]));
     const sourceId = created.cycle.tour.exercises[0]!.id;
     const duplicated = await repository.update(
@@ -2524,33 +2581,41 @@ describe("SqliteSessionRepository — PRE-3 (NodeSqliteDatabase REAL)", () => {
     expect(copy?.categoryId).toBe(source?.categoryId);
     expect(copy?.postActivityRecoverySeconds).toBe(30);
     expect(copy?.media?.map((item) => item.assetId)).toEqual(source?.media?.map((item) => item.assetId));
-    expect(new Set([...(copy?.media ?? []), ...(source?.media ?? [])].map((item) => item.id)).size).toBe(4);
-    // Modifier la copie ne touche pas la source.
+    expect(copy?.media?.map((item) => item.id)).toEqual(source?.media?.map((item) => item.id));
+    expect(copy?.sourceMovementId).toBe(source?.sourceMovementId);
+    expect([source?.copyNumber, copy?.copyNumber]).toEqual([null, 1]);
+    expect(copy?.name).toBe(source?.name);
+    expect(await database.getFirstAsync("SELECT COUNT(*) AS n FROM movements")).toEqual({ n: 1 });
+    expect(await database.getFirstAsync("SELECT COUNT(*) AS n FROM movement_media")).toEqual({ n: 2 });
+    // Modifier les paramètres de la copie ne touche pas la source.
     const afterEdit = await repository.update(
       created.id,
       updateFromDraft(duplicated.status === "UPDATED" ? duplicated.session : created, (draft) => ({
         ...draft,
         exercises: draft.exercises.map((exercise) =>
-          exercise.id === "copy-1" ? { ...exercise, executionParameters: parameters({ cadenceBeepIntervalSeconds: 7 }), media: [] } : exercise,
+          exercise.id === "copy-1" ? { ...exercise, executionParameters: parameters({ cadenceBeepIntervalSeconds: 7 }) } : exercise,
         ),
       })),
     );
-    const finalSource = afterEdit.status === "UPDATED" ? afterEdit.session.cycle.tour.exercises[0] : null;
+    const [finalSource, finalCopy] = afterEdit.status === "UPDATED" ? afterEdit.session.cycle.tour.exercises : [];
     expect(finalSource?.executionParameters).toEqual(parameters());
+    expect(finalCopy?.executionParameters).toEqual(parameters({ cadenceBeepIntervalSeconds: 7 }));
     expect(finalSource?.media?.map((item) => item.assetId)).toEqual(["v1", "p1"]);
+    expect(finalCopy?.copyNumber).toBe(1);
   });
 
   it("P3-23/file-preservation — retirer un lien ou une occurrence ne supprime jamais l'asset référencé ailleurs", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const media = new SqliteMediaRepository(database);
-    const created = await repository.create(sessionInput([occurrence(), occurrence({ media: [{ assetId: "v1" }] })]));
+    // PRE-7 (R-3, C05) : seuls les liens des Mouvements comptent — deux Mouvements partagent « v1 ».
+    const created = await repository.create(
+      sessionInput([occurrence(), occurrence({ name: "Squats", media: [{ assetId: "v1" }] })]),
+    );
     expect(await media.countReferences("v1")).toBe(2);
+    // Les liens du premier Mouvement sont retirés (correction depuis le brouillon de Séance).
     const removedLink = await repository.update(
       created.id,
-      updateFromDraft(created, (draft) => ({
-        ...draft,
-        exercises: draft.exercises.map((exercise, index) => (index === 0 ? { ...exercise, media: [] } : exercise)),
-      })),
+      updateFromDraft(created, (draft) => withMovementChange(draft, draft.exercises[0]!.id, { media: [] })),
     );
     expect(removedLink.status).toBe("UPDATED");
     expect(await media.countReferences("v1")).toBe(1);
@@ -2593,7 +2658,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     height: 1,
   });
 
-  function copy(parameters: ExecutionParameters, overrides: Partial<CreateSessionActivityInput> = {}): CreateSessionActivityInput {
+  function copy(parameters: ExecutionParameters, overrides: Partial<ViewedCreateActivity> = {}): ViewedCreateActivity {
     return {
       type: "EXERCISE",
       structuralPosition: "IN_TOUR",
@@ -2606,7 +2671,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     };
   }
 
-  function sessionOf(exercises: readonly CreateSessionActivityInput[]): CreateSessionInput {
+  function sessionOf(exercises: readonly ViewedCreateActivity[]): ViewedCreateSessionInput {
     return { name: "Séance PRE-4", initialCountdownSeconds: 10, finalPhaseSeconds: 5, tourRepeatCount: 1, exercises };
   }
 
@@ -2617,8 +2682,12 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
       "cycles",
       "tours",
       "activities",
-      "activity_body_zones",
-      "session_activity_media",
+      // PRE-7 (R-3, C05) : le contenu (Zones, médias, Catégorie) appartient aux Mouvements.
+      "movements",
+      "movement_body_zones",
+      "movement_media",
+      "movement_phases",
+      "movement_aliases",
       "media_assets",
       "categories",
       "session_stop_points",
@@ -2657,7 +2726,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
   }
 
   it("PRE4-1.1/AC16 — projection unique d'une Copie : première Cible FAILURE → duration_seconds NULL (jamais 30) ; Répétitions 12 × 3 ; paramètres relus typés", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const mixed = variableParameters({ mode: "DURATION", rows: [["FAILURE", 10], [30, 10]] });
     const reps = uniformParameters({ mode: "REPETITIONS", count: 3, target: 12 });
     const created = await repository.create(sessionOf([copy(mixed, { id: "mixed" }), copy(reps, { id: "reps" })]));
@@ -2672,8 +2741,8 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     const stored = await database.getFirstAsync<{ execution_parameters: string }>(
       "SELECT execution_parameters FROM activities WHERE id = 'mixed'",
     );
-    // PRE-5 (AD-18) : écrit en v3 par l'écrivain unique.
-    expect(stored?.execution_parameters).toBe(serializeExecutionParameters(mixed));
+    // PRE-7 (R-3, C05) : écrit en forme Catalogue v5 (durées par `phaseId`) par l'écrivain unique.
+    expect(stored?.execution_parameters).toBe(serializeCatalogExecutionParameters(splitResolvedParameters(mixed).parameters));
     const reread = (await repository.findById(created.id))!.cycle.tour.exercises;
     expect(reread.map((activity) => activity.executionParameters)).toEqual([mixed, reps]);
     for (const scalar of ["executionMode", "durationSeconds", "repetitionCount", "seriesCount", "pauseSeconds"]) {
@@ -2707,7 +2776,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
     const fileDatabase = NodeSqliteDatabase.openFile(path);
     try {
       await migrateDatabase(fileDatabase);
-      const created = await new SqliteSessionRepository(fileDatabase, ids("ses")).create(
+      const created = await new ViewedSessionRepository(fileDatabase, ids("ses")).create(
         sessionOf(
           cases.map((parameters, index) =>
             copy(parameters, {
@@ -2728,7 +2797,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
       fileDatabase.close();
       const reopened = NodeSqliteDatabase.openFile(path);
       try {
-        const reread = await new SqliteSessionRepository(reopened, ids("ses")).findById(created.id);
+        const reread = await new ViewedSessionRepository(reopened, ids("ses")).findById(created.id);
         expect(reread).toEqual(created);
         const exercises = reread!.cycle.tour.exercises;
         expect(exercises.map((activity) => activity.id)).toEqual(cases.map((_, index) => `copy-${index}`));
@@ -2759,20 +2828,20 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
         bodyZoneIds: ["dos", "cuisses"],
         media: [{ assetId: "p1", asset: asset("p1") }],
       }),
-      copy(allFailureParameters(3, 10), { structuralPosition: "AFTER_TOUR", media: [{ assetId: "p1" }] }),
+      copy(allFailureParameters(3, 10), { name: "Copie après", structuralPosition: "AFTER_TOUR", media: [{ assetId: "p1" }] }),
     ]);
     // Nombre d'écritures d'un enregistrement réussi, mesuré sur une base jetable.
     const probeDatabase = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(probeDatabase);
     const probe = new FailingDatabase(probeDatabase, Number.POSITIVE_INFINITY);
-    await new SqliteSessionRepository(probe, ids("probe")).create(input);
+    await new ViewedSessionRepository(probe, ids("probe")).create(input);
     probeDatabase.close();
     const writes = probe.writes;
     expect(writes).toBeGreaterThanOrEqual(8);
     const before = await dump();
     for (let failAt = 1; failAt <= writes; failAt += 1) {
       await expect(
-        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(input),
+        new ViewedSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(input),
       ).rejects.toThrow(`Injected failure at write ${failAt}`);
       expect(await dump()).toEqual(before);
     }
@@ -2780,7 +2849,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
   });
 
   it("PRE4-1.1/AC8 — une Copie refusée (Cible UNSET) ne laisse aucune ligne, Zone, Catégorie ni Média ajouté ou modifié", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionOf([copy(durationParameters(30, 2, 10))]));
     const before = await dump();
     const refused = copy(uniformParameters({ mode: "REPETITIONS", count: 2, target: "UNSET" }), {
@@ -2801,7 +2870,7 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
   });
 
   it("PRE4-1.1/AC5 — une Copie dont la Cible Durée de première ligne vaut 6000 s (structurellement valide) est refusée par le CHECK reflété, sans écriture", async () => {
-    const repository = new SqliteSessionRepository(database, ids("ses"));
+    const repository = new ViewedSessionRepository(database, ids("ses"));
     const created = await repository.create(sessionOf([copy(durationParameters(30))]));
     const before = await dump();
     const tooLong = durationParameters(6000, 2, 10);
@@ -2835,7 +2904,6 @@ function headerOnlyRow(): SessionAggregateQueryRow {
     ...validRow(),
     activity_id: null,
     activity_type: null,
-    activity_name: null,
     structural_position: null,
     activity_position: null,
     execution_mode: null,
@@ -2845,10 +2913,10 @@ function headerOnlyRow(): SessionAggregateQueryRow {
     pause_seconds: null,
     post_activity_recovery_seconds: null,
     post_activity_recovery_present: null,
-    instruction: null,
     activity_side_mode: null,
     activity_execution_parameters: null,
-    activity_category_id: null,
+    activity_source_movement_id: null,
+    activity_copy_number: null,
   };
 }
 
@@ -2900,7 +2968,7 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
     database.close();
   });
 
-  const repository = () => new SqliteSessionRepository(database, ids("ses"));
+  const repository = () => new ViewedSessionRepository(database, ids("ses"));
 
   function draft(recoveries: readonly (number | null)[], overrides: Partial<SessionDraft> = {}, idPrefix = "ex"): SessionDraft {
     return {
@@ -2910,15 +2978,17 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
       exercises: recoveries.map((recovery, index) => ({
         ...createExerciseDraft(`${idPrefix}-${index}`, recovery),
         structuralPosition: "IN_TOUR" as const,
-        name: `Exercice ${index}`,
+        // PRE-7 (R-3, C01) : nom unique par Mouvement, y compris entre Séances.
+        name: `Exercice ${idPrefix} ${index}`,
         executionParameters: durationParameters(30, 4, 10),
       })),
       ...overrides,
     };
   }
 
+  // PRE-7 (R-3, C05) : chaque Exercice du brouillon est une création locale (Mouvement `NEW`).
   async function create(source: SessionDraft): Promise<Session> {
-    const input = toCreateSessionInput(source);
+    const input = toCreateSessionInput(withLocalMovements(source));
     if (!input.ok) throw new Error(`invalid draft: ${JSON.stringify(input.violations)}`);
     return repository().create(input.value);
   }
@@ -2935,7 +3005,7 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
     expect(await database.getAllAsync("SELECT nature, repeat_count FROM tours")).toEqual([{ nature: "SERIES", repeat_count: 4 }]);
     const redrafted = toSessionDraft(reread!);
     expect(redrafted.circuitNature).toBe("SERIES");
-    expect(sessionDraftsEqual(redrafted, draft([null], { circuitNature: "SERIES" }))).toBe(true);
+    expect(sessionDraftsEqual(redrafted, withLocalMovements(draft([null], { circuitNature: "SERIES" })))).toBe(true);
   });
 
   it("sans nature explicite, la Séance est un Circuit de Tours", async () => {
@@ -3004,7 +3074,7 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
   });
 
   it("nature invalide : SessionValidationError (UNRECOGNIZED sur session.circuitNature), rien n'est écrit", async () => {
-    const input = toCreateSessionInput(draft([null], { circuitNature: "SERIES" }));
+    const input = toCreateSessionInput(withLocalMovements(draft([null], { circuitNature: "SERIES" })));
     if (!input.ok) throw new Error("invalid draft");
 
     await expect(
@@ -3012,6 +3082,7 @@ describe("SqliteSessionRepository — PRE6-1.1 nature du Circuit et récupérati
     ).rejects.toMatchObject({ violations: [{ code: "UNRECOGNIZED", field: "session.circuitNature" }] });
     expect(await database.getAllAsync("SELECT id FROM sessions")).toEqual([]);
     expect(await database.getAllAsync("SELECT id FROM tours")).toEqual([]);
+    expect(await database.getAllAsync("SELECT id FROM movements")).toEqual([]);
   });
 
   it("relecture défensive : nature inconnue ou présence incohérente en base → contrat d'agrégat refusé", async () => {
@@ -3063,7 +3134,7 @@ describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
   });
 
   it("Séries : liste, lecture complète et Composition donnent la même durée (passages : 255 s + 60 s hors Circuit)", async () => {
-    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const repository = new ViewedSessionRepository(database, () => randomUUID());
     const created = await repository.create(seriesInput("SERIES"));
 
     const summary = (await repository.listActive()).find((item) => item.id === created.id);
@@ -3075,7 +3146,7 @@ describe("PRE6-1.3 — durée selon la nature du Circuit", () => {
   });
 
   it("Tours : durée de liste inchangée (contenu interne × N)", async () => {
-    const repository = new SqliteSessionRepository(database, () => randomUUID());
+    const repository = new ViewedSessionRepository(database, () => randomUUID());
     const created = await repository.create(seriesInput("TOURS"));
     const summary = (await repository.listActive()).find((item) => item.id === created.id);
     const reopened = await repository.findById(created.id);

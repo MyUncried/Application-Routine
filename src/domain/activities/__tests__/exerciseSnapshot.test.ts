@@ -53,6 +53,7 @@ function canonical(): ExecutionParameters {
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     },
     sideMode: "RIGHT_LEFT",
     sideOrder: "BY_SERIES",
@@ -67,6 +68,7 @@ function canonical(): ExecutionParameters {
 describe("P3-18/copy-complete — instantané complet et immuable", () => {
   it("paramètres, Catégorie, médias ordonnés et métadonnées ; même fichier physique", () => {
     const source = {
+      sourceMovementId: "mov-1",
       name: "Squats sautés",
       categoryId: "renforcement",
       bodyZoneIds: ["cuisses", "fessiers"],
@@ -88,6 +90,7 @@ describe("P3-18/copy-complete — instantané complet et immuable", () => {
     const parameters = canonical();
     const media = [{ asset: { ...photo } }];
     const snapshot = createExerciseSnapshot({
+      sourceMovementId: "mov-1",
       name: "A",
       categoryId: null,
       bodyZoneIds: ["z"],
@@ -113,6 +116,7 @@ describe("P3-18/copy-complete — instantané complet et immuable", () => {
 describe("P3-18/historical-immutability et P3-15/no-storage", () => {
   it("la durée réalisée reste inchangée ; aucune phrase/segment sérialisé ; la phrase se régénère", () => {
     const snapshot = createExerciseSnapshot({
+      sourceMovementId: "mov-1",
       name: "Gainage",
       categoryId: "c",
       bodyZoneIds: [],
@@ -142,6 +146,7 @@ describe("P3-18/historical-immutability et P3-15/no-storage", () => {
 describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
   it("PRE4-1.1/AC2, PRE5-1.1/AC11 — un nouvel Instantané est en version 3, paramètres typés sérialisés en v3 (AD-18)", () => {
     const snapshot = createExerciseSnapshot({
+      sourceMovementId: "mov-1",
       name: "Gainage",
       categoryId: null,
       bodyZoneIds: [],
@@ -153,7 +158,8 @@ describe("PRE-4 story 1.1 — Instantanés versionnés (AD-3)", () => {
     expect(EXERCISE_SNAPSHOT_VERSION).toBe(3);
     const raw = JSON.parse(serializeExerciseSnapshot(snapshot));
     expect(raw.snapshotVersion).toBe(3);
-    expect(raw.executionParameters.version).toBe(3);
+    // PRE-7 (D-446, R-2) : paramètres sérialisés dans la version courante, v5.
+    expect(raw.executionParameters.version).toBe(5);
     expect(raw.executionParameters.series.rows[0]).toEqual({ target: { kind: "NUMBER", value: 30 }, pauseSeconds: 10, loadKg: 0 });
     expect(parseExerciseSnapshot(serializeExerciseSnapshot(snapshot))).toEqual(snapshot);
   });
@@ -300,12 +306,14 @@ describe("PRE-4 story 1.3 — Instantanés", () => {
           { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(45), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       cadenceBeepIntervalSeconds: 2,
     };
     const third: MediaAsset = { ...photo, id: "asset-third", uri: "kodjo-media/asset-third.jpg" };
     const copy = {
+      sourceMovementId: "mov-1",
       name: "Fentes",
       categoryId: "renforcement",
       bodyZoneIds: ["cuisses", "fessiers"],
@@ -361,7 +369,7 @@ describe("PRE-5 story 1.1 — Instantanés v3 (AD-18, FR-41)", () => {
 
   it("PRE5-1.1/AC11 — phases (identités comprises) et charge sous Sans traversent l'Instantané v3 ; une copie isolée de la source", () => {
     const source = loaded();
-    const snapshot = createExerciseSnapshot({ name: "Squat", categoryId: null, bodyZoneIds: [], executionParameters: source, recoverySeconds: 0, media: [] });
+    const snapshot = createExerciseSnapshot({ sourceMovementId: "mov-1", name: "Squat", categoryId: null, bodyZoneIds: [], executionParameters: source, recoverySeconds: 0, media: [] });
     const reread = parseExerciseSnapshot(serializeExerciseSnapshot(snapshot));
     expect(reread.executionParameters).toEqual(loaded());
     (source.series as unknown as { workPhases: { label: string }[] }).workPhases[0]!.label = "Modifiée";
@@ -405,7 +413,7 @@ describe("PRE-5 story 1.1 — Instantanés v3 (AD-18, FR-41)", () => {
 
   it("PRE5-1.1/AC11 — paramètres v3 incomplets dans une enveloppe : erreur explicite de l'Instantané", () => {
     const raw = JSON.parse(
-      serializeExerciseSnapshot(createExerciseSnapshot({ name: "x", categoryId: null, bodyZoneIds: [], executionParameters: loaded(), recoverySeconds: 0, media: [] })),
+      serializeExerciseSnapshot(createExerciseSnapshot({ sourceMovementId: "mov-1", name: "x", categoryId: null, bodyZoneIds: [], executionParameters: loaded(), recoverySeconds: 0, media: [] })),
     ) as { executionParameters: Record<string, unknown> };
     delete raw.executionParameters.loadEnabled;
     expect(() => parseExerciseSnapshot(JSON.stringify(raw))).toThrow(ExerciseSnapshotDataError);

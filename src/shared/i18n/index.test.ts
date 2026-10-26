@@ -680,7 +680,7 @@ describe("strings — PRE-5 story 2.4", () => {
     const sheet = strings.executionParameters.sheet;
     expect(sheet.mode).toBe("Mode");
     expect(sheet.stopCondition).toBe("Condition d’arrêt");
-    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" });
+    expect(sheet.stopConditions).toEqual({ FAILURE: "À l’échec", TARGET: "À l’objectif", MIXED: "À l’objectif et à l’échec" });
     // Recette du 20/10 (RC-15) : la ligne « Nombre de séries » est retirée.
     expect("seriesCount" in sheet).toBe(false);
     // Recette du 20/10 (RC-17) : la ligne du segmenté « Variables | Identiques » s'intitule « Séries ».
@@ -723,7 +723,6 @@ describe("strings — PRE-5 story 2.5", () => {
       expect(label.length).toBeGreaterThan(0);
     }
     // Recette du 19/10 (RC-6) : menu de l'Enchainement dans l'option Avec, chevron de repli retiré.
-    expect(sheet.sideSequenceCancel).toBe("Annuler");
     for (const removed of ["showSideSettings", "hideSideSettings", "sideModes", "sideModeOptions", "sideOrder", "beep", "beepNone", "total", "totalEstimated", "totalEditAccessibilityLabel"]) {
       expect({ removed, present: removed in sheet }).toEqual({ removed, present: false });
     }

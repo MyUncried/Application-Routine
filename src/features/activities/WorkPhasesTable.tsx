@@ -32,9 +32,16 @@ import { colors } from "@/shared/ui/tokens";
  * Brouillon ni ses transitions. Les phases sont désignées par leur IDENTITÉ (`id`), jamais par
  * leur rang : le libellé suit sa phase lors d'un déplacement (`moveWorkPhase`).
  *
- * Croix (QR-1 validée par Hermann le 19/10) : indisponible à deux phases (état exposé, RM-247),
- * le retour à « Aucune » passant par Sans ; comme pour les séries, un appui pendant qu'une
- * surface est ouverte la range sans retirer (`removalActive`, décidé par la Feuille).
+ * Croix : PRE-7 (A2.1, D-438, qui remplace D-371 et D-432 pour le retrait ; QR-1, croix indisponible à deux, en découlait) — disponible dès deux
+ * phases ; le retrait de l'avant-dernière donne Sans, la Cible étant conservée (D-446, transition du
+ * domaine `removeWorkPhase`). Une phase seule relue des données n'a pas de croix
+ * disponible (Sans reste le geste). Comme pour les séries, un appui pendant qu'une surface est
+ * ouverte la range sans retirer (`removalActive`, décidé par la Feuille).
+ *
+ * Structure verrouillée (PRE-7 A2.1, D-438, MFN-09, CE-UI-10 : occurrence de Séance,
+ * `structureLocked`) : croix et poignées indisponibles (états existants, `unselected`), sans
+ * glisser ni actions Monter / Descendre ; les cellules restent fournies par la Feuille, qui garde
+ * les durées modifiables. Aucun rendu Figma dédié : `NON VÉRIFIABLE` (ch13).
  *
  * Géométrie (Figma `9207:18817`, lecture seule) en constantes locales nommées, `tokens.ts`
  * inchangé (NFR-3) : cellules Libellé et Durée de 76 × 24, écart de 20 entre elles ; mêmes
@@ -75,6 +82,7 @@ export function WorkPhasesTable({
   onDraggingChange,
   cell,
   bleed,
+  structureLocked = false,
   style,
 }: {
   phases: readonly DraftWorkPhase[];
@@ -89,6 +97,8 @@ export function WorkPhasesTable({
   cell: (kind: WorkPhaseCellKind, phaseId: number, number: number) => ReactNode;
   /** Débord du cadre de découpe dans la marge du groupe (bloc à 8 du contour du cadre). */
   bleed: number;
+  /** PRE-7 (A2.1, D-438) : structure verrouillée (occurrence) — ni retrait ni déplacement. */
+  structureLocked?: boolean;
   style?: StyleProp<ViewStyle>;
 }) {
   // Repère d'insertion pendant le glisser (T-15), comme le tableau des séries.
@@ -132,6 +142,7 @@ export function WorkPhasesTable({
                 setLiftedPhase((current) => (lifted ? phase.id : current === phase.id ? null : current))
               }
               clip={!unclipped}
+              structureLocked={structureLocked}
               cell={(kind) => cell(kind, phase.id, index + 1)}
             />
           </Fragment>
@@ -155,6 +166,7 @@ function WorkPhaseRow({
   lifted,
   onLiftedChange,
   clip,
+  structureLocked,
   cell,
 }: {
   index: number;
@@ -168,6 +180,7 @@ function WorkPhaseRow({
   lifted: boolean;
   onLiftedChange: (lifted: boolean) => void;
   clip: boolean;
+  structureLocked: boolean;
   cell: (kind: WorkPhaseCellKind) => ReactNode;
 }) {
   const number = index + 1;
@@ -199,6 +212,7 @@ function WorkPhaseRow({
         onLiftedChange={onLiftedChange}
         labels={PHASE_ROW_LABELS}
         testIDPrefix={PHASE_ROW_TEST_ID}
+        movable={!structureLocked}
       >
         <View style={styles.column} testID={`${testID}-label-cell`}>
           {cell("phaseLabel")}
@@ -211,8 +225,9 @@ function WorkPhaseRow({
         <RemoveRowButton
           accessibilityLabel={t.removePhase.replace("{n}", String(number))}
           closesFieldHint={t.removePhaseClosesFieldHint}
-          // QR-1 : croix indisponible au minimum du contrôle (deux phases).
-          disabled={count <= WORK_PHASE_LIMITS.controlMinCount}
+          // PRE-7 (A2.1, D-438) : croix disponible dès deux phases (2 → Sans), indisponible pour une
+          // phase seule relue des données et sous structure verrouillée (occurrence).
+          disabled={structureLocked || count < WORK_PHASE_LIMITS.controlMinCount}
           active={removalActive}
           onPress={() => onRemove(phaseId)}
           testID={`${testID}-remove`}

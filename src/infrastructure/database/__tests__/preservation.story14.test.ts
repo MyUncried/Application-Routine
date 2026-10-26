@@ -12,6 +12,7 @@ import {
 import {
   allTargetsFailure,
   projectScalars,
+  readExecutionParameters,
   readV2,
   serializeV2,
   type ExecutionParameters,
@@ -28,9 +29,10 @@ import type { Session } from "@/domain/sessions/Session";
 import { createEmptyDraft, toCreateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
 import type { Database } from "@/infrastructure/database/Database";
+import { DATABASE_VERSION, STANDARD_PRAGMAS } from "@/infrastructure/database/constants";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
+import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
-import { SqliteMediaRepository } from "@/infrastructure/database/repositories/SqliteMediaRepository";
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion9 } from "@/infrastructure/database/testing/buildVersion9";
@@ -702,12 +704,18 @@ async function orphanLinks(database: Database): Promise<number> {
 }
 
 /**
- * Chemin réel du démarrage : `initializeDatabase` (pragmas `STANDARD_PRAGMAS`,
- * dont `foreign_keys = ON` et `journal_mode = WAL`, puis `migrateDatabase`).
- * L'avis est daté par l'horloge réelle, comme sur l'appareil.
+ * Chemin réel du démarrage : pragmas `STANDARD_PRAGMAS` (dont
+ * `foreign_keys = ON` et `journal_mode = WAL`), puis `migrateDatabase`.
+ * L'avis est daté par l'horloge réelle, comme sur l'appareil. PRE-7 (A1.2) :
+ * ces preuves portent sur `migration010` ; la chaîne est arrêtée à la version
+ * 11, avant la transition de `migration012` (la chaîne complète par
+ * `initializeDatabase` est prouvée par « PRE-7 A1.2 — chaîne v9 → 12 »).
  */
 async function migrateLikeStartup(database: Database): Promise<void> {
-  await initializeDatabase(database);
+  for (const pragma of STANDARD_PRAGMAS) {
+    await database.execAsync(pragma);
+  }
+  await migrateDatabase(database, undefined, 11);
   expect(await database.getFirstAsync("PRAGMA foreign_keys")).toEqual({ foreign_keys: 1 });
   expect(await database.getFirstAsync("PRAGMA journal_mode")).toEqual({ journal_mode: "wal" });
 }
@@ -862,19 +870,42 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     ).toEqual({ count: 0 });
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
 
-    // Relecture par les repositories de la base rouverte.
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    expect((await definitions.listAll()).map((item) => item.id).sort()).toEqual(DEFINITIONS.map((item) => item.id).sort());
-    const failure = await definitions.findById("def-fail-uniform");
-    expect(failure?.executionParameters).toEqual(EXPECTED_PARAMETERS["def-fail-uniform"]);
-    expect(failure?.media?.map((item) => item.assetId)).toEqual(["asset-p2", "asset-p1"]);
-    expect([...(failure?.bodyZoneIds ?? [])].sort()).toEqual(["bras", "dos"]);
-    const sessions = new SqliteSessionRepository(database, ids("ses"));
-    const sessionA = await sessions.findById("session-a");
-    expect(sessionA?.cycle.tour.exercises.map((item) => item.id)).toEqual(["a-tour-0", "a-tour-1", "a-tour-2"]);
-    expect(sessionA?.cycle.tour.exercises[0]?.media?.map((item) => item.assetId)).toEqual(["asset-shared", "asset-p2"]);
-    expect((await sessions.listActive()).map((item) => item.id).sort()).toEqual(["session-a", "session-b"]);
-    expect(await sessions.findSessionStatus("session-c")).toBe("ARCHIVED");
+    // Relecture de la base rouverte. PRE-7 (A1.2) : les repositories courants lisent le schéma
+    // 012 ; la base v11 est relue en lignes brutes, paramètres par le lecteur v2/v3 du domaine.
+    expect((await database.getAllAsync<{ id: string }>("SELECT id FROM activity_definitions")).map((row) => row.id).sort()).toEqual(
+      DEFINITIONS.map((item) => item.id).sort(),
+    );
+    const failureJson = (await database.getFirstAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activity_definitions WHERE id = 'def-fail-uniform'",
+    ))!.execution_parameters;
+    expect(readExecutionParameters(failureJson)).toEqual(EXPECTED_PARAMETERS["def-fail-uniform"]);
+    expect(
+      await database.getAllAsync("SELECT asset_id FROM activity_media WHERE activity_definition_id = 'def-fail-uniform' ORDER BY position"),
+    ).toEqual([{ asset_id: "asset-p2" }, { asset_id: "asset-p1" }]);
+    expect(
+      (await database.getAllAsync<{ body_zone_id: string }>(
+        "SELECT body_zone_id FROM activity_definition_body_zones WHERE activity_definition_id = 'def-fail-uniform'",
+      ))
+        .map((row) => row.body_zone_id)
+        .sort(),
+    ).toEqual(["bras", "dos"]);
+    expect(
+      await database.getAllAsync("SELECT id FROM activities WHERE session_id = 'session-a' AND structural_position = 'IN_TOUR' ORDER BY position"),
+    ).toEqual([{ id: "a-tour-0" }, { id: "a-tour-1" }, { id: "a-tour-2" }]);
+    expect(await database.getAllAsync("SELECT asset_id FROM session_activity_media WHERE activity_id = 'a-tour-0' ORDER BY position")).toEqual([
+      { asset_id: "asset-shared" },
+      { asset_id: "asset-p2" },
+    ]);
+    for (const row of await database.getAllAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activities WHERE type = 'EXERCISE'",
+    )) {
+      expect(readExecutionParameters(row.execution_parameters).mode).not.toBe("TO_FAILURE");
+    }
+    expect(await database.getAllAsync("SELECT id FROM sessions WHERE status = 'ACTIVE' ORDER BY id")).toEqual([
+      { id: "session-a" },
+      { id: "session-b" },
+    ]);
+    expect(await database.getFirstAsync("SELECT status FROM sessions WHERE id = 'session-c'")).toEqual({ status: "ARCHIVED" });
     expect(await new SqliteMigrationNoticeRepository(database).findUnacknowledged()).toBeNull();
   });
 
@@ -971,14 +1002,17 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
       { id: 1, kind: "UNREADABLE_EXERCISES_DROPPED", count: 4, created_at: expect.any(String), acknowledged_at: null },
     ]);
     expect(new Date(notices[0]!.created_at as string).toISOString()).toBe(notices[0]!.created_at);
-    // Médias partagés toujours lisibles depuis l'Exercice lisible (repository des Médias).
-    const media = new SqliteMediaRepository(database);
-    expect((await media.listForActivityDefinition("def-duration-variable")).map((item) => item.assetId)).toEqual(["asset-shared", "asset-v1", "asset-p1"]);
-    expect(await media.findAsset("asset-only-unreadable")).not.toBeNull();
-    // La Séance vidée se relit par le repository.
-    const emptied = await new SqliteSessionRepository(database, ids("ses")).findById("session-d");
-    expect(emptied?.id).toBe("session-d");
-    expect(emptied?.cycle.tour.exercises).toEqual([]);
+    // Médias partagés toujours présents pour l'Exercice lisible (ordre vérifié ci-dessus) ;
+    // l'asset dont seul un illisible se servait est conservé. PRE-7 (A1.2) : lignes brutes.
+    expect(await database.getFirstAsync("SELECT id FROM media_assets WHERE id = 'asset-only-unreadable'")).toEqual({
+      id: "asset-only-unreadable",
+    });
+    // La Séance vidée garde son en-tête (Cycle, Circuit) sans occurrence.
+    expect(
+      await database.getFirstAsync(
+        "SELECT sessions.id, tours.id AS tour_id FROM sessions JOIN tours ON tours.session_id = sessions.id WHERE sessions.id = 'session-d'",
+      ),
+    ).toEqual({ id: "session-d", tour_id: expect.any(String) });
   });
 
   it.each([
@@ -1030,11 +1064,39 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     expect(await database.getAllAsync("SELECT count FROM migration_notices")).toEqual([{ count: 4 }]);
   });
 
-  it("PRE4-1.4/AC5 — Définition et Séance enregistrées (Cibles mixtes, Médias ordonnés) sur la base migrée, relues égales par une nouvelle connexion", async () => {
+  /**
+   * PRE-7 (A1.2, D-440 assouplie) : chaîne complète v9 → 12 par le chemin du
+   * démarrage (`initializeDatabase`). Les Exercices et Séances de la v9 sont
+   * supprimés une seule fois avec un avis ; Profil, Catégories (personnelle
+   * comprise), Zones (personnelle comprise) et Étiquettes conservés. Une
+   * Définition et une Séance enregistrées ensuite (Cibles mixtes, Médias
+   * ordonnés, référentiels personnels) sont relues égales par une nouvelle
+   * connexion.
+   */
+  it("PRE4-1.4/AC5, PRE-7 A1.2 — chaîne v9 → 12 : Définition et Séance enregistrées (Cibles mixtes, Médias ordonnés) sur la base migrée, relues égales par une nouvelle connexion", async () => {
     let database = open();
     await populateVersion9(database);
-    await migrateLikeStartup(database);
+    const kept = async (db: Database) => ({
+      profiles: await db.getAllAsync("SELECT * FROM profiles"),
+      categories: await db.getAllAsync("SELECT * FROM categories ORDER BY id"),
+      bodyZones: await db.getAllAsync("SELECT * FROM body_zones ORDER BY id"),
+      labels: await db.getAllAsync("SELECT * FROM labels ORDER BY id"),
+    });
+    const referentials = await kept(database);
+    const exercises = (await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM activity_definitions"))!.count;
+    const sessionsBefore = (await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM sessions"))!.count;
+    await initializeDatabase(database);
     database = reopen(database);
+
+    // PRE-7 (R-3) : le démarrage enchaîne `migration013` (aucun second avis : 012 a tout vidé).
+    expect(await version(database)).toBe(DATABASE_VERSION);
+    expect(await kept(database)).toEqual(referentials);
+    for (const table of ["activity_definitions", "movements", "sessions", "activities", "media_assets", "movement_media"]) {
+      expect({ table, rows: await database.getAllAsync(`SELECT * FROM ${table}`) }).toEqual({ table, rows: [] });
+    }
+    expect(await database.getAllAsync("SELECT kind, count FROM migration_notices")).toEqual([
+      { kind: "EXERCISES_AND_SESSIONS_RESET", count: exercises + sessionsBefore },
+    ]);
 
     const mixed = variableParameters({
       mode: "DURATION",
@@ -1050,42 +1112,49 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
       countdownSeconds: 3,
       endSeconds: 4,
     });
-    const newAsset: MediaAsset = {
-      id: "asset-new",
-      uri: "kodjo-media/asset-new",
+    const asset = (id: string, kind: "PHOTO" | "VIDEO"): MediaAsset => ({
+      id,
+      uri: `kodjo-media/${id}`,
       createdAt: "2026-10-16T10:00:00.000Z",
-      kind: "VIDEO",
-      mimeType: "video/mp4",
+      kind,
+      mimeType: kind === "VIDEO" ? "video/mp4" : "image/jpeg",
       fileName: null,
       sizeBytes: 10,
-      durationMs: 1000,
+      durationMs: kind === "VIDEO" ? 1000 : null,
       width: null,
       height: null,
+    });
+    const definitionOf = async (input: CreateActivityDefinitionInput): Promise<ActivityDefinition> => {
+      const validated = validateActivityDefinitionInput(input);
+      if (!validated.ok) {
+        throw new Error(JSON.stringify(validated.violations));
+      }
+      return new SqliteActivityDefinitionRepository(database, ids("def")).create(validated.value);
     };
-    const input: CreateActivityDefinitionInput = {
+    const created = await definitionOf({
       name: "Fentes alternées",
       description: "Genou au sol",
       category: { kind: "EXISTING", categoryId: "cat-custom" },
       bodyZoneIds: ["cuisses", "zone-custom"],
       executionParameters: mixed,
-      // Un nouveau Média entre deux Médias migrés, référencés sans être recopiés.
-      media: [{ assetId: "asset-p2" }, { assetId: "asset-new", asset: newAsset }, { assetId: "asset-shared" }],
-    };
-    const validated = validateActivityDefinitionInput(input);
-    if (!validated.ok) {
-      throw new Error(JSON.stringify(validated.violations));
-    }
-    const created = await new SqliteActivityDefinitionRepository(database, ids("def")).create(validated.value);
-
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    const migratedFailure = (await definitions.findById("def-fail-uniform"))!;
+      media: [
+        { assetId: "asset-a", asset: asset("asset-a", "PHOTO") },
+        { assetId: "asset-new", asset: asset("asset-new", "VIDEO") },
+        { assetId: "asset-b", asset: asset("asset-b", "PHOTO") },
+      ],
+    });
+    const failure = await definitionOf({
+      name: "Tractions",
+      description: null,
+      category: { kind: "EXISTING", categoryId: "cardio" },
+      bodyZoneIds: ["dos"],
+      executionParameters: EXPECTED_PARAMETERS["def-fail-uniform"]!,
+      media: [{ assetId: "asset-b" }],
+    });
     const draft: SessionDraft = {
       ...createEmptyDraft(),
-      name: "Séance PRE-4",
-      exercises: [
-        activityDefinitionToDraftExercise(created, "occ-new-1", 0),
-        activityDefinitionToDraftExercise(migratedFailure, "occ-new-2", 0),
-      ],
+      name: "Séance PRE-7",
+      exercises: [activityDefinitionToDraftExercise(created, "occ-new-1", 0), activityDefinitionToDraftExercise(failure, "occ-new-2", 0)],
     };
     const sessionInput = toCreateSessionInput(draft);
     if (!sessionInput.ok) {
@@ -1097,35 +1166,29 @@ describe("PRE-4 story 1.4 — preuve de préservation sur une base v9 fichier r�
     const rereadDefinition: ActivityDefinition | null = await new SqliteActivityDefinitionRepository(database, ids("def")).findById(created.id);
     expect(rereadDefinition).toEqual(created);
     expect(rereadDefinition?.executionParameters).toEqual(mixed);
-    expect(rereadDefinition?.name).toBe("Fentes alternées");
-    expect(rereadDefinition?.description).toBe("Genou au sol");
     expect(rereadDefinition?.categoryId).toBe("cat-custom");
     expect([...(rereadDefinition?.bodyZoneIds ?? [])].sort()).toEqual(["cuisses", "zone-custom"]);
     expect(rereadDefinition?.media?.map((item) => [item.position, item.assetId])).toEqual([
-      [0, "asset-p2"],
+      [0, "asset-a"],
       [1, "asset-new"],
-      [2, "asset-shared"],
+      [2, "asset-b"],
     ]);
-    expect(rereadDefinition?.media?.[1]?.asset).toEqual(newAsset);
 
     const rereadSession: Session | null = await new SqliteSessionRepository(database, ids("ses")).findById(session.id);
     const copies = [...(rereadSession?.cycle.beforeTour ?? []), ...(rereadSession?.cycle.tour.exercises ?? []), ...(rereadSession?.cycle.afterTour ?? [])];
-    expect(rereadSession?.name).toBe("Séance PRE-4");
-    // Zone et position relues : une copie entre avant le Circuit, dans l'ordre du brouillon.
-    expect(copies.map((item) => [item.id, item.structuralPosition, item.position])).toEqual([
-      ["occ-new-1", "BEFORE_TOUR", 0],
-      ["occ-new-2", "BEFORE_TOUR", 1],
+    expect(copies.map((item) => [item.id, item.structuralPosition, item.position, item.sourceMovementId])).toEqual([
+      ["occ-new-1", "BEFORE_TOUR", 0, created.movementId],
+      ["occ-new-2", "BEFORE_TOUR", 1, failure.movementId],
     ]);
     expect(copies.map((item) => item.executionParameters)).toEqual([mixed, EXPECTED_PARAMETERS["def-fail-uniform"]]);
-    expect(copies.map((item) => item.media?.map((media) => media.assetId))).toEqual([
-      ["asset-p2", "asset-new", "asset-shared"],
-      ["asset-p2", "asset-p1"],
-    ]);
-    // Les données migrées restent intactes à côté des nouvelles écritures.
-    expect((await new SqliteActivityDefinitionRepository(database, ids("def")).findById("def-reps-150"))?.executionParameters).toEqual(
-      EXPECTED_PARAMETERS["def-reps-150"],
-    );
+    expect(copies.map((item) => item.media?.map((media) => media.assetId))).toEqual([["asset-a", "asset-new", "asset-b"], ["asset-b"]]);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+
+    // Relance : aucune réinitialisation, aucun nouvel avis.
+    await initializeDatabase(database);
+    database = reopen(database);
+    expect(await new SqliteSessionRepository(database, ids("ses")).findById(session.id)).toEqual(rereadSession);
+    expect(await database.getAllAsync("SELECT kind FROM migration_notices")).toEqual([{ kind: "EXERCISES_AND_SESSIONS_RESET" }]);
   });
 });
 

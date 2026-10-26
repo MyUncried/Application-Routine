@@ -29,7 +29,7 @@ import {
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 15, loadKg: 20, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -45,7 +45,7 @@ function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPar
 
 const variable = (loads: number[]) =>
   params({
-    series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+    series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
   });
 
 describe("PRE5-2.2 — ordre de navigation des champs de charge (FR-25)", () => {
@@ -131,7 +131,7 @@ describe("D-434 — champs clavier des cellules du tableau des séries", () => {
       params({
         mode,
         loadEnabled,
-        series: { kind: "VARIABLE", rows: targets.map((target, index) => ({ target, pauseSeconds: 10 * index, loadKg: 0 })) },
+        series: { kind: "VARIABLE", rows: targets.map((target, index) => ({ target, pauseSeconds: 10 * index, loadKg: 0 })), workPhases: [] },
       }),
     );
 
@@ -261,17 +261,20 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     expect(phaseDurationEditText(draft, 99)).toBe("");
   });
 
-  it("sortie de la durée : 1,7,5 → 135 s ; 9999 → 3535 s ; 0 → 1 s ; vidée → à renseigner ; D redérivée ; inchangée → Brouillon tel quel", () => {
+  it("sortie de la durée : 1,7,5 → 135 s ; 9999 → 3535 s ; 0 → 0 s (D-448, point 6, remplace 0 → 1 s) ; vidée → à renseigner ; D inchangée (D-446) ; inchangée → Brouillon tel quel", () => {
     const draft = phased();
     const durationOf = (next: typeof draft, id: number) => next.workPhases.find((phase) => phase.id === id)!.durationSeconds;
     const edited = applyPhaseDurationEdit(draft, 4, "175");
     expect(durationOf(edited, 4)).toBe(135);
-    expect(edited.uniform.target).toEqual(numberTarget(144));
+    // PRE-7 (D-446) : la durée de série n'est plus redérivée de la somme des phases.
+    expect(edited.uniform.target).toEqual(numberTarget(74));
     expect(durationOf(applyPhaseDurationEdit(draft, 4, "9999"), 4)).toBe(3535);
-    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(1);
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(0);
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0000"), 4)).toBe(0);
     const emptied = applyPhaseDurationEdit(draft, 4, "");
     expect(durationOf(emptied, 4)).toBeNull();
-    expect(emptied.uniform.target).toEqual(numberTarget(9));
+    // PRE-7 (D-446, remplace A2.1) : D inchangée quand une durée manque.
+    expect(emptied.uniform.target).toEqual(numberTarget(74));
     expect(applyPhaseDurationEdit(draft, 4, "105")).toBe(draft);
     expect(applyPhaseDurationEdit(draft, 99, "30")).toBe(draft);
   });

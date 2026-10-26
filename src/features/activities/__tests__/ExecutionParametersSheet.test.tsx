@@ -1,4 +1,4 @@
-import { Button as SwiftUIButton, Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
+import { Host, Menu, Popover, RNHostView } from "@expo/ui/swift-ui";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { AccessibilityInfo, Alert, Keyboard, Modal, Platform, StyleSheet, Switch, TextInput } from "react-native";
@@ -58,7 +58,7 @@ import {
   TABLE_ROW_HEIGHT as SHARED_TABLE_ROW_HEIGHT,
   tableRowIdentity as sharedTableRowIdentity,
 } from "@/features/activities/sheetTable";
-import { keyboardBarCompact, keyboardBarLift } from "@/features/activities/KeyboardAccessoryBar";
+import { keyboardBarCompact, keyboardBarLift, keyboardBarSlotWidth } from "@/features/activities/KeyboardAccessoryBar";
 import { strings } from "@/shared/i18n";
 import { InlineStepper } from "@/shared/ui/ProfileStepper";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
@@ -75,7 +75,7 @@ jest.mock("expo-haptics", () => ({ selectionAsync: jest.fn(async () => undefined
 
 function params(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -96,6 +96,7 @@ const variableRows = (rows: [number | null, number][]) => ({
     pauseSeconds,
     loadKg: 0,
   })),
+  workPhases: [],
 });
 
 function renderSheetView(
@@ -197,9 +198,13 @@ function modeText(): string {
 const SIDE_CONTROL = "execution-sheet-side-control";
 /**
  * Recette du 19/10 (RC-6) : plus de ligne « Enchainement » ; l'option Avec sélectionnée (N > 1)
- * porte la notation et ouvre le menu natif (`Menu` d'`@expo/ui` sur iOS, `Alert` ailleurs).
+ * porte la notation et ouvre [remplacé par PRE-7 B.3 (B5, D-447) : le déroulant `ORDER_PANEL`,
+ * toutes plates-formes, par un déclencheur React Native de taille fixe] le menu natif (`Menu`
+ * d'`@expo/ui` sur iOS, `Alert` ailleurs).
  */
 const ORDER_MENU = "execution-sheet-side-order-menu";
+/** PRE-7 B.3 (B5) : déroulant de l'Enchainement (`AnchoredPanel`), à la place du menu natif et de l'`Alert`. */
+const ORDER_PANEL = "execution-sheet-side-order-panel";
 const CADENCE_CONTROL = "execution-sheet-cadence-control";
 const DURATION_DISCLOSURE = "execution-sheet-duration-disclosure";
 const chooseSide = chooseExecutionSide;
@@ -221,29 +226,14 @@ function orderText(): string {
   return order === undefined ? "—" : strings.executionParameters.sheet.sideOrders[order];
 }
 /**
- * Choisit l'Enchainement par son nom accessible, dans le menu de l'option Avec : bouton SwiftUI
- * du `Menu` natif sur iOS (événement natif `buttonPress`, le menu lui-même n'étant pas
- * simulable sous Jest), option de l'`Alert` ailleurs.
+ * Choisit l'Enchainement par son nom accessible, dans le déroulant de l'option Avec (PRE-7 B.3,
+ * B5 : toutes plates-formes) : toucher du déclencheur, puis de la rangée.
  */
 function chooseOrder(label: string) {
   const order = SIDE_ORDER_VALUES.find((value) => strings.executionParameters.sheet.sideOrders[value] === label);
   if (order === undefined) throw new Error(`Enchainement inconnu « ${label} »`);
-  if (Platform.OS === "ios") {
-    act(() => {
-      fireEvent(screen.getByTestId(`${ORDER_MENU}-${order}`, anyNode), "buttonPress");
-    });
-    return;
-  }
-  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
-  try {
-    fireEvent.press(screen.getByTestId(ORDER_MENU));
-    const buttons = alert.mock.calls[0]?.[2] ?? [];
-    const button = buttons.find((candidate) => candidate.text === strings.executionParameters.sheet.sideOrderSubtitles[order]);
-    if (!button) throw new Error(`Enchainement « ${label} » absent de l'alerte`);
-    act(() => button.onPress?.());
-  } finally {
-    alert.mockRestore();
-  }
+  fireEvent.press(screen.getByTestId(ORDER_MENU));
+  fireEvent.press(screen.getByTestId(`${ORDER_MENU}-${order}`));
 }
 /** Option affichée de la Cadence (« Autre », « 1 s », « Sans » ; RC-10), ou « — ». */
 function cadenceText(): string {
@@ -1236,16 +1226,20 @@ describe("ExecutionParametersSheet — D-341 / X-1 (12/10)", () => {
       expect(order.props.accessibilityLabel).toBe("Enchainement");
       expect(order.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
       expect(screen.getByTestId(`${SIDE_CONTROL}-WITH`).props.accessibilityLabel).toBe("Avec, Un côté après l’autre");
-      // Ailleurs qu'iOS, le menu est une `Alert` native : deux notations exactes, puis Annuler.
+      // PRE-7 B.3 (B5, arbitrage A3) : ailleurs qu'iOS aussi, le déroulant de l'Enchainement
+      // (plus d'`Alert`) : deux notations exactes, nommé « Enchainement », rôle menu.
       const alert = jest.spyOn(Alert, "alert").mockImplementation(() => undefined);
       try {
         fireEvent.press(order);
-        expect(alert.mock.calls[0]?.[0]).toBe("Enchainement");
-        expect((alert.mock.calls[0]?.[2] ?? []).map((button) => [button.text, button.style ?? "default"])).toEqual([
-          ["(D1 → D2) ➜ (G1 → G2)", "default"],
-          ["(D1 → G1) ➜ (D2 → G2)", "default"],
-          ["Annuler", "cancel"],
+        expect(alert).not.toHaveBeenCalled();
+        const menu = within(screen.getByTestId(ORDER_PANEL)).getByTestId(`${ORDER_MENU}-menu`);
+        expect(menu.props.accessibilityRole).toBe("menu");
+        expect(menu.props.accessibilityLabel).toBe("Enchainement");
+        expect(within(menu).getAllByRole("menuitem").map((row) => within(row).getByText(/➜/u, anyNode).props.children)).toEqual([
+          "(D1 → D2) ➜ (G1 → G2)",
+          "(D1 → G1) ➜ (D2 → G2)",
         ]);
+        fireEvent.press(screen.getByTestId(`${ORDER_PANEL}-outside`, anyNode));
       } finally {
         alert.mockRestore();
       }
@@ -1578,7 +1572,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.1", () => {
       expect(states()).toEqual([true, false]);
     }));
 
-  it("PRE4-3.1/AC2, PRE5-2.4 — iOS : Mode non renseigné : aucune option sélectionnée, aucun cadre ; Condition d’arrêt « À la cible »", () =>
+  it("PRE4-3.1/AC2, PRE5-2.4 — iOS : Mode non renseigné : aucune option sélectionnée, aucun cadre ; Condition d’arrêt « À l’objectif »", () =>
     withPlatform("ios", () => {
       renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
       expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBeNull();
@@ -2534,41 +2528,99 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       expect(applied(onApply)).toMatchObject({ sideMode: "RIGHT_LEFT", sideRecoverySeconds: 10 });
     }));
 
-  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6 — iOS : Enchainement dans le menu natif (`Menu` d'`@expo/ui`) de l'option Avec : notation affichée et chevron ; deux notations graphiques exactes dans l'ordre, la choisie cochée, nom accessible neutre ; sans panneau ni Popover ; absent en Sans", () =>
+  it("PRE4-3.3/AC5, PRE5-2.5/AC2, RC-6, PRE7-B.3 (B5) — iOS : Enchainement par le déroulant de l'option Avec (Figma `9462:18987`) : déclencheur fixe 146 × 26, notation et chevron ; déroulant 146 × 88 ancré sur l'option, rôle menu, deux rangées de 44 dans l'ordre D-431, la choisie en violet ; choix, même choix, extérieur, échappement ; ✓ / ✕ absorbés ; aucun hôte SwiftUI ; absent en Sans", () =>
     withPlatform("ios", () => {
       const view = renderSheetView(bilateral());
+      const onApply = view.onApply;
       const side = within(get("execution-sheet-row-side-line")).getByTestId(SIDE_CONTROL);
-      const host = within(side).getByTestId(ORDER_MENU);
-      expect(within(side).UNSAFE_getAllByType(Host)).toHaveLength(1);
-      expect(within(side).UNSAFE_getByType(Host).props.testID).toBe(ORDER_MENU);
-      const menu = within(host).UNSAFE_getByType(Menu);
-      // Déclencheur : notation choisie et chevron existant, hébergés par `RNHostView`.
-      expect(within(host).UNSAFE_getAllByType(RNHostView)).toHaveLength(1);
-      expect(within(host).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
-      expect(JSON.stringify(menu.props.modifiers)).toContain("Enchainement");
-      expect(JSON.stringify(menu.props.modifiers)).toContain("Un côté après l’autre");
-      const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
-      expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-        ["(D1 → D2) ➜ (G1 → G2)", "checkmark"],
-        ["(D1 → G1) ➜ (D2 → G2)", null],
+      const trigger = within(side).getByTestId(ORDER_MENU);
+      // B5 : aucun hôte natif dimensionné sur son contenu ; déclencheur React Native de taille fixe.
+      expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(Menu)).toHaveLength(0);
+      expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(trigger.props.accessibilityRole).toBe("button");
+      expect(trigger.props.accessibilityLabel).toBe("Enchainement");
+      expect(trigger.props.accessibilityValue).toEqual({ text: "Un côté après l’autre" });
+      expect(trigger.props.accessibilityState).toMatchObject({ expanded: false });
+      expect(within(trigger).getByText("(D1 → D2) ➜ (G1 → G2)", hidden)).toBeTruthy();
+      expect(query(ORDER_PANEL)).toBeNull();
+
+      // Ouverture : déroulant ancré sur l'option Avec (cadre Côtés à y 400, ligne à y 5 de 44 :
+      // segmenté de 32 centré, option à 3 sous son haut → 400 + 5 + 6 + 3 = 414 ; bord droit de
+      // l'option à 13 + 3 + 62 + 2 = 80 du bord de l'hôte).
+      layoutFrames({ sides: [400, 100] });
+      layoutOf("execution-sheet-row-side", 5, 44);
+      fireEvent.press(trigger);
+      const panel = get(ORDER_PANEL);
+      expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ position: "absolute", top: 414, right: 80 });
+      expect(get(ORDER_MENU).props.accessibilityState).toMatchObject({ expanded: true });
+      const menu = within(panel).getByTestId(`${ORDER_MENU}-menu`, hidden);
+      expect(menu.props.accessibilityRole).toBe("menu");
+      expect(menu.props.accessibilityLabel).toBe("Enchainement");
+      expect(StyleSheet.flatten(menu.props.style)).toMatchObject({ width: 146, height: 88 });
+      const rows = within(menu).getAllByRole("menuitem");
+      expect(rows.map((row) => row.props.accessibilityLabel)).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+      expect(rows.map((row) => row.props.accessibilityState)).toEqual([{ selected: true }, { selected: false }]);
+      expect(rows.map((row) => StyleSheet.flatten(row.props.style))).toEqual([
+        expect.objectContaining({ height: 44, backgroundColor: "#5F60EE", paddingHorizontal: 8, alignItems: "flex-start" }),
+        expect.objectContaining({ height: 44, backgroundColor: "#F5F7FA", paddingHorizontal: 8, alignItems: "flex-start" }),
       ]);
-      expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
-        expect.stringContaining("Un côté après l’autre"),
-        expect.stringContaining("Les deux côtés à chaque série"),
-      ]);
+      // Réserve sous les cadres : seul le cadre Côtés est mesuré (bas à 500) ; le déroulant
+      // descend à 414 + 88 = 502 → réserve de 2, absente une fois fermé.
+      expect(StyleSheet.flatten(get("execution-sheet-panel-room").props.style)).toMatchObject({ height: 2 });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SIDE-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "600", color: "#FFFFFF" });
+      expect(StyleSheet.flatten(get(`${ORDER_MENU}-BY_SERIES-notation`).props.style)).toMatchObject({ fontSize: 10, fontWeight: "400", color: "#4A4A52" });
+      // Chevron vers le haut dans la première rangée seulement.
+      expect(within(rows[0]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).not.toBeNull();
+      expect(within(rows[1]!).queryByTestId(`${ORDER_MENU}-chevron`, hidden)).toBeNull();
       // Libellés longs : nom accessible seulement, jamais affichés ; aucune notation C1S1.
       expect(screen.queryByText("Un côté après l’autre", hidden)).toBeNull();
       expect(screen.queryByText(/C1S1|C1 S1/u, hidden)).toBeNull();
+      expect(popovers()).toEqual([]);
+
+      // ✓ et ✕ de la Feuille absorbés : fermeture seule, Feuille ni validée ni abandonnée.
+      validate();
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(query("execution-sheet-panel-room")).toBeNull();
+      expect(onApply).not.toHaveBeenCalled();
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get("execution-sheet-cancel"));
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(view.onCancel).not.toHaveBeenCalled();
+      // Toucher extérieur et échappement VoiceOver : fermeture sans changement.
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get(`${ORDER_PANEL}-outside`));
+      expect(query(ORDER_PANEL)).toBeNull();
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent(get(ORDER_PANEL), "accessibilityEscape");
+      expect(query(ORDER_PANEL)).toBeNull();
+      // Même choix : fermeture, Brouillon inchangé.
+      fireEvent.press(get(ORDER_MENU));
+      fireEvent.press(get(`${ORDER_MENU}-BY_SIDE`));
+      expect(query(ORDER_PANEL)).toBeNull();
+      expect(orderText()).toBe("Un côté après l’autre");
+      // Choix : `setSideOrder`, fermeture, notation affichée dans l'option.
       chooseOrder("Les deux côtés à chaque série");
       expect(screen.queryAllByTestId(/^execution-sheet-.+-panel$/)).toHaveLength(0);
-      expect(popovers()).toEqual([]);
       expect(orderText()).toBe("Les deux côtés à chaque série");
-      expect(
-        within(get(ORDER_MENU))
-          .UNSAFE_getAllByType(SwiftUIButton)
-          .map((item) => item.props.systemImage ?? null),
-      ).toEqual([null, "checkmark"]);
+      fireEvent.press(get(ORDER_MENU));
+      expect(within(get(ORDER_PANEL)).getAllByRole("menuitem").map((row) => row.props.accessibilityState)).toEqual([
+        { selected: false },
+        { selected: true },
+      ]);
+      fireEvent.press(get(`${ORDER_PANEL}-outside`));
+      validate();
+      expect(applied(onApply)).toMatchObject({ sideOrder: "BY_SERIES" });
       view.unmount();
+
+      // Réouverture de la Feuille avec BY_SERIES : notation dans le déclencheur fixe, aucun hôte SwiftUI.
+      const reopened = renderSheetView(bilateral({ sideOrder: "BY_SERIES" }));
+      expect(StyleSheet.flatten(get(ORDER_MENU).props.style)).toMatchObject({ width: 146, height: 26 });
+      expect(within(get(ORDER_MENU)).getByText("(D1 → G1) ➜ (D2 → G2)", hidden)).toBeTruthy();
+      expect(screen.UNSAFE_root.findAllByType(Host)).toHaveLength(0);
+      expect(screen.UNSAFE_root.findAllByType(RNHostView)).toHaveLength(0);
+      reopened.unmount();
       renderSheet(params({ sideMode: "UNILATERAL" }));
       expect(screen.queryByTestId(ORDER_MENU)).toBeNull();
     }));
@@ -2686,11 +2738,18 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(screen.queryByTestId("execution-sheet-beep-toggle")).toBeNull();
     expect(cadenceText()).toBe("Autre");
     expect(shownValue("execution-sheet-countdown")).toBe("10 s");
-    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({ backgroundColor: "#F5F7FA", borderRadius: 10 });
+    // PRE-7 B.1 (D-447, B3) : pastille de 32, rayon 8, marges 12 (auparavant ≈ 24, rayon 10, marges 10).
+    expect(styleOf("execution-sheet-countdown-pill")).toMatchObject({
+      backgroundColor: "#F5F7FA",
+      borderRadius: 8,
+      minHeight: 32,
+      paddingHorizontal: 12,
+    });
     expect(screen.getByTestId("execution-sheet-countdown-toggle").props.accessibilityLabel).toBe("Compte à rebours, 10 s");
     // NFR-09, Q42 : zone de toucher fermée d'au moins 44 × 44 (toute la largeur du champ).
     expect(styleOf("execution-sheet-countdown-toggle")).toMatchObject({ width: 137, minHeight: 44 });
-    // Q41 : même cadre fermé et ouvert (largeur, centrage, hauteur) — la valeur ne bouge pas.
+    // Q41 : même cadre fermé et ouvert (largeur, alignement, hauteur). PRE-7 B.1 (D-447, B6) :
+    // contenu aligné à droite (et non plus centré), fermé comme ouvert.
     const closedFrame = styleOf("execution-sheet-countdown-toggle");
     fireEvent.press(screen.getByTestId("execution-sheet-countdown-toggle"));
     expect(styleOf("execution-sheet-countdown-field")).toEqual(closedFrame);
@@ -2699,7 +2758,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(cadenceText()).toBe("Autre");
     const openFrame = styleOf("execution-sheet-beep-field");
     expect(openFrame).toEqual(closedFrame);
-    expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "center", justifyContent: "center" });
+    expect(openFrame).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end", justifyContent: "center" });
     expect(styleOf("execution-sheet-beep-motion-content")).toMatchObject({ flexDirection: "row", justifyContent: "flex-end" });
     expect(styleOf("execution-sheet-row-beep-line").minHeight).toBe(44);
     expect(screen.getByTestId("execution-sheet-beep-decrement")).toBeTruthy();
@@ -2709,6 +2768,40 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
     expect(styleOf("execution-sheet-row-beep-selection").backgroundColor).toBe(SELECTED_SURFACE);
     expect(screen.getByTestId("execution-sheet-beep").props.accessibilityRole).toBe("adjustable");
     expect(screen.getByTestId("execution-sheet-beep").props.accessibilityValue).toMatchObject({ min: 0, max: 10, now: 2 });
+  });
+
+  /**
+   * PRE-7 story B.1 (D-447, B3, B6, B7 ; CE-UI-10 §9, révision 24/10, lignes 5, 9, 11, 12, 13) :
+   * hauteur commune de 32 (pastilles, steppers ouverts sur `color/surface`), alignement à droite
+   * fermé et ouvert de Pause, Pause entre les côtés, Compte à rebours et Fin, chevron de Durée de
+   * l'exercice sans cadre. Jest ne prouve que l'arbre JS : le rendu relève de la recette JB.
+   */
+  it("PRE7-B.1 — pastilles et steppers ouverts de 32, champs sur color/surface, steppers alignés à droite fermés et ouverts, chevron de Durée de l'exercice sans cadre", () => {
+    renderSheet(bilateral({ cadenceBeepIntervalSeconds: 2 }));
+    showSignals();
+    const pill = { backgroundColor: colors.surface, borderRadius: 8, minHeight: 32, paddingHorizontal: 12 };
+    expect(styleOf("execution-sheet-target-value")).toMatchObject(pill);
+    expect(screen.getByTestId("execution-sheet-target-value").props.hitSlop).toEqual({ top: 6, bottom: 6 });
+    expect(styleOf("execution-sheet-total")).toMatchObject(pill);
+    const openPill = { minHeight: 32, padding: 2, borderRadius: 16, backgroundColor: colors.surface };
+    for (const field of ["pause", "side-recovery", "countdown", "end"]) {
+      expect(styleOf(`execution-sheet-${field}-toggle`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
+      expect(styleOf(`execution-sheet-${field}-pill`)).toMatchObject(pill);
+      fireEvent.press(screen.getByTestId(`execution-sheet-${field}-toggle`));
+      expect(styleOf(`execution-sheet-${field}-field`)).toMatchObject({ width: 137, minHeight: 44, alignItems: "flex-end" });
+      expect(styleOf(`execution-sheet-${field}`)).toMatchObject({ ...openPill, width: 137 });
+    }
+    fireEvent.press(screen.getByTestId(`${CADENCE_CONTROL}-OTHER`));
+    expect(styleOf("execution-sheet-beep")).toMatchObject({ ...openPill, width: 137 });
+    // B7 : Disclosure Cadre Non — cadre interne 28 sans fond ni contour ; cible, nom et état inchangés.
+    const frame = styleOf(`${DURATION_DISCLOSURE}-frame`);
+    expect(frame).toMatchObject({ width: 28, height: 28 });
+    expect(frame.backgroundColor).toBeUndefined();
+    expect(frame.borderWidth).toBeUndefined();
+    const disclosure = screen.getByLabelText(strings.executionParameters.sheet.hideExerciseSignals);
+    expect(disclosure.props.accessibilityRole).toBe("button");
+    expect(disclosure.props.accessibilityState).toMatchObject({ expanded: true });
+    expect(28 + 2 * (disclosure.props.hitSlop as number)).toBeGreaterThanOrEqual(48);
   });
 
   it("PRE4-3.3/AC8 — T20 : un seul champ actif — toucher une autre valeur ferme le premier et ouvre le second d'un seul geste ; T22 : ± du champ ouvert sans fermeture, Bip au pas de 1", () => {
@@ -2841,13 +2934,13 @@ describe("ExecutionParametersSheet — PRE-4 story 3.3", () => {
       mode: "DURATION",
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
-      series: { kind: "VARIABLE", rows: [{ target: numberTarget(40) }, { target: numberTarget(40) }, { target: numberTarget(40) }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(40) }, { target: numberTarget(40) }, { target: numberTarget(40) }], workPhases: [] },
     });
     expect(android).toEqual(ios);
     expect(web).toEqual(ios);
   });
 
-  it("PRE4-3.3/AC11, PRE5-2.5, RC-6 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Cadence), avec ses options ; Enchainement par l'`Alert` de l'option Avec ; ni panneau ni Popover", () =>
+  it("PRE4-3.3/AC11, PRE5-2.5, RC-6 — Android : chaque segmenté est dans la ligne elle-même (Mode, Type de série, Changement de côté, Cadence), avec ses options ; Enchainement par le déroulant de l'option Avec (PRE7-B.3, A3 : plus d'`Alert`) ; ni panneau de roue ni Popover", () =>
     withPlatform("android", () => {
       renderSheet(bilateral());
       for (const [rowID, controlID, options] of [
@@ -3057,6 +3150,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
           { target, pauseSeconds: 15, loadKg: 0 },
           { target: numberTarget(45), pauseSeconds: 15, loadKg: 0 },
         ],
+        workPhases: [],
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
@@ -3237,6 +3331,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
           { target, pauseSeconds: 15, loadKg: 0 },
           { target: numberTarget(8), pauseSeconds: 15, loadKg: 0 },
         ],
+        workPhases: [],
       },
     });
   const hiddenNode = { includeHiddenElements: true } as const;
@@ -3442,7 +3537,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
   const variableSheet = (rows: [Cell, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
       mode,
-      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds, loadKg: 0 })) },
+      series: { kind: "VARIABLE", rows: rows.map(([target, pauseSeconds]) => ({ target: toTarget(target), pauseSeconds, loadKg: 0 })), workPhases: [] },
       ...overrides,
     });
   const hidden = { includeHiddenElements: true } as const;
@@ -3590,6 +3685,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 
@@ -3764,6 +3860,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.6 (Q44)", () => {
         { target: numberTarget(5999), pauseSeconds: 300, loadKg: 0 },
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
       ],
+      workPhases: [],
     });
     view.unmount();
 
@@ -4414,6 +4511,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
             { target: numberTarget(3535), pauseSeconds: 10, loadKg: 0 },
             { target: numberTarget(4000), pauseSeconds: 10, loadKg: 0 },
           ],
+          workPhases: [],
         },
       }),
     );
@@ -4474,6 +4572,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
               { target: unsetTarget(), pauseSeconds: 20, loadKg: 0 },
               { target: failureTarget(), pauseSeconds: 30, loadKg: 0 },
             ],
+            workPhases: [],
           },
         }),
       ];
@@ -4779,7 +4878,8 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
       // PRE-5 story 2.2 : segmenté `inline` de la ligne Charge (« Avec | Sans »), même exception.
       // PRE-5 story 2.5 : Changement de côté et Cadence, même exception ; RC-6 : déclencheur du
       // menu de l'Enchainement, à la hauteur d'une option (26). PRE-5 story 2.8 : segmenté
-      // `inline` de la ligne « Phases de l'exercice », même exception.
+      // `inline` de la ligne « Phases de l'exercice », même exception. PRE-7 B.3 (B5) : le
+      // déclencheur du déroulant de l'Enchainement est la vue de taille fixe (146 × 26) elle-même.
       const inlineSegmented = [
         ":26",
         "execution-sheet-cadence-control:32",
@@ -4788,6 +4888,7 @@ describe("ExecutionParametersSheet — PRE-4 story 3.8", () => {
         "execution-sheet-phases-control:32",
         "execution-sheet-series-type-control:32",
         "execution-sheet-side-control:32",
+        "execution-sheet-side-order-menu:26",
         "execution-sheet-stop-condition-control:32",
       ];
       const tableRows = [`execution-sheet-table-row-1:${TABLE_ROW_HEIGHT}`, `execution-sheet-table-row-2:${TABLE_ROW_HEIGHT}`];
@@ -4821,7 +4922,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
   const toTarget = (value: Cell): SeriesTarget =>
     value === "FAILURE" ? failureTarget() : value === null ? unsetTarget() : numberTarget(value);
   const variableSheet = (cells: Cell[], mode: "DURATION" | "REPETITIONS" = "DURATION") =>
-    params({ mode, series: { kind: "VARIABLE", rows: cells.map((cell) => ({ target: toTarget(cell), pauseSeconds: 10, loadKg: 0 })) } });
+    params({ mode, series: { kind: "VARIABLE", rows: cells.map((cell) => ({ target: toTarget(cell), pauseSeconds: 10, loadKg: 0 })), workPhases: [] } });
   const stopSelected = () => selectedValue(STOP_CONTROL, ["FAILURE", "TARGET"]);
   /** Options rendues du résultat dérivé (lecture seule : tuiles fixes, sans zone de sélection). */
   const derivedOptions = () =>
@@ -4910,11 +5011,11 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
       expect(within(get("execution-sheet-panel-host")).getByTestId("execution-sheet-total-panel", hidden)).toBeTruthy();
     }));
 
-  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 90 s) : Condition « À la cible » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
+  it("PRE5-2.4/AC4, AC6 — identiques à la cible (Durée, 90 s) : Condition « À l’objectif » ; ligne « Durée d’une série » visible ; roue sans « À l’échec »", () =>
     withPlatform("ios", () => {
       renderSheet(params());
       expect(stopSelected()).toBe("TARGET");
-      expect(["FAILURE", "TARGET"].map((value) => get(`${STOP_CONTROL}-${value}`).props.accessibilityLabel)).toEqual(["À l’échec", "À la cible"]);
+      expect(["FAILURE", "TARGET"].map((value) => get(`${STOP_CONTROL}-${value}`).props.accessibilityLabel)).toEqual(["À l’échec", "À l’objectif"]);
       expect(StyleSheet.flatten(get(STOP_CONTROL).props.style)).toMatchObject({ width: 220, height: 32 });
       expect(get("execution-sheet-row-target")).toBeTruthy();
       fireEvent.press(screen.getByTestId("execution-sheet-target-value"));
@@ -4959,29 +5060,29 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     const view = renderSheetView(variableSheet([30, 45]));
     const control = get(STOP_CONTROL);
     expect(control.props.accessibilityRole).toBe("text");
-    expect(control.props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(control.props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
     expect(query(`${STOP_CONTROL}-TARGET`)).toBeNull();
-    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab", accessibilityLabel: "À la cible" })).toHaveLength(0);
+    expect(screen.UNSAFE_queryAllByProps({ accessibilityRole: "tab", accessibilityLabel: "À l’objectif" })).toHaveLength(0);
     expect(styleOf(STOP_CONTROL).opacity).toBe(0.45);
     expect(styleOf(`${STOP_CONTROL}-indicator`).backgroundColor).toBe("#5F60EE");
-    expect(StyleSheet.flatten(within(control).getByText("À la cible", hidden).props.style).color).toBe("#FFFFFF");
+    expect(StyleSheet.flatten(within(control).getByText("À l’objectif", hidden).props.style).color).toBe("#FFFFFF");
     view.unmount();
     renderSheet(variableSheet(["FAILURE", "FAILURE"]));
     expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’échec");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
   });
 
-  it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À la cible et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
+  it("PRE5-2.4/AC5 — variables mixtes (30 s, échec) : une seule option « À l’objectif et à l’échec », même largeur totale ; recalculé à chaque cellule, les deux options reviennent quand le détail redevient homogène", () => {
     renderSheet(variableSheet([30, 45, null]));
     // Cellule vide non comptée : les deux séries renseignées sont à la cible.
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     // D-434 : cellule 1 mise à l'échec par « À l'échec » de la barre du clavier.
     chooseCellTarget(1, "FAILURE");
     // Une série à l'échec, une à la cible → mixte.
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible et à l’échec");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif et à l’échec");
     expect(derivedOptions()).toEqual(["MIXED"]);
-    expect(within(get(STOP_CONTROL)).getByText("À la cible et à l’échec", hidden)).toBeTruthy();
+    expect(within(get(STOP_CONTROL)).getByText("À l’objectif et à l’échec", hidden)).toBeTruthy();
     expect(styleOf(STOP_CONTROL).width).toBe(220);
     // La cellule 1 revient à 30 s : détail homogène, toujours en Variables (N = 3) — deux
     // options en lecture seule, À la cible sélectionnée.
@@ -4989,7 +5090,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(valueOf("execution-sheet-table-row-1-target")).toBe("30 s");
     expect(seriesTypeText()).toBe("Variables");
     expect(get(STOP_CONTROL).props.accessibilityRole).toBe("text");
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif");
     expect(derivedOptions()).toEqual(["FAILURE", "TARGET"]);
     expect(styleOf(STOP_CONTROL).width).toBe(220);
   });
@@ -5016,22 +5117,25 @@ describe("ExecutionParametersSheet — PRE-5 story 2.4", () => {
     expect(applied(onApply).series).toMatchObject({ kind: "UNIFORM", count: 2, target: failureTarget() });
   });
 
-  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : Répétitions, À l’échec et Variables indisponibles, valeur réelle affichée (Durée, À la cible, Identiques)", () => {
+  it("PRE5-2.4/AC3, AC4, AC7 — avec des phases : PRE-7 (D-446) Répétitions et À l’échec disponibles et appliqués ; complément du 26/10/2026 : Variables disponible et appliqué, phases conservées (Durée, À la cible, Identiques au départ)", () => {
     renderSheet(twoPhases());
     const option = (control: string, value: string) => get(`${control}-${value}`).props.accessibilityState;
-    expect(option(MODE_CONTROL, "REPETITIONS")).toMatchObject({ disabled: true, selected: false });
+    expect(option(MODE_CONTROL, "REPETITIONS")).toMatchObject({ disabled: false, selected: false });
     expect(option(MODE_CONTROL, "DURATION")).toMatchObject({ disabled: false, selected: true });
-    expect(option(STOP_CONTROL, "FAILURE")).toMatchObject({ disabled: true, selected: false });
+    expect(option(STOP_CONTROL, "FAILURE")).toMatchObject({ disabled: false, selected: false });
     expect(option(STOP_CONTROL, "TARGET")).toMatchObject({ disabled: false, selected: true });
-    expect(option(SERIES_TYPE, "VARIABLE")).toMatchObject({ disabled: true, selected: false });
+    // D-446 (complément du 26/10/2026) : compatibilité phases + séries variables.
+    expect(option(SERIES_TYPE, "VARIABLE")).toMatchObject({ disabled: false, selected: false });
     expect(option(SERIES_TYPE, "UNIFORM")).toMatchObject({ disabled: false, selected: true });
-    fireEvent.press(get(`${MODE_CONTROL}-REPETITIONS`));
     fireEvent.press(get(`${STOP_CONTROL}-FAILURE`));
+    fireEvent.press(get(`${MODE_CONTROL}-REPETITIONS`));
+    expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Répétitions", "FAILURE", "Identiques"]);
     fireEvent.press(get(`${SERIES_TYPE}-VARIABLE`));
-    expect([modeText(), stopSelected(), seriesTypeText()]).toEqual(["Durée", "TARGET", "Identiques"]);
+    expect(seriesTypeText()).toBe("Variables");
+    expect(get("execution-sheet-phases-control-WITH").props.accessibilityState).toMatchObject({ selected: true });
   });
 
-  it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À la cible » ; choisir un Mode ferme le champ ± ouvert", () => {
+  it("PRE5-2.4/AC3 — Mode non renseigné : aucun segment sélectionné ; Condition « À l’objectif » ; choisir un Mode ferme le champ ± ouvert", () => {
     renderSheet(params({ mode: null, series: { kind: "UNIFORM", count: 2, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] } }));
     expect(selectedValue(MODE_CONTROL, ["REPETITIONS", "DURATION"])).toBeNull();
     expect(stopSelected()).toBe("TARGET");
@@ -5143,6 +5247,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.6", () => {
         { target: failureTarget(), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 
@@ -5265,7 +5370,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: enabled });
   const variableLoads = (loads: number[], enabled = true) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
     });
   const inputs = () => screen.UNSAFE_root.findAll((node) => node.props.keyboardType !== undefined && typeof node.type === "string");
@@ -5460,7 +5565,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     });
   });
 
-  it("PRE5-2.2/AC2 — variables, toutes les charges à 0 à la fermeture : Sans, colonne retirée, valeurs conservées", () => {
+  it("PRE5-2.2/AC2, PRE7-B.2 (B10) — variables, toutes les charges à 0 à la fermeture : Sans, colonne conservée avec des tirets, valeurs conservées", () => {
     const { onApply } = renderSheet(variableLoads([0, 20]));
     focus(cell(2));
     keyboard.show();
@@ -5469,7 +5574,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     blur(cell(2));
     expect(loadChoice()).toBe("WITHOUT");
     expect(query(cell(1))).toBeNull();
-    expect(within(get("execution-sheet-table-header")).queryByText("Charge", hidden)).toBeNull();
+    expect(within(get("execution-sheet-table-header")).getByText("Charge", hidden)).toBeTruthy();
+    expect(get(`${cell(1)}-unset`).props.accessibilityLabel).toBe("Série 1, charge, Sans");
     validate();
     expect(applied(onApply)).toMatchObject({ loadEnabled: false });
   });
@@ -5554,7 +5660,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2 (focus natif et applicati
     params({ series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg, workPhases: [] }, loadEnabled: true });
   const variableLoads = (loads: number[], enabled = true) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
     });
   /** Identifiants des entrées sur lesquelles la méthode espionnée a été appelée. */
@@ -5976,13 +6082,19 @@ describe("ExecutionParametersSheet — PRE-5 story 2.5", () => {
       expect(sideText()).toBe("Avec");
     }));
 
-  it("PRE5-2.5/AC2, RC-6 — Enchainement : menu de l'option Avec, items BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
+  it("PRE5-2.5/AC2, RC-6, PRE7-B.3 — Enchainement : déroulant de l'option Avec, rangées BY_SIDE puis BY_SERIES, notations exactes à flèche centrale ➜ (D-431, rétablies par RC-12), notation affichée en police réduite, nom accessible neutre ; effectif affiché ; masqué à N = 1 (Avec reprend son libellé, BY_SIDE écrit), conservé au retour à N ≥ 2", () => {
     const { onApply } = renderSheet(params({ sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 10 }));
-    const menu = get(ORDER_MENU);
-    const labels = within(menu)
-      .UNSAFE_getAllByType(SwiftUIButton)
-      .map((node) => String(node.props.label));
-    expect(labels).toEqual(["(D1 → D2) ➜ (G1 → G2)", "(D1 → G1) ➜ (D2 → G2)"]);
+    // PRE-7 B.3 (B5) : rangées du déroulant, dans l'ordre D-431.
+    fireEvent.press(get(ORDER_MENU));
+    const labels = within(get(ORDER_PANEL))
+      .getAllByRole("menuitem")
+      .map((row) => String(row.props.accessibilityLabel));
+    expect(labels).toEqual(["Un côté après l’autre", "Les deux côtés à chaque série"]);
+    expect(SIDE_ORDER_VALUES.map((order) => get(`${ORDER_MENU}-${order}-notation`).props.children)).toEqual([
+      "(D1 → D2) ➜ (G1 → G2)",
+      "(D1 → G1) ➜ (D2 → G2)",
+    ]);
+    fireEvent.press(get(`${ORDER_PANEL}-outside`));
     expect(StyleSheet.flatten(get(`${ORDER_MENU}-notation`).props.style)).toMatchObject({ fontSize: 10 });
     chooseOrder("Les deux côtés à chaque série");
     expect(orderText()).toBe("Les deux côtés à chaque série");
@@ -6190,7 +6302,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.7", () => {
     });
   const variableLoads = (loads: number[], enabled = true, overrides: Partial<ExecutionParametersInput> = {}) =>
     params({
-      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(10 + index), pauseSeconds: 10, loadKg })) },
+      series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(10 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
       loadEnabled: enabled,
       ...overrides,
     });
@@ -6765,7 +6877,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
   const shown = (id: string) => String(get(`${id}-value`).props.children);
   const failureButton = () => query("execution-sheet-keyboard-failure");
   const variable = (rows: [SeriesTarget, number][], mode: "DURATION" | "REPETITIONS" = "DURATION", loadEnabled = false) =>
-    params({ mode, loadEnabled, series: { kind: "VARIABLE", rows: rows.map(([rowTarget, pauseSeconds]) => ({ target: rowTarget, pauseSeconds, loadKg: 20 })) } });
+    params({ mode, loadEnabled, series: { kind: "VARIABLE", rows: rows.map(([rowTarget, pauseSeconds]) => ({ target: rowTarget, pauseSeconds, loadKg: 20 })), workPhases: [] } });
 
   it("Durée : au repos en unités explicites (5 s, 1 min 5 s, 1 min 30 s, 12 min, 0 s), en saisie « MM:SS » dans la même cellule, sur fond #EAEAFF ; aucun champ supplémentaire", () => {
     renderSheet(variable([[numberTarget(5), 0], [numberTarget(65), 90], [numberTarget(720), 30]]));
@@ -6805,6 +6917,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
         { target: numberTarget(3535), pauseSeconds: 20, loadKg: 20 },
         { target: numberTarget(1), pauseSeconds: 30, loadKg: 20 },
       ],
+      workPhases: [],
     });
   });
 
@@ -6833,14 +6946,50 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     ]);
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
     expect(get("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: false });
+    // PRE-7 B.3 (B9, arbitrage A4) : quatre emplacements égaux (base nulle, même part), boutons
+    // arrondis sur le blanc des touches ; Fermer bleu KODJO, texte blanc ; fond de barre conservé.
+    const slotIDs = [
+      "execution-sheet-keyboard-failure",
+      "execution-sheet-keyboard-previous",
+      "execution-sheet-keyboard-next",
+      "execution-sheet-keyboard-close",
+    ];
+    for (const id of slotIDs) {
+      expect(styleOf(id)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 44, minHeight: 36, borderRadius: 8, paddingHorizontal: 2 });
+    }
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E6E9ED", gap: 6, paddingHorizontal: 8 });
+    expect(styleOf("execution-sheet-keyboard-previous").backgroundColor).toBe("#FFFFFF");
+    expect(styleOf("execution-sheet-keyboard-close").backgroundColor).toBe("#0508E5");
+    expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-close")).getByText("Fermer", hidden).props.style).color).toBe("#FFFFFF");
+    expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-next")).getByText(/Suivant|→/u, hidden).props.style).color).toBe("#5C4DFF");
+    expect(query("execution-sheet-keyboard-failure-slot")).toBeNull();
     fireEvent.press(get("execution-sheet-keyboard-next"));
     blur(target(1));
     focus(pause(1));
     expect(failureButton()).toBeNull();
+    // Pause : emplacement 1 réservé, vide et non accessible ; Précédent et Suivant aux emplacements
+    // 2 et 3, de même largeur que Fermer.
+    const reserved = get("execution-sheet-keyboard-failure-slot");
+    expect(reserved.props.accessible).toBe(false);
+    expect(reserved.props.children).toBeUndefined();
+    expect(styleOf("execution-sheet-keyboard-failure-slot")).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0 });
+    const ordered = get("execution-sheet-keyboard-bar").findAll(
+      (node) => typeof node.props.testID === "string" && /^execution-sheet-keyboard-(failure-slot|previous|next|close)$/.test(node.props.testID) && typeof node.type === "string",
+    );
+    expect([...new Set(ordered.map((node) => node.props.testID))]).toEqual([
+      "execution-sheet-keyboard-failure-slot",
+      "execution-sheet-keyboard-previous",
+      "execution-sheet-keyboard-next",
+      "execution-sheet-keyboard-close",
+    ]);
+    const { backgroundColor: _previousBackground, ...previousSlot } = styleOf("execution-sheet-keyboard-previous");
+    const { backgroundColor: _closeBackground, ...closeSlot } = styleOf("execution-sheet-keyboard-close");
+    expect(previousSlot).toEqual(closeSlot);
     fireEvent.press(get("execution-sheet-keyboard-next"));
     blur(pause(1));
     focus(load(1));
     expect(failureButton()).toBeNull();
+    expect(query("execution-sheet-keyboard-failure-slot")).not.toBeNull();
     expect(query("execution-sheet-keyboard-close")).not.toBeNull();
     hideExecutionSheetKeyboard();
   });
@@ -6852,7 +7001,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     expect(shown(target(1))).toBe("00:00");
     expect(get("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: true });
-    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À la cible et à l’échec");
+    expect(get(STOP_CONTROL).props.accessibilityLabel).toBe("Condition d’arrêt, À l’objectif et à l’échec");
     // De nouveau : la valeur numérique revient (« 00:45 »), la frappe suivante remplace.
     fireEvent.press(get("execution-sheet-keyboard-failure"));
     expect(shown(target(1))).toBe("00:45");
@@ -6921,24 +7070,45 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(totalShown()).toBe("—");
   });
 
-  it("libellés Précédent / Suivant si la largeur le permet, sinon flèches seules avec leurs libellés d'accessibilité ; zones tactiles préservées", () => {
-    expect(keyboardBarCompact(0, 400)).toBe(false);
+  it("libellés Précédent / Suivant si la largeur le permet, sinon flèches seules avec leurs libellés d'accessibilité ; zones tactiles préservées ; PRE7-B.3 (B9) : le plus large libellé doit tenir dans un emplacement", () => {
+    // PRE-7 B.3 (B9, arbitrage A4) : emplacement = (barre − 2 × 8 − 3 × 6) / 4 ; libellé + 2 × 2.
+    expect(keyboardBarSlotWidth(390)).toBe(89);
+    expect([360, 402, 440].map(keyboardBarSlotWidth)).toEqual([81.5, 92, 101.5]);
+    expect(keyboardBarCompact(0, 60)).toBe(false);
     expect(keyboardBarCompact(390, 0)).toBe(false);
-    expect(keyboardBarCompact(390, 300)).toBe(false);
-    expect(keyboardBarCompact(390, 359)).toBe(true);
+    expect(keyboardBarCompact(390, 85)).toBe(false);
+    expect(keyboardBarCompact(390, 86)).toBe(true);
     renderSheet(variable([[numberTarget(45), 20], [numberTarget(30), 10]]));
     focus(target(1));
     showExecutionSheetKeyboard();
     const labels = strings.executionParameters.sheet.keyboardBar;
     expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
-    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 320, height: 44 } } });
-    fireEvent(get("execution-sheet-keyboard-bar-measure"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 330, height: 20 } } });
+    const measure = (key: "previous" | "next", width: number) =>
+      fireEvent(get(`execution-sheet-keyboard-bar-measure-${key}`), "layout", { nativeEvent: { layout: { x: 0, y: 0, width, height: 20 } } });
+    // Barre de 402 (emplacement 92). Garde : tant qu'une mesure manque, rien n'est réduit, même
+    // si la seule mesure connue (100) ne tiendrait pas.
+    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 402, height: 44 } } });
+    measure("previous", 100);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText(labels.next, hidden)).toBeTruthy();
+    // Les deux mesures connues : le plus large (100 + 2 × 2 > 92) ne tient pas — flèches seules.
+    measure("next", 60);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText("←", hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText("→", hidden)).toBeTruthy();
+    // « ← Précédent » de 85,4 tient à 402 (85,4 + 4 ≤ 92) : libellés complets.
+    measure("previous", 85.4);
+    expect(within(get("execution-sheet-keyboard-previous")).getByText(labels.previous, hidden)).toBeTruthy();
+    expect(within(get("execution-sheet-keyboard-next")).getByText(labels.next, hidden)).toBeTruthy();
+    // Barre de 360 (emplacement 81,5) : le plus large (85,4) ne tient plus — flèches seules, pour les deux.
+    fireEvent(get("execution-sheet-keyboard-bar"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 360, height: 44 } } });
     expect(within(get("execution-sheet-keyboard-previous")).getByText("←", hidden)).toBeTruthy();
     expect(within(get("execution-sheet-keyboard-next")).getByText("→", hidden)).toBeTruthy();
     expect(get("execution-sheet-keyboard-previous").props.accessibilityLabel).toBe("Précédent");
     expect(get("execution-sheet-keyboard-next").props.accessibilityLabel).toBe("Suivant");
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
-    expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 44, minWidth: 44 });
+    // Zone tactile de 44 de haut : bouton de 36 au moins, débord de 4 en haut et en bas.
+    expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 36 });
+    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 4, bottom: 4 });
     blur(target(1));
     hideExecutionSheetKeyboard();
   });
@@ -6968,5 +7138,124 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     } finally {
       prototype.setSelection = original;
     }
+  });
+});
+
+/**
+ * PRE-7 story B.2 (D-447, CE-UI-10) — B8 : valeur personnalisée de la Cadence affichée à la
+ * place de « Autre » (arbitrage A2) ; B10 : colonne Charge des séries variables toujours
+ * présente, tiret gris non éditable sous Sans (arbitrage A3).
+ */
+describe("ExecutionParametersSheet — PRE-7 story B.2", () => {
+  const hidden = { includeHiddenElements: true } as const;
+  const get = (testID: string) => screen.getByTestId(testID, hidden);
+  const query = (testID: string) => screen.queryByTestId(testID, hidden);
+  const OTHER = `${CADENCE_CONTROL}-OTHER`;
+  const otherLabel = () => ({
+    // Libellé de la première option (Autre), rendu à côté de sa zone de sélection.
+    text: within(get(CADENCE_CONTROL)).queryAllByText(/./u, hidden).slice(0, 1).map((node) => String(node.props.children)),
+    spoken: get(OTHER).props.accessibilityLabel as string,
+  });
+
+  it("PRE7-B.2 (B8) — Cadence 3 s : l'option Autre affiche « 3 s », annoncée « Autre, 3 s » ; 1 et 0 : « Autre »", () => {
+    const expected: readonly [number, string, string][] = [
+      [3, "3 s", "Autre, 3 s"],
+      [10, "10 s", "Autre, 10 s"],
+      [1, "Autre", "Autre"],
+      [0, "Autre", "Autre"],
+    ];
+    for (const [value, text, spoken] of expected) {
+      const view = renderSheetView(params({ cadenceBeepIntervalSeconds: value }));
+      expect({ value, ...otherLabel() }).toEqual({ value, text: [text], spoken });
+      view.unmount();
+    }
+  });
+
+  it("PRE7-B.2 (B8) — appui sur « 3 s » : le ± s'ouvre à 3 s ; valeur suivie en direct ; 1 s ou Sans : l'option redevient « Autre »", () => {
+    const { onApply } = renderSheet(params({ cadenceBeepIntervalSeconds: 3 }));
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("3 s");
+    expect(cadenceText()).toBe("Autre");
+    tap("execution-sheet-beep-increment");
+    expect(otherLabel()).toEqual({ text: ["4 s"], spoken: "Autre, 4 s" });
+    // Fermeture puis réouverture : la valeur du Brouillon est conservée.
+    fireEvent.press(get(OTHER));
+    expect(query("execution-sheet-beep-field")).toBeNull();
+    expect(otherLabel().text).toEqual(["4 s"]);
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("4 s");
+    // ± ouvert, ramené à 1 s : « Autre » (borne basse du classement Autre).
+    for (let step = 0; step < 3; step += 1) tap("execution-sheet-beep-decrement");
+    expect(valueOf("execution-sheet-beep")).toBe("1 s");
+    expect(otherLabel().text).toEqual(["Autre"]);
+    fireEvent.press(get(`${CADENCE_CONTROL}-1`));
+    expect(cadenceText()).toBe("1 s");
+    expect(otherLabel().text).toEqual(["Autre"]);
+    fireEvent.press(get(`${CADENCE_CONTROL}-NONE`));
+    expect(otherLabel().text).toEqual(["Autre"]);
+    // Sans puis Autre (ch13 l.1209, D-420) : le ± s'ouvre à Sans, l'option reste « Autre » (4 s oublié).
+    fireEvent.press(get(OTHER));
+    expect(valueOf("execution-sheet-beep")).toBe("Sans");
+    expect(otherLabel()).toEqual({ text: ["Autre"], spoken: "Autre" });
+    validate();
+    expect(applied(onApply).cadenceBeepIntervalSeconds).toBe(0);
+  });
+
+  describe("B10 — colonne Charge des séries variables", () => {
+    const cell = (row: number) => `execution-sheet-table-row-${row}-load`;
+    const target = (row: number) => `execution-sheet-table-row-${row}-target`;
+    const pause = (row: number) => `execution-sheet-table-row-${row}-pause`;
+    const input = (testID: string) => `${testID}-input`;
+    const focus = (testID: string) => fireEvent(get(input(testID)), "focus");
+    const blur = (testID: string) => fireEvent(get(input(testID)), "blur");
+    const activeCell = (id: string) => StyleSheet.flatten(get(id).props.style)?.backgroundColor === "#EAEAFF";
+    const variableLoads = (loads: number[], enabled: boolean) =>
+      params({
+        series: { kind: "VARIABLE", rows: loads.map((loadKg, index) => ({ target: numberTarget(30 + index), pauseSeconds: 10, loadKg })), workPhases: [] },
+        loadEnabled: enabled,
+      });
+    let keyboard: ReturnType<typeof captureKeyboard>;
+    beforeEach(() => {
+      keyboard = captureKeyboard();
+    });
+    afterEach(() => keyboard.restore());
+
+    it("Sans, charges [10, 0, 15] : en-tête « Charge » et trois tirets gris centrés, non éditables, annoncés « Série n, charge, Sans »", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      expect(get("execution-sheet-table-header-load")).toHaveTextContent("Charge");
+      for (const row of [1, 2, 3]) {
+        expect(StyleSheet.flatten(get(`${cell(row)}-cell`).props.style)).toMatchObject({ width: 71, flexShrink: 1 });
+        const dash = get(`${cell(row)}-unset`);
+        expect(dash.props).toMatchObject({ accessibilityRole: "text", accessibilityLabel: `Série ${row}, charge, Sans` });
+        expect(StyleSheet.flatten(dash.props.style)).toMatchObject({ alignItems: "center", justifyContent: "center" });
+        const text = within(dash).getByText("—", hidden);
+        expect(StyleSheet.flatten(text.props.style).color).toBe(colors.disabled);
+        expect(query(cell(row))).toBeNull();
+        expect(query(input(cell(row)))).toBeNull();
+      }
+    });
+
+    it("Sans : Précédent / Suivant ne passent jamais par une cellule Charge", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      focus(pause(1));
+      keyboard.show();
+      fireEvent.press(get("execution-sheet-keyboard-next"));
+      expect(activeCell(target(2))).toBe(true);
+      blur(pause(1));
+      focus(target(2));
+      fireEvent.press(get("execution-sheet-keyboard-previous"));
+      expect(activeCell(pause(1))).toBe(true);
+    });
+
+    it("Sans → Avec : en-tête et emplacements de la colonne restent montés ; les champs y apparaissent avec les valeurs conservées", () => {
+      renderSheet(variableLoads([10, 0, 15], false));
+      const header = get("execution-sheet-table-header-load");
+      const slots = [1, 2, 3].map((row) => get(`${cell(row)}-cell`));
+      fireEvent.press(get("execution-sheet-load-control-WITH"));
+      expect(get("execution-sheet-table-header-load")).toBe(header);
+      expect([1, 2, 3].map((row) => get(`${cell(row)}-cell`))).toEqual(slots);
+      expect([1, 2, 3].map((row) => query(`${cell(row)}-unset`))).toEqual([null, null, null]);
+      expect([1, 2, 3].map((row) => String(get(`${cell(row)}-value`).props.children))).toEqual(["10 kg", "0 kg", "15 kg"]);
+    });
   });
 });

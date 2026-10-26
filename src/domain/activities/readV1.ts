@@ -179,7 +179,7 @@ function readV1Json(json: string, options: ReadV1Options): ExecutionParameters {
     if (!Array.isArray(seriesRecord.rows) || seriesRecord.rows.length === 0) {
       return unreadable("variable rows are missing or empty");
     }
-    series = { kind: "VARIABLE", rows: seriesRecord.rows.map((row) => convertRow(row, mode)) };
+    series = { kind: "VARIABLE", rows: seriesRecord.rows.map((row) => convertRow(row, mode)), workPhases: [] };
   } else {
     return unreadable("unknown series kind");
   }

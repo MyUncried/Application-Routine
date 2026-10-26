@@ -9,11 +9,13 @@ import {
   repetitionParameters,
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
+import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import type { Label } from "@/domain/labels/Label";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { createEmptyDraft, createExerciseDraft, sessionDraftsEqual, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import * as circuitModule from "@/domain/sessions/circuit";
 import { scopeSequence, type StopPoint } from "@/domain/sessions/StopPoint";
 import { NAME_MAX_LENGTH } from "@/domain/sessions/validation";
@@ -245,14 +247,18 @@ function StatefulDraftWrapper({
   draftOverrides?: Partial<SessionDraftContextValue["draft"]>;
   children: React.ReactNode;
 }) {
-  const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() => ({
-    name: "Séance simple",
-    labelId: null,
-    initialCountdownSeconds: 10,
-    finalPhaseSeconds: 5,
-    exercises: initialExercises,
-    ...draftOverrides,
-  }));
+  // PRE-7 (R-3, C05) : les Exercices préremplis sont des créations locales terminées (Mouvement NEW à
+  // leur identifiant, `withLocalMovements`), comme après l'éditeur d'occurrence.
+  const [draft, setDraft] = useState<SessionDraftContextValue["draft"]>(() =>
+    withLocalMovements({
+      name: "Séance simple",
+      labelId: null,
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      exercises: initialExercises,
+      ...draftOverrides,
+    }),
+  );
   // PRE-6 (story 3.1) : mêmes deux formes que `SessionDraftProvider` (correctif ou fonction).
   const updateDraft = useCallback((update: SessionDraftUpdate) => {
     setDraft((current) => ({ ...current, ...(typeof update === "function" ? update(current) : update) }));
@@ -1738,6 +1744,36 @@ describe("CompositionScreen — Continuer (T01-S09, CE-T01-04/CE-T01-11)", () =>
     expect(mockDismissTo).not.toHaveBeenCalled();
   });
 
+  it("PRE-7 R-5 (C01, report R-3) — nom de mouvement déjà pris à l'enregistrement : message propre, pas l'erreur générique", async () => {
+    const service = {
+      createSession: jest.fn(async () => {
+        throw new DuplicateMovementNameError("gainage");
+      }),
+      updateSession: jest.fn(),
+    } as unknown as SessionService;
+    render(
+      <SessionServiceContext.Provider value={service}>
+        <TestSafeAreaProvider>
+          <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService()}>
+            <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+              <StatefulDraftWrapper
+                initialExercises={[{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]}
+              >
+                <CompositionScreen />
+              </StatefulDraftWrapper>
+            </ReferentialServiceContext.Provider>
+          </ActivityDefinitionServiceContext.Provider>
+        </TestSafeAreaProvider>
+      </SessionServiceContext.Provider>,
+    );
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(composition.saveAction));
+    });
+    expect(screen.getByTestId("composition-save-error").props.children).toBe(composition.nameTakenError);
+    expect(screen.getByLabelText(composition.saveAction).props.accessibilityState).toMatchObject({ disabled: false });
+    expect(mockDismissTo).not.toHaveBeenCalled();
+  });
+
   it("stays disabled again if the only Activity becomes invalid (defense in depth, mirrors toCreateSessionInput)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "", executionParameters: durationParameters(45) }]);
 
@@ -2108,7 +2144,8 @@ describe("CompositionScreen — Zones corporelles de la ligne Activité (correct
 
   it("PRE6-5.1 — with a Category but no zone: line 2 carries the Category, line 3 has no zone badge", async () => {
     renderScreenWithDraft([
-      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), categoryId: "renforcement" },
+      // PRE-7 (R-3) : vue d'un Mouvement déjà référencé, rendu seul (sans Zone) — hors création locale.
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45), categoryId: "renforcement", sourceMovementId: "mov-gainage" },
     ]);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
@@ -2305,6 +2342,36 @@ function fireSwipeLeft(activityId: string) {
 function fireSwipeRight(activityId: string) {
   fireSwipe(activityId, 80);
 }
+
+describe("CompositionScreen — suffixe de niveau « - Nn » (PRE-7 R-6, D-445 C06, MFN-10)", () => {
+  it("carte sans pastille : « nom - Nn » pour un mouvement groupé, puis le suffixe de copie ; nom seul sans groupe ; nom accessible identique", async () => {
+    const listMovementLevelPositions = jest
+      .fn<ActivityDefinitionService["listMovementLevelPositions"]>()
+      .mockResolvedValue(new Map([["mov-squats", { rank: 2, total: 3 }]]));
+    render(
+      <TestSafeAreaProvider>
+        <ActivityDefinitionServiceContext.Provider value={fakeActivityDefinitionService({ listMovementLevelPositions })}>
+          <ReferentialServiceContext.Provider value={fakeReferentialService()}>
+            <StatefulDraftWrapper
+              initialExercises={[
+                { ...createExerciseDraft("ex-1"), name: "Squats", executionParameters: durationParameters(30, 3, 10), sourceMovementId: "mov-squats", copyNumber: 2 },
+                { ...createExerciseDraft("ex-2"), name: "Pompes", executionParameters: durationParameters(30, 3, 10), sourceMovementId: "mov-alone" },
+              ]}
+            >
+              <CompositionScreen />
+            </StatefulDraftWrapper>
+          </ReferentialServiceContext.Provider>
+        </ActivityDefinitionServiceContext.Provider>
+      </TestSafeAreaProvider>,
+    );
+    await waitFor(() => expect(listMovementLevelPositions).toHaveBeenCalled());
+    const squats = screen.getByTestId("composition-exercise-row-ex-1");
+    await waitFor(() => expect(within(squats).getByTestId("composition-exercise-name").props.children).toBe("Squats - N2 (copie 2)"));
+    expect(squats.props.accessibilityLabel).toContain("Squats - N2 (copie 2)");
+    const alone = screen.getByTestId("composition-exercise-row-ex-2");
+    expect(within(alone).getByTestId("composition-exercise-name").props.children).toBe("Pompes");
+  });
+});
 
 describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () => {
   // PRE-6 story 7.7 : actions glissées animées (pilote JS, minuteurs simulés).
@@ -2635,7 +2702,8 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
   function renderTwo() {
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", bodyZoneIds: ["dos"] }),
-      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+      // PRE-7 (R-3) : vue d'un Mouvement déjà référencé (sans Zone) — hors création locale.
+      anActivity("ex-2", "BEFORE_TOUR", { name: "Squats", sourceMovementId: "mov-squats" }),
     ]);
   }
 
@@ -4782,7 +4850,13 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     a11yAction("ex-1", "duplicate");
     expect(screen.getByText("Squat (copie)")).toBeTruthy();
     a11yAction("ex-1", "duplicate");
-    expect(probe.draft!.exercises.map((exercise) => exercise.name)).toEqual(["Squat", "Squat (copie 2)", "Squat (copie)"]);
+    // PRE-7 (R-3, Q3) : même nom (celui du Mouvement), suffixe porté par le numéro de copie.
+    expect(probe.draft!.exercises.map((exercise) => [exercise.name, exercise.copyNumber ?? null])).toEqual([
+      ["Squat", null],
+      ["Squat", 2],
+      ["Squat", 1],
+    ]);
+    expect(screen.getByText("Squat (copie 2)")).toBeTruthy();
   });
 
   it("story 7.5 (D-442 amendée) — Supprimer une occurrence suivie d'un point qui deviendrait premier : appliqué, le point retiré", () => {

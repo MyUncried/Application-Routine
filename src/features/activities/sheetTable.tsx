@@ -168,6 +168,7 @@ export function DraggableRow({
   onLiftedChange,
   labels,
   testIDPrefix,
+  movable = true,
   children,
 }: {
   index: number;
@@ -178,6 +179,12 @@ export function DraggableRow({
   onLiftedChange?: (lifted: boolean) => void;
   labels: DraggableRowLabels;
   testIDPrefix: string;
+  /**
+   * PRE-7 (A2.1, D-438, MFN-09) : faux pour une ligne dont l'ordre est verrouillé (phases d'une
+   * occurrence) — poignée affichée indisponible (`unselected`), sans glisser ni actions Monter /
+   * Descendre, état `disabled` exposé. Défaut vrai : rendu et comportement antérieurs inchangés.
+   */
+  movable?: boolean;
   children: ReactNode;
 }) {
   const number = index + 1;
@@ -227,10 +234,12 @@ export function DraggableRow({
     };
     settleFrameRef.current = requestAnimationFrame(step);
   }
-  const actions = [
-    ...(index > 0 ? [{ name: "moveUp", label: fill(labels.moveUp, number) }] : []),
-    ...(index < count - 1 ? [{ name: "moveDown", label: fill(labels.moveDown, number) }] : []),
-  ];
+  const actions = movable
+    ? [
+        ...(index > 0 ? [{ name: "moveUp", label: fill(labels.moveUp, number) }] : []),
+        ...(index < count - 1 ? [{ name: "moveDown", label: fill(labels.moveDown, number) }] : []),
+      ]
+    : [];
   return (
     <View
       style={[
@@ -242,8 +251,9 @@ export function DraggableRow({
     >
       <View style={styles.leadColumn}>
         <View
-          onStartShouldSetResponder={() => true}
-          onMoveShouldSetResponder={() => true}
+          // PRE-7 (A2.1) : ligne verrouillée — aucun répondeur, le geste n'est jamais saisi.
+          onStartShouldSetResponder={() => movable}
+          onMoveShouldSetResponder={() => movable}
           onResponderTerminationRequest={() => false}
           onResponderGrant={(event) => {
             stopSettle();
@@ -280,12 +290,14 @@ export function DraggableRow({
           accessibilityLabel={fill(labels.handle, number)}
           accessibilityActions={actions}
           onAccessibilityAction={(event) => {
+            if (!movable) return;
             if (event.nativeEvent.actionName === "moveUp") onMove(index - 1);
             if (event.nativeEvent.actionName === "moveDown") onMove(index + 1);
           }}
+          {...(movable ? {} : { accessibilityState: { disabled: true } })}
           // AD-28 : poignée dessinée 12 × 18, cible tactile 36 × 36.
           hitSlop={HANDLE_HIT_SLOP}
-          style={styles.dragHandle}
+          style={movable ? styles.dragHandle : [styles.dragHandle, styles.unselected]}
           testID={`${testIDPrefix}-${number}-handle`}
         >
           {[0, 1, 2].map((line) => (

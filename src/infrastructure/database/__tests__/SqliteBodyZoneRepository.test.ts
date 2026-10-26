@@ -4,6 +4,7 @@ import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import { SqliteBodyZoneRepository } from "@/infrastructure/database/repositories/SqliteBodyZoneRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+import { seedCatalogueDefinition } from "@/infrastructure/database/testing/seedCatalogueDefinition";
 
 function makeUuidFactory(prefix: string) {
   let counter = 0;
@@ -81,19 +82,14 @@ describe("SqliteBodyZoneRepository", () => {
 
     it("keeps a reactivated Zone's existing Activity associations (same id, never a new row)", async () => {
       const repository = new SqliteBodyZoneRepository(database, makeUuidFactory("zone"));
-      await database.runAsync(
-        `INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode, created_at, updated_at)
-         VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
-      );
-      await database.runAsync(
-        "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-1', 'cuisses')",
-      );
+      // PRE-7 (A1.2) : Zones portées par le Mouvement de l'Exercice.
+      await seedCatalogueDefinition(database, { id: "def-1", bodyZoneIds: ["cuisses"] });
       await repository.retire("cuisses");
 
       await repository.create({ name: "Cuisses" });
 
       const association = await database.getFirstAsync<{ body_zone_id: string }>(
-        "SELECT body_zone_id FROM activity_definition_body_zones WHERE activity_definition_id = 'def-1'",
+        "SELECT body_zone_id FROM movement_body_zones WHERE movement_id = 'mov-def-1'",
       );
       expect(association?.body_zone_id).toBe("cuisses");
     });
@@ -143,16 +139,8 @@ describe("SqliteBodyZoneRepository", () => {
       expect(await repository.isUsed("cou")).toBe(false);
     });
 
-    it("is true once a Catalogue Exercise references the Zone (activity_definition_body_zones)", async () => {
-      await database.runAsync(
-        `INSERT INTO activity_definitions (
-          id, name, description, execution_mode, duration_seconds, repetition_count,
-          series_count, pause_seconds, side_mode, created_at, updated_at
-        ) VALUES ('def-1', 'Squat', NULL, 'DURATION', 30, NULL, 3, 10, 'UNILATERAL', 'now', 'now')`,
-      );
-      await database.runAsync(
-        "INSERT INTO activity_definition_body_zones (activity_definition_id, body_zone_id) VALUES ('def-1', 'cou')",
-      );
+    it("is true once a Catalogue Exercise references the Zone (movement_body_zones, PRE-7 A1.2)", async () => {
+      await seedCatalogueDefinition(database, { id: "def-1", bodyZoneIds: ["cou"] });
       const repository = new SqliteBodyZoneRepository(database, makeUuidFactory("zone"));
       expect(await repository.isUsed("cou")).toBe(true);
     });

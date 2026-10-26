@@ -14,6 +14,7 @@ import {
   type CreateSessionInput,
   type CreateStopPointInput,
   type ExerciseExecutionMode,
+  type SessionMovementInput,
   type StructuralPosition,
   type UpdateSessionActivityInput,
   type UpdateSessionInput,
@@ -32,6 +33,9 @@ import {
   type ExecutionParametersInput,
   type ExecutionParametersViolation,
 } from "@/domain/activities/ExecutionParameters";
+// PRE-7 (R-3) : cycle d'import assumé avec `Movement.ts` (qui emprunte les validateurs de nom) :
+// les deux modules n'appellent l'autre qu'à l'exécution, jamais à leur initialisation.
+import { movementPhasesProblem, normalizeMovementName } from "@/domain/activities/Movement";
 
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "./circuit";
 import { DEFAULT_SIDE_MODE, SESSION_BOUNDARY_SECONDS_MAX } from "./defaults";
@@ -477,14 +481,12 @@ function unwrap<T>(
 type ActivityParameterInput = {
   /** V2-PRE-1 : récupération post-exercice de l'occurrence (`0..5999`) ; PRE-6 (AD-35) : `null` = absente. */
   readonly postActivityRecoverySeconds: number | null;
-  readonly bodyZoneIds: readonly string[];
   /** PRE-4 (story 1.1) : paramètres typés obligatoires — seule source du Mode, des Cibles, de N et des Pauses. */
   readonly executionParameters: ExecutionParametersInput;
 };
 
 type ActivityParameterValues = {
   readonly postActivityRecoverySeconds: number | null;
-  readonly bodyZoneIds: readonly string[];
   /** Paramètres validés au niveau structurel et normalisés (N=1 effectif) ; absents si invalides. */
   readonly executionParameters?: ExecutionParameters;
 };
@@ -502,11 +504,8 @@ type ActivityParameterValues = {
  *
  * Une Récupération autonome (D-041) n'est plus créable
  * (`validateCreatableActivityType`) ; sa branche de lecture défensive reste :
- * aucune Récupération attachée, aucune Zone, une seule Série chronométrée.
- *
- * `bodyZoneIds` n'est jamais revalidée ici (référentiel `bodyZones.ts`, hors
- * Domaine Séance) : elle est reprise telle quelle pour un Exercice, vidée
- * pour une Récupération.
+ * aucune Récupération attachée, une seule Série chronométrée. PRE-7 (R-3, C05) :
+ * les Zones appartiennent au Mouvement, plus à l'occurrence.
  *
  * `type` peut être `undefined` lorsque le type lui-même a déjà échoué à la
  * validation : aucune règle de paramètre n'est alors applicable, et la
@@ -523,22 +522,18 @@ function validateActivityParameters(
     if (activity.postActivityRecoverySeconds !== 0 && activity.postActivityRecoverySeconds !== null) {
       violations.push({ code: "MUST_BE_ABSENT", field: "exercise.postActivityRecoverySeconds" });
     }
-    if (activity.bodyZoneIds.length > 0) {
-      violations.push({ code: "MUST_BE_ABSENT", field: "activity.bodyZoneIds" });
-    }
     const recovery = validateForSave(activity.executionParameters, "STORAGE");
     if (!recovery.ok) {
       violations.push({ code: "REQUIRED", field: "recovery.durationSeconds" });
     }
     return {
       postActivityRecoverySeconds: null,
-      bodyZoneIds: [],
       ...(recovery.ok ? { executionParameters: recovery.value } : {}),
     };
   }
 
   if (type !== "EXERCISE") {
-    return { postActivityRecoverySeconds: null, bodyZoneIds: [] };
+    return { postActivityRecoverySeconds: null };
   }
 
   // V2-PRE-1 : la récupération post-exercice est portée par l'occurrence,
@@ -560,13 +555,99 @@ function validateActivityParameters(
         toSessionViolation(violation, mode === "DURATION" || mode === "REPETITIONS" ? mode : null),
       ),
     );
-    return { postActivityRecoverySeconds, bodyZoneIds: activity.bodyZoneIds };
+    return { postActivityRecoverySeconds };
   }
   return {
     postActivityRecoverySeconds,
-    bodyZoneIds: activity.bodyZoneIds,
     executionParameters: parameters.value,
   };
+}
+
+/**
+ * PRE-7 (R-3, D-445 C05) : référence de l'occurrence vers son Mouvement
+ * (obligatoire pour un Exercice) et numéro de copie (Q3 : entier ≥ 1 ou
+ * absent). Aucun contenu n'est validé ici : il appartient au Mouvement.
+ */
+function validateOccurrenceReference(
+  type: ActivityType | undefined,
+  activity: { readonly sourceMovementId?: string; readonly copyNumber?: number | null },
+  violations: ValidationViolation[],
+): { readonly sourceMovementId?: string; readonly copyNumber: number | null } {
+  const movementId = typeof activity.sourceMovementId === "string" ? activity.sourceMovementId.trim() : "";
+  if (type === "EXERCISE" && movementId.length === 0) {
+    violations.push({ code: "REQUIRED", field: "activity.sourceMovementId" });
+  }
+  const copyNumber = activity.copyNumber ?? null;
+  if (copyNumber !== null && !(Number.isInteger(copyNumber) && copyNumber >= 1)) {
+    violations.push({ code: "OUT_OF_RANGE", field: "activity.copyNumber" });
+  }
+  return { ...(movementId.length > 0 ? { sourceMovementId: movementId } : {}), copyNumber };
+}
+
+/**
+ * PRE-7 (R-3, D-445 C01, C05) : valide les Mouvements nouveaux ou corrigés du
+ * brouillon — nom (`exercise.name`, champ historique de l'interface) et
+ * description (`exercise.instruction`) par les validateurs de l'Exercice,
+ * Catégorie et Zones obligatoires, structure des phases (`movementPhasesProblem`),
+ * compteur > max(`id`), alias valides et distincts ; identifiants uniques. Deux
+ * Mouvements du brouillon de même nom normalisé sont refusés (`DUPLICATE`) ; un
+ * nom déjà pris en base est refusé par le repository (`DuplicateMovementNameError`).
+ */
+function validateSessionMovements(
+  movements: readonly SessionMovementInput[] | undefined,
+  violations: ValidationViolation[],
+): SessionMovementInput[] {
+  const normalized: SessionMovementInput[] = [];
+  const ids = new Set<string>();
+  const names = new Set<string>();
+  for (const movement of movements ?? []) {
+    const id = movement.id.trim();
+    if (id.length === 0) {
+      violations.push({ code: "REQUIRED", field: "movement.id" });
+    } else if (ids.has(id)) {
+      violations.push({ code: "DUPLICATE", field: "movement.id" });
+    }
+    ids.add(id);
+    const name = unwrap(validateExerciseName(movement.name), violations);
+    if (name !== undefined) {
+      const key = normalizeMovementName(name);
+      if (names.has(key)) {
+        violations.push({ code: "DUPLICATE", field: "exercise.name" });
+      }
+      names.add(key);
+    }
+    const description = unwrap(validateInstruction(movement.description), violations);
+    if (movement.categoryId.trim().length === 0) {
+      violations.push({ code: "REQUIRED", field: "movement.category" });
+    }
+    if (movement.bodyZoneIds.length === 0 || movement.bodyZoneIds.some((zone) => zone.trim().length === 0)) {
+      violations.push({ code: "REQUIRED", field: "movement.bodyZoneIds" });
+    }
+    const phasesValid = movementPhasesProblem(movement.phases) === null;
+    const floor = movement.phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
+    if (!phasesValid || !Number.isInteger(movement.nextPhaseId) || movement.nextPhaseId < floor) {
+      violations.push({ code: "UNRECOGNIZED", field: "movement.phases" });
+    }
+    // Mêmes codes que `validateMovement` (domaine Movement).
+    if (movement.aliases.some((alias) => !validateExerciseName(alias).ok)) {
+      violations.push({ code: "REQUIRED", field: "movement.aliases" });
+    } else if (new Set(movement.aliases.map(normalizeMovementName)).size !== movement.aliases.length) {
+      violations.push({ code: "DUPLICATE", field: "movement.aliases" });
+    }
+    if (name !== undefined && description !== undefined) {
+      normalized.push({
+        ...movement,
+        id,
+        name,
+        description,
+        bodyZoneIds: [...movement.bodyZoneIds],
+        media: [...movement.media],
+        phases: movement.phases.map((phase) => ({ id: phase.id, label: phase.label })),
+        aliases: movement.aliases.map((alias) => alias.trim()),
+      });
+    }
+  }
+  return normalized;
 }
 
 /**
@@ -581,7 +662,6 @@ function validateSessionActivityInput(
   activity: CreateSessionActivityInput,
 ): ValidationResult<CreateSessionActivityInput> {
   const violations: ValidationViolation[] = [];
-  const name = unwrap(validateExerciseName(activity.name), violations);
   // T02-S02 : `validateCreatableActivityType` (et non `validateActivityType`)
   // — aucune Activité `RECOVERY` ne peut plus être créée.
   const type = unwrap(validateCreatableActivityType(activity.type), violations);
@@ -600,8 +680,8 @@ function validateSessionActivityInput(
     }
   }
 
-  const instruction = unwrap(validateInstruction(activity.instruction ?? null), violations);
   const parameters = validateActivityParameters(type, activity, violations);
+  const reference = validateOccurrenceReference(type, activity, violations);
 
   if (violations.length > 0) {
     return fail(violations);
@@ -611,33 +691,11 @@ function validateSessionActivityInput(
     id,
     type: type as ActivityType,
     structuralPosition: structuralPosition as StructuralPosition,
-    name: name as string,
     executionParameters: parameters.executionParameters as ExecutionParameters,
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
-    instruction: instruction === undefined ? null : instruction,
-    bodyZoneIds: parameters.bodyZoneIds,
     sideMode: normalizeSideMode(parameters.executionParameters?.sideMode ?? activity.sideMode),
-    ...pre3Transport(activity),
+    ...reference,
   });
-}
-
-/**
- * PRE-3 : champs transportés tels quels après validation — Catégorie (`""`
- * normalisée en `null`), médias ordonnés (l'intégrité référentielle reste au
- * Repository : FK réelle).
- */
-function pre3Transport(
-  activity: {
-    readonly categoryId?: string | null;
-    readonly media?: CreateSessionActivityInput["media"];
-  },
-) {
-  return {
-    ...(activity.categoryId !== undefined
-      ? { categoryId: activity.categoryId && activity.categoryId.trim().length > 0 ? activity.categoryId : null }
-      : {}),
-    ...(activity.media !== undefined ? { media: activity.media } : {}),
-  };
 }
 
 /**
@@ -766,6 +824,7 @@ export function validateCreateSessionInput(
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
   const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
+  const movements = validateSessionMovements(input.movements, violations);
   const exercises: CreateSessionActivityInput[] = [];
   if (input.exercises.length === 0) {
     violations.push(
@@ -813,6 +872,7 @@ export function validateCreateSessionInput(
     // transition) ; absente, le Repository écrit `DEFAULT_CIRCUIT_NATURE`.
     ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     exercises,
+    movements,
     // PRE-6 (story 1.2, AD-36) : emplacements validés, enregistrés tels quels.
     stopPoints,
   });
@@ -833,7 +893,6 @@ export function validateUpdateSessionActivityInput(
   if (trimmedId.length === 0) {
     violations.push({ code: "REQUIRED", field: "activity.id" });
   }
-  const name = unwrap(validateActivityName(activity.name), violations);
   // T02-S02 : même verrou que le chemin de création — une modification ne
   // peut pas réintroduire une Activité `RECOVERY`.
   const type = unwrap(validateCreatableActivityType(activity.type), violations);
@@ -842,12 +901,12 @@ export function validateUpdateSessionActivityInput(
     violations,
   );
   const position = unwrap(validateActivityPosition(activity.position), violations);
-  const instruction = unwrap(validateInstruction(activity.instruction ?? null), violations);
 
   // T02-S01 : mêmes règles de paramètres que le chemin de création, une
   // seule implémentation partagée (`validateActivityParameters`) — les deux
   // copies précédentes ne pouvaient que diverger.
   const parameters = validateActivityParameters(type, activity, violations);
+  const reference = validateOccurrenceReference(type, activity, violations);
 
   if (violations.length > 0) {
     return fail(violations);
@@ -858,13 +917,10 @@ export function validateUpdateSessionActivityInput(
     type: type as ActivityType,
     structuralPosition: structuralPosition as StructuralPosition,
     position: position as number,
-    name: name as string,
     executionParameters: parameters.executionParameters as ExecutionParameters,
     postActivityRecoverySeconds: parameters.postActivityRecoverySeconds,
-    instruction: instruction === undefined ? null : instruction,
-    bodyZoneIds: parameters.bodyZoneIds,
     sideMode: normalizeSideMode(parameters.executionParameters?.sideMode ?? activity.sideMode),
-    ...pre3Transport(activity),
+    ...reference,
   });
 }
 
@@ -894,6 +950,7 @@ export function validateUpdateSessionInput(
   const tourRepeatCount = unwrap(validateTourRepeatCount(input.tourRepeatCount), violations);
   const circuitNature = unwrap(validateCircuitNature(input.circuitNature), violations);
 
+  const movements = validateSessionMovements(input.movements, violations);
   const activities: UpdateSessionActivityInput[] = [];
   if (input.activities.length === 0) {
     violations.push({ code: "REQUIRED", field: "activity.id" });
@@ -936,6 +993,7 @@ export function validateUpdateSessionInput(
     tourRepeatCount: tourRepeatCount as number,
     ...(input.circuitNature !== undefined ? { circuitNature: circuitNature as CircuitNature } : {}),
     activities,
+    movements,
     stopPoints,
     ...(input.persistedActivityIds !== undefined ? { persistedActivityIds: [...input.persistedActivityIds] } : {}),
   });

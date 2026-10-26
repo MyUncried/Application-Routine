@@ -4,12 +4,15 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ActivityDefinition } from "@/domain/activities";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { totalClauseAmount } from "@/domain/activities/executionPhrase";
+import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, useMediaUriResolver } from "@/features/activities/MediaPreview";
+import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
 import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
+  isIncompleteSummary,
 } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 import { CardTitleLine } from "@/shared/ui/CardTitleLine";
@@ -75,6 +78,11 @@ export type ActivityCardProps = {
   definition: ActivityDefinition;
   /** Ouvre l'édition de la définition — surface principale de la carte (plan §4.1). */
   onOpen?: () => void;
+  /**
+   * PRE-7 (R-6, D-445 C06, MFN-10 l.426) : position de niveau du mouvement — la carte n'a pas de
+   * pastille : suffixe « - Nn » à la suite du nom ; absente : nom seul.
+   */
+  levelPosition?: MovementLevelPosition | null;
 };
 
 /**
@@ -118,11 +126,12 @@ export type ActivityCardProps = {
  * de remplacement. PRE-4 : lit les paramètres typés obligatoires (AD-3).
  */
 export function catalogueDuration(definition: ActivityDefinition): string | null {
+  // PRE-7 (D-448, PH-5) : phase manquante — total en Durée, aucune durée en Répétitions (`incomplete` du domaine).
   // Story 2.1 (AC9) : même montant et même symbole que la clause de la Phrase sans arrondi (Q20).
   return totalClauseAmount(computeIntrinsicDuration(definition.executionParameters));
 }
 
-export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
+export function ActivityCard({ definition, onOpen, levelPosition = null }: ActivityCardProps) {
   const t = strings.screens.activities.card;
   const bodyZonesReferential = useBodyZonesReferential();
   const bodyZones = formatExerciseBodyZones(definition.bodyZoneIds, bodyZonesReferential);
@@ -145,7 +154,11 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
       <View style={styles.body}>
         <View style={styles.mainRow}>
           <ActivityCardMainArea onOpen={onOpen} hasThumbnail={firstMedia !== undefined}>
-            <CardTitleLine title={definition.name} duration={duration} testID={`activity-card-${definition.id}`} />
+            <CardTitleLine
+              title={withLevelSuffix(definition.name, levelPosition)}
+              duration={duration}
+              testID={`activity-card-${definition.id}`}
+            />
             {bodyZones !== null ? (
               <Text
                 style={styles.secondaryLine}
@@ -160,7 +173,13 @@ export function ActivityCard({ definition, onOpen }: ActivityCardProps) {
              * `numberOfLines`, qui coupait la clause Pause/mode/cible sur
              * une carte compacte.
              */}
-            <Text style={styles.secondaryLine}>{summary}</Text>
+            {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
+            <Text
+              style={[styles.secondaryLine, isIncompleteSummary(summary) ? styles.incompleteLine : null]}
+              testID={`activity-card-summary-${definition.id}`}
+            >
+              {summary}
+            </Text>
           </ActivityCardMainArea>
           <View style={styles.actions} pointerEvents="box-none">
             <Pressable
@@ -339,6 +358,9 @@ const styles = StyleSheet.create({
     ...type.supporting,
     marginRight: minTouchTarget + spacing[2] - spacing[16],
     color: colors.textSecondary,
+  },
+  incompleteLine: {
+    color: colors.danger,
   },
   actions: {
     position: "absolute",

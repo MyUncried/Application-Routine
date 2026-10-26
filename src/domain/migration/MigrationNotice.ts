@@ -9,13 +9,21 @@
  * par une `Alert` native à un seul bouton et ne l'acquitte qu'à l'appui.
  */
 
-/** Seul genre d'avis : Exercices illisibles écartés par `migration010` (AD-12). */
-export type MigrationNoticeKind = "UNREADABLE_EXERCISES_DROPPED";
+/**
+ * Genres d'avis : Exercices illisibles écartés par `migration010` (AD-12) ;
+ * PRE-7 (A1.2, D-440 assouplie, MFN-12) : Exercices et Séances réinitialisés
+ * une seule fois par `migration012` (Profil, Catégories et Zones conservés).
+ */
+export type MigrationNoticeKind = "UNREADABLE_EXERCISES_DROPPED" | "EXERCISES_AND_SESSIONS_RESET";
 
 export type MigrationNotice = {
   readonly id: number;
   readonly kind: MigrationNoticeKind;
-  /** Nombre de Définitions et de Copies en Séance écartées, ≥ 1. */
+  /**
+   * Nombre d'éléments concernés, ≥ 1 : Définitions et Copies écartées
+   * (`UNREADABLE_EXERCISES_DROPPED`) ; Exercices du Catalogue et Séances
+   * supprimés (`EXERCISES_AND_SESSIONS_RESET`).
+   */
   readonly count: number;
   /** ISO 8601 UTC (`Date.prototype.toISOString()`). */
   readonly createdAt: string;

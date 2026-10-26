@@ -13,6 +13,7 @@ import { MediaDraftLeases } from "@/domain/media/MediaDraftLeases";
 function makeDefinition(overrides: Partial<ActivityDefinition> = {}): ActivityDefinition {
   return {
     id: "def-1",
+    movementId: "mov-1",
     name: "Squat",
     description: null,
     executionParameters: durationParameters(30, 3, 10),

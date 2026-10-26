@@ -16,6 +16,7 @@ import { canonicalBodyZoneKey } from "@/domain/body-zones/BodyZone";
 import { canonicalLabelKey } from "@/domain/labels/Label";
 import {
   ExecutionParametersDataError,
+  readExecutionParameters,
   validateForSave,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -27,6 +28,7 @@ import {
 import type { Database } from "@/infrastructure/database/Database";
 import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { newMovementInput, ViewedSessionRepository } from "@/infrastructure/database/testing/sessionMovements";
 import { applyMigration011 } from "@/infrastructure/database/migrations/migration011";
 import { buildVersion10 } from "@/infrastructure/database/testing/buildVersion10";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
@@ -69,7 +71,7 @@ describe("migrateDatabase", () => {
   // scalaire NULL (Cible à l'échec ou à renseigner) ; il refuse toujours les
   // deux cibles non nulles.
   it("enforces the NULL-safe duration rules (PRE-4 : cible scalaire NULL admise, jamais les deux cibles)", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     await seedStructure(database);
 
     await insertActivity(database, {
@@ -90,12 +92,12 @@ describe("migrateDatabase", () => {
   });
 
   it("seeds exactly the 10 predefined categories once, idempotently, ordered by displayOrder (T01-S09, D-107)", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     const firstPass = await database.getAllAsync<{ id: string; name: string; canonical_key: string }>(
       "SELECT id, name, canonical_key FROM categories ORDER BY display_order ASC",
     );
 
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     const secondPass = await database.getAllAsync<{ id: string }>("SELECT id FROM categories");
 
     expect(firstPass).toHaveLength(10);
@@ -112,11 +114,11 @@ describe("migrateDatabase", () => {
       "Méditation",
       "Autre",
     ]);
-    expect(secondPass).toHaveLength(10); // idempotent: no duplicate seeding on a second migrateDatabase() call.
+    expect(secondPass).toHaveLength(10); // idempotent: no duplicate seeding on a second migrateDatabase(, , 11) call.
   });
 
   it("enforces canonical_key uniqueness on categories (T01-S09)", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
 
     await expect(
       database.runAsync(
@@ -127,7 +129,7 @@ describe("migrateDatabase", () => {
   });
 
   it("persists and enforces activity_body_zones referential integrity (T01-S09, D-093)", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     await seedStructure(database);
     await insertActivity(database, {
       id: "activity-a",
@@ -160,7 +162,7 @@ describe("migrateDatabase", () => {
    * `NULL` si l'Étiquette référencée est supprimée (`ON DELETE SET NULL`).
    */
   it("has no session_categories table, and clears a Session's label_id when the referenced Label is deleted", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     await seedStructure(database);
 
     const table = await database.getFirstAsync<{ count: number }>(
@@ -187,7 +189,7 @@ describe("migrateDatabase", () => {
   });
 
   it("never modifies migration001's tables/constraints: the T01-S01 NULL-safe duration rule still holds after migration002", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     await seedStructure(database);
 
     await expect(
@@ -201,7 +203,7 @@ describe("migrateDatabase", () => {
   });
 
   it("enforces that cycle, tour and activity belong to the same session", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     await seedStructure(database);
     await seedStructure(database, "b");
 
@@ -309,7 +311,7 @@ describe("migrateDatabase", () => {
         ["kept-1", "dos", "kept-1", "epaules"],
       );
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const activity = await database.getFirstAsync<{
         id: string;
@@ -333,8 +335,8 @@ describe("migrateDatabase", () => {
         }),
       ).rejects.toThrow();
 
-      // Deuxième migrateDatabase() : no-op idempotent.
-      await migrateDatabase(database);
+      // Deuxième migrateDatabase(, , 11) : no-op idempotent.
+      await migrateDatabase(database, undefined, 11);
       const stillThere = await database.getFirstAsync<{ count: number }>(
         "SELECT COUNT(*) AS count FROM activities WHERE id = 'kept-1'",
       );
@@ -381,7 +383,7 @@ describe("migrateDatabase", () => {
         { id: "ts-b", created_at: createdAtB, updated_at: updatedAtB },
       ]);
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const after = await database.getAllAsync<{
         id: string;
@@ -392,10 +394,11 @@ describe("migrateDatabase", () => {
     });
 
     it("PRE4-1.1/AC15 — a fresh database reaches version 10 directly : TO_FAILURE is refused, REPETITIONS without target is admitted", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(11);
+      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
+      expect(version?.user_version).toBe(11);
+      expect(DATABASE_VERSION).toBe(13);
 
       await seedStructure(database);
       await expect(
@@ -490,7 +493,7 @@ describe("migrateDatabase", () => {
       await insertLegacyRow({ id: "ex-2", zone: "IN_TOUR", position: 2, type: "EXERCISE", executionMode: "REPETITIONS", durationSeconds: null, repetitionCount: 12, seriesCount: 3 });
       await insertLegacyRow({ id: "ex-3", zone: "IN_TOUR", position: 3, type: "EXERCISE", executionMode: "DURATION", durationSeconds: 40, seriesCount: 1 });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const rows = await database.getAllAsync<{
         id: string;
@@ -513,7 +516,7 @@ describe("migrateDatabase", () => {
       // ne la précède DANS le Tour — `warmup` appartient à une autre zone.
       await insertLegacyRow({ id: "orphan", zone: "IN_TOUR", position: 0, type: "RECOVERY", executionMode: "DURATION", durationSeconds: 45, seriesCount: null });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const remaining = await database.getAllAsync<{ id: string; post_activity_recovery_seconds: number }>(
         "SELECT id, post_activity_recovery_seconds FROM activities ORDER BY id",
@@ -528,7 +531,7 @@ describe("migrateDatabase", () => {
       await insertLegacyRow({ id: "rec-a", zone: "IN_TOUR", position: 1, type: "RECOVERY", executionMode: "DURATION", durationSeconds: 20, seriesCount: null });
       await insertLegacyRow({ id: "rec-b", zone: "IN_TOUR", position: 2, type: "RECOVERY", executionMode: "DURATION", durationSeconds: 35, seriesCount: null });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       // `rec-b` n'est PAS additionnée : la seconde Récupération consécutive
       // n'est plus attachable et disparaît, la première seule est reportée.
@@ -547,7 +550,7 @@ describe("migrateDatabase", () => {
         ["ex-1", "dos", "ex-1", "epaules"],
       );
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const zones = await database.getAllAsync<{ activity_id: string; body_zone_id: string }>(
         "SELECT activity_id, body_zone_id FROM activity_body_zones ORDER BY body_zone_id",
@@ -563,7 +566,7 @@ describe("migrateDatabase", () => {
     });
 
     it("bounds post_activity_recovery_seconds in the database itself (0..5999) and keeps it at 0 for a RECOVERY-typed row", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
 
       await expect(
@@ -581,7 +584,7 @@ describe("migrateDatabase", () => {
     });
 
     it("defaults post_activity_recovery_seconds to 0 for a fresh row that does not mention it, and re-migrating is a no-op", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
       await insertActivity(database, {
         id: "fresh",
@@ -590,14 +593,14 @@ describe("migrateDatabase", () => {
         repetitionCount: null,
       });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const row = await database.getFirstAsync<{ post_activity_recovery_seconds: number }>(
         "SELECT post_activity_recovery_seconds FROM activities WHERE id = 'fresh'",
       );
       expect(row?.post_activity_recovery_seconds).toBe(0);
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(version?.user_version).toBe(11);
     });
 
     it("preserves the exact created_at / updated_at of the kept rows through the migration004 rebuild", async () => {
@@ -616,7 +619,7 @@ describe("migrateDatabase", () => {
         [createdAt, updatedAt],
       );
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const row = await database.getFirstAsync<{ created_at: string; updated_at: string }>(
         "SELECT created_at, updated_at FROM activities WHERE id = 'ts-a'",
@@ -653,10 +656,10 @@ describe("migrateDatabase", () => {
     it("brings a version-4 database (v0…v4 chain) through version 5, defaulting every pre-existing row to UNILATERAL", async () => {
       await seedVersion4();
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(version?.user_version).toBe(11);
 
       const activityRow = await database.getFirstAsync<{ side_mode: string }>(
         "SELECT side_mode FROM activities WHERE id = 'legacy-activity'",
@@ -669,7 +672,7 @@ describe("migrateDatabase", () => {
     });
 
     it("is a no-op on a second call — a database already at the current version is never replayed", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
       await insertActivity(database, {
         id: "fresh",
@@ -678,23 +681,23 @@ describe("migrateDatabase", () => {
         repetitionCount: null,
       });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const row = await database.getFirstAsync<{ side_mode: string }>(
         "SELECT side_mode FROM activities WHERE id = 'fresh'",
       );
       expect(row?.side_mode).toBe("UNILATERAL");
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(DATABASE_VERSION);
+      expect(version?.user_version).toBe(11);
     });
 
     it("still rejects a database newer than the application", async () => {
       await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
-      await expect(migrateDatabase(database)).rejects.toThrow("newer than supported");
+      await expect(migrateDatabase(database, undefined, 11)).rejects.toThrow("newer than supported");
     });
 
     it("bounds side_mode to the three canonical values, on both activities and tours", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
 
       await expect(
@@ -716,7 +719,7 @@ describe("migrateDatabase", () => {
     });
 
     it("accepts each of the three canonical values on an Activity and on the Tour", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
 
       for (const sideMode of ["UNILATERAL", "RIGHT_LEFT", "LEFT_RIGHT"]) {
@@ -730,7 +733,7 @@ describe("migrateDatabase", () => {
 
     it("rolls back the entire migration on failure, leaving user_version unchanged (shared transaction, non-regression)", async () => {
       await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
-      await expect(migrateDatabase(database)).rejects.toThrow();
+      await expect(migrateDatabase(database, undefined, 11)).rejects.toThrow();
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION + 1);
     });
@@ -741,7 +744,7 @@ describe("migrateDatabase", () => {
         "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
       );
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       // La chaîne complète va désormais jusqu'à `migration007` : les tables
       // `activity_definitions`/`activity_definition_body_zones` (`migration006`)
       // et les référentiels additifs `body_zones`/`labels`/`profiles`/
@@ -792,11 +795,12 @@ describe("migrateDatabase", () => {
     it("brings a version-5 database (v0…v5 chain) to the current version and creates the activity_definitions tables", async () => {
       await seedVersion5();
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-      expect(version?.user_version).toBe(DATABASE_VERSION);
-      expect(DATABASE_VERSION).toBe(11);
+      // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
+      expect(version?.user_version).toBe(11);
+      expect(DATABASE_VERSION).toBe(13);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",
@@ -808,7 +812,7 @@ describe("migrateDatabase", () => {
     });
 
     it("creates activity_definitions on a fresh database and accepts a valid row", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       await database.runAsync(
         `INSERT INTO activity_definitions (
@@ -824,7 +828,7 @@ describe("migrateDatabase", () => {
     });
 
     it("enforces the execution_mode and side_mode CHECK constraints", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       await expect(
         database.runAsync(
@@ -846,7 +850,7 @@ describe("migrateDatabase", () => {
     });
 
     it("cascades activity_definition_body_zones deletion when the definition is deleted", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
@@ -875,7 +879,7 @@ describe("migrateDatabase", () => {
         repetitionCount: null,
       });
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const activityCount = await database.getFirstAsync<{ count: number }>(
         "SELECT COUNT(*) AS count FROM activities",
@@ -899,7 +903,7 @@ describe("migrateDatabase", () => {
    */
   describe("migration007 — référentiels persistants additifs (V2-PRE-1)", () => {
     it("seeds body_zones from the historical BODY_ZONES referential, all active", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const zones = await database.getAllAsync<{ id: string; is_active: number }>(
         "SELECT id, is_active FROM body_zones ORDER BY id",
       );
@@ -908,7 +912,7 @@ describe("migrateDatabase", () => {
     });
 
     it("seeds a single Profile row with the four normative defaults (10s / 30s / 10s / 5s, plan §3.2, D-240)", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const profiles = await database.getAllAsync<{
         singleton_key: number;
         side_change_recovery_seconds_default: number;
@@ -932,7 +936,7 @@ describe("migrateDatabase", () => {
     });
 
     it("creates empty labels/media_assets/activity_media tables, ready for future rows", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const labelCount = await database.getFirstAsync<{ count: number }>(
         "SELECT COUNT(*) AS count FROM labels",
       );
@@ -948,7 +952,7 @@ describe("migrateDatabase", () => {
     });
 
     it("allows several distinct media assets for the same Exercise at distinct positions", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
@@ -974,7 +978,7 @@ describe("migrateDatabase", () => {
     });
 
     it("rejects a duplicate position for the same Exercise", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
@@ -995,7 +999,7 @@ describe("migrateDatabase", () => {
     });
 
     it("cascades activity_media deletion when the Exercise is deleted", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync(
         `INSERT INTO activity_definitions (
           id, name, description, execution_mode, duration_seconds, repetition_count,
@@ -1018,8 +1022,8 @@ describe("migrateDatabase", () => {
     });
 
     it("is idempotent — a second migrateDatabase call never reseeds body_zones or profiles", async () => {
-      await migrateDatabase(database);
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
+      await migrateDatabase(database, undefined, 11);
 
       const zoneCount = await database.getFirstAsync<{ count: number }>(
         "SELECT COUNT(*) AS count FROM body_zones",
@@ -1040,7 +1044,7 @@ describe("migrateDatabase", () => {
    */
   describe("migration008 — Profil complété, clés normalisées, liaison des Zones d'occurrence ouverte (V2-PRE-2)", () => {
     it("backfills a canonical_key for every Zone already seeded by migration007, matching the Domain's normalization", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const rows = await database.getAllAsync<{ id: string; canonical_key: string }>(
         "SELECT id, canonical_key FROM body_zones ORDER BY id",
       );
@@ -1049,7 +1053,7 @@ describe("migrateDatabase", () => {
     });
 
     it("rejects inserting a Label or a Zone with a NULL canonical_key", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       await expect(
         database.runAsync(
@@ -1064,7 +1068,7 @@ describe("migrateDatabase", () => {
     });
 
     it("rejects a duplicate canonical_key among Labels/Zones, including against a retired entry", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync(
         "INSERT INTO labels (id, name, canonical_key, color, is_active, created_at) VALUES ('l-1', 'Focus', 'focus', '#3B82F6', 0, 'now')",
       );
@@ -1077,7 +1081,7 @@ describe("migrateDatabase", () => {
     });
 
     it("lets a newly created Zone be linked to a Session occurrence — the historical CHECK on the 10 ids is gone", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
       await insertActivity(database, {
         id: "activity-new-zone",
@@ -1100,7 +1104,7 @@ describe("migrateDatabase", () => {
     });
 
     it("still rejects an unknown body_zone_id on activity_body_zones (real foreign key, not just a historical CHECK)", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
       await insertActivity(database, {
         id: "activity-unknown-zone",
@@ -1118,7 +1122,7 @@ describe("migrateDatabase", () => {
     });
 
     it("cascades activity_body_zones deletion when the Activity is deleted (preserved through the rebuild)", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await seedStructure(database);
       await insertActivity(database, {
         id: "activity-cascade",
@@ -1140,10 +1144,10 @@ describe("migrateDatabase", () => {
     });
 
     it("never re-activates a retired Label or Zone on migration/startup — migrateDatabase is idempotent and leaves is_active untouched", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await database.runAsync("UPDATE body_zones SET is_active = 0 WHERE id = 'cou'");
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const row = await database.getFirstAsync<{ is_active: number }>(
         "SELECT is_active FROM body_zones WHERE id = 'cou'",
@@ -1152,7 +1156,7 @@ describe("migrateDatabase", () => {
     });
 
     it("seeds the two new Session defaults (10 s / 5 s) and the four preferences on the singleton Profile row", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       const profile = await database.getFirstAsync<{
         session_initial_countdown_seconds_default: number;
         session_final_phase_seconds_default: number;
@@ -1183,7 +1187,7 @@ describe("migrateDatabase", () => {
     });
 
     it("rejects a silhouette outside homme/femme", async () => {
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
       await expect(
         database.runAsync("UPDATE profiles SET silhouette = 'autre' WHERE singleton_key = 1"),
       ).rejects.toThrow();
@@ -1193,7 +1197,7 @@ describe("migrateDatabase", () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version ?? 0).toBe(0);
 
-      await migrateDatabase(database);
+      await migrateDatabase(database, undefined, 11);
 
       const after = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       // PRE-3 / PRE-4 / PRE-6 : la même exécution enchaîne `migration008`, `migration009`, `migration010` puis `migration011`.
@@ -1206,7 +1210,7 @@ describe("migrateDatabase", () => {
 
     it("rolls back the entire v7→v8 migration on failure, leaving user_version unchanged", async () => {
       await database.execAsync(`PRAGMA user_version = ${DATABASE_VERSION + 1}`);
-      await expect(migrateDatabase(database)).rejects.toThrow();
+      await expect(migrateDatabase(database, undefined, 11)).rejects.toThrow();
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       expect(version?.user_version).toBe(DATABASE_VERSION + 1);
     });
@@ -1216,7 +1220,7 @@ describe("migrateDatabase", () => {
 /**
  * Structure d'une Séance minimale, schéma CIBLE (post-`migration007`) :
  * `sessions` ne porte plus `color` (dérivée de l'Étiquette, V2-PRE-1,
- * plan §3.3) — réservé aux tests qui ont déjà appelé `migrateDatabase()`
+ * plan §3.3) — réservé aux tests qui ont déjà appelé `migrateDatabase(, , 11)`
  * dans son intégralité (version `DATABASE_VERSION`). Pour une base figée à
  * une version HISTORIQUE antérieure (`color` encore `NOT NULL`), voir
  * `seedLegacyStructure` ci-dessous.
@@ -1245,7 +1249,7 @@ async function seedStructure(database: NodeSqliteDatabase, suffix = "a"): Promis
  * Même structure, schéma HISTORIQUE (`color NOT NULL`, migration001-006
  * inchangées) — réservée aux tests qui simulent une base figée à une
  * version antérieure via l'exécution directe de `MIGRATION_00N` (jamais
- * `migrateDatabase()` dans son intégralité), avant que `migration007` ne
+ * `migrateDatabase(, , 11)` dans son intégralité), avant que `migration007` ne
  * retire cette colonne.
  */
 async function seedLegacyStructure(database: NodeSqliteDatabase, suffix = "a"): Promise<void> {
@@ -1421,9 +1425,9 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   }
 
   it("P3-17/migration/fresh-v9 — base vide : 001..010 appliquées, version courante, tables et contraintes de 009 disponibles", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
-    expect(version?.user_version).toBe(DATABASE_VERSION);
+    expect(version?.user_version).toBe(11);
     const definitionColumns = await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)");
     expect(definitionColumns.map((column) => column.name)).toContain("execution_parameters");
     const activityColumns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activities)")).map(
@@ -1470,9 +1474,9 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   it("P3-17/migration/idempotent — second appel : version et données identiques, aucune association dupliquée", async () => {
     await seedVersion8();
     await populateVersion8();
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     const first = await dump();
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     expect(await dump()).toEqual(first);
     const links = await database.getFirstAsync<{ count: number }>("SELECT COUNT(*) AS count FROM activity_media");
     expect(links?.count).toBe(1);
@@ -1481,7 +1485,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   it("P3-17/migration/foreign-key-position — FK vides ; lien orphelin ou position dupliquée refusés ; rollback intégral", async () => {
     await seedVersion8();
     await populateVersion8();
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
 
     await expect(
@@ -1516,18 +1520,24 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   it("P3-17/migration/malformed-unknown-json — erreur typée, aucune coercition ni écriture destructive", async () => {
     await seedVersion8();
     await populateVersion8();
-    await migrateDatabase(database);
-    const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    const sessions = new SqliteSessionRepository(database, ids("ses"));
+    // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; les lignes v11 sont relues par le lecteur
+    // v2/v3 du domaine (celui des repositories jusqu'à 011). Les repositories du schéma 012
+    // refusent de même un JSON corrompu (`SqliteActivityDefinitionRepository.test.ts`, P3-17).
+    await migrateDatabase(database, undefined, 11);
+    const json = async (table: "activity_definitions" | "activities", id: string) =>
+      (await database.getFirstAsync<{ execution_parameters: string }>(`SELECT execution_parameters FROM ${table} WHERE id = ?`, [id]))!
+        .execution_parameters;
 
     for (const corrupt of ["{not json", JSON.stringify({ version: 99, mode: "DURATION" })]) {
       await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'def-legacy'", [corrupt]);
       await database.runAsync("UPDATE activities SET execution_parameters = ? WHERE id = 'occ-legacy'", [corrupt]);
       const rowBefore = await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = 'def-legacy'");
-      await expect(definitions.findById("def-legacy")).rejects.toThrow(ExecutionParametersDataError);
-      await expect(definitions.listAll()).rejects.toThrow(ExecutionParametersDataError);
-      await expect(sessions.findById("session-legacy")).rejects.toThrow(ExecutionParametersDataError);
-      await expect(sessions.listActive()).rejects.toThrow(ExecutionParametersDataError);
+      expect(() => readExecutionParameters(corrupt)).toThrow(ExecutionParametersDataError);
+      for (const [table, id] of [["activity_definitions", "def-legacy"], ["activities", "occ-legacy"]] as const) {
+        const stored = await json(table, id);
+        expect(stored).toBe(corrupt);
+        expect(() => readExecutionParameters(stored)).toThrow(ExecutionParametersDataError);
+      }
       expect(await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = 'def-legacy'")).toEqual(rowBefore);
     }
   });
@@ -1549,9 +1559,12 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   }
 
   it("P3-17/migration/scalar-projection — JSON et projections concordants ; le JSON fait autorité ; relecture Catalogue et Séance identique", async () => {
+    // PRE-7 (A1.2) : schéma 012 — la définition ne porte plus de projection scalaire (forme
+    // Catalogue v4 seule) ; l'occurrence garde la projection unique, jamais relue comme source.
     await migrateDatabase(database);
     const definitions = new SqliteActivityDefinitionRepository(database, ids("def"));
-    const sessions = new SqliteSessionRepository(database, ids("ses"));
+    // PRE-7 (R-3, C05) : occurrences décrites par leur vue ; le Mouvement est écrit explicitement.
+    const sessions = new ViewedSessionRepository(database, ids("ses"));
     const canonical = variableRepetitions();
     const definition = await definitions.create({
       name: "Fentes",
@@ -1569,16 +1582,18 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
         {
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
-          name: "Fentes",
+          name: "Fentes avant",
           postActivityRecoverySeconds: 0,
           bodyZoneIds: ["cuisses"],
           executionParameters: canonical,
         },
       ],
     });
+    const definitionColumns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)")).map((c) => c.name);
+    expect(definitionColumns).not.toContain("series_count");
     const scalarRow = await database.getFirstAsync<Record<string, unknown>>(
-      "SELECT execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode, side_recovery_seconds FROM activity_definitions WHERE id = ?",
-      [definition.id],
+      "SELECT execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, side_mode FROM activities WHERE session_id = ?",
+      [session.id],
     );
     expect(scalarRow).toEqual({
       execution_mode: "REPETITIONS",
@@ -1587,11 +1602,9 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
       series_count: 2,
       pause_seconds: 20,
       side_mode: "LEFT_RIGHT",
-      side_recovery_seconds: 12,
     });
     // Un writer concurrent qui ne toucherait que les scalaires ne prend jamais l'autorité.
-    await database.runAsync("UPDATE activity_definitions SET series_count = 7, pause_seconds = 99 WHERE id = ?", [definition.id]);
-    await database.runAsync("UPDATE activities SET series_count = 7 WHERE session_id = ?", [session.id]);
+    await database.runAsync("UPDATE activities SET series_count = 7, pause_seconds = 99 WHERE session_id = ?", [session.id]);
     const rereadDefinition = await definitions.findById(definition.id);
     const rereadSession = await sessions.findById(session.id);
     expect(rereadDefinition?.executionParameters).toEqual(canonical);
@@ -1601,26 +1614,32 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   it("P3-17/migration/legacy-out-of-bounds — anciennes valeurs hors bornes lues sans clamp ; nouvelle modification validée explicitement", async () => {
     await seedVersion8();
     await populateVersion8();
-    await migrateDatabase(database);
-    const definition = await new SqliteActivityDefinitionRepository(database, ids("def")).findById("def-legacy");
+    // PRE-7 (A1.2) : chaîne arrêtée à la version 11 ; lignes relues par le lecteur v2/v3 du domaine.
+    await migrateDatabase(database, undefined, 11);
+    const definitionRow = await database.getFirstAsync<{ execution_parameters: string }>(
+      "SELECT execution_parameters FROM activity_definitions WHERE id = 'def-legacy'",
+    );
+    const definition = { executionParameters: readExecutionParameters(definitionRow?.execution_parameters) };
     // PRE-4 (`migration010`, AC14) : convertie par l'adaptateur historique,
     // valeurs positives hors bornes recopiées telles quelles en v2.
-    expect(definition?.executionParameters).toEqual(
+    expect(definition.executionParameters).toEqual(
       durationParameters(45, 4, 900, { sideMode: "RIGHT_LEFT", sideOrder: "BY_SIDE", sideRecoverySeconds: 7 }),
     );
-    const occurrence = (await new SqliteSessionRepository(database, ids("ses")).findById("session-legacy"))?.cycle.tour.exercises[0];
-    expect(occurrence?.executionParameters).toEqual(
+    const occurrence = await database.getFirstAsync<{ execution_parameters: string; post_activity_recovery_seconds: number; present: number }>(
+      "SELECT execution_parameters, post_activity_recovery_seconds, post_activity_recovery_present AS present FROM activities WHERE session_id = 'session-legacy'",
+    );
+    expect(readExecutionParameters(occurrence?.execution_parameters)).toEqual(
       uniformParameters({ mode: "REPETITIONS", count: 3, target: 12, pauseSeconds: 600, sideMode: "RIGHT_LEFT" }),
     );
-    expect(occurrence?.postActivityRecoverySeconds).toBe(30);
+    expect([occurrence?.post_activity_recovery_seconds, occurrence?.present]).toEqual([30, 1]);
     // Saisie nouvelle (aucune ligne de base) : les bornes s'appliquent ; valeur
     // héritée non modifiée (ligne de base) : tolérée (H25).
-    const revalidated = validateForSave(definition!.executionParameters, null);
+    const revalidated = validateForSave(definition.executionParameters, null);
     expect(revalidated.ok).toBe(false);
     expect(!revalidated.ok && revalidated.violations).toEqual([
       expect.objectContaining({ field: "pauseSeconds", code: "OUT_OF_RANGE" }),
     ]);
-    expect(validateForSave(definition!.executionParameters, definition!.executionParameters).ok).toBe(true);
+    expect(validateForSave(definition.executionParameters, definition.executionParameters).ok).toBe(true);
   });
 
   /** Fait échouer la N-ième instruction d'écriture d'une transaction (rollback réel). */
@@ -1652,6 +1671,7 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
   }
 
   it("P3-17/migration/per-statement-rollback — échec injecté à chaque instruction asset/définition/occurrence/lien : données intactes, réessai unique", async () => {
+    // PRE-7 (A1.2) : schéma 012 — Mouvement, ses Zones et ses médias écrits dans la même transaction.
     await migrateDatabase(database);
     const photo = {
       id: "asset-new-photo",
@@ -1683,11 +1703,11 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
       database.getFirstAsync<Record<string, number>>(
         `SELECT
           (SELECT COUNT(*) FROM activity_definitions) AS definitions,
-          (SELECT COUNT(*) FROM activity_definition_body_zones) AS zones,
+          (SELECT COUNT(*) FROM movements) AS movements,
+          (SELECT COUNT(*) FROM movement_body_zones) AS zones,
           (SELECT COUNT(*) FROM media_assets) AS assets,
-          (SELECT COUNT(*) FROM activity_media) AS links,
+          (SELECT COUNT(*) FROM movement_media) AS links,
           (SELECT COUNT(*) FROM activities) AS occurrences,
-          (SELECT COUNT(*) FROM session_activity_media) AS occurrenceLinks,
           (SELECT COUNT(*) FROM sessions) AS sessions`,
       );
     const initial = await counts();
@@ -1712,42 +1732,60 @@ describe("migration009 — paramètres canoniques, Catégorie des copies, média
     const created = await new SqliteActivityDefinitionRepository(database, ids("def")).create(definitionInput);
     expect(created.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
     const afterDefinition = await counts();
-    expect(afterDefinition).toEqual({ ...initial, definitions: 1, zones: 2, assets: 2, links: 2 });
+    expect(afterDefinition).toEqual({ ...initial, definitions: 1, movements: 1, zones: 2, assets: 2, links: 2 });
 
-    // Occurrence : mêmes assets partagés, nouveaux liens, échec à chaque instruction.
-    const sessionInput = {
+    // PRE-7 (R-3, D-445 C05) : une occurrence du Mouvement de la définition (aucun lien propre) et
+    // une création locale (Mouvement NEW, assets partagés, nouveaux liens du Mouvement), échec à
+    // chaque instruction.
+    const occurrence = (id: string, sourceMovementId: string) => ({
+      id,
+      type: "EXERCISE" as const,
+      structuralPosition: "IN_TOUR" as const,
+      executionParameters: durationParameters(30, 3, 10),
+      postActivityRecoverySeconds: 0,
+      sourceMovementId,
+    });
+    const sessionInput = (movementId: string) => ({
       name: "Cardio",
       initialCountdownSeconds: 10,
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
-      exercises: [
-        {
-          type: "EXERCISE" as const,
-          structuralPosition: "IN_TOUR" as const,
-          name: "Burpees",
-          executionParameters: durationParameters(30, 3, 10),
-          postActivityRecoverySeconds: 0,
+      exercises: [occurrence("occ-catalogue", movementId), occurrence("occ-local", "occ-local")],
+      movements: [
+        newMovementInput("occ-local", {
+          name: "Burpees sautés",
           bodyZoneIds: ["cuisses"],
-          categoryId: "cardio",
           media: media.map((item) => ({ assetId: item.assetId })),
-        },
+        }),
       ],
-    };
+    });
     const sessionProbe = NodeSqliteDatabase.openInMemory();
     await migrateDatabase(sessionProbe);
-    await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
+    const probeDefinition = await new SqliteActivityDefinitionRepository(sessionProbe, ids("probe")).create(definitionInput);
     const sessionWrites = new FailingDatabase(sessionProbe, Number.POSITIVE_INFINITY);
-    await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput);
+    await new SqliteSessionRepository(sessionWrites, ids("probe")).create(sessionInput(probeDefinition.movementId));
     sessionProbe.close();
     for (let failAt = 1; failAt <= sessionWrites.writes; failAt += 1) {
       await expect(
-        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(sessionInput),
+        new SqliteSessionRepository(new FailingDatabase(database, failAt), ids("fail")).create(sessionInput(created.movementId)),
       ).rejects.toThrow(`Injected failure at write ${failAt}`);
       expect(await counts()).toEqual(afterDefinition);
     }
-    const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput);
-    expect(session.cycle.tour.exercises[0]?.media?.map((item) => item.assetId)).toEqual([video.id, photo.id]);
-    expect(await counts()).toEqual({ ...afterDefinition, sessions: 1, occurrences: 1, occurrenceLinks: 2 });
+    const session = await new SqliteSessionRepository(database, ids("ses")).create(sessionInput(created.movementId));
+    // Les deux occurrences relisent les médias de LEUR Mouvement.
+    expect(session.cycle.tour.exercises.map((exercise) => exercise.media?.map((item) => item.assetId))).toEqual([
+      [video.id, photo.id],
+      [video.id, photo.id],
+    ]);
+    // Seule la création locale écrit un Mouvement : une Zone et deux liens ; aucun lien d'occurrence.
+    expect(await counts()).toEqual({
+      ...afterDefinition,
+      sessions: 1,
+      occurrences: 2,
+      movements: afterDefinition!.movements! + 1,
+      zones: afterDefinition!.zones! + 1,
+      links: afterDefinition!.links! + 2,
+    });
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
   });
 });
@@ -1790,7 +1828,7 @@ describe("PRE6-1.1 — migration011 (v10 → v11)", () => {
     );
 
   it("ajoute tours.nature (TOURS par défaut) et activities.post_activity_recovery_present, repris à 1 pour une valeur > 0 ; version 11", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
 
     expect((await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version).toBe(11);
     expect(await columns("tours")).toEqual([{ cid: expect.any(Number), name: "nature", type: "TEXT", notnull: 1, dflt_value: "'TOURS'", pk: 0 }]);
@@ -1807,7 +1845,7 @@ describe("PRE6-1.1 — migration011 (v10 → v11)", () => {
   });
 
   it("pose les CHECK : nature hors TOURS/SERIES et présence hors 0/1 refusées", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
 
     await expect(database.runAsync("UPDATE tours SET nature = 'FOO'")).rejects.toThrow();
     await expect(database.runAsync("UPDATE activities SET post_activity_recovery_present = 2")).rejects.toThrow();
@@ -1816,14 +1854,14 @@ describe("PRE6-1.1 — migration011 (v10 → v11)", () => {
   });
 
   it("idempotente : rejouée sur des colonnes déjà présentes, ni erreur ni changement", async () => {
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     const tours = await database.getAllAsync("SELECT * FROM tours");
     const activities = await database.getAllAsync("SELECT * FROM activities ORDER BY id");
     const schema = await database.getAllAsync("SELECT name, sql FROM sqlite_master ORDER BY name");
 
     await database.withExclusiveTransactionAsync((transaction) => applyMigration011(transaction));
     await database.execAsync("PRAGMA user_version = 10");
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
 
     expect(await database.getAllAsync("SELECT * FROM tours")).toEqual(tours);
     expect(await database.getAllAsync("SELECT * FROM activities ORDER BY id")).toEqual(activities);
@@ -1833,7 +1871,7 @@ describe("PRE6-1.1 — migration011 (v10 → v11)", () => {
   it("un échec pendant la reprise annule tout : colonnes absentes, user_version = 10", async () => {
     const failing = failOnWrite(database, /post_activity_recovery_present = 1/);
 
-    await expect(migrateDatabase(failing.database)).rejects.toThrow("Injected failure");
+    await expect(migrateDatabase(failing.database, undefined, 11)).rejects.toThrow("Injected failure");
 
     expect((await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version"))?.user_version).toBe(10);
     expect(await columns("tours")).toEqual([]);

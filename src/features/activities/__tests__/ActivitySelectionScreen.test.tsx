@@ -90,6 +90,7 @@ function makeDefinition(
 ): ActivityDefinition {
   return {
     id,
+    movementId: "mov-1",
     name,
     description: null,
     executionParameters: durationParameters(30, 2, 5),
@@ -438,7 +439,7 @@ describe("ActivitySelectionScreen", () => {
     // PRE-6 (story 1.1, AD-35) : aucune récupération automatique = absente (`null`).
     expect(exercises[0]?.postActivityRecoverySeconds).toBeNull();
     expect(exercises[0]?.executionParameters).toEqual(
-      expect.objectContaining({ version: 3, mode: "DURATION" }),
+      expect.objectContaining({ version: 5, mode: "DURATION" }),
     );
     // AD-9 : copie profonde des paramètres typés, jamais la référence de la définition.
     expect(exercises[0]?.executionParameters).toEqual(durationParameters(30, 2, 5));

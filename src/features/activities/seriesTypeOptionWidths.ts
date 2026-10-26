@@ -4,13 +4,16 @@ import { INLINE_OPTION_WIDTHS } from "@/shared/ui/SegmentedControl";
 /**
  * Recette du 20/10 (RC-15) — largeurs du segmenté de la ligne « Séries » (RC-17 ; ex-« Type de
  * série ») qui porte le nombre de séries dans son option sélectionnée. Relevés Figma (lecture
- * seule, 20/10) : `9439:18349` (« 3 séries identiques », 127 × 26, marge 8), `9445:18450`
+ * seule, 20/10) : `9439:18349` (« 3 séries identiques », 127 × 26, marge 8 ; 12 depuis PRE-7 B.1), `9445:18450`
  * (« 3 séries variables » + chevron 10, écart 6, 134 × 26), `9436:18506` (stepper ouvert
  * 138 × 28 : cercles 28, écart 8, valeur Semi Bold 13 de
  * 66 avec marge 8). Mesures : avances d'Inter de l'application (`loadTextWidth`, Semi Bold 12 ;
  * Semi Bold 13 au prorata de la taille). Constantes locales, aucun jeton modifié (NFR-3).
+ *
+ * PRE-7 story B.1 (D-447, B4) : marge intérieure horizontale du bouton actif (option sélectionnée
+ * fermée) portée de 8 à 12, de chaque côté (avant le libellé, après le libellé ou le chevron).
  */
-export const SERIES_LABEL_INSET = 8;
+export const SERIES_LABEL_INSET = 12;
 export const SERIES_CHEVRON_GAP = 6;
 const SERIES_CHEVRON_FRAME = 10;
 export const SERIES_STEPPER_CIRCLE = 28;
@@ -35,7 +38,7 @@ export const SERIES_TYPE_LABEL_MIN_WIDTH = 36;
 
 /**
  * Largeur de l'option sélectionnée : fermée, le libellé (« 3 séries identiques ») avec sa marge de
- * 8 de chaque côté ; ouverte, le stepper (− | « 3 séries » | +). Le chevron du tableau (Variables)
+ * 12 de chaque côté (8 avant PRE-7 B.1, B4 ; écart assumé au relevé Figma) ; ouverte, le stepper (− | « 3 séries » | +). Le chevron du tableau (Variables)
  * ajoute l'écart 6 et son cadre de 10.
  */
 export function seriesSelectedOptionWidth({

@@ -28,6 +28,7 @@ function baseInput(): CreateActivityDefinitionInput {
 
 const PERSISTED: ActivityDefinition = {
   id: "def-1",
+  movementId: "mov-1",
   name: "Squat",
   description: "Descente lente",
   executionParameters: durationParameters(30, 3, 10),

@@ -32,6 +32,7 @@ import {
   type SeriesTarget,
 } from "@/domain/activities/ExecutionParameters";
 
+import { occurrenceDisplayName } from "./composition";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import type { ActivityType, StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
@@ -611,7 +612,8 @@ export function circuitVolumes(draft: SessionDraft): CircuitVolumes {
     const series = seriesRowsOf(exercise.executionParameters);
     return {
       occurrenceId: exercise.id,
-      name: exercise.name,
+      // PRE-7 (R-3, Q3) : nom affiché, suffixe de copie compris.
+      name: occurrenceDisplayName(exercise.name, exercise.copyNumber),
       mode: exercise.executionParameters.mode,
       sideMode: exercise.sideMode,
       cells: Array.from({ length: seriesColumnCount }, (_, index) => {

@@ -21,11 +21,29 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
       tourRepeatCount: 1,
       // PRE-6 (story 1.1, AD-34) : la nature du Circuit traverse le contrôle natif (`tours.nature`, `migration011`).
       circuitNature: "SERIES",
+      // PRE-7 (R-3, D-445 C05) : le contenu appartient au Mouvement, créé dans la transaction de la Séance.
+      movements: [
+        {
+          id: "native-check-movement",
+          change: "NEW",
+          name: "Exercice chronométré",
+          description: null,
+          categoryId: "cardio",
+          bodyZoneIds: ["dos"],
+          media: [],
+          phases: [
+            { id: 1, label: "Descente" },
+            { id: 2, label: "Maintien" },
+          ],
+          nextPhaseId: 3,
+          aliases: [],
+        },
+      ],
       exercises: [
         {
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
-          name: "Exercice chronométré",
+          sourceMovementId: "native-check-movement",
           // PRE-4 (story 1.1) : paramètres typés obligatoires (AD-3).
           executionParameters: {
             version: EXECUTION_PARAMETERS_VERSION,
@@ -54,8 +72,6 @@ export async function runNativeDatabaseIntegrationCheck(): Promise<void> {
           // contrôle natif — colonne `post_activity_recovery_seconds`
           // (renommée depuis `recovery_seconds`, `migration007`).
           postActivityRecoverySeconds: 20,
-          instruction: null,
-          bodyZoneIds: [],
         },
       ],
     });

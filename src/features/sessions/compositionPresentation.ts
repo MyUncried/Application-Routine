@@ -2,6 +2,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import {
   allTargetsFailure,
+  hasMissingPhaseDuration,
   hasUnsetTarget,
   isBilateral,
   seriesCountOf,
@@ -18,7 +19,7 @@ import {
 } from "@/domain/activities/executionCalculations";
 import { computeActivityDurationResult, computeStructuredSessionDuration } from "@/domain/sessions/calculations";
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "@/domain/sessions/circuit";
-import { groupActivitiesByZone } from "@/domain/sessions/composition";
+import { groupActivitiesByZone, occurrenceDisplayName } from "@/domain/sessions/composition";
 import { DEFAULT_TOUR_REPEAT_COUNT, SESSION_BOUNDARY_SECONDS_MAX } from "@/domain/sessions/defaults";
 import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { SideMode } from "@/domain/sessions/sideMode";
@@ -219,6 +220,12 @@ export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string
     exerciseRow.seriesPlural,
   )}${isOwnBilateral ? ` ${exerciseRow.perSide}` : ""}`;
 
+  // PRE-7 (D-446) : une durée de phase manquante (Exercice frère incomplet) ne force plus la
+  // Cible à `UNSET` ; elle reste « Paramètres à compléter. » (MFN-08), avant tout échec.
+  if (hasMissingPhaseDuration(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+
   // Tout échec : aucune Cible numérique ; le nom n'est jamais répété dans la
   // synthèse compacte. Clause de Pause omise à 0 s, en Régime variables, ou
   // lorsqu'une seule Série ne crée aucun intervalle.
@@ -333,6 +340,17 @@ export function formatActivityRecoveryLabel(
   return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(postActivityRecoverySeconds)}`;
 }
 
+/**
+ * PRE-7 (D-448, point 7, recette JA2 du 26/10/2026) : vrai si une synthèse
+ * (`formatOccurrenceSummary`, `formatExerciseRowSummary`) est le signalement
+ * « Paramètres à compléter. », que les présentations rendent en `colors.danger`
+ * (et la carte de Composition sur `colors.dangerSurface`). Le texte est une seule
+ * clé du lexique : aucune autre synthèse ne lui est égale.
+ */
+export function isIncompleteSummary(summary: string): boolean {
+  return summary === strings.executionParameters.card.incomplete;
+}
+
 /** PRE-6 (story 2.2, D-238) : nombre maximal de cibles listées d'une série variable avant « … ». */
 export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
 
@@ -363,6 +381,11 @@ export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "ex
 
   // Aucune série : paramètres à compléter (`[].every()` rendrait sinon « tout à l'échec »).
   if (count === 0) {
+    return strings.executionParameters.card.incomplete;
+  }
+  // PRE-7 (D-446) : une durée de phase manquante (Exercice frère incomplet) ne force plus la
+  // Cible à `UNSET` ; elle reste « Paramètres à compléter. » (MFN-08), avant tout échec.
+  if (hasMissingPhaseDuration(parameters)) {
     return strings.executionParameters.card.incomplete;
   }
   // Toutes les cibles à l'échec : libellé métier existant, celui de `formatExerciseRowSummary`
@@ -477,11 +500,13 @@ export function formatOccurrenceAccessibilityLabel(
   exercise: SessionDraftExercise,
   position: { readonly index: number; readonly count: number },
   context: OccurrenceCircuitContext = {},
+  /** PRE-7 (R-6, C06) : nom affiché par la carte (suffixes de niveau et de copie compris). */
+  displayName: string = occurrenceDisplayName(exercise.name, exercise.copyNumber),
 ): string {
   const card = strings.screens.composition.occurrenceCard;
   const parts = [
     card.accessibilityType,
-    exercise.name,
+    displayName,
     card.accessibilityPosition
       .replace("{position}", String(position.index + 1))
       .replace("{count}", String(position.count)),

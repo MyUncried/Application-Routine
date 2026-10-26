@@ -30,7 +30,7 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import { applyStepBackspace, applyStepTextChange, displayedStepRows } from "@/features/activities/DescriptionSteps";
+import { applyStepBackspace, applyStepTextChange, displayedStepRows, renderedStepRows } from "@/features/activities/DescriptionSteps";
 import { chooseExecutionMode, tapExecutionSheetStep } from "@/features/activities/testing/executionSheetActions";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
@@ -68,7 +68,7 @@ function fakeReferentialService(bodyZones: readonly BodyZone[] = BODY_ZONE_FIXTU
 
 function parameters(overrides: Partial<ExecutionParametersInput> = {}): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode: "DURATION",
     series: { kind: "UNIFORM", count: 3, target: numberTarget(90), pauseSeconds: 15, loadKg: 0, workPhases: [] },
     sideMode: "UNILATERAL",
@@ -85,6 +85,7 @@ function parameters(overrides: Partial<ExecutionParametersInput> = {}): Executio
 const variable = (rows: [number | null, number][]) => ({
   kind: "VARIABLE" as const,
   rows: rows.map(([target, pauseSeconds]) => ({ target: target === null ? unsetTarget() : toTarget(target), pauseSeconds, loadKg: 0 })),
+  workPhases: [],
 });
 
 function baseValue(overrides: Partial<ActivityEditorFormValue> = {}): ActivityEditorFormValue {
@@ -1738,6 +1739,8 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
   const stepNumber = (n: number) =>
     screen.getByTestId(`exercise-instruction-step-number-${n}`, { includeHiddenElements: true });
   const rowCount = () => screen.queryAllByTestId(/^exercise-instruction-row-\d+$/u).length;
+  /** PRE-7 story B.2 (B1) : une ligne prend le focus — l'invite « Étape suivante » est rendue. */
+  const focusStep = (n: number) => fireEvent(stepInput(n), "focus");
 
   /** Focus et curseur donnés par l'Éditeur : contextes des appels `focus` / `setSelection` du `TextInput`. */
   function spyInputFocus() {
@@ -1767,6 +1770,17 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
       expect(displayedStepRows(["A", "B"])).toEqual(["A", "B", ""]);
       expect(displayedStepRows(["A", "B", ""])).toEqual(["A", "B", ""]);
       expect(displayedStepRows(["A", "", "B"])).toEqual(["A", "", "B", ""]);
+    });
+
+    it("PRE7-B.2 (B1, A1) — lignes rendues : invite de rang > 1 seulement si active ; rang 1 toujours ; étapes inchangées", () => {
+      expect(renderedStepRows([], false)).toEqual([""]);
+      expect(renderedStepRows([""], false)).toEqual([""]);
+      expect(renderedStepRows(["", ""], false)).toEqual([""]);
+      expect(renderedStepRows(["A", "B"], false)).toEqual(["A", "B"]);
+      expect(renderedStepRows(["A", "B"], true)).toEqual(["A", "B", ""]);
+      expect(renderedStepRows(["A", ""], false)).toEqual(["A"]);
+      expect(renderedStepRows(["A", ""], true)).toEqual(["A", ""]);
+      expect(renderedStepRows(["A", "", "B"], false)).toEqual(["A", "", "B"]);
     });
 
     it("frappe en place, dans l'invite, Entrée en fin et au milieu, collage `\\n` et `\\r\\n`, sélection remplacée", () => {
@@ -1827,8 +1841,12 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     expect(within(screen.getByTestId("exercise-section-description")).queryAllByRole("button")).toEqual([]);
   });
 
-  it("AC1 — liste remplie : « 1. A », « 2. B », puis l'invite grise « 3. Étape suivante » ; une étape vide intercalée garde son numéro gris sans invite", () => {
+  it("AC1, PRE7-B.2 (B1) — liste remplie : « 1. A », « 2. B », puis, en saisie seulement, l'invite grise « 3. Étape suivante » ; une étape vide intercalée garde son numéro gris sans invite", () => {
     const view = render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    // B1 : au repos, pas d'invite « Étape suivante ».
+    expect(rowCount()).toBe(2);
+    expect(screen.queryByTestId("exercise-instruction-step-3")).toBeNull();
+    focusStep(1);
     expect(rowCount()).toBe(3);
     expect(stepInput(1).props.value).toBe("A");
     expect(stepInput(2).props.value).toBe("B");
@@ -1840,6 +1858,8 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     view.unmount();
 
     render(<Harness initial={{ instructionSteps: ["A", "", "B"] }} />);
+    expect(rowCount()).toBe(3);
+    focusStep(1);
     expect(rowCount()).toBe(4);
     expect(stepInput(2).props.placeholder).toBeUndefined();
     expect(StyleSheet.flatten(stepNumber(2).props.style).color).toBe(PROMPT_GREY);
@@ -1872,6 +1892,7 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     const focus = spyInputFocus();
     try {
       render(<Harness initial={{ instructionSteps: ["A", "B"] }} onChangeSpy={onChangeSpy} />);
+      focusStep(2);
       fireEvent.changeText(stepInput(2), "B\n");
       expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "B", ""] });
       expect(stepInput(2).props.value).toBe("B");
@@ -1895,6 +1916,7 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     const focus = spyInputFocus();
     try {
       render(<Harness initial={{ instructionSteps: ["Dosdroit", "Fin"] }} onChangeSpy={onChangeSpy} />);
+      focusStep(1);
       fireEvent.changeText(stepInput(1), "Dos\ndroit");
       expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["Dos", "droit", "Fin"] });
       expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
@@ -1917,6 +1939,9 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     const focus = spyInputFocus();
     try {
       render(<Harness initial={{ instructionSteps: ["A", "Bras", ""] }} onChangeSpy={onChangeSpy} />);
+      // B1 : l'étape vide finale porte l'invite, rendue en saisie seulement.
+      expect(rowCount()).toBe(2);
+      focusStep(2);
       fireEvent(stepInput(3), "keyPress", { nativeEvent: { key: "Backspace" } });
       expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", "Bras"] });
       expect(focus.lastFocused()).toBe("exercise-instruction-step-2");
@@ -1934,6 +1959,7 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     const onChangeSpy = jest.fn();
     const full = "x".repeat(1000);
     render(<Harness initial={{ instructionSteps: [full] }} onChangeSpy={onChangeSpy} />);
+    focusStep(1);
     fireEvent.changeText(stepInput(1), `${full}y`);
     fireEvent.changeText(stepInput(2), "y\nz");
     expect(onChangeSpy).not.toHaveBeenCalled();
@@ -1945,6 +1971,7 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
 
   it("AC6 — VoiceOver : chaque étape est un champ « Étape n » ; le numéro visible n'est pas lu en double ; textes du lexique", () => {
     render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    focusStep(1);
     expect([1, 2, 3].map((n) => stepInput(n).props.accessibilityLabel)).toEqual(["Étape 1", "Étape 2", "Étape 3"]);
     for (const n of [1, 2, 3]) {
       expect(stepNumber(n).props).toMatchObject({
@@ -1957,6 +1984,74 @@ describe("ActivityEditorForm — PRE-5 story 3.1 (Description en étapes)", () =
     expect(lexicon.firstStepPlaceholder).toBe("Décrivez la première étape");
     expect(lexicon.nextStepPlaceholder).toBe("Étape suivante");
     expect(strings.executionParameters.card).not.toHaveProperty("descriptionPlaceholder");
+  });
+
+  it("PRE7-B.2 (B1) — « 3. Étape suivante » apparaît au focus et disparaît à la perte de focus, sans modifier les étapes", async () => {
+    const onChangeSpy = jest.fn();
+    render(<Harness initial={{ instructionSteps: ["A", "B"] }} onChangeSpy={onChangeSpy} />);
+    expect(screen.queryByText("Étape suivante")).toBeNull();
+    expect(screen.queryByTestId("exercise-instruction-step-3")).toBeNull();
+    focusStep(2);
+    expect(stepInput(3).props).toMatchObject({ value: "", placeholder: "Étape suivante" });
+    fireEvent(stepInput(2), "blur");
+    await flushDeferredBlur();
+    expect(screen.queryByTestId("exercise-instruction-step-3")).toBeNull();
+    expect(rowCount()).toBe(2);
+    expect(onChangeSpy).not.toHaveBeenCalled();
+  });
+
+  it("PRE7-B.2 (B1) — passage de ligne à ligne (perte de focus avant le focus suivant, ordre iOS) : l'invite n'est jamais démontée", async () => {
+    render(<Harness initial={{ instructionSteps: ["A", "B"] }} />);
+    focusStep(1);
+    const prompt = stepInput(3);
+    fireEvent(stepInput(1), "blur");
+    expect(stepInput(3)).toBe(prompt);
+    focusStep(2);
+    await flushDeferredBlur();
+    expect(stepInput(3)).toBe(prompt);
+    // Saisie dans l'invite : l'étape 3 est créée, une nouvelle invite suit tant que la saisie dure.
+    fireEvent(stepInput(2), "blur");
+    focusStep(3);
+    await flushDeferredBlur();
+    fireEvent.changeText(stepInput(3), "C");
+    expect(stepInput(4).props.placeholder).toBe("Étape suivante");
+    fireEvent(stepInput(3), "blur");
+    await flushDeferredBlur();
+    expect(rowCount()).toBe(3);
+  });
+
+  it("PRE7-B.2 (B1) — dernière étape vide (Entrée) : masquée au repos, conservée dans les étapes ; état vide : « Décrivez la première étape » toujours rendue", async () => {
+    const onChangeSpy = jest.fn();
+    const view = render(<Harness initial={{ instructionSteps: ["A"] }} onChangeSpy={onChangeSpy} />);
+    focusStep(1);
+    fireEvent.changeText(stepInput(1), "A\n");
+    expect(onChangeSpy).toHaveBeenLastCalledWith({ instructionSteps: ["A", ""] });
+    fireEvent(stepInput(1), "blur");
+    await flushDeferredBlur();
+    expect(rowCount()).toBe(1);
+    expect(onChangeSpy).toHaveBeenCalledTimes(1);
+    view.unmount();
+
+    const view2 = render(<Harness initial={{ instructionSteps: [""] }} />);
+    expect(rowCount()).toBe(1);
+    expect(stepInput(1).props.placeholder).toBe("Décrivez la première étape");
+    focusStep(1);
+    expect(rowCount()).toBe(1);
+    fireEvent(stepInput(1), "blur");
+    await flushDeferredBlur();
+    view2.unmount();
+
+    // Entrée dans une Description vide (`["", ""]`) : au repos, une ligne, invite de première étape, étapes inchangées.
+    const onEmptyChange = jest.fn();
+    render(<Harness initial={{ instructionSteps: ["", ""] }} onChangeSpy={onEmptyChange} />);
+    expect(rowCount()).toBe(1);
+    expect(stepInput(1).props.placeholder).toBe("Décrivez la première étape");
+    expect(onEmptyChange).not.toHaveBeenCalled();
+    focusStep(1);
+    expect(rowCount()).toBe(2);
+    fireEvent(stepInput(1), "blur");
+    await flushDeferredBlur();
+    expect(stepInput(1).props.placeholder).toBe("Décrivez la première étape");
   });
 
   it("AC6 — ordre Description → Paramètres d'exécution → Média et titre « Paramètres d'exécution » inchangés", () => {
@@ -2143,5 +2238,62 @@ describe("ActivityEditorForm — PRE-5 story 3.2", () => {
       expect(overflowBelowRow).toBeLessThanOrEqual(dimensions.contextBand.paddingBottom);
       expect(style("exercise-reference-row").rowGap).toBe(overflowBelowRow);
     }
+  });
+});
+
+/**
+ * Recette JA, décision de Hermann du 26/10/2026 (« un appui sur une zone de l'écran doit fermer le
+ * clavier et ne doit pas ouvrir les paramètres ou éditer la zone de description ») : la fermeture
+ * est portée par la primitive native (`keyboardShouldPersistTaps="never"`, capture du premier
+ * appui) ; l'effet tactile réel se constate sur iPhone.
+ */
+describe("ActivityEditorForm — recette JA (Nom en saisie, appui ailleurs)", () => {
+  const body = () => screen.getByTestId("exercise-body");
+  const stepsArea = () => screen.getByTestId("exercise-description-steps-area");
+
+  it("Nom en saisie : corps en `never`, étapes de Description sans toucher ; fin de saisie : retour à `handled`", () => {
+    render(<Harness />);
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+    fireEvent(screen.getByTestId("exercise-name-input"), "focus");
+    expect(body().props.keyboardShouldPersistTaps).toBe("never");
+    expect(stepsArea().props.pointerEvents).toBe("none");
+    fireEvent(screen.getByTestId("exercise-name-input"), "blur");
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+  });
+
+  it("Description en saisie : corps en `handled` (barre d'accessoire, ↑ D-351, étapes D-425 inchangés)", () => {
+    render(<Harness />);
+    fireEvent(screen.getByTestId("exercise-instruction-input"), "focus");
+    expect(body().props.keyboardShouldPersistTaps).toBe("handled");
+    expect(stepsArea().props.pointerEvents).toBe("auto");
+  });
+});
+
+describe("ActivityEditorForm — PRE-7 R-7 (D-448, point 7)", () => {
+  const workPhases = [
+    { id: 1, label: "Montée", durationSeconds: 3 },
+    { id: 2, label: "Descente", durationSeconds: 0 },
+  ];
+
+  it("phase sans durée : « Paramètres à compléter. » en `colors.danger` sur la fiche ; phrase complète inchangée", () => {
+    render(
+      <Harness
+        initial={{
+          executionParameters: parameters({
+            series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 60, loadKg: 0, workPhases },
+          }),
+        }}
+      />,
+    );
+    const node = screen.getByTestId("exercise-parameters-phrase");
+    expect(renderedPhrase()).toBe(strings.executionParameters.card.incomplete);
+    expect(StyleSheet.flatten(node.props.style).color).toBe(colors.danger);
+  });
+
+  it("paramètres complets : couleur de phrase ordinaire", () => {
+    render(<Harness />);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style).color).toBe(colors.textPrimary);
   });
 });

@@ -46,6 +46,12 @@ export type ActivityMediaListProps = {
   readonly onMove: (from: number, to: number) => void;
   readonly onRetry: (item: ImportItem) => void;
   /**
+   * PRE-7 story A2.2 (D-437, MFN-09, MFN/AC28) : `false` pour un contenu de geste verrouillé —
+   * consultation conservée (toucher), mais ni ajout, ni menu Retirer / Monter / Descendre, ni
+   * actions d'accessibilité équivalentes. Défaut `true` (rendu antérieur inchangé).
+   */
+  readonly editable?: boolean;
+  /**
    * Story 4.5 (AD-17) : menu de l'appui long sur iOS. Par défaut
    * `IOS_LONG_PRESS_MENU` ; prop réservée aux tests du repli.
    */
@@ -83,6 +89,7 @@ export function ActivityMediaList({
   onRemove,
   onMove,
   onRetry,
+  editable = true,
   iosLongPressMenu = IOS_LONG_PRESS_MENU,
 }: ActivityMediaListProps) {
   const total = media.length;
@@ -109,6 +116,7 @@ export function ActivityMediaList({
               uri={resolveUri(item.asset.uri)}
               onRemove={() => onRemove(index)}
               onMove={(to) => onMove(index, to)}
+              editable={editable}
               iosLongPressMenu={iosLongPressMenu}
             />
           );
@@ -147,7 +155,7 @@ export function ActivityMediaList({
           );
         })}
 
-        {canImport ? (
+        {canImport && editable ? (
           <Pressable
             onPress={onAdd}
             accessibilityRole="button"
@@ -209,6 +217,7 @@ function MediaTile({
   uri,
   onRemove,
   onMove,
+  editable,
   iosLongPressMenu,
 }: {
   item: DraftMediaItem;
@@ -218,6 +227,7 @@ function MediaTile({
   uri: string;
   onRemove: () => void;
   onMove: (to: number) => void;
+  editable: boolean;
   iosLongPressMenu: IosLongPressMenu;
 }) {
   const [consulting, setConsulting] = useState(false);
@@ -229,7 +239,8 @@ function MediaTile({
   const isVideo = item.asset.kind === "VIDEO";
   const isIOS = Platform.OS === "ios";
   // Voie du menu calculée au rendu et réutilisée telle quelle par les rappels (jamais relue à l'appui).
-  const nativeContextMenu = isIOS && iosLongPressMenu === "contextMenu";
+  // PRE-7 story A2.2 : contenu verrouillé — ni menu natif, ni appui long, ni actions.
+  const nativeContextMenu = editable && isIOS && iosLongPressMenu === "contextMenu";
   function consult() {
     setUnavailable(false);
     errorToAnnounce.current = false;
@@ -269,11 +280,15 @@ function MediaTile({
     errorToAnnounce.current = true;
     closePhoto();
   }
-  const options = [
-    { key: "remove", label: m.menuRemove, run: onRemove, destructive: true },
-    ...(index > 0 ? [{ key: "moveUp", label: m.menuMoveUp, run: () => onMove(index - 1), destructive: false }] : []),
-    ...(index < total - 1 ? [{ key: "moveDown", label: m.menuMoveDown, run: () => onMove(index + 1), destructive: false }] : []),
-  ];
+  const options = !editable
+    ? []
+    : [
+        { key: "remove", label: m.menuRemove, run: onRemove, destructive: true },
+        ...(index > 0 ? [{ key: "moveUp", label: m.menuMoveUp, run: () => onMove(index - 1), destructive: false }] : []),
+        ...(index < total - 1
+          ? [{ key: "moveDown", label: m.menuMoveDown, run: () => onMove(index + 1), destructive: false }]
+          : []),
+      ];
   function openMenu() {
     if (isIOS) {
       ActionSheetIOS.showActionSheetWithOptions(
@@ -308,12 +323,12 @@ function MediaTile({
       // Menu contextuel natif : SwiftUI gère l'appui long ; ce rappel vide empêche seulement
       // le relâché d'un appui long de déclencher aussi `onPress` (aucune consultation, AC8).
       onLongPress={() => {
-        if (nativeContextMenu) return;
+        if (nativeContextMenu || !editable) return;
         openMenu();
       }}
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityHint={isVideo ? m.videoHint : m.photoHint}
+      accessibilityHint={editable ? (isVideo ? m.videoHint : m.photoHint) : isVideo ? m.videoHintLocked : m.photoHintLocked}
       accessibilityValue={unavailable ? { text: m.unavailable } : undefined}
       accessibilityActions={options.map((option) => ({ name: option.key, label: actionLabels[option.key] }))}
       onAccessibilityAction={(event) => options.find((option) => option.key === event.nativeEvent.actionName)?.run()}

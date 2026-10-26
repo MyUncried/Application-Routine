@@ -1,4 +1,4 @@
-import type { ActivityMediaWithAsset, SessionActivityMediaWithAsset } from "./ActivityMedia";
+import type { ActivityMediaWithAsset } from "./ActivityMedia";
 import type { MediaAsset } from "./MediaAsset";
 
 /**
@@ -16,12 +16,8 @@ export interface MediaRepository {
   listForActivityDefinition(
     activityDefinitionId: string,
   ): Promise<readonly ActivityMediaWithAsset[]>;
-  /** PRE-3 : médias ordonnés de plusieurs occurrences, en une lecture groupée. */
-  listForSessionActivities?(
-    activityIds: readonly string[],
-  ): Promise<ReadonlyMap<string, readonly SessionActivityMediaWithAsset[]>>;
   /** PRE-3 : asset persisté, ou `null`. */
   findAsset?(assetId: string): Promise<MediaAsset | null>;
-  /** PRE-3 : nombre de liens (définitions + occurrences) référençant l'asset. */
+  /** PRE-3 : nombre de liens référençant l'asset (PRE-7, R-3 : ceux des Mouvements seulement, C05). */
   countReferences?(assetId: string): Promise<number>;
 }

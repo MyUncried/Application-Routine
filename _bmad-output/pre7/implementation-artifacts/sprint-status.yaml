@@ -1,0 +1,45 @@
+# Suivi de sprint PRE-7 (plan approuvé le 24/10/2026)
+generated: 10-24-2026 09:00
+last_updated: 10-26-2026 20:00
+project: kodjo-pre7
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/pre7/implementation-artifacts
+development_status:
+  epic-0: done
+  0-1-décisions-et-réconciliation-documentaire: done
+  epic-b: done
+  b-1-harmonisation-visuelle-de-la-feuille-des-paramètres: done
+  b-2-libellés-valeurs-et-description: done
+  b-3-changement-de-côté-et-barre-du-clavier: done
+  epic-a1: done
+  a1-1-domaine-mouvement-et-paramètres-v4: done
+  a1-2-schéma-012-transition-et-repositories: done
+  a1-3-services-et-filiation: done
+  epic-a2: done
+  a2-1-feuille-des-paramètres-mfn: done
+  a2-2-contenu-partagé-et-verrouillage: done
+  a2-3-création-recherche-et-suggestions-de-gestes: done
+  epic-a3: done
+  a3-1-pastille-et-popover-de-niveau: done
+  a3-2-consultation-et-réordonnancement-des-niveaux: done
+  epic-a4: done
+  a4-1-catalogue-par-geste-et-sélection: done
+  # Correction de recette JA du 26/10/2026 (arbitrage de Hermann, phases comme motif cyclique) : 1/3 fait ; 2/3 (guidage, calculs) prêt, non commencé ; 3/3 (documentation) abandonné, origin/main (PR #398) le couvre
+  recette-ja-d446-1-phases-modele-brouillon-feuille: done  # complété par r-2
+  # recette-ja-d446-2 fusionnée dans r-2
+  # Reprise après D-445 et PHC (proposition du 26/10/2026, validée : arbitrage-2026-10-26-reprise-q1-q11.md)
+  epic-r: done
+  r-1-lot-documentaire-de-consolidation: done
+  r-2-phases-motif-commun-calculs-et-guidage: done
+  r-3-modèle-d445-occurrence-sans-copie-migration-013: done
+  r-4-dialogue-de-sauvegarde-c03-et-crayon: done
+  r-5-création-unicité-variante-et-recherche: done
+  r-6-niveaux-dans-tous-les-contextes: done
+  # Recette JA2 du 26/10/2026, lot D-448 (arbitrage-2026-10-26-recette-ja2-d448.md)
+  r-7-phases-durées-et-signalements: done
+  r-8-recherche-par-début-de-mot-et-variante: done
+  r-9-menu-niveau-et-crayon: done
+  # Recette JA3 du 26/10/2026 (cahier « Recette JA3 PRE-7 ») : r8-5, r9-5
+  r-10-recette-ja3-variante-et-crayon: done
+  # Clôture du 26/10/2026 : recette iPhone validée par Hermann (JA1, JB, JA, JA1-bis, JA2, JA3) ; reports dans ../README.md et deferred-work.md

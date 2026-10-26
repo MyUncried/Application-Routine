@@ -118,6 +118,17 @@ export function cellDurationSeconds(digits: string, bounds: CellBounds): number 
   return clamp(seconds, bounds);
 }
 
+/**
+ * PRE-7 (D-448, point 6, recette JA2 du 26/10/2026) : sortie d'une cellule de durée de PHASE —
+ * mêmes règles que `cellDurationSeconds` (bornes de la Cible), sauf qu'une saisie de 0 s reste
+ * 0 s, au lieu d'être ramenée au minimum : la cellule l'affiche « 0 s » (formateur de D-434) en rouge et le ✓ est
+ * refusé comme pour une durée manquante. Vide : `null` (« — », à renseigner), jamais 0.
+ */
+export function cellPhaseDurationSeconds(digits: string, bounds: CellBounds): number | null {
+  if (digits === "") return null;
+  return cellDurationSeconds(digits, { min: 0, max: bounds.max });
+}
+
 /** Sortie d'une cellule entière (Répétitions) : ramenée dans les bornes ; vide → 0 si permis, sinon `null`. */
 export function cellIntegerValue(digits: string, bounds: CellBounds): number | null {
   if (digits === "") return bounds.min <= 0 ? 0 : null;

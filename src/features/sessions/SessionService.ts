@@ -20,6 +20,7 @@ import {
 } from "@/domain/sessions/SessionDraft";
 import type { ValidationResult, ValidationViolation } from "@/domain/sessions/errors";
 import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
 
 /**
  * Résultat de la création d'une Séance : succès avec la Séance persistée,
@@ -53,6 +54,16 @@ export type LoadSessionForEditResult =
   | { readonly status: "OK"; readonly session: Session }
   | { readonly status: "NOT_FOUND" }
   | { readonly status: "ARCHIVED" };
+
+/**
+ * PRE-7 (A1.3, API-SEA-05, MFN/AC04) : issue d'une duplication de Séance.
+ * `NOT_FOUND` : Séance inconnue ou non active. `INVALID` : brouillon de copie
+ * refusé par la validation du Domaine (aucune écriture).
+ */
+export type DuplicateSessionResult =
+  | { readonly status: "DUPLICATED"; readonly session: Session }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "INVALID"; readonly violations: readonly ValidationViolation[] };
 
 export class SessionService {
   /**
@@ -128,6 +139,31 @@ export class SessionService {
    */
   async getSession(sessionId: string): Promise<Session | null> {
     return this.sessionRepository.findById(sessionId);
+  }
+
+  /**
+   * PRE-7 (A1.3, API-SEA-05, D-188, MFN-03, MFN/AC04) — duplique une Séance
+   * active (`toDuplicateSessionDraft`) : nouvelle Séance `{nom} (copie)`
+   * (suffixe libre parmi les Séances actives), nouveaux identifiants,
+   * filiations des occurrences conservées à l'identique ; enregistrée par
+   * `createSession` (une seule transaction, « déjà utilisé » au succès).
+   * `newActivityId` fournit les identifiants d'occurrence (`expo-crypto` côté
+   * appelant). Aucune erreur du Repository n'est interceptée.
+   */
+  async duplicateSession(sessionId: string, newActivityId: () => string): Promise<DuplicateSessionResult> {
+    // Une Séance archivée n'est pas dupliquée (`findById` ne filtre pas le statut).
+    if ((await this.sessionRepository.findSessionStatus(sessionId)) !== "ACTIVE") {
+      return { status: "NOT_FOUND" };
+    }
+    const session = await this.sessionRepository.findById(sessionId);
+    if (!session) {
+      return { status: "NOT_FOUND" };
+    }
+    const takenNames = (await this.sessionRepository.listActive()).map((summary) => summary.name);
+    const created = await this.createSession(toDuplicateSessionDraft(session, newActivityId, takenNames));
+    return created.ok
+      ? { status: "DUPLICATED", session: created.value }
+      : { status: "INVALID", violations: created.violations };
   }
 
   /**

@@ -5,17 +5,18 @@ import { afterEach, beforeEach, describe, expect, it } from "@jest/globals";
 
 import {
   projectScalars,
+  readExecutionParameters,
   serializeExecutionParameters,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
 import { uniformParameters, variableParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { computeStructuredSessionDuration, type ActivityDurationFacts } from "@/domain/sessions/calculations";
 import type { StructuralPosition } from "@/domain/sessions/Session";
-import { toSessionDraft, toUpdateSessionInput } from "@/domain/sessions/SessionDraft";
 import type { Database } from "@/infrastructure/database/Database";
 import { initializeDatabase } from "@/infrastructure/database/initializeDatabase";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
-import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
+import { DATABASE_VERSION } from "@/infrastructure/database/constants";
+import { ViewedSessionRepository } from "@/infrastructure/database/testing/sessionMovements";
 import { buildVersion10 } from "@/infrastructure/database/testing/buildVersion10";
 import { failOnWrite } from "@/infrastructure/database/testing/failOnWrite";
 import { withoutMigration011Columns } from "@/infrastructure/database/testing/migration011Columns";
@@ -227,7 +228,8 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     let database = await seededVersion10();
     const before = await dumpTables(database);
 
-    await initializeDatabase(database);
+    // PRE-7 (A1.2) : chaîne arrêtée à la version 11, avant la transition de `migration012`.
+    await migrateDatabase(database, undefined, 11);
     database = reopen(database);
 
     expect(await version(database)).toBe(11);
@@ -253,49 +255,78 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     ]);
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
 
-    // Lecture applicative : Circuit de Tours, récupérations à trois états, paramètres PRE-5 intacts.
-    const repository = new SqliteSessionRepository(database, ids("ses"));
-    const sessionA = await repository.findById("session-a");
-    expect(sessionA?.cycle.tour.nature).toBe("TOURS");
-    expect(sessionA?.cycle.tour.repeatCount).toBe(3);
-    expect(sessionA?.stopPoints).toEqual([{ id: "stop-a", scope: "IN_TOUR", position: 0 }]);
-    const all = [...(sessionA?.cycle.beforeTour ?? []), ...(sessionA?.cycle.tour.exercises ?? []), ...(sessionA?.cycle.afterTour ?? [])];
-    expect(all.map((activity) => [activity.id, activity.postActivityRecoverySeconds])).toEqual([
+    // Lecture : Circuit de Tours, récupérations à trois états, paramètres PRE-5 intacts. PRE-7
+    // (A1.2) : les repositories courants lisent le schéma 012 ; la base v11 est relue en lignes
+    // brutes par le lecteur v2/v3 du domaine et la règle de présence d'AD-35.
+    expect(await database.getAllAsync("SELECT id, repeat_count FROM tours ORDER BY id")).toEqual([
+      { id: "tour-a", repeat_count: 3 },
+      { id: "tour-b", repeat_count: 1 },
+    ]);
+    expect(await database.getAllAsync("SELECT id, scope, position FROM session_stop_points")).toEqual([
+      { id: "stop-a", scope: "IN_TOUR", position: 0 },
+    ]);
+    const rows = await database.getAllAsync<{
+      id: string;
+      session_id: string;
+      structural_position: StructuralPosition;
+      execution_parameters: string;
+      seconds: number;
+      present: number;
+    }>(
+      `SELECT id, session_id, structural_position, execution_parameters,
+              post_activity_recovery_seconds AS seconds, post_activity_recovery_present AS present
+       FROM activities
+       ORDER BY session_id, CASE structural_position WHEN 'BEFORE_TOUR' THEN 0 WHEN 'IN_TOUR' THEN 1 ELSE 2 END, position`,
+    );
+    const recoveryOf = (row: { seconds: number; present: number }) => (row.present === 1 ? row.seconds : null);
+    expect(rows.filter((row) => row.session_id === "session-a").map((row) => [row.id, recoveryOf(row)])).toEqual([
       ["a-before", null],
       ["a-in-1", 45],
       ["a-in-2", null],
       ["a-after", 20],
     ]);
-    const source = SESSIONS[0]!.copies;
-    for (const activity of all) {
-      expect({ id: activity.id, parameters: activity.executionParameters }).toEqual({
-        id: activity.id,
-        parameters: source.find((copy) => copy.id === activity.id)!.parameters,
+    const allCopies = SESSIONS.flatMap((session) => session.copies);
+    for (const row of rows) {
+      expect({ id: row.id, parameters: readExecutionParameters(row.execution_parameters) }).toEqual({
+        id: row.id,
+        parameters: allCopies.find((copy) => copy.id === row.id)!.parameters,
       });
     }
-    // Durées identiques à celles de la v10 (calcul du Domaine sur les valeurs d'origine).
-    const summaries = await repository.listActive();
-    expect(summaries.map((summary) => [summary.id, summary.estimatedDurationSeconds]).sort()).toEqual(
-      [
-        ["session-a", expectedDurationSeconds("session-a")],
-        ["session-b", expectedDurationSeconds("session-b")],
-      ].sort(),
-    );
+    // Durées identiques à celles de la v10 (calcul du Domaine sur les valeurs relues).
+    for (const session of SESSIONS) {
+      const facts = (zone: StructuralPosition): ActivityDurationFacts[] =>
+        rows
+          .filter((row) => row.session_id === `session-${session.id}` && row.structural_position === zone)
+          .map((row) => ({
+            type: "EXERCISE",
+            executionParameters: readExecutionParameters(row.execution_parameters),
+            postActivityRecoverySeconds: recoveryOf(row) ?? 0,
+          }));
+      expect(
+        computeStructuredSessionDuration({
+          beforeTour: facts("BEFORE_TOUR"),
+          inTour: facts("IN_TOUR"),
+          afterTour: facts("AFTER_TOUR"),
+          tourRepeatCount: session.repeat,
+        }).seconds,
+      ).toBe(expectedDurationSeconds(`session-${session.id}`));
+    }
     expect(expectedDurationSeconds("session-a")).toBeGreaterThan(0);
   });
 
   it("AC3 — rejouée sur une base déjà en v11 (colonnes présentes) : aucune erreur, aucun changement", async () => {
     let database = await seededVersion10();
-    await initializeDatabase(database);
+    // PRE-7 (A1.2) : chaîne arrêtée à la version 11, avant la transition de `migration012`.
+    await migrateDatabase(database, undefined, 11);
     database = reopen(database);
     const migrated = await dumpTables(database);
     const schema = await database.getAllAsync("SELECT type, name, sql FROM sqlite_master ORDER BY type, name");
 
-    // Nouveau démarrage : version courante, aucune étape rejouée.
-    await initializeDatabase(database);
+    // Nouveau démarrage arrêté à 11 : version atteinte, aucune étape rejouée.
+    await migrateDatabase(database, undefined, 11);
     // Rejeu forcé de 011 sur des colonnes déjà présentes (base remise en v10).
     await database.execAsync("PRAGMA user_version = 10");
-    await migrateDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     database = reopen(database);
 
     expect(await version(database)).toBe(11);
@@ -309,44 +340,72 @@ describe("PRE6-1.1 — migration 011 sur une base v10 fichier réelle (node:sqli
     const schemaBefore = await database.getAllAsync("SELECT type, name, sql FROM sqlite_master ORDER BY type, name");
 
     const failing = failOnWrite(database, /post_activity_recovery_present = 1/);
-    await expect(migrateDatabase(failing.database)).rejects.toThrow("Injected failure");
+    await expect(migrateDatabase(failing.database, undefined, 11)).rejects.toThrow("Injected failure");
     database = reopen(database);
 
     expect(await version(database)).toBe(10);
     expect(await dumpTables(database)).toEqual(before);
     expect(await database.getAllAsync("SELECT type, name, sql FROM sqlite_master ORDER BY type, name")).toEqual(schemaBefore);
 
-    await initializeDatabase(database);
+    await migrateDatabase(database, undefined, 11);
     expect(await version(database)).toBe(11);
   });
 
-  it("après migration : une Séance relue s'enregistre sans changement de nature ni de récupération (aller-retour brouillon)", async () => {
+  /**
+   * PRE-7 (A1.2, D-440 assouplie) : chaîne complète v10 → 12 par le chemin du
+   * démarrage. Les Séances de la v10 ne sont pas reconstituables (aucune
+   * filiation) : elles sont supprimées une seule fois avec un avis ; Profil,
+   * Catégories, Zones et Étiquettes conservés. L'aller-retour brouillon d'une
+   * Séance (nature et récupération inchangées) est prouvé sur le schéma 012 par
+   * `SqliteSessionRepository.test.ts` (« PRE6-1.1 »).
+   */
+  // PRE-7 (R-3) : le démarrage enchaîne `migration013` ; la base vide après 012 ne produit aucun second avis.
+  it("chaîne complète v10 → courante (démarrage) : Séances supprimées une fois avec un avis, référentiels conservés, relance sans effet", async () => {
     let database = await seededVersion10();
+    const kept = async (db: Database) => ({
+      profiles: await db.getAllAsync("SELECT * FROM profiles"),
+      categories: await db.getAllAsync("SELECT * FROM categories ORDER BY id"),
+      bodyZones: await db.getAllAsync("SELECT * FROM body_zones ORDER BY id"),
+      labels: await db.getAllAsync("SELECT * FROM labels ORDER BY id"),
+    });
+    const before = await kept(database);
+
     await initializeDatabase(database);
     database = reopen(database);
-    const repository = new SqliteSessionRepository(database, ids("ses"), () => NOW);
 
-    const session = await repository.findById("session-a");
-    const input = toUpdateSessionInput(toSessionDraft(session!));
-    expect(input.ok).toBe(true);
-    if (!input.ok) throw new Error("expected a valid input");
-    const outcome = await repository.update("session-a", input.value);
-    expect(outcome.status).toBe("UPDATED");
+    expect(await version(database)).toBe(DATABASE_VERSION);
+    expect(await kept(database)).toEqual(before);
+    for (const table of ["sessions", "cycles", "tours", "activities", "movement_body_zones", "session_stop_points", "activity_definitions", "movements"]) {
+      expect({ table, rows: await database.getAllAsync(`SELECT * FROM ${table}`) }).toEqual({ table, rows: [] });
+    }
+    expect(await database.getAllAsync("SELECT kind, count FROM migration_notices ORDER BY id")).toEqual([
+      { kind: "EXERCISES_AND_SESSIONS_RESET", count: 2 },
+    ]);
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+
+    // Relance après recréation : aucune suppression ni nouvel avis.
+    // PRE-7 (R-3, C05) : occurrence décrite par sa vue, Mouvement écrit explicitement.
+    const repository = new ViewedSessionRepository(database, ids("ses"), () => NOW);
+    await repository.create({
+      name: "Après",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [
+        {
+          type: "EXERCISE",
+          structuralPosition: "IN_TOUR",
+          name: "Gainage",
+          executionParameters: simple(),
+          postActivityRecoverySeconds: null,
+          bodyZoneIds: ["cuisses"],
+          categoryId: "cardio",
+        },
+      ],
+    });
+    await initializeDatabase(database);
     database = reopen(database);
-
-    expect(await database.getAllAsync("SELECT id, nature FROM tours ORDER BY id")).toEqual([
-      { id: "tour-a", nature: "TOURS" },
-      { id: "tour-b", nature: "TOURS" },
-    ]);
-    expect(
-      await database.getAllAsync(
-        "SELECT id, post_activity_recovery_seconds AS seconds, post_activity_recovery_present AS present FROM activities WHERE session_id = 'session-a' ORDER BY id",
-      ),
-    ).toEqual([
-      { id: "a-after", seconds: 20, present: 1 },
-      { id: "a-before", seconds: 0, present: 0 },
-      { id: "a-in-1", seconds: 45, present: 1 },
-      { id: "a-in-2", seconds: 0, present: 0 },
-    ]);
+    expect(await database.getAllAsync("SELECT name FROM sessions")).toEqual([{ name: "Après" }]);
+    expect(await database.getAllAsync("SELECT kind FROM migration_notices")).toEqual([{ kind: "EXERCISES_AND_SESSIONS_RESET" }]);
   });
 });

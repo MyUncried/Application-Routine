@@ -158,7 +158,8 @@ async function savedDefinition(parameters: ExecutionParameters = PARAMETERS): Pr
 
 async function dump(): Promise<Record<string, unknown[]>> {
   const result: Record<string, unknown[]> = {};
-  for (const table of ["activity_definitions", "activity_definition_body_zones", "activity_media", "media_assets", "sessions", "activities", "session_activity_media", "categories"]) {
+  // PRE-7 (A1.2) : contenu partagé porté par le Mouvement (`movements` et ses tables).
+  for (const table of ["activity_definitions", "movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets", "sessions", "activities", "movement_aliases", "categories"]) {
     result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
   }
   return result;
@@ -347,7 +348,7 @@ describe("PRE4-1.3/AC12 — échec d'écriture sans perte du Brouillon", () => {
     const definition = await savedDefinition();
     const before = await dump();
     // Échec au premier lien de Média, après la mise à jour de la Définition et de ses Zones dans la même transaction.
-    const failing = failOnWrite(database, /INSERT INTO activity_media/);
+    const failing = failOnWrite(database, /INSERT INTO movement_media/);
     const consoleError = jest.spyOn(console, "error").mockImplementation(() => undefined);
     await renderEditor({ params: { catalogueDefinitionId: definition.id }, service: realService(failing.database) });
     fireEvent.changeText(await screen.findByDisplayValue("Fentes"), "Fentes lentes");
@@ -377,6 +378,7 @@ describe("PRE4-1.3/AC12 — échec d'écriture sans perte du Brouillon", () => {
         { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
         { target: { kind: "NUMBER", value: 45 }, pauseSeconds: 20, loadKg: 0 },
       ],
+      workPhases: [],
     });
     consoleError.mockRestore();
   });

@@ -57,7 +57,26 @@ export const DATABASE_NAME = "kodjo.db";
  * pour toute valeur > 0) — `ADD COLUMN` seulement, idempotente ; 001..010
  * inchangées.
  */
-export const DATABASE_VERSION = 11;
+/**
+ * **PRE-7 (version 12, `migration012`, story A1.2)** : schéma « Mouvement,
+ * filiation et niveaux » (`movements`, phases, Zones et médias du Mouvement,
+ * `activity_definitions.movement_id` intègre, `activities.source_movement_id`
+ * non nul sans clé étrangère) et transition PONCTUELLE de D-440 assouplie :
+ * Exercices, Séances et associations supprimés une seule fois, Profil,
+ * Catégories, Zones et Étiquettes conservés, avis `EXERCISES_AND_SESSIONS_RESET`.
+ * 001..011 inchangées.
+ */
+/**
+ * **PRE-7 (version 13, `migration013`, story R-3)** : modèle D-445 C05 —
+ * occurrence sans copie de contenu (`activities` sans nom, description ni
+ * Catégorie, `copy_number`, clé étrangère RESTRICT vers `movements`), nom de
+ * Mouvement unique (C01), `movement_aliases`, retrait de `used` (C03) ;
+ * `activity_body_zones` et `session_activity_media` supprimées. Transition
+ * PONCTUELLE (Q2 de Hermann, 26/10/2026) : Mouvements, Niveaux, Exercices et
+ * Séances supprimés une seule fois ; Profil, Catégories, Zones et Étiquettes
+ * conservés ; avis `EXERCISES_AND_SESSIONS_RESET`. 001..012 inchangées.
+ */
+export const DATABASE_VERSION = 13;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

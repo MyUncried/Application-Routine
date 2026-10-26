@@ -18,6 +18,8 @@ import {
   ExecutionParametersDataError,
   ExecutionParametersValidationError,
   numberTarget,
+  serializeExecutionParameters,
+  serializeV2,
   unsetTarget,
   type ExecutionParameters,
 } from "@/domain/activities/ExecutionParameters";
@@ -179,10 +181,12 @@ describe("SqliteActivityDefinitionRepository", () => {
         "SELECT id FROM activity_definitions",
       );
       expect(definitions).toHaveLength(0);
-      const zones = await database.getAllAsync<{ activity_definition_id: string }>(
-        "SELECT activity_definition_id FROM activity_definition_body_zones",
+      // PRE-7 (A1.2) : Zones portées par le Mouvement, annulé avec la définition.
+      const zones = await database.getAllAsync<{ movement_id: string }>(
+        "SELECT movement_id FROM movement_body_zones",
       );
       expect(zones).toHaveLength(0);
+      expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(0);
     });
 
     it("update(): a body-zone conflict rolls back the whole transaction — the previous row and its zones are left untouched", async () => {
@@ -231,8 +235,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       });
 
       const rows = await database.getAllAsync<{ asset_id: string; position: number }>(
-        `SELECT asset_id, position FROM activity_media
-         WHERE activity_definition_id = ? ORDER BY position ASC`,
+        `SELECT asset_id, position FROM movement_media
+         WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?) ORDER BY position ASC`,
         [created.id],
       );
       expect(rows).toEqual([
@@ -246,7 +250,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       const created = await repository.create(baseInput());
 
       const rows = await database.getAllAsync<{ id: string }>(
-        `SELECT id FROM activity_media WHERE activity_definition_id = ?`,
+        `SELECT id FROM movement_media
+         WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?)`,
         [created.id],
       );
       expect(rows).toHaveLength(0);
@@ -272,8 +277,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       });
 
       const rows = await database.getAllAsync<{ asset_id: string; position: number }>(
-        `SELECT asset_id, position FROM activity_media
-         WHERE activity_definition_id = ? ORDER BY position ASC`,
+        `SELECT asset_id, position FROM movement_media
+         WHERE movement_id = (SELECT movement_id FROM activity_definitions WHERE id = ?) ORDER BY position ASC`,
         [created.id],
       );
       expect(rows).toEqual([
@@ -353,7 +358,8 @@ describe("SqliteActivityDefinitionRepository", () => {
       ).rejects.toThrow();
 
       const row = await database.getFirstAsync<{ category_id: string }>(
-        "SELECT category_id FROM activity_definitions WHERE id = ?",
+        `SELECT movements.category_id FROM activity_definitions
+         JOIN movements ON movements.id = activity_definitions.movement_id WHERE activity_definitions.id = ?`,
         [created.id],
       );
       expect(row?.category_id).toBe("cardio");
@@ -391,6 +397,7 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
@@ -423,9 +430,11 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     durationMs: 3000,
   });
 
+  // PRE-7 (R-3, C01) : nom de Mouvement unique — chaque définition indépendante reçoit le sien.
+  let names = 0;
   function input(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
     return {
-      name: "Fentes",
+      name: `Fentes ${++names}`,
       description: null,
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["cuisses"],
@@ -487,20 +496,19 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       finalPhaseSeconds: 5,
       tourRepeatCount: 1,
       exercises: [
+        // PRE-7 (R-3, C05) : la copie référence le Mouvement de la définition, sans contenu propre.
         {
           id: copy.id,
           type: "EXERCISE",
           structuralPosition: "IN_TOUR",
-          name: copy.name,
           postActivityRecoverySeconds: 0,
-          bodyZoneIds: copy.bodyZoneIds,
           executionParameters: canonical({ cadenceBeepIntervalSeconds: 1 }),
-          categoryId: copy.categoryId,
-          media: copy.media?.map((item) => ({ assetId: item.assetId })),
+          sourceMovementId: copy.sourceMovementId,
         },
       ],
     });
     expect(await database.getFirstAsync("SELECT * FROM activity_definitions WHERE id = ?", [definition.id])).toEqual(before);
+    expect(await database.getFirstAsync("SELECT COUNT(*) AS n FROM movements")).toEqual({ n: 1 });
     expect((await definitions.findById(definition.id))?.executionParameters?.cadenceBeepIntervalSeconds).toBe(4);
   });
 
@@ -519,12 +527,12 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
   it("P3-05/equal-variable, P3-06/commit-hidden, P3-08/restoration-N1 — l'état validé est exactement relu", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const equal = canonical({
-      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: numberTarget(30), pauseSeconds: 10, loadKg: 0 })) },
+      series: { kind: "VARIABLE", rows: [1, 2, 3].map(() => ({ target: numberTarget(30), pauseSeconds: 10, loadKg: 0 })), workPhases: [] },
     });
     expect((await repository.findById((await save(repository, input(equal))).id))?.executionParameters?.series).toEqual(equal.series);
 
     const shrunk = canonical({
-      series: { kind: "VARIABLE", rows: [{ target: numberTarget(10), pauseSeconds: 1, loadKg: 0 }, { target: numberTarget(20), pauseSeconds: 2, loadKg: 0 }] },
+      series: { kind: "VARIABLE", rows: [{ target: numberTarget(10), pauseSeconds: 1, loadKg: 0 }, { target: numberTarget(20), pauseSeconds: 2, loadKg: 0 }], workPhases: [] },
     });
     const reread = await repository.findById((await save(repository, input(shrunk))).id);
     expect(reread?.executionParameters?.series).toEqual(shrunk.series);
@@ -554,11 +562,16 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
    * donnée explicite (la conversion des anciennes lignes est celle de
    * `migration010`, testée dans `migrateDatabase`/`migration010`).
    */
-  it("P3-17/corrupt-version (PRE-4 AD-3) — sans JSON, v1 ou version inconnue : erreur de donnée explicite, jamais un repli scalaire", async () => {
+  it("P3-17/corrupt-version (PRE-4 AD-3, PRE-7 A1.2) — JSON corrompu, v1, v2, v3 ou version inconnue : erreur de donnée explicite, jamais un repli", async () => {
+    // PRE-7 (A1.2, D-440) : la colonne est NOT NULL et seule la forme Catalogue v4 est lue.
     await database.runAsync(
-      `INSERT INTO activity_definitions (id, name, description, execution_mode, duration_seconds, repetition_count,
-        series_count, pause_seconds, side_mode, created_at, updated_at, category_id, side_recovery_seconds)
-       VALUES ('legacy', 'Ancien', NULL, 'REPETITIONS', NULL, 12, 3, 45, 'LEFT_RIGHT', 'now', 'now', 'cardio', 9)`,
+      `INSERT INTO movements (id, name, normalized_name, description, category_id, next_phase_id, created_at, updated_at)
+       VALUES ('mov-legacy', 'Ancien', 'ancien', NULL, 'cardio', 1, 'now', 'now')`,
+    );
+    await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mov-legacy', 'cuisses')");
+    await database.runAsync(
+      `INSERT INTO activity_definitions (id, movement_id, execution_parameters, created_at, updated_at)
+       VALUES ('legacy', 'mov-legacy', 'not json', 'now', 'now')`,
     );
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
@@ -573,7 +586,8 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       countdownSeconds: 0,
       endSeconds: 0,
     });
-    for (const corrupt of [v1, '{"version":7}']) {
+    const v3 = serializeExecutionParameters(canonical());
+    for (const corrupt of [v1, serializeV2(canonical()), v3, '{"version":7}']) {
       await database.runAsync("UPDATE activity_definitions SET execution_parameters = ? WHERE id = 'legacy'", [corrupt]);
       await expect(repository.findById("legacy")).rejects.toThrow(ExecutionParametersDataError);
       await expect(repository.listAll()).rejects.toThrow(ExecutionParametersDataError);
@@ -628,12 +642,12 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
     await expect(save(repository, broken)).rejects.toThrow();
     const counts = async () =>
       database.getFirstAsync<Record<string, number>>(
-        "SELECT (SELECT COUNT(*) FROM activity_definitions) AS d, (SELECT COUNT(*) FROM media_assets) AS a, (SELECT COUNT(*) FROM activity_media) AS l",
+        "SELECT (SELECT COUNT(*) FROM activity_definitions) AS d, (SELECT COUNT(*) FROM media_assets) AS a, (SELECT COUNT(*) FROM movement_media) AS l, (SELECT COUNT(*) FROM movements) AS m",
       );
-    expect(await counts()).toEqual({ d: 0, a: 0, l: 0 });
+    expect(await counts()).toEqual({ d: 0, a: 0, l: 0, m: 0 });
     const retry = input(canonical(), { media: [{ assetId: "p1", asset: photo("p1") }, { assetId: "v1", asset: video("v1") }] });
     await save(repository, retry);
-    expect(await counts()).toEqual({ d: 1, a: 2, l: 2 });
+    expect(await counts()).toEqual({ d: 1, a: 2, l: 2, m: 1 });
     expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
   });
 
@@ -645,7 +659,7 @@ describe("SqliteActivityDefinitionRepository — PRE-3 (NodeSqliteDatabase REAL)
       const repository = new SqliteActivityDefinitionRepository(fileDatabase, ids("def"));
       const extremes = [
         canonical({ mode: "REPETITIONS", series: { kind: "UNIFORM", count: 99, target: numberTarget(100), pauseSeconds: 300, loadKg: 0, workPhases: [] } }),
-        canonical({ mode: "REPETITIONS", series: { kind: "VARIABLE", rows: [{ target: toTarget("FAILURE"), pauseSeconds: 0, loadKg: 0 }, { target: toTarget("FAILURE"), pauseSeconds: 300, loadKg: 0 }] } }),
+        canonical({ mode: "REPETITIONS", series: { kind: "VARIABLE", rows: [{ target: toTarget("FAILURE"), pauseSeconds: 0, loadKg: 0 }, { target: toTarget("FAILURE"), pauseSeconds: 300, loadKg: 0 }], workPhases: [] } }),
         canonical({ mode: "DURATION", series: { kind: "UNIFORM", count: 1, target: numberTarget(5999), pauseSeconds: 0, loadKg: 0, workPhases: [] }, sideOrder: "BY_SIDE" }),
       ];
       const media = [
@@ -712,9 +726,11 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     database.close();
   });
 
+  // PRE-7 (R-3, C01) : nom de Mouvement unique par définition indépendante.
+  let names = 0;
   function definitionInput(parameters: ExecutionParameters, overrides: Partial<CreateActivityDefinitionInput> = {}): CreateActivityDefinitionInput {
     return {
-      name: "Gainage",
+      name: `Gainage ${++names}`,
       description: "Dos plat",
       category: { kind: "EXISTING", categoryId: "cardio" },
       bodyZoneIds: ["dos", "cuisses"],
@@ -723,17 +739,9 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     };
   }
 
-  async function scalarRow(id: string) {
-    return database.getFirstAsync<Record<string, unknown>>(
-      `SELECT execution_mode, duration_seconds, repetition_count, series_count, pause_seconds, execution_parameters
-       FROM activity_definitions WHERE id = ?`,
-      [id],
-    );
-  }
-
   async function dump() {
     const result: Record<string, unknown[]> = {};
-    for (const table of ["activity_definitions", "activity_definition_body_zones", "activity_media", "media_assets", "categories"]) {
+    for (const table of ["activity_definitions", "movements", "movement_phases", "movement_body_zones", "movement_media", "media_assets", "categories"]) {
       result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY rowid`);
     }
     return result;
@@ -754,26 +762,31 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     };
   }
 
-  it("PRE4-1.1/AC16 — projection unique : première Cible FAILURE → cible scalaire NULL (jamais la suivante) ; Répétitions 12 × 3 projetées ; paramètres relus typés", async () => {
+  it("PRE4-1.1/AC16, PRE-7 A1.2 — aucune colonne scalaire : forme Catalogue seule (v5, R-2) ; Cibles FAILURE et Répétitions 12 × 3 relues typées", async () => {
     const repository = new SqliteActivityDefinitionRepository(database, ids("def"));
     const mixed = variableParameters({ mode: "DURATION", rows: [["FAILURE", 10], [30, 10]] });
     const created = await repository.create(definitionInput(mixed));
-    const row = await scalarRow(created.id);
-    expect(row).toMatchObject({
-      execution_mode: "DURATION",
-      duration_seconds: null,
-      repetition_count: null,
-      series_count: 2,
-      pause_seconds: 10,
-    });
-    expect(JSON.parse(row!.execution_parameters as string).version).toBe(3); // PRE-5 (AD-18)
+    // PRE-7 (A1.2, migration 012) : la définition ne porte plus de projection scalaire.
+    const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)")).map((c) => c.name);
+    expect(columns).toEqual(["id", "movement_id", "execution_parameters", "created_at", "updated_at"]);
+    const json = async (id: string) =>
+      JSON.parse(
+        (await database.getFirstAsync<{ execution_parameters: string }>(
+          "SELECT execution_parameters FROM activity_definitions WHERE id = ?",
+          [id],
+        ))!.execution_parameters,
+      );
+    // PRE-7 (R-2, D-446) : forme Catalogue v5.
+    expect((await json(created.id)).version).toBe(5);
+    expect((await json(created.id)).series.rows.map((row: { target: unknown }) => row.target)).toEqual([
+      { kind: "FAILURE" },
+      { kind: "NUMBER", value: 30 },
+    ]);
 
     const reps = await repository.create(definitionInput(uniformParameters({ mode: "REPETITIONS", count: 3, target: 12 })));
-    expect(await scalarRow(reps.id)).toMatchObject({
-      execution_mode: "REPETITIONS",
-      duration_seconds: null,
-      repetition_count: 12,
-      series_count: 3,
+    expect((await json(reps.id)).series).toMatchObject({ kind: "UNIFORM", count: 3, target: { kind: "NUMBER", value: 12 }, phaseDurations: [] });
+    expect(await repository.findById(reps.id)).toMatchObject({
+      executionParameters: uniformParameters({ mode: "REPETITIONS", count: 3, target: 12 }),
     });
 
     // Paramètres analysés (type du domaine), jamais la chaîne JSON ni les scalaires.
@@ -890,9 +903,10 @@ describe("SqliteActivityDefinitionRepository — PRE-4 Q53 (8)", () => {
     const repository = new SqliteActivityDefinitionRepository(database, makeUuidFactory("def"), makeClock("2026-01-01T00:00:00.000Z"));
     const first = await repository.create(input("cardio"));
     await database.runAsync("UPDATE categories SET is_active = 0 WHERE id IN ('cardio', 'mobilite')");
-    const second = await repository.create(input("cardio"));
+    // PRE-7 (R-3, C01) : noms distincts (une définition indépendante crée son Mouvement).
+    const second = await repository.create({ ...input("cardio"), name: "Squat sauté" });
     expect(second.categoryId).toBe("cardio");
-    await expect(repository.create(input("mobilite"))).rejects.toThrow(/retired/i);
+    await expect(repository.create({ ...input("mobilite"), name: "Squat lent mobile" })).rejects.toThrow(/retired/i);
     // Modification : seule la Catégorie déjà affectée à cette Définition est conservable.
     const other = await repository.create({ ...input("renforcement"), name: "Fentes" });
     await expect(repository.update(other.id, { ...input("cardio"), name: "Fentes" })).rejects.toThrow(/retired/i);

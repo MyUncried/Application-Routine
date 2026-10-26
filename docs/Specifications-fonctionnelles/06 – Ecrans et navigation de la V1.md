@@ -137,7 +137,7 @@ Les contrats CE-CIR-01 (choix de nature), CE-CIR-02 (confirmation de perte) et C
 
 ### États complémentaires MFN — mise à jour Figma du 23/10/2026
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 D-445 : reprise initialement en lecture seule, crayon de correction partagée disponible au Catalogue et en séance ; paramètres locaux et Niveau actifs. Nom modifié : dialogue toujours. Nom inchangé : confirmation pour contenu modifié avec autre exercice ou historique. Variante explicite : création directe. Les captures datées ne modifient pas ces conditions.
 
@@ -632,13 +632,15 @@ Références courantes du 12/10, complétées le 13/10 :32 captures du parcours 
 
 #### Placement et contrôles
 
-Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). La ligne Durée de l’exercice est toujours affichée, avec « — », « Non calculable » ou la valeur (D-433, qui remplace le cas « sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice directement visibles » de RM-246).
+Formulaire : conserver les shells et l’ordre visible dans les captures. Toute la zone de phrase ouvre la feuille. Feuille : en-tête fixe ✕ / Paramètres d’exécution / ✓ ; corps défilant en quatre cadres (D-413) : Exécution (Mode, Condition d’arrêt) → Séries (Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] avec chevron intérieur à Avec et tableau éventuel, Nombre de séries, Type de série avec chevron intérieur à Variables, Durée ou Répétitions et Pause ou tableau de séries variables, Charge) → Côtés (Changement de côté, puis Enchainement et Pause entre les côtés lorsque déployés) → Cadence et durée (Cadence, Durée de l’exercice avec son chevron, puis Compte à rebours et Fin d’exercice lorsque déployés et applicables). La ligne Durée de l’exercice est toujours affichée, avec « — », « Non calculable » ou la valeur (D-433, qui remplace le cas « sans ligne Durée de l’exercice, Compte à rebours et Fin d’exercice directement visibles » de RM-246).
 
-Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
+**Décision de Hermann du 26/10/2026 (recette JA, R2) :** nom en saisie : le premier appui dans le corps défilant ferme seulement le clavier, sans ouvrir la Feuille ni la Description ; la rangée Catégorie / Zones / Niveau garde son comportement.
+
+Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Charge lorsque la charge est active (RM-238) [remplacé par D-447 du 24/10/2026 : colonne Charge toujours présente, tiret gris non éditable dans chaque cellule en Sans] et retrait ; une seule cellule active ; fond blanc sans contour, lignes de 36 px, sans lignes de boutons +/− (D-413). Mode, Condition d’arrêt, Type de série, Charge, Changement de côté et Cadence sont des contrôles segmentés ; les popovers du 12/10 ne sont plus la présentation de ces lignes (D-413). Les roulettes Durée et Durée de l’exercice restent des états intégrés, avec voile et fenêtre de saisie ; la charge se saisit directement au clavier, le tableau restant visible au-dessus (RM-239). [DSF courant et mesures](../DSF-CIRCUITS-CONTROLES-2026-10-12.md), à lire avec sa mise à jour du 18/10/2026. Les règles et bornes restent celles de v13 et de [Composition d'une séance — Circuits de tours et de séries](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#composition-dune-séance--circuits-de-tours-et-de-séries). Sous nombre hérité, nombre et total affichable sont en lecture seule ; aucun écran dédié identifié ne fixe encore l’emplacement de la mention discrète.
 
 #### Mouvements et niveaux — captures du 25/10/2026
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 | Écran courant | Nœud Figma | Contrat / statut |
 |---|---|---|
@@ -837,11 +839,11 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ### Présentation des phases d’exercice
 
-La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+La ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). [D-446 du 26/10/2026 : phases disponibles en séries identiques comme variables, avec une seule séquence de durées commune] Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
 
-Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’exercice ; deux d’entre elles illustrent des phases. Le report des trois écrans dédiés reste à effectuer ; aucune capture n’est fabriquée ou retouchée. Le cadran et la carte de composition attendent leur précision de présentation.
+Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement » ; captures conservées comme référence historique] ; deux d’entre elles illustrent des phases. Le report des trois écrans dédiés reste à effectuer ; aucune capture n’est fabriquée ou retouchée. Le cadran et la carte de composition attendent leur précision de présentation.
 
 #### Création activité — Paramètres (modale) — Phases verrouillées (séries variables)
 
@@ -849,7 +851,7 @@ Les frames relevées le 18/10/2026 ci-dessous montrent la ligne Phases de l’ex
 
 
 
-Séries variables, trois séries à l’échec : Phases de l’exercice non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ».
+Séries variables, trois séries à l’échec : Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »] non modifiable ; Condition d’arrêt À l’échec déterminée automatiquement (RM-249) ; aucune ligne Durée de l’exercice (D-397). Écart Figma depuis D-433 (19/10/2026) : la ligne Durée de l’exercice est affichée avec « Non calculable ». [État remplacé par D-446 du 26/10/2026 : en séries variables, Phases de l’exercice [libellé « Phases du mouvement » depuis D-448 du 26/10/2026] reste modifiable ; capture conservée comme référence historique]
 
 #### Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases
 
@@ -857,11 +859,11 @@ Séries variables, trois séries à l’échec : Phases de l’exercice non modi
 
 ![Création exercice — Paramètres — Proposition 3 — Tableau de 3 phases](images/parametres-2026-10-18/9207-18817.png)
 
-Tableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.
+Tableau de trois phases sous l’option Avec déployée (chevron vers le haut), sans boutons +/− ; Variables non modifiable [remplacé par D-446 du 26/10/2026 : Variables reste modifiable avec phases] ; Durée de l’exercice en texte simple. Écarts Figma : nom de frame hors convention (« Proposition 3 ») et barre bleue résiduelle à gauche de la ligne 1.
 
 ### Feuille Paramètres d’exécution — états intégrés
 
-Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice, décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, « À la cible » est affiché sans accent (« A la cible ») : le libellé décidé est « À la cible » (D-411).
+Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et export du 18/10/2026 dans Prototype MVP (spécification v3.0, D-403 à D-413) ; ils remplacent les captures du 12/10 et du 13/10, qui restent dans le dépôt comme références historiques. Les frames `8328:38301`, `8328:38953`, `8328:39181` et `8328:39390` n’existent plus. Toutes les frames montrent aussi la ligne Phases de l’exercice [remplacé par D-448 du 26/10/2026 : libellé « Phases du mouvement »], décrite à la section « Présentation des phases d’exercice » ci-dessus (D-370 à D-375). Les valeurs affichées sont illustratives. Sur toutes les frames, l’option est affichée « A la cible » : le libellé décidé est « À l’objectif » (D-447, qui remplace « À la cible » de D-411).
 
 ##### Création activité — Paramètres (modale) — Champs vides
 
@@ -871,7 +873,7 @@ Ces 20 frames sont des états de CE-UI-10, pas 20 pages applicatives. Relevé et
 
 
 
-Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À la cible par défaut (D-416).
+Valider désactivé ; Durée de l’exercice affichée avec « — » (D-384, D-396). Écart Figma : aucune Condition d’arrêt n’y est sélectionnée, alors qu’elle vaut À l’objectif par défaut (D-416 ; libellé D-447).
 
 ##### Création activité — Paramètres (modale) — Mode d’exécution (sélection segmentée)
 
@@ -973,7 +975,7 @@ Répétitions sans cadence : aucune ligne Durée de l’exercice (D-397) ; Compt
 
 
 
-Chevron intérieur à Variables vers le bas, tableau replié sans perte (RM-247) ; Condition d’arrêt À la cible déterminée automatiquement.
+Chevron intérieur à Variables vers le bas, tableau replié sans perte (RM-247) ; Condition d’arrêt À l’objectif déterminée automatiquement (libellé D-447).
 
 ##### Création activité — Paramètres (modale) — Séries variables, cas mixte
 
@@ -981,7 +983,7 @@ Chevron intérieur à Variables vers le bas, tableau replié sans perte (RM-247)
 
 ![Création activité — Paramètres (modale) — Séries variables, cas mixte](images/parametres-2026-10-18/8470-13303.png)
 
-Résultat unique de la Condition d’arrêt pour un mélange de cibles (RM-249) ; total partiel ≥ 2 min 15 s. Écart Figma : le texte affiché est « A la cible età l’échec » ; le libellé décidé est « À la cible et à l’échec ».
+Résultat unique de la Condition d’arrêt pour un mélange de cibles (RM-249) ; total partiel ≥ 2 min 15 s. Écart Figma : le texte affiché est « A la cible età l’échec » ; le libellé décidé est « À l’objectif et à l’échec » (D-447, qui remplace « À la cible et à l’échec »).
 
 ##### Création activité — Paramètres (modale) — Durée d’une phase (roulette)
 
@@ -2407,7 +2409,7 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 
 Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : composant distinct de 107 pt avec actions internes, non soumis au gabarit simple. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 Les dialogues de sauvegarde de mouvement sont centrés ; la feuille basse des paramètres d’exécution reste distincte. Le panneau de rapprochement est superposé sous le champ nom, clavier visible. Les cartes de résultat portent les deux actions ; Entrée ne sélectionne aucun résultat.
 

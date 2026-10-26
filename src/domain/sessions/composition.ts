@@ -211,7 +211,11 @@ export function removeActivity(
   return activities.filter((activity) => activity.id !== activityId);
 }
 
-/** Mot du suffixe de copie (D-124) : donnée du nom de l'occurrence, persistée avec lui. */
+/**
+ * Mot du suffixe de copie (D-124). PRE-7 (R-3, Q3) : pour une occurrence, le suffixe est dérivé
+ * de son numéro de copie (`occurrenceDisplayName`), jamais stocké dans un nom ; `nextCopyName`
+ * reste le nommage des Séances dupliquées.
+ */
 const COPY_SUFFIX_WORD = "copie";
 
 /**
@@ -228,15 +232,51 @@ const COPY_SUFFIX_WORD = "copie";
  */
 export function nextCopyName(name: string, takenNames: Iterable<string>): string {
   const taken = new Set(Array.from(takenNames, normalizeName));
-  const base = Array.from(normalizeName(name));
   for (let rank = 1; ; rank += 1) {
-    const suffix = rank === 1 ? ` (${COPY_SUFFIX_WORD})` : ` (${COPY_SUFFIX_WORD} ${rank})`;
-    const head = base.slice(0, Math.max(NAME_MAX_LENGTH - Array.from(suffix).length, 0)).join("").trimEnd();
-    const candidate = `${head}${suffix}`;
+    const candidate = copyNameOfRank(name, rank);
     if (!taken.has(normalizeName(candidate))) {
       return candidate;
     }
   }
+}
+
+/** Nom de copie de rang `rank` (1 = `{nom} (copie)`), base tronquée pour tenir dans `NAME_MAX_LENGTH`. */
+function copyNameOfRank(name: string, rank: number): string {
+  const base = Array.from(normalizeName(name));
+  const suffix = rank === 1 ? ` (${COPY_SUFFIX_WORD})` : ` (${COPY_SUFFIX_WORD} ${rank})`;
+  const head = base.slice(0, Math.max(NAME_MAX_LENGTH - Array.from(suffix).length, 0)).join("").trimEnd();
+  return `${head}${suffix}`;
+}
+
+/**
+ * PRE-7 (R-3, Q3 de Hermann du 26/10/2026) : nom affiché d'une occurrence — nom du Mouvement, puis
+ * « (copie) » pour le numéro 1 et « (copie n) » au-delà ; le suffixe n'est jamais persisté dans un
+ * nom ni éditable, et ne renomme pas le Mouvement. `null`/absent : original, nom seul.
+ */
+export function occurrenceDisplayName(name: string, copyNumber: number | null | undefined): string {
+  if (copyNumber === null || copyNumber === undefined) {
+    return name;
+  }
+  return copyNumber === 1 ? `${name} (${COPY_SUFFIX_WORD})` : `${name} (${COPY_SUFFIX_WORD} ${copyNumber})`;
+}
+
+/**
+ * PRE-7 (R-3, Q3) : plus petit numéro de copie libre (≥ 1) parmi les occurrences de la Composition
+ * qui partagent le Mouvement `movementId` — même règle « sans collision » que D-124 et RM-021,
+ * appliquée au seul Mouvement (son nom est unique, C01).
+ */
+export function nextCopyNumber(activities: readonly SessionDraftExercise[], movementId: string): number {
+  const taken = new Set(
+    activities
+      .filter((activity) => activity.sourceMovementId === movementId)
+      .map((activity) => activity.copyNumber ?? null)
+      .filter((copyNumber): copyNumber is number => copyNumber !== null),
+  );
+  let rank = 1;
+  while (taken.has(rank)) {
+    rank += 1;
+  }
+  return rank;
 }
 
 /**
@@ -247,13 +287,16 @@ export function nextCopyName(name: string, takenNames: Iterable<string>): string
  * V2-BILAT-01) comprises** — et s'insère
  * IMMÉDIATEMENT APRÈS elle dans la MÊME zone structurelle.
  *
- * **PRE-6 (story 2.3) — suffixe de copie rétabli.** T02-S02 avait retiré le
- * suffixe en lisant D-138 comme remplaçant la règle de nommage de D-124. Le
- * contrat d'écran actif (ch13 « Consultation et modification d'un
- * Exercice »), RM-021 et la spec de la story 2.3 posent `{nom} (copie)`, puis
- * `{nom} (copie 2)`…, sans collision : la copie reçoit `nextCopyName` sur les
- * noms de la Composition. D-138 (bloc indivisible avec la Récupération) reste
- * respectée : hors nom et identifiant, la copie est identique à sa source.
+ * **PRE-6 (story 2.3) — suffixe de copie rétabli.** Le contrat d'écran actif (ch13
+ * « Consultation et modification d'un Exercice »), RM-021 et la spec de la story 2.3 posent
+ * `{nom} (copie)`, puis `{nom} (copie 2)`…, sans collision. D-138 (bloc indivisible avec la
+ * Récupération) reste respectée : hors identifiant et numéro de copie, la copie est identique à
+ * sa source.
+ *
+ * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026, Q3) : la copie référence le MÊME
+ * Mouvement que sa source — créé localement ou non — avec des paramètres d'exécution
+ * indépendants ; son contenu est celui du Mouvement partagé, sans aucun mécanisme propre à la
+ * copie. Le suffixe est son numéro de copie (`nextCopyNumber`), jamais un nom.
  *
  * La source reste inchangée. Un identifiant inconnu retourne la collection
  * inchangée.
@@ -272,19 +315,15 @@ export function duplicateActivity(
   const copy: SessionDraftExercise = {
     ...source,
     id: newId,
-    name: nextCopyName(
-      source.name,
-      activities.map((activity) => activity.name),
-    ),
-    // Les Zones corporelles sont recopiées comme une NOUVELLE collection :
-    // la copie ne doit jamais partager la référence de tableau de sa source.
+    // Vue du contenu du Mouvement : nouvelles collections, jamais partagées avec la source.
     bodyZoneIds: [...source.bodyZoneIds],
-    // PRE-3 (P3-18) : duplication COMPLÈTE et indépendante — paramètres
-    // canoniques clonés en profondeur, Catégorie, médias dans le même ordre
-    // (mêmes fichiers physiques ; de nouveaux liens seront créés pour la
-    // copie à l'enregistrement). La Récupération existante est conservée.
+    // PRE-3 (P3-18) : paramètres clonés en profondeur, indépendants ; la Récupération existante
+    // est conservée.
     executionParameters: cloneExecutionParameters(source.executionParameters),
     ...(source.media ? { media: source.media.map((item) => ({ assetId: item.assetId, asset: { ...item.asset } })) } : {}),
+    ...(source.sourceMovementId !== undefined
+      ? { copyNumber: nextCopyNumber(activities, source.sourceMovementId) }
+      : {}),
   };
 
   const next = [...activities];

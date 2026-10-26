@@ -92,7 +92,7 @@ function toParameters(given: Required<Pick<OracleGiven, "mode" | "pauses">> & Or
   return {
     version: EXECUTION_PARAMETERS_VERSION,
     mode: legacyFailure ? "REPETITIONS" : (given.mode as "DURATION" | "REPETITIONS"),
-    series: count === 1 ? { kind: "UNIFORM", count: 1, ...rows[0]!, workPhases: [] } : { kind: "VARIABLE", rows },
+    series: count === 1 ? { kind: "UNIFORM", count: 1, ...rows[0]!, workPhases: [] } : { kind: "VARIABLE", rows, workPhases: [] },
     sideMode: given.side ?? "UNILATERAL",
     sideOrder: given.orderRequested ?? given.order ?? "BY_SIDE",
     sideRecoverySeconds: given.sidePause ?? 0,
@@ -192,6 +192,7 @@ function variableE(side: SideMode, order: SideOrder, sidePause = 15): ExecutionP
         { target: numberTarget(10), pauseSeconds: 45, loadKg: 0 },
         { target: numberTarget(8), pauseSeconds: 60, loadKg: 0 },
       ],
+      workPhases: [],
     },
     sideMode: side,
     sideOrder: order,
@@ -214,6 +215,7 @@ function caseA(overrides: Partial<ExecutionParametersInput> = {}): ExecutionPara
         { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
         { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
       ],
+      workPhases: [],
     },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
@@ -404,6 +406,7 @@ describe("P3-14/inverse-boundaries", () => {
             { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
             { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
           ],
+          workPhases: [],
         },
       }),
     ).toBe(false);
@@ -423,6 +426,7 @@ describe("P3-08/immediate-N1 — calcul du brouillon à N=1", () => {
           { target: numberTarget(45), pauseSeconds: 20, loadKg: 0 },
           { target: numberTarget(60), pauseSeconds: 30, loadKg: 0 },
         ],
+        workPhases: [],
       },
       sideMode: "RIGHT_LEFT",
       sideOrder: "BY_SERIES",
@@ -699,6 +703,22 @@ describe("PRE-4 story 2.1 — AC5 Cible à renseigner (FR-13-05, H10, Q30)", () 
     }
   });
 
+  it("PRE-7 (D-446, MFN-08 ; D-448, PH-5 remplace « incomplete » en Durée) — frère incomplet à Cible chiffrée : Durée, phases [6, 0], Cible 6 → total exact sans les phases (occurrence comprise)", () => {
+    const withPhases = uniformParameters({
+      mode: "DURATION",
+      count: 3,
+      target: 6,
+      pauseSeconds: 10,
+      workPhases: [
+        { id: 1, label: "a", durationSeconds: 6 },
+        { id: 2, label: "b", durationSeconds: 0 },
+      ],
+    });
+    const withoutPhases = uniformParameters({ mode: "DURATION", count: 3, target: 6, pauseSeconds: 10 });
+    expect(computeIntrinsicDuration(withPhases)).toMatchObject({ kind: "exact", seconds: computeIntrinsicDuration(withoutPhases).seconds });
+    expect(computeOccurrenceDuration(withPhases, 0)).toMatchObject({ kind: "exact", seconds: computeOccurrenceDuration(withoutPhases, 0).seconds });
+  });
+
   it("PRE4-2.1/AC5 — `incomplete` en bilatéral (BY_SIDE, BY_SERIES, avec PC) et avec Récupération : contributions connues par formule", () => {
     const pc = 15;
     const recovery = 40;
@@ -892,6 +912,7 @@ describe("PRE-4 story 2.1 — AC8 calculs tirés des seules règles (FR-13-06)",
 
   const definition = (executionParameters: ExecutionParameters): ActivityDefinition => ({
     id: "def-ac8",
+    movementId: "mov-1",
     name: "Gainage",
     description: null,
     executionParameters,
@@ -924,6 +945,7 @@ describe("PRE-4 story 2.1 — AC8 calculs tirés des seules règles (FR-13-06)",
       same(effectiveParameters(moveRow(draft, 2, 0)));
       same(activityDefinitionToDraftExercise(definition(original), "copy", 0).executionParameters);
       const snapshot = createExerciseSnapshot({
+        sourceMovementId: "mov-1",
         name: "Gainage",
         categoryId: null,
         bodyZoneIds: ["z"],

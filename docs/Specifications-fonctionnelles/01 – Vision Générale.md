@@ -216,7 +216,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 #### Phases d’un exercice
 
-Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Le motif de phases se répète au sein de chaque série, sans pause entre phases ; un passage complet est une répétition guidée. Cette capacité appartient au MVP en Durée ou Répétitions, à cible chiffrée ou à l’échec, avec séries identiques (PHC-20261026). Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
+Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Le motif de phases se répète au sein de chaque série, sans pause entre phases ; un passage complet est une répétition guidée. Cette capacité appartient au MVP en Durée ou Répétitions, à cible chiffrée ou à l’échec, avec séries identiques (PHC-20261026) [et variables depuis D-446 du 26/10/2026 : une seule séquence de phases et de durées commune à toutes les séries]. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
 
 #### 4. Concepts de planification
 
@@ -288,7 +288,7 @@ Une **phase d’exercice** est une action chronométrée et nommée au sein d’
 | **Exercice de référence** | Exercice persistant autonome du Catalogue des exercices dans le MVP T03. Il est directement exécutable à partir d’un instantané autonome et sert aussi de source à des copies indépendantes, incluant sa Pause éventuelle ; la Récupération après exercice appartient à l’occurrence de Séance, jamais à l’Exercice de référence (D-208). |
 | **Exercice de Séance** | Copie indépendante d’un Exercice, intégrée et ordonnée dans une Séance. Elle est persistée avec la Séance mais n’apparaît jamais comme doublon dans le Catalogue des exercices. |
 | **À l’échec** | Nature de cible d’une Série, disponible dans les modes Durée et Répétitions. Aucun nombre prescrit ; fin par Suivant. Relevé éventuel distinct de la prescription. |
-| **Condition d’arrêt** | Libellé visible de la ligne `À l’échec` / `À la cible` des paramètres d’un Exercice : choix commun en séries identiques, résultat dérivé et non modifiable en séries variables (« À la cible et à l’échec » en cas de mélange). Elle ne crée aucune nature de cible supplémentaire. Règles : RM-248, RM-249 (D-411). |
+| **Condition d’arrêt** | Libellé visible de la ligne `À l’échec` / `À l’objectif` des paramètres d’un Exercice : choix commun en séries identiques, résultat dérivé et non modifiable en séries variables (« À l’objectif et à l’échec » en cas de mélange). Elle ne crée aucune nature de cible supplémentaire. Règles : RM-248, RM-249 (D-411 ; libellés D-447, qui remplacent « À la cible »). |
 | **Contrôle pilote** | Parmi `Nombre de séries` et `Durée de l’exercice` (libellés visibles, D-413 et D-409 ; concepts : nombre de Séries et Durée totale), contrôle dont la dernière valeur confirmée détermine le calcul de l’autre. Il reçoit un contour `color/selection` renforcé. Le choix n’est pas persisté. |
 | **Contrôle calculé** | Contrôle dépendant recalculé depuis le contrôle pilote. Il conserve son apparence standard, reste tactile et peut devenir pilote après validation de sa roulette. |
 | **Média** | Photo ou vidéo déjà associée à un Exercice, consultable dans le MVP dans les présentations de carte applicables et pendant l’Exécution : galerie ordonnée, vidéo et plein écran . L’ajout/import dans l’éditeur n’est pas activé par D-203. La vignette de carte et la galerie d’Exécution sont deux présentations distinctes ; Photo retire Déployer selon D-238. |
@@ -422,7 +422,7 @@ Les libellés des champs ne créent pas d’entités persistantes supplémentair
 
 ## Vocabulaire courant — niveaux
 
-**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
+**D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
 Références : [v6](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), [relevé courant, contradictions et couverture](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md).
 

@@ -23,9 +23,9 @@ import {
 
 function variable(targets: SeriesTarget[], mode: "DURATION" | "REPETITIONS" = "DURATION"): ExecutionParametersInput {
   return {
-    version: 3,
+    version: 5,
     mode,
-    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10, loadKg: 0 })) },
+    series: { kind: "VARIABLE", rows: targets.map((target) => ({ target, pauseSeconds: 10, loadKg: 0 })), workPhases: [] },
     sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
@@ -89,6 +89,7 @@ describe("D-434 — toggleRowFailure", () => {
         { target: numberTarget(30), pauseSeconds: 10, loadKg: 0 },
         { target: failureTarget(), pauseSeconds: 10, loadKg: 0 },
       ],
+      workPhases: [],
     });
   });
 });

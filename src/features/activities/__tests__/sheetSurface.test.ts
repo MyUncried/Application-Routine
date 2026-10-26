@@ -61,6 +61,16 @@ describe("PRE4-3.3 — réducteur de surface (AD-15)", () => {
     expect(run(touch(TOTAL), touch(BEEP), touch(BEEP)).open).toEqual({ kind: "stepper", field: "beep", key: 2 });
   });
 
+  it("PRE7-B.3 (B5) — déroulant de l'Enchainement `selector(sideOrder)` : famille Sélecteur (T10, second toucher, clé, ✓ / ✕ absorbés)", () => {
+    const SIDE_ORDER: SheetSurface = { kind: "selector", selector: "sideOrder" };
+    expect(run(touch(SIDE_ORDER)).open).toEqual({ kind: "selector", selector: "sideOrder", key: 1 });
+    expect(run(touch(SIDE_ORDER), touch(SIDE_ORDER)).open).toEqual({ kind: "none" });
+    expect(run(touch(SIDE_ORDER), touch(BEEP)).open).toEqual({ kind: "none" });
+    expect(run(touch(BEEP), touch(SIDE_ORDER)).open).toEqual({ kind: "selector", selector: "sideOrder", key: 2 });
+    expect(run(touch(SIDE_ORDER), { type: "close", key: 1 }).open).toEqual({ kind: "none" });
+    expect(sheetCommandsAbsorbed(run(touch(SIDE_ORDER)))).toBe(true);
+  });
+
   it("PRE4-3.3/AC8 — T20 : champ ± ouvert, toucher une autre valeur ferme le premier et ouvre le second d'un seul geste", () => {
     const state = run(touch(PAUSE), touch(BEEP));
     expect(state.open).toEqual({ kind: "stepper", field: "beep", key: 2 });

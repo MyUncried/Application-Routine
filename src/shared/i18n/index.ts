@@ -40,7 +40,7 @@ const executionParameters = {
     seriesPlural: "séries",
     // PRE-5 story 2.4 (PR-01, FR-26, FR-27, FR-44) : ligne « Type de série » (Variables à
     // gauche avec son chevron, Identiques à droite) et ligne « Condition d’arrêt » (À l’échec
-    // à gauche, À la cible à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
+    // à gauche, À l’objectif à droite ; résultat dérivé mixte en variables, FR-20). Le Régime
     // de PRE-4 (champ, panneau et sous-titres) est retiré. Recette du 20/10 (RC-15) : plus de
     // ligne « Nombre de séries » ; le nombre est porté par l’option sélectionnée du Type de
     // série (« 3 séries identiques », « 3 séries variables », accord au singulier à N = 1), le
@@ -54,7 +54,9 @@ const executionParameters = {
     seriesCountVariableSingular: "{n} série variable",
     seriesTypes: { VARIABLE: "Variables", UNIFORM: "Identiques" },
     stopCondition: "Condition d’arrêt",
-    stopConditions: { FAILURE: "À l’échec", TARGET: "À la cible", MIXED: "À la cible et à l’échec" },
+    // D-447 (PRE-7 story B.2) : « À l’objectif » et « À l’objectif et à l’échec » remplacent
+    // « À la cible… » dans tous les états ; identifiants `TARGET` et `MIXED` inchangés.
+    stopConditions: { FAILURE: "À l’échec", TARGET: "À l’objectif", MIXED: "À l’objectif et à l’échec" },
     showTable: "Afficher le tableau des séries",
     hideTable: "Masquer le tableau des séries",
     // PRE-4 story 3.3 (AC8) : action accessible qui range un champ ± ouvert.
@@ -103,7 +105,8 @@ const executionParameters = {
     // du cadre Séries (Avec / Sans ; Avec sélectionné affiche « n phases », n ≥ 2, avec le stepper
     // existant et le chevron du tableau), tableau des phases (Libellé, Durée), libellé par défaut
     // « Phase n » (affiché pour un libellé vide, stocké au ✓) et message de retrait d’une phase.
-    workPhases: "Phases de l’exercice",
+    // PRE-7 (D-448, point 8) : libellé « Phases du mouvement » (remplace « Phases de l’exercice » de D-432).
+    workPhases: "Phases du mouvement",
     workPhaseChoices: { WITH: "Avec", WITHOUT: "Sans" },
     workPhaseCount: "{n} phases",
     // Une seule phase relue des données (le modèle l’admet) : accord au singulier.
@@ -137,7 +140,6 @@ const executionParameters = {
     // nom accessible des notations = `sideOrders`. Recette du 19/10 (RC-12) : notation D-431
     // complète rétablie (option Avec de 146), après le raccourcissement de RC-11.
     sideSequence: "Enchainement",
-    sideSequenceCancel: "Annuler",
     sideOrders: { BY_SIDE: "Un côté après l’autre", BY_SERIES: "Les deux côtés à chaque série" },
     sideOrderSubtitles: { BY_SIDE: "(D1 → D2) ➜ (G1 → G2)", BY_SERIES: "(D1 → G1) ➜ (D2 → G2)" },
     sideRecovery: "Pause entre les côtés",
@@ -223,6 +225,10 @@ const executionParameters = {
     // « Agrandir le média » par analogie du ch. 13 l. 1957.
     videoHint: "Lire la vidéo. Menu du média par appui long ou par les actions",
     photoHint: "Agrandir le média. Menu du média par appui long ou par les actions",
+    // PRE-7 story A2.2 (MFN-09, MFN/AC28) : contenu de geste verrouillé — consultation seule,
+    // sans menu (libellés « Lire la vidéo » / « Agrandir le média » du ch. 13 l. 3467).
+    videoHintLocked: "Lire la vidéo",
+    photoHintLocked: "Agrandir le média",
     closeConsultation: "Fermer",
     // Story 4.5 (FR-21-58, AC6) : erreur locale de consultation, lien du Média conservé.
     unavailable: "Média indisponible.",

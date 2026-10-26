@@ -16,6 +16,16 @@
  * (`serializeExecutionParameters`, phases et charge comprises) ; les
  * enveloppes 2 et 3 sont relues par `readExecutionParameters`. L'Instantané
  * ne porte pas de Description (AD-22).
+ *
+ * PRE-7 (A1.3, D-437, MFN-03, MFN-11 ; précision de Hermann du 24/10/2026) :
+ * l'Instantané porte la FILIATION de l'occurrence (`sourceMovementId`),
+ * copiée depuis l'occurrence, jamais relue dans le Catalogue ni utilisée pour
+ * charger un contenu ; aucun champ de rang ni de total de niveaux. Le format
+ * de l'enveloppe reste la version 3 (aucun Instantané n'est stocké en base,
+ * H11) : la clé est ajoutée, et une enveloppe relue sans filiation (antérieure
+ * à MFN) donne `null`. Un nouvel Instantané exige une filiation non vide et
+ * refuse les paramètres d'un Exercice frère incomplet (ch11 « Exécuter :
+ * refuser les exercices incomplets ») — aucun moteur d'exécution ni historique dans PRE-7.
  */
 
 import type { MediaAsset } from "@/domain/media/MediaAsset";
@@ -41,6 +51,12 @@ export type ExerciseSnapshotMedia = {
 
 export type ExerciseSnapshot = {
   readonly snapshotVersion: ExerciseSnapshotVersion;
+  /**
+   * PRE-7 (A1.3, MFN-03) : filiation copiée de l'occurrence, non nulle pour
+   * tout Instantané créé ; `null` seulement pour une enveloppe relue sans
+   * filiation (antérieure au modèle MFN).
+   */
+  readonly sourceMovementId: string | null;
   readonly name: string;
   readonly categoryId: string | null;
   readonly bodyZoneIds: readonly string[];
@@ -53,6 +69,8 @@ export type ExerciseSnapshot = {
 };
 
 export type ExerciseSnapshotSource = {
+  /** PRE-7 (A1.3, MFN-03) : filiation de l'occurrence (`Activity.sourceMovementId`), non vide. */
+  readonly sourceMovementId: string;
   readonly name: string;
   readonly categoryId: string | null;
   readonly bodyZoneIds: readonly string[];
@@ -72,10 +90,32 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-/** Copie profonde gelée de la source — les médias gardent leur ordre et le même fichier physique (même `assetId`/URI). */
+/**
+ * PRE-7 (A1.3, MFN-08) : état d'un Exercice frère INCOMPLET (séries identiques
+ * à Cible à renseigner, ou durée de phase manquante < 1 s) — jamais
+ * exécutable. Une Cible `UNSET` dans une ligne de séries variables reste
+ * admise comme avant (PRE-4, story 2.1 AC8).
+ */
+function isIncompleteSibling(parameters: ExecutionParameters): boolean {
+  const { series } = parameters;
+  // PRE-7 (D-446) : une durée de phase manquante rend incomplet quel que soit le régime.
+  return series.workPhases.some((phase) => phase.durationSeconds < 1) || (series.kind === "UNIFORM" && series.target.kind === "UNSET");
+}
+
+/**
+ * Copie profonde gelée de la source — les médias gardent leur ordre et le même fichier physique (même `assetId`/URI).
+ * Entrée invalide (lève) : filiation vide, ou paramètres d'un Exercice frère incomplet (PRE-7, A1.3).
+ */
 export function createExerciseSnapshot(source: ExerciseSnapshotSource): ExerciseSnapshot {
+  if (typeof source.sourceMovementId !== "string" || source.sourceMovementId.trim().length === 0) {
+    throw new ExerciseSnapshotDataError("An exercise snapshot requires a non-empty source movement id (MFN-03).");
+  }
+  if (isIncompleteSibling(source.executionParameters)) {
+    throw new ExerciseSnapshotDataError("An incomplete exercise cannot be snapshotted for execution (MFN-08).");
+  }
   return deepFreeze({
     snapshotVersion: EXERCISE_SNAPSHOT_VERSION,
+    sourceMovementId: source.sourceMovementId.trim(),
     name: source.name,
     categoryId: source.categoryId,
     bodyZoneIds: [...source.bodyZoneIds],
@@ -94,6 +134,7 @@ export function createExerciseSnapshot(source: ExerciseSnapshotSource): Exercise
 export function serializeExerciseSnapshot(snapshot: ExerciseSnapshot): string {
   return JSON.stringify({
     snapshotVersion: EXERCISE_SNAPSHOT_VERSION,
+    sourceMovementId: snapshot.sourceMovementId,
     name: snapshot.name,
     categoryId: snapshot.categoryId,
     bodyZoneIds: snapshot.bodyZoneIds,
@@ -144,6 +185,9 @@ export function parseExerciseSnapshot(json: string): ExerciseSnapshot {
   }
   return deepFreeze({
     snapshotVersion,
+    // PRE-7 (A1.3) : filiation relue (rognée, même règle qu'à la création) ; absente ou blanche → `null` (enveloppe antérieure à MFN).
+    sourceMovementId:
+      typeof raw.sourceMovementId === "string" && raw.sourceMovementId.trim().length > 0 ? raw.sourceMovementId.trim() : null,
     name: String(raw.name),
     categoryId: typeof raw.categoryId === "string" ? raw.categoryId : null,
     bodyZoneIds: Array.isArray(raw.bodyZoneIds) ? (raw.bodyZoneIds as string[]).map(String) : [],

@@ -50,8 +50,9 @@ export type ActivityDefinition = {
   readonly name: string;
   readonly description: string | null;
   /**
-   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES,
-   * relus par `readExecutionParameters` (v2 et v3, PRE-5 AD-18) — seule source du Mode, des Cibles, de N et des
+   * PRE-4 (story 1.1, AD-3) : paramètres d'exécution TYPÉS, OBLIGATOIRES —
+   * PRE-7 (A1.2) : représentation résolue reconstituée de la structure du
+   * Mouvement et de la forme Catalogue v4 (`resolveCatalogParameters`) — seule source du Mode, des Cibles, de N et des
    * Pauses. Aucun champ scalaire n'est exposé (inventaire des lecteurs de
    * scalaires de la spine).
    */
@@ -64,6 +65,34 @@ export type ActivityDefinition = {
    * sans Catégorie — toujours défini en pratique par le Repository.
    */
   readonly categoryId?: string;
+  /**
+   * PRE-7 (A1.1, A1.2, D-437, MFN-01, MFN-03) : relation ACTIVE vers le
+   * Mouvement (`Movement.ts`) dont l'Exercice porte les paramètres —
+   * OBLIGATOIRE, intègre (`activity_definitions.movement_id`, clé étrangère
+   * restrictive, migration 012). Nom, description, médias, Catégorie, Zones et
+   * libellés de phases exposés ci-dessus sont ceux du Mouvement, résolus à la
+   * lecture.
+   */
+  readonly movementId: string;
+  /**
+   * PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur monotone de phase du Mouvement
+   * (`Movement.nextPhaseId`), relu avec la définition pour que l'éditeur ouvre
+   * la Feuille avec ce compteur plutôt que max(`id`) + 1 : une identité retirée
+   * n'est jamais réallouée. Optionnel sur ce type LU (fixtures) ; toujours
+   * renseigné par le Repository.
+   */
+  readonly movementNextPhaseId?: number;
+  /**
+   * PRE-7 (A1.2, MFN-08, MFN/AC24) : présent et non vide pour un exercice
+   * frère INCOMPLET (durée de phase non renseignée, forme Catalogue v4 `null`) :
+   * identités des phases à compléter, dans l'ordre de la structure. Ses
+   * `executionParameters` portent alors 0 pour ces durées et une Cible `UNSET` ;
+   * il reste inexécutable. Absent pour un Exercice exécutable.
+   * PRE-7 (A1.3) : présent mais VIDE pour un frère sans phase dont la durée de
+   * série reste à renseigner (structure retirée par une correction partagée,
+   * complétion passée) — Cible `UNSET`, inexécutable.
+   */
+  readonly missingPhaseIds?: readonly number[];
   /** Zones corporelles — collection non vide, distincte (plan §4). */
   readonly bodyZoneIds: readonly string[];
   /** Direction de l'Exercice, égale à `executionParameters.sideMode` (relue des paramètres). */
@@ -354,6 +383,10 @@ export function activityDefinitionToDraftExercise(
     executionParameters: cloneExecutionParameters(definition.executionParameters),
     categoryId: definition.categoryId ?? null,
     media,
+    // PRE-7 (A1.2, D-437, MFN-03) : filiation non nulle de la copie vers le
+    // Mouvement de la définition — transportée par le brouillon, écrite telle
+    // quelle par le repository, jamais relue pour charger un contenu.
+    sourceMovementId: definition.movementId,
     id: newId,
     type: DEFAULT_ACTIVITY_TYPE,
     structuralPosition: DEFAULT_STRUCTURAL_POSITION,
@@ -363,4 +396,35 @@ export function activityDefinitionToDraftExercise(
     bodyZoneIds: [...definition.bodyZoneIds],
     sideMode: definition.executionParameters.sideMode,
   };
+}
+
+/**
+ * PRE-7 (A1.3, MFN-10, ch11 « Exercices regroupés par mouvement ») : Exercices
+ * du Catalogue partageant un même Mouvement (geste). Aucun alias : une ligne
+ * regroupée n'est ni exécutable ni insérable sans désigner une définition
+ * précise (A4.1).
+ */
+export type ActivityDefinitionGroup = {
+  readonly movementId: string;
+  readonly definitions: readonly ActivityDefinition[];
+};
+
+/**
+ * Regroupe des définitions par Mouvement, sans retri : les groupes suivent
+ * l'ordre de première apparition dans `definitions` (la liste du Catalogue,
+ * `updatedAt DESC`), et les définitions d'un groupe gardent cet ordre.
+ */
+export function groupDefinitionsByMovement(
+  definitions: readonly ActivityDefinition[],
+): readonly ActivityDefinitionGroup[] {
+  const groups = new Map<string, ActivityDefinition[]>();
+  for (const definition of definitions) {
+    const members = groups.get(definition.movementId);
+    if (members) {
+      members.push(definition);
+    } else {
+      groups.set(definition.movementId, [definition]);
+    }
+  }
+  return Array.from(groups, ([movementId, members]) => ({ movementId, definitions: members }));
 }

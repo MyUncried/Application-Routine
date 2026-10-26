@@ -138,3 +138,46 @@ describe("DisclosureControl — option decorative (T02-S02)", () => {
     expect(pressable.props.accessibilityState).toMatchObject({ disabled: false, expanded: true });
   });
 });
+
+/**
+ * PRE-7 story B.1 (D-447, B7 ; ch. 12, Disclosure `5544:4650`, Cadre Non) : variante sans cadre
+ * du chevron de Durée de l'exercice. Cadre interne 28 × 28 conservé, habillage retiré ; chevron,
+ * teintes, cible 48, accessibilité et interaction inchangés. Défaut (Cadre Oui) inchangé.
+ */
+describe("DisclosureControl — variante sans cadre (PRE-7 B.1, Cadre Non)", () => {
+  for (const expanded of [false, true]) {
+    it(`${expanded ? "Déployé" : "Replié"} : cadre interne 28 × 28 sans fond, contour ni rayon ; chevron et teinte inchangés`, () => {
+      render(<DisclosureControl expanded={expanded} framed={false} accessibilityLabel="Basculer" testID="control" />);
+
+      const flattened = StyleSheet.flatten(screen.getByTestId("control-frame").props.style);
+      expect(flattened.width).toBe(dimensions.catalogueDisclosure.frame);
+      expect(flattened.height).toBe(dimensions.catalogueDisclosure.frame);
+      expect(flattened.backgroundColor).toBeUndefined();
+      expect(flattened.borderWidth).toBeUndefined();
+      expect(flattened.borderColor).toBeUndefined();
+      expect(flattened.borderRadius).toBeUndefined();
+      expect(screen.getByTestId("control-chevron").props.style.tintColor).toBe(
+        expanded ? colors.disclosureBorderExpanded : colors.disclosureChevronCollapsed,
+      );
+    });
+  }
+
+  it("garde la cible 48, le rôle, l'état et l'appui", () => {
+    const onPress = jest.fn();
+    render(<DisclosureControl expanded={false} framed={false} accessibilityLabel="Basculer" onPress={onPress} />);
+
+    const pressable = screen.getByLabelText("Basculer");
+    expect(dimensions.catalogueDisclosure.frame + 2 * (pressable.props.hitSlop as number)).toBeGreaterThanOrEqual(minTouchTarget);
+    expect(pressable.props.accessibilityRole).toBe("button");
+    expect(pressable.props.accessibilityState).toMatchObject({ disabled: false, expanded: false });
+    fireEvent.press(pressable);
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it("sans `framed`, le cadre par défaut (Cadre Oui) est rendu comme avant", () => {
+    render(<DisclosureControl expanded={false} accessibilityLabel="Basculer" testID="control" />);
+    const flattened = StyleSheet.flatten(screen.getByTestId("control-frame").props.style);
+    expect(flattened.backgroundColor).toBe(colors.disclosureBackground);
+    expect(flattened.borderWidth).toBe(1);
+  });
+});

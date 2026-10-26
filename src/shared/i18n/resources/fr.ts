@@ -24,6 +24,11 @@ export const fr = {
   migrationNotice: {
     unreadableExercisesDroppedSingular: "1 exercice illisible n’a pas pu être repris.",
     unreadableExercisesDroppedPlural: "{n} exercices illisibles n’ont pas pu être repris.",
+    // PRE-7 (A1.2, D-440 assouplie, MFN-12) : avis unique de la migration 012 —
+    // Exercices et Séances réinitialisés, Profil, Catégories et Zones conservés.
+    // Texte sans source littérale, à valider par Hermann au jalon JA1.
+    exercisesAndSessionsReset:
+      "Vos exercices et vos séances ont été réinitialisés pour cette nouvelle version. Vos préférences, vos catégories et vos zones corporelles sont conservées.",
     dismissAction: "OK",
   },
   // V2-BILAT-01 : textes PARTAGÉS entre plusieurs écrans — `SideModeControl`
@@ -220,6 +225,9 @@ export const fr = {
         deployAccessibilityLabel: "Déployer l’exercice",
         playAccessibilityLabel: "Lecture",
         openAccessibilityLabel: "Modifier l’exercice",
+        // PRE-7 (R-6, D-445 C06, MFN-10 l.426, relevé du 25/10 §6 « Squat assisté - N1 ») : suffixe
+        // de niveau des cartes sans pastille, dérivé, jamais stocké dans le nom.
+        levelSuffix: "{name} - N{rank}",
       },
       editor: {
         // Complément d'alignement du 07/10 (ajout D) : titre d'écran de
@@ -230,6 +238,120 @@ export const fr = {
         name: "Nom de l’exercice",
         finishAction: "Terminer",
         saveError: "L’exercice n’a pas pu être enregistré. Réessayez.",
+        // PRE-7 story A2.2 (D-438, CE-T03-04 §3, relevé Figma MFN du 23/10, `9952:44374`) :
+        // crayon de la création sur geste repris. PRE-7 story R-4 (v7 §1) : « geste » devient
+        // « mouvement » dans tous les textes d’interface (identifiants inchangés, D-201) ; même
+        // crayon sur une occurrence de Séance (D-445 C04).
+        editMovement: "Modifier le mouvement",
+        // PRE-7 story R-9 (D-448 point 10) : indication VoiceOver du crayon actif en Séance (aucun
+        // texte documenté).
+        editMovementActiveHint: "Touchez pour quitter la modification du mouvement",
+        // PRE-7 story R-5 (D-445 C01, C02, v7 §6 R03-R04 ; maquettes `9882:19049`, `10175:20349`,
+        // `10140:20180`, `10187:20340`, carte `10199:22268`) : panneau sous le nom, pendant la saisie
+        // (remplace la feuille à trois choix d’A2.3). Textes relevés : message d’unicité, actions de
+        // la carte, invite grise. « Plus facile / Plus difficile » : libellés de C02, MFN-07 l.371 et du
+        // popover `10152:20369` (la maquette `10140:20180` porte « Moins difficile » ; option
+        // conservatrice, à valider par Hermann). `nameTakenEdit` (correction, variante, Séance : aucune
+        // carte à reprendre) et `backToResults` (nom accessible du chevron) : sans texte relevé (NON
+        // VÉRIFIABLE).
+        movementSuggestion: {
+          nameTaken: "Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom.",
+          nameTakenEdit: "Ce nom est déjà utilisé. Choisissez un autre nom.",
+          useMovement: "Utiliser ce mouvement",
+          createVariant: "Créer une variante",
+          easier: "Plus facile",
+          harder: "Plus difficile",
+          backToResults: "Retour aux résultats",
+          level: "Niveau {rank}",
+          completeNameHint: "(compléter le nom)",
+        },
+        // PRE-7 story A2.3 (MFN-04, MFN-06, D-439 ; écran `9959:19623`) : recherche spécialisée des
+        // gestes, locaux compris. Titre, champ et note de `9959:19623`. `open` : accès depuis le
+        // formulaire, sans frame (NON VÉRIFIABLE), libellé repris du champ de recherche.
+        // PRE-7 story R-5 (v7 §6 R03) : « Voir tous les mouvements » (texte de la v7) ; l’annonce
+        // d’absence de résultat n’a pas de texte relevé (NON VÉRIFIABLE).
+        movementSearch: {
+          title: "Choisir un mouvement",
+          placeholder: "Rechercher un mouvement",
+          localNote: "Les mouvements créés dans une séance apparaissent aussi.",
+          noResult: "Aucun mouvement ne correspond à cette recherche.",
+          showAll: "Voir tous les mouvements",
+          exerciseCountSingular: "{n} exercice",
+          exerciseCountPlural: "{n} exercices",
+          open: "Rechercher un mouvement",
+          closeAccessibilityLabel: "Retour",
+        },
+        // PRE-7 story A3.1 (D-439, MFN-05, MFN-07 ; CE-T03-04 §9 ; Figma `9925:41506` / `9925:41515`,
+        // popover `9577:19843`) : pastille de la rangée de classification et popover de niveau. Vide :
+        // « Niveau » (sans groupe ou singleton, rang masqué, jamais un faux « Niveau 1 ») ; renseignée :
+        // « Niveau X », rang calculé ; le total figure dans le choix (« Niveau r sur t · nom »). Le nom
+        // accessible vide suit `category.unsetAccessibilityLabel`. L’en-tête « 2 sur 3 » du popover
+        // Figma est un ancien exemple, non repris.
+        levelMenu: {
+          unsetLabel: "Niveau",
+          unsetAccessibilityLabel: "Niveau — non renseigné",
+          rank: "Niveau {rank}",
+          // PRE-7 story R-9 (D-448 point 9) : intitulé du sous-menu des niveaux au Catalogue en
+          // modification (choix par Exercice) ; « Changer de niveau » reste en Séance et en reprise.
+          navigateTo: "Naviguer vers",
+          changeLevel: "Changer de niveau",
+          addLevel: "Ajouter un niveau",
+          // PRE-7 (R-6, MFN-07 l.371, déploiement `10152:20369`) : sens du niveau ajouté.
+          addEasier: "Plus facile",
+          addHarder: "Plus difficile",
+          levelOption: "Niveau {rank} sur {total} · {name}",
+          // PRE-7 story A3.2 : accès à l’écran des niveaux (aucun libellé documenté ; verbe de ch03
+          // l.154 « glisser réordonne les niveaux »). R-9 (D-448 point 9) : troisième entrée de la
+          // racine du menu, retirée du sous-menu des niveaux.
+          reorderLevels: "Réordonner les niveaux",
+        },
+        // PRE-7 story A3.2 (D-439, MFN-05, MFN/AC07) : écran des niveaux d’un groupe, sans frame
+        // Figma (NON VÉRIFIABLE). Aucun texte documenté : titre « Niveaux » ; lignes calquées sur
+        // celles des phases (« Déplacer la phase {n} », « Monter la phase {n} ») ; nombre
+        // d’Exercices repris de `movementSearch` ; erreurs calquées sur `error` (Catalogue) et
+        // `saveError` des valeurs. Textes à valider par Hermann.
+        levelOrder: {
+          title: "Niveaux",
+          closeAccessibilityLabel: "Retour",
+          row: "Niveau {n}",
+          handle: "Déplacer le niveau {n}",
+          moveUp: "Monter le niveau {n}",
+          moveDown: "Descendre le niveau {n}",
+          loadError: "Impossible de charger les niveaux.",
+          retry: "Réessayer",
+          saveError: "La modification n’a pas pu être enregistrée. Réessayez.",
+        },
+        // PRE-7 story R-4 (D-445 C03, v7 §3) : dialogue unique de sauvegarde du mouvement. Textes
+        // du relevé utilisateur (`docs/figma-niveaux-2026-10-25/releve-utilisateur.md` §4) et des
+        // frames `9952:44349`, `10253:20414`, `10257:20651` ; nombres calculés. « Aucun autre
+        // exercice… » : portée zéro, jamais masquée (C03), texte composé sur le même modèle.
+        movementSave: {
+          choiceTitle: "Vous souhaitez :",
+          confirmTitle: "Vous avez modifié ce mouvement",
+          otherPlural: "{n} autres exercices utilisent ce mouvement.",
+          otherSingular: "{n} autre exercice utilise ce mouvement.",
+          noOther: "Aucun autre exercice n’utilise ce mouvement.",
+          appliesToAll: "La modification s’appliquera à tous.",
+          update: "Mettre à jour ce mouvement",
+          updateDetail: "Pour tous les exercices qui l’utilisent",
+          newMovement: "Créer un nouveau mouvement",
+          newMovementDetail: "Uniquement pour cet exercice",
+          cancel: "Annuler",
+          confirm: "Confirmer",
+        },
+        // PRE-7 story A2.2 (MFN-08 « Étape d’écran après choix de correction structurelle »,
+        // CE-T03-04 §11 et §14) : étape distincte, sans frame Figma (NON VÉRIFIABLE). Libellés
+        // tirés du vocabulaire des documents (« durées manquantes », complétion « passée »),
+        // soumis à Hermann ; « Terminer », « Annuler » existants ; un frère passé affiche le texte
+        // existant `executionParameters.card.incomplete` (« Paramètres à compléter. »).
+        siblingCompletion: {
+          title: "Durées manquantes",
+          skip: "Passer",
+          finish: "Terminer",
+          cancel: "Annuler",
+          unset: "—",
+          durationAccessibilityLabel: "Durée de {label}",
+        },
         media: {
           label: "Médias",
           expandAccessibilityLabel: "Déployer la section Médias",
@@ -450,6 +572,10 @@ export const fr = {
         stopPointReorderAccessibilityHint: "Appui long pour déplacer le point d’arrêt",
       },
       saveError: "La séance n’a pas pu être enregistrée. Réessayez.",
+      // PRE-7 story R-5 (D-445 C01 ; report R-3) : un nom de mouvement de la Séance pris en base entre
+      // la saisie et l’enregistrement (écriture concurrente) est signalé pour ce qu’il est, et non par
+      // l’erreur générique. Aucun texte relevé (NON VÉRIFIABLE).
+      nameTakenError: "Un mouvement de cette séance porte un nom déjà utilisé. Modifiez son nom.",
       // PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1498) : choix « lequel conserver » quand, à N ≥ 2, un
       // Point de début et un Point de fin de Tour se suivraient entre deux Tours (dialogue natif).
       // Formulations à valider.
