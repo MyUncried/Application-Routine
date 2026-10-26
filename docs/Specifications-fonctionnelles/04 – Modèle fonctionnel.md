@@ -1,5 +1,11 @@
 # Modèle fonctionnel
 
+> **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
+
+## Modèle cible — D-449
+
+Mouvement = contenu partagé ; Exercice = mouvement avec paramètres dans une séance ; Séance = seul contenu enregistré, lançable et planifiable. La séance contient des exercices, circuits et cycles successifs ; chaque cycle contient des circuits, sans imbrication. Le qualificatif de séance ne dépend jamais du nombre d’exercices. La reprise d’une séance copie sa composition et ses paramètres, avec de nouveaux identifiants de composition et les mêmes références aux mouvements.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
@@ -57,7 +63,7 @@ Les mêmes termes sont utilisés dans toute l’application :
 - `Récupération après exercice` : durée contextuelle portée par chaque occurrence d’Exercice dans une Séance, non affichée sur les cartes (D-238) et exécutée après l’occurrence lorsqu’elle est positive ;
 - `Série` : répétition propre à un Exercice ;
 - `Circuit` : groupe ordonné d’Exercices exécuté intégralement un nombre défini de fois ;
-- `Cycle` : structure technique unique, fixée à une répétition et jamais affichée dans le MVP ; elle ordonne les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit ;
+- `Cycle` : séquence de circuits munie de son propre nombre de répétitions ; plusieurs cycles successifs sont permis, sans imbrication (D-449) ;
 - `Exécution de séance` : réalisation effective d’une Séance.
 
 ## Séances
@@ -98,7 +104,7 @@ Une Séance peut donc être simultanément `Active`, planifiée et déjà exécu
 
 Une **Étiquette** qualifie une Séance et porte sa couleur. Une **Catégorie** qualifie un Exercice et porte sa couleur sémantique. Les Zones corporelles restent distinctes de la Catégorie.
 
-Le fonctionnement de l’application repose sur les concepts principaux suivants. À partir du MVP T03, les deux formes d’Exercice sont distinguées explicitement afin qu’un Exercice persistant ne soit jamais confondue avec sa copie dans une Séance.
+Le fonctionnement cible repose sur Mouvement, Exercice et Séance (D-449). L’exercice est subordonné à la composition ; la distinction historique ActivityDefinition/SessionActivity ci-dessous sert à lire l’état livré antérieur et ne constitue plus la cible.
 
 #### Utilisateur
 
@@ -144,11 +150,11 @@ Une Séance ne contient jamais :
 
 #### Cycle
 
-Un **Cycle** est conservé comme structure technique unique de la Composition. Il ordonne les Exercices placés avant le Circuit, le Circuit unique et les Exercices placés après le Circuit. Dans le MVP, son nombre de répétitions vaut toujours `1`, il n’est pas modifiable et n’est jamais affiché à l’utilisateur.
+Un **Cycle** contient un ou plusieurs circuits et possède son propre nombre de répétitions. Plusieurs cycles peuvent se succéder dans une séance ; aucun cycle ne contient un autre cycle (D-449).
 
 #### Circuit et Tour
 
-Un **Circuit** est le groupe ordonné d’Exercices contenu dans le Cycle technique unique du MVP. Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre 1 et 99, défaut 1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du 12/10.
+Un **Circuit** est un groupe ordonné d’Exercices, placé dans la Séance ou dans un Cycle (D-449). Un **Tour** est une exécution complète de ce Circuit. Pour une séance libre à compte borné, le compte est compris entre 1 et 99, défaut 1 : nombre de tours pour la nature tours, nombre de séries imposé à chaque exercice pour la nature séries. Les formats ajoutent des bornes et indexations explicites ; leur détail figure dans la section Formats ci-dessous. D-209 est complétée par la spécification du 12/10.
 
 #### Exercice
 

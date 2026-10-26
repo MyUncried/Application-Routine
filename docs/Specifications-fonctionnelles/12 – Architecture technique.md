@@ -1,5 +1,11 @@
 # Architecture technique
 
+> **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
+
+## Cible d’architecture fonctionnelle — D-449
+
+La simplification retire la dualité de contenus autonomes ActivityDefinition/Session au profit de la Séance. Les exercices restent des composants à paramètres locaux et référence au mouvement partagé. La composition accepte plusieurs cycles successifs sans structure récursive de cycles/circuits/séances. Conserver l’instantané au démarrage et la séparation contenu/planification. Le code livré PRE-7 n’est pas déclaré conforme à cette cible par la seule mise à jour documentaire ; une analyse d’impact précédera l’implémentation. Aucun renommage de classes ni effacement de données n’est autorisé implicitement.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 

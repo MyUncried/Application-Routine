@@ -1,5 +1,19 @@
 # Contrats d’écran
 
+> **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
+
+## Contrats cibles de simplification — D-449
+
+| Contrat | Comportement fonctionnel validé |
+| --- | --- |
+| CE-SU-01 — Catalogue | Collection unique de séances ; vues filtrées un/plusieurs exercices, sans différence de nature. Libellés à fixer dans Figma. |
+| CE-SU-02 — Composition | Un exercice référence un mouvement et porte ses paramètres. Ajouter/retirer un exercice conserve l’identité de séance. Plusieurs cycles successifs, sans imbrication. |
+| CE-SU-03 — Reprendre une séance | Sélection d’une source et insertion de sa composition à une position du niveau principal. Conserver structure et réglages ; nouveaux identifiants de composition, mêmes mouvements ; début/fin de la destination conservés. |
+| CE-SU-04 — Lancer | L’action lance toute la séance, avec un ou plusieurs exercices. Aucune action de lancement isolé depuis la composition. |
+| CE-SU-05 — Modifier | Occurrences futures sur contenu courant ; instantanés existants inchangés. Pas de dialogue général ajouté pour séance planifiée/exécutée ; dialogue du mouvement partagé conservé. |
+
+Ces contrats remplacent les clauses contraires des contrats historiques ci-dessous concernant catalogues distincts par nature, lancement ACTIVITY et cycle/circuit unique. Les autres clauses restent applicables. Les nodes et captures de référence seront raccordés après les modifications Figma ; aucune géométrie ni composant nouveau n’est inventé ici.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 

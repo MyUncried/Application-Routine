@@ -989,3 +989,14 @@ Remplace, dans PHC-20261026 : la phrase du Principe sur l’incompatibilité des
 Défaut cr-8 : écart à R-5, corrigé sans arbitrage (story R-8).
 
 **Règles remplacées.** (a) L’interdépendance du total et des phases en mode Durée : une durée de phase manquante ne rend plus la durée de l’exercice incomplète (« — ») en Durée ; elle la rend toujours incomplète en Répétitions (PHC-20261026). (b) « Sans » vide les phases sans mémoire : remplacé pendant l’édition par la restitution du point 4. (c) Le minimum de 1 s appliqué à la saisie d’une durée de phase (D-434, QD-434-3, pour ces seules cellules) : 0 s est conservé et refusé à la validation. (d) « sans → phases, durées vides » (PHC-20261026, transfert par rang) : précisé par NV-3. (e) Le libellé « Phases de l’exercice » de D-432, CE-UI-10 et RC-17. Les autres dispositions de D-432, D-433, D-434, D-438, D-445, D-446 et PHC-20261026 restent applicables.
+
+
+## D-449 — Simplification Mouvement / Exercice / Séance — 26/10/2026
+
+**Validée par Hermann, six points clos.** Mouvement est le terme commun au modèle et à l’interface. L’exercice est un mouvement avec ses paramètres dans une séance. La séance est le seul contenu enregistré, lançable et planifiable, même avec un seul exercice ; sa nature et son identité ne changent pas avec sa composition. Reprendre une séance copie sa composition au niveau principal, avec paramètres indépendants et mêmes mouvements, sans synchronisation ni import de ses réglages propres début/fin, routines ou résultats. Plusieurs cycles successifs contenant des circuits sont autorisés, sans imbrication. On lance toute la séance, jamais un exercice isolé de sa composition. Une collection unique expose des vues filtrées un/plusieurs exercices ; libellés à définir dans Figma.
+
+La modification d’une séance conserve la règle existante : occurrences futures sur la dernière version, instantané figé au démarrage, passé et exécution en cours inchangés. Aucun dialogue général supplémentaire n’est introduit ; le dialogue du mouvement partagé reste applicable. Circuits Tours/Séries conservés et cibles par série ; retrait de la table indexée par passage proposée en v2. L’assouplissement du compte des circuits de séries n’est pas validé ici.
+
+**Remplacements ciblés :** exercice autonome ActivityDefinition et voie de lancement ACTIVITY ; différence de nature entre catalogues Exercices/Séances ; cycle technique unique fixé à 1 (RM-028) et circuit unique. Le reste de D-445, D-446, D-447 et D-448, notamment filiation, niveaux, phases, paramètres et instantanés, reste applicable. Les anciennes entrées du registre sont conservées pour traçabilité. Cette décision ne vaut ni modification du code, ni migration autorisée, ni modification Figma.
+
+[Spécification consolidée et critères de vérification](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md).
