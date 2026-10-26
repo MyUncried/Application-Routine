@@ -837,7 +837,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ### Présentation des phases d’exercice
 
-La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée la première phase ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La durée de série devient calculée. Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+La ligne Phases de l’exercice (Avec / Sans) ouvre le cadre Séries, après le cadre Exécution (D-413). Avec crée deux phases à renseigner ; le chevron, à l’intérieur de l’option Avec, replie ou déploie le tableau Libellé/Durée (D-410) ; Sans signifie qu’il n’y a aucune phase. La cible de série reste indépendante et modifiable selon les contraintes du format (PHC-20261026). Les états incompatibles sont non modifiables, sans transformer une valeur effective calculée en tiret. Contrat CE-UI-10 et [règles métier](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 Le rapport Figma V2 du 15/10 décrit trois écrans dédiés sur Conception — Hors MVP : « Phases (aucune) », « Phases (définies) » et « Phases verrouillées (séries variables) ». Il décrit aussi la ligne ajoutée sur 19 écrans de Prototype MVP et 19 de Conception. Ces nombres sont ceux du rapport fourni, pas un nouvel inventaire direct. Les seize modales de format n’ont pas encore reçu cette ligne selon ce rapport.
 

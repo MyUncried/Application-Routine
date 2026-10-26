@@ -216,7 +216,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 
 #### Phases d’un exercice
 
-Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Une séquence de 1 à 6 phases est rejouée à chaque série, sans pause entre phases. Cette capacité appartient au MVP, uniquement en Durée chiffrée avec séries identiques. Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
+Une **phase d’exercice** est une action chronométrée et nommée au sein d’une série. Le motif de phases se répète au sein de chaque série, sans pause entre phases ; un passage complet est une répétition guidée. Cette capacité appartient au MVP en Durée ou Répétitions, à cible chiffrée ou à l’échec, avec séries identiques (PHC-20261026). Elle ne crée ni exercice de catalogue ni compteur de cycles supplémentaire. Le terme se distingue des phases structurelles du plan (préparation, récupération, fin).
 
 #### 4. Concepts de planification
 

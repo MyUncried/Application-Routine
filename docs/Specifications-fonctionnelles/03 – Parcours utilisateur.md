@@ -204,9 +204,9 @@ Les paramètres métier restent identiques entre création et modification ; seu
 
 ### Définir les phases d’un exercice — MVP
 
-Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée chiffrée et séries identiques, choisir Avec crée une première phase reprenant la durée actuelle de série. Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme devient la durée de série. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410). ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
+Dans la feuille Paramètres d’exécution, la ligne Phases de l’exercice ouvre le cadre Séries (D-413). Sur un exercice en Durée ou Répétitions, à cible ou à l’échec, en séries identiques, choisir Avec crée deux phases dont les durées sont à renseigner indépendamment de la cible de série (PHC-20261026). Ajouter, nommer, régler et déplacer jusqu’à six phases ; leur somme est la durée du motif ; la cible de série reste indépendante. Le chevron, à l’intérieur de l’option Avec, n’existe que lorsque la liste existe (D-410). ✓ applique au brouillon parent ; ✕ annule ; l’enregistrement reste celui du parent.
 
-Dans un format imposant une durée de travail, la dernière phase reçoit le temps restant. L’intégration d’un exercice dont la somme diffère adapte proportionnellement sa copie dans la séance et affiche un message informatif ; la définition Catalogue reste intacte. Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
+Dans un format imposant une durée de travail, la cible de série suit le format et les durées du motif restent inchangées. Aucune dernière phase calculée ni adaptation proportionnelle (PHC-20261026). Règles détaillées et cas encore à préciser : [Phases d’exercice](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phases-exercice).
 
 #### Ajouter un Exercice depuis une Composition
 
@@ -641,3 +641,12 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+### Phases — clarification PHC-20261026
+
+Les phases forment un motif cyclique de guidage : un passage complet correspond à une répétition guidée. Chaque phase conserve une durée en secondes. La somme des phases est la durée du motif, jamais la durée cible de la série. Les modes Durée et Répétitions, avec cible chiffrée ou À l’échec, sont compatibles ; seules les séries variables restent incompatibles avec les phases. La condition d’arrêt appartient à la série. En Durée chiffrée, la cible indépendante termine la série à échéance, même au milieu d’une phase. À l’échec, le guidage boucle jusqu’à Suivant. En Répétitions chiffrées, R motifs donnent une durée nominale R × somme des phases ; Suivant conserve la validation manuelle existante. Chaque nouvelle série recommence à la première phase. Les cycles guidés ne prouvent pas les répétitions effectivement réalisées.
+
+Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
+
+Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
