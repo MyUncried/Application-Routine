@@ -45,6 +45,7 @@ import {
 } from "@/features/activities/MovementLevelMenu";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
+import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 import { BodyZoneIcon } from "@/shared/ui/BodyZoneIcon";
 import { FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH, finalActionSideMargin } from "@/shared/ui/finalAction";
@@ -736,7 +737,11 @@ export function ActivityEditorForm({
               style={styles.parametersCard}
               testID="exercise-parameters-card"
             >
-              <Text style={styles.phrase} testID="exercise-parameters-phrase">
+              <Text
+                // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
+                style={[styles.phrase, isIncompleteSummary(phrase) ? styles.phraseIncomplete : null]}
+                testID="exercise-parameters-phrase"
+              >
                 {segments
                   ? segments.map((segment, index) =>
                       segment.gras ? (
@@ -1219,6 +1224,9 @@ const styles = StyleSheet.create({
     ...type.body,
     lineHeight: PHRASE_LINE_HEIGHT,
     color: colors.textPrimary,
+  },
+  phraseIncomplete: {
+    color: colors.danger,
   },
   phraseBold: {
     fontFamily: "Inter_600SemiBold",

@@ -261,7 +261,7 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     expect(phaseDurationEditText(draft, 99)).toBe("");
   });
 
-  it("sortie de la durée : 1,7,5 → 135 s ; 9999 → 3535 s ; 0 → 1 s ; vidée → à renseigner ; D inchangée (D-446) ; inchangée → Brouillon tel quel", () => {
+  it("sortie de la durée : 1,7,5 → 135 s ; 9999 → 3535 s ; 0 → 0 s (D-448, point 6, remplace 0 → 1 s) ; vidée → à renseigner ; D inchangée (D-446) ; inchangée → Brouillon tel quel", () => {
     const draft = phased();
     const durationOf = (next: typeof draft, id: number) => next.workPhases.find((phase) => phase.id === id)!.durationSeconds;
     const edited = applyPhaseDurationEdit(draft, 4, "175");
@@ -269,7 +269,8 @@ describe("PRE5-2.8 — champs clavier des phases (D-434)", () => {
     // PRE-7 (D-446) : la durée de série n'est plus redérivée de la somme des phases.
     expect(edited.uniform.target).toEqual(numberTarget(74));
     expect(durationOf(applyPhaseDurationEdit(draft, 4, "9999"), 4)).toBe(3535);
-    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(1);
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0"), 4)).toBe(0);
+    expect(durationOf(applyPhaseDurationEdit(draft, 4, "0000"), 4)).toBe(0);
     const emptied = applyPhaseDurationEdit(draft, 4, "");
     expect(durationOf(emptied, 4)).toBeNull();
     // PRE-7 (D-446, remplace A2.1) : D inchangée quand une durée manque.

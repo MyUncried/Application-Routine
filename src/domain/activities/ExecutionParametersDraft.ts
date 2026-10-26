@@ -230,6 +230,12 @@ export type ExecutionSheetDraft = {
    * aucune phase) ; ne décroît jamais pendant l'ouverture (MFN-02).
    */
   readonly nextPhaseId: number;
+  /**
+   * PRE-7 (D-448, point 4, recette JA2 ph-1) : phases retirées par l'option Sans (libellés,
+   * durées, identités, nombre), restituées par Avec pendant la même ouverture. `null` : aucune
+   * (ouverture, ou mémoire déjà restituée). Volatile : jamais transmise ni persistée.
+   */
+  readonly disabledWorkPhases: readonly DraftWorkPhase[] | null;
   /** Charge Avec / Sans (AD-19) ; les `loadKg` restent portés sous Sans. */
   readonly loadEnabled: boolean;
 };
@@ -296,6 +302,7 @@ export function openSheetDraft(parent: ExecutionParametersInput, options: OpenSh
       durationSeconds: phase.durationSeconds < WORK_PHASE_LIMITS.durationMin ? null : phase.durationSeconds,
     })),
     nextPhaseId: openingNextPhaseId(workPhases, options.nextPhaseId),
+    disabledWorkPhases: null,
     loadEnabled: parameters.loadEnabled,
   };
   // PRE-7 (D-446, remplace l'ouverture de D à renseigner d'A2.1) : la Cible est lue telle quelle,
@@ -951,21 +958,31 @@ function withWorkPhases(draft: ExecutionSheetDraft, workPhases: readonly DraftWo
  *   arbitrage de Hermann du 26/10/2026, PHC-20261026 : « activer les phases ne
  *   copie pas la cible de série comme durée du motif ») : le préremplissage de la
  *   première phase par D-432 est retiré. Sinon : refus, Brouillon inchangé.
- * - Sans : `workPhases = []` ; aucune mémoire des anciennes phases (revenir à
- *   Avec recrée deux phases).
+ * - Sans : `workPhases = []`. PRE-7 (D-448, point 4, qui remplace « aucune mémoire des
+ *   anciennes phases » pendant l'édition) : les phases retirées sont gardées dans
+ *   `disabledWorkPhases` ; revenir à Avec dans la même ouverture les restitue (libellés,
+ *   durées, identités, nombre) au lieu de deux phases vides. Hors édition (nouvelle
+ *   ouverture), Avec recrée deux phases vides (Q5).
  *
  * PRE-7 (D-446) : la Cible est inchangée dans les deux sens (elle n'est plus la
  * somme des phases).
  */
 export function setWorkPhasesEnabled(draft: ExecutionSheetDraft, enabled: boolean): ExecutionSheetDraft {
   if (!enabled) {
-    return draft.workPhases.length === 0 ? draft : { ...draft, workPhases: [], pendingRemoval: null };
+    return draft.workPhases.length === 0
+      ? draft
+      : { ...draft, workPhases: [], disabledWorkPhases: draft.workPhases, pendingRemoval: null };
   }
   if (draft.workPhases.length > 0 || !canEnableWorkPhases(draft)) {
     return draft;
   }
   // AD-20 : à N = 1 en état variable demandé, la transition passe par l'uniforme effectif.
   const uniform = effectiveUniform(draft);
+  const remembered = draft.disabledWorkPhases;
+  if (remembered !== null && remembered.length > 0) {
+    // D-448 (point 4) : identités déjà allouées pendant l'ouverture, `nextPhaseId` inchangé (MFN-02).
+    return withWorkPhases({ ...uniform, disabledWorkPhases: null }, remembered);
+  }
   const id = uniform.nextPhaseId;
   return withWorkPhases({ ...uniform, nextPhaseId: id + 2 }, [
     { id, label: "", durationSeconds: null },
@@ -1031,6 +1048,8 @@ export function removeWorkPhase(draft: ExecutionSheetDraft, phaseId: number): Ex
     return {
       ...draft,
       workPhases: [],
+      // PRE-7 (D-448, point 4) : passage à Sans par la croix — Avec restitue aussi les deux phases.
+      disabledWorkPhases: [...draft.workPhases],
       pendingRemoval: { kind: "phase", index, phase: removed!, clearedPhases: [...draft.workPhases] },
     };
   }

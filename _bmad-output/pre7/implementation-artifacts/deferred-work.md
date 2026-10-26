@@ -176,3 +176,9 @@
 - source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-6-niveaux-tous-contextes.md`
   summary: La relecture des suffixes « - Nn » au retour sur la Composition n'est couverte par aucun test.
   evidence: `useMovementLevelPositions(…, categoriesFocusToken)` ; le seul test vérifie la première lecture.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-7-phases-durees-signalements.md`
+  summary: Le défilement au dépliage de « Durée de l'exercice » (`scrollToEnd` dans `onLayout` de la ligne Fin) peut précéder la mise à jour de la taille du contenu et s'arrêter trop tôt.
+  evidence: maybe-false, non reproductible en Jest ; à constater en recette JA3 sur iPhone. Si avéré : déclencher depuis `onContentSizeChange` ou viser la position mesurée de la ligne.
+- source_spec: `_bmad-output/pre7/implementation-artifacts/spec-r-7-phases-durees-signalements.md`
+  summary: La couleur rouge de « Paramètres à compléter. » dans `SiblingCompletionStep` n'est vérifiée par aucun test.
+  evidence: Seul `ExerciseScreen.mfn.a22.integration.test.tsx:403` vérifie la présence de la ligne, pas sa couleur.

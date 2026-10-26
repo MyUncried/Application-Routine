@@ -703,8 +703,8 @@ describe("PRE-4 story 2.1 — AC5 Cible à renseigner (FR-13-05, H10, Q30)", () 
     }
   });
 
-  it("PRE-7 (D-446, MFN-08) — frère incomplet à Cible chiffrée : Durée, phases [6, 0], Cible 6 → `incomplete`, aucun montant (occurrence comprise)", () => {
-    const parameters = uniformParameters({
+  it("PRE-7 (D-446, MFN-08 ; D-448, PH-5 remplace « incomplete » en Durée) — frère incomplet à Cible chiffrée : Durée, phases [6, 0], Cible 6 → total exact sans les phases (occurrence comprise)", () => {
+    const withPhases = uniformParameters({
       mode: "DURATION",
       count: 3,
       target: 6,
@@ -714,10 +714,9 @@ describe("PRE-4 story 2.1 — AC5 Cible à renseigner (FR-13-05, H10, Q30)", () 
         { id: 2, label: "b", durationSeconds: 0 },
       ],
     });
-    for (const result of [computeIntrinsicDuration(parameters), computeOccurrenceDuration(parameters, 0)]) {
-      expect(result.kind).toBe("incomplete");
-      expect("seconds" in result).toBe(false);
-    }
+    const withoutPhases = uniformParameters({ mode: "DURATION", count: 3, target: 6, pauseSeconds: 10 });
+    expect(computeIntrinsicDuration(withPhases)).toMatchObject({ kind: "exact", seconds: computeIntrinsicDuration(withoutPhases).seconds });
+    expect(computeOccurrenceDuration(withPhases, 0)).toMatchObject({ kind: "exact", seconds: computeOccurrenceDuration(withoutPhases, 0).seconds });
   });
 
   it("PRE4-2.1/AC5 — `incomplete` en bilatéral (BY_SIDE, BY_SERIES, avec PC) et avec Récupération : contributions connues par formule", () => {

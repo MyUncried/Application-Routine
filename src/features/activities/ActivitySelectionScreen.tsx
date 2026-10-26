@@ -21,6 +21,7 @@ import {
   COMPACT_LIST_SEPARATOR,
   formatExerciseBodyZones,
   formatExerciseRowSummary,
+  isIncompleteSummary,
   resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
@@ -402,7 +403,17 @@ function SelectionRow({
              * alignée à gauche dans une réserve de 68, à 8 du sablier ; absente si la durée l'est.
              */}
             <View style={styles.rowSummaryLine}>
-              <Text style={[styles.rowSecondaryLine, styles.rowSummaryText]}>{summary}</Text>
+              {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
+              <Text
+                style={[
+                  styles.rowSecondaryLine,
+                  styles.rowSummaryText,
+                  isIncompleteSummary(summary) ? styles.rowSummaryIncomplete : null,
+                ]}
+                testID={`activity-selection-row-summary-${definition.id}`}
+              >
+                {summary}
+              </Text>
               {duration !== null ? (
                 <View style={styles.rowDuration} testID={`activity-selection-row-duration-${definition.id}`}>
                   <KodjoIcon name="duration-hourglass" />
@@ -553,6 +564,9 @@ const styles = StyleSheet.create({
   },
   rowSummaryText: {
     flex: 1,
+  },
+  rowSummaryIncomplete: {
+    color: colors.danger,
   },
   // Sablier 16, puis la durée à 8, alignée à gauche dans sa réserve de 68.
   rowDuration: {

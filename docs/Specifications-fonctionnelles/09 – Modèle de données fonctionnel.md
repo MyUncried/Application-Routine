@@ -394,6 +394,8 @@ Elle ne contient pas directement :
 
 ## Phases de l’exercice
 
+[remplacé par D-448 du 26/10/2026 : libellé d’interface « Phases du mouvement » ; titre de section et données inchangés]
+
 <a id="donnees-phases"></a>
 
 La structure ordonnée et les libellés des phases appartiennent au Mouvement ; les paramètres Catalogue portent les durées par identifiant. La lecture résout la structure avec les paramètres ; seul l’instantané en fige la liste complète. Sans phases : liste vide ; sinon 2 à 6 phases. Une durée renseignée vaut au moins 1 s, somme 1..3535 s. Une durée manquante ne supprime jamais la phase : elle bloque l’enregistrement de l’exercice édité et l’exécution ; seule la correction partagée peut persister les frères incomplets (D-438).

@@ -375,8 +375,12 @@ const phaseCountLabel = (count: number | null) =>
  * - Avec, réglage ouvert (− | n phases | chevron | +) : marge 4 + − 28 + écart 8 + valeur 53,0 +
  *   écart 6 + chevron 10 + écart 8 + + 28 + marge 4 = 149,0 → 150.
  * Relevé à reporter dans Figma (`_bmad-output/pre5/ajustement-figma-phases.md`, § Géométrie).
+ * PRE-7 (D-448, point 8, recette JA2 du 26/10/2026) : ligne « Phases du mouvement » ; option
+ * fermée élargie pour séparer nettement le chevron du nombre : écart libellé–chevron 12
+ * (`PHASE_CHEVRON_CLOSED_GAP`, 6 auparavant), soit 17 + 53,0 + 12 + 10 + 17 = 109,0 → 110. Le réglage
+ * ouvert garde sa géométrie (150).
  */
-const PHASE_OPTION_CLOSED_WIDTH = 104;
+const PHASE_OPTION_CLOSED_WIDTH = 110;
 const PHASE_OPTION_OPEN_WIDTH = 150;
 
 /** Surfaces de la Feuille (AD-15). */
@@ -588,6 +592,8 @@ export function ExecutionParametersSheet({
   const [sideRowBox, setSideRowBox] = useState<Box | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const viewportHeightRef = useRef(0);
+  // PRE-7 (D-448, point 8) : dépliage de « Durée de l'exercice » en attente de défilement.
+  const revealSignalsRef = useRef(false);
   // Recette du 19/10 (RC-1) : bas mesuré de la zone de la `Modal` (fenêtre), sinon la hauteur de la fenêtre.
   const scrimRef = useRef<View>(null);
   const [scrimBottom, setScrimBottom] = useState<number | null>(null);
@@ -736,7 +742,17 @@ export function ExecutionParametersSheet({
   const totalResult = isCalculable(effective) ? computeIntrinsicDuration(effective) : null;
   const totalNature =
     !totalNotCalculable && totalResult !== null && hasDurationAmount(totalResult.kind) ? totalResult.kind : null;
-  const totalSeconds = totalNature !== null && validation.ok ? totalResult?.seconds : undefined;
+  // PRE-7 (D-448, PH-5) : en Durée, une durée de phase manquante (ou à 0 s, point 6) n'empêche
+  // pas le total calculable ; elle garde sa cellule rouge et le ✓ indisponible. Toute autre
+  // violation masque le montant (« — »), comme avant.
+  const onlyMissingPhaseDurations =
+    !validation.ok &&
+    effective.mode === "DURATION" &&
+    validation.violations.every(
+      (violation) => violation.field === "workPhases" && violation.code === "REQUIRED" && violation.phaseId !== undefined,
+    );
+  const totalSeconds =
+    totalNature !== null && (validation.ok || onlyMissingPhaseDurations) ? totalResult?.seconds : undefined;
   // AC8 (AD-5, H8) : montant par le formateur unique ; préfixe `≥ ` du lexique (story 2.2).
   const totalAmount = totalSeconds === undefined ? null : formatPhraseDuration(totalSeconds);
   // D-433 : symbole collé à la valeur, avant elle, dans la même zone (jamais dans le titre).
@@ -1039,7 +1055,24 @@ export function ExecutionParametersSheet({
   function toggleDuration() {
     setIsTableSelected(false);
     dispatchSurface({ type: "closeAll" });
-    setIsDurationExpanded((expanded) => !expanded);
+    // PRE-7 (D-448, point 8) : au dépliage, défilement demandé à la mise en page de la ligne Fin.
+    // Lu sur la valeur précédente de l'updater (deux touchers rapides : jamais une fermeture périmée).
+    setIsDurationExpanded((expanded) => {
+      revealSignalsRef.current = !expanded;
+      return !expanded;
+    });
+  }
+
+  /**
+   * PRE-7 (D-448, point 8, recette JA2 du 26/10/2026) : à la mise en page de la ligne Fin qui suit
+   * un dépliage de « Durée de l'exercice », le corps défile jusqu'au bas pour que Compte à rebours
+   * et Fin soient visibles. Le cadre « Cadence et durée » est le dernier du corps : son bas est le
+   * bas du contenu (aucune réserve de panneau, toute surface étant rangée au dépliage).
+   */
+  function revealSignals() {
+    if (!revealSignalsRef.current) return;
+    revealSignalsRef.current = false;
+    scrollRef.current?.scrollToEnd({ animated: !reduceMotion });
   }
 
   /**
@@ -2420,7 +2453,12 @@ export function ExecutionParametersSheet({
                         })}
                       </Row>
                       <Separator />
-                      <Row label={t.end} selected={isOpen(stepperSurface("end"))} testID="execution-sheet-row-end">
+                      <Row
+                        label={t.end}
+                        selected={isOpen(stepperSurface("end"))}
+                        onLayout={revealSignals}
+                        testID="execution-sheet-row-end"
+                      >
                         {stepperField("end", t.end, {
                           value: draft.endSeconds,
                           min: EXECUTION_BOUNDS.endSeconds.min,
@@ -3371,10 +3409,13 @@ const SEGMENT_COUNT_HIT_SLOP = { top: 14, bottom: 14 };
  */
 const PHASE_OPTION_INSET = 17;
 const PHASE_CHEVRON_GAP = 6;
+// PRE-7 (D-448, point 8) : écart libellé–chevron de l'option fermée, 12 (6 auparavant) ; le réglage
+// ouvert garde `PHASE_CHEVRON_GAP`.
+const PHASE_CHEVRON_CLOSED_GAP = 12;
 // PRE-7 story B.1 (D-447, B3) : segmenté de 32 aussi réglage ouvert (fond de 28, 2 de chaque côté).
 const PHASE_CONTROL_OPEN_HEIGHT = 32;
-const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_GAP / 2 };
-const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP / 2, right: PHASE_OPTION_INSET };
+const PHASE_COUNT_CLOSED_HIT_SLOP = { top: 14, bottom: 14, left: PHASE_OPTION_INSET, right: PHASE_CHEVRON_CLOSED_GAP / 2 };
+const PHASE_CHEVRON_CLOSED_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_CLOSED_GAP / 2, right: PHASE_OPTION_INSET };
 const PHASE_CHEVRON_OPEN_HIT_SLOP = { top: 17, bottom: 17, left: PHASE_CHEVRON_GAP, right: 0 };
 /**
  * Recette du 20/10 (RC-15, Figma `9436:18348`) : segmenté du Type de série de 34 (32 depuis PRE-7 B.1, B3) quand le stepper du
@@ -3413,7 +3454,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   phaseChevronClosed: {
-    marginLeft: PHASE_CHEVRON_GAP,
+    marginLeft: PHASE_CHEVRON_CLOSED_GAP,
   },
   // Ouvert : chevron entre la valeur (écart 6, porté par la valeur) et le + (écart 8 = 6 + 2 d'`InlineStepper`).
   phaseChevronOpen: {

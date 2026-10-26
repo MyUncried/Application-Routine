@@ -105,7 +105,8 @@ const executionParameters = {
     // du cadre Séries (Avec / Sans ; Avec sélectionné affiche « n phases », n ≥ 2, avec le stepper
     // existant et le chevron du tableau), tableau des phases (Libellé, Durée), libellé par défaut
     // « Phase n » (affiché pour un libellé vide, stocké au ✓) et message de retrait d’une phase.
-    workPhases: "Phases de l’exercice",
+    // PRE-7 (D-448, point 8) : libellé « Phases du mouvement » (remplace « Phases de l’exercice » de D-432).
+    workPhases: "Phases du mouvement",
     workPhaseChoices: { WITH: "Avec", WITHOUT: "Sans" },
     workPhaseCount: "{n} phases",
     // Une seule phase relue des données (le modèle l’admet) : accord au singulier.

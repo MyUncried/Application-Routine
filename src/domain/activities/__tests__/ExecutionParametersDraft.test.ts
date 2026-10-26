@@ -1674,12 +1674,32 @@ describe("PRE-5 story 2.1 — transitions du Brouillon : phases, charge, Conditi
       expect(sans.uniform.target).toEqual(numberTarget(30));
     });
 
-    it("retour à Avec : deux nouvelles phases à renseigner (Q5), sans mémoire des anciennes ; PRE-7 (D-446) : Cible inchangée", () => {
+    it("retour à Avec pendant l'édition : D-448 (point 4, remplace « sans mémoire des anciennes ») restitue les phases désactivées ; PRE-7 (D-446) : Cible inchangée", () => {
       const again = setWorkPhasesEnabled(setWorkPhasesEnabled(setWorkPhaseLabel(withPhases([6, 3, 5]), 1, "Descente"), false), true);
-      expect(durations(again)).toEqual([null, null]);
-      expect(labels(again)).toEqual(["", ""]);
-      expect(ids(again)).toEqual([4, 5]);
+      expect(durations(again)).toEqual([6, 3, 5]);
+      expect(labels(again)).toEqual(["Descente", "", ""]);
+      expect(ids(again)).toEqual([1, 2, 3]);
       expect(again.uniform.target).toEqual(numberTarget(30));
+    });
+
+    it("D-448 (point 4) — Sans, modification intermédiaire (Mode, nombre de séries), puis Avec : mêmes phases restituées", () => {
+      const before = setWorkPhaseLabel(withPhases([6, 3, 5]), 2, "Tenue");
+      const sans = setSeriesCount(setMode(setWorkPhasesEnabled(before, false), "REPETITIONS"), 4);
+      const again = setWorkPhasesEnabled(sans, true);
+      expect(durations(again)).toEqual([6, 3, 5]);
+      expect(labels(again)).toEqual(["", "Tenue", ""]);
+      expect(ids(again)).toEqual([1, 2, 3]);
+      expect(again.mode).toBe("REPETITIONS");
+    });
+
+    it("D-448 (point 4) — croix à deux phases (passage à Sans), puis Avec : les deux phases restituées (libellés, durées, identités)", () => {
+      const before = setWorkPhaseLabel(setWorkPhaseLabel(withPhases([6, 3]), 1, "Montée"), 2, "Descente");
+      const sans = removeWorkPhase(before, 2);
+      expect(sans.workPhases).toEqual([]);
+      const again = setWorkPhasesEnabled(sans, true);
+      expect(durations(again)).toEqual([6, 3]);
+      expect(labels(again)).toEqual(["Montée", "Descente"]);
+      expect(ids(again)).toEqual([1, 2]);
     });
 
     it("PRE-7 (D-446, remplace A2.1) — Avec → Sans avec une durée manquante : Cible inchangée, jamais la somme partielle", () => {

@@ -129,7 +129,7 @@ function enterLabel(n: number, text: string) {
 }
 
 describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", () => {
-  it("PRE5-2.8/AC1 — sans phase : « Phases de l’exercice » est la première ligne du cadre Séries, Sans sélectionné, sans tableau ni chevron", () => {
+  it("PRE5-2.8/AC1 — sans phase : « Phases du mouvement » (D-448, point 8) est la première ligne du cadre Séries, Sans sélectionné, sans tableau ni chevron", () => {
     renderSheet(params());
     const frame = get("execution-sheet-frame-series");
     const rowIds = within(frame)
@@ -219,8 +219,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(get("execution-sheet-row-target-line").props.accessibilityLabel).toBeUndefined();
     enterDuration(2, "3");
     expect(seriesDurationText()).toBe("9 s");
-    // Largeur de l'option Avec, réglage fermé : 104 (recette du 20/10, RC-16 : marges de « Sans ») ; Sans garde 62.
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
+    // Largeur de l’option Avec, réglage fermé : 110 (D-448, point 8 ; 104 auparavant, RC-16 : marges de « Sans ») ; Sans garde 62.
+    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(110);
     expect(styleOf(`${CONTROL}-tile-WITHOUT`).width).toBe(62);
     // PRE-7 (D-446) : avec des phases, Répétitions et À l'échec restent disponibles ; complément
     // du 26/10/2026 : Variables aussi (motif commun aux séries identiques et variables).
@@ -292,7 +292,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(query(`${STEPPER}-decrement`)).toBeNull();
     expect(countText()).toBe("6 phases");
     expect(get(CHEVRON).props.accessibilityState).toMatchObject({ disabled: false });
-    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(104);
+    expect(styleOf(`${CONTROL}-tile-WITH`).width).toBe(110);
     // Re-choisir Avec (zone de l'option hors valeur) ouvre aussi le réglage.
     fireEvent.press(get(WITH));
     expect(get(`${STEPPER}-increment`)).toBeTruthy();
@@ -301,10 +301,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
   it("RC-16 — fermé : « n phases » ouvre le réglage, le chevron replie / déploie sans l'ouvrir ; actions indépendantes, place du chevron réservée", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
     const closed = get(COUNT_TOGGLE).parent!;
-    // Libellé puis chevron, à 6 l'un de l'autre, dans l'option de 104.
-    expect(styleOf(CHEVRON)).toMatchObject({ width: 10, height: 10, marginLeft: 6 });
-    expect(get(COUNT_TOGGLE).props.hitSlop).toEqual({ top: 14, bottom: 14, left: 17, right: 3 });
-    expect(get(CHEVRON).props.hitSlop).toEqual({ top: 17, bottom: 17, left: 3, right: 17 });
+    // Libellé puis chevron, à 12 l’un de l’autre (D-448, point 8 ; 6 auparavant), dans l’option de 110.
+    expect(styleOf(CHEVRON)).toMatchObject({ width: 10, height: 10, marginLeft: 12 });
+    expect(get(COUNT_TOGGLE).props.hitSlop).toEqual({ top: 14, bottom: 14, left: 17, right: 6 });
+    expect(get(CHEVRON).props.hitSlop).toEqual({ top: 17, bottom: 17, left: 6, right: 17 });
     expect(closed).toBeTruthy();
     fireEvent.press(get(CHEVRON));
     expect(query(TABLE)).toBeNull();
@@ -410,7 +410,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(phaseRows()).toHaveLength(3);
   });
 
-  it("PRE5-2.8/AC5 (D-434) — durée au clavier MMSS : 1,7,5 → « 2 min 15 s » ; vidée → « — » ; 9999 → 58 min 55 s ; 0 → 1 s ; PRE-7 (D-446) : D inchangée", () => {
+  it("PRE5-2.8/AC5 (D-434) — durée au clavier MMSS : 1,7,5 → « 2 min 15 s » ; vidée → « — » ; 9999 → 58 min 55 s ; 0 → 0 s (D-448, point 6) ; PRE-7 (D-446) : D inchangée", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
     expect(get(`${duration(1)}-input`).props.keyboardType).toBe("number-pad");
     enterDuration(1, "175");
@@ -423,8 +423,10 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(seriesDurationText()).toBe("9 s");
     enterDuration(1, "9999");
     expect(shownDuration(1)).toBe("58 min 55 s");
+    // PRE-7 (D-448, point 6, remplace 0 → 1 s) : 0 s reste 0 s, cellule rouge.
     enterDuration(1, "0");
-    expect(shownDuration(1)).toBe("1 s");
+    expect(shownDuration(1)).toBe("0 s");
+    expect(styleOf(duration(1)).backgroundColor).toBe(colors.dangerSurface);
     expect(seriesDurationText()).toBe("9 s");
   });
 
@@ -472,7 +474,7 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     hideExecutionSheetKeyboard();
   });
 
-  it("PRE5-2.8/AC7 (FR-8) — Avec → Sans : 6 s + 3 s + 5 s → Sans, « Durée d’une série » 14 s modifiable ; repasser à Avec recrée deux phases à renseigner (Q5)", () => {
+  it("PRE5-2.8/AC7 (FR-8) — Avec → Sans : 6 s + 3 s + 5 s → Sans, « Durée d’une série » 14 s modifiable ; repasser à Avec pendant l'édition restitue les trois phases (D-448, point 4, remplace « recrée deux phases »)", () => {
     renderSheet(withPhases([["A", 6], ["B", 3], ["C", 5]]));
     fireEvent.press(get(WITHOUT));
     expect(optionState(WITHOUT)).toMatchObject({ selected: true });
@@ -481,10 +483,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(String(get("execution-sheet-target-value-text").props.children)).toBe("14 s");
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ disabled: false });
     fireEvent.press(get(WITH));
-    expect(phaseRows()).toHaveLength(2);
-    // Q5 : aucune durée préremplie (la Cible de série n'est pas copiée).
-    expect([shownDuration(1), shownDuration(2)]).toEqual(["—", "—"]);
-    expect([shownLabel(1), shownLabel(2)]).toEqual(["Phase 1", "Phase 2"]);
+    expect(phaseRows()).toHaveLength(3);
+    expect([shownDuration(1), shownDuration(2), shownDuration(3)]).toEqual(["6 s", "3 s", "5 s"]);
+    expect([shownLabel(1), shownLabel(2), shownLabel(3)]).toEqual(["A", "B", "C"]);
   });
 
   it("PRE7-A1.1 (D-438 remplace D-373, nettoyage FR-3/FR-9/AD-20 écarté) — [9, —] : ✓ indisponible, les deux phases conservées ; la cellule « — » à renseigner ; D 9 s inchangée (D-446)", () => {

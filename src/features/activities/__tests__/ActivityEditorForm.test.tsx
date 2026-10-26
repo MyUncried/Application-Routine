@@ -2270,3 +2270,30 @@ describe("ActivityEditorForm — recette JA (Nom en saisie, appui ailleurs)", ()
     expect(stepsArea().props.pointerEvents).toBe("auto");
   });
 });
+
+describe("ActivityEditorForm — PRE-7 R-7 (D-448, point 7)", () => {
+  const workPhases = [
+    { id: 1, label: "Montée", durationSeconds: 3 },
+    { id: 2, label: "Descente", durationSeconds: 0 },
+  ];
+
+  it("phase sans durée : « Paramètres à compléter. » en `colors.danger` sur la fiche ; phrase complète inchangée", () => {
+    render(
+      <Harness
+        initial={{
+          executionParameters: parameters({
+            series: { kind: "UNIFORM", count: 3, target: numberTarget(30), pauseSeconds: 60, loadKg: 0, workPhases },
+          }),
+        }}
+      />,
+    );
+    const node = screen.getByTestId("exercise-parameters-phrase");
+    expect(renderedPhrase()).toBe(strings.executionParameters.card.incomplete);
+    expect(StyleSheet.flatten(node.props.style).color).toBe(colors.danger);
+  });
+
+  it("paramètres complets : couleur de phrase ordinaire", () => {
+    render(<Harness />);
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-parameters-phrase").props.style).color).toBe(colors.textPrimary);
+  });
+});

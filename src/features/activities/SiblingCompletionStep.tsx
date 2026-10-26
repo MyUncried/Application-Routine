@@ -283,7 +283,8 @@ const styles = StyleSheet.create({
   },
   skippedText: {
     ...type.body,
-    color: colors.textSecondary,
+    // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
+    color: colors.danger,
     flex: 1,
   },
   skipControl: {

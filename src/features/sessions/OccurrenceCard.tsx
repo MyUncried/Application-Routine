@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { MediaPreview, type MediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
-import type { OccurrenceCategory } from "@/features/sessions/compositionPresentation";
+import { isIncompleteSummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -166,6 +166,13 @@ export const occurrenceCardSurface = {
 
 /** Dans le Circuit, aucun bord (D-435, Figma `9819:19961`) ; l'état soulevé garde le sien. */
 export const occurrenceCardInCircuitSurface = { borderWidth: 0 } as const;
+
+/**
+ * PRE-7 (D-448, point 7, recette JA2 nv-5) : fond d'une carte dont la synthèse est « Paramètres à
+ * compléter. » (par exemple une phase sans durée après un changement de rang), dans le Circuit
+ * comme hors Circuit ; l'état soulevé garde le sien.
+ */
+export const occurrenceCardIncompleteSurface = { backgroundColor: colors.dangerSurface } as const;
 
 export type OccurrenceCardProps = {
   readonly name: string;
@@ -343,7 +350,12 @@ export function OccurrenceCard({
             <View style={[styles.workLine, styles.valueRow, dimmed]} {...hidden} testID="composition-exercise-work-row">
               <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
               <View style={styles.work} testID="composition-exercise-work">
-                <Text style={[styles.value, styles.summary]} numberOfLines={1} testID="composition-exercise-summary">
+                <Text
+                  // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
+                  style={[styles.value, styles.summary, isIncompleteSummary(summary) ? styles.incompleteSummary : null]}
+                  numberOfLines={1}
+                  testID="composition-exercise-summary"
+                >
                   {summary}
                 </Text>
                 {estimatedDuration !== null ? (
@@ -483,6 +495,9 @@ const styles = StyleSheet.create({
   summary: {
     flexShrink: 1,
     textAlign: "right",
+  },
+  incompleteSummary: {
+    color: colors.danger,
   },
   separator: {
     flexShrink: 0,

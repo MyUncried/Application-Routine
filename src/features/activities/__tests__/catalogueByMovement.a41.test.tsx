@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { useEffect, useState } from "react";
+import { StyleSheet } from "react-native";
 
 import type { ActivityDefinition, CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import type { ExecutionParameters, WorkPhase } from "@/domain/activities/ExecutionParameters";
@@ -27,6 +28,7 @@ import { SqliteMovementRepository } from "@/infrastructure/database/repositories
 import { SqliteSessionRepository } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
 import { strings } from "@/shared/i18n";
+import { colors } from "@/shared/ui/tokens";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
 
 /**
@@ -283,7 +285,7 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
     expect(await snapshot()).toEqual(before);
   });
 
-  it("frère incomplet : « Paramètres à compléter. » sans durée, insérable sans message ; occurrence signalée, Séance refusée par `toCreateSessionInput` (condition de Continuer)", async () => {
+  it("frère incomplet : « Paramètres à compléter. » avec sa durée en Durée (D-448, PH-5), insérable sans message ; occurrence signalée, Séance refusée par `toCreateSessionInput` (condition de Continuer)", async () => {
     const first = await create("Squat", phased(phases(["Descente", 6], ["Remontée", 3])));
     const sibling = await create("Squat", phased(phases(["Descente", 8], ["Remontée", 4])), {
       kind: "SAME_MOVEMENT",
@@ -301,7 +303,11 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
     const incomplete = strings.executionParameters.card.incomplete;
     expect(incomplete).toBe("Paramètres à compléter.");
     expect(screen.getAllByText(incomplete)).toHaveLength(1);
-    expect(screen.queryByTestId(`activity-selection-row-duration-${sibling.id}`)).toBeNull();
+    // PRE-7 (D-448, PH-5, remplace « sans durée » en Durée) : le total ne dépend pas des phases.
+    expect(screen.getByTestId(`activity-selection-row-duration-${sibling.id}`)).toBeTruthy();
+    // PRE-7 (D-448, point 7) : signalement en rouge ; la synthèse complète garde sa couleur.
+    expect(StyleSheet.flatten(screen.getByTestId(`activity-selection-row-summary-${sibling.id}`).props.style).color).toBe(colors.danger);
+    expect(StyleSheet.flatten(screen.getByTestId(`activity-selection-row-summary-${first.id}`).props.style).color).not.toBe(colors.danger);
     expect(screen.getByTestId(`activity-selection-row-duration-${first.id}`)).toBeTruthy();
 
     fireEvent.press(screen.getByTestId(`activity-selection-row-${sibling.id}`));

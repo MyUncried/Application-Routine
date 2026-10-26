@@ -227,7 +227,14 @@ function summarizeTargets(
   let kind: ExerciseDurationKind;
   // PRE-7 (D-446, MFN-08) : une durée de phase manquante (frère incomplet) ne force plus la Cible
   // à `UNSET` ; elle rend la durée incomplète avec la même priorité.
-  if (targets.some((target) => target.kind === "UNSET") || hasMissingPhaseDuration(parameters)) {
+  // PRE-7 (D-448, PH-5, recette JA2 du 26/10/2026) : en Durée, le total ne dépend pas des phases
+  // (`workSeconds` ne lit que la Cible) ; une phase vide ne le rend plus incomplet. Le signalement
+  // « Paramètres à compléter. » et le refus d'enregistrement lisent `hasMissingPhaseDuration` à
+  // part. En Répétitions (PHC-20261026), aucune estimation tant qu'une durée manque.
+  if (
+    targets.some((target) => target.kind === "UNSET") ||
+    (parameters.mode !== "DURATION" && hasMissingPhaseDuration(parameters))
+  ) {
     kind = "incomplete";
   } else if (!unknown) {
     kind = parameters.mode === "REPETITIONS" ? "estimated" : "exact";

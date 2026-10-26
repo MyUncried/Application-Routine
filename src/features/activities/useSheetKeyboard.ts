@@ -23,7 +23,7 @@ import {
   type ExecutionSheetDraft,
 } from "@/domain/activities/ExecutionParametersDraft";
 import { parseLoadText } from "@/domain/activities/exerciseLoad";
-import { cellDurationSeconds, cellIntegerValue, mmssDigitsOf } from "@/features/activities/cellEntry";
+import { cellDurationSeconds, cellIntegerValue, cellPhaseDurationSeconds, mmssDigitsOf } from "@/features/activities/cellEntry";
 import {
   isPhaseKeyboardField,
   sameKeyboardField,
@@ -253,7 +253,8 @@ export function phaseDurationEditText(draft: ExecutionSheetDraft, phase: number)
 export function applyPhaseDurationEdit(draft: ExecutionSheetDraft, phase: number, text: string): ExecutionSheetDraft {
   const current = phaseOf(draft, phase);
   if (current === undefined) return draft;
-  const value = cellDurationSeconds(text, EXECUTION_BOUNDS.durationTarget);
+  // PRE-7 (D-448, point 6) : 0 s saisi reste 0 s (cellule rouge, ✓ refusé) ; vidée → `null`.
+  const value = cellPhaseDurationSeconds(text, EXECUTION_BOUNDS.durationTarget);
   return current.durationSeconds === value ? draft : setWorkPhaseDuration(draft, phase, value);
 }
 

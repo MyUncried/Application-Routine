@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-7 (plan approuvé le 24/10/2026)
 generated: 10-24-2026 09:00
-last_updated: 10-26-2026 12:00
+last_updated: 10-26-2026 16:30
 project: kodjo-pre7
 project_key: NOKEY
 tracking_system: file-system
@@ -36,3 +36,7 @@ development_status:
   r-4-dialogue-de-sauvegarde-c03-et-crayon: review
   r-5-création-unicité-variante-et-recherche: review
   r-6-niveaux-dans-tous-les-contextes: review
+  # Recette JA2 du 26/10/2026, lot D-448 (arbitrage-2026-10-26-recette-ja2-d448.md)
+  r-7-phases-durées-et-signalements: review
+  r-8-recherche-par-début-de-mot-et-variante: backlog
+  r-9-menu-niveau-et-crayon: backlog

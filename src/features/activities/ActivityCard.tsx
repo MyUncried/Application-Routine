@@ -2,7 +2,6 @@ import { useContext, useEffect, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { ActivityDefinition } from "@/domain/activities";
-import { hasMissingPhaseDuration } from "@/domain/activities/ExecutionParameters";
 import { computeIntrinsicDuration } from "@/domain/activities/executionCalculations";
 import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
@@ -13,6 +12,7 @@ import { withLevelSuffix } from "@/features/activities/movementChoicePresentatio
 import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
+  isIncompleteSummary,
 } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 import { CardTitleLine } from "@/shared/ui/CardTitleLine";
@@ -126,11 +126,7 @@ export type ActivityCardProps = {
  * de remplacement. PRE-4 : lit les paramètres typés obligatoires (AD-3).
  */
 export function catalogueDuration(definition: ActivityDefinition): string | null {
-  // PRE-7 (D-446, MFN-08) : un Exercice frère incomplet (durée de phase manquante) garde une
-  // durée absente, comme lorsque sa Cible était forcée à `UNSET` avant D-446.
-  if (hasMissingPhaseDuration(definition.executionParameters)) {
-    return null;
-  }
+  // PRE-7 (D-448, PH-5) : phase manquante — total en Durée, aucune durée en Répétitions (`incomplete` du domaine).
   // Story 2.1 (AC9) : même montant et même symbole que la clause de la Phrase sans arrondi (Q20).
   return totalClauseAmount(computeIntrinsicDuration(definition.executionParameters));
 }
@@ -177,7 +173,13 @@ export function ActivityCard({ definition, onOpen, levelPosition = null }: Activ
              * `numberOfLines`, qui coupait la clause Pause/mode/cible sur
              * une carte compacte.
              */}
-            <Text style={styles.secondaryLine}>{summary}</Text>
+            {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
+            <Text
+              style={[styles.secondaryLine, isIncompleteSummary(summary) ? styles.incompleteLine : null]}
+              testID={`activity-card-summary-${definition.id}`}
+            >
+              {summary}
+            </Text>
           </ActivityCardMainArea>
           <View style={styles.actions} pointerEvents="box-none">
             <Pressable
@@ -356,6 +358,9 @@ const styles = StyleSheet.create({
     ...type.supporting,
     marginRight: minTouchTarget + spacing[2] - spacing[16],
     color: colors.textSecondary,
+  },
+  incompleteLine: {
+    color: colors.danger,
   },
   actions: {
     position: "absolute",

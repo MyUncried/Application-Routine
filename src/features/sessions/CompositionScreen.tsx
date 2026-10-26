@@ -134,6 +134,7 @@ import {
   formatOccurrenceAccessibilityLabel,
   formatOccurrenceEstimatedDuration,
   formatOccurrenceSummary,
+  isIncompleteSummary,
   resolveOccurrenceCategory,
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
@@ -142,6 +143,7 @@ import {
   OCCURRENCE_CARD_RADIUS,
   OccurrenceCard,
   occurrenceCardHeight,
+  occurrenceCardIncompleteSurface,
   occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
   occurrenceRecoveryTouchExtent,
@@ -4847,6 +4849,10 @@ function CompositionActivityRow({
   // PRE-6 (story 2.2) : contenu de la carte d'occurrence (`5544:6797`).
   const category = resolveOccurrenceCategory(activity.categoryId, categoriesReferential);
   const estimatedDuration = formatOccurrenceEstimatedDuration(activity, circuitContext);
+  const summary = formatOccurrenceSummary(activity);
+  // PRE-7 (D-448, point 7, recette JA2 nv-5) : synthèse « Paramètres à compléter. » (par exemple une
+  // phase sans durée après un changement de rang) → carte sur `colors.dangerSurface`.
+  const isIncomplete = isIncompleteSummary(summary);
   /**
    * Hauteur de la CARTE seule : 80 (carte v2, PRE-6 story 5.1, D-435), récupération comprise
    * (ligne 3). La rangée du point d'arrêt, rendue SOUS la carte hors placement, n'entre pas ici.
@@ -5079,6 +5085,7 @@ function CompositionActivityRow({
           styles.activityBlock,
           // PRE-6 (story 5.1, D-435) : dans le Circuit, carte sans bord ; l'état soulevé garde le sien.
           activity.structuralPosition === "IN_TOUR" && !isDragged ? occurrenceCardInCircuitSurface : null,
+          isIncomplete && !isDragged ? occurrenceCardIncompleteSurface : null,
           isDragged ? styles.activityBlockDragged : null,
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
@@ -5105,7 +5112,7 @@ function CompositionActivityRow({
           name={displayedName}
           category={category}
           bodyZones={bodyZones}
-          summary={formatOccurrenceSummary(activity)}
+          summary={summary}
           estimatedDuration={estimatedDuration}
           hasSideChange={hasSideChange}
           bordered={isCardBordered}

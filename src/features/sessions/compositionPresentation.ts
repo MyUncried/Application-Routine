@@ -340,6 +340,17 @@ export function formatActivityRecoveryLabel(
   return `${strings.screens.composition.activityRecovery.label} ${formatCompactDuration(postActivityRecoverySeconds)}`;
 }
 
+/**
+ * PRE-7 (D-448, point 7, recette JA2 du 26/10/2026) : vrai si une synthèse
+ * (`formatOccurrenceSummary`, `formatExerciseRowSummary`) est le signalement
+ * « Paramètres à compléter. », que les présentations rendent en `colors.danger`
+ * (et la carte de Composition sur `colors.dangerSurface`). Le texte est une seule
+ * clé du lexique : aucune autre synthèse ne lui est égale.
+ */
+export function isIncompleteSummary(summary: string): boolean {
+  return summary === strings.executionParameters.card.incomplete;
+}
+
 /** PRE-6 (story 2.2, D-238) : nombre maximal de cibles listées d'une série variable avant « … ». */
 export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
 
