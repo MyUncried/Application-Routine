@@ -1,5 +1,13 @@
 # Conception fonctionnelle par fonctionnalité
 
+## Conception ciblée — fiche Mouvement
+
+Trois états fonctionnels : création indépendante/variante, consultation, édition d'un mouvement existant. La reprise d'un résultat mène à la consultation, pas à une copie. Le crayon depuis le catalogue ouvre un brouillon ; les commandes de niveau restent distinctes de l'édition du contenu. Le passage à une autre fiche protège le brouillon selon le mécanisme d'abandon existant. La sauvegarde d'une variante est directe ; le dialogue de portée concerne seulement une modification de l'identité existante. La structure des phases est éditée ici, sans aucune durée.
+
+Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible. Les transitions et validations sont définies dans CE-MVT-01 et la table C03 de la spécification ciblée.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Conception cible — D-449

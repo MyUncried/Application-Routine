@@ -1,0 +1,1021 @@
+{
+  "components": [
+    {
+      "id": "10450:24374",
+      "name": "État=Rempli",
+      "set": {
+        "id": "10450:24378",
+        "name": "DSF / Médias / Gabarit photo"
+      },
+      "width": 402,
+      "height": 329
+    },
+    {
+      "id": "7872:14696",
+      "name": "Action=Lecture",
+      "set": {
+        "id": "5613:5357",
+        "name": "DSF / Actions / Bouton d’action circulaire"
+      },
+      "width": 56,
+      "height": 56
+    },
+    {
+      "id": "5613:5346",
+      "name": "Action=Plein écran",
+      "set": {
+        "id": "5613:5357",
+        "name": "DSF / Actions / Bouton d’action circulaire"
+      },
+      "width": 32,
+      "height": 32
+    },
+    {
+      "id": "9029:18368",
+      "name": "Zone bleue — Nom et média",
+      "set": null,
+      "width": 402,
+      "height": 115
+    },
+    {
+      "id": "6981:14888",
+      "name": "État=Nom d’exercice — champ vide",
+      "set": {
+        "id": "5544:4821",
+        "name": "DSF / Forms / Nom"
+      },
+      "width": 354,
+      "height": 42
+    },
+    {
+      "id": "9003:15626",
+      "name": "Rôle=Catégorie, État=Renseigné",
+      "set": {
+        "id": "9003:15638",
+        "name": "Sélecteur classification"
+      },
+      "width": 103,
+      "height": 26
+    },
+    {
+      "id": "9002:15540",
+      "name": "Icône — Catégorie",
+      "set": null,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "9003:15631",
+      "name": "Rôle=Zone, État=Vide",
+      "set": {
+        "id": "9003:15638",
+        "name": "Sélecteur classification"
+      },
+      "width": 136,
+      "height": 26
+    },
+    {
+      "id": "9002:15547",
+      "name": "Zone corporelle — glyphe",
+      "set": null,
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "9925:41515",
+      "name": "Rôle=Niveau, État=Renseigné",
+      "set": {
+        "id": "9003:15638",
+        "name": "Sélecteur classification"
+      },
+      "width": 79,
+      "height": 20
+    },
+    {
+      "id": "9925:41235",
+      "name": "Niveau=1",
+      "set": {
+        "id": "9932:44044",
+        "name": "icon/niveau"
+      },
+      "width": 18,
+      "height": 18
+    },
+    {
+      "id": "9003:15580",
+      "name": "État=Renseigné",
+      "set": {
+        "id": "9003:15591",
+        "name": "Description"
+      },
+      "width": 354,
+      "height": 132
+    },
+    {
+      "id": "9002:15555",
+      "name": "Description / Étape",
+      "set": null,
+      "width": 354,
+      "height": 34
+    },
+    {
+      "id": "10450:24387",
+      "name": "État=Renseigné",
+      "set": {
+        "id": "10450:24397",
+        "name": "DSF / Formulaires / Phases du mouvement"
+      },
+      "width": 354,
+      "height": 90
+    },
+    {
+      "id": "5544:4503",
+      "name": "État=Fermer",
+      "set": {
+        "id": "5544:4504",
+        "name": "DSF / Navigation / En-tête fixe"
+      },
+      "width": 402,
+      "height": 95
+    },
+    {
+      "id": "6955:26633",
+      "name": "DSF / Navigation / Barre d’état (décor)",
+      "set": null,
+      "width": 402,
+      "height": 36
+    },
+    {
+      "id": "6959:15825",
+      "name": "icon/fermer",
+      "set": null,
+      "width": 24,
+      "height": 24
+    }
+  ],
+  "texts": [
+    {
+      "text": "▶",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 20,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Squats sautés",
+      "font": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "wght": 600,
+          "slnt": 0
+        }
+      },
+      "size": 20,
+      "lineHeight": {
+        "unit": "PIXELS",
+        "value": 22
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "Renforcement",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 13,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "Zone corporelle",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 13,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.019607843831181526,
+            "g": 0.0313725508749485,
+            "b": 0.8980392217636108
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Niveau 3",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 13,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "Description du mouvement",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 11,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:58"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "1.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Descendez en squat, dos droit, cuisses parallèles au sol.",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "2.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Poussez sur les jambes et sautez verticalement.",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "3.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Atterrissez souplement, genoux fléchis.",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "4.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Enchaînez sans pause jusqu’à la fin de la série.",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "Phases du mouvement (pour minuter l’exécution)",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 11,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:58"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "1.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Descente",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "2.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Remontée",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "3.",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.3490196168422699,
+            "g": 0.3686274588108063,
+            "b": 0.4000000059604645
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Montée",
+      "font": {
+        "family": "Inter",
+        "style": "Regular",
+        "variationSettings": {
+          "wght": 400,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "9:41",
+      "font": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "wght": 600,
+          "slnt": 0
+        }
+      },
+      "size": 12,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.0784313753247261,
+            "g": 0.0784313753247261,
+            "b": 0.0784313753247261
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:57"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "text": "Mouvement",
+      "font": {
+        "family": "Inter",
+        "style": "Medium",
+        "variationSettings": {
+          "wght": 500,
+          "slnt": 0
+        }
+      },
+      "size": 17,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "S:8d8d0a147cdb609222cc868cb59e902456822134,",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 0.22699999809265137,
+            "g": 0.22699999809265137,
+            "b": 0.24699999392032623
+          },
+          "boundVariables": {}
+        }
+      ]
+    },
+    {
+      "text": "Terminer",
+      "font": {
+        "family": "Inter",
+        "style": "Semi Bold",
+        "variationSettings": {
+          "wght": 600,
+          "slnt": 0
+        }
+      },
+      "size": 14,
+      "lineHeight": {
+        "unit": "AUTO"
+      },
+      "style": "S:8c0166ad923f2f76eca2e03ae568cf61a74967fc,",
+      "fills": [
+        {
+          "type": "SOLID",
+          "visible": true,
+          "opacity": 1,
+          "blendMode": "NORMAL",
+          "color": {
+            "r": 1,
+            "g": 1,
+            "b": 1
+          },
+          "boundVariables": {
+            "color": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:4151:6166"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {
+      "id": "VariableID:2290:51",
+      "name": "color/primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:2"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:57",
+      "name": "color/text-primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:8"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:58",
+      "name": "color/text-secondary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:9"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:71",
+      "name": "spacing/8",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:23"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:72",
+      "name": "spacing/12",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:25"
+        }
+      }
+    },
+    {
+      "id": "VariableID:2290:74",
+      "name": "spacing/24",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:30"
+        }
+      }
+    },
+    {
+      "id": "VariableID:4151:6166",
+      "name": "color/on-primary",
+      "values": {
+        "2289:1": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:2290:5"
+        }
+      }
+    }
+  ]
+}

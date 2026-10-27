@@ -1,5 +1,11 @@
 # Parcours utilisateur
 
+## Parcours ciblé — créer ou modifier un mouvement
+
+Catalogue des mouvements → création vierge → saisie du nom et suggestions → mouvement indépendant ou variante explicite → contenu → Terminer → catalogue/fiche enregistrée. Une reprise ouvre la fiche du mouvement existant, sans nouvelle identité. Catalogue → fiche consultée → crayon → brouillon → sauvegarde selon C03 → fiche enregistrée. Annuler un dialogue conserve le brouillon ; confirmer l'abandon le détruit. Depuis une séance, utiliser un mouvement n'ouvre ni édition partagée ni création de variante. Voir CE-MVT-01 et la spécification ciblée pour toutes les branches.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Parcours cible — D-449

@@ -1,5 +1,9 @@
 # Modèle de données fonctionnel
 
+## Application au lot Mouvement autonome — 27/10/2026
+
+La création par CE-MVT-01 persiste un Mouvement sans créer d'ActivityDefinition ni de SessionActivity. Les phases du mouvement portent leurs identités stables et libellés ; les durées restent locales aux exercices. La variante peut créer un groupe et son second membre dans la même opération logique ; un abandon ne laisse pas de groupe provisoire. Aucun rang historique ni nouvel indicateur irréversible d'utilisation n'est ajouté. La création d'une identité distincte depuis le catalogue ne réaffecte aucune référence active existante. Le modèle de séance unique D-449 reste la cible ; ce lot n'impose pas sa réalisation complète pour permettre le parcours autonome.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Modèle de données cible — D-449
