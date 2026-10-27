@@ -78,7 +78,8 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 
 - **Q-B2** : « le rang le plus haut en tête de l'île » (lu « pile ») — le Niveau le plus élevé de la famille est la carte du dessus, comme le prototype. Restent ouverts : navigation depuis une pile, effet de la recherche, filtres, tri, actions glissées ; les piles ne sont donc pas encore développées.
 - **Q-E1** : la Séance issue d'un Exercice du Catalogue prend le titre de son premier Exercice. Consigné pour l'Epic E, non commencé.
-- **Q-B3** : explication demandée ; toujours ouvert.
+- **Q-B3** : aucun texte sous « Créer un nouveau mouvement » depuis le Catalogue (Mouvement nouveau sans lien). Conforme au livré.
+- **Q-B2, compléments** : pile dépliée au toucher ; recherche en piles dépliables ; Trier et Partager grisés ; Créer une variante par le choix de difficulté existant ; Archiver transposé de CE-T03-05. Ouverts : combinaison des filtres, archivage dans une famille de Niveaux.
 - Aucune modification applicative ; aucun test applicable à cette mise à jour documentaire.
 
 ## Vérifications restant à effectuer sur appareil réel

@@ -30,9 +30,10 @@ deferred:
   - id: q-b2
     epic: b
     status: partiellement-tranche
-    decision: "Arbitrage Hermann du 27/10 : le rang le plus haut (Niveau N le plus élevé de la famille) en tête de pile, conforme au prototype. Restent à clarifier : navigation depuis une pile, effet de la recherche, filtres, tri, actions glissées."
+    decision: "Arbitrage Hermann du 27/10 : le rang le plus haut (Niveau N le plus élevé de la famille) en tête de pile, conforme au prototype. Arbitrage complémentaire : une pile se déplie au toucher ; la recherche affiche des piles dépliables de la même manière ; Trier reste grisé ; Partager reste grisé ; Créer une variante réutilise le choix de difficulté existant ; Archiver transpose les règles de l'Exercice (CE-T03-05) au Mouvement. Restent à clarifier : combinaison des filtres et archivage dans une famille de Niveaux."
     question: "Piles du Catalogue des Mouvements (carte du dessus : rang 1 selon le relevé du 25/10 ou rang le plus élevé selon Figma 10266:20575), navigation depuis une pile, effet de la recherche, sémantique des filtres (Statut, Niveaux, Utilisation, Catégories, Zones) et du tri."
   - id: q-b3
     epic: b
-    status: a-clarifier
+    status: tranche
+    decision: "Arbitrage Hermann du 27/10 : aucun texte sous « Créer un nouveau mouvement » depuis le Catalogue ; c'est un Mouvement nouveau sans lien. Conforme au comportement livré."
     question: "Libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5 : « Uniquement pour cet exercice » à adapter, texte non fourni). En attendant : conséquence omise."
