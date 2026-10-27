@@ -314,3 +314,27 @@ Source : collection `results` du cahier de recette (https://claude.ai/artifact/K
 **Réalisé.** `MovementFilterSheet.tsx` reprend le cadre de `ExecutionParametersSheet` : poignée 50 × 4, ✕ et ✓ ronds 38 (`wheel-action-cancel` / `wheel-action-validate`, fonds `wheelActionCancelBackground` / `wheelActionValidateBackground`, cible `minTouchTarget`), titre `type.modalTitle` centré, filet `divider` sous l'en-tête, voile `overlayScrim`. Contenu, libellés et règles des filtres inchangés. Registre (ch.07) complété.
 **Tests.** tsc et ESLint : OK. `MovementFilterSheet.b7` (4 tests, dont le cadre standard) et `CatalogueScreen` : verts.
 **À vérifier sur l'iPhone.** Rendu de la feuille comparé à la feuille Paramètres d'exécution. Les filets entre groupes de filtres n'ont pas été ajoutés : à préciser si « barres horizontales » les désigne aussi.
+
+## Bouton de lecture vidéo de la fiche Mouvement (27/10)
+
+**Demande.** Spécification de Hermann : bouton « DSF / Actions / Bouton d'action circulaire », Action=Lecture, posé au centre du gabarit photo. Arbitrage « B » : utiliser `expo-glass-effect`, déjà présent depuis l'initialisation du projet, plutôt que d'ajouter `expo-blur`, ce qui impose une nouvelle build.
+
+**Réalisé.** `ActivityMediaList.tsx`, composant `MediaPlayButton` :
+- **Rendu** : Ø 72, centré dans le gabarit ; verre natif `GlassView` (style « clear », clair) quand `isGlassEffectAPIAvailable()` et `isLiquidGlassAvailable()` le permettent ; voile blanc 22 % (`colors.mediaPlaySurface`) ; contour blanc 35 % d'épaisseur 1 (`colors.mediaPlayBorder`) ; triangle blanc 26 × 30 décalé de 2 pt vers la droite ; ni ombre ni couleur de marque.
+- **Interaction** : bouton sur une vidéo seulement ; cible tactile égale au cercle, sans `hitSlop` ; l'appui ouvre le lecteur système plein écran existant (`VideoConsultation`, `enterFullscreen`).
+- **Sans Liquid Glass** (iOS antérieur à 26, ou API absente) : voile et contour seuls.
+- **Triangle** : `assets/icons/media-lecture.svg`, redessiné en tracé d'après le glyphe texte « ▶ » de Figma `7872:14698`. Entrée de manifeste `EQUIVALENT_GEOMETRY`.
+- **Retrait** : le petit cercle violet était déjà retiré en B.10.
+
+**Tests.**
+- tsc et ESLint : OK.
+- `ActivityMediaList` : nouveau test du bouton (absent sur une photo, géométrie, voile, contour, triangle, verre natif, ouverture du lecteur).
+- `npx jest` complet : 207 suites, 4 638 tests, tous verts.
+- Empreinte de `tokens.ts` : `8e16c394…7c2c`. Chapitres 12 (jetons) et 07 (arbitrage B) mis à jour.
+
+**Hypothèse non démontrée.** Le module natif `ExpoGlassEffect` est bien dans la build installée de Routine BMAD : il est lié automatiquement depuis l'initialisation. Si la vérification au lancement échoue, le bouton s'affiche sans verre.
+
+**À vérifier sur l'iPhone** :
+- triangle lisible et image devinée à travers le cercle, sur une illustration claire puis sur une sombre ;
+- rendu selon la version d'iOS (verre sur iOS 26 et suivants) ;
+- appui : lecteur plein écran, puis retour à la fiche dans son état.

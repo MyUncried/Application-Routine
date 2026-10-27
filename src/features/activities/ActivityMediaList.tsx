@@ -1,5 +1,6 @@
 import { Button as SwiftUIButton, ContextMenu, Host, RNHostView, Section } from "@expo/ui/swift-ui";
 import { contentShape, shapes } from "@expo/ui/swift-ui/modifiers";
+import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
@@ -372,8 +373,6 @@ function MediaTile({
       {size ? (
         // Recette A/B B.10 (remarque 4) : gabarit photo de la fiche Mouvement — compteur « rang /
         // total » à la place du badge « Vidéo » (le nom accessible donne déjà le rang et le total).
-        // Le bouton de lecture circulaire (Figma « DSF / Actions / Bouton d'action circulaire »,
-        // Action=Lecture) attend `expo-blur`, absent des dépendances : non posé, à arbitrer.
         <Text
           style={styles.kindBadge}
           accessible={false}
@@ -398,6 +397,14 @@ function MediaTile({
       ) : (
         tile
       )}
+      {size && isVideo ? (
+        <MediaPlayButton
+          size={size}
+          onPress={consult}
+          label={strings.screens.movement.playVideo}
+          testID={`media-item-${index + 1}-play`}
+        />
+      ) : null}
       {consulting && isVideo ? (
         <VideoConsultation uri={uri} onClose={closeVideo} onError={failVideo} testID={consultationTestID} />
       ) : null}
@@ -521,7 +528,93 @@ const PREVIEW_HEIGHT = 213;
  */
 export const OPEN_SETTINGS_HIT_SLOP = { top: 14, bottom: 0, left: 0, right: 0 } as const;
 
+/**
+ * PRE-8, recette A/B (27/10, spécification de Hermann ; arbitrage B : `expo-glass-effect`, déjà
+ * présent) — bouton de lecture du gabarit photo de la fiche Mouvement, Figma « DSF / Actions /
+ * Bouton d'action circulaire », Action=Lecture (`7872:14696`) : Ø 72 centré, verre natif iOS 26
+ * (`GlassView` « clear », clair) sous un voile blanc 22 %, contour blanc 35 %, triangle blanc 30
+ * décalé de 2 vers la droite ; ni ombre, ni couleur de marque. Sans Liquid Glass (iOS antérieur,
+ * API absente) : voile et contour seuls. Cible tactile = le cercle de 72, sans zone étendue.
+ * L'appui ouvre le lecteur système plein écran existant (`VideoConsultation`).
+ */
+const PLAY_BUTTON_SIZE = 72;
+const PLAY_GLYPH_OFFSET = 2;
+const PLAY_GLYPH = require("../../../assets/icons/media-lecture.svg");
+
+function liquidGlassAvailable(): boolean {
+  if (Platform.OS !== "ios") return false;
+  try {
+    return isGlassEffectAPIAvailable() && isLiquidGlassAvailable();
+  } catch {
+    // Module natif absent de la build : voile seul.
+    return false;
+  }
+}
+
+function MediaPlayButton({
+  size,
+  onPress,
+  label,
+  testID,
+}: {
+  readonly size: { readonly width: number; readonly height: number };
+  readonly onPress: () => void;
+  readonly label: string;
+  readonly testID: string;
+}) {
+  const [glass] = useState(liquidGlassAvailable);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[
+        styles.playButton,
+        { left: (size.width - PLAY_BUTTON_SIZE) / 2, top: (size.height - PLAY_BUTTON_SIZE) / 2 },
+      ]}
+      testID={testID}
+    >
+      {glass ? (
+        <GlassView
+          glassEffectStyle="clear"
+          colorScheme="light"
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+          testID={`${testID}-glass`}
+        />
+      ) : null}
+      <View pointerEvents="none" style={styles.playVeil} testID={`${testID}-veil`} />
+      <Image source={PLAY_GLYPH} style={styles.playGlyph} accessible={false} testID={`${testID}-glyph`} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  playButton: {
+    position: "absolute",
+    width: PLAY_BUTTON_SIZE,
+    height: PLAY_BUTTON_SIZE,
+    borderRadius: PLAY_BUTTON_SIZE / 2,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playVeil: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: PLAY_BUTTON_SIZE / 2,
+    borderWidth: 1,
+    borderColor: colors.mediaPlayBorder,
+    backgroundColor: colors.mediaPlaySurface,
+  },
+  playGlyph: {
+    width: 26,
+    height: 30,
+    marginLeft: PLAY_GLYPH_OFFSET,
+  },
   container: {
     gap: spacing[8],
   },

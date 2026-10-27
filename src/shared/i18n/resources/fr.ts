@@ -1073,6 +1073,8 @@ export const fr = {
       archivedNameSuffix: "(archivé)",
       // Recette A/B B.10 (remarque 4) : compteur du gabarit photo, à la place du badge « Vidéo ».
       mediaCounter: "{rank} / {total}",
+      // PRE-8, recette A/B (27/10) : bouton de lecture du gabarit photo (vidéo seulement).
+      playVideo: "Lire la vidéo",
       // Recette A/B B.10 (remarque 6) : actions des cartes de résultat de la fiche Mouvement.
       suggestion: {
         useMovement: "Ouvrir ce mouvement",

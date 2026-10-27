@@ -81,7 +81,8 @@
     {"key":"catalogue.level.easier.join","file":"catalogue-raccord-plus-facile","figmaNodeId":"10585:21534","figmaName":"Raccord — Plus facile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":12,"height":12,"usage":["Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"]},
     {"key":"catalogue.level.harder.join","file":"catalogue-raccord-plus-difficile","figmaNodeId":"10585:21535","figmaName":"Raccord — Plus difficile","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10579:21580","width":12,"height":12,"usage":["Catalogue des Mouvements — raccord des actions glissées (PRE-8 B11)"]},
     {"key":"filter.command.chevron","file":"filtre-chevron-modifier","figmaNodeId":"10465:23261","figmaName":"Chevron bas — Modifier filtres","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10465:23141","width":9.5,"height":5.5,"usage":["Commande Filtrer étendue (PRE-8 D05)"]},
-    {"key":"filter.reset","file":"filtre-reinitialiser","figmaNodeId":"10460:23177","figmaName":"Icône — Réinitialiser","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10460:23176","width":28,"height":28,"usage":["Action Réinitialiser des filtres (PRE-8 D06)"]}
+    {"key":"filter.reset","file":"filtre-reinitialiser","figmaNodeId":"10460:23177","figmaName":"Icône — Réinitialiser","figmaStatus":"MCP_VECTOR_EXPORT","sourceComponentNodeId":"10460:23176","width":28,"height":28,"usage":["Action Réinitialiser des filtres (PRE-8 D06)"]},
+    {"key":"media.play","file":"media-lecture","figmaNodeId":"7872:14698","figmaName":"▶ (DSF / Actions / Bouton d’action circulaire, Action=Lecture)","figmaStatus":"EQUIVALENT_GEOMETRY","sourceComponentNodeId":"7872:14696","width":26,"height":30,"usage":["Bouton de lecture vidéo du gabarit photo de la fiche Mouvement (PRE-8, 27/10) ; le glyphe texte Figma est redessiné en tracé, hauteur 30"]}
   ],
   "branding": {
     "splashLogo": {

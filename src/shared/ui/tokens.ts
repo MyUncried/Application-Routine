@@ -177,6 +177,10 @@ export const colors = {
   // PRE-8, correction UX « clavier » (27/10) : surface de la couche éditable de la fiche Mouvement
   // lorsqu'elle passe devant le média — blanc à 95 % (cible 94–96 %).
   movementEditableSurface: "rgba(255, 255, 255, 0.95)",
+  // PRE-8 (27/10) : bouton de lecture du gabarit photo (Figma `7872:14696`) — voile blanc 22 %,
+  // contour blanc 35 %, sur le verre natif iOS 26.
+  mediaPlaySurface: "rgba(255, 255, 255, 0.22)",
+  mediaPlayBorder: "rgba(255, 255, 255, 0.35)",
   variableSeriesGroupSurface: "#F3F3F6",
   // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
   // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`

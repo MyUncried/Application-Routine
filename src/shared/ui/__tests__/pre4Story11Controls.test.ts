@@ -22,9 +22,10 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\
  * du Catalogue des Mouvements, documentés au chapitre 12) — modification autorisée, la garde reste
  * active contre toute modification ultérieure non autorisée. Empreinte après B.9 : `2ed5cdbc…9e42` ;
  * mise à jour par B.10 (recette du 27/10, r9-a02 : `type.screenHeaderTitle`, Medium 17, chapitre 12) :
- * `5d8a7e03…ec54` ; puis par la correction UX « clavier » du 27/10 (`movementEditableSurface`).
+ * `5d8a7e03…ec54` ; puis par la correction UX « clavier » du 27/10 (`movementEditableSurface`) :
+ * `6358eb15…d86c` ; puis par le bouton de lecture vidéo (`mediaPlaySurface`, `mediaPlayBorder`).
  */
-const TOKENS_BASELINE_SHA256 = "6358eb15f15234647598de65468d45f63f69d09592ba6389856463acdcb6d86c";
+const TOKENS_BASELINE_SHA256 = "8e16c3942cad42dd83abf5586a0d2b4e37495626961299a999c11464b7ef7c2c";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {
