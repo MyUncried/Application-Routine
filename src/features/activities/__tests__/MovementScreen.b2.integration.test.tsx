@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { Keyboard, StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -450,6 +450,74 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
   });
 
+  it("KBD-01 à KBD-07 : clavier — média et contexte fixes, la couche éditable remonte devant le média puis redescend", async () => {
+    // Évènements clavier capturés (iOS : `Will`), durée native 250.
+    const listeners = new Map<string, Set<(event: unknown) => void>>();
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((name: string, listener: (event: unknown) => void) => {
+      const set = listeners.get(name) ?? new Set<(event: unknown) => void>();
+      set.add(listener);
+      listeners.set(name, set);
+      return { remove: () => set.delete(listener) };
+    }) as unknown as typeof Keyboard.addListener);
+    const emit = (name: string) =>
+      act(() => listeners.get(name)?.forEach((listener) => listener({ endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 }, duration: 250, easing: "keyboard" })));
+    try {
+      await renderSheet();
+      const photoStyle = () => StyleSheet.flatten(screen.getByTestId("movement-photo-template", anyNode).props.style);
+      // Le simulacre Jest de Reanimated ne conserve pas la valeur animée : l’état de remontée est lu
+      // sur la couche (`-lifted`) ; le déplacement lui-même se vérifie sur l’iPhone.
+      const isLifted = () => screen.queryByTestId("movement-editable-layer-lifted", anyNode) !== null;
+      const resting = photoStyle();
+      const layer = screen.getByTestId("movement-editable-layer", anyNode);
+      // Couches séparées : le média n'est pas dans la couche éditable ; Description et Phases y sont.
+      expect(within(layer).queryByTestId("movement-photo-template", anyNode)).toBeNull();
+      expect(within(layer).getByTestId("exercise-section-description", anyNode)).toBeTruthy();
+      expect(within(layer).getByTestId("movement-section-phases", anyNode)).toBeTruthy();
+      expect(StyleSheet.flatten(layer.props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.95)");
+      expect(isLifted()).toBe(false);
+      // KBD-02 : focus d'une étape → la couche remonte jusqu'au bas de la zone de contexte.
+      await act(async () => {
+        fireEvent(screen.getByTestId("exercise-instruction-input", anyNode), "focus");
+      });
+      emit("keyboardWillShow");
+      await settle(300);
+      expect(isLifted()).toBe(true);
+      expect(photoStyle()).toEqual(resting);
+      // KBD-05 : passage aux Phases, clavier ouvert — aucune nouvelle translation.
+      await act(async () => {
+        fireEvent(screen.getByTestId("exercise-instruction-input", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-invite", anyNode), "focus");
+      });
+      await settle(300);
+      expect(isLifted()).toBe(true);
+      // KBD-06 : fermeture du clavier → disposition normale, média inchangé, saisie conservée.
+      await type("movement-phases-invite", "Descente");
+      emit("keyboardWillHide");
+      await settle(300);
+      expect(isLifted()).toBe(false);
+      expect(photoStyle()).toEqual(resting);
+      expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
+      // Clavier rouvert, Phase toujours active (aucun nouveau focus) : la couche remonte.
+      emit("keyboardWillShow");
+      await settle(300);
+      expect(isLifted()).toBe(true);
+      emit("keyboardWillHide");
+      await settle(300);
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+      });
+      // Le Nom n'entraîne pas la couche.
+      await act(async () => {
+        fireEvent(screen.getByTestId("exercise-name-input", anyNode), "focus");
+      });
+      emit("keyboardWillShow");
+      await settle(300);
+      expect(isLifted()).toBe(false);
+    } finally {
+      spy.mockRestore();
+    }
+  });
+
   it("b2-4 : ↑ des Phases pendant leur saisie, qui ferme seulement le clavier", async () => {
     await renderSheet();
     expect(screen.queryByTestId("movement-phases-submit", anyNode)).toBeNull();
@@ -458,7 +526,6 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     });
     const submit = screen.getByTestId("movement-phases-submit", anyNode);
     expect(submit.props.accessibilityLabel).toBe(t.phasesSubmitAccessibilityLabel);
-    expect(screen.getByTestId("movement-photo-content", anyNode)).toBeTruthy();
     await act(async () => {
       fireEvent(screen.getByTestId("movement-phases-invite", anyNode), "blur");
     });

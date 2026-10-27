@@ -174,6 +174,9 @@ export const colors = {
   // groupe Séries variables (figé 6665:24616). Distincts de
   // `exerciseContextBandBackground`, que la Composition continue d’utiliser.
   exerciseEditorContextBand: "#EAEAFF",
+  // PRE-8, correction UX « clavier » (27/10) : surface de la couche éditable de la fiche Mouvement
+  // lorsqu'elle passe devant le média — blanc à 95 % (cible 94–96 %).
+  movementEditableSurface: "rgba(255, 255, 255, 0.95)",
   variableSeriesGroupSurface: "#F3F3F6",
   // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
   // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`

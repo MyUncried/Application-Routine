@@ -21,9 +21,10 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\
  * A/B (arbitrage de Hermann du 27/10/2026 : marge standard centralisée `layout.screenGutter` et jetons
  * du Catalogue des Mouvements, documentés au chapitre 12) — modification autorisée, la garde reste
  * active contre toute modification ultérieure non autorisée. Empreinte après B.9 : `2ed5cdbc…9e42` ;
- * mise à jour par B.10 (recette du 27/10, r9-a02 : `type.screenHeaderTitle`, Medium 17, chapitre 12).
+ * mise à jour par B.10 (recette du 27/10, r9-a02 : `type.screenHeaderTitle`, Medium 17, chapitre 12) :
+ * `5d8a7e03…ec54` ; puis par la correction UX « clavier » du 27/10 (`movementEditableSurface`).
  */
-const TOKENS_BASELINE_SHA256 = "5d8a7e03f4ba7b60d48bfdbd205dcb9c7a7204e6318c1ed0cd69d20a7708ec54";
+const TOKENS_BASELINE_SHA256 = "6358eb15f15234647598de65468d45f63f69d09592ba6389856463acdcb6d86c";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

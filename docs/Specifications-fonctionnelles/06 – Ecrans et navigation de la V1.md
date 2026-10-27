@@ -2,7 +2,7 @@
 
 ## Parcours Mouvement — référence visuelle du lot ciblé (27/10/2026)
 
-Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
+Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Clavier ouvert dans la Description ou les Phases (27/10/2026) : contexte et média restent fixes, le contenu éditable remonte devant le média sur une surface claire translucide puis reprend sa place à la fermeture (CE-MVT-01 §10) ; cet état n'est pas représenté dans Figma. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
 
 **Mouvement — Initial**
 

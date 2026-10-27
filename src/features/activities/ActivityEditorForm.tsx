@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
 import {
   AccessibilityInfo,
   Keyboard,
@@ -223,13 +223,20 @@ export const MOVEMENT_PHOTO_TEMPLATE = { width: 402, height: 329 } as const;
 export const MOVEMENT_PHOTO_UNDER_CONTEXT = 21;
 
 /**
- * Recette A/B B.10 (b2-4, demande de Hermann) : pendant la saisie de la Description ou des Phases,
- * le gabarit photo remonte derrière la zone de contexte (hauteur visible réduite à la part qu'elle
- * recouvre, image entraînée vers le haut) pour laisser le champ actif au-dessus du clavier ; il
- * reprend sa place à la fin de la saisie. Durée et courbe des feuilles (`SheetMotion`, 350 ms) ;
- * « Réduire les animations » : changement immédiat (`ReduceMotion.System`).
+ * PRE-8, correction UX « clavier » de la fiche Mouvement (KBD, 27/10/2026, remplace la remontée du
+ * gabarit photo de B.10) : la zone de contexte et le gabarit photo restent FIXES ; pendant la saisie
+ * de la Description ou des Phases, la couche éditable (zone qui évite le clavier et son défilement)
+ * remonte devant le média jusqu'au bas de la zone de contexte, sur une surface claire translucide
+ * (`colors.movementEditableSurface`), puis le champ actif est recadré au-dessus du clavier. Elle
+ * redescend à la fermeture du clavier. Durée de la transition native du clavier iOS quand l'évènement
+ * la donne (`MOVEMENT_EDITOR_LIFT_MS` sinon) ; « Réduire les animations » : immédiat.
  */
-const MOVEMENT_PHOTO_RAISE_TIMING = { duration: 350, easing: Easing.out(Easing.cubic), reduceMotion: ReduceMotion.System };
+const MOVEMENT_EDITOR_LIFT_MS = 250;
+const movementEditorLiftTiming = (duration: number) => ({
+  duration,
+  easing: Easing.out(Easing.cubic),
+  reduceMotion: ReduceMotion.System,
+});
 
 /**
  * Validité du brouillon d'Exercice : Nom valide et paramètres valides par la
@@ -419,10 +426,17 @@ export function ActivityEditorForm({
   // clavier, à chaque changement d'étape et à chaque changement de sa hauteur.
   // Terminer reste en bas, sous le clavier.
   const bodyScrollRef = useRef<ScrollView>(null);
+  // KBD : remontée de la couche éditable en cours (recadrages différés, voir `liftEditableLayer`).
+  const liftProgressRef = useRef({ animating: false });
+  // KBD : une étape de Description ou une Phase a le focus (lu par l'écoute du clavier).
+  const editableFocusRef = useRef({ description: false, phases: false, focused: false });
   const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
   const descriptionLayoutRef = useRef({ sectionY: 0, stepsY: 0, activeRowBottom: 0 });
   const bodyHeightRef = useRef(0);
   function revealDescription() {
+    // KBD : pas de recadrage pendant la remontée de la couche éditable (sa hauteur change à chaque
+    // image) ; il est fait une fois, à la fin (`liftEditableLayer`) — aucun double décalage.
+    if (liftProgressRef.current.animating) return;
     const { sectionY, stepsY, activeRowBottom } = descriptionLayoutRef.current;
     const viewport = bodyHeightRef.current;
     if (viewport <= 0) return;
@@ -439,6 +453,7 @@ export function ActivityEditorForm({
   const [isPhasesFocused, setIsPhasesFocused] = useState(false);
   const phasesLayoutRef = useRef({ y: 0, height: 0 });
   function revealPhases() {
+    if (liftProgressRef.current.animating) return;
     const { y, height } = phasesLayoutRef.current;
     const viewport = bodyHeightRef.current;
     if (viewport <= 0) return;
@@ -449,14 +464,75 @@ export function ActivityEditorForm({
     const subscription = Keyboard.addListener("keyboardDidShow", () => revealPhases());
     return () => subscription.remove();
   }, [isPhasesFocused]);
-  // Recette A/B B.10 (b2-4) : gabarit photo remonté pendant la saisie (voir `MOVEMENT_PHOTO_RAISE_TIMING`).
-  const isPhotoRaised = isMovement && (isDescriptionFocused || isPhasesFocused);
-  const photoVisibleHeight = useSharedValue(movementPhotoHeight);
+  // KBD (voir `MOVEMENT_EDITOR_LIFT_MS`) : remontée de la couche éditable devant le média fixe.
+  // Déclenchée par le focus d'une étape ou d'une Phase ; maintenue tant que le clavier reste ouvert
+  // (passer d'un champ à l'autre ne la rejoue pas) ; retirée à la fermeture du clavier ou au focus
+  // du Nom. Une seule mécanique pour la Description et les Phases.
+  const editableLift = useSharedValue(0);
+  const liftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isEditorLiftedRef = useRef(false);
+  // État rendu de la remontée (recalcule le style animé ; lisible par les tests).
+  const [isEditorLifted, setIsEditorLifted] = useState(false);
+  const keyboardDurationRef = useRef(MOVEMENT_EDITOR_LIFT_MS);
+  const movementLiftDistance = movementPhotoHeight - MOVEMENT_PHOTO_UNDER_CONTEXT;
+  // Recadrage du champ actif à la fin de la remontée (focus courant, relu après rendu).
+  const revealActiveFieldRef = useRef<() => void>(() => undefined);
+  const liftEditableLayer = useCallback(
+    (lifted: boolean) => {
+      if (!isMovement || isEditorLiftedRef.current === lifted) return;
+      isEditorLiftedRef.current = lifted;
+      setIsEditorLifted(lifted);
+      const duration = keyboardDurationRef.current;
+      editableLift.set(withTiming(lifted ? 1 : 0, movementEditorLiftTiming(duration)));
+      liftProgressRef.current.animating = true;
+      if (liftTimerRef.current) clearTimeout(liftTimerRef.current);
+      liftTimerRef.current = setTimeout(() => {
+        liftProgressRef.current.animating = false;
+        liftTimerRef.current = null;
+        if (lifted) revealActiveFieldRef.current();
+      }, duration);
+    },
+    [isMovement, editableLift],
+  );
   useEffect(() => {
-    photoVisibleHeight.value = withTiming(isPhotoRaised ? MOVEMENT_PHOTO_UNDER_CONTEXT : movementPhotoHeight, MOVEMENT_PHOTO_RAISE_TIMING);
-  }, [isPhotoRaised, movementPhotoHeight, photoVisibleHeight]);
-  const photoClipStyle = useAnimatedStyle(() => ({ height: photoVisibleHeight.value }));
-  const photoContentStyle = useAnimatedStyle(() => ({ transform: [{ translateY: photoVisibleHeight.value - movementPhotoHeight }] }));
+    if (!isMovement) return;
+    const willShow = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
+      if (event.duration > 0) keyboardDurationRef.current = event.duration;
+      // Clavier rouvert sans nouveau focus (champ resté actif) : la couche remonte aussi.
+      if (editableFocusRef.current.focused) liftEditableLayer(true);
+    });
+    const willHide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", (event) => {
+      if (event.duration > 0) keyboardDurationRef.current = event.duration;
+      liftEditableLayer(false);
+    });
+    return () => {
+      willShow.remove();
+      willHide.remove();
+      if (liftTimerRef.current) clearTimeout(liftTimerRef.current);
+    };
+  }, [isMovement, liftEditableLayer]);
+  useEffect(() => {
+    revealActiveFieldRef.current = () => {
+      if (isDescriptionFocused) revealDescription();
+      if (isPhasesFocused) revealPhases();
+    };
+  });
+  const editableLayerStyle = useAnimatedStyle(
+    () => ({ marginTop: -editableLift.get() * movementLiftDistance }),
+    [isEditorLifted, movementLiftDistance],
+  );
+  const onDescriptionFocusChange = (focused: boolean) => {
+    setIsDescriptionFocused(focused);
+    editableFocusRef.current.description = focused;
+    editableFocusRef.current.focused = focused || editableFocusRef.current.phases;
+    if (focused) liftEditableLayer(true);
+  };
+  const onPhasesFocusChange = (focused: boolean) => {
+    setIsPhasesFocused(focused);
+    editableFocusRef.current.phases = focused;
+    editableFocusRef.current.focused = focused || editableFocusRef.current.description;
+    if (focused) liftEditableLayer(true);
+  };
   // Recette A/B B.10 (b2-5) : contenu hors Nom verrouillé tant que le nom saisi est déjà utilisé.
   const isBodyLocked = contentLocked || bodyLocked;
   // PRE-7 (D-446, MFN-08) : durée de phase manquante → « Paramètres à compléter. », comme lorsque
@@ -595,7 +671,11 @@ export function ActivityEditorForm({
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
-          onFocus={() => setIsNameFocused(true)}
+          onFocus={() => {
+            setIsNameFocused(true);
+            // KBD : la saisie du Nom n'est pas concernée — la couche éditable reprend sa place.
+            liftEditableLayer(false);
+          }}
           onBlur={() => setIsNameFocused(false)}
           autoFocus={autoFocusName}
           // Recette A/B B.10 (b2-5) : nom déjà utilisé — Entrée ne quitte pas le Nom (clavier conservé).
@@ -752,15 +832,18 @@ export function ActivityEditorForm({
         // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
         // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
         // La hauteur suit la largeur du terminal (402 × 329 en référence).
-        // Recette A/B B.10 (b2-4) : cadre à hauteur animée, image ancrée en haut et entraînée vers le
-        // haut du même déplacement — le gabarit remonte derrière la zone de contexte pendant la saisie.
-        <Reanimated.View style={[styles.movementPhotoTemplate, photoClipStyle]} testID="movement-photo-template">
-          <Reanimated.View style={[{ height: movementPhotoHeight }, photoContentStyle]} testID="movement-photo-content">
-            {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
-          </Reanimated.View>
-        </Reanimated.View>
+        // KBD (27/10) : le gabarit ne bouge jamais avec le clavier ; la couche éditable passe devant.
+        <View style={[styles.movementPhotoTemplate, { height: movementPhotoHeight }]} testID="movement-photo-template">
+          {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
+        </View>
       ) : null}
 
+      {/* KBD : couche éditable — au-dessus du média (ordre d'affichage), sous la zone de contexte
+          (`zIndex` 1) ; sa marge haute animée la fait remonter devant le média pendant la saisie. */}
+      <Reanimated.View
+        style={[styles.flex, isMovement ? [styles.movementEditableLayer, editableLayerStyle] : null]}
+        testID={isEditorLifted ? "movement-editable-layer-lifted" : "movement-editable-layer"}
+      >
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           ref={bodyScrollRef}
@@ -804,7 +887,7 @@ export function ActivityEditorForm({
                 steps={value.instructionSteps}
                 onChange={(steps) => onChange({ instructionSteps: steps })}
                 editable={!isBodyLocked}
-                onFocusChange={setIsDescriptionFocused}
+                onFocusChange={onDescriptionFocusChange}
                 onActiveRowBottomChange={(bottom) => {
                   descriptionLayoutRef.current.activeRowBottom = bottom;
                   revealDescription();
@@ -846,7 +929,7 @@ export function ActivityEditorForm({
                     value={movementPhases.value}
                     onChange={movementPhases.onChange}
                     editable={!isBodyLocked}
-                    onFocusChange={setIsPhasesFocused}
+                    onFocusChange={onPhasesFocusChange}
                   />
                 </View>
                 {isPhasesFocused ? (
@@ -917,6 +1000,7 @@ export function ActivityEditorForm({
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      </Reanimated.View>
 
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
           jamais avec le clavier (Android : zone masquée clavier ouvert, revue 7.10) ; il redevient
@@ -1265,6 +1349,10 @@ const styles = StyleSheet.create({
     marginTop: -MOVEMENT_PHOTO_UNDER_CONTEXT,
     overflow: "hidden",
     backgroundColor: colors.mediaSurface,
+  },
+  // KBD : surface claire translucide de la couche éditable, qui recouvre le média quand elle remonte.
+  movementEditableLayer: {
+    backgroundColor: colors.movementEditableSurface,
   },
   contextBand: {
     // Le halo déborde au-dessus de la zone : seule la partie interne est dessinée.

@@ -247,3 +247,63 @@ Source : collection `results` du cahier de recette (https://claude.ai/artifact/K
 **À vérifier sur l'iPhone :** remontée de la photo pendant la saisie et bouton ↑ ; liste de suggestions sous la zone de contexte, message à l'Entrée, clavier maintenu ; repères « (archivé) » ; glisser de réordonnancement ; renumérotation après archivage ; titres Medium 17.
 
 **À clarifier :** voir la spec B.10 (7 points, dont la taille du menu Niveau natif iOS et le rang affiché d'un archivé).
+
+## Correction UX « clavier » de la fiche Mouvement (27/10)
+
+**Demande.** « KODJO — PRE-8 — Correction UX du formulaire Mouvement lors de l'ouverture du clavier » : média et contexte fixes ; le formulaire éditable (Description, Phases) remonte devant le média sur une surface claire translucide (95 %), le champ actif reste visible ; retour progressif à la fermeture. Autorisée dans PRE-8 A/B, sans nouvel epic. Point de départ : `e98f4341`.
+
+**Cause technique.**
+- Structure d'origine, PRE-8 F01/F02 : zone de contexte, puis gabarit photo dans le flux de mise en page (hauteur fixe, environ 329 à 402 pt), puis `KeyboardAvoidingView` et `ScrollView` qui occupent le reste.
+- À l'ouverture du clavier, la zone d'évitement réduisait le défilement à l'espace compris entre le bas de la photo et le haut du clavier, presque nul. Le champ actif passait donc sous la photo ; c'est l'écart b2-4 de la recette.
+- B.10 a corrigé à l'envers : la hauteur visible de la photo était animée jusqu'à 21 pt et l'image entraînée vers le haut. C'est le défaut constaté : le média disparaît derrière la zone de contexte.
+- Attribution démontrée par lecture du code (`photoVisibleHeight`, `MOVEMENT_PHOTO_RAISE_TIMING` dans `e98f4341`).
+
+**Correction.** `ActivityEditorForm.tsx` :
+- **Gabarit média** : redevenu une vue fixe, hauteur et marge inchangées. Il ne réagit plus au clavier.
+- **Couche éditable** : une nouvelle couche `movement-editable-layer` enveloppe la zone qui évite le clavier et le défilement. Elle s'affiche au-dessus du média et sous la zone de contexte (`zIndex` 1), sur `colors.movementEditableSurface` (blanc à 95 %).
+- **Remontée** : sa marge haute est animée de 0 à `-(hauteur du média − 21)`, soit jusqu'au bas de la zone de contexte.
+  - Primitive : Reanimated `withTiming`, avec la durée de l'évènement clavier, à défaut 250 ms, et `ReduceMotion.System`.
+  - Déclenchement : focus d'une étape de Description ou d'une Phase, ou réouverture du clavier dans un champ resté actif.
+  - Retour : fermeture du clavier, ou focus du Nom.
+- **Recadrage** : le champ actif est recadré une seule fois, à la fin de la remontée, par les mécanismes existants `revealDescription` et `revealPhases`. Il n'y a aucun recadrage pendant l'animation, donc pas de double décalage.
+- **Description et Phases** : même mécanique.
+- **Sans changement** : médias, données, règles de Phases (20 caractères), C03, brouillon. Aucune migration.
+
+**Tests.**
+- `npx tsc --noEmit` : OK. ESLint sur les fichiers modifiés : OK.
+- Nouveau test `MovementScreen.b2.integration` « KBD-01 à KBD-07 » :
+  - les couches sont séparées et la surface est à 95 % ;
+  - le style du média est identique avant et après le focus et après la fermeture ;
+  - la couche remonte au focus d'une étape et reste remontée en passant aux Phases ;
+  - elle redescend à la fermeture du clavier, sans perte de la saisie ;
+  - elle remonte à la réouverture du clavier dans un champ resté actif ;
+  - elle ne remonte pas pour le Nom.
+- Le simulacre Jest de Reanimated ne conserve pas les valeurs animées. L'état de remontée est donc lu sur la couche (`-lifted`), et le déplacement réel se vérifie sur l'iPhone.
+- Empreinte de `tokens.ts` mise à jour (`6358eb15…d86c`).
+- `npx jest` complet : 207 suites, 4 636 tests, tous verts. Après les derniers ajustements (réouverture du clavier, documentation), 31 suites concernées repassées : 1 404 tests verts.
+
+**Documentation.**
+- Ch.13 CE-MVT-01 §10 : nouvelle règle, et précisions de mise en œuvre à confirmer.
+- Ch.06 : parcours Mouvement.
+- Ch.12 : jeton et mise en œuvre.
+- Ch.07 : l'entrée b2-4 est annotée « remplacé ».
+- Figma n'est pas modifié ; l'état clavier n'y est pas représenté.
+- Contrôle documentaire indépendant, en lecture seule : aucun écart bloquant. Trois écarts mineurs, corrigés :
+  - précisions de mise en œuvre marquées comme telles ;
+  - cible 94–96 % citée au ch.13 ;
+  - durée de repli de 250 ms citée au ch.12.
+- La remarque sur la réouverture du clavier sans nouveau focus est traitée dans le code et testée.
+
+**À vérifier sur l'iPhone (KBD-01 à KBD-11)** :
+- immobilité du média et du contexte ;
+- fluidité de la remontée et de la descente, et synchronisation avec le clavier ;
+- recadrage de la dernière étape et de la dernière Phase ;
+- passage d'un champ à l'autre ;
+- gabarit vide ; photo puis vidéo ;
+- largeurs 360, 402 et 440 ;
+- réduction des animations et texte agrandi ;
+- absence d'interstice entre la couche et la zone de contexte.
+
+**À confirmer par Hermann** :
+- la saisie du Nom n'entraîne pas la remontée ;
+- la surface à 95 % est posée en permanence sur la couche, sans différence visible au repos sur fond blanc.
