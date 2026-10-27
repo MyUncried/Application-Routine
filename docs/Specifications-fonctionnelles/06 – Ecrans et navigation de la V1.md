@@ -6,12 +6,12 @@ Les libellés des cinq états de fiche/recherche concernés sont actualisés dan
 
 | État | Nœud Figma | Capture |
 | --- | --- | --- |
-| Actions glissées | `10475:47634` | [PNG](images/mouvements-2026-10-27/10475-47634.png) |
-| Ajouter un niveau, sens déployé | `10579:21580` | [PNG](images/mouvements-2026-10-27/10579-21580.png) |
+| Actions glissées | `10475:47634` | [PNG](images/navigation-2026-10-27/10475-47634.png) |
+| Ajouter un niveau, sens déployé | `10579:21580` | [PNG](images/navigation-2026-10-27/10579-21580.png) |
 | DSF — Trois actions | `10586:45516` | [PNG](images/mouvements-2026-10-27/10586-45516.png) |
 | DSF — Choix du sens | `10586:45517` | [PNG](images/mouvements-2026-10-27/10586-45517.png) |
 
-![Ajouter un niveau dans le glissé](images/mouvements-2026-10-27/10579-21580.png)
+![Ajouter un niveau dans le glissé](images/navigation-2026-10-27/10579-21580.png)
 
 Le catalogue comporte 12 états après insertion de cet écran juste après Actions glissées. Les références numériques des frames existantes sont conservées. Les captures reproduisent le prototype, sans retouche ; les règles de déploiement et d'allongement du filet sont normatives même si un tracé de démonstration est incomplet.
 
@@ -229,11 +229,12 @@ D-445 : reprise initialement en lecture seule, crayon de correction partagée di
 ### Navigation principale et articulation des écrans
 #### Navigation principale
 
-La navigation principale donne accès à quatre destinations :
+La navigation principale donne accès à cinq destinations :
 
 - `Catalogues` ;
 - `Calendrier` ;
 - `Suivi` ;
+- `Communauté` ;
 - `Profil`.
 
 `Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances` et `Catalogue des exercices`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
@@ -274,13 +275,15 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:375`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-375)
 
-![Profil — Vue d'ensemble - Vibration désactivée](images/ecran-1-profil.png)
+![Navigation — écran 1992:375](images/navigation-2026-10-27/1992-375.png)
+
+
 
 ##### Profil — Stepper Pause changement de côté
 
 [Source Figma — `1992:474`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-474)
 
-
+![Navigation — écran 1992:474](images/navigation-2026-10-27/1992-474.png)
 
 État courant du stepper Pause changement de côté
 
@@ -288,7 +291,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:579`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-579)
 
-
+![Navigation — écran 1992:579](images/navigation-2026-10-27/1992-579.png)
 
 État courant du stepper Récupération après exercice
 
@@ -296,7 +299,7 @@ Il s’agit d’un onglet principal : aucun bouton `Retour` spécifique n’est 
 
 [Source Figma — `1992:684`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-684)
 
-
+![Navigation — écran 1992:684](images/navigation-2026-10-27/1992-684.png)
 
 Valeur initiale fonctionnelle de la préférence `Vibration`
 
@@ -310,7 +313,7 @@ Valeur initiale fonctionnelle de la préférence `Vibration`
 
 [Source Figma — `2139:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2139-86)
 
-
+![Navigation — écran 2139:86](images/navigation-2026-10-27/2139-86.png)
 
 Présentation du Profil avant que l’utilisateur ait créé du contenu
 
@@ -330,13 +333,17 @@ Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, éta
 
 [Source Figma — `1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910)
 
-![P-Catalogue des séances — Liste par défaut](images/niveaux-2026-10-25/1992-9910.png)
+![Navigation — écran 1992:9910](images/navigation-2026-10-27/1992-9910.png)
+
+
 
 ##### Catalogue des séances — Séance déployée
 
 [Source Figma — `1992:10014`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014)
 
-![Catalogue des séances — Séance déployée](images/ecran-2b-catalogue-seance-deployee.png)
+![Navigation — écran 1992:10014](images/navigation-2026-10-27/1992-10014.png)
+
+
 
 Consultation de la Composition sans quitter le Catalogue
 
@@ -344,7 +351,7 @@ Consultation de la Composition sans quitter le Catalogue
 
 [Source Figma — `1992:10518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10518)
 
-
+![Navigation — écran 1992:10518](images/navigation-2026-10-27/1992-10518.png)
 
 La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière
 
@@ -352,7 +359,7 @@ La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et 
 
 [Source Figma — `1992:10628`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10628)
 
-
+![Navigation — écran 1992:10628](images/navigation-2026-10-27/1992-10628.png)
 
 Même convention de glissement avec déplacement réel de la carte
 
@@ -360,7 +367,7 @@ Même convention de glissement avec déplacement réel de la carte
 
 [Source Figma — `1992:10848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10848)
 
-
+![Navigation — écran 1992:10848](images/navigation-2026-10-27/1992-10848.png)
 
 Snackbar de restauration et action `Annuler`
 
@@ -368,7 +375,7 @@ Snackbar de restauration et action `Annuler`
 
 [Source Figma — `1992:10937`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10937)
 
-
+![Navigation — écran 1992:10937](images/navigation-2026-10-27/1992-10937.png)
 
 Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
@@ -376,19 +383,21 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2117:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-86)
 
-
+![Navigation — écran 2117:86](images/navigation-2026-10-27/2117-86.png)
 
 ##### Catalogue des séances — Archivées — actions glissées
 
 [Source Figma — `2234:88`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-88)
 
-
+![Navigation — écran 2234:88](images/navigation-2026-10-27/2234-88.png)
 
 ##### Catalogue des séances — Liste — Filtre inactif étendu
 
 [Source Figma — `4549:6382`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6382)
 
-![Catalogue des séances — Liste — Filtre inactif étendu](images/niveaux-2026-10-25/4549-6382.png)
+![Navigation — écran 4549:6382](images/navigation-2026-10-27/4549-6382.png)
+
+
 
 
 
@@ -398,7 +407,7 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4549:6742`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6742)
 
-
+![Navigation — écran 4549:6742](images/navigation-2026-10-27/4549-6742.png)
 
 État actif du contrôle et liste filtrée
 
@@ -406,7 +415,9 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4592:6217`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4592-6217)
 
-![Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité](images/niveaux-2026-10-25/4592-6217.png)
+![Navigation — écran 4592:6217](images/navigation-2026-10-27/4592-6217.png)
+
+
 
 
 
@@ -416,7 +427,7 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2234:189`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189)
 
-
+![Navigation — écran 2234:189](images/navigation-2026-10-27/2234-189.png)
 
 Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séance ? » ; message « Cette séance archivée sera définitivement supprimée. Cette action est irréversible. » ; Annuler gris#F3F4F6 / Confirmer#B1503C. Les deux actions ne sont pas recâblées dans le prototype ; leur comportement produit reste annuler sans mutation / supprimer définitivement après confirmation.
 
@@ -424,7 +435,9 @@ Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séa
 
 [Source Figma — `4168:11149`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11149)
 
-![P-Catalogue des séances — Filtrer — Panneau ouvert](images/niveaux-2026-10-25/4168-11149.png)
+![Navigation — écran 4168:11149](images/navigation-2026-10-27/4168-11149.png)
+
+
 
 Modale de filtres contextuels Séances : statut et Étiquettes
 
@@ -432,7 +445,9 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4593:6285`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4593-6285)
 
-![Modal — Confirmer l’archivage d’une séance planifiée](images/figma-4593-6285.png)
+![Navigation — écran 4593:6285](images/navigation-2026-10-27/4593-6285.png)
+
+
 
 ### Vues principales et états intégrés
 
@@ -440,13 +455,17 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093)
 
-![P-Catalogue des Exercices — Liste](images/niveaux-2026-10-25/3786-5093.png)
+![Navigation — écran 3786:5093](images/navigation-2026-10-27/3786-5093.png)
+
+
 
 #### Catalogue des exercices — État vide
 
 [Source Figma — `4521:6220`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4521-6220)
 
-![Catalogue des exercices — État vide](images/niveaux-2026-10-25/4521-6220.png)
+![Navigation — écran 4521:6220](images/navigation-2026-10-27/4521-6220.png)
+
+
 
 
 
@@ -454,7 +473,9 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4544:6344`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6344)
 
-![Catalogue des Exercices — Liste — Filtre inactif étendu](images/niveaux-2026-10-25/4544-6344.png)
+![Navigation — écran 4544:6344](images/navigation-2026-10-27/4544-6344.png)
+
+
 
 
 
@@ -462,7 +483,9 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4544:6651`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4544-6651)
 
-![Catalogue des Exercices — Liste — Filtre actif étendu](images/niveaux-2026-10-25/4544-6651.png)
+![Navigation — écran 4544:6651](images/navigation-2026-10-27/4544-6651.png)
+
+
 
 
 
@@ -470,13 +493,17 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4738:6209`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6209)
 
-![P-Catalogue des Exercices — Liste — actions glissées](images/niveaux-2026-10-25/4738-6209.png)
+![Navigation — écran 4738:6209](images/navigation-2026-10-27/4738-6209.png)
+
+
 
 #### Référence historique hors MVP — Catalogue des Exercices — Liste — Première carte déployée — Média
 
 [Source Figma — `4738:6355`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4738-6355)
 
-![S-Catalogue des Exercices — Liste — Première carte déployée — Média](images/niveaux-2026-10-25/4738-6355.png)
+![Navigation — écran 4738:6355](images/navigation-2026-10-27/4738-6355.png)
+
+
 
 
 
@@ -486,7 +513,9 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 [Source Figma — `4168:11262`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11262)
 
-![P-Catalogue des Exercices — Filtrer — Panneau ouvert](images/niveaux-2026-10-25/4168-11262.png)
+![Navigation — écran 4168:11262](images/navigation-2026-10-27/4168-11262.png)
+
+
 
 ### Composer une séance / Modifier une séance
 
@@ -819,7 +848,7 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 **Catalogue — Vue Mouvements (piles) — `10266:20575`**
 
-![Catalogue — Vue Mouvements (piles)](images/niveaux-2026-10-25/10266-20575.png)
+![Catalogue — Vue Mouvements (piles)](images/navigation-2026-10-27/10266-20575.png)
 
 **Niveau — icônes, trois états — `10027:40948`**
 
@@ -1154,7 +1183,7 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 
 Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exercice restent sans photo et conservent leur icône de nature, même si un média est associé (D-260). Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
 
-Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF. Ces règles ne déplacent pas les jalons fonctionnels existants.
+Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les cinq dessins DSF courants. Ces règles ne déplacent pas les jalons fonctionnels existants.
 
 #### Vues principales et états intégrés
 
@@ -1162,25 +1191,31 @@ Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 
 
 [Source Figma — `1992:5101`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5101)
 
-![P-Calendrier — Semaine](images/niveaux-2026-10-25/1992-5101.png)
+![Navigation — écran 1992:5101](images/navigation-2026-10-27/1992-5101.png)
+
+
 
 ##### Calendrier — Mois
 
 [Source Figma — `1992:5237`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5237)
 
-![Calendrier — Mois](images/ecran-7b-calendrier-mois.png)
+![Navigation — écran 1992:5237](images/navigation-2026-10-27/1992-5237.png)
+
+
 
 ##### Calendrier — Jour — MVP
 
 [Source Figma — `1992:5510`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5510)
 
-
+![Navigation — écran 1992:5510](images/navigation-2026-10-27/1992-5510.png)
 
 ##### Calendrier — Jour — Appui long — MVP
 
 [Source Figma — `1992:5602`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5602)
 
-![Calendrier — Jour — Appui long — MVP](images/ecran-7c-calendrier-jour-appui-long.png)
+![Navigation — écran 1992:5602](images/navigation-2026-10-27/1992-5602.png)
+
+
 
 Sélection d’une plage horaire avant planification
 
@@ -1188,7 +1223,7 @@ Sélection d’une plage horaire avant planification
 
 [Source Figma — `1992:5697`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5697)
 
-
+![Navigation — écran 1992:5697](images/navigation-2026-10-27/1992-5697.png)
 
 Résultat attendu après enregistrement
 
@@ -1196,7 +1231,7 @@ Résultat attendu après enregistrement
 
 [Source Figma — `1992:5794`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5794)
 
-
+![Navigation — écran 1992:5794](images/navigation-2026-10-27/1992-5794.png)
 
 Étape intermédiaire issue de la plage sélectionnée
 
@@ -1204,7 +1239,9 @@ Résultat attendu après enregistrement
 
 [Source Figma — `1992:5962`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5962)
 
-![Calendrier — Semaine — Actions glissées](images/ecran-7j-calendrier-semaine-actions.png)
+![Navigation — écran 1992:5962](images/navigation-2026-10-27/1992-5962.png)
+
+
 
 `Dupliquer` et `Supprimer` sur une occurrence hebdomadaire
 
@@ -1212,7 +1249,9 @@ Résultat attendu après enregistrement
 
 [Source Figma — `1992:6389`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6389)
 
-![Calendrier — Semaine — Séance déployée](images/ecran-7i-calendrier-semaine-deployee.png)
+![Navigation — écran 1992:6389](images/navigation-2026-10-27/1992-6389.png)
+
+
 
 Détail d’une occurrence et zone `Démarrer`
 
@@ -1220,7 +1259,7 @@ Détail d’une occurrence et zone `Démarrer`
 
 [Source Figma — `2059:267`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2059-267)
 
-
+![Navigation — écran 2059:267](images/navigation-2026-10-27/2059-267.png)
 
 Résultat d’un glissement gauche ou du chevron suivant
 
@@ -1228,7 +1267,7 @@ Résultat d’un glissement gauche ou du chevron suivant
 
 [Source Figma — `2074:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2074-86)
 
-
+![Navigation — écran 2074:86](images/navigation-2026-10-27/2074-86.png)
 
 Liste hebdomadaire actualisée après suppression
 
@@ -1236,7 +1275,7 @@ Liste hebdomadaire actualisée après suppression
 
 [Source Figma — `2094:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2094-86)
 
-
+![Navigation — écran 2094:86](images/navigation-2026-10-27/2094-86.png)
 
 Même interaction appliquée à une autre occurrence représentée
 
@@ -1244,7 +1283,7 @@ Même interaction appliquée à une autre occurrence représentée
 
 [Source Figma — `2128:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2128-86)
 
-
+![Navigation — écran 2128:86](images/navigation-2026-10-27/2128-86.png)
 
 État sans occurrence planifiée
 
@@ -1252,7 +1291,7 @@ Même interaction appliquée à une autre occurrence représentée
 
 [Source Figma — `2252:86`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2252-86)
 
-
+![Navigation — écran 2252:86](images/navigation-2026-10-27/2252-86.png)
 
 Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible
 
@@ -1262,13 +1301,17 @@ Mardi placé en tête ; lundi se trouve au-dessus et n’est plus visible
 
 [Source Figma — `1992:5365`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-5365)
 
-![Modal — Supprimer une planification unique — Calendrier](images/modale-4-suppression-planification-unique.png)
+![Navigation — écran 1992:5365](images/navigation-2026-10-27/1992-5365.png)
+
+
 
 ##### Modal — Supprimer des occurrences — Calendrier
 
 [Source Figma — `1992:6102`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6102)
 
-![Modal — Supprimer des occurrences — Calendrier](images/modale-4a-suppression-occurrences.png)
+![Navigation — écran 1992:6102](images/navigation-2026-10-27/1992-6102.png)
+
+
 
 ### États de référence actuels
 
@@ -1292,13 +1335,17 @@ Les deux captures « Liste longue » ci-dessous ont été exportées le 15/10/20
 
 [Source Figma — `1992:6249`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-6249)
 
-![Modal — Choisir une séance — Planification — Liste longue](images/figma-1992-6249.png)
+![Navigation — écran 1992:6249](images/navigation-2026-10-27/1992-6249.png)
+
+
 
 #### Modal — Choisir un exercice — Planification — Liste longue
 
 [Source Figma — `5451:4272`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=5451-4272)
 
-![Modal — Choisir un exercice — Planification — Liste longue](images/figma-5451-4272.png)
+![Navigation — écran 5451:4272](images/navigation-2026-10-27/5451-4272.png)
+
+
 
 #### Planifier une séance — Sélecteur de date ouvert
 
@@ -1510,7 +1557,9 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 [Source Figma — `1992:8843`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8843)
 
-![Suivi — Séances — Liste condensée](images/ecran-11-suivi-condense.png)
+![Navigation — écran 1992:8843](images/navigation-2026-10-27/1992-8843.png)
+
+
 
 `Terminée`, `Partielle`, `Interrompue`
 
@@ -1518,7 +1567,7 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 [Source Figma — `1992:8996`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-8996)
 
-
+![Navigation — écran 1992:8996](images/navigation-2026-10-27/1992-8996.png)
 
 État conservé pour traçabilité ; aucun chemin d’accès dans le MVP depuis D-262.
 
@@ -1528,7 +1577,7 @@ Présentation commune aux cartes Séance/Exercice : largeur 354, hauteur 67 à t
 
 [Source Figma — `2117:190`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2117-190)
 
-
+![Navigation — écran 2117:190](images/navigation-2026-10-27/2117-190.png)
 
 <a id="formats-galerie"></a>
 ### Formats de séances — inventaire et captures
@@ -1545,7 +1594,7 @@ Le relevé du 12/10 sur Conception reste historique ; les références ci-dessou
 
 Nœud [8598:29271](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8598-29271) · Contrat [CE-FMT-01](13%20–%20Contrats%20d’écran.md#ce-fmt-01). Capture du layout courant ; données illustratives.
 
-![Composition séance — Modèles](images/formats-2026-10-14/figma-8598-29271.png)
+![Composition séance — Modèles](images/navigation-2026-10-27/8598-29271.png)
 
 <a id="format-8624-29980"></a>
 
@@ -2045,7 +2094,7 @@ L’absence ou la substitution d’un logo, d’une icône, d’un texte ou d’
 
 Les descriptions locales ci-dessous et les contrats CE-T03/CE-UI du chapitre 13 intègrent les décisions closes D-233 à D-239. La [matrice courante des écrans](../MATRICE-ECRANS-CARTES-2026-09-30.md) relie chaque frame concernée à son contrat et à ses critères. Contrôle exhaustif du 30 septembre 2026 : 113 frames du prototype et les 6 références complémentaires du rapport utilisateur, soit 119 captures Figma. Les 84 écrans du rapport sont couverts (78 dans le prototype). 74 fichiers existants sont actualisés et 45 copies documentaires complètent des écrans déjà présents dans Figma ; aucun écran applicatif ou Figma créé. La [matrice exhaustive](../MATRICE-COUVERTURE-FIGMA-CHAPITRE-06.md) donne les sources et les empreintes ; les captures du chapitre 06 sont regroupées par famille, près de leurs règles.
 
-Sur tous les écrans concernés, les appuis suivent D-237 : dilatation au contact, retour et action immédiate au relâchement ; sortie de cible sans action ; réduction des animations par opacité. Les contrôles désactivés ne deviennent pas actifs par l’animation. L’inventaire des 27 icônes de sélection ne recolore ni visages, ni statuts, ni boutons à fond coloré. Navigation présente : composant 6298:12462, traits 2, dessins≤24 ; état sélectionné bleu, autre gris.
+Sur tous les écrans concernés, les appuis suivent D-237 : dilatation au contact, retour et action immédiate au relâchement ; sortie de cible sans action ; réduction des animations par opacité. Les contrôles désactivés ne deviennent pas actifs par l’animation. L’inventaire des 27 icônes de sélection ne recolore ni visages, ni statuts, ni boutons à fond coloré. Navigation présente : composant 6513:20151, traits 2, dessins≤24 ; état sélectionné bleu, autre gris.
 
 #### Unités et largeur utile
 
@@ -2117,10 +2166,10 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 #### Navigation basse
 
 - La région de navigation du Screen Shell mesure `77` points dans le gabarit `402 × 874`. Elle contient la barre principale visuelle de `66` points et la place réservée à l’inset inférieur de référence. À l’exécution, la navigation est positionnée avec l’inset inférieur réel, qui n’est jamais codé en dur.
-- Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
-- Les quatre destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Profil` occupent les quatre emplacements du composant de navigation. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
+- Sa largeur s’adapte à la largeur disponible. Les positions horizontales des cinq destinations ne sont pas codées depuis le gabarit Figma.
+- Les cinq destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil` occupent les cinq emplacements du composant de navigation. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 - L’onglet actif peut afficher son libellé ; les autres conservent uniquement leur pictogramme. Le libellé actif ne doit pas chevaucher les pictogrammes voisins avec l’agrandissement du texte.
-- Le composant canonique est `Navigation / Bottom` (`6298:12462`). Les destinations utilisent les variantes `6298:11827` Catalogues, `6298:11988` Calendrier, `6298:12149` Suivi et `6298:12310` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
+- Le composant canonique est `Navigation / Bottom — 5 onglets` (`6513:20151`). Les destinations utilisent les variantes `6513:20152` Catalogues, `6513:20168` Calendrier, `6513:20184` Suivi, `6514:20240` Communauté et `6513:20200` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
 
 #### Listes et cartes
 
@@ -2198,7 +2247,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
 
 ### Conventions communes d’interface
-- **Navigation** : quatre destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
+- **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
 - **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
 - **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.
@@ -2207,7 +2256,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 
 #### Référence DSF V2 détaillée — clôture
 
-- **Navigation basse** : pilule `322 × 62 px`, `color/navigation/pill #F9FAFC` (référence couleur centralisée au chapitre 12), stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236, dans une boîte de navigation 32×32 ; actif `#0508E5`, inactif `#595E66 (iconNeutral/textSecondary ; ancien #5C636E historique)`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : set `6513:20151`, cinq destinations. Au gabarit 402 pt, pilule `354 × 62`, marges latérales 24 ; icônes `24 × 24` dans boîtes `32 × 32`. Cadre actif `66 × 50` (`78 × 50` pour Communauté). Actif `#0508E5`, inactif `#595E66` ; fond `color/navigation/pill #F9FAFC`. Répartition responsive et inset bas natif. Les captures et mesures courantes sont dans DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md ; les anciennes coordonnées à quatre onglets ne sont plus applicables.
 - **Fond / contexte** : écran ordinaire `#FFFFFF`; Splash `#0006F1`; média plein écran `#0A0A0C`. Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs pour Catalogues, Composition, Calendrier, Suivi, Profil et Ajout d’exercice. Le séparateur 1 px n’est retiré que si ce dégradé assure la séparation.
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, la valeur observée référencée au chapitre 12, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - **Stepper / valeur** : variante lavande `#F2F2FF` pour Profil/paramètres, variante blanche pour Tours de Composition ; `−/+` ronds bleus, 12 px autour de la valeur centrale. Le stepper remplace la valeur sur la même ligne sans étirer le groupe ; un seul stepper actif à la fois. Badge replié `#F5F7FA (surface ; ancienne valeur historique #F4F4F8)`, texte bleu Semi Bold 13 px, rayon 6, marges 8 px horizontales et 2 px verticales ; contour bleu 1,5 px lorsque le contrôle est ouvert (DSF V2 lot 3, T4). Le nombre de semaines utilise la pilule de stepper rayon 18.
@@ -2235,7 +2284,7 @@ La section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conceptio
 ### Principes d’expérience
 
 - interface mobile en portrait, compatible avec les Safe Areas du système ;
-- navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Profil` ;
+- navigation principale fixe : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil` ;
 - l’espace `Catalogues` utilise les titres contextuels `Catalogue des séances` et `Catalogue des exercices` ;
 - libellé affiché uniquement sous l’onglet actif ;
 - actions contextuelles cohérentes entre les listes ;
@@ -2261,7 +2310,7 @@ Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou
 
 ### Conventions communes d’interface
 
-D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP.
+D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP.
 
 ### Placement des récupérations et des points d’arrêt — Contenu et trait de démarcation
 
@@ -2567,3 +2616,8 @@ Le 25/10/2026, 97 exports ont réussi, dont tous les nouveaux états du parcours
 
 
 Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+### Contrôle transversal de navigation — 27 octobre 2026
+
+La référence courante est le composant `6513:20151`, utilisé sur les 62 écrans recensés de Prototype MVP. Le [relevé exhaustif](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md) associe chaque écran à sa capture courante et au contrat commun CE-UI-05, et fournit les dix exports SVG disponibles dans `KodjoIcon`. La présence de Communauté dans la barre ne vaut pas spécification de ses fonctionnalités ; une destination non livrée reste explicitement désactivée. Les anciennes preuves datées à quatre destinations ne constituent plus la cible.

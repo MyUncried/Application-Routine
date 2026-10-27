@@ -1,0 +1,436 @@
+[
+  {
+    "screen": "1992:375",
+    "id": "10601:46200",
+    "component": "6513:20200",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:474",
+    "id": "2565:2226",
+    "component": "6513:20200",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:579",
+    "id": "2565:2261",
+    "component": "6513:20200",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:684",
+    "id": "2565:933",
+    "component": "6513:20200",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5101",
+    "id": "2565:968",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5237",
+    "id": "2565:1003",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5365",
+    "id": "2565:1038",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5510",
+    "id": "2565:1070",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5602",
+    "id": "2565:1105",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5697",
+    "id": "2565:1140",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5794",
+    "id": "2565:1175",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:5962",
+    "id": "2565:1207",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:6102",
+    "id": "2565:1242",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:6249",
+    "id": "2565:1274",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:6389",
+    "id": "2565:1306",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "7599:14197",
+    "id": "7599:14203",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:8843",
+    "id": "2565:1597",
+    "component": "6513:20184",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:8996",
+    "id": "2738:3912",
+    "component": "6513:20184",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:9910",
+    "id": "2565:1632",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:10014",
+    "id": "2564:832",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:10518",
+    "id": "2565:1700",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:10628",
+    "id": "2565:1735",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:10848",
+    "id": "2565:1805",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "1992:10937",
+    "id": "2565:1840",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2059:267",
+    "id": "2565:1875",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2074:86",
+    "id": "2565:1910",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2094:86",
+    "id": "2565:1945",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2117:86",
+    "id": "2565:1980",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2117:190",
+    "id": "2565:2016",
+    "component": "6513:20184",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2128:86",
+    "id": "2565:2051",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2139:86",
+    "id": "2565:2086",
+    "component": "6513:20200",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2234:88",
+    "id": "2565:2121",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2234:189",
+    "id": "2565:2156",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "2252:86",
+    "id": "2565:2191",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "3786:5093",
+    "id": "3786:5104",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4168:11149",
+    "id": "4168:11160",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4168:11262",
+    "id": "4168:11266",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4593:6285",
+    "id": "5274:5415",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4521:6220",
+    "id": "4521:6224",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4544:6344",
+    "id": "4544:6348",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4544:6651",
+    "id": "4544:6655",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4549:6382",
+    "id": "4549:6393",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4549:6742",
+    "id": "4549:6752",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4592:6217",
+    "id": "4592:6228",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4738:6209",
+    "id": "4738:6213",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "4738:6355",
+    "id": "4738:6359",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "5451:4272",
+    "id": "5451:4283",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "7594:34809",
+    "id": "7594:34815",
+    "component": "6513:20168",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "8598:29271",
+    "id": "8702:35432",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "9977:19613",
+    "id": "9977:19780",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10266:20575",
+    "id": "10266:20580",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10462:23370",
+    "id": "10462:23375",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10465:23141",
+    "id": "10465:23146",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10471:23291",
+    "id": "10471:23296",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10475:47634",
+    "id": "10475:47639",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10480:23374",
+    "id": "10480:23379",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10484:23428",
+    "id": "10484:23433",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10495:24054",
+    "id": "10495:24059",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10495:24099",
+    "id": "10495:24104",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10496:23705",
+    "id": "10496:23710",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10500:23772",
+    "id": "10500:23777",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  },
+  {
+    "screen": "10579:21580",
+    "id": "10579:21585",
+    "component": "6513:20152",
+    "slots": 5,
+    "visible": true
+  }
+]

@@ -269,15 +269,16 @@ Elles ne modifient jamais rétroactivement une Séance existante ni une Exécuti
 
 ## 5. Navigation principale
 
-Le MVP comporte quatre destinations principales :
+Le MVP comporte cinq destinations principales :
 - `Catalogues` ;
 - `Calendrier` ;
 - `Suivi` ;
+- `Communauté` ;
 - `Profil`.
 
 `Catalogues` est le libellé permanent de navigation. Dans cet espace, les titres contextuels sont `Catalogue des séances` et `Catalogue des exercices`. Le Catalogue s’ouvre et se réinitialise après relance complète sur le segment `Séances`.
 
-Le composant DSF canonique de navigation est `Navigation / Bottom` (`6298:12462`). Les dessins des quatre destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
+Le composant DSF canonique de navigation est `Navigation / Bottom — 5 onglets` (`6513:20151`). Les dessins des cinq destinations ont une dimension maximale de `24 pt`, sont centrés dans leur boîte optique `32 × 32 pt` et conservent une cible tactile conforme aux règles communes.
 
 ## 6. Hors périmètre du MVP
 
@@ -499,7 +500,7 @@ Une récupération est ajoutée explicitement après une occurrence et reste dis
 
 ### Clôture Figma / DSF du 28 septembre 2026
 
-Le Prototype MVP comporte exactement quatre destinations principales : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de recherche globale sont archivés et aucune recherche locale n’est incluse dans le MVP (D-221). En planification, les cases à cocher et le CTA « Ajouter 1 élément » / « Ajouter n éléments » remplacent la validation immédiate ; les titres dépendent du nombre et du type de contenus (D-222/D-223 révisées le 08/10). Les référentiels conservent leurs propres contrats.
+Le Prototype MVP comporte exactement cinq destinations principales : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de recherche globale sont archivés et aucune recherche locale n’est incluse dans le MVP (D-221). En planification, les cases à cocher et le CTA « Ajouter 1 élément » / « Ajouter n éléments » remplacent la validation immédiate ; les titres dépendent du nombre et du type de contenus (D-222/D-223 révisées le 08/10). Les référentiels conservent leurs propres contrats.
 
 Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones de contexte D-224, navigation basse D-225, actions flottantes et boutons circulaires D-226, steppers/badges D-227, modales D-228, roulettes et modale Planifier D-229, listes et états spécialisés D-230. Ces prescriptions sont des contraintes de rendu/recette lorsqu’elles ne portent pas un comportement métier.
 
@@ -556,3 +557,6 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 **Annotation PRE-7 du 26/10/2026 :** C05 est appliqué intégralement dans PRE-7, avec une migration 013 de réinitialisation ponctuelle (arbitrage de Hermann, Q1 et Q2 ; annotation de D-445 au chapitre 07). Les phases forment un motif cyclique commun aux séries identiques et variables (D-446, annotation PRE-7 de [PHC-20261026](KODJO-Phases-Guidage-Cyclique-2026-10-26.md)).
+
+
+Navigation : voir le [contrôle exhaustif des écrans et assets](DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md), référence du 27 octobre 2026.

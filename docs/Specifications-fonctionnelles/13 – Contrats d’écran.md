@@ -864,7 +864,7 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 | États | S02–S12 |
 | T03-E | E03, E07–E12, E32–E36, E58–E62, E73 |
 | Frames | `3786:5093` |
-| Navigation | `6298:12462` |
+| Navigation | `6513:20151` |
 | Nature | Nouvel écran T03 |
 | Règles applicables | RM-041, RM-072, RM-095, RM-096, RM-103, RM-109, RM-112, RM-114, RM-159, RM-162, RM-188, RM-221, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité ») |
 
@@ -1324,7 +1324,7 @@ Réutiliser la ligne de tableau à deux colonnes, sans pied ni boutons +/− (D-
 
 **Révision 19/10 (D-434) :** les cellules Durée et Pause du tableau des séries variables et les durées éditables des phases se saisissent au clavier numérique natif, en MMSS, directement dans la cellule ; la Charge garde le clavier décimal (charge commune des séries identiques comprise depuis RC-14, 20/10 : même saisie que la cellule). La cellule active reste visible au-dessus du clavier. Barre horizontale au-dessus du clavier, sur une seule ligne, de gauche à droite : « À l’échec » | « ← Précédent » | « Suivant → » | « Fermer » ; libellés Précédent et Suivant si la largeur le permet, sinon flèches seules avec leurs libellés d’accessibilité ; zones tactiles préservées. Aucun clavier numérique personnalisé.
 
-**Révision 24/10 (D-447, B9) :** barre rendue par la Feuille au-dessus du clavier natif (mécanisme RC-1 de PRE-5 conservé, `InputAccessoryView` ne s’affichant pas dans la modale) ; une ligne, quatre emplacements stables de largeur et de hauteur égales : « À l’échec » lorsqu’il est applicable (emplacement réservé sinon), Précédent, Suivant, Fermer ; Précédent et Suivant au centre ; boutons arrondis au fond des touches ; Fermer sur fond bleu KODJO, texte blanc ; fond de la barre proche du clavier. Fusion avec la forme du clavier, recouvrement des coins et imitation du matériau vitré d’iOS 26 abandonnés. Focus et navigation inchangés.
+**Révision 24/10 (D-447, B9) :** barre rendue par la Feuille au-dessus du clavier natif (mécanisme RC-1 de PRE-5 conservé, `InputAccessoryView` ne s’affichant pas dans la modale) ; une ligne, cinq emplacements stables de largeur et de hauteur égales : « À l’échec » lorsqu’il est applicable (emplacement réservé sinon), Précédent, Suivant, Fermer ; Précédent et Suivant au centre ; boutons arrondis au fond des touches ; Fermer sur fond bleu KODJO, texte blanc ; fond de la barre proche du clavier. Fusion avec la forme du clavier, recouvrement des coins et imitation du matériau vitré d’iOS 26 abandonnés. Focus et navigation inchangés.
 
 Le clavier du libellé ne masque ni le champ actif ni les actions. Jusqu’à six phases : corps défilant, en-tête accessible, repli sans perte des valeurs ; aucune hauteur fixée à l’exemple de deux phases.
 
@@ -5084,9 +5084,9 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 #### 4.3 Navigation globale
 
-Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
+Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 
-Composant : `Navigation / Bottom` (`6298:12462`). Les quatre dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
+Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
 
 #### 4.4 Conservation d’état Catalogue
 
@@ -5222,7 +5222,7 @@ La suppression du titre des contenus de planification est confirmée par le prop
 
 #### 1. Identification
 
-Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `6298:12462`.
+Bloc B8/B9 ; états S78–S82 ; T03-E E05–E06 ; composant `6513:20151`.
 
 Règles applicables : RM-094, RM-109 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -5244,24 +5244,25 @@ Aucune donnée métier. État active dérivé de route.
 
 #### 6. Classification des valeurs Figma
 
-`Catalogues`, `Calendrier`, `Suivi`, `Profil` = statiques ; icônes = composants DSF, pas données.
+`Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil` = statiques ; icônes = composants DSF, pas données.
 
 #### 7. Structure de l’écran
 
-Barre Bottom Navigation canonique à quatre destinations.
+Barre Bottom Navigation canonique à cinq destinations.
 
 #### 8. Éléments obligatoires
 
 | Destination | Variante | Boîte | Dessin | Cible |
 |---|---|---:|---:|---:|
-| Catalogues | `6298:11827` | 32×32 | ≤24 centré | ≥48×48 |
-| Calendrier | `6298:11988` | 32×32 | ≤24 centré | ≥48×48 |
-| Suivi | `6298:12149` | 32×32 | ≤24 centré | ≥48×48 |
-| Profil | `6298:12310` | 32×32 | ≤24 centré | ≥48×48 |
+| Catalogues | `6513:20152` | 32×32 | ≤24 centré | ≥48×48 |
+| Calendrier | `6513:20168` | 32×32 | ≤24 centré | ≥48×48 |
+| Suivi | `6513:20184` | 32×32 | ≤24 centré | ≥48×48 |
+| Communauté | `6514:20240` | 32×32 | 24×24 centré | ≥48×48 |
+| Profil | `6513:20200` | 32×32 | ≤24 centré | ≥48×48 |
 
 #### 9. Layout déterministe
 
-Répartition via composant DSF ; dessins centrés ; aucune substitution ou mise à l’échelle >24 pour quatre destinations.
+Répartition via composant DSF ; dessins centrés ; aucune substitution ou mise à l’échelle >24 pour cinq destinations.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -5270,7 +5271,7 @@ Barre adapte largeur 360/402/440 et inset bas ; aucun chevauchement ; labels acc
 #### 11. États de l’écran
 
 
-Quatre destinations : Catalogues, Calendrier, Suivi, Profil ; une active. Aucune Recherche ; aucune destination créée par la variante Search du set DSF. Navigation absente des modales/shells d’Exécution selon leur propre contrat.
+Cinq destinations : Catalogues, Calendrier, Suivi, Communauté, Profil ; une active. Aucune Recherche ; aucune destination créée par la variante Search du set DSF. Une modale peut conserver la navigation visible en arrière-plan, neutralisée par son overlay ; les shells d’Exécution suivent leur propre contrat.
 
 #### 12. Contrôles et interactions
 
@@ -5308,7 +5309,7 @@ Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants.
 
 #### 20. Recette déterministe
 
-Tester les quatre destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
+Tester les cinq destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
 
 ### CE-UI-06 — Splash KODJO
 
@@ -5716,3 +5717,8 @@ Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. To
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
 
 Les contrats d’exécution ACTIVITY et SESSION appliquent PHC-20261026 : bouclage du motif, phase courante affichée, objectif temporel prioritaire même au milieu d’une phase ; Répétitions et échec terminés par Suivant. Nouvelle série à la première phase. Recette PHC/AC01–12 ; comportement après nombre cible avant Suivant explicitement à préciser, sans fin automatique inventée. [précisé par D-446 du 26/10/2026 (Q4) : le motif continue de boucler, sans signal, jusqu’à Suivant]
+
+
+### Contrôle transversal de navigation — 27 octobre 2026
+
+La référence courante est le composant `6513:20151`, utilisé sur les 62 écrans recensés de Prototype MVP. Le [relevé exhaustif](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md) associe chaque écran à sa capture courante et au contrat commun CE-UI-05, et fournit les dix exports SVG disponibles dans `KodjoIcon`. La présence de Communauté dans la barre ne vaut pas spécification de ses fonctionnalités ; une destination non livrée reste explicitement désactivée. Les anciennes preuves datées à quatre destinations ne constituent plus la cible.
