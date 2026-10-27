@@ -7,7 +7,7 @@ import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/feature
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
 import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
-import { colors } from "@/shared/ui/tokens";
+import { colors, minTouchTarget } from "@/shared/ui/tokens";
 
 /**
  * PRE-8 (story B.7, Figma `10462:23370`) — feuille des filtres : cinq groupes à choix multiples,
@@ -67,6 +67,20 @@ describe("PRE-8 B.7 — feuille des filtres des Mouvements", () => {
     expect([...applied.bodyZoneIds]).toEqual(["genoux"]);
     // D05 : libellés des critères choisis, pour le résumé de la commande.
     expect(onApply.mock.calls[0]![1]).toEqual(["Actifs", "Archivés", "Sans exercice", "Renforcement", "Genoux"]);
+  });
+
+  it("recette A/B du 27/10 : cadre standard des feuilles (Paramètres d’exécution) — poignée, ✕ et ✓ ronds 38, filet", async () => {
+    await renderSheet();
+    expect(screen.getByTestId("movement-filter-handle")).toBeTruthy();
+    expect(screen.getByTestId("movement-filter-header-divider")).toBeTruthy();
+    for (const [id, background] of [
+      ["movement-filter-close", colors.wheelActionCancelBackground],
+      ["movement-filter-apply", colors.wheelActionValidateBackground],
+    ] as const) {
+      const circle = screen.getByTestId(id);
+      expect(StyleSheet.flatten(circle.props.style)).toMatchObject({ width: 38, height: 38, borderRadius: 19, backgroundColor: background });
+      expect(circle.props.hitSlop).toBe((minTouchTarget - 38) / 2);
+    }
   });
 
   it("D06 : Réinitialiser selon Figma 10460:23176 — 150 × 32, rayon 16, bordure bleue, icône 28 à gauche", async () => {

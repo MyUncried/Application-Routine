@@ -7,6 +7,7 @@ import { listAssignableBodyZones, type BodyZone } from "@/domain/body-zones/Body
 import type { Category } from "@/domain/categories/Category";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
+import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 import {
@@ -100,16 +101,20 @@ export function MovementFilterSheet({
   return (
     <Modal transparent visible animationType="slide" onRequestClose={onClose} testID="movement-filter-sheet">
       <View style={styles.backdrop}>
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16] }]}>
-          <View style={styles.header}>
+        {/* Recette A/B du 27/10 : cadre standard des feuilles, celui de la feuille Paramètres
+            d'exécution — poignée, ✕ et ✓ ronds 38 (cible tactile minimale), titre de modale, filet sous l'en-tête. */}
+        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16] }]} accessibilityViewIsModal>
+          <View style={styles.handle} testID="movement-filter-handle" />
+          <View style={styles.header} testID="movement-filter-header">
             <Pressable
               onPress={onClose}
               accessibilityRole="button"
               accessibilityLabel={t.close}
-              style={styles.headerButton}
+              hitSlop={HEADER_ACTION_HIT_SLOP}
+              style={styles.cancelCircle}
               testID="movement-filter-close"
             >
-              <Text style={styles.closeGlyph}>✕</Text>
+              <KodjoIcon name="wheel-action-cancel" />
             </Pressable>
             <Text style={styles.title} accessibilityRole="header">
               {t.title}
@@ -118,12 +123,14 @@ export function MovementFilterSheet({
               onPress={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
               accessibilityRole="button"
               accessibilityLabel={t.apply}
-              style={[styles.headerButton, styles.applyButton]}
+              hitSlop={HEADER_ACTION_HIT_SLOP}
+              style={styles.validateCircle}
               testID="movement-filter-apply"
             >
-              <Text style={styles.applyGlyph}>✓</Text>
+              <KodjoIcon name="wheel-action-validate" />
             </Pressable>
           </View>
+          <View style={styles.headerDivider} testID="movement-filter-header-divider" />
           <ScrollView contentContainerStyle={styles.body}>
             <FilterGroup title={t.status}>
               <Chip label={t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="movement-filter-status-active" />
@@ -197,6 +204,9 @@ export function selectedLabels(
 }
 
 const RESET = dimensions.resetAction;
+/** Cercles d'en-tête 38 (feuille Paramètres d'exécution), cible tactile minimale (`minTouchTarget`). */
+const HEADER_ACTION_SIZE = 38;
+const HEADER_ACTION_HIT_SLOP = (minTouchTarget - HEADER_ACTION_SIZE) / 2;
 const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
 
 function FilterGroup({ title, children }: { readonly title: string; readonly children: ReactNode }) {
@@ -243,45 +253,57 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: "flex-end",
-    backgroundColor: "rgba(20, 20, 20, 0.32)",
+    backgroundColor: colors.overlayScrim,
   },
+  // Cadre, poignée, en-tête, cercles et filet : valeurs de la feuille Paramètres d'exécution.
   sheet: {
     maxHeight: "92%",
     borderTopLeftRadius: fixedRadii[24],
     borderTopRightRadius: fixedRadii[24],
+    overflow: "hidden",
     backgroundColor: colors.background,
+  },
+  handle: {
+    alignSelf: "center",
+    width: 50,
+    height: 4,
+    borderRadius: 2,
+    marginTop: spacing[8],
+    backgroundColor: colors.disabled,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: spacing[16],
-    paddingVertical: spacing[12],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
+    minHeight: 56,
+    paddingHorizontal: spacing[12] + 5,
   },
-  headerButton: {
-    width: minTouchTarget,
-    height: minTouchTarget,
-    borderRadius: minTouchTarget / 2,
+  cancelCircle: {
+    width: HEADER_ACTION_SIZE,
+    height: HEADER_ACTION_SIZE,
+    borderRadius: HEADER_ACTION_SIZE / 2,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
+    backgroundColor: colors.wheelActionCancelBackground,
   },
-  applyButton: {
-    backgroundColor: colors.primary,
-  },
-  closeGlyph: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
-  },
-  applyGlyph: {
-    ...type.sectionTitle,
-    color: colors.background,
+  validateCircle: {
+    width: HEADER_ACTION_SIZE,
+    height: HEADER_ACTION_SIZE,
+    borderRadius: HEADER_ACTION_SIZE / 2,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.wheelActionValidateBackground,
   },
   title: {
-    ...type.sectionTitle,
+    ...type.modalTitle,
     color: colors.textPrimary,
+    flexShrink: 1,
+    textAlign: "center",
+  },
+  headerDivider: {
+    height: 1,
+    marginHorizontal: spacing[12],
+    backgroundColor: colors.divider,
   },
   body: {
     paddingHorizontal: spacing[24],

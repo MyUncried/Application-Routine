@@ -307,3 +307,10 @@ Source : collection `results` du cahier de recette (https://claude.ai/artifact/K
 **À confirmer par Hermann** :
 - la saisie du Nom n'entraîne pas la remontée ;
 - la surface à 95 % est posée en permanence sur la couche, sans différence visible au repos sur fond blanc.
+
+## Feuille des filtres au format standard (27/10)
+
+**Demande.** « La modale de filtres n'a pas le format standard, celle des paramètres d'exécution par exemple (boutons annuler et valider, barres horizontales...) ».
+**Réalisé.** `MovementFilterSheet.tsx` reprend le cadre de `ExecutionParametersSheet` : poignée 50 × 4, ✕ et ✓ ronds 38 (`wheel-action-cancel` / `wheel-action-validate`, fonds `wheelActionCancelBackground` / `wheelActionValidateBackground`, cible `minTouchTarget`), titre `type.modalTitle` centré, filet `divider` sous l'en-tête, voile `overlayScrim`. Contenu, libellés et règles des filtres inchangés. Registre (ch.07) complété.
+**Tests.** tsc et ESLint : OK. `MovementFilterSheet.b7` (4 tests, dont le cadre standard) et `CatalogueScreen` : verts.
+**À vérifier sur l'iPhone.** Rendu de la feuille comparé à la feuille Paramètres d'exécution. Les filets entre groupes de filtres n'ont pas été ajoutés : à préciser si « barres horizontales » les désigne aussi.
