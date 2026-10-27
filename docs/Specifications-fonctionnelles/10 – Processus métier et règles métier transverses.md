@@ -24,7 +24,7 @@ Le verrouillage depuis une séance concerne uniquement un mouvement existant ou 
 
 Dans le menu Niveau d'un exercice, un changement effectif de mouvement conserve les durées locales des phases de rang commun ; les durées manquantes restent vides, sans valeur inventée ni remise à vide générale. Les autres paramètres sont conservés selon les règles existantes. Une correction du même mouvement conserve les durées par identité stable de phase. Dans la cible D-449, aucun Exercice autonome du Catalogue n'est à sélectionner pour fournir des durées : ne pas recréer cet objet ni déduire des durées par défaut du mouvement. Cette clarification de D-448 ne fait pas entrer la refonte des paramètres dans le lot PRE-8.
 
-Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Le traitement de l'archivage reste à décider dans son lot : il n'est pas assimilé ici à une suppression.
+Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Archiver ou restaurer conserve l’appartenance et la clé de tri : le membre archivé reste pris en compte dans le calcul des niveaux de la famille complète. Ces opérations ne changent pas les niveaux ; seule la visibilité change. Supprimer définitivement peut modifier les rangs et le total affichés, sans réécriture des clés de tri des autres membres (clarification validée par Hermann le 27/10/2026, chapitre 09, règle 8). Cette précision ne clôt pas les autres parcours de cycle de vie de C08.
 
 Une conversion confirmée de circuit de tours vers circuit de séries tronque définitivement les séries excédentaires ; elles ne sont pas gardées dans la réserve du brouillon. La diminution du compteur sans changement de nature conserve au contraire temporairement les lignes retirées pendant l'édition de la séance. Annuler la conversion conserve l'état initial. Ces règles existantes restent distinctes ; aucune levée du nombre de séries imposé n'est décidée par cette correction.
 
@@ -421,9 +421,9 @@ Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réor
 
 3. **Application immédiate.** Le déplacement est appliqué dès le dépôt, sans état provisoire. Un message de confirmation en rend compte, posé au-dessus de la barre de navigation.
 
-##### Règle 4 — texte reçu, contradiction non tranchée
+##### Règle 4 — clarification validée par Hermann le 27/10/2026
 
-4. **Aucun mode, aucun bouton.** Le catalogue n'a pas de mode d'édition et le réordonnancement n'ajoute aucun bouton de validation. Toute opération du catalogue s'applique au geste, avec son message de confirmation. Cette règle vaut pour l'ensemble du catalogue, afin qu'aucune action n'ait un bouton que les autres n'auraient pas.
+4. **Aucun mode, aucun bouton.** Le catalogue ne possède pas de mode d’organisation. Le réordonnancement s’applique dès le dépôt, avec un message de confirmation et sans bouton de validation. Cette règle ne supprime pas les validations propres aux formulaires de création ou de modification ouverts depuis le catalogue.
 
 ##### Règle 5 — texte de référence
 
@@ -433,7 +433,7 @@ Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réor
 
 9. **Cohabitation avec le menu existant.** D-448 point 9 prévoit « Réordonner les niveaux » à la racine du menu Niveau, dans les trois contextes. Les deux chemins coexistent et produisent exactement le même résultat : le geste depuis le catalogue et l'entrée de menu. Écris-le explicitement plutôt que de laisser croire à deux mécanismes distincts.
 
-**Contradiction de portée — règle 4, non tranchée.** Son application générale à « Toute opération du catalogue » contredit la section « Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026) » de ce chapitre : « La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. » D-445 C03 prévoit également des dialogues de confirmation pour les modifications de mouvement. La règle 4 est conservée ci-dessus sans reformulation, mais n'est pas promue en remplacement général de ces parcours. Les règles 1 à 3 décrivent l'application immédiate du réordonnancement ; elles ne suppriment pas les validations des autres opérations. Aucun arbitrage de cette contradiction n'est effectué ici.
+**Clarification validée le 27/10/2026.** L’application immédiate concerne le réordonnancement dans la liste. Ajouter un niveau et modifier un mouvement sont des opérations distinctes dont les validations existantes restent inchangées. L’ambiguïté de portée est close.
 
 **Proposition non validée — attend une décision de Hermann.** Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. Ces propositions ne sont ni des règles applicables ni des parcours à développer ; D-445 C08 reste inchangée. Le déplacement interne à une famille ne les autorise pas.
 

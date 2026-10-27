@@ -1016,7 +1016,7 @@ La modification d’une séance conserve la règle existante : occurrences futur
 
 Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réordonnancement depuis le catalogue des mouvements ». Cette entrée précise les décisions existantes sans créer de nouvel identifiant. Aucun code, écran Figma, libellé d'écran ou valeur n'est ajouté.
 
-Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-dessous. Elles précisent MFN-05 et le menu de D-448 point 9 : déplacement interne à la famille déployée, application au dépôt, ordre visuel décroissant, écriture de la seule clé de tri du membre déplacé et même résultat depuis les deux accès. D-437 et D-445 restent applicables à l'identité et aux instantanés. Aucun texte existant n'est remplacé sur les points en contradiction : les règles 4 et 8 sont reproduites et explicitement signalées comme non arbitrées.
+Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-dessous. Elles précisent MFN-05 et le menu de D-448 point 9 : déplacement interne à la famille déployée, application au dépôt, ordre visuel décroissant, écriture de la seule clé de tri du membre déplacé et même résultat depuis les deux accès. D-437 et D-445 restent applicables à l'identité et aux instantanés. **Clarifications validées par Hermann le 27/10/2026 :** les formulations initiales des règles 4 et 8 sont remplacées par les deux recommandations approuvées. L’application immédiate vise le réordonnancement, sans supprimer les validations des formulaires de création/modification. Archivage, restauration et filtrage ne changent pas les niveaux ; la suppression définitive peut recalculer les rangs des membres restants. Les deux points sont clos.
 
 ### Traçabilité des neuf règles
 
@@ -1025,11 +1025,11 @@ Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-
 | 1. Geste | 10, MFN-05 → Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 1 | Instruction Hermann, point 1 ; D-439 | Précise le glissement de MFN-05 : appui long et déplacement en place |
 | 2. Portée du déplacement | 10, même section → Règle 2 | Instruction Hermann, point 2 ; D-439 ; D-445 C08 | Précise MFN-05 ; aucun rattachement ni détachement ajouté |
 | 3. Application immédiate | 10, même section → Règle 3 | Instruction Hermann, point 3 ; D-445, reclassement seul | Précise le moment d'application et le retour de confirmation ; pas de dialogue de correction |
-| 4. Aucun mode, aucun bouton | 10, même section → Règle 4 et contradiction de portée | Instruction Hermann, point 4 | Texte conservé ; extension à toutes les opérations non arbitrée face à la création de niveau et D-445 C03 ; aucun remplacement |
+| 4. Aucun mode, aucun bouton | 10, même section → Règle 4 | Instruction Hermann, point 4 ; clarification validée le 27/10/2026 | Remplace la portée générale initiale par le réordonnancement ; validations de création/modification conservées ; clos |
 | 5. Ordre affiché | 10, même section → Règle 5 | Instruction Hermann, point 5 ; D-439 | Précise la présentation de la famille déployée |
 | 6. Effet sur les données | 09, Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 6 | Instruction Hermann, point 6 ; Groupe sur Mouvement ; Rang / total / suffixe - Nn | Précise la clé de tri et l'écriture d'une seule ligne ; aucun rang persisté |
 | 7. Effet sur le reste | 09, même section → Règle 7 | Instruction Hermann, point 7 ; D-437 ; D-445 ; MFN-03 | Confirme identité, références et instantanés inchangés ; classement lu à l'affichage |
-| 8. Archivage et filtres | 09, même section → Règle 8 et contradiction | Instruction Hermann, point 8 ; MFN-05 ; chapitre 10, Application ciblée des règles — Mouvement autonome | Texte conservé ; contradiction sur suppression et rang non tranchée ; filtrage déjà conforme ; aucun remplacement de MFN-05 ni clôture du lot archivage |
+| 8. Archivage et filtres | 09, même section → Règle 8 | Instruction Hermann, point 8 ; clarification validée le 27/10/2026 ; MFN-05 | Remplace la conservation des rangs après suppression ; précise la prise en compte des membres archivés et le filtrage ; MFN-05 conservée ; clos sur ces effets, autres parcours de cycle de vie inchangés |
 | 9. Cohabitation avec le menu existant | 10, section de réordonnancement → Règle 9 | Instruction Hermann, point 9 ; D-448 point 9 | Précise la coexistence des accès et l'identité du résultat ; menu racine conservé dans les trois contextes |
 
 ### Proposition non validée
