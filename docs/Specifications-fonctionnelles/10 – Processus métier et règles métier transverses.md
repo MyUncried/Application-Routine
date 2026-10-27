@@ -405,6 +405,38 @@ La catégorie est reprise depuis le niveau d’origine puis reste librement modi
 
 Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jamais des identités de mouvement. Le rapprochement de doublons identiques est une autre opération.
 
+#### Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
+
+Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réordonnancement depuis le catalogue des mouvements ». Numérotation 1 à 9 conservée pour traçabilité ; aucun nouvel identifiant de règle ni d’écran. Rattachement : D-439, D-445, D-448 point 9 et MFN-05. Les règles 6 à 8 sont reproduites au chapitre 09, dans la section de même titre.
+
+##### Règle 1 — texte de référence
+
+1. **Geste.** Un appui long sur la carte d'un membre d'une famille déployée arme son déplacement. Le membre se déplace en place dans la pile, sans écran ni panneau intermédiaire.
+
+##### Règle 2 — texte de référence
+
+2. **Portée du déplacement.** Un membre ne peut être déposé que dans sa propre famille. Un mouvement ne change pas de famille par glissement, et un mouvement sans famille ne peut pas en rejoindre une par ce geste.
+
+##### Règle 3 — texte de référence
+
+3. **Application immédiate.** Le déplacement est appliqué dès le dépôt, sans état provisoire. Un message de confirmation en rend compte, posé au-dessus de la barre de navigation.
+
+##### Règle 4 — texte reçu, contradiction non tranchée
+
+4. **Aucun mode, aucun bouton.** Le catalogue n'a pas de mode d'édition et le réordonnancement n'ajoute aucun bouton de validation. Toute opération du catalogue s'applique au geste, avec son message de confirmation. Cette règle vaut pour l'ensemble du catalogue, afin qu'aucune action n'ait un bouton que les autres n'auraient pas.
+
+##### Règle 5 — texte de référence
+
+5. **Ordre affiché.** Le niveau le plus élevé figure en haut de la pile. Le filet vertical relie les membres d'une famille déployée.
+
+##### Règle 9 — texte de référence
+
+9. **Cohabitation avec le menu existant.** D-448 point 9 prévoit « Réordonner les niveaux » à la racine du menu Niveau, dans les trois contextes. Les deux chemins coexistent et produisent exactement le même résultat : le geste depuis le catalogue et l'entrée de menu. Écris-le explicitement plutôt que de laisser croire à deux mécanismes distincts.
+
+**Contradiction de portée — règle 4, non tranchée.** Son application générale à « Toute opération du catalogue » contredit la section « Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026) » de ce chapitre : « La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. » D-445 C03 prévoit également des dialogues de confirmation pour les modifications de mouvement. La règle 4 est conservée ci-dessus sans reformulation, mais n'est pas promue en remplacement général de ces parcours. Les règles 1 à 3 décrivent l'application immédiate du réordonnancement ; elles ne suppriment pas les validations des autres opérations. Aucun arbitrage de cette contradiction n'est effectué ici.
+
+**Proposition non validée — attend une décision de Hermann.** Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. Ces propositions ne sont ni des règles applicables ni des parcours à développer ; D-445 C08 reste inchangée. Le déplacement interne à une famille ne les autorise pas.
+
 ### 5. Création et sélection
 
 #### MFN-06 — Créer un exercice

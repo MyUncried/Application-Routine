@@ -1501,3 +1501,24 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+
+
+## Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
+
+Source : instruction de Hermann du 27/10/2026. Textes reproduits sans reformulation. Les règles 1 à 5 et 9 sont au chapitre 10, section de même titre. Rattachement : D-437, D-439, D-445 ; lignes « Groupe sur Mouvement » et « Rang / total / suffixe - Nn » du présent chapitre.
+
+##### Règle 6 — texte de référence
+
+6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille.
+
+##### Règle 7 — texte de référence
+
+7. **Effet sur le reste.** L'identité du mouvement ne change pas. Les exercices qui le référencent continuent de le référencer, les instantanés et l'historique ne sont pas touchés, conformément à `sourceMovementId` conservé sans rang. Seul change le niveau affiché sur les cartes et l'ordre proposé dans le menu « Changer de niveau ».
+
+##### Règle 8 — texte reçu, contradiction non tranchée
+
+8. **Archivage et filtres.** Archiver, restaurer ou supprimer un membre ne modifie pas le rang des autres : le membre archivé conserve son rang et son appartenance au groupe, seule son apparition dans une vue change. Un filtre masque des membres sans recalculer les niveaux des membres visibles.
+
+**Contradiction — règle 8, non tranchée.** MFN-05, chapitre 10, prévoit : « Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer. » La section « Application ciblée des règles — Mouvement autonome » précise : « Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05) » et laisse l'archivage à décider dans son lot. La règle 8 affirme au contraire que supprimer ne modifie pas le rang des autres. Elle entre aussi en tension avec la règle 6 : des rangs contigus dérivés des membres restants ne peuvent conserver tous leurs numéros après suppression d'un membre intermédiaire. Aucun maintien de membre supprimé, rang réservé ou nouveau stockage n'est introduit pour résoudre cette contradiction.
+
+Le texte intégral de la règle 8 est conservé comme instruction reçue, sans remplacer MFN-05 ni clôturer le lot d'archivage. L'absence de recalcul du rang par filtrage est déjà conforme à la section « Application ciblée des règles — Mouvement autonome » du chapitre 10. Le maintien du rang d'un membre archivé signifie, dans le texte reçu, maintien dans l'ordre de la famille, pas création d'un rang persisté ; aucune décision supplémentaire sur la suppression n'est prise.
