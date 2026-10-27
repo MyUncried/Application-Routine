@@ -12,7 +12,7 @@ Créer un mouvement autonome, consulter et modifier son contenu partagé, créer
 
 ### 3. Contexte d'entrée
 
-Création depuis le catalogue, ouverture d'une fiche existante, reprise d'un résultat, ajout d'un niveau depuis le catalogue. Distinguer création indépendante, variante, consultation et édition. Un mouvement repris depuis une séance est consultable mais n'offre ni crayon ni création de variante.
+Création depuis le catalogue, ouverture d'une fiche existante, reprise d'un résultat, ajout d'un niveau depuis le catalogue. Distinguer création indépendante, variante, consultation et édition. Un mouvement repris depuis une séance est consultable mais n'offre ni crayon ni création de variante. [Recette A/B du 27/10/2026, F07 — remplace la consultation préalable : depuis le Catalogue des Mouvements, une fiche existante s'ouvre directement en édition, sans crayon ; brouillon, abandon et dialogues C03 conservés ; un Mouvement archivé reste consultable seulement ; le verrouillage depuis une Séance est inchangé.]
 
 Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.
 
@@ -30,17 +30,17 @@ Mouvement partagé : nom, alias existants, catégorie, zones corporelles, descri
 
 ### 7. Structure de l'écran
 
-En-tête fixe ; média pleine largeur derrière la zone de contexte (nom et pastilles catégorie/zone/niveau) ; description en étapes ; phases du mouvement ; action Terminer en bas. Sans média, gabarit vide permettant l'ajout. Pas d'accordéon Médias inférieur, pas de carte Paramètres ni de mode d'exécution.
+En-tête fixe ; média pleine largeur derrière la zone de contexte (nom et pastilles catégorie/zone/niveau) ; description en étapes ; phases du mouvement ; action Terminer en bas. Sans média, gabarit vide permettant l'ajout. Pas d'accordéon Médias inférieur, pas de carte Paramètres ni de mode d'exécution. [Recette A/B du 27/10/2026, F01/F02 : le média se prolonge derrière la zone de contexte, dont le dégradé recouvre la partie haute sans bande blanche (chevauchement de 21 à la référence 402) ; la zone média reste fixe pendant le défilement de la description et des phases, et le gabarit reste présent sans média. F03/F04 : titres « Description du mouvement » et « Phases du mouvement (pour minuter l'exécution) » en 11, mêmes marges et espacements. F05 : phases en liste d'étapes textuelles numérotées, sans durée ni paramètre ; ajout par l'invite, retrait par effacement d'une phase vide ; ordre modifiable par les actions accessibles.]
 
 Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gabarit Figma. Tous les comportements existants sont conservés : ajout/import, consultation/lecture, retrait et réordonnancement. La disparition de l'accordéon inférieur ne supprime aucune de ces commandes et n'introduit aucun nouveau parcours. Aucun écran ni arbitrage média supplémentaire n'est un prérequis de PRE-8.
 
 ### 8. Éléments obligatoires
 
-Navigation/fermeture, nom, pastilles de contexte, gabarit média, blocs description et phases, action Terminer. Crayon dans le contexte catalogue pour entrer en édition. Ces blocs ne rendent pas tous leurs contenus obligatoires : conserver les validations métier existantes, sans exiger un média ou des phases pour créer un mouvement. Alias : conserver leur prise en charge, sans prétendre que les 25 frames fournissent un nouveau champ dessiné.
+Navigation/fermeture, nom, pastilles de contexte, gabarit média, blocs description et phases, action Terminer. Crayon dans le contexte catalogue pour entrer en édition. Ces blocs ne rendent pas tous leurs contenus obligatoires : conserver les validations métier existantes, sans exiger un média ou des phases pour créer un mouvement. Alias : conserver leur prise en charge, sans prétendre que les 25 frames fournissent un nouveau champ dessiné. [Recette A/B du 27/10/2026, F07 : plus de crayon depuis le Catalogue des Mouvements, la fiche y est ouverte en édition.]
 
 ### 9. Layout déterministe
 
-Référence 402 × 874 ; en-tête 402 × 95 ; contexte 402 × 115 ; photo remplie 402 × 329 ; blocs description/phases de largeur 354 (marges 24). Le média passe derrière le contexte : ne pas additionner mécaniquement leurs hauteurs. Réutiliser les variantes et styles relevés au chapitre 12. Les hauteurs des listes s'adaptent à leur contenu. La pastille des zones absorbe la place disponible et tronque pour préserver catégorie et niveau.
+Référence 402 × 874 ; en-tête 402 × 95 ; contexte 402 × 115 ; photo remplie 402 × 329 ; blocs description/phases de largeur 354 (marges 24). Le média passe derrière le contexte : ne pas additionner mécaniquement leurs hauteurs. Réutiliser les variantes et styles relevés au chapitre 12. Les hauteurs des listes s'adaptent à leur contenu. La pastille des zones absorbe la place disponible et tronque pour préserver catégorie et niveau. [Recette A/B du 27/10/2026, A01 : marges standard de 16, blocs de 370 à la référence 402 ; A02 : titre de la fiche et de la création Mouvement / Niveau en Inter Medium 17.]
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -52,7 +52,7 @@ Initial ; nom en cours et mouvements proches ; nom déjà utilisé ; options d'u
 
 ### 12. Contrôles et interactions
 
-Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; variante → difficulté puis création. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction.
+Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; variante → difficulté puis création. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction. [Recette A/B du 27/10/2026, F07 : depuis le Catalogue des Mouvements, la fiche est directement modifiable ; C02 : après Plus facile / Plus difficile, le nouveau Niveau s'ouvre en édition, sans crayon, nom commencé sans rang ajouté et invite « (compléter le nom) » non persistée ; F06 : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`), même règle en création et en modification.]
 
 ### 13. Gestes
 
@@ -5010,7 +5010,7 @@ Filtre appliqué, tri implicite et scroll sont conservés pendant la session app
 
 #### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
-`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native. [Recette A/B du 27/10/2026, D01–D05 : appliqué à tous les segments par un module commun (`CatalogueCommands`) ; sur le segment Mouvements, le champ Rechercher occupe la même rangée, à gauche des commandes, de même hauteur visible 34 (cible 44), et se réduit horizontalement quand Filtrer s’étend ; une croix dans le champ efface la saisie et restaure la liste des filtres actifs sans fermer le Catalogue. Commande Filtrer étendue : rond bleu (retire les filtres), « Filtres » + résumé + chevron (ouvre la feuille). Sans critère, Filtrer ouvre directement la feuille : l’étape intermédiaire « Filtres / Aucun » n’est pas développée (à valider). Catalogue des Mouvements, B06 : toute la marge gauche d’une pile déployée la replie ; B09 : une pile condensée ne glisse pas.]
 
 `Filtrer` et `Trier` sont communs à `Exercices / Séances`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Un appui l’étend en `Filtres / Aucun` sans modifier la liste. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
@@ -5164,7 +5164,7 @@ Aucune donnée métier. État active dérivé de route.
 
 #### 7. Structure de l’écran
 
-Barre Bottom Navigation canonique à quatre destinations.
+Barre Bottom Navigation canonique à quatre destinations. [Recette A/B E01 du 27/10/2026 : cinq destinations, `Communauté` visible et désactivée, sans Recherche.]
 
 #### 8. Éléments obligatoires
 
@@ -5177,7 +5177,7 @@ Barre Bottom Navigation canonique à quatre destinations.
 
 #### 9. Layout déterministe
 
-Répartition via composant DSF ; dessins centrés ; aucune substitution ou mise à l’échelle >24 pour quatre destinations.
+Répartition via composant DSF ; dessins centrés ; aucune substitution ou mise à l’échelle >24 pour quatre destinations [cinq depuis E01 du 27/10/2026].
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -5224,7 +5224,7 @@ Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants.
 
 #### 20. Recette déterministe
 
-Tester les quatre destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
+Tester les quatre destinations [cinq depuis E01 du 27/10/2026, Communauté désactivée], labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
 
 ### CE-UI-06 — Splash KODJO
 

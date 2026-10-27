@@ -1,5 +1,5 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { SessionSummary } from "@/domain/sessions/Session";
@@ -7,17 +7,18 @@ import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueLi
 import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
-import { countActiveFilters, EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
+import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
+import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
+import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Segment de TYPE de contenu du Catalogue (V2-CAT-01, D-108). Seuls `activities` et `sessions` sont fonctionnels ; `circuits` reste visible mais désactivé.
@@ -78,7 +79,17 @@ export function CatalogueScreen() {
   // l'écran, jamais persisté), réinitialisés au relancement ; aucun filtre : Actifs seul.
   const [movementFilters, setMovementFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
   const [isMovementFilterOpen, setIsMovementFilterOpen] = useState(false);
-  const activeMovementFilterCount = countActiveFilters(movementFilters);
+  // Recette A/B (D05) : libellés des critères choisis, pour le résumé de la commande étendue.
+  const [movementFilterLabels, setMovementFilterLabels] = useState<readonly string[]>([]);
+  // Recette A/B (D02) : recherche des Mouvements dans la zone de contexte, conservée pendant la
+  // session comme les filtres.
+  const [movementQuery, setMovementQuery] = useState("");
+  const movementFilterSummary =
+    movementFilterLabels.length === 0
+      ? null
+      : movementFilterLabels.length === 1
+        ? movementFilterLabels[0]!
+        : fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(movementFilterLabels.length) });
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
@@ -141,7 +152,11 @@ export function CatalogueScreen() {
       return;
     }
     isOpeningEditorRef.current = true;
-    router.push(movementId === null ? "/movement" : { pathname: "/movement", params: { movementId } });
+    // Recette A/B (F07) : depuis le Catalogue des Mouvements, la fiche s’ouvre directement en
+    // édition (un Mouvement archivé reste consultable seulement, B.8).
+    router.push(
+      movementId === null ? "/movement" : { pathname: "/movement", params: { movementId, mode: MOVEMENT_EDIT_MODE_PARAM } },
+    );
   };
 
   // PRE-4 story 4.1 (AC1, décision Q33 de Hermann du 2026-10-17) : sur le
@@ -203,31 +218,36 @@ export function CatalogueScreen() {
           onChange={setActiveSegment}
           testID="catalogue-content-type-row"
         />
+        {/* Recette A/B (D01, D02, D04, D05 ; ch13 §4.5) : commandes rondes 34, Rechercher sur la même
+            rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
         <View style={styles.commandRow} testID="catalogue-command-row">
-          <CommandAction
-            label={t.createAction}
-            icon="action-add"
-            onPress={handleCreatePress}
-            testID="catalogue-create-action"
-          />
+          {activeSegment === "movements" ? (
+            <CatalogueSearchField
+              value={movementQuery}
+              onChangeText={setMovementQuery}
+              placeholder={strings.screens.movement.catalogue.searchPlaceholder}
+              accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
+              clearLabel={strings.screens.movement.catalogue.searchClear}
+              testID="movement-catalogue-search"
+            />
+          ) : null}
+          <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
           {/* PRE-8 (B.7) : Filtrer est actif sur le seul segment Mouvements ; inchangé ailleurs. */}
-          <CommandAction
-            label={
-              activeSegment === "movements" && activeMovementFilterCount > 0
-                ? fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(activeMovementFilterCount) })
-                : t.filterAction
-            }
-            iconElement={<FilterIcon disabled={activeSegment !== "movements"} testID="catalogue-filter-icon" />}
+          <FilterCommand
+            label={t.filterAction}
+            title={strings.screens.movement.catalogue.filters.command}
+            summary={activeSegment === "movements" ? movementFilterSummary : null}
+            clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+            editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
             disabled={activeSegment !== "movements"}
-            onPress={() => setIsMovementFilterOpen(true)}
+            onOpen={() => setIsMovementFilterOpen(true)}
+            onClear={() => {
+              setMovementFilters(EMPTY_MOVEMENT_FILTERS);
+              setMovementFilterLabels([]);
+            }}
             testID="catalogue-filter-action"
           />
-          <CommandAction
-            label={t.sortAction}
-            iconElement={<SortIcon disabled testID="catalogue-sort-icon" />}
-            disabled
-            testID="catalogue-sort-action"
-          />
+          <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
         </View>
       </ContextBand>
 
@@ -247,8 +267,9 @@ export function CatalogueScreen() {
       {isMovementFilterOpen ? (
         <MovementFilterSheet
           filters={movementFilters}
-          onApply={(filters) => {
+          onApply={(filters, labels) => {
             setMovementFilters(filters);
+            setMovementFilterLabels(labels);
             setIsMovementFilterOpen(false);
           }}
           onClose={() => setIsMovementFilterOpen(false)}
@@ -271,7 +292,7 @@ export function CatalogueScreen() {
        * bas de la bande Context et le haut réel de la barre.
        */}
       <View
-        style={[styles.body, { paddingBottom: navigationBarTotalHeight() }]}
+        style={[styles.body, activeSegment === "movements" ? styles.bodyFlush : null, { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
         {activeSegment === "sessions" ? (
@@ -294,6 +315,7 @@ export function CatalogueScreen() {
         {activeSegment === "movements" ? (
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
+            query={movementQuery}
             filters={movementFilters}
             onOpenMovement={openMovement}
             onCreateVariant={(variantOf, placement) => {
@@ -314,135 +336,6 @@ export function CatalogueScreen() {
     </ScreenShell>
   );
 }
-
-/**
- * Une commande de la rangée `Créer / Filtrer / Trier` (V2-CAT-01, plan
- * §4.1 ; VISUAL_CORRECTION, revue iPhone du HEAD `cc1c618`) — `Créer` seul
- * actif dans cette tranche ; `Filtrer`/`Trier` restent visibles mais inertes
- * (recherche, filtre et tri fonctionnels hors périmètre).
- *
- * D-184 : trois commandes `108 × 32` pt (`COMMAND_ACTION_WIDTH`), espace
- * `8` pt entre elles (`commandRow.gap`), rayon du token
- * `dimensions.compactSecondaryButton` (16) — la cible tactile réelle
- * (`minTouchTarget`, `48×48`) est obtenue via `hitSlop`, jamais en
- * agrandissant la boîte visuelle elle-même (doc12 §Dimensions structurantes,
- * doc13 §3.3).
- *
- * **Correction du bouton non fonctionnel sur appareil réel (obligation 1)** :
- * la géométrie visuelle (`108 × 32`) dépasse déjà `minTouchTarget` (`48`)
- * dans les deux axes — la formule `(minTouchTarget − dimension) / 2`
- * produisait donc un `hitSlop` NÉGATIF (`(48 − 90) / 2 = −21` avec l'ancienne
- * largeur `90`), qui RÉDUIT la zone tactile native au lieu de l'agrandir.
- * `fireEvent.press` (Testing Library) déclenche directement le gestionnaire
- * sans jamais passer par le calcul RÉEL de zone tactile côté plateforme —
- * un tel défaut ne peut donc jamais être détecté par ce seul mécanisme
- * (d'où la consigne de ne pas conclure à partir des seuls `fireEvent.press`
- * existants). `Math.max(0, ...)` élimine toute valeur négative : `hitSlop`
- * n'agrandit plus jamais en dessous de `0`, quelle que soit la géométrie
- * visuelle fournie.
- */
-function CommandAction({
-  label,
-  icon,
-  iconElement,
-  onPress,
-  disabled = false,
-  testID,
-}: {
-  label: string;
-  icon?: "action-add";
-  /** Pictogramme composé localement (Filtrer/Trier) — voir `FilterIcon`/`SortIcon`. */
-  iconElement?: ReactNode;
-  onPress?: () => void;
-  disabled?: boolean;
-  testID: string;
-}) {
-  const horizontalHitSlop = Math.max(0, (minTouchTarget - COMMAND_ACTION_WIDTH) / 2);
-  const verticalHitSlop = Math.max(
-    0,
-    (minTouchTarget - dimensions.compactSecondaryButton.visualHeight) / 2,
-  );
-
-  return (
-    <Pressable
-      disabled={disabled}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      accessibilityLabel={label}
-      hitSlop={{
-        top: verticalHitSlop,
-        bottom: verticalHitSlop,
-        left: horizontalHitSlop,
-        right: horizontalHitSlop,
-      }}
-      style={[styles.createAction, disabled ? styles.createActionDisabled : null]}
-      testID={testID}
-    >
-      {icon ? <KodjoIcon name={icon} opacity={disabled ? 0.4 : 1} testID={`${testID}-icon`} /> : null}
-      {iconElement}
-      <Text style={[styles.createActionLabel, disabled ? styles.createActionLabelDisabled : null]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-/**
- * Pictogramme `Filtrer` (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame `3786:5093`,
- * nœud `3947:5933`) : trois lignes horizontales décroissantes. Composé
- * localement à partir de primitives `View` — `src/shared/ui/KodjoIcon.tsx`
- * et `assets/icons/` (registre d'icônes SVG canoniques du DSF) sont hors du
- * périmètre d'écriture autorisé de cette correction visuelle bornée
- * (`scope_allow`) : aucun nouvel actif SVG ni nouvelle entrée de registre
- * ne peut y être ajouté ici. Écart disclosed plutôt qu'un élargissement de
- * périmètre non autorisé — même géométrie de trait (largeurs décroissantes,
- * couleur `colors.primary`/`colors.disabled`) que le pictogramme Figma
- * référencé.
- */
-function FilterIcon({ disabled = false, testID }: { disabled?: boolean; testID?: string }) {
-  const color = disabled ? colors.disabled : colors.primary;
-  return (
-    <View style={styles.filterIcon} testID={testID}>
-      <View style={[styles.filterIconBar, { width: 14, backgroundColor: color }]} />
-      <View style={[styles.filterIconBar, { width: 10, backgroundColor: color }]} />
-      <View style={[styles.filterIconBar, { width: 6, backgroundColor: color }]} />
-    </View>
-  );
-}
-
-/**
- * Pictogramme `Trier` (Figma `G6RY5Ebhgwb4AHIOYDwwvg`, frame `3786:5093`,
- * `Action/Utility` type `Sort`) : flèches haut/bas. Même disclosure de
- * périmètre que `FilterIcon` ci-dessus — `src/shared/ui/KodjoIcon.tsx` et
- * `assets/icons/` restent hors du périmètre d'écriture autorisé, et
- * `react-native-svg` n'est pas une dépendance du projet.
- *
- * Correction VISUAL_CORRECTION (revue indépendante du HEAD `8dbe586`,
- * commentaire 5735387835) : le glyphe Unicode `↕` précédent dépend d'une
- * police système — sa forme et sa disponibilité varient d'une plateforme à
- * l'autre, ce qui n'est pas un contrat visuel stable. Remplacé par des
- * primitives `View` (même technique que `FilterIcon`) : une tige verticale
- * entre deux triangles pleins (astuce des bordures transparentes), dont la
- * géométrie et la couleur sont fixées par ce composant et ne dépendent plus
- * d'aucune police.
- */
-function SortIcon({ disabled = false, testID }: { disabled?: boolean; testID?: string }) {
-  const color = disabled ? colors.disabled : colors.primary;
-  return (
-    <View style={styles.sortIcon} testID={testID}>
-      <View style={[styles.sortIconArrowUp, { borderBottomColor: color }]} testID={`${testID}-arrow-up`} />
-      <View style={[styles.sortIconStem, { backgroundColor: color }]} testID={`${testID}-stem`} />
-      <View
-        style={[styles.sortIconArrowDown, { borderTopColor: color }]}
-        testID={`${testID}-arrow-down`}
-      />
-    </View>
-  );
-}
-
-// D-184 : trois commandes `108 × 32` pt.
-const COMMAND_ACTION_WIDTH = 108;
 
 function LoadingBody() {
   return (
@@ -570,89 +463,24 @@ const styles = StyleSheet.create({
   // V2-CAT-01 : le sélecteur de segment lui-même est désormais porté par
   // `@/shared/ui/SegmentedControl` (composant canonique partagé) — cette
   // rangée ne porte plus que `Créer / Filtrer / Trier` (plan §4.1).
-  // D-184 : espace `8` pt entre les trois commandes (`spacing[8]`, plutôt
-  // que l'ancien `spacing[16]`).
+  // Recette A/B (D01, ch13 §4.5) : commandes rondes de `CatalogueCommands`, écart visuel 12,
+  // alignées à droite ; le champ Rechercher (segment Mouvements) occupe la largeur restante.
   commandRow: {
     flexDirection: "row",
-    justifyContent: "center",
-    gap: spacing[8],
-    marginTop: spacing[8],
-  },
-  // Correction CAT-R02 (contre-recette iPhone, `[ChatGPT]
-  // DEVICE_REVIEW_FAIL`, 2026-09-03) : aucun fond propre n'était déclaré
-  // — la teinte pâle de la bande Context transparaissait à l'intérieur
-  // du bouton. `backgroundColor: colors.background` (blanc) ajouté ;
-  // bordure/icône/libellé bleus déjà conformes. D-184 : géométrie
-  // `108×32`/rayon `16`/cible tactile `48`.
-  createAction: {
-    alignSelf: "center",
-    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    gap: spacing[6],
-    width: COMMAND_ACTION_WIDTH,
-    height: dimensions.compactSecondaryButton.visualHeight,
-    borderRadius: dimensions.compactSecondaryButton.radius,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
+    justifyContent: "flex-end",
+    gap: dimensions.catalogueCommand.gap,
   },
-  createActionDisabled: {
-    borderColor: colors.disabled,
-  },
-  createActionLabel: {
-    ...type.button,
-    color: colors.primary,
-  },
-  createActionLabelDisabled: {
-    color: colors.disabled,
-  },
-  // Pictogramme `Filtrer` (`FilterIcon`) : trois traits horizontaux
-  // décroissants empilés, centrés.
-  filterIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-  },
-  filterIconBar: {
-    height: 2,
-    borderRadius: 1,
-  },
-  // Pictogramme `Trier` (`SortIcon`) : tige verticale entre deux triangles
-  // pleins (astuce des bordures transparentes) — aucune dépendance à une
-  // police, contrairement à un glyphe Unicode.
-  sortIcon: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 10,
-    height: 14,
-  },
-  sortIconArrowUp: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 4,
-    borderRightWidth: 4,
-    borderBottomWidth: 5,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-  },
-  sortIconStem: {
-    width: 2,
-    height: 4,
-  },
-  sortIconArrowDown: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 4,
-    borderRightWidth: 4,
-    borderTopWidth: 5,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-  },
+  // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
+  // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).
   body: {
     flex: 1,
-    paddingHorizontal: spacing[24],
+    paddingHorizontal: layout.screenGutter,
     paddingTop: spacing[16],
+  },
+  bodyFlush: {
+    paddingHorizontal: 0,
+    paddingTop: spacing[8],
   },
   centeredBody: {
     flex: 1,

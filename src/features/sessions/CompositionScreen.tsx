@@ -199,7 +199,7 @@ import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -5685,9 +5685,10 @@ const styles = StyleSheet.create({
   // littéraux.
   bodyContent: {
     // PRE-6 (story 5.2, D-435) : colonne de la séquence à x 24 ; le rail est dessiné par chaque
-    // élément (bornes, cartes, Circuit), plus aucune marge de repères.
-    paddingLeft: spacing[24],
-    paddingRight: spacing[24],
+    // élément (bornes, cartes, Circuit), plus aucune marge de repères. A01 (recette PRE-8 A/B) :
+    // marge standard `layout.screenGutter` (16).
+    paddingLeft: layout.screenGutter,
+    paddingRight: layout.screenGutter,
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
     gap: COMPOSITION_ROW_GAP,
@@ -5721,9 +5722,10 @@ const styles = StyleSheet.create({
     height: BACK_HALO_DIAMETER,
     borderRadius: BACK_HALO_DIAMETER / 2,
     backgroundColor: colors.background,
-    // Centre = centre du bouton Retour de l’en-tête partagé (marge 24, cercle 38, centré
-    // dans la hauteur de contenu 48 juste au-dessus de la zone, sans séparateur — D-353).
-    left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
+    // Centre = centre du bouton Retour de l’en-tête partagé (marge standard `layout.screenGutter`
+    // depuis A01, cercle 38, centré dans la hauteur de contenu 48 juste au-dessus de la zone, sans
+    // séparateur — D-353).
+    left: layout.screenGutter + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
@@ -5959,8 +5961,8 @@ const styles = StyleSheet.create({
   // statique) : transmis en ligne (`addActivityTreeTop`).
   addActivityTree: {
     position: "absolute",
-    left: spacing[24],
-    right: spacing[24],
+    left: layout.screenGutter,
+    right: layout.screenGutter,
     backgroundColor: colors.background,
     borderRadius: dimensions.standardCard.radius,
     borderWidth: 1,

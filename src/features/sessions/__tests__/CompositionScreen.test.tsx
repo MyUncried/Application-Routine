@@ -1470,9 +1470,10 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
     // colonne, 8 au-delà des cartes (370 à x 16), dont le contenu revient à la colonne.
     expect(flattened.marginHorizontal).toBe(-16);
     expect(flattened.paddingHorizontal).toBe(16);
+    // Recette PRE-8 A/B (A01) : marge standard de 16 (auparavant 24).
     expect(StyleSheet.flatten(screen.getByTestId("composition-body").props.contentContainerStyle)).toMatchObject({
-      paddingLeft: 24,
-      paddingRight: 24,
+      paddingLeft: 16,
+      paddingRight: 16,
     });
   });
 });
@@ -1600,12 +1601,12 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
     });
   });
 
-  it("story 7.10 — « Continuer » has the format of « Terminer »: 48 high, radius 24, shadow G-8, side margins 24 at 402", () => {
+  it("story 7.10 — « Continuer » has the format of « Terminer »: 48 high, radius 24, shadow G-8, side margins 16 (A01, recette PRE-8 A/B)", () => {
     renderScreen();
     const button = StyleSheet.flatten(screen.getByTestId("composition-save-action").props.style);
     expect(button).toMatchObject({ ...FINAL_ACTION_BUTTON, backgroundColor: colors.disabled });
     expect(button).toMatchObject({ minHeight: 48, borderRadius: 24, shadowColor: "#1A1A26", shadowOpacity: 0.18, shadowRadius: 10 });
-    expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).paddingHorizontal).toBe(24);
+    expect(StyleSheet.flatten(screen.getByTestId("composition-bottom-action").props.style).paddingHorizontal).toBe(16);
   });
 
   it("story 7.10 — « Continuer » enabled for a valid Composition: primary, still in the format of « Terminer »", () => {
@@ -4217,10 +4218,10 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
       expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
     }
 
-    // Courbe : halo blanc Ø 59,28 concentrique au bouton Retour (marge 24, cercle 38, contenu 48, séparateur 1).
+    // Courbe : halo blanc Ø 59,28 concentrique au bouton Retour (marge 16 depuis A01, cercle 38, contenu 48, séparateur 1).
     const halo = StyleSheet.flatten(screen.getByTestId("composition-context-band-halo", { includeHiddenElements: true }).props.style);
     expect(halo).toMatchObject({ position: "absolute", width: 59.28, height: 59.28, borderRadius: 29.64, backgroundColor: colors.background });
-    expect(halo.left).toBeCloseTo(24 + 19 - 29.64, 5);
+    expect(halo.left).toBeCloseTo(16 + 19 - 29.64, 5);
     expect(halo.top).toBeCloseTo(-24 - 29.64, 5);
 
     // Effets dessinés en premier : sous le champ Nom et sous Ajouter.
@@ -5260,7 +5261,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         fireEvent.press(screen.getByTestId(NATURE));
         const panel = screen.getByTestId(PANEL);
         // Hébergé par le contenu défilant, sous l'en-tête, aligné sur le bord droit du contenu.
-        expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ top: 230 + 12 + 44 + spacing[4], right: spacing[24] });
+        expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ top: 230 + 12 + 44 + spacing[4], right: spacing[16] });
 
         // Story 7.3 : le stepper reste affiché ; un pas referme le choix (un seul contrôle actif) puis
         // s'applique ; le pas inverse rend le brouillon à N = 3.

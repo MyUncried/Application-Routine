@@ -372,7 +372,8 @@ describe("Éditeur — PRE-4 story 4.6", () => {
   });
 
   it("PRE4-4.6/AC6 — largeurs 360, 390, 402, 430 et 440 : marge 16 sous 390, 24 au-delà, appliquée au bandeau, au corps et à Terminer ; aucun bloc en position absolue ; Terminer hors de la zone qui évite le clavier (seule exception admise, FR-02-08)", () => {
-    expect([360, 390, 402, 430, 440].map(editorSideMargin)).toEqual([16, 24, 24, 24, 24]);
+    // PRE-8, recette A/B (A01) : marge standard 16 à toutes les largeurs.
+    expect([360, 390, 402, 430, 440].map(editorSideMargin)).toEqual([16, 16, 16, 16, 16]);
     for (const width of [360, 390, 402, 430, 440]) {
       const view = renderAtWidth(width);
       try {

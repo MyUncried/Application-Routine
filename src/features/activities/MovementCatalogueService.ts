@@ -120,6 +120,16 @@ export class MovementCatalogueService {
     return groupFamilies(await this.listEntries());
   }
 
+  /**
+   * Recette A/B (B08, MFN-05, D-445) : réordonne une famille depuis une pile déployée
+   * (`orderedIds` : tous ses membres, rang croissant, archivés compris) par
+   * `MovementRepository.reorder` (permutation exacte, transaction exclusive). Identités, contenus,
+   * Exercices et résultats historiques inchangés ; seuls les rangs dérivés changent.
+   */
+  async reorderFamily(groupId: string, orderedIds: readonly string[]): Promise<boolean> {
+    return (await this.movements.reorder(groupId, orderedIds)).status === "OK";
+  }
+
   /** PRE-8 (B.8) : le Mouvement est-il archivé ? (fiche en consultation seule). */
   async isArchived(movementId: string): Promise<boolean> {
     return (await this.movements.listArchivedIds()).has(movementId);

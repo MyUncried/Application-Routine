@@ -2,7 +2,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { strings } from "@/shared/i18n";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 
 export type CatalogueCreateOptionsProps = {
@@ -157,8 +157,9 @@ const styles = StyleSheet.create({
     // style inline — dépend d'`insets.top`, indisponible dans cette feuille
     // de styles statique.
     position: "absolute",
-    left: spacing[24],
-    right: spacing[24],
+    // A01 (recette PRE-8 A/B) : aligné sur la marge standard du Catalogue.
+    left: layout.screenGutter,
+    right: layout.screenGutter,
     backgroundColor: colors.background,
     borderRadius: dimensions.standardCard.radius,
     borderWidth: 1,

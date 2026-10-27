@@ -120,6 +120,8 @@ export const fr = {
     history: "Suivi",
     profile: "Profil",
     search: "Recherche",
+    // PRE-8 (E01) : destination visible et désactivée, sans écran.
+    community: "Communauté",
   },
   screens: {
     notFound: {
@@ -1061,13 +1063,14 @@ export const fr = {
       loadError: "Le mouvement n’a pas pu être chargé.",
       retry: "Réessayer",
       saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
+      // Recette A/B (F03) : titre de la Description sur la fiche Mouvement (Figma `10453:23036`).
+      descriptionTitle: "Description du mouvement",
       phases: {
         title: "Phases du mouvement (pour minuter l’exécution)",
         firstPlaceholder: "Nommez la première phase",
         nextPlaceholder: "Phase suivante",
         labelAccessibility: "Phase {rank}",
         remove: "Retirer la phase {rank}",
-        moveHandle: "Déplacer la phase",
         row: "Phase {n}",
         moveUp: "Monter",
         moveDown: "Descendre",
@@ -1089,9 +1092,17 @@ export const fr = {
         pileExpandHint: "Déplie la pile",
         pileCollapse: "Replier la pile",
         archivedAccessibility: "archivé",
+        // Recette A/B (D03) : croix d'effacement de la recherche.
+        searchClear: "Effacer la recherche",
+        // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.
+        reorderHint: "Appui long puis glisser pour changer l’ordre des niveaux",
+        moveHarder: "Placer {name} un niveau plus haut",
+        moveEasier: "Placer {name} un niveau plus bas",
+        reorderError: "L’ordre des niveaux n’a pas pu être enregistré. Réessayez.",
         actions: {
           share: "Partager",
-          createVariant: "Créer une variante",
+          // Recette A/B (B12, CE-MVT-02) : « Ajouter un niveau » remplace « Créer une variante ».
+          addLevel: "Ajouter un niveau",
           archive: "Archiver",
           restore: "Restaurer",
           delete: "Supprimer",
@@ -1135,6 +1146,10 @@ export const fr = {
           categories: "Catégories",
           bodyZones: "Zones corporelles",
           activeSummary: "{count} filtres",
+          // Recette A/B (D05, ch13 §4.5) : commande étendue — le rond retire les filtres, la zone
+          // texte ouvre la feuille.
+          clearAccessibility: "Retirer les filtres",
+          editAccessibility: "Modifier les filtres",
         },
       },
     },

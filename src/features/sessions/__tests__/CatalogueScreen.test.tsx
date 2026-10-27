@@ -255,11 +255,10 @@ describe("CatalogueScreen — cadre commun", () => {
     const flattened = StyleSheet.flatten(createAction.props.style);
     expect(flattened.backgroundColor).toBe(colors.background);
     expect(flattened.borderColor).toBe(colors.primary);
-    // Géométrie déjà couverte par ailleurs (UI-CAT-001, D-184) — revérifiée
-    // ici pour prouver qu'elle n'a pas régressé avec ce changement de fond.
-    expect(flattened.width).toBe(108);
-    expect(flattened.height).toBe(32);
-    expect(flattened.borderRadius).toBe(16);
+    // Recette PRE-8 A/B (D01, ch13 §4.5) : cercle 34, rayon 17 — remplace le 108 × 32 de D-184.
+    expect(flattened.width).toBe(34);
+    expect(flattened.height).toBe(34);
+    expect(flattened.borderRadius).toBe(17);
   });
 
   it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {
@@ -477,7 +476,7 @@ describe("CatalogueScreen — cadre commun", () => {
     });
   });
 
-  it("Créer has the exact D-184 visual frame (108×32, compact-secondary radius), and a real ≥48×48 touch target via hitSlop, not visual enlargement (UI-CAT-001, D-184)", async () => {
+  it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -488,15 +487,41 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
-    const flattened = StyleSheet.flatten(createAction.props.style);
-    expect(flattened.width).toBe(108);
-    expect(flattened.height).toBe(32);
-    expect(flattened.borderRadius).toBe(16);
+    for (const testID of ["catalogue-create-action", "catalogue-filter-action", "catalogue-sort-action"]) {
+      const action = screen.getByTestId(testID);
+      const flattened = StyleSheet.flatten(action.props.style);
+      expect(flattened.width).toBe(34);
+      expect(flattened.height).toBe(34);
+      expect(flattened.borderRadius).toBe(17);
+      const hitSlop = action.props.hitSlop;
+      expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(44);
+      expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(44);
+    }
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
+  });
 
-    const hitSlop = createAction.props.hitSlop;
-    expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(48);
-    expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(48);
+  it("shows Rechercher in the command row on the Mouvements segment only, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.queryByTestId("movement-catalogue-search")).toBeNull();
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
+    const row = screen.getByTestId("catalogue-command-row");
+    expect(within(row).getByTestId("movement-catalogue-search")).toBeTruthy();
+    expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
+    fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
+    expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
+    fireEvent.press(screen.getByTestId("movement-catalogue-search-clear"));
+    expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("");
+    expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
+    expect(screen.getByTestId("movement-catalogue")).toBeTruthy();
   });
 
   // Correction VISUAL_CORRECTION (revue iPhone du HEAD `cc1c618`, PR #181) :
@@ -557,7 +582,7 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
-  it("renders the Filtrer and Trier pictograms alongside their labels (Figma frame 3786:5093)", async () => {
+  it("renders the Créer, Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -568,22 +593,14 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("catalogue-filter-icon")).toBeTruthy();
-    expect(screen.getByTestId("catalogue-sort-icon")).toBeTruthy();
+    expect(screen.getByTestId("catalogue-create-action-icon")).toBeTruthy();
+    expect(screen.getByTestId("catalogue-filter-action-icon")).toBeTruthy();
+    const sortIcon = screen.getByTestId("catalogue-sort-action-icon");
+    expect(within(screen.getByTestId("catalogue-sort-action")).queryByText("↕")).toBeNull();
+    expect(StyleSheet.flatten(sortIcon.props.style)).toMatchObject({ width: 20, height: 20 });
   });
 
-  // Correction VISUAL_CORRECTION (revue indépendante du HEAD `8dbe586`,
-  // commentaire 5735387835) : contrat de rendu du pictogramme Trier —
-  // au-delà de la seule présence d'un `testID`, prouve qu'il n'est PLUS un
-  // glyphe de police (aucun texte `↕`, dont la forme et la disponibilité
-  // varient d'une plateforme à l'autre) mais une composition vectorielle
-  // stable : deux triangles pleins (bordures transparentes formant la
-  // pointe) encadrant une tige. La commande `Trier` restant désactivée
-  // dans cette tranche (recherche/filtre/tri fonctionnels hors périmètre),
-  // ce test vérifie la géométrie, pas une couleur précise — la couleur de
-  // l'état inerte (`colors.disabled`) est l'unique objet du test dédié
-  // suivant.
-  it("renders Trier as a stable vector shape (two solid triangles and a stem), not a font glyph (VISUAL_CORRECTION, comment 5735387835)", async () => {
+  it("dims Trier (border colors.disabled) while it remains inert", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);
 
@@ -594,53 +611,9 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const sortIcon = screen.getByTestId("catalogue-sort-icon");
-    expect(within(sortIcon).queryByText("↕")).toBeNull();
-
-    const arrowUp = screen.getByTestId("catalogue-sort-icon-arrow-up");
-    const arrowDown = screen.getByTestId("catalogue-sort-icon-arrow-down");
-    const stem = screen.getByTestId("catalogue-sort-icon-stem");
-
-    const flattenedUp = StyleSheet.flatten(arrowUp.props.style);
-    const flattenedDown = StyleSheet.flatten(arrowDown.props.style);
-    const flattenedStem = StyleSheet.flatten(stem.props.style);
-
-    // Triangle plein via bordures transparentes : une seule bordure colorée
-    // (bas pour la pointe haute, haut pour la pointe basse), les bordures
-    // latérales restant transparentes, quelle que soit la couleur exacte.
-    expect(flattenedUp.borderBottomWidth).toBeGreaterThan(0);
-    expect(flattenedUp.borderLeftColor).toBe("transparent");
-    expect(flattenedUp.borderRightColor).toBe("transparent");
-
-    expect(flattenedDown.borderTopWidth).toBeGreaterThan(0);
-    expect(flattenedDown.borderLeftColor).toBe("transparent");
-    expect(flattenedDown.borderRightColor).toBe("transparent");
-
-    expect(flattenedStem.width).toBeGreaterThan(0);
-    expect(flattenedStem.height).toBeGreaterThan(0);
-  });
-
-  // Trier reste désactivé dans cette tranche : ce test est l'unique
-  // vérification que la forme vectorielle passe bien à `colors.disabled`
-  // pendant qu'elle reste inerte.
-  it("dims the Trier vector shape to colors.disabled while it remains inert (VISUAL_CORRECTION, comment 5735387835)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
-
-    renderScreen(service);
-    await act(async () => {
-      simulateFocus();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    const flattenedUp = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-arrow-up").props.style);
-    const flattenedDown = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-arrow-down").props.style);
-    const flattenedStem = StyleSheet.flatten(screen.getByTestId("catalogue-sort-icon-stem").props.style);
-
-    expect(flattenedUp.borderBottomColor).toBe(colors.disabled);
-    expect(flattenedDown.borderTopColor).toBe(colors.disabled);
-    expect(flattenedStem.backgroundColor).toBe(colors.disabled);
+    const sort = screen.getByTestId("catalogue-sort-action");
+    expect(sort.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(sort.props.style).borderColor).toBe(colors.disabled);
   });
 
   it("pressing Séances (already selected) changes nothing: no reload, no navigation", async () => {

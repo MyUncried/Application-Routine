@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-8 (autorisation de Hermann du 27/10/2026 : epics A et B)
 generated: 10-27-2026 10:00
-last_updated: 10-27-2026 23:00
+last_updated: 10-28-2026 02:00
 project: kodjo-pre8
 project_key: NOKEY
 tracking_system: file-system
@@ -20,6 +20,7 @@ development_status:
   b-6-variante-par-action-glissee: done
   b-7-filtres-et-recherche-combines: done
   b-8-archivage-restauration-suppression: done  # migration 015
+  b-9-corrections-recette-a-b: review  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; validation sur appareil attendue
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), epic-e (Catalogue unique), formats
 deferred:
   - id: q-e1

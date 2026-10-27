@@ -207,6 +207,12 @@ export type ActivityEditorFormProps = {
 export const MOVEMENT_PHOTO_TEMPLATE = { width: 402, height: 329 } as const;
 
 /**
+ * PRE-8, recette A/B (F01) : le gabarit photo commence SOUS la zone de contexte (Figma `10453:23030` :
+ * contexte 115, gabarit à y 94 dans le formulaire), dont le dégradé recouvre ses 21 premiers points.
+ */
+export const MOVEMENT_PHOTO_UNDER_CONTEXT = 21;
+
+/**
  * Validité du brouillon d'Exercice : Nom valide et paramètres valides par la
  * validation unique `validateForSave` avec la ligne de base relue à
  * l'ouverture de l'Éditeur (PRE-4, AD-13 : `null` en création ; une valeur
@@ -358,6 +364,7 @@ export function ActivityEditorForm({
   const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
   const sideMargin = editorSideMargin(windowSize.width);
+  const movementPhotoHeight = Math.round((windowSize.width * MOVEMENT_PHOTO_TEMPLATE.height) / MOVEMENT_PHOTO_TEMPLATE.width);
   // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
   // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
   const actionZone = usePrimaryActionZone();
@@ -490,20 +497,34 @@ export function ActivityEditorForm({
   return (
     <>
       <View
-        style={[styles.contextBand, { paddingHorizontal: sideMargin }]}
+        style={[styles.contextBand, isMovement ? styles.movementContextBand : null, { paddingHorizontal: sideMargin }]}
         onLayout={(event) => setBandY(event.nativeEvent.layout.y)}
         testID="exercise-context-band"
       >
+        {/* PRE-8, recette A/B (F01) : sur la fiche Mouvement, la « Zone bleue » se fond dans le média
+            qui passe dessous (`#EAEAFF` → transparent, Figma `10453:23033`), sans bande blanche. */}
+        {isMovement ? (
+          <View pointerEvents="none" style={styles.movementContextBandFill} testID="movement-context-band-fill">
+            <View style={styles.movementContextBandSolid} />
+            <View style={styles.contextBandFade}>
+              {MOVEMENT_CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+                <View key={layer.bottom} style={[styles.movementContextBandFadeLayer, { bottom: layer.bottom, opacity: layer.opacity }]} />
+              ))}
+            </View>
+          </View>
+        ) : null}
         {/* Recette 1 (T-49) — effets figés de la « Zone bleue » (3542:4656, ch. 12 l.1490) :
             fondu vers le fond de l’écran sur les 20 % inférieurs, puis « Halo blanc —
             bouton Annuler » (5752:4044, Ø 59,28) concentrique au bouton Retour de
             l’en-tête, dont seule la partie qui déborde dans la zone est visible. Tous deux
             sous le contenu, sans interaction. */}
-        <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
-          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
-          ))}
-        </View>
+        {isMovement ? null : (
+          <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
+            {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+              <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
+            ))}
+          </View>
+        )}
         {/* Story 4.2 (AC5) : halo concentrique au ✕ ; PRE-5 3.2 (G-1) : centre du ✕ de l'en-tête
             de l'Éditeur (`EDITOR_HEADER.backCenterX`, cible à 12 du bord). */}
         <View
@@ -670,6 +691,16 @@ export function ActivityEditorForm({
         </View>
       </View>
 
+      {isMovement ? (
+        // PRE-8 (B.2, CE-MVT-01 §7, §9) ; recette A/B (F01, F02) : média pleine largeur, fixe, sous la
+        // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
+        // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
+        // La hauteur suit la largeur du terminal (402 × 329 en référence).
+        <View style={[styles.movementPhotoTemplate, { height: movementPhotoHeight }]} testID="movement-photo-template">
+          {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
+        </View>
+      ) : null}
+
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           ref={bodyScrollRef}
@@ -684,16 +715,6 @@ export function ActivityEditorForm({
           }}
           testID="exercise-body"
         >
-          {isMovement ? (
-            // PRE-8 (B.2, CE-MVT-01 §7, §9) : média pleine largeur juste sous la zone de contexte ;
-            // la hauteur suit la largeur du terminal (402 × 329 en référence).
-            <View style={{ marginHorizontal: -sideMargin }} testID="movement-photo-template">
-              {renderMediaList({
-                width: windowSize.width,
-                height: Math.round((windowSize.width * MOVEMENT_PHOTO_TEMPLATE.height) / MOVEMENT_PHOTO_TEMPLATE.width),
-              })}
-            </View>
-          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           <View
             style={styles.section}
@@ -702,8 +723,10 @@ export function ActivityEditorForm({
             }}
             testID="exercise-section-description"
           >
-            <Text style={styles.sectionTitle} accessibilityRole="header">
-              {t.instruction.label}
+            {/* PRE-8, recette A/B (F03) : « Description du mouvement » sur la fiche Mouvement (Figma
+                `10453:23036`) ; libellé de l'Éditeur d'Exercice inchangé. */}
+            <Text style={styles.sectionTitle} accessibilityRole="header" testID="activity-editor-description-title">
+              {isMovement ? strings.screens.movement.descriptionTitle : t.instruction.label}
             </Text>
             {/* PRE-5 story 3.1 (FR-33, D-425) : étapes numérotées, sans contenant (§9-2) ;
                 Entrée crée l'étape suivante. La place de ↑ reste réservée à droite. */}
@@ -1101,9 +1124,54 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
   };
 });
 
+/**
+ * PRE-8, recette A/B (F01) : rampe inverse de `CONTEXT_BAND_FADE_LAYERS` — couches `#EAEAFF`
+ * superposées, ancrées en haut de la part fondue, dont l'opacité cumulée descend de 1 à 0.
+ */
+const MOVEMENT_CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
+  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
+  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
+  return {
+    bottom: `${(before * 100).toFixed(4)}%` as `${number}%`,
+    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
+  };
+});
+
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  // F01 : fond porté par le dégradé ; la zone passe au-dessus du média qui la prolonge.
+  movementContextBand: {
+    backgroundColor: "transparent",
+    zIndex: 1,
+  },
+  movementContextBandFill: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  movementContextBandSolid: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: CONTEXT_BAND_FADE_SHARE,
+    backgroundColor: colors.exerciseEditorContextBand,
+  },
+  movementContextBandFadeLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: colors.exerciseEditorContextBand,
+  },
+  movementPhotoTemplate: {
+    marginTop: -MOVEMENT_PHOTO_UNDER_CONTEXT,
+    overflow: "hidden",
+    backgroundColor: colors.mediaSurface,
   },
   contextBand: {
     // Le halo déborde au-dessus de la zone : seule la partie interne est dessinée.

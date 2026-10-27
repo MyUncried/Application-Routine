@@ -214,12 +214,15 @@ D-445 : reprise initialement en lecture seule, crayon de correction partagée di
 ### Navigation principale et articulation des écrans
 #### Navigation principale
 
-La navigation principale donne accès à quatre destinations :
+La navigation principale donne accès à cinq destinations (recette A/B E01 du 27/10/2026, Figma `Navigation / Bottom — 5 onglets` `6513:20151` ; auparavant quatre, D-225) :
 
 - `Catalogues` ;
 - `Calendrier` ;
 - `Suivi` ;
+- `Communauté` — visible et désactivée, sans navigation ni écran fonctionnel ;
 - `Profil`.
+
+Aucun bouton Recherche dans la barre ; composant mutualisé entre les écrans, Safe Areas respectées.
 
 `Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances` et `Catalogue des exercices`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
 
@@ -1139,7 +1142,7 @@ L’écran est accessible depuis l’onglet `Calendrier`.
 
 Les séances restent sans photo. En Semaine comme en Jour, les cartes d’Exercice restent sans photo et conservent leur icône de nature, même si un média est associé (D-260). Les deux modales de suppression conservent les cartes Semaine actualisées en arrière-plan.
 
-Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF. Ces règles ne déplacent pas les jalons fonctionnels existants.
+Le segmenté Jour/Semaine/Mois mesure 354 sur référence 402 : padding 4, gaps 4, options 112,67. Aujourd’hui et Planifier restent à 32 sans cible 44 ajoutée : exception acceptée, à revoir et développer après T04. La navigation utilise les quatre nouveaux dessins DSF [depuis E01 du 27/10/2026 : composant à cinq destinations, Communauté désactivée]. Ces règles ne déplacent pas les jalons fonctionnels existants.
 
 #### Vues principales et états intégrés
 
@@ -2102,8 +2105,8 @@ Tous les écrans et états représentés dans la page Figma `Prototype MVP` util
 #### Navigation basse
 
 - La région de navigation du Screen Shell mesure `77` points dans le gabarit `402 × 874`. Elle contient la barre principale visuelle de `66` points et la place réservée à l’inset inférieur de référence. À l’exécution, la navigation est positionnée avec l’inset inférieur réel, qui n’est jamais codé en dur.
-- Sa largeur s’adapte à la largeur disponible. Les positions horizontales des quatre destinations ne sont pas codées depuis le gabarit Figma.
-- Les quatre destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Profil` occupent les quatre emplacements du composant de navigation. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
+- Sa largeur s’adapte à la largeur disponible. Les positions horizontales des destinations ne sont pas codées depuis le gabarit Figma [cinq destinations depuis E01 du 27/10/2026].
+- Les quatre destinations principales `Catalogues`, `Calendrier`, `Suivi`, `Profil` occupent les quatre emplacements du composant de navigation. [Supersédé le 27/10/2026 (E01) : cinq emplacements, `Communauté` entre `Suivi` et `Profil`, visible et désactivée.] Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
 - L’onglet actif peut afficher son libellé ; les autres conservent uniquement leur pictogramme. Le libellé actif ne doit pas chevaucher les pictogrammes voisins avec l’agrandissement du texte.
 - Le composant canonique est `Navigation / Bottom` (`6298:12462`). Les destinations utilisent les variantes `6298:11827` Catalogues, `6298:11988` Calendrier, `6298:12149` Suivi et `6298:12310` Profil. Chaque dessin reste ≤ `24 pt`, centré dans une boîte optique `32 × 32 pt`, avec cible tactile ≥ `48 × 48 pt`. Aucun glyphe, emoji ou pictogramme système ne remplace ces vecteurs DSF.
 
@@ -2183,7 +2186,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
 
 ### Conventions communes d’interface
-- **Navigation** : quatre destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
+- **Navigation** : quatre destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Profil` [E01 du 27/10/2026 : plus `Communauté`, visible et désactivée]. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
 - **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
 - **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.

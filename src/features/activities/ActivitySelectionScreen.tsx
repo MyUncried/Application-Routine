@@ -31,7 +31,7 @@ import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -451,7 +451,8 @@ const SELECTION_SIDE_CHANGE_ICON_SIZE = 16;
 const styles = StyleSheet.create({
   body: {
     flex: 1,
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
     paddingTop: spacing[16],
   },
   centeredBody: {

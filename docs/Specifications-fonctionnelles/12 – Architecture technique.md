@@ -31,7 +31,7 @@ Les alias de couleurs relevés restent compatibles avec `src/shared/ui/tokens.ts
 | Texte secondaire | `color/text-secondary`, `VariableID:2290:58`, #595E66 | `colors.textSecondary` |
 | Action primaire | `color/primary`, `VariableID:2290:51`, #0508E5 | `colors.primary` |
 | Texte sur primaire | `color/on-primary`, `VariableID:4151:6166`, blanc | Réutiliser la couleur blanche du rôle sur primaire existant ; ne pas changer le fond global |
-| Marges de contenu | 24 (402 → 354), `spacing/24` | `spacing[24]` |
+| Marges de contenu | 16 à toutes les largeurs (402 → 370), arbitrage PRE-8 A01 du 27/10/2026 ; auparavant 24 (`spacing/24`) | `layout.screenGutter` (`spacing[16]`) ; exceptions : médias pleine largeur, Safe Areas, barre de navigation (24), géométries propres aux modales |
 | Espacements communs | `spacing/8`, `spacing/12` disponibles | `spacing[8]`, `spacing[12]` ; disponibilité ne prouve pas une liaison sur chaque instance |
 | Titre d'écran | Inter Medium 17, hauteur AUTO | Ne pas appliquer aveuglément `screenTitle` (20 SemiBold) ; style d'en-tête existant à réutiliser |
 | Nom du mouvement | Inter Semi Bold 20, hauteur 22 | `screenTitle` a une hauteur 24 : valeur locale 22 à respecter ici |
@@ -1108,6 +1108,13 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.disclosureBorderExpanded` | `#8283F2` | `color.primarySoft` |
 | `color.disclosureChevronCollapsed` | `#8282F2` | Valeur observée conservée (`color/observed/8282f2` sur `5544:4650`) |
 | `color.compositionDraggedCardBorder` | `#D1D1D6` | Valeur propre conservée (D-129) ; la variante Figma `4916:6844` ne porte pas de contour au premier niveau — à reconfirmer |
+| `color.movementCardDescription` | `#7A7A80` | PRE-8, recette A/B (B03/B04) : description des cartes du Catalogue des Mouvements et texte indicatif du champ Rechercher (Figma `Carte — Mouvement`, `10579:21580`) |
+| `color.movementCardShadow` | `#1A1A26` | Teinte de l’ombre 8 % 0/2/10 des cartes de Mouvement et de la navigation à cinq destinations (B04, E01) |
+| `color.movementLevelAction` | `#8C8C94` | Fond des actions « Ajouter un niveau », « Plus facile » et « Plus difficile » (B11, `10579:21620`, `10579:21707`) |
+| `color.movementArchiveAction` | `#F08C33` | Fond de l’action glissée « Archiver » d’un Mouvement (`10579:21617`) |
+| `color.movementFamilyRail` | `rgba(5, 8, 229, 0.35)` | Filet de famille d’une pile déployée (`10579:21615`) |
+| `color.movementPileLeafBorder` | `#E0E3ED` | Bordure des feuilles d’épaisseur d’une pile condensée (`Pile — feuille 1/2`) |
+| `color.searchFieldSurface` | `#F3F4F9` | Fond du champ Rechercher de la zone de contexte (D04 ; Figma : dégradé `#F3F4F9` → transparent, rendu en aplat) |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -1155,6 +1162,13 @@ Le relevé du 06/10 comporte 51 styles. La correspondance code/Figma se fait par
 | `type.dialogDestructiveActionLabel` | Medium | `16` | `19` | Libellé de l’action destructive d’un dialogue (Auto) |
 | `type.contextLine` | Regular | `14` | `17` | Ligne de contexte du bandeau (interligne explicite `17`) |
 | `type.segmentedLabel` | Semi Bold | `16` | `20` | Libellés des contrôles segmentés, sélectionnés ou non — style `KODJO / Section title` à interligne explicite 20 ; exceptions conservées : Changement de côté (13) et Ordre des côtés (14/11) |
+| `type.movementCardDescription` | Regular | `12` | `16` | PRE-8, recette A/B (B03) : deux premières étapes de la description d’une carte de Mouvement, une ligne chacune |
+| `type.movementCardLevel` | Medium | `12` | `15` | Rang « Niveau N » d’une carte de Mouvement |
+| `type.swipeActionLabel` | Semi Bold | `11` | `13` | Libellés des actions glissées et du choix Plus facile / Plus difficile (`KODJO / Texte / Inter Semi Bold 11`) |
+| `type.searchField` | Regular | `15` | `18` | Saisie et texte indicatif du champ Rechercher (D04) |
+| `type.filterCommandTitle` | Medium | `11` | `13` | « Filtres » dans la commande Filtrer étendue (D05, `10465:23259`) |
+| `type.filterCommandSummary` | Regular | `10` | `12` | Résumé des critères de la commande Filtrer étendue (`10465:23260`) |
+| `type.resetActionLabel` | Medium | `12` | `15` | Libellé « Réinitialiser » des filtres (D06, `10460:23179`) |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
@@ -1171,7 +1185,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
-| `icon.navigation` | `32 × 32` | Boîte optique commune des quatre destinations de navigation basse |
+| `icon.navigation` | `32 × 32` | Boîte optique commune des destinations de navigation basse (cinq depuis E01 du 27/10/2026) |
 | `icon.status` | `32 × 32` | Statuts illustrés nécessitant une présence visuelle renforcée |
 
 Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
@@ -1334,7 +1348,8 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
 - Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
 - Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
-- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche (D-221/D-225).
+- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche (D-221/D-225). [Recette A/B E01 du 27/10/2026 : cinq destinations, `Communauté` visible et désactivée (élément non routé de la barre), pilule 354 × 62, rayon 33, fond `#F9FAFC`, cadre actif 66 × 50 ; marge latérale de la barre 24, exception à la marge standard de 16.]
+- **Animations de mise en page (recette A/B B05, 27/10/2026).** Les changements d'état utilisateur qui insèrent, retirent, déploient ou replient du contenu passent par les primitives communes de `SheetMotion.tsx` (Reanimated, fil UI) : révélation par le bas à l'entrée, repli à la sortie, transition de place des voisins ; aucune opacité animée ; « Réduire les animations » neutralise tout, sans retarder une opération métier. Le Catalogue des Mouvements (piles, choix d'ajout de Niveau, archivage, filtres) les réutilise ; aucune animation spécifique par écran.
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
 - Dans le formulaire Exercice, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.

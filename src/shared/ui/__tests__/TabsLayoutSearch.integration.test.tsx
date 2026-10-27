@@ -3,36 +3,22 @@ import { describe, expect, it } from "@jest/globals";
 import { StyleSheet, Text } from "react-native";
 
 import {
+  NAVIGATION_ACTIVE_FRAME,
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
   NAVIGATION_BAR_HEIGHT,
-  NAVIGATION_CONTENT_HEIGHT,
-  NAVIGATION_ICON_SLOT,
+  NAVIGATION_ICON_BOX,
   NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
-import { dimensions, icon, minTouchTarget } from "@/shared/ui/tokens";
+import { colors, minTouchTarget } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
- * Test d'intégration avec un vrai navigateur (`expo-router/testing-library`)
- * pour la navigation basse à quatre onglets + l'action Recherche distincte
- * (correction de conformité, `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`,
- * AUD-02). `app/(tabs)/_layout.tsx` doit être exercé tel quel (pas une
- * reproduction locale) : c'est le fichier de route réel.
+ * Test d'intégration avec un vrai navigateur (`expo-router/testing-library`) :
+ * `app/(tabs)/_layout.tsx` est exercé tel quel (fichier de route réel).
  *
- * Correction SHELL-R02 (contre-recette iPhone, `[ChatGPT]
- * DEVICE_REVIEW_FAIL — REWORK 02`, 2026-09-03) : la barre est désormais un
- * rendu `tabBar` entièrement personnalisé (`BottomTabBar`) — les quatre
- * destinations et Recherche sont des **frères dans une seule rangée flex**
- * (`navigation-row` → `navigation-tabs-group` (`flex:1`) + Recherche
- * (largeur fixe), tous deux enfants directs du même `View` avec
- * `alignItems:"center"`). Ce test vérifie la structure — la garantie de
- * non-chevauchement et d'axe vertical commun découle de flexbox lui-même
- * (propriété valable à n'importe quelle largeur d'écran, pas seulement à
- * une largeur mesurée), pas d'une formule arithmétique à revalider par
- * largeur : voir le rapport de mission pour la justification complète de
- * pourquoi un test paramétré par largeur logique (`360`/`402`/`440`)
- * n'apporterait aucune preuve supplémentaire ici, contrairement à
- * l'ancienne implémentation à positionnement absolu indépendant.
+ * PRE-8, recette A/B (E01) : barre Figma `Navigation / Bottom — 5 onglets`
+ * (`6513:20151`) — cinq destinations (Catalogues, Calendrier, Suivi,
+ * Communauté désactivée, Profil), plus aucun bouton Recherche.
  */
 function IndexRoute() {
   return <Text>index-screen</Text>;
@@ -61,180 +47,136 @@ function renderTabsLayout() {
   );
 }
 
-describe("Navigation basse — action Recherche distincte (AUD-02)", () => {
-  it("renders a visible, disabled search action alongside the four tabs, producing no navigation", () => {
+const DESTINATIONS = ["index", "calendar", "history", "community", "profile"] as const;
+
+describe("Navigation basse — cinq destinations (PRE-8 E01)", () => {
+  it("renders the five destinations in the Figma order, with no search button", () => {
     renderTabsLayout();
 
-    const search = screen.getByTestId("navigation-search-action");
-    expect(search.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("navigation-search-icon")).toBeTruthy();
+    const group = screen.getByTestId("navigation-tabs-group");
+    const ids = screen
+      .getAllByTestId(/^navigation-tab-(index|calendar|history|community|profile)$/)
+      .map((node) => node.props.testID as string);
+    expect(ids).toEqual(DESTINATIONS.map((name) => `navigation-tab-${name}`));
+    expect(group).toBeTruthy();
 
-    // Toujours sur l'onglet Séances par défaut : l'action désactivée ne
-    // produit aucune navigation.
-    expect(screen.getByText("index-screen")).toBeTruthy();
-  });
-});
-
-describe("Navigation basse — rangée unique, quatre destinations + Recherche (SHELL-R02, contre-recette iPhone 2026-09-03)", () => {
-  it("lays the four-destinations group and the search bubble out in a single shared row, sharing one vertical axis by construction (SHELL-R02-C/D)", () => {
-    renderTabsLayout();
-
-    const row = screen.getByTestId("navigation-row");
-    const rowStyle = StyleSheet.flatten(row.props.style);
-    expect(rowStyle.flexDirection).toBe("row");
-    // Un seul axe vertical commun : `alignItems:"center"` sur le parent
-    // partagé, jamais une position verticale calculée séparément pour
-    // chaque élément (cause du défaut précédent, SHELL-R01 échoué).
-    expect(rowStyle.alignItems).toBe("center");
-
-    const tabsGroup = screen.getByTestId("navigation-tabs-group");
-    const search = screen.getByTestId("navigation-search-action");
-    expect(tabsGroup).toBeTruthy();
-    expect(search).toBeTruthy();
-
-    // Le groupe des quatre destinations est `flex: 1` : sa largeur est
-    // dérivée de ce qui reste après Recherche (largeur fixe) + l'écart,
-    // quelle que soit la largeur réelle de l'écran — jamais une soustraction
-    // de pixels calculée à la main (cause exacte de l'échec précédent,
-    // voir le rapport de mission, § cause technique).
-    expect(StyleSheet.flatten(tabsGroup.props.style).flex).toBe(1);
-    // Recherche garde une largeur fixe, jamais positionnée en absolu
-    // indépendamment de cette même rangée.
-    const searchStyle = StyleSheet.flatten(search.props.style);
-    expect(searchStyle.position).not.toBe("absolute");
-  });
-
-  it("renders all four destinations simultaneously, never masked or replaced by Recherche (SHELL-R02-B)", () => {
-    renderTabsLayout();
-
-    expect(screen.getByTestId("navigation-tab-index")).toBeTruthy();
-    expect(screen.getByTestId("navigation-tab-calendar")).toBeTruthy();
-    expect(screen.getByTestId("navigation-tab-history")).toBeTruthy();
-    expect(screen.getByTestId("navigation-tab-profile")).toBeTruthy();
-    // V2-CAT-01 (plan §4.5) : la destination basse porte désormais le
-    // libellé permanent `Catalogues` (`strings.screens.sessions.navLabel`),
-    // distinct de `strings.nav.sessions` (« Séances »).
     expect(screen.getByLabelText(strings.screens.sessions.navLabel)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.calendar)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.history)).toBeTruthy();
+    expect(screen.getByLabelText(strings.nav.community)).toBeTruthy();
     expect(screen.getByLabelText(strings.nav.profile)).toBeTruthy();
-    expect(screen.getByTestId("navigation-search-action")).toBeTruthy();
+
+    expect(screen.queryByTestId("navigation-search-action")).toBeNull();
+    expect(screen.queryByLabelText(strings.nav.search)).toBeNull();
   });
 
-  it("gives all four destinations the exact same icon slot (SHELL-R02-A) and a touch target of at least 48×48 without enlarging the icon itself", () => {
+  it("keeps Communauté visible but disabled: pressing it navigates nowhere", () => {
     renderTabsLayout();
 
-    for (const name of ["index", "calendar", "history", "profile"]) {
-      const tab = screen.getByTestId(`navigation-tab-${name}`);
-      const flattened = StyleSheet.flatten(tab.props.style);
-      // Cible tactile : hauteur minimale du `Pressable` lui-même — pas un
-      // agrandissement du SVG (le slot d'icône reste `NAVIGATION_ICON_SLOT`,
-      // vérifié séparément ci-dessous).
-      expect(flattened.minHeight).toBe(minTouchTarget);
+    const community = screen.getByTestId("navigation-tab-community");
+    expect(community.props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("navigation-tab-icon-slot-community")).toBeTruthy();
 
-      const iconSlot = screen.getByTestId(`navigation-tab-icon-slot-${name}`);
-      const iconSlotStyle = StyleSheet.flatten(iconSlot.props.style);
-      expect(iconSlotStyle.width).toBe(NAVIGATION_ICON_SLOT);
-      expect(iconSlotStyle.height).toBe(NAVIGATION_ICON_SLOT);
-    }
-
-    // Slot d'icône ~25 % plus petit que l'ancien token `icon.navigation`
-    // (`32`), jamais réellement consommé par ces icônes.
-    expect(NAVIGATION_ICON_SLOT).toBeLessThan(icon.navigation);
+    fireEvent.press(community);
+    expect(screen.getByText("index-screen")).toBeTruthy();
+    expect(screen.getByTestId("navigation-tab-index").props.accessibilityState).toMatchObject({ selected: true });
   });
 
-  it("navigates to the pressed destination via the custom tab bar, content of the four screens unchanged", () => {
+  it("shows the label of the active destination only", () => {
     renderTabsLayout();
+
+    expect(screen.getByTestId("navigation-tab-label-index")).toHaveTextContent(strings.screens.sessions.navLabel);
+    expect(screen.queryByTestId("navigation-tab-label-calendar")).toBeNull();
 
     fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
     expect(screen.getByText("calendar-screen")).toBeTruthy();
+    expect(screen.getByTestId("navigation-tab-label-calendar")).toHaveTextContent(strings.nav.calendar);
+    expect(screen.queryByTestId("navigation-tab-label-index")).toBeNull();
+    const labelStyle = StyleSheet.flatten(screen.getByTestId("navigation-tab-label-calendar").props.style);
+    expect(labelStyle.color).toBe(colors.primary);
+    expect(labelStyle.fontSize).toBe(11);
+  });
+
+  it("navigates to the pressed destination via the custom tab bar", () => {
+    renderTabsLayout();
+
+    fireEvent.press(screen.getByTestId("navigation-tab-history"));
+    expect(screen.getByText("history-screen")).toBeTruthy();
 
     fireEvent.press(screen.getByTestId("navigation-tab-profile"));
     expect(screen.getByText("profile-screen")).toBeTruthy();
   });
+
+  it("gives every destination the same 32 icon box and a touch target of at least 48", () => {
+    renderTabsLayout();
+
+    for (const name of DESTINATIONS) {
+      const tab = StyleSheet.flatten(screen.getByTestId(`navigation-tab-${name}`).props.style);
+      expect(tab.flex).toBe(1);
+      expect(tab.minHeight).toBe(minTouchTarget);
+      const box = StyleSheet.flatten(screen.getByTestId(`navigation-tab-icon-slot-${name}`).props.style);
+      expect(box.width).toBe(NAVIGATION_ICON_BOX);
+      expect(box.height).toBe(NAVIGATION_ICON_BOX);
+    }
+    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThanOrEqual(minTouchTarget);
+  });
 });
 
-/**
- * V2-CAT-01 (plan §4.5, revue 5732014381 obligation 1) : « Le cadre actif de
- * navigation reste visible et glisse continûment entre destinations. »
- */
+describe("Navigation basse — barre Figma (PRE-8 E01)", () => {
+  it("uses the Figma bar surface: 62 high, radius 33, subtle surface, white border", () => {
+    renderTabsLayout();
+
+    const bar = StyleSheet.flatten(screen.getByTestId("navigation-tabs-group").props.style);
+    expect(bar.height).toBe(62);
+    expect(bar.borderRadius).toBe(33);
+    expect(bar.backgroundColor).toBe(colors.surfaceSubtle);
+    expect(bar.borderColor).toBe(colors.background);
+    expect(bar.borderWidth).toBe(1);
+  });
+
+  it("anchors the row to the physical screen edge with the Figma margins (24 sides, 16 bottom)", () => {
+    renderTabsLayout();
+
+    const row = StyleSheet.flatten(screen.getByTestId("navigation-row").props.style);
+    expect(row.bottom).toBe(0);
+    expect(row.left).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
+    expect(row.right).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
+    expect(NAVIGATION_ROW_HORIZONTAL_MARGIN).toBe(24);
+    expect(row.paddingBottom).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL);
+    expect(NAVIGATION_BAR_BOTTOM_RESIDUAL).toBe(16);
+  });
+});
+
+/** V2-CAT-01 : le cadre actif reste visible et glisse continûment entre destinations. */
 describe("Navigation basse — cadre actif animé (V2-CAT-01)", () => {
-  it("renders the active frame once destinations are measured, without a hard-coded position", () => {
+  it("renders the 66 × 50 active frame centred in the measured destination", () => {
     renderTabsLayout();
 
     fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
-      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+      nativeEvent: { layout: { x: 0, y: 0, width: 70.8, height: 60 } },
     });
 
-    expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
+    const indicator = StyleSheet.flatten(screen.getByTestId("navigation-active-indicator").props.style);
+    expect(indicator.width).toBe(NAVIGATION_ACTIVE_FRAME.width);
+    expect(indicator.height).toBe(NAVIGATION_ACTIVE_FRAME.height);
+    expect(indicator.borderRadius).toBe(28);
+    // Centré verticalement dans la boîte intérieure de la barre (bordure de 1).
+    const top = indicator.top as number;
+    expect(top + NAVIGATION_ACTIVE_FRAME.height + top).toBe(NAVIGATION_BAR_HEIGHT - 2);
   });
 
   it("remains present (never masked) across a destination change", () => {
     renderTabsLayout();
 
     fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
-      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
+      nativeEvent: { layout: { x: 0, y: 0, width: 70.8, height: 60 } },
     });
     fireEvent(screen.getByTestId("navigation-tab-calendar"), "layout", {
-      nativeEvent: { layout: { x: 80, y: 0, width: 80, height: 48 } },
+      nativeEvent: { layout: { x: 70.8, y: 0, width: 70.8, height: 60 } },
     });
 
     fireEvent.press(screen.getByTestId("navigation-tab-calendar"));
 
     expect(screen.getByTestId("navigation-active-indicator")).toBeTruthy();
-  });
-
-  /**
-   * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
-   * barre retrouve une hauteur strictement supérieure au contenu d'un item
-   * (marge visible en haut/bas), et le cadre actif reste centré
-   * verticalement DANS ce cadre global désormais plus haut — jamais étiré
-   * sur toute sa hauteur.
-   */
-  it("gives the bar a height strictly greater than the item content, and centers the active frame vertically within it", () => {
-    renderTabsLayout();
-
-    const tabsGroup = screen.getByTestId("navigation-tabs-group");
-    expect(StyleSheet.flatten(tabsGroup.props.style).height).toBe(NAVIGATION_BAR_HEIGHT);
-    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThan(NAVIGATION_CONTENT_HEIGHT);
-
-    fireEvent(screen.getByTestId("navigation-tab-index"), "layout", {
-      nativeEvent: { layout: { x: 0, y: 0, width: 80, height: 48 } },
-    });
-
-    const indicator = screen.getByTestId("navigation-active-indicator");
-    const flattened = StyleSheet.flatten(indicator.props.style);
-    expect(flattened.height).toBe(dimensions.activeDestination.visualHeight);
-    const marginTop = flattened.top as number;
-    const marginBottom = NAVIGATION_BAR_HEIGHT - (marginTop + dimensions.activeDestination.visualHeight);
-    expect(marginBottom).toBe(marginTop);
-  });
-});
-
-/**
- * Correction `D` (contre-recette iPhone, correction consolidée, `[ChatGPT]
- * DIAGNOSTIC APPROVED — PHASE02 CONSOLIDATED REWORK02`, 2026-09-03,
- * addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) : la barre
- * est ancrée à `bottom: 0` (bord physique de l'écran).
- *
- * Correction `N-03` (`[ChatGPT] DEVICE NO-GO — PHASE02 REWORK03 CUMULATIVE
- * CORRECTION`, 2026-09-03) : le résiduel bas (`paddingBottom`) est
- * désormais égal, par construction, à la marge horizontale
- * (`NAVIGATION_ROW_HORIZONTAL_MARGIN` = `left`/`right`) — remplace la
- * formule précédente, fonction de `insets.bottom`, jugée trop basse au
- * rendu réel. Voir `@/shared/ui/navigationLayout` pour la dérivation
- * complète.
- */
-describe("Navigation basse — position verticale (correction D/N-03, 2026-09-03)", () => {
-  it("anchors the row to the physical screen edge (bottom: 0), with a bottom residual exactly equal to its own horizontal margin (N-03)", () => {
-    renderTabsLayout();
-
-    const row = screen.getByTestId("navigation-row");
-    const rowStyle = StyleSheet.flatten(row.props.style);
-    expect(rowStyle.bottom).toBe(0);
-    expect(rowStyle.left).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
-    expect(rowStyle.right).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
-    expect(rowStyle.paddingBottom).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL);
-    expect(rowStyle.paddingBottom).toBe(rowStyle.left);
   });
 });

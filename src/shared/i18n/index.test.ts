@@ -4,13 +4,14 @@ import { totalClauseAmount } from "@/domain/activities/executionPhrase";
 import { strings } from "@/shared/i18n";
 
 describe("strings", () => {
-  it("exposes the four main tab labels in French, plus the distinct Recherche label (AUD-02); sessions is 'Séances' (RES-NAV-LABEL-01)", () => {
+  it("exposes the main tab labels in French, including the disabled Communauté destination (PRE-8 E01); sessions is 'Séances' (RES-NAV-LABEL-01)", () => {
     expect(strings.nav).toEqual({
       sessions: "Séances",
       calendar: "Calendrier",
       history: "Suivi",
       profile: "Profil",
       search: "Recherche",
+      community: "Communauté",
     });
   });
 

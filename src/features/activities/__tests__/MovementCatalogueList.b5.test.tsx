@@ -20,6 +20,9 @@ import { strings } from "@/shared/i18n";
  * la fiche, actions glissées (Partager grisé, Créer une variante, Archiver), archivage refusé ou
  * annulé, Archives (Restaurer, Supprimer après confirmation). Remplace la recette B.3 en liste
  * plate, supplantée par les arbitrages Q-B2 et Q3 du 27/10/2026.
+ *
+ * Recette A/B du 27/10 : B03 (deux premières étapes), B08 (réordonnancement), B09 (pas de glissé
+ * sur une pile condensée), B11/B12 (« Ajouter un niveau », choix déployé sous les actions).
  */
 
 jest.mock("@/infrastructure/media/VideoPoster", () => ({ generateVideoPoster: jest.fn(async () => null) }));
@@ -70,14 +73,31 @@ const settle = () =>
 async function renderList(filters: MovementCatalogueFilters = EMPTY_MOVEMENT_FILTERS) {
   const onOpen = jest.fn();
   const onCreateVariant = jest.fn();
-  const view = render(
-    <ActivityDefinitionServiceContext.Provider value={service()}>
-      <MovementCatalogueList reloadToken={0} filters={filters} onOpenMovement={onOpen} onCreateVariant={onCreateVariant} />
-    </ActivityDefinitionServiceContext.Provider>,
+  const provided = service();
+  const tree = (query: string) => (
+    <ActivityDefinitionServiceContext.Provider value={provided}>
+      <MovementCatalogueList reloadToken={0} query={query} filters={filters} onOpenMovement={onOpen} onCreateVariant={onCreateVariant} />
+    </ActivityDefinitionServiceContext.Provider>
   );
+  const view = render(tree(""));
   await settle();
-  return { onOpen, onCreateVariant, view };
+  const search = async (query: string) => {
+    await act(async () => {
+      view.rerender(tree(query));
+    });
+    await settle();
+  };
+  return { onOpen, onCreateVariant, view, search };
 }
+
+const swipeOpen = async (movementId: string) => {
+  const row = screen.getByTestId(`movement-card-${movementId}`);
+  await act(async () => {
+    fireEvent(row, "touchStart", { nativeEvent: { pageX: 300, pageY: 10 } });
+    fireEvent(row, "touchMove", { nativeEvent: { pageX: 60, pageY: 12 } });
+    fireEvent(row, "touchEnd", { nativeEvent: { pageX: 60, pageY: 12 } });
+  });
+};
 
 const names = () => screen.queryAllByTestId(/^movement-card-name-/).map((node) => node.props.children as string);
 const press = async (testID: string) => {
@@ -129,33 +149,81 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
 
   it("B.7 : la recherche présente la pile entière de ses membres correspondants, dépliable ; aucun résultat signalé", async () => {
     await seed();
-    await renderList();
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "assistes");
-    });
+    const { search } = await renderList();
+    await search("assistes");
     expect(names()).toEqual(["Squats sautés"]);
     await press("movement-card-jump-card");
     expect(names()).toEqual(["Squats sautés", "Squats", "Squats assistés"]);
-    await act(async () => {
-      fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "zzz");
-    });
+    await search("zzz");
     expect(screen.getByText(t.noResult)).toBeTruthy();
   });
 
-  it("B.6 : le glissement révèle Partager (grisé), Créer une variante, Archiver ; la variante propose Plus facile / Plus difficile", async () => {
+  it("B.6, B11, B12 : glissé — Partager (grisé), Ajouter un niveau, Archiver ; le choix se déploie sous les actions, la carte reste ouverte", async () => {
     await movements().create(movement("gainage", "Gainage"));
     const { onCreateVariant } = await renderList();
-    const row = screen.getByTestId("movement-card-gainage");
-    await act(async () => {
-      fireEvent(row, "touchStart", { nativeEvent: { pageX: 300, pageY: 10 } });
-      fireEvent(row, "touchMove", { nativeEvent: { pageX: 60, pageY: 12 } });
-      fireEvent(row, "touchEnd", { nativeEvent: { pageX: 60, pageY: 12 } });
-    });
+    await swipeOpen("gainage");
     expect(screen.getByTestId("movement-card-gainage-actions")).toBeTruthy();
     expect(screen.getByTestId("movement-card-gainage-action-share").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByLabelText(t.actions.addLevel)).toBeTruthy();
+    expect(screen.queryByText("Créer une variante")).toBeNull();
     await press("movement-card-gainage-action-variant");
+    // B11 : actions toujours révélées, raccords Figma posés, choix sous les actions.
+    expect(screen.getByTestId("movement-card-gainage-actions")).toBeTruthy();
+    expect(screen.getByTestId("movement-card-gainage-join-easier")).toBeTruthy();
+    expect(screen.getByTestId("movement-card-gainage-join-harder")).toBeTruthy();
+    expect(screen.getByTestId("movement-card-gainage-easier")).toBeTruthy();
     await press("movement-card-gainage-harder");
     expect(onCreateVariant).toHaveBeenCalledWith("gainage", "AFTER_ORIGIN");
+    expect(screen.queryByTestId("movement-card-gainage-variant-choices")).toBeNull();
+  });
+
+  it("B09 : la carte du dessus d'une pile condensée ne glisse pas et n'annonce aucune action ; dépliée, elle glisse", async () => {
+    await seed();
+    await renderList();
+    await swipeOpen("jump");
+    expect(screen.queryByTestId("movement-card-jump-actions")).toBeNull();
+    expect(screen.getByTestId("movement-card-jump-card").props.accessibilityActions).toEqual([]);
+    await press("movement-card-jump-card");
+    await swipeOpen("jump");
+    expect(screen.getByTestId("movement-card-jump-actions")).toBeTruthy();
+  });
+
+  it("B03 : la carte affiche les deux premières étapes de la description, une ligne chacune", async () => {
+    await movements().create(
+      movement("pont", "Pont fessier", { description: ["Allongé sur le dos", "Monter le bassin", "Redescendre lentement"].join("\n") }),
+    );
+    await renderList();
+    expect(screen.getByTestId("movement-card-step-pont-1").props.children).toBe("Allongé sur le dos");
+    expect(screen.getByTestId("movement-card-step-pont-1").props.numberOfLines).toBe(1);
+    expect(screen.getByTestId("movement-card-step-pont-2").props.children).toBe("Monter le bassin");
+    expect(screen.queryByTestId("movement-card-step-pont-3")).toBeNull();
+  });
+
+  it("B08 : pile déployée — appui long puis glisser réordonne la famille ; action accessible équivalente ; identités conservées", async () => {
+    await seed();
+    await renderList();
+    await press("movement-card-jump-card");
+    expect(names()).toEqual(["Fentes avant", "Squats sautés", "Squats", "Squats assistés"]);
+    // Action accessible : « Squats » un niveau plus bas → 3 Squats sautés, 2 Squats assistés, 1 Squats.
+    await action("squat", "moveEasier");
+    expect(names()).toEqual(["Fentes avant", "Squats sautés", "Squats assistés", "Squats"]);
+    const group = (await movements().findById("squat"))!.levelGroup!.groupId;
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["squat", "assist", "jump"]);
+    // Appui long sur « Squats sautés » puis glisser de deux cartes vers le bas.
+    await act(async () => {
+      fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
+      fireEvent(screen.getByTestId("movement-card-jump-card"), "longPress");
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchMove", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchEnd", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });
+    });
+    await settle();
+    expect(names()).toEqual(["Fentes avant", "Squats assistés", "Squats", "Squats sautés"]);
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["jump", "squat", "assist"]);
+    expect((await movements().findById("jump"))!.name).toBe("Squats sautés");
   });
 
   it("B.8 : archivage refusé tant qu'un Exercice utilise le Mouvement — « utilisé par 1 exercice », rien n'est écrit", async () => {
@@ -181,13 +249,15 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
   it("B.8 : archiver retire le membre de la vue active sans changer les rangs ; Annuler le restaure", async () => {
     await seed();
     await renderList();
+    // B09 : on archive depuis la pile déployée.
+    await press("movement-card-jump-card");
     await action("jump", "archive");
     expect(screen.getByTestId("movement-catalogue-notice-message").props.children).toBe(t.archived);
     // Rang le plus haut ACTIF en tête, rang de la famille complète conservé : « Niveau 2 ».
-    expect(names()).toEqual(["Fentes avant", "Squats"]);
+    expect(names()).toEqual(["Fentes avant", "Squats", "Squats assistés"]);
     expect(screen.getByTestId("movement-card-level-squat").props.children).toBe("Niveau 2");
     await press("movement-catalogue-notice-action");
-    expect(names()).toEqual(["Fentes avant", "Squats sautés"]);
+    expect(names()).toEqual(["Fentes avant", "Squats sautés", "Squats", "Squats assistés"]);
     expect(await movements().listArchivedIds()).toEqual(new Set());
   });
 

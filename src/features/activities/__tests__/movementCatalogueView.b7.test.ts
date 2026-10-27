@@ -5,6 +5,8 @@ import type { MovementCatalogueEntry } from "@/features/activities/MovementCatal
 import {
   EMPTY_MOVEMENT_FILTERS,
   countActiveFilters,
+  movedTo,
+  reorderedFamilyIds,
   visibleMovementItems,
   type MovementCatalogueFilters,
   type MovementCatalogueItem,
@@ -123,5 +125,13 @@ describe("PRE-8 B.5/B.7 — piles, recherche et filtres du Catalogue des Mouveme
   it("compte les valeurs de filtre choisies (résumé de la commande Filtres)", () => {
     expect(countActiveFilters(EMPTY_MOVEMENT_FILTERS)).toBe(0);
     expect(countActiveFilters(filters({ statuses: ["ARCHIVED"], categoryIds: ["a", "b"] }))).toBe(3);
+  });
+
+  it("B08 : réordonnancement d’une pile — les membres masqués gardent leur place, les affichés se redistribuent", () => {
+    // Famille croissante a(1) b(2) c(3) d(4) ; c archivé masqué ; affichés en tête : d, b, a.
+    expect(movedTo(["d", "b", "a"], 2, 0)).toEqual(["a", "d", "b"]);
+    expect(reorderedFamilyIds(["a", "b", "c", "d"], ["a", "d", "b"])).toEqual(["b", "d", "c", "a"]);
+    // Tous affichés : permutation directe (rang croissant = ordre affiché inversé).
+    expect(reorderedFamilyIds(["a", "b", "c"], ["a", "c", "b"])).toEqual(["b", "c", "a"]);
   });
 });

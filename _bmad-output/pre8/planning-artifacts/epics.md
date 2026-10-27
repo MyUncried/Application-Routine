@@ -36,10 +36,11 @@
 | B.6 | Création de variante par action glissée (Partager grisé, Archiver) | B.2, B.5 |
 | B.7 | Filtres et recherche combinés (Q1, Q2, Q4, Q3 définitif) | B.5 |
 | B.8 | Archivage, restauration, suppression définitive (Q5 à Q8, Q6 côté création) ; migration 015 additive | B.1, B.5 |
+| B.9 | Corrections de la recette iPhone A/B du 27/10 (lot A/B, sans nouvel epic) : marge standard 16 (A01), titres (A02), cartes et piles (B01–B12, réordonnancement par appui long), nouveau Niveau (C01–C02), zone de contexte et filtres (D01–D07), navigation à cinq destinations (E01), fiche Mouvement (F01–F07, ouverture directe en édition) | B.2 à B.8 |
 
 **Hors B (règles ouvertes ou autres epics) :**
 - C08 (rattachement, détachement) et partage ; tri (aucune règle). Archivage, restauration et suppression : livrés en B.8 (arbitrages du 27/10).
-- Réordonnancement des familles hors du parcours existant `MovementLevelsScreen`.
+- Réordonnancement des familles hors du parcours existant `MovementLevelsScreen` [recette A/B B08 du 27/10 : réordonnancement des Niveaux d’une famille par appui long dans une pile déployée, livré en B.9 ; l’ordre des familles entre elles reste hors périmètre].
 - Sélection d'un Mouvement en Composition : **Epic C**. Elle réutilisera les services et cartes de B.
 
 ## Points À CLARIFIER (sans blocage de A et B)

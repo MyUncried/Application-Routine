@@ -1,12 +1,13 @@
+import { Image } from "expo-image";
 import { useEffect, useState, type ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import { listAssignableBodyZones, type BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
-import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 import {
   EMPTY_MOVEMENT_FILTERS,
@@ -22,6 +23,14 @@ import {
  * rien appliquer, « Réinitialiser » vide le brouillon (comportement par défaut : Actifs).
  * Catégories et Zones : référentiels actifs, dans leur ordre. Aucune écriture : état d'interface,
  * conservé pendant la session par l'écran du Catalogue.
+ *
+ * Recette A/B du 27/10 :
+ * - D07 : Zones corporelles = valeurs PROPOSÉES par le référentiel (`listAssignableBodyZones`, même
+ *   règle que le sélecteur de la fiche), jamais une liste statique ; une Zone retirée n'est plus
+ *   proposée (les Mouvements qui la portent la gardent) ;
+ * - D06 : « Réinitialiser » selon `Action — Réinitialiser les filtres` (`10460:23176`) : 150 × 32,
+ *   rayon 16, bordure bleue 1, icône 28 à gauche ;
+ * - D05 : `onApply` transmet aussi les libellés des critères choisis (résumé de la commande).
  */
 
 const t = strings.screens.movement.catalogue.filters;
@@ -57,7 +66,7 @@ export function MovementFilterSheet({
   onClose,
 }: {
   readonly filters: MovementCatalogueFilters;
-  readonly onApply: (filters: MovementCatalogueFilters) => void;
+  readonly onApply: (filters: MovementCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -76,7 +85,7 @@ export function MovementFilterSheet({
     );
     referentials.listBodyZones().then(
       (list) => {
-        if (!cancelled) setBodyZones(list);
+        if (!cancelled) setBodyZones(listAssignableBodyZones(list));
       },
       (error: unknown) => console.error("Les zones corporelles n'ont pas pu être chargées.", error),
     );
@@ -106,7 +115,7 @@ export function MovementFilterSheet({
               {t.title}
             </Text>
             <Pressable
-              onPress={() => onApply(draft)}
+              onPress={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
               accessibilityRole="button"
               accessibilityLabel={t.apply}
               style={[styles.headerButton, styles.applyButton]}
@@ -155,9 +164,11 @@ export function MovementFilterSheet({
               onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))}
               accessibilityRole="button"
               accessibilityLabel={t.reset}
+              hitSlop={{ top: (minTouchTarget - RESET.height) / 2, bottom: (minTouchTarget - RESET.height) / 2 }}
               style={styles.reset}
               testID="movement-filter-reset"
             >
+              <Image source={RESET_ICON} style={styles.resetIcon} accessible={false} testID="movement-filter-reset-icon" />
               <Text style={styles.resetLabel}>{t.reset}</Text>
             </Pressable>
           </ScrollView>
@@ -166,6 +177,27 @@ export function MovementFilterSheet({
     </Modal>
   );
 }
+
+/** D05 : libellés des valeurs choisies, dans l'ordre des groupes de la feuille. */
+export function selectedLabels(
+  draft: MovementCatalogueFilters,
+  categories: readonly Category[],
+  bodyZones: readonly BodyZone[],
+): readonly string[] {
+  const labels: string[] = [];
+  if (draft.statuses.has("ACTIVE")) labels.push(t.active);
+  if (draft.statuses.has("ARCHIVED")) labels.push(t.archivedValue);
+  if (draft.levels.has("WITH")) labels.push(t.withLevels);
+  if (draft.levels.has("WITHOUT")) labels.push(t.withoutLevel);
+  if (draft.usage.has("WITH")) labels.push(t.withExercise);
+  if (draft.usage.has("WITHOUT")) labels.push(t.withoutExercise);
+  for (const category of categories) if (draft.categoryIds.has(category.id)) labels.push(category.name);
+  for (const zone of bodyZones) if (draft.bodyZoneIds.has(zone.id)) labels.push(zone.name);
+  return labels;
+}
+
+const RESET = dimensions.resetAction;
+const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
 
 function FilterGroup({ title, children }: { readonly title: string; readonly children: ReactNode }) {
   return (
@@ -297,16 +329,26 @@ const styles = StyleSheet.create({
   },
   reset: {
     alignSelf: "center",
-    minHeight: minTouchTarget,
+    width: RESET.width,
+    height: RESET.height,
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: spacing[24],
     marginTop: spacing[8],
-    borderRadius: minTouchTarget / 2,
+    borderRadius: RESET.radius,
     borderWidth: 1,
     borderColor: colors.primary,
+    backgroundColor: colors.background,
+  },
+  resetIcon: {
+    position: "absolute",
+    left: RESET.iconLeft,
+    width: RESET.icon,
+    height: RESET.icon,
   },
   resetLabel: {
-    ...type.button,
+    ...type.resetActionLabel,
     color: colors.primary,
+    marginLeft: RESET.icon,
   },
 });

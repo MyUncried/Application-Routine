@@ -123,3 +123,29 @@ export function visibleMovementItems(
   });
   return kept.sort((left, right) => left.order - right.order).map((entry) => entry.item);
 }
+
+/**
+ * Recette A/B (B08, MFN-05, D-445) : ordre complet de la famille après un réordonnancement dans
+ * une pile déployée. `familyAscending` : tous les membres, rang croissant, archivés compris ;
+ * `shownDescending` : membres affichés dans leur nouvel ordre (rang décroissant, carte du dessus
+ * en premier). Les membres masqués (archivés hors filtre de Statut) gardent leur place : seules
+ * les places des membres affichés sont redistribuées. Identités inchangées, rangs dérivés.
+ */
+export function reorderedFamilyIds(
+  familyAscending: readonly string[],
+  shownDescending: readonly string[],
+): readonly string[] {
+  const shown = new Set(shownDescending);
+  const incoming = [...shownDescending].reverse();
+  let next = 0;
+  return familyAscending.map((id) => (shown.has(id) ? incoming[next++]! : id));
+}
+
+/** Recette A/B (B08) : place `from` → `to` dans une liste (copie). */
+export function movedTo<T>(list: readonly T[], from: number, to: number): readonly T[] {
+  const next = [...list];
+  const [moved] = next.splice(from, 1);
+  if (moved === undefined) return list;
+  next.splice(to, 0, moved);
+  return next;
+}

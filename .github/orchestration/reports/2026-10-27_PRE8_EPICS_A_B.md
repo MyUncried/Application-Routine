@@ -103,12 +103,73 @@ Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-pil
 - La migration 014 est à sens unique : une version de `main` (schéma 13) refuse d'ouvrir une base 14 (`migrateDatabase`, « newer than supported ») sans l'effacer ; réinstaller PRE-8 la rouvre.
 - Les variantes `app.config.js` ont chacune leurs données : Routine (`com.ankusha.kodjo`), Routine Dev (`.dev`), Routine BMAD (`.bmad`). Tester PRE-8 dans Routine BMAD laisse intactes les bases de Routine et Routine Dev. Correction de la réponse précédente, qui supposait un identifiant unique.
 
+## B.9 — Corrections de la recette iPhone A/B (27/10, soir)
+
+**Demande.** Écarts de recette A01–G (Catalogue, Niveaux, recherche, filtres, navigation, fiche Mouvement) et compléments : A01 arbitré à 16 pt, A02 (titres). Intégrés au lot A/B, sans nouvel epic ni audit global. Point de départ : `d47d695d`.
+
+**Réalisé** (détail par item : `_bmad-output/pre8/implementation-artifacts/spec-b-9-corrections-recette-a-b.md`) :
+
+- **A01.** Jeton `layout.screenGutter` (16). `finalActionSideMargin` le renvoie à toutes les largeurs. Écrans passés à 16 :
+  - `ScreenShell` (en-tête, zone de contexte), Catalogue, Composition (colonne, halo du Retour, arbre d'ajout) ;
+  - Profil, Modifier le profil, Sélection d'Exercices, menu Créer, écrans de repli.
+  - Exceptions conservées : navigation (24), modales et feuilles, médias pleine largeur.
+- **A02.** Le titre du Catalogue était déjà conforme ; la fiche et la création restent en Medium 17, désormais vérifié par un test.
+- **B01–B12.** Carte Figma `Carte — Mouvement` :
+  - Animations de mise en page communes (`SheetMotion`).
+  - Repli par la marge gauche.
+  - Réordonnancement par appui long, avec actions VoiceOver équivalentes. Nouvelle méthode `MovementCatalogueService.reorderFamily`, qui appelle le `MovementRepository.reorder` existant : aucune migration.
+  - Aucun glissé sur une pile condensée ; écart de 8 avant « Partager ».
+  - « Ajouter un niveau » ; le choix Plus facile / Plus difficile se déploie sous les actions, avec les raccords Figma.
+- **C01, C02.** Déjà conformes, tests ajoutés.
+- **D01–D07.** Nouveau module commun `src/shared/ui/CatalogueCommands.tsx` :
+  - Commandes rondes 34 ; champ Rechercher sur la rangée, avec croix d'effacement.
+  - Filtrer étendu avec résumé.
+  - Réinitialiser selon Figma.
+  - Zones corporelles du filtre prises dans le référentiel.
+- **E01.** Barre à cinq destinations. Communauté est désactivée et non routée. Aucun bouton Recherche.
+- **F01–F07.**
+  - Média sous la zone de contexte et fixe ; gabarit toujours présent.
+  - Titres « Description du mouvement » et « Phases » harmonisés.
+  - Phases présentées en liste ; limite de 20 points de code (`WORK_PHASE_LIMITS`).
+  - Depuis le Catalogue, la fiche s'ouvre en édition (`mode=edit`) ; un Mouvement archivé reste en consultation seule.
+
+**Mode de travail.** Deux sous-agents ont travaillé en parallèle, sans commit : l'un sur la navigation (E01), l'autre sur la fiche (F, C, A02). Le Catalogue, A01, l'intégration, la documentation et les tests sont de la session principale. Les résultats des sous-agents ont été relus et repassés aux tests complets.
+
+**Gardes de non-régression mises à jour, chaque fois par une modification autorisée :**
+- empreinte de `tokens.ts` dans `pre4Story11Controls.test.ts`, avec un commentaire qui en conserve l'historique ;
+- nouveaux jetons documentés au chapitre 12, comme l'exige `tokensSpecification.test.ts` ;
+- assertions 24 → 16 de A01 dans `PrimaryActionZone`, `CompositionScreen`, `ExerciseScreen`, `ActivityEditorForm` et `EditorAccessibility` ;
+- les anciens contrats D-184 de commande à libellé (108 × 32) sont remplacés par le contrat D01.
+
+**Documentation mise à jour :**
+- chapitre 07 : section « Recette A/B du 27/10/2026 » (numéro à attribuer) ; D-225 annotée ;
+- chapitres 06, 12 et 13 : navigation, jetons, marges, animations, §4.5, CE-MVT-01 ;
+- chapitre 10 et DSF Mouvements ;
+- BMAD : epics (B.9) et sprint-status (`b-9` en review).
+
+**Tests B.9.** `npx tsc --noEmit` : propre. ESLint sur les fichiers modifiés : propre. Jest complet : 207 suites, 4 623 tests, tous verts (avant B.9 : 206 / 4 609). Nouveaux tests : `CatalogueCommands.test.tsx` ; `MovementCatalogueList.b5` (B03, B08, B09, B11/B12) ; `MovementFilterSheet.b7` (D06, D07, libellés) ; `movementCatalogueView.b7` (ordre de famille) ; `CatalogueScreen` (D01–D03) ; `TabsLayoutSearch.integration` (E01) ; `MovementScreen.b2.integration` (F07, C02, A02, F06). Tests rejoués après la mise à jour documentaire : 6 suites lisant la documentation, 699 tests, verts. Aucun test sur appareil par Claude.
+
+**Constat sur appareil (journal Metro, 13:21, avant ces corrections).** Après chargement du bundle, trois `Exception in HostFunction: std::bad_alloc` dans `Performance.js` (`reportMeasure`), appelé par `logComponentRender` du moteur React de développement. Chacune est suivie de « Should not already be working ».
+- **Démontré :** la pile d'appels ne contient que le moteur de rendu et l'API Performance de React Native, en mode développement.
+- **Non démontré :** la cause, et le fait que l'erreur existe ou non avec `main`. Aucune correction n'a été tentée.
+- **Vérification proposée :** noter l'écran et l'action au moment de l'erreur, puis comparer avec la build de `main`.
+
+**À clarifier / à valider** (aussi dans le cahier de recette) :
+1. Déplacement des phases : il ne se fait plus que par VoiceOver.
+2. L'étape « Filtres / Aucun » n'est pas développée.
+3. Résumé de Filtrer : le nom du critère s'il est seul, sinon « N filtres ».
+4. Les archivés masqués gardent leur place lors d'un réordonnancement.
+5. Hors segment Mouvements, les commandes sont alignées à droite.
+6. La croix d'effacement est dessinée sans maquette Figma, et le champ a un fond uni au lieu du dégradé.
+7. Les reports dans Figma (marge 16, écart 8, champ 34) ne sont pas faits : aucune écriture Figma.
+
 ## Vérifications restant à effectuer sur appareil réel
 
 - Cahier de recette : https://claude.ai/artifact/KR5M1XyoWc4eDFpAE5bZBV ; serveur Expo lancé depuis ce clone sur `5cadfcd9`, tunnel `https://fi5f9dc-uncried-8081.exp.direct`.
 
 - Fiche Mouvement : gabarit photo (proportions, recouvrement par la zone de contexte), ajout, consultation, retrait et réordonnancement des médias, clavier et défilement, invite des phases, crayon, menu Niveau, dialogue C03.
 - Catalogue : quatre segments à 360 pt, carte Mouvement, recherche ; piles (épaisseur, dépliage, trait de repli) ; glissement des cartes (seuil, retour, défilement vertical préservé) ; feuille Filtres ; résumé « N filtres » dans la commande de 108 pt ; dialogues d'archivage refusé et de suppression ; snackbar Annuler.
+- B.9 : les points de la section « Corrections A/B » du cahier (marges, cartes, animations de pile, appui long, glissés, rangée de commandes, navigation à cinq destinations, fiche en édition, média fixe, phases).
 - Premier lancement après les migrations 014 et 015 sur l'iPhone (schéma attendu : 15) : Séances, Circuit, ordre, Points d'arrêt et Exercices du Catalogue retrouvés à l'identique ; aucun avis de réinitialisation.
 
 ## Fichiers modifiés (à cette étape)
@@ -123,7 +184,9 @@ Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-pil
 - B.5 à B.8 : `src/features/activities/` (`movementCatalogueView.ts`, `SwipeActionsRow.tsx`, `MovementFilterSheet.tsx`, `MovementCatalogueList.tsx`, `MovementCatalogueService.ts`, `ActivityDefinitionService.ts`, `useMovementOriginChoice.tsx`, `MovementScreen.tsx`) ; `src/features/sessions/` (`CatalogueScreen.tsx`, `ExerciseScreen.tsx` : niveau archivé non sélectionnable) ; `src/domain/activities/MovementRepository.ts` ; `src/infrastructure/database/` (`migrations/migration015.ts`, `migrateDatabase.ts`, `constants.ts`, `repositories/SqliteMovementRepository.ts`, `README.md`) ; `src/shared/i18n/resources/fr.ts` ; tests associés.
 - Documentation : chapitres 07 et 10, `docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md`, `docs/DSF-NIVEAUX-RECHERCHE-2026-10-25.md` ; BMAD : epics, sprint-status, `spec-b-5-b-8-catalogue-piles-filtres-archives.md`, `recette-iphone-pre8.md`.
 
+- B.9 : `src/shared/ui/` (`tokens.ts`, `finalAction.ts`, `ScreenShell.tsx`, `CatalogueCommands.tsx` nouveau, `navigationLayout.ts`, `KodjoIcon.tsx`, `PlaceholderScreen.tsx`, `RootErrorFallback.tsx`) ; `app/(tabs)/_layout.tsx`, `app/+not-found.tsx` ; `src/features/activities/` (`MovementCatalogueList.tsx`, `SwipeActionsRow.tsx`, `MovementFilterSheet.tsx`, `movementCatalogueView.ts`, `MovementCatalogueService.ts`, `MovementScreen.tsx`, `ActivityEditorForm.tsx`, `MovementPhasesEditor.tsx`, `ActivitySelectionScreen.tsx`, `CatalogueCreateOptions.tsx`) ; `src/features/sessions/` (`CatalogueScreen.tsx`, `CompositionScreen.tsx`) ; `src/features/preferences/` (`ProfileScreen.tsx`, `ProfileEditScreen.tsx`) ; `fr.ts` ; 15 icônes SVG et `assets/icons/manifest.json` ; tests associés ; documentation (chapitres 06, 07, 10, 12, 13, DSF Mouvements) ; BMAD (epics, sprint-status, `spec-b-9-corrections-recette-a-b.md`, `recette-iphone-pre8.md`).
+
 ## Commits et état Git
 
-- `b3e6f0b1` A.1 et A.2 ; `510c764f` A.3 et A.4 ; `22fc7d3d` B.1 ; `b9473713` rapport d'étape ; `9b3db6e6` B.2 à B.4 ; `35690f24`, `1936a54e`, `1f2dc356` arbitrages et retour arrière (documentation) ; commit B.5 à B.8 avec ce rapport (hash communiqué dans la réponse de clôture).
+- `b3e6f0b1` A.1 et A.2 ; `510c764f` A.3 et A.4 ; `22fc7d3d` B.1 ; `b9473713` rapport d'étape ; `9b3db6e6` B.2 à B.4 ; `35690f24`, `1936a54e`, `1f2dc356` arbitrages et retour arrière (documentation) ; `5cadfcd9` B.5 à B.8 ; `d47d695d` lien du cahier de recette ; commit B.9 (corrections de recette A/B) avec ce rapport (hash communiqué dans la réponse de clôture).
 - Branche `pre8-bmad/dev`, non poussée, sans fusion.

@@ -64,6 +64,13 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 type Mode = "create" | "consult" | "edit";
 
+/**
+ * Recette A/B (F07) : valeur du paramètre de route `mode` qui ouvre la fiche d'un Mouvement existant
+ * directement en édition (`/movement?movementId=…&mode=edit`), depuis le Catalogue des Mouvements
+ * seulement. Sans ce paramètre, la fiche s'ouvre en consultation (crayon → édition).
+ */
+export const MOVEMENT_EDIT_MODE_PARAM = "edit";
+
 type Draft = {
   readonly name: string;
   readonly instructionSteps: readonly string[];
@@ -135,14 +142,16 @@ function toEditorCategory(categoryId: string | null, categories: readonly Catego
 }
 
 export function MovementScreen() {
-  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string }>();
+  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string }>();
   const placement: VariantPlacement = params.placement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
+  const openInEdit = params.mode === MOVEMENT_EDIT_MODE_PARAM;
   return (
     <MovementSheet
-      key={`${params.movementId ?? ""}|${params.variantOf ?? ""}|${placement}`}
+      key={`${params.movementId ?? ""}|${params.variantOf ?? ""}|${placement}|${openInEdit ? "edit" : ""}`}
       movementId={params.movementId ?? null}
       variantOf={params.variantOf ?? null}
       variantPlacement={placement}
+      openInEdit={openInEdit}
     />
   );
 }
@@ -151,10 +160,13 @@ export function MovementSheet({
   movementId,
   variantOf,
   variantPlacement,
+  openInEdit = false,
 }: {
   readonly movementId: string | null;
   readonly variantOf: string | null;
   readonly variantPlacement: VariantPlacement;
+  /** Recette A/B (F07) : fiche ouverte depuis le Catalogue des Mouvements, directement en édition. */
+  readonly openInEdit?: boolean;
 }) {
   const router = useRouter();
   const service = useActivityDefinitionService();
@@ -214,6 +226,8 @@ export function MovementSheet({
             setDraft(loaded);
             setLevels(movementLevels);
             setIsArchived(archived);
+            // F07 : le Catalogue ouvre la fiche en édition ; un Mouvement archivé reste en consultation (B.8).
+            if (openInEdit && !archived) setMode("edit");
           } else {
             // Variante (« Ajouter un niveau ») : Catégorie, Zones et nom commencé seulement.
             const started: Draft = { ...EMPTY_DRAFT, name: movement.name, categoryId: movement.categoryId, bodyZoneIds: [...movement.bodyZoneIds] };
@@ -234,7 +248,7 @@ export function MovementSheet({
           setLoadState("error");
         });
     },
-    [catalogue, service, movementId, variantOf, variantPlacement],
+    [catalogue, service, movementId, variantOf, variantPlacement, openInEdit],
   );
 
   useEffect(() => {
@@ -364,7 +378,9 @@ export function MovementSheet({
     if (variant !== null) return { position: variant.position, menu: null };
     if (mode === "create") return { position: null, menu: null };
     if (levels === null) return { position: null, menu: null };
-    if (mode === "edit" || origin === null) return { position: levels.position, menu: null };
+    // F07 : ouverte en édition depuis le Catalogue, la fiche garde le menu Niveau (consulter un autre
+    // membre, ajouter un niveau) ; une édition entrée par le crayon le garde fermé, comme avant.
+    if (origin === null || (mode === "edit" && !openInEdit)) return { position: levels.position, menu: null };
     const total = levels.position?.total ?? 0;
     return {
       position: levels.position,
@@ -379,12 +395,14 @@ export function MovementSheet({
           currentMovementId: origin.id,
           // « Changer de niveau » : consulter un autre membre, sans reclassement.
           onChangeMovement: (id) => {
-            if (id !== origin.id) router.replace({ pathname: "/movement", params: { movementId: id } });
+            if (id !== origin.id) {
+              router.replace({ pathname: "/movement", params: openInEdit ? { movementId: id, mode: MOVEMENT_EDIT_MODE_PARAM } : { movementId: id } });
+            }
           },
         },
       },
     };
-  }, [variant, mode, levels, origin, router, isArchived]);
+  }, [variant, mode, levels, origin, router, isArchived, openInEdit]);
 
   const title = mode === "create" ? t.titles.create : mode === "edit" ? t.titles.edit : t.titles.consult;
   const formValue: ActivityEditorFormValue = {
@@ -513,7 +531,15 @@ export function MovementSheet({
           movementId={origin.id}
           onClose={() => {
             setIsLevelsScreenOpen(false);
-            load(() => false);
+            if (mode === "edit") {
+              // F07 : en édition, seuls les rangs sont relus — le brouillon en cours est conservé.
+              service
+                .getMovementLevels(origin.id)
+                .then(setLevels)
+                .catch((error: unknown) => console.error("Les niveaux du mouvement n'ont pas pu être relus.", error));
+            } else {
+              load(() => false);
+            }
           }}
         />
       ) : null}

@@ -15,8 +15,14 @@ import { describe, expect, it } from "@jest/globals";
 const ROOT = join(__dirname, "..", "..", "..", "..");
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\r/g, "");
 
-/** Empreinte LF de `src/shared/ui/tokens.ts` au commit `d07a3817` (code de départ). */
-const TOKENS_BASELINE_SHA256 = "b4ae92b6b2c06965e818e6fe89f973ffb5cdff7787cb3b241ac184f11ecf93be";
+/**
+ * Empreinte LF de `src/shared/ui/tokens.ts` au commit `d07a3817` (code de départ) :
+ * `b4ae92b6b2c06965e818e6fe89f973ffb5cdff7787cb3b241ac184f11ecf93be`. Mise à jour par la recette PRE-8
+ * A/B (arbitrage de Hermann du 27/10/2026 : marge standard centralisée `layout.screenGutter` et jetons
+ * du Catalogue des Mouvements, documentés au chapitre 12) — modification autorisée, la garde reste
+ * active contre toute modification ultérieure non autorisée.
+ */
+const TOKENS_BASELINE_SHA256 = "2ed5cdbc84e4f9315c09655aacc22dd6213c6f999b39fbdf1e65c5e6309c9e42";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

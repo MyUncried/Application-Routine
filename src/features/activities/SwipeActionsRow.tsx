@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
+import { Image } from "expo-image";
+import { Animated, Pressable, StyleSheet, Text, View, type AccessibilityActionInfo, type GestureResponderEvent } from "react-native";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
@@ -22,6 +23,14 @@ import { colors, fixedRadii, type } from "@/shared/ui/tokens";
  *
  * Les seuils et bornes viennent des modules purs de la Composition (`compositionGesture.ts`,
  * `compositionMotion.ts`) : aucune valeur de geste propre à ce composant.
+ *
+ * Recette A/B du 27/10 (Figma `10579:21580`) :
+ * - B09 : `enabled={false}` (carte du dessus d'une pile condensée) — aucun glissement, aucune
+ *   action révélée ni annoncée ;
+ * - B10 : la carte ouverte s'arrête à 8 du bord de « Partager » (`SWIPE_ACTIONS_GAP`) ;
+ * - B11 : `joined` — le choix Plus facile / Plus difficile est déployé sous les actions : les
+ *   raccords Figma comblent les coins bas du groupe ;
+ * - B08 : `onLongPress` (réordonnancement d'une pile déployée) et `extraAccessibilityActions`.
  */
 
 export type SwipeAction = {
@@ -35,6 +44,13 @@ export type SwipeAction = {
 
 /** Largeur d'une action révélée (Figma `10475:47634` : trois actions de 68 sur 204). */
 export const SWIPE_ACTION_WIDTH = 68;
+/** B10 (Figma `10579:21580`) : écart entre la carte ouverte et la première action. */
+export const SWIPE_ACTIONS_GAP = 8;
+/** B11 : raccord Figma (`10585:21534` / `10585:21535`), 12 × 12, 10 dans la rangée et 2 sous elle. */
+const JOIN_SIZE = 12;
+const JOIN_OVERHANG = 2;
+
+export type SwipeAccessibilityAction = { readonly name: string; readonly label: string; readonly onAction: () => void };
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -46,6 +62,10 @@ export function SwipeActionsRow({
   onPress,
   accessibilityLabel,
   accessibilityHint,
+  enabled = true,
+  joined = false,
+  onLongPress,
+  extraAccessibilityActions = [],
   children,
   testID,
 }: {
@@ -56,10 +76,17 @@ export function SwipeActionsRow({
   readonly onPress: () => void;
   readonly accessibilityLabel: string;
   readonly accessibilityHint?: string;
+  /** B09 : faux — aucun glissement ni action (pile condensée). */
+  readonly enabled?: boolean;
+  /** B11 : choix d'ajout de Niveau déployé sous les actions. */
+  readonly joined?: boolean;
+  readonly onLongPress?: () => void;
+  readonly extraAccessibilityActions?: readonly SwipeAccessibilityAction[];
   readonly children: ReactNode;
   readonly testID: string;
 }) {
-  const offset = actions.length * SWIPE_ACTION_WIDTH;
+  const groupWidth = enabled ? actions.length * SWIPE_ACTION_WIDTH : 0;
+  const offset = groupWidth > 0 ? groupWidth + SWIPE_ACTIONS_GAP : 0;
   const reduceMotion = useReduceMotion();
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const isSwipingRef = useRef(false);
@@ -141,7 +168,7 @@ export function SwipeActionsRow({
       onTouchMove={(event) => {
         // Reçu même quand une action révélée détient le responder (balayage droit de fermeture).
         const { dx, dy } = delta(event);
-        if (isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return;
+        if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return;
         follow(dx);
       }}
       onTouchEnd={end}
@@ -152,7 +179,7 @@ export function SwipeActionsRow({
       }}
       onMoveShouldSetResponderCapture={(event) => {
         const { dx, dy } = delta(event);
-        if (isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return false;
+        if (offset === 0 || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) return false;
         follow(dx);
         return true;
       }}
@@ -170,10 +197,10 @@ export function SwipeActionsRow({
           pointerEvents={translateX < 0 ? "auto" : "none"}
           accessibilityElementsHidden={translateX >= 0}
           importantForAccessibility={translateX < 0 ? "auto" : "no-hide-descendants"}
-          style={[styles.actions, { width: offset }]}
+          style={[styles.actions, { width: groupWidth }]}
           testID={`${testID}-actions`}
         >
-          {actions.map((action) => (
+          {actions.map((action, index) => (
             <Pressable
               key={action.key}
               onPress={action.onPress}
@@ -183,6 +210,8 @@ export function SwipeActionsRow({
               accessibilityState={{ disabled: action.disabled === true }}
               style={[
                 styles.action,
+                index === 0 ? styles.actionFirst : null,
+                index === actions.length - 1 ? styles.actionLast : null,
                 { backgroundColor: action.disabled === true ? colors.disabled : action.backgroundColor },
               ]}
               testID={`${testID}-action-${action.key}`}
@@ -192,6 +221,12 @@ export function SwipeActionsRow({
               </Text>
             </Pressable>
           ))}
+          {joined ? (
+            <>
+              <Image source={JOIN_EASIER} style={[styles.join, styles.joinLeft]} accessible={false} testID={`${testID}-join-easier`} />
+              <Image source={JOIN_HARDER} style={[styles.join, styles.joinRight]} accessible={false} testID={`${testID}-join-harder`} />
+            </>
+          ) : null}
         </View>
       ) : null}
       <AnimatedPressable
@@ -199,11 +234,28 @@ export function SwipeActionsRow({
           // Carte ouverte : appui neutre (seul un balayage droit la referme).
           if (!revealed && !isSwipingRef.current) onPress();
         }}
+        onLongPress={
+          onLongPress === undefined
+            ? undefined
+            : () => {
+                if (!revealed && !isSwipingRef.current) onLongPress();
+              }
+        }
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
-        accessibilityActions={actions.filter((action) => action.disabled !== true).map((action) => ({ name: action.key, label: action.label }))}
-        onAccessibilityAction={(event) => actions.find((action) => action.key === event.nativeEvent.actionName)?.onPress()}
+        accessibilityActions={[
+          ...(enabled ? actions.filter((action) => action.disabled !== true) : []).map(
+            (action): AccessibilityActionInfo => ({ name: action.key, label: action.label }),
+          ),
+          ...extraAccessibilityActions.map((action): AccessibilityActionInfo => ({ name: action.name, label: action.label })),
+        ]}
+        onAccessibilityAction={(event) => {
+          const name = event.nativeEvent.actionName;
+          const extra = extraAccessibilityActions.find((action) => action.name === name);
+          if (extra) extra.onAction();
+          else if (enabled) actions.find((action) => action.key === name && action.disabled !== true)?.onPress();
+        }}
         style={{ transform: [{ translateX: swipeX }] }}
         testID={`${testID}-card`}
       >
@@ -212,6 +264,9 @@ export function SwipeActionsRow({
     </View>
   );
 }
+
+const JOIN_EASIER = require("../../../assets/icons/catalogue-raccord-plus-facile.svg");
+const JOIN_HARDER = require("../../../assets/icons/catalogue-raccord-plus-difficile.svg");
 
 const styles = StyleSheet.create({
   container: {
@@ -223,8 +278,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: "row",
-    borderRadius: fixedRadii[12],
-    overflow: "hidden",
   },
   action: {
     width: SWIPE_ACTION_WIDTH,
@@ -232,10 +285,31 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 4,
   },
+  // Figma `10579:21622` / `10579:21617` : coins arrondis aux extrémités du groupe seulement.
+  actionFirst: {
+    borderTopLeftRadius: fixedRadii[12],
+    borderBottomLeftRadius: fixedRadii[12],
+  },
+  actionLast: {
+    borderTopRightRadius: fixedRadii[12],
+    borderBottomRightRadius: fixedRadii[12],
+  },
+  // `KODJO / Texte / Inter Semi Bold 11`, blanc.
   actionLabel: {
-    ...type.caption,
+    ...type.swipeActionLabel,
     color: colors.background,
     textAlign: "center",
-    fontWeight: "600",
+  },
+  join: {
+    position: "absolute",
+    width: JOIN_SIZE,
+    height: JOIN_SIZE,
+    bottom: -JOIN_OVERHANG,
+  },
+  joinLeft: {
+    left: 0,
+  },
+  joinRight: {
+    right: 0,
   },
 });

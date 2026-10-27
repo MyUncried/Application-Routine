@@ -46,3 +46,17 @@
 - [ ] Fiche d'un archivé : consultation sans crayon.
 - [ ] Création d'un Exercice (Composition ou Catalogue des Exercices) : un Mouvement archivé n'est plus suggéré ; dans le menu Niveau d'un Exercice, son niveau est grisé.
 - [ ] VoiceOver : actions de carte (Créer une variante, Archiver, Restaurer, Supprimer) ; pile annoncée « N niveaux affichés ».
+
+## B.9 — Corrections de la recette A/B du 27/10
+
+Détail et points à valider : `implementation-artifacts/spec-b-9-corrections-recette-a-b.md` ; mêmes points dans le cahier interactif (section « Corrections A/B »). Ces corrections remplacent, pour les points concernés, les vérifications ci-dessus (« Créer une variante » devient « Ajouter un niveau » ; la fiche s’ouvre en édition depuis le Catalogue ; repli par toute la marge gauche ; Rechercher dans la rangée des commandes).
+
+- [ ] A01, A02 : marges 16, titres.
+- [ ] B01–B04, B07 : carte de Mouvement, deux étapes de description.
+- [ ] B05, B06 : animations de pile, repli par la marge gauche.
+- [ ] B08 : réordonnancement par appui long dans une pile déployée.
+- [ ] B09–B12 : glissé réservé aux piles déployées, espace de 8, « Ajouter un niveau » déployé sous les actions.
+- [ ] C01, C02 : nouveau Niveau directement modifiable, sans rang dans le nom.
+- [ ] D01–D07 : rangée Rechercher / Créer / Filtrer / Trier, croix, Filtrer étendu, Réinitialiser, Zones du référentiel.
+- [ ] E01 : navigation à cinq destinations, Communauté désactivée.
+- [ ] F01–F07 : média derrière le contexte et fixe, titres harmonisés, phases en liste (20 caractères), ouverture directe en édition.

@@ -1,5 +1,8 @@
 # Mouvement — création et modification : périmètre documentaire
 
+
+> **Recette A/B du 27/10/2026 (Hermann).** F07 : depuis le Catalogue des Mouvements, une fiche existante s'ouvre directement en édition (plus de consultation préalable ni de crayon ; brouillon, abandon et dialogues C03 conservés ; archivé : consultation seule ; lecture seule depuis une Séance inchangée). F01/F02 : média prolongé derrière la zone de contexte sans bande blanche, zone média fixe au défilement, gabarit toujours présent. F03–F05 : « Description du mouvement » et « Phases du mouvement (pour minuter l'exécution) » en 11, mêmes marges ; phases en liste d'étapes textuelles, sans durée. F06 (MVT-09) : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`). A01 : marges de 16. Catalogue : carte selon `Carte — Mouvement` (deux premières étapes de description), « Ajouter un niveau » remplace « Créer une variante », réordonnancement par appui long dans une pile déployée, glissé réservé aux piles déployées. Détail : chapitre 07, « Recette A/B du 27/10/2026 ».
+
 Date : 27 octobre 2026. Statut : référence cible du lot documentaire demandé par Hermann ; aucun développement produit ni modification Figma effectué par cette mise à jour.
 
 ## 1. Autorité et périmètre

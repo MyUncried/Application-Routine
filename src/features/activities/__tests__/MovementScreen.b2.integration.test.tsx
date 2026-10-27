@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { act, cleanup, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -7,7 +8,8 @@ import type { Category } from "@/domain/categories/Category";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
-import { MovementScreen } from "@/features/activities/MovementScreen";
+import { MOVEMENT_PHOTO_UNDER_CONTEXT } from "@/features/activities/ActivityEditorForm";
+import { MOVEMENT_EDIT_MODE_PARAM, MovementScreen } from "@/features/activities/MovementScreen";
 import type { ProfileService } from "@/features/preferences/ProfileService";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import type { ReferentialService } from "@/features/reference-data/ReferentialService";
@@ -141,6 +143,10 @@ async function renderSheet(params: Record<string, string> = {}) {
   );
   await settle();
   await settle(20);
+}
+
+function cleanupRender() {
+  cleanup();
 }
 
 async function press(testID: string) {
@@ -298,5 +304,88 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
     expect(mockBack).not.toHaveBeenCalled();
     database = NodeSqliteDatabase.openInMemory();
+  });
+});
+
+describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
+  it("F07 : `mode=edit` (Catalogue) ouvre la fiche directement en édition, sans crayon ; menu Niveau conservé", async () => {
+    await movements().create(movement("m1", "Pompes", { phases: [{ id: 1, label: "Descente" }], nextPhaseId: 2 }));
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    expect(screen.getByText(t.titles.edit)).toBeTruthy();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
+    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe("Descente");
+    expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
+    // Aucun changement : pas de garde d'abandon ; Terminer revient sans écrire.
+    expect(lastShouldBlock()).toBe(false);
+    await press("movement-finish-action");
+    expect(mockBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("F07 : sans `mode`, la fiche reste en consultation ; un Mouvement archivé reste en consultation même avec `mode=edit`", async () => {
+    await movements().create(movement("m1", "Pompes"));
+    await renderSheet({ movementId: "m1" });
+    expect(screen.getByText(t.titles.consult)).toBeTruthy();
+    cleanupRender();
+    await movements().create(movement("old", "Gainage latéral"));
+    await movements().archive("old");
+    await renderSheet({ movementId: "old", mode: MOVEMENT_EDIT_MODE_PARAM });
+    expect(screen.getByText(t.titles.consult)).toBeTruthy();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
+  });
+
+  it("C01 et C02 : « Ajouter un niveau » ouvre le formulaire en édition, nom commencé sans rang ajouté, invite non persistée ; abandon sans création", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet({ variantOf: "squat", placement: "BEFORE_ORIGIN" });
+    expect(screen.getByText(t.titles.create)).toBeTruthy();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
+    expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
+    expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
+    expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
+    expect(await count("movements")).toBe(1);
+  });
+
+  it("F03 à F06 : « Description du mouvement » ; phases en liste d'étapes (sans tableau ni durée) ; libellé limité à 20 points de code", async () => {
+    await renderSheet();
+    expect(screen.getByTestId("activity-editor-description-title", anyNode).props.children).toBe(t.descriptionTitle);
+    expect(screen.getByTestId("movement-phases-title", anyNode).props.children).toBe(t.phases.title);
+    const titleStyle = StyleSheet.flatten(screen.getByTestId("movement-phases-title", anyNode).props.style);
+    const descriptionStyle = StyleSheet.flatten(screen.getByTestId("activity-editor-description-title", anyNode).props.style);
+    expect(titleStyle).toMatchObject({ fontSize: 11, fontFamily: descriptionStyle.fontFamily, color: descriptionStyle.color });
+    expect(descriptionStyle.fontSize).toBe(11);
+    // Aucune poignée ni croix de ligne de tableau.
+    await type("movement-phases-invite", "Descente");
+    expect(screen.queryByTestId("movement-phases-row-1-handle", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-phases-remove-1", anyNode)).toBeNull();
+    // 20 points de code admis (emoji compté pour un), 21 refusés : le libellé reste inchangé.
+    const twenty = "Descente contrôlée 😀";
+    expect([...twenty].length).toBe(20);
+    await type("movement-phases-label-1", twenty);
+    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe(twenty);
+    await type("movement-phases-label-1", `${twenty}!`);
+    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.value).toBe(twenty);
+    // Retour arrière sur une phase vide : retrait (règle de la Description).
+    await type("movement-phases-label-1", "");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "keyPress", { nativeEvent: { key: "Backspace" } });
+    });
+    expect(screen.queryByTestId("movement-phases-label-1", anyNode)).toBeNull();
+  });
+
+  it("F01, F02 : gabarit photo hors du défilement, sous la zone de contexte (recouvrement 21), présent sans média", async () => {
+    await renderSheet();
+    const template = screen.getByTestId("movement-photo-template", anyNode);
+    expect(StyleSheet.flatten(template.props.style)).toMatchObject({ marginTop: -MOVEMENT_PHOTO_UNDER_CONTEXT });
+    expect(StyleSheet.flatten(template.props.style).height).toBeGreaterThan(0);
+    expect(within(screen.getByTestId("exercise-body", anyNode)).queryByTestId("movement-photo-template", anyNode)).toBeNull();
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-context-band", anyNode).props.style)).toMatchObject({ backgroundColor: "transparent", zIndex: 1 });
+    expect(screen.getByTestId("movement-context-band-fill", anyNode)).toBeTruthy();
+    expect(screen.queryByTestId("exercise-context-band-fade", anyNode)).toBeNull();
+  });
+
+  it("A02 : titre de la fiche en Inter Medium 17", async () => {
+    await renderSheet();
+    const title = screen.getByText(t.titles.create);
+    expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontFamily: "Inter_500Medium", fontSize: 17 });
   });
 });
