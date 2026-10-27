@@ -476,3 +476,12 @@ Aucun code n'est modifié pour ce point.
 **À vérifier sur l'iPhone.** Clavier ouvert, faire défiler vers la fin : le défilement s'arrête avec la dernière ligne des Phases juste au-dessus du clavier.
 
 **Toujours en ARBITRAGE.** Le menu des niveaux : A, B ou C (voir le cinquième passage).
+
+## Clôture de la recette iPhone (27/10)
+
+Hermann a terminé les tests de recette, avec succès : « j'ai terminé les tests de recette, avec succès ». Le dernier point ouvert sur l'appareil, `r14-butee` (arrêt du défilement à la dernière ligne des Phases, clavier ouvert), est donc validé, de même que la correction du ressort (`r12-limite`, `d4cf9785`). Code recetté : `88c2adde`.
+
+**Reste ouvert.** Aucun code n'est modifié dans cette clôture.
+- Le menu des niveaux attend toujours un ARBITRAGE (A, B ou C, voir le cinquième passage).
+- Rien n'est poussé, rien n'est fusionné dans `main`. Les epics C, D et E ne sont pas commencés.
+- La suite de la mission attend l'instruction de Hermann.
