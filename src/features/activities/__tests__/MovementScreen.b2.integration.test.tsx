@@ -611,6 +611,10 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
       await settle(300);
       expect(isLifted()).toBe(false);
       expect(shield()).toBeNull();
+      // r12-limite : la réserve basse mesurée atteint bien la vue (bas de couche non mesuré sous Jest :
+      // haut du clavier fictif à -300 pour une réserve de 300).
+      act(() => listeners.get("keyboardWillShow")?.forEach((listener) => listener({ endCoordinates: { screenX: 0, screenY: -300, width: 390, height: 344 }, duration: 250, easing: "keyboard" })));
+      expect(StyleSheet.flatten(screen.getByTestId("editor-keyboard-reserve", anyNode).props.style).paddingBottom).toBe(300);
     } finally {
       spy.mockRestore();
       dismiss.mockRestore();

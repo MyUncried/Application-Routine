@@ -434,3 +434,27 @@ Suite complète `npx jest` : 207 suites, 4 640 tests, tous verts.
 - Clavier ouvert, toucher Nom, Catégorie, Zones ou Niveau : le clavier se ferme, rien d'autre.
 - Phases : ajouter ou effacer une ligne sans que le clavier clignote.
 - Menu Niveau ouvert plusieurs fois de suite : un toucher ailleurs ne déclenche rien.
+
+## Cinquième passage de la recette iPhone (27/10, 20:43–20:44)
+
+**Résultats du quatrième passage.** Six tests `r12-*` sont OK. Un seul est KO, `r12-limite` : à la limite haute, le contenu « ressort au doigt » (réponse de Hermann à la question de précision). Point de départ : `5eee0b99`.
+
+**`r12-limite`, fin du contenu inatteignable.**
+- *Cause, démontrée par lecture du code de React Native* : `KeyboardAvoidingView` en comportement `padding` compose toujours `paddingBottom: bottomHeight` après le style reçu, et `bottomHeight` vaut 0 quand la zone est désactivée (`KeyboardAvoidingView.js`, `render`). La réserve basse mesurée de la fiche Mouvement (`keyboardInset`, introduite au troisième passage) était donc remplacée par 0. Le défilement s'étendait sous le clavier : à la limite haute, le contenu semblait tenir dans la vue et revenait en place.
+- *Attribution* :
+  - défaut introduit au troisième passage (`4c44cca2`, remplacement de l'évitement relatif par une réserve mesurée) ;
+  - non visible dans les tests Jest, car le bas de la couche n'y est pas mesuré ;
+  - détecté sur l'iPhone au quatrième passage.
+- *Correction* : aucun comportement d'évitement sur la fiche Mouvement (l'Éditeur d'Exercice reste en `padding`). La réserve mesurée s'applique donc.
+- *Test* : `MovementScreen.b2.integration`, la réserve basse atteint la vue (`editor-keyboard-reserve`).
+
+**Remarque générale, élargir le menu des niveaux.** Hermann a demandé : « On ne peut pas élargir la taille de la fenêtre ? ». Réponse : non avec le menu natif d'iOS, dont la largeur et la taille des textes sont fixées par le système. La demande est en **ARBITRAGE**, avec trois possibilités :
+- A : sur iOS, remplacer le menu natif par le panneau KODJO, déjà utilisé sur Android. C'est une dérogation à la règle des primitives natives, qui exige une autorisation explicite.
+- B : garder le menu natif et raccourcir les libellés.
+- C : laisser tel quel.
+
+Aucun code n'est modifié pour ce point.
+
+**Tests.** tsc et ESLint : OK. Suite complète `npx jest` : 207 suites, 4 643 tests, tous verts.
+
+**À vérifier sur l'iPhone.** Beaucoup d'étapes et de Phases, clavier ouvert : le contenu défile jusqu'à la dernière Phase, au-dessus du clavier, sans ressort.

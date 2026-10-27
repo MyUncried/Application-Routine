@@ -930,11 +930,15 @@ export function ActivityEditorForm({
       >
       <View ref={editableLayerRef} style={styles.flex} onLayout={isMovement ? measureEditableLayer : undefined}>
       {/* KBD : fiche Mouvement — réserve basse mesurée dans la fenêtre (`keyboardInset`) à la place de
-          l'évitement relatif du clavier ; Éditeur d'Exercice inchangé. */}
+          l'évitement relatif du clavier ; Éditeur d'Exercice inchangé.
+          Recette du 27/10 (r12-limite) : sans comportement pour la fiche Mouvement — en `padding`, la
+          zone d'évitement, même désactivée, remplaçait cette réserve par 0 : le défilement passait sous
+          le clavier et la fin du contenu restait inatteignable. */}
       <KeyboardAvoidingView
         style={[styles.flex, isMovement ? { paddingBottom: keyboardInset } : null]}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" && !isMovement ? "padding" : undefined}
         enabled={!isMovement}
+        testID="editor-keyboard-reserve"
       >
         <ScrollView
           ref={bodyScrollRef}
