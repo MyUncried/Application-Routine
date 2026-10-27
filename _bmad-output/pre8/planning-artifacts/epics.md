@@ -49,6 +49,10 @@
 
 Recette iPhone validée par Hermann le 27/10/2026 ; résultats des deux epics validés. Les stories A.1 à A.4 et B.1 à B.11 sont `done`. Code recetté : `88c2adde` sur `pre8-bmad/dev` (base `main` @ `082390c0`), non fusionné dans `main`. Limites connues : `implementation-artifacts/sprint-status.yaml`, rubrique `deferred`.
 
+## Epic E — Catalogue unifié des Séances (préparation du 27/10/2026)
+
+Plan, stories E.1 à E.8, dépendances, réserves Figma F-01 à F-05 et arbitrages Q-E0 à Q-E6 : `epic-e-catalogue-seances.md`. **Soumis à validation de Hermann ; aucun développement.** Le découpage initial de E (conversion des Exercices du Catalogue, Q-E1) devient la story conditionnelle E.8.
+
 ## Points À CLARIFIER (sans blocage de A et B)
 
 - **Q-B2 (Epic B).** Piles, filtres, tri et actions glissées du Catalogue des Mouvements : règles non arrêtées (DSF §1, DSF Niveaux), relevé et prototype contradictoires sur la carte du dessus. **Tranché le 27/10 (Hermann)** : le rang le plus haut en tête de pile ; puis navigation, recherche, actions glissées, filtres et archives (Q1 à Q8, Q3 définitif), livrés en B.5 à B.8. Le tri reste grisé (aucune règle).

@@ -7,4 +7,5 @@ Statut : **epics A et B clos** (recette iPhone validée par Hermann le 27/10/202
 | Stories et dépendances | `planning-artifacts/epics.md` |
 | Suivi | `implementation-artifacts/sprint-status.yaml` |
 | Specs | `implementation-artifacts/spec-*.md` |
+| Epic E (plan à valider) | `planning-artifacts/epic-e-catalogue-seances.md` |
 | Hors autorisation | Epics C (Composition), D (reprise), formats spécialisés ; E : préparation seulement |

@@ -24,8 +24,49 @@ development_status:
   b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
   b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
   b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
-  # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), epic-e (Catalogue unique), formats
+  epic-e: backlog  # Catalogue unifié des Séances ; préparation du 27/10, plan soumis à validation (planning-artifacts/epic-e-catalogue-seances.md) ; développement non autorisé
+  e-1-projection-catalogue: backlog  # prêt après validation du plan
+  e-2-carte-commune-catalogue: backlog  # prêt après validation ; Lecture indisponible (aucune Exécution)
+  e-3-deploiement-composition: backlog  # prêt après validation
+  e-4-ecran-segment-seances: backlog  # attend Q-E2 (segmenté) et Q-E4 (largeur de la rangée)
+  e-5-cycle-de-vie-actions-glissees: backlog  # prêt après validation ; services archiver/restaurer/supprimer à créer, sans migration
+  e-6-filtres-seances: backlog  # attend Q-E3 et Q-E5
+  e-7-raccordements-recette: backlog
+  e-8-conversion-exercices-catalogue: backlog  # conditionnelle, attend Q-E2 (migration 016)
+  # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats
 deferred:
+  - id: q-e0
+    epic: e
+    status: arbitrage
+    question: "Intégrer origin/main (ff7600ac, sources E) dans pre8-bmad/dev avant le développement ; 6 conflits documentaires (DSF Mouvements, ch06, ch07, ch10, ch12, ch13), aucun conflit de code."
+  - id: q-e2
+    epic: e
+    status: arbitrage
+    question: "Segment Exercices et Exercices du Catalogue existants (activity_definitions, encore lus par la sélection de la Composition) : garder le segment pendant E, ou convertir en Séances (migration 016, Q-E1) et le retirer."
+  - id: q-e3
+    epic: e
+    status: arbitrage
+    question: "Sémantique des filtres Catégories, Zones, Étiquettes d'une Séance de plusieurs exercices. Proposition non validée : OU dans une section, ET entre sections, correspondance sur l'ensemble des exercices."
+  - id: q-e4
+    epic: e
+    status: arbitrage
+    question: "Rangée Un exercice | Plusieurs + Filtrer étendu + Tri + Créer : environ 382 pt demandés, 370 disponibles à 402, 328 à 360 (réserve F-02)."
+  - id: q-e5
+    epic: e
+    status: arbitrage
+    question: "Section Format et premier emplacement de synthèse alors qu'aucun format n'est persisté."
+  - id: q-e6
+    epic: e
+    status: arbitrage
+    question: "Synthèse d'une Séance sans exercice ; libellé de l'état aucun résultat après filtres."
+  - id: regle-8-niveaux-archives
+    epic: b
+    status: arbitrage
+    question: "ch09 règle 8 (main, 27/10) : archiver ne modifie pas les niveaux ; B.10 b8-3 (recetté) recalcule les rangs affichés des actifs. Contradiction à arbitrer dans le lot B."
+  - id: regle-6-cle-de-tri
+    epic: b
+    status: a-clarifier
+    question: "ch09 règle 6 : écrire la seule clé du membre déplacé ; MovementRepository.reorder (PRE-7) réécrit la famille."
   - id: menu-niveau-largeur
     epic: b
     status: arbitrage
