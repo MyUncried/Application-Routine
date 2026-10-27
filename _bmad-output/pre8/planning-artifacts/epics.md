@@ -37,6 +37,7 @@
 | B.7 | Filtres et recherche combinés (Q1, Q2, Q4, Q3 définitif) | B.5 |
 | B.8 | Archivage, restauration, suppression définitive (Q5 à Q8, Q6 côté création) ; migration 015 additive | B.1, B.5 |
 | B.10 | Second passage de la recette iPhone A/B du 27/10 (lot A/B, sans nouvel epic) : titres d'écran Medium 17, piles filtrées, rangs recalculés après archivage, saisie et nom déjà utilisé dans la fiche, menu Niveau, niveaux archivés signalés, réordonnancement visible, compteur de médias ; hors périmètre : fiche Mouvement dans la Composition, alias | B.9 |
+| B.11 | Corrections après le second passage (lot A/B, sans nouvel epic) : clavier de la fiche Mouvement, feuille des filtres au format standard, bouton de lecture vidéo, passages de recette 3 à 6 | B.10 |
 | B.9 | Corrections de la recette iPhone A/B du 27/10 (lot A/B, sans nouvel epic) : marge standard 16 (A01), titres (A02), cartes et piles (B01–B12, réordonnancement par appui long), nouveau Niveau (C01–C02), zone de contexte et filtres (D01–D07), navigation à cinq destinations (E01), fiche Mouvement (F01–F07, ouverture directe en édition) | B.2 à B.8 |
 
 **Hors B (règles ouvertes ou autres epics) :**
@@ -44,8 +45,12 @@
 - Réordonnancement des familles hors du parcours existant `MovementLevelsScreen` [recette A/B B08 du 27/10 : réordonnancement des Niveaux d’une famille par appui long dans une pile déployée, livré en B.9 ; l’ordre des familles entre elles reste hors périmètre].
 - Sélection d'un Mouvement en Composition : **Epic C**. Elle réutilisera les services et cartes de B.
 
+## Clôture des epics A et B (27/10/2026)
+
+Recette iPhone validée par Hermann le 27/10/2026 ; résultats des deux epics validés. Les stories A.1 à A.4 et B.1 à B.11 sont `done`. Code recetté : `88c2adde` sur `pre8-bmad/dev` (base `main` @ `082390c0`), non fusionné dans `main`. Limites connues : `implementation-artifacts/sprint-status.yaml`, rubrique `deferred`.
+
 ## Points À CLARIFIER (sans blocage de A et B)
 
-- **Q-B2 (Epic B).** Piles, filtres, tri et actions glissées du Catalogue des Mouvements : règles non arrêtées (DSF §1, DSF Niveaux), relevé et prototype contradictoires sur la carte du dessus. Non développés. **Tranché le 27/10 (Hermann)** : le rang le plus haut en tête de pile. Restent ouverts : navigation depuis une pile, effet de la recherche, filtres, tri, actions glissées.
-- **Q-B3 (Epic B).** Libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5). Omis en attendant.
+- **Q-B2 (Epic B).** Piles, filtres, tri et actions glissées du Catalogue des Mouvements : règles non arrêtées (DSF §1, DSF Niveaux), relevé et prototype contradictoires sur la carte du dessus. **Tranché le 27/10 (Hermann)** : le rang le plus haut en tête de pile ; puis navigation, recherche, actions glissées, filtres et archives (Q1 à Q8, Q3 définitif), livrés en B.5 à B.8. Le tri reste grisé (aucune règle).
+- **Q-B3 (Epic B).** Libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5). **Tranché le 27/10 (Hermann)** : aucun texte ; c'est un Mouvement nouveau sans lien.
 - **Q-E1 (Epic E).** Titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant (le nom du Mouvement ? un autre titre ?). Les données restent conservées intactes en attendant. **Tranché le 27/10 (Hermann)** : titre du premier Exercice de la Séance ; application dans l'Epic E.

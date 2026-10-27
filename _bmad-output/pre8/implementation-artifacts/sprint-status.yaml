@@ -1,6 +1,7 @@
 # Suivi de sprint PRE-8 (autorisation de Hermann du 27/10/2026 : epics A et B)
 generated: 10-27-2026 10:00
-last_updated: 10-28-2026 02:00
+last_updated: 10-27-2026 23:30
+validation: "Recette iPhone A/B validée par Hermann le 27/10/2026 (« j'ai terminé les tests de recette, avec succès » ; « Je valide les résultats de ces deux epics »). Code recetté : 88c2adde, branche pre8-bmad/dev, non fusionnée dans main."
 project: kodjo-pre8
 project_key: NOKEY
 tracking_system: file-system
@@ -20,10 +21,24 @@ development_status:
   b-6-variante-par-action-glissee: done
   b-7-filtres-et-recherche-combines: done
   b-8-archivage-restauration-suppression: done  # migration 015
-  b-9-corrections-recette-a-b: review  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; validation sur appareil attendue
-  b-10-corrections-second-passage: review  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture bloqué (expo-blur)
+  b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
+  b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
+  b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), epic-e (Catalogue unique), formats
 deferred:
+  - id: menu-niveau-largeur
+    epic: b
+    status: arbitrage
+    question: "Élargir le menu Niveau sur iOS pour que les noms tiennent sur une ligne (largeur et taille du texte fixées par le système)."
+    options: "A : panneau KODJO sur iOS (exception à la primitive native, autorisation explicite requise) ; B : menu natif, libellés raccourcis ; C : autre ou laisser tel quel."
+  - id: filets-groupes-filtres
+    epic: b
+    status: a-clarifier
+    question: "Filets entre les groupes de la feuille des filtres des Mouvements (« barres horizontales ») : non ajoutés."
+  - id: q6-4-voiceover
+    epic: b
+    status: non-teste
+    question: "Recette VoiceOver q6-4 non réalisée sur l'appareil."
   - id: q-e1
     epic: e
     status: tranche

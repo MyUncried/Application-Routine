@@ -485,3 +485,24 @@ Hermann a terminé les tests de recette, avec succès : « j'ai terminé les tes
 - Le menu des niveaux attend toujours un ARBITRAGE (A, B ou C, voir le cinquième passage).
 - Rien n'est poussé, rien n'est fusionné dans `main`. Les epics C, D et E ne sont pas commencés.
 - La suite de la mission attend l'instruction de Hermann.
+
+## Clôture BMAD des epics A et B (27/10)
+
+**Instruction.** « KODJO — PRE-8 — Clôture des epics A/B et préparation de l'epic E » : Hermann valide les résultats des epics A et B. Sans nouvelle recette ni approbation supplémentaire.
+
+**Artefacts BMAD mis à jour** (`_bmad-output/pre8/`) :
+- `sprint-status.yaml` : validation consignée ; `b-9` et `b-10` passent de `review` à `done` ; `b-11` est ajoutée (`done`) ; les limites connues sont dans `deferred`.
+- `spec-b-11-corrections-passages-3-a-6.md` (nouveau). Les corrections livrées après B.10 n'avaient pas de story BMAD : c'était une omission, réparée ici.
+- `spec-b-9` et `spec-b-10` : statut `done`. B.10 annonçait encore le bouton Lecture comme bloqué, alors qu'il a été livré en `e74f85b1` : la mention est corrigée.
+- `epics.md` : B.11 ajoutée, section de clôture ajoutée. Q-B2 et Q-B3 étaient encore décrits comme ouverts alors qu'ils sont tranchés : corrigés.
+- `README.md` et `recette-iphone-pre8.md` : statut de clôture.
+
+**Cohérence code et documentation.** Les règles des passages 3, 4 et 6 sont dans CE-MVT-01 §10 (ch13) et au ch07. Le cinquième passage est une correction technique, sans règle nouvelle. Le bouton Lecture est consigné au ch07 et au ch12. Aucune autre omission établie ; aucun audit général.
+
+**Limites connues.**
+- Menu Niveau iOS : ARBITRAGE A, B ou C.
+- Filets entre groupes de filtres : à préciser.
+- `q6-4` (VoiceOver) : non testé.
+- Points « À CLARIFIER » de B.9 et B.10 : sans arbitrage distinct ; le comportement livré est celui qui a été recetté.
+
+**Git.** Branche `pre8-bmad/dev`, base `main` @ `082390c0`, code recetté `88c2adde`. Rien n'est poussé, rien n'est fusionné dans `main`. Aucun test applicatif n'a été relancé : seuls des documents ont changé.

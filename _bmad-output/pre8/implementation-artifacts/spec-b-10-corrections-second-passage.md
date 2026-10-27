@@ -1,6 +1,6 @@
 # B.10 — Second passage de la recette iPhone A/B (27/10/2026)
 
-Statut : review. Source : résultats du cahier de recette (collection `results`, 27/10, 13:10–14:41) et accord de Hermann (« 1. Oui — 2. Non — 3. Non »). Décisions : chapitre 07, section « Recette A/B du 27/10/2026, second passage ».
+Statut : done (recette iPhone validée par Hermann le 27/10/2026, code recetté `88c2adde`). Source : résultats du cahier de recette (collection `results`, 27/10, 13:10–14:41) et accord de Hermann (« 1. Oui — 2. Non — 3. Non »). Décisions : chapitre 07, section « Recette A/B du 27/10/2026, second passage ».
 
 ## Périmètre
 
@@ -27,11 +27,11 @@ Exclus : fiche de Mouvement dans la Composition de Séance (remarque 1) ; saisie
 
 ## Non livré
 
-- **Bouton de lecture vidéo (72, flou, triangle 30)** : bloqué, `expo-blur` absent des dépendances. L'ajouter impose une nouvelle build de développement de Routine BMAD. Le lecteur système plein écran existe déjà (`MediaConsultation.tsx`, `enterFullscreen`).
+- **Bouton de lecture vidéo (72, flou, triangle 30)** : bloqué à ce stade, `expo-blur` absent des dépendances. **Livré ensuite en B.11** (`e74f85b1`, arbitrage B : verre natif `expo-glass-effect`, sans nouvelle build).
 
 ## À CLARIFIER
 
-1. Taille des textes du menu Niveau sur iOS : menu natif SwiftUI, taille fixée par le système ; la réduire impose une exception à la primitive native.
+1. Taille des textes du menu Niveau sur iOS : menu natif SwiftUI, taille fixée par le système ; la réduire impose une exception à la primitive native. Toujours en ARBITRAGE (A, B ou C, voir B.11).
 2. Rang affiché d'un membre archivé : reste celui de la famille complète ; les menus Niveau de la fiche ne sont pas renumérotés.
 3. Forme du repère « (archivé) » (gris, après le nom).
 4. Nouveau Niveau verrouillé tant que son nom pré-rempli n'est pas modifié.

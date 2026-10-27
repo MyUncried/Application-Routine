@@ -1,6 +1,6 @@
 # B.9 — Corrections de la recette iPhone A/B du 27/10/2026
 
-Statut : **review** — développé, tests automatiques verts ; validation visuelle et tactile sur iPhone attendue (Routine BMAD).
+Statut : **done** — recette iPhone validée par Hermann le 27/10/2026 (code recetté `88c2adde`). Les points « À CLARIFIER » ci-dessous n'ont pas reçu d'arbitrage distinct : le comportement livré est celui qui a été recetté.
 
 Sources : écarts de recette et compléments de Hermann du 27/10/2026 (A01 à G, A01 arbitré à 16, A02), Figma `G6RY5Ebhgwb4AHIOYDwwvg` page `510:101` (`10579:21580`, `10465:23141`, `10462:23370`, `10460:23176`, `6513:20151`, `10453:23030`), chapitres 06, 07, 10, 12, 13, DSF Mouvements du 27/10. Décisions consignées au chapitre 07, « Recette A/B du 27/10/2026 ».
 
