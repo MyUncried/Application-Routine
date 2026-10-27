@@ -104,3 +104,23 @@ Relevés : [écrans et textes](figma-mouvements-2026-10-27/ecrans.json), [compos
 | MVT-11 — UI | Photo/contexte, description/phases, clavier, scroll, safe areas, titres/pastilles et accessibilité conformes au contrat ; ajout/consultation/retrait/réordonnancement des médias inchangés |
 
 Exécuter les tests automatiques pertinents existants et étendre leur couverture au nouveau parcours ; ne pas recréer les algorithmes de recherche ou le modèle de mouvement. La revue documentaire ne constitue pas une recette du produit. Aucune migration de données historiques n'est exigée pour cette refonte, conformément à l'autorisation de repartir d'une base vierge ; ne pas réinitialiser une base pendant une simple mise à jour documentaire.
+
+## 7. Clarification complémentaire — filtres du Catalogue des Mouvements (27/10/2026)
+
+**Portée documentaire distincte du lot initial de fiche Mouvement (PR #401).** Cette section consigne D-450 après les arbitrages de filtrage de PRE-8. La refonte des piles et des filtres restait hors du **lot initial** décrit au §1 ; les règles ci-dessous définissent sa cible sans annoncer son développement ou sa recette.
+
+La feuille de filtre du Catalogue des Mouvements (Figma `10462:23370`) comporte cinq groupes : **Statut** (Actifs / Archivés), **Niveaux** (Avec niveaux / Sans niveau), **Utilisation** (Avec exercice / Sans exercice), **Catégories** et **Zones corporelles**. Les valeurs d'un même groupe se combinent en **OU**, les groupes différents en **ET**, et la recherche s'ajoute en **ET**.
+
+**Ordre des règles :**
+
+1. Déterminer les Mouvements **admissibles par Statut** : par défaut Actifs uniquement. Les Archivés n'entrent dans la sélection que si « Archivés » a été choisi explicitement ; Actifs + Archivés autorise les deux.
+2. Sur chaque Mouvement admissible, évaluer **ensemble** les autres filtres actifs et la recherche. Une famille est retenue si **au moins un de ses membres admissibles** les satisfait tous. Une correspondance répartie entre plusieurs frères ne suffit pas.
+3. Quand une famille est retenue, afficher **toutes ses cartes admissibles par Statut**, même celles ne satisfaisant pas directement les autres filtres. Les archives restent masquées hors sélection explicite « Archivés ». Une pile ne se transforme pas en carte individuelle à cause du filtre ; un Mouvement sans famille est filtré individuellement.
+4. Préserver l'appartenance et l'ordre de la famille, ainsi que les rangs et le total calculés sur sa composition **complète**, y compris les archivés. Filtrer et archiver ne reclasse pas la famille.
+5. Conserver les sélections de filtres pendant la session applicative, puis les réinitialiser à la relance. L'état sans filtre explicite revient à Actifs uniquement.
+
+**Exemple de recette :** niveaux A actif (Catégorie 1), B archivé (Catégorie 1), C actif (Catégorie 2). Sans « Archivés », un filtre Catégorie 1 montre la pile avec A et C, sans B. Avec « Archivés » seulement, B est présenté à son rang dans la famille. Avec les deux statuts, A, B et C sont affichés. Si une recherche correspond seulement à A tandis qu'un filtre correspond seulement à C, la famille ne passe pas le filtre combiné.
+
+**Mutualisation :** le gabarit de filtre peut être réutilisé par d'autres Catalogues ou listes, mais **ce n'est pas une règle transverse de filtrage**. Chacun conserve ses filtres, son état par défaut et son mode d'agrégation propres ; D-450 ne réactive pas les filtres désactivés du Suivi. Les règles d'archivage, restauration, suppression, rattachement et détachement restent distinctes et ne sont pas autorisées par la présence de leurs états dans Figma.
+
+Références : [registre D-450](Specifications-fonctionnelles/07%20%E2%80%93%20Registre%20des%20d%C3%A9cisions%20de%20conception.md), chapitre 10 « Filtrage du Catalogue des Mouvements », chapitre 13 « Catalogue des Mouvements — Filtrage et piles ».
