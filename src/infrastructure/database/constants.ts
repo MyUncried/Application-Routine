@@ -82,7 +82,12 @@ export const DATABASE_NAME = "kodjo.db";
  * principal, sans imbrication. Conversion SANS PERTE des Séances existantes,
  * aucune donnée supprimée. 001..013 inchangées.
  */
-export const DATABASE_VERSION = 14;
+/**
+ * **PRE-8 (version 15, `migration015`, story B.8)** : archivage du Mouvement —
+ * colonne additive `movements.archived_at`, aucun Mouvement archivé par la
+ * migration. 001..014 inchangées.
+ */
+export const DATABASE_VERSION = 15;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -2,7 +2,7 @@
 
 - **Identifiant** : PRE8_EPICS_A_B
 - **Objectif** : développer les fondations du modèle D-449 (Epic A) et la gestion des Mouvements et du Catalogue des Mouvements (Epic B), selon l'autorisation de Hermann du 27/10/2026.
-- **État du rapport** : Epic A terminé ; Epic B livré sur son périmètre stabilisé (B.1 à B.4). Q-B2, Q-B3 et Q-E1 restent à clarifier.
+- **État du rapport** : Epics A et B terminés (A.1 à A.4, B.1 à B.8). Q-B2, Q-B3 et Q-E1 tranchés le 27/10 ; arbitrages du Catalogue des Mouvements (Q1 à Q8, Q3 définitif) intégrés et développés.
 
 ## Baseline et environnement
 
@@ -14,7 +14,7 @@
 ## Périmètre
 
 - **Demandé** : epics A et B ; conservation des données ; médias conservés ; aucune décision fonctionnelle nouvelle.
-- **Traité** : A.1 à A.4 ; B.1 à B.4 (périmètre stabilisé).
+- **Traité** : A.1 à A.4 ; B.1 à B.4 ; puis, après arbitrages du 27/10, B.5 (piles), B.6 (variante par action glissée), B.7 (filtres et recherche), B.8 (archivage, restauration, suppression ; migration 015).
 - **Hors autorisation, non commencé** : epics C, D, E et formats spécialisés.
 
 ## Rapprochement BMAD
@@ -45,7 +45,11 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 - Baseline avant modification : `npx tsc --noEmit` vert ; Jest 195 suites, 4 539 tests, tous verts.
 - Après A.3/A.4 : `npx tsc --noEmit` vert ; Jest 198 suites, 4 563 tests, tous verts.
 - Après B.2/B.3 : `npx tsc --noEmit` vert ; Jest 202 suites, 4 585 tests, tous verts. Cette suite a démarré avant trois corrections ESLint (`MovementScreen.tsx`, `MovementCatalogueList.tsx`, `MovementPhasesEditor.tsx`) ; les 22 tests de l'Epic B ont été relancés après ces corrections : tous verts.
-- Nouveaux tests :
+- Après B.5 à B.8 : `npx tsc --noEmit` vert ; Jest **206 suites, 4 609 tests, tous verts** (suite complète relancée après la dernière modification) ; ESLint propre sur les fichiers modifiés.
+  - Nouveaux : `movementCatalogueView.b7.test.ts` (6), `MovementFilterSheet.b7.test.tsx` (2), `MovementCatalogueList.b5.test.tsx` (7), `movementLifecycle.b8.test.ts` (7), `migration015.test.ts` (3) ; `MovementScreen.b2.integration.test.tsx` +2 ; `CatalogueScreen.test.tsx` +1.
+  - Remplacé : `MovementCatalogueList.b3.test.tsx` (4 tests de la liste plate, comportement supplanté par Q-B2 et Q3).
+  - Adaptés au schéma 15, sans changement de comportement : assertions de version dans `migrateDatabase`, `migration012`, `migration013`, `migration014` (et instantané de la 014 hors colonne additive `archived_at`), `executionParametersV3.roundTrip`.
+- Nouveaux tests (A.1 à B.4) :
   - `structure.a2.test.ts` : 11 tests ;
   - `migration014.test.ts` : 4 tests, sur une copie de base fichier au schéma 013 peuplée, avec injection d'échec et annulation complète ;
   - `sessionStructure.a4.test.ts` : 9 tests ;
@@ -62,15 +66,27 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
   - assertions de version 13 → 14.
 - La tolérance de lecture des rangs non contigus (cas P39) est conservée.
 
+## Stories B.5 à B.8 (arbitrages du 27/10)
+
+Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-piles-filtres-archives.md`.
+
+- **B.5** : piles (rang le plus haut en tête), dépliage au toucher, repli par le trait de famille, recherche en piles dépliables (`movementCatalogueView.ts`, `MovementCatalogueList.tsx`).
+- **B.6** : `SwipeActionsRow.tsx`, même mécanisme de geste que la carte de Composition (modules purs réutilisés, aucune bibliothèque ajoutée) ; Partager grisé ; Créer une variante → Plus facile / Plus difficile → fiche B.2 existante ; Archiver.
+- **B.7** : `MovementFilterSheet.tsx` et règles Q1, Q2, Q4, Q3 définitif ; filtres gardés pendant la session par `CatalogueScreen` ; Filtrer actif sur le seul segment Mouvements ; Trier grisé.
+- **B.8** : `migration015` additive (`movements.archived_at`, `DATABASE_VERSION = 15`) ; `archive`, `restore`, `deleteArchived`, `listArchivedIds` ; refus « Archivage impossible » ; annulation immédiate de l'archivage et de la restauration ; suppression confirmée sans annulation ni cascade ; Q6 : archivé exclu de la recherche à la création d'un Exercice et non sélectionnable dans le menu Niveau d'un Exercice ; fiche archivée en consultation seule.
+- **Documentation intégrée** : chapitre 07 (section « Arbitrages du 27/10/2026 — Catalogue des Mouvements », numéro de décision à attribuer), chapitre 10 (MFN-10), DSF Mouvements (hors lot, archivage dans une famille), DSF Niveaux (piles).
+- **Choix techniques à valider** (aucune nouvelle règle fonctionnelle) : Exercices du Catalogue comptés comme Exercices persistés pour le refus d'archivage ; repli de pile par le trait ; fiche archivée en consultation seule ; libellés « Mouvement archivé », « Mouvement restauré », « Suppression impossible », « N filtres » ; couleurs des actions d'après Figma.
+- **Tests remplacés** : `MovementCatalogueList.b3.test.tsx` (liste plate, supplantée par Q-B2 et Q3) remplacé par `MovementCatalogueList.b5.test.tsx`.
+
 ## Hypothèses non démontrées
 
+- Les migrations 014 et 015 n'ont pas été exécutées sur la base réelle de l'iPhone (015 testée sur copie de base fichier au schéma 014).
 - La migration 014 n'a pas été exécutée sur la base réelle de l'iPhone. Elle est testée sur une copie de base reconstruite au schéma 013, pas sur une copie de la base de l'appareil.
 
 ## Éléments non corrigés, différés ou à clarifier
 
-- **Q-B2 (À CLARIFIER)** : piles, filtres, tri et actions glissées du Catalogue des Mouvements. Le DSF les exclut de ce lot et le relevé du 25/10 contredit le prototype sur la carte du dessus de pile. Non développés ; commandes inactives comme avant.
-- **Q-B3 (À CLARIFIER)** : libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5 : « à adapter », sans texte). Omis en attendant.
-- **Q-E1 (À CLARIFIER, Epic E)** : titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant. En attendant, les données restent intactes.
+- Q-B2, Q-B3 et Q-E1 : tranchés le 27/10 (voir plus bas). Q-E1 s'appliquera dans l'Epic E, non commencé.
+- Non développés : tri (aucune règle), Partager (nouveau), réordonnancement des familles depuis la pile, C08.
 - Points d'arrêt hors du modèle à Circuit unique : refusés jusqu'à la généralisation de RM-219, RM-251 et D-442 (Epic C).
 - Le commit `510c764f` contient la modification de `SqliteMovementRepository.ts` de B.1 ; il ne compile pas isolément sans `22fc7d3d`. Le HEAD est cohérent ; l'historique n'a pas été réécrit (aucun rebase spontané).
 
@@ -90,8 +106,8 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 ## Vérifications restant à effectuer sur appareil réel
 
 - Fiche Mouvement : gabarit photo (proportions, recouvrement par la zone de contexte), ajout, consultation, retrait et réordonnancement des médias, clavier et défilement, invite des phases, crayon, menu Niveau, dialogue C03.
-- Catalogue : quatre segments à 360 pt, carte Mouvement, recherche.
-- Premier lancement après la migration 014 sur l'iPhone : Séances, Circuit, ordre, Points d'arrêt et Exercices du Catalogue retrouvés à l'identique ; aucun avis de réinitialisation.
+- Catalogue : quatre segments à 360 pt, carte Mouvement, recherche ; piles (épaisseur, dépliage, trait de repli) ; glissement des cartes (seuil, retour, défilement vertical préservé) ; feuille Filtres ; résumé « N filtres » dans la commande de 108 pt ; dialogues d'archivage refusé et de suppression ; snackbar Annuler.
+- Premier lancement après les migrations 014 et 015 sur l'iPhone (schéma attendu : 15) : Séances, Circuit, ordre, Points d'arrêt et Exercices du Catalogue retrouvés à l'identique ; aucun avis de réinitialisation.
 
 ## Fichiers modifiés (à cette étape)
 
@@ -102,8 +118,10 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 - `src/features/sessions/` : `CatalogueScreen.tsx` (segment), `ExerciseScreen.tsx` (ajout du seul mot-clé `export` sur `EditorHeader` et `EditMovementAction`) et le test associé.
 - `app/movement.tsx`, `app/_layout.tsx` ; `src/shared/i18n/resources/fr.ts`.
 - `_bmad-output/pre8/` : README, epics, sprint-status, specs.
+- B.5 à B.8 : `src/features/activities/` (`movementCatalogueView.ts`, `SwipeActionsRow.tsx`, `MovementFilterSheet.tsx`, `MovementCatalogueList.tsx`, `MovementCatalogueService.ts`, `ActivityDefinitionService.ts`, `useMovementOriginChoice.tsx`, `MovementScreen.tsx`) ; `src/features/sessions/` (`CatalogueScreen.tsx`, `ExerciseScreen.tsx` : niveau archivé non sélectionnable) ; `src/domain/activities/MovementRepository.ts` ; `src/infrastructure/database/` (`migrations/migration015.ts`, `migrateDatabase.ts`, `constants.ts`, `repositories/SqliteMovementRepository.ts`, `README.md`) ; `src/shared/i18n/resources/fr.ts` ; tests associés.
+- Documentation : chapitres 07 et 10, `docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md`, `docs/DSF-NIVEAUX-RECHERCHE-2026-10-25.md` ; BMAD : epics, sprint-status, `spec-b-5-b-8-catalogue-piles-filtres-archives.md`, `recette-iphone-pre8.md`.
 
 ## Commits et état Git
 
-- `b3e6f0b1` A.1 et A.2 ; `510c764f` A.3 et A.4 ; `22fc7d3d` B.1 ; `b9473713` rapport d'étape ; commit final B.2 à B.4 avec ce rapport (hash communiqué dans la réponse de clôture).
+- `b3e6f0b1` A.1 et A.2 ; `510c764f` A.3 et A.4 ; `22fc7d3d` B.1 ; `b9473713` rapport d'étape ; `9b3db6e6` B.2 à B.4 ; `35690f24`, `1936a54e`, `1f2dc356` arbitrages et retour arrière (documentation) ; commit B.5 à B.8 avec ce rapport (hash communiqué dans la réponse de clôture).
 - Branche `pre8-bmad/dev`, non poussée, sans fusion.

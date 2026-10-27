@@ -88,7 +88,10 @@ async function untouched(database: Database): Promise<Record<string, unknown>> {
   ];
   const snapshot: Record<string, unknown> = {};
   for (const table of tables) {
-    snapshot[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY 1`);
+    // PRE-8 (B.8) : la 015, jouée ensuite au démarrage, ajoute `movements.archived_at` (NULL) ; elle
+    // est éprouvée par `migration015.test.ts`. La comparaison de la 014 porte sur les colonnes d'avant.
+    const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
+    snapshot[table] = table === "movements" ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest) : rows;
   }
   return snapshot;
 }
@@ -178,8 +181,8 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 }
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
-  it("version courante 14", () => {
-    expect(DATABASE_VERSION).toBe(14);
+  it("version courante 15 (014 puis 015, PRE-8 B.8)", () => {
+    expect(DATABASE_VERSION).toBe(15);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {
@@ -195,7 +198,8 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(14);
+    // Chemin du démarrage : 014 puis 015 (colonne additive `movements.archived_at`).
+    expect(await version(database)).toBe(DATABASE_VERSION);
     // Aucune autre table modifiée, aucun avis de réinitialisation.
     expect(await untouched(database)).toEqual(before);
     // Contenu des Exercices recopié à l'identique.
@@ -260,7 +264,7 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     const after = await database.getAllAsync("SELECT id, tour_id, position FROM activities ORDER BY id");
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(14);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await database.getAllAsync("SELECT id, tour_id, position FROM activities ORDER BY id")).toEqual(after);
   });
 
@@ -283,7 +287,7 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(14);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "migration_notices")).toBe(0);
     expect(await columns(database, "tours")).toEqual(["id", "session_id", "cycle_id", "position", "repeat_count", "side_mode", "nature"]);
     expect(await columns(database, "cycles")).toEqual(["id", "session_id", "position", "repeat_count"]);

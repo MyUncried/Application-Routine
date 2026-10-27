@@ -32,9 +32,13 @@
 | B.2 | Fiche Mouvement CE-MVT-01 : gabarit photo derrière le contexte, médias conservés intégralement, description en étapes, structure des phases sans durées, consultation puis crayon, recherche R01–R08, unicité, variante, menu Niveau (consultation d'un autre membre, ajout de niveau), brouillon et abandon, MVT-01 à MVT-11 | B.1 |
 | B.3 | Catalogue des Mouvements : accès, liste, recherche, familles et rangs dérivés de la famille complète ; parties dont les règles sont arrêtées dans les 11 états Figma ; commandes non arrêtées non présentées | B.1, B.2 |
 | B.4 | Recette automatique et non-régression : MVT-01 à MVT-11, R07, unicité, C03, phases, Niveaux, médias | B.1 à B.3 |
+| B.5 | Piles et déploiement (Q-B2 : rang le plus haut en tête ; pile dépliée au toucher ; recherche en piles) | B.3 |
+| B.6 | Création de variante par action glissée (Partager grisé, Archiver) | B.2, B.5 |
+| B.7 | Filtres et recherche combinés (Q1, Q2, Q4, Q3 définitif) | B.5 |
+| B.8 | Archivage, restauration, suppression définitive (Q5 à Q8, Q6 côté création) ; migration 015 additive | B.1, B.5 |
 
 **Hors B (règles ouvertes ou autres epics) :**
-- C08 (rattachement, détachement, suppression) ; archivage, restauration et partage.
+- C08 (rattachement, détachement) et partage ; tri (aucune règle). Archivage, restauration et suppression : livrés en B.8 (arbitrages du 27/10).
 - Réordonnancement des familles hors du parcours existant `MovementLevelsScreen`.
 - Sélection d'un Mouvement en Composition : **Epic C**. Elle réutilisera les services et cartes de B.
 

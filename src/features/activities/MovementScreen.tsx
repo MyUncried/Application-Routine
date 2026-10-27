@@ -179,6 +179,9 @@ export function MovementSheet({
   const [isDone, setIsDone] = useState(false);
   const [pendingDecision, setPendingDecision] = useState<{ readonly decision: MovementSaveDecision; readonly movement: Movement } | null>(null);
   const [isLevelsScreenOpen, setIsLevelsScreenOpen] = useState(false);
+  // PRE-8 (B.8) : un Mouvement archivé s'ouvre en consultation seule (ni crayon, ni ajout de niveau),
+  // comme une Séance archivée ; il se restaure depuis les Archives du Catalogue.
+  const [isArchived, setIsArchived] = useState(false);
   const [bodyZonesToken, setBodyZonesToken] = useState(0);
   const bodyZones = useBodyZones(bodyZonesToken);
   const { categories, reload: reloadCategories } = useCategories();
@@ -193,8 +196,12 @@ export function MovementSheet({
       const targetId = movementId ?? variantOf;
       // Sans service de Mouvement, l'état initial est déjà « erreur » (voir `loadState`).
       if (!catalogue || targetId === null) return;
-      Promise.all([catalogue.findMovement(targetId), service.supportsMovementLevels ? service.getMovementLevels(targetId) : null])
-        .then(([movement, movementLevels]) => {
+      Promise.all([
+        catalogue.findMovement(targetId),
+        service.supportsMovementLevels ? service.getMovementLevels(targetId) : null,
+        movementId !== null ? catalogue.isArchived(movementId) : false,
+      ])
+        .then(([movement, movementLevels, archived]) => {
           if (isCancelled()) return;
           if (!movement) {
             setLoadState("error");
@@ -206,6 +213,7 @@ export function MovementSheet({
             setInitial(loaded);
             setDraft(loaded);
             setLevels(movementLevels);
+            setIsArchived(archived);
           } else {
             // Variante (« Ajouter un niveau ») : Catégorie, Zones et nom commencé seulement.
             const started: Draft = { ...EMPTY_DRAFT, name: movement.name, categoryId: movement.categoryId, bodyZoneIds: [...movement.bodyZoneIds] };
@@ -365,7 +373,7 @@ export function MovementSheet({
         levels: levels.levels.map((entry) => ({ rank: entry.rank, total, name: entry.movement.name, movementId: entry.movement.id, exercises: [] })),
         onChangeLevel: () => undefined,
         // « Ajouter un niveau » : variante explicite de ce mouvement, avant ou après lui.
-        onAddLevel: (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement } }),
+        onAddLevel: isArchived ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement } }),
         onReorderLevels: () => setIsLevelsScreenOpen(true),
         movementChoice: {
           currentMovementId: origin.id,
@@ -376,7 +384,7 @@ export function MovementSheet({
         },
       },
     };
-  }, [variant, mode, levels, origin, router]);
+  }, [variant, mode, levels, origin, router, isArchived]);
 
   const title = mode === "create" ? t.titles.create : mode === "edit" ? t.titles.edit : t.titles.consult;
   const formValue: ActivityEditorFormValue = {
@@ -393,7 +401,7 @@ export function MovementSheet({
         title={title}
         onClose={() => router.back()}
         accessibilityLabel={t.close}
-        trailing={loadState === "ready" && mode === "consult" ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
+        trailing={loadState === "ready" && mode === "consult" && !isArchived ? <EditMovementAction onPress={() => setMode("edit")} /> : null}
       />
       {loadState === "error" ? (
         <View style={[styles.loadErrorBody, { paddingHorizontal: sideMargin }]} testID="movement-load-error">

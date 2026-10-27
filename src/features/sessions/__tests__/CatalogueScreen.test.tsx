@@ -536,6 +536,27 @@ describe("CatalogueScreen — cadre commun", () => {
   // `3786:5093`) : Filtrer (nœud `3947:5933`) et Trier (`Action/Utility`
   // type `Sort`) doivent chacun afficher leur pictogramme, plus la seule
   // étiquette texte qui existait jusqu'ici.
+  // PRE-8 (B.7, arbitrages du 27/10) : Filtrer devient actif sur le seul segment Mouvements ; Trier
+  // reste grisé partout ; Séances et Exercices sont inchangés.
+  it("enables Filtrer on the Mouvements segment only, Trier staying disabled (PRE-8 B.7)", async () => {
+    const { service, listActiveSessions } = makeFakeService();
+    listActiveSessions.mockResolvedValue([]);
+
+    renderScreen(service);
+    await act(async () => {
+      simulateFocus();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
+    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
+    expect(screen.getByTestId("catalogue-sort-action").props.accessibilityState).toMatchObject({ disabled: true });
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-activities"));
+    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
   it("renders the Filtrer and Trier pictograms alongside their labels (Figma frame 3786:5093)", async () => {
     const { service, listActiveSessions } = makeFakeService();
     listActiveSessions.mockResolvedValue([]);

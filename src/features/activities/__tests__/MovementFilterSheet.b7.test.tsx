@@ -1,0 +1,72 @@
+import { describe, expect, it, jest } from "@jest/globals";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
+
+import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
+import type { ReferentialService } from "@/features/reference-data/ReferentialService";
+import { ReferentialServiceContext } from "@/features/reference-data/ReferentialServiceContext";
+import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+
+/**
+ * PRE-8 (story B.7, Figma `10462:23370`) — feuille des filtres : cinq groupes à choix multiples,
+ * Catégories actives et Zones lues du référentiel, ✓ applique, ✕ ferme sans appliquer,
+ * « Réinitialiser » revient au comportement par défaut (Actifs).
+ */
+
+const referentials = {
+  listCategories: async () => [
+    { id: "renfo", name: "Renforcement", color: "#5B8DEF", isActive: true },
+    { id: "ancienne", name: "Ancienne", color: "#5B8DEF", isActive: false },
+  ],
+  listBodyZones: async () => [{ id: "genoux", name: "Genoux" }],
+} as unknown as ReferentialService;
+
+async function renderSheet(filters: MovementCatalogueFilters = EMPTY_MOVEMENT_FILTERS) {
+  const onApply = jest.fn<(filters: MovementCatalogueFilters) => void>();
+  const onClose = jest.fn();
+  render(
+    <TestSafeAreaProvider>
+      <ReferentialServiceContext.Provider value={referentials}>
+        <MovementFilterSheet filters={filters} onApply={onApply} onClose={onClose} />
+      </ReferentialServiceContext.Provider>
+    </TestSafeAreaProvider>,
+  );
+  await act(async () => {
+    await Promise.resolve();
+  });
+  return { onApply, onClose };
+}
+
+describe("PRE-8 B.7 — feuille des filtres des Mouvements", () => {
+  it("applique les valeurs choisies dans plusieurs groupes ; seules les Catégories actives sont proposées", async () => {
+    const { onApply } = await renderSheet();
+    expect(screen.queryByTestId("movement-filter-category-ancienne")).toBeNull();
+    for (const testID of [
+      "movement-filter-status-active",
+      "movement-filter-status-archived",
+      "movement-filter-usage-without",
+      "movement-filter-category-renfo",
+      "movement-filter-zone-genoux",
+    ]) {
+      fireEvent.press(screen.getByTestId(testID));
+    }
+    expect(screen.getByTestId("movement-filter-zone-genoux").props.accessibilityState).toMatchObject({ checked: true });
+    fireEvent.press(screen.getByTestId("movement-filter-apply"));
+    const applied = onApply.mock.calls[0]![0];
+    expect([...applied.statuses].sort()).toEqual(["ACTIVE", "ARCHIVED"]);
+    expect([...applied.usage]).toEqual(["WITHOUT"]);
+    expect([...applied.levels]).toEqual([]);
+    expect([...applied.categoryIds]).toEqual(["renfo"]);
+    expect([...applied.bodyZoneIds]).toEqual(["genoux"]);
+  });
+
+  it("Réinitialiser vide le brouillon ; ✕ ferme sans rien appliquer", async () => {
+    const { onApply, onClose } = await renderSheet({ ...EMPTY_MOVEMENT_FILTERS, statuses: new Set(["ARCHIVED"]) });
+    expect(screen.getByTestId("movement-filter-status-archived").props.accessibilityState).toMatchObject({ checked: true });
+    fireEvent.press(screen.getByTestId("movement-filter-reset"));
+    expect(screen.getByTestId("movement-filter-status-archived").props.accessibilityState).toMatchObject({ checked: false });
+    fireEvent.press(screen.getByTestId("movement-filter-close"));
+    expect(onClose).toHaveBeenCalled();
+    expect(onApply).not.toHaveBeenCalled();
+  });
+});

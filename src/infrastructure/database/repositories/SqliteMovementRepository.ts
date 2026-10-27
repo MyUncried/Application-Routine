@@ -8,8 +8,11 @@ import {
 } from "@/domain/activities/Movement";
 import {
   DuplicateMovementNameError,
+  type ArchiveMovementOutcome,
   type CreateVariantOutcome,
+  type DeleteArchivedMovementOutcome,
   type DeleteMovementOutcome,
+  type RestoreMovementOutcome,
   type MovementGroupOutcome,
   type MovementRepository,
 } from "@/domain/activities/MovementRepository";
@@ -457,6 +460,83 @@ export class SqliteMovementRepository implements MovementRepository {
       outcome = { status: "DELETED" };
     });
     return outcome;
+  }
+
+  async archive(id: string): Promise<ArchiveMovementOutcome> {
+    let outcome: ArchiveMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null }>(
+        "SELECT archived_at FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at !== null) {
+        outcome = { status: "ALREADY_ARCHIVED" };
+        return;
+      }
+      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      if (exerciseCount > 0) {
+        outcome = { status: "REFERENCED", exerciseCount };
+        return;
+      }
+      // Famille et position (`level_group_id`, `level_sort_key`) intactes : aucun rang recalculé (Q5).
+      const timestamp = this.now();
+      await transaction.runAsync("UPDATE movements SET archived_at = ?, updated_at = ? WHERE id = ?", [timestamp, timestamp, id]);
+      outcome = { status: "ARCHIVED" };
+    });
+    return outcome;
+  }
+
+  async restore(id: string): Promise<RestoreMovementOutcome> {
+    let outcome: RestoreMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null }>(
+        "SELECT archived_at FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at === null) {
+        outcome = { status: "NOT_ARCHIVED" };
+        return;
+      }
+      await transaction.runAsync("UPDATE movements SET archived_at = NULL, updated_at = ? WHERE id = ?", [this.now(), id]);
+      outcome = { status: "RESTORED" };
+    });
+    return outcome;
+  }
+
+  async deleteArchived(id: string): Promise<DeleteArchivedMovementOutcome> {
+    // Mêmes gardes que `delete` (références intègres, aucune cascade), dans UNE transaction : un
+    // Mouvement restauré entre-temps est relu actif et n'est pas supprimé.
+    let outcome: DeleteArchivedMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null; level_group_id: string | null }>(
+        "SELECT archived_at, level_group_id FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at === null) {
+        outcome = { status: "NOT_ARCHIVED" };
+        return;
+      }
+      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      if (exerciseCount > 0) {
+        outcome = { status: "REFERENCED", exerciseCount };
+        return;
+      }
+      await transaction.runAsync("DELETE FROM movements WHERE id = ?", [id]);
+      if (existing.level_group_id !== null) {
+        const remaining = await groupMemberIds(transaction, existing.level_group_id);
+        await writeGroupOrder(transaction, existing.level_group_id, remaining, this.now());
+      }
+      outcome = { status: "DELETED" };
+    });
+    return outcome;
+  }
+
+  async listArchivedIds(): Promise<ReadonlySet<string>> {
+    const rows = await this.database.getAllAsync<{ id: string }>("SELECT id FROM movements WHERE archived_at IS NOT NULL");
+    return new Set(rows.map((row) => row.id));
   }
 
   attachToGroup(movementId: string, originId: string): Promise<MovementGroupOutcome> {

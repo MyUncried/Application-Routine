@@ -90,7 +90,47 @@ export interface MovementRepository {
    * Mouvement, ni groupe provisoire.
    */
   createVariant(movement: Movement, originId: string, placement: "BEFORE_ORIGIN" | "AFTER_ORIGIN"): Promise<CreateVariantOutcome>;
+  /**
+   * PRE-8 (B.8, arbitrages de Hermann du 27/10/2026) : archive un Mouvement actif, dans UNE
+   * transaction. Refusé, sans aucune écriture, tant qu'un Exercice persisté le référence
+   * (`REFERENCED`) : Exercice d'une Séance active ou archivée, ou définition du Catalogue. Une
+   * exécution historique seule ne bloque pas (instantané autonome). Aucune suppression d'Exercice,
+   * de Séance ou de planification ; l'appartenance et la position dans la famille sont conservées,
+   * aucun rang n'est recalculé (Q5).
+   */
+  archive(id: string): Promise<ArchiveMovementOutcome>;
+  /** PRE-8 (B.8, Q7) : restaure un Mouvement archivé — identité, contenu, famille et position conservés. */
+  restore(id: string): Promise<RestoreMovementOutcome>;
+  /**
+   * PRE-8 (B.8, Q8) : suppression définitive, depuis les Archives seulement (`NOT_ARCHIVED` pour un
+   * Mouvement actif) ; refusée tant qu'un Exercice persisté le référence ; jamais en cascade. Les
+   * autres membres de la famille gardent leur ordre (rangs dérivés de la famille restante, MFN-05).
+   */
+  deleteArchived(id: string): Promise<DeleteArchivedMovementOutcome>;
+  /** PRE-8 (B.8) : identifiants des Mouvements archivés. */
+  listArchivedIds(): Promise<ReadonlySet<string>>;
 }
+
+/** Issue d'un archivage (PRE-8, B.8). */
+export type ArchiveMovementOutcome =
+  | { readonly status: "ARCHIVED" }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "ALREADY_ARCHIVED" }
+  /** Exercices persistés qui référencent le Mouvement, chacun une fois : rien n'est écrit. */
+  | { readonly status: "REFERENCED"; readonly exerciseCount: number };
+
+/** Issue d'une restauration (PRE-8, B.8). */
+export type RestoreMovementOutcome =
+  | { readonly status: "RESTORED" }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "NOT_ARCHIVED" };
+
+/** Issue d'une suppression définitive depuis les Archives (PRE-8, B.8). */
+export type DeleteArchivedMovementOutcome =
+  | { readonly status: "DELETED" }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "NOT_ARCHIVED" }
+  | { readonly status: "REFERENCED"; readonly exerciseCount: number };
 
 /** Issue de la création d'une variante (PRE-8, B.1). */
 export type CreateVariantOutcome =

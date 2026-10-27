@@ -204,6 +204,24 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(await count("movements")).toBe(1);
   });
 
+  it("B.8 (Q6) : un Mouvement archivé n'est plus proposé à la saisie du nom", async () => {
+    await movements().create(movement("gainage", "Gainage"));
+    await movements().create(movement("gainage-lateral", "Gainage latéral"));
+    await movements().archive("gainage-lateral");
+    await renderSheet();
+    await type("exercise-name-input", "Gainage");
+    expect(screen.getByTestId("movement-suggestion-result-gainage", anyNode)).toBeTruthy();
+    expect(screen.queryByTestId("movement-suggestion-result-gainage-lateral", anyNode)).toBeNull();
+  });
+
+  it("B.8 : la fiche d'un Mouvement archivé s'ouvre en consultation, sans crayon", async () => {
+    await movements().create(movement("gainage-lateral", "Gainage latéral"));
+    await movements().archive("gainage-lateral");
+    await renderSheet({ movementId: "gainage-lateral" });
+    expect(screen.getByText(t.titles.consult)).toBeTruthy();
+    expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
+  });
+
   it("MVT-06 : sans changement, Terminer revient sans écrire ; contenu modifié sans usage : mise à jour silencieuse", async () => {
     await movements().create(movement("m1", "Pompes"));
     await renderSheet({ movementId: "m1" });

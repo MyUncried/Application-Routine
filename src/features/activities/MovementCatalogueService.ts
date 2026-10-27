@@ -29,6 +29,8 @@ export type MovementCatalogueEntry = {
   readonly level: MovementLevelPosition | null;
   /** Exercices liés, chacun une fois (définitions du Catalogue et Exercices de Séance). */
   readonly exerciseCount: number;
+  /** PRE-8 (B.8) : Mouvement archivé ; il garde sa famille et sa position (Q5). */
+  readonly archived: boolean;
 };
 
 /** Famille de Niveaux (pile) ou Mouvement indépendant : membres dans l'ordre de la famille. */
@@ -47,6 +49,16 @@ export type MovementWriteResult =
 export type MovementSaveAssessment =
   | { readonly status: "ASSESSED"; readonly decision: MovementSaveDecision; readonly executionCount: number }
   | { readonly status: "NOT_FOUND" };
+
+/**
+ * PRE-8 (B.8, Q8) : issue d'une action de cycle de vie depuis le Catalogue. `REFERENCED` : refus,
+ * rien n'est écrit ; `exerciseCount` alimente le message « utilisé par N exercices ».
+ * `STALE` : l'état a changé entre-temps (déjà archivé, déjà restauré, introuvable) ; la liste est relue.
+ */
+export type MovementLifecycleResult =
+  | { readonly status: "DONE" }
+  | { readonly status: "REFERENCED"; readonly exerciseCount: number }
+  | { readonly status: "STALE" };
 
 /** Difficulté choisie pour une variante (DSF « Variante et niveau »). */
 export type VariantDifficulty = "EASIER" | "HARDER";
@@ -75,6 +87,7 @@ export class MovementCatalogueService {
   /** Tous les Mouvements, Mouvements sans Exercice compris, avec rang dérivé et Exercices liés. */
   async listEntries(): Promise<readonly MovementCatalogueEntry[]> {
     const all = await this.movements.search("");
+    const archivedIds = await this.movements.listArchivedIds();
     const groups = new Map<string, readonly Movement[]>();
     const entries: MovementCatalogueEntry[] = [];
     for (const movement of all) {
@@ -87,7 +100,12 @@ export class MovementCatalogueService {
         }
         level = movementLevelPosition(movement, members);
       }
-      entries.push({ movement, level, exerciseCount: await this.countLinkedExercises(movement.id) });
+      entries.push({
+        movement,
+        level,
+        exerciseCount: await this.countLinkedExercises(movement.id),
+        archived: archivedIds.has(movement.id),
+      });
     }
     return entries;
   }
@@ -100,6 +118,37 @@ export class MovementCatalogueService {
    */
   async listFamilies(): Promise<readonly MovementFamily[]> {
     return groupFamilies(await this.listEntries());
+  }
+
+  /** PRE-8 (B.8) : le Mouvement est-il archivé ? (fiche en consultation seule). */
+  async isArchived(movementId: string): Promise<boolean> {
+    return (await this.movements.listArchivedIds()).has(movementId);
+  }
+
+  /**
+   * PRE-8 (B.8, Q5, Q8) : archive un Mouvement actif, refusé tant qu'un Exercice persisté le
+   * référence ; aucune suppression d'Exercice, de Séance ni de planification, famille et rangs
+   * inchangés. Aussi l'annulation immédiate d'une restauration.
+   */
+  async archive(movementId: string): Promise<MovementLifecycleResult> {
+    const outcome = await this.movements.archive(movementId);
+    if (outcome.status === "ARCHIVED") return { status: "DONE" };
+    if (outcome.status === "REFERENCED") return { status: "REFERENCED", exerciseCount: outcome.exerciseCount };
+    return { status: "STALE" };
+  }
+
+  /** PRE-8 (B.8, Q7, Q8) : restaure un Mouvement archivé ; aussi l'annulation immédiate d'un archivage. */
+  async restore(movementId: string): Promise<MovementLifecycleResult> {
+    const outcome = await this.movements.restore(movementId);
+    return outcome.status === "RESTORED" ? { status: "DONE" } : { status: "STALE" };
+  }
+
+  /** PRE-8 (B.8, Q8) : suppression définitive d'un Mouvement archivé, sans cascade, après confirmation. */
+  async deleteArchived(movementId: string): Promise<MovementLifecycleResult> {
+    const outcome = await this.movements.deleteArchived(movementId);
+    if (outcome.status === "DELETED") return { status: "DONE" };
+    if (outcome.status === "REFERENCED") return { status: "REFERENCED", exerciseCount: outcome.exerciseCount };
+    return { status: "STALE" };
   }
 
   /** Création indépendante (sans groupe), après validation et contrôle d'unicité. */

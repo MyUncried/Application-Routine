@@ -452,7 +452,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 
 #### MFN-10 — Catalogue et duplication
 
-Le catalogue des mouvements est un contexte d’entretien ; la recherche et la sélection restent dans le parcours de création, y compris depuis une séance. Les groupes peuvent être présentés en piles ; un mouvement seul ne constitue pas une pile. Ne pas confondre famille de niveaux et exercices ayant le même mouvement.
+Le catalogue des mouvements est un contexte d’entretien ; la recherche et la sélection restent dans le parcours de création, y compris depuis une séance. Les groupes peuvent être présentés en piles ; un mouvement seul ne constitue pas une pile. Ne pas confondre famille de niveaux et exercices ayant le même mouvement. [précisé par les arbitrages de Hermann du 27/10/2026, chapitre 07 : rang le plus haut en tête de pile, pile dépliée au toucher ; filtres et recherche selon la règle Q3 définitive ; un Mouvement utilisé par un Exercice persisté ne s'archive pas ; un membre archivé garde sa place et son rang ; un archivé n'est pas proposé à la création d'un Exercice]
 
 Dupliquer une ActivityDefinition crée une nouvelle définition avec le même mouvement et une copie de ses paramètres, sans créer un niveau. Les résumés de paramètres distinguent les exercices ; aucun choix implicite de paramètres pour une ligne regroupée. Aucun alias propre à l’exercice ; les alias du mouvement participent à la recherche.
 

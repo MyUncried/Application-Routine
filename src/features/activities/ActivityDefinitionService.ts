@@ -108,6 +108,11 @@ export type MovementChoice = {
   readonly movement: Movement;
   readonly definitionCount: number;
   readonly level: MovementLevelPosition | null;
+  /**
+   * PRE-8 (B.8, Q6) : Mouvement archivé — jamais proposé pour créer un nouvel Exercice ; reste
+   * compté par le contrôle d'unicité du nom (C01).
+   */
+  readonly archived?: boolean;
 };
 
 /**
@@ -119,6 +124,8 @@ export type MovementLevelEntry = {
   readonly movement: Movement;
   readonly rank: number;
   readonly definitions: readonly ActivityDefinition[];
+  /** PRE-8 (B.8, Q5, Q6) : membre archivé — garde son rang, n'est pas sélectionnable pour un Exercice. */
+  readonly archived?: boolean;
 };
 
 /**
@@ -418,6 +425,7 @@ export class ActivityDefinitionService {
       return [];
     }
     const found = await movements.search("");
+    const archivedIds = await movements.listArchivedIds();
     const definitions = await this.repository.listAll();
     const catalogueRank = new Map<string, number>();
     const definitionCounts = new Map<string, number>();
@@ -442,7 +450,7 @@ export class ActivityDefinitionService {
         }
         level = movementLevelPosition(movement, members);
       }
-      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level });
+      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level, archived: archivedIds.has(movement.id) });
     }
     return choices;
   }
@@ -503,12 +511,14 @@ export class ActivityDefinitionService {
       return { position: null, levels: [] };
     }
     const definitions = await this.repository.listAll();
+    const archivedIds = await movements.listArchivedIds();
     return {
       position,
       levels: members.map((member, index) => ({
         movement: member,
         rank: index + 1,
         definitions: definitions.filter((definition) => definition.movementId === member.id),
+        archived: archivedIds.has(member.id),
       })),
     };
   }

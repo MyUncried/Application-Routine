@@ -1,5 +1,23 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Arbitrages du 27/10/2026 — Catalogue des Mouvements (numéro de décision à attribuer)
+
+Décisions de Hermann du 27/10/2026 pour finaliser le Catalogue d'entretien des Mouvements (PRE-8, epic B). Elles concernent uniquement le cycle de vie du Mouvement et ne valident ni C08 (rattachement, détachement), ni le partage. La règle Q3 définitive remplace les formulations antérieures de Q3 et précise Q2.
+
+- **Piles.** Le rang le plus haut est la carte du dessus d'une pile. Toucher une pile la déplie. La recherche présente des piles qui se déplient de la même manière.
+- **Actions glissées.** « Partager » est nouveau : il reste présent et grisé. « Créer une variante » réutilise le choix existant Plus facile / Plus difficile. « Archiver » transpose au Mouvement l'archivage défini pour l'Exercice. « Trier » reste grisé : aucune règle de tri n'est écrite.
+- **Q1 — Combinaison des filtres.** OU entre les valeurs d'un même groupe ; ET entre groupes. Pour Catégories et Zones corporelles, une correspondance avec au moins une valeur choisie suffit.
+- **Q2 — Statut.** Par défaut, et sans filtre explicite, seuls les Mouvements actifs sont affichés. Actifs et Archivés peuvent être choisis ensemble. Les filtres sont conservés pendant la session puis réinitialisés au relancement.
+- **Q3 — Piles filtrées (règle définitive).** Le statut fixe d'abord les membres autorisés : par défaut ou Actifs seul, uniquement les actifs ; Archivés seul, uniquement les archivés ; les deux, les deux statuts. Un archivé n'est visible que si « Archivés » est explicitement choisi, y compris dans une pile contenant des actifs. Ensuite, si au moins un membre autorisé d'une pile correspond à la recherche et aux autres filtres, tous les membres autorisés de cette pile sont affichés ; les autres membres autorisés ne sont pas masqués individuellement. Aucun filtre autre que Statut ne rend visible un archivé. Les Mouvements indépendants sont filtrés individuellement. L'archivage et le filtrage ne changent jamais l'appartenance, l'ordre, les rangs ni le nombre total de Niveaux d'une famille ; les rangs affichés restent ceux de la famille complète, membres archivés compris.
+- **Q4 — Recherche.** Recherche et filtres se combinent par ET. La recherche du Catalogue d'entretien reste distincte de la recherche à la création.
+- **Archivage.** Un Mouvement référencé par au moins un Exercice d'une Séance persistée, active ou archivée, ne peut pas être archivé. Une exécution historique seule ne bloque pas l'archivage, son instantané étant autonome. Aucune suppression automatique d'Exercice, de Séance ou de planification n'accompagne l'archivage.
+- **Q5 — Archivé dans une famille.** Il conserve son appartenance et sa position ; l'archivage ne recalcule pas les rangs ; la vue Active n'affiche que les membres actifs, la vue Archivés les membres archivés ; le rang affiché reste celui de la famille complète.
+- **Q6 — Création d'un Exercice.** Un Mouvement archivé ne peut pas être sélectionné pour créer un nouvel Exercice. Il reste accessible dans les Archives du Catalogue d'entretien et peut être restauré.
+- **Q7 — Restauration.** Restaurer conserve l'identité, le contenu, l'appartenance à la famille et la position du Mouvement dans l'ordre actuel de la famille. Aucun nouveau Mouvement ni Niveau n'est créé.
+- **Q8 — Annulation.** L'archivage accepté et la restauration conservent l'annulation immédiate existante. La suppression définitive exige une confirmation préalable, sans annulation ensuite. Un refus d'archivage ne persiste rien. La suppression définitive depuis les Archives reste interdite tant que des Exercices persistés référencent le Mouvement ; jamais de suppression en cascade.
+- **Q-B3.** Depuis le Catalogue, « Créer un nouveau mouvement » n'affiche aucun texte de conséquence : c'est un Mouvement nouveau, sans lien.
+- **Q-E1.** Une Séance issue de la conversion d'un Exercice du Catalogue existant prend le titre de son premier Exercice (Epic E).
+
 ## Report documentaire ciblé — 27/10/2026, parcours Mouvement
 
 **Corrections après revue de clôture, intégrées à la demande de Hermann :** conservation des comportements média (seuls emplacement et taille changent) ; création d'un mouvement nouveau éditable avant enregistrement ; rang dérivé susceptible de changer après retrait d'un membre ; distinction troncature confirmée/réserve temporaire de séries ; conservation des durées de phases communes au changement de niveau. Aucun nouvel arbitrage A à D et aucun prérequis Figma supplémentaire sur les médias.

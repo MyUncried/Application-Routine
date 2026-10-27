@@ -139,10 +139,13 @@ export function useMovementOriginChoice({
     };
   }, [service]);
 
-  const byId = useMemo(() => new Map(choices.map((choice) => [choice.movement.id, choice])), [choices]);
+  // PRE-8 (B.8, Q6) : un Mouvement archivé n'est jamais proposé pour créer un Exercice ; il reste
+  // compté par le contrôle d'unicité du nom (`entries`, ci-dessous).
+  const selectable = useMemo(() => choices.filter((choice) => choice.archived !== true), [choices]);
+  const byId = useMemo(() => new Map(selectable.map((choice) => [choice.movement.id, choice])), [selectable]);
   const ranked = useMemo(
-    () => (searchEnabled ? rankMovements(name, choices.map((choice) => choice.movement), context) : []),
-    [searchEnabled, name, choices, context],
+    () => (searchEnabled ? rankMovements(name, selectable.map((choice) => choice.movement), context) : []),
+    [searchEnabled, name, selectable, context],
   );
   const entries = useMemo(() => {
     const merged = new Map<string, string>(choices.map((choice) => [choice.movement.id, choice.movement.name]));
@@ -208,7 +211,7 @@ export function useMovementOriginChoice({
   const overlays =
     isSearchOpen && searchEnabled ? (
       <MovementSearchScreen
-        choices={choices}
+        choices={selectable}
         initialQuery={name}
         context={context}
         onUse={(choice) => {

@@ -6,6 +6,9 @@ import type { SessionSummary } from "@/domain/sessions/Session";
 import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
 import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
+import { countActiveFilters, EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
@@ -71,6 +74,11 @@ export function CatalogueScreen() {
   const isOpeningEditorRef = useRef(false);
   // PRE-8 (B.3) : relecture du Catalogue des Mouvements à chaque retour au premier plan.
   const [movementsReloadToken, setMovementsReloadToken] = useState(0);
+  // PRE-8 (B.7, arbitrage Q2 du 27/10) : filtres des Mouvements conservés pendant la session (état de
+  // l'écran, jamais persisté), réinitialisés au relancement ; aucun filtre : Actifs seul.
+  const [movementFilters, setMovementFilters] = useState<MovementCatalogueFilters>(EMPTY_MOVEMENT_FILTERS);
+  const [isMovementFilterOpen, setIsMovementFilterOpen] = useState(false);
+  const activeMovementFilterCount = countActiveFilters(movementFilters);
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
@@ -202,10 +210,16 @@ export function CatalogueScreen() {
             onPress={handleCreatePress}
             testID="catalogue-create-action"
           />
+          {/* PRE-8 (B.7) : Filtrer est actif sur le seul segment Mouvements ; inchangé ailleurs. */}
           <CommandAction
-            label={t.filterAction}
-            iconElement={<FilterIcon disabled testID="catalogue-filter-icon" />}
-            disabled
+            label={
+              activeSegment === "movements" && activeMovementFilterCount > 0
+                ? fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(activeMovementFilterCount) })
+                : t.filterAction
+            }
+            iconElement={<FilterIcon disabled={activeSegment !== "movements"} testID="catalogue-filter-icon" />}
+            disabled={activeSegment !== "movements"}
+            onPress={() => setIsMovementFilterOpen(true)}
             testID="catalogue-filter-action"
           />
           <CommandAction
@@ -229,6 +243,17 @@ export function CatalogueScreen() {
         }}
         onCancel={() => setIsCreateTreeOpen(false)}
       />
+
+      {isMovementFilterOpen ? (
+        <MovementFilterSheet
+          filters={movementFilters}
+          onApply={(filters) => {
+            setMovementFilters(filters);
+            setIsMovementFilterOpen(false);
+          }}
+          onClose={() => setIsMovementFilterOpen(false)}
+        />
+      ) : null}
 
       {/*
        * Correction CAT-R04 (contre-recette iPhone, `[ChatGPT]
@@ -267,7 +292,16 @@ export function CatalogueScreen() {
           </>
         ) : null}
         {activeSegment === "movements" ? (
-          <MovementCatalogueList reloadToken={movementsReloadToken} onOpenMovement={openMovement} />
+          <MovementCatalogueList
+            reloadToken={movementsReloadToken}
+            filters={movementFilters}
+            onOpenMovement={openMovement}
+            onCreateVariant={(variantOf, placement) => {
+              if (isOpeningEditorRef.current) return;
+              isOpeningEditorRef.current = true;
+              router.push({ pathname: "/movement", params: { variantOf, placement } });
+            }}
+          />
         ) : null}
         {activeSegment === "activities" ? (
           <ActivityCatalogueList

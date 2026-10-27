@@ -438,8 +438,9 @@ function editorLevelOf(
         rank: entry.rank,
         total,
         name: entry.movement.name,
-        movementId: entry.movement.id,
-        exercises: entry.definitions.map((definition) => ({
+        // PRE-8 (B.8, Q5, Q6) : un membre archivé garde son rang mais n'est pas sélectionnable.
+        movementId: entry.archived === true ? undefined : entry.movement.id,
+        exercises: (entry.archived === true ? [] : entry.definitions).map((definition) => ({
           definitionId: definition.id,
           summary: formatExerciseRowSummary(definition),
         })),
