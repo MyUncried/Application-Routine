@@ -75,7 +75,27 @@ export interface MovementRepository {
   detachFromGroup(movementId: string): Promise<MovementGroupOutcome>;
   /** Membres du groupe, dans l'ordre des clés de tri. */
   listGroup(groupId: string): Promise<readonly Movement[]>;
+  /**
+   * PRE-8 (B.1, CE-MVT-01, C03 « Mettre à jour ») : réécrit le contenu partagé d'un Mouvement
+   * existant (nom, alias, description, médias, Catégorie, Zones, structure des phases) en
+   * conservant son identité et son groupe de niveaux. `null` si le Mouvement est introuvable ;
+   * un nom pris par un autre Mouvement lève `DuplicateMovementNameError`. Les paramètres locaux
+   * des Exercices qui le référencent ne sont jamais touchés.
+   */
+  update(movement: Movement): Promise<Movement | null>;
+  /**
+   * PRE-8 (B.1, D-445 C02, DSF « Variante et niveau ») : crée la variante explicitement choisie
+   * et l'insère avant (plus facile) ou après (plus difficile) son origine, dans UNE transaction ;
+   * le groupe est créé au deuxième membre. Un refus (origine introuvable) n'écrit rien : ni
+   * Mouvement, ni groupe provisoire.
+   */
+  createVariant(movement: Movement, originId: string, placement: "BEFORE_ORIGIN" | "AFTER_ORIGIN"): Promise<CreateVariantOutcome>;
 }
+
+/** Issue de la création d'une variante (PRE-8, B.1). */
+export type CreateVariantOutcome =
+  | { readonly status: "CREATED"; readonly movement: Movement; readonly members: readonly Movement[] }
+  | { readonly status: "ORIGIN_NOT_FOUND" };
 
 /**
  * PRE-7 (A1.3) : Mouvement désigné par une origine de création (même geste,
