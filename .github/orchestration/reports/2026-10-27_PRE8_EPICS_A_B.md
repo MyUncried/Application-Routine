@@ -105,6 +105,8 @@ Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-pil
 
 ## Vérifications restant à effectuer sur appareil réel
 
+- Cahier de recette : https://claude.ai/artifact/KR5M1XyoWc4eDFpAE5bZBV ; serveur Expo lancé depuis ce clone sur `5cadfcd9`, tunnel `https://fi5f9dc-uncried-8081.exp.direct`.
+
 - Fiche Mouvement : gabarit photo (proportions, recouvrement par la zone de contexte), ajout, consultation, retrait et réordonnancement des médias, clavier et défilement, invite des phases, crayon, menu Niveau, dialogue C03.
 - Catalogue : quatre segments à 360 pt, carte Mouvement, recherche ; piles (épaisseur, dépliage, trait de repli) ; glissement des cartes (seuil, retour, défilement vertical préservé) ; feuille Filtres ; résumé « N filtres » dans la commande de 108 pt ; dialogues d'archivage refusé et de suppression ; snackbar Annuler.
 - Premier lancement après les migrations 014 et 015 sur l'iPhone (schéma attendu : 15) : Séances, Circuit, ordre, Points d'arrêt et Exercices du Catalogue retrouvés à l'identique ; aucun avis de réinitialisation.

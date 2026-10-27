@@ -2,6 +2,8 @@
 
 > Préparée le 27/10/2026 sur `pre8-bmad/dev` (commit consigné dans le rapport de mission). Aucun parcours n'est validé : la validation appartient à Hermann, sur appareil (360 / 402 / 440, iOS 26, texte agrandi). Delta par rapport à `main` @ `082390c0` (PR #401).
 
+**Cahier interactif** (cases, Problème, Remarque, résultats lisibles par Claude) : https://claude.ai/artifact/KR5M1XyoWc4eDFpAE5bZBV — URL du serveur au 27/10 : `https://fi5f9dc-uncried-8081.exp.direct` (tunnel ; binaire ngrok ARM64 copié depuis le clone PRE-7 dans `node_modules`, hors suivi).
+
 ## Avant d'installer
 
 - **Base attendue sur l'appareil** : schéma **13** (dernière version issue de `main`, PRE-7). PRE-8 la porte au schéma **15** au premier lancement : 014 (structure de Séance, sans perte) puis 015 (colonne d'archivage des Mouvements, additive).
