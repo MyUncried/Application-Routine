@@ -53,9 +53,11 @@ function renderMenu(
   isPanelOpen = false,
   onClosePanel = jest.fn(),
   anchorRef: RefObject<View | null> = createRef<View>(),
+  onNativeMenuVisibilityChange?: (visible: boolean) => void,
 ) {
   render(
     <MovementLevelMenu
+      {...(onNativeMenuVisibilityChange ? { onNativeMenuVisibilityChange } : {})}
       level={level}
       accessStyles={ACCESS}
       hitSlop={HIT_SLOP}
@@ -350,6 +352,16 @@ describe("PRE-7 A3.2 / R-9 — accès à l'écran des niveaux (D-448 point 9)", 
       act(() => fireEvent(reorder, "buttonPress"));
       expect(model.onReorderLevels).toHaveBeenCalledTimes(1);
       expect(model.onChangeLevel).not.toHaveBeenCalled();
+    }));
+
+  it("recette du 27/10 (remarque 3) : iOS — ouverture et fermeture du menu natif remontées (apparition / disparition)", () =>
+    withPlatform("ios", () => {
+      const visibility = jest.fn();
+      renderMenu({ position: { rank: 2, total: 3 }, menu: menuModel() }, jest.fn(), false, jest.fn(), createRef<View>(), visibility);
+      const modifiers = screen.getByTestId("level-reorder", anyNode).props.modifiers as { $type: string; eventListener?: () => void }[];
+      modifiers.find((modifier) => modifier.$type === "onAppear")!.eventListener!();
+      modifiers.find((modifier) => modifier.$type === "onDisappear")!.eventListener!();
+      expect(visibility.mock.calls).toEqual([[true], [false]]);
     }));
 
   it("iOS, Séance ou reprise : même racine, sous-menu « Changer de niveau »", () =>

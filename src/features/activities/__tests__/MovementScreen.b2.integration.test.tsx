@@ -473,7 +473,7 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
       expect(within(layer).queryByTestId("movement-photo-template", anyNode)).toBeNull();
       expect(within(layer).getByTestId("exercise-section-description", anyNode)).toBeTruthy();
       expect(within(layer).getByTestId("movement-section-phases", anyNode)).toBeTruthy();
-      expect(StyleSheet.flatten(layer.props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.95)");
+      expect(StyleSheet.flatten(layer.props.style).backgroundColor).toBe("rgba(255, 255, 255, 0.9)");
       expect(isLifted()).toBe(false);
       // KBD-02 : focus d'une étape → la couche remonte jusqu'au bas de la zone de contexte.
       await act(async () => {
@@ -516,6 +516,28 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  it("recette du 27/10 (remarque 2) : Entrée sur une phase ouvre la suivante juste après elle, comme la Description", async () => {
+    await renderSheet();
+    await type("movement-phases-invite", "Descente");
+    // Bloc en saisie (la phase créée a le focus) : l'invite reste en fin de liste.
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+    });
+    await type("movement-phases-invite", "Remontée");
+    expect(screen.getByTestId("movement-phases-label-1", anyNode).props.returnKeyType).toBe("default");
+    // Entrée sur la phase 1 : l'invite se place sous elle ; la saisie y insère la nouvelle phase.
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
+    });
+    await type("movement-phases-invite", "Maintien");
+    expect([1, 2, 3].map((rank) => screen.getByTestId(`movement-phases-label-${rank}`, anyNode).props.value)).toEqual([
+      "Descente",
+      "Maintien",
+      "Remontée",
+    ]);
   });
 
   it("b2-4 : ↑ des Phases pendant leur saisie, qui ferme seulement le clavier", async () => {

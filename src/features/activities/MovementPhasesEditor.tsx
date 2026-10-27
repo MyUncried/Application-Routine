@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
 
 import { WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
@@ -94,7 +94,10 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
   // Une saisie dans l'invite crée la phase et y déplace le focus : la suite de la frappe complète
   // CETTE phase (jamais une phase par caractère). Clé `"invite"` : la ligne d'invite.
   const inputs = useRef(new Map<number | "invite", TextInput>());
-  const pendingFocus = useRef<number | null>(null);
+  const pendingFocus = useRef<number | "invite" | null>(null);
+  // Recette du 27/10 (remarque 2, accord de Hermann) : comme la Description, Entrée sur une phase
+  // ouvre la phase suivante JUSTE APRÈS elle — l'invite se place sous la phase (`null` : en fin).
+  const [inviteAfter, setInviteAfter] = useState<number | null>(null);
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -102,6 +105,8 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
   });
   const phases = value.phases;
   const showInvite = editable && (phases.length === 0 || active);
+  // Place de l'invite : sous la phase `inviteAfter` si elle existe encore, sinon en fin de liste.
+  const inviteIndex = inviteAfter !== null && inviteAfter < phases.length - 1 ? inviteAfter : null;
 
   function removeAt(index: number) {
     const phase = phases[index];
@@ -127,15 +132,18 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
       <View style={styles.list}>
         {phases.map((phase, index) => {
           const rank = String(index + 1);
+          // Numéro affiché : décalé d'un rang sous une invite insérée (l'invite porte le rang suivant).
+          const shownRank = String(index + 1 + (showInvite && inviteIndex !== null && index > inviteIndex ? 1 : 0));
           const actions = [
             ...(index > 0 ? [{ name: "moveUp", label: t.moveUp }] : []),
             ...(index < phases.length - 1 ? [{ name: "moveDown", label: t.moveDown }] : []),
             { name: "remove", label: t.remove.replace("{rank}", rank) },
           ];
           return (
-            <View key={phase.id} style={styles.row} testID={`${testID}-row-${rank}`}>
+            <Fragment key={phase.id}>
+            <View style={styles.row} testID={`${testID}-row-${rank}`}>
               <Text style={styles.number} accessible={false} importantForAccessibility="no-hide-descendants">
-                {`${rank}.`}
+                {`${shownRank}.`}
               </Text>
               {editable ? (
                 <TextInput
@@ -152,10 +160,14 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
                   onKeyPress={(event) => {
                     if (event.nativeEvent.key === "Backspace" && phase.label === "") removeAt(index);
                   }}
-                  // Entrée : la ligne d'invite (rendue tant que le bloc est en saisie) prend le focus.
-                  onSubmitEditing={() => inputs.current.get("invite")?.focus()}
+                  // Entrée : l'invite s'ouvre juste après cette phase et prend le focus (comme la
+                  // Description, touche « retour » du clavier).
+                  onSubmitEditing={() => {
+                    pendingFocus.current = "invite";
+                    setInviteAfter(index);
+                  }}
                   submitBehavior="submit"
-                  returnKeyType="next"
+                  returnKeyType="default"
                   onFocus={() => setActive(true)}
                   onBlur={() => setActive(false)}
                   style={styles.text}
@@ -170,12 +182,21 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
                 </Text>
               )}
             </View>
+            {showInvite && inviteIndex === index ? renderInvite() : null}
+            </Fragment>
           );
         })}
-        {showInvite ? (
+        {showInvite && inviteIndex === null ? renderInvite() : null}
+      </View>
+    </View>
+  );
+
+  function renderInvite() {
+    const position = inviteIndex === null ? phases.length : inviteIndex + 1;
+    return (
           <View style={styles.row} testID={`${testID}-invite-row`}>
             <Text style={[styles.number, styles.promptNumber]} accessible={false} importantForAccessibility="no-hide-descendants">
-              {`${phases.length + 1}.`}
+              {`${position + 1}.`}
             </Text>
             <TextInput
               ref={(node) => {
@@ -188,12 +209,18 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
               onChangeText={(label) => {
                 if (label.length === 0 || !isPhaseLabelWithinLimit(label)) return;
                 pendingFocus.current = value.nextPhaseId;
-                onChange(addMovementPhase(value, label));
+                setInviteAfter(null);
+                const added = addMovementPhase(value, label);
+                onChange(position < phases.length ? moveMovementPhase(added, value.nextPhaseId, position) : added);
               }}
               onKeyPress={(event) => {
-                const last = phases[phases.length - 1];
-                if (event.nativeEvent.key === "Backspace" && last) inputs.current.get(last.id)?.focus();
+                const previous = phases[position - 1];
+                if (event.nativeEvent.key !== "Backspace" || !previous) return;
+                setInviteAfter(null);
+                inputs.current.get(previous.id)?.focus();
               }}
+              submitBehavior="submit"
+              returnKeyType="default"
               onFocus={() => setActive(true)}
               onBlur={() => setActive(false)}
               style={styles.text}
@@ -201,10 +228,8 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
               testID={`${testID}-invite`}
             />
           </View>
-        ) : null}
-      </View>
-    </View>
-  );
+    );
+  }
 }
 
 const styles = StyleSheet.create({

@@ -175,8 +175,8 @@ export const colors = {
   // `exerciseContextBandBackground`, que la Composition continue d’utiliser.
   exerciseEditorContextBand: "#EAEAFF",
   // PRE-8, correction UX « clavier » (27/10) : surface de la couche éditable de la fiche Mouvement
-  // lorsqu'elle passe devant le média — blanc à 95 % (cible 94–96 %).
-  movementEditableSurface: "rgba(255, 255, 255, 0.95)",
+  // lorsqu'elle passe devant le média — blanc à 90 % (recette du 27/10 : « légèrement plus translucide »).
+  movementEditableSurface: "rgba(255, 255, 255, 0.9)",
   // PRE-8 (27/10) : bouton de lecture du gabarit photo (Figma `7872:14696`) — voile blanc 22 %,
   // contour blanc 35 %, sur le verre natif iOS 26.
   mediaPlaySurface: "rgba(255, 255, 255, 0.22)",

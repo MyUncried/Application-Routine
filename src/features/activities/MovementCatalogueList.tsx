@@ -1,6 +1,17 @@
 import { Image } from "expo-image";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { ActivityIndicator, Animated, Modal, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import {
+  ActivityIndicator,
+  Animated,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
@@ -471,15 +482,18 @@ export function MovementCatalogueList({
               onLayout={index === 0 && isExpanded ? (event: LayoutChangeEvent) => setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP) : undefined}
               testID={`movement-pile-${item.key}-member-${member.movement.id}`}
             >
-              {isLifted ? (
-                <View style={[styles.lifted, { transform: [{ translateY: pileDrag.dy }] }]} testID={`movement-pile-${item.key}-lifted`}>
-                  {row}
-                </View>
-              ) : (
-                <DragShift shift={shift} active={pileDrag !== null} reduceMotion={reduceMotion}>
-                  {row}
-                </DragShift>
-              )}
+              {/* Recette du 27/10 (r10-glisser) : une seule enveloppe pour la carte portée et ses voisines —
+                  changer d'enveloppe au début du glisser démontait la carte sous le doigt et figeait le geste. */}
+              <DragShift
+                shift={isLifted ? pileDrag.dy : shift}
+                active={pileDrag !== null}
+                follow={isLifted}
+                reduceMotion={reduceMotion}
+                style={isLifted ? styles.lifted : null}
+                testID={isLifted ? `movement-pile-${item.key}-lifted` : undefined}
+              >
+                {row}
+              </DragShift>
             </SheetMotionView>
           );
         })}
@@ -579,17 +593,24 @@ export function MovementCatalogueList({
 function DragShift({
   shift,
   active,
+  follow,
   reduceMotion,
+  style,
+  testID,
   children,
 }: {
   readonly shift: number;
   readonly active: boolean;
+  /** Carte portée : suit le doigt, sans animation. */
+  readonly follow: boolean;
   readonly reduceMotion: boolean;
+  readonly style: StyleProp<ViewStyle>;
+  readonly testID: string | undefined;
   readonly children: ReactNode;
 }) {
   const [offset] = useState(() => new Animated.Value(0));
   useEffect(() => {
-    if (!active || reduceMotion) {
+    if (!active || reduceMotion || follow) {
       offset.setValue(active ? shift : 0);
       return;
     }
@@ -601,8 +622,12 @@ function DragShift({
     });
     animation.start();
     return () => animation.stop();
-  }, [offset, shift, active, reduceMotion]);
-  return <Animated.View style={{ transform: [{ translateY: offset }] }}>{children}</Animated.View>;
+  }, [offset, shift, active, follow, reduceMotion]);
+  return (
+    <Animated.View style={[style, { transform: [{ translateY: offset }] }]} testID={testID}>
+      {children}
+    </Animated.View>
+  );
 }
 
 function RefusalDialog({ refusal, onClose }: { readonly refusal: Refusal; readonly onClose: () => void }) {

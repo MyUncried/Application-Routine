@@ -338,3 +338,53 @@ Source : collection `results` du cahier de recette (https://claude.ai/artifact/K
 - triangle lisible et image devinée à travers le cercle, sur une illustration claire puis sur une sombre ;
 - rendu selon la version d'iOS (verre sur iOS 26 et suivants) ;
 - appui : lecteur plein écran, puis retour à la fiche dans son état.
+
+## Troisième passage de la recette iPhone (27/10, 17:03–17:51)
+
+**Résultats.** 84 OK, 3 KO (`r10-glisser`, `r10-kbd-accessibilite`, `r10-kbd-derniere`), `q6-4` non testé (VoiceOver). Trois demandes sur `r10-kbd-description`, trois remarques générales. Accord de Hermann : « 1. Garde le menu natif d'iOS — 2. Ok — 3. Ok ». Point de départ : `e74f85b1`.
+
+**Diagnostic et corrections.**
+
+- **`r10-glisser`, appui long qui fige l'écran.**
+  - *Cause, démontrée par lecture du code (B.10, `e98f4341`)* : au début du glisser, la carte passait d'une enveloppe `DragShift` à une `View`. Ce changement démontait la carte sous le doigt et le geste en cours était perdu.
+  - *Correction* : une seule enveloppe animée (`DragShift`, mode `follow` pour la carte portée).
+  - *Test* : l'instance de la carte est identique avant et après l'appui long.
+- **`r10-kbd-derniere`, dernière Phase inatteignable, le formulaire redescend.**
+  - *Cause, démontrée par lecture du code* : `KeyboardAvoidingView` calcule sa réserve à partir de son cadre relatif à son parent. Depuis la couche à marge animée (`6412580b`), ce parent est la couche elle-même : la réserve était donc fausse et le bas du contenu restait sous le clavier.
+  - *Cause aggravante* : chaque recadrage forçait la position de défilement (`scrollTo(bottom − viewport)`), même vers le haut.
+  - *Correction* :
+    - la réserve basse est mesurée dans la fenêtre (`measureInWindow`, haut du clavier), et la zone d'évitement est désactivée pour la fiche Mouvement ;
+    - le défilement n'est complété que si le champ reste sous le clavier ;
+    - la position de défilement est suivie (`onScroll`).
+- **`r10-kbd-accessibilite`, glissement malgré « Réduire les animations ».**
+  - *Cause plausible* : `ReduceMotion.System` n'a pas suffi sur l'appareil.
+  - *Correction* : le hook du projet `useReduceMotion` est lu explicitement. Remontée immédiate et défilement sans animation.
+- **`r10-kbd-description`, trois demandes.**
+  - La remontée est limitée à ce qu'il faut pour poser l'étape en saisie (ou le bas des Phases) juste au-dessus du clavier, au plus jusqu'au bas de la zone de contexte ; au-delà, défilement.
+  - Surface à 90 % (`colors.movementEditableSurface`).
+  - `keyboardShouldPersistTaps="always"` sur la fiche Mouvement, hors saisie du Nom : un toucher hors d'un champ ne ferme plus le clavier.
+- **Remarque 2, touche Entrée des Phases** : comme la Description, Entrée ouvre l'invite juste après la phase en cours, et la saisie y insère la phase (`moveMovementPhase`). Touche « retour » (`returnKeyType="default"`), numéros décalés sous l'invite insérée.
+- **Remarque 3, toucher hors du menu Niveau ouvert.**
+  - Le menu natif reste celui d'iOS ; la remarque 1 est sans suite.
+  - *Correction* : l'apparition et la disparition de son contenu (`onAppear`/`onDisappear` SwiftUI sur l'entrée « Réordonner les niveaux ») affichent un voile transparent qui absorbe le toucher.
+  - *Sécurité* : le voile se retire aussi au premier toucher.
+  - *Hypothèse non démontrée* : SwiftUI déclenche `onAppear`/`onDisappear` à l'ouverture et à la fermeture du menu. Si ce n'est pas le cas, le comportement reste celui d'avant.
+
+**Tests.** tsc et ESLint : OK. Tests ajoutés ou modifiés :
+- `MovementCatalogueList.b5` : carte non démontée ;
+- `MovementScreen.b2.integration` : Entrée des Phases, surface à 90 % ;
+- `MovementLevelMenu` : visibilité du menu natif ;
+- `pre4Story11Controls` : empreinte des jetons.
+
+Suite complète `npx jest` : 207 suites, 4 640 tests, tous verts.
+
+**Documentation.** CE-MVT-01 §10 (remontée limitée, 90 %, toucher hors champ, réduction des animations), ch.12 (jeton), ch.07 (troisième passage).
+
+**À vérifier sur l'iPhone.**
+- Appui long puis glisser dans une pile.
+- Dernière étape et dernière Phase atteignables clavier ouvert, sans retour forcé.
+- Remontée juste suffisante.
+- « Réduire les animations » : aucun glissement.
+- Toucher un titre de section : le clavier reste.
+- Entrée sur une Phase au milieu de la liste.
+- Menu Niveau ouvert : un toucher ailleurs ne déclenche rien.

@@ -236,13 +236,14 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
       fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchStart", { nativeEvent: { pageX: 100, pageY: 100 } });
       fireEvent(screen.getByTestId("movement-card-jump-card"), "longPress");
     });
+    const liftedCard = screen.getByTestId("movement-card-jump-card");
     await act(async () => {
       fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchMove", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });
     });
     // Remarque 2 (27/10) : la carte portée suit le doigt au-dessus des autres ; aucun cadre ne la découpe.
-    expect(screen.getByTestId(`movement-pile-${group}-lifted`).props.style).toEqual(
-      expect.arrayContaining([{ transform: [{ translateY: 2 * 84 }] }]),
-    );
+    // r10-glisser : la carte portée garde la même enveloppe (pas de démontage sous le doigt).
+    expect(screen.getByTestId(`movement-pile-${group}-lifted`)).toBeTruthy();
+    expect(screen.getByTestId("movement-card-jump-card")).toBe(liftedCard);
     expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-member-squat`).props.style)?.overflow).not.toBe("hidden");
     await act(async () => {
       fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchEnd", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });

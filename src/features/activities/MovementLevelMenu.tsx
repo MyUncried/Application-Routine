@@ -2,6 +2,8 @@ import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-
 import {
   accessibilityLabel as swiftUIAccessibilityLabel,
   disabled as swiftUIDisabled,
+  onAppear as swiftUIOnAppear,
+  onDisappear as swiftUIOnDisappear,
 } from "@expo/ui/swift-ui/modifiers";
 import { useState, type RefObject } from "react";
 import {
@@ -222,6 +224,11 @@ export type MovementLevelMenuProps = {
   readonly onOpenPanel: (anchor: { readonly x: number; readonly y: number; readonly width: number; readonly height: number }) => void;
   readonly isPanelOpen: boolean;
   readonly onClosePanel: () => void;
+  /**
+   * iOS, recette du 27/10 (remarque 3) : menu natif affiché / retiré (apparition et disparition de
+   * son contenu), pour qu'un toucher hors du menu le ferme sans atteindre l'écran.
+   */
+  readonly onNativeMenuVisibilityChange?: (visible: boolean) => void;
   readonly anchorRef: RefObject<View | null>;
   readonly testID: string;
 };
@@ -237,6 +244,7 @@ export function MovementLevelMenu({
   onOpenPanel,
   isPanelOpen,
   onClosePanel,
+  onNativeMenuVisibilityChange,
   anchorRef,
   testID,
 }: MovementLevelMenuProps) {
@@ -302,7 +310,16 @@ export function MovementLevelMenu({
             {/* PRE-7 (A3.2 ; R-9, D-448 point 9) : écran des niveaux, à la racine (au moins deux niveaux). */}
             <SwiftUIButton
               label={t.reorderLevels}
-              modifiers={[swiftUIDisabled(!canChangeLevel(menu))]}
+              modifiers={[
+                swiftUIDisabled(!canChangeLevel(menu)),
+                // Entrée toujours présente à la racine du menu : son apparition marque l'ouverture.
+                ...(onNativeMenuVisibilityChange
+                  ? [
+                      swiftUIOnAppear(() => onNativeMenuVisibilityChange(true)),
+                      swiftUIOnDisappear(() => onNativeMenuVisibilityChange(false)),
+                    ]
+                  : []),
+              ]}
               onPress={menu.onReorderLevels}
               testID={`${testID}-reorder`}
             />
