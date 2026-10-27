@@ -40,4 +40,6 @@
 
 ## Points À CLARIFIER (sans blocage de A et B)
 
+- **Q-B2 (Epic B).** Piles, filtres, tri et actions glissées du Catalogue des Mouvements : règles non arrêtées (DSF §1, DSF Niveaux), relevé et prototype contradictoires sur la carte du dessus. Non développés.
+- **Q-B3 (Epic B).** Libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5). Omis en attendant.
 - **Q-E1 (Epic E).** Titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant (le nom du Mouvement ? un autre titre ?). Les données restent conservées intactes en attendant.

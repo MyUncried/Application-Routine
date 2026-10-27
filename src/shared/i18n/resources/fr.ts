@@ -1047,6 +1047,44 @@ export const fr = {
         unsetDisplayNameAccessibilityLabel: "Nom non renseigné",
       },
     },
+    // PRE-8 (B.2, B.3, CE-MVT-01, Figma `10415:21706` à `10453:23030`) : fiche Mouvement et
+    // Catalogue des Mouvements. Libellés relevés dans Figma ; C03 réutilise `activities.editor`.
+    movement: {
+      titles: {
+        create: "Créer un mouvement",
+        consult: "Mouvement",
+        edit: "Modifier le mouvement",
+      },
+      finish: "Terminer",
+      edit: "Modifier le mouvement",
+      close: "Fermer",
+      loadError: "Le mouvement n’a pas pu être chargé.",
+      retry: "Réessayer",
+      saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
+      phases: {
+        title: "Phases du mouvement (pour minuter l’exécution)",
+        firstPlaceholder: "Nommez la première phase",
+        nextPlaceholder: "Phase suivante",
+        labelAccessibility: "Phase {rank}",
+        remove: "Retirer la phase {rank}",
+        moveHandle: "Déplacer la phase",
+        row: "Phase {n}",
+        moveUp: "Monter",
+        moveDown: "Descendre",
+      },
+      catalogue: {
+        segment: "Mouvements",
+        title: "Catalogue des mouvements",
+        searchPlaceholder: "Rechercher",
+        searchAccessibilityLabel: "Rechercher un mouvement",
+        create: "Créer un mouvement",
+        empty: "Aucun mouvement pour l’instant.",
+        noResult: "Aucun mouvement ne correspond à la recherche.",
+        loadError: "Les mouvements n’ont pas pu être chargés.",
+        retry: "Réessayer",
+        openAccessibilityHint: "Ouvre la fiche du mouvement",
+      },
+    },
     // V2-PRE-2 (plan §6.5, CE-UI-01) : écran Modifier le profil — nom,
     // photo, silhouette, dans un brouillon enregistré par `Enregistrer`.
     profileEdit: {

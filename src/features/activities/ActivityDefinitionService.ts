@@ -26,6 +26,7 @@ import {
 import { allocatePhaseIdentities, type Movement, type MovementPhase } from "@/domain/activities/Movement";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
+import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -196,6 +197,15 @@ export class ActivityDefinitionService {
      */
     private readonly movementRepository?: MovementRepository,
   ) {}
+
+  /**
+   * PRE-8 (B.1, B.2) : services du Mouvement autonome (Catalogue des Mouvements, fiche CE-MVT-01),
+   * sur le MÊME `MovementRepository` que les autres opérations du geste — aucune seconde
+   * composition SQLite. `null` sans `MovementRepository` (doublures antérieures à MFN).
+   */
+  get movementCatalogue(): MovementCatalogueService | null {
+    return this.movementRepository ? new MovementCatalogueService(this.movementRepository) : null;
+  }
 
   /**
    * Convertit l'entrée via `validateActivityDefinitionInput` (Domaine). En

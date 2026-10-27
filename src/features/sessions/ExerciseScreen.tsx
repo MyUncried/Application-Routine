@@ -217,7 +217,7 @@ function withProfilePhases(parameters: ExecutionParametersInput, countdown: numb
  * autres écrans inchangés) et marge latérale de l'Éditeur (24, ou 16 sous 390).
  * Libellé accessible : celui du code de départ (`Retour`), inchangé.
  */
-function EditorHeader({
+export function EditorHeader({
   title,
   onClose,
   accessibilityLabel,
@@ -374,7 +374,7 @@ const EDIT_MOVEMENT_ACTION = { width: 40, height: 32, radius: 10, background: "#
  * fond `colors.primary` et crayon `colors.background`, jetons existants ; rendu `NON VÉRIFIABLE`,
  * Figma ne dessine pas cet état). Le toucher alors quitte l'édition (`CompositionExerciseEditor`).
  */
-function EditMovementAction({ onPress, active = false }: { onPress: () => void; active?: boolean }) {
+export function EditMovementAction({ onPress, active = false }: { onPress: () => void; active?: boolean }) {
   const label = strings.screens.activities.editor.editMovement;
   return (
     <Pressable

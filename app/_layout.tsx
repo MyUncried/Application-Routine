@@ -135,6 +135,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
               <Stack.Screen name="profile-edit" />
+              <Stack.Screen name="movement" options={{ gestureEnabled: false }} />
             </Stack>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}

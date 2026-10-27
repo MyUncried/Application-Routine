@@ -22,6 +22,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import {
   moveDraftMedia,
   placeRetriedMedia,
@@ -43,6 +44,7 @@ import {
   MovementLevelPanel,
   type EditorLevel,
 } from "@/features/activities/MovementLevelMenu";
+import { MovementPhasesEditor } from "@/features/activities/MovementPhasesEditor";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -188,7 +190,21 @@ export type ActivityEditorFormProps = {
   finishSlotTestID: string;
   finishActionTestID: string;
   errorTestID?: string;
+  /**
+   * PRE-8 (B.2, CE-MVT-01) : `"movement"` rend la fiche Mouvement — contenu partagé seul :
+   * médias dans le gabarit photo pleine largeur en tête du corps, Description, puis bloc « Phases
+   * du mouvement » (`movementPhases`, libellés sans durée) ; aucune carte ni Feuille des
+   * paramètres d'exécution, aucun accordéon de médias en bas. Mêmes nom, assistance, Catégorie,
+   * Zones, Niveau, médias (mêmes commandes) et `Terminer`. Défaut `"exercise"` : éditeur
+   * d'Exercice inchangé.
+   */
+  variant?: "exercise" | "movement";
+  /** PRE-8 (B.2) : structure des phases du Mouvement (variante `"movement"` seulement). */
+  movementPhases?: { readonly value: MovementPhaseList; readonly onChange: (next: MovementPhaseList) => void } | null;
 };
+
+/** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
+export const MOVEMENT_PHOTO_TEMPLATE = { width: 402, height: 329 } as const;
 
 /**
  * Validité du brouillon d'Exercice : Nom valide et paramètres valides par la
@@ -336,7 +352,10 @@ export function ActivityEditorForm({
   finishSlotTestID,
   finishActionTestID,
   errorTestID,
+  variant = "exercise",
+  movementPhases = null,
 }: ActivityEditorFormProps) {
+  const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
   const sideMargin = editorSideMargin(windowSize.width);
   // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
@@ -443,6 +462,24 @@ export function ActivityEditorForm({
     if (node !== null) {
       AccessibilityInfo.setAccessibilityFocus(node);
     }
+  }
+
+  function renderMediaList(template?: { readonly width: number; readonly height: number }) {
+    return (
+      <ActivityMediaList
+        media={value.media}
+        pending={media.pending}
+        notice={media.notice}
+        canImport={mediaService !== null && mediaService.supportsMediaImport}
+        resolveUri={(uri) => (mediaService ? mediaService.resolveMediaUri(uri) : uri)}
+        onAdd={media.importFromLibrary}
+        onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
+        onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
+        onRetry={media.retry}
+        editable={!contentLocked}
+        {...(template ? { template } : {})}
+      />
+    );
   }
 
   function applyParameters(next: ExecutionParameters) {
@@ -647,6 +684,16 @@ export function ActivityEditorForm({
           }}
           testID="exercise-body"
         >
+          {isMovement ? (
+            // PRE-8 (B.2, CE-MVT-01 §7, §9) : média pleine largeur juste sous la zone de contexte ;
+            // la hauteur suit la largeur du terminal (402 × 329 en référence).
+            <View style={{ marginHorizontal: -sideMargin }} testID="movement-photo-template">
+              {renderMediaList({
+                width: windowSize.width,
+                height: Math.round((windowSize.width * MOVEMENT_PHOTO_TEMPLATE.height) / MOVEMENT_PHOTO_TEMPLATE.width),
+              })}
+            </View>
+          ) : null}
           {/* P7 (FR-02-02, AC3) : la Description précède la Carte Paramètres d'exécution. */}
           <View
             style={styles.section}
@@ -698,6 +745,15 @@ export function ActivityEditorForm({
             ) : null}
           </View>
 
+          {isMovement ? (
+            // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
+            movementPhases ? (
+              <View style={[styles.section, styles.followingSection]} testID="movement-section-phases">
+                <MovementPhasesEditor value={movementPhases.value} onChange={movementPhases.onChange} editable={!contentLocked} />
+              </View>
+            ) : null
+          ) : (
+            <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}
           <View style={[styles.section, styles.followingSection]} testID="exercise-section-parameters">
@@ -734,26 +790,20 @@ export function ActivityEditorForm({
               </Text>
             </Pressable>
           </View>
+            </>
+          )}
 
           {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
-              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran. */}
+              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran.
+              PRE-8 (B.2) : section absente de la fiche Mouvement (médias dans le gabarit photo). */}
+          {isMovement ? null : (
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
             <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}
             </Text>
-            <ActivityMediaList
-              media={value.media}
-              pending={media.pending}
-              notice={media.notice}
-              canImport={mediaService !== null && mediaService.supportsMediaImport}
-              resolveUri={(uri) => (mediaService ? mediaService.resolveMediaUri(uri) : uri)}
-              onAdd={media.importFromLibrary}
-              onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
-              onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
-              onRetry={media.retry}
-              editable={!contentLocked}
-            />
+            {renderMediaList()}
           </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
 

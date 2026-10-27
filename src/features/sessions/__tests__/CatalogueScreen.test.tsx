@@ -313,9 +313,10 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     const row = screen.getByTestId("catalogue-content-type-row");
     const options = within(row).getAllByRole("tab");
-    expect(options).toHaveLength(3);
-    // `Séances` est le segment central.
-    expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
+    // PRE-8 (B.3) : segment Mouvements ajouté en premier ; Exercices, Séances et Parcours inchangés.
+    expect(options).toHaveLength(4);
+    expect(options[0]?.props.accessibilityLabel).toBe(strings.screens.movement.catalogue.segment);
+    expect(options[2]?.props.accessibilityLabel).toBe(types.sessions);
 
     const sessionsTab = screen.getByLabelText(types.sessions);
     const circuitsTab = screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel);

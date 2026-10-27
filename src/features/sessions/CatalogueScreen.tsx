@@ -5,6 +5,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 import type { SessionSummary } from "@/domain/sessions/Session";
 import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
 import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
+import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { SessionCard } from "@/features/sessions/SessionCard";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
@@ -15,8 +16,11 @@ import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
-/** Segment de TYPE de contenu du Catalogue (V2-CAT-01, D-108). Seuls `activities` et `sessions` sont fonctionnels ; `circuits` reste visible mais désactivé. */
-export type CatalogueContentType = "activities" | "sessions" | "circuits";
+/**
+ * Segment de TYPE de contenu du Catalogue (V2-CAT-01, D-108). Seuls `activities` et `sessions` sont fonctionnels ; `circuits` reste visible mais désactivé.
+ * PRE-8 (B.3, relevé Niveaux du 25/10 §7) : `movements`, Catalogue d'entretien des Mouvements, ajouté en premier ; les autres segments sont inchangés.
+ */
+export type CatalogueContentType = "movements" | "activities" | "sessions" | "circuits";
 
 /**
  * Écran du Catalogue des séances (T01-S06). Seul point d'appel à
@@ -65,6 +69,8 @@ export function CatalogueScreen() {
   // l'Éditeur), jamais au blur : deux appuis rapprochés, même sur deux
   // points d'entrée différents, n'empilent qu'un seul Éditeur.
   const isOpeningEditorRef = useRef(false);
+  // PRE-8 (B.3) : relecture du Catalogue des Mouvements à chaque retour au premier plan.
+  const [movementsReloadToken, setMovementsReloadToken] = useState(0);
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
   const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
@@ -72,6 +78,7 @@ export function CatalogueScreen() {
   useFocusEffect(
     useCallback(() => {
       isOpeningEditorRef.current = false;
+      setMovementsReloadToken((current) => current + 1);
       reloadSessions();
       reloadActivities();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
@@ -102,7 +109,9 @@ export function CatalogueScreen() {
   // désactivé et donc inatteignable via l'interface (revue 5732014381,
   // obligation 2).
   const title =
-    activeSegment === "activities"
+    activeSegment === "movements"
+      ? strings.screens.movement.catalogue.title
+      : activeSegment === "activities"
       ? strings.screens.activities.title
       : activeSegment === "circuits"
         ? t.circuitsTitle
@@ -119,6 +128,14 @@ export function CatalogueScreen() {
     router.push({ pathname: "/exercise", params: { catalogueDefinitionId } });
   };
 
+  const openMovement = (movementId: string | null) => {
+    if (isOpeningEditorRef.current) {
+      return;
+    }
+    isOpeningEditorRef.current = true;
+    router.push(movementId === null ? "/movement" : { pathname: "/movement", params: { movementId } });
+  };
+
   // PRE-4 story 4.1 (AC1, décision Q33 de Hermann du 2026-10-17) : sur le
   // segment Exercices, `Créer` ouvre directement l'Éditeur, sans liste
   // d'options, sans voile ni `Annuler` intermédiaire. Sur les autres segments,
@@ -126,6 +143,12 @@ export function CatalogueScreen() {
   // départ, inchangé. Le Catalogue reste monté sous l'Éditeur (pile) : au
   // retour, le segment et la position de défilement sont ceux de l'aller.
   const handleCreatePress = () => {
+    // PRE-8 (B.3, CE-MVT-01 §3) : sur le segment Mouvements, `Créer` ouvre la fiche d'un
+    // Mouvement nouveau (aucun Exercice ni Séance créé), même verrou de double appui.
+    if (activeSegment === "movements") {
+      openMovement(null);
+      return;
+    }
     if (activeSegment === "activities") {
       openExerciseEditor("new");
       return;
@@ -158,6 +181,7 @@ export function CatalogueScreen() {
         </View>
         <SegmentedControl
           options={[
+            { value: "movements", label: strings.screens.movement.catalogue.segment },
             { value: "activities", label: t.contentTypes.activities },
             { value: "sessions", label: t.contentTypes.sessions },
             {
@@ -241,6 +265,9 @@ export function CatalogueScreen() {
               />
             ) : null}
           </>
+        ) : null}
+        {activeSegment === "movements" ? (
+          <MovementCatalogueList reloadToken={movementsReloadToken} onOpenMovement={openMovement} />
         ) : null}
         {activeSegment === "activities" ? (
           <ActivityCatalogueList
