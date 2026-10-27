@@ -41,6 +41,8 @@ export type ValidationField =
   | "session.sourceSessionId"
   /** PRE-6 (story 1.2, AD-36) : Points d'arrêt de la Séance (portée, emplacement dans les bornes, emplacement autorisé, unicité par `(scope, position)`). */
   | "session.stopPoints"
+  /** PRE-8 (A.2, D-449 §4) : forme de la structure générale (Cycle vide, comptes, nature, identités). */
+  | "session.structure"
   | "exercise.name"
   | "exercise.durationSeconds"
   | "exercise.instruction"

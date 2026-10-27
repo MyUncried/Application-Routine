@@ -76,7 +76,13 @@ export const DATABASE_NAME = "kodjo.db";
  * Séances supprimés une seule fois ; Profil, Catégories, Zones et Étiquettes
  * conservés ; avis `EXERCISES_AND_SESSIONS_RESET`. 001..012 inchangées.
  */
-export const DATABASE_VERSION = 13;
+/**
+ * **PRE-8 (version 14, `migration014`, story A.3)** : structure générale de la
+ * Séance (D-449 §4) — Exercices, Circuits et Cycles successifs au niveau
+ * principal, sans imbrication. Conversion SANS PERTE des Séances existantes,
+ * aucune donnée supprimée. 001..013 inchangées.
+ */
+export const DATABASE_VERSION = 14;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

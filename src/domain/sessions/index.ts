@@ -18,3 +18,4 @@ export * from "./circuit";
 export * from "./placement";
 export * from "./sessionDuplication";
 export * from "./structure";
+export * from "./structuredInput";

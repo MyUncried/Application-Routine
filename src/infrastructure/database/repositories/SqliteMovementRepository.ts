@@ -8,6 +8,7 @@ import {
 } from "@/domain/activities/Movement";
 import {
   DuplicateMovementNameError,
+  type CreateVariantOutcome,
   type DeleteMovementOutcome,
   type MovementGroupOutcome,
   type MovementRepository,
@@ -517,6 +518,47 @@ export class SqliteMovementRepository implements MovementRepository {
     return this.readGroup(this.database, groupId);
   }
 
+  /** PRE-8 (B.1) : contenu partagé réécrit, identité et groupe conservés (`updateMovementContent`). */
+  async update(movement: Movement): Promise<Movement | null> {
+    let found = false;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const current = await readMovementRecords(transaction, [movement.id]);
+      const existing = current.get(movement.id)?.movement;
+      if (!existing) {
+        return;
+      }
+      found = true;
+      await updateMovementContent(transaction, { ...movement, levelGroup: existing.levelGroup }, this.now(), () => this.uuidFactory());
+    });
+    return found ? this.findById(movement.id) : null;
+  }
+
+  /**
+   * PRE-8 (B.1, C02) : Mouvement nouveau et rattachement dans la MÊME transaction ; un refus du
+   * rattachement annule aussi la création (aucun Mouvement ni groupe provisoire).
+   */
+  async createVariant(movement: Movement, originId: string, placement: "BEFORE_ORIGIN" | "AFTER_ORIGIN"): Promise<CreateVariantOutcome> {
+    let members: readonly Movement[] = [];
+    try {
+      await this.database.withExclusiveTransactionAsync(async (transaction) => {
+        const timestamp = this.now();
+        await insertMovement(transaction, { ...movement, levelGroup: null }, timestamp, () => this.uuidFactory());
+        const joined = await joinMovementGroup(transaction, movement.id, originId, placement, this.uuidFactory, timestamp);
+        if (joined.status !== "OK") {
+          throw new VariantOriginRefusedError();
+        }
+        members = await this.readGroup(transaction, joined.groupId);
+      });
+    } catch (error) {
+      if (error instanceof VariantOriginRefusedError) {
+        return { status: "ORIGIN_NOT_FOUND" };
+      }
+      throw error;
+    }
+    const created = members.find((member) => member.id === movement.id)!;
+    return { status: "CREATED", movement: created, members };
+  }
+
   private async readGroup(database: Database, groupId: string): Promise<readonly Movement[]> {
     const rows = await database.getAllAsync<MovementRow>(
       `SELECT ${MOVEMENT_COLUMNS} FROM movements WHERE level_group_id = ? ORDER BY level_sort_key ASC, id ASC`,
@@ -541,6 +583,9 @@ export class SqliteMovementRepository implements MovementRepository {
     return outcome;
   }
 }
+
+/** Refus interne du rattachement d'une variante : annule la transaction de création. */
+class VariantOriginRefusedError extends Error {}
 
 /**
  * Place d'un Mouvement qui rejoint le groupe de son origine : en dernier (`attachToGroup`), juste

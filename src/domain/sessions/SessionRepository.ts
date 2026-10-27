@@ -1,9 +1,12 @@
 import type {
+  Activity,
   CreateSessionInput,
   Session,
   SessionSummary,
   UpdateSessionInput,
 } from "./Session";
+import type { SessionStructure } from "./structure";
+import type { StructuredSessionInput } from "./structuredInput";
 
 /**
  * Résultat métier discriminé d'une tentative de modification : succès avec
@@ -48,4 +51,35 @@ export interface SessionRepository {
    * régénération d'identifiant pour une Activité conservée).
    */
   update(sessionId: string, input: UpdateSessionInput): Promise<UpdateSessionOutcome>;
+}
+
+/**
+ * PRE-8 (A.4, D-449 §4) : Séance lue dans sa structure générale, sans projection dans l'ancien
+ * modèle (qui n'existe pas pour une structure à plusieurs Circuits ou à Cycles).
+ */
+export type StructuredSession = Omit<Session, "cycle" | "stopPoints" | "structure"> & {
+  readonly structure: SessionStructure<Activity>;
+};
+
+export type UpdateStructuredSessionOutcome =
+  | { readonly status: "UPDATED"; readonly session: StructuredSession }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "ARCHIVED" }
+  | { readonly status: "ACTIVITY_NOT_FOUND" };
+
+/**
+ * PRE-8 (A.4) : port d'écriture et de lecture de la structure générale, distinct de
+ * `SessionRepository` (dont l'interface actuelle consomme la projection à Circuit unique). Même
+ * transaction, mêmes gardes et mêmes issues que `create` / `update` : identités des Exercices,
+ * Circuits et Cycles conservées par fusion, références aux Mouvements intègres. Les Exercices
+ * déjà persistés à l'ouverture (`persistedActivityIds`) et disparus depuis ne sont jamais
+ * recréés.
+ */
+export interface StructuredSessionRepository {
+  createStructured(input: StructuredSessionInput): Promise<StructuredSession>;
+  findStructuredById(sessionId: string): Promise<StructuredSession | null>;
+  updateStructured(
+    sessionId: string,
+    input: StructuredSessionInput & { readonly persistedActivityIds?: readonly string[] },
+  ): Promise<UpdateStructuredSessionOutcome>;
 }

@@ -6,13 +6,13 @@ project_key: NOKEY
 tracking_system: file-system
 story_location: _bmad-output/pre8/implementation-artifacts
 development_status:
-  epic-a: in-progress
+  epic-a: done
   a-1-analyse-impact-d449-schema-014: done
   a-2-domaine-structure-generale: done
-  a-3-migration-014-conservation: backlog
-  a-4-repository-et-services-structure: backlog
-  epic-b: backlog
-  b-1-services-mouvement-autonome: backlog
+  a-3-migration-014-conservation: done
+  a-4-repository-et-services-structure: done
+  epic-b: in-progress
+  b-1-services-mouvement-autonome: done
   b-2-fiche-mouvement-ce-mvt-01: backlog
   b-3-catalogue-des-mouvements: backlog
   b-4-recette-automatique-mvt: backlog

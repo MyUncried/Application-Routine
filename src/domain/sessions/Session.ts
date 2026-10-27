@@ -10,6 +10,7 @@ import type { MediaLinkInput, SessionActivityMediaWithAsset } from "@/domain/med
 import type { SideMode } from "./sideMode";
 import type { StopPoint } from "./StopPoint";
 import type { CircuitNature } from "./circuit";
+import type { SessionStructure } from "./structure";
 
 export const SESSION_COLORS = [
   "#E5484D",
@@ -204,8 +205,19 @@ export type Session = {
    * et hydraté dans `SessionDraft.stopPoints` (`toSessionDraft`).
    */
   stopPoints?: readonly StopPoint[];
+  /**
+   * PRE-8 (A.4, D-449 §4) : structure générale persistée (Exercices, Circuits et Cycles
+   * successifs, `structure.ts`), toujours renseignée par le repository. `cycle` et `stopPoints`
+   * en sont la projection exacte dans l'ancien modèle à Circuit unique, lue par l'interface
+   * actuelle. Champ optionnel de transition pour les fixtures.
+   */
+  structure?: SessionStructure<Activity>;
   createdAt: string;
   updatedAt: string;
+  /**
+   * PRE-8 (A.4) : projection de `structure` dans l'ancien modèle. Le Cycle technique n'est plus
+   * persisté (`migration014`) : son identifiant est celui de la Séance.
+   */
   cycle: {
     id: string;
     position: 1;

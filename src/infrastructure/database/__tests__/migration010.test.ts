@@ -28,12 +28,12 @@ import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/re
 import { SqliteMigrationNoticeRepository } from "@/infrastructure/database/repositories/SqliteMigrationNoticeRepository";
 import {
   SqliteSessionRepository,
-  assertSessionAggregateRow,
+  assertActivityRow,
 } from "@/infrastructure/database/repositories/SqliteSessionRepository";
 import { buildVersion9 as buildSharedVersion9 } from "@/infrastructure/database/testing/buildVersion9";
 import { withoutMigration011Columns, withoutMigration011TableInfo } from "@/infrastructure/database/testing/migration011Columns";
 import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
-import type { SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
+import type { ActivityRow } from "@/infrastructure/database/types/DatabaseRows";
 
 /**
  * PRE-4 (story 1.1) — `migration010` sur SQLite RÉELLE (`node:sqlite`, AD-10).
@@ -865,7 +865,7 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
     }
   });
 
-  it("parité : les mêmes lignes reçoivent le même verdict du CHECK réel et d'assertSessionAggregateRow", async () => {
+  it("parité : les mêmes lignes reçoivent le même verdict du CHECK réel et d'assertActivityRow (PRE-8 : lecture de migration014)", async () => {
     await buildVersion9();
     await insertSession("a");
     await migrateDatabase(database, clock, 11);
@@ -924,43 +924,30 @@ describe("PRE4-1.1/AC15 — reconstruction d'activities, CHECK et parité", () =
       } catch {
         real = false;
       }
+      // PRE-8 (A.4) : ligne d'Exercice de migration014 ; même CHECK composite que 010.
       const row = {
+        id: `parity-${index}`,
         session_id: "session-a",
-        owner_id: "usr",
-        session_name: "Séance",
-        label_id: null,
-        label_color: null,
-        status: "ACTIVE",
-        initial_countdown_seconds: 10,
-        final_phase_seconds: 5,
-        session_created_at: "now",
-        session_updated_at: "now",
-        cycle_id: "cycle-a",
-        cycle_position: 1,
-        cycle_repeat_count: 1,
         tour_id: "tour-a",
-        tour_position: 1,
-        tour_repeat_count: 2,
-        tour_side_mode: "UNILATERAL",
-        activity_id: `parity-${index}`,
-        activity_type: combo.type,
-        structural_position: "IN_TOUR",
-        activity_position: index,
+        type: combo.type,
+        position: index,
         execution_mode: combo.execution_mode,
         duration_seconds: combo.duration_seconds,
         repetition_count: combo.repetition_count,
         series_count: combo.series_count,
         pause_seconds: combo.pause_seconds,
         post_activity_recovery_seconds: combo.post_activity_recovery_seconds,
-        activity_side_mode: "UNILATERAL",
-        activity_execution_parameters: null,
-        // PRE-7 (R-3) : ligne d'agrégat sans contenu, référence au Mouvement et numéro de copie.
-        activity_source_movement_id: "mov-x",
-        activity_copy_number: null,
-      } as SessionAggregateRow;
+        post_activity_recovery_present: 0,
+        created_at: "now",
+        updated_at: "now",
+        side_mode: "UNILATERAL",
+        execution_parameters: null,
+        source_movement_id: "mov-x",
+        copy_number: null,
+      } as ActivityRow;
       let asserted = true;
       try {
-        assertSessionAggregateRow(row);
+        assertActivityRow(row);
       } catch {
         asserted = false;
       }
