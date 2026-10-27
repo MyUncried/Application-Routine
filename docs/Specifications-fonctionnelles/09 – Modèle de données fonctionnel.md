@@ -1505,7 +1505,7 @@ Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-
 
 ## Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
 
-Source : instruction de Hermann du 27/10/2026. Textes reproduits sans reformulation. Les règles 1 à 5 et 9 sont au chapitre 10, section de même titre. Rattachement : D-437, D-439, D-445 ; lignes « Groupe sur Mouvement » et « Rang / total / suffixe - Nn » du présent chapitre.
+Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans reformulation ; règle 8 remplacée par la clarification validée par Hermann le 27/10/2026. Les règles 1 à 5 et 9 sont au chapitre 10, section de même titre. Rattachement : D-437, D-439, D-445 ; lignes « Groupe sur Mouvement » et « Rang / total / suffixe - Nn » du présent chapitre.
 
 ##### Règle 6 — texte de référence
 
@@ -1515,10 +1515,8 @@ Source : instruction de Hermann du 27/10/2026. Textes reproduits sans reformulat
 
 7. **Effet sur le reste.** L'identité du mouvement ne change pas. Les exercices qui le référencent continuent de le référencer, les instantanés et l'historique ne sont pas touchés, conformément à `sourceMovementId` conservé sans rang. Seul change le niveau affiché sur les cartes et l'ordre proposé dans le menu « Changer de niveau ».
 
-##### Règle 8 — texte reçu, contradiction non tranchée
+##### Règle 8 — clarification validée par Hermann le 27/10/2026
 
-8. **Archivage et filtres.** Archiver, restaurer ou supprimer un membre ne modifie pas le rang des autres : le membre archivé conserve son rang et son appartenance au groupe, seule son apparition dans une vue change. Un filtre masque des membres sans recalculer les niveaux des membres visibles.
+8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
 
-**Contradiction — règle 8, non tranchée.** MFN-05, chapitre 10, prévoit : « Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer. » La section « Application ciblée des règles — Mouvement autonome » précise : « Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05) » et laisse l'archivage à décider dans son lot. La règle 8 affirme au contraire que supprimer ne modifie pas le rang des autres. Elle entre aussi en tension avec la règle 6 : des rangs contigus dérivés des membres restants ne peuvent conserver tous leurs numéros après suppression d'un membre intermédiaire. Aucun maintien de membre supprimé, rang réservé ou nouveau stockage n'est introduit pour résoudre cette contradiction.
-
-Le texte intégral de la règle 8 est conservé comme instruction reçue, sans remplacer MFN-05 ni clôturer le lot d'archivage. L'absence de recalcul du rang par filtrage est déjà conforme à la section « Application ciblée des règles — Mouvement autonome » du chapitre 10. Le maintien du rang d'un membre archivé signifie, dans le texte reçu, maintien dans l'ordre de la famille, pas création d'un rang persisté ; aucune décision supplémentaire sur la suppression n'est prise.
+Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
