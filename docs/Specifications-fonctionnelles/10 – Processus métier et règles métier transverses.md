@@ -1,5 +1,26 @@
 # Règles métier et calculs
 
+## Filtrage du Catalogue des Mouvements — D-450 (27/10/2026)
+
+Cette règle concerne le **Catalogue d'entretien des Mouvements**, pas les filtres d'autres listes. Elle complète le périmètre de la [spécification ciblée](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) sans déclarer ces comportements déjà développés.
+
+| Étape | Règle |
+| --- | --- |
+| Statut admissible | Par défaut Actifs seulement. Les Archivés ne sont inclus que si « Archivés » est choisi explicitement ; Actifs et Archivés peuvent être sélectionnés ensemble. |
+| Valeurs d'un groupe | OU : toute valeur sélectionnée du même groupe peut correspondre. |
+| Groupes | ET entre Statut, Niveaux, Utilisation, Catégories et Zones corporelles lorsqu'ils sont renseignés. |
+| Recherche | ET avec les filtres ; un **même Mouvement admissible** doit satisfaire l'ensemble des critères requis. |
+| Visibilité d'une famille | Si un membre admissible correspond aux autres critères et à la recherche, afficher **tous les membres de cette famille admissibles par Statut**, même ceux qui ne correspondent pas individuellement aux autres critères. Sinon masquer la famille. |
+| Archives dans une famille | Jamais visibles par défaut, y compris si un frère actif satisfait les critères ; visibles seulement si le Statut les autorise explicitement. |
+| Présentation | Ne pas convertir une famille en carte indépendante sous l'effet du filtre. Les Mouvements indépendants sont filtrés individuellement. |
+| Rangs | Rang et total calculés sur la famille complète, membres archivés compris ; filtrer ou archiver ne modifie ni ordre ni appartenance. |
+| Cycle de vie de la sélection | État des filtres conservé dans la session applicative, réinitialisé au relancement ; sans sélection explicite de Statut, valeur implicite Actifs. |
+
+Une famille est retenue uniquement si **un de ses membres autorisés par Statut** satisfait **simultanément** les critères actifs ; ne pas appliquer chaque groupe à un membre différent avant de conclure que la famille correspond. Les membres admissibles mais non correspondants restent néanmoins visibles dans la famille retenue.
+
+D-450 ne règle pas l'autorisation d'archiver, de restaurer, de supprimer, de rattacher ou de détacher un Mouvement (C08 et décisions de cycle de vie distinctes). « Avec exercice / Sans exercice » qualifie les références effectives des Exercices composant des Séances selon D-449, et non l'existence d'un ancien objet Catalogue d'Exercices autonome.
+
+
 ## Application ciblée des règles — Mouvement autonome
 
 Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.

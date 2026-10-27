@@ -1006,3 +1006,17 @@ La modification d’une séance conserve la règle existante : occurrences futur
 **Remplacements ciblés :** exercice autonome ActivityDefinition et voie de lancement ACTIVITY ; différence de nature entre catalogues Exercices/Séances ; cycle technique unique fixé à 1 (RM-028) et circuit unique. Le reste de D-445, D-446, D-447 et D-448, notamment filiation, niveaux, phases, paramètres et instantanés, reste applicable. Les anciennes entrées du registre sont conservées pour traçabilité. Cette décision ne vaut ni modification du code, ni migration autorisée, ni modification Figma.
 
 [Spécification consolidée et critères de vérification](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md).
+
+## D-450 — Filtrage du Catalogue des Mouvements : familles complètes et archives — 27/10/2026
+
+**Précisions validées par Hermann le 27/10/2026.** Le filtre **Statut** détermine d'abord les Mouvements admissibles : **Actifs** par défaut, **Archivés** uniquement si l'utilisateur sélectionne explicitement cette valeur ; sélectionner les deux rend les deux statuts admissibles. L'absence de filtre explicite ne rend jamais les archives visibles.
+
+Les filtres du Catalogue des Mouvements comprennent Statut (Actifs/Archivés), Niveaux (Avec/Sans niveau), Utilisation (Avec/Sans exercice), Catégories et Zones corporelles. Les valeurs d'un même groupe se combinent en **OU** et les groupes différents en **ET**. La recherche est combinée avec ces critères en **ET** ; une correspondance est évaluée pour **un même Mouvement admissible**, et non en agrégeant des critères satisfaits par des membres différents d'une famille.
+
+Hors Statut, les critères sélectionnent les **familles à montrer**, sans retirer individuellement leurs cartes : si au moins un membre admissible satisfait l'ensemble des critères et la recherche, tous les membres de cette famille admissibles par leur Statut sont affichés, y compris ceux qui ne correspondent pas eux-mêmes aux autres filtres. Aucun membre archivé ne devient visible sans « Archivés » explicitement sélectionné. Une famille n'est pas convertie en carte isolée parce qu'un seul membre est admissible ou correspond aux critères ; les Mouvements sans famille sont filtrés individuellement.
+
+L'appartenance, l'ordre et les rangs des Niveaux restent ceux de la **famille complète**, y compris ses membres archivés, indépendamment de la vue filtrée. L'archivage ne modifie pas le classement. Les filtres sont conservés pendant la session applicative et réinitialisés au relancement, avec le statut implicite Actifs.
+
+**Portée :** décision propre au Catalogue d'entretien des Mouvements. Les primitives visuelles et combinatoires peuvent être réutilisées, mais cette décision n'active pas automatiquement un module de filtrage sur les autres Catalogues, le Suivi ou d'autres listes ; les critères et états disponibles dépendent de chaque contexte. Les conditions autorisant l'archivage, la restauration, la suppression, le rattachement ou le détachement ne sont pas arbitrées par D-450 et restent soumises à leurs décisions distinctes (dont C08).
+
+[Spécification du parcours Mouvement et clarification de filtrage](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md).

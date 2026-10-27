@@ -1,5 +1,20 @@
 # Contrats d’écran
 
+## Catalogue des Mouvements — Filtrage et piles (D-450)
+
+**Contrat comportemental ciblé — PRE-8, 27/10/2026.** Ce complément porte sur le Catalogue des Mouvements, distinct de CE-MVT-01 (fiche/édition). Références de présentation Figma : `10462:23370` (filtres ouverts), `10465:23141` (filtre actif), `10471:23291` (pile déployée), `10495:24099` (Archivés). Les frames définissent les états représentés ; les règles de sélection ci-dessous proviennent des arbitrages fonctionnels D-450.
+
+- **Cinq groupes :** Statut (Actifs / Archivés), Niveaux (Avec niveaux / Sans niveau), Utilisation (Avec exercice / Sans exercice), Catégories et Zones corporelles.
+- **Saisie :** OU à l'intérieur d'un groupe, ET entre les groupes ; la recherche se combine par ET. Pour retenir une famille, toutes les conditions actives doivent être satisfaites par **le même membre admissible**.
+- **Filtre de Statut prioritaire :** la liste affiche par défaut les seuls Mouvements actifs. Les Mouvements archivés restent hors vue tant que « Archivés » n'est pas explicitement sélectionné, même si un membre actif de leur famille correspond. Actifs + Archivés affiche les deux statuts admissibles.
+- **Pile :** dès qu'au moins un membre admissible correspond, afficher l'ensemble des membres **admissibles par Statut** de cette famille, y compris ceux ne satisfaisant pas individuellement les critères de Catégorie, Zones, Niveaux, Utilisation ou recherche. Ne pas convertir la pile en carte isolée du seul fait du filtrage.
+- **Classement :** ordre de famille et rangs/total de niveaux calculés sur la famille persistée complète, membres archivés inclus ; aucun changement dû au filtre ni à l'archivage. Les Mouvements indépendants sont filtrés individuellement.
+- **Durée :** sélection des filtres conservée pendant la session, réinitialisée à la relance ; statut implicite Actifs à l'état sans filtre explicite.
+- **Limite :** ni les règles de cycle de vie des Mouvements (C08), ni les commandes de filtre d'autres catalogues/listes ne sont définies par ce complément.
+
+**Exemples de recette :** famille A actif, B archivé, C actif. Par défaut A et C sont les seuls membres visibles ; un critère de Catégorie correspondant uniquement à A retient la pile, qui montre toujours A et C. « Archivés » seul montre B dans sa famille, sans créer un Mouvement indépendant. « Actifs + Archivés » montre A, B et C. Une recherche correspondant à A et un filtre de Catégorie correspondant uniquement à C ne retiennent pas la pile, puisque aucun membre ne satisfait les deux simultanément.
+
+
 ## CE-MVT-01 — Fiche, création et modification d'un mouvement
 
 ### 1. Identification

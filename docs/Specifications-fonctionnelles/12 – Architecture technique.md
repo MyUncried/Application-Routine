@@ -1,5 +1,14 @@
 # Architecture technique
 
+## Filtrage des Catalogues et listes — frontière de réutilisation (D-450)
+
+Les commandes et éléments de présentation (pastilles, panneau de filtres, compteurs et état de sélection) sont des primitives **potentiellement réutilisables**, mais le comportement métier reste défini **par contexte de liste**. Le Catalogue des Mouvements applique le filtre de Statut **avant** les prédicats combinés, puis décide de la visibilité **au niveau de la famille**, sans filtrer les membres admissibles à l'intérieur de la pile retenue. La recherche et les autres filtres doivent être satisfaits par un même Mouvement admissible ; les rangs sont dérivés de la famille complète.
+
+Pour les listes sans familles, le prédicat reste individuel ; pour les autres Catalogues, les groupes disponibles, leur valeur par défaut et leur logique doivent être définis par leurs propres contrats. Il n'existe **aucune exigence de moteur de filtrage universel** ni d'activation des filtres dans toutes les listes. Réutiliser les primitives UI et, lorsque pertinent, les combinateurs purs évite de dupliquer le code sans propager par erreur les règles particulières des Mouvements.
+
+**État du code de référence avant PRE-8 :** dans `src/features/sessions/CatalogueScreen.tsx`, la commande `Filtrer` du Catalogue est visible mais inactive ; le `FilterIcon` est local à cet écran. Les commandes `Filtrer / Trier` du Suivi sont également déclarées inactives dans son périmètre MVP. Ne pas présenter un composant générique de filtrage déjà livré sur toutes les listes.
+
+
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
 Relevé direct de `10453:23030` ; données brutes : [composants-tokens.json](../figma-mouvements-2026-10-27/composants-tokens.json). Ce relevé couvre la fiche et les composants qu'elle utilise, pas l'ensemble du fichier Figma.
