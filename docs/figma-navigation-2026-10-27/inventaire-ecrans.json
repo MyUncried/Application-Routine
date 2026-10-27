@@ -1,0 +1,1180 @@
+[
+  {
+    "id": "1992:375",
+    "name": "P-Profil — Vue d'ensemble - Vibration désactivée",
+    "navs": [
+      {
+        "id": "10601:46200",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20200",
+        "texts": [
+          "Profil"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:474",
+    "name": "Profil — Stepper Pause changement de côté",
+    "navs": [
+      {
+        "id": "2565:2226",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20200",
+        "texts": [
+          "Profil"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:579",
+    "name": "Profil — Stepper Récupération après activité",
+    "navs": [
+      {
+        "id": "2565:2261",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20200",
+        "texts": [
+          "Profil"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:684",
+    "name": "Profil — Vue d'ensemble - Vibration activée",
+    "navs": [
+      {
+        "id": "2565:933",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20200",
+        "texts": [
+          "Profil"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5101",
+    "name": "P-Calendrier — Semaine",
+    "navs": [
+      {
+        "id": "2565:968",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5237",
+    "name": "P-Calendrier — Mois",
+    "navs": [
+      {
+        "id": "2565:1003",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5365",
+    "name": "P-Modal — Supprimer une planification unique — Calendrier",
+    "navs": [
+      {
+        "id": "2565:1038",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5510",
+    "name": "Calendrier — Jour — MVP",
+    "navs": [
+      {
+        "id": "2565:1070",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5602",
+    "name": "P-Calendrier — Jour — Appui long — MVP",
+    "navs": [
+      {
+        "id": "2565:1105",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5697",
+    "name": "Calendrier — Jour — MAJ — MVP",
+    "navs": [
+      {
+        "id": "2565:1140",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5794",
+    "name": "Calendrier — Jour — Créneau à planifier — MVP",
+    "navs": [
+      {
+        "id": "2565:1175",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:5962",
+    "name": "P-Calendrier — Semaine — Actions glissées",
+    "navs": [
+      {
+        "id": "2565:1207",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:6102",
+    "name": "P-Modal — Supprimer des occurrences — Calendrier",
+    "navs": [
+      {
+        "id": "2565:1242",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:6249",
+    "name": "P-Modal — Choisir une séance — Planification — Liste longue",
+    "navs": [
+      {
+        "id": "2565:1274",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:6389",
+    "name": "P-Calendrier — Semaine — Séance déployée",
+    "navs": [
+      {
+        "id": "2565:1306",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "7599:14197",
+    "name": "Modal — Planifier une séance — Sélectionner une séance",
+    "navs": [
+      {
+        "id": "7599:14203",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:8843",
+    "name": "P-Suivi — Séances — Liste condensée",
+    "navs": [
+      {
+        "id": "2565:1597",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20184",
+        "texts": [
+          "Suivi"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:8996",
+    "name": "Suivi — Séances — Vue déployée",
+    "navs": [
+      {
+        "id": "2738:3912",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20184",
+        "texts": [
+          "Suivi"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:9910",
+    "name": "P-Catalogue des séances — Liste par défaut",
+    "navs": [
+      {
+        "id": "2565:1632",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:10014",
+    "name": "P-Catalogue des séances — Séance déployée",
+    "navs": [
+      {
+        "id": "2564:832",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:10518",
+    "name": "Catalogue des séances — Liste condensée — actions glissées",
+    "navs": [
+      {
+        "id": "2565:1700",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:10628",
+    "name": "Catalogue des séances — Séance déployée — actions glissées",
+    "navs": [
+      {
+        "id": "2565:1735",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:10848",
+    "name": "Catalogue des séances — Archivées — Séance restaurée",
+    "navs": [
+      {
+        "id": "2565:1805",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "1992:10937",
+    "name": "Catalogue des séances — Liste sans Renforcement du genou",
+    "navs": [
+      {
+        "id": "2565:1840",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2059:267",
+    "name": "Calendrier — Jour suivant — Glissement gauche — MVP",
+    "navs": [
+      {
+        "id": "2565:1875",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2074:86",
+    "name": "Calendrier — Semaine — Après suppression d’une planification",
+    "navs": [
+      {
+        "id": "2565:1910",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2094:86",
+    "name": "Calendrier — Semaine — Étirements — Actions glissées",
+    "navs": [
+      {
+        "id": "2565:1945",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2117:86",
+    "name": "Catalogue des séances — État vide",
+    "navs": [
+      {
+        "id": "2565:1980",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2117:190",
+    "name": "Suivi — Séances — État vide",
+    "navs": [
+      {
+        "id": "2565:2016",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20184",
+        "texts": [
+          "Suivi"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2128:86",
+    "name": "Calendrier — Jour — État vide",
+    "navs": [
+      {
+        "id": "2565:2051",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2139:86",
+    "name": "Profil — Vue d'ensemble — Parcours vide",
+    "navs": [
+      {
+        "id": "2565:2086",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20200",
+        "texts": [
+          "Profil"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2234:88",
+    "name": "Catalogue des séances — Archivées — actions glissées",
+    "navs": [
+      {
+        "id": "2565:2121",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2234:189",
+    "name": "Modal — Confirmer la suppression d’une séance archivée",
+    "navs": [
+      {
+        "id": "2565:2156",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "2252:86",
+    "name": "Calendrier — Semaine — Mardi sélectionné",
+    "navs": [
+      {
+        "id": "2565:2191",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "3786:5093",
+    "name": "P-Catalogue des Exercices — Liste",
+    "navs": [
+      {
+        "id": "3786:5104",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4168:11149",
+    "name": "P-Catalogue des séances — Filtrer — Panneau ouvert",
+    "navs": [
+      {
+        "id": "4168:11160",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4168:11262",
+    "name": "P-Catalogue des Exercices — Filtrer — Panneau ouvert",
+    "navs": [
+      {
+        "id": "4168:11266",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4593:6285",
+    "name": "P-Modal — Confirmer l’archivage d’une séance planifiée",
+    "navs": [
+      {
+        "id": "5274:5415",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4521:6220",
+    "name": "Catalogue des exercices — État vide",
+    "navs": [
+      {
+        "id": "4521:6224",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4544:6344",
+    "name": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+    "navs": [
+      {
+        "id": "4544:6348",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4544:6651",
+    "name": "Catalogue des Exercices — Liste — Filtre actif étendu",
+    "navs": [
+      {
+        "id": "4544:6655",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4549:6382",
+    "name": "Catalogue des séances — Liste — Filtre inactif étendu",
+    "navs": [
+      {
+        "id": "4549:6393",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4549:6742",
+    "name": "Catalogue des séances — Filtre actif Archivé",
+    "navs": [
+      {
+        "id": "4549:6752",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4592:6217",
+    "name": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+    "navs": [
+      {
+        "id": "4592:6228",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4738:6209",
+    "name": "P-Catalogue des Exercices — Liste — actions glissées",
+    "navs": [
+      {
+        "id": "4738:6213",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "4738:6355",
+    "name": "S-Catalogue des Exercices — Liste — Première carte déployée — Média",
+    "navs": [
+      {
+        "id": "4738:6359",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "5451:4272",
+    "name": "P-Modal — Choisir un exercice — Planification — Liste longue",
+    "navs": [
+      {
+        "id": "5451:4283",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "7594:34809",
+    "name": "Modal — Planifier un parcours — Sélectionner plusieurs séances",
+    "navs": [
+      {
+        "id": "7594:34815",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20168",
+        "texts": [
+          "Calendrier"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "8598:29271",
+    "name": "P-Composition séance — Modèles",
+    "navs": [
+      {
+        "id": "8702:35432",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "9977:19613",
+    "name": "P-Composition séance — Modèles — Deux colonnes",
+    "navs": [
+      {
+        "id": "9977:19780",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10266:20575",
+    "name": "Mouvement — Catalogue — Piles",
+    "navs": [
+      {
+        "id": "10266:20580",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10462:23370",
+    "name": "Mouvement — Catalogue — Filtres",
+    "navs": [
+      {
+        "id": "10462:23375",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10465:23141",
+    "name": "Mouvement — Catalogue — Filtre actif",
+    "navs": [
+      {
+        "id": "10465:23146",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10471:23291",
+    "name": "Mouvement — Catalogue — Pile déployée",
+    "navs": [
+      {
+        "id": "10471:23296",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10475:47634",
+    "name": "Mouvement — Catalogue — Actions glissées",
+    "navs": [
+      {
+        "id": "10475:47639",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10480:23374",
+    "name": "Mouvement — Catalogue — Pile — Déplacement",
+    "navs": [
+      {
+        "id": "10480:23379",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10484:23428",
+    "name": "Mouvement — Catalogue — Pile — Réordonnée",
+    "navs": [
+      {
+        "id": "10484:23433",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10495:24054",
+    "name": "Mouvement — Catalogue — Archivage refusé",
+    "navs": [
+      {
+        "id": "10495:24059",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10495:24099",
+    "name": "Mouvement — Catalogue — Archivés",
+    "navs": [
+      {
+        "id": "10495:24104",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10496:23705",
+    "name": "Mouvement — Catalogue — Archivés — Actions glissées",
+    "navs": [
+      {
+        "id": "10496:23710",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10500:23772",
+    "name": "Mouvement — Catalogue — Archivés — Confirmer la suppression",
+    "navs": [
+      {
+        "id": "10500:23777",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  },
+  {
+    "id": "10579:21580",
+    "name": "Mouvement — Catalogue — Ajouter un niveau",
+    "navs": [
+      {
+        "id": "10579:21585",
+        "name": "Navigation / Bottom",
+        "type": "INSTANCE",
+        "visible": true,
+        "width": 402,
+        "height": 77,
+        "component": "6513:20152",
+        "texts": [
+          "Catalogues"
+        ],
+        "slots": 5
+      }
+    ]
+  }
+]

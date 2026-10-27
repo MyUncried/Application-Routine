@@ -101,7 +101,7 @@ Le booléen Figma `Bilatéral` est faux par défaut. Il est présent sur les var
 
 Ces couleurs documentent les références fournies ; elles ne créent ni catégories obligatoires ni couleur déduite du nom en production. Cardio et Récupération sont validées. Le contraste du pictogramme blanc inférieur à 3:1 est une situation connue et acceptée : environ 1,9:1 pour Cardio, 1,5:1 pour Récupération, 2,3:1 pour Étirements ; le nom de catégorie reste affiché à côté. Les autres catégories non concernées conservent leur définition.
 
-Navigation : `Navigation / Bottom` (`6298:12462`), variantes Catalogue `6298:11827`, Calendar `6298:11988`, History `6298:12149`, Profile `6298:12310`, Search `6298:12461`. La présence de Search ne valide pas une destination fonctionnelle supplémentaire. Icônes : Catalogue `6296:10468` (quatre formes), Calendrier `6296:10484` (contour), Suivi `6296:10498` (quatre barres), Profil `6296:10514` (`people-outline`). Trait 2, dessin maximal 24 dans boîte optique 32, profil 24 × 20,1, centrage conservant le ratio. Actif `#0508E5`, non actif `#595E66`.
+Navigation courante : `Navigation / Bottom — 5 onglets` (`6513:20151`) : Catalogues, Calendrier, Suivi, Communauté, Profil. Exports actifs/inactifs 24 × 24 dans une boîte 32 × 32. Voir [références, captures et assets](DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md). La référence du 30 septembre à quatre destinations est remplacée.
 
 Icônes de sélection hors navigation : sélectionné `#0508E5`, non sélectionné `#595E66`, inactif `#C2C4D1`. Cette palette ne recolore pas les visages de Ressenti, les statuts, les boutons à fond coloré ou les icônes purement informatives de valeur. `target-light` reste réservé au Programme ; `pulse-light` reste réservé aux rapports ou au Suivi ; ces icônes ne sont pas encore utilisées. Les nouvelles icônes suivent `icon/<nom>` ; les icônes existantes ne sont pas renommées.
 
@@ -237,7 +237,7 @@ Total rapporté par le propriétaire : 133 cartes / 38 écrans / environ 27 inte
 10. MED-03 : zones d’Exercice tronquées sur une ligne à8 px du contrôle droit ; largeur calculée par contexte, données complètes conservées. Séances : minimum20 inchangé.
 11. MED-04 : aucune Séance, liste mixte, carte Calendrier ou Suivi n’affiche de photo.
 12. ICO-01 : la nature exercice utilise la posture ; l’haltère représente le nombre d’exercices.
-13. ICO-02 : navigation = quatre composants exacts, trait 2 et taille maximale 24.
+13. ICO-02 : navigation = cinq composants exacts, trait 2 et taille maximale 24.
 14. ICO-03 : la palette de sélection respecte les trois états sans recolorer Ressenti/statuts.
 15. CTX-01 : bouton contextuel visible 34, dessin 20, cible au moins 44 et sans chevauchement.
 16. CTX-02 : gaps 12, ou 10 en Composition ; les cibles existantes de 48 ne sont pas réduites automatiquement.
