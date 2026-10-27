@@ -20,7 +20,8 @@ development_status:
 deferred:
   - id: q-e1
     epic: e
-    status: a-clarifier
+    status: tranche
+    decision: "Arbitrage Hermann du 27/10 : la Séance prend le titre de son premier Exercice. À appliquer dans l'Epic E (non commencé)."
     question: "Titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant (activity_definitions)."
   - id: stop-points-generalises
     epic: c
@@ -28,7 +29,8 @@ deferred:
     note: "RM-219, RM-251 et D-442 hors du modèle à Circuit unique ; garde STRUCTURE_STOP_POINTS_UNSUPPORTED en attendant."
   - id: q-b2
     epic: b
-    status: a-clarifier
+    status: partiellement-tranche
+    decision: "Arbitrage Hermann du 27/10 : le rang le plus haut (Niveau N le plus élevé de la famille) en tête de pile, conforme au prototype. Restent à clarifier : navigation depuis une pile, effet de la recherche, filtres, tri, actions glissées."
     question: "Piles du Catalogue des Mouvements (carte du dessus : rang 1 selon le relevé du 25/10 ou rang le plus élevé selon Figma 10266:20575), navigation depuis une pile, effet de la recherche, sémantique des filtres (Statut, Niveaux, Utilisation, Catégories, Zones) et du tri."
   - id: q-b3
     epic: b

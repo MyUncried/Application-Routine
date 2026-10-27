@@ -74,6 +74,13 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 - Points d'arrêt hors du modèle à Circuit unique : refusés jusqu'à la généralisation de RM-219, RM-251 et D-442 (Epic C).
 - Le commit `510c764f` contient la modification de `SqliteMovementRepository.ts` de B.1 ; il ne compile pas isolément sans `22fc7d3d`. Le HEAD est cohérent ; l'historique n'a pas été réécrit (aucun rebase spontané).
 
+## Arbitrages reçus le 27/10 après livraison
+
+- **Q-B2** : « le rang le plus haut en tête de l'île » (lu « pile ») — le Niveau le plus élevé de la famille est la carte du dessus, comme le prototype. Restent ouverts : navigation depuis une pile, effet de la recherche, filtres, tri, actions glissées ; les piles ne sont donc pas encore développées.
+- **Q-E1** : la Séance issue d'un Exercice du Catalogue prend le titre de son premier Exercice. Consigné pour l'Epic E, non commencé.
+- **Q-B3** : explication demandée ; toujours ouvert.
+- Aucune modification applicative ; aucun test applicable à cette mise à jour documentaire.
+
 ## Vérifications restant à effectuer sur appareil réel
 
 - Fiche Mouvement : gabarit photo (proportions, recouvrement par la zone de contexte), ajout, consultation, retrait et réordonnancement des médias, clavier et défilement, invite des phases, crayon, menu Niveau, dialogue C03.
