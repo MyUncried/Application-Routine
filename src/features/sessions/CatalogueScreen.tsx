@@ -470,6 +470,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
     gap: dimensions.catalogueCommand.gap,
+    // Recette A/B du 27/10 (remarque 9) : écart de 8 sous les segments, rétabli (retiré par erreur
+    // en B.9 ; valeur de `main`).
+    marginTop: spacing[8],
   },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).

@@ -15,9 +15,9 @@ import {
 /**
  * PRE-8 (stories B.5 et B.7) — vue du Catalogue des Mouvements, arbitrages de Hermann du
  * 27/10/2026 : Q-B2 (rang le plus haut en tête), Q1 (OU dans un groupe, ET entre groupes), Q2
- * (Actifs par défaut), Q3 définitif (statut d'abord, puis pile entière de ses membres autorisés
- * dès qu'un membre correspond ; indépendants filtrés seuls), Q4 (recherche ET filtres), Q5 (rangs
- * de la famille complète).
+ * (Actifs par défaut), Q3 définitif (statut d'abord ; indépendants filtrés seuls), Q4 (recherche ET
+ * filtres), Q5 (ordre de la famille complète). Recette A/B du 27/10 (b7-5) : la Recherche seule garde
+ * la pile entière, un autre filtre n'en garde que les membres correspondants.
  */
 
 function entry(
@@ -93,20 +93,21 @@ describe("PRE-8 B.5/B.7 — piles, recherche et filtres du Catalogue des Mouveme
     expect(shape(both)).toEqual(["fentes", ["jump", "squat", "assist"], "gainage"]);
   });
 
-  it("Q3 définitif : un membre autorisé qui correspond affiche TOUS les membres autorisés de la pile", () => {
-    // Seul « Squats sautés » est en Cardio ; la pile garde aussi « Squats assistés » (Mobilité).
-    expect(shape(visibleMovementItems(ALL, "", filters({ categoryIds: ["cardio"] })))).toEqual([["jump", "assist"]]);
-    // Utilisation « Sans exercice » : « assist » correspond → pile entière ; Fentes (1 exercice) exclu.
-    expect(shape(visibleMovementItems(ALL, "", filters({ usage: ["WITHOUT"] })))).toEqual([["jump", "assist"]]);
+  it("recette A/B du 27/10 (b7-5) : avec un filtre, la pile n'affiche que ses membres autorisés qui correspondent", () => {
+    // Seul « Squats sautés » est en Cardio : il est affiché seul (carte simple), sans « Squats assistés ».
+    const cardio = visibleMovementItems(ALL, "", filters({ categoryIds: ["cardio"] }));
+    expect(shape(cardio)).toEqual(["jump"]);
+    expect(cardio[0]).toMatchObject({ kind: "SINGLE", key: "jump" });
+    // Utilisation « Sans exercice » : seul « assist » correspond ; Fentes (1 exercice) exclu.
+    expect(shape(visibleMovementItems(ALL, "", filters({ usage: ["WITHOUT"] })))).toEqual(["assist"]);
+    // Deux membres correspondent : pile des deux.
+    expect(shape(visibleMovementItems(ALL, "", filters({ categoryIds: ["cardio", "mobilite"] })))).toEqual([["jump", "assist"]]);
     // Aucun filtre autre que Statut ne rend visible un archivé : Gainage (Cardio, archivé) reste caché.
     expect(shape(visibleMovementItems(ALL, "", filters({ categoryIds: ["cardio"] })))).not.toContain("gainage");
   });
 
   it("Q1 : OU dans un groupe, ET entre groupes ; Zones : au moins une valeur commune ; indépendants filtrés seuls", () => {
-    expect(shape(visibleMovementItems(ALL, "", filters({ categoryIds: ["mobilite", "renfo"] })))).toEqual([
-      "fentes",
-      ["jump", "assist"],
-    ]);
+    expect(shape(visibleMovementItems(ALL, "", filters({ categoryIds: ["mobilite", "renfo"] })))).toEqual(["fentes", "assist"]);
     expect(shape(visibleMovementItems(ALL, "", filters({ bodyZoneIds: ["genoux", "epaules"] })))).toEqual(["fentes"]);
     expect(shape(visibleMovementItems(ALL, "", filters({ bodyZoneIds: ["genoux"], usage: ["WITHOUT"] })))).toEqual([]);
     expect(shape(visibleMovementItems(ALL, "", filters({ levels: ["WITHOUT"] })))).toEqual(["fentes"]);
@@ -114,8 +115,11 @@ describe("PRE-8 B.5/B.7 — piles, recherche et filtres du Catalogue des Mouveme
   });
 
   it("Q4 : recherche ET filtres ; la recherche présente des piles dépliables, ordre R02", () => {
-    // « sautes » ne correspond qu'à un membre : la pile entière de ses membres autorisés s'affiche.
+    // « sautes » ne correspond qu'à un membre : la Recherche seule affiche la pile entière de ses membres
+    // autorisés (b7-5 : contrairement aux filtres).
     expect(shape(visibleMovementItems(ALL, "sautes", EMPTY_MOVEMENT_FILTERS))).toEqual([["jump", "assist"]]);
+    // Recherche et filtre : la famille correspond (« jump », Cardio) ; seuls les membres du filtre restent.
+    expect(shape(visibleMovementItems(ALL, "sautes", filters({ categoryIds: ["cardio"] })))).toEqual(["jump"]);
     expect(shape(visibleMovementItems(ALL, "sautes", filters({ categoryIds: ["renfo"] })))).toEqual([]);
     // Alias d'un archivé : invisible sans « Archivés », visible avec.
     expect(shape(visibleMovementItems(ALL, "planche", EMPTY_MOVEMENT_FILTERS))).toEqual([]);

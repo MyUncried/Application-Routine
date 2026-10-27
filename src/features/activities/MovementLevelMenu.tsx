@@ -74,6 +74,8 @@ export type LevelOption = {
   readonly exercises: readonly LevelExerciseOption[];
   /** PRE-7 (R-6) : mouvement du niveau, cible du choix par mouvement (`movementChoice`). */
   readonly movementId?: string;
+  /** Recette A/B B.10 (q6-2) : membre archivé, signalé « (archivé) » dans le libellé du choix. */
+  readonly archived?: boolean;
 };
 
 /**
@@ -97,6 +99,16 @@ export type MovementLevelMenuModel = {
   /** PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux. */
   readonly onReorderLevels: () => void;
   readonly movementChoice?: LevelMovementChoice;
+  /**
+   * Recette A/B B.10 (b2-8) : intitulé du sous-menu des niveaux propre à l'appelant (fiche Mouvement :
+   * « Ouvrir un autre niveau ») ; absent : « Naviguer vers » ou « Changer de niveau » (R-9).
+   */
+  readonly levelsLabel?: string;
+  /**
+   * Recette A/B B.10 (b2-8) : textes du panneau de repli réduits (`type.supporting`) ; le menu natif
+   * iOS garde la taille du système. Absent : taille inchangée.
+   */
+  readonly compact?: boolean;
 };
 
 /** Pastille : position dérivée (`null` : vide) ; `menu` `null` : affichage seul, sans accès. */
@@ -123,7 +135,8 @@ function levelAccessibilityLabel(position: MovementLevelPosition | null): string
 }
 
 export function levelOptionLabel(level: LevelOption): string {
-  return fillTemplate(strings.screens.activities.editor.levelMenu.levelOption, {
+  const t = strings.screens.activities.editor.levelMenu;
+  return fillTemplate(level.archived === true ? t.levelOptionArchived : t.levelOption, {
     rank: String(level.rank),
     total: String(level.total),
     name: level.name,
@@ -145,6 +158,7 @@ function canChangeLevel(menu: MovementLevelMenuModel): boolean {
  */
 function levelsSubmenuLabel(menu: MovementLevelMenuModel): string {
   const t = strings.screens.activities.editor.levelMenu;
+  if (menu.levelsLabel !== undefined) return menu.levelsLabel;
   return menu.movementChoice === undefined ? t.navigateTo : t.changeLevel;
 }
 
@@ -485,7 +499,7 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
   return (
     <AnchoredPanel placement={placement} onDismiss={onDismiss} style={styles.panel} testID={testID}>
       {rows.map((row) => (
-        <PanelRow key={row.id} row={row} testID={`${testID}-${row.id}`} />
+        <PanelRow key={row.id} row={row} compact={menu.compact === true} testID={`${testID}-${row.id}`} />
       ))}
     </AnchoredPanel>
   );
@@ -499,7 +513,7 @@ type PanelRowProps = {
   readonly onPress: () => void;
 };
 
-function PanelRow({ row, testID }: { readonly row: PanelRowProps; readonly testID: string }) {
+function PanelRow({ row, compact, testID }: { readonly row: PanelRowProps; readonly compact: boolean; readonly testID: string }) {
   const { label, selected = false, disabled = false, onPress } = row;
   return (
     <Pressable
@@ -511,7 +525,7 @@ function PanelRow({ row, testID }: { readonly row: PanelRowProps; readonly testI
       style={styles.option}
       testID={testID}
     >
-      <Text style={[styles.optionTitle, disabled ? styles.optionTitleDisabled : null]}>{label}</Text>
+      <Text style={[styles.optionTitle, compact ? styles.optionTitleCompact : null, disabled ? styles.optionTitleDisabled : null]}>{label}</Text>
       <View style={styles.check}>
         {selected ? <KodjoIcon name="state-selected" size={CHECK_SIZE} tintColor={colors.primary} testID={`${testID}-check`} /> : null}
       </View>
@@ -576,6 +590,10 @@ const styles = StyleSheet.create({
     ...type.exerciseFieldValue,
     flex: 1,
     color: colors.textPrimary,
+  },
+  // Recette A/B B.10 (b2-8) : 12 au lieu de 13, comme les sous-titres de `CircuitNatureMenu`.
+  optionTitleCompact: {
+    ...type.supporting,
   },
   optionTitleDisabled: {
     color: colors.textSecondary,

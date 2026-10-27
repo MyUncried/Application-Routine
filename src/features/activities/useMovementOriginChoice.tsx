@@ -5,7 +5,7 @@ import { rankMovements, type MovementSearchContext } from "@/domain/activities/m
 import { strings } from "@/shared/i18n";
 
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
-import type { VariantPlacement } from "./MovementResultCard";
+import type { MovementResultActionLabels, VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
 import { MovementSuggestionPanel } from "./MovementSuggestionPanel";
 
@@ -50,6 +50,11 @@ export type MovementOriginChoiceOptions = {
   readonly onSameMovement: (choice: MovementChoice) => void;
   /** « Créer une variante » puis Plus facile / Plus difficile. */
   readonly onVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /**
+   * Recette A/B B.10 (remarque 6) : libellés des actions des cartes du panneau (fiche Mouvement) ;
+   * absent : libellés de l'éditeur d'Exercice, inchangés.
+   */
+  readonly actionLabels?: MovementResultActionLabels;
 };
 
 export type MovementOriginChoiceState = {
@@ -103,6 +108,7 @@ export function useMovementOriginChoice({
   context,
   onSameMovement,
   onVariant,
+  actionLabels,
 }: MovementOriginChoiceOptions): MovementOriginChoiceState {
   const t = strings.screens.activities.editor.movementSuggestion;
   const searchEnabled = available && service.supportsMovementSearch;
@@ -205,6 +211,7 @@ export function useMovementOriginChoice({
       }}
       onBack={() => setVariantOf(null)}
       onTouchingChange={(touching) => setFrozen(touching ? live : null)}
+      {...(actionLabels ? { actionLabels } : {})}
     />
   ) : null;
 

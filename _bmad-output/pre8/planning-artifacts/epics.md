@@ -36,6 +36,7 @@
 | B.6 | Création de variante par action glissée (Partager grisé, Archiver) | B.2, B.5 |
 | B.7 | Filtres et recherche combinés (Q1, Q2, Q4, Q3 définitif) | B.5 |
 | B.8 | Archivage, restauration, suppression définitive (Q5 à Q8, Q6 côté création) ; migration 015 additive | B.1, B.5 |
+| B.10 | Second passage de la recette iPhone A/B du 27/10 (lot A/B, sans nouvel epic) : titres d'écran Medium 17, piles filtrées, rangs recalculés après archivage, saisie et nom déjà utilisé dans la fiche, menu Niveau, niveaux archivés signalés, réordonnancement visible, compteur de médias ; hors périmètre : fiche Mouvement dans la Composition, alias | B.9 |
 | B.9 | Corrections de la recette iPhone A/B du 27/10 (lot A/B, sans nouvel epic) : marge standard 16 (A01), titres (A02), cartes et piles (B01–B12, réordonnancement par appui long), nouveau Niveau (C01–C02), zone de contexte et filtres (D01–D07), navigation à cinq destinations (E01), fiche Mouvement (F01–F07, ouverture directe en édition) | B.2 à B.8 |
 
 **Hors B (règles ouvertes ou autres epics) :**

@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     gap: spacing[16],
   },
   title: {
-    ...type.screenTitle,
+    ...type.screenHeaderTitle,
     color: colors.textPrimary,
   },
   link: {

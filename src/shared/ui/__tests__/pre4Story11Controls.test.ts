@@ -20,9 +20,10 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\
  * `b4ae92b6b2c06965e818e6fe89f973ffb5cdff7787cb3b241ac184f11ecf93be`. Mise à jour par la recette PRE-8
  * A/B (arbitrage de Hermann du 27/10/2026 : marge standard centralisée `layout.screenGutter` et jetons
  * du Catalogue des Mouvements, documentés au chapitre 12) — modification autorisée, la garde reste
- * active contre toute modification ultérieure non autorisée.
+ * active contre toute modification ultérieure non autorisée. Empreinte après B.9 : `2ed5cdbc…9e42` ;
+ * mise à jour par B.10 (recette du 27/10, r9-a02 : `type.screenHeaderTitle`, Medium 17, chapitre 12).
  */
-const TOKENS_BASELINE_SHA256 = "2ed5cdbc84e4f9315c09655aacc22dd6213c6f999b39fbdf1e65c5e6309c9e42";
+const TOKENS_BASELINE_SHA256 = "5d8a7e03f4ba7b60d48bfdbd205dcb9c7a7204e6318c1ed0cd69d20a7708ec54";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

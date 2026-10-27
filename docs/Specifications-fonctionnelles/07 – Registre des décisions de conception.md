@@ -40,6 +40,22 @@ Décisions de Hermann du 27/10/2026 pour finaliser le Catalogue d'entretien des 
 
 Choix techniques de mise en œuvre, à valider : un Mouvement archivé reste en consultation seule même depuis le Catalogue (B.8) ; lors d'un réordonnancement, les membres masqués par le filtre de Statut gardent leur place dans la famille ; la commande Filtrer étendue résume un critère par son libellé, plusieurs par « N filtres » ; l'étape intermédiaire « Filtres / Aucun » de ch13 §4.5 n'est pas développée (sans critère, Filtrer ouvre directement la feuille).
 
+## Recette A/B du 27/10/2026, second passage — décisions de Hermann (PRE-8, lot B.10, numéro de décision à attribuer)
+
+Résultats de la recette iPhone du 27/10 (13:10–14:41) et accord de Hermann du même jour : lot de corrections B.10 dans le lot A/B ; la fiche de Mouvement dans la Composition de Séance reste hors périmètre ; aucune saisie d'alias (sujet reporté à la question des langues).
+
+- **b7-5 — Piles filtrées (remplace la règle Q3 définitive sur ce point).** Dès qu'un filtre autre que le Statut est choisi, une pile n'affiche que ses membres autorisés qui correspondent aux filtres. La Recherche seule affiche toujours la pile entière de ses membres autorisés. La règle « statut d'abord » de Q3 est conservée.
+- **b8-3 — Rangs après archivage (remplace Q5 sur ce point).** Archiver un Niveau recalcule aussitôt les rangs affichés des membres actifs. L'appartenance et la position dans la famille sont conservées (Q7 inchangée).
+- **r9-a02 — Titres d'écran (remplace A02 et G-4 sur ce point).** Tous les titres d'écran sont en Inter Medium 17, Catalogue des Mouvements compris (`type.screenHeaderTitle`, chapitre 12). Les noms saisis en tête de fiche gardent leur style.
+- **b2-4 — Saisie dans la fiche.** Pendant la saisie de la Description ou des Phases, la zone média remonte derrière la zone de contexte pour que le texte reste visible, puis reprend sa place ; un bouton ferme le clavier dans les deux champs.
+- **b2-5, remarque 7 — Nom déjà utilisé.** À la création d'un Mouvement comme d'un nouveau Niveau : recherche de nom similaire, message Figma `10175:20349` à l'appui sur Entrée, clavier maintenu, reste de la fiche non modifiable tant que le nom est identique.
+- **b2-8 — Menu Niveau.** L'entrée de navigation s'intitule « Ouvrir un autre niveau » ; textes plus petits.
+- **q6-2 — Niveau archivé signalé.** « (archivé) » dans le menu Niveau et après le nom d'un Mouvement archivé ouvert.
+- **Remarques générales.** Curseur dans le Nom à l'ouverture de la création ; suggestions de la création « Ajouter un niveau » et « Ouvrir ce mouvement » ; réordonnancement : la carte portée reste visible au-dessus des autres et les voisines se décalent pendant le geste ; au retour dans le Catalogue, aucune carte ne reste ouverte (filtres et piles dépliées conservés) ; seconde rangée de commandes à 8 sous les segments ; médias : compteur « rang / total » à la place de « Vidéo ».
+- **Bouton de lecture vidéo (spécification de Hermann, Figma « DSF / Actions / Bouton d'action circulaire », Action=Lecture).** Diamètre 72, centré dans le gabarit photo ; fond blanc 22 % avec flou d'arrière-plan de rayon 24 ; contour blanc 35 %, 1 ; triangle blanc opaque de hauteur 30 décalé de 2 vers la droite ; ni ombre, ni couleur de marque, ni fond opaque ; cible tactile égale au diamètre ; seulement sur une vidéo ; l'appui ouvre le lecteur système en plein écran, le retour rend la fiche dans son état. Non livré : la dépendance de flou (`expo-blur`) n'est pas présente, arbitrage attendu.
+
+À valider : rang affiché d'un membre archivé (reste celui de la famille complète) et menus Niveau de la fiche non renumérotés ; taille des textes du menu Niveau sur iOS (menu natif, taille fixée par le système) ; forme du repère « (archivé) » ; nouveau Niveau verrouillé tant que son nom pré-rempli n'est pas modifié ; libellé VoiceOver « Valider les phases » ; verrouillage du nom déjà utilisé limité à la création.
+
 ## Report documentaire ciblé — 27/10/2026, parcours Mouvement
 
 **Corrections après revue de clôture, intégrées à la demande de Hermann :** conservation des comportements média (seuls emplacement et taille changent) ; création d'un mouvement nouveau éditable avant enregistrement ; rang dérivé susceptible de changer après retrait d'un membre ; distinction troncature confirmée/réserve temporaire de séries ; conservation des durées de phases communes au changement de niveau. Aucun nouvel arbitrage A à D et aucun prérequis Figma supplémentaire sur les médias.

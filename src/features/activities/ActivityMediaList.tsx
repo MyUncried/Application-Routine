@@ -369,8 +369,23 @@ function MediaTile({
           <Text style={styles.errorText}>{m.unavailable}</Text>
         </View>
       ) : null}
-      {/* Badge rendu après le voile d'erreur : la nature du Média reste visible. */}
-      {item.asset.kind === "VIDEO" ? <Text style={styles.kindBadge}>{m.video}</Text> : null}
+      {size ? (
+        // Recette A/B B.10 (remarque 4) : gabarit photo de la fiche Mouvement — compteur « rang /
+        // total » à la place du badge « Vidéo » (le nom accessible donne déjà le rang et le total).
+        // Le bouton de lecture circulaire (Figma « DSF / Actions / Bouton d'action circulaire »,
+        // Action=Lecture) attend `expo-blur`, absent des dépendances : non posé, à arbitrer.
+        <Text
+          style={styles.kindBadge}
+          accessible={false}
+          importantForAccessibility="no"
+          testID={`media-item-${index + 1}-counter`}
+        >
+          {strings.screens.movement.mediaCounter.replace("{rank}", String(index + 1)).replace("{total}", String(total))}
+        </Text>
+      ) : item.asset.kind === "VIDEO" ? (
+        // Badge rendu après le voile d'erreur : la nature du Média reste visible.
+        <Text style={styles.kindBadge}>{m.video}</Text>
+      ) : null}
     </Pressable>
   );
   const consultationTestID = `media-item-${index + 1}-consultation`;

@@ -60,3 +60,19 @@ Détail et points à valider : `implementation-artifacts/spec-b-9-corrections-re
 - [ ] D01–D07 : rangée Rechercher / Créer / Filtrer / Trier, croix, Filtrer étendu, Réinitialiser, Zones du référentiel.
 - [ ] E01 : navigation à cinq destinations, Communauté désactivée.
 - [ ] F01–F07 : média derrière le contexte et fixe, titres harmonisés, phases en liste (20 caractères), ouverture directe en édition.
+
+## B.10 — Second passage de la recette A/B du 27/10
+
+Détail et points à valider : `implementation-artifacts/spec-b-10-corrections-second-passage.md`.
+
+- [ ] Titres d’écran en Medium 17 (Catalogue, fiche, Composition).
+- [ ] Filtre : une pile n’affiche que ses cartes correspondantes ; Recherche seule : pile entière.
+- [ ] Archiver un niveau : les autres niveaux actifs sont renumérotés.
+- [ ] Réordonnancement : la carte portée reste visible au-dessus, les voisines se décalent pendant le geste.
+- [ ] Retour au Catalogue : aucune carte ouverte ; filtres et piles dépliées conservés.
+- [ ] Rangée de commandes à 8 sous les segments.
+- [ ] Saisie Description / Phases : la photo remonte, le texte reste visible ; bouton ↑ ferme le clavier.
+- [ ] Nom déjà utilisé (création et nouveau niveau) : liste visible, message à l’Entrée, clavier maintenu, fiche verrouillée.
+- [ ] Curseur dans le Nom à la création ; suggestions « Ajouter un niveau » / « Ouvrir ce mouvement ».
+- [ ] Menu Niveau : « Ouvrir un autre niveau » ; « (archivé) » dans le menu et après le nom.
+- [ ] Médias : compteur « 1 / n » à la place de « Vidéo ».

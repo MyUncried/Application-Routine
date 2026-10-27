@@ -1140,7 +1140,8 @@ Le relevé du 06/10 comporte 51 styles. La correspondance code/Figma se fait par
 | `12` | Auto Figma | Rôle compact |
 | `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
 | `type.metricPrimary` | Semi Bold | `22` | `27` | Durée, résultat ou métrique dominante (Inter Auto selon D2 ; ancien `28` historique) |
-| `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
+| `type.screenTitle` | Semi Bold | `20` | `24` | Nom saisi en tête de fiche (Mouvement, Exercice, Séance) ; ancien titre d’écran |
+| `type.screenHeaderTitle` | Medium | `17` | `21` | Titre d’écran (PRE-8, recette A/B du 27/10, r9-a02 : tous les titres d’écran en Medium 17) |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
 | `type.sectionTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titre de section ou de formulaire |
 | `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |

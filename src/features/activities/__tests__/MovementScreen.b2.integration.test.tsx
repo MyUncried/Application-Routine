@@ -339,9 +339,13 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(screen.getByText(t.titles.create)).toBeTruthy();
     expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
-    expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
     expect(screen.queryByTestId("activity-editor-edit-movement", anyNode)).toBeNull();
     expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
+    // Recette A/B B.10 (remarque 7) : nom repris = nom existant — le reste de la fiche attend un nom
+    // disponible ; une fois le nom complété, la fiche est modifiable.
+    expect(screen.queryByTestId("movement-phases-invite", anyNode)).toBeNull();
+    await type("exercise-name-input", "Squats sautés");
+    expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
     expect(await count("movements")).toBe(1);
   });
 
@@ -387,5 +391,87 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     await renderSheet();
     const title = screen.getByText(t.titles.create);
     expect(StyleSheet.flatten(title.props.style)).toMatchObject({ fontFamily: "Inter_500Medium", fontSize: 17 });
+  });
+});
+
+describe("Recette A/B B.10 — fiche Mouvement", () => {
+  it("remarque 5 : curseur dans le Nom à l'ouverture d'une création, pas en consultation", async () => {
+    await renderSheet();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.autoFocus).toBe(true);
+    cleanupRender();
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet({ movementId: "squat" });
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.autoFocus).toBe(false);
+  });
+
+  it("b2-5 : nom déjà utilisé — message, Entrée garde le Nom, reste de la fiche non modifiable ; panneau sous la zone de contexte, au-dessus d'elle", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "squats");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode).props.children).toBe(
+      strings.screens.activities.editor.movementSuggestion.nameTaken,
+    );
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.submitBehavior).toBe("submit");
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(true);
+    expect(screen.getByTestId("exercise-instruction-input", anyNode).props.editable).toBe(false);
+    expect(screen.queryByTestId("movement-phases-invite", anyNode)).toBeNull();
+    expect(screen.getByTestId("activity-editor-category-button", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(StyleSheet.flatten(screen.getByTestId("exercise-name-assist-host", anyNode).props.style)).toMatchObject({ zIndex: 2 });
+    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    // Nom disponible : la fiche redevient modifiable, Entrée termine de nouveau la saisie.
+    await type("exercise-name-input", "Squats lents");
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.submitBehavior).toBeUndefined();
+    expect(screen.getByTestId("exercise-instruction-input", anyNode).props.editable).toBe(true);
+    expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
+  });
+
+  it("remarque 6 : cartes de résultat « Ajouter un niveau » et « Ouvrir ce mouvement »", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    const card = screen.getByTestId("movement-suggestion-result-squat", anyNode);
+    expect(within(card).getByText(t.suggestion.createVariant, anyNode)).toBeTruthy();
+    expect(within(card).getByText(t.suggestion.useMovement, anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-squat-use", anyNode).props.accessibilityLabel).toBe("Ouvrir ce mouvement, Squats");
+    await press("movement-suggestion-result-squat-use");
+    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movement", params: { movementId: "squat" } });
+  });
+
+  it("remarque 7 : nouveau niveau — recherche de mouvement similaire et blocage du nom déjà utilisé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().create(movement("pompes", "Pompes"));
+    await renderSheet({ variantOf: "squat", placement: "AFTER_ORIGIN" });
+    // Nom repris : invite « (compléter le nom) », aucun panneau.
+    expect(screen.queryByTestId("movement-suggestion-panel", anyNode)).toBeNull();
+    await type("exercise-name-input", "Pompes");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-pompes", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("exercise-instruction-input", anyNode).props.editable).toBe(false);
+    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  it("b2-4 : ↑ des Phases pendant leur saisie, qui ferme seulement le clavier", async () => {
+    await renderSheet();
+    expect(screen.queryByTestId("movement-phases-submit", anyNode)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-invite", anyNode), "focus");
+    });
+    const submit = screen.getByTestId("movement-phases-submit", anyNode);
+    expect(submit.props.accessibilityLabel).toBe(t.phasesSubmitAccessibilityLabel);
+    expect(screen.getByTestId("movement-photo-content", anyNode)).toBeTruthy();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-invite", anyNode), "blur");
+    });
+    await settle(5);
+    expect(screen.queryByTestId("movement-phases-submit", anyNode)).toBeNull();
+  });
+
+  it("q6-2 : Mouvement archivé — « (archivé) » après le nom, en consultation", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().archive("squat");
+    await renderSheet({ movementId: "squat", mode: MOVEMENT_EDIT_MODE_PARAM });
+    expect(screen.getByTestId("exercise-name-hint", anyNode)).toBeTruthy();
+    expect(screen.getByText(` ${t.archivedNameSuffix}`, anyNode)).toBeTruthy();
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
   });
 });

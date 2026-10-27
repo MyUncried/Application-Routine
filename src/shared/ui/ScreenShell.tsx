@@ -181,7 +181,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    ...type.screenTitle,
+    // r9-a02 (recette PRE-8 A/B) : titre d'écran Medium 17.
+    ...type.screenHeaderTitle,
     flex: 1,
     color: colors.textPrimary,
   },

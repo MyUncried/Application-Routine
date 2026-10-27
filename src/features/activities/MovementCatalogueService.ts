@@ -18,15 +18,20 @@ import { movementLevelPosition, type MovementLevelPosition } from "@/domain/acti
  * - **Créer un nouveau mouvement** : l'original et ses Exercices restent inchangés ; la nouvelle
  *   entrée est indépendante, sans rattachement automatique à la famille (Q10 de v7).
  *
- * Le rang d'un membre est dérivé de l'ordre de sa famille COMPLÈTE (`movementLevelPosition`),
- * jamais de sa place dans une vue filtrée.
+ * Le rang d'un membre est dérivé de l'ordre de sa famille (`movementLevelPosition`), jamais de sa
+ * place dans une vue filtrée. PRE-8, recette A/B du 27/10 (b8-3) : le rang AFFICHÉ d'un membre actif
+ * est recalculé sur les seuls membres actifs (archiver un niveau renumérote les autres) ; un membre
+ * archivé garde son rang dans la famille complète. L'ordre des piles suit toujours la famille
+ * complète (`familyPosition`).
  */
 
 /** Un Mouvement du Catalogue avec sa position de Niveau et son nombre d'Exercices liés. */
 export type MovementCatalogueEntry = {
   readonly movement: Movement;
-  /** `null` : Mouvement indépendant (pastille « Niveau »). */
+  /** Rang affiché (b8-3) ; `null` : Mouvement indépendant (pastille « Niveau »). */
   readonly level: MovementLevelPosition | null;
+  /** Position dans la famille complète, archivés compris (ordre des piles) ; absente : `level`. */
+  readonly familyPosition?: MovementLevelPosition | null;
   /** Exercices liés, chacun une fois (définitions du Catalogue et Exercices de Séance). */
   readonly exerciseCount: number;
   /** PRE-8 (B.8) : Mouvement archivé ; il garde sa famille et sa position (Q5). */
@@ -92,19 +97,28 @@ export class MovementCatalogueService {
     const entries: MovementCatalogueEntry[] = [];
     for (const movement of all) {
       let level: MovementLevelPosition | null = null;
+      let familyPosition: MovementLevelPosition | null = null;
+      const archived = archivedIds.has(movement.id);
       if (movement.levelGroup !== null) {
         let members = groups.get(movement.levelGroup.groupId);
         if (members === undefined) {
           members = await this.movements.listGroup(movement.levelGroup.groupId);
           groups.set(movement.levelGroup.groupId, members);
         }
-        level = movementLevelPosition(movement, members);
+        familyPosition = movementLevelPosition(movement, members);
+        level = archived
+          ? familyPosition
+          : movementLevelPosition(
+              movement,
+              members.filter((member) => !archivedIds.has(member.id)),
+            );
       }
       entries.push({
         movement,
         level,
+        familyPosition,
         exerciseCount: await this.countLinkedExercises(movement.id),
-        archived: archivedIds.has(movement.id),
+        archived,
       });
     }
     return entries;
@@ -229,12 +243,18 @@ export class MovementCatalogueService {
   }
 }
 
+/** Position d'une entrée dans sa famille complète (b8-3 : distincte du rang affiché). */
+export function familyPositionOf(entry: MovementCatalogueEntry): MovementLevelPosition | null {
+  return entry.familyPosition === undefined ? entry.level : entry.familyPosition;
+}
+
 /** Regroupe les entrées en familles (voir `listFamilies`), pure. */
 export function groupFamilies(entries: readonly MovementCatalogueEntry[]): readonly MovementFamily[] {
   const families: { key: string; members: MovementCatalogueEntry[] }[] = [];
   const byKey = new Map<string, { key: string; members: MovementCatalogueEntry[] }>();
   for (const entry of entries) {
-    const key = entry.level !== null && entry.movement.levelGroup !== null ? entry.movement.levelGroup.groupId : entry.movement.id;
+    const key =
+      familyPositionOf(entry) !== null && entry.movement.levelGroup !== null ? entry.movement.levelGroup.groupId : entry.movement.id;
     let family = byKey.get(key);
     if (!family) {
       family = { key, members: [] };
@@ -244,7 +264,7 @@ export function groupFamilies(entries: readonly MovementCatalogueEntry[]): reado
     family.members.push(entry);
   }
   for (const family of families) {
-    family.members.sort((left, right) => (left.level?.rank ?? 0) - (right.level?.rank ?? 0));
+    family.members.sort((left, right) => (familyPositionOf(left)?.rank ?? 0) - (familyPositionOf(right)?.rank ?? 0));
   }
   return families;
 }

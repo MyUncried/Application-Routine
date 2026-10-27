@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { ActivityIndicator, Animated, Modal, Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
@@ -8,7 +8,13 @@ import type { VariantPlacement } from "@/features/activities/MovementResultCard"
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
 import { levelPastilleLabel } from "@/features/activities/MovementLevelMenu";
-import type { MovementCatalogueEntry, MovementCatalogueService, MovementLifecycleResult } from "@/features/activities/MovementCatalogueService";
+import {
+  familyPositionOf,
+  type MovementCatalogueEntry,
+  type MovementCatalogueService,
+  type MovementLifecycleResult,
+} from "@/features/activities/MovementCatalogueService";
+import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { strings } from "@/shared/i18n";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
@@ -140,6 +146,15 @@ export function MovementCatalogueList({
   const [drag, setDrag] = useState<Drag | null>(null);
   const [override, setOverride] = useState<OrderOverride | null>(null);
   const [memberStep, setMemberStep] = useState(CARD_HEIGHT + MEMBER_GAP);
+
+  // Recette A/B du 27/10 (remarque 4) : au retour dans le Catalogue (`reloadToken`), aucune carte
+  // ne reste ouverte ni aucun choix de Niveau déployé ; filtres, recherche et piles dépliées restent.
+  const [seenReloadToken, setSeenReloadToken] = useState(reloadToken);
+  if (seenReloadToken !== reloadToken) {
+    setSeenReloadToken(reloadToken);
+    setRevealedId(null);
+    setVariantFor(null);
+  }
   const lastTouchY = useRef(0);
 
   const items = useMemo(() => {
@@ -211,8 +226,8 @@ export function MovementCatalogueList({
   const commitOrder = (pileKey: string, shownDescending: readonly string[]) => {
     if (!catalogue || state.status !== "ready") return;
     const familyAscending = state.entries
-      .filter((entry) => entry.movement.levelGroup?.groupId === pileKey && entry.level !== null)
-      .sort((left, right) => (left.level?.rank ?? 0) - (right.level?.rank ?? 0))
+      .filter((entry) => entry.movement.levelGroup?.groupId === pileKey && familyPositionOf(entry) !== null)
+      .sort((left, right) => (familyPositionOf(left)?.rank ?? 0) - (familyPositionOf(right)?.rank ?? 0))
       .map((entry) => entry.movement.id);
     setReorderFailed(false);
     setOverride({ entries: state.entries, pileKey, ids: shownDescending });
@@ -356,6 +371,10 @@ export function MovementCatalogueList({
     const ids = item.members.map((member) => member.movement.id);
     const pileDrag = drag !== null && drag.pileKey === item.key ? drag : null;
     const dropIndex = pileDrag !== null ? dragTarget(pileDrag) : null;
+    // Recette A/B du 27/10 (remarque 2) : pendant le glisser et jusqu'à la relecture du nouvel ordre,
+    // ni découpe ni transition de place — la carte portée reste visible au-dessus des autres, les
+    // voisines se décalent sous elle (`DragShift`) et rien ne saute à la dépose.
+    const settling = pileDrag !== null || (override !== null && override.pileKey === item.key && state.status === "ready" && override.entries === state.entries);
     const leaves = Math.min(item.members.length - 1, 2);
     return (
       <View
@@ -444,16 +463,23 @@ export function MovementCatalogueList({
             <SheetMotionView
               key={member.movement.id}
               appear={index > 0}
+              clip={!settling}
+              transition={!settling}
               bleed={layout.screenGutter}
               raised={isLifted}
-              style={[
-                index > 0 ? styles.memberSpacing : null,
-                isLifted ? [styles.lifted, { transform: [{ translateY: pileDrag.dy }] }] : shift !== 0 ? { transform: [{ translateY: shift }] } : null,
-              ]}
+              style={[index > 0 ? styles.memberSpacing : null, isLifted ? styles.liftedFrame : null]}
               onLayout={index === 0 && isExpanded ? (event: LayoutChangeEvent) => setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP) : undefined}
               testID={`movement-pile-${item.key}-member-${member.movement.id}`}
             >
-              {row}
+              {isLifted ? (
+                <View style={[styles.lifted, { transform: [{ translateY: pileDrag.dy }] }]} testID={`movement-pile-${item.key}-lifted`}>
+                  {row}
+                </View>
+              ) : (
+                <DragShift shift={shift} active={pileDrag !== null} reduceMotion={reduceMotion}>
+                  {row}
+                </DragShift>
+              )}
             </SheetMotionView>
           );
         })}
@@ -545,6 +571,40 @@ export function MovementCatalogueList({
 }
 
 /** « Archivage impossible » (Figma `10495:24054`) ; même patron pour un refus de suppression. */
+/**
+ * Recette A/B du 27/10 (remarque 2) : décalage d'une voisine pendant le glisser d'une pile,
+ * progressif (`MOTION_SHIFT_DURATION_MS`, immédiat si « Réduire les animations ») ; à la dépose
+ * (`active` faux) il revient à zéro sans animation, la nouvelle place prenant le relais.
+ */
+function DragShift({
+  shift,
+  active,
+  reduceMotion,
+  children,
+}: {
+  readonly shift: number;
+  readonly active: boolean;
+  readonly reduceMotion: boolean;
+  readonly children: ReactNode;
+}) {
+  const [offset] = useState(() => new Animated.Value(0));
+  useEffect(() => {
+    if (!active || reduceMotion) {
+      offset.setValue(active ? shift : 0);
+      return;
+    }
+    const animation = Animated.timing(offset, {
+      toValue: shift,
+      duration: MOTION_SHIFT_DURATION_MS,
+      easing: MOTION_EASING,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [offset, shift, active, reduceMotion]);
+  return <Animated.View style={{ transform: [{ translateY: offset }] }}>{children}</Animated.View>;
+}
+
 function RefusalDialog({ refusal, onClose }: { readonly refusal: Refusal; readonly onClose: () => void }) {
   const texts = refusal.kind === "ARCHIVE" ? t.archiveRefused : t.deleteRefused;
   const message =
@@ -679,6 +739,11 @@ const styles = StyleSheet.create({
   },
   memberSpacing: {
     paddingTop: MEMBER_GAP,
+  },
+  // Cadre de la carte portée : au-dessus des voisines (le `raised` du cadre porte le zIndex).
+  liftedFrame: {
+    zIndex: 2,
+    elevation: 8,
   },
   lifted: {
     shadowColor: colors.movementCardShadow,

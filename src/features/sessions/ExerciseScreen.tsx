@@ -440,6 +440,8 @@ function editorLevelOf(
         name: entry.movement.name,
         // PRE-8 (B.8, Q5, Q6) : un membre archivé garde son rang mais n'est pas sélectionnable.
         movementId: entry.archived === true ? undefined : entry.movement.id,
+        // Recette A/B B.10 (q6-2) : et il est signalé « (archivé) » dans le menu.
+        archived: entry.archived === true,
         exercises: (entry.archived === true ? [] : entry.definitions).map((definition) => ({
           definitionId: definition.id,
           summary: formatExerciseRowSummary(definition),

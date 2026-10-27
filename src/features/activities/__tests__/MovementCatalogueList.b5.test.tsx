@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
@@ -177,6 +178,27 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
     expect(screen.queryByTestId("movement-card-gainage-variant-choices")).toBeNull();
   });
 
+  it("recette A/B du 27/10 (remarque 4) : au retour dans le Catalogue, la carte ouverte se referme, la pile dépliée reste", async () => {
+    await seed();
+    const provided = service();
+    const tree = (reloadToken: number) => (
+      <ActivityDefinitionServiceContext.Provider value={provided}>
+        <MovementCatalogueList reloadToken={reloadToken} query="" filters={EMPTY_MOVEMENT_FILTERS} onOpenMovement={jest.fn()} onCreateVariant={jest.fn()} />
+      </ActivityDefinitionServiceContext.Provider>
+    );
+    const view = render(tree(0));
+    await settle();
+    await press("movement-card-jump-card");
+    await swipeOpen("fentes");
+    expect(screen.getByTestId("movement-card-fentes-actions")).toBeTruthy();
+    await act(async () => {
+      view.rerender(tree(1));
+    });
+    await settle();
+    expect(screen.queryByTestId("movement-card-fentes-actions")).toBeNull();
+    expect(names()).toEqual(["Fentes avant", "Squats sautés", "Squats", "Squats assistés"]);
+  });
+
   it("B09 : la carte du dessus d'une pile condensée ne glisse pas et n'annonce aucune action ; dépliée, elle glisse", async () => {
     await seed();
     await renderList();
@@ -217,6 +239,11 @@ describe("PRE-8 B.5 à B.8 — Catalogue des Mouvements", () => {
     await act(async () => {
       fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchMove", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });
     });
+    // Remarque 2 (27/10) : la carte portée suit le doigt au-dessus des autres ; aucun cadre ne la découpe.
+    expect(screen.getByTestId(`movement-pile-${group}-lifted`).props.style).toEqual(
+      expect.arrayContaining([{ transform: [{ translateY: 2 * 84 }] }]),
+    );
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-member-squat`).props.style)?.overflow).not.toBe("hidden");
     await act(async () => {
       fireEvent(screen.getByTestId(`movement-pile-${group}-expanded`), "touchEnd", { nativeEvent: { pageX: 100, pageY: 100 + 2 * 84 } });
     });

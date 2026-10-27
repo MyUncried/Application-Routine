@@ -270,18 +270,23 @@ export function MovementSheet({
 
   const onlyNameEntered = draftKey({ ...draft, name: "", categoryId: null, bodyZoneIds: [] }) === draftKey(EMPTY_DRAFT);
   const searchContext = useMemo(() => ({ categoryId: draft.categoryId, bodyZoneIds: draft.bodyZoneIds }), [draft.categoryId, draft.bodyZoneIds]);
+  // Recette A/B B.10 (remarque 7) : la recherche de mouvement similaire vaut aussi pour un nouveau
+  // niveau (menu Niveau, Plus facile / Plus difficile du Catalogue), dès que le nom repris est modifié
+  // (invite « (compléter le nom) » retirée) — même mécanisme que la création.
   const originChoice = useMovementOriginChoice({
     service,
     name: draft.name,
-    available: mode === "create" && variant === null && loadState === "ready" && onlyNameEntered,
+    available: mode === "create" && !nameHintVisible && loadState === "ready" && onlyNameEntered,
     uniqueness: {
       excludedMovementId: mode === "edit" ? (origin?.id ?? null) : null,
       suspended: mode === "consult",
       messageHidden: nameHintVisible,
     },
     context: searchContext,
+    // Recette A/B B.10 (remarque 6) : « Ajouter un niveau » / « Ouvrir ce mouvement ».
+    actionLabels: t.suggestion,
     onSameMovement: (choice) => {
-      // « Utiliser ce mouvement » : la fiche existante, en consultation ; aucun duplicata.
+      // « Ouvrir ce mouvement » : la fiche existante, en consultation ; aucun duplicata.
       router.replace({ pathname: "/movement", params: { movementId: choice.movement.id } });
     },
     onVariant: (choice, placement) => {
@@ -311,6 +316,10 @@ export function MovementSheet({
     }));
   }
 
+  // Recette A/B B.10 (b2-5, remarque 7) : en création (Mouvement ou niveau), un nom déjà utilisé
+  // garde le clavier sur le Nom à l'appui sur Entrée et rend le reste de la fiche non modifiable
+  // jusqu'à un nom disponible ; le message d'unicité (`10175:20349`) reste affiché au-dessus.
+  const isNameBlocking = mode === "create" && originChoice.nameTaken;
   const candidate = movementOfDraft(draft, origin?.id ?? "draft", origin?.levelGroup ?? null);
   const isValid = validateMovement(candidate).ok;
 
@@ -386,7 +395,18 @@ export function MovementSheet({
       position: levels.position,
       menu: {
         currentDefinitionId: null,
-        levels: levels.levels.map((entry) => ({ rank: entry.rank, total, name: entry.movement.name, movementId: entry.movement.id, exercises: [] })),
+        // Recette A/B B.10 (q6-2) : un niveau archivé reste consultable, signalé « (archivé) ».
+        levels: levels.levels.map((entry) => ({
+          rank: entry.rank,
+          total,
+          name: entry.movement.name,
+          movementId: entry.movement.id,
+          exercises: [],
+          archived: entry.archived === true,
+        })),
+        // Recette A/B B.10 (b2-8) : « Ouvrir un autre niveau », textes réduits (panneau de repli).
+        levelsLabel: strings.screens.activities.editor.levelMenu.openOtherLevel,
+        compact: true,
         onChangeLevel: () => undefined,
         // « Ajouter un niveau » : variante explicite de ce mouvement, avant ou après lui.
         onAddLevel: isArchived ? null : (placement) => router.push({ pathname: "/movement", params: { variantOf: origin.id, placement } }),
@@ -458,7 +478,14 @@ export function MovementSheet({
           contentLocked={mode === "consult"}
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
-          nameHint={nameHintVisible ? editorStrings.movementSuggestion.completeNameHint : null}
+          // Recette A/B B.10 (q6-2) : un Mouvement archivé est signalé après son nom, en gris.
+          nameHint={
+            isArchived ? t.archivedNameSuffix : nameHintVisible ? editorStrings.movementSuggestion.completeNameHint : null
+          }
+          // Recette A/B B.10 (remarque 5) : curseur dans le Nom à l'ouverture d'une création.
+          autoFocusName={mode === "create"}
+          bodyLocked={isNameBlocking}
+          keepNameFocusOnSubmit={isNameBlocking}
           level={levelMenu}
           mediaService={service}
           mediaDraftId={mediaDraftId}

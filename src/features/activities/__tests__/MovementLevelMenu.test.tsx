@@ -384,3 +384,36 @@ describe("PRE-7 A3.2 / R-9 — accès à l'écran des niveaux (D-448 point 9)", 
     expect(model.onChangeLevel).not.toHaveBeenCalled();
   });
 });
+
+describe("Recette A/B B.10 — menu Niveau de la fiche Mouvement", () => {
+  it("b2-8 et q6-2 : « Ouvrir un autre niveau », textes réduits (repli), niveau archivé signalé « (archivé) »", () => {
+    const model = menuModel({
+      currentDefinitionId: null,
+      levels: [
+        { rank: 1, total: 2, name: "Squats assistés", exercises: [], movementId: "m1", archived: true },
+        { rank: 2, total: 2, name: "Squats", exercises: [], movementId: "m2" },
+      ],
+      movementChoice: { currentMovementId: "m2", onChangeMovement: jest.fn() },
+      levelsLabel: "Ouvrir un autre niveau",
+      compact: true,
+    });
+    render(<MovementLevelPanel menu={model} placement={{ top: 40, right: 16 }} onDismiss={jest.fn()} testID="panel" />);
+    expect(screen.getByTestId("panel-change").props.accessibilityLabel).toBe("Ouvrir un autre niveau");
+    expect(StyleSheet.flatten(within(screen.getByTestId("panel-add")).getByText("Ajouter un niveau").props.style)).toMatchObject({
+      fontSize: 12,
+    });
+    fireEvent.press(screen.getByTestId("panel-change"));
+    expect(screen.getByTestId("panel-level-1").props.accessibilityLabel).toBe("Niveau 1 sur 2 · Squats assistés (archivé)");
+    expect(screen.getByTestId("panel-level-2").props.accessibilityLabel).toBe("Niveau 2 sur 2 · Squats");
+    // Choix par mouvement : le niveau archivé reste consultable (lecture seule, B.8).
+    expect(screen.getByTestId("panel-level-1").props.accessibilityState).toEqual({ selected: false, disabled: false });
+  });
+
+  it("sans intitulé propre : « Naviguer vers » / « Changer de niveau » et taille inchangés", () => {
+    render(<MovementLevelPanel menu={menuModel()} placement={{ top: 40, right: 16 }} onDismiss={jest.fn()} testID="panel" />);
+    expect(screen.getByTestId("panel-change").props.accessibilityLabel).toBe("Naviguer vers");
+    expect(StyleSheet.flatten(within(screen.getByTestId("panel-add")).getByText("Ajouter un niveau").props.style)).toMatchObject({
+      fontSize: 13,
+    });
+  });
+});

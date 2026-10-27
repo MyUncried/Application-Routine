@@ -51,11 +51,46 @@ export type MovementPhasesEditorProps = {
   readonly value: MovementPhaseList;
   readonly onChange: (next: MovementPhaseList) => void;
   readonly editable: boolean;
+  /**
+   * Recette A/B B.10 (b2-4) : bloc en saisie ou non (gabarit photo remonté, ↑ de fermeture du
+   * clavier). Le passage d'une ligne à l'autre n'est pas une fin de saisie (perte de focus différée,
+   * comme `DescriptionSteps`).
+   */
+  readonly onFocusChange?: (focused: boolean) => void;
   readonly testID?: string;
 };
 
-export function MovementPhasesEditor({ value, onChange, editable, testID = "movement-phases" }: MovementPhasesEditorProps) {
-  const [active, setActive] = useState(false);
+export function MovementPhasesEditor({ value, onChange, editable, onFocusChange, testID = "movement-phases" }: MovementPhasesEditorProps) {
+  const [active, setActiveState] = useState(false);
+  const onFocusChangeRef = useRef(onFocusChange);
+  useEffect(() => {
+    onFocusChangeRef.current = onFocusChange;
+  });
+  const pendingBlur = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (pendingBlur.current !== null) clearTimeout(pendingBlur.current);
+    },
+    [],
+  );
+  function setActive(next: boolean) {
+    if (pendingBlur.current !== null) {
+      clearTimeout(pendingBlur.current);
+      pendingBlur.current = null;
+    }
+    if (next) {
+      setActiveState(true);
+      onFocusChangeRef.current?.(true);
+      return;
+    }
+    // Sur iOS, la perte de focus de l'ancienne ligne peut précéder le focus de la nouvelle : différée,
+    // et annulée par ce focus.
+    pendingBlur.current = setTimeout(() => {
+      pendingBlur.current = null;
+      setActiveState(false);
+      onFocusChangeRef.current?.(false);
+    }, 0);
+  }
   // Une saisie dans l'invite crée la phase et y déplace le focus : la suite de la frappe complète
   // CETTE phase (jamais une phase par caractère). Clé `"invite"` : la ligne d'invite.
   const inputs = useRef(new Map<number | "invite", TextInput>());

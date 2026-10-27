@@ -13,6 +13,7 @@ import {
   findNodeHandle,
   useWindowDimensions,
 } from "react-native";
+import Reanimated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import {
   hasMissingPhaseDuration,
@@ -201,6 +202,15 @@ export type ActivityEditorFormProps = {
   variant?: "exercise" | "movement";
   /** PRE-8 (B.2) : structure des phases du Mouvement (variante `"movement"` seulement). */
   movementPhases?: { readonly value: MovementPhaseList; readonly onChange: (next: MovementPhaseList) => void } | null;
+  /** Recette A/B B.10 (remarque 5) : le Nom prend le focus à l'ouverture (création). Défaut `false`. */
+  autoFocusName?: boolean;
+  /**
+   * Recette A/B B.10 (b2-5) : nom déjà utilisé en création — Nom seul modifiable ; Catégorie, Zones,
+   * Description, phases et médias non modifiables (consultation des médias conservée). Défaut `false`.
+   */
+  bodyLocked?: boolean;
+  /** Recette A/B B.10 (b2-5) : Entrée garde le clavier et le focus sur le Nom (aucune fin de saisie). */
+  keepNameFocusOnSubmit?: boolean;
 };
 
 /** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
@@ -211,6 +221,15 @@ export const MOVEMENT_PHOTO_TEMPLATE = { width: 402, height: 329 } as const;
  * contexte 115, gabarit à y 94 dans le formulaire), dont le dégradé recouvre ses 21 premiers points.
  */
 export const MOVEMENT_PHOTO_UNDER_CONTEXT = 21;
+
+/**
+ * Recette A/B B.10 (b2-4, demande de Hermann) : pendant la saisie de la Description ou des Phases,
+ * le gabarit photo remonte derrière la zone de contexte (hauteur visible réduite à la part qu'elle
+ * recouvre, image entraînée vers le haut) pour laisser le champ actif au-dessus du clavier ; il
+ * reprend sa place à la fin de la saisie. Durée et courbe des feuilles (`SheetMotion`, 350 ms) ;
+ * « Réduire les animations » : changement immédiat (`ReduceMotion.System`).
+ */
+const MOVEMENT_PHOTO_RAISE_TIMING = { duration: 350, easing: Easing.out(Easing.cubic), reduceMotion: ReduceMotion.System };
 
 /**
  * Validité du brouillon d'Exercice : Nom valide et paramètres valides par la
@@ -360,6 +379,9 @@ export function ActivityEditorForm({
   errorTestID,
   variant = "exercise",
   movementPhases = null,
+  autoFocusName = false,
+  bodyLocked = false,
+  keepNameFocusOnSubmit = false,
 }: ActivityEditorFormProps) {
   const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
@@ -412,6 +434,31 @@ export function ActivityEditorForm({
     const subscription = Keyboard.addListener("keyboardDidShow", () => revealDescription());
     return () => subscription.remove();
   }, [isDescriptionFocused]);
+  // Recette A/B B.10 (b2-4) : Phases du mouvement — même recadrage que la Description, sur le bas
+  // du bloc (la ligne d'invite, dernière, est la ligne en saisie ou juste sous elle).
+  const [isPhasesFocused, setIsPhasesFocused] = useState(false);
+  const phasesLayoutRef = useRef({ y: 0, height: 0 });
+  function revealPhases() {
+    const { y, height } = phasesLayoutRef.current;
+    const viewport = bodyHeightRef.current;
+    if (viewport <= 0) return;
+    bodyScrollRef.current?.scrollTo({ y: Math.max(0, y + height + DESCRIPTION_KEYBOARD_GAP - viewport), animated: true });
+  }
+  useEffect(() => {
+    if (!isPhasesFocused) return;
+    const subscription = Keyboard.addListener("keyboardDidShow", () => revealPhases());
+    return () => subscription.remove();
+  }, [isPhasesFocused]);
+  // Recette A/B B.10 (b2-4) : gabarit photo remonté pendant la saisie (voir `MOVEMENT_PHOTO_RAISE_TIMING`).
+  const isPhotoRaised = isMovement && (isDescriptionFocused || isPhasesFocused);
+  const photoVisibleHeight = useSharedValue(movementPhotoHeight);
+  useEffect(() => {
+    photoVisibleHeight.value = withTiming(isPhotoRaised ? MOVEMENT_PHOTO_UNDER_CONTEXT : movementPhotoHeight, MOVEMENT_PHOTO_RAISE_TIMING);
+  }, [isPhotoRaised, movementPhotoHeight, photoVisibleHeight]);
+  const photoClipStyle = useAnimatedStyle(() => ({ height: photoVisibleHeight.value }));
+  const photoContentStyle = useAnimatedStyle(() => ({ transform: [{ translateY: photoVisibleHeight.value - movementPhotoHeight }] }));
+  // Recette A/B B.10 (b2-5) : contenu hors Nom verrouillé tant que le nom saisi est déjà utilisé.
+  const isBodyLocked = contentLocked || bodyLocked;
   // PRE-7 (D-446, MFN-08) : durée de phase manquante → « Paramètres à compléter. », comme lorsque
   // la Cible d'un frère incomplet était forcée à `UNSET` (phrase `null`) avant D-446.
   const segments = parameters.mode === null || hasMissingPhaseDuration(parameters) ? null : generateExecutionPhrase(parameters);
@@ -433,6 +480,9 @@ export function ActivityEditorForm({
   // PRE-7 (R-5, R04) : position du panneau sous le nom, relevée par `onLayout` (bandeau dans son
   // parent, champ dans le bandeau) ; l'hôte en surimpression couvre le même parent.
   const [bandY, setBandY] = useState(0);
+  // Recette A/B B.10 (b2-5) : fiche Mouvement — panneau posé sous la zone de contexte, au-dessus
+  // d'elle dans l'ordre d'affichage (elle passe au-dessus du média depuis F01).
+  const [bandHeight, setBandHeight] = useState(0);
   const [nameLayout, setNameLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   // PRE-7 (R-5, R04) : hauteur du panneau bornée par l'espace disponible au-dessus du clavier
   // (haut du panneau dans la fenêtre, hauteur du clavier) — ses cartes y défilent, clavier ouvert.
@@ -483,7 +533,7 @@ export function ActivityEditorForm({
         onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
         onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
         onRetry={media.retry}
-        editable={!contentLocked}
+        editable={!isBodyLocked}
         {...(template ? { template } : {})}
       />
     );
@@ -498,7 +548,10 @@ export function ActivityEditorForm({
     <>
       <View
         style={[styles.contextBand, isMovement ? styles.movementContextBand : null, { paddingHorizontal: sideMargin }]}
-        onLayout={(event) => setBandY(event.nativeEvent.layout.y)}
+        onLayout={(event) => {
+          setBandY(event.nativeEvent.layout.y);
+          setBandHeight(event.nativeEvent.layout.height);
+        }}
         testID="exercise-context-band"
       >
         {/* PRE-8, recette A/B (F01) : sur la fiche Mouvement, la « Zone bleue » se fond dans le média
@@ -544,6 +597,9 @@ export function ActivityEditorForm({
           editable={!contentLocked}
           onFocus={() => setIsNameFocused(true)}
           onBlur={() => setIsNameFocused(false)}
+          autoFocus={autoFocusName}
+          // Recette A/B B.10 (b2-5) : nom déjà utilisé — Entrée ne quitte pas le Nom (clavier conservé).
+          {...(keepNameFocusOnSubmit ? { submitBehavior: "submit" as const } : {})}
           {...(onNameEndEditing ? { onEndEditing: onNameEndEditing } : {})}
           // PRE-7 (R-5, C02) : l'invite grise est annoncée, sans entrer dans la valeur.
           {...(nameHint ? { accessibilityHint: nameHint } : {})}
@@ -589,14 +645,14 @@ export function ActivityEditorForm({
             ref={categoryAccess}
             onPress={onOpenCategory}
             // PRE-7 (A2.2, MFN-09) : Catégorie du geste verrouillé, affichée sans accès.
-            {...(contentLocked ? { disabled: true } : {})}
+            {...(isBodyLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             accessibilityLabel={
               category ? `${editor.category.label} ${category.name}` : editor.category.unsetAccessibilityLabel
             }
             // Revue 4.3 : feuille ouverte annoncée « développé », Catégorie renseignée comprise
             // (le glyphe d'une Catégorie renseignée n'a pas d'état ouvert visuel : écart E-V12).
-            accessibilityState={contentLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
+            accessibilityState={isBodyLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
             hitSlop={accessHitSlop}
             style={[styles.referenceAccess, category ? null : styles.referenceAccessUnset]}
             testID="activity-editor-category-button"
@@ -628,7 +684,7 @@ export function ActivityEditorForm({
               bodyZonesSheet.open();
             }}
             // PRE-7 (A2.2, MFN-09) : Zones du geste verrouillé, affichées sans accès.
-            {...(contentLocked ? { disabled: true } : {})}
+            {...(isBodyLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             // Revue 4.3 (WCAG 2.5.3) : le nom accessible contient le texte visible —
             // « Zone corporelle — non renseignée » au repos, comme la Catégorie ; renseigné,
@@ -638,7 +694,7 @@ export function ActivityEditorForm({
                 ? `${t.bodyZones.accessibilityLabel} ${zoneNames.join(", ")}`
                 : t.bodyZones.unsetAccessibilityLabel
             }
-            accessibilityState={contentLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
+            accessibilityState={isBodyLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
             hitSlop={accessHitSlop}
             style={[
               styles.referenceAccess,
@@ -696,9 +752,13 @@ export function ActivityEditorForm({
         // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
         // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
         // La hauteur suit la largeur du terminal (402 × 329 en référence).
-        <View style={[styles.movementPhotoTemplate, { height: movementPhotoHeight }]} testID="movement-photo-template">
-          {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
-        </View>
+        // Recette A/B B.10 (b2-4) : cadre à hauteur animée, image ancrée en haut et entraînée vers le
+        // haut du même déplacement — le gabarit remonte derrière la zone de contexte pendant la saisie.
+        <Reanimated.View style={[styles.movementPhotoTemplate, photoClipStyle]} testID="movement-photo-template">
+          <Reanimated.View style={[{ height: movementPhotoHeight }, photoContentStyle]} testID="movement-photo-content">
+            {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
+          </Reanimated.View>
+        </Reanimated.View>
       ) : null}
 
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
@@ -743,7 +803,7 @@ export function ActivityEditorForm({
               <DescriptionSteps
                 steps={value.instructionSteps}
                 onChange={(steps) => onChange({ instructionSteps: steps })}
-                editable={!contentLocked}
+                editable={!isBodyLocked}
                 onFocusChange={setIsDescriptionFocused}
                 onActiveRowBottomChange={(bottom) => {
                   descriptionLayoutRef.current.activeRowBottom = bottom;
@@ -771,8 +831,36 @@ export function ActivityEditorForm({
           {isMovement ? (
             // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
             movementPhases ? (
-              <View style={[styles.section, styles.followingSection]} testID="movement-section-phases">
-                <MovementPhasesEditor value={movementPhases.value} onChange={movementPhases.onChange} editable={!contentLocked} />
+              <View
+                style={[styles.section, styles.followingSection]}
+                onLayout={(event) => {
+                  phasesLayoutRef.current = { y: event.nativeEvent.layout.y, height: event.nativeEvent.layout.height };
+                  if (isPhasesFocused) revealPhases();
+                }}
+                testID="movement-section-phases"
+              >
+                {/* Recette A/B B.10 (b2-4) : même place réservée et même ↑ que la Description (D-351) :
+                    ↑ ferme seulement le clavier, rien n'est enregistré. */}
+                <View style={styles.descriptionStepsWithSend}>
+                  <MovementPhasesEditor
+                    value={movementPhases.value}
+                    onChange={movementPhases.onChange}
+                    editable={!isBodyLocked}
+                    onFocusChange={setIsPhasesFocused}
+                  />
+                </View>
+                {isPhasesFocused ? (
+                  <Pressable
+                    onPress={() => Keyboard.dismiss()}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.screens.movement.phasesSubmitAccessibilityLabel}
+                    hitSlop={(minTouchTarget - DESCRIPTION_SEND_SIZE) / 2}
+                    style={styles.descriptionSend}
+                    testID="movement-phases-submit"
+                  >
+                    <Text style={styles.descriptionSendSymbol}>↑</Text>
+                  </Pressable>
+                ) : null}
               </View>
             ) : null
           ) : (
@@ -886,14 +974,14 @@ export function ActivityEditorForm({
         // PRE-7 (R-5, v7 §6 R03-R04 ; `9882:19049`) : panneau superposé sous le nom, clavier visible,
         // dans un hôte qui couvre l'Éditeur (un toucher hors des limites du parent n'atteint pas ses
         // enfants sur Android) ; l'hôte laisse passer les touchers hors du panneau.
-        <View pointerEvents="box-none" style={styles.levelPanelHost} testID="exercise-name-assist-host">
+        <View pointerEvents="box-none" style={[styles.levelPanelHost, isMovement ? styles.movementOverlayHost : null]} testID="exercise-name-assist-host">
           <View
             ref={nameAssistRef}
             onLayout={() => nameAssistRef.current?.measureInWindow((_x, y) => setNameAssistTop(y))}
             style={[
               styles.nameAssist,
               {
-                top: bandY + nameLayout.y + nameLayout.height,
+                top: isMovement ? bandY + bandHeight : bandY + nameLayout.y + nameLayout.height,
                 left: sideMargin,
                 right: sideMargin,
                 maxHeight: nameAssistMaxHeight,
@@ -907,7 +995,12 @@ export function ActivityEditorForm({
       ) : null}
 
       {levelMenu && Platform.OS !== "ios" ? (
-        <View ref={levelPanelHostRef} pointerEvents="box-none" style={styles.levelPanelHost} testID="activity-editor-level-panel-host">
+        <View
+          ref={levelPanelHostRef}
+          pointerEvents="box-none"
+          style={[styles.levelPanelHost, isMovement ? styles.movementOverlayHost : null]}
+          testID="activity-editor-level-panel-host"
+        >
           {levelPanelPlacement !== null ? (
             <MovementLevelPanel
               menu={levelMenu}
@@ -1277,6 +1370,10 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
+  },
+  // Recette A/B B.10 (b2-5) : au-dessus de la zone de contexte de la fiche Mouvement (`zIndex` 1, F01).
+  movementOverlayHost: {
+    zIndex: 2,
   },
   referenceAccessUnset: {
     backgroundColor: ACCESS_UNSET_VEIL,

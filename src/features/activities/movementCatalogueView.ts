@@ -1,6 +1,6 @@
 import { rankMovements } from "@/domain/activities/movementSuggestion";
 
-import { groupFamilies, type MovementCatalogueEntry } from "./MovementCatalogueService";
+import { familyPositionOf, groupFamilies, type MovementCatalogueEntry } from "./MovementCatalogueService";
 
 /**
  * PRE-8 (stories B.5 et B.7) — vue du Catalogue des Mouvements : piles, recherche et filtres,
@@ -10,9 +10,11 @@ import { groupFamilies, type MovementCatalogueEntry } from "./MovementCatalogueS
  *    archivés ; les deux : les deux. Aucun autre filtre ne rend visible un archivé.
  * 2. **Recherche et autres filtres ensuite** (ET entre groupes, OU dans un groupe ; Catégories et
  *    Zones : au moins une valeur commune). Une famille dont AU MOINS UN membre autorisé correspond
- *    est affichée avec TOUS ses membres autorisés ; un Mouvement indépendant est filtré seul.
- * 3. **Familles intactes.** Rangs et totaux restent ceux de la famille complète, membres archivés
- *    compris (`entry.level`, calculé par le service) ; rien n'est reclassé ni réordonné.
+ *    est affichée ; un Mouvement indépendant est filtré seul. Recette A/B du 27/10 (b7-5) : avec la
+ *    Recherche seule, la pile garde TOUS ses membres autorisés ; dès qu'un autre filtre est choisi,
+ *    elle n'affiche que les membres autorisés qui correspondent à ces filtres.
+ * 3. **Ordre de la famille.** Les piles suivent l'ordre de la famille complète, archivés compris
+ *    (`familyPositionOf`) ; le rang affiché est celui du service (`entry.level`, b8-3).
  *
  * Présentation : une famille d'au moins deux membres affichés forme une pile, rang le plus haut
  * en tête (arbitrage Q-B2) ; un seul membre affiché est une carte simple, qui garde sa pastille.
@@ -80,6 +82,11 @@ export function matchesMovementFilters(entry: MovementCatalogueEntry, filters: M
   );
 }
 
+/** Un filtre autre que Statut est choisi (b7-5). */
+function hasMemberFilters(filters: MovementCatalogueFilters): boolean {
+  return countActiveFilters(filters) - filters.statuses.size > 0;
+}
+
 /**
  * Éléments affichés. Requête vide : ordre des familles du Catalogue (`groupFamilies`) ; sinon
  * ordre R02 (`rankMovements`, nom et alias) du meilleur membre correspondant de chaque famille.
@@ -111,8 +118,13 @@ export function visibleMovementItems(
     if (matching.length === 0) return;
     const order =
       matchesQuery === null ? familyIndex : Math.min(...matching.map((entry) => matchesQuery.get(entry.movement.id)!));
-    // Une famille garde tous ses membres autorisés ; un Mouvement indépendant est seul (`groupFamilies`).
-    const shown = [...family.members].sort((left, right) => (right.level?.rank ?? 0) - (left.level?.rank ?? 0));
+    // b7-5 : Recherche seule, tous les membres autorisés ; autres filtres, seuls les correspondants.
+    const members = hasMemberFilters(filters)
+      ? family.members.filter((entry) => matchesMovementFilters(entry, filters))
+      : family.members;
+    const shown = [...members].sort(
+      (left, right) => (familyPositionOf(right)?.rank ?? 0) - (familyPositionOf(left)?.rank ?? 0),
+    );
     kept.push({
       order,
       item:

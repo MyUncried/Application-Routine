@@ -498,6 +498,8 @@ describe("CatalogueScreen — cadre commun", () => {
       expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(44);
     }
     expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
+    // Remarque 9 de la recette A/B du 27/10 : 8 sous les segments, comme sur `main`.
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).marginTop).toBe(8);
   });
 
   it("shows Rechercher in the command row on the Mouvements segment only, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {

@@ -21,6 +21,7 @@ development_status:
   b-7-filtres-et-recherche-combines: done
   b-8-archivage-restauration-suppression: done  # migration 015
   b-9-corrections-recette-a-b: review  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; validation sur appareil attendue
+  b-10-corrections-second-passage: review  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture bloqué (expo-blur)
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), epic-e (Catalogue unique), formats
 deferred:
   - id: q-e1

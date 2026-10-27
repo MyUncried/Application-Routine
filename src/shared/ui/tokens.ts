@@ -236,6 +236,9 @@ export const type = {
   activityTitle: { ...semiBold, fontSize: 28, lineHeight: 34 },
   metricPrimary: { ...semiBold, fontSize: 22, lineHeight: 27 },
   screenTitle: { ...semiBold, fontSize: 20, lineHeight: 24 },
+  // PRE-8, recette A/B du 27/10 (r9-a02) : tous les titres d'écran en Inter Medium 17 (interligne
+  // Auto `round(1,2102 × 17)` = 21). `screenTitle` reste le style des noms saisis (Mouvement, Séance).
+  screenHeaderTitle: { ...medium, fontSize: 17, lineHeight: 21 },
   modalTitle: { ...semiBold, fontSize: 18, lineHeight: 22 },
   sectionTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },
   cardTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },

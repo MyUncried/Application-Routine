@@ -302,6 +302,10 @@ export const fr = {
           addEasier: "Plus facile",
           addHarder: "Plus difficile",
           levelOption: "Niveau {rank} sur {total} · {name}",
+          // Recette A/B B.10 (q6-2) : un niveau archivé est signalé dans le menu.
+          levelOptionArchived: "Niveau {rank} sur {total} · {name} (archivé)",
+          // Recette A/B B.10 (b2-8) : sous-menu des niveaux de la fiche Mouvement (Catalogue des Mouvements).
+          openOtherLevel: "Ouvrir un autre niveau",
           // PRE-7 story A3.2 : accès à l’écran des niveaux (aucun libellé documenté ; verbe de ch03
           // l.154 « glisser réordonne les niveaux »). R-9 (D-448 point 9) : troisième entrée de la
           // racine du menu, retirée du sous-menu des niveaux.
@@ -1065,6 +1069,17 @@ export const fr = {
       saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
       // Recette A/B (F03) : titre de la Description sur la fiche Mouvement (Figma `10453:23036`).
       descriptionTitle: "Description du mouvement",
+      // Recette A/B B.10 (q6-2) : invite grise après le nom d'un Mouvement archivé.
+      archivedNameSuffix: "(archivé)",
+      // Recette A/B B.10 (remarque 4) : compteur du gabarit photo, à la place du badge « Vidéo ».
+      mediaCounter: "{rank} / {total}",
+      // Recette A/B B.10 (remarque 6) : actions des cartes de résultat de la fiche Mouvement.
+      suggestion: {
+        useMovement: "Ouvrir ce mouvement",
+        createVariant: "Ajouter un niveau",
+      },
+      // Recette A/B B.10 (b2-4) : ↑ des Phases, qui ferme le clavier comme celui de la Description.
+      phasesSubmitAccessibilityLabel: "Valider les phases",
       phases: {
         title: "Phases du mouvement (pour minuter l’exécution)",
         firstPlaceholder: "Nommez la première phase",

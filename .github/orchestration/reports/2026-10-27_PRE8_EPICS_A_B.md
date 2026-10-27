@@ -225,3 +225,25 @@ Source : collection `results` du cahier de recette (https://claude.ai/artifact/K
 **Constat technique (alias).** Le modèle, la persistance (`movement_aliases`, migration 013) et la recherche (`rankMovements`) gèrent les alias, mais aucun écran ne permet d'en saisir (`aliases: []` à la création) et aucun jeu de données n'en contient. Il n'existe pas d'interface d'administration de la base. La recherche par alias n'est donc pas testable sur l'appareil. Démontré par lecture du code ; non vérifié sur l'appareil.
 
 **Suite.** Aucune correction engagée : en attente de l'accord de Hermann sur le lot de corrections, notamment sur les deux changements d'arbitrage (`b7-5`, `b8-3`) et sur la remarque 1 (Composition), dont l'appartenance au périmètre A/B est à confirmer.
+
+## B.10 — Second passage de la recette iPhone A/B (27/10)
+
+**Demande.** Accord de Hermann sur la synthèse de recette (`4c53d26c`) : « 1. Oui » (lot de corrections), « 2. Non » (fiche Mouvement dans la Composition hors périmètre), « 3. Non » (pas de saisie d'alias, reportée à la question des langues). Complément : spécification du bouton de lecture vidéo (Figma « DSF / Actions / Bouton d'action circulaire », Action=Lecture). Point de départ : `4c53d26c`.
+
+**Mode de travail.** Un sous-agent, sans commit, a traité la fiche Mouvement (b2-4, b2-5, b2-8, q6-2, remarques 4 à 7) ; la session principale a traité le Catalogue et les titres (r9-a02, b7-5, b8-3, remarques 2, 4, 9), l'intégration, la documentation et les tests.
+
+**Réalisé** (détail : `_bmad-output/pre8/implementation-artifacts/spec-b-10-corrections-second-passage.md`) :
+- Titres d'écran en Medium 17 (`type.screenHeaderTitle`) ; empreinte de `tokens.ts` mise à jour (`5d8a7e03…ec54`), jeton documenté au chapitre 12.
+- Piles filtrées (b7-5) et rangs affichés recalculés après archivage (b8-3, `familyPosition` conserve l'ordre complet).
+- Réordonnancement visible pendant le geste ; cartes refermées au retour ; écart de 8 sous les segments rétabli.
+- Fiche : média remonté pendant la saisie, bouton ↑ des Phases, nom déjà utilisé (création et nouveau Niveau), autofocus du Nom, libellés des suggestions, menu « Ouvrir un autre niveau », repère « (archivé) », compteur de médias.
+
+**Non livré.** Bouton de lecture vidéo : `expo-blur` absent ; l'ajouter est une nouvelle dépendance native qui impose une nouvelle build de développement de Routine BMAD. Arbitrage demandé. Le lecteur système plein écran existe déjà.
+
+**Décisions reportées au registre** (chapitre 07, « Recette A/B du 27/10/2026, second passage ») : b7-5 remplace Q3 sur l'affichage des piles filtrées ; b8-3 remplace Q5 sur le recalcul ; r9-a02 remplace A02 et G-4 pour les titres d'écran.
+
+**Tests.** `npx tsc --noEmit` : OK. ESLint sur les fichiers modifiés : OK. `npx jest` complet : 207 suites, 4 635 tests, tous verts ; après les mises à jour documentaires, les 21 suites qui lisent des fichiers (1 272 tests) repassées vertes. Ajoutés ou modifiés : `movementCatalogueView.b7`, `movementLifecycle.b8`, `MovementCatalogueList.b5` (retour au Catalogue, carte portée), `CatalogueScreen` (marge 8), `ScreenShell` (Medium 17), `ExerciseScreen` (titre Composition), `MovementScreen.b2.integration` (6 tests), `MovementLevelMenu` (2), `ActivityMediaList` (2), `pre4Story11Controls` (empreinte).
+
+**À vérifier sur l'iPhone :** remontée de la photo pendant la saisie et bouton ↑ ; liste de suggestions sous la zone de contexte, message à l'Entrée, clavier maintenu ; repères « (archivé) » ; glisser de réordonnancement ; renumérotation après archivage ; titres Medium 17.
+
+**À clarifier :** voir la spec B.10 (7 points, dont la taille du menu Niveau natif iOS et le rang affiché d'un archivé).

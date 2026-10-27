@@ -1128,9 +1128,10 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(defaultCircle.backgroundColor).toBe("#E5F0FF");
     expect(defaultCircle.borderWidth).toBeUndefined();
     expect(defaultCircle.shadowOpacity).toBeUndefined();
+    // Recette PRE-8 A/B du 27/10 (r9-a02) : tous les titres d’écran en Inter Medium 17.
     expect(StyleSheet.flatten(screen.getByText("Composition").props.style)).toMatchObject({
-      fontFamily: "Inter_600SemiBold",
-      fontSize: 20,
+      fontFamily: "Inter_500Medium",
+      fontSize: 17,
       color: "#141414",
     });
   });

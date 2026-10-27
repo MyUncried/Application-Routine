@@ -106,14 +106,19 @@ describe("PRE-8 B.8 — archivage, restauration et suppression du Mouvement", ()
     expect(await count("activity_definitions")).toBe(1);
   });
 
-  it("archive un Mouvement inutilisé sans recalculer les rangs ; la famille et l'ordre restent intacts (Q5)", async () => {
+  it("archive un Mouvement inutilisé : rangs affichés des actifs recalculés (b8-3), famille et ordre intacts", async () => {
     await family();
     expect(await catalogue().archive("squat")).toEqual({ status: "DONE" });
+    // Recette A/B du 27/10 (b8-3) : les actifs sont renumérotés ; l'archivé garde son rang complet.
     expect(await ranks()).toEqual({
-      assist: [1, 3, false],
+      assist: [1, 2, false],
       squat: [2, 3, true],
-      jump: [3, 3, false],
+      jump: [2, 2, false],
     });
+    const positions = Object.fromEntries(
+      (await catalogue().listEntries()).map((entry) => [entry.movement.id, entry.familyPosition?.rank]),
+    );
+    expect(positions).toEqual({ assist: 1, squat: 2, jump: 3 });
     expect((await repository().findById("squat"))!.levelGroup).not.toBeNull();
     expect(await catalogue().archive("squat")).toEqual({ status: "STALE" });
   });

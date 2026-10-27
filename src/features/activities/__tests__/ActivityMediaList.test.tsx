@@ -864,3 +864,18 @@ describe("ActivityMediaList — PRE-4 story 4.5, phase B", () => {
     expect(props.onRemove).toHaveBeenLastCalledWith(1);
   });
 });
+
+describe("Recette A/B B.10 (remarque 4) — gabarit photo de la fiche Mouvement", () => {
+  it("compteur « rang / total » à la place du badge « Vidéo »", () => {
+    renderList({ template: { width: 402, height: 329 } });
+    expect(screen.getByTestId("media-item-1-counter").props.children).toBe("1 / 2");
+    expect(screen.getByTestId("media-item-2-counter").props.children).toBe("2 / 2");
+    expect(screen.queryByText("Vidéo")).toBeNull();
+  });
+
+  it("galerie de l'éditeur d'Exercice : badge « Vidéo » inchangé, ni compteur ni icône", () => {
+    renderList();
+    expect(screen.getByText("Vidéo")).toBeTruthy();
+    expect(screen.queryByTestId("media-item-1-counter")).toBeNull();
+  });
+});

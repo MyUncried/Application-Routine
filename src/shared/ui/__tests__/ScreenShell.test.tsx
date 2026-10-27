@@ -36,6 +36,15 @@ describe("FixedHeader", () => {
     expect(screen.queryByTestId("screen-header-back")).toBeNull();
   });
 
+  it("recette PRE-8 A/B du 27/10 (r9-a02) : le titre d’écran est en Inter Medium 17", () => {
+    renderWithSafeArea(<FixedHeader title="Catalogue des mouvements" />);
+    expect(StyleSheet.flatten(screen.getByText("Catalogue des mouvements").props.style)).toMatchObject({
+      fontFamily: "Inter_500Medium",
+      fontWeight: "500",
+      fontSize: 17,
+    });
+  });
+
   /**
    * **T02-S02 (D-142)** : « Les actions circulaires Retour, Annuler et
    * Valider/Confirmer utilisent un cercle visible `38 × 38`, une icône
