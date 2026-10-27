@@ -153,6 +153,7 @@ Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-pil
 - **Démontré :** la pile d'appels ne contient que le moteur de rendu et l'API Performance de React Native, en mode développement.
 - **Non démontré :** la cause, et le fait que l'erreur existe ou non avec `main`. Aucune correction n'a été tentée.
 - **Vérification proposée :** noter l'écran et l'action au moment de l'erreur, puis comparer avec la build de `main`.
+- **Suite (27/10, après B.9).** Hermann signale l’écran de démarrage bloqué à chaque rechargement. Journal Metro : les deux premiers chargements de la session réussissent ; tous les suivants, à partir du premier rechargement après les modifications B.9 en cours, lèvent `std::bad_alloc`. Attribution à B.9 : **plausible**, non démontrée ; aucune boucle de rendu trouvée à la relecture. Mesure prise : garde de développement `src/shared/utils/devPerformanceGuard.ts` (installée dans `app/_layout.tsx`, sans effet hors `__DEV__`), qui intercepte l’échec de `performance.measure` (mesure de diagnostic de React) et journalise le composant concerné, pour débloquer la recette et identifier la cause. Tests `app` et `src/shared` : 20 suites, 212 tests, verts.
 
 **À clarifier / à valider** (aussi dans le cahier de recette) :
 1. Déplacement des phases : il ne se fait plus que par VoiceOver.
