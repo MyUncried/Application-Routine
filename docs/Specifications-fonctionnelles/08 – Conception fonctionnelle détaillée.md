@@ -828,3 +828,18 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+## Catalogue des séances — parcours actualisés le 27/10/2026
+
+La [spécification carte/catalogue](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) et CE-T03-01 remplacent les parcours du catalogue autonome d'exercices dans la cible D-449. Le catalogue offre une collection de séances et les vues Un exercice/Plusieurs, désélectionnables. Le chevron du nom déploie uniquement les séances de plusieurs exercices ; il n'ouvre pas la Composition. Les entrées de modification et de lancement existantes restent distinctes. Les actions actives sont Planifier/Dupliquer/Archiver ; les archives exposent Restaurer/Supprimer dans le glissé, sans restauration ronde sur la carte. Les règles métier existantes de confirmation et de conservation d'historique restent applicables.
+
+Le panneau de filtres suit le §6 de la source : Statut, Catégories, Zones corporelles, Étiquettes, Format. Les nouvelles sections ne suppriment pas les référentiels ni leurs données. Les règles combinatoires non précisées dans la source sont signalées dans le relevé DSF, à réutiliser depuis l'existant ou à préciser pour la story filtres.
+
+### Nom de séance — trois états validés le 27/10/2026
+
+1. À l'ouverture, nom du format, en gris, non modifiable.
+2. À l'ajout du premier exercice, nom de cet exercice, éditable.
+3. À l'ajout du second exercice, invite « Entrer un nom de séance », grise et éditable ; l'obligation de nommer apparaît.
+
+Aucun suffixe de niveau dans le nom. Cette règle concerne la création/composition et sera traitée dans son lot. Les retours après retrait d'exercices et la préservation d'un titre déjà personnalisé ne sont pas spécifiés par ce texte ; aucune règle supplémentaire n'est inventée ici.

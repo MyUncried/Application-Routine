@@ -1,0 +1,208 @@
+{
+  "tokens": [
+    {
+      "id": "VariableID:6364:10591",
+      "name": "component/cards/border-width",
+      "value": 0.5,
+      "aliases": [
+        "VariableID:6364:10590"
+      ]
+    },
+    {
+      "id": "VariableID:2290:56",
+      "name": "color/surface-subtle",
+      "value": {
+        "r": 0.9764705896377563,
+        "g": 0.9803921580314636,
+        "b": 0.9882352948188782,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:2290:7"
+      ]
+    },
+    {
+      "id": "VariableID:6364:10579",
+      "name": "color/cards/border",
+      "value": {
+        "r": 0.800000011920929,
+        "g": 0.8199999928474426,
+        "b": 0.8799999952316284,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:5541:4453"
+      ]
+    },
+    {
+      "id": "VariableID:2290:2",
+      "name": "color/blue/primary-0508E5",
+      "value": {
+        "r": 0.019607843831181526,
+        "g": 0.0313725508749485,
+        "b": 0.8980392217636108,
+        "a": 1
+      },
+      "aliases": []
+    },
+    {
+      "id": "VariableID:2290:69",
+      "name": "spacing/4",
+      "value": 4,
+      "aliases": [
+        "VariableID:2290:21"
+      ]
+    },
+    {
+      "id": "VariableID:5541:4580",
+      "name": "spacing/observed-0",
+      "value": 0,
+      "aliases": [
+        "VariableID:5541:4579"
+      ]
+    },
+    {
+      "id": "VariableID:2290:37",
+      "name": "dimension/48",
+      "value": 48,
+      "aliases": []
+    },
+    {
+      "id": "VariableID:5541:4581",
+      "name": "radius/observed-0",
+      "value": 0,
+      "aliases": [
+        "VariableID:5541:4579"
+      ]
+    },
+    {
+      "id": "VariableID:5541:4362",
+      "name": "color/observed/14171c",
+      "value": {
+        "r": 0.07999999821186066,
+        "g": 0.09000000357627869,
+        "b": 0.10999999940395355,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:5541:4361"
+      ]
+    },
+    {
+      "id": "VariableID:5541:4364",
+      "name": "color/observed/7a7a80",
+      "value": {
+        "r": 0.47843137383461,
+        "g": 0.47843137383461,
+        "b": 0.501960813999176,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:5541:4363"
+      ]
+    },
+    {
+      "id": "VariableID:2290:57",
+      "name": "color/text-primary",
+      "value": {
+        "r": 0.0784313753247261,
+        "g": 0.0784313753247261,
+        "b": 0.0784313753247261,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:2290:8"
+      ]
+    },
+    {
+      "id": "VariableID:5833:4062",
+      "name": "color/observed/v2/3500000-3700000-4000000-10000000",
+      "value": {
+        "r": 0.3499999940395355,
+        "g": 0.3700000047683716,
+        "b": 0.4000000059604645,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:5833:4061"
+      ]
+    },
+    {
+      "id": "VariableID:5541:4496",
+      "name": "color/observed/80858c",
+      "value": {
+        "r": 0.5,
+        "g": 0.5199999809265137,
+        "b": 0.550000011920929,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:5541:4495"
+      ]
+    },
+    {
+      "id": "VariableID:2290:55",
+      "name": "color/surface",
+      "value": {
+        "r": 0.9607843160629272,
+        "g": 0.9686274528503418,
+        "b": 0.9803921580314636,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:2290:6"
+      ]
+    },
+    {
+      "id": "VariableID:6364:10582",
+      "name": "color/cards/archive-border",
+      "value": {
+        "r": 0.8509804010391235,
+        "g": 0.8509804010391235,
+        "b": 0.8509804010391235,
+        "a": 1
+      },
+      "aliases": [
+        "VariableID:6364:10581"
+      ]
+    },
+    {
+      "id": "VariableID:6935:11533",
+      "name": "spacing/10",
+      "value": 10,
+      "aliases": [
+        "VariableID:2290:24"
+      ]
+    }
+  ],
+  "removed": [
+    {
+      "id": "3786:5093",
+      "exists": false
+    },
+    {
+      "id": "4168:11262",
+      "exists": false
+    },
+    {
+      "id": "4544:6344",
+      "exists": false
+    },
+    {
+      "id": "4544:6651",
+      "exists": false
+    },
+    {
+      "id": "4738:6209",
+      "exists": false
+    },
+    {
+      "id": "4738:6355",
+      "exists": false
+    },
+    {
+      "id": "4549:6382",
+      "exists": false
+    }
+  ]
+}

@@ -560,3 +560,8 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 
 
 Navigation : voir le [contrôle exhaustif des écrans et assets](DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md), référence du 27 octobre 2026.
+
+
+## Catalogue des séances — cible du 27/10/2026
+
+Une collection unique de séances, une carte commune et deux vues désélectionnables « Un exercice | Plusieurs », aucune active par défaut. Segmenté Mouvements/Séances/Programmes. Le catalogue autonome d'exercices est remplacé par la vue Un exercice. La carte Catalogue porte photo/vignette, catégories et synthèse format/volume/durée ; étiquettes et zones servent aux filtres, sans affichage sur la carte. Lancement de la séance entière. Calendrier/Suivi/Choix inchangés. [Spécification](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md), [contrôle Figma](DSF-CATALOGUE-SEANCES-2026-10-27.md) et CE-T03-01. La nouvelle règle de titre (§8) appartient à la création/composition ; elle est distincte de la tranche Catalogue proposée.

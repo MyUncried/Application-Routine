@@ -1,5 +1,7 @@
 # Navigation — cinq destinations — référence contrôlée le 27 octobre 2026
 
+> Actualisation ultérieure du 27/10 : les douze écrans du Catalogue des séances ont été modifiés et réexportés dans le [relevé Catalogue des séances](DSF-CATALOGUE-SEANCES-2026-10-27.md). Les captures ci-dessous de ces écrans sont des preuves antérieures ; les cinq destinations et leurs assets restent applicables.
+
 ## Périmètre et résultat
 
 Source : fichier Figma `G6RY5Ebhgwb4AHIOYDwwvg`, page Prototype MVP `510:101`. Recensement des 62 écrans contenant une navigation, y compris les barres derrière un overlay ou une feuille. Chaque écran a été réexporté ; les zones de navigation ont été comparées visuellement. Le contrôle structurel final confirme **62 instances, toutes à cinq emplacements**.
