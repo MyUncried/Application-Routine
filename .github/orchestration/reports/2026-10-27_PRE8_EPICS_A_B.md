@@ -458,3 +458,21 @@ Aucun code n'est modifié pour ce point.
 **Tests.** tsc et ESLint : OK. Suite complète `npx jest` : 207 suites, 4 643 tests, tous verts.
 
 **À vérifier sur l'iPhone.** Beaucoup d'étapes et de Phases, clavier ouvert : le contenu défile jusqu'à la dernière Phase, au-dessus du clavier, sans ressort.
+
+## Sixième passage (27/10) — butée du défilement clavier ouvert
+
+**Retour de Hermann.** `r13-limite` fonctionne. Nouvelle demande : en faisant défiler vers la fin, le défilement doit s'arrêter quand la dernière ligne des Phases est juste au-dessus du clavier.
+
+**Cause, démontrée par lecture du code.** Clavier ouvert, le contenu gardait en bas la réserve de la zone d'action (`actionZone.scrollReserve`), alors que cette zone est masquée par le clavier. La dernière ligne pouvait donc monter de cette hauteur au-dessus du clavier.
+
+**Correction.** Sur la fiche Mouvement, clavier ouvert, la réserve basse du défilement vaut l'écart au clavier (`DESCRIPTION_KEYBOARD_GAP`, 12). Clavier fermé, la réserve de la zone d'action est inchangée, tout comme l'Éditeur d'Exercice.
+
+**Documentation.** CE-MVT-01 §10 : butée du défilement.
+
+**Tests.**
+- `MovementScreen.b2.integration` : réserve de 12 clavier ouvert, réserve de la zone d'action clavier fermé.
+- tsc et ESLint : OK. Suite complète `npx jest` : 207 suites, 4 643 tests, tous verts.
+
+**À vérifier sur l'iPhone.** Clavier ouvert, faire défiler vers la fin : le défilement s'arrête avec la dernière ligne des Phases juste au-dessus du clavier.
+
+**Toujours en ARBITRAGE.** Le menu des niveaux : A, B ou C (voir le cinquième passage).

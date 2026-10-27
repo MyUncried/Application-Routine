@@ -655,6 +655,10 @@ export function ActivityEditorForm({
   // Phases, Nom, Catégorie, Zones et Niveau sont inactifs — un toucher sur la zone de contexte ferme
   // seulement le clavier (et le formulaire reprend sa place).
   const isEditableKeyboardOpen = isMovement && (isDescriptionFocused || isPhasesFocused) && isMovementKeyboardShown;
+  // Recette du 27/10 (r13-limite, demande de Hermann) : fiche Mouvement, clavier ouvert — le défilement
+  // s'arrête quand la dernière ligne des Phases est juste au-dessus du clavier : la réserve de la zone
+  // d'action (masquée par le clavier) est remplacée par l'écart au clavier.
+  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : actionZone.scrollReserve;
 
   function openSheet() {
     Keyboard.dismiss();
@@ -943,8 +947,8 @@ export function ActivityEditorForm({
         <ScrollView
           ref={bodyScrollRef}
           style={styles.body}
-          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: actionZone.scrollReserve }]}
-          scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
+          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: bodyBottomReserve }]}
+          scrollIndicatorInsets={{ bottom: bodyBottomReserve }}
           // Recette JA (26/10/2026) : `never` pendant la saisie du Nom seulement (voir `isNameFocused`).
           // Recette du 27/10 (r10-kbd-description) : fiche Mouvement — toucher le formulaire hors d'un
           // champ (titre de section…) ne ferme pas le clavier (`always`) ; Éditeur d'Exercice inchangé.
