@@ -1,5 +1,87 @@
 # Contrats d’écran
 
+## CE-MVT-02 — Catalogue des mouvements : Ajouter un niveau dans le glissé
+
+### 1. Identification
+
+Complément validé le 27/10/2026. Actions glissées `10475:47634` ; choix du sens `10579:21580`. Références DSF `10586:45516` et `10586:45517`. Ce contrat précise l'entrée catalogue vers CE-MVT-01 ; il ne spécifie pas Partager ou Archiver.
+
+### 2. Finalité fonctionnelle
+
+Ajouter un niveau plus facile ou plus difficile au mouvement choisi, sans écran intermédiaire entre catalogue et formulaire du nouveau niveau.
+
+### 3. Contexte d'entrée
+
+Catalogue des mouvements, carte dont les actions sont révélées par glissé. Le mouvement de cette carte est l'origine de l'ajout. La liste des mouvements proches reste une entrée distincte.
+
+### 4. Contexte de sortie / destinations
+
+Toucher Ajouter un niveau reste dans le catalogue et déploie le choix. Toucher Plus facile ou Plus difficile ouvre directement `10415:21980` (Mouvement — Niveau, formulaire vierge), avec origine et sens choisis. Aucun passage par `10415:21939` depuis le catalogue.
+
+### 5. Données affichées et source de vérité
+
+Carte et famille courantes, rang dérivé, mouvement source, sens choisi. Le déploiement est un état UI sans écriture métier ; le formulaire porte ensuite le brouillon de création selon CE-MVT-01.
+
+### 6. Classification des valeurs Figma
+
+Partager / Ajouter un niveau / Archiver, Plus facile ↓ et Plus difficile ↑ sont les libellés de référence. Squats, rangs et contenu des cartes sont des exemples. La nouvelle frame est un état du catalogue, pas une destination de navigation distincte.
+
+### 7. Structure de l'écran
+
+La carte glissée révèle trois actions. Sous ces actions apparaissent deux boutons avec raccords : Plus facile à gauche, Plus difficile à droite. Les cartes suivantes descendent ; le filet de famille s'allonge dans l'espace créé.
+
+### 8. Éléments obligatoires
+
+Action Ajouter un niveau ; choix explicite des deux sens ; flèche bas pour Plus facile et haut pour Plus difficile ; maintien de la carte source et des cartes suivantes sans recouvrement. Aucune barre de retour ou action Utiliser ce mouvement ajoutée dans cet état du catalogue.
+
+### 9. Layout déterministe
+
+Composant Actions 204 × 80 et Choix du sens 204 × 56 dans la référence Figma. Intégrer l'espace réellement occupé dans la hauteur de la ligne et dans la longueur du filet, sans déplacement horizontal ou réordonnancement des cartes suivantes. Ne pas utiliser un overlay masquant la liste.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Conserver le scroll et les safe areas du catalogue. Adapter la hauteur au contenu et à la taille de texte ; les boutons, cartes suivantes et barre de navigation restent accessibles. Aucun clavier ni page supplémentaire n'est ouvert par le seul déploiement.
+
+### 11. États de l'écran
+
+Carte fermée ; actions glissées ; choix du sens déployé ; formulaire après choix. Replier les actions supprime le choix du sens et rétablit le layout. Ne pas inventer de nouvelle confirmation pour ouvrir/replier cet état.
+
+### 12. Contrôles et interactions
+
+Ajouter un niveau déploie en place. Plus facile prépare une insertion avant l'origine dans l'ordre de difficulté ; Plus difficile prépare une insertion après. Le choix ne persiste rien : validation du formulaire requise. Depuis les mouvements proches, Ajouter un niveau conserve `10415:21939` et le choix entre utiliser le mouvement et en dériver un nouveau.
+
+### 13. Gestes
+
+Réutiliser le glissé du catalogue et ses mécanismes de fermeture. Aucun glisser-déposer n'est requis pour choisir la difficulté. Les flèches n'indiquent pas une commande de déplacement du mouvement source.
+
+### 14. Validation
+
+Choisir explicitement un sens avant ouverture du formulaire. Unicité du nom, contenu requis et validation du nouveau mouvement suivent CE-MVT-01. Aucun nouveau niveau n'est créé par le simple toucher de l'action principale.
+
+### 15. Brouillon et persistance
+
+Déploiement purement local. Après choix, formulaire avec catégorie/zones et nom préparé selon CE-MVT-01 ; description, médias et structure des phases à saisir. Enregistrer crée l'identité et le rattachement ; abandonner ne laisse aucun résidu. Pas de dialogue de correction de la source.
+
+### 16. Navigation et conservation d'état
+
+Conserver le contexte du catalogue et la carte source. La fermeture du choix reste dans la liste. Le retour du formulaire suit les règles existantes de brouillon/abandon ; ne pas ajouter de détour par les mouvements proches.
+
+### 17. Erreurs et cas limites
+
+Mouvement sans groupe : premier ajout crée une famille de deux membres après enregistrement. Source devenue indisponible : appliquer les erreurs de service existantes sans créer de filiation de remplacement. Liste longue ou famille déployée : décaler toutes les cartes concernées sans changer leurs rangs. Filtrage ne recalcule pas le niveau.
+
+### 18. Accessibilité
+
+Annoncer Ajouter un niveau et l'état déployé ; boutons nommés Plus facile et Plus difficile. Les flèches sont un complément visuel, jamais l'unique indication. Réutiliser les cibles tactiles et actions accessibles du catalogue.
+
+### 19. Invariants
+
+Trois actions glissées, pas quatre. Source et exercices existants inchangés. Nouveau niveau = nouveau mouvement ; identité source conservée. Ni nouvelle commande de variante dans une séance, ni décision sur partage/archivage, ni changement des règles de rang ou de sauvegarde.
+
+### 20. Recette déterministe
+
+MVT-12 : ouvrir les actions, toucher Ajouter un niveau, vérifier absence de navigation, deux boutons/flèches, cartes descendues et filet allongé. Tester séparément chaque sens : ouverture directe du formulaire avec la bonne origine ; annulation sans création ; validation avec insertion avant/après et identité distincte. Vérifier fermeture sans résidu, renommage des actions de résultats, et maintien du parcours `10415:21939` depuis les mouvements proches seulement. Étendre les tests automatiques UI/navigation existants et comparer le rendu aux captures.
+
 ## CE-MVT-01 — Fiche, création et modification d'un mouvement
 
 ### 1. Identification
@@ -52,7 +134,7 @@ Initial ; nom en cours et mouvements proches ; nom déjà utilisé ; options d'u
 
 ### 12. Contrôles et interactions
 
-Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; variante → difficulté puis création. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction.
+Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; Ajouter un niveau → choix du sens puis création ; depuis le glissé du catalogue, appliquer CE-MVT-02 sans écran intermédiaire. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction.
 
 ### 13. Gestes
 
@@ -84,7 +166,7 @@ Mouvement ≠ paramètres d'exécution ; aucun exercice implicite ; noms uniques
 
 ### 20. Recette déterministe
 
-Exécuter MVT-01 à MVT-11 de la spécification ciblée, avec le corpus automatique R07 complet et les tests existants de sauvegarde, phases et lecture partagée. Vérifier visuellement les six états principaux du chapitre 06 sur terminal (clavier, scroll et safe areas compris). Les 25 PNG sont des références d'états ; leur présence n'est pas une preuve de conformité du code.
+Exécuter MVT-01 à MVT-12 de la spécification ciblée, avec le corpus automatique R07 complet et les tests existants de sauvegarde, phases et lecture partagée. Vérifier visuellement les six états principaux du chapitre 06 sur terminal (clavier, scroll et safe areas compris). Les 25 PNG sont des références d'états ; leur présence n'est pas une preuve de conformité du code.
 
 > **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
 
@@ -771,6 +853,8 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 ## Exercices
 
 ### CE-T03-02 — Catalogue des exercices — liste, filtres et cartes
+
+> **Portée historique :** les restrictions de glissé de ce catalogue d’exercices ne décrivent pas le nouveau catalogue des mouvements. Son action Ajouter un niveau et son choix du sens en place sont régis par CE-MVT-02.
 
 #### 1. Identification
 

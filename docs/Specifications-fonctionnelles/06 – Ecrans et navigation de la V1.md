@@ -1,5 +1,20 @@
 # Interface : navigation, écrans et conventions communes
 
+## Catalogue Mouvement — Ajouter un niveau dans le glissé
+
+Les libellés des cinq états de fiche/recherche concernés sont actualisés dans les captures existantes. Deux états de catalogue et deux composants sont ajoutés au dossier (29 PNG au total). Le choix depuis le catalogue ne passe jamais par `10415:21939`, réservé à l'entrée depuis les mouvements proches. Voir CE-MVT-02.
+
+| État | Nœud Figma | Capture |
+| --- | --- | --- |
+| Actions glissées | `10475:47634` | [PNG](images/mouvements-2026-10-27/10475-47634.png) |
+| Ajouter un niveau, sens déployé | `10579:21580` | [PNG](images/mouvements-2026-10-27/10579-21580.png) |
+| DSF — Trois actions | `10586:45516` | [PNG](images/mouvements-2026-10-27/10586-45516.png) |
+| DSF — Choix du sens | `10586:45517` | [PNG](images/mouvements-2026-10-27/10586-45517.png) |
+
+![Ajouter un niveau dans le glissé](images/mouvements-2026-10-27/10579-21580.png)
+
+Le catalogue comporte 12 états après insertion de cet écran juste après Actions glissées. Les références numériques des frames existantes sont conservées. Les captures reproduisent le prototype, sans retouche ; les règles de déploiement et d'allongement du filet sont normatives même si un tracé de démonstration est incomplet.
+
 ## Parcours Mouvement — référence visuelle du lot ciblé (27/10/2026)
 
 Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
@@ -16,9 +31,9 @@ Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres
 
 ![Mouvement — Mouvements proches](images/mouvements-2026-10-27/10415-21713.png)
 
-**Mouvement — Variante, formulaire vierge**
+**Mouvement — Niveau, formulaire vierge**
 
-![Mouvement — Variante, formulaire vierge](images/mouvements-2026-10-27/10415-21980.png)
+![Mouvement — Niveau, formulaire vierge](images/mouvements-2026-10-27/10415-21980.png)
 
 **Mouvement — Sauvegarde — Nom inchangé**
 
@@ -38,8 +53,8 @@ Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gaba
 | Mouvement — Mouvements proches | [10415:21713](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21713) | [PNG](images/mouvements-2026-10-27/10415-21713.png) |
 | Mouvement — Nom déjà utilisé | [10415:21814](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21814) | [PNG](images/mouvements-2026-10-27/10415-21814.png) |
 | Mouvement — Options d’un résultat | [10415:21916](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21916) | [PNG](images/mouvements-2026-10-27/10415-21916.png) |
-| Mouvement — Variante, plus ou moins difficile | [10415:21939](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21939) | [PNG](images/mouvements-2026-10-27/10415-21939.png) |
-| Mouvement — Variante, formulaire vierge | [10415:21980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21980) | [PNG](images/mouvements-2026-10-27/10415-21980.png) |
+| Mouvement — Niveau, plus facile ou plus difficile | [10415:21939](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21939) | [PNG](images/mouvements-2026-10-27/10415-21939.png) |
+| Mouvement — Niveau, formulaire vierge | [10415:21980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21980) | [PNG](images/mouvements-2026-10-27/10415-21980.png) |
 | Mouvement — Catégories | [10415:21993](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21993) | [PNG](images/mouvements-2026-10-27/10415-21993.png) |
 | Mouvement — Catégorie — Appui long — Confirmation suppression | [10415:22051](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22051) | [PNG](images/mouvements-2026-10-27/10415-22051.png) |
 | Mouvement — Nouvelle catégorie | [10415:22111](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22111) | [PNG](images/mouvements-2026-10-27/10415-22111.png) |
@@ -719,8 +734,8 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 | [Création exercice — Mouvement — Options d’un résultat](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10131-21995) | `10131:21995` | CE-T03-04 |
 | [Création exercice — Mouvement — Repris (lecture seule)](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9891-39982) | `9891:39982` | CE-T03-04 |
 | [Création exercice — Mouvement — Contenu éditable](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9959-19518) | `9959:19518` | CE-T03-04 |
-| [Création exercice — Mouvement — Variante, plus ou moins difficile](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10140-20180) | `10140:20180` | CE-T03-04 |
-| [Création exercice — Mouvement — Variante, formulaire vierge](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10187-20340) | `10187:20340` | CE-T03-04 |
+| [Création exercice — Mouvement — Niveau, plus facile ou plus difficile](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10140-20180) | `10140:20180` | CE-T03-04 |
+| [Création exercice — Mouvement — Niveau, formulaire vierge](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10187-20340) | `10187:20340` | CE-T03-04 |
 | [Création exercice — Mouvement — Sauvegarde — Nom inchangé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10253-20414) | `10253:20414` | CE-T03-04 |
 | [Création exercice — Mouvement — Sauvegarde — Nom modifié](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=9952-44349) | `9952:44349` | CE-T03-04 |
 | [Création exercice — Mouvement — Sauvegarde — Choix sélectionné](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10257-20651) | `10257:20651` | CE-T03-04 |
@@ -754,13 +769,13 @@ Le tableau variable comporte poignée, numéro, cellules cible/Pause, colonne Ch
 
 ![Création exercice — Mouvement — Contenu éditable](images/niveaux-2026-10-25/9959-19518.png)
 
-**Création exercice — Mouvement — Variante, plus ou moins difficile — `10140:20180`**
+**Création exercice — Mouvement — Niveau, plus facile ou plus difficile — `10140:20180`**
 
-![Création exercice — Mouvement — Variante, plus ou moins difficile](images/niveaux-2026-10-25/10140-20180.png)
+![Création exercice — Mouvement — Niveau, plus facile ou plus difficile](images/niveaux-2026-10-25/10140-20180.png)
 
-**Création exercice — Mouvement — Variante, formulaire vierge — `10187:20340`**
+**Création exercice — Mouvement — Niveau, formulaire vierge — `10187:20340`**
 
-![Création exercice — Mouvement — Variante, formulaire vierge](images/niveaux-2026-10-25/10187-20340.png)
+![Création exercice — Mouvement — Niveau, formulaire vierge](images/niveaux-2026-10-25/10187-20340.png)
 
 **Création exercice — Mouvement — Sauvegarde — Nom inchangé — `10253:20414`**
 

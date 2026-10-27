@@ -114,7 +114,7 @@ Ces opérations implémentent D-445, sans service distant imposé.
 | Préparer une sauvegarde | Comparer nom/contenu, compter autres définitions et occurrences liées, rechercher existence d’exécution par identité ; branche de dialogue selon MFN-08 |
 | Mettre à jour | Écrire le contenu du mouvement atomiquement ; garder paramètres locaux ; détecter les phases devenues incomplètes ; ne pas synchroniser des copies de contenu |
 | Créer distinct | Nouvelle identité et nom unique ; rattacher l’objet édité, remplacer l’occurrence si contexte séance ; originaux et historiques conservés |
-| Créer une variante | Description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté, exercice associé ; pas de confirmation de correction |
+| Ajouter un niveau | Nouveau mouvement, description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté choisie ; aucun exercice associé implicitement depuis le catalogue des mouvements (D-449 / CE-MVT-01) ; pas de confirmation de correction |
 | Insérer / dupliquer | Nouvelle occurrence, même référence au mouvement et paramètres locaux copiés ; aucune écriture d’indicateur d’utilisation sur insertion |
 | Démarrer | Vérifier compatibilité et complétude, résoudre contenu/paramètres puis figer l’instantané avec filiation ; pas de relecture pendant exécution |
 | Supprimer un exercice | Conserver le mouvement et tous les instantanés ; aucun ramassage automatique |

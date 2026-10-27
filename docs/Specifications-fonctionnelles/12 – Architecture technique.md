@@ -1,5 +1,17 @@
 # Architecture technique
 
+## Composants — Ajouter un niveau dans le glissé (27/10/2026)
+
+| Composant | Figma | Référence visuelle | Usage |
+| --- | --- | --- | --- |
+| DSF / Actions glissées / Mouvement | `10586:45516` | 204 × 80 ; Inter Semi Bold 11 | Partager, Ajouter un niveau, Archiver |
+| DSF / Actions glissées / Mouvement — Choix du sens | `10586:45517` | 204 × 56 ; Inter Semi Bold 11 | Plus facile ↓ / Plus difficile ↑, raccords compris, sous les actions |
+| Carte — Mouvement — Résultat | `10199:22268` | 338 × 107 relevés ; actions Inter Medium 13 | Utiliser ce mouvement / Ajouter un niveau, libellé propagé aux instances |
+
+Texte des actions glissées lié à `color/on-primary` (`VariableID:4151:6166`), blanc, déjà référencé. Aucune création de token global requise par le renommage. Réutiliser les propriétés des composants ; ne pas appliquer la typographie de carte aux actions glissées. Relevé : [ajout-niveau-glisse.json](../figma-mouvements-2026-10-27/ajout-niveau-glisse.json).
+
+La hauteur supplémentaire doit participer au layout de la liste pour décaler les cartes suivantes et prolonger le filet de famille. Ne pas monter un overlay qui les recouvre. Les raccords des deux boutons appartiennent au composant Choix du sens ; les flèches doivent être accompagnées des libellés accessibles. Les frames du prototype ne sont pas toutes des instances de ces nouveaux composants : leur existence dans le DSF est la référence de réutilisation, sans prétendre une liaison de toutes les frames.
+
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
 Relevé direct de `10453:23030` ; données brutes : [composants-tokens.json](../figma-mouvements-2026-10-27/composants-tokens.json). Ce relevé couvre la fiche et les composants qu'elle utilise, pas l'ensemble du fichier Figma.
