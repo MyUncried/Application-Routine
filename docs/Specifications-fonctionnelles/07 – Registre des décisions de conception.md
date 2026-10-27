@@ -1010,3 +1010,28 @@ La modification d’une séance conserve la règle existante : occurrences futur
 **Remplacements ciblés :** exercice autonome ActivityDefinition et voie de lancement ACTIVITY ; différence de nature entre catalogues Exercices/Séances ; cycle technique unique fixé à 1 (RM-028) et circuit unique. Le reste de D-445, D-446, D-447 et D-448, notamment filiation, niveaux, phases, paramètres et instantanés, reste applicable. Les anciennes entrées du registre sont conservées pour traçabilité. Cette décision ne vaut ni modification du code, ni migration autorisée, ni modification Figma.
 
 [Spécification consolidée et critères de vérification](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md).
+
+
+## Précision de D-439 et D-448 point 9 — réordonnancement depuis le catalogue — 27/10/2026
+
+Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réordonnancement depuis le catalogue des mouvements ». Cette entrée précise les décisions existantes sans créer de nouvel identifiant. Aucun code, écran Figma, libellé d'écran ou valeur n'est ajouté.
+
+Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-dessous. Elles précisent MFN-05 et le menu de D-448 point 9 : déplacement interne à la famille déployée, application au dépôt, ordre visuel décroissant, écriture de la seule clé de tri du membre déplacé et même résultat depuis les deux accès. D-437 et D-445 restent applicables à l'identité et aux instantanés. Aucun texte existant n'est remplacé sur les points en contradiction : les règles 4 et 8 sont reproduites et explicitement signalées comme non arbitrées.
+
+### Traçabilité des neuf règles
+
+| Règle écrite | Chapitre et emplacement exact | Source | Règle précisée ou remplacée / statut |
+|---|---|---|---|
+| 1. Geste | 10, MFN-05 → Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 1 | Instruction Hermann, point 1 ; D-439 | Précise le glissement de MFN-05 : appui long et déplacement en place |
+| 2. Portée du déplacement | 10, même section → Règle 2 | Instruction Hermann, point 2 ; D-439 ; D-445 C08 | Précise MFN-05 ; aucun rattachement ni détachement ajouté |
+| 3. Application immédiate | 10, même section → Règle 3 | Instruction Hermann, point 3 ; D-445, reclassement seul | Précise le moment d'application et le retour de confirmation ; pas de dialogue de correction |
+| 4. Aucun mode, aucun bouton | 10, même section → Règle 4 et contradiction de portée | Instruction Hermann, point 4 | Texte conservé ; extension à toutes les opérations non arbitrée face à la création de niveau et D-445 C03 ; aucun remplacement |
+| 5. Ordre affiché | 10, même section → Règle 5 | Instruction Hermann, point 5 ; D-439 | Précise la présentation de la famille déployée |
+| 6. Effet sur les données | 09, Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 6 | Instruction Hermann, point 6 ; Groupe sur Mouvement ; Rang / total / suffixe - Nn | Précise la clé de tri et l'écriture d'une seule ligne ; aucun rang persisté |
+| 7. Effet sur le reste | 09, même section → Règle 7 | Instruction Hermann, point 7 ; D-437 ; D-445 ; MFN-03 | Confirme identité, références et instantanés inchangés ; classement lu à l'affichage |
+| 8. Archivage et filtres | 09, même section → Règle 8 et contradiction | Instruction Hermann, point 8 ; MFN-05 ; chapitre 10, Application ciblée des règles — Mouvement autonome | Texte conservé ; contradiction sur suppression et rang non tranchée ; filtrage déjà conforme ; aucun remplacement de MFN-05 ni clôture du lot archivage |
+| 9. Cohabitation avec le menu existant | 10, section de réordonnancement → Règle 9 | Instruction Hermann, point 9 ; D-448 point 9 | Précise la coexistence des accès et l'identité du résultat ; menu racine conservé dans les trois contextes |
+
+### Proposition non validée
+
+Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. **Attend une décision de Hermann.** Aucun de ces éléments n'est promu en règle ; D-445 C08 reste différée.
