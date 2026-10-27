@@ -76,3 +76,7 @@ Les relations actives vers le mouvement doivent rester intègres, depuis les dé
 - [PHC-20261026 — phases cycliques, compatibilité Répétitions/échec, cible de série indépendante](KODJO-Phases-Guidage-Cyclique-2026-10-26.md) : clarification normative du 26/10/2026 ; remplace les règles contraires antérieures.
 
 - [Navigation : audit des 62 écrans, contrats et dix assets — 27/10/2026](DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md).
+
+- [Carte et catalogue des séances — spécification du 27/10/2026](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md).
+- [Catalogue des séances — douze écrans, composants, tokens et écarts](DSF-CATALOGUE-SEANCES-2026-10-27.md).
+- [Périmètre proposé et prompt de préparation BMAD — Catalogue des séances](preparation/catalogue-seances-2026-10-27/PERIMETRE-ET-PROMPT-BMAD.md).

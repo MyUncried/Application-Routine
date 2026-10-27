@@ -83,7 +83,7 @@ Les anciens exports du 25/10 restent des preuves historiques pour les autres par
 
 ## Écrans à adapter après consolidation — D-449
 
-Un seul catalogue de séances expose des vues filtrées un/plusieurs exercices ; leurs libellés restent à fixer dans Figma. Les actions de lancement portent sur la séance entière. Prévoir la reprise de composition au niveau principal et plusieurs cycles successifs sans imbrication. Les captures existantes reflètent l’état antérieur ; aucune nouvelle capture ni modification Figma n’est prétendue dans cette mise à jour.
+Un seul catalogue de séances expose désormais les vues « Un exercice | Plusieurs » ; voir la référence du 27/10/2026 ci-dessous. Les actions de lancement portent sur la séance entière. Prévoir la reprise de composition au niveau principal et plusieurs cycles successifs sans imbrication. Les captures existantes reflètent l’état antérieur ; aucune nouvelle capture ni modification Figma n’est prétendue dans cette mise à jour.
 
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
@@ -183,7 +183,7 @@ Dans une carte d’Exercice, l’indicateur propre signale le changement de côt
 Dans la famille Exécution — séance ou exercice, un Exercice effectivement bilatéral affiche `Côté 1` ou `Côté 2` sous son nom (D-407, RM-243). Les indicateurs de progression gardent leur sémantique ; aucun compteur de côté n’est ajouté. Écart Figma relevé le 18/10/2026 : les frames d’Exécution affichent encore `Côté droit` (calque « Côté courant — Côté droit ») ; elles ne sont pas modifiées par cette documentation. Lorsque la charge est active, l’Exécution affiche la charge de la série courante (RM-241) ; aucune frame ne l’illustre encore et son emplacement relève de Figma.
 
 ### Références transverses des cartes et appuis
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances portent un visuel au Catalogue depuis le 27/10/2026 ; les autres contextes conservent leurs règles. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -319,13 +319,15 @@ Présentation du Profil avant que l’utilisateur ait créé du contenu
 
 ### Catalogue des séances
 
-#### Carte de Séance — vue condensée
+#### Carte unique et écran — référence du 27/10/2026
 
-Carte standard 354 × 90 px à largeur de référence 402, rayon 8, titre 15 Semi Bold, sans barre verticale ni cercle de nature. Ligne de classement : Étiquette puis catégories issues des exercices ; en l’absence d’Étiquette, afficher les catégories. Pastilles 20 ; pictogramme blanc sur couleur. Ligne des valeurs : `N exercices` et `N tours`, icônes nues 16 ; Séance sans Exercice : `0 exercice`, au singulier (D-392). Badge durée en haut à droite ; la durée exclut Compte à rebours initial et Fin de séance.
+La [spécification carte et catalogue](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) remplace ici le gabarit antérieur : une carte pour une ou plusieurs occurrences d'exercice, photo ou vignette de format 64, catégories dédupliquées par première apparition et débordement +N, aucune zone corporelle ni étiquette ni niveau. Nom suivi du seul chevron de déploiement, uniquement pour plusieurs exercices. Synthèse : format si présent, sinon nombre d'exercices pour plusieurs, sinon volume de l'exercice unique ; durée dans le second emplacement, omise pour For time et Death by. Lecture de la séance entière sur carte active ; aucune action directe sur carte archivée, restauration/suppression dans le glissé.
 
-Aucune prochaine planification ni ligne de pause/récupération sur la carte. Les séances restent sans vignette, définitivement (D-260). Les listes de catégories utilisent ` · ` puis `…` si nécessaire ; la donnée complète est conservée. Les cartes archivées utilisent fond `color/surface #F5F7FA` (ancienne prescription `#F6F6F6` historique ; référence couleur centralisée au chapitre 12) et bord #D9D9D9 ; Restaurer remplace Lecture.
+Déployée : composition structurée sur toute la largeur, Cycle/Circuit en en-têtes, décalage 16 par niveau et filet vertical, noms à gauche et volumes à droite ; récupérations à leur position, sans les compter comme exercices. Conteneur visible seulement s'il se répète ou contient plusieurs exercices. Cette lecture ne modifie pas les compteurs de la Composition.
 
-Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, états restaurés, actions glissées et arrière-plans de modales. Les actions révélées suivent la hauteur réelle de la carte. Les séances restent triées par dernière modification décroissante ; exécuter ne change pas cet ordre.
+Segmenté Mouvements/Séances/Programmes ; bascule Un exercice | Plusieurs, aucune sélection par défaut, désélection pour revenir à la collection complète. Contrôles Filtre/Tri/Créer à droite. Référence 402 : marges 16, cartes 370 et écart 12. Glissé : bloc de hauteur 80, jointif, marge droite et séparation carte/bloc 8 ; actif Planifier/Dupliquer/Archiver, archivé Restaurer/Supprimer. Panneau : Statut, Catégories, Zones corporelles, Étiquettes, Format ; chevron auprès du titre, sections actives ouvertes, sinon Statut seul ; Réinitialiser fixe au pied. Contrat CE-T03-01 révisé.
+
+[Inventaire contrôlé, composants, tokens et écarts Figma](../DSF-CATALOGUE-SEANCES-2026-10-27.md). Les anciens principes « sans visuel », étiquette sur carte, 354 × 90 et actions de hauteur égale à la carte ne s'appliquent plus au Catalogue. Calendrier/Suivi/Choix restent inchangés. La suppression du catalogue autonome des exercices ne supprime pas les exercices subordonnés à une séance.
 
 #### Vues principales et états intégrés
 
@@ -333,7 +335,8 @@ Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, éta
 
 [Source Figma — `1992:9910`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-9910)
 
-![Navigation — écran 1992:9910](images/navigation-2026-10-27/1992-9910.png)
+![P-Catalogue des séances — Liste par défaut](images/catalogue-seances-2026-10-27/1992-9910.png)
+
 
 
 
@@ -341,7 +344,8 @@ Ces règles s’appliquent aux listes, filtres actifs/inactifs, recherches, éta
 
 [Source Figma — `1992:10014`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10014)
 
-![Navigation — écran 1992:10014](images/navigation-2026-10-27/1992-10014.png)
+![P-Catalogue des séances — Séance déployée](images/catalogue-seances-2026-10-27/1992-10014.png)
+
 
 
 
@@ -351,7 +355,8 @@ Consultation de la Composition sans quitter le Catalogue
 
 [Source Figma — `1992:10518`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10518)
 
-![Navigation — écran 1992:10518](images/navigation-2026-10-27/1992-10518.png)
+![Catalogue des séances — Liste condensée — actions glissées](images/catalogue-seances-2026-10-27/1992-10518.png)
+
 
 La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et `Archiver` derrière
 
@@ -359,7 +364,8 @@ La carte se déplace avec le glissement et révèle `Planifier`, `Dupliquer` et 
 
 [Source Figma — `1992:10628`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10628)
 
-![Navigation — écran 1992:10628](images/navigation-2026-10-27/1992-10628.png)
+![Catalogue des séances — Séance déployée — actions glissées](images/catalogue-seances-2026-10-27/1992-10628.png)
+
 
 Même convention de glissement avec déplacement réel de la carte
 
@@ -367,7 +373,8 @@ Même convention de glissement avec déplacement réel de la carte
 
 [Source Figma — `1992:10848`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10848)
 
-![Navigation — écran 1992:10848](images/navigation-2026-10-27/1992-10848.png)
+![Catalogue des séances — Archivées — Séance restaurée](images/catalogue-seances-2026-10-27/1992-10848.png)
+
 
 Snackbar de restauration et action `Annuler`
 
@@ -375,7 +382,8 @@ Snackbar de restauration et action `Annuler`
 
 [Source Figma — `1992:10937`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=1992-10937)
 
-![Navigation — écran 1992:10937](images/navigation-2026-10-27/1992-10937.png)
+![Catalogue des séances — Liste sans Renforcement du genou](images/catalogue-seances-2026-10-27/1992-10937.png)
+
 
 Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
@@ -389,9 +397,10 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2234:88`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-88)
 
-![Navigation — écran 2234:88](images/navigation-2026-10-27/2234-88.png)
+![Catalogue des séances — Archivées — actions glissées](images/catalogue-seances-2026-10-27/2234-88.png)
 
-##### Catalogue des séances — Liste — Filtre inactif étendu
+
+##### Catalogue des séances — Liste — Filtre inactif étendu — référence historique retirée du catalogue cible
 
 [Source Figma — `4549:6382`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6382)
 
@@ -407,7 +416,8 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4549:6742`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4549-6742)
 
-![Navigation — écran 4549:6742](images/navigation-2026-10-27/4549-6742.png)
+![Catalogue des séances — Filtre actif Archivé](images/catalogue-seances-2026-10-27/4549-6742.png)
+
 
 État actif du contrôle et liste filtrée
 
@@ -415,7 +425,8 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `4592:6217`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4592-6217)
 
-![Navigation — écran 4592:6217](images/navigation-2026-10-27/4592-6217.png)
+![Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité](images/catalogue-seances-2026-10-27/4592-6217.png)
+
 
 
 
@@ -427,31 +438,36 @@ Résultat attendu après retrait de `Renforcement du genou` de la liste active
 
 [Source Figma — `2234:189`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=2234-189)
 
-![Navigation — écran 2234:189](images/navigation-2026-10-27/2234-189.png)
+![Modal — Confirmer la suppression d’une séance archivée](images/catalogue-seances-2026-10-27/2234-189.png)
 
-Fenêtre restaurée et réexportée le 01/10/2026. Titre « Supprimer cette séance ? » ; message « Cette séance archivée sera définitivement supprimée. Cette action est irréversible. » ; Annuler gris#F3F4F6 / Confirmer#B1503C. Les deux actions ne sont pas recâblées dans le prototype ; leur comportement produit reste annuler sans mutation / supprimer définitivement après confirmation.
+
+Capture actualisée le 27/10/2026. Titre « Supprimer cette séance ? » ; message et comportement métier inchangés : annuler sans mutation / supprimer définitivement après confirmation. L’arrière-plan conserve un ancien segmenté et bloc d’actions ; voir les écarts du relevé DSF. Aucun câblage interactif n’est certifié par cette capture.
 
 ##### Catalogue des séances — Filtrer — Panneau ouvert
 
 [Source Figma — `4168:11149`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4168-11149)
 
-![Navigation — écran 4168:11149](images/navigation-2026-10-27/4168-11149.png)
+![P-Catalogue des séances — Filtrer — Panneau ouvert](images/catalogue-seances-2026-10-27/4168-11149.png)
 
 
 
-Modale de filtres contextuels Séances : statut et Étiquettes
+
+Modale de filtres contextuels Séances : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format (27/10/2026).
 
 ##### Modal — Confirmer l’archivage d’une séance planifiée
 
 [Source Figma — `4593:6285`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4593-6285)
 
-![Navigation — écran 4593:6285](images/navigation-2026-10-27/4593-6285.png)
+![P-Modal — Confirmer l’archivage d’une séance planifiée](images/catalogue-seances-2026-10-27/4593-6285.png)
 
 
 
-### Vues principales et états intégrés
 
-#### Catalogue des Exercices — Liste
+### Vues historiques du catalogue autonome d’exercices
+
+Les sept écrans du catalogue autonome sont retirés de la cible ; les captures conservées dans cette section sont historiques. Utiliser la vue Un exercice de CE-T03-01.
+
+#### Catalogue des Exercices — référence historique retirée du catalogue cible — Liste
 
 [Source Figma — `3786:5093`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=3786-5093)
 
@@ -459,7 +475,7 @@ Modale de filtres contextuels Séances : statut et Étiquettes
 
 
 
-#### Catalogue des exercices — État vide
+#### Catalogue des exercices — État vide — référence historique retirée du catalogue cible
 
 [Source Figma — `4521:6220`](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=4521-6220)
 
@@ -2294,7 +2310,7 @@ La section [Paramètres et brouillon d’un exercice](08%20%E2%80%93%20Conceptio
 
 ### Parcours prévus pour une phase ultérieure — Parcours visuels des cartes
 
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances portent un visuel au Catalogue depuis le 27/10/2026 ; les autres contextes conservent leurs règles. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -2526,7 +2542,7 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 |---|---|---|
 | RG-1 | Un seul format au Catalogue et dans les choix d’exercices : gouttière permanente 64, photo si média, icône de nature sinon. Aucun réglage utilisateur de format. | Validé — D-260 |
 | RG-2 | La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). | Validé par le propriétaire — 03/10/2026, D-264 |
-| RG-3 | Les Séances ne portent jamais de visuel ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
+| RG-3 | Visuel au Catalogue des séances depuis le 27/10/2026 ; aucune photo dans les listes mixtes, le Calendrier ou le Suivi. | Validé définitivement — D-260 |
 | RG-4 | Aucun déploiement accessible sur les cartes d’Exercice ou du Suivi, avec ou sans média. Déploiement des Séances conservé au Catalogue et au Calendrier Semaine. | Validé — D-261/D-262 |
 | RG-5 | Une seule famille d’icônes de zone corporelle dans toute l’application ; variante Homme/Femme suivant la préférence de Profil définie par RG-10. | Validé |
 | RG-6 | La gouttière permanente est 64 ; texte à x=88 ; Catalogue replié/archivé : titre 250px et lignes basses 207px ; Choix : largeur selon son contrôle de sélection. Le chargement du média ne change pas la hauteur. | Validé ; référence à taille standard |
