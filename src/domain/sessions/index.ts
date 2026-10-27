@@ -17,3 +17,4 @@ export * from "./StopPoint";
 export * from "./circuit";
 export * from "./placement";
 export * from "./sessionDuplication";
+export * from "./structure";

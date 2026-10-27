@@ -191,7 +191,7 @@ export type StructuredActivities<T extends ActivityDurationFacts> = {
  * inconnu reste `omitted` ; une ancienne Récupération autonome garde sa
  * lecture défensive, répétée à chaque passage comme en Tours.
  */
-function seriesCircuitContribution(
+export function seriesCircuitContribution(
   activity: ActivityDurationFacts,
   passages: number,
 ): SessionDurationContribution {
