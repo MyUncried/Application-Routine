@@ -1,5 +1,9 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Complément validé par Hermann — Ajouter un niveau dans le glissé (27/10/2026)
+
+Action « Ajouter un niveau » à la place de « Créer une variante » ; choix Plus facile ↓ / Plus difficile ↑ déployé sous les trois actions du catalogue sans navigation, cartes suivantes repoussées et filet de famille allongé. Ouverture directe du formulaire après choix. L'état de choix issu des résultats proches est conservé pour cette seule entrée. Raccord avec D-448 point 9 ; aucune modification de filiation ni validation implicite du partage/archivage. Références : CE-MVT-02, écran `10579:21580`, composants `10586:45516` et `10586:45517`. Le présent complément vise le catalogue des mouvements ; les anciennes restrictions D-196 du catalogue d'exercices ne l'interdisent pas.
+
 ## Report documentaire ciblé — 27/10/2026, parcours Mouvement
 
 **Corrections après revue de clôture, intégrées à la demande de Hermann :** conservation des comportements média (seuls emplacement et taille changent) ; création d'un mouvement nouveau éditable avant enregistrement ; rang dérivé susceptible de changer après retrait d'un membre ; distinction troncature confirmée/réserve temporaire de séries ; conservation des durées de phases communes au changement de niveau. Aucun nouvel arbitrage A à D et aucun prérequis Figma supplémentaire sur les médias.

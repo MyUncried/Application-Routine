@@ -1,5 +1,23 @@
 # Règles métier et calculs
 
+### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
+
+Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
+
+| Entrée | Choix du sens | Destination |
+| --- | --- | --- |
+| Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
+| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
+
+Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.
+
+Plus facile signifie insertion avant la source dans l'ordre de difficulté ; Plus difficile signifie après. Les flèches décrivent la difficulté, pas une position de dépose dans la liste (qui peut présenter le niveau le plus élevé en premier). La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. Préremplissage, nom unique, annulation et sauvegarde directe restent ceux de CE-MVT-01. La création de niveau depuis une séance n'est pas réintroduite.
+
+Nouvel état : **Mouvement — Catalogue — Ajouter un niveau**, `10579:21580`, après Actions glissées `10475:47634`. La ligne catalogue comporte désormais 12 états, dont ces deux états intégrés au présent dossier ; cela ne clôt pas les règles de partage ou d'archivage. La livraison ciblée inclut cette entrée d'ajout de niveau, sans imposer la refonte complète du catalogue.
+
+Le relevé utilisateur signale huit libellés visibles et seize noms de calques renommés. Le relevé direct et les captures actualisées sont conservés dans `figma-mouvements-2026-10-27/ajout-niveau-glisse.json`. « Variante » reste un terme explicatif du modèle, pas le libellé de l'action. La frame `10415:21939` conserve actuellement « Moins difficile » dans son contenu : cela signifie Plus facile et ne justifie pas une troisième direction.
+
 ## Application ciblée des règles — Mouvement autonome
 
 Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.
@@ -393,7 +411,7 @@ Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jama
 
 La saisie du nom déclenche le rapprochement défini par R02–R07 de la spécification v7 ; les tests de référence sont automatiques. Noms principaux uniques après normalisation espaces/casse/accents : contrôler à la frappe et à la sauvegarde ; exclure le mouvement édité de sa propre collision. Les alias peuvent être communs à plusieurs mouvements ; un seul résultat par identité.
 
-Le panneau sous le nom propose au plus cinq résultats, sans réordonnancement sous appui, avec Utiliser ce mouvement / Créer une variante dans chaque carte. Entrée valide le nom, jamais une sélection. L’accès explicite à la recherche reste disponible ; elle inclut tous les mouvements disponibles, même sans exercice ou créés dans une séance. Sélection explicite, jamais fusion ni écrasement silencieux des informations saisies.
+Le panneau sous le nom propose au plus cinq résultats, sans réordonnancement sous appui, avec Utiliser ce mouvement / Ajouter un niveau dans chaque carte. Entrée valide le nom, jamais une sélection. L’accès explicite à la recherche reste disponible ; elle inclut tous les mouvements disponibles, même sans exercice ou créés dans une séance. Sélection explicite, jamais fusion ni écrasement silencieux des informations saisies.
 
 Utiliser reprend le contenu courant du mouvement et laisse définir les paramètres. Variante suit MFN-07 ; indépendant crée sans groupe. L’unicité interdit deux créations homonymes mais ne détecte pas deux noms différents pour le même mouvement. Aucun rapprochement rétroactif des records ; relier deux mouvements comme niveaux ne fusionne pas leurs performances.
 
