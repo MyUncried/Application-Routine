@@ -1,5 +1,11 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Report documentaire ciblé — 27/10/2026, parcours Mouvement
+
+**Corrections après revue de clôture, intégrées à la demande de Hermann :** conservation des comportements média (seuls emplacement et taille changent) ; création d'un mouvement nouveau éditable avant enregistrement ; rang dérivé susceptible de changer après retrait d'un membre ; distinction troncature confirmée/réserve temporaire de séries ; conservation des durées de phases communes au changement de niveau. Aucun nouvel arbitrage A à D et aucun prérequis Figma supplémentaire sur les médias.
+
+À la demande de Hermann, intégration du seul périmètre création/consultation/modification des mouvements de la troisième version des règles du 26/10. Référence : [spécification ciblée](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md), CE-MVT-01, 25 captures et composants relevés. Ce report remplace le gabarit de l'ancien exercice autonome et l'autorisation C04 de modifier/créer une variante depuis une séance. C03 est conservée, avec un compteur portant sur tous les exercices liés depuis le catalogue autonome. Les propositions encore ouvertes sur les séances/circuits et les parcours de rangement du catalogue ne sont pas arbitrées par ce report. Aucune livraison de code, migration ou correction de Figma n'est déclarée.
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 

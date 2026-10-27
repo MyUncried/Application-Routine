@@ -1,5 +1,93 @@
 # Contrats d’écran
 
+## CE-MVT-01 — Fiche, création et modification d'un mouvement
+
+### 1. Identification
+
+Contrat cible du lot Mouvement, 27/10/2026. Référence visuelle principale : `10453:23030`, initial `10415:21706`. Les 25 états et leurs captures sont indexés au chapitre 06 et dans `docs/figma-mouvements-2026-10-27/captures.json`. Ce contrat remplace le shell et les commandes de l'ancien écran de création d'exercice pour la fiche Mouvement seulement.
+
+### 2. Finalité fonctionnelle
+
+Créer un mouvement autonome, consulter et modifier son contenu partagé, créer une variante explicitement classée. Ne pas créer d'exercice ou de séance en même temps ; ne pas saisir les paramètres d'exécution.
+
+### 3. Contexte d'entrée
+
+Création depuis le catalogue, ouverture d'une fiche existante, reprise d'un résultat, ajout d'un niveau depuis le catalogue. Distinguer création indépendante, variante, consultation et édition. Un mouvement repris depuis une séance est consultable mais n'offre ni crayon ni création de variante.
+
+Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.
+
+### 4. Contexte de sortie / destinations
+
+Terminer valide le brouillon et revient au contexte appelant avec l'identité enregistrée ; celle-ci est retrouvable au catalogue. « Utiliser ce mouvement » ouvre l'existant en consultation sans doublon. Changer de niveau ouvre le membre choisi de la famille, sans reclassement. Fermer protège les modifications non enregistrées ; Annuler un dialogue revient au brouillon.
+
+### 5. Données affichées et source de vérité
+
+Mouvement partagé : nom, alias existants, catégorie, zones corporelles, description, médias, phases (identités et libellés), groupe et clé de tri. Rang calculé à la lecture. Pendant l'édition, afficher le brouillon. Paramètres d'exécution et durées des phases absents. Compter les exercices réellement liés ; vérifier séparément les exécutions par identité.
+
+### 6. Classification des valeurs Figma
+
+« Squats sautés », les trois phases, Niveau 3, les catégories et « 2 autres exercices » sont des exemples. « Niveau » sans valeur est l'état d'un mouvement indépendant. Les textes d'actions et la structure visuelle sont des références sous réserve des écarts explicités dans la spécification ciblée. Les libellés historiques de composants contenant « exercice » ne changent pas la nature des données.
+
+### 7. Structure de l'écran
+
+En-tête fixe ; média pleine largeur derrière la zone de contexte (nom et pastilles catégorie/zone/niveau) ; description en étapes ; phases du mouvement ; action Terminer en bas. Sans média, gabarit vide permettant l'ajout. Pas d'accordéon Médias inférieur, pas de carte Paramètres ni de mode d'exécution.
+
+Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gabarit Figma. Tous les comportements existants sont conservés : ajout/import, consultation/lecture, retrait et réordonnancement. La disparition de l'accordéon inférieur ne supprime aucune de ces commandes et n'introduit aucun nouveau parcours. Aucun écran ni arbitrage média supplémentaire n'est un prérequis de PRE-8.
+
+### 8. Éléments obligatoires
+
+Navigation/fermeture, nom, pastilles de contexte, gabarit média, blocs description et phases, action Terminer. Crayon dans le contexte catalogue pour entrer en édition. Ces blocs ne rendent pas tous leurs contenus obligatoires : conserver les validations métier existantes, sans exiger un média ou des phases pour créer un mouvement. Alias : conserver leur prise en charge, sans prétendre que les 25 frames fournissent un nouveau champ dessiné.
+
+### 9. Layout déterministe
+
+Référence 402 × 874 ; en-tête 402 × 95 ; contexte 402 × 115 ; photo remplie 402 × 329 ; blocs description/phases de largeur 354 (marges 24). Le média passe derrière le contexte : ne pas additionner mécaniquement leurs hauteurs. Réutiliser les variantes et styles relevés au chapitre 12. Les hauteurs des listes s'adaptent à leur contenu. La pastille des zones absorbe la place disponible et tronque pour préserver catégorie et niveau.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Adapter la largeur au terminal, respecter safe areas et mécanismes existants d'en-tête/bouton fixe. Le contenu défile sans passer sous l'action finale. Le clavier ne masque ni le champ actif ni les suggestions ; la description et les libellés longs restent accessibles. Les dimensions du prototype ne prescrivent pas une hauteur fixe de contenu. Conserver l'agrandissement de texte et les règles de clavier existantes.
+
+### 11. États de l'écran
+
+Initial ; nom en cours et mouvements proches ; nom déjà utilisé ; options d'un résultat ; variante (choix de difficulté puis formulaire vierge) ; référentiels (sélection/création/suppression de proposition) ; consultation ; édition ; menus de niveau ; sauvegarde nom inchangé/modifié/choix sélectionné ; abandon. Ajouter les états de chargement/échec de persistance avec les patterns livrés ; ils n'ont pas de nouvelle frame dédiée.
+
+### 12. Contrôles et interactions
+
+Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; variante → difficulté puis création. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction.
+
+### 13. Gestes
+
+Appui sur commandes et résultats ; appui long sur catégories/zones selon leurs contrats existants. Le glissement de réordonnancement dans une pile n'appartient pas à ce formulaire. Ne pas ajouter de geste pour modifier le mouvement depuis une séance.
+
+### 14. Validation
+
+Nom principal non vide et unique selon C01, contrôle à la saisie et à la persistance ; exclure l'identité éditée. Conserver les validations de contenu existantes, dont phases à identités entières positives uniques et libellés valides. L'invite « (compléter le nom) » n'est pas une valeur. Choix explicite pour nouveau mouvement/mise à jour ; Confirmer indisponible sans choix. Aucun contrôle de durées sur cette fiche.
+
+### 15. Brouillon et persistance
+
+Saisie locale jusqu'à validation. Création indépendante sans groupe ; variante avec groupe/position explicitement choisis ; correction avec identité conservée. Création distincte depuis catalogue : nouvelle identité indépendante, original et exercices liés conservés. Aucun objet provisoire résiduel après abandon. Une erreur d'écriture ne perd pas le brouillon. Les commandes persistent une fois, sans doublon après réappui.
+
+### 16. Navigation et conservation d'état
+
+Fermer les sélecteurs rend le brouillon ; Annuler la sauvegarde garde les saisies ; confirmer l'abandon les perd. Protéger un brouillon avant consultation d'un autre niveau. Réutiliser les règles existantes de retour et d'abandon, sans multiplier les confirmations quand aucune modification n'existe.
+
+### 17. Erreurs et cas limites
+
+Nom doublon, aucun résultat, nom identique à un alias d'un autre mouvement, zéro exercice mais historique existant, un seul exercice lié, variante à partir d'un mouvement sans groupe, nouvel identifiant de phase, mouvement source devenu indisponible, erreur de stockage/média. Ne jamais récupérer silencieusement l'identité d'un homonyme ni inventer des durées. Les erreurs de service utilisent les patterns existants ; le prototype n'en définit pas de nouveaux.
+
+### 18. Accessibilité
+
+Libellés accessibles des actions média/crayon/niveau, état lecture seule/édition perceptible, ordre de focus conforme à l'écran, annonces des erreurs et de la sauvegarde. Conserver les cibles tactiles existantes (au moins 44 pt), indépendantes des icônes de 18/24/32 pt. Ne pas faire dépendre le niveau seulement du nombre de barres ou de la couleur.
+
+### 19. Invariants
+
+Mouvement ≠ paramètres d'exécution ; aucun exercice implicite ; noms uniques ; sélection/rattachement explicites ; rang dérivé ; correction conserve l'identité ; nouvelle identité sans réaffectation depuis catalogue ; intégrité des références actives ; instantanés figés. Ajouter un niveau ne modifie pas le contenu exécuté dans les historiques. Les restrictions de phase avec répétitions/échec/séries variables ne sont pas réintroduites.
+
+### 20. Recette déterministe
+
+Exécuter MVT-01 à MVT-11 de la spécification ciblée, avec le corpus automatique R07 complet et les tests existants de sauvegarde, phases et lecture partagée. Vérifier visuellement les six états principaux du chapitre 06 sur terminal (clavier, scroll et safe areas compris). Les 25 PNG sont des références d'états ; leur présence n'est pas une preuve de conformité du code.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Contrats cibles de simplification — D-449
@@ -793,6 +881,8 @@ Vérifier aussi les cartes variables dans les deux modes et la durée intrinsèq
 *Texte identique à celui de la section [« CE-T03-01 — Catalogue des séances — état T03 »](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#ce-t03-01--catalogue-des-séances--état-t03) ; il n’est pas recopié ici.*
 
 ### CE-T03-04 — Éditeur Exercice — créer / modifier
+
+> **Portée historique PRE-7.** Les rubriques ci-dessous décrivent le formulaire livré avant la séparation des parcours. Pour créer/consulter/modifier un Mouvement, appliquer exclusivement CE-MVT-01 ci-dessus : elles ne prescrivent plus le shell Paramètres/Description/Média ni le crayon depuis une séance. Les annotations JA2/JA3 restent des traces de recette de l’ancien parcours, pas des instructions pour ce lot. Les paramètres d’exécution restent régis par CE-UI-10.
 
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 

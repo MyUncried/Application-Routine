@@ -1,0 +1,282 @@
+{
+  "fileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "pageId": "510:101",
+  "scope": "25 états fiche/création ; catalogue complet hors lot",
+  "captures": [
+    {
+      "nodeId": "10415:21706",
+      "name": "Mouvement — Initial",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21706.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "b51a13f7a505a607886ca175144682fa1832da2e7c4ead3cbc89b8977d4cc488",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21706"
+    },
+    {
+      "nodeId": "10415:21713",
+      "name": "Mouvement — Mouvements proches",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21713.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "f03d4e901f9c944d7fc5131b971e587c070c44ae95210293e0ee77985af6ddc9",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21713"
+    },
+    {
+      "nodeId": "10415:21814",
+      "name": "Mouvement — Nom déjà utilisé",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21814.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "ebfa7e1d643eaf1797d3d87dcccabded34922339ac169a8da888daf903624ce5",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21814"
+    },
+    {
+      "nodeId": "10415:21916",
+      "name": "Mouvement — Options d’un résultat",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21916.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "055695977737afd35ab9ddc8da2bf92961aa7b77fb3c193fcbf70395e90a95af",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21916"
+    },
+    {
+      "nodeId": "10415:21939",
+      "name": "Mouvement — Variante, plus ou moins difficile",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21939.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "37c4c6e0fa06e4477bd91327350d24b278df60bf199547a51e1068a9930871d9",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21939"
+    },
+    {
+      "nodeId": "10415:21980",
+      "name": "Mouvement — Variante, formulaire vierge",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21980.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "2d3353cf99f93252f9b041ba57b52388b5d801dff26b347345e160d3840d4144",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21980"
+    },
+    {
+      "nodeId": "10415:21993",
+      "name": "Mouvement — Catégories",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21993.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "37c2cdf77a53a57db694ad4ab709d1e0ff117353bbf5c4a6ef748def3ad02abd",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21993"
+    },
+    {
+      "nodeId": "10415:22051",
+      "name": "Mouvement — Catégorie — Appui long — Confirmation suppression",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22051.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "474959d9da78e2381663d95b7d2da544fcb2c8bd38f249714bbca8c75aa26f0a",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22051"
+    },
+    {
+      "nodeId": "10415:22111",
+      "name": "Mouvement — Nouvelle catégorie",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22111.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "7d1ba6f84d487a269aeea6dbf1d17372a054ca9db10e95329ceb4dc7962c9951",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22111"
+    },
+    {
+      "nodeId": "10415:22269",
+      "name": "Mouvement — Catégorie renseignée",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22269.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "6663257d87e6f73ebdc14c69e3b61e732ccd0ba7dfe9bd97a2c0b14e46a68a84",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22269"
+    },
+    {
+      "nodeId": "10415:22275",
+      "name": "Mouvement — Zones corporelles",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22275.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "242bf4d3cab758a12c09a6e04ecf2cab5f6d8ba9d51a925e6ae71bd5afb5e409",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22275"
+    },
+    {
+      "nodeId": "10415:22304",
+      "name": "Mouvement — Zones corporelles — Appui long — Confirmation suppression",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22304.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "57775a2ffc8846e98dae71b45b5fbad70316dbabfbcd3b087fdf41c1827987fb",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22304"
+    },
+    {
+      "nodeId": "10415:22335",
+      "name": "Mouvement — Nouvelle zone corporelle",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22335.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "489e66d226323d18b5a8e9ecf6365e497724b946afeb47a90bbda141c5875d54",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22335"
+    },
+    {
+      "nodeId": "10415:22488",
+      "name": "Mouvement — Sauvegarde — Nom inchangé",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22488.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "915e5fc4504c20f4c09012f94a3e69463d44f727826cd2d2f731e1c42d0ba5f7",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22488"
+    },
+    {
+      "nodeId": "10415:22524",
+      "name": "Mouvement — Sauvegarde — Nom modifié",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22524.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "99d6239b0645dd5ef72f2817a114e50056f8ee489b2d6b95760057372a144403",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22524"
+    },
+    {
+      "nodeId": "10415:22566",
+      "name": "Mouvement — Sauvegarde — Choix sélectionné",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22566.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "e87184b7210950f389d6c1d22a76b2ea924ad5e088ac7424aa8c3edec1605333",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22566"
+    },
+    {
+      "nodeId": "10415:22610",
+      "name": "Mouvement — Contenu éditable",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22610.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "80d4a9404c799eee338bab3eac8b96c5be3027179188e69dfb911a2fb88fb7a5",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22610"
+    },
+    {
+      "nodeId": "10415:22638",
+      "name": "Mouvement — Abandon (confirmation)",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22638.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "be65b758a8e537e2c99a00a538934aa1b3d4f5165bb027ba61fa10d7890c118d",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22638"
+    },
+    {
+      "nodeId": "10415:22646",
+      "name": "Mouvement — Paramètres — Résumé affiché — Niveau (pastilles) — Popover",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22646.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "c6aedbb2fae7cff82809a647e6ed09e39e80e84df7d98786efc7f30e9869f3f7",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22646"
+    },
+    {
+      "nodeId": "10415:22683",
+      "name": "Mouvement — Niveau — Changer de niveau (déployé)",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22683.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "52d92b451b23a93c30bed6efd19ff2c807d23280fb6320beef5718284fb04f58",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22683"
+    },
+    {
+      "nodeId": "10415:22726",
+      "name": "Mouvement — Niveau — Ajouter un niveau (déployé)",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22726.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "17b6ef5857001c95dfdcfe5752eb66722589d2838f373cf743855a8c32c6fdb0",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22726"
+    },
+    {
+      "nodeId": "10415:22786",
+      "name": "Mouvement — Depuis le catalogue — Sauvegarde — Nom modifié",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-22786.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "6be118da957ca2794f633796d55a633e71a097d416059838fd3c4e7a9243d3d0",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22786"
+    },
+    {
+      "nodeId": "10419:22924",
+      "name": "Mouvement — Repris (lecture seule)",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10419-22924.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "ee3944d46ee3c5cd5d6c5a425381ed79f2ca47d7280dd82d6718c5b23f8a1ce9",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10419-22924"
+    },
+    {
+      "nodeId": "10419:23030",
+      "name": "Mouvement — Niveau — icônes, trois états",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10419-23030.png",
+      "size": [
+        402,
+        400
+      ],
+      "sha256": "422c6586b73a8c22c6929014c84e141b13eb2e675e5cc7acedc1b600d12fa5b8",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10419-23030"
+    },
+    {
+      "nodeId": "10453:23030",
+      "name": "Mouvement — Fiche",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10453-23030.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "c7ec414fc4d4a3091cc57a6d587102f5258d57caf3e1f3015961b4d5837c9168",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10453-23030"
+    }
+  ]
+}

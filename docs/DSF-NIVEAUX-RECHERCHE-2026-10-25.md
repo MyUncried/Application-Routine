@@ -1,5 +1,7 @@
 # Niveaux et recherche — intégration documentaire du 25 octobre 2026
 
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 ## Sources et statut
 
 Le relevé visuel du 25/10 est conservé, avec les sources reçues et les captures datées. Les décisions ultérieures de Hermann ferment C01–C07 et C09 ; seul C08 reste différé. La [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md) et D-445 remplacent les prescriptions fonctionnelles contradictoires de la v6 et du relevé initial. Aucune mise à jour effective de Figma ni du code n’est revendiquée ici.
@@ -36,17 +38,17 @@ Les captures courantes sont réunies au chapitre 06. Les captures antérieures d
 
 ### Saisie et rapprochement
 
-Le panneau se superpose sous le nom, clavier visible. Chaque carte porte **Utiliser ce mouvement** et **Créer une variante**, sans choix radio ni action globale de sélection. Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
+Le panneau se superpose sous le nom, clavier visible. Dans le parcours du catalogue des mouvements, chaque carte porte **Utiliser ce mouvement** et **Créer une variante**, sans choix radio ni action globale de sélection. Depuis une séance, seule l’action **Utiliser ce mouvement** est proposée (cible du 27/10). Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
 
 R03 conserve l’accès explicite à une recherche préremplie, effaçable, et l’action Voir tous les mouvements en cas de résultat vide. L’écran du catalogue ne remplace pas cette fonction. Sa représentation courante est manquante. Les seuils et le corpus automatisé R07 demeurent obligatoires ; aucune modification arbitraire des coefficients n’est introduite par le panneau.
 
 ### Reprise et variante
 
-La reprise lit le mouvement partagé. Le crayon est disponible depuis Catalogue et séance ; paramètres locaux et Niveau restent actifs. Variante : description/médias vierges, catégorie et zones reprises, nom commencé conservé avec invite (compléter le nom) non persistée, effacée à la reprise de saisie. Choix de difficulté puis création directe, sans seconde confirmation de correction.
+La reprise lit le mouvement partagé. Le crayon est disponible au catalogue des mouvements ; depuis une séance, le contenu reste en lecture seule, les paramètres locaux et Niveau restent actifs. Variante : description/médias vierges, catégorie et zones reprises, nom commencé conservé avec invite (compléter le nom) non persistée, effacée à la reprise de saisie. Choix de difficulté puis création directe, sans seconde confirmation de correction.
 
 ### Sauvegarde
 
-Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis sa fiche au catalogue des mouvements (cible du 27/10, CE-MVT-01). Une reprise depuis une séance reste en lecture seule. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
 
 À l’enregistrement d’une modification d’un mouvement existant :
 
@@ -88,7 +90,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
 | C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
 | C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
-| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C04 | Cible du 27/10 : modification depuis la fiche au catalogue des mouvements ; lecture seule depuis une séance (CE-MVT-01) | Ancienne portée remplacée |
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
@@ -120,14 +122,14 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
 | C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
 | C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
-| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C04 | Cible du 27/10 : modification depuis la fiche au catalogue des mouvements ; lecture seule depuis une séance (CE-MVT-01) | Ancienne portée remplacée |
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
 | C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
 | C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
-Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis sa fiche au catalogue des mouvements (cible du 27/10, CE-MVT-01). Une reprise depuis une séance reste en lecture seule. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
 
 À l’enregistrement d’une modification d’un mouvement existant :
 
@@ -175,7 +177,7 @@ Mission documentaire : aucun code produit, aucune donnée, aucune maquette modif
 
 - Variante 10187:20340 : reprendre catégorie et zones, conserver description/médias vierges et invite de nom non persistée.
 - Dialogues : appliquer la matrice MFN-08, dont nom modifié sans autre exercice et confirmation pour historique seul ; garder Confirmer visible avant sélection.
-- Crayon actif depuis une séance : portée de correction partagée ; commande Niveau active hors crayon.
+- Cible du 27/10 : aucun crayon depuis une séance ; modification partagée depuis le catalogue des mouvements. Commande Niveau active indépendamment de l’édition du contenu.
 - Retirer les annotations excluant C08 du MVP ; ce périmètre est différé.
 - Conserver le rendu C06 et le catalogue C07. Le seuil de jauge générique reste un travail de représentation, sans plafond métier.
 

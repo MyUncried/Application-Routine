@@ -1,5 +1,55 @@
 # Architecture technique
 
+## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
+
+Relevé direct de `10453:23030` ; données brutes : [composants-tokens.json](../figma-mouvements-2026-10-27/composants-tokens.json). Ce relevé couvre la fiche et les composants qu'elle utilise, pas l'ensemble du fichier Figma.
+
+Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gabarit Figma. Tous les comportements existants sont conservés : ajout/import, consultation/lecture, retrait et réordonnancement. La disparition de l'accordéon inférieur ne supprime aucune de ces commandes et n'introduit aucun nouveau parcours. Aucun écran ni arbitrage média supplémentaire n'est un prérequis de PRE-8.
+
+### Composants à réutiliser / raccorder
+
+| Usage | Référence Figma | Variante / valeur observée | Consigne |
+| --- | --- | --- | --- |
+| Photo | set `10450:24378` | Rempli `10450:24374`, 402 × 329 | Nouveau gabarit ; média plein écran en largeur derrière contexte ; état vide illustré par Initial |
+| Phases du mouvement | set `10450:24397` | Renseigné `10450:24387`, 354 × 90 pour trois phases | Structure et libellés seuls ; ne pas réutiliser tel quel le tableau de durées d'exercice |
+| Contexte | `9029:18368` | 402 × 115 | Nom et trois pastilles ; zone corporelle élastique |
+| Nom | set `5544:4821`, instance liée à `6981:14888` | 354 × 42 | Ancien nom de variante « Nom d’exercice » conservé dans Figma ; données Mouvement |
+| Classification | set `9003:15638` | Catégorie `9003:15626`, Zone `9003:15631`, Niveau `9925:41515` | États vide/renseigné selon les données, pas selon les valeurs de démonstration |
+| Niveau | set `9932:44044` | Instance de fiche `9925:41235` (Niveau=1) | Variante pilotée par rang réel ; écart avec texte Niveau 3 consigné |
+| Description | set `9003:15591`, renseigné `9003:15580` | Étape `9002:15555` | Liste de hauteur variable ; invite de saisie seulement au focus |
+| En-tête | set `5544:4504`, fermer `5544:4503` | 402 × 95 | Réutiliser navigation et safe areas |
+| Actions média | set `5613:5357` | Lecture `7872:14696` 56 × 56 ; plein écran `5613:5346` 32 × 32 | Dimensions visuelles distinctes des cibles tactiles |
+| Crayon | `icon/modifier` `9925:41240` (référence antérieure) | Écran de reprise `10419:22924` | Réserver au catalogue ; pas de crayon dans une occurrence de séance |
+
+### Tokens et valeurs relevés
+
+Les alias de couleurs relevés restent compatibles avec `src/shared/ui/tokens.ts`. Les valeurs locales sans style Figma ne deviennent pas automatiquement de nouveaux tokens globaux. Réutiliser un token qui a la bonne valeur et le bon rôle ; sinon définir un style de composant limité à ce gabarit, sans modifier globalement la typographie de l'application.
+
+| Rôle | Figma | Correspondance / écart code |
+| --- | --- | --- |
+| Texte principal | `color/text-primary`, `VariableID:2290:57`, #141414 | `colors.textPrimary` |
+| Texte secondaire | `color/text-secondary`, `VariableID:2290:58`, #595E66 | `colors.textSecondary` |
+| Action primaire | `color/primary`, `VariableID:2290:51`, #0508E5 | `colors.primary` |
+| Texte sur primaire | `color/on-primary`, `VariableID:4151:6166`, blanc | Réutiliser la couleur blanche du rôle sur primaire existant ; ne pas changer le fond global |
+| Marges de contenu | 24 (402 → 354), `spacing/24` | `spacing[24]` |
+| Espacements communs | `spacing/8`, `spacing/12` disponibles | `spacing[8]`, `spacing[12]` ; disponibilité ne prouve pas une liaison sur chaque instance |
+| Titre d'écran | Inter Medium 17, hauteur AUTO | Ne pas appliquer aveuglément `screenTitle` (20 SemiBold) ; style d'en-tête existant à réutiliser |
+| Nom du mouvement | Inter Semi Bold 20, hauteur 22 | `screenTitle` a une hauteur 24 : valeur locale 22 à respecter ici |
+| Pastilles | Inter Regular 13, hauteur AUTO | Famille de style `exerciseFieldValue` / taille 13 ; vérifier le rendu AUTO plutôt que prétendre une équivalence de hauteur |
+| Titres Description / Phases | Inter Regular 11, hauteur AUTO | Taille/rôle proche de `caption`, pas `sectionTitle` (16 SemiBold) |
+| Contenu des étapes/phases | Inter Regular 14, hauteur AUTO | Famille `body` ; chiffres Inter Medium 14, famille `label` |
+| Terminer | Inter Semi Bold 14, hauteur AUTO | Famille `button` |
+
+Les valeurs AUTO de Figma ne fixent pas une hauteur numérique nouvelle. Préserver la lisibilité et comparer le rendu au composant ; ne pas convertir ces observations en tolérances arbitraires.
+
+### Réutilisation technique et frontière du lot
+
+Éléments livrés à examiner avant tout nouveau composant : `src/domain/activities/Movement.ts`, `movementSave.ts`, `movementSuggestion.ts`, `src/infrastructure/database/repositories/SqliteMovementRepository.ts`, `src/features/activities/MovementSuggestionPanel.tsx`, `MovementResultCard.tsx`, `MovementSaveDialog.tsx`, `MovementLevelMenu.tsx` et `MovementLevelsScreen.tsx`. Ils sont des points de réutilisation, pas une attestation de conformité au nouveau parcours. `WorkPhasesTable.tsx` sert aux paramètres : séparer son rôle de saisie des durées du nouveau bloc de structure.
+
+La recette automatique existante `src/domain/activities/__tests__/movementSearch.r07.test.ts` reste la référence pour les ajustements de recherche. Cette mise à jour documentaire n'a pas modifié ces fichiers de code et n'a pas exécuté une recette produit.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Cible d’architecture fonctionnelle — D-449

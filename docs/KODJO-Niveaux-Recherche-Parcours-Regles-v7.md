@@ -1,5 +1,7 @@
 # KODJO — Niveaux, recherche et mouvement partagé — v7
 
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 Date : 25 octobre 2026. Statut : décisions C01–C07 et C09 validées par Hermann ; C08 seul reste différé sur son périmètre MVP. D-445.
 
 Cette version remplace la v6 dans les points ci-dessous. Les sources v6 et le relevé Figma initial restent des preuves historiques, pas des instructions concurrentes. Les décisions sont intégrées aux chapitres 01 à 13 et aux contrats. Ce document ne prétend pas que le code ni les maquettes ont déjà été alignés.
@@ -13,7 +15,7 @@ KODJO est généraliste, fitness first. Mouvement, exercice, niveau et paramètr
 | C01 | Nom de mouvement unique après normalisation espaces/casse/accents ; alias partagés possibles | Clos |
 | C02 | Variante : description et médias vierges ; catégorie et zones reprises ; nom commencé conservé avec invite grise (compléter le nom), non persistée et effacée à la reprise de saisie | Clos |
 | C03 | Nom modifié : dialogue toujours ; nom inchangé et contenu modifié : confirmation si autre exercice ou exécution enregistrée ; sinon silencieux | Clos |
-| C04 | Crayon disponible depuis une séance pour éditer le mouvement partagé ; nouvelle identité = remplacement de l’occurrence | Clos |
+| C04 | Cible du 27/10 : modification depuis la fiche au catalogue des mouvements ; lecture seule depuis une séance (CE-MVT-01) | Ancienne portée remplacée |
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
@@ -40,7 +42,7 @@ L’ancien avertissement N08 permettant une variante homonyme ne peut plus conto
 
 ## 3. Dialogue unique de sauvegarde
 
-Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis le Catalogue, une reprise en création ou une occurrence de séance. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
+Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis sa fiche au catalogue des mouvements (cible du 27/10, CE-MVT-01). Une reprise depuis une séance reste en lecture seule. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
 
 À l’enregistrement d’une modification d’un mouvement existant :
 

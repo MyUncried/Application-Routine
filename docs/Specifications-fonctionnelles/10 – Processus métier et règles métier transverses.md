@@ -1,5 +1,19 @@
 # Règles métier et calculs
 
+## Application ciblée des règles — Mouvement autonome
+
+Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.
+
+Dans le menu Niveau d'un exercice, un changement effectif de mouvement conserve les durées locales des phases de rang commun ; les durées manquantes restent vides, sans valeur inventée ni remise à vide générale. Les autres paramètres sont conservés selon les règles existantes. Une correction du même mouvement conserve les durées par identité stable de phase. Dans la cible D-449, aucun Exercice autonome du Catalogue n'est à sélectionner pour fournir des durées : ne pas recréer cet objet ni déduire des durées par défaut du mouvement. Cette clarification de D-448 ne fait pas entrer la refonte des paramètres dans le lot PRE-8.
+
+Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Le traitement de l'archivage reste à décider dans son lot : il n'est pas assimilé ici à une suppression.
+
+Une conversion confirmée de circuit de tours vers circuit de séries tronque définitivement les séries excédentaires ; elles ne sont pas gardées dans la réserve du brouillon. La diminution du compteur sans changement de nature conserve au contraire temporairement les lignes retirées pendant l'édition de la séance. Annuler la conversion conserve l'état initial. Ces règles existantes restent distinctes ; aucune levée du nombre de séries imposé n'est décidée par cette correction.
+
+La spécification ciblée du 27/10 applique C01/C02/C03 et R01–R08 à une création de mouvement sans exercice. Depuis le catalogue, le compteur de portée inclut tous les exercices liés ; il n'existe pas d'exercice courant à exclure. Nom modifié : dialogue toujours. Nom inchangé et contenu modifié : confirmation si au moins un exercice lié ou une exécution passée. La création distincte conserve l'original sans réaffectation d'exercices et sans groupe automatique. La création de variante explicite crée un mouvement et son rattachement, sans exercice et sans dialogue de correction. Les cas MVT-01 à MVT-11 constituent la recette de ce lot. La restriction de modification/variante depuis une séance remplace l'ancienne autorisation C04, sans modifier la lecture partagée ni les paramètres locaux.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Règles de simplification — D-449

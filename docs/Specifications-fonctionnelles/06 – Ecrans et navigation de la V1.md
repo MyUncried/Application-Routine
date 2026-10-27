@@ -1,5 +1,69 @@
 # Interface : navigation, écrans et conventions communes
 
+## Parcours Mouvement — référence visuelle du lot ciblé (27/10/2026)
+
+Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
+
+**Mouvement — Initial**
+
+![Mouvement — Initial](images/mouvements-2026-10-27/10415-21706.png)
+
+**Mouvement — Fiche**
+
+![Mouvement — Fiche](images/mouvements-2026-10-27/10453-23030.png)
+
+**Mouvement — Mouvements proches**
+
+![Mouvement — Mouvements proches](images/mouvements-2026-10-27/10415-21713.png)
+
+**Mouvement — Variante, formulaire vierge**
+
+![Mouvement — Variante, formulaire vierge](images/mouvements-2026-10-27/10415-21980.png)
+
+**Mouvement — Sauvegarde — Nom inchangé**
+
+![Mouvement — Sauvegarde — Nom inchangé](images/mouvements-2026-10-27/10415-22488.png)
+
+**Mouvement — Sauvegarde — Choix sélectionné**
+
+![Mouvement — Sauvegarde — Choix sélectionné](images/mouvements-2026-10-27/10415-22566.png)
+
+Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gabarit Figma. Tous les comportements existants sont conservés : ajout/import, consultation/lecture, retrait et réordonnancement. La disparition de l'accordéon inférieur ne supprime aucune de ces commandes et n'introduit aucun nouveau parcours. Aucun écran ni arbitrage média supplémentaire n'est un prérequis de PRE-8.
+
+### Inventaire exhaustif des 25 états exportés
+
+| État | Figma | Capture locale |
+| --- | --- | --- |
+| Mouvement — Initial | [10415:21706](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21706) | [PNG](images/mouvements-2026-10-27/10415-21706.png) |
+| Mouvement — Mouvements proches | [10415:21713](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21713) | [PNG](images/mouvements-2026-10-27/10415-21713.png) |
+| Mouvement — Nom déjà utilisé | [10415:21814](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21814) | [PNG](images/mouvements-2026-10-27/10415-21814.png) |
+| Mouvement — Options d’un résultat | [10415:21916](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21916) | [PNG](images/mouvements-2026-10-27/10415-21916.png) |
+| Mouvement — Variante, plus ou moins difficile | [10415:21939](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21939) | [PNG](images/mouvements-2026-10-27/10415-21939.png) |
+| Mouvement — Variante, formulaire vierge | [10415:21980](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21980) | [PNG](images/mouvements-2026-10-27/10415-21980.png) |
+| Mouvement — Catégories | [10415:21993](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21993) | [PNG](images/mouvements-2026-10-27/10415-21993.png) |
+| Mouvement — Catégorie — Appui long — Confirmation suppression | [10415:22051](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22051) | [PNG](images/mouvements-2026-10-27/10415-22051.png) |
+| Mouvement — Nouvelle catégorie | [10415:22111](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22111) | [PNG](images/mouvements-2026-10-27/10415-22111.png) |
+| Mouvement — Catégorie renseignée | [10415:22269](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22269) | [PNG](images/mouvements-2026-10-27/10415-22269.png) |
+| Mouvement — Zones corporelles | [10415:22275](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22275) | [PNG](images/mouvements-2026-10-27/10415-22275.png) |
+| Mouvement — Zones corporelles — Appui long — Confirmation suppression | [10415:22304](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22304) | [PNG](images/mouvements-2026-10-27/10415-22304.png) |
+| Mouvement — Nouvelle zone corporelle | [10415:22335](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22335) | [PNG](images/mouvements-2026-10-27/10415-22335.png) |
+| Mouvement — Sauvegarde — Nom inchangé | [10415:22488](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22488) | [PNG](images/mouvements-2026-10-27/10415-22488.png) |
+| Mouvement — Sauvegarde — Nom modifié | [10415:22524](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22524) | [PNG](images/mouvements-2026-10-27/10415-22524.png) |
+| Mouvement — Sauvegarde — Choix sélectionné | [10415:22566](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22566) | [PNG](images/mouvements-2026-10-27/10415-22566.png) |
+| Mouvement — Contenu éditable | [10415:22610](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22610) | [PNG](images/mouvements-2026-10-27/10415-22610.png) |
+| Mouvement — Abandon (confirmation) | [10415:22638](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22638) | [PNG](images/mouvements-2026-10-27/10415-22638.png) |
+| Mouvement — Paramètres — Résumé affiché — Niveau (pastilles) — Popover | [10415:22646](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22646) | [PNG](images/mouvements-2026-10-27/10415-22646.png) |
+| Mouvement — Niveau — Changer de niveau (déployé) | [10415:22683](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22683) | [PNG](images/mouvements-2026-10-27/10415-22683.png) |
+| Mouvement — Niveau — Ajouter un niveau (déployé) | [10415:22726](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22726) | [PNG](images/mouvements-2026-10-27/10415-22726.png) |
+| Mouvement — Depuis le catalogue — Sauvegarde — Nom modifié | [10415:22786](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-22786) | [PNG](images/mouvements-2026-10-27/10415-22786.png) |
+| Mouvement — Repris (lecture seule) | [10419:22924](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10419-22924) | [PNG](images/mouvements-2026-10-27/10419-22924.png) |
+| Mouvement — Niveau — icônes, trois états | [10419:23030](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10419-23030) | [PNG](images/mouvements-2026-10-27/10419-23030.png) |
+| Mouvement — Fiche | [10453:23030](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10453-23030) | [PNG](images/mouvements-2026-10-27/10453-23030.png) |
+
+Les anciens exports du 25/10 restent des preuves historiques pour les autres parcours. Leur statut de quota ne concerne pas ces 25 exports, tous disponibles. Les écarts de libellés/instances sont consignés dans la spécification ciblée ; les PNG reproduisent Figma sans retouche.
+
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Écrans à adapter après consolidation — D-449
