@@ -229,6 +229,11 @@ export type MovementLevelMenuProps = {
    * son contenu), pour qu'un toucher hors du menu le ferme sans atteindre l'écran.
    */
   readonly onNativeMenuVisibilityChange?: (visible: boolean) => void;
+  /**
+   * Recette du 27/10 (r11-menu-dehors) : génération de l'hôte natif — l'appelant l'incrémente à chaque
+   * fermeture pour que l'ouverture suivante signale de nouveau l'apparition du menu.
+   */
+  readonly nativeMenuGeneration?: number;
   readonly anchorRef: RefObject<View | null>;
   readonly testID: string;
 };
@@ -245,6 +250,7 @@ export function MovementLevelMenu({
   isPanelOpen,
   onClosePanel,
   onNativeMenuVisibilityChange,
+  nativeMenuGeneration = 0,
   anchorRef,
   testID,
 }: MovementLevelMenuProps) {
@@ -276,7 +282,7 @@ export function MovementLevelMenu({
         testID={`${testID}-focus`}
       >
         {/* Hôte remonté quand le texte change (procédé de `CircuitNatureMenu`, story 7.9). */}
-        <Host key={`${levelPastilleLabel(level.position)}@${fontScale}`} matchContents testID={testID}>
+        <Host key={`${levelPastilleLabel(level.position)}@${fontScale}#${nativeMenuGeneration}`} matchContents testID={testID}>
           <Menu
             label={
               <RNHostView matchContents>

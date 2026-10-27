@@ -388,3 +388,49 @@ Suite complète `npx jest` : 207 suites, 4 640 tests, tous verts.
 - Toucher un titre de section : le clavier reste.
 - Entrée sur une Phase au milieu de la liste.
 - Menu Niveau ouvert : un toucher ailleurs ne déclenche rien.
+
+## Quatrième passage de la recette iPhone (27/10, 19:30–20:00)
+
+**Résultats du troisième passage.** `r11-glisser`, `r11-fond`, `r11-reduire` et `r11-toucher` sont OK. Quatre tests sont KO : `r11-remontee`, `r11-derniere` (renvoie à `r11-remontee`), `r11-entree-phases` et `r11-menu-dehors`. La remarque générale sur l'élargissement du menu Niveau est inchangée et reste sans suite : Hermann a décidé de garder le menu natif d'iOS. Point de départ : `4c44cca2`.
+
+**Diagnostic et corrections.**
+
+- **`r11-remontee` et `r11-derniere` : remontée insuffisante, et le formulaire redescend.**
+  - *Cause, démontrée par lecture du code* : la remontée du troisième passage était recalculée à chaque changement de champ, à partir du champ actif. Elle redescendait donc quand on revenait sur la Description et ne montrait ni la ligne suivante ni les autres.
+  - *Nouvelle règle, demandée par Hermann* :
+    - la couche remonte jusqu'à poser le bas des Phases juste au-dessus du clavier ;
+    - elle y reste tant que le clavier est ouvert, et ne redescend jamais ;
+    - elle monte au plus jusqu'à la part opaque de la zone de contexte, en glissant sous son fondu (20 % de la zone) ;
+    - au-delà, le contenu défile, seulement si la ligne en saisie est cachée.
+  - La ligne en saisie des Phases est maintenant signalée : `onActiveRowBottomChange`.
+- **`r11-remontee`, inactivité de la zone de contexte.** Clavier ouvert sur la Description ou les Phases, un voile transparent sur la zone de contexte (`movement-context-keyboard-shield`) ferme seulement le clavier. Nom, Catégorie, Zones et Niveau ne réagissent pas.
+- **`r11-entree-phases` : le clavier descend puis remonte.**
+  - *Cause, démontrée par lecture du code* :
+    - l'invite insérée au milieu de la liste passait d'un `Fragment` à la fin de la liste, ce qui démontait son champ en pleine saisie ;
+    - le retrait d'une phase vide démontait le champ qui avait le focus.
+  - *Correction* :
+    - lignes et invite sont dans une seule liste à clés, donc l'invite n'est jamais démontée ; elle reste sous la phase créée ;
+    - le focus passe à la phase précédente avant le retrait.
+- **`r11-menu-dehors` : le voile ne fonctionne qu'à la première ouverture.**
+  - *Cause plausible* : SwiftUI ne rejoue pas `onAppear` sur un contenu de menu déjà créé.
+  - *Correction* : à chaque fermeture, l'hôte natif du menu est recréé par une génération dans sa clé. L'ouverture suivante est donc de nouveau signalée.
+  - *Hypothèse non démontrée* : la recréation rétablit le signal à chaque ouverture. Seul l'iPhone peut le vérifier.
+
+**Tests.**
+- tsc et ESLint : OK.
+- Tests ajoutés :
+  - `MovementScreen.b2.integration` : invite non démontée pendant la saisie et retrait d'une phase vidée ; couche jamais redescendue clavier ouvert ; voile de la zone de contexte qui ferme seulement le clavier.
+  - `MovementLevelMenu` : une nouvelle génération recrée l'hôte natif.
+- Suite complète `npx jest` : 207 suites, 4 643 tests, tous verts.
+
+**Documentation.**
+- CE-MVT-01 §10 : nouvelle règle de remontée et inactivité du contexte.
+- ch.07 : entrée « quatrième passage » ; la règle du troisième passage est marquée « remplacé ».
+
+**À vérifier sur l'iPhone.**
+- Toucher une étape : le bas des Phases se pose juste au-dessus du clavier.
+- Passer d'un champ à l'autre, ajouter des lignes : le formulaire ne redescend pas.
+- Beaucoup de lignes : le formulaire monte jusque sous le fondu du contexte, puis défile.
+- Clavier ouvert, toucher Nom, Catégorie, Zones ou Niveau : le clavier se ferme, rien d'autre.
+- Phases : ajouter ou effacer une ligne sans que le clavier clignote.
+- Menu Niveau ouvert plusieurs fois de suite : un toucher ailleurs ne déclenche rien.

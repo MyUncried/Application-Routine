@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
 
 import { WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
@@ -57,15 +57,42 @@ export type MovementPhasesEditorProps = {
    * comme `DescriptionSteps`).
    */
   readonly onFocusChange?: (focused: boolean) => void;
+  /**
+   * Recette du 27/10 (r11-remontee) : bas de la ligne en saisie, relatif au haut du bloc, à chaque
+   * changement de ligne ou de mesure (recadrage au-dessus du clavier, comme la Description).
+   */
+  readonly onActiveRowBottomChange?: (bottom: number) => void;
   readonly testID?: string;
 };
 
-export function MovementPhasesEditor({ value, onChange, editable, onFocusChange, testID = "movement-phases" }: MovementPhasesEditorProps) {
+export function MovementPhasesEditor({
+  value,
+  onChange,
+  editable,
+  onFocusChange,
+  onActiveRowBottomChange,
+  testID = "movement-phases",
+}: MovementPhasesEditorProps) {
   const [active, setActiveState] = useState(false);
   const onFocusChangeRef = useRef(onFocusChange);
+  const onActiveRowBottomRef = useRef(onActiveRowBottomChange);
   useEffect(() => {
     onFocusChangeRef.current = onFocusChange;
+    onActiveRowBottomRef.current = onActiveRowBottomChange;
   });
+  // Ligne en saisie et cadres des lignes (dans la liste), pour le recadrage au-dessus du clavier.
+  const focusedKey = useRef<number | "invite" | null>(null);
+  const rowLayouts = useRef(new Map<number | "invite", { y: number; height: number }>());
+  const listY = useRef(0);
+  function reportActive(key: number | "invite" | null) {
+    if (key === null) return;
+    const layout = rowLayouts.current.get(key);
+    if (layout) onActiveRowBottomRef.current?.(listY.current + layout.y + layout.height);
+  }
+  function recordRowLayout(key: number | "invite", layout: { y: number; height: number }) {
+    rowLayouts.current.set(key, { y: layout.y, height: layout.height });
+    if (focusedKey.current === key) reportActive(key);
+  }
   const pendingBlur = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -113,6 +140,9 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
     if (!phase) return;
     const previous = phases[index - 1];
     pendingFocus.current = previous ? previous.id : null;
+    // Recette du 27/10 (r11-entree-phases) : le focus passe à la phase précédente AVANT le retrait de
+    // la ligne en saisie — retirer un champ qui a le focus ferme puis rouvre le clavier.
+    if (previous) inputs.current.get(previous.id)?.focus();
     onChange(removeMovementPhase(value, phase.id));
   }
 
@@ -124,13 +154,9 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
     else if (event.nativeEvent.actionName === "remove") removeAt(index);
   }
 
-  return (
-    <View style={styles.section} testID={testID}>
-      <Text style={styles.title} accessibilityRole="header" testID={`${testID}-title`}>
-        {t.title}
-      </Text>
-      <View style={styles.list}>
-        {phases.map((phase, index) => {
+  // Recette du 27/10 (r11-entree-phases) : lignes et invite dans UNE liste à clés — l'invite garde son
+  // champ (jamais démonté pendant la saisie, sinon le clavier se ferme puis se rouvre) où qu'elle soit.
+  const items: ReactElement[] = phases.flatMap((phase, index) => {
           const rank = String(index + 1);
           // Numéro affiché : décalé d'un rang sous une invite insérée (l'invite porte le rang suivant).
           const shownRank = String(index + 1 + (showInvite && inviteIndex !== null && index > inviteIndex ? 1 : 0));
@@ -139,9 +165,13 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
             ...(index < phases.length - 1 ? [{ name: "moveDown", label: t.moveDown }] : []),
             { name: "remove", label: t.remove.replace("{rank}", rank) },
           ];
-          return (
-            <Fragment key={phase.id}>
-            <View style={styles.row} testID={`${testID}-row-${rank}`}>
+          const row = (
+            <View
+              key={phase.id}
+              style={styles.row}
+              onLayout={(event) => recordRowLayout(phase.id, event.nativeEvent.layout)}
+              testID={`${testID}-row-${rank}`}
+            >
               <Text style={styles.number} accessible={false} importantForAccessibility="no-hide-descendants">
                 {`${shownRank}.`}
               </Text>
@@ -168,7 +198,11 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
                   }}
                   submitBehavior="submit"
                   returnKeyType="default"
-                  onFocus={() => setActive(true)}
+                  onFocus={() => {
+                    focusedKey.current = phase.id;
+                    setActive(true);
+                    reportActive(phase.id);
+                  }}
                   onBlur={() => setActive(false)}
                   style={styles.text}
                   accessibilityLabel={t.labelAccessibility.replace("{rank}", rank)}
@@ -182,11 +216,23 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
                 </Text>
               )}
             </View>
-            {showInvite && inviteIndex === index ? renderInvite() : null}
-            </Fragment>
           );
-        })}
-        {showInvite && inviteIndex === null ? renderInvite() : null}
+          return showInvite && inviteIndex === index ? [row, renderInvite()] : [row];
+  });
+  if (showInvite && inviteIndex === null) items.push(renderInvite());
+
+  return (
+    <View style={styles.section} testID={testID}>
+      <Text style={styles.title} accessibilityRole="header" testID={`${testID}-title`}>
+        {t.title}
+      </Text>
+      <View
+        style={styles.list}
+        onLayout={(event) => {
+          listY.current = event.nativeEvent.layout.y;
+        }}
+      >
+        {items}
       </View>
     </View>
   );
@@ -194,7 +240,12 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
   function renderInvite() {
     const position = inviteIndex === null ? phases.length : inviteIndex + 1;
     return (
-          <View style={styles.row} testID={`${testID}-invite-row`}>
+          <View
+            key="invite"
+            style={styles.row}
+            onLayout={(event) => recordRowLayout("invite", event.nativeEvent.layout)}
+            testID={`${testID}-invite-row`}
+          >
             <Text style={[styles.number, styles.promptNumber]} accessible={false} importantForAccessibility="no-hide-descendants">
               {`${position + 1}.`}
             </Text>
@@ -209,7 +260,8 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
               onChangeText={(label) => {
                 if (label.length === 0 || !isPhaseLabelWithinLimit(label)) return;
                 pendingFocus.current = value.nextPhaseId;
-                setInviteAfter(null);
+                // L'invite reste juste sous la phase créée, qui prend le focus (r11-entree-phases).
+                setInviteAfter(position);
                 const added = addMovementPhase(value, label);
                 onChange(position < phases.length ? moveMovementPhase(added, value.nextPhaseId, position) : added);
               }}
@@ -221,7 +273,11 @@ export function MovementPhasesEditor({ value, onChange, editable, onFocusChange,
               }}
               submitBehavior="submit"
               returnKeyType="default"
-              onFocus={() => setActive(true)}
+              onFocus={() => {
+                focusedKey.current = "invite";
+                setActive(true);
+                reportActive("invite");
+              }}
               onBlur={() => setActive(false)}
               style={styles.text}
               accessibilityLabel={phases.length === 0 ? t.firstPlaceholder : t.nextPlaceholder}

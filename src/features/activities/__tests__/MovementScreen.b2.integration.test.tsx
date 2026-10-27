@@ -540,6 +540,83 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     ]);
   });
 
+  it("r11-entree-phases : l'invite insérée garde son champ pendant la saisie ; retirer une phase vidée la retire", async () => {
+    await renderSheet();
+    await type("movement-phases-invite", "Descente");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+    });
+    await type("movement-phases-invite", "Remontée");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "submitEditing");
+    });
+    // Invite sous la phase 1 : la saisie y crée la phase 2 sans démonter le champ de l'invite, qui reste
+    // juste sous la phase créée.
+    const invite = screen.getByTestId("movement-phases-invite", anyNode);
+    await type("movement-phases-invite", "Maintien");
+    expect(screen.getByTestId("movement-phases-invite", anyNode)).toBe(invite);
+    // Retour arrière sur une phase vidée : elle est retirée (le focus passe d'abord à la précédente ;
+    // l'absence de fermeture du clavier se vérifie sur l'iPhone).
+    await type("movement-phases-label-2", "");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "keyPress", { nativeEvent: { key: "Backspace" } });
+    });
+    expect([1, 2].map((rank) => screen.getByTestId(`movement-phases-label-${rank}`, anyNode).props.value)).toEqual(["Descente", "Remontée"]);
+  });
+
+  it("r11-remontee : clavier ouvert, la couche ne redescend pas d'un champ à l'autre et la zone de contexte ne fait que fermer le clavier", async () => {
+    const listeners = new Map<string, Set<(event: unknown) => void>>();
+    const spy = jest.spyOn(Keyboard, "addListener").mockImplementation(((name: string, listener: (event: unknown) => void) => {
+      const set = listeners.get(name) ?? new Set<(event: unknown) => void>();
+      set.add(listener);
+      listeners.set(name, set);
+      return { remove: () => set.delete(listener) };
+    }) as unknown as typeof Keyboard.addListener);
+    const dismiss = jest.spyOn(Keyboard, "dismiss");
+    const emit = (name: string) =>
+      act(() => listeners.get(name)?.forEach((listener) => listener({ endCoordinates: { screenX: 0, screenY: 500, width: 390, height: 344 }, duration: 250, easing: "keyboard" })));
+    try {
+      await renderSheet();
+      const isLifted = () => screen.queryByTestId("movement-editable-layer-lifted", anyNode) !== null;
+      const shield = () => screen.queryByTestId("movement-context-keyboard-shield", anyNode);
+      expect(shield()).toBeNull();
+      await act(async () => {
+        fireEvent(screen.getByTestId("exercise-instruction-input", anyNode), "focus");
+      });
+      emit("keyboardWillShow");
+      await settle(300);
+      expect(isLifted()).toBe(true);
+      // Nom, Catégorie, Zones et Niveau recouverts : un toucher ferme seulement le clavier.
+      const band = screen.getByTestId("exercise-context-band", anyNode);
+      expect(within(band).getByTestId("movement-context-keyboard-shield", anyNode)).toBeTruthy();
+      // Phases puis retour sur la Description, clavier ouvert : la couche reste remontée.
+      await act(async () => {
+        fireEvent(screen.getByTestId("exercise-instruction-input", anyNode), "blur");
+        fireEvent(screen.getByTestId("movement-phases-invite", anyNode), "focus");
+      });
+      await type("movement-phases-invite", "Descente");
+      await act(async () => {
+        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+        fireEvent(screen.getByTestId("exercise-instruction-input", anyNode), "focus");
+      });
+      await settle(300);
+      expect(isLifted()).toBe(true);
+      dismiss.mockClear();
+      await act(async () => {
+        fireEvent.press(shield()!);
+      });
+      expect(dismiss).toHaveBeenCalled();
+      emit("keyboardWillHide");
+      await settle(300);
+      expect(isLifted()).toBe(false);
+      expect(shield()).toBeNull();
+    } finally {
+      spy.mockRestore();
+      dismiss.mockRestore();
+    }
+  });
+
   it("b2-4 : ↑ des Phases pendant leur saisie, qui ferme seulement le clavier", async () => {
     await renderSheet();
     expect(screen.queryByTestId("movement-phases-submit", anyNode)).toBeNull();

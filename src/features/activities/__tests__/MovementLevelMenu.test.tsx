@@ -364,6 +364,28 @@ describe("PRE-7 A3.2 / R-9 — accès à l'écran des niveaux (D-448 point 9)", 
       expect(visibility.mock.calls).toEqual([[true], [false]]);
     }));
 
+  it("r11-menu-dehors : iOS — une nouvelle génération recrée l'hôte natif (l'ouverture suivante est de nouveau signalée)", () =>
+    withPlatform("ios", () => {
+      const level = { position: { rank: 2, total: 3 }, menu: menuModel() };
+      const props = {
+        level,
+        accessStyles: ACCESS,
+        hitSlop: HIT_SLOP,
+        onOpenPanel: jest.fn(),
+        isPanelOpen: false,
+        onClosePanel: jest.fn(),
+        onNativeMenuVisibilityChange: jest.fn(),
+        anchorRef: createRef<View>(),
+        testID: "level",
+      };
+      const { rerender } = render(<MovementLevelMenu {...props} nativeMenuGeneration={0} />);
+      const before = screen.getByTestId("level-reorder", anyNode);
+      rerender(<MovementLevelMenu {...props} nativeMenuGeneration={0} />);
+      expect(screen.getByTestId("level-reorder", anyNode)).toBe(before);
+      rerender(<MovementLevelMenu {...props} nativeMenuGeneration={1} />);
+      expect(screen.getByTestId("level-reorder", anyNode)).not.toBe(before);
+    }));
+
   it("iOS, Séance ou reprise : même racine, sous-menu « Changer de niveau »", () =>
     withPlatform("ios", () => {
       renderMenu({ position: { rank: 2, total: 3 }, menu: movementMenuModel() });

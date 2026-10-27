@@ -465,6 +465,8 @@ export function ActivityEditorForm({
   // du bloc (la ligne d'invite, dernière, est la ligne en saisie ou juste sous elle).
   const [isPhasesFocused, setIsPhasesFocused] = useState(false);
   const phasesLayoutRef = useRef({ y: 0, height: 0 });
+  // Recette du 27/10 (r11-remontee) : bas de la phase en saisie, relatif au haut du bloc (0 : inconnu).
+  const phasesActiveBottomRef = useRef(0);
   function revealPhases() {
     if (isMovement) {
       adjustMovementLayer();
@@ -493,10 +495,20 @@ export function ActivityEditorForm({
   // État rendu de la remontée (recalcule le style animé ; lisible par les tests).
   const [editableLiftPx, setEditableLiftPx] = useState(0);
   const [keyboardInset, setKeyboardInset] = useState(0);
-  const movementLiftMax = Math.max(0, movementPhotoHeight - MOVEMENT_PHOTO_UNDER_CONTEXT);
+  const [isMovementKeyboardShown, setIsMovementKeyboardShown] = useState(false);
+  // Recette A/B B.10 (b2-5) : fiche Mouvement — panneau posé sous la zone de contexte, au-dessus
+  // d'elle dans l'ordre d'affichage (elle passe au-dessus du média depuis F01). Hauteur relue aussi
+  // par la limite de remontée de la couche éditable (r11-remontee).
+  const [bandHeight, setBandHeight] = useState(0);
   function setMovementLift(target: number) {
     const k = movementKeyboardRef.current;
-    const next = Math.round(Math.max(0, Math.min(movementLiftMax, target)));
+    // Recette du 27/10 (r11-remontee) : la couche monte au plus jusqu'à la part opaque de la zone de
+    // contexte — elle glisse sous son fondu, qui se pose sur le fond blanc translucide du formulaire.
+    const liftMax = Math.max(
+      0,
+      movementPhotoHeight - MOVEMENT_PHOTO_UNDER_CONTEXT + Math.round(bandHeight * CONTEXT_BAND_FADE_RATIO),
+    );
+    const next = Math.round(Math.max(0, Math.min(liftMax, target)));
     if (Math.abs(next - k.lift) < 1) return;
     k.lift = next;
     setEditableLiftPx(next);
@@ -512,14 +524,23 @@ export function ActivityEditorForm({
     if (!k.shown || (!focus.description && !focus.phases)) return;
     const description = descriptionLayoutRef.current;
     const phases = phasesLayoutRef.current;
-    const fieldBottom =
-      (focus.description ? description.sectionY + description.stepsY + description.activeRowBottom : phases.y + phases.height) +
-      DESCRIPTION_KEYBOARD_GAP;
+    const descriptionActiveBottom = description.sectionY + description.stepsY + description.activeRowBottom;
     // Hauteur visible du défilement, couche au repos, clavier ouvert.
     const restVisible = k.bottom - k.restTop - movementKeyboardInset();
-    const need = fieldBottom - k.scrollY - restVisible;
-    setMovementLift(need);
-    const overflow = need - k.lift;
+    // Recette du 27/10 (r11-remontee, demande de Hermann) : la couche remonte jusqu'à poser le bas des
+    // Phases (ligne d'invite comprise) juste au-dessus du clavier, et y reste tant que le clavier est
+    // ouvert, quels que soient les changements de champ ou de contenu (elle ne redescend jamais ;
+    // elle peut encore monter si le contenu s'allonge), au plus jusqu'à la part opaque de la zone de
+    // contexte. Au-delà, le défilement prend la main.
+    const contentBottom = (phases.height > 0 ? phases.y + phases.height : descriptionActiveBottom) + DESCRIPTION_KEYBOARD_GAP;
+    setMovementLift(Math.max(k.lift, contentBottom - k.scrollY - restVisible));
+    // Défilement complémentaire, seulement si la ligne en saisie (Entrée : la ligne qui suit) est cachée.
+    const activeBottom =
+      (focus.description
+        ? descriptionActiveBottom
+        : phases.y + (phasesActiveBottomRef.current > 0 ? phasesActiveBottomRef.current : phases.height)) +
+      DESCRIPTION_KEYBOARD_GAP;
+    const overflow = activeBottom - (k.scrollY + restVisible + k.lift);
     if (overflow > 1) bodyScrollRef.current?.scrollTo({ y: k.scrollY + overflow, animated: !reduceMotion });
   }
   const adjustMovementLayerRef = useRef(adjustMovementLayer);
@@ -537,6 +558,7 @@ export function ActivityEditorForm({
       k.top = event.endCoordinates.screenY;
       if (event.duration > 0) k.duration = event.duration;
       setKeyboardInset(Math.max(0, k.bottom - k.top));
+      setIsMovementKeyboardShown(true);
       adjustMovementLayerRef.current();
     });
     const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", (event) => {
@@ -544,6 +566,7 @@ export function ActivityEditorForm({
       k.shown = false;
       if (event.duration > 0) k.duration = event.duration;
       setKeyboardInset(0);
+      setIsMovementKeyboardShown(false);
       setMovementLiftRef.current(0);
     });
     return () => {
@@ -594,9 +617,6 @@ export function ActivityEditorForm({
   // PRE-7 (R-5, R04) : position du panneau sous le nom, relevée par `onLayout` (bandeau dans son
   // parent, champ dans le bandeau) ; l'hôte en surimpression couvre le même parent.
   const [bandY, setBandY] = useState(0);
-  // Recette A/B B.10 (b2-5) : fiche Mouvement — panneau posé sous la zone de contexte, au-dessus
-  // d'elle dans l'ordre d'affichage (elle passe au-dessus du média depuis F01).
-  const [bandHeight, setBandHeight] = useState(0);
   const [nameLayout, setNameLayout] = useState({ x: 0, y: 0, width: 0, height: 0 });
   // PRE-7 (R-5, R04) : hauteur du panneau bornée par l'espace disponible au-dessus du clavier
   // (haut du panneau dans la fenêtre, hauteur du clavier) — ses cartes y défilent, clavier ouvert.
@@ -623,6 +643,18 @@ export function ActivityEditorForm({
   // Recette du 27/10 (remarque 3) : menu Niveau natif (iOS) affiché — voile transparent qui absorbe
   // le toucher hors du menu (le système ferme le menu) ; il se retire aussi au premier toucher.
   const [isNativeLevelMenuOpen, setIsNativeLevelMenuOpen] = useState(false);
+  // Recette du 27/10 (r11-menu-dehors) : le signal d'apparition du menu ne venait qu'à la première
+  // ouverture — à chaque fermeture, l'hôte natif du menu est recréé (génération suivante) pour que
+  // l'ouverture suivante le signale de nouveau.
+  const [levelMenuGeneration, setLevelMenuGeneration] = useState(0);
+  function onNativeLevelMenuVisibilityChange(visible: boolean) {
+    setIsNativeLevelMenuOpen(visible);
+    if (!visible) setLevelMenuGeneration((generation) => generation + 1);
+  }
+  // Recette du 27/10 (r11-remontee, demande de Hermann) : clavier ouvert sur la Description ou les
+  // Phases, Nom, Catégorie, Zones et Niveau sont inactifs — un toucher sur la zone de contexte ferme
+  // seulement le clavier (et le formulaire reprend sa place).
+  const isEditableKeyboardOpen = isMovement && (isDescriptionFocused || isPhasesFocused) && isMovementKeyboardShown;
 
   function openSheet() {
     Keyboard.dismiss();
@@ -862,11 +894,21 @@ export function ActivityEditorForm({
                   });
                 });
               }}
-              onNativeMenuVisibilityChange={setIsNativeLevelMenuOpen}
+              onNativeMenuVisibilityChange={onNativeLevelMenuVisibilityChange}
+              nativeMenuGeneration={levelMenuGeneration}
               testID="activity-editor-level"
             />
           ) : null}
         </View>
+        {isEditableKeyboardOpen ? (
+          <Pressable
+            onPress={() => Keyboard.dismiss()}
+            accessible={false}
+            importantForAccessibility="no"
+            style={styles.contextKeyboardShield}
+            testID="movement-context-keyboard-shield"
+          />
+        ) : null}
       </View>
 
       {isMovement ? (
@@ -985,6 +1027,10 @@ export function ActivityEditorForm({
                     onChange={movementPhases.onChange}
                     editable={!isBodyLocked}
                     onFocusChange={onPhasesFocusChange}
+                    onActiveRowBottomChange={(bottom) => {
+                      phasesActiveBottomRef.current = bottom;
+                      if (isPhasesFocused) revealPhases();
+                    }}
                   />
                 </View>
                 {isPhasesFocused ? (
@@ -1074,7 +1120,7 @@ export function ActivityEditorForm({
 
       {isNativeLevelMenuOpen ? (
         <Pressable
-          onPress={() => setIsNativeLevelMenuOpen(false)}
+          onPress={() => onNativeLevelMenuVisibilityChange(false)}
           accessible={false}
           importantForAccessibility="no"
           style={styles.levelMenuShield}
@@ -1352,6 +1398,8 @@ const PHRASE_LINE_HEIGHT = 20;
 const BACK_HALO_DIAMETER = 59.28;
 /** Fondu figé : opaque jusqu’à 80 %, transparent à 100 % (GRADIENT_LINEAR de la « Zone bleue »). */
 const CONTEXT_BAND_FADE_SHARE = "20%";
+/** Même part, en fraction de la hauteur de la zone (limite haute de la couche éditable, r11-remontee). */
+const CONTEXT_BAND_FADE_RATIO = 0.2;
 /**
  * Recette 2 (T-49) : couches SUPERPOSÉES, chacune de son seuil jusqu’au bas de la
  * zone — aucun interstice entre bandes, donc aucun trait parasite. L’opacité de
@@ -1415,6 +1463,15 @@ const styles = StyleSheet.create({
     marginTop: -MOVEMENT_PHOTO_UNDER_CONTEXT,
     overflow: "hidden",
     backgroundColor: colors.mediaSurface,
+  },
+  // r11-remontee (27/10) : voile de la zone de contexte clavier ouvert, sans rendu.
+  contextKeyboardShield: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 2,
   },
   // Remarque 3 (27/10) : voile du menu Niveau natif, au-dessus de tout l'écran, sans rendu.
   levelMenuShield: {
