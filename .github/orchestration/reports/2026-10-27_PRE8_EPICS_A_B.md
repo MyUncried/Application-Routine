@@ -82,6 +82,11 @@ Aucun artefact BMAD PRE-8 n'existait (git, disque, Issues et PR GitHub vérifié
 - **Q-B2, compléments** : pile dépliée au toucher ; recherche en piles dépliables ; Trier et Partager grisés ; Créer une variante par le choix de difficulté existant ; Archiver transposé de CE-T03-05. Ouverts : combinaison des filtres, archivage dans une famille de Niveaux.
 - Aucune modification applicative ; aucun test applicable à cette mise à jour documentaire.
 
+## Test sur appareil et retour arrière (27/10)
+
+- La migration 014 est à sens unique : une version de `main` (schéma 13) refuse d'ouvrir une base 14 (`migrateDatabase`, « newer than supported ») sans l'effacer ; réinstaller PRE-8 la rouvre.
+- Les variantes `app.config.js` ont chacune leurs données : Routine (`com.ankusha.kodjo`), Routine Dev (`.dev`), Routine BMAD (`.bmad`). Tester PRE-8 dans Routine BMAD laisse intactes les bases de Routine et Routine Dev. Correction de la réponse précédente, qui supposait un identifiant unique.
+
 ## Vérifications restant à effectuer sur appareil réel
 
 - Fiche Mouvement : gabarit photo (proportions, recouvrement par la zone de contexte), ajout, consultation, retrait et réordonnancement des médias, clavier et défilement, invite des phases, crayon, menu Niveau, dialogue C03.
