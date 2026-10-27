@@ -191,3 +191,37 @@ Détail : `_bmad-output/pre8/implementation-artifacts/spec-b-5-b-8-catalogue-pil
 
 - `b3e6f0b1` A.1 et A.2 ; `510c764f` A.3 et A.4 ; `22fc7d3d` B.1 ; `b9473713` rapport d'étape ; `9b3db6e6` B.2 à B.4 ; `35690f24`, `1936a54e`, `1f2dc356` arbitrages et retour arrière (documentation) ; `5cadfcd9` B.5 à B.8 ; `d47d695d` lien du cahier de recette ; commit B.9 (corrections de recette A/B) avec ce rapport (hash communiqué dans la réponse de clôture).
 - Branche `pre8-bmad/dev`, non poussée, sans fusion.
+
+## Résultats de la recette iPhone A/B (27/10, 13:10–14:41)
+
+Source : collection `results` du cahier de recette (https://claude.ai/artifact/KR5M1XyoWc4eDFpAE5bZBV), relue le 27/10 après 14:41 ; build servie : `a5795271`. Le démarrage, bloqué auparavant sur l'écran de lancement, a fonctionné (tests réalisés).
+
+**Bilan.** 66 tests : 60 OK, 5 KO (`b2-4`, `b2-5`, `b2-8`, `q6-2`, `r9-a02`), 1 non testé (`q6-4`, VoiceOver). Plusieurs tests OK portent une note qui modifie le besoin.
+
+**KO :**
+- `b2-4` clavier : dans Description et Phases, les champs remontent sous la photo. Demande : la photo remonte aussi (derrière la zone de contexte) pendant la saisie seulement, puis reprend sa place. Question : comment fermer le clavier (pas de bouton) ?
+- `b2-5` nom déjà utilisé : la liste de suggestions est en partie sous la zone de contexte ; Entrée ferme le clavier sans message ; la liste reste et masque le gabarit ; la fiche reste modifiable mais non sauvegardable. Demande : message (Figma) à l'appui sur Entrée, clavier maintenu, fiche non modifiable.
+- `b2-8` menu Niveau depuis le Catalogue : libellé « Ouvrir un autre niveau » ; textes du menu plus petits.
+- `q6-2` niveaux archivés : côté Exercice, tous les niveaux sont grisés sauf le courant (archivés compris) ; côté Mouvement, tous actifs, l'archivé s'ouvre en lecture seule sans indication. Demande : « (archivé) » dans le menu et, si possible, sur le nom.
+- `r9-a02` titres : tous les titres d'écran en Medium 17 (y compris Catalogue, auparavant Semi Bold 20).
+
+**Notes modifiant le besoin sur des tests OK :**
+- `b7-5` : la pile filtrée n'affiche que les cartes qui correspondent aux filtres (la Recherche, elle, garde toute la pile). Contredit l'arbitrage définitif Q3 (pile entière).
+- `b8-3` : les niveaux sont recalculés directement après archivage. Contredit l'arbitrage « pas de recalcul ».
+- `b2-6` : comportement observé conforme à F07 (ouverture en édition).
+- `b5-5` : la recherche par alias n'a pas pu être testée ; question sur la gestion des alias et sur une interface d'administration.
+
+**Remarques générales :**
+1. Fiche de Mouvement dans la Composition de Séance : encore l'ancien format.
+2. Réordonnancement : la carte déplacée passe derrière un emplacement blanc ; la carte à déplacer disparaît puis bouge au relâcher.
+3. Titre du Catalogue : trop gros et gras (cf. `r9-a02`).
+4. Retour dans le Catalogue : les options glissées doivent être refermées ; filtres et piles dépliées conservés.
+5. Médias : compteur « 1 / n » à la place de « Vidéo » ; icône de lecture transparente au centre pour une vidéo.
+6. Création : curseur dans le champ Nom à l'ouverture.
+7. Suggestions en création : « Ajouter un niveau » et « Ouvrir ce mouvement » (au lieu de « Créer une variante » / « Utiliser ce mouvement »).
+8. Nouveau niveau depuis un Mouvement ouvert : aucune recherche de nom similaire ; un nom identique bloque la sauvegarde sans explication. Demande : la recherche et le blocage du nom identique avant de continuer.
+9. Seconde rangée de commandes de la zone de contexte : trop haute par rapport aux Catalogues Séances / Exercices.
+
+**Constat technique (alias).** Le modèle, la persistance (`movement_aliases`, migration 013) et la recherche (`rankMovements`) gèrent les alias, mais aucun écran ne permet d'en saisir (`aliases: []` à la création) et aucun jeu de données n'en contient. Il n'existe pas d'interface d'administration de la base. La recherche par alias n'est donc pas testable sur l'appareil. Démontré par lecture du code ; non vérifié sur l'appareil.
+
+**Suite.** Aucune correction engagée : en attente de l'accord de Hermann sur le lot de corrections, notamment sur les deux changements d'arbitrage (`b7-5`, `b8-3`) et sur la remarque 1 (Composition), dont l'appartenance au périmètre A/B est à confirmer.
