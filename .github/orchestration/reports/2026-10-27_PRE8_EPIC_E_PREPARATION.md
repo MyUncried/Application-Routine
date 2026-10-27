@@ -67,3 +67,26 @@ Voir « Modifications réalisées », plus ce rapport.
 ## Commit final et état Git
 
 Consignés dans la réponse de clôture (commit qui contient ce rapport) ; branche `pre8-bmad/dev`, rien n'est poussé ni fusionné dans `main`.
+
+## Révision du plan après la revue de Hermann (28/10)
+
+**Instruction.** « KODJO — PRE-8 — Revue du plan de l'epic E ». Révision ciblée, sans reconstruction du plan ni audit général. Point de départ : `f4ce01d4`.
+
+**Passages révisés** (`_bmad-output/pre8/planning-artifacts/epic-e-catalogue-seances.md`) :
+- §0 : Q-E0 tranché ; intégration documentaire contrôlée avant la livraison finale.
+- §2 : ordre et dépendances envers C.
+- E.4 : trois segments, rangée responsive.
+- E.6 : statut, sémantique Q-E3, Format.
+- E.8 : transition en deux temps, E.8-a sans migration, E.8-b avec ou après C.
+- §3 : arbitrages restants ; §3 bis : Niveaux ; §5 : organisation des tests.
+- `sprint-status.yaml` mis à jour.
+
+**Vérifications ciblées.**
+- Flux des Exercices du Catalogue : `ExerciseScreen` écrit les définitions ; `ActivitySelectionScreen` les lit ; une occurrence est une copie.
+- Règles de filtre existantes : Q1, Q2 et Q4 portent sur les Mouvements. Aucune règle de combinaison ne concerne les Séances. Le tableau ancien du ch13 (Toutes, Planifiées, Non planifiées, Archivées) est à résorber à l'intégration.
+- Niveaux :
+  - contradiction confirmée entre `MovementCatalogueService` et `movementLifecycle.b8.test.ts` (b8-3) d'un côté, la règle 8 du ch09 de `main` (`266a0438`) de l'autre ;
+  - incohérence interne à PRE-8 : les menus Niveau de la fiche gardent le rang de la famille complète.
+- `reorder` : `writeGroupOrder` réécrit toute la famille. Le seul effet observable est le `updated_at` des autres membres, qui n'est ni affiché ni utilisé : différence technique, aucune modification.
+
+**Aucun fichier applicatif modifié, aucune migration, aucun test applicatif lancé** : seuls des documents ont changé.
