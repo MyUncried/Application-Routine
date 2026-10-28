@@ -18,3 +18,8 @@ Périmètre : Composition et création d’exercice / Modalités d’exécution,
 | E10 | Anciennes descriptions / contrats et mentions « DSF et captures différés » restent actives | Mettre à jour descriptions remplacées, contrats, index et matrice de clôture ; limiter la clôture aux preuves réellement disponibles |
 
 Les frames internes « Modale — Paramètres d’exécution », « Voile modal » et « Fond — Groupe Paramètres » ne sont pas des écrans supplémentaires. Les confirmations, popovers et bulles sont documentés comme états du parcours parent. Les anciens états spécialisés sans équivalent actuel identifié (douze séries, erreur de validation, résumés spécialisés) ne sont pas certifiés par les nouveaux exports.
+
+
+## Mise à jour Composition — 28/10/2026
+
+[Inventaire courant, règles et réserves](KODJO-Composition-conteneurs-2026-10-28.md). Les en-têtes du 28/10 remplacent le stepper permanent, l’unité interactive, le masquage de durée et le circuit unique des relevés historiques. Le tableau des dix nodes vérifiés est la référence de ce lot. Aucun écran d’extension par la borne ne fait partie du parcours courant.

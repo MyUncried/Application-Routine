@@ -1,5 +1,9 @@
 # Vision et glossaire
 
+## Composition — actualisation du 28/10/2026
+
+Le Cycle est un conteneur visible de circuits et d’exercices directs ; le Circuit a pour natures Séries groupées et Séries alternées. Tour désigne un passage de circuit, répétition le compte du cycle. Les valeurs de séries identiques/variables sont un autre axe. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md).
 
 
@@ -180,7 +184,7 @@ Une **entité métier** possède une identité propre et peut être représenté
 | **Phase de récupération** | Phase d’Exécution positive matérialisée soit par `SIDE_RECOVERY`, entre les deux côtés d’un Exercice bilatéral, soit par `POST_ACTIVITY_RECOVERY`, après une occurrence de Séance. Elles ont des porteurs et positions distincts et ne sont pas comptées comme des Exercices. | |
 | **Durée totale de l’Exercice** | Total intrinsèque calculé suivant chapitre 08, paramètres d’exercice : exact en Durée, estimé ≈ avec cadence, borne omission sans bip à l’Exercice, omis À l’échec. Inclut les Pauses et PC applicables ; exclut R contextuelle, Compte à rebours et Fin propres. |  |
 | **Durée de l’exercice** | Libellé visible de la ligne de la feuille des paramètres qui présente la Durée totale de l’Exercice ; un chevron à côté du libellé replie ou déploie Compte à rebours et Fin d’exercice. Règle : RM-246 (D-409). |  |
-| **Cycle** | Structure technique unique qui enveloppe les Exercices placés avant le Circuit, le Circuit et les Exercices placés après le Circuit. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur. | Cycle technique × 1 |
+| **Cycle** | Conteneur visible facultatif de circuits et d’exercices directs ; compte propre 1..99, défaut 1 ; plusieurs cycles successifs, aucun cycle imbriqué (D-451). | Deux répétitions de la séquence du cycle |
 | **Routine** | Créneau de planification portant une liste ordonnée de Séances et/ou Exercices persistants, une règle de récurrence éventuelle, un rappel facultatif et un Programme facultatif. |
 | **Occurrence planifiée** | Instance temporelle calculée à partir d’une Routine, pour une Séance ou un Exercice. Une occurrence future peut être exécutée en avance ; une occurrence passée sans Exécution disparaît de l’interface du MVP. | Exercice prévu mardi à 18 h |
 | **Exécution** ou **Exécution de séance** | Réalisation effective d’un contenu. Une Exécution d’origine `SESSION` repose sur un Instantané de séance ; une Exécution directe d’origine `ACTIVITY` repose sur un Instantané autonome d’Exercice. | Exécution démarrée à 18 h 03 |
@@ -394,8 +398,8 @@ Les noms de frames Figma et annotations restent des références techniques : il
 
 | Terme | Définition |
 |---|---|
-| Circuit de tours | Groupe ordonné ; chaque tour exécute toutes les séries de chaque exercice. Nature par défaut et reprise des anciens objets. |
-| Circuit de séries | Groupe ordonné ; au passage i, chaque exercice exécute sa série i. N est commun, imposé par le circuit. |
+| Circuit à séries groupées | Groupe ordonné ; chaque tour exécute toutes les séries de chaque exercice. Nature par défaut et reprise des anciens objets. |
+| Circuit à séries alternées | Groupe ordonné ; au passage i, chaque exercice exécute sa série i. N est commun, imposé par le circuit. |
 | Passage | Position dans le développement du circuit ; ne constitue pas une nouvelle entité persistante autonome. |
 | Régime | Identiques ou variables, explicite et propre à l’exercice ; non déduit de l’égalité des valeurs. |
 | Valeur héritée en lecture seule | Valeur réelle déterminée par le contexte, visible sans possibilité d’édition ; différente d’un champ sans effet affichant un tiret. |

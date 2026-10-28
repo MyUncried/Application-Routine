@@ -1,5 +1,7 @@
 # PRODUCT — KODJO
 
+> **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
+
 > **Évolution fonctionnelle validée — D-449 (26/10/2026)** : [Séance comme objet unique, six décisions closes](KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Cette cible remplace la dualité Exercice autonome/Séance, le cycle technique unique et les catalogues séparés par nature. Elle conserve Mouvement et Exercice comme composant de séance ; plusieurs cycles successifs sans imbrication ; lancement de toute la séance ; catalogue unique à vues filtrées. Le code PRE-7 et les visuels existants restent l’état livré antérieur sur ces points.
 
 **Référence courante — évolutions v15 :** [inventaire, plan et preuves](MATRICE-EVOLUTIONS-V15-2026-10-07.md), [consolidation fonctionnelle](Specifications-fonctionnelles/10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#calculs-durees), [DSF phrases](DSF-PHRASES-V15-2026-10-07.md). Corpus276 actualisé ; calculs conservés ; captures et contrats repris.
@@ -32,7 +34,7 @@ Une Séance est un contenu exécutable défini par l’utilisateur.
 Elle possède notamment :
 - un nom ;
 - une Étiquette de Séance lorsqu’elle est renseignée ; la couleur affichée de la Séance est la couleur de cette Étiquette ;
-- une Composition présentée autour d’un Circuit unique ;
+- une Composition ordonnée d’exercices, de circuits et de cycles facultatifs ;
 - des paramètres de guidage et d’exécution.
 
 ### Routine
@@ -67,11 +69,9 @@ Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 
 
 ### Circuit, Tours et Cycle
 
-Le MVP contient exactement un Circuit visible, exécuté de 1 à 99 Tours, et un Cycle technique.
+Plusieurs circuits et cycles successifs sont dans le MVP (D-451). Un circuit contient des exercices et porte 1..99 tours, défaut 1, en séries groupées ou alternées. Un cycle visible contient circuits et exercices directs, avec 1..99 répétitions, défaut 1. Aucun cycle technique implicite ni conteneur de même type imbriqué. Les exercices directs du cycle sont rejoués à chaque répétition, ceux de la séance une seule fois. La bilatéralité reste propre aux exercices.
 
-Le Circuit est un groupe ordonné d’Exercices exécuté intégralement de 1 à 99 Tours. Un Tour est une répétition complète du Circuit. Dans la version actuelle, le changement de côté n’est pas exposé au niveau du Circuit : le Circuit n’a pas de bilatéralité fonctionnelle et son support technique historique éventuel est conservé sans être modifiable ni visible. La bilatéralité reste portée par les Exercices.
-
-Le Cycle est conservé dans le modèle pour l’évolutivité, mais son nombre de répétitions vaut toujours `1`, n’est pas modifiable et n’est jamais affiché à l’utilisateur dans le MVP.
+Voir [Composition : circuits, cycles et création](KODJO-Composition-conteneurs-2026-10-28.md).
 
 ### Exécution
 
@@ -130,11 +130,11 @@ Un Exercice peut définir un Compte à rebours propre et une Fin d’exercice pr
 La structure affichée comprend, dans l’ordre :
 1. un Compte à rebours initial structurellement présent, éventuellement instantané à `0 s` ;
 2. zéro, une ou plusieurs Exercices avant le Circuit ;
-3. un Circuit unique contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
+3. une séquence de circuits et de cycles facultatifs, non vides, et d’exercices directs, avec les comptes définis par D-451 ;
 4. zéro, une ou plusieurs Exercices après le Circuit ;
 5. une Fin de séance structurellement présente, d’une durée initiale de `5 s` et pouvant être réglée à `0 s`.
 
-Le Cycle technique unique enveloppe ce plan avec une répétition fixée à `1`.
+Les cycles visibles enveloppent leurs membres avec leur compte propre (D-451) ; aucun cycle implicite n’enveloppe la séance.
 
 Une Séance est exécutable lorsqu’elle contient au moins un Exercice valide.
 
@@ -160,7 +160,7 @@ Le MVP permet de :
 - lancer une Séance depuis le catalogue ou depuis une occurrence du Calendrier ;
 - construire le plan d’Exécution à partir de l’instantané ;
 - afficher l’Exercice en cours, l’Exercice suivant, le temps et la progression ;
-- afficher les informations de Série et de Tour, sans jamais exposer le Cycle ;
+- afficher les informations de Série et de Tour, en conservant le contexte du cycle visible lorsqu’il existe (D-451 ; rendu d’exécution à qualifier) ;
 - afficher le côté courant sous le nom de l’Exercice lorsque l’Exercice est effectivement bilatéral (`Côté 1` / `Côté 2`, RM-243) ;
 - afficher la charge de la Série courante lorsque la charge est active (RM-241) ;
 - réinitialiser l’Exercice courant ;
@@ -292,7 +292,7 @@ Le composant DSF canonique de navigation est `Navigation / Bottom — 5 onglets`
 - signalement détaillé de douleur ou de gêne ;
 - intelligence artificielle ;
 - Séances imbriquées ;
-- structures comportant plusieurs Circuits ou plusieurs Cycles ;
+- cycles imbriqués et circuits imbriqués (les conteneurs multiples successifs sont dans le MVP depuis D-451) ;
 - modification individuelle d’une occurrence de Calendrier ;
 - Parcours fonctionnels ;
 - options avancées de filtre/tri Catalogue non encore arbitrées.
@@ -507,7 +507,7 @@ Les fondations visuelles et composants communs suivent DSF V2 : fonds et zones d
 
 ### Générateur de phrase — référence active v1 (06/10/2026)
 
-Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `1..100`, Durée par Série = `1 s..58 min 55 s` (minimum porté de 5 à 1 s par D-430, 19/10/2026).
+Le générateur suit v13 §7. Le résumé omet le total uniquement lorsqu’il égale réellement la cible ; une Pause positive à N=1 rend ces valeurs différentes. En variable : énumération jusqu’à3 puis plage min/max, total en lecture seule. Compte à rebours et Fin d'exercice restent hors phrase et hors calcul de Durée totale. Les pauses d’Exercice utilisent les steppers de la feuille sur0..300s ; les réglages de durée du Profil utilisent des steppers. Les steppers de pauses utilisent tap1s puis maintien accéléré1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. Séries = `1..99`, Répétitions = `0..100`, Durée par Série = `0 s..58 min 55 s` (28/10 : minimum zéro pour les cibles de série, distinct du tiret ; remplace le minimum de D-430).
 
 ## Mise à jour visuelle du 30 septembre 2026
 

@@ -869,3 +869,8 @@ Recettes normatives : [règles MFN-01 à MFN-13](10%20%E2%80%93%20Processus%20m%
 ## D-445 — Clôture fonctionnelle
 
 C01–C07 et C09 clos ; C08 différé. Règles MFN-03/04/06/07/08/09/10/11 actualisées ; recettes MFN/AC01–45. Modèle actif : 04/09 ; API : 11 ; architecture : 12 ; contrats CE-T03-04, CE-T03-07/08, CE-UI-10 et CE-UI-NIV-01 : 13. Spécification v7 et prompt v7 référencés dans INDEX. Les identifiants C ne constituent plus des réserves ouvertes, sauf le périmètre C08.
+
+
+## Composition — correspondance du 28/10/2026
+
+D-451 → RM-025/RM-028/RM-252/SU-04 → CE-T03-08 ; modèle DM-003/DM-004. Complément 28/10 → RM-027/RM-234 → CE-T03-08/CE-CIR-01/CE-CIR-02. Preuves : synthèse fournie et nodes du tableau Figma ; recette attendue et limites dans la référence consolidée. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).

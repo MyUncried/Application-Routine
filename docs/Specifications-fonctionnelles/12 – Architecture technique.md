@@ -1,5 +1,9 @@
 # Architecture technique
 
+## Composition — actualisation du 28/10/2026
+
+Implémenter le plan de composition avec parents explicites et ordre, sans injecter de cycle technique. Ne pas renommer automatiquement les enums persistés. Les en-têtes collantes utilisent la hauteur rendue et au plus deux niveaux ; le rail, le survol et les cibles demandent une recette réelle. La forme visuelle du survol et le stepper ouvert ne sont pas qualifiés. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Catalogue des mouvements — famille et message temporaire, 28/10/2026
 
 Réutiliser les cartes Mouvement, la pastille de niveau et `DSF / Overlays / Message temporaire`, selon CE-MVT-03 et les [captures du 28/10](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Un seul filet vertical à gauche représente l'appartenance ; sa longueur suit les membres, sa naissance et sa disparition la création et la dissolution. Carte saisie soulevée, emplacement pointillé, reflux des cartes et rangs provisoires ; aucun anneau, teinte d'acceptation ou invite textuelle.
@@ -474,7 +478,7 @@ Au démarrage d’une Exécution :
 
 Le moteur gère ensuite :
 - l’étape courante ;
-- les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
+- les tours de chaque circuit et les répétitions propres des cycles visibles (D-451) ;
 - les Séries propres à chaque Exercice ;
 - *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
@@ -1612,9 +1616,9 @@ Ordre de développement retenu :
 
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
-3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
+3. **Séance simple** : création et modification d’une Séance avec quelques exercices directs sans conteneur obligatoire (D-451).
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
-5. **Structure complète du MVP** : Circuit et ses Tours, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : circuits et leurs tours, cycles visibles, exercices directs, récupération (D-451), Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
@@ -1771,7 +1775,7 @@ Conserver les shells. Composition : sous-brouillon isolé pour placement multipl
 
 Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec le libellé parcours de planification ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur . Aucun booléen de Séance pour les phases propres aux Exercices : le générateur SESSION les exclut inconditionnellement ; seuls le Compte à rebours initial et la Fin de séance sont générés à leurs frontières.
 
-Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Lorsque le Circuit est exécuté N ≥ 2 fois et ouvre ou clôt la Séance, il omet seulement l’arrêt de début ou de fin de Tour qui suivrait le Compte à rebours initial ou précéderait la Fin de séance (D-442, RM-219) ; un passage partiel de Circuit de Séries qui ferait se suivre deux arrêts n’en exécute qu’un (RM-251). Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
+Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Lorsque le Circuit est exécuté N ≥ 2 fois et ouvre ou clôt la Séance, il omet seulement l’arrêt de début ou de fin de Tour qui suivrait le Compte à rebours initial ou précéderait la Fin de séance (D-442, RM-219) ; un passage partiel de Circuit à séries alternées qui ferait se suivre deux arrêts n’en exécute qu’un (RM-251). Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
 
 **D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée. La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239).
 

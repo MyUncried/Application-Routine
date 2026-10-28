@@ -1,5 +1,9 @@
 # Parcours utilisateur
 
+## Composition — actualisation du 28/10/2026
+
+Parcours courant : ajouter les exercices, puis Ajouter un circuit/cycle, désigner les membres, confirmer ; réorganiser par appui long. Le circuit se replie pour être déplacé ; le cycle ne se replie pas. Les formats restent un sujet distinct. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Catalogue des mouvements — composer une famille, 28/10/2026
 
 Appui long, déplacement, arrêt sur l'emplacement puis relâchement : même geste pour réordonner, sortir, créer ou rejoindre une famille. Le filet et les pastilles prévisualisent le résultat ; une famille repliée se déplie. Seul un mouvement sans famille peut être lié à une autre carte ; un changement de famille impose sortie puis liaison, en deux gestes. Le dernier couple se dissout lors d'une sortie explicite. Application immédiate, sans message pour le seul ordre ; changement d'appartenance annoncé avec Annuler pendant 3 secondes. Le tri du catalogue place le mouvement sorti, même en tête de liste. Voir [règles A à E et recette FAM-01–11](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) et CE-MVT-03. Ajouter un niveau conserve son formulaire distinct.
@@ -348,7 +352,7 @@ Il peut créer une séance entièrement nouvelle ou partir d'une copie d'une sé
 
 L'utilisateur crée une nouvelle séance depuis le Catalogue.
 
-Dans l’écran unique `Composer une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le Cycle technique reste fixé à 1 et n’est jamais affiché.
+Dans l’écran unique `Composer une séance`, il renseigne son nom, sélectionne éventuellement son Étiquette — dont la couleur devient la couleur affichée de la Séance — puis construit progressivement la Composition. La Composition peut contenir un Point d’arrêt déplaçable ; son attente ne compte pas dans la durée. Un Exercice peut définir son propre Compte à rebours et sa propre Fin d’exercice, distincts des phases structurelles de la Séance. Les Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Le premier Exercice ajouté est inséré après le Compte à rebours initial et avant le Circuit. Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252).
 
 Pour chaque Exercice, un écran unique permet de renseigner le nom, la Catégorie, les Zones corporelles, le mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série, la cible éventuelle, le nombre de Séries, la Pause après chaque série, la Charge facultative (RM-235 à RM-241), le Changement de côté (`Avec` / `Sans`, D-406), la **Pause entre les côtés** lorsque l’Exercice est bilatéral, le Compte à rebours propre et la Fin d’exercice propre. La Description reste facultative. L’action `Terminer` enregistre l’Exercice.
 

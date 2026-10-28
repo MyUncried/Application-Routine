@@ -166,3 +166,8 @@ Les nouveaux états 7167:13503, 7173:13521 et 7296:13696 sont intégrés au chap
 | [7245:13718 — Boutons d’action contextuelle — repos et activé](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7245-13718) | Capture actualisée et PNG vérifié | Référence DSF (pas un écran applicatif) | [PNG](Specifications-fonctionnelles/images/figma-7245-13718.png) ; b98e1b9f2270d11777b4723f2cd7e2ab6c81043c |
 | [7296:13696 — Composition séance — Retirer une récupération](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=7296-13696) | Capture actualisée et PNG vérifié | Composition ; CE-T03-08 | [PNG](Specifications-fonctionnelles/images/figma-7296-13696.png) ; 12ff799817f251ae051f9a71583b6cc4659b6418 |
 
+
+
+## Mise à jour Composition — 28/10/2026
+
+[Inventaire courant, règles et réserves](KODJO-Composition-conteneurs-2026-10-28.md). Les en-têtes du 28/10 remplacent le stepper permanent, l’unité interactive, le masquage de durée et le circuit unique des relevés historiques. Le tableau des dix nodes vérifiés est la référence de ce lot. Aucun écran d’extension par la borne ne fait partie du parcours courant.

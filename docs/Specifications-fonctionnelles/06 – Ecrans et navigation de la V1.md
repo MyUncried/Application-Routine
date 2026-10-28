@@ -1,5 +1,9 @@
 # Interface : navigation, écrans et conventions communes
 
+## Composition — actualisation du 28/10/2026
+
+Références de rendu vérifiées le 28/10 : menu 10705:20223 ; deux circuits 10717:20056 et 10725:20142 ; cycle 10744:20108 ; base 10818:20175 ; placement circuit 10819:20344 ; circuit créé 10821:20222 ; placement cycle 10836:20478. Le tableau de la référence consolidée donne les liens. Les captures historiques de composition ne font plus foi pour ces en-têtes. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Catalogue des mouvements — familles, référence du 28/10/2026
 
 Trois écrans documentent le geste continu selon CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Les niveaux sont recalculés pendant le déplacement. Le message est réservé au changement d’appartenance, avec Annuler pendant 3 secondes ; aucun message de simple réordonnancement.
@@ -2431,7 +2435,7 @@ Un bouton œil, posé **sur la ligne du titre de l'en-tête de circuit**, ouvre 
 
 ##### Le bouton est permanent, dans les deux natures
 
-Il serait défendable de ne l'offrir qu'au circuit de séries, où il est le plus utile. Il est **présent dans les deux natures**, et actif dans les deux : un en-tête de circuit a une composition fixe, qui ne se réorganise pas quand on change sa nature.
+Il serait défendable de ne l'offrir qu'au circuit à séries alternées, où il est le plus utile. Il est **présent dans les deux natures**, et actif dans les deux : un en-tête de circuit a une composition fixe, qui ne se réorganise pas quand on change sa nature.
 
 ##### La grille accepte deux régimes dans la même colonne
 
@@ -2444,7 +2448,7 @@ La grille montre les valeurs. Elle ne permet pas de déduire le régime lorsque 
 
 ##### Sens de lecture, et défilement
 
-Le tableau se lit **par colonne** dans un circuit de séries — une colonne est un passage — et **par ligne** dans un circuit de tours — une ligne est un exercice et toutes ses séries. Les deux lectures sont légitimes ; **la structure n'en privilégie aucune**.
+Le tableau se lit **par colonne** dans un circuit à séries alternées — une colonne est un passage — et **par ligne** dans un circuit à séries groupées — une ligne est un exercice et toutes ses séries. Les deux lectures sont légitimes ; **la structure n'en privilégie aucune**.
 
 Si l'on veut guider la lecture : coloriser une colonne sur deux, ou une ligne sur deux. Pour la place : **figer la colonne de titre et la colonne d'unité**, et faire défiler les colonnes de séries.
 
@@ -2484,9 +2488,9 @@ La raison est la **stabilité à l'édition** : sous une règle qui regarderait 
 
 ##### Deux arbitrages actés, à ne pas rouvrir
 
-**Le préfixe « N × » est conservé même dans un circuit de séries**, où le nombre est pourtant hérité et déjà écrit dans l'en-tête. La régularité de la carte l'emporte sur l'économie de place.
+**Le préfixe « N × » est conservé même dans un circuit à séries alternées**, où le nombre est pourtant hérité et déjà écrit dans l'en-tête. La régularité de la carte l'emporte sur l'économie de place.
 
-**La notation ne change pas selon le contexte.** Une carte s'écrit de la même façon qu'elle soit dans un circuit ou hors circuit, dans un circuit de tours ou de séries. Un lecteur peut inférer une absence ; il ne peut pas inférer une règle de notation qui varie. *Omettre ce qui est redondant* reste un principe recevable ; *changer de notation selon le contexte* ne l'est pas.
+**La notation ne change pas selon le contexte.** Une carte s'écrit de la même façon qu'elle soit dans un circuit ou hors circuit, dans un circuit à séries groupées ou de séries. Un lecteur peut inférer une absence ; il ne peut pas inférer une règle de notation qui varie. *Omettre ce qui est redondant* reste un principe recevable ; *changer de notation selon le contexte* ne l'est pas.
 
 ---
 
