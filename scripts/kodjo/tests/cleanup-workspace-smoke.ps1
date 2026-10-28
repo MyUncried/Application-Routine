@@ -16,13 +16,15 @@ try {
   & git -C $repo branch -M main
   & git -C $repo push -u origin main | Out-Null
   & git -C $repo worktree add -b temporary $wt main | Out-Null
-  & $script -Path $repo -Repository $repo -Remove 2>$null
-  if ($LASTEXITCODE -eq 0) { throw 'Main repository deletion should be refused' }
+  $refused = $false
+  try { & $script -Path $repo -Repository $repo -Remove | Out-Null } catch { $refused = $true }
+  if (-not $refused) { throw 'Main repository deletion should be refused' }
   & $script -Path $wt -Repository $repo
   if (-not (Test-Path $wt)) { throw 'Diagnostic deleted worktree' }
   Set-Content -LiteralPath (Join-Path $wt 'LOCAL.txt') -Value 'untracked' -Encoding utf8
-  & $script -Path $wt -Repository $repo -Remove 2>$null
-  if (-not (Test-Path $wt)) { throw 'Dirty worktree was deleted' }
+  $refused = $false
+  try { & $script -Path $wt -Repository $repo -Remove | Out-Null } catch { $refused = $true }
+  if (-not $refused -or -not (Test-Path $wt)) { throw 'Dirty worktree was not refused' }
   Remove-Item (Join-Path $wt 'LOCAL.txt') -Force
   & $script -Path $wt -Repository $repo -Remove
   if (Test-Path $wt) { throw 'Clean worktree was not deleted' }
