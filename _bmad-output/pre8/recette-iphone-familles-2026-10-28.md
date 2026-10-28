@@ -58,9 +58,9 @@ Pour chaque case : ✅ conforme, ❌ problème (décrire), ➖ non testé.
 
 ## À trancher pendant la recette
 
-1. Libellé de l'entrée dans une famille (provisoire : « Mouvement ajouté à la famille »).
-2. Alternative accessible pour sortir, créer, rejoindre.
-3. Dernier couple accompagné d'un membre archivé : sortie simple (choix actuel) ou dissolution.
-4. Singleton subi ou famille filtrée : comportement décrit ci-dessus.
-5. Emplacement pointillé : limite à accepter ou à corriger (ouverture de place et défilement : couverts après la recette du 28/10).
+1. ~~Libellé de l'entrée dans une famille~~ : « Mouvement ajouté à la famille » validé par Hermann le 28/10.
+2. ~~Alternative accessible pour sortir, créer, rejoindre~~ : reportée dans un lot d'accessibilité de fin de MVP (décision de Hermann du 28/10).
+3. ~~Dernier couple accompagné d'un membre archivé~~ : sortie simple confirmée à la clôture du 28/10 (spec § 13).
+4. ~~Singleton subi~~ : confirmé à la clôture du 28/10 (spec § 13) ; famille filtrée : lecture à confirmer, non bloquante.
+5. ~~Emplacement pointillé~~ : écart visuel accepté provisoirement par Hermann le 28/10 (ouverture de place et défilement : couverts après la recette du 28/10).
 6. ~~Place d'un Mouvement sorti (remarque fam-07)~~ : statu quo décidé par Hermann le 28/10 (classement par nom).

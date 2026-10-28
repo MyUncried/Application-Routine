@@ -481,7 +481,8 @@ export class SqliteMovementRepository implements MovementRepository {
         outcome = { status: "REFERENCED", exerciseCount };
         return;
       }
-      // Famille et position (`level_group_id`, `level_sort_key`) intactes : aucun rang recalculé (Q5).
+      // Famille et position (`level_group_id`, `level_sort_key`) intactes ; les rangs affichés des actifs
+      // sont recalculés à la lecture (b8-3), aucune clé n'est réécrite.
       const timestamp = this.now();
       await transaction.runAsync("UPDATE movements SET archived_at = ?, updated_at = ? WHERE id = ?", [timestamp, timestamp, id]);
       outcome = { status: "ARCHIVED" };

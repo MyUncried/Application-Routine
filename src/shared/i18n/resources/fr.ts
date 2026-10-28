@@ -1193,8 +1193,8 @@ export const fr = {
           created: "Nouvelle famille de niveaux créée",
           dissolved: "Famille de niveaux supprimée",
           left: "Mouvement sorti de la famille",
-          // À CLARIFIER (DSF du 28/10, réserve de transcription) : la source ne fournit pas le libellé
-          // de l'entrée dans une famille existante. Texte provisoire, non validé par Hermann.
+          // Entrée dans une famille existante : la DSF du 28/10 ne fournit pas ce libellé (réserve de
+          // transcription) ; texte validé par Hermann le 28/10/2026 (recette FAM).
           joined: "Mouvement ajouté à la famille",
         },
         actions: {

@@ -92,5 +92,9 @@ Identiques sur la branche et sur `main` (`ff7600ac`) sauf mention ; aucune modif
 
 - **Ne pas propager** les formulations contraires à b8-3 (rangs affichés recalculés sur les membres actifs après archivage ou restauration) ; liste exacte des passages et correction proposée : `implementation-artifacts/spec-familles-mouvements-2026-10-28.md`, § 7.
 - **Préciser B5** : dans PRE-8, Trier n'étant pas actif, le classement implicite par nom tient lieu de tri.
-- **Réserves à faire trancher** avant de les écrire dans `main` : libellé de l'entrée dans une famille, alternative accessible, dernier couple avec un archivé, singleton subi, renumérotation de secours (même fichier, § 6).
+- **Réserves à faire trancher** [tranchées le 28/10, voir « Clôture du lot Familles » ci-dessous] avant de les écrire dans `main` : libellé de l'entrée dans une famille, alternative accessible, dernier couple avec un archivé, singleton subi, renumérotation de secours (même fichier, § 6).
 - Le nombre de conflits textuels avec la branche n'a pas été recalculé pour `0a40735f` ; à refaire au moment de la fusion autorisée.
+
+## Clôture du lot Familles (28/10/2026)
+
+Patch prêt : `_bmad-output/pre8/integration-familles-cloture-2026-10-28.patch`, établi sur `origin/main` @ `0a40735f` (`git apply --check` OK sur un index temporaire). Il porte b8-3, le rééquilibrage technique exceptionnel, le libellé d'entrée définitif, le report VoiceOver, l'écart pointillé accepté provisoirement et le dépliage à l'arrêt (DSF familles, DSF Mouvements du 27/10, ch07 avec le texte de b8-3, ch09, ch10, ch13). Le ch07 de `main` ne porte pas b8-3 : le patch en reprend le texte dans son paragraphe de clôture, il ne dépend donc pas de la fusion du ch07 de la branche. Il remplace, pour ces fichiers, la section « Réserves à faire trancher » ci-dessus (réserves désormais tranchées). **Opération soumise à décision** : application lors de l'intégration documentaire de `main` ; aucune écriture dans `main` n'a été faite.

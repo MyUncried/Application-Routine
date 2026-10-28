@@ -134,6 +134,20 @@ describe("PRE-8 B.8 — archivage, restauration et suppression du Mouvement", ()
     expect(await count("movements")).toBe(3);
   });
 
+  it("clôture FAM (cas 2) : le restant seul à l'écran après archivage garde son appartenance, sans pastille ; restaurer l'autre retrouve la famille", async () => {
+    await repository().create(movement("squat", "Squats"));
+    await repository().createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    const group = (await repository().findById("squat"))!.levelGroup!.groupId;
+    expect(await catalogue().archive("assist")).toEqual({ status: "DONE" });
+    // Un seul actif : aucune pastille (b8-3), mais l'appartenance et la clé sont conservées.
+    expect(await ranks()).toEqual({ squat: [undefined, undefined, false], assist: [1, 2, true] });
+    expect((await repository().findById("squat"))!.levelGroup?.groupId).toBe(group);
+    expect((await repository().findById("assist"))!.levelGroup?.groupId).toBe(group);
+    expect(await catalogue().restore("assist")).toEqual({ status: "DONE" });
+    expect(await ranks()).toEqual({ squat: [2, 2, false], assist: [1, 2, false] });
+    expect((await repository().listGroup(group)).map((member) => member.id)).toEqual(["assist", "squat"]);
+  });
+
   it("supprime définitivement depuis les Archives seulement, sans cascade ; la famille restante garde son ordre (Q8)", async () => {
     await family();
     expect(await catalogue().deleteArchived("squat")).toEqual({ status: "STALE" });

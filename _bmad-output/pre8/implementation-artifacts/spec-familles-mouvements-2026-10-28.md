@@ -1,6 +1,6 @@
 # PRE-8 — Lot ciblé « Familles de niveaux par geste » du Catalogue des Mouvements (28/10/2026)
 
-> Lot ciblé au sein de PRE-8, rattaché au Catalogue des Mouvements de l'epic B (clos, non rouvert). Demande de Hermann du 28/10/2026 : « Intégration immédiate des nouvelles règles de familles dans le Catalogue des Mouvements ». Statut BMAD : `fam-familles-de-niveaux-geste: review` — développé et testé automatiquement, **non recetté** (validation iPhone de Hermann requise).
+> Lot ciblé au sein de PRE-8, rattaché au Catalogue des Mouvements de l'epic B (clos, non rouvert). Demande de Hermann du 28/10/2026 : « Intégration immédiate des nouvelles règles de familles dans le Catalogue des Mouvements ». Statut BMAD : `fam-familles-de-niveaux-geste: done` — clôturé le 28/10/2026 sur décision de Hermann (« Clôture du lot Familles de niveaux et gestes »), après recette iPhone FAM-01 à FAM-11 et passes ciblées 2 à 4 (§ 9 à 12) ; conditions de clôture : § 13.
 
 ## 1. Décision documentaire source
 
@@ -36,7 +36,7 @@ Catalogue des Mouvements et ses dépendances nécessaires : repository et servic
 - **Décision du geste** (`movementFamilyDrag.ts`, pur) : `dragIntent` (REORDER / LEAVE / PLACE / EXPAND / NONE), `previewLevels` (rangs provisoires sur les seuls actifs, comme b8-3), `placedOrder`, `reorderAnchor`.
 - **Écran** (`MovementCatalogueList`) : un seul suivi du doigt pour toute la liste ; appui long sur toute carte active (pile repliée : dépliée puis carte du dessus portée) ; places mesurées des entrées et des membres ; prévisualisation : réordonnancement (voisines décalées, niveaux en direct), sortie (cartes refermées, filet raccourci, pastille retirée), création (filet de formation, niveaux provisoires), entrée (niveaux provisoires) ; relâchement : application immédiate ; message de 3 s avec Annuler pour création, entrée, sortie, dissolution ; aucun message pour un réordonnancement ; geste interrompu par le système (`touchCancel`) : abandon sans écriture ; échec : message d'action existant, aucun libellé inventé.
 - **Message temporaire** (`TransientNotification`) : propriété `durationMs` facultative (défaut inchangé, 5 s ; 3 s pour les familles). Partagé avec le Catalogue des Séances et la feuille d'Exécution : comportement par défaut inchangé.
-- **Libellés** (`fr.ts`, `movement.catalogue.family`) : textes E2 exacts ; libellé d'entrée **provisoire**, voir § 6.
+- **Libellés** (`fr.ts`, `movement.catalogue.family`) : textes E2 exacts ; libellé d'entrée **provisoire**, voir § 6. [Validé par Hermann le 28/10 : « Mouvement ajouté à la famille » (§ 13).]
 
 ## 5. Critères d'acceptation et preuves
 
@@ -58,18 +58,18 @@ Résultats : voir le bilan de livraison (suite complète, TypeScript, ESLint) et
 
 ## 6. Points À CLARIFIER
 
-1. **Libellé de l'entrée dans une famille existante** (réserve de transcription de la DSF) : E2 ne le fournit pas. Le code affiche, **à titre provisoire et non validé**, « Mouvement ajouté à la famille » avec Annuler et 3 s. Texte à fournir par Hermann.
-2. **Alternative accessible** : réordonner reste possible par les actions VoiceOver existantes (« Placer … un niveau plus haut / plus bas »). Sortir, créer, rejoindre n'ont pas d'alternative accessible : la règle interdit « une action nommée de retrait, dans un menu ou ailleurs ». À arbitrer (une action VoiceOver serait-elle une action nommée ?).
-3. **Dernier couple accompagné d'un archivé** : la dissolution compte les membres des données, archivés compris (D3 : l'archivé reste membre). Une famille de deux actifs et d'un archivé n'est donc pas dissoute par la sortie d'un actif : le restant s'affiche seul (singleton subi) et le message est « Mouvement sorti de la famille ». Lecture à confirmer.
-4. **Singleton subi ou famille masquée par un filtre** : une carte isolée qui appartient encore à un groupe (autre membre archivé, ou membres masqués par un filtre) ne peut pas être portée vers une autre carte (rien ne se passe) ; visée par un Mouvement libre, elle le fait entrer dans son groupe (message d'entrée). À confirmer.
-5. **Renumérotation de secours** : si la précision des clés fractionnaires est épuisée entre deux voisines (après une cinquantaine de poses au même endroit), toute la famille est renumérotée dans la même transaction, contrairement à « aucun autre mouvement n'est réécrit ». Choix technique à valider.
+1. ~~**Libellé de l'entrée dans une famille existante**~~ — **tranché le 28/10** : « Mouvement ajouté à la famille », avec Annuler et 3 s. Hermann : « libellé : je valide ce texte ».
+2. ~~**Alternative accessible**~~ — **REPORTÉ** (28/10) dans un lot d'accessibilité dédié en fin de MVP : créer, rejoindre et quitter une famille restent sans alternative VoiceOver dans ce lot ; non bloquant pour sa clôture ; l'exigence n'est pas supprimée. Réordonner reste possible par les actions VoiceOver existantes (« Placer … un niveau plus haut / plus bas »). Sortir, créer, rejoindre n'ont pas d'alternative accessible dans ce lot.
+3. ~~**Dernier couple accompagné d'un archivé**~~ — **vérifié le 28/10** (clôture, § 13, cas C1) : la dissolution compte les membres des données, archivés compris (D3 : l'archivé reste membre). Une famille de deux actifs et d'un archivé n'est donc pas dissoute par la sortie d'un actif : le restant s'affiche seul (singleton subi) et le message est « Mouvement sorti de la famille ».
+4. **Singleton subi** — **vérifié le 28/10** (clôture, § 13, cas C2). **Famille masquée par un filtre** — lecture non tranchée par une décision, **non bloquante**, à confirmer par Hermann : une carte isolée qui appartient encore à un groupe (autre membre archivé, ou membres masqués par un filtre) ne peut pas être portée vers une autre carte (rien ne se passe) ; visée par un Mouvement libre, elle le fait entrer dans son groupe (message d'entrée).
+5. ~~**Renumérotation de secours**~~ — **autorisée le 28/10** comme rééquilibrage technique exceptionnel (clôture, § 13, point D) : si la précision des clés fractionnaires est épuisée entre deux voisines (après au moins une cinquantaine de poses au même endroit), toute la famille est renumérotée dans la même transaction ; exception désormais écrite dans la documentation (patch de clôture).
 
 ## 6 bis. Limites connues (non conformes au texte, déclarées)
 
 - ~~**Ouverture de place**~~ : levée par la recette du 28/10 (§ 9).
 - **B2** : à la sortie, ce sont les cartes **sous** la carte portée qui remontent et le filet raccourcit par le bas ; rendu équivalent à « les cartes au-dessus se referment », à confirmer.
 - ~~**Défilement**~~ : levée par la recette du 28/10 (§ 9).
-- **Emplacement pointillé** (Figma `10480:23374`, CE-MVT-03 §7) : non rendu ; la carte portée garde son ombre et les voisines se décalent (rendu du glisser B08 recetté le 27/10).
+- **Emplacement pointillé** (Figma `10480:23374`, CE-MVT-03 §7) — **écart visuel accepté provisoirement** par Hermann le 28/10 (rendu non déclaré conforme sur ce point ; référence Figma conservée) : non rendu ; la carte portée garde son ombre et les voisines se décalent (rendu du glisser B08 recetté le 27/10).
 
 ## 7. Contradictions documentaires à ne pas propager (préparées pour l'intégration de `main`)
 
@@ -145,4 +145,24 @@ Demande complémentaire de Hermann : « augmenter un peu la largeur de la bande 
 | `f4-03` zone de touche du filet élargie | OK |
 | `f4-04` non-régression du glisser de la Composition | OK |
 
-Bilan de la recette FAM : tous les points de FAM-01 à FAM-11 et des passes ciblées 2 à 4 sont OK sur iPhone. Restent ouverts, sans blocage pour le lot : À CLARIFIER 1 (libellé de l'entrée, provisoire), 2 (alternative accessible), 3 et 4 (lectures à confirmer), 5 (renumérotation de secours) ; limite déclarée : emplacement pointillé. Le statut `review` passe à `done` sur validation explicite de Hermann.
+Bilan de la recette FAM : tous les points de FAM-01 à FAM-11 et des passes ciblées 2 à 4 sont OK sur iPhone. Restent ouverts, sans blocage pour le lot : À CLARIFIER 1 (libellé de l'entrée, provisoire), 2 (alternative accessible), 3 et 4 (lectures à confirmer), 5 (renumérotation de secours) ; limite déclarée : emplacement pointillé. Le statut `review` passe à `done` sur validation explicite de Hermann. [Remplacé par § 13 : points 1 à 3 et 5 clos, 4 clos pour le singleton subi ; statut `done`.]
+
+## 13. Clôture du lot (28/10/2026)
+
+Demande de Hermann : « KODJO — Clôture du lot Familles de niveaux et gestes ». Aucune recette rejouée, aucun parcours ajouté, aucun changement d'interaction.
+
+| Point | Statut | Évidence | Action restante |
+|---|---|---|---|
+| Libellé d'entrée | **CLOS** | « Mouvement ajouté à la famille » validé par Hermann ; `fr.ts` (texte inchangé, commentaire « provisoire » retiré) ; recette `fam-05`/`f2-*` OK | Aucune |
+| VoiceOver (créer, rejoindre, quitter) | **REPORTÉ** | Lot d'accessibilité dédié en fin de MVP ; actions VoiceOver existantes (réordonner) et interactions tactiles conservées ; exigence différée, non supprimée | Lot d'accessibilité de fin de MVP |
+| Membres archivés | **VÉRIFIÉ** (cas C1 à C3 ; la famille masquée par un filtre reste une lecture à confirmer, non bloquante) | C1 : un membre archivé reste membre ; détacher un autre ne dissout pas tant que deux membres persistés restent — `movementFamilies.fam` « D3 » ; code `leaveFamily` (compte des membres persistés, archivés compris). C2 : le restant seul garde son appartenance, pastille masquée ; restaurer l'autre retrouve la famille — `movementLifecycle.b8` « clôture FAM (cas 2) » (ajouté). C3 : le dernier couple détaché explicitement est dissous, deux appartenances effacées — `movementFamilies.fam` « D2 » et UI « FAM-07 ». Sources : DSF familles D3, D4, « Singleton subi / détachement explicite » (`main` @ `0a40735f`) | Aucune |
+| Rééquilibrage exceptionnel | **VÉRIFIÉ** | Déclenché seulement quand `keyBetween` ne trouve plus de clé ; une transaction exclusive. Tests : déclenché une ou deux fois sur 60 poses, chaque autre pose n'écrit qu'une ligne ; ordre, identités, appartenances conservés, archivé compris ; échec simulé en pleine renumérotation : aucune écriture partielle (`movementFamilies.fam`, « clôture FAM (D) », 2 tests ajoutés). Le test historique ne déclenchait pas la renumérotation (poses vers la clé 0 : ~1 000 poses nécessaires) : corrigé | Aucune |
+| Pointillé | **ÉCART ACCEPTÉ** | § 6 bis ; référence Figma `10480:23374` conservée ; rendu non déclaré conforme | Éventuel lot visuel ultérieur |
+| Placement alphabétique | **CLOS** | Décision de Hermann du 28/10 (§ 10) ; B5 | Aucune |
+| Contradiction b8-3 | **CORRIGÉE DANS PRE-8 ; PRÉPARÉE POUR `main`** | PRE-8 : ch07 (b8-3, Q5 annotée ; Q3 annotée à la clôture, relevée par la seconde passe), ch10 et DSF du 27/10 déjà annotés ; plus aucune formulation contraire non annotée (recherche et seconde passe). `main` @ `0a40735f` : patch `_bmad-output/pre8/integration-familles-cloture-2026-10-28.patch` (DSF familles, DSF Mouvements du 27/10, ch07 avec le texte de b8-3, ch09, ch10, ch13 ; annotations entre crochets, textes d'origine conservés) ; `git apply --check` sur un index temporaire d'`origin/main` : OK | Appliquer le patch à l'intégration documentaire de `main` (opération Git soumise à décision) |
+| Recettes iPhone précédentes | **VALIDÉES (non rejouées)** | Base de la page de recette : `fam-01`…`fam-13`, `f2-01`…`f2-05`, `f3-01`…`f3-03`, `f4-01`…`f4-04` tous OK au 28/10 (18:18) | Aucune |
+| Vérifications globales différées | **NON VÉRIFIÉ** | Suite Jest complète et ESLint global interrompus par manque de mémoire ; dernier passage ciblé : 111 suites / 2 269 tests | Exécution fractionnée dans une activité distincte |
+
+Hors patch `main` : la règle source de Hermann (`KODJO-Regles-Familles-de-niveaux-2026-10-28.md`) est conservée à l'identique (citation) ; la DSF porte les précisions. ch11 et ch12, `PRODUCT.md`, `INDEX.md` : aucune formulation dépendante (contrôle par recherche), non modifiés.
+
+Seconde passe indépendante (28/10, agent en lecture seule) : 17 constats, dont 13 corrigés (passages du patch oubliés : libellé d'entrée en ch13 et dans les tableaux de messages, dépliage à l'arrêt en ch10, exception de rééquilibrage en ch07, ch09, ch13, texte de b8-3 repris dans le ch07 de `main`, décision sur les membres archivés transcrite dans la DSF, DSF Mouvements du 27/10 ; Q3 du ch07 de la branche ; formulations restées ouvertes dans cet artefact, le cahier de recette et le plan d'intégration ; famille filtrée remise « à confirmer ») et 4 informatifs (règle source de Hermann conservée à l'identique ; concordance du code et des tests).

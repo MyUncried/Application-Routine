@@ -164,12 +164,54 @@ describe("PRE-8 familles — SqliteMovementRepository", () => {
 
   it("clés fractionnaires : insertions répétées au même endroit, puis renumérotation quand la précision est épuisée", async () => {
     await repository().placeInFamily("b", "a", "ABOVE");
-    // Chaque pose juste au-dessus de « a » divise par deux l'écart à sa voisine : ~52 poses épuisent la précision.
-    for (let index = 0; index < 60; index += 1) await repository().placeInFamily(index % 2 === 0 ? "c" : "d", "a", "ABOVE");
+    // Chaque pose juste sous « b » (clé 1) divise par deux l'écart à sa voisine : ~52 poses épuisent la précision.
+    for (let index = 0; index < 60; index += 1) await repository().placeInFamily(index % 2 === 0 ? "c" : "d", "b", "BELOW");
     const order = await family("group-1");
     expect(order[0]).toBe("a");
     expect(order).toHaveLength(4);
     expect(new Set(order).size).toBe(4);
+  });
+
+  it("clôture FAM (D) : rééquilibrage seulement quand la précision est épuisée — ordre, identités et appartenances conservés, archivé compris", async () => {
+    await repository().placeInFamily("b", "a", "ABOVE");
+    await repository().placeInFamily("x", "b", "ABOVE");
+    await repository().archive("x");
+    let rebalanced = 0;
+    for (let index = 0; index < 60; index += 1) {
+      const before = await memberships();
+      const moved = index % 2 === 0 ? "c" : "d";
+      await repository().placeInFamily(moved, "b", "BELOW");
+      const changed = (await memberships()).filter((row, at) => JSON.stringify(row) !== JSON.stringify(before[at])).map((row) => row[0]);
+      // Hors rééquilibrage, seule la ligne du Mouvement déplacé est réécrite.
+      if (changed.length > 1) rebalanced += 1;
+      else expect(changed).toEqual([moved]);
+    }
+    // Déclenché à l'épuisement de la précision seulement, et pas à chaque déplacement.
+    expect(rebalanced).toBeGreaterThanOrEqual(1);
+    expect(rebalanced).toBeLessThanOrEqual(2);
+    // Dernier déplacement : « d » juste sous « b » ; l'archivé « x » garde sa place et son appartenance.
+    expect(await family("group-1")).toEqual(["a", "c", "d", "b", "x"]);
+    expect((await repository().findById("x"))?.levelGroup?.groupId).toBe("group-1");
+    expect(new Set((await memberships()).filter((row) => row[1] !== null).map((row) => row[1]))).toEqual(new Set(["group-1"]));
+  });
+
+  it("clôture FAM (D) : un rééquilibrage interrompu ne laisse aucune renumérotation partielle", async () => {
+    await repository().placeInFamily("b", "a", "ABOVE");
+    // Les clés fractionnaires restent dans ]0,5 ; 1[ : la clé entière 2 n'est écrite que par un rééquilibrage.
+    await database.execAsync(
+      "CREATE TRIGGER fail_rebalance BEFORE UPDATE OF level_sort_key ON movements WHEN NEW.level_sort_key = 2 BEGIN SELECT RAISE(ABORT, 'échec simulé'); END;",
+    );
+    let failed = false;
+    for (let index = 0; index < 60 && !failed; index += 1) {
+      const before = await memberships();
+      try {
+        await repository().placeInFamily(index % 2 === 0 ? "c" : "d", "b", "BELOW");
+      } catch {
+        failed = true;
+        expect(await memberships()).toEqual(before);
+      }
+    }
+    expect(failed).toBe(true);
   });
 
   it("keyBetween : extrémités ouvertes et milieu", () => {
