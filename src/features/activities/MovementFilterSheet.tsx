@@ -1,14 +1,12 @@
-import { Image } from "expo-image";
 import { useEffect, useState, type ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Text, View } from "react-native";
 
 import { listAssignableBodyZones, type BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { strings } from "@/shared/i18n";
-import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+
+import { FilterChip, FilterSheetFrame, ResetFiltersButton, filterSheetStyles } from "./FilterSheetPrimitives";
 
 import {
   EMPTY_MOVEMENT_FILTERS,
@@ -32,6 +30,9 @@ import {
  * - D06 : « Réinitialiser » selon `Action — Réinitialiser les filtres` (`10460:23176`) : 150 × 32,
  *   rayon 16, bordure bleue 1, icône 28 à gauche ;
  * - D05 : `onApply` transmet aussi les libellés des critères choisis (résumé de la commande).
+ *
+ * PRE-8 (epic E, E.6) : cadre, pastilles et « Réinitialiser » mutualisés avec le panneau des Séances
+ * (`FilterSheetPrimitives`), à l'identique ; les critères et leurs règles restent propres aux Mouvements.
  */
 
 const t = strings.screens.movement.catalogue.filters;
@@ -70,7 +71,6 @@ export function MovementFilterSheet({
   readonly onApply: (filters: MovementCatalogueFilters, labels: readonly string[]) => void;
   readonly onClose: () => void;
 }) {
-  const insets = useSafeAreaInsets();
   const referentials = useReferentialService();
   const [draft, setDraft] = useState<Draft>(() => draftOf(filters));
   const [categories, setCategories] = useState<readonly Category[]>([]);
@@ -99,89 +99,51 @@ export function MovementFilterSheet({
     setDraft((current) => ({ ...current, [key]: toggled(current[key] as Set<unknown>, value) }));
 
   return (
-    <Modal transparent visible animationType="slide" onRequestClose={onClose} testID="movement-filter-sheet">
-      <View style={styles.backdrop}>
-        {/* Recette A/B du 27/10 : cadre standard des feuilles, celui de la feuille Paramètres
-            d'exécution — poignée, ✕ et ✓ ronds 38 (cible tactile minimale), titre de modale, filet sous l'en-tête. */}
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing[16] }]} accessibilityViewIsModal>
-          <View style={styles.handle} testID="movement-filter-handle" />
-          <View style={styles.header} testID="movement-filter-header">
-            <Pressable
-              onPress={onClose}
-              accessibilityRole="button"
-              accessibilityLabel={t.close}
-              hitSlop={HEADER_ACTION_HIT_SLOP}
-              style={styles.cancelCircle}
-              testID="movement-filter-close"
-            >
-              <KodjoIcon name="wheel-action-cancel" />
-            </Pressable>
-            <Text style={styles.title} accessibilityRole="header">
-              {t.title}
-            </Text>
-            <Pressable
-              onPress={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
-              accessibilityRole="button"
-              accessibilityLabel={t.apply}
-              hitSlop={HEADER_ACTION_HIT_SLOP}
-              style={styles.validateCircle}
-              testID="movement-filter-apply"
-            >
-              <KodjoIcon name="wheel-action-validate" />
-            </Pressable>
-          </View>
-          <View style={styles.headerDivider} testID="movement-filter-header-divider" />
-          <ScrollView contentContainerStyle={styles.body}>
-            <FilterGroup title={t.status}>
-              <Chip label={t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="movement-filter-status-active" />
-              <Chip label={t.archivedValue} selected={draft.statuses.has("ARCHIVED")} onPress={() => toggle("statuses", "ARCHIVED")} testID="movement-filter-status-archived" />
-            </FilterGroup>
-            <FilterGroup title={t.levels}>
-              <Chip label={t.withLevels} selected={draft.levels.has("WITH")} onPress={() => toggle("levels", "WITH")} testID="movement-filter-levels-with" />
-              <Chip label={t.withoutLevel} selected={draft.levels.has("WITHOUT")} onPress={() => toggle("levels", "WITHOUT")} testID="movement-filter-levels-without" />
-            </FilterGroup>
-            <FilterGroup title={t.usage}>
-              <Chip label={t.withExercise} selected={draft.usage.has("WITH")} onPress={() => toggle("usage", "WITH")} testID="movement-filter-usage-with" />
-              <Chip label={t.withoutExercise} selected={draft.usage.has("WITHOUT")} onPress={() => toggle("usage", "WITHOUT")} testID="movement-filter-usage-without" />
-            </FilterGroup>
-            <FilterGroup title={t.categories}>
-              {categories.map((category) => (
-                <Chip
-                  key={category.id}
-                  label={category.name}
-                  dotColor={category.color}
-                  selected={draft.categoryIds.has(category.id)}
-                  onPress={() => toggle("categoryIds", category.id)}
-                  testID={`movement-filter-category-${category.id}`}
-                />
-              ))}
-            </FilterGroup>
-            <FilterGroup title={t.bodyZones}>
-              {bodyZones.map((zone) => (
-                <Chip
-                  key={zone.id}
-                  label={zone.name}
-                  selected={draft.bodyZoneIds.has(zone.id)}
-                  onPress={() => toggle("bodyZoneIds", zone.id)}
-                  testID={`movement-filter-zone-${zone.id}`}
-                />
-              ))}
-            </FilterGroup>
-            <Pressable
-              onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))}
-              accessibilityRole="button"
-              accessibilityLabel={t.reset}
-              hitSlop={{ top: (minTouchTarget - RESET.height) / 2, bottom: (minTouchTarget - RESET.height) / 2 }}
-              style={styles.reset}
-              testID="movement-filter-reset"
-            >
-              <Image source={RESET_ICON} style={styles.resetIcon} accessible={false} testID="movement-filter-reset-icon" />
-              <Text style={styles.resetLabel}>{t.reset}</Text>
-            </Pressable>
-          </ScrollView>
-        </View>
-      </View>
-    </Modal>
+    <FilterSheetFrame
+      title={t.title}
+      closeLabel={t.close}
+      applyLabel={t.apply}
+      onClose={onClose}
+      onApply={() => onApply(draft, selectedLabels(draft, categories, bodyZones))}
+      testIDPrefix="movement-filter"
+    >
+      <FilterGroup title={t.status}>
+        <Chip label={t.active} selected={draft.statuses.has("ACTIVE")} onPress={() => toggle("statuses", "ACTIVE")} testID="movement-filter-status-active" />
+        <Chip label={t.archivedValue} selected={draft.statuses.has("ARCHIVED")} onPress={() => toggle("statuses", "ARCHIVED")} testID="movement-filter-status-archived" />
+      </FilterGroup>
+      <FilterGroup title={t.levels}>
+        <Chip label={t.withLevels} selected={draft.levels.has("WITH")} onPress={() => toggle("levels", "WITH")} testID="movement-filter-levels-with" />
+        <Chip label={t.withoutLevel} selected={draft.levels.has("WITHOUT")} onPress={() => toggle("levels", "WITHOUT")} testID="movement-filter-levels-without" />
+      </FilterGroup>
+      <FilterGroup title={t.usage}>
+        <Chip label={t.withExercise} selected={draft.usage.has("WITH")} onPress={() => toggle("usage", "WITH")} testID="movement-filter-usage-with" />
+        <Chip label={t.withoutExercise} selected={draft.usage.has("WITHOUT")} onPress={() => toggle("usage", "WITHOUT")} testID="movement-filter-usage-without" />
+      </FilterGroup>
+      <FilterGroup title={t.categories}>
+        {categories.map((category) => (
+          <Chip
+            key={category.id}
+            label={category.name}
+            dotColor={category.color}
+            selected={draft.categoryIds.has(category.id)}
+            onPress={() => toggle("categoryIds", category.id)}
+            testID={`movement-filter-category-${category.id}`}
+          />
+        ))}
+      </FilterGroup>
+      <FilterGroup title={t.bodyZones}>
+        {bodyZones.map((zone) => (
+          <Chip
+            key={zone.id}
+            label={zone.name}
+            selected={draft.bodyZoneIds.has(zone.id)}
+            onPress={() => toggle("bodyZoneIds", zone.id)}
+            testID={`movement-filter-zone-${zone.id}`}
+          />
+        ))}
+      </FilterGroup>
+      <ResetFiltersButton label={t.reset} onPress={() => setDraft(draftOf(EMPTY_MOVEMENT_FILTERS))} testID="movement-filter-reset" />
+    </FilterSheetFrame>
   );
 }
 
@@ -203,174 +165,16 @@ export function selectedLabels(
   return labels;
 }
 
-const RESET = dimensions.resetAction;
-/** Cercles d'en-tête 38 (feuille Paramètres d'exécution), cible tactile minimale (`minTouchTarget`). */
-const HEADER_ACTION_SIZE = 38;
-const HEADER_ACTION_HIT_SLOP = (minTouchTarget - HEADER_ACTION_SIZE) / 2;
-const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
-
 function FilterGroup({ title, children }: { readonly title: string; readonly children: ReactNode }) {
   return (
-    <View style={styles.group}>
-      <Text style={styles.groupTitle} accessibilityRole="header">
+    <View style={filterSheetStyles.group}>
+      <Text style={filterSheetStyles.groupTitle} accessibilityRole="header">
         {title}
       </Text>
-      <View style={styles.chips}>{children}</View>
+      <View style={filterSheetStyles.chips}>{children}</View>
     </View>
   );
 }
 
-function Chip({
-  label,
-  selected,
-  dotColor,
-  onPress,
-  testID,
-}: {
-  readonly label: string;
-  readonly selected: boolean;
-  readonly dotColor?: string;
-  readonly onPress: () => void;
-  readonly testID: string;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked: selected }}
-      hitSlop={{ top: 6, bottom: 6 }}
-      style={[styles.chip, selected ? styles.chipSelected : null]}
-      testID={testID}
-    >
-      {dotColor ? <View style={[styles.dot, { backgroundColor: dotColor }]} /> : null}
-      <Text style={[styles.chipLabel, selected ? styles.chipLabelSelected : null]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: colors.overlayScrim,
-  },
-  // Cadre, poignée, en-tête, cercles et filet : valeurs de la feuille Paramètres d'exécution.
-  sheet: {
-    maxHeight: "92%",
-    borderTopLeftRadius: fixedRadii[24],
-    borderTopRightRadius: fixedRadii[24],
-    overflow: "hidden",
-    backgroundColor: colors.background,
-  },
-  handle: {
-    alignSelf: "center",
-    width: 50,
-    height: 4,
-    borderRadius: 2,
-    marginTop: spacing[8],
-    backgroundColor: colors.disabled,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    minHeight: 56,
-    paddingHorizontal: spacing[12] + 5,
-  },
-  cancelCircle: {
-    width: HEADER_ACTION_SIZE,
-    height: HEADER_ACTION_SIZE,
-    borderRadius: HEADER_ACTION_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionCancelBackground,
-  },
-  validateCircle: {
-    width: HEADER_ACTION_SIZE,
-    height: HEADER_ACTION_SIZE,
-    borderRadius: HEADER_ACTION_SIZE / 2,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.wheelActionValidateBackground,
-  },
-  title: {
-    ...type.modalTitle,
-    color: colors.textPrimary,
-    flexShrink: 1,
-    textAlign: "center",
-  },
-  headerDivider: {
-    height: 1,
-    marginHorizontal: spacing[12],
-    backgroundColor: colors.divider,
-  },
-  body: {
-    paddingHorizontal: spacing[24],
-    paddingTop: spacing[16],
-    gap: spacing[16],
-  },
-  group: {
-    gap: spacing[12],
-  },
-  groupTitle: {
-    ...type.sectionTitle,
-    color: colors.textPrimary,
-  },
-  chips: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing[8],
-  },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing[8],
-    minHeight: 32,
-    paddingHorizontal: spacing[12],
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceSubtle,
-  },
-  chipSelected: {
-    borderColor: colors.selection,
-    backgroundColor: colors.selectionSurface,
-  },
-  chipLabel: {
-    ...type.supporting,
-    color: colors.textPrimary,
-  },
-  chipLabelSelected: {
-    color: colors.selection,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  reset: {
-    alignSelf: "center",
-    width: RESET.width,
-    height: RESET.height,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: spacing[8],
-    borderRadius: RESET.radius,
-    borderWidth: 1,
-    borderColor: colors.primary,
-    backgroundColor: colors.background,
-  },
-  resetIcon: {
-    position: "absolute",
-    left: RESET.iconLeft,
-    width: RESET.icon,
-    height: RESET.icon,
-  },
-  resetLabel: {
-    ...type.resetActionLabel,
-    color: colors.primary,
-    marginLeft: RESET.icon,
-  },
-});
+/** Pastille de la feuille : primitive partagée (`FilterChip`, E.6). */
+const Chip = FilterChip;

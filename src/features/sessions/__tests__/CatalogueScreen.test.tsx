@@ -509,7 +509,8 @@ describe("CatalogueScreen — cadre commun", () => {
   // étiquette texte qui existait jusqu'ici.
   // PRE-8 (B.7, arbitrages du 27/10) : Filtrer devient actif sur le seul segment Mouvements ; Trier
   // reste grisé partout ; Séances et Exercices sont inchangés.
-  it("enables Filtrer on the Mouvements segment only, Trier staying disabled (PRE-8 B.7)", async () => {
+  // PRE-8 (E.6) : Filtrer est actif sur les segments Mouvements (B.7) et Séances (E.6) ; Trier grisé.
+  it("enables Filtrer on the Mouvements and Séances segments, Trier staying disabled (PRE-8 B.7, E.6)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -520,12 +521,12 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByTestId("catalogue-sort-action").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-sessions"));
-    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
   });
 
   it("renders the Créer, Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {

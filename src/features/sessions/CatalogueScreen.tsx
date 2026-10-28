@@ -10,6 +10,12 @@ import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { matchesView, toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
+import {
+  EMPTY_SESSION_FILTERS,
+  matchesSessionFilters,
+  type SessionCatalogueFilters,
+} from "@/features/sessions/sessionCatalogueFilters";
+import { SessionFilterSheet } from "@/features/sessions/SessionFilterSheet";
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
@@ -70,6 +76,17 @@ export function CatalogueScreen() {
   // E.4 : vue « Un exercice | Plusieurs » (aucune = collection complète), état de l'écran conservé au
   // retour d'un parcours, jamais persisté (relance : collection complète).
   const [sessionView, setSessionView] = useState<SessionCatalogueView | null>(null);
+  // E.6 : filtres des Séances, état de l'écran (conservé au retour, perdu au relancement) ; aucun
+  // filtre : Actives. Réinitialiser ne touche pas la vue (Q-E3, Q-E4).
+  const [sessionFilters, setSessionFilters] = useState<SessionCatalogueFilters>(EMPTY_SESSION_FILTERS);
+  const [sessionFilterLabels, setSessionFilterLabels] = useState<readonly string[]>([]);
+  const [isSessionFilterOpen, setIsSessionFilterOpen] = useState(false);
+  const sessionFilterSummary =
+    sessionFilterLabels.length === 0
+      ? null
+      : sessionFilterLabels.length === 1
+        ? sessionFilterLabels[0]!
+        : fillTemplate(strings.screens.sessions.catalogueFilters.activeSummary, { count: String(sessionFilterLabels.length) });
   // PRE-4 story 4.1 (AC1) : verrou synchrone contre le double appui sur
   // l'ouverture de l'Éditeur, en création (`Créer`, option `Un nouvel
   // exercice`) comme en modification (carte Exercice). Armé au premier appui,
@@ -234,14 +251,28 @@ export function CatalogueScreen() {
           <SessionCommandRow
             view={sessionView}
             onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
-            filterSummary={null}
-            filterDisabled
-            onOpenFilters={() => undefined}
-            onResetFilters={() => undefined}
+            filterSummary={sessionFilterSummary}
+            onOpenFilters={() => setIsSessionFilterOpen(true)}
+            onResetFilters={() => {
+              setSessionFilters(EMPTY_SESSION_FILTERS);
+              setSessionFilterLabels([]);
+            }}
             onCreate={handleCreatePress}
           />
         ) : null}
       </ContextBand>
+
+      {isSessionFilterOpen ? (
+        <SessionFilterSheet
+          filters={sessionFilters}
+          onApply={(filters, labels) => {
+            setSessionFilters(filters);
+            setSessionFilterLabels(labels);
+            setIsSessionFilterOpen(false);
+          }}
+          onClose={() => setIsSessionFilterOpen(false)}
+        />
+      ) : null}
 
       {isMovementFilterOpen ? (
         <MovementFilterSheet
@@ -289,6 +320,7 @@ export function CatalogueScreen() {
               <ReadyBody
                 sessions={sessionCatalogue.state.sessions}
                 view={sessionView}
+                filters={sessionFilters}
                 resetToken={movementsReloadToken}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
@@ -383,19 +415,21 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
 function ReadyBody({
   sessions,
   view,
+  filters,
   resetToken,
   onOpenSession,
   onChanged,
 }: {
   sessions: readonly SessionCatalogueProjection[];
   view: SessionCatalogueView | null;
+  filters: SessionCatalogueFilters;
   resetToken: number;
   onOpenSession: (sessionId: string) => void;
   onChanged: () => void;
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
-  // E.4 : la vue se combine avec le Statut (Actives par défaut) ; filtres en E.6.
-  const visible = sessions.filter((session) => session.status === "ACTIVE" && matchesView(session, view));
+  // E.4, E.6 : Statut d'abord (Actives par défaut), puis filtres (Q-E3), combinés à la vue.
+  const visible = sessions.filter((session) => matchesSessionFilters(session, filters) && matchesView(session, view));
   return (
     <SessionCatalogueList
       sessions={visible}

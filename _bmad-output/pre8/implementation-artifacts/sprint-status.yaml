@@ -30,7 +30,7 @@ development_status:
   e-3-deploiement-composition: done  # Cycles et Circuits multiples vérifiés par les tests automatiques seulement (epic C)
   e-4-ecran-segment-seances: done  # trois segments, bascule de vue, rangée responsive Q-E4 ; livrée avec E.8-a
   e-5-cycle-de-vie-actions-glissees: done  # archiver / restaurer / supprimer sans migration ; Planifier grisé
-  e-6-filtres-seances: ready-for-dev  # Q-E3 option B (agrégé), Q-E5 option A
+  e-6-filtres-seances: done  # Q-E3 option B (agrégé), Q-E5 option A (Libre seul) ; primitives de feuille mutualisées avec les Mouvements
   e-7-raccordements-recette: ready-for-dev
   e-8-transition-exercices-catalogue: in-progress  # E.8-a done (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b hors E (avec ou après l’epic C, autorisation distincte)
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats

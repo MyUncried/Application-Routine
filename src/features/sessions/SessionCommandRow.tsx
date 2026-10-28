@@ -28,7 +28,6 @@ export function SessionCommandRow({
   view,
   onToggleView,
   filterSummary,
-  filterDisabled = false,
   onOpenFilters,
   onResetFilters,
   onCreate,
@@ -37,8 +36,6 @@ export function SessionCommandRow({
   readonly onToggleView: (view: SessionCatalogueView) => void;
   /** `null` : aucun filtre. */
   readonly filterSummary: string | null;
-  /** E.4 : filtres non encore livrés (E.6) — bouton rond grisé. */
-  readonly filterDisabled?: boolean;
   readonly onOpenFilters: () => void;
   readonly onResetFilters: () => void;
   readonly onCreate: () => void;
@@ -72,7 +69,6 @@ export function SessionCommandRow({
         clearLabel={t.catalogueFilters.clearAccessibility}
         editLabel={t.catalogueFilters.editAccessibility}
         variant={layout.filter === "COMPACT" ? "compact" : "extended"}
-        disabled={filterDisabled}
         onOpen={onOpenFilters}
         onClear={onResetFilters}
         testID="catalogue-filter-action"
