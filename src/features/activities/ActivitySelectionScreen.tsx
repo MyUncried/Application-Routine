@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { activityDefinitionToDraftExercise, type ActivityDefinition } from "@/domain/activities";
@@ -103,9 +103,13 @@ export function ActivitySelectionScreen() {
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService);
   const categoriesReferential = useCategoriesReferential(activityDefinitionService);
   const t = strings.screens.activities.selection;
+  // PRE-8 (epic E, E.8-a, option 1 de Hermann du 28/10) : verrou du double appui sur Modifier, réarmé
+  // au retour de l'éditeur (focus suivant).
+  const isOpeningEditorRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
+      isOpeningEditorRef.current = false;
       reload();
       return () => cancelPending();
     }, [reload, cancelPending]),
@@ -136,6 +140,19 @@ export function ActivitySelectionScreen() {
         ? "1 activité sélectionnée n’est plus disponible et a été retirée de la sélection."
         : `${staleSelectionCount} activités sélectionnées ne sont plus disponibles et ont été retirées de la sélection.`
       : null;
+
+  /**
+   * PRE-8 (E.8-a) : accès TRANSITOIRE aux anciennes définitions d'Exercices (`activity_definitions`),
+   * le segment Exercices du Catalogue étant retiré. Ouvre l'éditeur existant par sa route de
+   * modification ; l'éditeur des définitions ne lit ni n'écrit le brouillon de Séance, et cet écran
+   * reste monté dessous : sélections et brouillon sont conservés, la liste est relue au retour
+   * (`useFocusEffect`). Retiré quand l'epic C remplacera ce parcours (E.8-b).
+   */
+  function openDefinitionEditor(id: string) {
+    if (isOpeningEditorRef.current) return;
+    isOpeningEditorRef.current = true;
+    router.push({ pathname: "/exercise", params: { catalogueDefinitionId: id } });
+  }
 
   function toggle(id: string) {
     setSelectedIds((current) =>
@@ -257,6 +274,7 @@ export function ActivitySelectionScreen() {
                 definition={item}
                 selected={selectedIds.includes(item.id)}
                 onToggle={() => toggle(item.id)}
+                onEdit={() => openDefinitionEditor(item.id)}
                 bodyZonesReferential={bodyZonesReferential}
                 categoriesReferential={categoriesReferential}
                 levelPosition={state.levelPositions?.get(item.movementId) ?? null}
@@ -335,6 +353,7 @@ function SelectionRow({
   definition,
   selected,
   onToggle,
+  onEdit,
   bodyZonesReferential,
   categoriesReferential,
   levelPosition,
@@ -342,6 +361,8 @@ function SelectionRow({
   definition: ActivityDefinition;
   selected: boolean;
   onToggle: () => void;
+  /** PRE-8 (E.8-a) : commande Modifier, distincte de la sélection. */
+  onEdit: () => void;
   bodyZonesReferential: readonly BodyZone[];
   categoriesReferential: readonly Category[];
   /** PRE-7 (R-6, C06) : carte sans pastille — suffixe « - Nn » du mouvement groupé. */
@@ -357,88 +378,101 @@ function SelectionRow({
   const hasClassification = category !== null || bodyZones !== null || hasSideChange;
 
   return (
-    <Pressable
-      onPress={onToggle}
-      accessibilityRole="checkbox"
-      accessibilityState={{ checked: selected }}
-      accessibilityLabel={displayedName}
-      style={[styles.row, selected ? styles.rowSelected : null]}
-      testID={`activity-selection-row-${definition.id}`}
-    >
-      <View style={styles.rowColorBar} testID={`activity-selection-row-color-bar-${definition.id}`} />
-      <View style={styles.rowBody}>
-        <View style={styles.rowMainArea}>
-          <View style={styles.rowContent}>
-            <Text style={styles.rowLabel} numberOfLines={2}>
-              {displayedName}
-            </Text>
-            {/*
-             * PRE-6 (story 2.2, ch13 PR #390) : Catégorie et Zones corporelles sur UNE ligne,
-             * zones tronquées sans augmenter la hauteur ; icône neutre de changement de côté
-             * (16) sur cette ligne, 8 après le texte, si l'exercice en a un (RM-243).
-             */}
-            {hasClassification ? (
-              <View style={styles.rowClassification} testID={`activity-selection-row-classification-${definition.id}`}>
-                {category !== null ? (
-                  <View
-                    style={[styles.rowCategoryDot, { backgroundColor: category.color }]}
-                    testID={`activity-selection-row-category-dot-${definition.id}`}
-                  />
-                ) : null}
-                <Text style={[styles.rowSecondaryLine, styles.rowClassificationText]} numberOfLines={1}>
-                  {category !== null ? <Text style={styles.rowCategoryName}>{category.name}</Text> : null}
-                  {category !== null && bodyZones !== null ? COMPACT_LIST_SEPARATOR : null}
-                  {bodyZones !== null ? (
-                    <Text testID={`activity-selection-row-body-zones-${definition.id}`}>{bodyZones}</Text>
+    <View style={styles.rowFrame}>
+      <Pressable
+        onPress={onToggle}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: selected }}
+        accessibilityLabel={displayedName}
+        style={[styles.row, selected ? styles.rowSelected : null]}
+        testID={`activity-selection-row-${definition.id}`}
+      >
+        <View style={styles.rowColorBar} testID={`activity-selection-row-color-bar-${definition.id}`} />
+        <View style={styles.rowBody}>
+          <View style={styles.rowMainArea}>
+            <View style={styles.rowContent}>
+              <Text style={styles.rowLabel} numberOfLines={2}>
+                {displayedName}
+              </Text>
+              {/*
+               * PRE-6 (story 2.2, ch13 PR #390) : Catégorie et Zones corporelles sur UNE ligne,
+               * zones tronquées sans augmenter la hauteur ; icône neutre de changement de côté
+               * (16) sur cette ligne, 8 après le texte, si l'exercice en a un (RM-243).
+               */}
+              {hasClassification ? (
+                <View style={styles.rowClassification} testID={`activity-selection-row-classification-${definition.id}`}>
+                  {category !== null ? (
+                    <View
+                      style={[styles.rowCategoryDot, { backgroundColor: category.color }]}
+                      testID={`activity-selection-row-category-dot-${definition.id}`}
+                    />
                   ) : null}
+                  <Text style={[styles.rowSecondaryLine, styles.rowClassificationText]} numberOfLines={1}>
+                    {category !== null ? <Text style={styles.rowCategoryName}>{category.name}</Text> : null}
+                    {category !== null && bodyZones !== null ? COMPACT_LIST_SEPARATOR : null}
+                    {bodyZones !== null ? (
+                      <Text testID={`activity-selection-row-body-zones-${definition.id}`}>{bodyZones}</Text>
+                    ) : null}
+                  </Text>
+                  {hasSideChange ? (
+                    <KodjoIcon name="side-change" testID={`activity-selection-row-side-change-${definition.id}`} />
+                  ) : null}
+                </View>
+              ) : null}
+              {/*
+               * VISUAL_CORRECTION (point 2) : synthèse NON tronquée — retour à la ligne, jamais `numberOfLines`.
+               * PRE-6 (story 2.2) : durée totale (même règle que le Catalogue, `catalogueDuration`)
+               * alignée à gauche dans une réserve de 68, à 8 du sablier ; absente si la durée l'est.
+               */}
+              <View style={styles.rowSummaryLine}>
+                {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
+                <Text
+                  style={[
+                    styles.rowSecondaryLine,
+                    styles.rowSummaryText,
+                    isIncompleteSummary(summary) ? styles.rowSummaryIncomplete : null,
+                  ]}
+                  testID={`activity-selection-row-summary-${definition.id}`}
+                >
+                  {summary}
                 </Text>
-                {hasSideChange ? (
-                  <KodjoIcon name="side-change" testID={`activity-selection-row-side-change-${definition.id}`} />
+                {duration !== null ? (
+                  <View style={styles.rowDuration} testID={`activity-selection-row-duration-${definition.id}`}>
+                    <KodjoIcon name="duration-hourglass" />
+                    <Text style={styles.rowDurationText} numberOfLines={1}>
+                      {duration}
+                    </Text>
+                  </View>
                 ) : null}
               </View>
-            ) : null}
-            {/*
-             * VISUAL_CORRECTION (point 2) : synthèse NON tronquée — retour à la ligne, jamais `numberOfLines`.
-             * PRE-6 (story 2.2) : durée totale (même règle que le Catalogue, `catalogueDuration`)
-             * alignée à gauche dans une réserve de 68, à 8 du sablier ; absente si la durée l'est.
-             */}
-            <View style={styles.rowSummaryLine}>
-              {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
-              <Text
-                style={[
-                  styles.rowSecondaryLine,
-                  styles.rowSummaryText,
-                  isIncompleteSummary(summary) ? styles.rowSummaryIncomplete : null,
-                ]}
-                testID={`activity-selection-row-summary-${definition.id}`}
-              >
-                {summary}
-              </Text>
-              {duration !== null ? (
-                <View style={styles.rowDuration} testID={`activity-selection-row-duration-${definition.id}`}>
-                  <KodjoIcon name="duration-hourglass" />
-                  <Text style={styles.rowDurationText} numberOfLines={1}>
-                    {duration}
-                  </Text>
-                </View>
+            </View>
+            <View
+              style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
+              testID={`activity-selection-row-checkbox-${definition.id}`}
+            >
+              {selected ? (
+                <KodjoIcon
+                  name="state-selected"
+                  size={20}
+                  testID={`activity-selection-row-checked-${definition.id}`}
+                />
               ) : null}
             </View>
           </View>
-          <View
-            style={[styles.checkbox, selected ? styles.checkboxSelected : null]}
-            testID={`activity-selection-row-checkbox-${definition.id}`}
-          >
-            {selected ? (
-              <KodjoIcon
-                name="state-selected"
-                size={20}
-                testID={`activity-selection-row-checked-${definition.id}`}
-              />
-            ) : null}
-          </View>
         </View>
-      </View>
-    </Pressable>
+      </Pressable>
+      {/* PRE-8 (E.8-a) : commande Modifier sœur de la ligne de sélection — élément accessible
+          propre, cible 44, sans effet sur la case. */}
+      <Pressable
+        onPress={onEdit}
+        accessibilityRole="button"
+        accessibilityLabel={strings.screens.activities.selection.editAccessibilityLabel.replace("{name}", displayedName)}
+        style={styles.rowEdit}
+        testID={`activity-selection-row-edit-${definition.id}`}
+      >
+        <KodjoIcon name="edit-movement" />
+      </Pressable>
+    </View>
   );
 }
 
@@ -489,7 +523,20 @@ const styles = StyleSheet.create({
   // alignée sur la carte CANONIQUE `ActivityCard.tsx` — conteneur ligne
   // (barre gauche + corps), `overflow: "hidden"` pour que la sous-carte
   // Récupération suive le rayon du bloc.
+  // PRE-8 (E.8-a) : ligne de sélection puis commande Modifier, côte à côte.
+  rowFrame: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[4],
+  },
+  rowEdit: {
+    minWidth: minTouchTarget,
+    minHeight: minTouchTarget,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   row: {
+    flex: 1,
     flexDirection: "row",
     borderRadius: dimensions.standardCard.radius,
     borderWidth: 1,

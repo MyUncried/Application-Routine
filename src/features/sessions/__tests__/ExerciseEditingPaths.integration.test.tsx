@@ -1,3 +1,4 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, testRouter, waitFor, within } from "expo-router/testing-library";
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { Stack } from "expo-router/stack";
@@ -307,10 +308,23 @@ async function settle(ms = 0) {
   });
 }
 
+/**
+ * PRE-8 (epic E, E.8-a) : le segment Exercices du Catalogue est retiré. Les parcours CC et MC
+ * ouvrent l'éditeur des anciennes définitions par sa route existante, au-dessus du Catalogue (le
+ * point d'entrée utilisateur — commande Modifier de la sélection d'Exercices — est couvert par
+ * « PRE-8 E.8-a » ci-dessous et par `ActivitySelectionScreen.e8a.test.tsx`). Le Catalogue reste
+ * monté dessous : Terminer ou la sortie y reviennent.
+ */
 async function openExercisesSegment() {
   await settle();
-  fireEvent.press(screen.getByLabelText(sessions.contentTypes.activities));
-  await settle(300);
+}
+
+/** Éditeur d'une ancienne définition (`"new"` : création, encore atteinte par « Ajouter un niveau »). */
+async function openDefinitionEditor(catalogueDefinitionId: string) {
+  act(() => {
+    expoRouter.push({ pathname: "/exercise", params: { catalogueDefinitionId } });
+  });
+  await settle();
 }
 
 /**
@@ -330,36 +344,6 @@ function editorContext(params: Record<string, unknown>): Record<string, unknown>
 
 function isSelected(label: string): boolean {
   return Boolean(screen.getByLabelText(label).props.accessibilityState?.selected);
-}
-
-/**
- * AC1, AC2 : fait défiler la liste des Exercices du Catalogue et rend son
- * instance hôte. Jest n'a pas de moteur de défilement : la position est
- * portée par la vue native de cette instance ; elle est restituée si et
- * seulement si la liste n'est pas remontée.
- */
-function scrollCatalogueList(): ReturnType<typeof screen.getByTestId> {
-  const list = screen.getByTestId("activity-catalogue-list");
-  fireEvent.scroll(list, {
-    nativeEvent: {
-      contentOffset: { x: 0, y: 120 },
-      contentSize: { width: 400, height: 2000 },
-      layoutMeasurement: { width: 400, height: 600 },
-    },
-  });
-  return list;
-}
-
-/**
- * Catalogue restitué : même instance de liste (non remontée, défilement
- * conservé) sur le segment Exercices. Filtre : la commande `Filtrer` est
- * inerte dans le code de départ (aucun état de filtre n'existe) ; on vérifie
- * qu'elle l'est toujours, sans filtre appliqué ni perdu.
- */
-function expectCatalogueRestored(list: ReturnType<typeof screen.getByTestId>) {
-  expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-  expect(screen.getByTestId("activity-catalogue-list")).toBe(list);
-  expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
 }
 
 /** Saisie minimale valide d'un nouvel Exercice : Nom, Catégorie, Zone « dos », Durée 45 s, ✓. */
@@ -431,169 +415,48 @@ async function continueAndSave() {
   await settle();
 }
 
-describe("PRE4-4.1/AC1 — Créer au Catalogue (Q33)", () => {
-  it("PRE4-4.1/AC1 — segment Exercices : Créer ouvre directement l'Éditeur en création, sans liste d'options ; aucune donnée écrite", async () => {
-    const router = renderApp();
-    await openExercisesSegment();
-    const before = await dump();
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-
-    expect(router.getPathname()).toBe("/exercise");
-    expect(router.getSearchParams()).toMatchObject({ catalogueDefinitionId: "new" });
-    expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
-    expect(screen.getByText(activities.editor.titleAdd)).toBeTruthy();
-    expect(await dump()).toEqual(before);
-  }, 20000);
-
-  it("PRE4-4.1/AC1 — autres segments : Créer garde la liste d'options de départ (CatalogueCreateOptions)", async () => {
-    const router = renderApp();
-    await settle();
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-
-    expect(router.getPathname()).toBe("/");
-    expect(screen.getByTestId("catalogue-create-tree")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("catalogue-create-tree-cancel"));
-  });
-
-  it("PRE4-4.1/AC1 — deux appuis rapprochés sur Créer n'ouvrent qu'un seul Éditeur", async () => {
-    const router = renderApp();
-    await openExercisesSegment();
-
-    const create = screen.getByLabelText(sessions.createAction);
-    act(() => {
-      fireEvent.press(create);
-      fireEvent.press(create);
-    });
-    await settle();
-    expect(router.getPathname()).toBe("/exercise");
-
-    // Un seul retour suffit à revenir au Catalogue : un seul Éditeur a été empilé.
-    act(() => {
-      testRouter.back();
-    });
-    await settle(300);
-    expect(router.getPathname()).toBe("/");
-  });
-
-  it("PRE4-4.1/AC1 — Créer puis un toucher rapproché sur une carte Exercice n'ouvrent qu'un seul Éditeur (verrou partagé)", async () => {
+// PRE-8 (epic E, E.8-a) : les tests PRE4-4.1/AC1 à AC3 portaient sur le segment Exercices du Catalogue
+// (Créer direct, abandon restituant le segment et le défilement, carte Exercice et son bouton Lecture),
+// retiré par E.8-a (plan approuvé du 28/10, option B). Ils sont remplacés par le parcours ci-dessous :
+// l'ancienne définition reste consultable et modifiable depuis la sélection d'Exercices de la Composition.
+describe("PRE-8 E.8-a — Modifier une ancienne définition depuis la sélection d'Exercices", () => {
+  it("Composition → Un exercice existant → Modifier : éditeur existant sur la définition ; Terminer enregistre ; retour : liste relue, case cochée conservée, brouillon intact, aucune ligne créée", async () => {
     const definition = await savedDefinition();
     const router = renderApp();
-    await openExercisesSegment();
+    await settle();
+    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await settle();
+    expect(router.getPathname()).toBe("/composition");
+    fireEvent.changeText(screen.getByLabelText(composition.name), "Brouillon E8a");
+    fireEvent.press(screen.getByLabelText(composition.addActivity));
+    fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(activities.addToSession.existingActivity));
+    await settle();
+    expect(router.getPathname()).toBe("/activity-selection");
+    expect(screen.queryByTestId("catalogue-content-type-row-activities")).toBeNull();
 
-    const card = await screen.findByTestId(`activity-card-${definition.id}`);
-    act(() => {
-      fireEvent.press(screen.getByLabelText(sessions.createAction));
-      fireEvent.press(within(card).getByTestId("activity-card-open"));
-    });
+    fireEvent.press(await screen.findByTestId(`activity-selection-row-${definition.id}`));
+    const before = await database.getAllAsync("SELECT id FROM activity_definitions");
+    fireEvent.press(screen.getByTestId(`activity-selection-row-edit-${definition.id}`));
     await settle();
     expect(router.getPathname()).toBe("/exercise");
-    expect(editorContext(router.getSearchParams())).toEqual({ catalogueDefinitionId: "new" });
-
-    act(() => {
-      testRouter.back();
-    });
-    await settle(300);
-    expect(router.getPathname()).toBe("/");
-
-    // Le verrou est réarmé au retour : la carte ouvre de nouveau l'Éditeur.
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
-    await settle();
     expect(editorContext(router.getSearchParams())).toEqual({ catalogueDefinitionId: definition.id });
-  }, 20000);
-
-  it("PRE4-4.1/AC1 — retour avant validation : segment Exercices et défilement restitués ; Terminer réussi : Catalogues / Exercices affiché avec le nouvel Exercice", async () => {
-    await savedDefinition();
-    const router = renderApp();
-    await openExercisesSegment();
-    const list = scrollCatalogueList();
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    act(() => {
-      testRouter.back();
-    });
-    await settle(300);
-    expect(router.getPathname()).toBe("/");
-    expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-    expect(screen.getByText(activities.title)).toBeTruthy();
-    expectCatalogueRestored(list);
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    await fillNewExercise("Pompes");
+    expect(screen.getByText(activities.editor.titleEdit)).toBeTruthy();
+    fireEvent.changeText(await screen.findByDisplayValue("Fentes"), "Fentes avant");
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
     });
     await settle(300);
+    // Le dialogue de sauvegarde du Mouvement peut s'interposer : on retient la seule issue « enregistré ».
+    await waitFor(() => expect(router.getPathname()).toBe("/activity-selection"));
 
-    expect(router.getPathname()).toBe("/");
-    expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-    expect(await screen.findByText("Pompes")).toBeTruthy();
-    expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id ORDER BY movements.name")).toEqual([{ name: "Fentes" }, { name: "Pompes" }]);
-  }, 20000);
-});
-
-describe("PRE4-4.1/AC2 — abandon d'une création au Catalogue", () => {
-  it("PRE4-4.1/AC2 — sortie immédiate sans saisie, puis Confirmer après saisie : Catalogue restauré (segment, défilement), aucun Exercice créé", async () => {
-    await savedDefinition();
-    const router = renderApp();
-    await openExercisesSegment();
-    const before = await dump();
-    const list = scrollCatalogueList();
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
+    expect(await screen.findByText(/Fentes avant/)).toBeTruthy();
+    expect(screen.getByTestId(`activity-selection-row-${definition.id}`).props.accessibilityState).toEqual({ checked: true });
+    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toEqual(before);
+    fireEvent.press(screen.getByTestId("activity-selection-cancel"));
     await settle(300);
-    expect(router.getPathname()).toBe("/");
-    expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
-    // Story 4.2 : sortie sans saisie, aucun dialogue (ni de création, ni de modification).
-    expect(screen.queryByText(exercise.exitConfirmModal.createTitle)).toBeNull();
-    expectCatalogueRestored(list);
-
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
-    await settle();
-    fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Brouillon");
-    fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
-    expect(router.getPathname()).toBe("/exercise");
-    fireEvent.press(screen.getByLabelText(exercise.exitConfirmModal.abandon));
-    await settle(300);
-
-    expect(router.getPathname()).toBe("/");
-    expect(isSelected(sessions.contentTypes.activities)).toBe(true);
-    expectCatalogueRestored(list);
-    expect(await dump()).toEqual(before);
-  }, 20000);
-});
-
-describe("PRE4-4.1/AC3 — Modifier au Catalogue (Q34)", () => {
-  it("PRE4-4.1/AC3 — la carte ouvre l'Éditeur en modification avec les données et les Médias dans leur ordre ; Lecture reste désactivé et n'ouvre pas l'Éditeur", async () => {
-    const definition = await savedDefinition();
-    const router = renderApp();
-    await openExercisesSegment();
-
-    const card = await screen.findByTestId(`activity-card-${definition.id}`);
-    const play = within(card).getByTestId("activity-card-play");
-    expect(play.props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(play);
-    await settle();
-    expect(router.getPathname()).toBe("/");
-
-    fireEvent.press(within(card).getByTestId("activity-card-open"));
-    await settle();
-    expect(router.getPathname()).toBe("/exercise");
-    expect(router.getSearchParams()).toMatchObject({ catalogueDefinitionId: definition.id });
-    expect(await screen.findByDisplayValue("Fentes")).toBeTruthy();
-    expect(screen.getByText(activities.editor.titleEdit)).toBeTruthy();
-    expect(screen.getByDisplayValue("Genou au-dessus de la cheville.")).toBeTruthy();
-    const media = editorSpy.mock.calls.at(-1)![0] as { value: { media: readonly { assetId: string }[] } };
-    expect(media.value.media.map((item) => item.assetId)).toEqual(["p1", "p2"]);
-    expect(screen.getByTestId("media-item-1")).toBeTruthy();
-    expect(screen.getByTestId("media-item-2")).toBeTruthy();
-  }, 20000);
+    expect(router.getPathname()).toBe("/composition");
+    expect(screen.getByLabelText(composition.name).props.value).toBe("Brouillon E8a");
+  }, 30000);
 });
 
 describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
@@ -691,7 +554,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
   it("PRE4-4.1/AC6 AC7 AC8 — CC : ActivityEditorForm et ExecutionParametersSheet ; route catalogueDefinitionId=new ; Terminer crée la Définition puis restitue le Catalogue", async () => {
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
 
     expect(editorContext(router.getSearchParams())).toEqual({ catalogueDefinitionId: "new" });
@@ -705,7 +568,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     });
     await settle(300);
     expect(router.getPathname()).toBe("/");
-    expect(isSelected(sessions.contentTypes.activities)).toBe(true);
+    expect(isSelected(sessions.contentTypes.sessions)).toBe(true);
     expect(await database.getAllAsync("SELECT movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ name: "Gainage" }]);
   }, 20000);
 
@@ -713,7 +576,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     const definition = await savedDefinition();
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
 
     expect(editorContext(router.getSearchParams())).toEqual({ catalogueDefinitionId: definition.id });
@@ -727,7 +590,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     });
     await settle(300);
     expect(router.getPathname()).toBe("/");
-    expect(isSelected(sessions.contentTypes.activities)).toBe(true);
+    expect(isSelected(sessions.contentTypes.sessions)).toBe(true);
     expect(await database.getAllAsync("SELECT activity_definitions.id, movements.name FROM activity_definitions JOIN movements ON movements.id = activity_definitions.movement_id")).toEqual([{ id: definition.id, name: "Fentes lentes" }]);
   }, 20000);
 
@@ -814,8 +677,8 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
     expect(await copySeriesCount()).toBe(1);
 
     await openExercisesSegment();
-    expect(screen.getAllByTestId("activity-card-open")).toHaveLength(1);
-    fireEvent.press(within(screen.getByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toHaveLength(1);
+    await openDefinitionEditor(definition.id);
     fireEvent.changeText(await screen.findByDisplayValue("Fentes"), "Fentes du Catalogue");
     await act(async () => {
       fireEvent.press(screen.getByTestId("activity-editor-finish-action"));
@@ -825,7 +688,7 @@ describe("PRE4-4.1/AC9 — Copie isolée, dans les deux sens", () => {
     // Paramètres de la Copie intacts ; PRE-7 (R-3, D-445 C05) : son nom est celui, corrigé, du Mouvement.
     expect(await copyRow()).toEqual(copyAfterMs);
     expect(await database.getAllAsync(`SELECT name FROM ${OCCURRENCES}`)).toEqual([{ name: "Fentes du Catalogue" }]);
-    expect(screen.getAllByTestId("activity-card-open")).toHaveLength(1);
+    expect(await database.getAllAsync("SELECT id FROM activity_definitions")).toHaveLength(1);
   }, 30000);
 });
 
@@ -937,7 +800,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const router = renderApp();
     await openExercisesSegment();
 
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     const opened = editorContent();
     expect(opened).toEqual({
@@ -958,7 +821,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     expect(router.getPathname()).toBe("/");
 
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
     expect(editorContent()).toEqual(opened);
@@ -1002,7 +865,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
   it("PRE4-4.1/AC10 — CC : nouvel Exercice (deux Zones, description), Mode aller-retour, ✓, Terminer, réouverture au Catalogue : contenu identique", async () => {
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
 
     await fillNewExercise("Gainage");
@@ -1018,7 +881,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
 
     const [created] = await database.getAllAsync<{ id: string }>("SELECT id FROM activity_definitions");
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${created!.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(created!.id);
     await screen.findByDisplayValue("Gainage");
     await settle();
     expect(editorContent()).toEqual(entered);
@@ -1196,7 +1059,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     const copyBefore = await database.getAllAsync("SELECT * FROM activities");
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
 
     enterFailureOnSavedExercise();
@@ -1208,7 +1071,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     expect(router.getPathname()).toBe("/");
 
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
     expect(editorContent()).toEqual(entered);
@@ -1242,7 +1105,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
   it("PRE4-4.1/AC10 — CC : Cibles mixtes (30 s, 45 s, à l'échec) saisies dans la Feuille d'un nouvel Exercice ; Terminer, réouverture : relu à l'identique", async () => {
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     await fillNewExercise("Gainage");
     await completeNewExercise("Dos droit.");
@@ -1255,7 +1118,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
 
     const [created] = await database.getAllAsync<{ id: string }>("SELECT id FROM activity_definitions");
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${created!.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(created!.id);
     await screen.findByDisplayValue("Gainage");
     await settle();
     expect(editorContent()).toEqual(entered);
@@ -1292,7 +1155,7 @@ describe("PRE4-4.2/AC10 — enregistrement atomique et erreur d'écriture (motif
     const failing = failOnWrite(database, /INSERT INTO movement_body_zones/u);
     const router = renderApp({ definitionDatabase: failing.database });
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     await fillNewExercise("Gainage");
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos droit.");
@@ -1384,7 +1247,7 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
     const definition = await savedDefinition();
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
     await settle(300);
@@ -1392,7 +1255,7 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
     expect(screen.queryByText(exercise.exitConfirmModal.title)).toBeNull();
 
     const before = await dump();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes modifiées");
     fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
@@ -1409,7 +1272,7 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
     const router = renderApp();
     await openExercisesSegment();
     const before = await dump();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Brouillon");
     fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
@@ -1465,7 +1328,7 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     // CC : ni l'Éditeur ni la Feuille (tout leur texte) ne portent de réglage de
     // Récupération ; en unilatéral, pas de Pause entre les côtés.
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     chooseExecutionMode("Durée");
@@ -1491,8 +1354,8 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     // CS + Copie insérée par « Un exercice existant ».
     fireEvent.press(screen.getByLabelText(sessions.contentTypes.sessions));
     await settle(300);
+    // PRE-8 (E.4) : Créer ouvre directement la Composition sur le segment Séances.
     fireEvent.press(screen.getByLabelText(sessions.createAction));
-    fireEvent.press(screen.getByTestId("catalogue-create-tree-new-session"));
     await settle();
     fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage du soir");
     fireEvent.press(screen.getByLabelText(composition.addActivity));
@@ -1551,13 +1414,13 @@ describe("PRE4-4.1/AC12 — aucun libellé « Circuit » ni « Tour » dans l'É
     const definition = await savedDefinition(MIXED_PARAMETERS);
     renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     expectNoCircuitOrTour();
     fireEvent.press(screen.getByLabelText(activities.editor.backAccessibilityLabel));
     await settle(300);
 
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     expectNoCircuitOrTour();
   }, 30000);
@@ -1698,7 +1561,7 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
     const picker = new ScriptedPicker();
     renderApp({ picker });
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     await fillNewExercise("Gainage");
 
@@ -1721,7 +1584,7 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
     const definition = await savedDefinition();
     renderApp({ picker });
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
 
     await addPhotoThenVideo(picker);
@@ -1795,14 +1658,10 @@ describe("PRE4-4.4/AC3 — ordre relu après réouverture, vignette du Catalogue
     const definition = await savedDefinition();
     renderApp();
     await openExercisesSegment();
-    const thumbnail = async () =>
-      // Vignette décorative, masquée de l'accessibilité (Q50 e) : requête incluant les éléments masqués.
-      within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId(`activity-card-thumbnail-image-${definition.id}`, {
-        includeHiddenElements: true,
-      }).props.source;
-    expect(await thumbnail()).toEqual([expect.objectContaining({ uri: "kodjo-media/p1" })]);
+    // PRE-8 (E.8-a) : la carte Exercice du Catalogue (et sa vignette) est retirée avec le segment ;
+    // l'ordre des Médias reste vérifié dans l'éditeur et en base.
 
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     expect(openMediaMenu(1).options).toEqual([mediaText.menuRemove, mediaText.menuMoveDown]);
     openMediaMenu(2).choose(mediaText.menuMoveUp);
@@ -1812,10 +1671,9 @@ describe("PRE4-4.4/AC3 — ordre relu après réouverture, vignette du Catalogue
     });
     await settle(300);
     expect(await definitionMedia(definition.id)).toEqual(["p2", "p1"]);
-    expect(await thumbnail()).toEqual([expect.objectContaining({ uri: "kodjo-media/p2" })]);
 
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
     expect(editorContent().media).toEqual(["p2", "p1"]);
@@ -1832,7 +1690,6 @@ describe("PRE4-4.4/AC3 — ordre relu après réouverture, vignette du Catalogue
     });
     await settle(300);
     expect(await definitionMedia(definition.id)).toEqual(["p1"]);
-    expect(await thumbnail()).toEqual([expect.objectContaining({ uri: "kodjo-media/p1" })]);
     expect(await database.getAllAsync("SELECT id FROM media_assets WHERE id = 'p2'")).toEqual([{ id: "p2" }]);
     expect(store.files.has("kodjo-media/p2")).toBe(true);
   }, 30000);
@@ -1844,7 +1701,7 @@ describe("PRE4-4.4/AC5 — import annulé ou en erreur", () => {
     const definition = await savedDefinition();
     renderApp({ picker });
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     fireEvent.changeText(screen.getByDisplayValue("Fentes"), "Fentes lentes");
     const draft = editorContent();
@@ -1953,7 +1810,7 @@ describe("PRE4-4.5/AC4 — consulter un Média sans perdre le Brouillon", () => 
     const definition = await savedDefinition();
     renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
 
@@ -2000,7 +1857,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
   it("PRE5-3.1/AC4 — CC : étapes vides intercalées retirées à Terminer (`A\\nB`), relues renumérotées ; copie Définition → Séance transportée", async () => {
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(screen.getByLabelText(sessions.createAction));
+    await openDefinitionEditor("new");
     await settle();
     await fillNewExercise("Gainage");
     typeSteps(["Dos droit", "", "Genoux fléchis"]);
@@ -2016,7 +1873,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     expect(created!.description).toBe("Dos droit\nGenoux fléchis");
 
     editorSpy.mockClear();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${created!.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(created!.id);
     await screen.findByDisplayValue("Gainage");
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Dos droit", "Genoux fléchis"]);
@@ -2069,7 +1926,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     const before = await dump();
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Genou aligné", "", "Dos droit"]);
@@ -2089,7 +1946,7 @@ describe("PRE5-3.1/AC4, AC5 — étapes : encodage à Terminer, relecture, trans
     const definition = await savedDefinition();
     const router = renderApp();
     await openExercisesSegment();
-    fireEvent.press(within(await screen.findByTestId(`activity-card-${definition.id}`)).getByTestId("activity-card-open"));
+    await openDefinitionEditor(definition.id);
     await screen.findByDisplayValue("Fentes");
     await settle();
     expect(editorContent().instructionSteps).toEqual(["Genou au-dessus de la cheville."]);

@@ -241,6 +241,36 @@ export const fr = {
       },
       filterAction: "Filtrer",
       sortAction: "Trier",
+      // PRE-8 (epic E, E.4 ; spécification du 27/10 §4) : segmenté à trois entrées, Programmes visible
+      // et indisponible ; bascule de vue « Un exercice | Plusieurs ».
+      programsSegment: "Programmes",
+      programsUnavailableAccessibilityLabel: "Programmes — indisponible",
+      programsTitle: "Catalogue des programmes",
+      view: {
+        single: "Un exercice",
+        multiple: "Plusieurs",
+        selectHint: "Affiche seulement ces séances",
+        deselectHint: "Touchez de nouveau pour afficher toutes les séances",
+      },
+      // PRE-8 (epic E, E.6 ; spécification du 27/10 §6, Figma 4168:11149) : panneau de filtres.
+      catalogueFilters: {
+        command: "Filtres",
+        title: "Filtres",
+        close: "Fermer",
+        apply: "Appliquer les filtres",
+        reset: "Réinitialiser",
+        status: "Statut des séances",
+        active: "Actives",
+        archived: "Archivées",
+        categories: "Catégories",
+        bodyZones: "Zones corporelles",
+        labels: "Étiquettes",
+        format: "Format",
+        formatUnavailable: "{name} — indisponible",
+        activeSummary: "{count} filtres",
+        clearAccessibility: "Réinitialiser les filtres",
+        editAccessibility: "Modifier les filtres",
+      },
     },
     // V2-CAT-01 : Catalogue des activités — segment `Activités` du Catalogue,
     // liste/création/modification d'`ActivityDefinition` persistantes.
@@ -427,6 +457,8 @@ export const fr = {
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
+        // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
+        editAccessibilityLabel: "Modifier l’exercice {name}",
       },
       addToSession: {
         newActivity: "Un nouvel exercice",

@@ -16,6 +16,11 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  *   flexible (il se réduit quand `Filtrer` s'étend, sans retour à la ligne), croix d'effacement
  *   à droite dès qu'une saisie existe (D03).
  *
+ * PRE-8 (epic E, E.4 ; Q-E4 option B complétée, Hermann 28/10) : `FilterCommand` variante
+ * `compact` — filtre actif quand la forme étendue ne tient pas : deux commandes distinctes et
+ * visibles, un rond actif (fond bleu pâle, bordure bleue) qui OUVRE le panneau et un rond « croix »
+ * qui RÉINITIALISE en un seul toucher ; chacune cible 44. Précision UX hors Figma. Défaut : étendue.
+ *
  * Les critères et règles de filtrage restent propres à chaque contexte (D-450 pour les familles
  * de Mouvements) : ce module ne porte que la présentation et l'interaction d'entrée. Les
  * pictogrammes Créer et Filtrer sont des rectangles Figma (`10579:21589`, `10579:21602`), rendus
@@ -67,10 +72,13 @@ export function FilterCommand({
   clearLabel,
   editLabel,
   disabled = false,
+  variant = "extended",
   onOpen,
   onClear,
   testID,
 }: {
+  /** E.4 : forme du filtre actif (étendue par défaut). */
+  readonly variant?: "extended" | "compact";
   /** Libellé accessible du bouton rond inactif. */
   readonly label: string;
   /** « Filtres » (pilule étendue). */
@@ -86,6 +94,35 @@ export function FilterCommand({
 }) {
   if (summary === null || disabled) {
     return <CommandCircle label={label} icon="filter" disabled={disabled} onPress={onOpen} testID={testID} />;
+  }
+  if (variant === "compact") {
+    return (
+      <View style={styles.compact} testID={testID}>
+        <Pressable
+          onPress={onOpen}
+          accessibilityRole="button"
+          accessibilityLabel={`${editLabel}, ${summary}`}
+          hitSlop={HIT_SLOP}
+          style={[styles.circle, styles.circleActive]}
+          testID={`${testID}-edit`}
+        >
+          <FilterGlyph color={colors.primary} testID={`${testID}-icon`} />
+        </Pressable>
+        <Pressable
+          onPress={onClear}
+          accessibilityRole="button"
+          accessibilityLabel={clearLabel}
+          hitSlop={HIT_SLOP}
+          style={styles.circle}
+          testID={`${testID}-clear`}
+        >
+          <View style={styles.icon}>
+            <View style={[styles.crossBar, styles.clearBarForward]} />
+            <View style={[styles.crossBar, styles.clearBarBackward]} />
+          </View>
+        </Pressable>
+      </View>
+    );
   }
   return (
     <View style={styles.pill} testID={testID}>
@@ -204,6 +241,24 @@ const styles = StyleSheet.create({
   },
   circleDisabled: {
     borderColor: colors.disabled,
+  },
+  circleActive: {
+    backgroundColor: colors.selectionSurface,
+  },
+  // E.4 : deux ronds 34 séparés de l'écart des commandes (cibles 44 sans chevauchement).
+  compact: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: COMMAND.gap,
+  },
+  crossBar: {
+    position: "absolute",
+    top: (COMMAND.icon - 1.875) / 2,
+    left: 2,
+    width: COMMAND.icon - 4,
+    height: 1.875,
+    borderRadius: 0.938,
+    backgroundColor: colors.primary,
   },
   icon: {
     width: COMMAND.icon,

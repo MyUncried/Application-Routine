@@ -2,16 +2,15 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
-import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { matchesView, toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
+import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
@@ -24,7 +23,11 @@ import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
  * Segment de TYPE de contenu du Catalogue (V2-CAT-01, D-108). Seuls `activities` et `sessions` sont fonctionnels ; `circuits` reste visible mais désactivé.
  * PRE-8 (B.3, relevé Niveaux du 25/10 §7) : `movements`, Catalogue d'entretien des Mouvements, ajouté en premier ; les autres segments sont inchangés.
  */
-export type CatalogueContentType = "movements" | "activities" | "sessions" | "circuits";
+export type CatalogueContentType = "movements" | "sessions" | "programs";
+// PRE-8 (epic E, E.4 et E.8-a, plan approuvé du 28/10) : trois segments, Mouvements / Séances /
+// Programmes (visible, indisponible). Le segment Exercices est retiré ; les anciennes définitions
+// restent consultables et modifiables depuis la sélection d'Exercices de la Composition (commande
+// Modifier, option 1), sans migration. Créer ouvre la Composition existante sur le segment Séances.
 
 /**
  * Écran du Catalogue des séances (T01-S06). Seul point d'appel à
@@ -61,11 +64,12 @@ export function CatalogueScreen() {
   // Activité, sélection multiple…) n'est jamais affectée.
   const params = useLocalSearchParams<{ catalogueSegment?: string }>();
   const sessionCatalogue = useSessionCatalogue();
-  const activityCatalogue = useActivityCatalogue();
   // T01-S10/V2-CAT-01 (D-108) : `Séances` sélectionné par défaut à
   // l'ouverture et après relance complète — aucun segment n'est persisté.
   const [activeSegment, setActiveSegment] = useState<CatalogueContentType>("sessions");
-  const [isCreateTreeOpen, setIsCreateTreeOpen] = useState(false);
+  // E.4 : vue « Un exercice | Plusieurs » (aucune = collection complète), état de l'écran conservé au
+  // retour d'un parcours, jamais persisté (relance : collection complète).
+  const [sessionView, setSessionView] = useState<SessionCatalogueView | null>(null);
   // PRE-4 story 4.1 (AC1) : verrou synchrone contre le double appui sur
   // l'ouverture de l'Éditeur, en création (`Créer`, option `Un nouvel
   // exercice`) comme en modification (carte Exercice). Armé au premier appui,
@@ -92,14 +96,12 @@ export function CatalogueScreen() {
         : fillTemplate(strings.screens.movement.catalogue.filters.activeSummary, { count: String(movementFilterLabels.length) });
 
   const { reload: reloadSessions, cancelPending: cancelPendingSessions } = sessionCatalogue;
-  const { reload: reloadActivities, cancelPending: cancelPendingActivities } = activityCatalogue;
   const catalogueSegmentParam = params.catalogueSegment;
   useFocusEffect(
     useCallback(() => {
       isOpeningEditorRef.current = false;
       setMovementsReloadToken((current) => current + 1);
       reloadSessions();
-      reloadActivities();
       // Consommé une seule fois : `setParams` l'efface immédiatement, pour
       // qu'un focus ultérieur SANS nouveau signal (retour d'édition d'une
       // Activité, par exemple) ne réapplique jamais ce forçage.
@@ -109,13 +111,10 @@ export function CatalogueScreen() {
       }
       return () => {
         cancelPendingSessions();
-        cancelPendingActivities();
       };
     }, [
       reloadSessions,
-      reloadActivities,
       cancelPendingSessions,
-      cancelPendingActivities,
       catalogueSegmentParam,
       router,
     ]),
@@ -130,22 +129,9 @@ export function CatalogueScreen() {
   const title =
     activeSegment === "movements"
       ? strings.screens.movement.catalogue.title
-      : activeSegment === "activities"
-      ? strings.screens.activities.title
-      : activeSegment === "circuits"
-        ? t.circuitsTitle
+      : activeSegment === "programs"
+        ? t.programsTitle
         : t.title;
-
-  // Navigation unique vers l'Éditeur au Catalogue (CC, MC) : `"new"` pour la
-  // branche directe de `Créer` (segment Exercices, Q33) et l'option `Un nouvel
-  // exercice`, l'identifiant de la Définition pour une carte ; même verrou.
-  const openExerciseEditor = (catalogueDefinitionId: string) => {
-    if (isOpeningEditorRef.current) {
-      return;
-    }
-    isOpeningEditorRef.current = true;
-    router.push({ pathname: "/exercise", params: { catalogueDefinitionId } });
-  };
 
   const openMovement = (movementId: string | null) => {
     if (isOpeningEditorRef.current) {
@@ -159,24 +145,20 @@ export function CatalogueScreen() {
     );
   };
 
-  // PRE-4 story 4.1 (AC1, décision Q33 de Hermann du 2026-10-17) : sur le
-  // segment Exercices, `Créer` ouvre directement l'Éditeur, sans liste
-  // d'options, sans voile ni `Annuler` intermédiaire. Sur les autres segments,
-  // la liste d'options `CatalogueCreateOptions` reste le comportement de
-  // départ, inchangé. Le Catalogue reste monté sous l'Éditeur (pile) : au
-  // retour, le segment et la position de défilement sont ceux de l'aller.
+  // PRE-8 (B.3, CE-MVT-01 §3) : sur le segment Mouvements, `Créer` ouvre la fiche d'un Mouvement
+  // nouveau. PRE-8 (E.4) : sur le segment Séances, `Créer` ouvre directement la Composition existante
+  // (plus d'arbre d'options : le Catalogue autonome des Exercices est retiré). Même verrou de double
+  // appui, réarmé au focus suivant.
   const handleCreatePress = () => {
-    // PRE-8 (B.3, CE-MVT-01 §3) : sur le segment Mouvements, `Créer` ouvre la fiche d'un
-    // Mouvement nouveau (aucun Exercice ni Séance créé), même verrou de double appui.
     if (activeSegment === "movements") {
       openMovement(null);
       return;
     }
-    if (activeSegment === "activities") {
-      openExerciseEditor("new");
+    if (isOpeningEditorRef.current) {
       return;
     }
-    setIsCreateTreeOpen(true);
+    isOpeningEditorRef.current = true;
+    router.push("/composition");
   };
 
   return (
@@ -205,13 +187,12 @@ export function CatalogueScreen() {
         <SegmentedControl
           options={[
             { value: "movements", label: strings.screens.movement.catalogue.segment },
-            { value: "activities", label: t.contentTypes.activities },
             { value: "sessions", label: t.contentTypes.sessions },
             {
-              value: "circuits",
-              label: t.contentTypes.circuits,
+              value: "programs",
+              label: t.programsSegment,
               disabled: true,
-              accessibilityLabel: t.contentTypes.circuitsUnavailableAccessibilityLabel,
+              accessibilityLabel: t.programsUnavailableAccessibilityLabel,
             },
           ]}
           value={activeSegment}
@@ -220,8 +201,10 @@ export function CatalogueScreen() {
         />
         {/* Recette A/B (D01, D02, D04, D05 ; ch13 §4.5) : commandes rondes 34, Rechercher sur la même
             rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
-        <View style={styles.commandRow} testID="catalogue-command-row">
-          {activeSegment === "movements" ? (
+        {/* Segment Mouvements : rangée de B.9 inchangée (plan E.4, « conséquence documentée » :
+            l'ordre Filtre / Tri / Créer ne s'applique qu'au segment Séances). */}
+        {activeSegment === "movements" ? (
+          <View style={styles.commandRow} testID="catalogue-command-row">
             <CatalogueSearchField
               value={movementQuery}
               onChangeText={setMovementQuery}
@@ -230,39 +213,35 @@ export function CatalogueScreen() {
               clearLabel={strings.screens.movement.catalogue.searchClear}
               testID="movement-catalogue-search"
             />
-          ) : null}
-          <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
-          {/* PRE-8 (B.7) : Filtrer est actif sur le seul segment Mouvements ; inchangé ailleurs. */}
-          <FilterCommand
-            label={t.filterAction}
-            title={strings.screens.movement.catalogue.filters.command}
-            summary={activeSegment === "movements" ? movementFilterSummary : null}
-            clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
-            editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-            disabled={activeSegment !== "movements"}
-            onOpen={() => setIsMovementFilterOpen(true)}
-            onClear={() => {
-              setMovementFilters(EMPTY_MOVEMENT_FILTERS);
-              setMovementFilterLabels([]);
-            }}
-            testID="catalogue-filter-action"
+            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
+            <FilterCommand
+              label={t.filterAction}
+              title={strings.screens.movement.catalogue.filters.command}
+              summary={movementFilterSummary}
+              clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+              editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+              onOpen={() => setIsMovementFilterOpen(true)}
+              onClear={() => {
+                setMovementFilters(EMPTY_MOVEMENT_FILTERS);
+                setMovementFilterLabels([]);
+              }}
+              testID="catalogue-filter-action"
+            />
+            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
+          </View>
+        ) : null}
+        {activeSegment === "sessions" ? (
+          <SessionCommandRow
+            view={sessionView}
+            onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
+            filterSummary={null}
+            filterDisabled
+            onOpenFilters={() => undefined}
+            onResetFilters={() => undefined}
+            onCreate={handleCreatePress}
           />
-          <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
-        </View>
+        ) : null}
       </ContextBand>
-
-      <CatalogueCreateOptions
-        visible={isCreateTreeOpen}
-        onSelectNewActivity={() => {
-          setIsCreateTreeOpen(false);
-          openExerciseEditor("new");
-        }}
-        onSelectNewSession={() => {
-          setIsCreateTreeOpen(false);
-          router.push("/composition");
-        }}
-        onCancel={() => setIsCreateTreeOpen(false)}
-      />
 
       {isMovementFilterOpen ? (
         <MovementFilterSheet
@@ -309,6 +288,7 @@ export function CatalogueScreen() {
             {sessionCatalogue.state.status === "ready" ? (
               <ReadyBody
                 sessions={sessionCatalogue.state.sessions}
+                view={sessionView}
                 resetToken={movementsReloadToken}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
@@ -329,13 +309,6 @@ export function CatalogueScreen() {
               isOpeningEditorRef.current = true;
               router.push({ pathname: "/movement", params: { variantOf, placement } });
             }}
-          />
-        ) : null}
-        {activeSegment === "activities" ? (
-          <ActivityCatalogueList
-            state={activityCatalogue.state}
-            onRetry={activityCatalogue.reload}
-            onOpenDefinition={openExerciseEditor}
           />
         ) : null}
       </View>
@@ -409,17 +382,20 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
  */
 function ReadyBody({
   sessions,
+  view,
   resetToken,
   onOpenSession,
   onChanged,
 }: {
   sessions: readonly SessionCatalogueProjection[];
+  view: SessionCatalogueView | null;
   resetToken: number;
   onOpenSession: (sessionId: string) => void;
   onChanged: () => void;
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
-  const visible = sessions.filter((session) => session.status === "ACTIVE");
+  // E.4 : la vue se combine avec le Statut (Actives par défaut) ; filtres en E.6.
+  const visible = sessions.filter((session) => session.status === "ACTIVE" && matchesView(session, view));
   return (
     <SessionCatalogueList
       sessions={visible}

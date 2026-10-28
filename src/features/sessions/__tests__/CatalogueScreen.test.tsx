@@ -2,7 +2,6 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react-n
 import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { StyleSheet } from "react-native";
 
-import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { ActivityDefinition } from "@/domain/activities";
 import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -80,21 +79,6 @@ function aSummary(id: string): CatalogueSessionRecord {
   };
 }
 
-function aDefinition(id: string): ActivityDefinition {
-  return {
-    id,
-    movementId: "mov-1",
-    name: `Activité ${id}`,
-    description: null,
-    executionParameters: durationParameters(30, 1, 0),
-    recoverySeconds: 0,
-    bodyZoneIds: [],
-    sideMode: "UNILATERAL",
-    createdAt: "2026-01-01T00:00:00.000Z",
-    updatedAt: "2026-01-01T00:00:00.000Z",
-  };
-}
-
 function makeFakeService() {
   const listCatalogueSessions = jest.fn<() => Promise<readonly CatalogueSessionRecord[]>>();
   const service = { listCatalogueSessions } as unknown as SessionService;
@@ -159,10 +143,9 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
-    expect(screen.getByLabelText(types.activities)).toBeTruthy();
-    expect(
-      screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel),
-    ).toBeTruthy();
+    // PRE-8 (E.4, E.8-a) : trois segments, Programmes indisponible, plus de segment Exercices.
+    expect(screen.queryByLabelText(types.activities)).toBeNull();
+    expect(screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
 
     await act(async () => {
@@ -311,13 +294,13 @@ describe("CatalogueScreen — cadre commun", () => {
     const types = strings.screens.sessions.contentTypes;
     const row = screen.getByTestId("catalogue-content-type-row");
     const options = within(row).getAllByRole("tab");
-    // PRE-8 (B.3) : segment Mouvements ajouté en premier ; Exercices, Séances et Parcours inchangés.
-    expect(options).toHaveLength(4);
+    // PRE-8 (E.4, spécification du 27/10 §4) : Mouvements, Séances, Programmes (indisponible).
+    expect(options).toHaveLength(3);
     expect(options[0]?.props.accessibilityLabel).toBe(strings.screens.movement.catalogue.segment);
-    expect(options[2]?.props.accessibilityLabel).toBe(types.sessions);
+    expect(options[1]?.props.accessibilityLabel).toBe(types.sessions);
 
     const sessionsTab = screen.getByLabelText(types.sessions);
-    const circuitsTab = screen.getByLabelText(types.circuitsUnavailableAccessibilityLabel);
+    const circuitsTab = screen.getByLabelText(strings.screens.sessions.programsUnavailableAccessibilityLabel);
 
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
     expect(circuitsTab.props.accessibilityState).toMatchObject({ disabled: true, selected: false });
@@ -331,11 +314,10 @@ describe("CatalogueScreen — cadre commun", () => {
     });
   });
 
-  it("activates the Activités segment and loads persisted ActivityDefinition (V2-CAT-01)", async () => {
+  it("E.8-a — aucun segment Exercices : le Catalogue ne lit plus les anciennes définitions", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
     const { service: activityService, listActivityDefinitions } = makeFakeActivityService();
-    listActivityDefinitions.mockResolvedValue([aDefinition("a")]);
 
     renderScreen(service, activityService);
     await act(async () => {
@@ -344,24 +326,9 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
-    await act(async () => {
-      await Promise.resolve();
-    });
-    // V2-CAT-01 (retour indépendant, minuteurs Jest) : ce changement de
-    // segment démarre l'indicateur animé de `SegmentedControl`
-    // (`Animated.timing`, 220 ms, minuteurs RÉELS — hors périmètre de
-    // modification de ce composant). Laisser ce minuteur s'achever avant la
-    // fin du test évite qu'il ne se déclenche après le démontage de
-    // l'environnement Jest de ce fichier (avertissement `act()`
-    // asynchrone, voire erreur d'environnement démonté sur certains
-    // runners CI, notamment Linux).
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 300));
-    });
-
-    expect(screen.getByText(strings.screens.activities.title)).toBeTruthy();
-    expect(screen.getByText("Activité a")).toBeTruthy();
+    expect(screen.queryByText(strings.screens.sessions.contentTypes.activities)).toBeNull();
+    expect(screen.queryByTestId("catalogue-content-type-row-activities")).toBeNull();
+    expect(listActivityDefinitions).not.toHaveBeenCalled();
   });
 
   /**
@@ -391,12 +358,12 @@ describe("CatalogueScreen — cadre commun", () => {
     // suivant le consomme (voir plus bas), preuve qu'aucun effet de bord
     // n'a lieu avant le focus réel.
     mockSearchParams = { catalogueSegment: "sessions" };
-    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
+    fireEvent.press(screen.getByLabelText(strings.screens.movement.catalogue.segment));
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
     });
     expect(
-      screen.getByLabelText(strings.screens.sessions.contentTypes.activities).props
+      screen.getByLabelText(strings.screens.movement.catalogue.segment).props
         .accessibilityState,
     ).toMatchObject({ selected: true });
 
@@ -416,7 +383,7 @@ describe("CatalogueScreen — cadre commun", () => {
     // après l'édition d'une Activité) ne réapplique jamais ce forçage :
     // basculer à nouveau sur `Activités` puis refocaliser doit préserver
     // `Activités`, jamais revenir sur `Séances`.
-    fireEvent.press(screen.getByLabelText(strings.screens.sessions.contentTypes.activities));
+    fireEvent.press(screen.getByLabelText(strings.screens.movement.catalogue.segment));
     await act(async () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
     });
@@ -426,13 +393,13 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
     expect(
-      screen.getByLabelText(strings.screens.sessions.contentTypes.activities).props
+      screen.getByLabelText(strings.screens.movement.catalogue.segment).props
         .accessibilityState,
     ).toMatchObject({ selected: true });
     expect(mockSetParams).not.toHaveBeenCalled();
   });
 
-  it("opens the Créer tree, and navigates to Composition d'une séance when 'Une séance' is selected (T01-S07, V2-CAT-01)", async () => {
+  it("E.4 — sur le segment Séances, Créer ouvre directement la Composition existante ; double appui : une seule ouverture", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -445,34 +412,12 @@ describe("CatalogueScreen — cadre commun", () => {
 
     const createAction = screen.getByLabelText(strings.screens.sessions.createAction);
     expect(createAction.props.accessibilityState?.disabled).toBeFalsy();
-
     fireEvent.press(createAction);
-    expect(screen.getByTestId("catalogue-create-tree")).toBeTruthy();
+    fireEvent.press(createAction);
 
-    fireEvent.press(screen.getByTestId("catalogue-create-tree-new-session"));
-
+    expect(screen.queryByTestId("catalogue-create-tree")).toBeNull();
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith("/composition");
-  });
-
-  it("navigates to the new-activity editor when 'Une nouvelle activité' is selected from the Créer tree", async () => {
-    const { service, listCatalogueSessions } = makeFakeService();
-    listCatalogueSessions.mockResolvedValue([]);
-
-    renderScreen(service);
-    await act(async () => {
-      simulateFocus();
-      await Promise.resolve();
-      await Promise.resolve();
-    });
-
-    fireEvent.press(screen.getByLabelText(strings.screens.sessions.createAction));
-    fireEvent.press(screen.getByTestId("catalogue-create-tree-new-activity"));
-
-    expect(mockPush).toHaveBeenCalledWith({
-      pathname: "/exercise",
-      params: { catalogueDefinitionId: "new" },
-    });
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
@@ -579,7 +524,7 @@ describe("CatalogueScreen — cadre commun", () => {
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByTestId("catalogue-sort-action").props.accessibilityState).toMatchObject({ disabled: true });
-    fireEvent.press(screen.getByTestId("catalogue-content-type-row-activities"));
+    fireEvent.press(screen.getByTestId("catalogue-content-type-row-sessions"));
     expect(screen.getByTestId("catalogue-filter-action").props.accessibilityState).toMatchObject({ disabled: true });
   });
 
@@ -808,13 +753,13 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
 });
 
 describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de contexte)", () => {
-  it("T-49 — vues Exercices et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
+  it("T-49 — vues Mouvements et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
     renderScreen(service);
     await act(async () => {});
 
-    for (const segment of ["activities", "sessions"] as const) {
+    for (const segment of ["movements", "sessions"] as const) {
       fireEvent.press(screen.getByTestId(`catalogue-content-type-row-${segment}`));
       expect(screen.queryByTestId("screen-header-separator")).toBeNull();
       const band = screen.getByTestId("screen-context-band");
