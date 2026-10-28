@@ -31,6 +31,8 @@ import {
 } from "@/domain/sessions/Session";
 import type { StopPoint } from "@/domain/sessions/StopPoint";
 import type {
+  CatalogueSessionRecord,
+  SessionCatalogueRepository,
   SessionRepository,
   StructuredSession,
   StructuredSessionRepository,
@@ -277,7 +279,7 @@ export class SessionStructureNotRepresentableError extends Error {
   }
 }
 
-export class SqliteSessionRepository implements SessionRepository, StructuredSessionRepository {
+export class SqliteSessionRepository implements SessionRepository, StructuredSessionRepository, SessionCatalogueRepository {
   constructor(
     private readonly database: Database,
     private readonly uuidFactory: UuidFactory = Crypto.randomUUID,
@@ -519,6 +521,31 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
       headers.map((header) => header.session_id),
     );
     return assembled.map((session) => toSummary(session, bodyZoneNamesBySession.get(session.stored.header.session_id) ?? []));
+  }
+
+  /**
+   * PRE-8 (epic E, story E.1) : Séances actives et archivées du Catalogue unifié, avec leur
+   * structure générale, les plus récemment modifiées d'abord (même ordre que `listActive`). Lecture
+   * groupée par table, sans N+1 ; contrat de structure contrôlé comme à l'édition, statut archivé
+   * admis (consultation seule).
+   */
+  async listCatalogue(): Promise<readonly CatalogueSessionRecord[]> {
+    const user = await getLocalUser(this.database);
+    const headers = await this.database.getAllAsync<SessionHeaderRow>(
+      `${HEADER_SELECT} WHERE sessions.owner_id = ? ORDER BY sessions.updated_at DESC`,
+      [user.id],
+    );
+    const assembled = await readAssembledSessions(this.database, headers, { allowArchived: true });
+    return assembled.map(({ stored, structure }) => ({
+      id: stored.header.session_id,
+      name: stored.header.session_name,
+      color: (stored.header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+      labelId: stored.header.label_id,
+      status: stored.header.status,
+      archivedAt: stored.header.archived_at ?? null,
+      updatedAt: stored.header.session_updated_at,
+      structure,
+    }));
   }
 }
 
@@ -1020,12 +1047,19 @@ SELECT
   sessions.label_id AS label_id,
   labels.color AS label_color,
   sessions.status,
+  sessions.archived_at,
   sessions.initial_countdown_seconds,
   sessions.final_phase_seconds,
   sessions.created_at AS session_created_at,
   sessions.updated_at AS session_updated_at
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id`;
+
+/**
+ * PRE-8 (E.1) : `allowArchived` — lecture du Catalogue unifié, où une Séance archivée reste
+ * consultable. Les lectures d'édition gardent la garde « Séance active » (défense en profondeur).
+ */
+export type AssembleOptions = { readonly allowArchived?: boolean };
 
 /** Lignes persistées d'une Séance, une requête par table pour toutes les Séances lues. */
 export type StoredSession = {
@@ -1054,7 +1088,11 @@ async function readAssembledSession(database: Database, sessionId: string, owner
  * contenu courant des Mouvements référencés est lu en une requête par table
  * (`readMovementRecords`).
  */
-async function readAssembledSessions(database: Database, headers: readonly SessionHeaderRow[]): Promise<AssembledSession[]> {
+async function readAssembledSessions(
+  database: Database,
+  headers: readonly SessionHeaderRow[],
+  options: AssembleOptions = {},
+): Promise<AssembledSession[]> {
   if (headers.length === 0) {
     return [];
   }
@@ -1100,7 +1138,7 @@ async function readAssembledSessions(database: Database, headers: readonly Sessi
       activities: activitiesBySession.get(header.session_id) ?? [],
       stopPoints: stopPointsBySession.get(header.session_id) ?? [],
     };
-    return { stored, structure: assembleStructure(stored, movements) };
+    return { stored, structure: assembleStructure(stored, movements, options) };
   });
 }
 
@@ -1135,8 +1173,9 @@ function inRankOrder<T extends { readonly position: number }>(rows: readonly T[]
 export function assembleStructure(
   stored: StoredSession,
   movements: ReadonlyMap<string, MovementRecord>,
+  options: AssembleOptions = {},
 ): SessionStructure<Activity> {
-  if (stored.header.status !== "ACTIVE") {
+  if (stored.header.status !== "ACTIVE" && !(options.allowArchived === true && stored.header.status === "ARCHIVED")) {
     throw contractError();
   }
   for (const circuit of stored.circuits) {

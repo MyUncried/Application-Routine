@@ -19,7 +19,12 @@ import {
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
 import type { ValidationResult, ValidationViolation } from "@/domain/sessions/errors";
-import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import {
+  isSessionCatalogueRepository,
+  type CatalogueSessionRecord,
+  type SessionCatalogueRepository,
+  type SessionRepository,
+} from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
 
 /**
@@ -131,6 +136,22 @@ export class SessionService {
    */
   async listActiveSessions(): Promise<readonly SessionSummary[]> {
     return this.sessionRepository.listActive();
+  }
+
+  /**
+   * PRE-8 (epic E, story E.1) : Séances actives et archivées du Catalogue unifié, avec leur
+   * structure générale ; projetées par `projectSessionForCatalogue` (aucune donnée dérivée stockée).
+   */
+  async listCatalogueSessions(): Promise<readonly CatalogueSessionRecord[]> {
+    return this.catalogueRepository().listCatalogue();
+  }
+
+  /** Repository du Catalogue unifié : le repository SQLite l'implémente (aucune migration). */
+  private catalogueRepository(): SessionCatalogueRepository {
+    if (!isSessionCatalogueRepository(this.sessionRepository)) {
+      throw new Error("The session repository does not provide the unified catalogue.");
+    }
+    return this.sessionRepository;
   }
 
   /**

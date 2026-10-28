@@ -2,6 +2,7 @@ import type {
   Activity,
   CreateSessionInput,
   Session,
+  SessionColor,
   SessionSummary,
   UpdateSessionInput,
 } from "./Session";
@@ -82,4 +83,40 @@ export interface StructuredSessionRepository {
     sessionId: string,
     input: StructuredSessionInput & { readonly persistedActivityIds?: readonly string[] },
   ): Promise<UpdateStructuredSessionOutcome>;
+}
+
+/**
+ * PRE-8 (epic E, story E.1) : Séance lue par le Catalogue unifié des Séances, active ou archivée,
+ * avec sa structure générale (D-449 §4). Aucune donnée dérivée n'est stockée : le Catalogue projette
+ * cette lecture (`projectSessionForCatalogue`).
+ */
+export type CatalogueSessionRecord = {
+  readonly id: string;
+  readonly name: string;
+  readonly color: SessionColor;
+  readonly labelId: string | null;
+  readonly status: SessionStatus;
+  readonly archivedAt: string | null;
+  readonly updatedAt: string;
+  readonly structure: SessionStructure<Activity>;
+};
+
+/**
+ * PRE-8 (epic E, story E.5) : issue d'une transition de cycle de vie. `NOT_FOUND` : Séance inconnue ;
+ * `INVALID_STATE` : la Séance n'est pas dans l'état de départ attendu (déjà archivée, déjà active,
+ * suppression d'une Séance active) — rien n'est écrit, une double action ne crée donc rien.
+ */
+export type SessionLifecycleOutcome =
+  | { readonly status: "DONE" }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "INVALID_STATE" };
+
+/** PRE-8 (epic E) : lecture du Catalogue unifié et cycle de vie d'une Séance, sans migration. */
+export interface SessionCatalogueRepository {
+  /** Séances actives et archivées, les plus récemment modifiées d'abord. */
+  listCatalogue(): Promise<readonly CatalogueSessionRecord[]>;
+}
+
+export function isSessionCatalogueRepository(repository: unknown): repository is SessionCatalogueRepository {
+  return typeof (repository as Partial<SessionCatalogueRepository> | null)?.listCatalogue === "function";
 }

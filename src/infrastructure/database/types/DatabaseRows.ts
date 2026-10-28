@@ -21,6 +21,8 @@ export type SessionHeaderRow = {
   label_id: string | null;
   label_color: string | null;
   status: "ACTIVE" | "ARCHIVED";
+  /** PRE-8 (E.1) : horodatage d'archivage (`migration001`), `NULL` pour une Séance active ; absent des fixtures antérieures. */
+  archived_at?: string | null;
   initial_countdown_seconds: number;
   final_phase_seconds: number;
   session_created_at: string;

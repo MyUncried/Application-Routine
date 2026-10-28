@@ -1,6 +1,6 @@
 # Suivi de sprint PRE-8 (autorisation de Hermann du 27/10/2026 : epics A et B)
 generated: 10-27-2026 10:00
-last_updated: 10-27-2026 23:30
+last_updated: 10-28-2026 12:00
 validation: "Recette iPhone A/B validée par Hermann le 27/10/2026 (« j'ai terminé les tests de recette, avec succès » ; « Je valide les résultats de ces deux epics »). Code recetté : 88c2adde, branche pre8-bmad/dev, non fusionnée dans main."
 project: kodjo-pre8
 project_key: NOKEY
@@ -24,8 +24,8 @@ development_status:
   b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
   b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
   b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
-  epic-e: backlog  # Catalogue unifié des Séances ; plan entièrement approuvé par Hermann le 28/10 ; développement dans une nouvelle session Claude Code (planning-artifacts/epic-e-catalogue-seances.md) ; développement non autorisé
-  e-1-projection-catalogue: ready-for-dev
+  epic-e: in-progress  # développement autorisé par Hermann le 28/10 (« Lancement du développement de l’epic E ») ; spec : implementation-artifacts/spec-e-catalogue-seances.md
+  e-1-projection-catalogue: done  # listCatalogue + projectSessionForCatalogue, sans migration
   e-2-carte-commune-catalogue: ready-for-dev  # Lecture indisponible (aucune Exécution)
   e-3-deploiement-composition: ready-for-dev
   e-4-ecran-segment-seances: ready-for-dev  # Q-E4 option B complétée ; livrée avec E.8-a
