@@ -24,3 +24,11 @@
 
 - **R-E1 — format de la durée sur la carte.** L'ancienne carte affichait la minute supérieure (« 11 min ») ; la spécification ne fixe pas le format, Figma montre « ≥ 11 min 3 s », « 45 s ». La carte reprend le format de la durée de séance déjà décidé pour la Composition (D-443 : tranches de 15 s, « ≈ » / « ≥ »), pour qu'une même Séance affiche la même durée dans les deux écrans. Aucun calcul nouveau.
 - **R-E2 — vignettes Tabata et EMOM.** Le panneau Figma `4168:11149` ne les montre qu'à l'état sélectionné ; l'état non sélectionné est reconstitué en remplaçant la bordure de sélection (3 pt, hors motif) par le fond de la vignette (F-03). Elles sont désactivées (Q-E5).
+
+## E.3 — Déploiement de la composition
+
+- `SessionCompositionTree` (`6214:3696`) : filet sous l'en-tête, composition pleine largeur ; « Cycle · N répétitions », « Circuit · N tours / séries » (lexique de la Composition) en gris, sans valeur ; membres décalés de 16 par niveau, un filet vertical par conteneur englobant (motif des familles, couleur `movementFamilyRail`) ; nom à gauche, volume à droite ; récupérations `#80858C` avec leur durée. Hauteur selon le contenu.
+- Chevron du nom seul contrôle (rotation 180° ouvert, état annoncé) ; état de déploiement de l'écran, jamais persisté. Le toucher de la carte ouvre la Séance ; le chevron et Lecture n'ouvrent rien. VoiceOver : la carte reste un élément unique, avec l'action nommée « Afficher / Masquer la composition de … » et la composition ajoutée à son nom une fois déployée.
+- Animations : `SheetMotionView` (révélation et transition de place communes), aucune sous « Réduire les animations ».
+- Limite (plan) : les Séances à plusieurs Cycles ou Circuits ne se créent pas encore sur l'appareil (epic C) ; leur rendu est couvert par les tests automatiques.
+- Tests : `SessionCompositionTree.e3.test.tsx` (11).

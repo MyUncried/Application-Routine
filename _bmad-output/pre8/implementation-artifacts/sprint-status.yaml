@@ -27,7 +27,7 @@ development_status:
   epic-e: in-progress  # développement autorisé par Hermann le 28/10 (« Lancement du développement de l’epic E ») ; spec : implementation-artifacts/spec-e-catalogue-seances.md
   e-1-projection-catalogue: done  # listCatalogue + projectSessionForCatalogue, sans migration
   e-2-carte-commune-catalogue: done  # carte unique ; Lecture indisponible (aucune Exécution) ; réserve R-E1 (format de durée D-443)
-  e-3-deploiement-composition: ready-for-dev
+  e-3-deploiement-composition: done  # Cycles et Circuits multiples vérifiés par les tests automatiques seulement (epic C)
   e-4-ecran-segment-seances: ready-for-dev  # Q-E4 option B complétée ; livrée avec E.8-a
   e-5-cycle-de-vie-actions-glissees: ready-for-dev  # services archiver/restaurer/supprimer à créer, sans migration
   e-6-filtres-seances: ready-for-dev  # Q-E3 option B (agrégé), Q-E5 option A
