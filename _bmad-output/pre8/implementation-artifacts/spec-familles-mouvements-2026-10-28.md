@@ -134,3 +134,15 @@ Demande complémentaire de Hermann : « si je déplace une carte elle déplie to
 | `f3-03` non-régression | OK | — | — |
 
 Demande complémentaire de Hermann : « augmenter un peu la largeur de la bande de la fenêtre tactile des barres verticales, car une fois sur deux on ouvre une carte par mégarde. » **Traité** : la zone de touche du filet (repli de la famille, B06) déborde de 12 pt vers la carte (`hitSlop`) ; le filet ne bouge pas. Valeur technique, ajustable.
+
+## 12. Passe ciblée 4 (28/10/2026, après `ab808040`)
+
+| Point | Verdict |
+|---|---|
+| `f3-01` survol sans arrêt (rejoué) | OK |
+| `f4-01` défilement sans tremblement | OK |
+| `f4-02` famille hors de l'écran : survol sans dépliage, arrêt : dépliage | OK |
+| `f4-03` zone de touche du filet élargie | OK |
+| `f4-04` non-régression du glisser de la Composition | OK |
+
+Bilan de la recette FAM : tous les points de FAM-01 à FAM-11 et des passes ciblées 2 à 4 sont OK sur iPhone. Restent ouverts, sans blocage pour le lot : À CLARIFIER 1 (libellé de l'entrée, provisoire), 2 (alternative accessible), 3 et 4 (lectures à confirmer), 5 (renumérotation de secours) ; limite déclarée : emplacement pointillé. Le statut `review` passe à `done` sur validation explicite de Hermann.
