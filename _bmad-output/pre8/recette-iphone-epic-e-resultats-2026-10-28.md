@@ -60,3 +60,16 @@ Restent à vérifier : `r2-02` sur cette nouvelle version, et les 7 points non t
 | `r3-01` à `r3-07` consultation en lecture seule, titre « Séance archivée » | OK |
 
 Restent non testés (NT) : `e2-08`, `e2-11`, `e3-07`, `e4-03`, `e5-13`, `e6-10`, `e8-08`. L'epic E reste `in-progress` jusqu'à la validation de Hermann.
+
+## Points non testés — décision de Hermann (28/10/2026)
+
+Hermann : « e2-11 c'est vérifié et ce cas n'existe pas, c'est écrit. je l'accepte sur la base des tests automatiques. Les tests VoiceOver sont reportés. »
+
+| Point | Décision |
+|---|---|
+| `e2-11` Séance sans Exercice (« 0 exercice ») | **Accepté sur la base des tests automatiques** ; le cas n'existe pas dans les données de Hermann ; non vérifié sur appareil |
+| `e2-08`, `e3-07`, `e4-03`, `e5-13`, `e6-10`, `e8-08` (VoiceOver) | **Reportés** au lot d'accessibilité de fin de MVP (même lot que les familles) ; exigences maintenues, non supprimées ; non bloquants pour la recette de l'epic E |
+
+Observation de Hermann pour ce lot (sans diagnostic à ce stade) : « lorsque VoiceOver est activé plusieurs touches ne marchent simplement pas et je dois utiliser Siri pour me déplacer entre les écrans par exemple, pour retourner dans les réglages. Donc il y a quelque chose qui cloche conceptuellement sur la navigation avec VoiceOver. » À instruire en ouverture du lot d'accessibilité : distinguer les gestes propres à VoiceOver (iOS) des éléments de l'app inaccessibles ou masqués (gestes personnalisés, surfaces tactiles englobantes, zones rendues inertes).
+
+L'epic E reste `in-progress` jusqu'à sa clôture par Hermann.
