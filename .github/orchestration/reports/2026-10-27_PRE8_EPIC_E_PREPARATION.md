@@ -119,3 +119,24 @@ Consignés dans la réponse de clôture (commit qui contient ce rapport) ; branc
 - Correctif b8-3 (`77990e7d`) consigné : rapport A/B, spec B.11, `epics.md`, `sprint-status.yaml`, `integration-documentaire-main.md`.
 
 **Tests.** Aucun relancé : seuls des documents ont changé depuis `77990e7d`, dont les tests ciblés étaient verts.
+
+## Dernier arbitrage E.8-a et clôture de la session (28/10)
+
+**Instruction.** « PRE-8 — Dernier arbitrage E.8-a et finalisation du plan E ».
+- Option 1 : une commande Modifier, distincte de la sélection, sur chaque ligne de la sélection d'Exercices de la Composition.
+- Elle ouvre `ExerciseScreen` par la route existante. La sélection est inchangée ; au retour, la liste est actualisée sans perte des sélections ni du contexte.
+- Le raccordement est transitoire, retiré par l'epic C.
+- Aucun objet persistant, aucune migration.
+
+**Mis à jour.**
+- Plan : en-tête, E.8-a, §2, §3. **Plan entièrement approuvé.**
+- `sprint-status.yaml` : E.1 à E.7 et E.8 en `ready-for-dev` ; `e8a-acces` tranché.
+- `epics.md`, README.
+- Registre ch07 de la branche (entrée « PRE-8, epic E »).
+- `integration-documentaire-main.md`.
+
+**Clôture A/B confirmée.** Epics A et B `done` (17 entrées), correctif b8-3 (`77990e7d`) compris.
+
+**Tests.** Aucun relancé : seuls des documents ont changé.
+
+**Session close sans démarrer E.** Le développement est à lancer dans une nouvelle session Claude Code, depuis `C:\Dev\KODJO-BMAD-PRE8`, branche `pre8-bmad/dev`. Aucune fusion dans `main`.

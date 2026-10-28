@@ -51,7 +51,7 @@ Recette iPhone validée par Hermann le 27/10/2026 ; résultats des deux epics va
 
 ## Epic E — Catalogue unifié des Séances (préparation du 27/10/2026)
 
-Plan, stories E.1 à E.8, dépendances, réserves Figma F-01 à F-05 et arbitrages Q-E0 à Q-E6 : `epic-e-catalogue-seances.md`. **Approuvé par Hermann le 28/10 (arbitrages finaux), sauf l'emplacement du point d'entrée de E.8-a ; développement dans une nouvelle session.** Le découpage initial de E (conversion des Exercices du Catalogue, Q-E1) devient la story conditionnelle E.8.
+Plan, stories E.1 à E.8, dépendances, réserves Figma F-01 à F-05 et arbitrages Q-E0 à Q-E6 : `epic-e-catalogue-seances.md`. **Entièrement approuvé par Hermann le 28/10 (arbitrages finaux, point d'entrée de E.8-a : option 1) ; développement dans une nouvelle session Claude Code.** Le découpage initial de E (conversion des Exercices du Catalogue, Q-E1) devient la story conditionnelle E.8.
 
 ## Points À CLARIFIER (sans blocage de A et B)
 

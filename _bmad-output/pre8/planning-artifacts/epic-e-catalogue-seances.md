@@ -1,11 +1,11 @@
-# PRE-8 — Epic E : Catalogue unifié des Séances — plan approuvé (28/10/2026), sauf le point d'accès de E.8-a
+# PRE-8 — Epic E : Catalogue unifié des Séances — plan approuvé (28/10/2026)
 
 > Préparation demandée par Hermann le 27/10/2026 (« KODJO — PRE-8 — Préparation du développement de l'epic E : Catalogue unifié des Séances »). **Développement non commencé** (plan approuvé le 28/10, voir ci-dessous). Branche `pre8-bmad/dev` @ `23a9a4f2` (epics A et B clos, code recetté `88c2adde`). Aucune fusion dans `main`.
 >
 > **Arbitrages finaux de Hermann du 28/10/2026** (« Arbitrages finaux, validation du plan E et clôture de la session »).
 > - Décisions intégrées : E.8-a option B, Q-E3 option B, Q-E4 option B complétée, Q-E5 option A ; Q-E0 et Q-E6 inchangés.
 > - Plan approuvé pour E.1 à E.7.
-> - E.8-a : un seul point reste ouvert, le point d'accès aux anciennes définitions (§3).
+> - E.8-a : point d'entrée tranché le 28/10, option 1 (« Dernier arbitrage E.8-a et finalisation du plan E »). Le plan est entièrement approuvé.
 > - Le développement commencera dans une nouvelle session.
 >
 > **Révision du 28/10/2026**, après la « Revue du plan de l'epic E » de Hermann. Elle est limitée aux passages concernés : §0 (Q-E0), E.4, E.6, E.8, §3, §3 bis (Niveaux), §5. E.1 à E.7 sont validés dans leur principe.
@@ -45,7 +45,7 @@
 
 Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 - E.1 à E.7 sont prêtes à développer (arbitrages du 28/10).
-- Seul le retrait du segment Exercices (E.8-a, dans E.4) attend le choix de son point d'entrée.
+- E.8-a est prête aussi (point d'entrée tranché, option 1) ; elle se livre avec E.4.
 - E.8-b est hors E : avec ou après l'epic C, sous une autorisation distincte.
 
 **Dépendances envers l'epic C (non commencé)** : aucune ne bloque E.1 à E.7.
@@ -216,16 +216,28 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
   - La sélection de la Composition, inchangée.
   - **La consultation et la modification des anciennes définitions**, par le parcours d'édition existant : `ExerciseScreen`, route `/exercise?catalogueDefinitionId=…`, avec son menu Niveau entre définitions.
 - **Vérification du parcours concret (28/10).** Aujourd'hui, le seul point d'entrée vers ce parcours est la carte du segment Exercices (`CatalogueScreen.openExerciseEditor`). La sélection de la Composition (`ActivitySelectionScreen`) ne fait que cocher et ajouter, et aucun autre écran n'ouvre une définition. Retirer le segment sans nouveau point d'entrée supprimerait donc la capacité. Le parcours d'édition lui-même est réutilisable tel quel, sans dépendance à l'epic C.
-- **Seul point restant : l'emplacement du point d'entrée** (§3). Options étudiées, toutes vers `ExerciseScreen` existant :
-  - **1 (recommandée)** : depuis la sélection d'exercices de la Composition, là où les définitions sont utilisées. Une commande d'ouverture par ligne, distincte de la sélection. Au retour, la liste est relue (`useFocusEffect` existant). C'est une modification locale de l'écran PRE-7, que l'epic C remplacera.
-  - **2** : depuis la fiche Mouvement (Catalogue des Mouvements), avec la liste des Exercices du Catalogue de ce Mouvement. `getMovementLevels` fournit déjà les définitions par niveau. Cette option touche une fiche recettée.
-  - **3** : autre emplacement choisi par Hermann.
+- **Point d'entrée, option 1, validée par Hermann le 28/10.** L'accès temporaire passe par l'écran de sélection d'Exercices de la Composition (`ActivitySelectionScreen`).
+  - Une commande **Modifier** sur chaque ligne, distincte de l'action de sélection. Cible d'au moins 44 ; libellé accessible propre.
+  - Elle ouvre l'éditeur existant `ExerciseScreen` par la route de modification existante (`/exercise?catalogueDefinitionId=…`).
+  - Le comportement de sélection est inchangé.
+  - Au retour de l'éditeur, la liste est actualisée sans perdre les sélections ni le contexte de navigation (Composition et brouillon de Séance).
+  - La commande ne concerne que les anciennes définitions d'Exercices, pas l'édition du Mouvement partagé.
+  - Aucun nouvel objet persistant, aucune migration, aucun Catalogue autonome d'Exercices.
+  - Raccordement **transitoire**, retiré quand l'epic C remplacera ce parcours (E.8-b).
+  - *À établir en début de story, par lecture du code* : l'éditeur ouvert par cette route depuis la Composition n'altère pas le brouillon de Séance en cours, et la relecture au retour (`useFocusEffect` existant) garde les cases cochées.
 - **Pas de dépendance majeure à l'epic C** : ni la Composition ni ses structures ne sont redéveloppées.
-- **Moment.** Dans E.4, au même commit que le segmenté à trois entrées, une fois l'emplacement choisi.
+- **Moment.** Dans E.4, au même commit que le segmenté à trois entrées ; la commande Modifier est livrée avant ou avec le retrait du segment, jamais après.
 - **Critères d'acceptation.**
   - Après retrait du segment, toute ancienne définition reste consultable et modifiable, et toujours sélectionnable en Composition.
   - Aucune ligne n'est créée ni supprimée par le retrait.
-  - Tests ciblés : accès, modification enregistrée, sélection inchangée, absence du segment.
+  - Tests ciblés :
+    - commande Modifier présente sur chaque ligne et distincte de la sélection ;
+    - ouverture de `ExerciseScreen` sur la bonne définition ;
+    - modification enregistrée et visible au retour ;
+    - sélections conservées au retour ;
+    - sélection inchangée ;
+    - absence du segment Exercices ;
+    - aucune ligne créée.
 
 **E.8-b — avec ou après l'epic C, soumise à une autorisation distincte.**
 - **Quand.** Une fois que la sélection de la Composition passe par les Mouvements (epic C), plus aucun parcours ne lit `activity_definitions`.
@@ -252,11 +264,9 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 - **Q-E5, option A** : vignettes visibles, Libre seul actif.
 - **Niveaux** : b8-3 conservé (§3 bis).
 
-**Seul point restant**
+- **E.8-a, point d'entrée, option 1** (dernier arbitrage) : commande Modifier dans la sélection d'Exercices de la Composition (E.8).
 
-| Id | Point | Options | Bloque |
-|---|---|---|---|
-| E.8-a | Emplacement du point d'entrée vers l'édition des anciennes définitions | 1 : sélection d'exercices de la Composition (recommandée) ; 2 : fiche Mouvement ; 3 : autre | Retrait du segment (E.4 / E.8-a) seulement |
+**Aucun point restant.** Le plan E (E.1 à E.7 et E.8-a) est approuvé. E.8-b reste hors E : avec ou après l'epic C, sous une autorisation distincte.
 
 ## 3 bis. Lot B — Niveaux après archivage et réordonnancement (isolé de E)
 
