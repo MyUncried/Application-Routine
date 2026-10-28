@@ -2,7 +2,7 @@ import { Link } from "expo-router";
 import { StyleSheet, Text, View } from "react-native";
 
 import { strings } from "@/shared/i18n";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 export default function NotFoundScreen() {
   return (
@@ -31,11 +31,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.background,
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
     gap: spacing[16],
   },
   title: {
-    ...type.screenTitle,
+    ...type.screenHeaderTitle,
     color: colors.textPrimary,
   },
   link: {

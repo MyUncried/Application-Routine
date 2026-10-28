@@ -12,13 +12,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { resolveCatalogParameters, splitResolvedParameters } from "@/domain/activities/Movement";
 import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
-import {
-  computeActivityCount,
-  computeStructuredSessionDuration,
-  type ActivityDurationFacts,
-} from "@/domain/sessions/calculations";
-import { DEFAULT_CIRCUIT_NATURE, isCircuitNature } from "@/domain/sessions/circuit";
-import { FIXED_CYCLE_REPEAT_COUNT } from "@/domain/sessions/defaults";
+import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "@/domain/sessions/circuit";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
   DEFAULT_SESSION_COLOR,
@@ -37,10 +31,37 @@ import {
 } from "@/domain/sessions/Session";
 import type { StopPoint } from "@/domain/sessions/StopPoint";
 import type {
+  CatalogueSessionRecord,
+  SessionCatalogueRepository,
+  SessionLifecycleOutcome,
   SessionRepository,
+  StructuredSession,
+  StructuredSessionRepository,
   UpdateSessionOutcome,
+  UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
 import { SIDE_MODES, type SideMode } from "@/domain/sessions/sideMode";
+import {
+  CIRCUIT_REPEAT_COUNT_MAX,
+  CIRCUIT_REPEAT_COUNT_MIN,
+  CYCLE_REPEAT_COUNT_MIN,
+  computeStructureDuration,
+  countStructureExercises,
+  legacyFromStructure,
+  structureCircuits,
+  structureExercises,
+  structureFromLegacy,
+  type SessionStructure,
+  type StructureCircuit,
+  type StructureElement,
+  type StructureStopPoint,
+} from "@/domain/sessions/structure";
+import {
+  validateStructuredSessionInput,
+  type StructureExerciseInput,
+  type StructureInput,
+  type StructuredSessionInput,
+} from "@/domain/sessions/structuredInput";
 import {
   validateCreateSessionInput,
   validateUpdateSessionInput,
@@ -49,9 +70,11 @@ import { BODY_ZONES } from "@/features/reference-data/bodyZones";
 import { LOCAL_USER_SINGLETON_KEY } from "@/infrastructure/database/constants";
 import type { Database } from "@/infrastructure/database/Database";
 import type {
-  SessionAggregateQueryRow,
-  SessionAggregateRow,
-  SessionSummaryRow,
+  ActivityRow,
+  CircuitRow,
+  CycleRow,
+  SessionHeaderRow,
+  StopPointRow,
 } from "@/infrastructure/database/types/DatabaseRows";
 
 import {
@@ -238,101 +261,26 @@ async function getInheritableBodyZoneIds(transaction: Database): Promise<Readonl
   return new Set(rows.map((row) => row.body_zone_id));
 }
 
-/** Ordre canonique de restitution des zones structurelles (D-061), pour la colonne donnée. */
-function structuralOrderSql(column: string): string {
-  return `
-  CASE ${column}
-    WHEN 'BEFORE_TOUR' THEN 0
-    WHEN 'IN_TOUR' THEN 1
-    WHEN 'AFTER_TOUR' THEN 2
-    ELSE 3
-  END
-`;
+/** Message unique des contrôles de contrat de lecture et d'écriture. */
+const AGGREGATE_CONTRACT_ERROR = "Persisted session does not satisfy the aggregate contract.";
+
+function contractError(): Error {
+  return new Error(AGGREGATE_CONTRACT_ERROR);
 }
 
-const STRUCTURAL_ORDER_SQL = structuralOrderSql("activities.structural_position");
-
 /**
- * PRE-7 (R-3, D-445 C05) : l'occurrence ne porte aucun contenu ; nom,
- * description, Catégorie, Zones, médias et structure des phases sont relus
- * dans son Mouvement (`readMovementRecords`, une requête par table).
- *
- * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles,
- * voir `DatabaseRows.ts`) — regroupées par `SqliteSessionRepository` avant
- * assemblage, jamais consommées une par une par l'appelant. La jointure
- * `activities` porte uniquement sur `session_id`/`cycle_id` (jamais
- * `tour_id`, `NULL` pour les Activités hors Tour). Ordre : zone structurelle
- * (avant → dans → après le Tour) puis `activities.position` — cet ordre EST
- * celui restitué dans `Session.cycle.beforeTour` / `cycle.tour.exercises` /
- * `cycle.afterTour`.
- *
- * V2-PRE-1 (plan §3.3) : `sessions.color` autonome et `session_categories`
- * N:N sont retirés — la couleur est DÉRIVÉE d'une jointure externe (gauche)
- * avec `labels` (`label_color`, `NULL` sans Étiquette).
+ * PRE-8 (A.4) : la Séance persistée a une structure plus riche que l'ancien modèle à Circuit
+ * unique (plusieurs Circuits, aucun Circuit ou des Cycles) ; l'interface actuelle ne peut ni
+ * l'afficher ni la modifier sans perte. Lue par `findStructuredById`.
  */
-const AGGREGATE_QUERY = `
-SELECT
-  sessions.id AS session_id,
-  sessions.owner_id,
-  sessions.name AS session_name,
-  sessions.label_id AS label_id,
-  labels.color AS label_color,
-  sessions.status,
-  sessions.initial_countdown_seconds,
-  sessions.final_phase_seconds,
-  sessions.created_at AS session_created_at,
-  sessions.updated_at AS session_updated_at,
-  cycles.id AS cycle_id,
-  cycles.position AS cycle_position,
-  cycles.repeat_count AS cycle_repeat_count,
-  tours.id AS tour_id,
-  tours.position AS tour_position,
-  tours.repeat_count AS tour_repeat_count,
-  tours.side_mode AS tour_side_mode,
-  tours.nature AS tour_nature,
-  activities.id AS activity_id,
-  activities.type AS activity_type,
-  activities.structural_position,
-  activities.position AS activity_position,
-  activities.execution_mode,
-  activities.duration_seconds,
-  activities.repetition_count,
-  activities.series_count,
-  activities.pause_seconds,
-  activities.post_activity_recovery_seconds,
-  activities.post_activity_recovery_present,
-  activities.side_mode AS activity_side_mode,
-  activities.execution_parameters AS activity_execution_parameters,
-  activities.source_movement_id AS activity_source_movement_id,
-  activities.copy_number AS activity_copy_number
-FROM sessions
-LEFT JOIN labels ON labels.id = sessions.label_id
-JOIN cycles ON cycles.session_id = sessions.id
-JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
-LEFT JOIN activities
-  ON activities.session_id = sessions.id
-  AND activities.cycle_id = cycles.id
-WHERE sessions.id = ? AND sessions.owner_id = ?
-ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, activities.position ASC
-`;
-
-/**
- * **PRE-3** : la projection SQL de durée (ancienne transcription scalaire,
- * sans cadence, variable, ordre par paire ni Pause entre les côtés) est
- * RETIRÉE. La liste lit les paramètres de chaque occurrence en UNE requête
- * groupée et délègue le total à l'autorité unique du Domaine
- * (`computeStructuredSessionDuration`), exactement comme la lecture
- * complète — aucun second calcul divergent, aucun N+1. Seuls les comptes
- * par zone restent agrégés en SQL.
- *
- * `zone` est toujours l'une des trois constantes littérales du Domaine —
- * jamais une valeur d'origine utilisateur.
- */
-function zoneActivityCountSql(zone: StructuralPosition): string {
-  return `SUM(CASE WHEN activities.structural_position = '${zone}' THEN 1 ELSE 0 END)`;
+export class SessionStructureNotRepresentableError extends Error {
+  constructor(readonly sessionId: string) {
+    super(`Session ${sessionId} has a structure that the single-circuit model cannot represent.`);
+    this.name = "SessionStructureNotRepresentableError";
+  }
 }
 
-export class SqliteSessionRepository implements SessionRepository {
+export class SqliteSessionRepository implements SessionRepository, StructuredSessionRepository, SessionCatalogueRepository {
   constructor(
     private readonly database: Database,
     private readonly uuidFactory: UuidFactory = Crypto.randomUUID,
@@ -340,18 +288,13 @@ export class SqliteSessionRepository implements SessionRepository {
   ) {}
 
   /**
-   * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, le
-   * Cycle, le Tour et TOUTES les Activités ordonnées du brouillon, avec
-   * leurs Zones corporelles. Toute erreur au sein de cette transaction
-   * annule l'intégralité de l'écriture (§`withExclusiveTransactionAsync`,
-   * propagation d'exception) — aucune donnée partielle n'est jamais laissée.
+   * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, son Circuit et TOUS les
+   * Exercices ordonnés du brouillon. Toute erreur au sein de cette transaction annule
+   * l'intégralité de l'écriture — aucune donnée partielle n'est jamais laissée.
    *
-   * V2-PRE-1 (plan §3.3) : la relation historique Catégorie de Séance N:N
-   * est retirée — seule une Étiquette facultative (`labelId`) est persistée.
-   * Le `sideMode` du Tour n'a plus aucune influence fonctionnelle : la
-   * colonne SQL reste écrite `'UNILATERAL'` (compatibilité technique), plus
-   * jamais lue depuis `CreateSessionInput`/`UpdateSessionInput` (retirés de
-   * ces contrats).
+   * PRE-8 (A.4) : l'entrée de l'ancien modèle (zones avant, dans et après le Circuit) est écrite
+   * comme la structure `[avant…, Circuit, après…]` (`structureFromLegacy`) ; validation
+   * inchangée (`validateCreateSessionInput`).
    */
   async create(input: CreateSessionInput): Promise<Session> {
     const validated = validateCreateSessionInput(input);
@@ -360,16 +303,31 @@ export class SqliteSessionRepository implements SessionRepository {
     }
     const normalized = validated.value;
     const sessionId = this.uuidFactory();
-    const cycleId = this.uuidFactory();
-    const tourId = this.uuidFactory();
-    let created: Session | null = null;
+    const circuitId = this.uuidFactory();
+    const structure = structureInputFromLegacy(normalized.exercises, normalized.stopPoints ?? [], {
+      id: circuitId,
+      repeatCount: normalized.tourRepeatCount,
+      nature: normalized.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
+    }, this.uuidFactory);
+    const stored = await this.insertSession(sessionId, { ...normalized, structure });
+    return toLegacySession(stored);
+  }
 
+  /** PRE-8 (A.4) : création d'une Séance à structure générale (`validateStructuredSessionInput`). */
+  async createStructured(input: StructuredSessionInput): Promise<StructuredSession> {
+    const validated = validateStructuredSessionInput(input);
+    if (!validated.ok) {
+      throw new SessionValidationError(validated.violations);
+    }
+    return toStructuredSession(await this.insertSession(this.uuidFactory(), validated.value));
+  }
+
+  private async insertSession(sessionId: string, input: StructuredSessionInput): Promise<AssembledSession> {
+    let created: AssembledSession | null = null;
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
-
-      await assertLabelAssignable(transaction, normalized.labelId ?? null, null, true);
-
+      await assertLabelAssignable(transaction, input.labelId ?? null, null, true);
       await transaction.runAsync(
         `INSERT INTO sessions (
           id, owner_id, name, label_id, status,
@@ -379,56 +337,31 @@ export class SqliteSessionRepository implements SessionRepository {
         [
           sessionId,
           user.id,
-          normalized.name,
-          normalized.labelId ?? null,
-          normalized.initialCountdownSeconds,
-          normalized.finalPhaseSeconds,
+          input.name,
+          input.labelId ?? null,
+          input.initialCountdownSeconds,
+          input.finalPhaseSeconds,
           timestamp,
           timestamp,
         ],
       );
-
-      await transaction.runAsync(
-        `INSERT INTO cycles (id, session_id, position, repeat_count)
-         VALUES (?, ?, 1, ?)`,
-        [cycleId, sessionId, FIXED_CYCLE_REPEAT_COUNT],
-      );
-
-      // T02-S01 : répétition RÉELLE du Tour (`1..99`, D-058). V2-PRE-1 : le
-      // Tour n'a plus de direction propre — toujours `'UNILATERAL'` en base.
-      // PRE-6 (story 1.1, AD-34) : nature du Circuit ; la borne `COUNT` est `repeat_count`.
-      await transaction.runAsync(
-        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count, side_mode, nature)
-         VALUES (?, ?, ?, 1, ?, 'UNILATERAL', ?)`,
-        [tourId, cycleId, sessionId, normalized.tourRepeatCount, normalized.circuitNature ?? DEFAULT_CIRCUIT_NATURE],
-      );
-
-      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp, this.uuidFactory);
-      await insertActivities(transaction, sessionId, cycleId, tourId, normalized.exercises, this.uuidFactory, timestamp);
-      await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
-
-      created = await readSession(transaction, sessionId, user.id);
+      await writeSessionMovements(transaction, input.movements ?? [], timestamp, this.uuidFactory);
+      await writeStructure(transaction, sessionId, input.structure, null, timestamp, this.uuidFactory);
+      created = await readAssembledSession(transaction, sessionId, user.id);
     });
-
     if (!created) {
       throw new Error("The created session could not be read back.");
     }
-
     return created;
   }
 
   /**
-   * Modification bout en bout d'une Séance persistée (T01-S10, plan §5.2 ;
-   * Q3-A — `UpdateSessionInput` distinct de `CreateSessionInput`, `create()`
-   * jamais appelé). Réutilise la MÊME transaction exclusive et les mêmes
-   * issues métier `UPDATED` / `NOT_FOUND` / `ARCHIVED`.
-   *
-   * Les Activités sont **fusionnées par identité** (§6.4 « FORBIDDEN :
-   * régénérer l'identifiant d'une Activité inchangée ») : une Activité déjà
-   * présente est mise à jour en place (son `id` et son `created_at` sont
-   * conservés), une nouvelle Activité est insérée avec l'identifiant fourni
-   * par le brouillon, une Activité retirée est supprimée (ses Zones partent
-   * en cascade).
+   * Modification bout en bout d'une Séance persistée (T01-S10, plan §5.2 ; Q3-A). Même
+   * transaction exclusive et mêmes issues métier `UPDATED` / `NOT_FOUND` / `ARCHIVED` /
+   * `ACTIVITY_NOT_FOUND`. Les Exercices sont fusionnés par identité (identifiant, `created_at`
+   * et référence au Mouvement conservés) ; le Circuit garde son identité ; une nature absente
+   * de l'entrée conserve la nature persistée (PRE-6). Une Séance dont la structure n'est pas
+   * représentable dans l'ancien modèle n'est jamais réécrite par ce chemin (A.4).
    */
   async update(sessionId: string, input: UpdateSessionInput): Promise<UpdateSessionOutcome> {
     const validated = validateUpdateSessionInput(input);
@@ -436,49 +369,84 @@ export class SqliteSessionRepository implements SessionRepository {
       throw new SessionValidationError(validated.violations);
     }
     const normalized = validated.value;
+    const outcome = await this.replaceSession(sessionId, normalized.persistedActivityIds, (existing) => {
+      const legacy = legacyFromStructure(existing.structure);
+      if (legacy === null) {
+        throw new SessionStructureNotRepresentableError(sessionId);
+      }
+      const tour = legacy.composition.tour;
+      return {
+        ...normalized,
+        structure: structureInputFromLegacy(normalized.activities, normalized.stopPoints ?? [], {
+          id: tour.id,
+          repeatCount: normalized.tourRepeatCount,
+          nature: normalized.circuitNature ?? tour.nature,
+        }, this.uuidFactory),
+      };
+    });
+    return outcome.status === "UPDATED" ? { status: "UPDATED", session: toLegacySession(outcome.session) } : outcome;
+  }
 
-    let outcome: UpdateSessionOutcome = { status: "NOT_FOUND" };
+  /** PRE-8 (A.4) : modification d'une Séance à structure générale, fusion par identité. */
+  async updateStructured(
+    sessionId: string,
+    input: StructuredSessionInput & { readonly persistedActivityIds?: readonly string[] },
+  ): Promise<UpdateStructuredSessionOutcome> {
+    const validated = validateStructuredSessionInput(input);
+    if (!validated.ok) {
+      throw new SessionValidationError(validated.violations);
+    }
+    const outcome = await this.replaceSession(sessionId, input.persistedActivityIds, () => validated.value);
+    return outcome.status === "UPDATED" ? { status: "UPDATED", session: toStructuredSession(outcome.session) } : outcome;
+  }
+
+  private async replaceSession(
+    sessionId: string,
+    persistedActivityIds: readonly string[] | undefined,
+    build: (existing: AssembledSession) => StructuredSessionInput,
+  ): Promise<
+    | { readonly status: "UPDATED"; readonly session: AssembledSession }
+    | { readonly status: "NOT_FOUND" | "ARCHIVED" | "ACTIVITY_NOT_FOUND" }
+  > {
+    let outcome:
+      | { readonly status: "UPDATED"; readonly session: AssembledSession }
+      | { readonly status: "NOT_FOUND" | "ARCHIVED" | "ACTIVITY_NOT_FOUND" } = { status: "NOT_FOUND" };
 
     await this.database.withExclusiveTransactionAsync(async (transaction) => {
       const timestamp = this.now();
       const user = await getLocalUser(transaction);
-
-      const aggregateRows = await transaction.getAllAsync<SessionAggregateQueryRow>(AGGREGATE_QUERY, [
+      const header = await transaction.getFirstAsync<SessionHeaderRow>(`${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`, [
         sessionId,
         user.id,
       ]);
-      if (aggregateRows.length === 0) {
+      if (!header) {
         return;
       }
-      const existingRow = aggregateRows[0]!;
-      // PRE-4 (story 1.2, P39) : une Séance sans occurrence n'a qu'une ligne
-      // d'en-tête, sans aucune Activité existante à fusionner.
-      const existingRows = aggregateRows.filter(isSessionOccurrenceRow);
-      if (existingRow.status !== "ACTIVE") {
+      if (header.status !== "ACTIVE") {
         outcome = { status: "ARCHIVED" };
         return;
       }
-      // PRE-4 story 4.1 (AC13, FR-01-10) : une Activité chargée à l'ouverture
-      // et supprimée depuis n'est jamais recréée. Vérifié AVANT toute
-      // écriture : la transaction se termine sans rien modifier.
-      const existingIds = new Set(existingRows.map((row) => row.activity_id));
-      const persistedIds = new Set(normalized.persistedActivityIds ?? []);
-      if (normalized.activities.some((activity) => persistedIds.has(activity.id) && !existingIds.has(activity.id))) {
+      const existing = (await readAssembledSessions(transaction, [header]))[0]!;
+      // PRE-4 story 4.1 (AC13, FR-01-10) : un Exercice chargé à l'ouverture et supprimé depuis
+      // n'est jamais recréé. Vérifié AVANT toute écriture.
+      const existingActivityIds = new Set(existing.stored.activities.map((row) => row.id));
+      const persisted = new Set(persistedActivityIds ?? []);
+      const input = build(existing);
+      if (structureExercises(input.structure).some((exercise) => persisted.has(exercise.id) && !existingActivityIds.has(exercise.id))) {
         outcome = { status: "ACTIVITY_NOT_FOUND" };
         return;
       }
 
-      await assertLabelAssignable(transaction, normalized.labelId ?? null, existingRow.label_id);
-
+      await assertLabelAssignable(transaction, input.labelId ?? null, header.label_id);
       const sessionUpdate = await transaction.runAsync(
         `UPDATE sessions SET name = ?, label_id = ?, initial_countdown_seconds = ?,
            final_phase_seconds = ?, updated_at = ?
          WHERE id = ? AND owner_id = ?`,
         [
-          normalized.name,
-          normalized.labelId ?? null,
-          normalized.initialCountdownSeconds,
-          normalized.finalPhaseSeconds,
+          input.name,
+          input.labelId ?? null,
+          input.initialCountdownSeconds,
+          input.finalPhaseSeconds,
           timestamp,
           sessionId,
           user.id,
@@ -487,48 +455,43 @@ export class SqliteSessionRepository implements SessionRepository {
       if (sessionUpdate.changes !== 1) {
         throw new Error("Expected exactly one session row to be updated.");
       }
-
-      await transaction.runAsync(
-        // PRE-6 (story 1.1) : nature absente de l'entrée → nature persistée conservée (jamais ramenée à `TOURS`).
-        `UPDATE tours SET repeat_count = ?, nature = COALESCE(?, nature) WHERE id = ? AND session_id = ?`,
-        [normalized.tourRepeatCount, normalized.circuitNature ?? null, existingRow.tour_id, sessionId],
-      );
-
-      await writeSessionMovements(transaction, normalized.movements ?? [], timestamp, this.uuidFactory);
-      await mergeActivities(
+      await writeSessionMovements(transaction, input.movements ?? [], timestamp, this.uuidFactory);
+      await writeStructure(
         transaction,
         sessionId,
-        existingRow.cycle_id,
-        existingRow.tour_id,
-        existingRows.map((row) => row.activity_id),
-        normalized.activities,
+        input.structure,
+        {
+          cycles: new Set(existing.stored.cycles.map((row) => row.id)),
+          circuits: new Set(existing.stored.circuits.map((row) => row.id)),
+          activities: existingActivityIds,
+        },
         timestamp,
+        this.uuidFactory,
       );
-
-      // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : les Points d'arrêt
-      // n'exposent aucune identité à l'appelant (contrairement aux
-      // Activités, fusionnées par `id`) — remplacés intégralement par ceux
-      // du brouillon (PRE-6 story 1.2 : le brouillon les porte désormais,
-      // une modification ne les efface donc plus), même politique que les
-      // Zones corporelles d'un Exercice.
-      await transaction.runAsync(`DELETE FROM session_stop_points WHERE session_id = ?`, [
-        sessionId,
-      ]);
-      await insertStopPoints(transaction, sessionId, normalized.stopPoints ?? [], this.uuidFactory);
-
-      const session = await readSession(transaction, sessionId, user.id);
+      const session = await readAssembledSession(transaction, sessionId, user.id);
       if (!session) {
         throw new Error("The updated session could not be read back coherently.");
       }
       outcome = { status: "UPDATED", session };
     });
-
     return outcome;
   }
 
+  /**
+   * Projection de la Séance dans l'ancien modèle à Circuit unique, lue par l'interface actuelle.
+   * PRE-8 (A.4) : une Séance plus riche lève `SessionStructureNotRepresentableError` (lecture
+   * par `findStructuredById`) plutôt que d'être tronquée.
+   */
   async findById(sessionId: string): Promise<Session | null> {
     const user = await getLocalUser(this.database);
-    return readSession(this.database, sessionId, user.id);
+    const assembled = await readAssembledSession(this.database, sessionId, user.id);
+    return assembled ? toLegacySession(assembled) : null;
+  }
+
+  async findStructuredById(sessionId: string): Promise<StructuredSession | null> {
+    const user = await getLocalUser(this.database);
+    const assembled = await readAssembledSession(this.database, sessionId, user.id);
+    return assembled ? toStructuredSession(assembled) : null;
   }
 
   async findSessionStatus(sessionId: string): Promise<"ACTIVE" | "ARCHIVED" | null> {
@@ -540,44 +503,114 @@ export class SqliteSessionRepository implements SessionRepository {
     return row?.status ?? null;
   }
 
+  /**
+   * Résumés des Séances actives, les plus récentes d'abord. PRE-8 (A.4, D-449 §6) : le nombre
+   * d'Exercices est celui de la composition (chaque Exercice une fois, sans multiplier par
+   * séries, tours ni répétitions de Cycle) ; la durée est celle de la structure, par l'autorité
+   * unique du Domaine (`computeStructureDuration`), identique à l'ancien calcul sur une Séance à
+   * Circuit unique. Lecture groupée par table, sans N+1.
+   */
   async listActive(): Promise<readonly SessionSummary[]> {
     const user = await getLocalUser(this.database);
-    const rows = await this.database.getAllAsync<SessionSummaryRow>(
-      `SELECT
-        sessions.id,
-        sessions.name,
-        sessions.label_id AS label_id,
-        labels.color AS label_color,
-        ${zoneActivityCountSql("BEFORE_TOUR")} AS before_tour_activity_count,
-        ${zoneActivityCountSql("IN_TOUR")} AS in_tour_activity_count,
-        ${zoneActivityCountSql("AFTER_TOUR")} AS after_tour_activity_count,
-        tours.repeat_count AS tour_repeat_count,
-        tours.nature AS tour_nature,
-        sessions.updated_at
-      FROM sessions
-      LEFT JOIN labels ON labels.id = sessions.label_id
-      JOIN cycles ON cycles.session_id = sessions.id
-      JOIN tours ON tours.cycle_id = cycles.id AND tours.session_id = sessions.id
-      LEFT JOIN activities
-        ON activities.session_id = sessions.id
-        AND activities.cycle_id = cycles.id
-      WHERE sessions.owner_id = ? AND sessions.status = 'ACTIVE'
-      GROUP BY sessions.id, tours.id
-      ORDER BY sessions.updated_at DESC`,
+    const headers = await this.database.getAllAsync<SessionHeaderRow>(
+      `${HEADER_SELECT} WHERE sessions.owner_id = ? AND sessions.status = 'ACTIVE' ORDER BY sessions.updated_at DESC`,
       [user.id],
     );
-
-    const sessionIds = rows.map((row) => row.id);
-    const bodyZoneNamesBySession = await getBodyZoneNamesBySession(this.database, sessionIds);
-    const durationFactsBySession = await getDurationFactsBySession(this.database, sessionIds);
-
-    return rows.map((row) =>
-      mapSummaryRow(
-        row,
-        bodyZoneNamesBySession.get(row.id) ?? [],
-        durationFactsBySession.get(row.id) ?? EMPTY_ZONES,
-      ),
+    const assembled = await readAssembledSessions(this.database, headers);
+    const bodyZoneNamesBySession = await getBodyZoneNamesBySession(
+      this.database,
+      headers.map((header) => header.session_id),
     );
+    return assembled.map((session) => toSummary(session, bodyZoneNamesBySession.get(session.stored.header.session_id) ?? []));
+  }
+
+  /**
+   * PRE-8 (epic E, story E.1) : Séances actives et archivées du Catalogue unifié, avec leur
+   * structure générale, les plus récemment modifiées d'abord (même ordre que `listActive`). Lecture
+   * groupée par table, sans N+1 ; contrat de structure contrôlé comme à l'édition, statut archivé
+   * admis (consultation seule).
+   */
+  async listCatalogue(): Promise<readonly CatalogueSessionRecord[]> {
+    const user = await getLocalUser(this.database);
+    const headers = await this.database.getAllAsync<SessionHeaderRow>(
+      `${HEADER_SELECT} WHERE sessions.owner_id = ? ORDER BY sessions.updated_at DESC`,
+      [user.id],
+    );
+    const assembled = await readAssembledSessions(this.database, headers, { allowArchived: true });
+    return assembled.map(toCatalogueRecord);
+  }
+
+  /**
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, dans l'ancien
+   * modèle lu par la Composition — ouverte en lecture seule quand elle est archivée. Une Séance plus
+   * riche lève `SessionStructureNotRepresentableError`, comme `findById`.
+   */
+  async findForConsultation(sessionId: string): Promise<Session | null> {
+    const user = await getLocalUser(this.database);
+    const header = await this.database.getFirstAsync<SessionHeaderRow>(
+      `${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`,
+      [sessionId, user.id],
+    );
+    if (!header) return null;
+    const [assembled] = await readAssembledSessions(this.database, [header], { allowArchived: true });
+    return assembled ? toLegacySession(assembled) : null;
+  }
+
+  /**
+   * PRE-8 (epic E, story E.5) : archivage, sans migration (colonnes `status` et `archived_at` de
+   * `migration001`, CHECK de cohérence). Une seule transaction ; `updated_at` n'est pas modifié (le
+   * contenu ne change pas) : la Séance restaurée retrouve sa place.
+   */
+  async archive(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ACTIVE", (transaction) =>
+      transaction.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [this.now(), sessionId]),
+    );
+  }
+
+  /** PRE-8 (E.5) : restauration à l'identique. */
+  async restore(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ARCHIVED", (transaction) =>
+      transaction.runAsync("UPDATE sessions SET status = 'ACTIVE', archived_at = NULL WHERE id = ?", [sessionId]),
+    );
+  }
+
+  /**
+   * PRE-8 (E.5) : suppression définitive depuis les archives. Les clés étrangères `ON DELETE CASCADE`
+   * retirent Cycles, Circuits, Exercices et Points d'arrêt (seules tables qui référencent la Séance ;
+   * médias et catégories d'occurrence sont lus dans le Mouvement depuis PRE-7) ; les Mouvements,
+   * référencés en `RESTRICT` par les Exercices, ne sont jamais touchés.
+   */
+  async deleteArchived(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ARCHIVED", (transaction) =>
+      transaction.runAsync("DELETE FROM sessions WHERE id = ?", [sessionId]),
+    );
+  }
+
+  /** Transition contrôlée : statut de départ relu dans la transaction, sinon rien n'est écrit. */
+  private async transition(
+    sessionId: string,
+    from: "ACTIVE" | "ARCHIVED",
+    write: (transaction: Database) => Promise<unknown>,
+  ): Promise<SessionLifecycleOutcome> {
+    let outcome: SessionLifecycleOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const user = await getLocalUser(transaction);
+      const row = await transaction.getFirstAsync<{ status: "ACTIVE" | "ARCHIVED" }>(
+        "SELECT status FROM sessions WHERE id = ? AND owner_id = ?",
+        [sessionId, user.id],
+      );
+      if (!row) {
+        outcome = { status: "NOT_FOUND" };
+        return;
+      }
+      if (row.status !== from) {
+        outcome = { status: "INVALID_STATE" };
+        return;
+      }
+      await write(transaction);
+      outcome = { status: "DONE" };
+    });
+    return outcome;
   }
 }
 
@@ -690,81 +723,238 @@ async function assertOccurrenceMovement(transaction: Database, type: ActivityTyp
   return row.id;
 }
 
+// ---------------------------------------------------------------------------
+// Ancien modèle → structure écrite
+// ---------------------------------------------------------------------------
+
 /**
- * Insère une Activité par élément de `activities`.
- *
- * **T02-S01 (plan §6.2/§10.3)** — la structure réelle est appliquée :
- *
- * - `type` et `structural_position` proviennent de l'entrée validée ;
- * - `position` est renumérotée SÉPARÉMENT DANS CHAQUE ZONE (0-indexée),
- *   seule façon de respecter `UNIQUE(session_id, structural_position,
- *   position)` sans dépendre de l'ordre relatif entre zones ;
- * - `tour_id` vaut le Tour pour `IN_TOUR` et `NULL` pour
- *   `BEFORE_TOUR`/`AFTER_TOUR` (`CHECK` de `migration001`/`migration003`) ;
- * - l'identifiant du brouillon est conservé lorsqu'il est fourni, généré
- *   sinon.
- *
- * PRE-7 (R-3, C05) : seules les données propres de l'occurrence sont écrites
- * (paramètres en forme Catalogue v5, durées de phase par `phaseId`, position,
- * récupération, numéro de copie) et sa référence au Mouvement.
+ * PRE-8 (A.4) : entrée de l'ancien modèle (zones, dans l'ordre reçu de chaque zone) → structure
+ * `[avant…, Circuit, après…]`. L'identifiant d'un Exercice est conservé lorsqu'il est fourni,
+ * généré sinon (dans l'ordre de l'entrée, comme auparavant).
  */
-async function insertActivities(
+function structureInputFromLegacy(
+  activities: readonly (CreateSessionActivityInput | UpdateSessionActivityInput)[],
+  stopPoints: readonly CreateStopPointInput[],
+  circuit: { readonly id: string; readonly repeatCount: number; readonly nature: CircuitNature },
+  uuidFactory: UuidFactory,
+): StructureInput {
+  const zones: Record<StructuralPosition, StructureExerciseInput[]> = { BEFORE_TOUR: [], IN_TOUR: [], AFTER_TOUR: [] };
+  for (const activity of activities) {
+    const { structuralPosition, ...rest } = activity;
+    const { position: _position, ...exercise } = rest as typeof rest & { position?: number };
+    zones[structuralPosition].push({ ...exercise, id: activity.id ?? uuidFactory() });
+  }
+  return structureFromLegacy(
+    { beforeTour: zones.BEFORE_TOUR, tour: { ...circuit, exercises: zones.IN_TOUR }, afterTour: zones.AFTER_TOUR },
+    stopPoints,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Écriture de la structure
+// ---------------------------------------------------------------------------
+
+type ExistingStructureIds = {
+  readonly cycles: ReadonlySet<string>;
+  readonly circuits: ReadonlySet<string>;
+  readonly activities: ReadonlySet<string>;
+};
+
+/** Début de la plage des rangs de transit, hors de toute position réelle. */
+const STAGING_POSITION = 1_000_000;
+
+/**
+ * PRE-8 (A.4) : écrit la structure validée d'une Séance, à la création (`existing = null`) ou
+ * par fusion PAR IDENTITÉ à la modification :
+ *
+ * 1. les Exercices et Circuits conservés passent d'abord au niveau principal, à des rangs de
+ *    transit, pour ne jamais violer l'unicité d'un rang dans un conteneur pendant une
+ *    réorganisation ;
+ * 2. les Exercices, Points d'arrêt, Circuits puis Cycles retirés sont supprimés (aucun
+ *    Exercice conservé n'est plus rattaché à un conteneur supprimé : aucune cascade implicite) ;
+ * 3. Cycles, Circuits puis Exercices sont écrits à leur rang final, dans l'ordre de la
+ *    structure : un élément conservé est mis à jour en place (identité, `created_at` et
+ *    référence au Mouvement inchangés), un nouvel élément est inséré ;
+ * 4. les Points d'arrêt reçus sont insérés.
+ *
+ * Rang au niveau principal : index de l'élément ; dans un Cycle : index du Circuit ; dans un
+ * Circuit : index de l'Exercice. PRE-7 (R-3, C05) : aucune donnée de contenu n'est écrite dans
+ * l'Exercice.
+ */
+async function writeStructure(
   transaction: Database,
   sessionId: string,
-  cycleId: string,
-  tourId: string,
-  activities: readonly CreateSessionActivityInput[],
-  uuidFactory: UuidFactory,
+  structure: StructureInput,
+  existing: ExistingStructureIds | null,
   timestamp: string,
+  uuidFactory: UuidFactory,
 ): Promise<void> {
-  const positionByZone = new Map<StructuralPosition, number>();
-  for (const activity of activities) {
-    const zone = activity.structuralPosition;
-    const position = positionByZone.get(zone) ?? 0;
-    positionByZone.set(zone, position + 1);
-    const activityId = activity.id ?? uuidFactory();
-    const movementId = await assertOccurrenceMovement(transaction, activity.type, activity.sourceMovementId);
-    await insertActivityRow(transaction, {
-      id: activityId,
+  const incomingCycles = new Set<string>();
+  const incomingCircuits = new Set<string>();
+  for (const element of structure.elements) {
+    if (element.kind === "CYCLE") {
+      incomingCycles.add(element.cycle.id);
+    }
+  }
+  for (const circuit of structureCircuits(structure)) {
+    incomingCircuits.add(circuit.id);
+  }
+  const incomingActivities = new Set(structureExercises(structure).map((exercise) => exercise.id));
+
+  if (existing !== null) {
+    let staging = STAGING_POSITION;
+    for (const id of existing.activities) {
+      if (incomingActivities.has(id)) {
+        await transaction.runAsync("UPDATE activities SET tour_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
+          staging++,
+          id,
+          sessionId,
+        ]);
+      } else {
+        await transaction.runAsync("DELETE FROM activities WHERE id = ? AND session_id = ?", [id, sessionId]);
+      }
+    }
+    // Les Points d'arrêt n'exposent aucune identité à l'appelant : remplacés intégralement par
+    // ceux du brouillon (V2-PRE-1, PRE-6 story 1.2).
+    await transaction.runAsync("DELETE FROM session_stop_points WHERE session_id = ?", [sessionId]);
+    for (const id of existing.circuits) {
+      if (incomingCircuits.has(id)) {
+        await transaction.runAsync("UPDATE tours SET cycle_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
+          staging++,
+          id,
+          sessionId,
+        ]);
+      } else {
+        await transaction.runAsync("DELETE FROM tours WHERE id = ? AND session_id = ?", [id, sessionId]);
+      }
+    }
+    for (const id of existing.cycles) {
+      if (!incomingCycles.has(id)) {
+        await transaction.runAsync("DELETE FROM cycles WHERE id = ? AND session_id = ?", [id, sessionId]);
+      }
+    }
+  }
+
+  const writeCircuit = async (circuit: StructureCircuitInput, cycleId: string | null, position: number) => {
+    if (existing?.circuits.has(circuit.id)) {
+      await transaction.runAsync(
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, circuit.id, sessionId],
+      );
+    } else {
+      // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
+      await transaction.runAsync(
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature],
+      );
+    }
+    for (const [index, exercise] of circuit.exercises.entries()) {
+      await writeActivity(transaction, sessionId, exercise, circuit.id, index, existing, timestamp);
+    }
+  };
+
+  for (const [position, element] of structure.elements.entries()) {
+    switch (element.kind) {
+      case "EXERCISE":
+        await writeActivity(transaction, sessionId, element.exercise, null, position, existing, timestamp);
+        break;
+      case "CIRCUIT":
+        await writeCircuit(element.circuit, null, position);
+        break;
+      case "CYCLE":
+        if (existing?.cycles.has(element.cycle.id)) {
+          await transaction.runAsync("UPDATE cycles SET position = ?, repeat_count = ? WHERE id = ? AND session_id = ?", [
+            position,
+            element.cycle.repeatCount,
+            element.cycle.id,
+            sessionId,
+          ]);
+        } else {
+          await transaction.runAsync("INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, ?, ?)", [
+            element.cycle.id,
+            sessionId,
+            position,
+            element.cycle.repeatCount,
+          ]);
+        }
+        for (const [index, circuit] of element.cycle.circuits.entries()) {
+          await writeCircuit(circuit, element.cycle.id, index);
+        }
+        break;
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  }
+
+  // PRE-6 (story 1.2, AD-36) : emplacement reçu, déjà validé, enregistré tel quel.
+  for (const point of structure.stopPoints) {
+    await transaction.runAsync("INSERT INTO session_stop_points (id, session_id, tour_id, position) VALUES (?, ?, ?, ?)", [
+      uuidFactory(),
       sessionId,
-      cycleId,
-      tourId: activityTourIdFor(zone, tourId),
-      zone,
-      position,
-      timestamp,
-      movementId,
-      activity,
-    });
+      point.circuitId,
+      point.position,
+    ]);
   }
 }
 
-/** Une ligne d'occurrence, à la création comme à l'ajout dans une modification (R-3). */
-async function insertActivityRow(
+type StructureCircuitInput = StructureCircuit<StructureExerciseInput>;
+
+/** Un Exercice à son rang final : mise à jour en place s'il existe, insertion sinon. */
+async function writeActivity(
   transaction: Database,
-  row: {
-    readonly id: string;
-    readonly sessionId: string;
-    readonly cycleId: string;
-    readonly tourId: string | null;
-    readonly zone: StructuralPosition;
-    readonly position: number;
-    readonly timestamp: string;
-    readonly movementId: string;
-    readonly activity: CreateSessionActivityInput | UpdateSessionActivityInput;
-  },
+  sessionId: string,
+  exercise: StructureExerciseInput,
+  tourId: string | null,
+  position: number,
+  existing: ExistingStructureIds | null,
+  timestamp: string,
 ): Promise<void> {
-  const values = toActivitySqlValues(row.activity);
+  const values = toActivitySqlValues(exercise);
+  if (existing?.activities.has(exercise.id)) {
+    // PRE-4 : un Exercice existant reçoit ses paramètres (forme Catalogue v5, R-3) et la
+    // projection scalaire unique (AD-3) ; sa référence au Mouvement est conservée.
+    await transaction.runAsync(
+      `UPDATE activities SET
+         type = ?, tour_id = ?, position = ?,
+         execution_mode = ?, duration_seconds = ?, repetition_count = ?,
+         series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
+         post_activity_recovery_present = ?, updated_at = ?, side_mode = ?,
+         execution_parameters = ?, copy_number = ?
+       WHERE id = ? AND session_id = ?`,
+      [
+        exercise.type,
+        tourId,
+        position,
+        values.executionMode,
+        values.durationSeconds,
+        values.repetitionCount,
+        values.seriesCount,
+        values.pauseSeconds,
+        values.postActivityRecoverySeconds,
+        values.postActivityRecoveryPresent,
+        timestamp,
+        values.sideMode,
+        values.executionParameters,
+        exercise.copyNumber ?? null,
+        exercise.id,
+        sessionId,
+      ],
+    );
+    return;
+  }
+  const movementId = await assertOccurrenceMovement(transaction, exercise.type, exercise.sourceMovementId);
   await transaction.runAsync(
     `INSERT INTO activities (${ACTIVITY_ROW_COLUMNS})
      VALUES (${ACTIVITY_ROW_PLACEHOLDERS})`,
     [
-      row.id,
-      row.sessionId,
-      row.cycleId,
-      row.tourId,
-      row.activity.type,
-      row.zone,
-      row.position,
+      exercise.id,
+      sessionId,
+      tourId,
+      exercise.type,
+      position,
       values.executionMode,
       values.durationSeconds,
       values.repetitionCount,
@@ -772,41 +962,18 @@ async function insertActivityRow(
       values.pauseSeconds,
       values.postActivityRecoverySeconds,
       values.postActivityRecoveryPresent,
-      row.timestamp,
-      row.timestamp,
+      timestamp,
+      timestamp,
       values.sideMode,
       values.executionParameters,
-      row.movementId,
-      row.activity.copyNumber ?? null,
+      movementId,
+      exercise.copyNumber ?? null,
     ],
   );
 }
 
-/**
- * Insère les Points d'arrêt de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C). PRE-6 (story 1.2, AD-36) : `position` est
- * l'emplacement reçu, enregistré tel quel (plus aucune renumérotation) —
- * déjà validé (bornes, emplacement autorisé, unicité par `(scope,
- * position)`, ce qui respecte `UNIQUE(session_id, scope, position)`).
- * `session_stop_points` référence `sessions(id)` directement (jamais le
- * Cycle/Circuit).
- */
-async function insertStopPoints(
-  transaction: Database,
-  sessionId: string,
-  stopPoints: readonly CreateStopPointInput[],
-  uuidFactory: UuidFactory,
-): Promise<void> {
-  for (const stopPoint of stopPoints) {
-    await transaction.runAsync(
-      `INSERT INTO session_stop_points (id, session_id, scope, position) VALUES (?, ?, ?, ?)`,
-      [uuidFactory(), sessionId, stopPoint.scope, stopPoint.position],
-    );
-  }
-}
-
 const ACTIVITY_ROW_COLUMNS = `
-  id, session_id, cycle_id, tour_id, type, structural_position,
+  id, session_id, tour_id, type,
   position, execution_mode, duration_seconds,
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
@@ -822,14 +989,9 @@ const ACTIVITY_ROW_PLACEHOLDERS = ACTIVITY_ROW_COLUMNS.split(",")
   .map(() => "?")
   .join(", ");
 
-/** Colonne SQL `tour_id` d'une Activité selon sa zone (T01-S10) : le Tour pour `IN_TOUR`, `NULL` sinon (contrainte `migration001`). */
-function activityTourIdFor(structuralPosition: string, tourId: string): string | null {
-  return structuralPosition === "IN_TOUR" ? tourId : null;
-}
-
 /** Valeurs SQL d'une Activité (colonnes du CHECK composite d'`activities` et JSON). */
 type ActivitySqlValues = {
-  readonly executionMode: SessionAggregateRow["execution_mode"];
+  readonly executionMode: ActivityRow["execution_mode"];
   readonly durationSeconds: number | null;
   readonly repetitionCount: number | null;
   readonly seriesCount: number | null;
@@ -934,153 +1096,357 @@ function toActivitySqlValues(activity: {
   return values;
 }
 
+// ---------------------------------------------------------------------------
+// Lecture de la structure
+// ---------------------------------------------------------------------------
+
 /**
- * Fusionne les Activités d'un `UpdateSessionInput` avec celles déjà
- * persistées (T01-S10, plan §5.2 étapes 6–10). Fusion PAR IDENTITÉ :
- * - une Activité retirée est supprimée ;
- * - une Activité conservée est mise à jour EN PLACE (identifiant,
- *   `created_at` et référence au Mouvement inchangés) ;
- * - une nouvelle Activité est insérée avec l'identifiant fourni.
- *
- * Les positions des Activités conservées sont d'abord écartées vers une
- * plage haute avant réécriture des positions finales, pour ne jamais violer
- * `UNIQUE(session_id, structural_position, position)` pendant une
- * réorganisation. Les positions finales sont recalculées par zone dans
- * l'ordre du brouillon. PRE-7 (R-3, C05) : aucune donnée de contenu n'est
- * écrite dans l'occurrence.
+ * En-tête de Séance. V2-PRE-1 (plan §3.3) : la couleur est DÉRIVÉE de l'Étiquette jointe
+ * (`label_color`, `NULL` sans Étiquette).
  */
-async function mergeActivities(
-  transaction: Database,
-  sessionId: string,
-  cycleId: string,
-  tourId: string,
-  existingActivityIds: readonly string[],
-  activities: readonly UpdateSessionActivityInput[],
-  timestamp: string,
-): Promise<void> {
-  const existing = new Set(existingActivityIds);
-  const incoming = new Set(activities.map((activity) => activity.id));
+const HEADER_SELECT = `
+SELECT
+  sessions.id AS session_id,
+  sessions.owner_id,
+  sessions.name AS session_name,
+  sessions.label_id AS label_id,
+  labels.color AS label_color,
+  sessions.status,
+  sessions.archived_at,
+  sessions.initial_countdown_seconds,
+  sessions.final_phase_seconds,
+  sessions.created_at AS session_created_at,
+  sessions.updated_at AS session_updated_at
+FROM sessions
+LEFT JOIN labels ON labels.id = sessions.label_id`;
 
-  for (const id of existingActivityIds) {
-    if (!incoming.has(id)) {
-      await transaction.runAsync(`DELETE FROM activities WHERE id = ? AND session_id = ?`, [id, sessionId]);
-    }
-  }
+/**
+ * PRE-8 (E.1) : `allowArchived` — lecture du Catalogue unifié, où une Séance archivée reste
+ * consultable. Les lectures d'édition gardent la garde « Séance active » (défense en profondeur).
+ */
+export type AssembleOptions = { readonly allowArchived?: boolean };
 
-  let stagingPosition = 1_000_000;
-  for (const id of existingActivityIds) {
-    if (incoming.has(id)) {
-      await transaction.runAsync(
-        `UPDATE activities SET position = ? WHERE id = ? AND session_id = ?`,
-        [stagingPosition, id, sessionId],
-      );
-      stagingPosition += 1;
-    }
-  }
+/** Lignes persistées d'une Séance, une requête par table pour toutes les Séances lues. */
+export type StoredSession = {
+  readonly header: SessionHeaderRow;
+  readonly cycles: readonly CycleRow[];
+  readonly circuits: readonly CircuitRow[];
+  readonly activities: readonly ActivityRow[];
+  readonly stopPoints: readonly StopPointRow[];
+};
 
-  const positionByZone = new Map<StructuralPosition, number>();
-  for (const activity of activities) {
-    const zone = activity.structuralPosition;
-    const position = positionByZone.get(zone) ?? 0;
-    positionByZone.set(zone, position + 1);
-    const activityTourId = activityTourIdFor(zone, tourId);
+type AssembledSession = {
+  readonly stored: StoredSession;
+  readonly structure: SessionStructure<Activity>;
+};
 
-    if (existing.has(activity.id)) {
-      const values = toActivitySqlValues(activity);
-      // PRE-4 : une occurrence existante reçoit ses paramètres (forme Catalogue v5, R-3) et la
-      // projection scalaire unique (AD-3) ; sa référence au Mouvement est conservée.
-      await transaction.runAsync(
-        `UPDATE activities SET
-           type = ?, structural_position = ?, position = ?,
-           execution_mode = ?, duration_seconds = ?, repetition_count = ?,
-           series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
-           post_activity_recovery_present = ?,
-           tour_id = ?, cycle_id = ?, updated_at = ?, side_mode = ?,
-           execution_parameters = ?, copy_number = ?
-         WHERE id = ? AND session_id = ?`,
-        [
-          activity.type,
-          zone,
-          position,
-          values.executionMode,
-          values.durationSeconds,
-          values.repetitionCount,
-          values.seriesCount,
-          values.pauseSeconds,
-          values.postActivityRecoverySeconds,
-          values.postActivityRecoveryPresent,
-          activityTourId,
-          cycleId,
-          timestamp,
-          values.sideMode,
-          values.executionParameters,
-          activity.copyNumber ?? null,
-          activity.id,
-          sessionId,
-        ],
-      );
-    } else {
-      const movementId = await assertOccurrenceMovement(transaction, activity.type, activity.sourceMovementId);
-      await insertActivityRow(transaction, {
-        id: activity.id,
-        sessionId,
-        cycleId,
-        tourId: activityTourId,
-        zone,
-        position,
-        timestamp,
-        movementId,
-        activity,
-      });
-    }
-  }
+/** PRE-8 (epic E) : en-tête et structure assemblés → enregistrement du Catalogue unifié. */
+function toCatalogueRecord({ stored, structure }: AssembledSession): CatalogueSessionRecord {
+  return {
+    id: stored.header.session_id,
+    name: stored.header.session_name,
+    color: (stored.header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: stored.header.label_id,
+    status: stored.header.status,
+    archivedAt: stored.header.archived_at ?? null,
+    updatedAt: stored.header.session_updated_at,
+    structure,
+  };
 }
 
-/**
- * Relit et assemble l'agrégat complet d'une Séance : lignes d'Activités
- * (une par Activité, déjà ordonnées par `AGGREGATE_QUERY`) et leurs Zones
- * corporelles. `null` si la Séance n'existe pas (ou n'appartient pas à
- * `ownerId`) — jamais une exception pour ce cas attendu.
- */
-async function readSession(
-  database: Database,
-  sessionId: string,
-  ownerId: string,
-): Promise<Session | null> {
-  const rows = await database.getAllAsync<SessionAggregateQueryRow>(AGGREGATE_QUERY, [
+async function readAssembledSession(database: Database, sessionId: string, ownerId: string): Promise<AssembledSession | null> {
+  const header = await database.getFirstAsync<SessionHeaderRow>(`${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`, [
     sessionId,
     ownerId,
   ]);
-  if (rows.length === 0) {
-    return null;
-  }
-
-  // PRE-4 (story 1.2, P39) : une Séance sans occurrence n'a aucune Activité à relire.
-  // PRE-7 (R-3, C05) : contenu courant des Mouvements référencés, en une requête par table.
-  const movements = await readMovementRecords(
-    database,
-    rows.filter(isSessionOccurrenceRow).map((row) => row.activity_source_movement_id),
-  );
-  const stopPoints = await getStopPoints(database, sessionId);
-  return assembleSession(rows, movements, stopPoints);
+  return header ? (await readAssembledSessions(database, [header]))[0]! : null;
 }
 
 /**
- * Points d'arrêt persistés de la Séance (V2-PRE-1, plan §3.3/§7,
- * REQ-001108DC7F67664C), ordonnés par portée dans l'ordre affiché (D-061 :
- * avant, dans, après le Circuit) PUIS par position — même convention de tri
- * que `AGGREGATE_QUERY` pour les Activités.
+ * Relit et assemble les Séances des en-têtes donnés, dans leur ordre. PRE-7 (R-3, C05) : le
+ * contenu courant des Mouvements référencés est lu en une requête par table
+ * (`readMovementRecords`).
  */
-async function getStopPoints(
+async function readAssembledSessions(
   database: Database,
-  sessionId: string,
-): Promise<readonly StopPoint[]> {
-  const rows = await database.getAllAsync<{ id: string; scope: StructuralPosition; position: number }>(
-    `SELECT id, scope, position FROM session_stop_points
-     WHERE session_id = ? ORDER BY ${structuralOrderSql("scope")} ASC, position ASC`,
-    [sessionId],
+  headers: readonly SessionHeaderRow[],
+  options: AssembleOptions = {},
+): Promise<AssembledSession[]> {
+  if (headers.length === 0) {
+    return [];
+  }
+  // Identifiants relus depuis SQLite, jamais une saisie utilisateur : liste de paramètres sûre.
+  const ids = headers.map((header) => header.session_id);
+  const placeholders = ids.map(() => "?").join(", ");
+  const cycles = await database.getAllAsync<CycleRow>(
+    `SELECT id, session_id, position, repeat_count FROM cycles WHERE session_id IN (${placeholders})`,
+    ids,
   );
-  return rows.map((row) => ({ id: row.id, scope: row.scope, position: row.position }));
+  const circuits = await database.getAllAsync<CircuitRow>(
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
+    ids,
+  );
+  const activities = await database.getAllAsync<ActivityRow>(
+    `SELECT ${ACTIVITY_ROW_COLUMNS} FROM activities WHERE session_id IN (${placeholders})`,
+    ids,
+  );
+  const stopPoints = await database.getAllAsync<StopPointRow>(
+    `SELECT id, session_id, tour_id, position FROM session_stop_points WHERE session_id IN (${placeholders})`,
+    ids,
+  );
+  const movements = await readMovementRecords(
+    database,
+    activities.map((row) => row.source_movement_id),
+  );
+  const bySession = <T extends { readonly session_id: string }>(rows: readonly T[]) => {
+    const grouped = new Map<string, T[]>();
+    for (const row of rows) {
+      grouped.set(row.session_id, [...(grouped.get(row.session_id) ?? []), row]);
+    }
+    return grouped;
+  };
+  const cyclesBySession = bySession(cycles);
+  const circuitsBySession = bySession(circuits);
+  const activitiesBySession = bySession(activities);
+  const stopPointsBySession = bySession(stopPoints);
+  return headers.map((header) => {
+    const stored: StoredSession = {
+      header,
+      cycles: cyclesBySession.get(header.session_id) ?? [],
+      circuits: circuitsBySession.get(header.session_id) ?? [],
+      activities: activitiesBySession.get(header.session_id) ?? [],
+      stopPoints: stopPointsBySession.get(header.session_id) ?? [],
+    };
+    return { stored, structure: assembleStructure(stored, movements, options) };
+  });
+}
+
+/**
+ * Rangs d'un conteneur, dans l'ordre. Un rang en double viole le contrat ; un trou (lignes
+ * retirées hors repository, cas P39 de PRE-4) est toléré comme auparavant : l'ordre relatif est
+ * conservé et les rangs relus sont ceux de cet ordre.
+ */
+function inRankOrder<T extends { readonly position: number }>(rows: readonly T[]): T[] {
+  const ordered = [...rows].sort((a, b) => a.position - b.position);
+  ordered.forEach((row, index) => {
+    if (index > 0 && ordered[index - 1]!.position === row.position) {
+      throw contractError();
+    }
+  });
+  return ordered;
+}
+
+/**
+ * PRE-8 (A.4) : assemble la structure persistée d'une Séance et contrôle son contrat (défense
+ * en profondeur, reflet des CHECK de `migration014`) : Séance active ; Circuit de compte
+ * 1..99, direction et nature connues ; Cycle d'au moins un Circuit ; rangs contigus dans chaque
+ * conteneur, y compris le niveau principal partagé par Exercices, Circuits et Cycles ;
+ * colonnes de chaque Exercice conformes au CHECK composite ; Points d'arrêt dans un conteneur
+ * connu.
+ *
+ * Champs hérités de l'Exercice : `structuralPosition` et `position` sont ceux de l'ancien
+ * modèle lorsque la structure y est représentable (avant, dans, après le Circuit ; rang dans la
+ * zone) ; sinon `BEFORE_TOUR` au niveau principal et `IN_TOUR` dans un Circuit, avec le rang
+ * dans le conteneur.
+ */
+export function assembleStructure(
+  stored: StoredSession,
+  movements: ReadonlyMap<string, MovementRecord>,
+  options: AssembleOptions = {},
+): SessionStructure<Activity> {
+  if (stored.header.status !== "ACTIVE" && !(options.allowArchived === true && stored.header.status === "ARCHIVED")) {
+    throw contractError();
+  }
+  for (const circuit of stored.circuits) {
+    if (
+      !Number.isInteger(circuit.repeat_count) ||
+      circuit.repeat_count < CIRCUIT_REPEAT_COUNT_MIN ||
+      circuit.repeat_count > CIRCUIT_REPEAT_COUNT_MAX ||
+      // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`.
+      !SIDE_MODES.includes(circuit.side_mode) ||
+      // PRE-6 (AD-34) : une nature inconnue n'est jamais lue comme `TOURS`.
+      !isCircuitNature(circuit.nature)
+    ) {
+      throw contractError();
+    }
+  }
+  for (const cycle of stored.cycles) {
+    if (!Number.isInteger(cycle.repeat_count) || cycle.repeat_count < CYCLE_REPEAT_COUNT_MIN) {
+      throw contractError();
+    }
+  }
+
+  const activitiesByContainer = new Map<string | null, ActivityRow[]>();
+  for (const row of stored.activities) {
+    assertActivityRow(row);
+    activitiesByContainer.set(row.tour_id, [...(activitiesByContainer.get(row.tour_id) ?? []), row]);
+  }
+  const circuitsByCycle = new Map<string | null, CircuitRow[]>();
+  for (const row of stored.circuits) {
+    circuitsByCycle.set(row.cycle_id, [...(circuitsByCycle.get(row.cycle_id) ?? []), row]);
+  }
+  const knownCircuits = new Set(stored.circuits.map((row) => row.id));
+  const knownCycles = new Set(stored.cycles.map((row) => row.id));
+  if (
+    stored.activities.some((row) => row.tour_id !== null && !knownCircuits.has(row.tour_id)) ||
+    stored.circuits.some((row) => row.cycle_id !== null && !knownCycles.has(row.cycle_id))
+  ) {
+    throw contractError();
+  }
+
+  const circuitOf = (row: CircuitRow): StructureCircuit<Activity> => ({
+    id: row.id,
+    repeatCount: row.repeat_count,
+    nature: row.nature,
+    exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
+      toActivity(activity, movements, "IN_TOUR", rank),
+    ),
+  });
+
+  type Ranked = { readonly position: number; readonly element: StructureElement<Activity> };
+  const main: Ranked[] = [
+    ...(activitiesByContainer.get(null) ?? []).map((row) => ({
+      position: row.position,
+      element: { kind: "EXERCISE" as const, exercise: toActivity(row, movements, "BEFORE_TOUR", row.position) },
+    })),
+    ...(circuitsByCycle.get(null) ?? []).map((row) => ({
+      position: row.position,
+      element: { kind: "CIRCUIT" as const, circuit: circuitOf(row) },
+    })),
+    ...stored.cycles.map((row) => {
+      const circuits = inRankOrder(circuitsByCycle.get(row.id) ?? []).map(circuitOf);
+      if (circuits.length === 0) {
+        throw contractError();
+      }
+      return { position: row.position, element: { kind: "CYCLE" as const, cycle: { id: row.id, repeatCount: row.repeat_count, circuits } } };
+    }),
+  ];
+  // Rang relu d'un Exercice du niveau principal : son index (voir `inRankOrder`).
+  const elements = inRankOrder(main).map((ranked, index): StructureElement<Activity> =>
+    ranked.element.kind === "EXERCISE" ? { kind: "EXERCISE", exercise: { ...ranked.element.exercise, position: index } } : ranked.element,
+  );
+
+  for (const point of stored.stopPoints) {
+    if (point.tour_id !== null && !knownCircuits.has(point.tour_id)) {
+      throw contractError();
+    }
+  }
+  const circuitOrder = new Map(structureCircuits({ elements }).map((circuit, index) => [circuit.id, index]));
+  const stopPoints: StructureStopPoint[] = [...stored.stopPoints]
+    .sort(
+      (a, b) =>
+        (a.tour_id === null ? -1 : circuitOrder.get(a.tour_id)!) - (b.tour_id === null ? -1 : circuitOrder.get(b.tour_id)!) ||
+        a.position - b.position,
+    )
+    .map((point) => ({ id: point.id, circuitId: point.tour_id, position: point.position }));
+
+  return withLegacyZones({ elements, stopPoints });
+}
+
+/**
+ * Structure représentable dans l'ancien modèle : les Exercices après le Circuit reprennent la
+ * zone `AFTER_TOUR` et leur rang dans cette zone (champs hérités lus par l'interface actuelle).
+ */
+function withLegacyZones(structure: SessionStructure<Activity>): SessionStructure<Activity> {
+  const circuitIndex = structure.elements.findIndex((element) => element.kind === "CIRCUIT");
+  if (legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
+    return structure;
+  }
+  return {
+    ...structure,
+    elements: structure.elements.map((element, index) =>
+      element.kind === "EXERCISE" && index > circuitIndex
+        ? { kind: "EXERCISE", exercise: { ...element.exercise, structuralPosition: "AFTER_TOUR", position: index - circuitIndex - 1 } }
+        : element,
+    ),
+  };
+}
+
+const STRUCTURAL_ORDER: readonly StructuralPosition[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
+
+/** Champs de Séance communs aux deux lectures. */
+function sessionBase(header: SessionHeaderRow) {
+  return {
+    id: header.session_id,
+    ownerId: header.owner_id,
+    name: header.session_name,
+    // V2-PRE-1 (plan §3.3) : couleur DÉRIVÉE de l'Étiquette jointe — présentation neutre sans Étiquette.
+    color: (header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: header.label_id,
+    status: "ACTIVE" as const,
+    initialCountdownSeconds: header.initial_countdown_seconds,
+    finalPhaseSeconds: header.final_phase_seconds,
+    createdAt: header.session_created_at,
+    updatedAt: header.session_updated_at,
+  };
+}
+
+function toStructuredSession(assembled: AssembledSession): StructuredSession {
+  return { ...sessionBase(assembled.stored.header), structure: assembled.structure };
+}
+
+/**
+ * Projection dans l'ancien modèle (interface actuelle) : zones avant, dans et après le Circuit,
+ * Points d'arrêt par portée (ordre D-061 puis position). Le Cycle technique n'est plus persisté
+ * (`migration014`) : son identifiant est celui de la Séance. Une structure plus riche lève
+ * `SessionStructureNotRepresentableError`.
+ */
+export function toLegacySession(assembled: AssembledSession): Session {
+  const header = assembled.stored.header;
+  const legacy = legacyFromStructure(assembled.structure);
+  if (legacy === null) {
+    throw new SessionStructureNotRepresentableError(header.session_id);
+  }
+  const { beforeTour, tour, afterTour } = legacy.composition;
+  const stopPoints: StopPoint[] = [...legacy.stopPoints]
+    .sort((a, b) => STRUCTURAL_ORDER.indexOf(a.scope) - STRUCTURAL_ORDER.indexOf(b.scope) || a.position - b.position)
+    .map((point) => ({ id: point.id, scope: point.scope, position: point.position }));
+  return {
+    ...sessionBase(header),
+    // V2-PRE-1 : absent plutôt que `[]` quand la Séance ne porte aucun Point d'arrêt.
+    ...(stopPoints.length > 0 ? { stopPoints } : {}),
+    structure: assembled.structure,
+    cycle: {
+      id: header.session_id,
+      position: 1,
+      repeatCount: 1,
+      // Champs optionnels (T01-S10) : absents quand la zone est vide.
+      ...(beforeTour.length > 0 ? { beforeTour } : {}),
+      ...(afterTour.length > 0 ? { afterTour } : {}),
+      tour: {
+        id: tour.id,
+        position: 1,
+        repeatCount: tour.repeatCount,
+        nature: tour.nature,
+        exercises: tour.exercises,
+      },
+    },
+  };
+}
+
+function toSummary(assembled: AssembledSession, bodyZoneNames: readonly string[]): SessionSummary {
+  const header = assembled.stored.header;
+  const duration = computeStructureDuration(assembled.structure);
+  const legacy = legacyFromStructure({ elements: assembled.structure.elements, stopPoints: [] });
+  return {
+    id: header.session_id,
+    name: header.session_name,
+    color: (header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: header.label_id,
+    // T02-S01, D-449 §6 : Exercices RÉELLEMENT COMPOSÉS, chacun une seule fois.
+    activityCount: countStructureExercises(assembled.structure),
+    estimatedDurationSeconds: duration.seconds,
+    // `isEstimatedDurationApproximate` reste le drapeau historique « ≥ » ;
+    // `durationKind` porte la nature complète (exact / ≈ / ≥).
+    isEstimatedDurationApproximate: duration.kind === "lowerBound",
+    durationKind: duration.kind,
+    // Compte du Circuit unique de l'ancien modèle ; 1 pour une structure plus riche, dont la
+    // présentation relève du Catalogue unique (Epic E).
+    tourRepeatCount: legacy?.composition.tour.repeatCount ?? 1,
+    updatedAt: header.session_updated_at,
+    categoryNames: [],
+    bodyZoneNames,
+  };
 }
 
 /**
@@ -1146,20 +1512,20 @@ function rowExecutionParameters(
     return recoveryExecutionParameters(durationSeconds);
   }
   if (!movement) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
+    throw contractError();
   }
   return resolveCatalogParameters(movement.movement.phases, readCatalogExecutionParameters(json)).parameters;
 }
 
-function toActivity(row: SessionAggregateRow, movements: ReadonlyMap<string, MovementRecord>): Activity {
-  const isRecovery = row.activity_type === "RECOVERY";
-  const record = movements.get(row.activity_source_movement_id);
-  const executionParameters = rowExecutionParameters(
-    row.activity_type,
-    row.activity_execution_parameters,
-    row.duration_seconds,
-    record,
-  );
+function toActivity(
+  row: ActivityRow,
+  movements: ReadonlyMap<string, MovementRecord>,
+  structuralPosition: StructuralPosition,
+  position: number,
+): Activity {
+  const isRecovery = row.type === "RECOVERY";
+  const record = movements.get(row.source_movement_id);
+  const executionParameters = rowExecutionParameters(row.type, row.execution_parameters, row.duration_seconds, record);
   const movement = record?.movement;
   return {
     executionParameters,
@@ -1169,19 +1535,18 @@ function toActivity(row: SessionAggregateRow, movements: ReadonlyMap<string, Mov
       ? []
       : (record?.mediaLinks ?? []).map((link) => ({
           id: link.id,
-          activityId: row.activity_id,
+          activityId: row.id,
           assetId: link.assetId,
           position: link.position,
           asset: link.asset,
         })),
-    sourceMovementId: row.activity_source_movement_id,
-    copyNumber: row.activity_copy_number,
-    id: row.activity_id,
-    type: row.activity_type,
-    structuralPosition: row.structural_position,
-    position: row.activity_position,
+    sourceMovementId: row.source_movement_id,
+    copyNumber: row.copy_number,
+    id: row.id,
+    type: row.type,
+    structuralPosition,
+    position,
     name: movement?.name ?? "",
-    // V2-PRE-1 : récupération post-exercice de l'occurrence (`migration007`).
     // PRE-6 (story 1.1, AD-35) : `null` quand elle est absente
     // (`post_activity_recovery_present = 0`, `migration011`) ; une ancienne
     // ligne `RECOVERY` n'en porte jamais (`CHECK` SQL).
@@ -1194,215 +1559,6 @@ function toActivity(row: SessionAggregateRow, movements: ReadonlyMap<string, Mov
     sideMode: executionParameters.sideMode,
   };
 }
-
-/**
- * PRE-4 (story 1.2, P39) : vrai pour une ligne portant une occurrence ; faux
- * pour la ligne d'en-tête seule d'une Séance sans occurrence (`LEFT JOIN`).
- */
-export function isSessionOccurrenceRow(row: SessionAggregateQueryRow): row is SessionAggregateRow {
-  return row.activity_id !== null;
-}
-
-/**
- * Assemble une Séance à partir de ses lignes d'agrégat. PRE-4 (story 1.2,
- * P39, FR-18-20 sixième conséquence) : une Séance dont toutes les Copies ont
- * été écartées arrive sous la forme d'UNE ligne d'en-tête aux colonnes
- * d'occurrence nulles ; elle est assemblée avec une composition vide, ses
- * paramètres (nom, Étiquette, Compte à rebours, Fin, répétitions du Tour,
- * Points d'arrêt) étant conservés.
- */
-export function assembleSession(
-  rows: readonly SessionAggregateQueryRow[],
-  movements: ReadonlyMap<string, MovementRecord>,
-  stopPoints: readonly StopPoint[] = [],
-): Session {
-  const first = rows[0];
-  if (!first) {
-    throw new Error("A session aggregate needs at least one row.");
-  }
-  const occurrenceRows = rows.filter(isSessionOccurrenceRow);
-  // Une ligne sans occurrence n'est admise que seule (`LEFT JOIN` sans correspondance).
-  if (occurrenceRows.length !== rows.length && rows.length !== 1) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
-  assertSessionHeaderRow(first);
-  assertCircuitNatureColumn(first);
-  for (const row of occurrenceRows) {
-    assertSessionAggregateRow(row);
-    assertRecoveryPresenceColumns(row);
-  }
-
-  const beforeTour: Activity[] = [];
-  const inTour: Activity[] = [];
-  const afterTour: Activity[] = [];
-  for (const row of occurrenceRows) {
-    const activity = toActivity(row, movements);
-    if (activity.structuralPosition === "BEFORE_TOUR") {
-      beforeTour.push(activity);
-    } else if (activity.structuralPosition === "AFTER_TOUR") {
-      afterTour.push(activity);
-    } else {
-      inTour.push(activity);
-    }
-  }
-
-  return {
-    id: first.session_id,
-    ownerId: first.owner_id,
-    name: first.session_name,
-    // V2-PRE-1 (plan §3.3) : couleur DÉRIVÉE de l'Étiquette jointe — présentation neutre sans Étiquette.
-    color: (first.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
-    labelId: first.label_id,
-    status: "ACTIVE",
-    initialCountdownSeconds: first.initial_countdown_seconds,
-    finalPhaseSeconds: first.final_phase_seconds,
-    // V2-PRE-1 (plan §3.3/§7, REQ-001108DC7F67664C) : absent plutôt que `[]`
-    // quand la Séance ne porte aucun Point d'arrêt — même convention que
-    // `cycle.beforeTour`/`cycle.afterTour` ci-dessous.
-    ...(stopPoints.length > 0 ? { stopPoints } : {}),
-    createdAt: first.session_created_at,
-    updatedAt: first.session_updated_at,
-    cycle: {
-      id: first.cycle_id,
-      position: 1,
-      repeatCount: 1,
-      // Champs optionnels (T01-S10) : absents quand la zone est vide, pour
-      // rester identiques à une Séance S01–S09 (Tour uniquement).
-      ...(beforeTour.length > 0 ? { beforeTour } : {}),
-      ...(afterTour.length > 0 ? { afterTour } : {}),
-      tour: {
-        id: first.tour_id,
-        position: 1,
-        repeatCount: first.tour_repeat_count,
-        // PRE-6 (story 1.1, AD-34) : nature persistée (`migration011`).
-        nature: first.tour_nature,
-        exercises: inTour,
-      },
-    },
-  };
-}
-
-/** @deprecated Conservé pour compatibilité de test direct (une seule ligne) — voir `assembleSession` pour l'assemblage réel multi-lignes. */
-export function mapSessionRow(row: SessionAggregateRow, movements: ReadonlyMap<string, MovementRecord> = new Map()): Session {
-  return assembleSession([row], movements);
-}
-
-type DurationFactsRow = {
-  session_id: string;
-  source_movement_id: string;
-  type: ActivityType;
-  structural_position: StructuralPosition;
-  duration_seconds: number | null;
-  post_activity_recovery_seconds: number;
-  execution_parameters: string | null;
-};
-
-type SessionZones = {
-  readonly beforeTour: readonly ActivityDurationFacts[];
-  readonly inTour: readonly ActivityDurationFacts[];
-  readonly afterTour: readonly ActivityDurationFacts[];
-};
-
-const EMPTY_ZONES: SessionZones = { beforeTour: [], inTour: [], afterTour: [] };
-
-/**
- * PRE-3 : paramètres de durée de TOUTES les occurrences des Séances listées,
- * en UNE requête groupée — total ensuite calculé par l'autorité unique du
- * Domaine, identique à la lecture complète (P3-13/tours-cycles-list).
- * PRE-4 (story 1.1, AD-3) ; PRE-7 (R-3) : forme Catalogue v5 résolue avec le Mouvement, aucun fait scalaire.
- */
-async function getDurationFactsBySession(
-  database: Database,
-  sessionIds: readonly string[],
-): Promise<ReadonlyMap<string, SessionZones>> {
-  if (sessionIds.length === 0) {
-    return new Map();
-  }
-  // `sessionIds` provient de lignes déjà relues depuis SQLite.
-  const placeholders = sessionIds.map(() => "?").join(", ");
-  const rows = await database.getAllAsync<DurationFactsRow>(
-    `SELECT session_id, source_movement_id, type, structural_position, duration_seconds,
-            post_activity_recovery_seconds, execution_parameters
-     FROM activities
-     WHERE session_id IN (${placeholders})
-     ORDER BY ${STRUCTURAL_ORDER_SQL} ASC, position ASC`,
-    sessionIds,
-  );
-  // PRE-7 (R-3, C05) : structure courante des phases des Mouvements référencés.
-  const movements = await readMovementRecords(
-    database,
-    rows.map((row) => row.source_movement_id),
-  );
-  const bySession = new Map<string, { beforeTour: ActivityDurationFacts[]; inTour: ActivityDurationFacts[]; afterTour: ActivityDurationFacts[] }>();
-  for (const row of rows) {
-    const zones = bySession.get(row.session_id) ?? { beforeTour: [], inTour: [], afterTour: [] };
-    const isRecovery = row.type === "RECOVERY";
-    const executionParameters = rowExecutionParameters(
-      row.type,
-      row.execution_parameters,
-      row.duration_seconds,
-      movements.get(row.source_movement_id),
-    );
-    const facts: ActivityDurationFacts = {
-      type: row.type,
-      executionParameters,
-      postActivityRecoverySeconds: isRecovery ? 0 : row.post_activity_recovery_seconds,
-      sideMode: executionParameters.sideMode,
-    };
-    if (row.structural_position === "BEFORE_TOUR") {
-      zones.beforeTour.push(facts);
-    } else if (row.structural_position === "AFTER_TOUR") {
-      zones.afterTour.push(facts);
-    } else {
-      zones.inTour.push(facts);
-    }
-    bySession.set(row.session_id, zones);
-  }
-  return bySession;
-}
-
-function mapSummaryRow(
-  row: SessionSummaryRow,
-  bodyZoneNames: readonly string[],
-  zones: SessionZones,
-): SessionSummary {
-  // T02-S01 : le Catalogue affiche le nombre d'Activités RÉELLEMENT
-  // COMPOSÉES — chacune une seule fois, jamais multipliée par
-  // `tourRepeatCount` (ce compteur ne représente pas des occurrences
-  // d'Exécution). La durée, elle, développe les répétitions du Tour sur la
-  // seule zone `IN_TOUR`, et exclut Compte à rebours initial et Fin de séance.
-  const activityCount = computeActivityCount({
-    beforeTourActivityCount: row.before_tour_activity_count,
-    inTourActivityCount: row.in_tour_activity_count,
-    afterTourActivityCount: row.after_tour_activity_count,
-    tourRepeatCount: row.tour_repeat_count,
-  });
-  // PRE-6 (story 1.3, AD-40) : durée selon la nature du Circuit, lue `?? "TOURS"`.
-  const duration = computeStructuredSessionDuration({
-    ...zones,
-    tourRepeatCount: row.tour_repeat_count,
-    circuitNature: isCircuitNature(row.tour_nature) ? row.tour_nature : DEFAULT_CIRCUIT_NATURE,
-  });
-
-  return {
-    id: row.id,
-    name: row.name,
-    color: (row.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
-    labelId: row.label_id,
-    activityCount,
-    estimatedDurationSeconds: duration.seconds,
-    // `isEstimatedDurationApproximate` reste le drapeau historique « ≥ » ;
-    // `durationKind` porte la nature complète (exact / ≈ / ≥).
-    isEstimatedDurationApproximate: duration.kind === "lowerBound",
-    durationKind: duration.kind,
-    tourRepeatCount: row.tour_repeat_count,
-    updatedAt: row.updated_at,
-    categoryNames: [],
-    bodyZoneNames,
-  };
-}
-
-const STRUCTURAL_POSITIONS: readonly string[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
 
 /** Colonnes du CHECK composite d'`activities` (type, Mode et scalaires projetés). */
 export type ActivityCheckColumns = {
@@ -1421,12 +1577,11 @@ function between(value: number | null, min: number, max: number): boolean {
 
 /**
  * Miroir exact du CHECK composite d'`activities` posé par `migration010`
- * (PRE-4, story 1.1, AD-4) : bornes de `migration004` reprises à l'identique
- * (Durée 1..5999, Répétitions ≥ 1, Pauses et Récupération 0..5999, N ≥ 1),
- * deux Modes seulement, cible scalaire NULL admise en Durée et en
- * Répétitions, jamais les deux cibles non nulles ; branche `RECOVERY`
- * inchangée. Sa parité avec le CHECK réel est vérifiée par un test
- * (`node:sqlite`).
+ * (PRE-4, story 1.1, AD-4) et repris à l'identique par `migration013` et `migration014` :
+ * bornes de `migration004` (Durée 1..5999, Répétitions ≥ 1, Pauses et Récupération 0..5999,
+ * N ≥ 1), deux Modes seulement, cible scalaire NULL admise en Durée et en Répétitions, jamais
+ * les deux cibles non nulles ; branche `RECOVERY` inchangée. Sa parité avec le CHECK réel est
+ * vérifiée par un test (`node:sqlite`).
  */
 export function satisfiesActivityCheck(row: ActivityCheckColumns): boolean {
   const pause = ACTIVITY_STORAGE_BOUNDS.pauseSeconds;
@@ -1466,70 +1621,23 @@ export function satisfiesActivityCheck(row: ActivityCheckColumns): boolean {
 /** Contrôle avant écriture : une Activité dont les colonnes violeraient le CHECK est refusée (AC5, P44). */
 function assertActivityColumns(row: ActivityCheckColumns): void {
   if (!satisfiesActivityCheck(row)) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
+    throw contractError();
   }
 }
 
 /**
- * PRE-4 (story 1.2, P39) : contrat de l'en-tête (Séance, Cycle, Tour) seul,
- * applicable aussi à la ligne d'une Séance sans occurrence.
+ * Défense en profondeur au ré-assemblage : direction connue (`migration005`), présence de la
+ * récupération cohérente (`migration011`, AD-35 : absente ⇒ 0 seconde), colonnes conformes au
+ * CHECK composite (`satisfiesActivityCheck`).
  */
-function assertSessionHeaderRow(row: SessionAggregateQueryRow): void {
-  if (
-    row.status !== "ACTIVE" ||
-    row.cycle_position !== 1 ||
-    row.cycle_repeat_count !== FIXED_CYCLE_REPEAT_COUNT ||
-    row.tour_position !== 1 ||
-    row.tour_repeat_count < 1 ||
-    row.tour_repeat_count > 99 ||
-    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `tours.side_mode`.
-    !SIDE_MODES.includes(row.tour_side_mode)
-  ) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
-}
-
-/**
- * PRE-6 (story 1.1, AD-34) : reflète le `CHECK` de `migration011` sur
- * `tours.nature` — une nature inconnue n'est jamais lue comme `TOURS`.
- * Distinct de `assertSessionHeaderRow`, dont la parité porte sur les CHECK
- * antérieurs.
- */
-function assertCircuitNatureColumn(row: SessionAggregateQueryRow): void {
-  if (!isCircuitNature(row.tour_nature)) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
-}
-
-/**
- * PRE-6 (story 1.1, AD-35) : reflète le `CHECK` de `migration011`
- * (`post_activity_recovery_present ∈ {0, 1}`) et l'invariant d'écriture :
- * une récupération absente (`present = 0`) a toujours 0 seconde.
- */
-function assertRecoveryPresenceColumns(row: SessionAggregateRow): void {
+export function assertActivityRow(row: ActivityRow): void {
   const present = row.post_activity_recovery_present;
-  if ((present !== 0 && present !== 1) || (present === 0 && row.post_activity_recovery_seconds !== 0)) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
-  }
-}
-
-/**
- * Défense en profondeur au ré-assemblage (T01-S10) et avant écriture
- * (PRE-4) : reflète les `CHECK` de `migration001`/`migration003`/
- * `migration005` et le CHECK composite de `migration010`. Le Cycle reste
- * unique (`position`/`repeat_count` = 1) ; le Tour est `1..99` ; la position
- * structurelle est l'une des trois ; la direction est connue ; les colonnes
- * de l'Activité satisfont le CHECK composite (`satisfiesActivityCheck`).
- * Exportée pour le test de parité avec le CHECK réel.
- */
-export function assertSessionAggregateRow(row: SessionAggregateRow): void {
-  assertSessionHeaderRow(row);
   if (
-    !STRUCTURAL_POSITIONS.includes(row.structural_position) ||
-    // V2-BILAT-01 : reflète le `CHECK` de `migration005` sur `activities.side_mode`.
-    !SIDE_MODES.includes(row.activity_side_mode)
+    !SIDE_MODES.includes(row.side_mode) ||
+    (present !== 0 && present !== 1) ||
+    (present === 0 && row.post_activity_recovery_seconds !== 0)
   ) {
-    throw new Error("Persisted session does not satisfy the aggregate contract.");
+    throw contractError();
   }
-  assertActivityColumns(row);
+  assertActivityColumns({ ...row, activity_type: row.type });
 }

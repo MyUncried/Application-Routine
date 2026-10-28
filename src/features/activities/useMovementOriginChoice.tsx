@@ -5,7 +5,7 @@ import { rankMovements, type MovementSearchContext } from "@/domain/activities/m
 import { strings } from "@/shared/i18n";
 
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
-import type { VariantPlacement } from "./MovementResultCard";
+import type { MovementResultActionLabels, VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
 import { MovementSuggestionPanel } from "./MovementSuggestionPanel";
 
@@ -50,6 +50,11 @@ export type MovementOriginChoiceOptions = {
   readonly onSameMovement: (choice: MovementChoice) => void;
   /** « Créer une variante » puis Plus facile / Plus difficile. */
   readonly onVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /**
+   * Recette A/B B.10 (remarque 6) : libellés des actions des cartes du panneau (fiche Mouvement) ;
+   * absent : libellés de l'éditeur d'Exercice, inchangés.
+   */
+  readonly actionLabels?: MovementResultActionLabels;
 };
 
 export type MovementOriginChoiceState = {
@@ -103,6 +108,7 @@ export function useMovementOriginChoice({
   context,
   onSameMovement,
   onVariant,
+  actionLabels,
 }: MovementOriginChoiceOptions): MovementOriginChoiceState {
   const t = strings.screens.activities.editor.movementSuggestion;
   const searchEnabled = available && service.supportsMovementSearch;
@@ -139,10 +145,13 @@ export function useMovementOriginChoice({
     };
   }, [service]);
 
-  const byId = useMemo(() => new Map(choices.map((choice) => [choice.movement.id, choice])), [choices]);
+  // PRE-8 (B.8, Q6) : un Mouvement archivé n'est jamais proposé pour créer un Exercice ; il reste
+  // compté par le contrôle d'unicité du nom (`entries`, ci-dessous).
+  const selectable = useMemo(() => choices.filter((choice) => choice.archived !== true), [choices]);
+  const byId = useMemo(() => new Map(selectable.map((choice) => [choice.movement.id, choice])), [selectable]);
   const ranked = useMemo(
-    () => (searchEnabled ? rankMovements(name, choices.map((choice) => choice.movement), context) : []),
-    [searchEnabled, name, choices, context],
+    () => (searchEnabled ? rankMovements(name, selectable.map((choice) => choice.movement), context) : []),
+    [searchEnabled, name, selectable, context],
   );
   const entries = useMemo(() => {
     const merged = new Map<string, string>(choices.map((choice) => [choice.movement.id, choice.movement.name]));
@@ -202,13 +211,14 @@ export function useMovementOriginChoice({
       }}
       onBack={() => setVariantOf(null)}
       onTouchingChange={(touching) => setFrozen(touching ? live : null)}
+      {...(actionLabels ? { actionLabels } : {})}
     />
   ) : null;
 
   const overlays =
     isSearchOpen && searchEnabled ? (
       <MovementSearchScreen
-        choices={choices}
+        choices={selectable}
         initialQuery={name}
         context={context}
         onUse={(choice) => {

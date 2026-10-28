@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: { paddingHorizontal: spacing[16], paddingVertical: spacing[12], gap: spacing[8] },
   headerAction: { alignSelf: "flex-start", minHeight: 44, justifyContent: "center" },
-  title: { ...type.screenTitle, color: colors.textPrimary },
+  title: { ...type.screenHeaderTitle, color: colors.textPrimary },
   body: { paddingHorizontal: spacing[16], gap: spacing[8] },
   row: { gap: 2 },
   label: { ...type.button, color: colors.textPrimary },

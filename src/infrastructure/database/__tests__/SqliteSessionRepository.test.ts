@@ -6,7 +6,6 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { createElement } from "react";
-import { StyleSheet } from "react-native";
 
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
@@ -17,7 +16,9 @@ import {
 import type { Database, SqlParameters } from "@/infrastructure/database/Database";
 import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
 import {
-  assembleSession,
+  assembleStructure,
+  toLegacySession,
+  type StoredSession,
  RetiredBodyZoneError,
  RetiredLabelError,
  RetiredOccurrenceCategoryError } from "@/infrastructure/database/repositories/SqliteSessionRepository";
@@ -32,7 +33,7 @@ import {
   type ViewedUpdateActivity,
   type ViewedUpdateSessionInput,
 } from "@/infrastructure/database/testing/sessionMovements";
-import type { SessionAggregateQueryRow, SessionAggregateRow } from "@/infrastructure/database/types/DatabaseRows";
+import type { ActivityRow } from "@/infrastructure/database/types/DatabaseRows";
 import { rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -83,6 +84,7 @@ import { SqliteMediaRepository } from "@/infrastructure/database/repositories/Sq
 // transformée dans un fichier `.ts` — même patron déjà établi par
 // `useSessionCatalogue.test.ts`.
 import { SessionCard } from "@/features/sessions/SessionCard";
+import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn() }));
 
@@ -130,11 +132,13 @@ describe("SqliteSessionRepository", () => {
     const summaries = await repository.listActive();
 
     expect(created.id).toBe(IDS[0]);
-    expect(created.cycle.id).toBe(IDS[1]);
-    expect(created.cycle.tour.id).toBe(IDS[2]);
+    // PRE-8 (A.4, `migration014`) : le Cycle technique n'est plus persisté ; la projection prend
+    // l'identifiant de la Séance et aucun identifiant ne lui est consommé.
+    expect(created.cycle.id).toBe(IDS[0]);
+    expect(created.cycle.tour.id).toBe(IDS[1]);
     expect(created.cycle.tour.exercises).toHaveLength(1);
     expect(created.cycle.tour.exercises[0]).toMatchObject({
-      id: IDS[3],
+      id: IDS[2],
       type: "EXERCISE",
       structuralPosition: "IN_TOUR",
       position: 0,
@@ -167,28 +171,29 @@ describe("SqliteSessionRepository", () => {
     const repository = new ViewedSessionRepository(database, uuidFactory());
     const created = await repository.create(validInput());
 
-    const cycleRow = await database.getFirstAsync<{ position: number; repeat_count: number }>(
-      "SELECT position, repeat_count FROM cycles WHERE session_id = ?",
+    // PRE-8 (A.4, `migration014`) : aucun Cycle technique ; le Circuit est au niveau principal.
+    const cycleCount = await database.getFirstAsync<{ count: number }>(
+      "SELECT COUNT(*) AS count FROM cycles WHERE session_id = ?",
       [created.id],
     );
-    const tourRow = await database.getFirstAsync<{ position: number; repeat_count: number }>(
-      "SELECT position, repeat_count FROM tours WHERE session_id = ?",
+    const tourRow = await database.getFirstAsync<{ cycle_id: string | null; position: number; repeat_count: number }>(
+      "SELECT cycle_id, position, repeat_count FROM tours WHERE session_id = ?",
       [created.id],
     );
     const activityRow = await database.getFirstAsync<{
-      structural_position: string;
+      tour_id: string | null;
       position: number;
       series_count: number;
       pause_seconds: number;
     }>(
-      "SELECT structural_position, position, series_count, pause_seconds FROM activities WHERE session_id = ?",
+      "SELECT tour_id, position, series_count, pause_seconds FROM activities WHERE session_id = ?",
       [created.id],
     );
 
-    expect(cycleRow).toEqual({ position: 1, repeat_count: 1 });
-    expect(tourRow).toEqual({ position: 1, repeat_count: 1 });
+    expect(cycleCount).toEqual({ count: 0 });
+    expect(tourRow).toEqual({ cycle_id: null, position: 0, repeat_count: 1 });
     expect(activityRow).toEqual({
-      structural_position: "IN_TOUR",
+      tour_id: created.cycle.tour.id,
       position: 0,
       series_count: 1,
       pause_seconds: 0,
@@ -235,47 +240,26 @@ describe("SqliteSessionRepository", () => {
       postActivityRecoverySeconds: 30,
     });
 
+    // PRE-8 (A.4, `migration014`) : niveau principal `[warmup, Circuit, stretch]` (rangs 0, 1, 2),
+    // rangs dans le Circuit 0 et 1.
     const rows = await database.getAllAsync<{
       id: string;
-      structural_position: string;
       position: number;
       tour_id: string | null;
       type: string;
     }>(
-      `SELECT id, structural_position, position, tour_id, type FROM activities
-       WHERE session_id = ? ORDER BY structural_position, position`,
+      `SELECT id, position, tour_id, type FROM activities
+       WHERE session_id = ? ORDER BY tour_id IS NOT NULL, position`,
       [created.id],
     );
     expect(rows).toEqual([
-      {
-        id: "stretch",
-        structural_position: "AFTER_TOUR",
-        position: 0,
-        tour_id: null,
-        type: "EXERCISE",
-      },
-      {
-        id: "warmup",
-        structural_position: "BEFORE_TOUR",
-        position: 0,
-        tour_id: null,
-        type: "EXERCISE",
-      },
-      {
-        id: "core-1",
-        structural_position: "IN_TOUR",
-        position: 0,
-        tour_id: created.cycle.tour.id,
-        type: "EXERCISE",
-      },
-      {
-        id: "core-2",
-        structural_position: "IN_TOUR",
-        position: 1,
-        tour_id: created.cycle.tour.id,
-        type: "EXERCISE",
-      },
+      { id: "warmup", position: 0, tour_id: null, type: "EXERCISE" },
+      { id: "stretch", position: 2, tour_id: null, type: "EXERCISE" },
+      { id: "core-1", position: 0, tour_id: created.cycle.tour.id, type: "EXERCISE" },
+      { id: "core-2", position: 1, tour_id: created.cycle.tour.id, type: "EXERCISE" },
     ]);
+    const tour = await database.getFirstAsync<{ position: number }>("SELECT position FROM tours WHERE session_id = ?", [created.id]);
+    expect(tour).toEqual({ position: 1 });
 
     // Réouverture fidèle : l'agrégat relu est rigoureusement identique.
     expect(await repository.findById(created.id)).toEqual(created);
@@ -293,7 +277,8 @@ describe("SqliteSessionRepository", () => {
 
     const ids = created.cycle.tour.exercises.map((activity) => activity.id);
     expect(ids[0]).toBe("kept-id");
-    expect(ids[1]).toBe(IDS[3]);
+    // PRE-8 (A.4) : Séance puis Circuit, puis l'Exercice sans identifiant.
+    expect(ids[1]).toBe(IDS[2]);
   });
 
   it("uses Crypto.randomUUID for all aggregate identifiers by default", async () => {
@@ -302,13 +287,10 @@ describe("SqliteSessionRepository", () => {
 
     const created = await repository.create(validInput());
 
-    expect(Crypto.randomUUID).toHaveBeenCalledTimes(4);
-    expect([
-      created.id,
-      created.cycle.id,
-      created.cycle.tour.id,
-      created.cycle.tour.exercises[0]?.id,
-    ]).toEqual(IDS.slice(0, 4));
+    // PRE-8 (A.4) : Séance, Circuit, Exercice ; la projection du Cycle reprend l'identifiant de la Séance.
+    expect(Crypto.randomUUID).toHaveBeenCalledTimes(3);
+    expect([created.id, created.cycle.tour.id, created.cycle.tour.exercises[0]?.id]).toEqual(IDS.slice(0, 3));
+    expect(created.cycle.id).toBe(created.id);
   });
 
   it("rejects incomplete or out-of-contract input before persistence with a structured SessionValidationError", async () => {
@@ -397,16 +379,15 @@ describe("SqliteSessionRepository", () => {
   });
 
   it("rejects an incoherent persisted row during mapping", () => {
-    const incoherentRow = {
-      ...validRow(),
-      repetition_count: 5,
-    } as unknown as SessionAggregateRow;
-    expect(() => assembleSession([incoherentRow], new Map())).toThrow("does not satisfy");
+    const incoherent = { ...validActivityRow(), repetition_count: 5 } as unknown as ActivityRow;
+    expect(() => assembleStructure(validStored({ activities: [incoherent] }), new Map())).toThrow("does not satisfy");
   });
 
   it("rejects a row whose session status is ARCHIVED", () => {
-    const archivedRow: SessionAggregateRow = { ...validRow(), status: "ARCHIVED" };
-    expect(() => assembleSession([archivedRow], new Map())).toThrow("does not satisfy");
+    const archived = validStored();
+    expect(() => assembleStructure({ ...archived, header: { ...archived.header, status: "ARCHIVED" } }, new Map())).toThrow(
+      "does not satisfy",
+    );
   });
 
   describe("multi-Activity persistence (T01-S09)", () => {
@@ -609,7 +590,7 @@ describe("SqliteSessionRepository", () => {
     // repository → `SessionSummary` (modèle de Catalogue) → composant
     // `SessionCard` — jamais deux preuves disjointes reliées par la seule
     // coïncidence d'un littéral `#F7D154` partagé.
-    it("propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to SessionCard's rendered colour bar (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
+    it("propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to the unified catalogue read, the card no longer drawing the label (PRE-8 E.2) (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
       const owner = await database.getFirstAsync<{ id: string }>(
         "SELECT id FROM users WHERE singleton_key = 1",
       );
@@ -618,7 +599,6 @@ describe("SqliteSessionRepository", () => {
       }
 
       const sessionId = "historical-session-1";
-      const cycleId = "historical-cycle-1";
       const tourId = "historical-tour-1";
       const activityId = "historical-activity-1";
       const labelId = "historical-label-1";
@@ -636,13 +616,10 @@ describe("SqliteSessionRepository", () => {
         ) VALUES (?, ?, ?, ?, 'ACTIVE', 10, 5, ?, ?)`,
         [sessionId, owner.id, "Séance historique", labelId, timestamp, timestamp],
       );
+      // PRE-8 (A.4, `migration014`) : Circuit au niveau principal, sans Cycle technique.
       await database.runAsync(
-        `INSERT INTO cycles (id, session_id, position, repeat_count) VALUES (?, ?, 1, 1)`,
-        [cycleId, sessionId],
-      );
-      await database.runAsync(
-        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, ?, ?, 1, 1)`,
-        [tourId, cycleId, sessionId],
+        `INSERT INTO tours (id, cycle_id, session_id, position, repeat_count) VALUES (?, NULL, ?, 0, 1)`,
+        [tourId, sessionId],
       );
       // PRE-7 (R-3, `migration013`) : l'occurrence référence un Mouvement existant (clé
       // étrangère RESTRICT) et ne porte que ses paramètres, en forme Catalogue v5.
@@ -656,15 +633,14 @@ describe("SqliteSessionRepository", () => {
       );
       await database.runAsync(
         `INSERT INTO activities (
-          id, session_id, cycle_id, tour_id, type, structural_position,
+          id, session_id, tour_id, type,
           position, execution_mode, duration_seconds,
           repetition_count, series_count, pause_seconds,
           created_at, updated_at, execution_parameters, source_movement_id
-        ) VALUES (?, ?, ?, ?, 'EXERCISE', 'IN_TOUR', 0, 'DURATION', 30, NULL, 1, 0, ?, ?, ?, 'mov-historique')`,
+        ) VALUES (?, ?, ?, 'EXERCISE', 0, 'DURATION', 30, NULL, 1, 0, ?, ?, ?, 'mov-historique')`,
         [
           activityId,
           sessionId,
-          cycleId,
           tourId,
           timestamp,
           timestamp,
@@ -681,14 +657,15 @@ describe("SqliteSessionRepository", () => {
       expect(summary?.color).toBe("#F7D154");
       expect(summary?.bodyZoneNames).toEqual(["Dos"]);
 
-      // Étape 2 : modèle de Catalogue → composant `SessionCard` — même
-      // objet `summary` que ci-dessus, sans reconstruction ni littéral
-      // dupliqué, transmis tel quel au composant réellement utilisé par
-      // l'écran Catalogue.
-      render(createElement(SessionCard, { session: summary! }));
-
-      const colorBar = rnScreen.getByTestId("session-card-color-bar");
-      expect(StyleSheet.flatten(colorBar.props.style).backgroundColor).toBe("#F7D154");
+      // Étape 2 — PRE-8 (epic E, E.2 ; spécification « Carte de séance et catalogue des séances »
+      // du 27/10 §1 : « L'étiquette n'est pas présentée […] Cette disposition remplace l'affichage
+      // actuel de l'étiquette sur la carte de séance ») : la lecture du Catalogue unifié garde
+      // l'Étiquette et sa couleur (critère de filtre, E.6), la carte unique ne la dessine plus.
+      const record = (await repository.listCatalogue()).find((item) => item.id === sessionId);
+      expect(record).toMatchObject({ labelId, color: "#F7D154", status: "ACTIVE" });
+      render(createElement(SessionCard, { projection: projectSessionForCatalogue(record!, new Map()) }));
+      expect(rnScreen.queryByTestId("session-card-color-bar")).toBeNull();
+      expect(rnScreen.queryByText("Jaune historique")).toBeNull();
     });
 
     it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {
@@ -1447,7 +1424,7 @@ describe("SqliteSessionRepository", () => {
         [created.id],
       );
       const beforeActivityRows = await database.getAllAsync(
-        `SELECT id, source_movement_id, type, structural_position, position, execution_mode,
+        `SELECT id, source_movement_id, type, tour_id, position, execution_mode,
                 duration_seconds, repetition_count, series_count, pause_seconds,
                 created_at, updated_at
          FROM activities WHERE session_id = ? ORDER BY position ASC`,
@@ -1518,7 +1495,7 @@ describe("SqliteSessionRepository", () => {
 
       expect(
         await database.getAllAsync(
-          `SELECT id, source_movement_id, type, structural_position, position, execution_mode,
+          `SELECT id, source_movement_id, type, tour_id, position, execution_mode,
                   duration_seconds, repetition_count, series_count, pause_seconds,
                   created_at, updated_at
            FROM activities WHERE session_id = ? ORDER BY position ASC`,
@@ -1994,7 +1971,7 @@ describe("SqliteSessionRepository", () => {
     it("keeps the aggregate contract check satisfied for the persisted default UNILATERAL side mode (defense in depth)", async () => {
       const repository = new ViewedSessionRepository(database, uuidFactory());
       const created = await repository.create(validInput());
-      // La lecture complète (`findById`, qui rappelle `assertSessionAggregateRow`)
+      // La lecture complète (`findById`, qui rappelle `assertActivityRow`)
       // ne lève jamais pour une Séance persistée normalement.
       await expect(repository.findById(created.id)).resolves.not.toBeNull();
     });
@@ -2133,33 +2110,40 @@ class FailingSecondActivityInsertDatabase implements Database {
   }
 }
 
-function validRow(): SessionAggregateRow {
+/**
+ * PRE-8 (A.4, `migration014`) : lignes persistées d'une Séance à Circuit unique — en-tête,
+ * Circuit au niveau principal et un Exercice dans ce Circuit.
+ */
+function validStored(overrides: Partial<StoredSession> = {}): StoredSession {
   return {
+    header: {
+      session_id: IDS[0]!,
+      owner_id: "usr_test",
+      session_name: "Séance",
+      label_id: null,
+      label_color: null,
+      status: "ACTIVE",
+      initial_countdown_seconds: 10,
+      final_phase_seconds: 5,
+      session_created_at: "2026-01-01T00:00:00.000Z",
+      session_updated_at: "2026-01-01T00:00:00.000Z",
+    },
+    cycles: [],
+    // Colonne SQL technique `side_mode`, sans influence fonctionnelle (V2-PRE-1) ; nature `migration011`.
+    circuits: [{ id: IDS[2]!, session_id: IDS[0]!, cycle_id: null, position: 0, repeat_count: 1, side_mode: "UNILATERAL", nature: "TOURS" }],
+    activities: [validActivityRow()],
+    stopPoints: [],
+    ...overrides,
+  };
+}
+
+function validActivityRow(): ActivityRow {
+  return {
+    id: IDS[3]!,
     session_id: IDS[0]!,
-    owner_id: "usr_test",
-    session_name: "Séance",
-    label_id: null,
-    label_color: null,
-    status: "ACTIVE",
-    initial_countdown_seconds: 10,
-    final_phase_seconds: 5,
-    session_created_at: "2026-01-01T00:00:00.000Z",
-    session_updated_at: "2026-01-01T00:00:00.000Z",
-    cycle_id: IDS[1]!,
-    cycle_position: 1,
-    cycle_repeat_count: 1,
     tour_id: IDS[2]!,
-    tour_position: 1,
-    tour_repeat_count: 1,
-    // Colonne SQL technique, conservée mais sans influence fonctionnelle
-    // (V2-PRE-1, plan §3.3) — le Tour n'expose plus de direction propre.
-    tour_side_mode: "UNILATERAL",
-    // PRE-6 (story 1.1) : nature du Circuit (`migration011`).
-    tour_nature: "TOURS",
-    activity_id: IDS[3]!,
-    activity_type: "EXERCISE",
-    structural_position: "IN_TOUR",
-    activity_position: 0,
+    type: "EXERCISE",
+    position: 0,
     execution_mode: "DURATION",
     duration_seconds: 30,
     repetition_count: null,
@@ -2167,13 +2151,14 @@ function validRow(): SessionAggregateRow {
     pause_seconds: 0,
     post_activity_recovery_seconds: 0,
     post_activity_recovery_present: 0,
+    created_at: "2026-01-01T00:00:00.000Z",
+    updated_at: "2026-01-01T00:00:00.000Z",
     // V2-BILAT-01 : direction propre de l'Activité (`migration005`, défaut `'UNILATERAL'`).
-    activity_side_mode: "UNILATERAL",
-    // PRE-7 (A1.2) : forme résolue v4 obligatoire pour un Exercice (`readResolvedExecutionParameters`).
-    activity_execution_parameters: serializeResolvedExecutionParameters(durationParameters(30)),
+    side_mode: "UNILATERAL",
+    execution_parameters: serializeResolvedExecutionParameters(durationParameters(30)),
     // PRE-7 (R-3, `migration013`) : Mouvement de l'occurrence (contenu relu dans le Mouvement) et numéro de copie.
-    activity_source_movement_id: "mov-1",
-    activity_copy_number: null,
+    source_movement_id: "mov-1",
+    copy_number: null,
   };
 }
 
@@ -2894,36 +2879,14 @@ describe("SqliteSessionRepository — PRE-4 story 1.1 (NodeSqliteDatabase REAL)"
   });
 });
 
-/**
- * PRE-4 (story 1.2, P39) : ligne d'en-tête seule d'une Séance sans
- * occurrence (`LEFT JOIN activities` sans correspondance) — colonnes
- * d'occurrence toutes `NULL`.
- */
-function headerOnlyRow(): SessionAggregateQueryRow {
-  return {
-    ...validRow(),
-    activity_id: null,
-    activity_type: null,
-    structural_position: null,
-    activity_position: null,
-    execution_mode: null,
-    duration_seconds: null,
-    repetition_count: null,
-    series_count: null,
-    pause_seconds: null,
-    post_activity_recovery_seconds: null,
-    post_activity_recovery_present: null,
-    activity_side_mode: null,
-    activity_execution_parameters: null,
-    activity_source_movement_id: null,
-    activity_copy_number: null,
-  };
-}
-
-describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () => {
-  it("assemble une Séance vide avec ses paramètres et une composition vide", () => {
-    const session = assembleSession([{ ...headerOnlyRow(), tour_repeat_count: 2 }], new Map());
-    // PRE-6 (story 1.1) : la nature persistée est relue avec le Tour.
+describe("PRE4-1.2/AC7, PRE-8 A.4 — assemblage d'une Séance sans Exercice et contrat de structure", () => {
+  it("assemble une Séance vide avec ses paramètres et un Circuit vide", () => {
+    const stored = validStored({
+      activities: [],
+      circuits: [{ id: IDS[2]!, session_id: IDS[0]!, cycle_id: null, position: 0, repeat_count: 2, side_mode: "UNILATERAL", nature: "TOURS" }],
+    });
+    const session = toLegacySession({ stored, structure: assembleStructure(stored, new Map()) });
+    // PRE-6 (story 1.1) : la nature persistée est relue avec le Circuit.
     expect(session.cycle.tour).toEqual({ id: IDS[2]!, position: 1, repeatCount: 2, nature: "TOURS", exercises: [] });
     expect(session.cycle.beforeTour).toBeUndefined();
     expect(session.cycle.afterTour).toBeUndefined();
@@ -2931,21 +2894,29 @@ describe("PRE4-1.2/AC7 — assembleSession sur une ligne d'en-tête seule", () =
   });
 
   it.each([
-    ["status ARCHIVED", { status: "ARCHIVED" }],
-    ["tour_side_mode invalide", { tour_side_mode: "SIDEWAYS" }],
-    ["tour_repeat_count 0", { tour_repeat_count: 0 }],
-  ])("lève sur une ligne d'en-tête seule invalide : %s", (_label, override) => {
-    const row = { ...headerOnlyRow(), ...override } as unknown as SessionAggregateQueryRow;
-    expect(() => assembleSession([row], new Map())).toThrow("does not satisfy");
+    ["side_mode du Circuit invalide", { side_mode: "SIDEWAYS" }],
+    ["compte du Circuit 0", { repeat_count: 0 }],
+    ["nature inconnue", { nature: "MAX" }],
+  ])("lève sur un Circuit invalide : %s", (_label, override) => {
+    const base = validStored({ activities: [] });
+    const stored = { ...base, circuits: [{ ...base.circuits[0]!, ...override }] } as unknown as StoredSession;
+    expect(() => assembleStructure(stored, new Map())).toThrow("does not satisfy");
   });
 
-  it("lève sur un mélange d'une ligne d'en-tête seule et d'une ligne d'occurrence, dans les deux ordres", () => {
-    expect(() => assembleSession([validRow(), headerOnlyRow()], new Map())).toThrow("does not satisfy");
-    expect(() => assembleSession([headerOnlyRow(), validRow()], new Map())).toThrow("does not satisfy");
+  it("lève sur un rang en double au niveau principal, partagé par Exercices, Circuits et Cycles ; tolère un trou", () => {
+    const base = validStored({ activities: [] });
+    const duplicate = validStored({ activities: [], circuits: [base.circuits[0]!, { ...base.circuits[0]!, id: "other" }] });
+    expect(() => assembleStructure(duplicate, new Map())).toThrow("does not satisfy");
+    const gap = validStored({
+      activities: [],
+      circuits: [{ id: IDS[2]!, session_id: IDS[0]!, cycle_id: null, position: 1, repeat_count: 1, side_mode: "UNILATERAL", nature: "TOURS" }],
+    });
+    expect(assembleStructure(gap, new Map()).elements.map((element) => element.kind)).toEqual(["CIRCUIT"]);
   });
 
-  it("lève sur un agrégat sans aucune ligne", () => {
-    expect(() => assembleSession([], new Map())).toThrow();
+  it("lève sur un Cycle sans Circuit", () => {
+    const stored = validStored({ activities: [], circuits: [], cycles: [{ id: "cyc", session_id: IDS[0]!, position: 0, repeat_count: 2 }] });
+    expect(() => assembleStructure(stored, new Map())).toThrow("does not satisfy");
   });
 });
 

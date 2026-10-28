@@ -1,5 +1,6 @@
 import { Button as SwiftUIButton, ContextMenu, Host, RNHostView, Section } from "@expo/ui/swift-ui";
 import { contentShape, shapes } from "@expo/ui/swift-ui/modifiers";
+import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-effect";
 import { Image } from "expo-image";
 import { useEffect, useRef, useState, type ReactElement } from "react";
 import {
@@ -56,7 +57,18 @@ export type ActivityMediaListProps = {
    * `IOS_LONG_PRESS_MENU` ; prop réservée aux tests du repli.
    */
   readonly iosLongPressMenu?: IosLongPressMenu;
+  /**
+   * PRE-8 (B.2, CE-MVT-01 §7 et §9, « DSF / Médias / Gabarit photo » `10450:24378`) : la liste
+   * adopte l'emplacement et les dimensions du gabarit photo de la fiche Mouvement — une page
+   * pleine largeur par média, tuile d'ajout comprise, défilement par page. Présentation SEULE :
+   * ajout, consultation, retrait et réordonnancement (appui long, actions VoiceOver) inchangés.
+   * Absent : galerie de l'éditeur d'Exercice, inchangée.
+   */
+  readonly template?: { readonly width: number; readonly height: number };
 };
+
+/** Taille imposée des tuiles en gabarit photo (PRE-8, B.2), sinon `null`. */
+type TileSize = { readonly width: number; readonly height: number } | null;
 
 /**
  * Story 4.5 (AD-17, AC9) — menu ouvert par l'appui long sur iOS :
@@ -91,16 +103,20 @@ export function ActivityMediaList({
   onRetry,
   editable = true,
   iosLongPressMenu = IOS_LONG_PRESS_MENU,
+  template,
 }: ActivityMediaListProps) {
   const total = media.length;
+  const size: TileSize = template ?? null;
+  const sized = size ? [size, styles.templatePreview] : null;
   const visiblePending = pending.filter((item) => item.state !== "READY");
   return (
     <View style={styles.container} testID="media-list">
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.gallery}
-        style={styles.galleryFrame}
+        contentContainerStyle={size ? null : styles.gallery}
+        style={size ? styles.templateFrame : styles.galleryFrame}
+        pagingEnabled={size !== null}
         accessibilityLabel={m.section}
         testID="media-gallery"
       >
@@ -118,6 +134,7 @@ export function ActivityMediaList({
               onMove={(to) => onMove(index, to)}
               editable={editable}
               iosLongPressMenu={iosLongPressMenu}
+              size={size}
             />
           );
         })}
@@ -125,8 +142,8 @@ export function ActivityMediaList({
         {visiblePending.map((item, index) => {
           const label = itemLabel(item.picked.kind, total + index + 1, total + visiblePending.length);
           return (
-            <View key={item.key} style={styles.tile} testID={`media-pending-${index + 1}`}>
-              <View style={[styles.preview, styles.previewPending]} accessible accessibilityLabel={label}>
+            <View key={item.key} style={[styles.tile, size]} testID={`media-pending-${index + 1}`}>
+              <View style={[styles.preview, styles.previewPending, sized]} accessible accessibilityLabel={label}>
                 {item.state === "IMPORTING" ? (
                   <>
                     <ActivityIndicator color={colors.primary} />
@@ -160,7 +177,7 @@ export function ActivityMediaList({
             onPress={onAdd}
             accessibilityRole="button"
             accessibilityLabel={m.add}
-            style={[styles.preview, styles.addTile]}
+            style={[styles.preview, styles.addTile, sized]}
             testID="media-add"
           >
             <KodjoIcon name="action-add" tintColor={colors.textSecondary} />
@@ -219,6 +236,7 @@ function MediaTile({
   onMove,
   editable,
   iosLongPressMenu,
+  size,
 }: {
   item: DraftMediaItem;
   index: number;
@@ -229,6 +247,7 @@ function MediaTile({
   onMove: (to: number) => void;
   editable: boolean;
   iosLongPressMenu: IosLongPressMenu;
+  size: TileSize;
 }) {
   const [consulting, setConsulting] = useState(false);
   // Photo : la présentation reste montée, masquée, jusqu'à son retrait complet (iOS : `onDismiss`).
@@ -332,7 +351,7 @@ function MediaTile({
       accessibilityValue={unavailable ? { text: m.unavailable } : undefined}
       accessibilityActions={options.map((option) => ({ name: option.key, label: actionLabels[option.key] }))}
       onAccessibilityAction={(event) => options.find((option) => option.key === event.nativeEvent.actionName)?.run()}
-      style={styles.preview}
+      style={[styles.preview, size ? [size, styles.templatePreview] : null]}
       testID={`media-item-${index + 1}`}
     >
       {item.asset.kind === "VIDEO" ? (
@@ -351,20 +370,41 @@ function MediaTile({
           <Text style={styles.errorText}>{m.unavailable}</Text>
         </View>
       ) : null}
-      {/* Badge rendu après le voile d'erreur : la nature du Média reste visible. */}
-      {item.asset.kind === "VIDEO" ? <Text style={styles.kindBadge}>{m.video}</Text> : null}
+      {size ? (
+        // Recette A/B B.10 (remarque 4) : gabarit photo de la fiche Mouvement — compteur « rang /
+        // total » à la place du badge « Vidéo » (le nom accessible donne déjà le rang et le total).
+        <Text
+          style={styles.kindBadge}
+          accessible={false}
+          importantForAccessibility="no"
+          testID={`media-item-${index + 1}-counter`}
+        >
+          {strings.screens.movement.mediaCounter.replace("{rank}", String(index + 1)).replace("{total}", String(total))}
+        </Text>
+      ) : item.asset.kind === "VIDEO" ? (
+        // Badge rendu après le voile d'erreur : la nature du Média reste visible.
+        <Text style={styles.kindBadge}>{m.video}</Text>
+      ) : null}
     </Pressable>
   );
   const consultationTestID = `media-item-${index + 1}-consultation`;
   return (
-    <View style={styles.tileFrame}>
+    <View style={[styles.tileFrame, size]}>
       {nativeContextMenu ? (
-        <NativeTileContextMenu label={label} options={options} testID={`media-item-${index + 1}-context-menu`}>
+        <NativeTileContextMenu label={label} options={options} size={size} testID={`media-item-${index + 1}-context-menu`}>
           {tile}
         </NativeTileContextMenu>
       ) : (
         tile
       )}
+      {size && isVideo ? (
+        <MediaPlayButton
+          size={size}
+          onPress={consult}
+          label={strings.screens.movement.playVideo}
+          testID={`media-item-${index + 1}-play`}
+        />
+      ) : null}
       {consulting && isVideo ? (
         <VideoConsultation uri={uri} onClose={closeVideo} onError={failVideo} testID={consultationTestID} />
       ) : null}
@@ -414,14 +454,16 @@ function NativeTileContextMenu({
   options,
   testID,
   children,
+  size = null,
 }: {
   label: string;
   options: readonly { key: string; label: string; run: () => void; destructive: boolean }[];
   testID: string;
   children: ReactElement;
+  size?: TileSize;
 }) {
   return (
-    <Host style={styles.contextMenuHost} testID={testID}>
+    <Host style={[styles.contextMenuHost, size]} testID={testID}>
       <ContextMenu modifiers={[contentShape(shapes.roundedRectangle({ cornerRadius: fixedRadii[12] }), "contextMenuPreview")]}>
         <ContextMenu.Items>
           <Section title={label}>
@@ -486,13 +528,107 @@ const PREVIEW_HEIGHT = 213;
  */
 export const OPEN_SETTINGS_HIT_SLOP = { top: 14, bottom: 0, left: 0, right: 0 } as const;
 
+/**
+ * PRE-8, recette A/B (27/10, spécification de Hermann ; arbitrage B : `expo-glass-effect`, déjà
+ * présent) — bouton de lecture du gabarit photo de la fiche Mouvement, Figma « DSF / Actions /
+ * Bouton d'action circulaire », Action=Lecture (`7872:14696`) : Ø 72 centré, verre natif iOS 26
+ * (`GlassView` « clear », clair) sous un voile blanc 22 %, contour blanc 35 %, triangle blanc 30
+ * décalé de 2 vers la droite ; ni ombre, ni couleur de marque. Sans Liquid Glass (iOS antérieur,
+ * API absente) : voile et contour seuls. Cible tactile = le cercle de 72, sans zone étendue.
+ * L'appui ouvre le lecteur système plein écran existant (`VideoConsultation`).
+ */
+const PLAY_BUTTON_SIZE = 72;
+const PLAY_GLYPH_OFFSET = 2;
+const PLAY_GLYPH = require("../../../assets/icons/media-lecture.svg");
+
+function liquidGlassAvailable(): boolean {
+  if (Platform.OS !== "ios") return false;
+  try {
+    return isGlassEffectAPIAvailable() && isLiquidGlassAvailable();
+  } catch {
+    // Module natif absent de la build : voile seul.
+    return false;
+  }
+}
+
+function MediaPlayButton({
+  size,
+  onPress,
+  label,
+  testID,
+}: {
+  readonly size: { readonly width: number; readonly height: number };
+  readonly onPress: () => void;
+  readonly label: string;
+  readonly testID: string;
+}) {
+  const [glass] = useState(liquidGlassAvailable);
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[
+        styles.playButton,
+        { left: (size.width - PLAY_BUTTON_SIZE) / 2, top: (size.height - PLAY_BUTTON_SIZE) / 2 },
+      ]}
+      testID={testID}
+    >
+      {glass ? (
+        <GlassView
+          glassEffectStyle="clear"
+          colorScheme="light"
+          pointerEvents="none"
+          style={StyleSheet.absoluteFill}
+          testID={`${testID}-glass`}
+        />
+      ) : null}
+      <View pointerEvents="none" style={styles.playVeil} testID={`${testID}-veil`} />
+      <Image source={PLAY_GLYPH} style={styles.playGlyph} accessible={false} testID={`${testID}-glyph`} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
+  playButton: {
+    position: "absolute",
+    width: PLAY_BUTTON_SIZE,
+    height: PLAY_BUTTON_SIZE,
+    borderRadius: PLAY_BUTTON_SIZE / 2,
+    overflow: "hidden",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  playVeil: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: PLAY_BUTTON_SIZE / 2,
+    borderWidth: 1,
+    borderColor: colors.mediaPlayBorder,
+    backgroundColor: colors.mediaPlaySurface,
+  },
+  playGlyph: {
+    width: 26,
+    height: 30,
+    marginLeft: PLAY_GLYPH_OFFSET,
+  },
   container: {
     gap: spacing[8],
   },
   galleryFrame: {
     backgroundColor: colors.mediaSurface,
     borderRadius: fixedRadii[16],
+  },
+  /** PRE-8 (B.2) : gabarit photo pleine largeur, sans cadre propre. */
+  templateFrame: {
+    backgroundColor: colors.mediaSurface,
+  },
+  templatePreview: {
+    borderRadius: 0,
+    borderWidth: 0,
   },
   gallery: {
     padding: spacing[8],

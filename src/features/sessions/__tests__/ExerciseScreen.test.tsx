@@ -1078,7 +1078,8 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     // Le ✕ est le premier élément de l'en-tête (en haut à gauche), avant le titre.
     const headerChildren = (header.props.children as unknown[]).flat().filter(Boolean) as { props: { testID?: string } }[];
     expect(headerChildren[0]!.props.testID).toBe("screen-header-back");
-    expect(StyleSheet.flatten(header.props.style).paddingHorizontal).toBe(24);
+    // PRE-8, recette A/B (A01) : marge standard 16 (24 au-delà de 390 auparavant).
+    expect(StyleSheet.flatten(header.props.style).paddingHorizontal).toBe(16);
     // PRE-5 3.2, arbitrage G-1 : cible 48 à 12 du bord (cercle 38 à 17), titre à 4 après la cible.
     expect(StyleSheet.flatten(header.props.style)).toMatchObject({ paddingLeft: 17, gap: 9 });
     expect(12 + (48 - 38) / 2).toBe(17);
@@ -1119,16 +1120,18 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
     expect(screen.UNSAFE_getByType(KodjoIcon).props.name).toBe("control-back");
     expect(screen.UNSAFE_getByType(KodjoIcon).props.tintColor).toBeUndefined();
     const defaultHeader = StyleSheet.flatten(screen.getByTestId("screen-header").props.style);
-    expect(defaultHeader.paddingHorizontal).toBe(24);
+    // PRE-8, recette A/B (A01) : marge standard `layout.screenGutter` (16).
+    expect(defaultHeader.paddingHorizontal).toBe(16);
     expect(defaultHeader.paddingLeft).toBeUndefined();
     expect(defaultHeader.gap).toBe(12);
     const defaultCircle = StyleSheet.flatten(screen.getByTestId("screen-header-back").props.style);
     expect(defaultCircle.backgroundColor).toBe("#E5F0FF");
     expect(defaultCircle.borderWidth).toBeUndefined();
     expect(defaultCircle.shadowOpacity).toBeUndefined();
+    // Recette PRE-8 A/B du 27/10 (r9-a02) : tous les titres d’écran en Inter Medium 17.
     expect(StyleSheet.flatten(screen.getByText("Composition").props.style)).toMatchObject({
-      fontFamily: "Inter_600SemiBold",
-      fontSize: 20,
+      fontFamily: "Inter_500Medium",
+      fontSize: 17,
       color: "#141414",
     });
   });
@@ -1145,7 +1148,8 @@ describe("ExerciseScreen — PRE-4 story 4.2", () => {
           await renderPath(pathName);
           const { padding, leftInset, haloCenter, closeCenter } = haloAgainstHeader();
           expect(padding).toBe(editorSideMargin(width));
-          expect(padding).toBe(width < 390 ? 16 : 24);
+          // PRE-8, recette A/B (A01) : 16 à toutes les largeurs.
+          expect(padding).toBe(16);
           expect(StyleSheet.flatten(screen.getByTestId("exercise-context-band").props.style).paddingHorizontal).toBe(padding);
           // PRE-5 3.2, arbitrage G-1 : ✕ à 17 (cible à 12) et halo centré à 36, quelle que soit la largeur.
           expect(leftInset).toBe(EDITOR_HEADER.paddingLeft);

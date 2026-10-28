@@ -13,6 +13,11 @@ import { SessionServiceProvider } from "@/features/sessions/SessionServiceProvid
 import { KodjoSplash } from "@/shared/ui/KodjoSplash";
 import { RootErrorBoundary } from "@/shared/ui/RootErrorBoundary";
 import { RootErrorFallback } from "@/shared/ui/RootErrorFallback";
+import { installDevPerformanceGuard } from "@/shared/utils/devPerformanceGuard";
+
+// Recette PRE-8 A/B : garde de développement contre l’échec natif de la mesure de rendu de React
+// (écran de démarrage bloqué au rechargement) ; sans effet hors __DEV__.
+installDevPerformanceGuard();
 
 void SplashScreen.preventAutoHideAsync().catch((error: unknown) => {
   console.warn("Impossible de conserver le splash natif affiché.", error);
@@ -135,6 +140,7 @@ export default function RootLayout() {
               <Stack.Screen name="(tabs)" />
               <Stack.Screen name="(creation)" options={{ gestureEnabled: false }} />
               <Stack.Screen name="profile-edit" />
+              <Stack.Screen name="movement" options={{ gestureEnabled: false }} />
             </Stack>
           ) : null}
           {databaseReady && !showAppSplash ? <MigrationNoticeGate /> : null}

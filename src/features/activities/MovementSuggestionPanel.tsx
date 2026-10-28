@@ -7,6 +7,7 @@ import { colors, fixedRadii, minTouchTarget } from "@/shared/ui/tokens";
 import type { MovementChoice } from "./ActivityDefinitionService";
 import {
   MovementResultCard,
+  type MovementResultActionLabels,
   type VariantPlacement,
 } from "./MovementResultCard";
 
@@ -38,6 +39,8 @@ export type MovementSuggestionPanelProps = {
   readonly onBack: () => void;
   /** Doigt posé sur le panneau (R04 : « l'ordre ne change pas pendant un appui »). */
   readonly onTouchingChange: (touching: boolean) => void;
+  /** Recette A/B B.10 (remarque 6) : libellés des actions des cartes ; absent : ceux de l'éditeur d'Exercice. */
+  readonly actionLabels?: MovementResultActionLabels;
 };
 
 /**
@@ -61,6 +64,7 @@ export function MovementSuggestionPanel({
   onChooseVariant,
   onBack,
   onTouchingChange,
+  actionLabels,
 }: MovementSuggestionPanelProps) {
   const t = strings.screens.activities.editor.movementSuggestion;
   const variantChoice =
@@ -121,6 +125,7 @@ export function MovementSuggestionPanel({
               variantChoice !== null ? onBack() : onCreateVariant(choice)
             }
             onChooseVariant={(placement) => onChooseVariant(choice, placement)}
+            {...(actionLabels ? { actionLabels } : {})}
             testID={`movement-suggestion-result-${choice.movement.id}`}
           />
         ))}

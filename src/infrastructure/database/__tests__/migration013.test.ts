@@ -211,8 +211,8 @@ async function seededVersion12(options: { readonly populated: boolean } = { popu
 }
 
 describe("migration013 — réinitialisation ponctuelle et modèle C05 (R-3, Q1, Q2)", () => {
-  it("version courante 13", () => {
-    expect(DATABASE_VERSION).toBe(13);
+  it("version 13 suivie de la 14 (PRE-8, A.3) puis de la 15 (PRE-8, B.8)", () => {
+    expect(DATABASE_VERSION).toBe(15);
   });
 
   it("réinitialise Mouvements, Niveaux, Exercices et Séances une seule fois et conserve Profil, Catégories, Zones et Étiquettes", async () => {
@@ -220,7 +220,7 @@ describe("migration013 — réinitialisation ponctuelle et modèle C05 (R-3, Q1,
     const before = await preserved(database);
     const noticesBefore = await count(database, "migration_notices");
 
-    await migrateDatabase(database, () => NOW);
+    await migrateDatabase(database, () => NOW, 13);
     database = reopen(database);
 
     expect(await version(database)).toBe(13);
@@ -256,7 +256,8 @@ describe("migration013 — réinitialisation ponctuelle et modèle C05 (R-3, Q1,
     );
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(13);
+    // PRE-8 : le démarrage suivant applique la 014 (conversion sans perte), jamais la 013 à nouveau.
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "movements")).toBe(1);
     expect(await count(database, "migration_notices")).toBe(noticesBefore + 1);
   });
@@ -264,23 +265,23 @@ describe("migration013 — réinitialisation ponctuelle et modèle C05 (R-3, Q1,
   it("base au schéma 012 vide : aucun avis", async () => {
     let database = await seededVersion12({ populated: false });
     const notices = await count(database, "migration_notices");
-    await migrateDatabase(database, () => NOW);
+    await migrateDatabase(database, () => NOW, 13);
     database = reopen(database);
     expect(await version(database)).toBe(13);
     expect(await count(database, "migration_notices")).toBe(notices);
   });
 
-  it("installation neuve : 001 à 013, aucun avis", async () => {
+  it("installation neuve : 001 à 014, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(13);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "migration_notices")).toBe(0);
   });
 
   it("schéma C05 : occurrence sans contenu, clé étrangère vers le Mouvement, numéro de copie ; nom unique ; alias", async () => {
     let database = await seededVersion12();
-    await migrateDatabase(database, () => NOW);
+    await migrateDatabase(database, () => NOW, 13);
     database = reopen(database);
 
     const tables = await tableNames(database);

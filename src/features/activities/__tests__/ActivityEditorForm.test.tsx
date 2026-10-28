@@ -1015,14 +1015,15 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
     expect(screen.queryByText(/Récupération|Type d’exercice/u)).toBeNull();
   });
 
-  it("PRE4-4.2/AC5 — marge latérale 16 à 360, 24 à 390, 402 et 440 ; Terminer 354 de large à 402 ; grille 14 / 10 / 16 / 12 par styles (PRE-5 3.2, arbitrage G-2), sans position absolue", () => {
-    expect([360, 389, 390, 402, 440].map(editorSideMargin)).toEqual([16, 16, 24, 24, 24]);
+  // PRE-8, recette A/B (A01, arbitrage du 27/10) : marge standard 16 à toutes les largeurs (24 au-delà de 390 auparavant).
+  it("PRE4-4.2/AC5 — marge latérale 16 à toutes les largeurs (A01) ; grille 14 / 10 / 16 / 12 par styles (PRE-5 3.2, arbitrage G-2), sans position absolue", () => {
+    expect([360, 389, 390, 402, 440].map(editorSideMargin)).toEqual([16, 16, 16, 16, 16]);
     expect(EDITOR_VERTICAL_GRID).toEqual({ contextToFirstText: 14, blockToNextTitle: 16, titleToBlock: 10, blockToBlock: 12 });
     for (const [width, margin] of [
       [360, 16],
-      [390, 24],
-      [402, 24],
-      [440, 24],
+      [390, 16],
+      [402, 16],
+      [440, 16],
     ] as const) {
       const view = renderAtWidth(width);
       try {
@@ -1183,7 +1184,7 @@ describe("ActivityEditorForm — PRE-4 story 4.2", () => {
       // la borne ; la mesure 354 × 48 est contrôlée sur appareil (R-4.2-06).
       expect(style("test-finish-action").width).toBeUndefined();
       expect(style("test-finish-action").position).toBeUndefined();
-      expect(style("test-finish-slot")).toMatchObject({ paddingHorizontal: 24 });
+      expect(style("test-finish-slot")).toMatchObject({ paddingHorizontal: 16 });
       expect(style("test-finish-slot").width).toBeUndefined();
     } finally {
       view.restore();

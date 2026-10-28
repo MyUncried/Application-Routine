@@ -864,3 +864,46 @@ describe("ActivityMediaList — PRE-4 story 4.5, phase B", () => {
     expect(props.onRemove).toHaveBeenLastCalledWith(1);
   });
 });
+
+describe("Recette A/B B.10 (remarque 4) — gabarit photo de la fiche Mouvement", () => {
+  it("compteur « rang / total » à la place du badge « Vidéo »", () => {
+    renderList({ template: { width: 402, height: 329 } });
+    expect(screen.getByTestId("media-item-1-counter").props.children).toBe("1 / 2");
+    expect(screen.getByTestId("media-item-2-counter").props.children).toBe("2 / 2");
+    expect(screen.queryByText("Vidéo")).toBeNull();
+  });
+
+  it("bouton de lecture (Figma 7872:14696) : vidéo seulement, Ø 72 centré, voile 22 %, contour 35 %, triangle décalé de 2, sans zone étendue", () => {
+    renderList({ template: { width: 402, height: 329 } });
+    // Média 1 : photo, sans bouton. Média 2 : vidéo.
+    expect(screen.queryByTestId("media-item-1-play")).toBeNull();
+    const play = screen.getByTestId("media-item-2-play");
+    expect(StyleSheet.flatten(play.props.style)).toMatchObject({
+      position: "absolute",
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      left: (402 - 72) / 2,
+      top: (329 - 72) / 2,
+    });
+    expect(play.props.hitSlop).toBeUndefined();
+    expect(play.props.accessibilityLabel).toBe("Lire la vidéo");
+    expect(StyleSheet.flatten(screen.getByTestId("media-item-2-play-veil").props.style)).toMatchObject({
+      backgroundColor: "rgba(255, 255, 255, 0.22)",
+      borderColor: "rgba(255, 255, 255, 0.35)",
+      borderWidth: 1,
+    });
+    expect(StyleSheet.flatten(screen.getByTestId("media-item-2-play-glyph").props.style)).toMatchObject({ width: 26, height: 30, marginLeft: 2 });
+    // Verre natif (simulacre jest-expo de `expo-glass-effect`) : style clair, sous le voile.
+    expect(screen.getByTestId("media-item-2-play-glass").props).toMatchObject({ glassEffectStyle: "clear", colorScheme: "light" });
+    // L'appui ouvre le lecteur système plein écran existant.
+    fireEvent.press(play);
+    expect(screen.getByTestId("media-item-2-consultation", { includeHiddenElements: true })).toBeTruthy();
+  });
+
+  it("galerie de l'éditeur d'Exercice : badge « Vidéo » inchangé, ni compteur ni icône", () => {
+    renderList();
+    expect(screen.getByText("Vidéo")).toBeTruthy();
+    expect(screen.queryByTestId("media-item-1-counter")).toBeNull();
+  });
+});

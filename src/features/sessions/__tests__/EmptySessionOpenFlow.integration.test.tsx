@@ -7,6 +7,7 @@ import type { CategoryRepository } from "@/domain/categories/CategoryRepository"
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import type {
+  CatalogueSessionRecord,
   SessionRepository,
   SessionStatus,
   UpdateSessionOutcome,
@@ -56,7 +57,6 @@ class EmptyBodyZoneRepository implements BodyZoneRepository {
   }
 }
 
-const sessions = strings.screens.sessions;
 const composition = strings.screens.composition;
 
 const EMPTY_SESSION_ID = "session-b";
@@ -107,6 +107,21 @@ class EmptySessionRepository implements SessionRepository {
   }
   listActive(): Promise<readonly SessionSummary[]> {
     return Promise.resolve([EMPTY_SUMMARY]);
+  }
+  /** PRE-8 (E.1, E.2) : lecture du Catalogue unifié — Circuit de deux tours, sans Exercice. */
+  listCatalogue(): Promise<readonly CatalogueSessionRecord[]> {
+    return Promise.resolve([
+      {
+        id: EMPTY_SESSION_ID,
+        name: "Séance b",
+        color: DEFAULT_SESSION_COLOR,
+        labelId: null,
+        status: "ACTIVE",
+        archivedAt: null,
+        updatedAt: EMPTY_SUMMARY.updatedAt,
+        structure: { elements: [{ kind: "CIRCUIT", circuit: { id: "tour-b", repeatCount: 2, nature: "TOURS", exercises: [] } }], stopPoints: [] },
+      },
+    ]);
   }
   update(): Promise<UpdateSessionOutcome> {
     return Promise.reject(new Error("update() must never be called by merely opening a Session"));
@@ -178,7 +193,7 @@ async function flush() {
 
 describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste, ouvrable sans erreur", () => {
   it(
-    "la carte affiche « 0 exercice · 2 tours » et « 0 min » ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
+    "la carte affiche « 0 exercice » et « 0 s » (PRE-8 E.2 : carte unique, durée D-443) ; la toucher ouvre la Composition existante, vide, sans état d'erreur",
     async () => {
       const router = renderRouter(
         {
@@ -193,13 +208,14 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       );
       await flush();
 
-      // AC6 : la Séance figure dans la liste avec le format existant de la carte (Q32).
+      // AC6 : la Séance figure dans la liste (Q32) ; PRE-8 (E.2, Q-E6) : synthèse « 0 exercice »,
+      // durée de séance au format D-443.
       expect(await screen.findByText("Séance b")).toBeTruthy();
-      expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
-      expect(screen.getByTestId("session-card-duration").props.children).toBe("0 min");
+      expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
+      expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0 s");
 
       // AC7 : l'écran existant s'ouvre sur la Séance, sans Exercice et sans erreur.
-      fireEvent.press(screen.getByLabelText(sessions.card.openAccessibilityLabel));
+      fireEvent.press(screen.getByTestId("session-card-session-b-swipe-card"));
       await flush();
       await flush();
 
@@ -225,7 +241,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       await flush();
       expect(router.getPathname()).toBe("/");
       expect(await screen.findByText("Séance b")).toBeTruthy();
-      expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
+      expect(screen.getByTestId("session-card-session-b-summary")).toHaveTextContent("0 exercice");
     },
     20000,
   );

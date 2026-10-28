@@ -2,6 +2,8 @@ import { Button as SwiftUIButton, Host, Menu, RNHostView } from "@expo/ui/swift-
 import {
   accessibilityLabel as swiftUIAccessibilityLabel,
   disabled as swiftUIDisabled,
+  onAppear as swiftUIOnAppear,
+  onDisappear as swiftUIOnDisappear,
 } from "@expo/ui/swift-ui/modifiers";
 import { useState, type RefObject } from "react";
 import {
@@ -74,6 +76,13 @@ export type LevelOption = {
   readonly exercises: readonly LevelExerciseOption[];
   /** PRE-7 (R-6) : mouvement du niveau, cible du choix par mouvement (`movementChoice`). */
   readonly movementId?: string;
+  /** Recette A/B B.10 (q6-2) : membre archivé, signalé « (archivé) » dans le libellé du choix. */
+  readonly archived?: boolean;
+  /**
+   * Recette A/B (b8-3) : rang affiché, lorsqu'il diffère de `rank` (position dans la famille
+   * complète, qui reste la clé du choix). Absent : `rank`.
+   */
+  readonly displayRank?: number;
 };
 
 /**
@@ -97,6 +106,16 @@ export type MovementLevelMenuModel = {
   /** PRE-7 (A3.2) : ouverture de l'écran de consultation et de réordonnancement des niveaux. */
   readonly onReorderLevels: () => void;
   readonly movementChoice?: LevelMovementChoice;
+  /**
+   * Recette A/B B.10 (b2-8) : intitulé du sous-menu des niveaux propre à l'appelant (fiche Mouvement :
+   * « Ouvrir un autre niveau ») ; absent : « Naviguer vers » ou « Changer de niveau » (R-9).
+   */
+  readonly levelsLabel?: string;
+  /**
+   * Recette A/B B.10 (b2-8) : textes du panneau de repli réduits (`type.supporting`) ; le menu natif
+   * iOS garde la taille du système. Absent : taille inchangée.
+   */
+  readonly compact?: boolean;
 };
 
 /** Pastille : position dérivée (`null` : vide) ; `menu` `null` : affichage seul, sans accès. */
@@ -123,8 +142,9 @@ function levelAccessibilityLabel(position: MovementLevelPosition | null): string
 }
 
 export function levelOptionLabel(level: LevelOption): string {
-  return fillTemplate(strings.screens.activities.editor.levelMenu.levelOption, {
-    rank: String(level.rank),
+  const t = strings.screens.activities.editor.levelMenu;
+  return fillTemplate(level.archived === true ? t.levelOptionArchived : t.levelOption, {
+    rank: String(level.displayRank ?? level.rank),
     total: String(level.total),
     name: level.name,
   });
@@ -145,6 +165,7 @@ function canChangeLevel(menu: MovementLevelMenuModel): boolean {
  */
 function levelsSubmenuLabel(menu: MovementLevelMenuModel): string {
   const t = strings.screens.activities.editor.levelMenu;
+  if (menu.levelsLabel !== undefined) return menu.levelsLabel;
   return menu.movementChoice === undefined ? t.navigateTo : t.changeLevel;
 }
 
@@ -208,6 +229,16 @@ export type MovementLevelMenuProps = {
   readonly onOpenPanel: (anchor: { readonly x: number; readonly y: number; readonly width: number; readonly height: number }) => void;
   readonly isPanelOpen: boolean;
   readonly onClosePanel: () => void;
+  /**
+   * iOS, recette du 27/10 (remarque 3) : menu natif affiché / retiré (apparition et disparition de
+   * son contenu), pour qu'un toucher hors du menu le ferme sans atteindre l'écran.
+   */
+  readonly onNativeMenuVisibilityChange?: (visible: boolean) => void;
+  /**
+   * Recette du 27/10 (r11-menu-dehors) : génération de l'hôte natif — l'appelant l'incrémente à chaque
+   * fermeture pour que l'ouverture suivante signale de nouveau l'apparition du menu.
+   */
+  readonly nativeMenuGeneration?: number;
   readonly anchorRef: RefObject<View | null>;
   readonly testID: string;
 };
@@ -223,6 +254,8 @@ export function MovementLevelMenu({
   onOpenPanel,
   isPanelOpen,
   onClosePanel,
+  onNativeMenuVisibilityChange,
+  nativeMenuGeneration = 0,
   anchorRef,
   testID,
 }: MovementLevelMenuProps) {
@@ -254,7 +287,7 @@ export function MovementLevelMenu({
         testID={`${testID}-focus`}
       >
         {/* Hôte remonté quand le texte change (procédé de `CircuitNatureMenu`, story 7.9). */}
-        <Host key={`${levelPastilleLabel(level.position)}@${fontScale}`} matchContents testID={testID}>
+        <Host key={`${levelPastilleLabel(level.position)}@${fontScale}#${nativeMenuGeneration}`} matchContents testID={testID}>
           <Menu
             label={
               <RNHostView matchContents>
@@ -288,7 +321,16 @@ export function MovementLevelMenu({
             {/* PRE-7 (A3.2 ; R-9, D-448 point 9) : écran des niveaux, à la racine (au moins deux niveaux). */}
             <SwiftUIButton
               label={t.reorderLevels}
-              modifiers={[swiftUIDisabled(!canChangeLevel(menu))]}
+              modifiers={[
+                swiftUIDisabled(!canChangeLevel(menu)),
+                // Entrée toujours présente à la racine du menu : son apparition marque l'ouverture.
+                ...(onNativeMenuVisibilityChange
+                  ? [
+                      swiftUIOnAppear(() => onNativeMenuVisibilityChange(true)),
+                      swiftUIOnDisappear(() => onNativeMenuVisibilityChange(false)),
+                    ]
+                  : []),
+              ]}
               onPress={menu.onReorderLevels}
               testID={`${testID}-reorder`}
             />
@@ -485,7 +527,7 @@ export function MovementLevelPanel({ menu, placement, onDismiss, testID }: Movem
   return (
     <AnchoredPanel placement={placement} onDismiss={onDismiss} style={styles.panel} testID={testID}>
       {rows.map((row) => (
-        <PanelRow key={row.id} row={row} testID={`${testID}-${row.id}`} />
+        <PanelRow key={row.id} row={row} compact={menu.compact === true} testID={`${testID}-${row.id}`} />
       ))}
     </AnchoredPanel>
   );
@@ -499,7 +541,7 @@ type PanelRowProps = {
   readonly onPress: () => void;
 };
 
-function PanelRow({ row, testID }: { readonly row: PanelRowProps; readonly testID: string }) {
+function PanelRow({ row, compact, testID }: { readonly row: PanelRowProps; readonly compact: boolean; readonly testID: string }) {
   const { label, selected = false, disabled = false, onPress } = row;
   return (
     <Pressable
@@ -511,7 +553,7 @@ function PanelRow({ row, testID }: { readonly row: PanelRowProps; readonly testI
       style={styles.option}
       testID={testID}
     >
-      <Text style={[styles.optionTitle, disabled ? styles.optionTitleDisabled : null]}>{label}</Text>
+      <Text style={[styles.optionTitle, compact ? styles.optionTitleCompact : null, disabled ? styles.optionTitleDisabled : null]}>{label}</Text>
       <View style={styles.check}>
         {selected ? <KodjoIcon name="state-selected" size={CHECK_SIZE} tintColor={colors.primary} testID={`${testID}-check`} /> : null}
       </View>
@@ -576,6 +618,10 @@ const styles = StyleSheet.create({
     ...type.exerciseFieldValue,
     flex: 1,
     color: colors.textPrimary,
+  },
+  // Recette A/B B.10 (b2-8) : 12 au lieu de 13, comme les sous-titres de `CircuitNatureMenu`.
+  optionTitleCompact: {
+    ...type.supporting,
   },
   optionTitleDisabled: {
     color: colors.textSecondary,

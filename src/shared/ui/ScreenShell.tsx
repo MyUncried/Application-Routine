@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View, type StyleProp, type TextStyle, type
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
-import { colors, dimensions, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * `Screen Shell` Foundation partagé (doc12 §12.26, `Shell / Screen`,
@@ -37,7 +37,8 @@ export type FixedHeaderProps = {
   closeIcon?: boolean;
   /**
    * PRE-4 story 4.2 (FR-02-04, AC5) : marge latérale de l'en-tête — 24 par
-   * défaut (inchangé) ; l'Éditeur d'Exercice passe 16 sous la largeur 390.
+   * défaut (inchangé) ; l'Éditeur d'Exercice passe 16 sous la largeur 390. PRE-8, recette A/B
+   * (A01) : le défaut est désormais `layout.screenGutter` (16) à toutes les largeurs.
    */
   horizontalPadding?: number;
   /**
@@ -165,7 +166,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing[12],
     justifyContent: "flex-start",
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
   },
   // R4-02, révisé T02-S02 (D-142) : cercle visuel `38×38` — la cible
   // tactile `48×48` reste obtenue via `hitSlop` (voir `FixedHeader`),
@@ -179,7 +181,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    ...type.screenTitle,
+    // r9-a02 (recette PRE-8 A/B) : titre d'écran Medium 17.
+    ...type.screenHeaderTitle,
     flex: 1,
     color: colors.textPrimary,
   },
@@ -189,7 +192,8 @@ const styles = StyleSheet.create({
   },
   contextBand: {
     backgroundColor: colors.selectionSurface,
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
     height: dimensions.contextBand.height,
     paddingTop: dimensions.contextBand.paddingTop,
     paddingBottom: dimensions.contextBand.paddingBottom,

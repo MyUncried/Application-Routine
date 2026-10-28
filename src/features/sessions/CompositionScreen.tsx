@@ -15,6 +15,7 @@ import {
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
+  type ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -199,7 +200,7 @@ import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
@@ -2704,7 +2705,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const resolvedStatus = editStatus ?? "creating";
   const editState =
     sessionId !== null && resolvedStatus === "creating" ? "loading" : resolvedStatus;
-  if (editState !== "creating" && editState !== "ready") {
+  // Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance archivée s'ouvre dans cette même
+  // Composition, en lecture seule — aucun toucher sur le nom, les commandes, les cartes ou les
+  // bornes (`ReadOnlyFrame`), défilement conservé ; « Continuer » remplacé par l'avis.
+  const readOnly = editState === "consulting";
+  if (editState !== "creating" && editState !== "ready" && editState !== "consulting") {
     return (
       <CompositionEditState
         status={editState}
@@ -2714,10 +2719,40 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     );
   }
 
+  const contextHeader = (
+    <CompositionContextHeader
+      name={draft.name}
+      onChangeName={(text) => updateDraft({ name: text })}
+      onNameFocus={closeOverlay}
+      sessionLabel={sessionLabel}
+      sessionColor={sessionColor}
+      onOpenLabelPicker={() => {
+        closeCircuitNatureMenu();
+        setIsLabelPickerOpen(true);
+      }}
+      sessionDuration={sessionDuration}
+      onAdd={() => {
+        closeCircuitNatureMenu();
+        setIsAddActivityTreeOpen(true);
+      }}
+      onAddStop={enterPlacement}
+      // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
+      // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
+      onOpenVolumes={openCircuitVolumes}
+      volumesFocusRequest={volumesFocusRequest}
+      isVolumesDisabled={draggedKey !== null}
+      isPlacementActive={isPlacementActive}
+      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
+      addStopFocusRequest={addStopFocusRequest}
+      addStopAccessibilityHint={addStopAccessibilityHint}
+      testID="composition-context-header"
+    />
+  );
+
   return (
     <ScreenShell>
       <FixedHeader
-        title={composition.title}
+        title={readOnly ? composition.consultation.title : composition.title}
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
         onBack={() => (placement !== null ? cancelPlacement() : router.back())}
         backAccessibilityLabel={composition.closeAccessibilityLabel}
@@ -2755,33 +2790,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * et bouton « + » (arbre d’ajout existant) — voir `CompositionContextHeader`. La couleur
          * de la Séance reste DÉRIVÉE de son Étiquette (V2-PRE-1), jamais écrite ici.
          */}
-        <CompositionContextHeader
-          name={draft.name}
-          onChangeName={(text) => updateDraft({ name: text })}
-          onNameFocus={closeOverlay}
-          sessionLabel={sessionLabel}
-          sessionColor={sessionColor}
-          onOpenLabelPicker={() => {
-            closeCircuitNatureMenu();
-            setIsLabelPickerOpen(true);
-          }}
-          sessionDuration={sessionDuration}
-          onAdd={() => {
-            closeCircuitNatureMenu();
-            setIsAddActivityTreeOpen(true);
-          }}
-          onAddStop={enterPlacement}
-          // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
-          // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
-          onOpenVolumes={openCircuitVolumes}
-          volumesFocusRequest={volumesFocusRequest}
-          isVolumesDisabled={draggedKey !== null}
-          isPlacementActive={isPlacementActive}
-          isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
-          addStopFocusRequest={addStopFocusRequest}
-          addStopAccessibilityHint={addStopAccessibilityHint}
-          testID="composition-context-header"
-        />
+        {/* Consultation (recette E, e5-12) : même en-tête, sans toucher ; hors consultation, enfant direct inchangé. */}
+        {readOnly ? (
+          <View pointerEvents="none" testID="composition-read-only">
+            {contextHeader}
+          </View>
+        ) : (
+          contextHeader
+        )}
       </ContextBand>
 
       {/*
@@ -2844,6 +2860,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         onScrollBeginDrag={closeCircuitNatureMenu}
         testID="composition-body"
       >
+        <ReadOnlyFrame readOnly={readOnly} style={styles.readOnlyBody}>
         {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `NatureOutsideZone`. */}
         {openOverlay === "circuitNature" ? (
           <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside" />
@@ -3204,6 +3221,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-circuit-header-counter-nature-panel"
           />
         ) : null}
+        </ReadOnlyFrame>
       </ScrollView>
 
       {/*
@@ -3250,7 +3268,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
           </Text>
         ) : null}
-        {placement === null ? (
+        {readOnly ? (
+          <Text style={styles.readOnlyNotice} accessibilityLiveRegion="polite" testID="composition-read-only-notice">
+            {composition.consultation.notice}
+          </Text>
+        ) : null}
+        {placement === null && !readOnly ? (
           <PrimaryActionButton
             label={composition.saveAction}
             onPress={handleSave}
@@ -5294,6 +5317,20 @@ function blockHeightFor(isDragged: boolean): number {
  * message + actions (Réessayer sur erreur technique, Revenir au catalogue
  * dans tous les cas — destination sûre, aucune mutation).
  */
+/**
+ * Recette E du 28/10/2026 (e5-12, r2-02) : en consultation, le contenu reste affiché et lu par
+ * VoiceOver mais ne reçoit aucun toucher ; hors consultation, aucun élément n'est ajouté (même
+ * arbre, même mise en page).
+ */
+function ReadOnlyFrame({ readOnly, style, children }: { readOnly: boolean; style?: ViewProps["style"]; children: React.ReactNode }) {
+  if (!readOnly) return <>{children}</>;
+  return (
+    <View pointerEvents="none" style={style} testID="composition-read-only">
+      {children}
+    </View>
+  );
+}
+
 function CompositionEditState({
   status,
   onRetry,
@@ -5683,11 +5720,21 @@ const styles = StyleSheet.create({
   // `exerciseList`. Les deux partagent désormais la même constante : la
   // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
   // littéraux.
+  // Consultation : la colonne reprend l'écart du corps (`bodyContent`), porté par le cadre.
+  readOnlyBody: {
+    gap: COMPOSITION_ROW_GAP,
+  },
+  readOnlyNotice: {
+    ...type.supporting,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
   bodyContent: {
     // PRE-6 (story 5.2, D-435) : colonne de la séquence à x 24 ; le rail est dessiné par chaque
-    // élément (bornes, cartes, Circuit), plus aucune marge de repères.
-    paddingLeft: spacing[24],
-    paddingRight: spacing[24],
+    // élément (bornes, cartes, Circuit), plus aucune marge de repères. A01 (recette PRE-8 A/B) :
+    // marge standard `layout.screenGutter` (16).
+    paddingLeft: layout.screenGutter,
+    paddingRight: layout.screenGutter,
     paddingTop: spacing[16],
     paddingBottom: spacing[16],
     gap: COMPOSITION_ROW_GAP,
@@ -5721,9 +5768,10 @@ const styles = StyleSheet.create({
     height: BACK_HALO_DIAMETER,
     borderRadius: BACK_HALO_DIAMETER / 2,
     backgroundColor: colors.background,
-    // Centre = centre du bouton Retour de l’en-tête partagé (marge 24, cercle 38, centré
-    // dans la hauteur de contenu 48 juste au-dessus de la zone, sans séparateur — D-353).
-    left: spacing[24] + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
+    // Centre = centre du bouton Retour de l’en-tête partagé (marge standard `layout.screenGutter`
+    // depuis A01, cercle 38, centré dans la hauteur de contenu 48 juste au-dessus de la zone, sans
+    // séparateur — D-353).
+    left: layout.screenGutter + dimensions.backAction.visualCircle / 2 - BACK_HALO_DIAMETER / 2,
     top: -dimensions.header.contentHeight / 2 - BACK_HALO_DIAMETER / 2,
   },
   // T01-S09, correction VISUAL (point D) : `elevated` (sélecteurs de
@@ -5959,8 +6007,8 @@ const styles = StyleSheet.create({
   // statique) : transmis en ligne (`addActivityTreeTop`).
   addActivityTree: {
     position: "absolute",
-    left: spacing[24],
-    right: spacing[24],
+    left: layout.screenGutter,
+    right: layout.screenGutter,
     backgroundColor: colors.background,
     borderRadius: dimensions.standardCard.radius,
     borderWidth: 1,

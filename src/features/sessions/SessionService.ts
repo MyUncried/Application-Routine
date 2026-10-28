@@ -19,7 +19,13 @@ import {
   type SessionDraft,
 } from "@/domain/sessions/SessionDraft";
 import type { ValidationResult, ValidationViolation } from "@/domain/sessions/errors";
-import type { SessionRepository } from "@/domain/sessions/SessionRepository";
+import {
+  isSessionCatalogueRepository,
+  type CatalogueSessionRecord,
+  type SessionCatalogueRepository,
+  type SessionLifecycleOutcome,
+  type SessionRepository,
+} from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
 
 /**
@@ -131,6 +137,49 @@ export class SessionService {
    */
   async listActiveSessions(): Promise<readonly SessionSummary[]> {
     return this.sessionRepository.listActive();
+  }
+
+  /**
+   * PRE-8 (epic E, story E.1) : Séances actives et archivées du Catalogue unifié, avec leur
+   * structure générale ; projetées par `projectSessionForCatalogue` (aucune donnée dérivée stockée).
+   */
+  async listCatalogueSessions(): Promise<readonly CatalogueSessionRecord[]> {
+    return this.catalogueRepository().listCatalogue();
+  }
+
+  /**
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : Séance archivée ouverte dans la Composition en
+   * lecture seule, jamais en modification. Aucune écriture.
+   */
+  async getSessionForConsultation(sessionId: string): Promise<Session | null> {
+    return this.catalogueRepository().findForConsultation(sessionId);
+  }
+
+  /**
+   * PRE-8 (epic E, story E.5 ; CE-T03-01 révisé) : archivage immédiat d'une Séance active. Aucune
+   * Routine n'existe dans le code : aucune confirmation (la modale « Séance planifiée » n'a pas de
+   * déclencheur). Une Séance déjà archivée renvoie `INVALID_STATE`, sans écriture.
+   */
+  async archiveSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().archive(sessionId);
+  }
+
+  /** PRE-8 (E.5) : restauration d'une Séance archivée, de retour parmi les actives. */
+  async restoreSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().restore(sessionId);
+  }
+
+  /** PRE-8 (E.5) : suppression définitive d'une Séance archivée (confirmée par l'interface). */
+  async deleteArchivedSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().deleteArchived(sessionId);
+  }
+
+  /** Repository du Catalogue unifié : le repository SQLite l'implémente (aucune migration). */
+  private catalogueRepository(): SessionCatalogueRepository {
+    if (!isSessionCatalogueRepository(this.sessionRepository)) {
+      throw new Error("The session repository does not provide the unified catalogue.");
+    }
+    return this.sessionRepository;
   }
 
   /**

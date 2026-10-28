@@ -122,8 +122,18 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
             return;
           }
           if (result.status === "ARCHIVED") {
-            setEditStatus("archived");
-            return;
+            // Recette E (e5-12) : la Séance archivée s'ouvre en lecture seule.
+            return activeService.getSessionForConsultation(sessionId).then((session) => {
+              if (seq !== requestSeq.current) return;
+              if (!session) {
+                setEditStatus("archived");
+                return;
+              }
+              const hydrated = toSessionDraft(session);
+              setDraft(hydrated);
+              setHydratedBaseline(hydrated);
+              setEditStatus("consulting");
+            });
           }
           const hydrated = toSessionDraft(result.session);
           setDraft(hydrated);
@@ -151,7 +161,7 @@ export function SessionDraftProvider({ children }: SessionDraftProviderProps) {
       }
       if (
         sessionId === currentSessionId.current &&
-        (statusRef.current === "ready" || statusRef.current === "loading")
+        (statusRef.current === "ready" || statusRef.current === "loading" || statusRef.current === "consulting")
       ) {
         return; // Déjà chargé / en cours pour ce même identifiant.
       }

@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, spacing, type } from "@/shared/ui/tokens";
 
 type PlaceholderScreenProps = {
   title: string;
@@ -29,7 +29,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.background,
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
     gap: spacing[8],
   },
   title: {

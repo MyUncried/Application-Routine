@@ -9,41 +9,26 @@ import {
 } from "@/shared/ui/navigationLayout";
 
 /**
- * Correction `N-03` (contre-recette iPhone, `[ChatGPT] DEVICE NO-GO —
- * PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : la marge entre le
- * bord bas de la barre et le bord bas de l'écran doit être visuellement
- * égale à la marge horizontale entre son coin inférieur gauche et le coin
- * inférieur gauche de l'écran — donc exactement
- * `NAVIGATION_ROW_HORIZONTAL_MARGIN`, par construction. Remplace la
- * formule précédente (fonction de `insets.bottom`, jugée trop basse au
- * rendu réel — voir `2026-09-03_P0-phase02-consolidated-rework02.md` pour
- * l'ancienne dérivation, désormais supersédée).
+ * PRE-8, recette A/B (E01) : géométrie de `Navigation / Bottom — 5 onglets`
+ * (`6513:20151`, relevée à 402) — barre `354 × 62` à `x = 24`, bord bas à 16
+ * du bord physique de l'écran.
  */
-describe("NAVIGATION_BAR_BOTTOM_RESIDUAL", () => {
-  it("equals NAVIGATION_ROW_HORIZONTAL_MARGIN exactly (N-03: same distance on both axes, by construction)", () => {
-    expect(NAVIGATION_BAR_BOTTOM_RESIDUAL).toBe(NAVIGATION_ROW_HORIZONTAL_MARGIN);
+describe("navigationLayout (PRE-8 E01)", () => {
+  it("uses the Figma bar height and margins", () => {
+    expect(NAVIGATION_BAR_HEIGHT).toBe(62);
+    expect(NAVIGATION_ROW_HORIZONTAL_MARGIN).toBe(24);
+    expect(NAVIGATION_BAR_BOTTOM_RESIDUAL).toBe(16);
   });
 
-  it("is a positive, non-zero constant", () => {
-    expect(NAVIGATION_BAR_BOTTOM_RESIDUAL).toBeGreaterThan(0);
+  it("keeps the active destination content inside the bar", () => {
+    expect(NAVIGATION_CONTENT_HEIGHT).toBeGreaterThan(0);
+    expect(NAVIGATION_CONTENT_HEIGHT).toBeLessThan(NAVIGATION_BAR_HEIGHT);
   });
 });
 
 describe("navigationBarTotalHeight", () => {
   it("is always NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_BAR_HEIGHT", () => {
     expect(navigationBarTotalHeight()).toBe(NAVIGATION_BAR_BOTTOM_RESIDUAL + NAVIGATION_BAR_HEIGHT);
-  });
-});
-
-/**
- * VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) : la
- * barre reste strictement plus haute que le contenu d'un item — condition
- * nécessaire pour ménager une marge visible entre le haut des icônes et le
- * bord supérieur du cadre (`alignItems: "center"` centre alors le contenu
- * dans l'espace excédentaire).
- */
-describe("NAVIGATION_BAR_HEIGHT", () => {
-  it("is strictly greater than NAVIGATION_CONTENT_HEIGHT, leaving a visible margin above/below the item content", () => {
-    expect(NAVIGATION_BAR_HEIGHT).toBeGreaterThan(NAVIGATION_CONTENT_HEIGHT);
+    expect(navigationBarTotalHeight()).toBe(78);
   });
 });

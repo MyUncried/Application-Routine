@@ -13,6 +13,12 @@ export type MovementSaveDialogProps =
       readonly variant: "CHOICE";
       readonly otherCount: number;
       readonly onConfirm: (choice: MovementSaveChoice) => void;
+      /**
+       * PRE-8 (B.2, DSF Mouvements §5, `10415:22524`) : depuis le Catalogue des Mouvements, aucun
+       * exercice n'est l'objet édité — la conséquence « Uniquement pour cet exercice » n'est pas
+       * affichée (libellé « à adapter », non fourni : Q-B3). Défaut `false` : rendu inchangé.
+       */
+      readonly withoutNewMovementDetail?: boolean;
       readonly onCancel: () => void;
     }
   | {
@@ -92,7 +98,8 @@ export function MovementSaveDialog(props: MovementSaveDialogProps) {
                   ["UPDATE", t.update, t.updateDetail],
                   ["NEW_MOVEMENT", t.newMovement, t.newMovementDetail],
                 ] as const
-              ).map(([value, label, detail]) => {
+              ).map(([value, label, fullDetail]) => {
+                const detail = value === "NEW_MOVEMENT" && props.withoutNewMovementDetail === true ? null : fullDetail;
                 const selected = choice === value;
                 return (
                   <Pressable
@@ -100,13 +107,13 @@ export function MovementSaveDialog(props: MovementSaveDialogProps) {
                     onPress={() => setChoice(value)}
                     accessibilityRole="radio"
                     accessibilityState={{ checked: selected }}
-                    accessibilityLabel={`${label}, ${detail}`}
+                    accessibilityLabel={detail === null ? label : `${label}, ${detail}`}
                     style={[styles.choice, selected ? styles.choiceSelected : null]}
                     testID={`movement-save-choice-${value}`}
                   >
                     <View style={styles.choiceText}>
                       <Text style={CHOICE_LABEL}>{label}</Text>
-                      <Text style={CHOICE_DETAIL}>{detail}</Text>
+                      {detail === null ? null : <Text style={CHOICE_DETAIL}>{detail}</Text>}
                     </View>
                     <View style={[styles.radio, selected ? styles.radioSelected : null]}>
                       {selected ? <View style={styles.radioDot} /> : null}

@@ -13,6 +13,7 @@ import {
   findNodeHandle,
   useWindowDimensions,
 } from "react-native";
+import Reanimated, { Easing, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import {
   hasMissingPhaseDuration,
@@ -22,6 +23,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { generateExecutionPhrase, phraseText } from "@/domain/activities/executionPhrase";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
+import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import {
   moveDraftMedia,
   placeRetriedMedia,
@@ -43,6 +45,7 @@ import {
   MovementLevelPanel,
   type EditorLevel,
 } from "@/features/activities/MovementLevelMenu";
+import { MovementPhasesEditor } from "@/features/activities/MovementPhasesEditor";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -52,6 +55,7 @@ import { FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH, finalActionSideMargin } from "@/sha
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
 /**
  * Éditeur COMMUN d'un Exercice (CE-T03-04, PRE-3) — partagé par les quatre
@@ -188,7 +192,52 @@ export type ActivityEditorFormProps = {
   finishSlotTestID: string;
   finishActionTestID: string;
   errorTestID?: string;
+  /**
+   * PRE-8 (B.2, CE-MVT-01) : `"movement"` rend la fiche Mouvement — contenu partagé seul :
+   * médias dans le gabarit photo pleine largeur en tête du corps, Description, puis bloc « Phases
+   * du mouvement » (`movementPhases`, libellés sans durée) ; aucune carte ni Feuille des
+   * paramètres d'exécution, aucun accordéon de médias en bas. Mêmes nom, assistance, Catégorie,
+   * Zones, Niveau, médias (mêmes commandes) et `Terminer`. Défaut `"exercise"` : éditeur
+   * d'Exercice inchangé.
+   */
+  variant?: "exercise" | "movement";
+  /** PRE-8 (B.2) : structure des phases du Mouvement (variante `"movement"` seulement). */
+  movementPhases?: { readonly value: MovementPhaseList; readonly onChange: (next: MovementPhaseList) => void } | null;
+  /** Recette A/B B.10 (remarque 5) : le Nom prend le focus à l'ouverture (création). Défaut `false`. */
+  autoFocusName?: boolean;
+  /**
+   * Recette A/B B.10 (b2-5) : nom déjà utilisé en création — Nom seul modifiable ; Catégorie, Zones,
+   * Description, phases et médias non modifiables (consultation des médias conservée). Défaut `false`.
+   */
+  bodyLocked?: boolean;
+  /** Recette A/B B.10 (b2-5) : Entrée garde le clavier et le focus sur le Nom (aucune fin de saisie). */
+  keepNameFocusOnSubmit?: boolean;
 };
+
+/** PRE-8 (B.2, CE-MVT-01 §9) : gabarit photo de référence, 402 × 329, mis à la largeur du terminal. */
+export const MOVEMENT_PHOTO_TEMPLATE = { width: 402, height: 329 } as const;
+
+/**
+ * PRE-8, recette A/B (F01) : le gabarit photo commence SOUS la zone de contexte (Figma `10453:23030` :
+ * contexte 115, gabarit à y 94 dans le formulaire), dont le dégradé recouvre ses 21 premiers points.
+ */
+export const MOVEMENT_PHOTO_UNDER_CONTEXT = 21;
+
+/**
+ * PRE-8, correction UX « clavier » de la fiche Mouvement (KBD, 27/10/2026, remplace la remontée du
+ * gabarit photo de B.10) : la zone de contexte et le gabarit photo restent FIXES ; pendant la saisie
+ * de la Description ou des Phases, la couche éditable (zone qui évite le clavier et son défilement)
+ * remonte devant le média jusqu'au bas de la zone de contexte, sur une surface claire translucide
+ * (`colors.movementEditableSurface`), puis le champ actif est recadré au-dessus du clavier. Elle
+ * redescend à la fermeture du clavier. Durée de la transition native du clavier iOS quand l'évènement
+ * la donne (`MOVEMENT_EDITOR_LIFT_MS` sinon) ; « Réduire les animations » : immédiat.
+ */
+const MOVEMENT_EDITOR_LIFT_MS = 250;
+const movementEditorLiftTiming = (duration: number) => ({
+  duration,
+  easing: Easing.out(Easing.cubic),
+  reduceMotion: ReduceMotion.System,
+});
 
 /**
  * Validité du brouillon d'Exercice : Nom valide et paramètres valides par la
@@ -336,9 +385,16 @@ export function ActivityEditorForm({
   finishSlotTestID,
   finishActionTestID,
   errorTestID,
+  variant = "exercise",
+  movementPhases = null,
+  autoFocusName = false,
+  bodyLocked = false,
+  keepNameFocusOnSubmit = false,
 }: ActivityEditorFormProps) {
+  const isMovement = variant === "movement";
   const windowSize = useWindowDimensions();
   const sideMargin = editorSideMargin(windowSize.width);
+  const movementPhotoHeight = Math.round((windowSize.width * MOVEMENT_PHOTO_TEMPLATE.height) / MOVEMENT_PHOTO_TEMPLATE.width);
   // PRE-6 story 7.10 (D-444) : `Terminer` est porté par la zone d'action principale fixe
   // (`PrimaryActionZone` : zone protégée, bouton centré — correctif J6f —, dégradé) ; le corps réserve sa hauteur.
   const actionZone = usePrimaryActionZone();
@@ -371,10 +427,29 @@ export function ActivityEditorForm({
   // clavier, à chaque changement d'étape et à chaque changement de sa hauteur.
   // Terminer reste en bas, sous le clavier.
   const bodyScrollRef = useRef<ScrollView>(null);
+  // KBD : focus d'une étape de Description ou d'une Phase, clavier (haut dans la fenêtre, durée),
+  // cadre de la couche éditable (haut au repos, bas fixe) et remontée courante, en points.
+  const editableFocusRef = useRef({ description: false, phases: false });
+  const movementKeyboardRef = useRef({
+    shown: false,
+    top: 0,
+    duration: MOVEMENT_EDITOR_LIFT_MS,
+    restTop: 0,
+    bottom: 0,
+    lift: 0,
+    scrollY: 0,
+  });
   const [isDescriptionFocused, setIsDescriptionFocused] = useState(false);
   const descriptionLayoutRef = useRef({ sectionY: 0, stepsY: 0, activeRowBottom: 0 });
   const bodyHeightRef = useRef(0);
+  // Recadrages courants, relus par les écoutes du clavier (mis à jour après chaque rendu).
+  const revealRefs = useRef({ description: () => undefined as void, phases: () => undefined as void });
   function revealDescription() {
+    // KBD : fiche Mouvement — remontée de la couche puis défilement complémentaire.
+    if (isMovement) {
+      adjustMovementLayer();
+      return;
+    }
     const { sectionY, stepsY, activeRowBottom } = descriptionLayoutRef.current;
     const viewport = bodyHeightRef.current;
     if (viewport <= 0) return;
@@ -383,9 +458,144 @@ export function ActivityEditorForm({
   }
   useEffect(() => {
     if (!isDescriptionFocused) return;
-    const subscription = Keyboard.addListener("keyboardDidShow", () => revealDescription());
+    const subscription = Keyboard.addListener("keyboardDidShow", () => revealRefs.current.description());
     return () => subscription.remove();
   }, [isDescriptionFocused]);
+  // Recette A/B B.10 (b2-4) : Phases du mouvement — même recadrage que la Description, sur le bas
+  // du bloc (la ligne d'invite, dernière, est la ligne en saisie ou juste sous elle).
+  const [isPhasesFocused, setIsPhasesFocused] = useState(false);
+  const phasesLayoutRef = useRef({ y: 0, height: 0 });
+  // Recette du 27/10 (r11-remontee) : bas de la phase en saisie, relatif au haut du bloc (0 : inconnu).
+  const phasesActiveBottomRef = useRef(0);
+  function revealPhases() {
+    if (isMovement) {
+      adjustMovementLayer();
+      return;
+    }
+    const { y, height } = phasesLayoutRef.current;
+    const viewport = bodyHeightRef.current;
+    if (viewport <= 0) return;
+    bodyScrollRef.current?.scrollTo({ y: Math.max(0, y + height + DESCRIPTION_KEYBOARD_GAP - viewport), animated: true });
+  }
+  useEffect(() => {
+    if (!isPhasesFocused) return;
+    const subscription = Keyboard.addListener("keyboardDidShow", () => revealRefs.current.phases());
+    return () => subscription.remove();
+  }, [isPhasesFocused]);
+  // KBD (voir `MOVEMENT_EDITOR_LIFT_MS`) : remontée de la couche éditable devant le média fixe.
+  // Recette du 27/10 (r10-kbd-description, r10-kbd-derniere) : la couche ne remonte que de ce qu'il
+  // faut pour poser le champ actif (étape en saisie, ou bas des Phases) juste au-dessus du clavier,
+  // au plus jusqu'au bas de la zone de contexte ; au-delà, le contenu défile. La réserve basse du
+  // défilement est la part de la couche recouverte par le clavier, mesurée dans la fenêtre (la zone
+  // d'évitement du clavier, en coordonnées relatives, ne la calculait plus une fois la couche
+  // déplacée). « Réduire les animations » : remontée immédiate.
+  const reduceMotion = useReduceMotion();
+  const editableLift = useSharedValue(0);
+  const editableLayerRef = useRef<View>(null);
+  // État rendu de la remontée (recalcule le style animé ; lisible par les tests).
+  const [editableLiftPx, setEditableLiftPx] = useState(0);
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [isMovementKeyboardShown, setIsMovementKeyboardShown] = useState(false);
+  // Recette A/B B.10 (b2-5) : fiche Mouvement — panneau posé sous la zone de contexte, au-dessus
+  // d'elle dans l'ordre d'affichage (elle passe au-dessus du média depuis F01). Hauteur relue aussi
+  // par la limite de remontée de la couche éditable (r11-remontee).
+  const [bandHeight, setBandHeight] = useState(0);
+  function setMovementLift(target: number) {
+    const k = movementKeyboardRef.current;
+    // Recette du 27/10 (r11-remontee) : la couche monte au plus jusqu'à la part opaque de la zone de
+    // contexte — elle glisse sous son fondu, qui se pose sur le fond blanc translucide du formulaire.
+    const liftMax = Math.max(
+      0,
+      movementPhotoHeight - MOVEMENT_PHOTO_UNDER_CONTEXT + Math.round(bandHeight * CONTEXT_BAND_FADE_RATIO),
+    );
+    const next = Math.round(Math.max(0, Math.min(liftMax, target)));
+    if (Math.abs(next - k.lift) < 1) return;
+    k.lift = next;
+    setEditableLiftPx(next);
+    editableLift.set(reduceMotion ? next : withTiming(next, movementEditorLiftTiming(k.duration)));
+  }
+  function movementKeyboardInset(): number {
+    const k = movementKeyboardRef.current;
+    return k.shown ? Math.max(0, k.bottom - k.top) : 0;
+  }
+  function adjustMovementLayer() {
+    const k = movementKeyboardRef.current;
+    const focus = editableFocusRef.current;
+    if (!k.shown || (!focus.description && !focus.phases)) return;
+    const description = descriptionLayoutRef.current;
+    const phases = phasesLayoutRef.current;
+    const descriptionActiveBottom = description.sectionY + description.stepsY + description.activeRowBottom;
+    // Hauteur visible du défilement, couche au repos, clavier ouvert.
+    const restVisible = k.bottom - k.restTop - movementKeyboardInset();
+    // Recette du 27/10 (r11-remontee, demande de Hermann) : la couche remonte jusqu'à poser le bas des
+    // Phases (ligne d'invite comprise) juste au-dessus du clavier, et y reste tant que le clavier est
+    // ouvert, quels que soient les changements de champ ou de contenu (elle ne redescend jamais ;
+    // elle peut encore monter si le contenu s'allonge), au plus jusqu'à la part opaque de la zone de
+    // contexte. Au-delà, le défilement prend la main.
+    const contentBottom = (phases.height > 0 ? phases.y + phases.height : descriptionActiveBottom) + DESCRIPTION_KEYBOARD_GAP;
+    setMovementLift(Math.max(k.lift, contentBottom - k.scrollY - restVisible));
+    // Défilement complémentaire, seulement si la ligne en saisie (Entrée : la ligne qui suit) est cachée.
+    const activeBottom =
+      (focus.description
+        ? descriptionActiveBottom
+        : phases.y + (phasesActiveBottomRef.current > 0 ? phasesActiveBottomRef.current : phases.height)) +
+      DESCRIPTION_KEYBOARD_GAP;
+    const overflow = activeBottom - (k.scrollY + restVisible + k.lift);
+    if (overflow > 1) bodyScrollRef.current?.scrollTo({ y: k.scrollY + overflow, animated: !reduceMotion });
+  }
+  const adjustMovementLayerRef = useRef(adjustMovementLayer);
+  const setMovementLiftRef = useRef(setMovementLift);
+  useEffect(() => {
+    adjustMovementLayerRef.current = adjustMovementLayer;
+    setMovementLiftRef.current = setMovementLift;
+    revealRefs.current = { description: revealDescription, phases: revealPhases };
+  });
+  useEffect(() => {
+    if (!isMovement) return;
+    const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
+      const k = movementKeyboardRef.current;
+      k.shown = true;
+      k.top = event.endCoordinates.screenY;
+      if (event.duration > 0) k.duration = event.duration;
+      setKeyboardInset(Math.max(0, k.bottom - k.top));
+      setIsMovementKeyboardShown(true);
+      adjustMovementLayerRef.current();
+    });
+    const hide = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide", (event) => {
+      const k = movementKeyboardRef.current;
+      k.shown = false;
+      if (event.duration > 0) k.duration = event.duration;
+      setKeyboardInset(0);
+      setIsMovementKeyboardShown(false);
+      setMovementLiftRef.current(0);
+    });
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, [isMovement]);
+  function measureEditableLayer() {
+    editableLayerRef.current?.measureInWindow((_x, y, _width, height) => {
+      const k = movementKeyboardRef.current;
+      if (height <= 0) return;
+      k.bottom = y + height;
+      // Haut au repos : relevé seulement couche non remontée.
+      if (k.lift === 0) k.restTop = y;
+    });
+  }
+  const editableLayerStyle = useAnimatedStyle(() => ({ marginTop: -editableLift.get() }), [editableLiftPx]);
+  const onDescriptionFocusChange = (focused: boolean) => {
+    setIsDescriptionFocused(focused);
+    editableFocusRef.current.description = focused;
+    if (focused) adjustMovementLayer();
+  };
+  const onPhasesFocusChange = (focused: boolean) => {
+    setIsPhasesFocused(focused);
+    editableFocusRef.current.phases = focused;
+    if (focused) adjustMovementLayer();
+  };
+  // Recette A/B B.10 (b2-5) : contenu hors Nom verrouillé tant que le nom saisi est déjà utilisé.
+  const isBodyLocked = contentLocked || bodyLocked;
   // PRE-7 (D-446, MFN-08) : durée de phase manquante → « Paramètres à compléter. », comme lorsque
   // la Cible d'un frère incomplet était forcée à `UNSET` (phrase `null`) avant D-446.
   const segments = parameters.mode === null || hasMissingPhaseDuration(parameters) ? null : generateExecutionPhrase(parameters);
@@ -430,6 +640,25 @@ export function ActivityEditorForm({
   // un champ d'étape, exclu de cette capture, y déplacerait la saisie). Hors saisie du Nom,
   // `handled` est inchangé (barre d'accessoire, ↑ de la Description D-351, étapes D-425).
   const [isNameFocused, setIsNameFocused] = useState(false);
+  // Recette du 27/10 (remarque 3) : menu Niveau natif (iOS) affiché — voile transparent qui absorbe
+  // le toucher hors du menu (le système ferme le menu) ; il se retire aussi au premier toucher.
+  const [isNativeLevelMenuOpen, setIsNativeLevelMenuOpen] = useState(false);
+  // Recette du 27/10 (r11-menu-dehors) : le signal d'apparition du menu ne venait qu'à la première
+  // ouverture — à chaque fermeture, l'hôte natif du menu est recréé (génération suivante) pour que
+  // l'ouverture suivante le signale de nouveau.
+  const [levelMenuGeneration, setLevelMenuGeneration] = useState(0);
+  function onNativeLevelMenuVisibilityChange(visible: boolean) {
+    setIsNativeLevelMenuOpen(visible);
+    if (!visible) setLevelMenuGeneration((generation) => generation + 1);
+  }
+  // Recette du 27/10 (r11-remontee, demande de Hermann) : clavier ouvert sur la Description ou les
+  // Phases, Nom, Catégorie, Zones et Niveau sont inactifs — un toucher sur la zone de contexte ferme
+  // seulement le clavier (et le formulaire reprend sa place).
+  const isEditableKeyboardOpen = isMovement && (isDescriptionFocused || isPhasesFocused) && isMovementKeyboardShown;
+  // Recette du 27/10 (r13-limite, demande de Hermann) : fiche Mouvement, clavier ouvert — le défilement
+  // s'arrête quand la dernière ligne des Phases est juste au-dessus du clavier : la réserve de la zone
+  // d'action (masquée par le clavier) est remplacée par l'écart au clavier.
+  const bodyBottomReserve = isMovement && isMovementKeyboardShown ? DESCRIPTION_KEYBOARD_GAP : actionZone.scrollReserve;
 
   function openSheet() {
     Keyboard.dismiss();
@@ -445,6 +674,24 @@ export function ActivityEditorForm({
     }
   }
 
+  function renderMediaList(template?: { readonly width: number; readonly height: number }) {
+    return (
+      <ActivityMediaList
+        media={value.media}
+        pending={media.pending}
+        notice={media.notice}
+        canImport={mediaService !== null && mediaService.supportsMediaImport}
+        resolveUri={(uri) => (mediaService ? mediaService.resolveMediaUri(uri) : uri)}
+        onAdd={media.importFromLibrary}
+        onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
+        onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
+        onRetry={media.retry}
+        editable={!isBodyLocked}
+        {...(template ? { template } : {})}
+      />
+    );
+  }
+
   function applyParameters(next: ExecutionParameters) {
     onChange({ executionParameters: next });
     closeSheet();
@@ -453,20 +700,37 @@ export function ActivityEditorForm({
   return (
     <>
       <View
-        style={[styles.contextBand, { paddingHorizontal: sideMargin }]}
-        onLayout={(event) => setBandY(event.nativeEvent.layout.y)}
+        style={[styles.contextBand, isMovement ? styles.movementContextBand : null, { paddingHorizontal: sideMargin }]}
+        onLayout={(event) => {
+          setBandY(event.nativeEvent.layout.y);
+          setBandHeight(event.nativeEvent.layout.height);
+        }}
         testID="exercise-context-band"
       >
+        {/* PRE-8, recette A/B (F01) : sur la fiche Mouvement, la « Zone bleue » se fond dans le média
+            qui passe dessous (`#EAEAFF` → transparent, Figma `10453:23033`), sans bande blanche. */}
+        {isMovement ? (
+          <View pointerEvents="none" style={styles.movementContextBandFill} testID="movement-context-band-fill">
+            <View style={styles.movementContextBandSolid} />
+            <View style={styles.contextBandFade}>
+              {MOVEMENT_CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+                <View key={layer.bottom} style={[styles.movementContextBandFadeLayer, { bottom: layer.bottom, opacity: layer.opacity }]} />
+              ))}
+            </View>
+          </View>
+        ) : null}
         {/* Recette 1 (T-49) — effets figés de la « Zone bleue » (3542:4656, ch. 12 l.1490) :
             fondu vers le fond de l’écran sur les 20 % inférieurs, puis « Halo blanc —
             bouton Annuler » (5752:4044, Ø 59,28) concentrique au bouton Retour de
             l’en-tête, dont seule la partie qui déborde dans la zone est visible. Tous deux
             sous le contenu, sans interaction. */}
-        <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
-          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
-          ))}
-        </View>
+        {isMovement ? null : (
+          <View pointerEvents="none" style={styles.contextBandFade} testID="exercise-context-band-fade">
+            {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+              <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
+            ))}
+          </View>
+        )}
         {/* Story 4.2 (AC5) : halo concentrique au ✕ ; PRE-5 3.2 (G-1) : centre du ✕ de l'en-tête
             de l'Éditeur (`EDITOR_HEADER.backCenterX`, cible à 12 du bord). */}
         <View
@@ -484,8 +748,15 @@ export function ActivityEditorForm({
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
-          onFocus={() => setIsNameFocused(true)}
+          onFocus={() => {
+            setIsNameFocused(true);
+            // KBD : la saisie du Nom n'est pas concernée — la couche éditable reprend sa place.
+            setMovementLift(0);
+          }}
           onBlur={() => setIsNameFocused(false)}
+          autoFocus={autoFocusName}
+          // Recette A/B B.10 (b2-5) : nom déjà utilisé — Entrée ne quitte pas le Nom (clavier conservé).
+          {...(keepNameFocusOnSubmit ? { submitBehavior: "submit" as const } : {})}
           {...(onNameEndEditing ? { onEndEditing: onNameEndEditing } : {})}
           // PRE-7 (R-5, C02) : l'invite grise est annoncée, sans entrer dans la valeur.
           {...(nameHint ? { accessibilityHint: nameHint } : {})}
@@ -531,14 +802,14 @@ export function ActivityEditorForm({
             ref={categoryAccess}
             onPress={onOpenCategory}
             // PRE-7 (A2.2, MFN-09) : Catégorie du geste verrouillé, affichée sans accès.
-            {...(contentLocked ? { disabled: true } : {})}
+            {...(isBodyLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             accessibilityLabel={
               category ? `${editor.category.label} ${category.name}` : editor.category.unsetAccessibilityLabel
             }
             // Revue 4.3 : feuille ouverte annoncée « développé », Catégorie renseignée comprise
             // (le glyphe d'une Catégorie renseignée n'a pas d'état ouvert visuel : écart E-V12).
-            accessibilityState={contentLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
+            accessibilityState={isBodyLocked ? { expanded: isCategoryPickerOpen, disabled: true } : { expanded: isCategoryPickerOpen }}
             hitSlop={accessHitSlop}
             style={[styles.referenceAccess, category ? null : styles.referenceAccessUnset]}
             testID="activity-editor-category-button"
@@ -570,7 +841,7 @@ export function ActivityEditorForm({
               bodyZonesSheet.open();
             }}
             // PRE-7 (A2.2, MFN-09) : Zones du geste verrouillé, affichées sans accès.
-            {...(contentLocked ? { disabled: true } : {})}
+            {...(isBodyLocked ? { disabled: true } : {})}
             accessibilityRole="button"
             // Revue 4.3 (WCAG 2.5.3) : le nom accessible contient le texte visible —
             // « Zone corporelle — non renseignée » au repos, comme la Catégorie ; renseigné,
@@ -580,7 +851,7 @@ export function ActivityEditorForm({
                 ? `${t.bodyZones.accessibilityLabel} ${zoneNames.join(", ")}`
                 : t.bodyZones.unsetAccessibilityLabel
             }
-            accessibilityState={contentLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
+            accessibilityState={isBodyLocked ? { expanded: isBodyZonePickerOpen, disabled: true } : { expanded: isBodyZonePickerOpen }}
             hitSlop={accessHitSlop}
             style={[
               styles.referenceAccess,
@@ -627,20 +898,65 @@ export function ActivityEditorForm({
                   });
                 });
               }}
+              onNativeMenuVisibilityChange={onNativeLevelMenuVisibilityChange}
+              nativeMenuGeneration={levelMenuGeneration}
               testID="activity-editor-level"
             />
           ) : null}
         </View>
+        {isEditableKeyboardOpen ? (
+          <Pressable
+            onPress={() => Keyboard.dismiss()}
+            accessible={false}
+            importantForAccessibility="no"
+            style={styles.contextKeyboardShield}
+            testID="movement-context-keyboard-shield"
+          />
+        ) : null}
       </View>
 
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      {isMovement ? (
+        // PRE-8 (B.2, CE-MVT-01 §7, §9) ; recette A/B (F01, F02) : média pleine largeur, fixe, sous la
+        // zone de contexte (qui le recouvre de `MOVEMENT_PHOTO_UNDER_CONTEXT`) et hors du défilement du
+        // contenu inférieur. Le gabarit garde sa hauteur sans média (ajout depuis le gabarit vide).
+        // La hauteur suit la largeur du terminal (402 × 329 en référence).
+        // KBD (27/10) : le gabarit ne bouge jamais avec le clavier ; la couche éditable passe devant.
+        <View style={[styles.movementPhotoTemplate, { height: movementPhotoHeight }]} testID="movement-photo-template">
+          {renderMediaList({ width: windowSize.width, height: movementPhotoHeight })}
+        </View>
+      ) : null}
+
+      {/* KBD : couche éditable — au-dessus du média (ordre d'affichage), sous la zone de contexte
+          (`zIndex` 1) ; sa marge haute animée la fait remonter devant le média pendant la saisie. */}
+      <Reanimated.View
+        style={[styles.flex, isMovement ? [styles.movementEditableLayer, editableLayerStyle] : null]}
+        testID={editableLiftPx > 0 ? "movement-editable-layer-lifted" : "movement-editable-layer"}
+      >
+      <View ref={editableLayerRef} style={styles.flex} onLayout={isMovement ? measureEditableLayer : undefined}>
+      {/* KBD : fiche Mouvement — réserve basse mesurée dans la fenêtre (`keyboardInset`) à la place de
+          l'évitement relatif du clavier ; Éditeur d'Exercice inchangé.
+          Recette du 27/10 (r12-limite) : sans comportement pour la fiche Mouvement — en `padding`, la
+          zone d'évitement, même désactivée, remplaçait cette réserve par 0 : le défilement passait sous
+          le clavier et la fin du contenu restait inatteignable. */}
+      <KeyboardAvoidingView
+        style={[styles.flex, isMovement ? { paddingBottom: keyboardInset } : null]}
+        behavior={Platform.OS === "ios" && !isMovement ? "padding" : undefined}
+        enabled={!isMovement}
+        testID="editor-keyboard-reserve"
+      >
         <ScrollView
           ref={bodyScrollRef}
           style={styles.body}
-          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: actionZone.scrollReserve }]}
-          scrollIndicatorInsets={{ bottom: actionZone.scrollReserve }}
+          contentContainerStyle={[styles.bodyContent, { paddingHorizontal: sideMargin, paddingBottom: bodyBottomReserve }]}
+          scrollIndicatorInsets={{ bottom: bodyBottomReserve }}
           // Recette JA (26/10/2026) : `never` pendant la saisie du Nom seulement (voir `isNameFocused`).
-          keyboardShouldPersistTaps={isNameFocused ? "never" : "handled"}
+          // Recette du 27/10 (r10-kbd-description) : fiche Mouvement — toucher le formulaire hors d'un
+          // champ (titre de section…) ne ferme pas le clavier (`always`) ; Éditeur d'Exercice inchangé.
+          keyboardShouldPersistTaps={isNameFocused ? "never" : isMovement ? "always" : "handled"}
+          onScroll={(event) => {
+            movementKeyboardRef.current.scrollY = event.nativeEvent.contentOffset.y;
+          }}
+          scrollEventThrottle={16}
           onLayout={(event) => {
             bodyHeightRef.current = event.nativeEvent.layout.height;
             if (isDescriptionFocused) revealDescription();
@@ -655,8 +971,10 @@ export function ActivityEditorForm({
             }}
             testID="exercise-section-description"
           >
-            <Text style={styles.sectionTitle} accessibilityRole="header">
-              {t.instruction.label}
+            {/* PRE-8, recette A/B (F03) : « Description du mouvement » sur la fiche Mouvement (Figma
+                `10453:23036`) ; libellé de l'Éditeur d'Exercice inchangé. */}
+            <Text style={styles.sectionTitle} accessibilityRole="header" testID="activity-editor-description-title">
+              {isMovement ? strings.screens.movement.descriptionTitle : t.instruction.label}
             </Text>
             {/* PRE-5 story 3.1 (FR-33, D-425) : étapes numérotées, sans contenant (§9-2) ;
                 Entrée crée l'étape suivante. La place de ↑ reste réservée à droite. */}
@@ -673,8 +991,8 @@ export function ActivityEditorForm({
               <DescriptionSteps
                 steps={value.instructionSteps}
                 onChange={(steps) => onChange({ instructionSteps: steps })}
-                editable={!contentLocked}
-                onFocusChange={setIsDescriptionFocused}
+                editable={!isBodyLocked}
+                onFocusChange={onDescriptionFocusChange}
                 onActiveRowBottomChange={(bottom) => {
                   descriptionLayoutRef.current.activeRowBottom = bottom;
                   revealDescription();
@@ -698,6 +1016,47 @@ export function ActivityEditorForm({
             ) : null}
           </View>
 
+          {isMovement ? (
+            // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
+            movementPhases ? (
+              <View
+                style={[styles.section, styles.followingSection]}
+                onLayout={(event) => {
+                  phasesLayoutRef.current = { y: event.nativeEvent.layout.y, height: event.nativeEvent.layout.height };
+                  if (isPhasesFocused) revealPhases();
+                }}
+                testID="movement-section-phases"
+              >
+                {/* Recette A/B B.10 (b2-4) : même place réservée et même ↑ que la Description (D-351) :
+                    ↑ ferme seulement le clavier, rien n'est enregistré. */}
+                <View style={styles.descriptionStepsWithSend}>
+                  <MovementPhasesEditor
+                    value={movementPhases.value}
+                    onChange={movementPhases.onChange}
+                    editable={!isBodyLocked}
+                    onFocusChange={onPhasesFocusChange}
+                    onActiveRowBottomChange={(bottom) => {
+                      phasesActiveBottomRef.current = bottom;
+                      if (isPhasesFocused) revealPhases();
+                    }}
+                  />
+                </View>
+                {isPhasesFocused ? (
+                  <Pressable
+                    onPress={() => Keyboard.dismiss()}
+                    accessibilityRole="button"
+                    accessibilityLabel={strings.screens.movement.phasesSubmitAccessibilityLabel}
+                    hitSlop={(minTouchTarget - DESCRIPTION_SEND_SIZE) / 2}
+                    style={styles.descriptionSend}
+                    testID="movement-phases-submit"
+                  >
+                    <Text style={styles.descriptionSendSymbol}>↑</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null
+          ) : (
+            <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}
           <View style={[styles.section, styles.followingSection]} testID="exercise-section-parameters">
@@ -734,28 +1093,24 @@ export function ActivityEditorForm({
               </Text>
             </Pressable>
           </View>
+            </>
+          )}
 
           {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
-              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran. */}
+              (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran.
+              PRE-8 (B.2) : section absente de la fiche Mouvement (médias dans le gabarit photo). */}
+          {isMovement ? null : (
           <View style={[styles.section, styles.followingSection]} testID="activity-editor-section-media">
             <Text style={styles.accessibilityOnlyTitle} accessibilityRole="header" testID="activity-editor-media-title">
               {strings.executionParameters.media.section}
             </Text>
-            <ActivityMediaList
-              media={value.media}
-              pending={media.pending}
-              notice={media.notice}
-              canImport={mediaService !== null && mediaService.supportsMediaImport}
-              resolveUri={(uri) => (mediaService ? mediaService.resolveMediaUri(uri) : uri)}
-              onAdd={media.importFromLibrary}
-              onRemove={(index) => onChange({ media: value.media.filter((_, position) => position !== index) })}
-              onMove={(from, to) => onChange({ media: moveDraftMedia(value.media, from, to) })}
-              onRetry={media.retry}
-              editable={!contentLocked}
-            />
+            {renderMediaList()}
           </View>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
+      </View>
+      </Reanimated.View>
 
       {/* Recette 2 (N-05) : hors de la zone qui évite le clavier — Terminer ne remonte
           jamais avec le clavier (Android : zone masquée clavier ouvert, revue 7.10) ; il redevient
@@ -770,6 +1125,16 @@ export function ActivityEditorForm({
         ) : null}
         <PrimaryActionButton label={finishLabel} onPress={onFinish} disabled={finishDisabled} testID={finishActionTestID} />
       </PrimaryActionZone>
+
+      {isNativeLevelMenuOpen ? (
+        <Pressable
+          onPress={() => onNativeLevelMenuVisibilityChange(false)}
+          accessible={false}
+          importantForAccessibility="no"
+          style={styles.levelMenuShield}
+          testID="activity-editor-level-menu-shield"
+        />
+      ) : null}
 
       {isSheetOpen ? (
         <ExecutionParametersSheet
@@ -813,14 +1178,14 @@ export function ActivityEditorForm({
         // PRE-7 (R-5, v7 §6 R03-R04 ; `9882:19049`) : panneau superposé sous le nom, clavier visible,
         // dans un hôte qui couvre l'Éditeur (un toucher hors des limites du parent n'atteint pas ses
         // enfants sur Android) ; l'hôte laisse passer les touchers hors du panneau.
-        <View pointerEvents="box-none" style={styles.levelPanelHost} testID="exercise-name-assist-host">
+        <View pointerEvents="box-none" style={[styles.levelPanelHost, isMovement ? styles.movementOverlayHost : null]} testID="exercise-name-assist-host">
           <View
             ref={nameAssistRef}
             onLayout={() => nameAssistRef.current?.measureInWindow((_x, y) => setNameAssistTop(y))}
             style={[
               styles.nameAssist,
               {
-                top: bandY + nameLayout.y + nameLayout.height,
+                top: isMovement ? bandY + bandHeight : bandY + nameLayout.y + nameLayout.height,
                 left: sideMargin,
                 right: sideMargin,
                 maxHeight: nameAssistMaxHeight,
@@ -834,7 +1199,12 @@ export function ActivityEditorForm({
       ) : null}
 
       {levelMenu && Platform.OS !== "ios" ? (
-        <View ref={levelPanelHostRef} pointerEvents="box-none" style={styles.levelPanelHost} testID="activity-editor-level-panel-host">
+        <View
+          ref={levelPanelHostRef}
+          pointerEvents="box-none"
+          style={[styles.levelPanelHost, isMovement ? styles.movementOverlayHost : null]}
+          testID="activity-editor-level-panel-host"
+        >
           {levelPanelPlacement !== null ? (
             <MovementLevelPanel
               menu={levelMenu}
@@ -1036,6 +1406,8 @@ const PHRASE_LINE_HEIGHT = 20;
 const BACK_HALO_DIAMETER = 59.28;
 /** Fondu figé : opaque jusqu’à 80 %, transparent à 100 % (GRADIENT_LINEAR de la « Zone bleue »). */
 const CONTEXT_BAND_FADE_SHARE = "20%";
+/** Même part, en fraction de la hauteur de la zone (limite haute de la couche éditable, r11-remontee). */
+const CONTEXT_BAND_FADE_RATIO = 0.2;
 /**
  * Recette 2 (T-49) : couches SUPERPOSÉES, chacune de son seuil jusqu’au bas de la
  * zone — aucun interstice entre bandes, donc aucun trait parasite. L’opacité de
@@ -1051,9 +1423,76 @@ const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_CO
   };
 });
 
+/**
+ * PRE-8, recette A/B (F01) : rampe inverse de `CONTEXT_BAND_FADE_LAYERS` — couches `#EAEAFF`
+ * superposées, ancrées en haut de la part fondue, dont l'opacité cumulée descend de 1 à 0.
+ */
+const MOVEMENT_CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
+  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
+  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
+  return {
+    bottom: `${(before * 100).toFixed(4)}%` as `${number}%`,
+    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
+  };
+});
+
 const styles = StyleSheet.create({
   flex: {
     flex: 1,
+  },
+  // F01 : fond porté par le dégradé ; la zone passe au-dessus du média qui la prolonge.
+  movementContextBand: {
+    backgroundColor: "transparent",
+    zIndex: 1,
+  },
+  movementContextBandFill: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  movementContextBandSolid: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: CONTEXT_BAND_FADE_SHARE,
+    backgroundColor: colors.exerciseEditorContextBand,
+  },
+  movementContextBandFadeLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: colors.exerciseEditorContextBand,
+  },
+  movementPhotoTemplate: {
+    marginTop: -MOVEMENT_PHOTO_UNDER_CONTEXT,
+    overflow: "hidden",
+    backgroundColor: colors.mediaSurface,
+  },
+  // r11-remontee (27/10) : voile de la zone de contexte clavier ouvert, sans rendu.
+  contextKeyboardShield: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 2,
+  },
+  // Remarque 3 (27/10) : voile du menu Niveau natif, au-dessus de tout l'écran, sans rendu.
+  levelMenuShield: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 10,
+  },
+  // KBD : surface claire translucide de la couche éditable, qui recouvre le média quand elle remonte.
+  movementEditableLayer: {
+    backgroundColor: colors.movementEditableSurface,
   },
   contextBand: {
     // Le halo déborde au-dessus de la zone : seule la partie interne est dessinée.
@@ -1159,6 +1598,10 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
+  },
+  // Recette A/B B.10 (b2-5) : au-dessus de la zone de contexte de la fiche Mouvement (`zIndex` 1, F01).
+  movementOverlayHost: {
+    zIndex: 2,
   },
   referenceAccessUnset: {
     backgroundColor: ACCESS_UNSET_VEIL,

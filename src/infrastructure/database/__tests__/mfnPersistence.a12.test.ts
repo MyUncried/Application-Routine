@@ -343,9 +343,9 @@ describe("PRE-7 A1.2 — persistance MFN des définitions et des copies (NodeSql
     };
     const before = sequence;
     const session = await save({ ...createEmptyDraft(), name: "Gainage", exercises: [local] });
-    // Séance, Cycle et Tour : aucun identifiant pour le Mouvement local ni ses liens (PRE-7, R-3 : plus
-    // aucun lien de média propre à l'occurrence).
-    expect(sequence - before).toBe(3);
+    // Séance et Circuit (PRE-8, A.4 : plus de Cycle technique) : aucun identifiant pour le Mouvement
+    // local ni ses liens (PRE-7, R-3 : plus aucun lien de média propre à l'occurrence).
+    expect(sequence - before).toBe(2);
     expect(occurrencesOf(session).map((item) => item.sourceMovementId)).toEqual(["occ-local"]);
     expect(await movements().findById("occ-local")).toEqual({
       id: "occ-local",

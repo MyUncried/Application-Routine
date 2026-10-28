@@ -120,6 +120,8 @@ export const fr = {
     history: "Suivi",
     profile: "Profil",
     search: "Recherche",
+    // PRE-8 (E01) : destination visible et désactivée, sans écran.
+    community: "Communauté",
   },
   screens: {
     notFound: {
@@ -175,6 +177,8 @@ export const fr = {
         message:
           "Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.",
       },
+      // PRE-8 (epic E, Q-E6) : liste sans résultat après filtrage, distincte du Catalogue vide.
+      noMatch: "Aucune séance ne correspond aux filtres.",
       error: {
         message: "Impossible de charger vos séances.",
         retry: "Réessayer",
@@ -193,6 +197,38 @@ export const fr = {
         // `sessionId`).
         openAccessibilityLabel: "Modifier la séance",
       },
+      // PRE-8 (epic E, E.2 et E.3) : carte unique du Catalogue des séances (spécification du 27/10).
+      catalogueCard: {
+        categoriesOverflow: "+{count}",
+        expandAccessibilityLabel: "Afficher la composition de {name}",
+        collapseAccessibilityLabel: "Masquer la composition de {name}",
+        // CE-T03-01 : destination non livrée, explicitement indisponible.
+        playUnavailableAccessibilityLabel: "Lancer la séance — indisponible",
+        archivedAccessibility: "archivée",
+        cycleLine: "Cycle · {count} {unit}",
+        cycleUnit: { singular: "répétition", plural: "répétitions" },
+        circuitLine: "Circuit · {count} {unit}",
+        recovery: "Récupération",
+        compositionAccessibilityLabel: "Composition de la séance",
+        // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
+        actions: {
+          plan: "Planifier",
+          duplicate: "Dupliquer",
+          archive: "Archiver",
+          restore: "Restaurer",
+          delete: "Supprimer",
+        },
+        archived: "Séance archivée",
+        restored: "Séance restaurée",
+        undo: "Annuler",
+        deleteConfirm: {
+          title: "Supprimer cette séance ?",
+          message: "Cette séance archivée sera définitivement supprimée. Cette action est irréversible.",
+          cancel: "Annuler",
+          confirm: "Confirmer",
+        },
+        actionError: "L’action n’a pas pu être effectuée.",
+      },
       // V2-CAT-01 : arbre `Créer` du Catalogue — ancré à `Créer`, conserve la
       // rangée `Créer / Filtrer / Trier` sous le scrim. Seule `Une nouvelle
       // activité` est active dans cette tranche.
@@ -205,6 +241,37 @@ export const fr = {
       },
       filterAction: "Filtrer",
       sortAction: "Trier",
+      // PRE-8 (epic E, E.4 ; spécification du 27/10 §4) : segmenté à trois entrées, Programmes visible
+      // et indisponible ; bascule de vue « Un exercice | Plusieurs ».
+      programsSegment: "Programmes",
+      programsUnavailableAccessibilityLabel: "Programmes — indisponible",
+      programsTitle: "Catalogue des programmes",
+      view: {
+        single: "Un exercice",
+        multiple: "Plusieurs",
+        selectHint: "Affiche seulement ces séances",
+        deselectHint: "Touchez de nouveau pour afficher toutes les séances",
+      },
+      // PRE-8 (epic E, E.6 ; spécification du 27/10 §6, Figma 4168:11149) : panneau de filtres.
+      catalogueFilters: {
+        command: "Filtres",
+        title: "Filtres",
+        close: "Fermer",
+        apply: "Appliquer les filtres",
+        reset: "Réinitialiser",
+        status: "Statut des séances",
+        active: "Actives",
+        archived: "Archivées",
+        categories: "Catégories",
+        bodyZones: "Zones corporelles",
+        labels: "Étiquettes",
+        format: "Format",
+        formatUnavailable: "{name} — indisponible",
+        activeSummary: "{count} filtres",
+        activeSummarySingular: "{count} filtre",
+        clearAccessibility: "Réinitialiser les filtres",
+        editAccessibility: "Modifier les filtres",
+      },
     },
     // V2-CAT-01 : Catalogue des activités — segment `Activités` du Catalogue,
     // liste/création/modification d'`ActivityDefinition` persistantes.
@@ -300,6 +367,10 @@ export const fr = {
           addEasier: "Plus facile",
           addHarder: "Plus difficile",
           levelOption: "Niveau {rank} sur {total} · {name}",
+          // Recette A/B B.10 (q6-2) : un niveau archivé est signalé dans le menu.
+          levelOptionArchived: "Niveau {rank} sur {total} · {name} (archivé)",
+          // Recette A/B B.10 (b2-8) : sous-menu des niveaux de la fiche Mouvement (Catalogue des Mouvements).
+          openOtherLevel: "Ouvrir un autre niveau",
           // PRE-7 story A3.2 : accès à l’écran des niveaux (aucun libellé documenté ; verbe de ch03
           // l.154 « glisser réordonne les niveaux »). R-9 (D-448 point 9) : troisième entrée de la
           // racine du menu, retirée du sous-menu des niveaux.
@@ -387,6 +458,8 @@ export const fr = {
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
+        // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
+        editAccessibilityLabel: "Modifier l’exercice {name}",
       },
       addToSession: {
         newActivity: "Un nouvel exercice",
@@ -432,6 +505,11 @@ export const fr = {
         notFoundMessage: "Cette séance est introuvable.",
         archivedMessage: "Cette séance est archivée et ne peut pas être modifiée.",
         backToCatalogue: "Revenir au catalogue",
+      },
+      // Recette E du 28/10/2026 (Hermann, e5-12) : une Séance archivée s’ouvre en consultation seule.
+      consultation: {
+        title: "Séance archivée",
+        notice: "Séance archivée : consultation seule. Restaurez-la depuis le Catalogue pour la modifier.",
       },
       // PRE-6 (story 3.1, CIR-10, Figma `8328:28667`) : en-tête du Circuit — titre, unité du
       // compteur accordée selon la nature (N = 1 singulier) et nom VoiceOver du réglage.
@@ -1045,6 +1123,132 @@ export const fr = {
       editProfileAction: "Modifier le profil",
       identity: {
         unsetDisplayNameAccessibilityLabel: "Nom non renseigné",
+      },
+    },
+    // PRE-8 (B.2, B.3, CE-MVT-01, Figma `10415:21706` à `10453:23030`) : fiche Mouvement et
+    // Catalogue des Mouvements. Libellés relevés dans Figma ; C03 réutilise `activities.editor`.
+    movement: {
+      titles: {
+        create: "Créer un mouvement",
+        consult: "Mouvement",
+        edit: "Modifier le mouvement",
+      },
+      finish: "Terminer",
+      edit: "Modifier le mouvement",
+      close: "Fermer",
+      loadError: "Le mouvement n’a pas pu être chargé.",
+      retry: "Réessayer",
+      saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
+      // Recette A/B (F03) : titre de la Description sur la fiche Mouvement (Figma `10453:23036`).
+      descriptionTitle: "Description du mouvement",
+      // Recette A/B B.10 (q6-2) : invite grise après le nom d'un Mouvement archivé.
+      archivedNameSuffix: "(archivé)",
+      // Recette A/B B.10 (remarque 4) : compteur du gabarit photo, à la place du badge « Vidéo ».
+      mediaCounter: "{rank} / {total}",
+      // PRE-8, recette A/B (27/10) : bouton de lecture du gabarit photo (vidéo seulement).
+      playVideo: "Lire la vidéo",
+      // Recette A/B B.10 (remarque 6) : actions des cartes de résultat de la fiche Mouvement.
+      suggestion: {
+        useMovement: "Ouvrir ce mouvement",
+        createVariant: "Ajouter un niveau",
+      },
+      // Recette A/B B.10 (b2-4) : ↑ des Phases, qui ferme le clavier comme celui de la Description.
+      phasesSubmitAccessibilityLabel: "Valider les phases",
+      phases: {
+        title: "Phases du mouvement (pour minuter l’exécution)",
+        firstPlaceholder: "Nommez la première phase",
+        nextPlaceholder: "Phase suivante",
+        labelAccessibility: "Phase {rank}",
+        remove: "Retirer la phase {rank}",
+        row: "Phase {n}",
+        moveUp: "Monter",
+        moveDown: "Descendre",
+      },
+      catalogue: {
+        segment: "Mouvements",
+        title: "Catalogue des mouvements",
+        searchPlaceholder: "Rechercher",
+        searchAccessibilityLabel: "Rechercher un mouvement",
+        create: "Créer un mouvement",
+        empty: "Aucun mouvement pour l’instant.",
+        noResult: "Aucun mouvement ne correspond à la recherche.",
+        loadError: "Les mouvements n’ont pas pu être chargés.",
+        retry: "Réessayer",
+        openAccessibilityHint: "Ouvre la fiche du mouvement",
+        // PRE-8 (B.5, B.6, B.7, B.8) : piles, actions glissées, filtres et archives (Figma page 510:101).
+        noMatch: "Aucun mouvement ne correspond à la recherche ou aux filtres.",
+        pileAccessibilityLabel: "{name}, {count} niveaux affichés",
+        pileExpandHint: "Déplie la pile",
+        pileCollapse: "Replier la pile",
+        archivedAccessibility: "archivé",
+        // Recette A/B (D03) : croix d'effacement de la recherche.
+        searchClear: "Effacer la recherche",
+        // Recette A/B (B08, MFN-05) : réordonnancement des Niveaux d'une pile déployée.
+        reorderHint: "Appui long puis glisser pour changer l’ordre des niveaux",
+        moveHarder: "Placer {name} un niveau plus haut",
+        moveEasier: "Placer {name} un niveau plus bas",
+        reorderError: "L’ordre des niveaux n’a pas pu être enregistré. Réessayez.",
+        // PRE-8, familles de niveaux (règle E2 du 28/10/2026) : messages des changements d'appartenance.
+        family: {
+          created: "Nouvelle famille de niveaux créée",
+          dissolved: "Famille de niveaux supprimée",
+          left: "Mouvement sorti de la famille",
+          // Entrée dans une famille existante : la DSF du 28/10 ne fournit pas ce libellé (réserve de
+          // transcription) ; texte validé par Hermann le 28/10/2026 (recette FAM).
+          joined: "Mouvement ajouté à la famille",
+        },
+        actions: {
+          share: "Partager",
+          // Recette A/B (B12, CE-MVT-02) : « Ajouter un niveau » remplace « Créer une variante ».
+          addLevel: "Ajouter un niveau",
+          archive: "Archiver",
+          restore: "Restaurer",
+          delete: "Supprimer",
+        },
+        archived: "Mouvement archivé",
+        restored: "Mouvement restauré",
+        undo: "Annuler",
+        archiveRefused: {
+          title: "Archivage impossible",
+          messageOne: "Ce mouvement est utilisé par 1 exercice. Vous pourrez l’archiver lorsqu’il ne le sera plus.",
+          messageMany: "Ce mouvement est utilisé par {count} exercices. Vous pourrez l’archiver lorsqu’il ne le sera plus.",
+          acknowledge: "J’ai compris",
+        },
+        deleteRefused: {
+          title: "Suppression impossible",
+          messageOne: "Ce mouvement est utilisé par 1 exercice.",
+          messageMany: "Ce mouvement est utilisé par {count} exercices.",
+        },
+        deleteConfirm: {
+          title: "Supprimer ce mouvement ?",
+          message: "Ce mouvement archivé sera définitivement supprimé. Cette action est irréversible.",
+          cancel: "Annuler",
+          confirm: "Confirmer",
+        },
+        actionError: "L’action n’a pas pu être effectuée.",
+        filters: {
+          command: "Filtres",
+          title: "Filtres",
+          close: "Fermer",
+          apply: "Appliquer les filtres",
+          reset: "Réinitialiser",
+          status: "Statut",
+          active: "Actifs",
+          archivedValue: "Archivés",
+          levels: "Niveaux",
+          withLevels: "Avec niveaux",
+          withoutLevel: "Sans niveau",
+          usage: "Utilisation",
+          withExercise: "Avec exercice",
+          withoutExercise: "Sans exercice",
+          categories: "Catégories",
+          bodyZones: "Zones corporelles",
+          activeSummary: "{count} filtres",
+          // Recette A/B (D05, ch13 §4.5) : commande étendue — le rond retire les filtres, la zone
+          // texte ouvre la feuille.
+          clearAccessibility: "Retirer les filtres",
+          editAccessibility: "Modifier les filtres",
+        },
       },
     },
     // V2-PRE-2 (plan §6.5, CE-UI-01) : écran Modifier le profil — nom,

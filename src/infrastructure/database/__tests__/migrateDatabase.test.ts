@@ -398,7 +398,7 @@ describe("migrateDatabase", () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(13);
+      expect(DATABASE_VERSION).toBe(15);
 
       await seedStructure(database);
       await expect(
@@ -800,7 +800,7 @@ describe("migrateDatabase", () => {
       const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
       // PRE-7 (A1.2) : preuve arrêtée à la version 11, avant `migration012` (R-3 : version courante 13).
       expect(version?.user_version).toBe(11);
-      expect(DATABASE_VERSION).toBe(13);
+      expect(DATABASE_VERSION).toBe(15);
 
       const tables = await database.getAllAsync<{ name: string }>(
         "SELECT name FROM sqlite_master WHERE type = 'table' AND name LIKE 'activity_definition%'",

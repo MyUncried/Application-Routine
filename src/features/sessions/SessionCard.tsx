@@ -1,266 +1,401 @@
-import type { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
+import { useState, type ReactNode } from "react";
+import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
-import type { SessionSummary } from "@/domain/sessions/Session";
-import {
-  formatActivityCount,
-  formatBodyZoneNamesSegment,
-  formatCategoryNamesSegment,
-  formatEstimatedDuration,
-  formatTourCount,
-} from "@/features/sessions/formatSessionSummary";
+import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { MediaPreview, useMediaUriResolver } from "@/features/activities/MediaPreview";
+import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
+import { formatCatalogueSessionDuration, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { sessionFormatOf } from "@/features/sessions/sessionFormats";
 import { strings } from "@/shared/i18n";
-import { CardTitleLine } from "@/shared/ui/CardTitleLine";
-import { DisclosureControl } from "@/shared/ui/DisclosureControl";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
+/**
+ * PRE-8 (epic E, story E.2) — carte UNIQUE d'une Séance dans le Catalogue (spécification « Carte de
+ * séance et catalogue des séances » du 27/10 §1 et §3 ; DSF `Contexte=Catalogue` : `6214:3572`
+ * replié, `6214:3625` archivé, `6214:3696` déployé). Une seule disposition, qu'une Séance contienne
+ * un Exercice ou plusieurs (D-449 §6). Présentation pure : elle ne lit ni n'écrit rien ; elle affiche
+ * la projection de lecture (`projectSessionForCatalogue`, E.1).
+ *
+ * - Visuel carré 64 à 8 du bord (média de l'Exercice, sinon vignette Libre) ; texte à 84.
+ * - Nom, suivi du chevron SEULEMENT pour plusieurs Exercices ; ce chevron est le seul contrôle de
+ *   déploiement (E.3) ; il pointe vers le haut une fois ouvert.
+ * - Catégories précédées de leur pastille, dédupliquées, « +N » quand elles dépassent la largeur,
+ *   jamais coupées au milieu d'un mot (`fitCategoryCount`). Ni étiquette ni zone sur la carte.
+ * - Synthèse : format, sinon N exercices, sinon volume ; puis la durée en minutes et secondes, sans
+ *   arrondi, préfixée « ≈ » / « ≥ » (D-391, `formatCatalogueSessionDuration`).
+ * - Lecture : présente sur toute carte active, cible 48 à 8 du bord, DÉSACTIVÉE et annoncée
+ *   indisponible (aucune Exécution ; CE-T03-01). Un toucher sur elle n'ouvre rien.
+ * - Archivée : aucune action directe ; la colonne de texte va jusqu'à la marge.
+ *
+ * Le toucher de la carte (ouvrir la Composition) et le glissé sont portés par l'appelant
+ * (`SwipeActionsRow`, E.5) ; le chevron et Lecture interceptent leur propre toucher.
+ */
+
 export type SessionCardProps = {
-  session: SessionSummary;
-  /**
-   * T01-S10 (CE-T01-S10-01) : appelé lorsque la zone principale de la carte
-   * est activée — ouvre `Composition d'une séance` en MODIFICATION. Non
-   * fourni : la zone principale reste non pressable (aucune route de
-   * modification câblée — état T01-S06/S09).
-   */
-  onOpen?: () => void;
+  readonly projection: SessionCatalogueProjection;
+  readonly expanded?: boolean;
+  readonly onToggleExpanded?: () => void;
+  /** E.3 : composition déployée, rendue sous l'en-tête. */
+  readonly children?: ReactNode;
 };
 
+const CHEVRON_ICON = require("../../../assets/icons/icon-catalogue-chevron.svg");
+const CATEGORY_ICON = require("../../../assets/icons/icon-catalogue-categorie.svg");
+const EXERCISES_ICON = require("../../../assets/icons/icon-catalogue-haltere.svg");
+const DURATION_ICON = require("../../../assets/icons/icon-catalogue-sablier.svg");
+
+const t = strings.screens.sessions.catalogueCard;
+const CATEGORY_SEPARATOR = " · ";
+
 /**
- * Carte condensée d'une Séance active (T01-S06).
- *
- * Présentation pure : ne charge rien, n'appelle jamais `SessionService`.
- *
- * Le chevron et le bouton `Démarrer` sont visuellement présents — les
- * captures Catalogue (`catalogue-seances.png` et les autres cartes non
- * glissées de `catalogue-condense-actions.png`) les montrent tous les deux
- * sur chaque carte condensée, sans qu'aucune interaction n'ait eu lieu — ce
- * sont donc des éléments structurants de la carte, pas des révélations
- * d'interaction. Ils restent néanmoins désactivés dans cette sous-étape :
- * aucun écran de détail (déploiement) ni d'Exécution n'existe encore, donc
- * ni navigation, ni chargement de détail, ni callback métier n'y sont
- * câblés.
- *
- * Correction VISUAL tentative 2 (T01-S09, point B, commentaire de revue
- * 5551813745) :
- * - le nom et la ligne de synthèse reprennent exactement la hiérarchie
- *   typographique déjà établie pour `Boundary Activity`
- *   (`CompositionScreen.tsx` — `rowLabel`/`type.cardTitle` pour le titre,
- *   `boundaryRowSecondaryLine`/`type.caption` pour la ligne secondaire) —
- *   `summary` passe donc de `type.body` à `type.caption`, sans nouveau style ;
- * - une ligne Catégories/Zones corporelles (`tagLine`), absente depuis la
- *   base T01-S09, est restaurée sous le nom — n'est rendue que si au moins
- *   une Catégorie ou une Zone corporelle existe (état vide : aucune ligne,
- *   jamais une ligne visible vide).
- *
- * Correction VISUAL, 2e contre-recette (T01-S09, point A, commentaire de
- * revue 5551083690) :
- * - les noms de Catégories s'affichent désormais dans la couleur propre de
- *   la Séance (`session.color`, même valeur que `colorBar` ci-dessous) —
- *   jamais le segment Zones corporelles ni le séparateur, qui restent dans
- *   la couleur de texte secondaire par défaut ;
- * - le séparateur entre le groupe Catégories et le groupe Zones corporelles
- *   devient `" : "` (auparavant `" · "`, point médian) — rendu attendu par
- *   exemple « Cardio : Genoux, Dos » lorsque les deux groupes existent ;
- *   omis entièrement si l'un des deux groupes est vide (jamais un
- *   séparateur adjacent à un segment vide) ;
- * - `formatCategoryNamesSegment`/`formatBodyZoneNamesSegment`
- *   (`formatSessionSummary.ts`) fournissent chacun leur segment
- *   indépendamment, permettant ce rendu à deux couleurs via un `Text`
- *   imbriqué (RN concatène nativement le texte annoncé à l'accessibilité,
- *   aucun `accessibilityLabel` dédié n'est donc nécessaire).
- *
- * Correction VISUAL, 3e contre-recette (T01-S09, point A, commentaire de
- * revue faisant suite à `1f28a09`) — le chevron `Déployer` délègue désormais
- * entièrement à `DisclosureControl` (`@/shared/ui/DisclosureControl`),
- * l'instance partagée de `Controls / Disclosure — Source exact`
- * (`12 – Architecture technique.md`, `2537:1033`/`2537:1038`). La 2e
- * contre-recette avait réintégré un cadre visible, mais en réutilisant par
- * analogie le token `exerciseParameterRow.chevronBox`/`colors.tourSurface`
- * (« Forms / Select Field », fonction graphique distincte) et une opacité
- * `0.45` — la revue signale que ni ce fond ni cette opacité ne sont
- * documentés pour CE contrôle. `DisclosureControl` retire donc ces deux
- * emprunts non sourcés au profit des quatre valeurs canoniques vérifiées
- * (`colors.disclosureBackground`/`disclosureBorderCollapsed`/
- * `disclosureBorderExpanded`/`disclosureChevronCollapsed`,
- * `dimensions.catalogueDisclosure`). L'état initial condensé
- * (`expanded={false}`), la cible tactile `48 × 48` et l'état désactivé
- * restent inchangés — seuls conteneur et couleurs changent.
- *
- * Le corps de la carte n'est pas pressable : aucune route de modification
- * (`Composition d'une séance`) n'existe avant T01-S07.
- *
- * Alignement DSF 07/10/2026 (`DSF / Cards / Séance`, variante
- * `Contexte=Catalogue, État=Replié` `6214:3572`, D11) :
- * - la durée quitte la ligne de synthèse pour la ligne de titre, sans cadre,
- *   calée à droite à 16 du bord de la carte (`CardTitleLine`) ; son calcul
- *   et son format (`formatEstimatedDuration`, préfixe « ≥ ») sont inchangés ;
- * - la ligne de titre occupe toute la largeur de la colonne de texte (322 à
- *   la largeur de référence) ; Déployer et Démarrer restent en bas à droite ;
- * - conteneur : fond `color/surface-subtle`, contour 0,5 `color/cards/border`,
- *   rayon 8 (`component/cards/radius`).
- * Le chevron de déploiement est conservé (annexe I.3).
+ * Nombre de catégories affichées entières sur la largeur `available` (spécification §1 : « +N »
+ * lorsqu'elles dépassent, jamais tronquées en milieu de mot). `nameWidths` : largeur de chaque nom ;
+ * `separatorWidth` : largeur du séparateur ; `overflowWidth(n)` : largeur de « +n » précédé de son
+ * espace. Au moins une catégorie reste affichée (le nom seul est alors tronqué par le texte).
  */
-export function SessionCard({ session, onOpen }: SessionCardProps) {
-  // PRE-3 : symbole issu du résultat typé de l'autorité Domaine (exact / ≈ / ≥).
-  const duration = formatEstimatedDuration(
-    session.estimatedDurationSeconds,
-    session.durationKind ?? session.isEstimatedDurationApproximate,
-  );
-  const summaryLine = [
-    formatActivityCount(session.activityCount),
-    formatTourCount(session.tourRepeatCount),
-  ].join(" · ");
-  const categoriesSegment = formatCategoryNamesSegment(session.categoryNames);
-  const zonesSegment = formatBodyZoneNamesSegment(session.bodyZoneNames);
-  const hasTagLine = categoriesSegment !== null || zonesSegment !== null;
+export function fitCategoryCount(
+  nameWidths: readonly number[],
+  separatorWidth: number,
+  overflowWidth: (hidden: number) => number,
+  available: number,
+): number {
+  const total = nameWidths.length;
+  for (let shown = total; shown >= 1; shown -= 1) {
+    const names = nameWidths.slice(0, shown).reduce((sum, width) => sum + width, 0) + separatorWidth * (shown - 1);
+    const hidden = total - shown;
+    if (names + (hidden > 0 ? overflowWidth(hidden) : 0) <= available) return shown;
+  }
+  return Math.min(total, 1);
+}
+
+export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
+  const archived = projection.status === "ARCHIVED";
+  const id = projection.id;
+  const duration = formatCatalogueSessionDuration(projection.duration);
+  const summary =
+    projection.summary.kind === "FORMAT"
+      ? projection.summary.label
+      : projection.summary.kind === "VOLUME"
+        ? projection.summary.volume
+        : formatActivityCount(projection.summary.count);
 
   return (
-    <View style={styles.container}>
-      <View
-        style={[styles.colorBar, { backgroundColor: session.color }]}
-        testID="session-card-color-bar"
-      />
-      <View style={styles.body}>
-        <SessionCardMainArea onOpen={onOpen}>
-          <CardTitleLine title={session.name} duration={duration} testID="session-card" />
-          {hasTagLine ? (
-            <Text style={styles.tagLine} numberOfLines={1} testID="session-card-tag-line">
-              {categoriesSegment !== null ? (
-                <Text
-                  style={{ color: session.color }}
-                  testID="session-card-tag-line-categories"
-                >
-                  {categoriesSegment}
-                </Text>
-              ) : null}
-              {categoriesSegment !== null && zonesSegment !== null ? " : " : null}
-              {zonesSegment}
+    <View style={[styles.card, archived ? styles.cardArchived : null]} testID={`session-card-${id}`}>
+      <View style={styles.header}>
+        <CardVisual projection={projection} />
+        <View style={[styles.texts, archived ? styles.textsArchived : null]}>
+          <View style={styles.titleRow}>
+            <Text style={styles.name} numberOfLines={1} testID={`session-card-${id}-name`}>
+              {projection.name}
             </Text>
-          ) : null}
-          <Text style={styles.summary}>{summaryLine}</Text>
-        </SessionCardMainArea>
-        <View style={styles.actions} pointerEvents="box-none">
-          <DisclosureControl
-            expanded={false}
-            disabled
-            accessibilityLabel={strings.screens.sessions.card.expandAccessibilityLabel}
-            testID="session-card-disclosure"
-          />
-          <Pressable
-            disabled
-            accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            accessibilityLabel={strings.screens.sessions.card.startAccessibilityLabel}
-            style={styles.startButton}
-          >
-            <KodjoIcon name="action-start" opacity={0.55} testID="session-card-start" />
-          </Pressable>
+            {projection.expandable ? (
+              <Pressable
+                onPress={onToggleExpanded}
+                accessibilityRole="button"
+                accessibilityLabel={fillTemplate(expanded ? t.collapseAccessibilityLabel : t.expandAccessibilityLabel, {
+                  name: projection.name,
+                })}
+                accessibilityState={{ expanded }}
+                hitSlop={CHEVRON_HIT_SLOP}
+                style={styles.chevron}
+                testID={`session-card-${id}-disclosure`}
+              >
+                <Image
+                  source={CHEVRON_ICON}
+                  style={[styles.chevronIcon, expanded ? styles.chevronOpen : null]}
+                  accessible={false}
+                  testID={`session-card-${id}-chevron${expanded ? "-open" : ""}`}
+                />
+              </Pressable>
+            ) : null}
+          </View>
+          <CategoryLine categories={projection.categories} testID={`session-card-${id}-categories`} />
+          <View style={styles.synthesisRow}>
+            <View style={styles.synthesisStart}>
+              <Image source={EXERCISES_ICON} style={styles.icon16} accessible={false} />
+              <Text style={styles.meta} numberOfLines={1} testID={`session-card-${id}-summary`}>
+                {summary}
+              </Text>
+            </View>
+            <View style={styles.durationBlock}>
+              <Image source={DURATION_ICON} style={styles.icon16} accessible={false} />
+              <Text style={styles.duration} numberOfLines={1} testID={`session-card-${id}-duration`}>
+                {duration}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      {!archived ? (
+        // Présente et désactivée (CE-T03-01) : le toucher est intercepté, jamais transmis à la carte.
+        <Pressable
+          onPress={() => undefined}
+          accessibilityRole="button"
+          accessibilityLabel={t.playUnavailableAccessibilityLabel}
+          accessibilityState={{ disabled: true }}
+          style={styles.play}
+          testID={`session-card-${id}-play`}
+        >
+          <KodjoIcon name="action-start" opacity={0.55} />
+        </Pressable>
+      ) : null}
+      {expanded ? children : null}
+    </View>
+  );
+}
+
+function CardVisual({ projection }: { readonly projection: SessionCatalogueProjection }) {
+  const resolveUri = useMediaUriResolver();
+  const id = projection.id;
+  if (projection.visual.kind === "MEDIA") {
+    return (
+      <View style={styles.visual}>
+        <MediaPreview
+          uri={resolveUri(projection.visual.source.uri)}
+          isVideo={projection.visual.source.isVideo}
+          imageStyle={styles.visualImage}
+          fallbackStyle={[styles.visualImage, styles.visualFallback]}
+          imageTestID={`session-card-${id}-photo`}
+          fallbackTestID={`session-card-${id}-photo-fallback`}
+        />
+      </View>
+    );
+  }
+  return (
+    <View style={styles.visual}>
+      <Image
+        source={sessionFormatOf(projection.visual.format).thumbnail}
+        style={styles.visualImage}
+        accessible={false}
+        testID={`session-card-${id}-format-${projection.visual.format}`}
+      />
+    </View>
+  );
+}
+
+/** Ligne des catégories : pastille, noms entiers, « +N » mesuré sur la largeur disponible. */
+function CategoryLine({ categories, testID }: { readonly categories: readonly CatalogueCategoryRef[]; readonly testID: string }) {
+  const [available, setAvailable] = useState<number | null>(null);
+  const [widths, setWidths] = useState<Readonly<Record<string, number>>>({});
+  if (categories.length === 0) {
+    return <View style={styles.categoryRow} testID={`${testID}-empty`} />;
+  }
+  const measure = (key: string) => (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width;
+    setWidths((current) => (current[key] === width ? current : { ...current, [key]: width }));
+  };
+  const names = categories.map((category) => category.name);
+  const overflowLabel = (hidden: number) => fillTemplate(t.categoriesOverflow, { count: String(hidden) });
+  const measured =
+    available !== null && names.every((name) => widths[`n:${name}`] !== undefined) && widths.sep !== undefined;
+  const shown = measured
+    ? fitCategoryCount(
+        names.map((name) => widths[`n:${name}`]!),
+        widths.sep!,
+        (hidden) => widths[`o:${hidden}`] ?? Number.POSITIVE_INFINITY,
+        available,
+      )
+    : names.length;
+  const hidden = names.length - shown;
+  const label = names.slice(0, shown).join(CATEGORY_SEPARATOR);
+  return (
+    <View style={styles.categoryRow} testID={testID}>
+      <View style={styles.categoryBadge}>
+        <Image source={CATEGORY_ICON} style={styles.categoryIcon} accessible={false} />
+      </View>
+      <View
+        style={styles.categoryTexts}
+        onLayout={(event) => setAvailable(event.nativeEvent.layout.width)}
+        accessible
+        accessibilityLabel={names.join(", ")}
+        testID={`${testID}-texts`}
+      >
+        <Text style={styles.meta} numberOfLines={1} testID={`${testID}-label`}>
+          {label}
+          {hidden > 0 ? ` ${overflowLabel(hidden)}` : ""}
+        </Text>
+        {/* Mesures hors écran : chaque nom, le séparateur et chaque « +N » possible. */}
+        <View style={styles.measure} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          {names.map((name, index) => (
+            <Text key={`n:${name}`} style={styles.meta} onLayout={measure(`n:${name}`)} testID={`${testID}-measure-name-${index}`}>
+              {name}
+            </Text>
+          ))}
+          <Text style={styles.meta} onLayout={measure("sep")} testID={`${testID}-measure-separator`}>
+            {CATEGORY_SEPARATOR}
+          </Text>
+          {names.slice(1).map((_, index) => (
+            <Text
+              key={`o:${index + 1}`}
+              style={styles.meta}
+              onLayout={measure(`o:${index + 1}`)}
+              testID={`${testID}-measure-overflow-${index + 1}`}
+            >
+              {` ${overflowLabel(index + 1)}`}
+            </Text>
+          ))}
         </View>
       </View>
     </View>
   );
 }
 
-/**
- * Zone principale de la carte (nom + ligne de tags + synthèse). T01-S10
- * (CE-T01-S10-01) : `Pressable` avec un rôle `button` explicite lorsque
- * `onOpen` est fourni — elle ouvre `Composition d'une séance` en
- * modification. Sans `onOpen`, elle reste un simple `View` non interactif
- * (comportement T01-S06/S09 : « le corps de la carte n'est pas pressable »).
- * Le chevron et `Démarrer` restent des contrôles distincts, hors de cette
- * zone.
- */
-function SessionCardMainArea({
-  onOpen,
-  children,
-}: {
-  onOpen?: () => void;
-  children: ReactNode;
-}) {
-  if (!onOpen) {
-    return <View style={styles.content}>{children}</View>;
-  }
-  return (
-    <Pressable
-      onPress={onOpen}
-      accessibilityRole="button"
-      accessibilityLabel={strings.screens.sessions.card.openAccessibilityLabel}
-      style={styles.content}
-      testID="session-card-open"
-    >
-      {children}
-    </Pressable>
-  );
-}
-
-/** Largeur réservée aux actions Déployer/Démarrer, depuis le bord droit de la colonne de texte. */
-const LOWER_LINES_ACTION_RESERVE = 2 * minTouchTarget + spacing[2] - spacing[16];
+const CARD_BORDER = 0.5;
+const VISUAL_SIZE = 64;
+/** Spécification §1 : visuel et zone de Lecture à 8 du bord. */
+const EDGE = spacing[8];
+/** Texte à 84 du bord (64 + 8 + 12). */
+const TEXT_GAP = spacing[12];
+const PLAY_TARGET = 48;
+const CHEVRON_SIZE = 20;
+const CHEVRON_SLOP = (minTouchTarget - CHEVRON_SIZE) / 2;
+const CHEVRON_HIT_SLOP = { top: CHEVRON_SLOP, bottom: CHEVRON_SLOP, left: CHEVRON_SLOP, right: CHEVRON_SLOP } as const;
+/** Hauteur de l'en-tête replié (Figma : carte 80). */
+export const SESSION_CARD_HEADER_HEIGHT = 80;
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: colors.surfaceSubtle,
-    borderWidth: 0.5,
+  // Tokens de carte de B.9 : fond `#F9FAFC`, bordure 0,5 `#CCD1E0`, rayon 12, ombre 8 % 0/2/10.
+  card: {
+    borderRadius: fixedRadii[12],
+    borderWidth: CARD_BORDER,
     borderColor: colors.cardsBorder,
+    backgroundColor: colors.surfaceSubtle,
+    shadowColor: colors.movementCardShadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  cardArchived: {
+    borderColor: colors.cardsArchiveBorder,
+  },
+  header: {
+    minHeight: SESSION_CARD_HEADER_HEIGHT - 2 * CARD_BORDER,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: EDGE - CARD_BORDER,
+  },
+  visual: {
+    width: VISUAL_SIZE,
+    height: VISUAL_SIZE,
     borderRadius: fixedRadii[8],
     overflow: "hidden",
   },
-  colorBar: {
-    alignSelf: "stretch",
-    width: 4,
+  visualImage: {
+    width: VISUAL_SIZE,
+    height: VISUAL_SIZE,
   },
-  // Colonne de la carte : zone principale (titre/durée pleine largeur, puis
-  // classement et synthèse) ; les actions se superposent en bas à droite
-  // sans réduire la ligne de titre.
-  // `minHeight` : hauteur de la variante Figma (90), qui garantit que les
-  // actions (48, ancrées en bas) ne recouvrent jamais la ligne de titre ;
-  // la carte grandit avec le texte (police agrandie).
-  body: {
+  visualFallback: {
+    backgroundColor: colors.surface,
+  },
+  // Colonne de texte : de 84 jusqu'à 8 avant la zone de Lecture (306 au gabarit 402), ou jusqu'à la
+  // marge pour une carte archivée (aucune action).
+  texts: {
     flex: 1,
-    minHeight: 90,
+    minWidth: 0,
+    marginLeft: TEXT_GAP,
+    marginRight: PLAY_TARGET + EDGE,
   },
-  content: {
-    paddingVertical: spacing[12],
-    paddingHorizontal: spacing[16],
-    gap: spacing[4],
+  textsArchived: {
+    marginRight: 0,
   },
-  // Correction VISUAL tentative 2 (point B) : ligne Catégories/Zones
-  // corporelles restaurée sous le nom — même typographie que la ligne
-  // secondaire de `Boundary Activity` (`boundaryRowSecondaryLine`,
-  // `CompositionScreen.tsx`, `type.caption`/`colors.textSecondary`), pas de
-  // nouveau style inventé localement.
-  //
-  // Alignement DSF 07/10 : métadonnées des cartes en Inter Regular 12
-  // (`type.supporting`), comme dans `DSF / Cards / Séance` ; les lignes
-  // basses s'arrêtent avant les deux actions (2 × 48, à 2 du bord).
-  tagLine: {
-    ...type.supporting,
-    marginRight: LOWER_LINES_ACTION_RESERVE,
-    color: colors.textSecondary,
-  },
-  // Correction VISUAL tentative 2 (point B) : `type.body` → `type.caption`,
-  // même style que la ligne secondaire de `Boundary Activity`
-  // (`boundaryRowSecondaryLine`, `CompositionScreen.tsx`) — hiérarchie
-  // typographique désormais identique entre les deux cartes, réutilisée
-  // plutôt que redéfinie.
-  summary: {
-    ...type.supporting,
-    marginRight: LOWER_LINES_ACTION_RESERVE,
-    color: colors.textSecondary,
-  },
-  actions: {
-    position: "absolute",
-    right: spacing[2],
-    bottom: 0,
+  titleRow: {
+    minHeight: CHEVRON_SIZE,
     flexDirection: "row",
     alignItems: "center",
+    gap: spacing[6],
+    marginBottom: spacing[6],
   },
-  startButton: {
-    minWidth: minTouchTarget,
-    minHeight: minTouchTarget,
+  // Recette du 28/10/2026 (e2-10, texte agrandi) : sans interligne fixe, la ligne suit la taille de
+  // la police et le bas des lettres n'est plus rogné ; la rangée garde sa hauteur de 20 au repos.
+  name: {
+    ...type.listCardTitle,
+    lineHeight: undefined,
+    flexShrink: 1,
+    color: colors.catalogueSessionTitle,
+  },
+  chevron: {
+    width: CHEVRON_SIZE,
+    height: CHEVRON_SIZE,
+  },
+  chevronIcon: {
+    width: CHEVRON_SIZE,
+    height: CHEVRON_SIZE,
+  },
+  chevronOpen: {
+    transform: [{ rotate: "180deg" }],
+  },
+  categoryRow: {
+    minHeight: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: spacing[2],
+  },
+  categoryBadge: {
+    width: 20,
+    height: 20,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: minTouchTarget / 2,
+    marginRight: spacing[8],
+  },
+  categoryIcon: {
+    width: 14,
+    height: 14,
+  },
+  categoryTexts: {
+    flex: 1,
+    minWidth: 0,
+  },
+  measure: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    opacity: 0,
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  meta: {
+    ...type.supporting,
+    color: colors.movementCardDescription,
+  },
+  synthesisRow: {
+    minHeight: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing[8],
+  },
+  synthesisStart: {
+    flexShrink: 1,
+    minWidth: 0,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[10],
+    paddingLeft: 1,
+  },
+  durationBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  icon16: {
+    width: 16,
+    height: 16,
+  },
+  duration: {
+    ...type.cardDuration,
+    color: colors.textPrimary,
+  },
+  // Zone de Lecture : cible 48, à 8 du bord droit, centrée sur l'en-tête replié (Figma y 16).
+  play: {
+    position: "absolute",
+    top: (SESSION_CARD_HEADER_HEIGHT - PLAY_TARGET) / 2 - CARD_BORDER,
+    right: EDGE - CARD_BORDER,
+    width: PLAY_TARGET,
+    height: PLAY_TARGET,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

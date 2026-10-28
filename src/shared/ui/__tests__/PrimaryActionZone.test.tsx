@@ -70,8 +70,10 @@ describe("finalAction — règles de la zone (D-444)", () => {
     expect(finalActionZoneHeight(34, 80)).toBe(146);
   });
 
-  it("side margins of « Terminer »: 16 under 390, 24 from 390", () => {
-    expect([360, 375, 389, 390, 402, 440].map(finalActionSideMargin)).toEqual([16, 16, 16, 24, 24, 24]);
+  // Recette PRE-8 A/B (A01, arbitrage du 27/10) : marge standard unique de 16 à toutes les largeurs
+  // (auparavant 24 à partir de 390, 16 en dessous).
+  it("side margins of « Terminer »: the standard gutter (16) at every width", () => {
+    expect([360, 375, 389, 390, 402, 440].map(finalActionSideMargin)).toEqual([16, 16, 16, 16, 16, 16]);
   });
 
   it("gradient: the screen white, transparent at the top to opaque at the bottom", () => {

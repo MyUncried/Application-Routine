@@ -15,8 +15,18 @@ import { describe, expect, it } from "@jest/globals";
 const ROOT = join(__dirname, "..", "..", "..", "..");
 const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\r/g, "");
 
-/** Empreinte LF de `src/shared/ui/tokens.ts` au commit `d07a3817` (code de départ). */
-const TOKENS_BASELINE_SHA256 = "b4ae92b6b2c06965e818e6fe89f973ffb5cdff7787cb3b241ac184f11ecf93be";
+/**
+ * Empreinte LF de `src/shared/ui/tokens.ts` au commit `d07a3817` (code de départ) :
+ * `b4ae92b6b2c06965e818e6fe89f973ffb5cdff7787cb3b241ac184f11ecf93be`. Mise à jour par la recette PRE-8
+ * A/B (arbitrage de Hermann du 27/10/2026 : marge standard centralisée `layout.screenGutter` et jetons
+ * du Catalogue des Mouvements, documentés au chapitre 12) — modification autorisée, la garde reste
+ * active contre toute modification ultérieure non autorisée. Empreinte après B.9 : `2ed5cdbc…9e42` ;
+ * mise à jour par B.10 (recette du 27/10, r9-a02 : `type.screenHeaderTitle`, Medium 17, chapitre 12) :
+ * `5d8a7e03…ec54` ; puis par la correction UX « clavier » du 27/10 (`movementEditableSurface`) :
+ * `6358eb15…d86c` ; puis par le bouton de lecture vidéo (`mediaPlaySurface`, `mediaPlayBorder`) :
+ * `8e16c394…7c2c` ; puis par la surface éditable à 90 % (recette du 27/10).
+ */
+const TOKENS_BASELINE_SHA256 = "1af9bf37f2811b28c29209618dd9f19d63972a9c80277522cd36a34fcacbdbd1";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

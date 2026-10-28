@@ -55,7 +55,7 @@ Les alias de couleurs relevés restent compatibles avec `src/shared/ui/tokens.ts
 | Texte secondaire | `color/text-secondary`, `VariableID:2290:58`, #595E66 | `colors.textSecondary` |
 | Action primaire | `color/primary`, `VariableID:2290:51`, #0508E5 | `colors.primary` |
 | Texte sur primaire | `color/on-primary`, `VariableID:4151:6166`, blanc | Réutiliser la couleur blanche du rôle sur primaire existant ; ne pas changer le fond global |
-| Marges de contenu | 24 (402 → 354), `spacing/24` | `spacing[24]` |
+| Marges de contenu | 16 à toutes les largeurs (402 → 370), arbitrage PRE-8 A01 du 27/10/2026 ; auparavant 24 (`spacing/24`) | `layout.screenGutter` (`spacing[16]`) ; exceptions : médias pleine largeur, Safe Areas, barre de navigation (24), géométries propres aux modales |
 | Espacements communs | `spacing/8`, `spacing/12` disponibles | `spacing[8]`, `spacing[12]` ; disponibilité ne prouve pas une liaison sur chaque instance |
 | Titre d'écran | Inter Medium 17, hauteur AUTO | Ne pas appliquer aveuglément `screenTitle` (20 SemiBold) ; style d'en-tête existant à réutiliser |
 | Nom du mouvement | Inter Semi Bold 20, hauteur 22 | `screenTitle` a une hauteur 24 : valeur locale 22 à respecter ici |
@@ -1074,6 +1074,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.textSecondary` | `#595E66` | Texte secondaire |
 | `color.iconNeutral` | `#595E66` | Icônes inactives |
 | `color.cardsBorder` | `#CCD1E0` | Bordure renforcée ; Figma `color/cards/border` |
+| `color.cardsArchiveBorder` | `#D9D9D9` | PRE-8 (epic E, E.2) : bordure de la carte de Séance archivée du Catalogue ; Figma `color/cards/archive-border` (`6214:3625`) |
+| `color.catalogueSessionTitle` | `#14171C` | PRE-8 (epic E, E.2) : nom de la carte de Séance du Catalogue ; Figma `color/observed/14171c` |
+| `color.catalogueSessionMuted` | `#80858C` | PRE-8 (epic E, E.3) : en-têtes de conteneur et récupérations de la composition déployée ; Figma `color/observed/80858c` (`6214:3696`) |
 | `color.border` | `#E0E3E8` | Bordure standard |
 | `color.divider` | `#E0E3E8` | Séparateurs et démarcation d’en-tête |
 | `color.disabled` | `#BEC2CC` | Fond d’action désactivée |
@@ -1104,6 +1107,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.parametersSegmentedBorder` | `#DBDEE3` | Contour 1 du cadre segmenté de la feuille Paramètres (Mode, Côté, Ordre) ; figés `6407-9805` et `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.parametersSegmentedOption` | `#FCFCFE` | Options inactives du segmenté de la feuille Paramètres, contour blanc 1 ; figé `6407-9805` ; D-341, présentation remplacée par les DSF validés (D-377) |
 | `color.selectionSubtitle` | `#E0E3FF` | Sous-titre de l’option sélectionnée (Ordre des côtés) ; figé `6665-26185` ; D-341, présentation remplacée par les DSF validés (D-377) |
+| `color.mediaPlaySurface` | `rgba(255, 255, 255, 0.22)` | Voile du bouton de lecture vidéo du gabarit photo de la fiche Mouvement (Figma `7872:14696`, Ø 72), posé sur le verre natif iOS 26 (`expo-glass-effect`, `GlassView` « clear », clair) ; sans Liquid Glass, voile seul (PRE-8, 27/10/2026, arbitrage B de Hermann) |
+| `color.mediaPlayBorder` | `rgba(255, 255, 255, 0.35)` | Contour 1 du même bouton |
+| `color.movementEditableSurface` | `rgba(255, 255, 255, 0.9)` | Surface de la couche éditable de la fiche Mouvement (Description, Phases) quand elle remonte devant le média, clavier ouvert (PRE-8, 27/10/2026, CE-MVT-01 §10). Mise en œuvre : `ActivityEditorForm`, couche éditable à marge haute animée (Reanimated ; durée donnée par l'évènement clavier, à défaut 250 ms ; iOS `keyboardWillShow`/`WillHide`, Android `DidShow`/`DidHide`), au-dessus du gabarit média fixe et sous la zone de contexte ; recadrage du champ actif une fois la remontée terminée. |
 | `color.exerciseEditorContextBand` | `#EAEAFF` | Zone de contexte de Créer/Modifier un exercice, opaque jusqu’à 80 % puis fondu vers le fond (« Zone bleue » figée `3542:4656`) ; distincte de `exerciseContextBandBackground` (Composition) ; extension X-3 du 12/10 |
 | `color.variableSeriesGroupSurface` | `#F3F3F6` | Fond du groupe Séries variables déployé, contour `color.selection` 1,5 (figé `6665:24616`) ; extension X-3 du 12/10 |
 
@@ -1132,6 +1138,13 @@ Les tokens d’usage ci-dessous existent dans `src/shared/ui/tokens.ts` pour exp
 | `color.disclosureBorderExpanded` | `#8283F2` | `color.primarySoft` |
 | `color.disclosureChevronCollapsed` | `#8282F2` | Valeur observée conservée (`color/observed/8282f2` sur `5544:4650`) |
 | `color.compositionDraggedCardBorder` | `#D1D1D6` | Valeur propre conservée (D-129) ; la variante Figma `4916:6844` ne porte pas de contour au premier niveau — à reconfirmer |
+| `color.movementCardDescription` | `#7A7A80` | PRE-8, recette A/B (B03/B04) : description des cartes du Catalogue des Mouvements et texte indicatif du champ Rechercher (Figma `Carte — Mouvement`, `10579:21580`) |
+| `color.movementCardShadow` | `#1A1A26` | Teinte de l’ombre 8 % 0/2/10 des cartes de Mouvement et de la navigation à cinq destinations (B04, E01) |
+| `color.movementLevelAction` | `#8C8C94` | Fond des actions « Ajouter un niveau », « Plus facile » et « Plus difficile » (B11, `10579:21620`, `10579:21707`) |
+| `color.movementArchiveAction` | `#F08C33` | Fond de l’action glissée « Archiver » d’un Mouvement (`10579:21617`) |
+| `color.movementFamilyRail` | `rgba(5, 8, 229, 0.35)` | Filet de famille d’une pile déployée (`10579:21615`) |
+| `color.movementPileLeafBorder` | `#E0E3ED` | Bordure des feuilles d’épaisseur d’une pile condensée (`Pile — feuille 1/2`) |
+| `color.searchFieldSurface` | `#F3F4F9` | Fond du champ Rechercher de la zone de contexte (D04 ; Figma : dégradé `#F3F4F9` → transparent, rendu en aplat) |
 
 Les couleurs de statut sont toujours accompagnées d’un libellé, d’une icône ou des deux. Les rares variantes historiques de noir ou de gris présentes dans les frames sont normalisées vers les tokens ci-dessus lors du développement, sauf différence visuelle explicitement documentée.
 
@@ -1157,7 +1170,8 @@ Le relevé du 06/10 comporte 51 styles. La correspondance code/Figma se fait par
 | `12` | Auto Figma | Rôle compact |
 | `type.activityTitle` | Semi Bold | `28` | `34` | Nom de l’Exercice en cours d’Exécution |
 | `type.metricPrimary` | Semi Bold | `22` | `27` | Durée, résultat ou métrique dominante (Inter Auto selon D2 ; ancien `28` historique) |
-| `type.screenTitle` | Semi Bold | `20` | `24` | Titre d’écran |
+| `type.screenTitle` | Semi Bold | `20` | `24` | Nom saisi en tête de fiche (Mouvement, Exercice, Séance) ; ancien titre d’écran |
+| `type.screenHeaderTitle` | Medium | `17` | `21` | Titre d’écran (PRE-8, recette A/B du 27/10, r9-a02 : tous les titres d’écran en Medium 17) |
 | `type.modalTitle` | Semi Bold | `18` | `22` | Titre de modale, bottom sheet ou date principale |
 | `type.sectionTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titre de section ou de formulaire |
 | `type.cardTitle` | Semi Bold | `16` | `19` Auto ;20 si style explicite | Titres hors famille Cartes du 30 septembre |
@@ -1179,6 +1193,13 @@ Le relevé du 06/10 comporte 51 styles. La correspondance code/Figma se fait par
 | `type.dialogDestructiveActionLabel` | Medium | `16` | `19` | Libellé de l’action destructive d’un dialogue (Auto) |
 | `type.contextLine` | Regular | `14` | `17` | Ligne de contexte du bandeau (interligne explicite `17`) |
 | `type.segmentedLabel` | Semi Bold | `16` | `20` | Libellés des contrôles segmentés, sélectionnés ou non — style `KODJO / Section title` à interligne explicite 20 ; exceptions conservées : Changement de côté (13) et Ordre des côtés (14/11) |
+| `type.movementCardDescription` | Regular | `12` | `16` | PRE-8, recette A/B (B03) : deux premières étapes de la description d’une carte de Mouvement, une ligne chacune |
+| `type.movementCardLevel` | Medium | `12` | `15` | Rang « Niveau N » d’une carte de Mouvement |
+| `type.swipeActionLabel` | Semi Bold | `11` | `13` | Libellés des actions glissées et du choix Plus facile / Plus difficile (`KODJO / Texte / Inter Semi Bold 11`) |
+| `type.searchField` | Regular | `15` | `18` | Saisie et texte indicatif du champ Rechercher (D04) |
+| `type.filterCommandTitle` | Medium | `11` | `13` | « Filtres » dans la commande Filtrer étendue (D05, `10465:23259`) |
+| `type.filterCommandSummary` | Regular | `10` | `12` | Résumé des critères de la commande Filtrer étendue (`10465:23260`) |
+| `type.resetActionLabel` | Medium | `12` | `15` | Libellé « Réinitialiser » des filtres (D06, `10460:23179`) |
 
 La taille minimale d’un texte fonctionnel est `11`. Une information secondaire utilise normalement `type.supporting` en `12`. Les tailles `8`, `10` et `10,5` ne sont pas utilisées pour du texte fonctionnel ; les points du Calendrier mensuel sont des indicateurs graphiques et non des caractères typographiques. Les titres et noms fonctionnels utilisent `type.cardTitle` en `16`, sauf les nouvelles cartes en `15` et le niveau compact explicitement prévu par `type.compactCardTitle`. La taille `15` est désormais le titre fonctionnel des nouvelles cartes du 30 septembre, exception explicite à D-083 ; les autres titres conservent leur niveau propre.
 
@@ -1358,7 +1379,8 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
 - Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
 - Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
-- La navigation basse du MVP est un composant unique à cinq destinations `Catalogues / Calendrier / Suivi / Communauté / Profil`, sans contrôle Recherche (D-221/D-225).
+- La navigation basse du MVP est un composant unique à cinq destinations `Catalogues / Calendrier / Suivi / Communauté / Profil`, sans contrôle Recherche (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
+- **Animations de mise en page (recette A/B B05, 27/10/2026).** Les changements d'état utilisateur qui insèrent, retirent, déploient ou replient du contenu passent par les primitives communes de `SheetMotion.tsx` (Reanimated, fil UI) : révélation par le bas à l'entrée, repli à la sortie, transition de place des voisins ; aucune opacité animée ; « Réduire les animations » neutralise tout, sans retarder une opération métier. Le Catalogue des Mouvements (piles, choix d'ajout de Niveau, archivage, filtres) les réutilise ; aucune animation spécifique par écran.
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
 - Dans le formulaire Exercice, le récapitulatif est un frère du groupe de paramètres et non son enfant. Le layout principal utilise un espace flexible entre les paramètres et ce récapitulatif pour maintenir ce dernier au-dessus de l’action finale. Le code ne doit pas reproduire les coordonnées absolues du gabarit.

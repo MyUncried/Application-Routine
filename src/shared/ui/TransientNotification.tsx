@@ -45,6 +45,11 @@ export type TransientNotificationProps = {
   onAction: () => void;
   /** Effacement — automatique après `TRANSIENT_NOTIFICATION_DURATION_MS`, ou immédiat après `onAction`. */
   onDismiss: () => void;
+  /**
+   * Durée d'affichage ; par défaut `TRANSIENT_NOTIFICATION_DURATION_MS`. PRE-8, familles de niveaux
+   * (règle E5 du 28/10/2026) : 3 secondes pour les changements d'appartenance.
+   */
+  durationMs?: number;
   testID?: string;
 };
 
@@ -90,17 +95,18 @@ export function TransientNotification({
   actionLabel,
   onAction,
   onDismiss,
+  durationMs = TRANSIENT_NOTIFICATION_DURATION_MS,
   testID = "transient-notification",
 }: TransientNotificationProps) {
   useEffect(() => {
     if (message === null) {
       return;
     }
-    const timeout = setTimeout(onDismiss, TRANSIENT_NOTIFICATION_DURATION_MS);
+    const timeout = setTimeout(onDismiss, durationMs);
     // Nettoyage systématique : un nouveau message REMPLACE le précédent et
     // relance son propre délai, plutôt que d'hériter du décompte en cours.
     return () => clearTimeout(timeout);
-  }, [message, onDismiss]);
+  }, [message, onDismiss, durationMs]);
 
   if (message === null) {
     return null;

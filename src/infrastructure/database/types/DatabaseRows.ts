@@ -1,5 +1,5 @@
 import type { CircuitNature } from "@/domain/sessions/circuit";
-import type { ActivityType, StructuralPosition } from "@/domain/sessions/Session";
+import type { ActivityType } from "@/domain/sessions/Session";
 import type { SideMode } from "@/domain/sessions/sideMode";
 
 /**
@@ -10,49 +10,59 @@ import type { SideMode } from "@/domain/sessions/sideMode";
 export type LegacyExecutionMode = "DURATION" | "REPETITIONS" | "TO_FAILURE";
 
 /**
- * Une ligne par Activité (T01-S09 ; T01-S10 : toutes zones structurelles) :
- * la jointure `sessions ⋈ cycles ⋈ tours ⋈ activities` produit AUTANT de
- * lignes que d'Activités de la Séance (avant, dans et après le Tour
- * confondus) — les champs `session_*`/`cycle_*`/`tour_*` sont répétés à
- * l'identique sur chaque ligne d'une même Séance ; seuls les champs
- * `activity_*` varient. `SqliteSessionRepository` regroupe ces lignes par
- * `session_id` puis les partitionne par `structural_position` avant de les
- * assembler en `Session`.
- *
- * `execution_mode` est TOUJOURS renseigné en base (colonne `NOT NULL`) —
- * pour une Récupération il vaut `'DURATION'` par contrainte SQL, mais le
- * Domaine expose `null` (voir `assembleSession`).
+ * PRE-8 (A.4, `migration014`) : en-tête d'une Séance. V2-PRE-1 (plan §3.3) : Étiquette
+ * facultative et couleur de l'Étiquette jointe (`null` sans Étiquette, présentation neutre
+ * résolue par le Repository).
  */
-export type SessionAggregateRow = {
+export type SessionHeaderRow = {
   session_id: string;
   owner_id: string;
   session_name: string;
-  /** V2-PRE-1 (plan §3.3) : Étiquette facultative — `null` si aucune. */
   label_id: string | null;
-  /** V2-PRE-1 : couleur de l'Étiquette jointe — `null` si `label_id` est `null` (présentation neutre résolue par le Repository). */
   label_color: string | null;
   status: "ACTIVE" | "ARCHIVED";
+  /** PRE-8 (E.1) : horodatage d'archivage (`migration001`), `NULL` pour une Séance active ; absent des fixtures antérieures. */
+  archived_at?: string | null;
   initial_countdown_seconds: number;
   final_phase_seconds: number;
   session_created_at: string;
   session_updated_at: string;
-  cycle_id: string;
-  cycle_position: 1;
-  cycle_repeat_count: 1;
-  tour_id: string;
-  tour_position: 1;
-  /** T01-S10 : `1..99` (D-058). */
-  tour_repeat_count: number;
-  /** V2-BILAT-01 : direction du Tour (`Session.cycle.tour.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
-  tour_side_mode: SideMode;
-  /** PRE-6 (story 1.1, AD-34) : nature du Circuit (`migration011`, défaut `'TOURS'`). */
-  tour_nature: CircuitNature;
-  activity_id: string;
+};
+
+/** PRE-8 (A.4) : Cycle utilisateur ; `position` = rang au niveau principal ; `repeat_count ≥ 1`. */
+export type CycleRow = {
+  id: string;
+  session_id: string;
+  position: number;
+  repeat_count: number;
+};
+
+/**
+ * PRE-8 (A.4) : Circuit (table `tours`) ; `cycle_id` `null` au niveau principal ; `position` =
+ * rang au niveau principal ou dans le Cycle ; `repeat_count` 1..99 (D-058) ; direction technique
+ * (`migration005`) et nature (`migration011`, AD-34).
+ */
+export type CircuitRow = {
+  id: string;
+  session_id: string;
+  cycle_id: string | null;
+  position: number;
+  repeat_count: number;
+  side_mode: SideMode;
+  nature: CircuitNature;
+};
+
+/**
+ * PRE-8 (A.4) : Exercice (table `activities`) ; `tour_id` `null` au niveau principal ;
+ * `position` = rang au niveau principal ou dans le Circuit.
+ */
+export type ActivityRow = {
+  id: string;
+  session_id: string;
+  tour_id: string | null;
   /** T01-S10 : `'EXERCISE'` ou `'RECOVERY'` (D-061). */
-  activity_type: ActivityType;
-  /** T01-S10 : `'BEFORE_TOUR'` / `'IN_TOUR'` / `'AFTER_TOUR'` (D-061). */
-  structural_position: StructuralPosition;
-  activity_position: number;
+  type: ActivityType;
+  position: number;
   /**
    * Colonne historique projetée, jamais relue comme source (AD-3) :
    * `'DURATION'` ou `'REPETITIONS'` après `migration010` ; le type de ligne
@@ -64,53 +74,29 @@ export type SessionAggregateRow = {
   /** `null` pour une Récupération (T01-S10). */
   series_count: number | null;
   pause_seconds: number;
-  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s — `0` = aucune (renommée depuis `recovery_seconds`, `migration007`). */
+  /** V2-PRE-1 : récupération post-exercice de l'occurrence, `0..5999` s. */
   post_activity_recovery_seconds: number;
-  /**
-   * PRE-6 (story 1.1, AD-35) : présence de la récupération (`migration011`) —
-   * `0` = absente (secondes alors à 0), `1` = présente (0 compris).
-   */
+  /** PRE-6 (story 1.1, AD-35) : `0` = absente (secondes alors à 0), `1` = présente (0 compris). */
   post_activity_recovery_present: number;
-  /** V2-BILAT-01 : direction propre de cette Activité (`Activity.sideMode`, `migration005`, défaut `'UNILATERAL'`). */
-  activity_side_mode: SideMode;
-  /** PRE-7 (R-3) : JSON de la forme Catalogue v5 (`readCatalogExecutionParameters`) — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
-  activity_execution_parameters: string | null;
-  /** PRE-7 (R-3, `migration013`, C05) : Mouvement de l'occurrence, clé étrangère RESTRICT ; son contenu est relu dans le Mouvement. */
-  activity_source_movement_id: string;
+  created_at: string;
+  updated_at: string;
+  /** V2-BILAT-01 : direction propre de l'Exercice (`migration005`). */
+  side_mode: SideMode;
+  /** PRE-7 (R-3) : JSON de la forme Catalogue v5 — `NULL` seulement pour une ancienne ligne `RECOVERY`. */
+  execution_parameters: string | null;
+  /** PRE-7 (R-3, C05) : Mouvement de l'Exercice, clé étrangère RESTRICT. */
+  source_movement_id: string;
   /** PRE-7 (R-3, Q3) : numéro de copie, `NULL` pour l'original. */
-  activity_copy_number: number | null;
+  copy_number: number | null;
 };
 
-/** PRE-4 (story 1.2, P39) : colonnes propres à une occurrence dans `SessionAggregateRow`. */
-export type SessionAggregateOccurrenceColumn =
-  | "activity_id"
-  | "activity_type"
-  | "structural_position"
-  | "activity_position"
-  | "execution_mode"
-  | "duration_seconds"
-  | "repetition_count"
-  | "series_count"
-  | "pause_seconds"
-  | "post_activity_recovery_seconds"
-  | "post_activity_recovery_present"
-  | "activity_side_mode"
-  | "activity_execution_parameters"
-  | "activity_source_movement_id"
-  | "activity_copy_number";
-
-/**
- * PRE-4 (story 1.2, FR-18-20 sixième conséquence, P39) : ligne de la lecture
- * d'agrégat, qui fait un `LEFT JOIN activities`. Une Séance sans occurrence
- * (toutes ses Copies écartées par `migration010`) produit UNE ligne dont les
- * colonnes d'occurrence sont toutes `NULL` ; elle ne porte que l'en-tête
- * (Séance, Cycle, Tour). `isSessionOccurrenceRow` distingue les deux formes.
- */
-export type SessionAggregateQueryRow =
-  | SessionAggregateRow
-  | (Omit<SessionAggregateRow, SessionAggregateOccurrenceColumn> & {
-      [K in SessionAggregateOccurrenceColumn]: null;
-    });
+/** PRE-8 (A.4) : Point d'arrêt ; `tour_id` `null` au niveau principal, sinon son Circuit. */
+export type StopPointRow = {
+  id: string;
+  session_id: string;
+  tour_id: string | null;
+  position: number;
+};
 
 /** Une ligne par Catégorie persistée (V2-PRE-1 : `color`/`is_active` ajoutées, plan §3.1). */
 export type CategoryRow = {
@@ -258,24 +244,6 @@ export type JoinedMediaAssetColumns = {
   asset_height: number | null;
 };
 
-export type SessionSummaryRow = {
-  id: string;
-  name: string;
-  label_id: string | null;
-  label_color: string | null;
-  before_tour_activity_count: number;
-  in_tour_activity_count: number;
-  after_tour_activity_count: number;
-  /**
-   * PRE-3 : les anciennes colonnes de durée SQL (somme scalaire divergente)
-   * sont retirées de la projection — le total de liste est calculé par
-   * l'autorité unique du Domaine à partir des paramètres des occurrences.
-   */
-  tour_repeat_count: number;
-  /** PRE-6 (story 1.3) : nature du Circuit (`tours.nature`, `migration011`), pour la durée de liste. */
-  tour_nature: string;
-  updated_at: string;
-};
 
 /** PRE-4 (`migration010`, AD-12) : un avis de migration — aucun identifiant ni contenu d'Exercice écarté. */
 export type MigrationNoticeRow = {

@@ -20,7 +20,7 @@ Rester dans le catalogue. Déposer valide l'opération ; revenir dans le filet a
 
 ### 5. Données affichées et source de vérité
 
-Mouvements existants, identifiant de groupe et clé de tri ; niveaux dérivés de l'ordre complet, avant filtrage. Pendant le déplacement, le filet, les cartes et les pastilles présentent le résultat envisagé sans écriture persistante. Au relâchement, appliquer l'opération ; Annuler restaure l'état antérieur complet.
+Mouvements existants, identifiant de groupe et clé de tri ; niveaux dérivés de l'ordre complet, avant filtrage [b8-3, 28/10/2026 : niveau affiché d'un actif dérivé des seuls actifs]. Pendant le déplacement, le filet, les cartes et les pastilles présentent le résultat envisagé sans écriture persistante. Au relâchement, appliquer l'opération ; Annuler restaure l'état antérieur complet.
 
 ### 6. Classification des valeurs Figma
 
@@ -28,7 +28,7 @@ Les noms, contenus et nombres de niveaux des cartes sont des exemples. Le filet,
 
 ### 7. Structure de l'écran
 
-Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance.
+Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance. [Emplacement pointillé : écart visuel connu dans PRE-8, accepté provisoirement par Hermann le 28/10/2026 ; la référence Figma reste le rendu attendu.]
 
 ### 8. Éléments obligatoires
 
@@ -40,7 +40,7 @@ Niveau le plus élevé en haut. Longueur du filet inchangée à membres constant
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
-Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
+Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. [Recette iPhone du 28/10/2026, demande de Hermann : pendant le geste, la liste défile quand la carte portée approche du haut ou du bas ; la carte reste sous le doigt ; défiler n'est pas s'arrêter sur une famille repliée.] Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
 
 ### 11. États de l'écran
 
@@ -48,7 +48,7 @@ Les trois frames de référence suffisent au geste continu. Déplacement fixe la
 
 ### 12. Contrôles et interactions
 
-Appui long, déplacement, arrêt à l'emplacement, relâchement. Une famille repliée se déplie avant le choix de position ou à l'approche. Recalculer les niveaux en direct. Pour l'ordre interne, conserver le filet et ne montrer aucun message après dépôt. Pour sortir, raccourcir le filet, refermer les cartes, recalculer les niveaux restants et retirer la pastille de la carte déplacée. La ramener dans le filet rétablit la famille avant dépôt.
+Appui long, déplacement, arrêt à l'emplacement, relâchement. Une famille repliée se déplie avant le choix de position ou à l'approche [à l'arrêt de la carte portée sur la famille, recette du 28/10/2026]. Recalculer les niveaux en direct. Pour l'ordre interne, conserver le filet et ne montrer aucun message après dépôt. Pour sortir, raccourcir le filet, refermer les cartes, recalculer les niveaux restants et retirer la pastille de la carte déplacée. La ramener dans le filet rétablit la famille avant dépôt.
 
 ### 13. Gestes
 
@@ -60,7 +60,7 @@ Relâcher applique immédiatement. Déposer au-dessus d'une famille en tête de 
 
 ### 15. Brouillon et persistance
 
-Prévisualisation seulement pendant le geste ; aucun état provisoire persistant après relâchement. Réordonner écrit la clé du membre déplacé. Entrer/sortir écrit ou efface ensemble son groupe et sa clé ; le dernier couple implique deux mouvements. Former une famille de deux isolés exige deux appartenances. Annuler restaure toute l'opération, y compris les champs des deux membres concernés ; aucun changement des contenus ou références d'exercices.
+Prévisualisation seulement pendant le geste ; aucun état provisoire persistant après relâchement. Réordonner écrit la clé du membre déplacé [sauf rééquilibrage technique exceptionnel, 28/10/2026]. Entrer/sortir écrit ou efface ensemble son groupe et sa clé ; le dernier couple implique deux mouvements. Former une famille de deux isolés exige deux appartenances. Annuler restaure toute l'opération, y compris les champs des deux membres concernés ; aucun changement des contenus ou références d'exercices.
 
 ### 16. Navigation et conservation d'état
 
@@ -72,7 +72,7 @@ Le dernier couple explicitement détaché devient deux mouvements sans groupe. L
 
 ### 18. Accessibilité
 
-Annoncer l'identité du mouvement, son niveau dérivé et l'action Annuler ; ne pas dépendre de la couleur seule. Conserver l'accès de réordonnancement par le menu et les cibles accessibles existantes. Ne pas inventer une action nommée de retrait dans un menu. Le retour temporaire dure les 3 secondes décidées ; aucun autre délai n'est déduit de la maquette.
+Annoncer l'identité du mouvement, son niveau dérivé et l'action Annuler ; ne pas dépendre de la couleur seule. Conserver l'accès de réordonnancement par le menu et les cibles accessibles existantes. Ne pas inventer une action nommée de retrait dans un menu. [Report du 28/10/2026, décision de Hermann : créer, rejoindre et quitter une famille avec VoiceOver sont reportés dans un lot d'accessibilité dédié en fin de MVP ; exigence différée, non supprimée.] Le retour temporaire dure les 3 secondes décidées ; aucun autre délai n'est déduit de la maquette.
 
 ### 19. Invariants et messages
 
@@ -84,8 +84,9 @@ Un groupe maximum ; pas de rang persisté ni plafond métier. Identités, exerci
 | Création | Nouvelle famille de niveaux créée |
 | Dissolution du dernier couple | Famille de niveaux supprimée |
 | Sortie laissant une famille | Mouvement sorti de la famille |
+| Entrée dans une famille existante | Mouvement ajouté à la famille (validé le 28/10/2026) |
 
-Les messages d'appartenance portent Annuler, pendant 3 secondes, au-dessus de la barre de navigation. La dissolution du dernier couple utilise le message de suppression de famille, pas celui de simple sortie. E2 s'applique aussi à l'entrée dans une famille existante, mais aucun libellé d'entrée n'est fourni : ne pas en présenter un comme validé.
+Les messages d'appartenance portent Annuler, pendant 3 secondes, au-dessus de la barre de navigation. La dissolution du dernier couple utilise le message de suppression de famille, pas celui de simple sortie. E2 s'applique aussi à l'entrée dans une famille existante, mais aucun libellé d'entrée n'est fourni : ne pas en présenter un comme validé. [Tranché par Hermann le 28/10/2026 : libellé définitif **Mouvement ajouté à la famille**.]
 
 ### 20. Recette déterministe
 
@@ -188,7 +189,7 @@ Créer un mouvement autonome, consulter et modifier son contenu partagé, créer
 
 ### 3. Contexte d'entrée
 
-Création depuis le catalogue, ouverture d'une fiche existante, reprise d'un résultat, ajout d'un niveau depuis le catalogue. Distinguer création indépendante, variante, consultation et édition. Un mouvement repris depuis une séance est consultable mais n'offre ni crayon ni création de variante.
+Création depuis le catalogue, ouverture d'une fiche existante, reprise d'un résultat, ajout d'un niveau depuis le catalogue. Distinguer création indépendante, variante, consultation et édition. Un mouvement repris depuis une séance est consultable mais n'offre ni crayon ni création de variante. [Recette A/B du 27/10/2026, F07 — remplace la consultation préalable : depuis le Catalogue des Mouvements, une fiche existante s'ouvre directement en édition, sans crayon ; brouillon, abandon et dialogues C03 conservés ; un Mouvement archivé reste consultable seulement ; le verrouillage depuis une Séance est inchangé.]
 
 Le verrouillage depuis une séance concerne uniquement un mouvement existant ou repris. Lors de la création d'un nouvel exercice, le mouvement nouveau reste éditable tant qu'il n'est pas enregistré ; choisir un mouvement existant fait passer son contenu en lecture seule. La création de variante depuis une séance reste exclue de ce parcours cible.
 
@@ -206,21 +207,23 @@ Mouvement partagé : nom, alias existants, catégorie, zones corporelles, descri
 
 ### 7. Structure de l'écran
 
-En-tête fixe ; média pleine largeur derrière la zone de contexte (nom et pastilles catégorie/zone/niveau) ; description en étapes ; phases du mouvement ; action Terminer en bas. Sans média, gabarit vide permettant l'ajout. Pas d'accordéon Médias inférieur, pas de carte Paramètres ni de mode d'exécution.
+En-tête fixe ; média pleine largeur derrière la zone de contexte (nom et pastilles catégorie/zone/niveau) ; description en étapes ; phases du mouvement ; action Terminer en bas. Sans média, gabarit vide permettant l'ajout. Pas d'accordéon Médias inférieur, pas de carte Paramètres ni de mode d'exécution. [Recette A/B du 27/10/2026, F01/F02 : le média se prolonge derrière la zone de contexte, dont le dégradé recouvre la partie haute sans bande blanche (chevauchement de 21 à la référence 402) ; la zone média reste fixe pendant le défilement de la description et des phases, et le gabarit reste présent sans média. F03/F04 : titres « Description du mouvement » et « Phases du mouvement (pour minuter l'exécution) » en 11, mêmes marges et espacements. F05 : phases en liste d'étapes textuelles numérotées, sans durée ni paramètre ; ajout par l'invite, retrait par effacement d'une phase vide ; ordre modifiable par les actions accessibles.]
 
 Le bloc média adopte uniquement l'emplacement et les dimensions du nouveau gabarit Figma. Tous les comportements existants sont conservés : ajout/import, consultation/lecture, retrait et réordonnancement. La disparition de l'accordéon inférieur ne supprime aucune de ces commandes et n'introduit aucun nouveau parcours. Aucun écran ni arbitrage média supplémentaire n'est un prérequis de PRE-8.
 
 ### 8. Éléments obligatoires
 
-Navigation/fermeture, nom, pastilles de contexte, gabarit média, blocs description et phases, action Terminer. Crayon dans le contexte catalogue pour entrer en édition. Ces blocs ne rendent pas tous leurs contenus obligatoires : conserver les validations métier existantes, sans exiger un média ou des phases pour créer un mouvement. Alias : conserver leur prise en charge, sans prétendre que les 25 frames fournissent un nouveau champ dessiné.
+Navigation/fermeture, nom, pastilles de contexte, gabarit média, blocs description et phases, action Terminer. Crayon dans le contexte catalogue pour entrer en édition. Ces blocs ne rendent pas tous leurs contenus obligatoires : conserver les validations métier existantes, sans exiger un média ou des phases pour créer un mouvement. Alias : conserver leur prise en charge, sans prétendre que les 25 frames fournissent un nouveau champ dessiné. [Recette A/B du 27/10/2026, F07 : plus de crayon depuis le Catalogue des Mouvements, la fiche y est ouverte en édition.]
 
 ### 9. Layout déterministe
 
-Référence 402 × 874 ; en-tête 402 × 95 ; contexte 402 × 115 ; photo remplie 402 × 329 ; blocs description/phases de largeur 354 (marges 24). Le média passe derrière le contexte : ne pas additionner mécaniquement leurs hauteurs. Réutiliser les variantes et styles relevés au chapitre 12. Les hauteurs des listes s'adaptent à leur contenu. La pastille des zones absorbe la place disponible et tronque pour préserver catégorie et niveau.
+Référence 402 × 874 ; en-tête 402 × 95 ; contexte 402 × 115 ; photo remplie 402 × 329 ; blocs description/phases de largeur 354 (marges 24). Le média passe derrière le contexte : ne pas additionner mécaniquement leurs hauteurs. Réutiliser les variantes et styles relevés au chapitre 12. Les hauteurs des listes s'adaptent à leur contenu. La pastille des zones absorbe la place disponible et tronque pour préserver catégorie et niveau. [Recette A/B du 27/10/2026, A01 : marges standard de 16, blocs de 370 à la référence 402 ; A02 : titre de la fiche et de la création Mouvement / Niveau en Inter Medium 17.]
 
 ### 10. Responsive, Safe Areas, texte, scroll et clavier
 
 Adapter la largeur au terminal, respecter safe areas et mécanismes existants d'en-tête/bouton fixe. Le contenu défile sans passer sous l'action finale. Le clavier ne masque ni le champ actif ni les suggestions ; la description et les libellés longs restent accessibles. Les dimensions du prototype ne prescrivent pas une hauteur fixe de contenu. Conserver l'agrandissement de texte et les règles de clavier existantes.
+
+**Clavier ouvert dans la Description ou les Phases (clarification UX de recette, 27/10/2026, PRE-8 ; remplace la remontée du gabarit média de B.10).** L'en-tête, la zone de contexte et le gabarit média restent fixes : le clavier ne les déplace, ne les réduit ni ne les redimensionne ; sans média, le gabarit vide et ses commandes d'ajout restent à leur place. Le contenu éditable (Description et Phases) remonte progressivement devant le média, sur une surface claire translucide (blanc à 90 %, `color.movementEditableSurface`, recette du 27/10 : « légèrement plus translucide ») : aucun texte n'est posé directement sur l'image. Il remonte jusqu'à poser le bas des Phases (ligne d'invite comprise) juste au-dessus du clavier, et y reste tant que le clavier est ouvert, quels que soient les changements de champ ou de contenu de la Description et des Phases : il ne redescend jamais clavier ouvert (il peut encore monter si le contenu s'allonge). Il monte au plus jusqu'à la part opaque de la zone de contexte : il glisse sous le fondu de cette zone, qui se pose sur son fond blanc translucide. Au-delà, le contenu défile ; la ligne en saisie (après Entrée : la ligne qui suit) reste visible. Le défilement vers la fin s'arrête quand la dernière ligne des Phases est juste au-dessus du clavier : elle ne monte pas plus haut. Toutes les étapes et toutes les Phases restent atteignables par défilement, clavier ouvert, sans retour forcé. Toucher le formulaire hors d'un champ (titre de section, espace) ne ferme pas le clavier. Clavier ouvert sur la Description ou les Phases, Nom, Catégorie, Zones et Niveau sont inactifs : un toucher sur la zone de contexte ferme seulement le clavier (recette du 27/10, demande de Hermann). Passer d'un champ à l'autre clavier ouvert ne provoque ni saut ni double décalage. À la fermeture du clavier, le contenu reprend progressivement sa disposition normale, sans perte de saisie. Une seule mécanique pour la Description et les Phases. « Réduire les animations » : changement immédiat, sans glissement. Précisions de mise en œuvre (à confirmer en recette) : la saisie du Nom n'entraîne pas cette remontée. Figma ne représente pas l'état clavier ouvert : sa référence reste l'état normal.
 
 ### 11. États de l'écran
 
@@ -228,7 +231,7 @@ Initial ; nom en cours et mouvements proches ; nom déjà utilisé ; options d'u
 
 ### 12. Contrôles et interactions
 
-Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; Ajouter un niveau → choix du sens puis création ; depuis le glissé du catalogue, appliquer CE-MVT-02 sans écran intermédiaire. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction.
+Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; Ajouter un niveau → choix du sens puis création ; depuis le glissé du catalogue, appliquer CE-MVT-02 sans écran intermédiaire. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction. [Recette A/B du 27/10/2026, F07 : depuis le Catalogue des Mouvements, la fiche est directement modifiable ; C02 : après Plus facile / Plus difficile, le nouveau Niveau s'ouvre en édition, sans crayon, nom commencé sans rang ajouté et invite « (compléter le nom) » non persistée ; F06 : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`), même règle en création et en modification.]
 
 ### 13. Gestes
 
@@ -821,7 +824,7 @@ Aucun bouton `Ouvrir` n’est affiché dans la vue déployée.
 Chaque ligne d’Exercice présente :
 
 - le nom de l’Exercice à gauche ;
-- un groupe compact aligné à droite sous la forme `durée/reps · xN`.
+- un groupe compact aligné à droite sous la forme `durée/reps · xN`. [Remplacé dans PRE-8 par R-E4, recette iPhone du 28/10/2026 (accepté par Hermann) : format de la synthèse d'occurrence, par exemple « 3 × 12 rép. », « 45 s ».]
 
 `xN` n’est affiché que lorsque le nombre de Séries est supérieur à 1. En mode Répétition, l’abréviation `reps` est utilisée.
 
@@ -843,7 +846,7 @@ Depuis le résultat du filtre `Archivées`, `Restaurer` affiche un snackbar `Sé
 
 Si aucune Séance n’a encore été créée, l’écran affiche : `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` Il présente également l’action permettant de créer la première Séance.
 
-Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration.
+Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration. [Message propre remplacé dans PRE-8 par R-E5, recette iPhone du 28/10/2026 (accepté par Hermann) : message générique « Aucune séance ne correspond aux filtres. ».]
 
 Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame dédiée dans le `Prototype MVP`. Ils réutilisent le composant d’état vide et la structure de leurs écrans parents ; aucune capture non issue de Figma n’est créée.
 
@@ -5167,7 +5170,7 @@ Les noms d’Exercices/Séances, catégories, zones corporelles, durées, nombre
 
 #### 4.3 Navigation globale
 
-Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225).
+Destination basse permanente : `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Aucun contrôle Recherche n’est présent dans le MVP (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
 Composant : `Navigation / Bottom — 5 onglets` (`6513:20151`). Les cinq dessins de destination mesurent au maximum `24 pt`, centrés dans une boîte optique `32 × 32 pt`. Aucune substitution par glyphe/emoji/système.
 
@@ -5177,7 +5180,7 @@ Filtre appliqué, tri implicite et scroll sont conservés pendant la session app
 
 #### 4.5 Commandes Catalogue `Créer` / `Filtrer` / `Trier`
 
-`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native.
+`Créer`, `Filtrer` et `Trier` forment la rangée commune de commandes. Référence du 30 septembre : cercles visibles `34 pt`, pictogrammes `20 pt`, gap visuel `12 pt`, cibles transparentes ≥ `44 × 44 pt` sans chevauchement. Les pilules étendues conservent une hauteur de `34 pt`. Le groupe est centré verticalement dans la zone de contexte existante. Les coordonnées de maquette ne deviennent pas des positions absolues React Native. [Recette A/B du 27/10/2026, D01–D05 : appliqué à tous les segments par un module commun (`CatalogueCommands`) ; sur le segment Mouvements, le champ Rechercher occupe la même rangée, à gauche des commandes, de même hauteur visible 34 (cible 44), et se réduit horizontalement quand Filtrer s’étend ; une croix dans le champ efface la saisie et restaure la liste des filtres actifs sans fermer le Catalogue. Commande Filtrer étendue : rond bleu (retire les filtres), « Filtres » + résumé + chevron (ouvre la feuille). Sans critère, Filtrer ouvre directement la feuille : l’étape intermédiaire « Filtres / Aucun » n’est pas développée (à valider). Catalogue des Mouvements, B06 : toute la marge gauche d’une pile déployée la replie ; B09 : une pile condensée ne glisse pas.]
 
 `Filtrer` et `Trier` sont communs à `Exercices / Séances`; leur représentation d’entrée est commune, leurs options peuvent être contextuelles. Le filtre inactif est un bouton rond blanc. Dans le Catalogue des séances, l’état étendu sans filtre est retiré le 27/10/2026 : ouvrir le panneau sans créer cet état intermédiaire. Les autres contextes conservent leur comportement existant. Après sélection d’un critère, le contrôle actif est bleu et étendu ; le rond bleu retire le filtre, tandis que la zone texte ouvre la modale. `Réinitialiser` revient à `Aucun`. `Créer` reste actif. `Trier` reste visible mais disabled en T03.
 
@@ -5392,7 +5395,7 @@ Aucune préférence Cadence ajoutée au Profil ; sons selon réglages existants.
 
 #### 20. Recette déterministe
 
-Tester les cinq destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit.
+Tester les cinq destinations, labels accessibles, état actif, dimensions et Safe Areas ; relance Catalogue/Séances ; aucune action ni bouton Recherche ; ne pas confondre une variante DSF inutilisée avec une route produit. [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
 ### CE-UI-06 — Splash KODJO
 

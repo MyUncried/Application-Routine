@@ -1,0 +1,114 @@
+# Suivi de sprint PRE-8 (autorisation de Hermann du 27/10/2026 : epics A et B)
+generated: 10-27-2026 10:00
+last_updated: 10-28-2026 18:00
+validation: "Recette iPhone A/B validée par Hermann le 27/10/2026 (« j'ai terminé les tests de recette, avec succès » ; « Je valide les résultats de ces deux epics »). Code recetté : 88c2adde, branche pre8-bmad/dev, non fusionnée dans main."
+project: kodjo-pre8
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/pre8/implementation-artifacts
+development_status:
+  epic-a: done
+  a-1-analyse-impact-d449-schema-014: done
+  a-2-domaine-structure-generale: done
+  a-3-migration-014-conservation: done
+  a-4-repository-et-services-structure: done
+  epic-b: done  # arbitrages du 27/10 intégrés (Q-B2, Q-B3, Q1 à Q8, Q3 définitif)
+  b-1-services-mouvement-autonome: done
+  b-2-fiche-mouvement-ce-mvt-01: done
+  b-3-catalogue-des-mouvements: done  # accès, liste, recherche
+  b-4-recette-automatique-mvt: done
+  b-5-piles-et-deploiement: done
+  b-6-variante-par-action-glissee: done
+  b-7-filtres-et-recherche-combines: done
+  b-8-archivage-restauration-suppression: done  # migration 015
+  b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
+  b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
+  b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
+  fam-familles-de-niveaux-geste: done  # lot ciblé du 28/10 (règles A à E, main 0a40735f) ; recette iPhone FAM-01 à FAM-11 et passes 2 à 4 OK ; clôturé le 28/10 (spec-familles-mouvements-2026-10-28.md § 13) ; VoiceOver reporté, pointillé accepté provisoirement ; epic B non rouvert
+  epic-e: done  # clôturé le 28/10 (« Clôture définitive de PRE-8 ») : E.1–E.7 et E.8-a ; recette iPhone et passes ciblées OK ; e2-11 accepté sur tests automatiques ; six points VoiceOver reportés au lot d'accessibilité de fin de MVP (recette-iphone-epic-e-resultats-2026-10-28.md)
+  e-1-projection-catalogue: done  # listCatalogue + projectSessionForCatalogue, sans migration
+  e-2-carte-commune-catalogue: done  # carte unique ; Lecture indisponible (aucune Exécution) ; réserve R-E1 (format de durée D-443)
+  e-3-deploiement-composition: done  # Cycles et Circuits multiples vérifiés par les tests automatiques seulement (epic C)
+  e-4-ecran-segment-seances: done  # trois segments, bascule de vue, rangée responsive Q-E4 ; livrée avec E.8-a
+  e-5-cycle-de-vie-actions-glissees: done  # archiver / restaurer / supprimer sans migration ; Planifier grisé
+  e-6-filtres-seances: done  # Q-E3 option B (agrégé), Q-E5 option A (Libre seul) ; primitives de feuille mutualisées avec les Mouvements
+  e-7-raccordements-recette: done  # code, tests et recette iPhone du 28/10 (recette-iphone-epic-e-resultats-2026-10-28.md)
+  e-8-transition-exercices-catalogue: done  # E.8-a livré (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b reporté hors PRE-8 (avec ou après l’epic C, autorisation distincte)
+  # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats
+deferred:
+  - id: q-e0
+    epic: e
+    status: tranche
+    question: "Intégrer origin/main (ff7600ac, sources E) dans pre8-bmad/dev avant le développement ; 6 conflits documentaires (DSF Mouvements, ch06, ch07, ch10, ch12, ch13), aucun conflit de code."
+  - id: q-e2
+    epic: e
+    status: tranche
+    decision: "Option B (28/10) : trois segments ; anciennes définitions conservées, consultables et modifiables par ExerciseScreen ; sans migration. Reste : emplacement du point d'entrée (e8a-acces)."
+    question: "Segment Exercices et Exercices du Catalogue existants (activity_definitions, encore lus par la sélection de la Composition) : garder le segment pendant E, ou convertir en Séances (migration 016, Q-E1) et le retirer."
+  - id: q-e3
+    epic: e
+    status: tranche
+    decision: "Option B (28/10) : caractéristiques agrégées ; OU dans une section, ET entre sections ; Catégories et Zones sur des exercices éventuellement différents ; Étiquette et Format de la Séance ; Statut d'abord ; bascule combinée."
+    question: "Sémantique des filtres Catégories, Zones, Étiquettes d'une Séance de plusieurs exercices. Proposition non validée : OU dans une section, ET entre sections, correspondance sur l'ensemble des exercices."
+  - id: q-e4
+    epic: e
+    status: tranche
+    decision: "Option B complétée (28/10) : inactif / actif étendu / actif compact (ouvrir + croix) ; 44 × 44 ; deux lignes si nécessaire ; réinitialiser conserve la bascule ; précision UX hors Figma. [Révisé par la recette du 28/10, q4-02 : forme étendue toujours, « N filtres » quand le nom ne tient pas, une seule ligne, sans forme compacte ni croix.]"
+    # question résolue par la révision q4-02 (la zone des commandes cède la place à la bascule).
+    question: "Rangée Un exercice | Plusieurs + Filtrer étendu + Tri + Créer : environ 382 pt demandés, 370 disponibles à 402, 328 à 360 (réserve F-02)."
+  - id: q-e5
+    epic: e
+    status: tranche
+    decision: "Option A (28/10) : vignettes Figma visibles, Libre sélectionnable, autres désactivées."
+    question: "Section Format et premier emplacement de synthèse alors qu'aucun format n'est persisté."
+  - id: e8a-acces
+    epic: e
+    status: tranche
+    decision: "Option 1 (Hermann, 28/10) : commande Modifier distincte de la sélection, sur chaque ligne de la sélection d'Exercices de la Composition ; ExerciseScreen et route existants ; sélection inchangée ; liste actualisée au retour, sélections et contexte conservés ; transitoire, retirée par l'epic C."
+    question: "Emplacement du point d'entrée vers ExerciseScreen pour les anciennes définitions après retrait du segment Exercices : 1 sélection d'exercices de la Composition (recommandée), 2 fiche Mouvement, 3 autre."
+  - id: q-e6
+    epic: e
+    status: tranche
+    question: "Synthèse d'une Séance sans exercice ; libellé de l'état aucun résultat après filtres."
+  - id: regle-8-niveaux-archives
+    epic: b
+    status: tranche
+    decision: "Hermann, 28/10 : option A, b8-3 conservé (rangs des actifs recalculés sans discontinuité ; archivé au rang de la famille complète). Fiche Mouvement alignée (MovementScreen). Texte de main (ch09 règle 8, ch07) à corriger à l'intégration documentaire (integration-documentaire-main.md)."
+  - id: regle-6-cle-de-tri
+    epic: b
+    status: constate-sans-correction
+    question: "ch09 règle 6 : écrire la seule clé du membre déplacé ; MovementRepository.reorder (PRE-7) réécrit la famille."
+    note: "Clôture PRE-8 (28/10) : le geste du Catalogue (lot Familles) n'écrit que la clé du Mouvement déplacé ; le réordonnancement depuis le menu de la fiche (reorder) réécrit encore toute la famille. Limite connue, non bloquante, reportée."
+  - id: menu-niveau-largeur
+    epic: b
+    status: tranche
+    decision: "Hermann, recette du 27/10, troisième passage : « Garde le menu natif d'iOS » (ch07) ; largeur et taille du texte fixées par le système."
+    question: "Élargir le menu Niveau sur iOS pour que les noms tiennent sur une ligne (largeur et taille du texte fixées par le système)."
+    options: "A : panneau KODJO sur iOS (exception à la primitive native, autorisation explicite requise) ; B : menu natif, libellés raccourcis ; C : autre ou laisser tel quel."
+  - id: filets-groupes-filtres
+    epic: b
+    status: a-clarifier
+    question: "Filets entre les groupes de la feuille des filtres des Mouvements (« barres horizontales ») : non ajoutés."
+  - id: q6-4-voiceover
+    epic: b
+    status: non-teste
+    question: "Recette VoiceOver q6-4 non réalisée sur l'appareil."
+  - id: q-e1
+    epic: e
+    status: tranche
+    decision: "Arbitrage Hermann du 27/10 : la Séance prend le titre de son premier Exercice. À appliquer par la conversion E.8-b (avec ou après l'epic C, autorisation distincte) ; non appliqué dans E.8-a (aucune conversion)."
+    question: "Titre d'une Séance issue de la conversion d'un Exercice du Catalogue existant (activity_definitions)."
+  - id: stop-points-generalises
+    epic: c
+    status: differe
+    note: "RM-219, RM-251 et D-442 hors du modèle à Circuit unique ; garde STRUCTURE_STOP_POINTS_UNSUPPORTED en attendant."
+  - id: q-b2
+    epic: b
+    status: tranche
+    decision: "Arbitrage Hermann du 27/10 : le rang le plus haut (Niveau N le plus élevé de la famille) en tête de pile, conforme au prototype. Arbitrage complémentaire : une pile se déplie au toucher ; la recherche affiche des piles dépliables de la même manière ; Trier reste grisé ; Partager reste grisé ; Créer une variante réutilise le choix de difficulté existant ; Archiver transpose les règles de l'Exercice (CE-T03-05) au Mouvement. Puis arbitrages Q1 à Q8 et Q3 définitif du 27/10 (filtres, archives) : livrés en B.5 à B.8. Tri non spécifié : grisé."
+    question: "Piles du Catalogue des Mouvements (carte du dessus : rang 1 selon le relevé du 25/10 ou rang le plus élevé selon Figma 10266:20575), navigation depuis une pile, effet de la recherche, sémantique des filtres (Statut, Niveaux, Utilisation, Catégories, Zones) et du tri."
+  - id: q-b3
+    epic: b
+    status: tranche
+    decision: "Arbitrage Hermann du 27/10 : aucun texte sous « Créer un nouveau mouvement » depuis le Catalogue ; c'est un Mouvement nouveau sans lien. Conforme au comportement livré."
+    question: "Libellé de la conséquence de « Créer un nouveau mouvement » depuis le Catalogue (DSF §5 : « Uniquement pour cet exercice » à adapter, texte non fourni). En attendant : conséquence omise."

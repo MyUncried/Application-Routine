@@ -26,6 +26,7 @@ import {
 import { allocatePhaseIdentities, type Movement, type MovementPhase } from "@/domain/activities/Movement";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { MovementRepository } from "@/domain/activities/MovementRepository";
+import { MovementCatalogueService } from "@/features/activities/MovementCatalogueService";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
 import type { Category } from "@/domain/categories/Category";
@@ -107,6 +108,11 @@ export type MovementChoice = {
   readonly movement: Movement;
   readonly definitionCount: number;
   readonly level: MovementLevelPosition | null;
+  /**
+   * PRE-8 (B.8, Q6) : Mouvement archivé — jamais proposé pour créer un nouvel Exercice ; reste
+   * compté par le contrôle d'unicité du nom (C01).
+   */
+  readonly archived?: boolean;
 };
 
 /**
@@ -118,6 +124,8 @@ export type MovementLevelEntry = {
   readonly movement: Movement;
   readonly rank: number;
   readonly definitions: readonly ActivityDefinition[];
+  /** PRE-8 (B.8, Q5, Q6) : membre archivé — garde son rang, n'est pas sélectionnable pour un Exercice. */
+  readonly archived?: boolean;
 };
 
 /**
@@ -196,6 +204,15 @@ export class ActivityDefinitionService {
      */
     private readonly movementRepository?: MovementRepository,
   ) {}
+
+  /**
+   * PRE-8 (B.1, B.2) : services du Mouvement autonome (Catalogue des Mouvements, fiche CE-MVT-01),
+   * sur le MÊME `MovementRepository` que les autres opérations du geste — aucune seconde
+   * composition SQLite. `null` sans `MovementRepository` (doublures antérieures à MFN).
+   */
+  get movementCatalogue(): MovementCatalogueService | null {
+    return this.movementRepository ? new MovementCatalogueService(this.movementRepository) : null;
+  }
 
   /**
    * Convertit l'entrée via `validateActivityDefinitionInput` (Domaine). En
@@ -408,6 +425,7 @@ export class ActivityDefinitionService {
       return [];
     }
     const found = await movements.search("");
+    const archivedIds = await movements.listArchivedIds();
     const definitions = await this.repository.listAll();
     const catalogueRank = new Map<string, number>();
     const definitionCounts = new Map<string, number>();
@@ -432,7 +450,7 @@ export class ActivityDefinitionService {
         }
         level = movementLevelPosition(movement, members);
       }
-      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level });
+      choices.push({ movement, definitionCount: definitionCounts.get(movement.id) ?? 0, level, archived: archivedIds.has(movement.id) });
     }
     return choices;
   }
@@ -493,12 +511,14 @@ export class ActivityDefinitionService {
       return { position: null, levels: [] };
     }
     const definitions = await this.repository.listAll();
+    const archivedIds = await movements.listArchivedIds();
     return {
       position,
       levels: members.map((member, index) => ({
         movement: member,
         rank: index + 1,
         definitions: definitions.filter((definition) => definition.movementId === member.id),
+        archived: archivedIds.has(member.id),
       })),
     };
   }

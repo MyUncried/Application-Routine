@@ -4,9 +4,9 @@
 
 ## Composition des familles — données, 28/10/2026
 
-Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
+Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.] ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
 
-Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive.
+Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres [sauf rééquilibrage technique exceptionnel, 28/10/2026]. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive. [Rangs après archivage et restauration : remplacés par b8-3, confirmé par Hermann le 28/10/2026 ; filtres et suppression définitive inchangés.]
 
 ## Application au lot Mouvement autonome — 27/10/2026
 
@@ -1469,7 +1469,7 @@ Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans r
 
 ##### Règle 6 — texte de référence
 
-6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille.
+6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille. [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.]
 
 ##### Règle 7 — texte de référence
 
@@ -1477,9 +1477,9 @@ Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans r
 
 ##### Règle 8 — clarification validée par Hermann le 27/10/2026
 
-8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
+8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.] Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
 
-Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
+Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. [Depuis b8-3 (28/10/2026), cela vaut pour le filtrage et pour le rang d'un membre archivé ; le rang affiché d'un actif est dérivé des seuls actifs.] Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
 
 
 ## Projection Catalogue des séances — 27/10/2026

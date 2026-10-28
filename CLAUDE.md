@@ -6,6 +6,12 @@
 @docs/AGENTS.md
 @openspec/instructions/EXIGENCES-PRODUIT.md
 
+## Règle permanente — synchronisation code / documentation
+
+Décision de Hermann du 28/10/2026. S'applique à tout travail de code sur KODJO, y compris dans les clones de développement BMAD (PRE-8 et suivants) où ce fichier est présent par héritage de `main`. Par dérogation à « Les spécifications produit […] ne sont corrigées qu'après validation d'Hermann d'un lot proposé », une évolution demandée explicitement par Hermann (classe B de la règle) vaut validation de ce lot.
+
+@.claude/rules/synchronisation-code-documentation.md
+
 ## Nature du chantier
 
 Révision de la documentation fonctionnelle KODJO avec OpenSpec standard (`openspec` CLI, schéma `spec-driven`, commandes `/opsx:*`). Chantier indépendant : **aucun raccordement à BMAD ni à VNext**. Les obligations VNext sont listées, non actives, dans `openspec/instructions/ORCHESTRATION-VNEXT.md`.

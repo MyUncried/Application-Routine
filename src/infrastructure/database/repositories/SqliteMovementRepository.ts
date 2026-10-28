@@ -8,8 +8,14 @@ import {
 } from "@/domain/activities/Movement";
 import {
   DuplicateMovementNameError,
+  type ArchiveMovementOutcome,
+  type CreateVariantOutcome,
+  type DeleteArchivedMovementOutcome,
   type DeleteMovementOutcome,
+  type RestoreMovementOutcome,
+  type MovementFamilyOutcome,
   type MovementGroupOutcome,
+  type MovementPriorMemberships,
   type MovementRepository,
 } from "@/domain/activities/MovementRepository";
 import type { DraftMediaItem, MediaLinkInput } from "@/domain/media/ActivityMedia";
@@ -458,6 +464,84 @@ export class SqliteMovementRepository implements MovementRepository {
     return outcome;
   }
 
+  async archive(id: string): Promise<ArchiveMovementOutcome> {
+    let outcome: ArchiveMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null }>(
+        "SELECT archived_at FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at !== null) {
+        outcome = { status: "ALREADY_ARCHIVED" };
+        return;
+      }
+      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      if (exerciseCount > 0) {
+        outcome = { status: "REFERENCED", exerciseCount };
+        return;
+      }
+      // Famille et position (`level_group_id`, `level_sort_key`) intactes ; les rangs affichés des actifs
+      // sont recalculés à la lecture (b8-3), aucune clé n'est réécrite.
+      const timestamp = this.now();
+      await transaction.runAsync("UPDATE movements SET archived_at = ?, updated_at = ? WHERE id = ?", [timestamp, timestamp, id]);
+      outcome = { status: "ARCHIVED" };
+    });
+    return outcome;
+  }
+
+  async restore(id: string): Promise<RestoreMovementOutcome> {
+    let outcome: RestoreMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null }>(
+        "SELECT archived_at FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at === null) {
+        outcome = { status: "NOT_ARCHIVED" };
+        return;
+      }
+      await transaction.runAsync("UPDATE movements SET archived_at = NULL, updated_at = ? WHERE id = ?", [this.now(), id]);
+      outcome = { status: "RESTORED" };
+    });
+    return outcome;
+  }
+
+  async deleteArchived(id: string): Promise<DeleteArchivedMovementOutcome> {
+    // Mêmes gardes que `delete` (références intègres, aucune cascade), dans UNE transaction : un
+    // Mouvement restauré entre-temps est relu actif et n'est pas supprimé.
+    let outcome: DeleteArchivedMovementOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const existing = await transaction.getFirstAsync<{ archived_at: string | null; level_group_id: string | null }>(
+        "SELECT archived_at, level_group_id FROM movements WHERE id = ?",
+        [id],
+      );
+      if (!existing) return;
+      if (existing.archived_at === null) {
+        outcome = { status: "NOT_ARCHIVED" };
+        return;
+      }
+      const exerciseCount = (await countMovementDefinitions(transaction, id)) + (await countMovementOccurrences(transaction, id));
+      if (exerciseCount > 0) {
+        outcome = { status: "REFERENCED", exerciseCount };
+        return;
+      }
+      await transaction.runAsync("DELETE FROM movements WHERE id = ?", [id]);
+      if (existing.level_group_id !== null) {
+        const remaining = await groupMemberIds(transaction, existing.level_group_id);
+        await writeGroupOrder(transaction, existing.level_group_id, remaining, this.now());
+      }
+      outcome = { status: "DELETED" };
+    });
+    return outcome;
+  }
+
+  async listArchivedIds(): Promise<ReadonlySet<string>> {
+    const rows = await this.database.getAllAsync<{ id: string }>("SELECT id FROM movements WHERE archived_at IS NOT NULL");
+    return new Set(rows.map((row) => row.id));
+  }
+
   attachToGroup(movementId: string, originId: string): Promise<MovementGroupOutcome> {
     return this.join(movementId, originId, "END");
   }
@@ -517,6 +601,139 @@ export class SqliteMovementRepository implements MovementRepository {
     return this.readGroup(this.database, groupId);
   }
 
+  async placeInFamily(movementId: string, anchorId: string, side: "ABOVE" | "BELOW"): Promise<MovementFamilyOutcome> {
+    if (movementId === anchorId) return { status: "INVALID_ORDER" };
+    let outcome: MovementFamilyOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const moving = await readMembership(transaction, movementId);
+      const anchor = await readMembership(transaction, anchorId);
+      if (!moving || !anchor) return;
+      const timestamp = this.now();
+      // Un Mouvement seul dans son groupe (singleton) se présente sans famille : il est libre (C1, C2).
+      const movingAlone = moving.groupId === null || (await groupMemberIds(transaction, moving.groupId)).length === 1;
+      const anchorAlone = anchor.groupId === null || (anchor.groupId !== moving.groupId && (await groupMemberIds(transaction, anchor.groupId)).length === 1);
+      if (anchorAlone) {
+        // C1 : création d'une famille à deux membres — la seule écriture de deux lignes.
+        if (!movingAlone) {
+          outcome = { status: "ALREADY_IN_GROUP" };
+          return;
+        }
+        const groupId = this.uuidFactory();
+        const previous = [moving, anchor];
+        const above = side === "ABOVE";
+        await writeMembership(transaction, anchorId, groupId, above ? 0 : 1, timestamp);
+        await writeMembership(transaction, movementId, groupId, above ? 1 : 0, timestamp);
+        outcome = { status: "OK", operation: "CREATED", groupId, previous };
+        return;
+      }
+      const groupId = anchor.groupId;
+      const sameFamily = moving.groupId === groupId;
+      if (!sameFamily && !movingAlone) {
+        // C6 : un membre d'une autre famille ne change pas de famille par ce geste.
+        outcome = { status: "ALREADY_IN_GROUP" };
+        return;
+      }
+      const ordered = (await groupKeys(transaction, groupId)).filter((member) => member.movementId !== movementId);
+      const anchorIndex = ordered.findIndex((member) => member.movementId === anchorId);
+      if (anchorIndex < 0) return;
+      const insertAt = side === "ABOVE" ? anchorIndex + 1 : anchorIndex;
+      const lower = ordered[insertAt - 1] ?? null;
+      const upper = ordered[insertAt] ?? null;
+      const key = keyBetween(lower?.sortKey ?? null, upper?.sortKey ?? null);
+      const operation = sameFamily ? "REORDERED" : "JOINED";
+      if (key === null) {
+        // Précision épuisée entre deux clés voisines : seule exception, la famille est renumérotée.
+        const previous = [moving, ...(await Promise.all(ordered.map((member) => readMembership(transaction, member.movementId))))].filter(
+          (entry): entry is MovementPriorMemberships[number] => entry !== null,
+        );
+        const ids = ordered.map((member) => member.movementId);
+        await writeGroupOrder(transaction, groupId, [...ids.slice(0, insertAt), movementId, ...ids.slice(insertAt)], timestamp);
+        outcome = { status: "OK", operation, groupId, previous };
+        return;
+      }
+      await writeMembership(transaction, movementId, groupId, key, timestamp);
+      outcome = { status: "OK", operation, groupId, previous: [moving] };
+    });
+    return outcome;
+  }
+
+  async leaveFamily(movementId: string): Promise<MovementFamilyOutcome> {
+    let outcome: MovementFamilyOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const moving = await readMembership(transaction, movementId);
+      if (!moving) return;
+      if (moving.groupId === null) {
+        outcome = { status: "INVALID_ORDER" };
+        return;
+      }
+      const timestamp = this.now();
+      const members = await groupMemberIds(transaction, moving.groupId);
+      // D2 : sortie du dernier couple — les deux appartenances sont effacées. Au-delà, seule la
+      // ligne sortie est écrite (B3) ; les rangs des autres se dérivent de leurs clés inchangées.
+      const cleared = members.length <= 2 ? members : [movementId];
+      const previous = (await Promise.all(cleared.map((id) => readMembership(transaction, id)))).filter(
+        (entry): entry is MovementPriorMemberships[number] => entry !== null,
+      );
+      for (const id of cleared) await writeMembership(transaction, id, null, null, timestamp);
+      outcome = { status: "OK", operation: members.length <= 2 ? "DISSOLVED" : "LEFT", groupId: moving.groupId, previous };
+    });
+    return outcome;
+  }
+
+  async restoreFamilyMemberships(previous: MovementPriorMemberships): Promise<boolean> {
+    let restored = false;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const timestamp = this.now();
+      for (const entry of previous) {
+        if (!(await readMembership(transaction, entry.movementId))) return;
+      }
+      for (const entry of previous) await writeMembership(transaction, entry.movementId, entry.groupId, entry.sortKey, timestamp);
+      restored = true;
+    });
+    return restored;
+  }
+
+  /** PRE-8 (B.1) : contenu partagé réécrit, identité et groupe conservés (`updateMovementContent`). */
+  async update(movement: Movement): Promise<Movement | null> {
+    let found = false;
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const current = await readMovementRecords(transaction, [movement.id]);
+      const existing = current.get(movement.id)?.movement;
+      if (!existing) {
+        return;
+      }
+      found = true;
+      await updateMovementContent(transaction, { ...movement, levelGroup: existing.levelGroup }, this.now(), () => this.uuidFactory());
+    });
+    return found ? this.findById(movement.id) : null;
+  }
+
+  /**
+   * PRE-8 (B.1, C02) : Mouvement nouveau et rattachement dans la MÊME transaction ; un refus du
+   * rattachement annule aussi la création (aucun Mouvement ni groupe provisoire).
+   */
+  async createVariant(movement: Movement, originId: string, placement: "BEFORE_ORIGIN" | "AFTER_ORIGIN"): Promise<CreateVariantOutcome> {
+    let members: readonly Movement[] = [];
+    try {
+      await this.database.withExclusiveTransactionAsync(async (transaction) => {
+        const timestamp = this.now();
+        await insertMovement(transaction, { ...movement, levelGroup: null }, timestamp, () => this.uuidFactory());
+        const joined = await joinMovementGroup(transaction, movement.id, originId, placement, this.uuidFactory, timestamp);
+        if (joined.status !== "OK") {
+          throw new VariantOriginRefusedError();
+        }
+        members = await this.readGroup(transaction, joined.groupId);
+      });
+    } catch (error) {
+      if (error instanceof VariantOriginRefusedError) {
+        return { status: "ORIGIN_NOT_FOUND" };
+      }
+      throw error;
+    }
+    const created = members.find((member) => member.id === movement.id)!;
+    return { status: "CREATED", movement: created, members };
+  }
+
   private async readGroup(database: Database, groupId: string): Promise<readonly Movement[]> {
     const rows = await database.getAllAsync<MovementRow>(
       `SELECT ${MOVEMENT_COLUMNS} FROM movements WHERE level_group_id = ? ORDER BY level_sort_key ASC, id ASC`,
@@ -541,6 +758,9 @@ export class SqliteMovementRepository implements MovementRepository {
     return outcome;
   }
 }
+
+/** Refus interne du rattachement d'une variante : annule la transaction de création. */
+class VariantOriginRefusedError extends Error {}
 
 /**
  * Place d'un Mouvement qui rejoint le groupe de son origine : en dernier (`attachToGroup`), juste
@@ -607,6 +827,45 @@ async function groupMemberIds(transaction: Database, groupId: string): Promise<s
     [groupId],
   );
   return rows.map((row) => row.id);
+}
+
+/** PRE-8, familles : appartenance actuelle d'un Mouvement, `null` s'il est introuvable. */
+async function readMembership(transaction: Database, movementId: string): Promise<MovementPriorMemberships[number] | null> {
+  const row = await transaction.getFirstAsync<{ level_group_id: string | null; level_sort_key: number | null }>(
+    "SELECT level_group_id, level_sort_key FROM movements WHERE id = ?",
+    [movementId],
+  );
+  return row ? { movementId, groupId: row.level_group_id, sortKey: row.level_sort_key } : null;
+}
+
+async function groupKeys(transaction: Database, groupId: string): Promise<{ movementId: string; sortKey: number }[]> {
+  const rows = await transaction.getAllAsync<{ id: string; level_sort_key: number }>(
+    "SELECT id, level_sort_key FROM movements WHERE level_group_id = ? ORDER BY level_sort_key ASC, id ASC",
+    [groupId],
+  );
+  return rows.map((row) => ({ movementId: row.id, sortKey: row.level_sort_key }));
+}
+
+/** Groupe et clé écrits ensemble (contrainte CHECK : tous deux présents ou tous deux absents). */
+async function writeMembership(transaction: Database, movementId: string, groupId: string | null, sortKey: number | null, timestamp: string): Promise<void> {
+  await transaction.runAsync("UPDATE movements SET level_group_id = ?, level_sort_key = ?, updated_at = ? WHERE id = ?", [
+    groupId,
+    sortKey,
+    timestamp,
+    movementId,
+  ]);
+}
+
+/**
+ * PRE-8, familles (« Effets sur les données ») : clé fractionnaire strictement entre deux voisines
+ * (une extrémité ouverte : ± 1) ; `null` quand la précision ne permet plus de les séparer.
+ */
+export function keyBetween(lower: number | null, upper: number | null): number | null {
+  if (lower === null && upper === null) return 0;
+  if (lower === null) return upper! - 1;
+  if (upper === null) return lower + 1;
+  const middle = lower + (upper - lower) / 2;
+  return middle > lower && middle < upper ? middle : null;
 }
 
 /** Écrit l'appartenance et des clés de tri 0..n-1 dans l'ordre donné. */

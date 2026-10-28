@@ -299,8 +299,8 @@ describe("PRE-7 A1.2 — migration 012 sur une base v11 fichier réelle (node:sq
     database = reopen(database);
 
     expect(await version(database)).toBe(12);
-    // PRE-7 (R-3) : la version courante est 13 (`migration013`), éprouvée par `migration013.test.ts`.
-    expect(DATABASE_VERSION).toBe(13);
+    // PRE-8 : la version courante est 15 (`migration014` A.3, `migration015` B.8), éprouvées par leurs tests.
+    expect(DATABASE_VERSION).toBe(15);
     // Personnalisations conservées, ligne pour ligne (créations, renommages, retraits compris).
     expect(await referentials(database)).toEqual(kept);
     expect(await database.getFirstAsync("SELECT name, is_active FROM categories WHERE id = 'cat-custom'")).toEqual({ name: "Grimpe", is_active: 1 });

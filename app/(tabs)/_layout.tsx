@@ -1,5 +1,5 @@
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
   Animated,
   Pressable,
@@ -11,84 +11,36 @@ import {
 
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
+  NAVIGATION_ACTIVE_FRAME,
   NAVIGATION_BAR_BOTTOM_RESIDUAL,
   NAVIGATION_BAR_HEIGHT,
-  NAVIGATION_ICON_SLOT,
-  NAVIGATION_ITEM_VERTICAL_PADDING,
-  NAVIGATION_LABEL_GAP,
-  NAVIGATION_ROW_GAP,
+  NAVIGATION_BAR_RADIUS,
+  NAVIGATION_BAR_SHADOW,
+  NAVIGATION_ICON_BOX,
+  NAVIGATION_ICON_BOX_TOP,
+  NAVIGATION_ICON_BOX_TOP_ACTIVE,
+  NAVIGATION_LABEL_CENTER_Y,
   NAVIGATION_ROW_HORIZONTAL_MARGIN,
 } from "@/shared/ui/navigationLayout";
-import { colors, dimensions, minTouchTarget, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, type } from "@/shared/ui/tokens";
 import { strings } from "@/shared/i18n";
 
 /**
- * Navigation principale à quatre onglets (docs/Specifications-fonctionnelles/
- * 06 – Écrans et navigation de la V1, « Navigation principale »).
+ * Navigation principale (docs/Specifications-fonctionnelles/06 – Écrans et
+ * navigation de la V1, « Navigation principale »).
  *
- * `expo-router/js-tabs` est utilisé plutôt que la barre d’onglets native
- * (`expo-router/unstable-native-tabs`, encore instable dans cette version
- * d’Expo Router) afin de garder un rendu personnalisable et cohérent entre
- * iOS et Android, conformément au layout unique de référence visé par le
- * MVP (§12.30). Les icônes utilisent les exports SVG canoniques du
- * Design System Figma, avec une variante active et inactive explicite.
+ * PRE-8, recette A/B (E01) : composant Figma `Navigation / Bottom — 5 onglets`
+ * (`6513:20151`) — Catalogues, Calendrier, Suivi, Communauté, Profil, sans
+ * bouton Recherche. Communauté est visible mais désactivée : ce n'est pas une
+ * route (aucun écran, aucune navigation), seulement une destination inerte
+ * rendue par la barre entre Suivi et Profil. Géométrie : voir
+ * `@/shared/ui/navigationLayout`.
  *
- * Correction de conformité (audit `T01_S01_S08_CONFORMITY_AUDIT_20260902.md`,
- * AUD-02) : `12 – Architecture technique.md` §Design tokens décrit la
- * navigation basse comme « composée d'une barre principale flexible et
- * d'une recherche de diamètre fixe 58 » — un élément **distinct** de la
- * barre à quatre onglets. L'action reste désactivée dans la livraison
- * partielle T01 (CE-T01-02/03 : « présente mais désactivée »).
- *
- * Correction SHELL-R02 (contre-recette iPhone, `[ChatGPT]
- * DEVICE_REVIEW_FAIL — REWORK 02`, 2026-09-03) : la tentative précédente
- * (`tabBarStyle` avec marges + bouton Recherche positionné indépendamment
- * en absolu) a échoué au rendu réel — `tabBarStyle` du rendu par défaut
- * d'`expo-router/js-tabs` ne garantit pas la largeur/hauteur externes
- * demandées, et deux éléments positionnés en absolu indépendamment ne
- * peuvent pas se garantir mutuellement une même rangée sans chevauchement.
- * Remplacé par un **rendu de barre entièrement personnalisé** (`tabBar`,
- * point d'extension standard de `@react-navigation/bottom-tabs`, dont
- * `createBottomTabNavigator` d'`expo-router/js-tabs` est un fork direct —
- * confirmé par lecture de `node_modules/expo-router/build/layouts/
- * TabsClient.js`) : les quatre destinations et le cercle Recherche sont
- * désormais des **frères dans une seule rangée flex** (`flexDirection:
- * "row"`), le groupe des quatre destinations en `flex: 1` et Recherche à
- * largeur fixe — la largeur du groupe de quatre est donc *dérivée* de la
- * largeur réellement disponible moins Recherche et l'écart, à n'importe
- * quelle largeur d'écran, jamais un calcul de pixels dupliqué à la main.
- * Le même parent `alignItems: "center"` garantit un axe vertical commun
- * (SHELL-R02-D) sans assertion arithmétique séparée à maintenir.
- *
- * Hauteur et position basses (SHELL-R02-E) : plus aucune hauteur fixe
- * empruntée à `dimensions.mainNavigation.visualHeight` (`66`, jamais
- * vérifiée contre le rendu réel) — la rangée se dimensionne à son
- * contenu réel (`NAVIGATION_ICON_SLOT` + libellé + espacements DS,
- * `NAVIGATION_CONTENT_HEIGHT`, partagées depuis
- * `@/shared/ui/navigationLayout` — valeur exacte par construction
- * puisque c'est la même valeur qui détermine le padding de chaque item).
- * `CatalogueScreen.tsx` importe `navigationBarTotalHeight` pour réserver
- * exactement cet espace dans son propre calcul de centrage (CAT-R04) —
- * une seule source de vérité, pas deux estimations indépendantes.
- *
- * Correction `D` (contre-recette iPhone, correction consolidée,
- * 2026-09-03, addendum `FOUNDATION BOTTOM NAVIGATION VERTICAL POSITION`) :
- * la rangée est ancrée à `bottom: 0` (le bord physique de l'écran) —
- * auparavant `bottom: insets.bottom` translatait la barre ENTIÈRE de la
- * Safe Area complète en plus de sa propre hauteur.
- *
- * Correction `N-01/N-02/N-03` (contre-recette iPhone, `[ChatGPT] DEVICE
- * NO-GO — PHASE02 REWORK03 CUMULATIVE CORRECTION`, 2026-09-03) : icônes
- * réduites (`NAVIGATION_ICON_SLOT`, `24→20`, cible tactile inchangée,
- * `tabItem.minHeight` reste `minTouchTarget`) ; écart `tabsGroup`↔Recherche
- * élargi (`NAVIGATION_ROW_GAP`, `spacing[12]→spacing[16]`), resserrant
- * légèrement `tabsGroup` (`flex: 1`) sans toucher aux marges extérieures ;
- * résiduel bas (`paddingBottom`) remplacé par
- * `NAVIGATION_BAR_BOTTOM_RESIDUAL`, désormais **égal par construction** à
- * la marge horizontale (`NAVIGATION_ROW_HORIZONTAL_MARGIN`) — remplace la
- * formule précédente, fonction de `insets.bottom`, jugée trop basse au
- * rendu réel. Voir `@/shared/ui/navigationLayout` pour la dérivation
- * complète et sa réserve de preuve (`NON_VERIFIABLE_DEVICE`).
+ * `expo-router/js-tabs` et le rendu de barre entièrement personnalisé
+ * (`tabBar`, SHELL-R02) sont conservés : la barre est ancrée au bord bas
+ * physique de l'écran, son cadre actif mesure la position réelle de chaque
+ * destination (`onLayout`) et glisse continûment de l'une à l'autre
+ * (V2-CAT-01).
  */
 export default function TabsLayout() {
   return (
@@ -105,9 +57,7 @@ export default function TabsLayout() {
             // (« Séances »), verrouillé ailleurs par un test hors périmètre.
             title: strings.screens.sessions.navLabel,
             tabBarIcon: ({ focused }) => (
-              <KodjoIcon
-                name={focused ? "navigation-sessions-active" : "navigation-sessions-inactive"}
-              />
+              <KodjoIcon name={focused ? "nav5-catalogue-active" : "nav5-catalogue-inactive"} />
             ),
           }}
         />
@@ -116,9 +66,7 @@ export default function TabsLayout() {
           options={{
             title: strings.nav.calendar,
             tabBarIcon: ({ focused }) => (
-              <KodjoIcon
-                name={focused ? "navigation-calendar-active" : "navigation-calendar-inactive"}
-              />
+              <KodjoIcon name={focused ? "nav5-calendar-active" : "nav5-calendar-inactive"} />
             ),
           }}
         />
@@ -127,9 +75,7 @@ export default function TabsLayout() {
           options={{
             title: strings.nav.history,
             tabBarIcon: ({ focused }) => (
-              <KodjoIcon
-                name={focused ? "navigation-history-active" : "navigation-history-inactive"}
-              />
+              <KodjoIcon name={focused ? "nav5-history-active" : "nav5-history-inactive"} />
             ),
           }}
         />
@@ -138,9 +84,7 @@ export default function TabsLayout() {
           options={{
             title: strings.nav.profile,
             tabBarIcon: ({ focused }) => (
-              <KodjoIcon
-                name={focused ? "navigation-profile-active" : "navigation-profile-inactive"}
-              />
+              <KodjoIcon name={focused ? "nav5-profile-active" : "nav5-profile-inactive"} />
             ),
           }}
         />
@@ -149,32 +93,23 @@ export default function TabsLayout() {
   );
 }
 
+/** Route devant laquelle la destination désactivée Communauté est rendue (ordre Figma). */
+const COMMUNITY_BEFORE_ROUTE = "profile";
+
 /**
- * Cadre actif de navigation (V2-CAT-01, plan §4.5, revue 5732014381
- * obligation 1) : « Le cadre actif de navigation reste visible et glisse
- * continûment entre destinations. » Un unique `Animated.View` mesure la
- * position/largeur RÉELLE de chaque destination (`onLayout`, jamais une
- * géométrie supposée) et s'anime vers celle de la destination active à
- * chaque changement de focus — jamais un saut instantané, jamais masqué
- * pendant la transition.
+ * Cadre actif de navigation (V2-CAT-01) : un unique `Animated.View`, centré
+ * dans l'emplacement RÉEL de la destination active (`onLayout`, jamais une
+ * géométrie supposée), glisse vers celui de la nouvelle destination à chaque
+ * changement de focus — jamais un saut instantané, jamais masqué.
  */
 function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const layoutsRef = useRef<Record<string, { x: number; width: number }>>({});
-  // `useState` (jamais `useRef(...).current`) : l'instance `Animated.Value`
-  // doit rester STABLE entre rendus (identité de référence, jamais recréée),
-  // mais sa lecture dans le JSX (style animé) ne doit jamais passer par un
-  // ref lu pendant le rendu (`react-hooks/refs`) — seul l'initialiseur de
-  // `useState` s'exécute une fois, la valeur retournée n'est pas un ref.
+  // `useState` : instance `Animated.Value` stable, jamais lue via un ref pendant le rendu.
   const [indicatorX] = useState(() => new Animated.Value(0));
-  const [indicatorWidth] = useState(() => new Animated.Value(0));
   const [isIndicatorReady, setIsIndicatorReady] = useState(false);
   const activeRouteKey = state.routes[state.index]?.key;
 
   useEffect(() => {
-    // N'anime QUE lorsqu'un premier positionnement direct (`handleItemLayout`)
-    // a déjà eu lieu — jamais de `setState` synchrone dans cet effet
-    // (`react-hooks/set-state-in-effect`) : le premier positionnement est
-    // entièrement porté par le gestionnaire d'événement `onLayout`.
     if (!activeRouteKey || !isIndicatorReady) {
       return;
     }
@@ -182,28 +117,65 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
     if (!layout) {
       return;
     }
-    Animated.parallel([
-      Animated.timing(indicatorX, { toValue: layout.x, duration: 250, useNativeDriver: false }),
-      Animated.timing(indicatorWidth, {
-        toValue: layout.width,
-        duration: 250,
-        useNativeDriver: false,
-      }),
-    ]).start();
-  }, [activeRouteKey, isIndicatorReady, indicatorX, indicatorWidth]);
+    Animated.timing(indicatorX, { toValue: indicatorLeft(layout), duration: 250, useNativeDriver: false }).start();
+  }, [activeRouteKey, isIndicatorReady, indicatorX]);
 
   function handleItemLayout(routeKey: string, event: LayoutChangeEvent) {
     const { x, width } = event.nativeEvent.layout;
     layoutsRef.current[routeKey] = { x, width };
     if (routeKey === activeRouteKey && !isIndicatorReady) {
-      // Premier positionnement connu : place le cadre immédiatement, sans
-      // l'animer depuis l'origine `0` (ce serait un saut visible, pas un
-      // glissement continu).
-      indicatorX.setValue(x);
-      indicatorWidth.setValue(width);
+      // Premier positionnement connu : placé directement, sans animation depuis l'origine.
+      indicatorX.setValue(indicatorLeft({ x, width }));
       setIsIndicatorReady(true);
     }
   }
+
+  const items: ReactNode[] = [];
+  state.routes.forEach((route, index) => {
+    if (route.name === COMMUNITY_BEFORE_ROUTE) {
+      items.push(<CommunityDestination key="community" />);
+    }
+    const { options } = descriptors[route.key];
+    const isFocused = state.index === index;
+    const label = typeof options.title === "string" ? options.title : route.name;
+
+    function onPress() {
+      const event = navigation.emit({
+        type: "tabPress",
+        target: route.key,
+        canPreventDefault: true,
+      });
+      if (!isFocused && !event.defaultPrevented) {
+        navigation.navigate(route.name);
+      }
+    }
+
+    items.push(
+      <Pressable
+        key={route.key}
+        onPress={onPress}
+        onLayout={(event) => handleItemLayout(route.key, event)}
+        accessibilityRole="button"
+        accessibilityState={{ selected: isFocused }}
+        accessibilityLabel={label}
+        testID={`navigation-tab-${route.name}`}
+        style={[styles.tabItem, isFocused ? styles.tabItemActive : null]}
+      >
+        <View style={styles.tabIconBox} testID={`navigation-tab-icon-slot-${route.name}`}>
+          {options.tabBarIcon?.({
+            focused: isFocused,
+            color: isFocused ? colors.primary : colors.textSecondary,
+            size: NAVIGATION_ICON_BOX,
+          })}
+        </View>
+        {isFocused ? (
+          <Text style={styles.tabLabel} numberOfLines={1} testID={`navigation-tab-label-${route.name}`}>
+            {label}
+          </Text>
+        ) : null}
+      </Pressable>,
+    );
+  });
 
   return (
     <View style={styles.navigationRow} testID="navigation-row">
@@ -212,70 +184,40 @@ function BottomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           <Animated.View
             pointerEvents="none"
             testID="navigation-active-indicator"
-            style={[
-              styles.activeIndicator,
-              { left: indicatorX, width: indicatorWidth },
-            ]}
+            style={[styles.activeIndicator, { left: indicatorX }]}
           />
         ) : null}
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const isFocused = state.index === index;
-          const label = typeof options.title === "string" ? options.title : route.name;
-
-          function onPress() {
-            const event = navigation.emit({
-              type: "tabPress",
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
-            }
-          }
-
-          return (
-            <Pressable
-              key={route.key}
-              onPress={onPress}
-              onLayout={(event) => handleItemLayout(route.key, event)}
-              accessibilityRole="button"
-              accessibilityState={{ selected: isFocused }}
-              accessibilityLabel={label}
-              testID={`navigation-tab-${route.name}`}
-              style={styles.tabItem}
-            >
-              <View style={styles.tabIconSlot} testID={`navigation-tab-icon-slot-${route.name}`}>
-                {options.tabBarIcon?.({
-                  focused: isFocused,
-                  color: isFocused ? colors.primary : colors.textSecondary,
-                  size: NAVIGATION_ICON_SLOT,
-                })}
-              </View>
-              <Text
-                style={[styles.tabLabel, isFocused ? styles.tabLabelActive : null]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
-            </Pressable>
-          );
-        })}
+        {items}
       </View>
-
-      <Pressable
-        disabled
-        accessibilityRole="button"
-        accessibilityState={{ disabled: true }}
-        accessibilityLabel={strings.nav.search}
-        testID="navigation-search-action"
-        style={styles.search}
-      >
-        <KodjoIcon name="navigation-search" testID="navigation-search-icon" opacity={0.4} />
-      </Pressable>
     </View>
   );
 }
+
+/** Communauté : visible (Figma), désactivée, sans écran ni navigation. */
+function CommunityDestination() {
+  return (
+    <Pressable
+      disabled
+      accessibilityRole="button"
+      accessibilityState={{ disabled: true }}
+      accessibilityLabel={strings.nav.community}
+      testID="navigation-tab-community"
+      style={styles.tabItem}
+    >
+      <View style={styles.tabIconBox} testID="navigation-tab-icon-slot-community">
+        <KodjoIcon name="nav5-community-inactive" />
+      </View>
+    </Pressable>
+  );
+}
+
+function indicatorLeft(layout: { x: number; width: number }): number {
+  return layout.x + (layout.width - NAVIGATION_ACTIVE_FRAME.width) / 2;
+}
+
+const BAR_BORDER_WIDTH = 1;
+/** Hauteur intérieure de la barre (les enfants se placent dans la boîte intérieure à la bordure). */
+const BAR_INNER_HEIGHT = NAVIGATION_BAR_HEIGHT - BAR_BORDER_WIDTH * 2;
 
 const styles = StyleSheet.create({
   root: {
@@ -289,75 +231,53 @@ const styles = StyleSheet.create({
     paddingBottom: NAVIGATION_BAR_BOTTOM_RESIDUAL,
     flexDirection: "row",
     alignItems: "center",
-    gap: NAVIGATION_ROW_GAP,
   },
-  // VISUAL_CORRECTION (revue iPhone du HEAD `d6ce731`, obligation 1) :
-  // hauteur EXPLICITE `NAVIGATION_BAR_HEIGHT` (`dimensions.mainNavigation
-  // .visualHeight`, `66`) — auparavant dérivée du seul contenu
-  // (`NAVIGATION_CONTENT_HEIGHT`, `56`), laissant une marge nulle entre le
-  // haut des icônes et le bord supérieur du cadre. `alignItems: "center"`
-  // centre désormais chaque item dans cet espace excédentaire, restituant
-  // la marge attendue en haut ET en bas, symétriquement.
   tabsGroup: {
     flex: 1,
     height: NAVIGATION_BAR_HEIGHT,
     flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.background,
-    borderRadius: dimensions.mainNavigation.radius,
-    borderWidth: 1,
-    borderColor: colors.border,
-    elevation: 8,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
+    backgroundColor: colors.surfaceSubtle,
+    borderRadius: NAVIGATION_BAR_RADIUS,
+    borderWidth: BAR_BORDER_WIDTH,
+    borderColor: colors.background,
+    elevation: NAVIGATION_BAR_SHADOW.elevation,
+    shadowColor: NAVIGATION_BAR_SHADOW.color,
+    shadowOffset: { width: 0, height: NAVIGATION_BAR_SHADOW.offsetY },
+    shadowOpacity: NAVIGATION_BAR_SHADOW.opacity,
+    shadowRadius: NAVIGATION_BAR_SHADOW.radius,
   },
-  // Cadre actif — repose SOUS les quatre destinations (`zIndex` implicite
-  // par ordre de rendu, premier enfant de `tabsGroup`), teinte pâle
-  // partagée avec les autres surfaces de sélection du DSF
-  // (`colors.selectionSurface`), jamais une nouvelle couleur locale.
-  //
-  // VISUAL_CORRECTION (obligation 1) : hauteur FIXE
-  // `dimensions.activeDestination.visualHeight` (`56`), centrée
-  // verticalement dans le cadre global désormais plus haut (`66`) — jamais
-  // étirée sur toute la hauteur de la barre (`top:0, bottom:0` précédent).
+  // Cadre actif, sous les destinations (premier enfant), centré verticalement dans la barre.
   activeIndicator: {
     position: "absolute",
-    top: (NAVIGATION_BAR_HEIGHT - dimensions.activeDestination.visualHeight) / 2,
-    height: dimensions.activeDestination.visualHeight,
-    borderRadius: dimensions.activeDestination.radius,
-    backgroundColor: colors.selectionSurface,
+    top: (BAR_INNER_HEIGHT - NAVIGATION_ACTIVE_FRAME.height) / 2,
+    width: NAVIGATION_ACTIVE_FRAME.width,
+    height: NAVIGATION_ACTIVE_FRAME.height,
+    borderRadius: NAVIGATION_ACTIVE_FRAME.radius,
+    backgroundColor: NAVIGATION_ACTIVE_FRAME.color,
   },
+  // Cinq emplacements égaux, sur toute la hauteur de la barre : cible tactile ≥ 48 × 48.
   tabItem: {
     flex: 1,
     alignItems: "center",
-    justifyContent: "center",
     minHeight: minTouchTarget,
-    paddingVertical: NAVIGATION_ITEM_VERTICAL_PADDING,
-    gap: NAVIGATION_LABEL_GAP,
+    paddingTop: NAVIGATION_ICON_BOX_TOP - BAR_BORDER_WIDTH,
   },
-  tabIconSlot: {
-    width: NAVIGATION_ICON_SLOT,
-    height: NAVIGATION_ICON_SLOT,
+  tabItemActive: {
+    paddingTop: NAVIGATION_ICON_BOX_TOP_ACTIVE - BAR_BORDER_WIDTH,
+  },
+  tabIconBox: {
+    width: NAVIGATION_ICON_BOX,
+    height: NAVIGATION_ICON_BOX,
     alignItems: "center",
     justifyContent: "center",
   },
   tabLabel: {
     ...type.navLabel,
-    color: colors.textSecondary,
-  },
-  tabLabelActive: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: NAVIGATION_LABEL_CENTER_Y - BAR_BORDER_WIDTH - type.navLabel.lineHeight / 2,
+    textAlign: "center",
     color: colors.primary,
-  },
-  search: {
-    width: dimensions.globalSearch.visualDiameter,
-    height: dimensions.globalSearch.visualDiameter,
-    borderRadius: dimensions.globalSearch.radius,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    justifyContent: "center",
   },
 });

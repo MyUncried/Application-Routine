@@ -1,6 +1,6 @@
 import type { ViewStyle } from "react-native";
 
-import { colors, dimensions, spacing } from "@/shared/ui/tokens";
+import { colors, dimensions, layout, spacing } from "@/shared/ui/tokens";
 
 /**
  * Bouton d'action principal et sa zone fixe — SOURCE UNIQUE (D-444, PRE-6 story 7.10).
@@ -41,12 +41,14 @@ export const FINAL_ACTION_TOP_MARGIN = spacing[24];
 export const FINAL_ACTION_BUTTON_HEIGHT = dimensions.finalAction.buttonHeight;
 
 /**
- * Marges latérales de `Terminer` (PRE-4 story 4.2, FR-02-04) : 24 à partir de la largeur 390, 16 en
- * dessous. Règle écrite, jamais une coordonnée Figma.
+ * Marges latérales de `Terminer` et des corps d'Éditeur (PRE-4 story 4.2, FR-02-04 : 24 à partir de la
+ * largeur 390, 16 en dessous). PRE-8, recette A/B (A01) : marge standard unique `layout.screenGutter`
+ * (16) à toutes les largeurs ; la signature est conservée pour les appelants.
  */
 export const FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH = 390;
 export function finalActionSideMargin(windowWidth: number): number {
-  return windowWidth >= FINAL_ACTION_SIDE_MARGIN_MIN_WIDTH ? spacing[24] : spacing[16];
+  void windowWidth;
+  return layout.screenGutter;
 }
 
 /** G-8 : ombre du bouton (Figma `8328:35738`), sans jeton d'ombre (constantes locales). */

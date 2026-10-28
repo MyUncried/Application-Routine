@@ -159,7 +159,7 @@ Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais 
 - Le catalogue `10070:19964` est nommé Aucun résultat : ce n’est pas une preuve d’un catalogue initial vide. Le parcours de recherche explicite R03, le message d’origine locale, les zones et les comptes de R04 ne sont pas établis par les seules nouvelles cartes.
 - La saisie/édition des alias, les erreurs d’enregistrement, le conflit concurrent d’unicité selon C01 validé, le choix parmi plusieurs exercices d’un niveau, les frères incomplets après correction et la recherche multi-sélection avec filtres restent à couvrir explicitement.
 - Jauge générique : seuil « au-delà de cinq, peut-être dès trois » non décidé, aucun plafond métier à en déduire. L’état vide reste Niveau. Le texte accessible doit porter le rang réel et le total, sans interpréter les trois tranches comme une borne.
-- Catalogue en piles : navigation depuis une pile, entretien d’un mouvement sans exercice Catalogue et effet de la recherche sur l’affichage restent à spécifier dans le cadre du catalogue d’entretien validé.
+- Catalogue en piles : navigation depuis une pile, entretien d’un mouvement sans exercice Catalogue et effet de la recherche sur l’affichage restent à spécifier dans le cadre du catalogue d’entretien validé. [spécifié par les arbitrages de Hermann du 27/10/2026 (chapitre 07) : rang le plus haut en tête de pile ; toucher une pile la déplie ; la recherche présente des piles dépliables de la même manière ; filtres et piles selon la règle Q3 définitive]
 - Aucune fusion rétroactive : un doublon de mouvement créé indépendamment conserve des statistiques séparées. La recherche est le filet préventif, pas un mécanisme de réparation.
 
 ## Couverture et vérification

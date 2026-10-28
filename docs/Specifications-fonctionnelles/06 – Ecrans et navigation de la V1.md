@@ -42,7 +42,7 @@ Le relevé du 27/10 comporte 12 états après insertion de cet écran juste apr�
 
 ## Parcours Mouvement — référence visuelle du lot ciblé (27/10/2026)
 
-Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
+Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres, Description, Média » pour la fiche Mouvement. Le chapitre 13, CE-MVT-01, définit la navigation et les conditions des dialogues. Clavier ouvert dans la Description ou les Phases (27/10/2026) : contexte et média restent fixes, le contenu éditable remonte devant le média sur une surface claire translucide puis reprend sa place à la fermeture (CE-MVT-01 §10) ; cet état n'est pas représenté dans Figma. Les cadres mesurent 402 × 874, sauf la planche comparative d'icônes. Les tailles sont des références de conception, pas une taille de terminal imposée.
 
 **Mouvement — Initial**
 
@@ -259,8 +259,10 @@ La navigation principale donne accès à cinq destinations :
 - `Catalogues` ;
 - `Calendrier` ;
 - `Suivi` ;
-- `Communauté` ;
+- `Communauté` ; [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 - `Profil`.
+
+Aucun bouton Recherche dans la barre ; composant mutualisé entre les écrans, Safe Areas respectées.
 
 `Catalogues` est le libellé permanent du premier onglet. Dans cet espace, les titres contextuels sont `Catalogue des séances` et `Catalogue des exercices`. Après le splash et après une relance complète, le Catalogue s’ouvre sur le segment `Séances`; le dernier segment utilisé n’est pas persisté entre deux lancements complets.
 
@@ -2288,7 +2290,7 @@ Les preuves d’usage sont distinctes de la preuve du composant et ne s’y subs
 | Suivi — Séances — historique hors MVP | Suivi : Séances — Vue déployée | Voir les captures dans **Suivi — Séances** ci-dessus | `Terminée`, `Partielle`, `Interrompue` | `1992:8996` |
 
 ### Conventions communes d’interface
-- **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225).
+- **Navigation** : cinq destinations actives seulement — `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les écrans de Recherche globale sont archivés ; aucune recherche locale de Catalogue n’est active (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 - **Sélection en modale** : la planification utilise des cases à cocher et Ajouter n éléments, même pour un seul choix (D-222 révisée). Les référentiels conservent leurs contrats de sélection simple ; la Composition conserve cases à cocher + `Sélectionner` ; filtres = validation explicite + `Réinitialiser`.
 - **Planifier** : titre `Planifier` avant connaissance du type, puis `Planifier une séance` ou `Planifier un exercice`. La modale suit le gabarit D-229.
 - **Fondations DSF** : fond `#FFFFFF` sauf Splash `#0006F1` et média plein écran `#0A0A0C`; zone de contexte `#EAEAFF`→transparent sur les familles couvertes ; navigation, halo, boutons circulaires, steppers et badges selon D-224 à D-227.
@@ -2351,7 +2353,7 @@ Dans le Catalogue des Exercices, l’appui sur la carte ouvre la consultation ou
 
 ### Conventions communes d’interface
 
-D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP.
+D-221 : le MVP n’inclut aucune recherche globale ni recherche locale dans les Catalogues. Les écrans de recherche globale sont archivés ; la recherche pourra être reconçue dans une version ultérieure. La navigation active reste limitée à `Catalogues`, `Calendrier`, `Suivi`, `Communauté`, `Profil`. Les règles D-222 à D-230 précisent les comportements de sélection/planification et les contraintes DSF sans étendre le périmètre fonctionnel du MVP. [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 
 ### Placement des récupérations et des points d’arrêt — Contenu et trait de démarcation
 

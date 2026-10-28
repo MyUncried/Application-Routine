@@ -40,8 +40,16 @@ export type MovementResultCardProps = {
   /** « Créer une variante » : déploie les deux sens (choix explicite, rien n'est créé). */
   readonly onCreateVariant: () => void;
   readonly onChooseVariant: (placement: VariantPlacement) => void;
+  /**
+   * Recette A/B B.10 (remarque 6) : libellés des deux actions propres à l'appelant (fiche Mouvement :
+   * « Ajouter un niveau » / « Ouvrir ce mouvement ») ; absent : libellés de l'éditeur d'Exercice.
+   */
+  readonly actionLabels?: MovementResultActionLabels;
   readonly testID: string;
 };
+
+/** Libellés des deux actions internes d'une carte Résultat. */
+export type MovementResultActionLabels = { readonly createVariant: string; readonly useMovement: string };
 
 /**
  * PRE-7 story R-5 (D-445 C02, v7 §6 R04 ; `10199:22268`, `9882:19049`, `10140:20180`) — un résultat
@@ -58,9 +66,12 @@ export function MovementResultCard({
   onUse,
   onCreateVariant,
   onChooseVariant,
+  actionLabels,
   testID,
 }: MovementResultCardProps) {
   const t = strings.screens.activities.editor.movementSuggestion;
+  const createVariantLabel = actionLabels?.createVariant ?? t.createVariant;
+  const useMovementLabel = actionLabels?.useMovement ?? t.useMovement;
   const resolveUri = useMediaUriResolver();
   const { movement } = choice;
   const preview = firstMediaPreviewSource(movement.media);
@@ -111,23 +122,23 @@ export function MovementResultCard({
         <Pressable
           onPress={onCreateVariant}
           accessibilityRole="button"
-          accessibilityLabel={`${t.createVariant}, ${movement.name}`}
+          accessibilityLabel={`${createVariantLabel}, ${movement.name}`}
           accessibilityState={{ expanded: variantExpanded }}
           hitSlop={(minTouchTarget - ACTION_LABEL.lineHeight) / 2}
           style={styles.variantAction}
           testID={`${testID}-variant`}
         >
-          <Text style={styles.variantLabel}>{t.createVariant}</Text>
+          <Text style={styles.variantLabel}>{createVariantLabel}</Text>
         </Pressable>
         <Pressable
           onPress={onUse}
           accessibilityRole="button"
-          accessibilityLabel={`${t.useMovement}, ${movement.name}`}
+          accessibilityLabel={`${useMovementLabel}, ${movement.name}`}
           hitSlop={(minTouchTarget - USE_BUTTON_HEIGHT) / 2}
           style={styles.useButton}
           testID={`${testID}-use`}
         >
-          <Text style={styles.useLabel}>{t.useMovement}</Text>
+          <Text style={styles.useLabel}>{useMovementLabel}</Text>
         </Pressable>
       </View>
       {variantExpanded ? (

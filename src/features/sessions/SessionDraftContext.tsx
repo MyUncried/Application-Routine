@@ -17,7 +17,9 @@ import type { SessionDraft } from "@/domain/sessions/SessionDraft";
  * - `"ready"` : brouillon disponible (vide en création, réhydraté en
  *   modification) ;
  * - `"not-found"` : identifiant inconnu — retour sûr au Catalogue ;
- * - `"archived"` : Séance archivée — aucun brouillon modifiable ;
+ * - `"archived"` : Séance archivée illisible — aucun brouillon ;
+ * - `"consulting"` : Séance archivée réhydratée, ouverte en lecture seule (recette E du
+ *   28/10/2026, e5-12) — le brouillon n'est jamais enregistré ;
  * - `"error"` : échec technique de lecture — retry possible.
  */
 export type SessionDraftEditStatus =
@@ -26,6 +28,7 @@ export type SessionDraftEditStatus =
   | "ready"
   | "not-found"
   | "archived"
+  | "consulting"
   | "error";
 
 /**

@@ -22,7 +22,7 @@ import { strings } from "@/shared/i18n";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { ProfileStepper } from "@/shared/ui/ProfileStepper";
-import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 const EXERCISE_SETTINGS: readonly ProfileDurationSetting[] = [
   "sideChangeRecoverySecondsDefault",
@@ -288,7 +288,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   bodyContent: {
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
     paddingTop: spacing[16],
     gap: spacing[16],
   },

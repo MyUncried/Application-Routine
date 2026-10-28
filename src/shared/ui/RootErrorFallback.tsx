@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { strings } from "@/shared/i18n";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, layout, type } from "@/shared/ui/tokens";
 
 /**
  * Écran de secours minimal affiché par `RootErrorBoundary` en cas d'erreur
@@ -30,7 +30,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: colors.background,
-    paddingHorizontal: spacing[24],
+    // A01 (recette PRE-8 A/B) : marge standard partagée.
+    paddingHorizontal: layout.screenGutter,
   },
   message: {
     ...type.body,

@@ -1,0 +1,255 @@
+diff --git a/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md b/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
+index f3e7678..51d84fe 100644
+--- a/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
++++ b/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
+@@ -61,7 +61,7 @@ Cette règle remplace la proposition antérieure d'un choix Plus facile / Plus d
+ 
+ **C4. Les pastilles provisoires annoncent le résultat.** Pendant l'arrêt sur l'emplacement, les deux cartes portent déjà leur rang, dans la même présentation que les pastilles établies. Elles se mettent à jour si l'utilisateur passe de l'autre côté.
+ 
+-**C5. Une famille repliée se déplie à l'approche**, comme en A3.
++**C5. Une famille repliée se déplie à l'approche**, comme en A3. [Précision de la recette iPhone du 28/10/2026, demandée par Hermann : la famille repliée ne se déplie que si la carte portée s'arrête dessus ; un simple survol ne la déplie pas.]
+ 
+ **C6. Un mouvement déjà membre d'une famille ne peut pas être posé sur une autre carte.** Il ne peut atterrir que libre. Changer de famille suppose donc deux gestes : sortir, puis lier. Aucun changement de famille silencieux, conformément à « aucun rattachement automatique ni fusion rétroactive ».
+ 
+@@ -75,7 +75,7 @@ Conséquence d'interface : **le filet de formation ne s'affiche jamais pour une
+ 
+ **D1. Il n'existe pas d'action « supprimer la famille ».** Une famille disparaît en sortant ses membres, par la règle B.
+ 
+-**D2. Le dernier couple.** Lorsque la famille ne compte plus que deux membres et que l'utilisateur en sort un, **les deux identifiants de groupe sont effacés**, celui du membre sorti comme celui du membre restant. Le filet disparaît entièrement à l'écran.
++**D2. Le dernier couple.** Lorsque la famille ne compte plus que deux membres et que l'utilisateur en sort un, **les deux identifiants de groupe sont effacés**, celui du membre sorti comme celui du membre restant. Le filet disparaît entièrement à l'écran. [Vérifié à la clôture du 28/10/2026 : les membres comptés sont les membres enregistrés, archivés compris ; détacher un membre ne dissout pas la famille tant qu'au moins deux membres enregistrés demeurent.]
+ 
+ **D3. Distinction à écrire explicitement.** Le chapitre 09 pose « singleton conservé » et le chapitre 13 « groupe singleton égale état vide ». Ces dispositions visent la disparition **subie** d'un membre, par archivage ou suppression : le groupe survit, le rang est masqué, et le retour du membre archivé restitue la progression.
+ 
+@@ -96,6 +96,7 @@ Elles ne s'appliquent pas au détachement **explicite** du dernier couple, où l
+ | Création d'une famille | Nouvelle famille de niveaux créée |
+ | Suppression d'une famille | Famille de niveaux supprimée |
+ | Sortie d'un mouvement | Mouvement sorti de la famille |
++| Entrée dans une famille existante | Mouvement ajouté à la famille (validé le 28/10/2026) |
+ 
+ **E3. Un réordonnancement à l'intérieur d'une famille ne produit aucun message.** L'ordre a changé sous les yeux de l'utilisateur et les pastilles se sont mises à jour devant lui : le message n'apprendrait rien.
+ 
+@@ -115,11 +116,11 @@ La règle E conserve l'application immédiate et l'absence de bouton. Elle restr
+ 
+ ## Données et invariants
+ 
+-Au plus un groupe par mouvement ; identifiant de groupe et clé de tri facultatifs mais présents ensemble. Aucun rang persisté : il est dérivé de l'ordre complet, avant filtrage. Clé fractionnaire ou lexicographique pour insérer sans renuméroter les autres clés. Le niveau le plus élevé est en haut.
++Au plus un groupe par mouvement ; identifiant de groupe et clé de tri facultatifs mais présents ensemble. Aucun rang persisté : il est dérivé de l'ordre complet, avant filtrage. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.] Clé fractionnaire ou lexicographique pour insérer sans renuméroter les autres clés. [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.] Le niveau le plus élevé est en haut.
+ 
+ | Opération | Effet persistant |
+ | --- | --- |
+-| Réordonner | Seule la clé de tri du mouvement déplacé change. |
++| Réordonner | Seule la clé de tri du mouvement déplacé change, sauf rééquilibrage technique exceptionnel (voir ci-dessus). |
+ | Rejoindre une famille existante | Écrire groupe et clé de tri du mouvement entrant ; les autres clés sont conservées. |
+ | Sortir d'une famille de plus de deux membres | Effacer ensemble groupe et clé de tri du mouvement sorti ; les autres rangs sont dérivés à nouveau. |
+ | Sortir du dernier couple | Effacer groupe et clé de tri des deux mouvements ; aucun singleton fantôme. |
+@@ -130,7 +131,7 @@ Les identités et contenus restent inchangés ; les exercices continuent à réf
+ 
+ **Singleton subi / détachement explicite.** Une disparition subie par archivage ou suppression ne vaut pas demande de dissolution de la famille : conserver l'identifiant du membre restant et masquer son rang quand il est présenté seul. L'archivage conserve aussi l'appartenance et la clé du membre archivé ; sa restauration restitue la progression. La sortie explicite du dernier couple efface au contraire les deux appartenances. L'identité d'un groupe n'est jamais un objet autonome à supprimer.
+ 
+-**Archivage, filtres et suppression définitive.** Conserver l'arbitrage validé du 27/10, chapitre 09 règle 8 : archiver/restaurer ne change pas les niveaux ; les membres archivés participent au calcul ; filtrer masque sans recalcul. Supprimer définitivement peut modifier les rangs et le total des restants sans réécrire leurs clés ni leurs identités. Le lot de composition de famille ne redéfinit pas ce cycle de vie.
++**Archivage, filtres et suppression définitive.** Conserver l'arbitrage validé du 27/10, chapitre 09 règle 8 : archiver/restaurer ne change pas les niveaux ; les membres archivés participent au calcul ; filtrer masque sans recalcul. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.] Supprimer définitivement peut modifier les rangs et le total des restants sans réécrire leurs clés ni leurs identités. Le lot de composition de famille ne redéfinit pas ce cycle de vie.
+ 
+ ## Relevé Figma et captures de référence
+ 
+@@ -152,9 +153,20 @@ Le nœud `10484:23428`, anciennement « Réordonnée », illustre désormais **N
+ 
+ Le document source indique que ses quatre arbitrages sont clos ; ils le restent. Deux formulations demandent néanmoins de distinguer le texte fourni de ce qu'il permet de spécifier :
+ 
+-- **Entrée dans une famille existante :** E2 pose un message quand l'appartenance change, mais sa table ne fournit que les libellés création, suppression et sortie. Le principe du message et d'Annuler pendant 3 secondes s'applique ; aucun quatrième libellé n'est inventé ni présenté comme validé.
++- **Entrée dans une famille existante :** E2 pose un message quand l'appartenance change, mais sa table ne fournit que les libellés création, suppression et sortie. Le principe du message et d'Annuler pendant 3 secondes s'applique ; aucun quatrième libellé n'est inventé ni présenté comme validé. [Tranché par Hermann le 28/10/2026 : libellé définitif **Mouvement ajouté à la famille**.]
+ - **Création à partir de deux isolés :** C1 exige deux appartenances, alors que le paragraphe de données n'excepte que la dissolution de la règle d'une seule ligne écrite. Le tableau ci-dessus expose cette conséquence de C1 et de la présence conjointe des champs ; il ne prétend pas à un arbitrage technique supplémentaire. Ne pas livrer une famille dont un seul membre porterait l'identifiant.
+ 
++## Clôture du lot PRE-8 — décisions de Hermann du 28/10/2026
++
++- **Libellé d'entrée** : « Mouvement ajouté à la famille » (définitif).
++- **VoiceOver — reporté** dans un lot d'accessibilité dédié en fin de MVP : créer, rejoindre et quitter une famille n'ont pas encore d'alternative VoiceOver. Les interactions tactiles validées et les actions accessibles existantes (réordonner) sont conservées. L'exigence est différée, non supprimée.
++- **Emplacement pointillé** (`10480:23374`) : écart visuel connu, **accepté provisoirement** ; la référence Figma reste le rendu attendu ; le rendu n'est pas déclaré conforme sur ce point.
++- **Place d'un mouvement sorti** : classement alphabétique conservé (Trier inactif dans PRE-8) ; point clos.
++- **Rééquilibrage technique exceptionnel** des clés : voir « Données et invariants ».
++- **Défilement pendant le geste** : la liste défile quand la carte portée approche du haut ou du bas ; la carte reste sous le doigt (recette iPhone du 28/10, demande de Hermann).
++- **Rangs après archivage** : b8-3 (voir « Données et invariants »).
++- **Membres archivés** : un membre archivé reste membre ; détacher un autre membre ne dissout pas la famille tant qu'au moins deux membres enregistrés demeurent ; le mouvement resté seul à l'écran après archivage garde son appartenance, pastille masquée, et la restauration de l'autre membre retrouve la famille ; détacher explicitement le dernier couple dissout la famille et efface les deux appartenances (D2 à D4).
++
+ ## Recette à appliquer au développement
+ 
+ | Cas | Résultat attendu |
+@@ -163,11 +175,11 @@ Le document source indique que ses quatre arbitrages sont clos ; ils le restent.
+ | FAM-02 — sortir puis revenir avant relâchement | Filet raccourci, cartes refermées et rangs recalculés ; pastille retirée ; retour dans le filet rétablit l'appartenance avant dépôt. |
+ | FAM-03 — sortir d'une famille en tête | Dépôt au-dessus accepté ; mouvement sans famille replacé selon le tri courant ; aucune position manuelle persistée. |
+ | FAM-04 — lier deux isolés, au-dessus puis en dessous | Filet en formation et deux pastilles provisoires ; niveau supérieur en haut ; deux identités préservées ; famille créée au dépôt. |
+-| FAM-05 — rejoindre une famille de trois membres ou plus | Déploiement à l'approche ; insertion à l'emplacement choisi, rangs dérivés ; pas de question de difficulté ; message d'appartenance, libellé d'entrée non fourni par la source. |
++| FAM-05 — rejoindre une famille de trois membres ou plus | Déploiement à l'approche [à l'arrêt sur la famille, recette du 28/10/2026] ; insertion à l'emplacement choisi, rangs dérivés ; pas de question de difficulté ; message d'appartenance, libellé d'entrée non fourni par la source [libellé validé le 28/10/2026 : « Mouvement ajouté à la famille »]. |
+ | FAM-06 — tenter un transfert direct entre familles | Aucun filet de formation ; impossible de lier une carte encore membre à une autre carte ; sortir librement puis lier lors d'un second geste. |
+ | FAM-07 — sortir du dernier couple | Les deux paires groupe/clé sont effacées ; filet et pastilles disparaissent ; message Famille de niveaux supprimée. |
+ | FAM-08 — messages et Annuler | Création / dissolution / sortie : libellés E2 exacts ; au-dessus de la navigation ; 3 secondes ; Annuler restaure tout l'état antérieur. Aucun bouton de validation. |
+-| FAM-09 — archivage, restauration, filtre, suppression définitive | Archivage/restauration et filtre sans reclassement ; conservation du groupe subi ; suppression définitive selon la règle 8 du 27/10. |
++| FAM-09 — archivage, restauration, filtre, suppression définitive | Archivage/restauration et filtre sans reclassement ; conservation du groupe subi ; suppression définitive selon la règle 8 du 27/10. [Rangs affichés des actifs recalculés après archivage et restauration : b8-3, 28/10/2026 ; aucun reclassement des clés.] |
+ | FAM-10 — invariants | Mêmes références d'exercices, identités, contenus, instantanés et performances ; pas de cascade ; un groupe maximum. |
+ | FAM-11 — accès existants | Réordonner les niveaux au menu garde le même résultat ; Ajouter un niveau garde choix du sens et formulaire ; aucun menu de retrait ou de suppression de famille. |
+ 
+diff --git a/docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md b/docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md
+index 3ca7f7f..005d8fd 100644
+--- a/docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md
++++ b/docs/DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md
+@@ -84,7 +84,7 @@ Mettre à jour conserve l'identité. Créer un nouveau mouvement conserve l'orig
+ 
+ ### Clarifications de clôture — 27/10/2026
+ 
+-Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Le traitement de l'archivage reste à décider dans son lot : il n'est pas assimilé ici à une suppression.
++Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Le traitement de l'archivage reste à décider dans son lot : il n'est pas assimilé ici à une suppression. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.]
+ 
+ Dans le menu Niveau d'un exercice, un changement effectif de mouvement conserve les durées locales des phases de rang commun ; les durées manquantes restent vides, sans valeur inventée ni remise à vide générale. Les autres paramètres sont conservés selon les règles existantes. Une correction du même mouvement conserve les durées par identité stable de phase. Dans la cible D-449, aucun Exercice autonome du Catalogue n'est à sélectionner pour fournir des durées : ne pas recréer cet objet ni déduire des durées par défaut du mouvement. Cette clarification de D-448 ne fait pas entrer la refonte des paramètres dans le lot PRE-8.
+ 
+diff --git a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md
+index d5347bd..eaff13e 100644
+--- a/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md	
++++ b/docs/Specifications-fonctionnelles/07 – Registre des décisions de conception.md	
+@@ -8,6 +8,8 @@ A–E remplacent la portée des règles 2 à 4 du 27/10 : un geste et un filet,
+ 
+ Propagation : chapitre 06, trois captures ; 09, appartenances et singleton ; 10, règles 1–5/9 et A–E ; 13, CE-MVT-03 et singleton du menu Niveau ; 12, composants visuels ; DSF Niveaux, C08. La spécification consigne les limites de transcription (libellé d'entrée absent et initialisation de deux isolés) sans créer d'arbitrage supplémentaire.
+ 
++**Clôture du lot PRE-8 — décisions de Hermann du 28/10/2026.** Libellé d'entrée définitif « Mouvement ajouté à la famille ». Créer, rejoindre et quitter une famille avec VoiceOver : reportés dans un lot d'accessibilité dédié en fin de MVP (exigence différée, non supprimée). Rééquilibrage technique exceptionnel des clés autorisé à l'épuisement de la précision (atomique ; identités, appartenances, associations et ordre conservés ; jamais systématique). Emplacement pointillé (`10480:23374`) : écart visuel accepté provisoirement. Mouvement sorti : classement alphabétique conservé, point clos. Famille repliée dépliée à l'arrêt de la carte portée (recette du 28/10). Rangs après archivage et restauration — **b8-3** (confirmé par Hermann le 28/10/2026, option A) : les rangs affichés des membres actifs sont recalculés sans discontinuité, un actif étant numéroté parmi les seuls actifs, et restaurer un membre le réintègre dans cette numérotation ; un membre archivé garde son rang dans la famille complète ; aucune identité ni appartenance n'est modifiée, la clé de tri est conservée ; le filtrage ne recalcule rien. b8-3 remplace sur ce point la règle 8 du chapitre 09 (27/10) et Q5. Détail : [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), section « Clôture du lot PRE-8 ».
++
+ > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+ 
+ ## Complément validé par Hermann — Ajouter un niveau dans le glissé (27/10/2026)
+@@ -1037,9 +1039,9 @@ Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-
+ | 3. Application immédiate | 10, même section → Règle 3 | Instruction Hermann, point 3 ; D-445, reclassement seul | Précise le moment d'application et le retour de confirmation ; pas de dialogue de correction |
+ | 4. Aucun mode, aucun bouton | 10, même section → Règle 4 | Instruction Hermann, point 4 ; clarification validée le 27/10/2026 | Remplace la portée générale initiale par le réordonnancement ; validations de création/modification conservées ; clos |
+ | 5. Ordre affiché | 10, même section → Règle 5 | Instruction Hermann, point 5 ; D-439 | Précise la présentation de la famille déployée |
+-| 6. Effet sur les données | 09, Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 6 | Instruction Hermann, point 6 ; Groupe sur Mouvement ; Rang / total / suffixe - Nn | Précise la clé de tri et l'écriture d'une seule ligne ; aucun rang persisté |
++| 6. Effet sur les données | 09, Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026 → Règle 6 | Instruction Hermann, point 6 ; Groupe sur Mouvement ; Rang / total / suffixe - Nn | Précise la clé de tri et l'écriture d'une seule ligne [sauf rééquilibrage technique exceptionnel, 28/10/2026] ; aucun rang persisté |
+ | 7. Effet sur le reste | 09, même section → Règle 7 | Instruction Hermann, point 7 ; D-437 ; D-445 ; MFN-03 | Confirme identité, références et instantanés inchangés ; classement lu à l'affichage |
+-| 8. Archivage et filtres | 09, même section → Règle 8 | Instruction Hermann, point 8 ; clarification validée le 27/10/2026 ; MFN-05 | Remplace la conservation des rangs après suppression ; précise la prise en compte des membres archivés et le filtrage ; MFN-05 conservée ; clos sur ces effets, autres parcours de cycle de vie inchangés |
++| 8. Archivage et filtres | 09, même section → Règle 8 | Instruction Hermann, point 8 ; clarification validée le 27/10/2026 ; MFN-05 | Remplace la conservation des rangs après suppression ; précise la prise en compte des membres archivés et le filtrage ; MFN-05 conservée ; clos sur ces effets, autres parcours de cycle de vie inchangés [rangs après archivage et restauration remplacés par b8-3, 28/10/2026] |
+ | 9. Cohabitation avec le menu existant | 10, section de réordonnancement → Règle 9 | Instruction Hermann, point 9 ; D-448 point 9 | Précise la coexistence des accès et l'identité du résultat ; menu racine conservé dans les trois contextes |
+ 
+ ### Proposition non validée
+diff --git a/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md b/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md
+index f1e4bd2..4c76132 100644
+--- a/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md	
++++ b/docs/Specifications-fonctionnelles/09 – Modèle de données fonctionnel.md	
+@@ -4,9 +4,9 @@
+ 
+ ## Composition des familles — données, 28/10/2026
+ 
+-Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
++Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.] ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
+ 
+-Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive.
++Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres [sauf rééquilibrage technique exceptionnel, 28/10/2026]. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive. [Rangs après archivage et restauration : remplacés par b8-3, confirmé par Hermann le 28/10/2026 ; filtres et suppression définitive inchangés.]
+ 
+ ## Application au lot Mouvement autonome — 27/10/2026
+ 
+@@ -1517,7 +1517,7 @@ Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans r
+ 
+ ##### Règle 6 — texte de référence
+ 
+-6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille.
++6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille. [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.]
+ 
+ ##### Règle 7 — texte de référence
+ 
+@@ -1525,9 +1525,9 @@ Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans r
+ 
+ ##### Règle 8 — clarification validée par Hermann le 27/10/2026
+ 
+-8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
++8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.] Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
+ 
+-Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
++Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. [Depuis b8-3 (28/10/2026), cela vaut pour le filtrage et pour le rang d'un membre archivé ; le rang affiché d'un actif est dérivé des seuls actifs.] Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
+ 
+ 
+ ## Projection Catalogue des séances — 27/10/2026
+diff --git a/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md b/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md
+index 6373823..cb42410 100644
+--- a/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md	
++++ b/docs/Specifications-fonctionnelles/10 – Processus métier et règles métier transverses.md	
+@@ -26,7 +26,7 @@ Le verrouillage depuis une séance concerne uniquement un mouvement existant ou
+ 
+ Dans le menu Niveau d'un exercice, un changement effectif de mouvement conserve les durées locales des phases de rang commun ; les durées manquantes restent vides, sans valeur inventée ni remise à vide générale. Les autres paramètres sont conservés selon les règles existantes. Une correction du même mouvement conserve les durées par identité stable de phase. Dans la cible D-449, aucun Exercice autonome du Catalogue n'est à sélectionner pour fournir des durées : ne pas recréer cet objet ni déduire des durées par défaut du mouvement. Cette clarification de D-448 ne fait pas entrer la refonte des paramètres dans le lot PRE-8.
+ 
+-Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Archiver ou restaurer conserve l’appartenance et la clé de tri : le membre archivé reste pris en compte dans le calcul des niveaux de la famille complète. Ces opérations ne changent pas les niveaux ; seule la visibilité change. Supprimer définitivement peut modifier les rangs et le total affichés, sans réécriture des clés de tri des autres membres (clarification validée par Hermann le 27/10/2026, chapitre 09, règle 8). Cette précision ne clôt pas les autres parcours de cycle de vie de C08.
++Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Archiver ou restaurer conserve l’appartenance et la clé de tri : le membre archivé reste pris en compte dans le calcul des niveaux de la famille complète. Ces opérations ne changent pas les niveaux ; seule la visibilité change. Supprimer définitivement peut modifier les rangs et le total affichés, sans réécriture des clés de tri des autres membres (clarification validée par Hermann le 27/10/2026, chapitre 09, règle 8). Cette précision ne clôt pas les autres parcours de cycle de vie de C08. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.]
+ 
+ Une conversion confirmée de circuit de tours vers circuit de séries tronque définitivement les séries excédentaires ; elles ne sont pas gardées dans la réserve du brouillon. La diminution du compteur sans changement de nature conserve au contraire temporairement les lignes retirées pendant l'édition de la séance. Annuler la conversion conserve l'état initial. Ces règles existantes restent distinctes ; aucune levée du nombre de séries imposé n'est décidée par cette correction.
+ 
+@@ -413,7 +413,7 @@ Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jama
+ 
+ ##### Règle 1 — geste, précisé par A et C5
+ 
+-Un appui long sur une carte arme son déplacement en place, sans écran ni panneau intermédiaire. Une famille repliée se déplie avant de choisir la position ou à l'approche d'un mouvement entrant. Les pastilles se recalculent pendant le geste.
++Un appui long sur une carte arme son déplacement en place, sans écran ni panneau intermédiaire. Une famille repliée se déplie avant de choisir la position ou à l'approche d'un mouvement entrant [à l'arrêt de la carte portée sur la famille, recette du 28/10/2026]. Les pastilles se recalculent pendant le geste.
+ 
+ ##### Règle 2 — portée du déplacement, reformulée le 28/10
+ 
+diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
+index 7d4073f..3a7ada5 100644
+--- a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md	
++++ b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md	
+@@ -20,7 +20,7 @@ Rester dans le catalogue. Déposer valide l'opération ; revenir dans le filet a
+ 
+ ### 5. Données affichées et source de vérité
+ 
+-Mouvements existants, identifiant de groupe et clé de tri ; niveaux dérivés de l'ordre complet, avant filtrage. Pendant le déplacement, le filet, les cartes et les pastilles présentent le résultat envisagé sans écriture persistante. Au relâchement, appliquer l'opération ; Annuler restaure l'état antérieur complet.
++Mouvements existants, identifiant de groupe et clé de tri ; niveaux dérivés de l'ordre complet, avant filtrage [b8-3, 28/10/2026 : niveau affiché d'un actif dérivé des seuls actifs]. Pendant le déplacement, le filet, les cartes et les pastilles présentent le résultat envisagé sans écriture persistante. Au relâchement, appliquer l'opération ; Annuler restaure l'état antérieur complet.
+ 
+ ### 6. Classification des valeurs Figma
+ 
+@@ -28,7 +28,7 @@ Les noms, contenus et nombres de niveaux des cartes sont des exemples. Le filet,
+ 
+ ### 7. Structure de l'écran
+ 
+-Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance.
++Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance. [Emplacement pointillé : écart visuel connu dans PRE-8, accepté provisoirement par Hermann le 28/10/2026 ; la référence Figma reste le rendu attendu.]
+ 
+ ### 8. Éléments obligatoires
+ 
+@@ -40,7 +40,7 @@ Niveau le plus élevé en haut. Longueur du filet inchangée à membres constant
+ 
+ ### 10. Responsive, Safe Areas, texte, scroll et clavier
+ 
+-Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
++Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. [Recette iPhone du 28/10/2026, demande de Hermann : pendant le geste, la liste défile quand la carte portée approche du haut ou du bas ; la carte reste sous le doigt ; défiler n'est pas s'arrêter sur une famille repliée.] Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
+ 
+ ### 11. États de l'écran
+ 
+@@ -48,7 +48,7 @@ Les trois frames de référence suffisent au geste continu. Déplacement fixe la
+ 
+ ### 12. Contrôles et interactions
+ 
+-Appui long, déplacement, arrêt à l'emplacement, relâchement. Une famille repliée se déplie avant le choix de position ou à l'approche. Recalculer les niveaux en direct. Pour l'ordre interne, conserver le filet et ne montrer aucun message après dépôt. Pour sortir, raccourcir le filet, refermer les cartes, recalculer les niveaux restants et retirer la pastille de la carte déplacée. La ramener dans le filet rétablit la famille avant dépôt.
++Appui long, déplacement, arrêt à l'emplacement, relâchement. Une famille repliée se déplie avant le choix de position ou à l'approche [à l'arrêt de la carte portée sur la famille, recette du 28/10/2026]. Recalculer les niveaux en direct. Pour l'ordre interne, conserver le filet et ne montrer aucun message après dépôt. Pour sortir, raccourcir le filet, refermer les cartes, recalculer les niveaux restants et retirer la pastille de la carte déplacée. La ramener dans le filet rétablit la famille avant dépôt.
+ 
+ ### 13. Gestes
+ 
+@@ -60,7 +60,7 @@ Relâcher applique immédiatement. Déposer au-dessus d'une famille en tête de
+ 
+ ### 15. Brouillon et persistance
+ 
+-Prévisualisation seulement pendant le geste ; aucun état provisoire persistant après relâchement. Réordonner écrit la clé du membre déplacé. Entrer/sortir écrit ou efface ensemble son groupe et sa clé ; le dernier couple implique deux mouvements. Former une famille de deux isolés exige deux appartenances. Annuler restaure toute l'opération, y compris les champs des deux membres concernés ; aucun changement des contenus ou références d'exercices.
++Prévisualisation seulement pendant le geste ; aucun état provisoire persistant après relâchement. Réordonner écrit la clé du membre déplacé [sauf rééquilibrage technique exceptionnel, 28/10/2026]. Entrer/sortir écrit ou efface ensemble son groupe et sa clé ; le dernier couple implique deux mouvements. Former une famille de deux isolés exige deux appartenances. Annuler restaure toute l'opération, y compris les champs des deux membres concernés ; aucun changement des contenus ou références d'exercices.
+ 
+ ### 16. Navigation et conservation d'état
+ 
+@@ -72,7 +72,7 @@ Le dernier couple explicitement détaché devient deux mouvements sans groupe. L
+ 
+ ### 18. Accessibilité
+ 
+-Annoncer l'identité du mouvement, son niveau dérivé et l'action Annuler ; ne pas dépendre de la couleur seule. Conserver l'accès de réordonnancement par le menu et les cibles accessibles existantes. Ne pas inventer une action nommée de retrait dans un menu. Le retour temporaire dure les 3 secondes décidées ; aucun autre délai n'est déduit de la maquette.
++Annoncer l'identité du mouvement, son niveau dérivé et l'action Annuler ; ne pas dépendre de la couleur seule. Conserver l'accès de réordonnancement par le menu et les cibles accessibles existantes. Ne pas inventer une action nommée de retrait dans un menu. [Report du 28/10/2026, décision de Hermann : créer, rejoindre et quitter une famille avec VoiceOver sont reportés dans un lot d'accessibilité dédié en fin de MVP ; exigence différée, non supprimée.] Le retour temporaire dure les 3 secondes décidées ; aucun autre délai n'est déduit de la maquette.
+ 
+ ### 19. Invariants et messages
+ 
+@@ -84,8 +84,9 @@ Un groupe maximum ; pas de rang persisté ni plafond métier. Identités, exerci
+ | Création | Nouvelle famille de niveaux créée |
+ | Dissolution du dernier couple | Famille de niveaux supprimée |
+ | Sortie laissant une famille | Mouvement sorti de la famille |
++| Entrée dans une famille existante | Mouvement ajouté à la famille (validé le 28/10/2026) |
+ 
+-Les messages d'appartenance portent Annuler, pendant 3 secondes, au-dessus de la barre de navigation. La dissolution du dernier couple utilise le message de suppression de famille, pas celui de simple sortie. E2 s'applique aussi à l'entrée dans une famille existante, mais aucun libellé d'entrée n'est fourni : ne pas en présenter un comme validé.
++Les messages d'appartenance portent Annuler, pendant 3 secondes, au-dessus de la barre de navigation. La dissolution du dernier couple utilise le message de suppression de famille, pas celui de simple sortie. E2 s'applique aussi à l'entrée dans une famille existante, mais aucun libellé d'entrée n'est fourni : ne pas en présenter un comme validé. [Tranché par Hermann le 28/10/2026 : libellé définitif **Mouvement ajouté à la famille**.]
+ 
+ ### 20. Recette déterministe
+ 

@@ -45,6 +45,12 @@ export const colors = {
   divider: canonical.border,
   // `color/cards/border` — bordure renforcée (choix de silhouette du Profil).
   cardsBorder: "#CCD1E0",
+  // PRE-8 (epic E, E.2 et E.3 ; relevé DSF Catalogue des séances du 27/10) : bordure de la carte
+  // archivée (`color/cards/archive-border`), titre (`color/observed/14171c`) et lignes grisées de la
+  // composition déployée (`color/observed/80858c`), portée Catalogue des séances.
+  cardsArchiveBorder: "#D9D9D9",
+  catalogueSessionTitle: "#14171C",
+  catalogueSessionMuted: "#80858C",
   // `color/primary-soft` — décor, jamais un fond portant du texte blanc de
   // taille normale.
   primarySoft: canonical.primarySoft,
@@ -174,6 +180,13 @@ export const colors = {
   // groupe Séries variables (figé 6665:24616). Distincts de
   // `exerciseContextBandBackground`, que la Composition continue d’utiliser.
   exerciseEditorContextBand: "#EAEAFF",
+  // PRE-8, correction UX « clavier » (27/10) : surface de la couche éditable de la fiche Mouvement
+  // lorsqu'elle passe devant le média — blanc à 90 % (recette du 27/10 : « légèrement plus translucide »).
+  movementEditableSurface: "rgba(255, 255, 255, 0.9)",
+  // PRE-8 (27/10) : bouton de lecture du gabarit photo (Figma `7872:14696`) — voile blanc 22 %,
+  // contour blanc 35 %, sur le verre natif iOS 26.
+  mediaPlaySurface: "rgba(255, 255, 255, 0.22)",
+  mediaPlayBorder: "rgba(255, 255, 255, 0.35)",
   variableSeriesGroupSurface: "#F3F3F6",
   // T01-S09, correction VISUAL (2e contre-recette suivante, commentaire de
   // revue post-`1f28a09`) — `Controls / Disclosure — Source exact`
@@ -208,6 +221,16 @@ export const colors = {
   // `#141414`), d'où deux tokens propres.
   compositionDraggedCardBorder: "#D1D1D6",
   compositionDraggedCardShadow: "#14171F",
+  // PRE-8, recette A/B (B04, D04, B11 ; Figma `Carte — Mouvement`, `10579:21580`, `10465:23141`) :
+  // description des cartes, ombre des cartes et de la navigation, fond des actions d'ajout de
+  // Niveau, archivage, filet de famille, feuilles de pile, champ Rechercher.
+  movementCardDescription: "#7A7A80",
+  movementCardShadow: "#1A1A26",
+  movementLevelAction: "#8C8C94",
+  movementArchiveAction: "#F08C33",
+  movementFamilyRail: "rgba(5, 8, 229, 0.35)",
+  movementPileLeafBorder: "#E0E3ED",
+  searchFieldSurface: "#F3F4F9",
 } as const;
 
 const regular = { fontFamily: "Inter_400Regular", fontWeight: "400" } as const;
@@ -226,6 +249,9 @@ export const type = {
   activityTitle: { ...semiBold, fontSize: 28, lineHeight: 34 },
   metricPrimary: { ...semiBold, fontSize: 22, lineHeight: 27 },
   screenTitle: { ...semiBold, fontSize: 20, lineHeight: 24 },
+  // PRE-8, recette A/B du 27/10 (r9-a02) : tous les titres d'écran en Inter Medium 17 (interligne
+  // Auto `round(1,2102 × 17)` = 21). `screenTitle` reste le style des noms saisis (Mouvement, Séance).
+  screenHeaderTitle: { ...medium, fontSize: 17, lineHeight: 21 },
   modalTitle: { ...semiBold, fontSize: 18, lineHeight: 22 },
   sectionTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },
   cardTitle: { ...semiBold, fontSize: 16, lineHeight: 19 },
@@ -298,6 +324,17 @@ export const type = {
   // title`, Inter Semi Bold 16 à interligne EXPLICITE 20 (vérifié sur
   // `7388:13781`), pour l'option sélectionnée comme pour les inactives.
   segmentedLabel: { ...semiBold, fontSize: 16, lineHeight: 20 },
+  // PRE-8, recette A/B (B02, B03, B10, D04, D05, D06 ; Figma `10579:21580`, `10465:23141`,
+  // `10460:23176`) : description et Niveau des cartes du Catalogue des Mouvements (le titre
+  // reprend `compactCardTitle`, 15/18), libellé des actions glissées, champ Rechercher,
+  // commande Filtrer étendue, action Réinitialiser.
+  movementCardDescription: { ...regular, fontSize: 12, lineHeight: 16 },
+  movementCardLevel: { ...medium, fontSize: 12, lineHeight: 15 },
+  swipeActionLabel: { ...semiBold, fontSize: 11, lineHeight: 13 },
+  searchField: { ...regular, fontSize: 15, lineHeight: 18 },
+  filterCommandTitle: { ...medium, fontSize: 11, lineHeight: 13 },
+  filterCommandSummary: { ...regular, fontSize: 10, lineHeight: 12 },
+  resetActionLabel: { ...medium, fontSize: 12, lineHeight: 15 },
 } as const;
 
 export const spacing = {
@@ -312,6 +349,16 @@ export const spacing = {
   20: 20,
   24: 24,
   32: 32,
+} as const;
+
+/**
+ * PRE-8, recette A/B (A01, arbitrage de Hermann du 27/10/2026) : marge horizontale STANDARD des
+ * contenus d'écran, 16 à toutes les largeurs (auparavant 24, ou 16 sous 390). Source unique : les
+ * écrans et composants la lisent ici, jamais un littéral. Exceptions conservées : médias pleine
+ * largeur, Safe Areas, barre de navigation et géométries propres aux modales.
+ */
+export const layout = {
+  screenGutter: spacing[16],
 } as const;
 
 export const fixedRadii = {
@@ -344,6 +391,11 @@ export const icon = {
 export const dimensions = {
   primaryButton: { minHeight: 48, radius: 24, width: "100%" },
   compactSecondaryButton: { visualHeight: 32, radius: 16, minTouchTarget: 48 },
+  // ch13 §4.5 (recette A/B, D01/D04/D05) : commandes de Catalogue — cercle visible 34, pictogramme
+  // 20, cible ≥ 44, écart visuel 12 ; champ Rechercher et pilule étendue à la même hauteur visible.
+  catalogueCommand: { visual: 34, radius: 17, icon: 20, touchTarget: 44, gap: 12 },
+  // Recette A/B (D06, Figma `10460:23176`) : action Réinitialiser des filtres, icône 28 à gauche.
+  resetAction: { width: 150, height: 32, radius: 16, icon: 28, iconLeft: 9 },
   header: { contentHeight: 48 },
   finalAction: { buttonHeight: 48 },
   mainNavigation: { visualHeight: 66, radius: 33 },

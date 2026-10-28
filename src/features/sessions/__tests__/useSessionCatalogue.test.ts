@@ -2,7 +2,8 @@ import { act, renderHook } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
 import { createElement, StrictMode, type ReactNode } from "react";
 
-import type { SessionSummary } from "@/domain/sessions/Session";
+import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
+import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import type { SessionService } from "@/features/sessions/SessionService";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
@@ -11,19 +12,26 @@ import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 // wrapper de contexte utilise `React.createElement` plutôt que la syntaxe
 // JSX, qui ne serait pas transformée dans un fichier `.ts`.
 
-function aSummary(id: string): SessionSummary {
+// PRE-8 (E.1, E.2) : le hook lit le Catalogue unifié (`listCatalogueSessions`) et le projette.
+function aSummary(id: string): CatalogueSessionRecord {
   return {
     id,
     name: `Séance ${id}`,
     color: "#3B82F6",
-    activityCount: 1,
-    estimatedDurationSeconds: 45,
-    isEstimatedDurationApproximate: false,
-    tourRepeatCount: 1,
+    labelId: null,
+    status: "ACTIVE",
+    archivedAt: null,
     updatedAt: "2026-01-01T00:00:00.000Z",
-    categoryNames: [],
-    bodyZoneNames: [],
+    structure: { elements: [], stopPoints: [] },
   };
+}
+
+/** Projection attendue, sans référentiel de catégories (aucun contexte dans ces tests). */
+const projected = (records: readonly CatalogueSessionRecord[]) => records.map((record) => projectSessionForCatalogue(record, new Map()));
+
+/** Laisse se résoudre la lecture et la projection (plusieurs micro-tâches). */
+async function flush() {
+  for (let index = 0; index < 6; index += 1) await Promise.resolve();
 }
 
 /** Promesse dont la résolution/le rejet est contrôlé manuellement par le test. */
@@ -43,11 +51,11 @@ function deferred<T>(): {
 
 function makeFakeService(): {
   service: SessionService;
-  listActiveSessions: jest.Mock<() => Promise<readonly SessionSummary[]>>;
+  listCatalogueSessions: jest.Mock<() => Promise<readonly CatalogueSessionRecord[]>>;
 } {
-  const listActiveSessions = jest.fn<() => Promise<readonly SessionSummary[]>>();
-  const service = { listActiveSessions } as unknown as SessionService;
-  return { service, listActiveSessions };
+  const listCatalogueSessions = jest.fn<() => Promise<readonly CatalogueSessionRecord[]>>();
+  const service = { listCatalogueSessions } as unknown as SessionService;
+  return { service, listCatalogueSessions };
 }
 
 function makeWrapper(service: SessionService, strict = false) {
@@ -67,43 +75,41 @@ describe("useSessionCatalogue", () => {
     expect(result.current.state).toEqual({ status: "loading" });
   });
 
-  it("transitions to empty when listActiveSessions resolves with an empty list", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+  it("transitions to empty when listCatalogueSessions resolves with an empty list", async () => {
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
     });
 
     await act(async () => {
       result.current.reload();
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
 
     expect(result.current.state).toEqual({ status: "empty" });
   });
 
   it("transitions to ready with the returned sessions", async () => {
-    const { service, listActiveSessions } = makeFakeService();
+    const { service, listCatalogueSessions } = makeFakeService();
     const sessions = [aSummary("session-1"), aSummary("session-2")];
-    listActiveSessions.mockResolvedValue(sessions);
+    listCatalogueSessions.mockResolvedValue(sessions);
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
     });
 
     await act(async () => {
       result.current.reload();
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
 
-    expect(result.current.state).toEqual({ status: "ready", sessions });
+    expect(result.current.state).toEqual({ status: "ready", sessions: projected(sessions) });
   });
 
   it("transitions to a distinct error state on rejection, never to empty", async () => {
-    const { service, listActiveSessions } = makeFakeService();
+    const { service, listCatalogueSessions } = makeFakeService();
     const failure = new Error("technical failure");
-    listActiveSessions.mockRejectedValue(failure);
+    listCatalogueSessions.mockRejectedValue(failure);
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
@@ -125,10 +131,10 @@ describe("useSessionCatalogue", () => {
   });
 
   it("lets the most recently triggered reload win over a stale, later-resolving one", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    const first = deferred<readonly SessionSummary[]>();
-    const second = deferred<readonly SessionSummary[]>();
-    listActiveSessions.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const { service, listCatalogueSessions } = makeFakeService();
+    const first = deferred<readonly CatalogueSessionRecord[]>();
+    const second = deferred<readonly CatalogueSessionRecord[]>();
+    listCatalogueSessions.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
 
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
@@ -145,26 +151,24 @@ describe("useSessionCatalogue", () => {
     // triggered — it must not win.
     await act(async () => {
       first.resolve([aSummary("stale")]);
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
     expect(result.current.state).toEqual({ status: "loading" });
 
     await act(async () => {
       second.resolve([aSummary("fresh")]);
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
     expect(result.current.state).toEqual({
       status: "ready",
-      sessions: [aSummary("fresh")],
+      sessions: projected([aSummary("fresh")]),
     });
   });
 
   it("cancelPending invalidates the in-flight request: its late resolution has no effect", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    const pending = deferred<readonly SessionSummary[]>();
-    listActiveSessions.mockReturnValue(pending.promise);
+    const { service, listCatalogueSessions } = makeFakeService();
+    const pending = deferred<readonly CatalogueSessionRecord[]>();
+    listCatalogueSessions.mockReturnValue(pending.promise);
 
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
@@ -181,8 +185,7 @@ describe("useSessionCatalogue", () => {
 
     await act(async () => {
       pending.resolve([aSummary("too-late")]);
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
 
     // Still loading: the resolution was silently ignored, not converted
@@ -191,9 +194,9 @@ describe("useSessionCatalogue", () => {
   });
 
   it("ignores a resolution that arrives after the component has unmounted", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    const pending = deferred<readonly SessionSummary[]>();
-    listActiveSessions.mockReturnValue(pending.promise);
+    const { service, listCatalogueSessions } = makeFakeService();
+    const pending = deferred<readonly CatalogueSessionRecord[]>();
+    listCatalogueSessions.mockReturnValue(pending.promise);
 
     const { result, unmount } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service),
@@ -207,8 +210,7 @@ describe("useSessionCatalogue", () => {
 
     await act(async () => {
       pending.resolve([aSummary("after-unmount")]);
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
 
     // No update was attempted after unmount; the last captured state
@@ -232,8 +234,8 @@ describe("useSessionCatalogue", () => {
   });
 
   it("keeps updating state correctly across React Strict Mode's synthetic mount/unmount/remount cycle", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([aSummary("under-strict-mode")]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([aSummary("under-strict-mode")]);
 
     const { result } = renderHook(() => useSessionCatalogue(), {
       wrapper: makeWrapper(service, true),
@@ -241,8 +243,7 @@ describe("useSessionCatalogue", () => {
 
     await act(async () => {
       result.current.reload();
-      await Promise.resolve();
-      await Promise.resolve();
+      await flush();
     });
 
     // If the mounted guard were only ever set once via `useRef(true)`
@@ -251,7 +252,7 @@ describe("useSessionCatalogue", () => {
     // be silently dropped — this assertion would then fail.
     expect(result.current.state).toEqual({
       status: "ready",
-      sessions: [aSummary("under-strict-mode")],
+      sessions: projected([aSummary("under-strict-mode")]),
     });
   });
 });

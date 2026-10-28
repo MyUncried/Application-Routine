@@ -15,6 +15,8 @@ import { applyMigration010 } from "./migrations/migration010";
 import { applyMigration011 } from "./migrations/migration011";
 import { applyMigration012 } from "./migrations/migration012";
 import { applyMigration013 } from "./migrations/migration013";
+import { applyMigration014 } from "./migrations/migration014";
+import { applyMigration015 } from "./migrations/migration015";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -187,6 +189,21 @@ export async function migrateDatabase(
     if (pending(12)) {
       await applyMigration013(transaction, now);
       version = 13;
+    }
+
+    // PRE-8 (A.3, D-449 §4) : structure générale de la Séance, conversion SANS PERTE des Séances
+    // existantes (aucune réinitialisation) ; un échec annule tout et laisse `user_version` à 13.
+    if (pending(13)) {
+      await applyMigration014(transaction);
+      version = 14;
+    }
+
+    // PRE-8 (B.8, arbitrages Q5 à Q8 du 27/10/2026) : archivage du Mouvement, colonne additive
+    // `movements.archived_at` ; aucun Mouvement n'est archivé par la migration. Un échec annule
+    // tout et laisse `user_version` à 14.
+    if (pending(14)) {
+      await applyMigration015(transaction);
+      version = 15;
     }
 
     if (version !== targetVersion) {
