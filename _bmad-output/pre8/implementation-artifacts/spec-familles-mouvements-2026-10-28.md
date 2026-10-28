@@ -110,3 +110,17 @@ Section FAM de la page de recette : 12 OK, 1 KO (`fam-05`). Hermann : « Les com
 Fichiers : `MovementCatalogueList.tsx` (correction `drift`, place ouverte, défilement automatique ; la liste est enveloppée d'une vue qui donne sa place à l'écran), `movementFamilyDrag.ts` (`autoScrollDirection`, pur). Tests : `MovementCatalogueList.fam` (+3 : carte sous le doigt après dépliage, place ouverte à l'entrée, place ouverte à la création), `movementFamilyDrag.fam` (+1 : bandes de défilement).
 
 Limite restante : l'emplacement pointillé (Figma `10480:23374`) n'est toujours pas rendu.
+
+## 10. Passe ciblée 2 (28/10/2026, après `f7540637`)
+
+| Point | Verdict | Remarque de Hermann | Traitement |
+|---|---|---|---|
+| `f2-01` fam-05 carte sous le doigt | OK | — | — |
+| `f2-02` fam-06 place ouverte à l'entrée | OK | — | — |
+| `f2-03` place ouverte à la création | OK, remarque | Après dissolution, le Mouvement sorti « revient en bas » (ou en haut) : il reprend sa place par nom, loin du doigt. | Même besoin que fam-07 (À CLARIFIER 6). **Décision de Hermann : « On ne change rien et on laisse comme cela pour l'instant. »** Classement par nom conservé (B5). Une place durable demanderait un ordre manuel enregistré : nouvelle règle de tri et stockage (migration ou mécanisme hors base), hors de ce lot. |
+| `f2-04` défilement pendant le geste | OK, remarque | « Le défilement est très saccadé, la carte bouge de haut en bas et de bas en haut à haute fréquence. » | **Défaut corrigé.** Les évènements `onScroll` produits par le défilement automatique arrivaient en retard et ramenaient le défilement de référence en arrière : ils sont ignorés pendant le geste. Un pas par image (`requestAnimationFrame`) ; le décalage de la carte portée est appliqué avant l'affichage (`useLayoutEffect`). |
+| `f2-05` non-régression | OK | — | — |
+
+Demande complémentaire de Hermann : « si je déplace une carte elle déplie toutes les familles au-dessus desquelles elle passe sans pourtant s'arrêter. Il faudrait qu'elle ne déplie une famille que si on s'arrête dessus. » **Traité** : C5 précisé, une famille repliée ne se déplie qu'après un arrêt de 500 ms de la carte portée sur elle ; la quitter avant annule le dépliage. La durée est une valeur technique, non spécifiée, ajustable après la recette. Test : `MovementCatalogueList.fam` (« survolée sans s'arrêter ne se déplie pas »).
+
+À CLARIFIER 6 : clos pour ce lot (statu quo décidé par Hermann).

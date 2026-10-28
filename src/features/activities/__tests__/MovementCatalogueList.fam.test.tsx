@@ -111,6 +111,11 @@ async function release() {
   });
   await settle();
 }
+/** Recette du 28/10 : une famille repliée ne se déplie qu'après un arrêt de la carte portée (500 ms). */
+const dwell = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 600));
+  });
 const level = (id: string) => screen.queryByTestId(`movement-card-level-${id}`)?.props.children ?? null;
 const membership = async (id: string) => (await movements().findById(id))?.levelGroup ?? null;
 const notice = () => (screen.queryByTestId("movement-catalogue-notice-message")?.props.children as string | undefined) ?? null;
@@ -241,6 +246,8 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     await layOut([{ key: "gainage" }, { key: group }]);
     await grab("gainage");
     await moveBy(100);
+    expect(screen.queryByTestId(`movement-pile-${group}-expanded`)).toBeNull();
+    await dwell();
     expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
     await layOut([{ key: "gainage" }, { key: group, members: ["squat", "assist"] }]);
     // Moitié basse de « Squats » (92 à 172) : niveau juste en dessous.
@@ -317,6 +324,7 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     await layOut([{ key: group }, { key: "tirage" }]);
     await grab("tirage");
     await moveBy(-60);
+    await dwell();
     expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
     expect(translateY("movement-card-tirage-lifted")).toBe(-60);
     // La pile dépliée (176) repousse la place de « Tirage » de 84 : le décalage la compense aussitôt.
@@ -328,6 +336,30 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     await release();
     expect(notice()).toBe("Mouvement ajouté à la famille");
     expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "tirage", "squat"]);
+  });
+
+  it("C5 : une famille repliée survolée sans s'arrêter ne se déplie pas ; un arrêt dessus la déplie", async () => {
+    const repository = movements();
+    await repository.create(movement("abdos", "Abdos"));
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    // « Abdos » (0 à 92), pile repliée (92 à 184), « Tirage » (184 à 276, centre 224).
+    await layOut([{ key: "abdos" }, { key: group }, { key: "tirage" }]);
+    await grab("tirage");
+    await moveBy(-90);
+    await moveBy(-180);
+    await dwell();
+    expect(screen.queryByTestId(`movement-pile-${group}-expanded`)).toBeNull();
+    // Revenir sur la pile et s'y arrêter : elle se déplie.
+    await moveBy(-90);
+    await dwell();
+    expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-catalogue-items"), "touchCancel", { nativeEvent: { pageX: 100, pageY: 0 } });
+    });
   });
 
   it("FAM-06, C2 : entrer dans une pile dépliée ouvre la place — membres suivants, filet et entrées suivantes décalés d'un pas", async () => {

@@ -44,6 +44,11 @@ Pour chaque case : ✅ conforme, ❌ problème (décrire), ➖ non testé.
 - [ ] **Défilement** : porter une carte près du haut ou du bas de la liste → la liste défile, la carte reste sous le doigt ; s'éloigner du bord → le défilement s'arrête ; relâcher sur une famille atteinte ainsi → entrée correcte.
 - [ ] Non-régression : réordonner dans une pile, sortir, dissoudre, Annuler (FAM-01, 02, 07, 08).
 
+## Passe ciblée 3
+
+- [ ] **Survol** : porter une carte par-dessus une ou plusieurs familles repliées sans s'arrêter → aucune ne se déplie ; s'arrêter une demi-seconde sur l'une → elle se déplie.
+- [ ] **Défilement** : porter une carte près du haut ou du bas de la liste → défilement régulier, la carte reste sous le doigt sans trembler.
+
 ## À trancher pendant la recette
 
 1. Libellé de l'entrée dans une famille (provisoire : « Mouvement ajouté à la famille »).
@@ -51,4 +56,4 @@ Pour chaque case : ✅ conforme, ❌ problème (décrire), ➖ non testé.
 3. Dernier couple accompagné d'un membre archivé : sortie simple (choix actuel) ou dissolution.
 4. Singleton subi ou famille filtrée : comportement décrit ci-dessus.
 5. Emplacement pointillé : limite à accepter ou à corriger (ouverture de place et défilement : couverts après la recette du 28/10).
-6. Place d'un Mouvement sorti (remarque fam-07) : classement par nom, ou retour visuel sur le Mouvement sorti, ou position manuelle (nouvelle règle de tri).
+6. ~~Place d'un Mouvement sorti (remarque fam-07)~~ : statu quo décidé par Hermann le 28/10 (classement par nom).

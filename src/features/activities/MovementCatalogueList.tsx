@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -170,6 +170,8 @@ const FAMILY_NOTICE_MS = 3000;
 /** Recette du 28/10 (FAM, limites) : bande des bords qui fait défiler la liste pendant le geste, et pas par image. */
 const AUTO_SCROLL_EDGE = 72;
 const AUTO_SCROLL_STEP = 8;
+/** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
+const EXPAND_DWELL_MS = 500;
 
 export function MovementCatalogueList({
   reloadToken,
@@ -237,6 +239,8 @@ export function MovementCatalogueList({
   const lastMoveY = useRef(0);
   const moveLatest = useRef<((pageY: number) => void) | null>(null);
   const [autoScroll, setAutoScroll] = useState<-1 | 0 | 1>(0);
+  // Famille repliée survolée par la carte portée, et son dépliage différé.
+  const expandHover = useRef<{ key: string; timer: ReturnType<typeof setTimeout> } | null>(null);
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
@@ -408,8 +412,22 @@ export function MovementCatalogueList({
       reorderTo,
       free: drag.pileKey === null && entry !== undefined && isFree(entry),
     });
-    // C5 : une famille repliée se déplie à l'approche.
-    if (intent.kind === "EXPAND") setExpanded((current) => (current.has(intent.familyKey) ? current : new Set(current).add(intent.familyKey)));
+    // C5, recette du 28/10 : une famille repliée ne se déplie que si la carte portée s'arrête dessus ;
+    // la survoler sans s'arrêter ne la déplie pas.
+    const hovered = intent.kind === "EXPAND" ? intent.familyKey : null;
+    if (hovered !== expandHover.current?.key) {
+      if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
+      expandHover.current =
+        hovered === null
+          ? null
+          : {
+              key: hovered,
+              timer: setTimeout(() => {
+                expandHover.current = null;
+                setExpanded((current) => (current.has(hovered) ? current : new Set(current).add(hovered)));
+              }, EXPAND_DWELL_MS),
+            };
+    }
     setDrag({ ...drag, origin, dy, drift, intent });
   };
 
@@ -419,22 +437,31 @@ export function MovementCatalogueList({
   });
 
   // Défilement automatique : la liste défile tant que le doigt reste près d'un bord ; la carte portée suit.
+  // Recette du 28/10 (f2-04, défilement saccadé) : une image par pas (`requestAnimationFrame`), et le
+  // défilement de référence n'est plus relu des évènements `onScroll` pendant le geste — arrivés en
+  // retard, ils ramenaient la liste en arrière et la carte oscillait.
   useEffect(() => {
     if (autoScroll === 0) return;
-    const timer = setInterval(() => {
+    let frame = 0;
+    const step = () => {
       const max = Math.max(0, contentHeight.current - (viewport.current?.height ?? 0));
       const next = Math.max(0, Math.min(max, scrollY.current + autoScroll * AUTO_SCROLL_STEP));
-      if (next === scrollY.current) return;
-      scrollRef.current?.scrollTo({ y: next, animated: false });
-      scrollY.current = next;
-      moveLatest.current?.(lastMoveY.current);
-    }, 16);
-    return () => clearInterval(timer);
+      if (next !== scrollY.current) {
+        scrollRef.current?.scrollTo({ y: next, animated: false });
+        scrollY.current = next;
+        moveLatest.current?.(lastMoveY.current);
+      }
+      frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
   }, [autoScroll]);
 
   const stopDrag = () => {
     setDrag(null);
     setAutoScroll(0);
+    if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
+    expandHover.current = null;
   };
 
   /** E : application au relâchement ; message de 3 s avec Annuler quand l'appartenance change. */
@@ -841,7 +868,8 @@ export function MovementCatalogueList({
               showsVerticalScrollIndicator={false}
               scrollEnabled={drag === null}
               onScroll={(event) => {
-                scrollY.current = event.nativeEvent.contentOffset.y;
+                // Pendant le geste, seul le défilement automatique fait foi (f2-04).
+                if (dragRef.current === null) scrollY.current = event.nativeEvent.contentOffset.y;
               }}
               scrollEventThrottle={16}
               onContentSizeChange={(_width, height) => {
@@ -985,7 +1013,8 @@ function DragShift({
   readonly children: ReactNode;
 }) {
   const [offset] = useState(() => new Animated.Value(0));
-  useEffect(() => {
+  // f2-04 : appliqué avant l'affichage, dans la même image que le défilement de la liste.
+  useLayoutEffect(() => {
     if (!active || reduceMotion || follow) {
       offset.setValue(active ? shift : 0);
       return;
