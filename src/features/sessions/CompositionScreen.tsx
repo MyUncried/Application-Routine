@@ -182,6 +182,7 @@ import {
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
+import { ArchivedSessionConsultation } from "@/features/sessions/ArchivedSessionConsultation";
 import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
 import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -2704,6 +2705,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const resolvedStatus = editStatus ?? "creating";
   const editState =
     sessionId !== null && resolvedStatus === "creating" ? "loading" : resolvedStatus;
+  // Recette E du 28/10/2026 (Hermann, e5-12) : une Séance archivée s’ouvre en consultation seule.
+  if (editState === "archived" && sessionId !== null) {
+    return (
+      <ArchivedSessionConsultation
+        sessionId={sessionId}
+        categories={categoriesReferential}
+        bodyZones={bodyZonesReferential}
+        onBack={() => router.back()}
+      />
+    );
+  }
   if (editState !== "creating" && editState !== "ready") {
     return (
       <CompositionEditState

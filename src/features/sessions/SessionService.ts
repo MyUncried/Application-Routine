@@ -148,6 +148,14 @@ export class SessionService {
   }
 
   /**
+   * Recette E du 28/10/2026 (Hermann, e5-12) : Séance à consulter en lecture seule (une Séance
+   * archivée s’ouvre en consultation, jamais en modification). Aucune écriture.
+   */
+  async getSessionForConsultation(sessionId: string): Promise<CatalogueSessionRecord | null> {
+    return this.catalogueRepository().findCatalogue(sessionId);
+  }
+
+  /**
    * PRE-8 (epic E, story E.5 ; CE-T03-01 révisé) : archivage immédiat d'une Séance active. Aucune
    * Routine n'existe dans le code : aucune confirmation (la modale « Séance planifiée » n'a pas de
    * déclencheur). Une Séance déjà archivée renvoie `INVALID_STATE`, sans écriture.

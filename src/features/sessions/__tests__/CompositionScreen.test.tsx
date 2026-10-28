@@ -1846,6 +1846,16 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     expect(screen.queryByLabelText(composition.name)).toBeNull();
   });
 
+  it("recette du 28/10 (e5-12) : a persisted archived Séance opens the read-only consultation, never the form", () => {
+    renderWithEditStatus("archived", {}, "s-archived");
+
+    expect(screen.queryByText(t.archivedMessage)).toBeNull();
+    // No SessionService in this harness: the consultation reports it cannot read the Séance.
+    expect(screen.getByTestId("archived-consultation-unavailable")).toBeTruthy();
+    expect(screen.queryByLabelText(composition.name)).toBeNull();
+    expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
+  });
+
   it("shows a technical error with a Réessayer action that calls retryHydration, plus a return to the Catalogue", () => {
     const { retryHydration } = renderWithEditStatus("error");
 

@@ -87,6 +87,16 @@ export function CatalogueScreen() {
       : sessionFilterLabels.length === 1
         ? sessionFilterLabels[0]!
         : fillTemplate(strings.screens.sessions.catalogueFilters.activeSummary, { count: String(sessionFilterLabels.length) });
+  // Recette du 28/10/2026 (q4-02) : nombre de filtres affiché quand le résumé ne tient pas.
+  const sessionFilterCount =
+    sessionFilterLabels.length === 0
+      ? null
+      : fillTemplate(
+          sessionFilterLabels.length === 1
+            ? strings.screens.sessions.catalogueFilters.activeSummarySingular
+            : strings.screens.sessions.catalogueFilters.activeSummary,
+          { count: String(sessionFilterLabels.length) },
+        );
   // PRE-4 story 4.1 (AC1) : verrou synchrone contre le double appui sur
   // l'ouverture de l'Éditeur, en création (`Créer`, option `Un nouvel
   // exercice`) comme en modification (carte Exercice). Armé au premier appui,
@@ -252,6 +262,7 @@ export function CatalogueScreen() {
             view={sessionView}
             onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
             filterSummary={sessionFilterSummary}
+            filterCount={sessionFilterCount}
             onOpenFilters={() => setIsSessionFilterOpen(true)}
             onResetFilters={() => {
               setSessionFilters(EMPTY_SESSION_FILTERS);

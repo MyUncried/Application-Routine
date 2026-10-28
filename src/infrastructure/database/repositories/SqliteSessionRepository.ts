@@ -537,16 +537,22 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
       [user.id],
     );
     const assembled = await readAssembledSessions(this.database, headers, { allowArchived: true });
-    return assembled.map(({ stored, structure }) => ({
-      id: stored.header.session_id,
-      name: stored.header.session_name,
-      color: (stored.header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
-      labelId: stored.header.label_id,
-      status: stored.header.status,
-      archivedAt: stored.header.archived_at ?? null,
-      updatedAt: stored.header.session_updated_at,
-      structure,
-    }));
+    return assembled.map(toCatalogueRecord);
+  }
+
+  /**
+   * Recette E du 28/10/2026 (Hermann, e5-12) : une Séance du Catalogue, active ou archivée, avec sa
+   * structure générale — lue par la consultation en lecture seule d’une Séance archivée.
+   */
+  async findCatalogue(sessionId: string): Promise<CatalogueSessionRecord | null> {
+    const user = await getLocalUser(this.database);
+    const header = await this.database.getFirstAsync<SessionHeaderRow>(
+      `${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`,
+      [sessionId, user.id],
+    );
+    if (!header) return null;
+    const [assembled] = await readAssembledSessions(this.database, [header], { allowArchived: true });
+    return assembled ? toCatalogueRecord(assembled) : null;
   }
 
   /**
@@ -1132,6 +1138,20 @@ type AssembledSession = {
   readonly stored: StoredSession;
   readonly structure: SessionStructure<Activity>;
 };
+
+/** PRE-8 (epic E) : en-tête et structure assemblés → enregistrement du Catalogue unifié. */
+function toCatalogueRecord({ stored, structure }: AssembledSession): CatalogueSessionRecord {
+  return {
+    id: stored.header.session_id,
+    name: stored.header.session_name,
+    color: (stored.header.label_color as SessionColor | null) ?? DEFAULT_SESSION_COLOR,
+    labelId: stored.header.label_id,
+    status: stored.header.status,
+    archivedAt: stored.header.archived_at ?? null,
+    updatedAt: stored.header.session_updated_at,
+    structure,
+  };
+}
 
 async function readAssembledSession(database: Database, sessionId: string, ownerId: string): Promise<AssembledSession | null> {
   const header = await database.getFirstAsync<SessionHeaderRow>(`${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`, [

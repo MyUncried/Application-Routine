@@ -82,27 +82,27 @@ describe("PRE-8 E.4 — vues", () => {
   });
 });
 
-describe("PRE-8 E.4 — rangée responsive (Q-E4)", () => {
+describe("PRE-8 E.4 — rangée responsive (Q-E4, revue à la recette du 28/10/2026)", () => {
   // Mesures Figma : bascule ≈ 150, commande étendue 132, rond 34, écart 12 → ≈ 382 pour la rangée.
-  const measures = { toggle: 150, extendedFilter: 132, compactFilter: 34 + 12 + 34, circle: 34, gap: 12 };
+  const measures = { toggle: 150, extendedFilter: 132, circle: 34, gap: 12 };
   const at = (width: number, filterActive: boolean) => commandRowLayout({ ...measures, available: width - 32, filterActive });
 
-  it("filtre inactif : une ligne à 360, 402 et 440", () => {
-    for (const width of [360, 402, 440]) expect(at(width, false)).toEqual({ lines: 1, filter: "ROUND" });
+  it("filtre inactif : bouton rond à 360, 402 et 440", () => {
+    for (const width of [360, 402, 440]) expect(at(width, false)).toEqual({ filter: "ROUND", label: "SUMMARY" });
   });
 
-  it("filtre actif : étendu à 440 ; compact à 402 ; deux lignes à 360 (étendu seul sur sa ligne)", () => {
-    expect(at(440, true)).toEqual({ lines: 1, filter: "EXTENDED" });
-    expect(at(402, true)).toEqual({ lines: 1, filter: "COMPACT" });
-    expect(at(360, true)).toEqual({ lines: 2, filter: "EXTENDED" });
+  it("filtre actif : toujours étendu ; résumé quand la rangée tient (440), nombre de filtres sinon (402, 360)", () => {
+    expect(at(440, true)).toEqual({ filter: "EXTENDED", label: "SUMMARY" });
+    expect(at(402, true)).toEqual({ filter: "EXTENDED", label: "COUNT" });
+    expect(at(360, true)).toEqual({ filter: "EXTENDED", label: "COUNT" });
   });
 
-  it("texte agrandi : deux lignes, compact si l'étendu ne tient même pas seul", () => {
+  it("texte agrandi : jamais de forme compacte ni de seconde ligne", () => {
     expect(commandRowLayout({ ...measures, toggle: 260, extendedFilter: 260, available: 328, filterActive: true })).toEqual({
-      lines: 2,
-      filter: "COMPACT",
+      filter: "EXTENDED",
+      label: "COUNT",
     });
-    expect(commandRowLayout({ ...measures, toggle: 260, available: 328, filterActive: false })).toEqual({ lines: 2, filter: "ROUND" });
+    expect(commandRowLayout({ ...measures, toggle: 260, available: 328, filterActive: false })).toEqual({ filter: "ROUND", label: "SUMMARY" });
   });
 });
 

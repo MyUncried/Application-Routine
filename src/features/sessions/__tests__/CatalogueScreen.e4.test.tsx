@@ -159,14 +159,15 @@ describe("PRE-8 E.4 — vues du segment Séances", () => {
   });
 });
 
-describe("PRE-8 E.4 — rangée responsive (Q-E4)", () => {
+describe("PRE-8 E.4 — rangée responsive (Q-E4, revue à la recette du 28/10/2026)", () => {
   const layout = (width: number) => ({ nativeEvent: { layout: { width, height: 44, x: 0, y: 0 } } });
-  const renderRow = (summary: string | null) =>
+  const renderRow = (summary: string | null, count: string | null = summary === null ? null : "1 filtre") =>
     render(
       <SessionCommandRow
         view={null}
         onToggleView={() => undefined}
         filterSummary={summary}
+        filterCount={count}
         onOpenFilters={() => undefined}
         onResetFilters={() => undefined}
         onCreate={() => undefined}
@@ -188,27 +189,36 @@ describe("PRE-8 E.4 — rangée responsive (Q-E4)", () => {
     ]);
   });
 
-  it("filtre actif : étendu quand la rangée tient (440) ; compact sinon (402) ; deux lignes à 360", () => {
+  it("filtre actif : toujours étendu, sur une ligne ; nom du critère à 440, « 1 filtre » à 402 et 360 ; aucune croix", () => {
     renderRow("Archivées");
+    const row = () => StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
     measure(408, 150, 132);
+    expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("Archivées");
     expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, Archivées");
-    expect(screen.queryByTestId("catalogue-filter-action-summary")).toBeTruthy();
-
-    measure(370, 150, 132);
-    expect(screen.queryByTestId("catalogue-filter-action-summary")).toBeNull();
     expect(screen.getByTestId("catalogue-filter-action-clear").props.accessibilityLabel).toBe("Réinitialiser les filtres");
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("row");
 
-    measure(328, 150, 132);
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("column");
+    for (const available of [370, 328]) {
+      measure(available, 150, 132);
+      expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("1 filtre");
+      expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, 1 filtre");
+      expect(row().flexDirection).toBe("row");
+    }
+    // Plus de forme compacte : un seul rond de réinitialisation, celui de la pilule étendue.
+    expect(screen.getAllByTestId("catalogue-filter-action-clear")).toHaveLength(1);
   });
 
-  it("filtre inactif : un seul bouton rond, une ligne ; texte agrandi : deux lignes", () => {
+  it("plusieurs filtres : « N filtres » dans tous les cas", () => {
+    renderRow("3 filtres", "3 filtres");
+    measure(328, 150, 132);
+    expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("3 filtres");
+  });
+
+  it("filtre inactif ou texte agrandi : toujours une seule ligne", () => {
     renderRow(null);
     measure(328, 150);
     expect(screen.queryByTestId("catalogue-filter-action-clear")).toBeNull();
     expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("row");
     measure(328, 260);
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("column");
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("row");
   });
 });

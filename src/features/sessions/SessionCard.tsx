@@ -308,8 +308,11 @@ const styles = StyleSheet.create({
     gap: spacing[6],
     marginBottom: spacing[6],
   },
+  // Recette du 28/10/2026 (e2-10, texte agrandi) : sans interligne fixe, la ligne suit la taille de
+  // la police et le bas des lettres n'est plus rogné ; la rangée garde sa hauteur de 20 au repos.
   name: {
     ...type.listCardTitle,
+    lineHeight: undefined,
     flexShrink: 1,
     color: colors.catalogueSessionTitle,
   },

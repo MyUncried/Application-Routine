@@ -24,7 +24,7 @@ development_status:
   b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
   b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
   b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
-  epic-e: in-progress  # E.1–E.7 et E.8-a développés le 28/10 (bilan-epic-e-2026-10-28.md) ; recette iPhone de Hermann requise avant clôture ; intégration documentaire de main soumise à décision
+  epic-e: in-progress  # E.1–E.7 et E.8-a développés le 28/10 (bilan-epic-e-2026-10-28.md) ; recette iPhone du 28/10 : 70 OK, 2 KO corrigés, 7 non testés (recette-iphone-epic-e-resultats-2026-10-28.md) ; passe ciblée de Hermann requise avant clôture ; intégration documentaire de main soumise à décision
   e-1-projection-catalogue: done  # listCatalogue + projectSessionForCatalogue, sans migration
   e-2-carte-commune-catalogue: done  # carte unique ; Lecture indisponible (aucune Exécution) ; réserve R-E1 (format de durée D-443)
   e-3-deploiement-composition: done  # Cycles et Circuits multiples vérifiés par les tests automatiques seulement (epic C)

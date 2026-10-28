@@ -23,22 +23,20 @@ export function toggledView(current: SessionCatalogueView | null, touched: Sessi
 }
 
 /**
- * Q-E4 (Hermann, 28/10) : disposition de la rangée « bascule + Filtre / Tri / Créer ».
+ * Q-E4 (Hermann, 28/10), revu à la recette du 28/10/2026 (q4-02, e4-02) : disposition de la rangée
+ * « bascule + Filtre / Tri / Créer », toujours sur UNE ligne.
  *
- * - `ROW_EXTENDED` : filtre actif étendu (rond bleu qui réinitialise + zone texte qui ouvre), quand
- *   toute la rangée tient (≈ 382 pt avec les mesures Figma : 440 oui, 402 et 360 non) ;
- * - `ROW_COMPACT` : filtre actif compact (deux commandes distinctes : ouvrir, croix qui réinitialise)
- *   quand seule cette forme tient ;
- * - `TWO_LINES` : la bascule sur une ligne, les commandes sur la suivante, plutôt que de se chevaucher
- *   ou de masquer une fonction (largeur compacte, texte agrandi). La ligne des commandes reprend
- *   alors l'état étendu s'il y tient seul, sinon l'état compact.
+ * - Filtre inactif : bouton rond (`ROUND`).
+ * - Filtre actif : toujours la forme étendue (rond bleu qui réinitialise + zone texte qui ouvre) ; la
+ *   forme compacte à deux ronds et le passage sur deux lignes sont retirés. Le texte est le résumé
+ *   courant (`SUMMARY` : nom du critère, ou « N filtres ») quand toute la rangée tient, sinon le
+ *   seul nombre de filtres (`COUNT` : « 1 filtre », « N filtres »).
  *
- * Toutes les largeurs sont MESURÉES (bascule, commande étendue) : aucune constante de largeur d'écran.
- * Filtre inactif : un seul bouton rond (`filterActive` faux, largeurs étendue et compacte ignorées).
+ * Largeurs MESURÉES (bascule, commande étendue avec le résumé) : aucune constante de largeur d'écran.
  */
 export type CommandRowLayout = {
-  readonly lines: 1 | 2;
-  readonly filter: "ROUND" | "EXTENDED" | "COMPACT";
+  readonly filter: "ROUND" | "EXTENDED";
+  readonly label: "SUMMARY" | "COUNT";
 };
 
 export function commandRowLayout(input: {
@@ -47,22 +45,15 @@ export function commandRowLayout(input: {
   /** Largeur naturelle de la bascule de vue. */
   readonly toggle: number;
   readonly filterActive: boolean;
-  /** Largeur naturelle de la commande étendue (rond + texte). */
+  /** Largeur naturelle de la commande étendue avec le résumé courant (rond + texte). */
   readonly extendedFilter: number;
-  /** Largeur de la forme compacte (deux ronds). */
-  readonly compactFilter: number;
   /** Bouton rond (Tri, Créer, filtre inactif). */
   readonly circle: number;
   /** Écart entre deux commandes, et minimum entre la bascule et les commandes. */
   readonly gap: number;
 }): CommandRowLayout {
-  const { available, toggle, filterActive, extendedFilter, compactFilter, circle, gap } = input;
-  const commands = (filter: number) => filter + 2 * (gap + circle);
-  const fitsBeside = (filter: number) => toggle + gap + commands(filter) <= available;
-  if (!filterActive) {
-    return { lines: fitsBeside(circle) ? 1 : 2, filter: "ROUND" };
-  }
-  if (fitsBeside(extendedFilter)) return { lines: 1, filter: "EXTENDED" };
-  if (fitsBeside(compactFilter)) return { lines: 1, filter: "COMPACT" };
-  return { lines: 2, filter: commands(extendedFilter) <= available ? "EXTENDED" : "COMPACT" };
+  const { available, toggle, filterActive, extendedFilter, circle, gap } = input;
+  if (!filterActive) return { filter: "ROUND", label: "SUMMARY" };
+  const fits = toggle + gap + extendedFilter + 2 * (gap + circle) <= available;
+  return { filter: "EXTENDED", label: fits ? "SUMMARY" : "COUNT" };
 }

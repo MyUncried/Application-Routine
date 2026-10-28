@@ -14,9 +14,9 @@ import { SessionViewToggle } from "./SessionViewToggle";
  * à droite (Créer le plus à droite, sur la marge). Disposition calculée sur les largeurs MESURÉES
  * (`commandRowLayout`) :
  * - filtre inactif : bouton rond qui ouvre le panneau ;
- * - filtre actif étendu (toute la rangée tient) : rond bleu qui réinitialise, zone texte qui ouvre ;
- * - filtre actif compact : deux commandes distinctes, ouvrir et réinitialiser (croix) ;
- * - deux lignes si nécessaire (largeur compacte, texte agrandi), jamais de chevauchement.
+ * - filtre actif : toujours la forme étendue, rond bleu qui réinitialise, zone texte qui ouvre ; le
+ *   texte devient le nombre de filtres (« 1 filtre », « N filtres ») quand le résumé ne tient pas ;
+ * - toujours une seule ligne (recette du 28/10/2026, q4-02 : forme compacte et deux lignes retirées).
  * Cibles d'au moins 44 × 44 (commandes partagées de B.9). Réinitialiser les filtres ne touche pas la
  * bascule de vue. Sur le segment Mouvements, la rangée de B.9 reste inchangée.
  */
@@ -28,6 +28,7 @@ export function SessionCommandRow({
   view,
   onToggleView,
   filterSummary,
+  filterCount,
   onOpenFilters,
   onResetFilters,
   onCreate,
@@ -36,6 +37,8 @@ export function SessionCommandRow({
   readonly onToggleView: (view: SessionCatalogueView) => void;
   /** `null` : aucun filtre. */
   readonly filterSummary: string | null;
+  /** Nombre de filtres (« 1 filtre », « N filtres ») quand le résumé ne tient pas ; `null` : aucun filtre. */
+  readonly filterCount: string | null;
   readonly onOpenFilters: () => void;
   readonly onResetFilters: () => void;
   readonly onCreate: () => void;
@@ -46,29 +49,28 @@ export function SessionCommandRow({
   const width = (set: (value: number) => void) => (event: LayoutChangeEvent) => set(event.nativeEvent.layout.width);
 
   const filterActive = filterSummary !== null;
-  // Avant toute mesure (premier rendu, tests) : une ligne, forme étendue si un filtre est actif.
+  // Avant toute mesure (premier rendu, tests) : le résumé courant.
   const layout =
     available === null || toggleWidth === null || (filterActive && extendedWidth === null)
-      ? { lines: 1 as const, filter: filterActive ? ("EXTENDED" as const) : ("ROUND" as const) }
+      ? { filter: filterActive ? ("EXTENDED" as const) : ("ROUND" as const), label: "SUMMARY" as const }
       : commandRowLayout({
           available,
           toggle: toggleWidth,
           filterActive,
           extendedFilter: extendedWidth ?? 0,
-          compactFilter: 2 * COMMAND.visual + COMMAND.gap,
           circle: COMMAND.visual,
           gap: COMMAND.gap,
         });
+  const shownSummary = layout.label === "COUNT" ? filterCount : filterSummary;
 
   const commands = (
     <View style={styles.commands} testID="catalogue-session-commands">
       <FilterCommand
         label={t.filterAction}
         title={t.catalogueFilters.command}
-        summary={filterSummary}
+        summary={shownSummary}
         clearLabel={t.catalogueFilters.clearAccessibility}
         editLabel={t.catalogueFilters.editAccessibility}
-        variant={layout.filter === "COMPACT" ? "compact" : "extended"}
         onOpen={onOpenFilters}
         onClear={onResetFilters}
         testID="catalogue-filter-action"
@@ -79,11 +81,7 @@ export function SessionCommandRow({
   );
 
   return (
-    <View
-      style={[styles.row, layout.lines === 2 ? styles.twoLines : null]}
-      onLayout={width(setAvailable)}
-      testID="catalogue-command-row"
-    >
+    <View style={styles.row} onLayout={width(setAvailable)} testID="catalogue-command-row">
       <View style={styles.toggleSlot}>
         <SessionViewToggle value={view} onToggle={onToggleView} onLayout={width(setToggleWidth)} testID="catalogue-session-view" />
       </View>
@@ -117,16 +115,13 @@ const styles = StyleSheet.create({
     gap: COMMAND.gap,
     marginTop: spacing[8],
   },
-  // Deux lignes : la bascule, puis les commandes calées à droite.
-  twoLines: {
-    flexDirection: "column",
-    alignItems: "stretch",
-    gap: 0,
-  },
   toggleSlot: {
     flexShrink: 0,
   },
+  // La zone des commandes cède la place à la bascule plutôt que de la chevaucher (texte agrandi).
   commands: {
+    flexShrink: 1,
+    minWidth: 0,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "flex-end",

@@ -74,3 +74,12 @@
 - Test d'intégration sur SQLite réelle : `CatalogueLifecycle.e7.integration.test.tsx` (écran + service + repository : Dupliquer, Archiver puis Annuler, filtre Archivées, Restaurer, Supprimer confirmé, Mouvement conservé ; carte et Créer → Composition).
 - Non-régression : Composition (`Composition*`, `ExerciseEditingPaths`, `CatalogueCompositionEditFlow`, `EmptySessionOpenFlow`), segment Mouvements (`MovementCatalogueList.b5`, `MovementFilterSheet.b7`, `movementLifecycle.b8`), migrations 014 et 015 (fichiers et tests inchangés depuis `7cc65037`, rejoués dans la suite complète).
 - Cahier de recette iPhone : `_bmad-output/pre8/recette-iphone-epic-e.md`.
+
+## Recette iPhone du 28/10/2026 — corrections
+
+Résultats : `recette-iphone-epic-e-resultats-2026-10-28.md` (70 OK, 2 KO, 7 non testés).
+
+- **e2-10 (KO)** — texte agrandi, bas des lettres du nom coupé : le nom de la carte n'a plus d'interligne fixe (`SessionCard`).
+- **e5-12 (KO)** — décision de Hermann « Composition en lecture seule » : `ArchivedSessionConsultation` remplace le message « archivée » quand une Séance persistée archivée est ouverte (nom, avis de consultation seule, conteneurs selon la règle E.3, `OccurrenceCard` et récupérations ; aucune modification ni écriture). Lecture par `SessionService.getSessionForConsultation` → `SessionCatalogueRepository.findCatalogue` (structure générale, statut archivé admis). Limites : pas de durée estimée sur les cartes, pas de suffixe de Niveau « - Nn », Points d'arrêt non affichés.
+- **q4-02 / e4-02** — Q-E4 révisé par Hermann : forme étendue toujours ; « N filtres » (« 1 filtre ») quand le nom du critère ne tient pas ; jamais de seconde ligne ; forme compacte et sa croix retirées (`commandRowLayout` → `{ filter, label }`, variante `compact` de `FilterCommand` supprimée).
+- **Réserves** : R-E2, R-E4, R-E5 acceptées telles quelles ; R-E3 sans objet. R-E4 : ch13 de `main` à aligner à l'intégration documentaire.
