@@ -30,6 +30,7 @@ import {
 } from "@/features/activities/MovementCatalogueService";
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
+import { useDragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { strings } from "@/shared/i18n";
 import { TransientNotification } from "@/shared/ui/TransientNotification";
 import { colors, dimensions, fixedRadii, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
@@ -42,7 +43,7 @@ import {
   type MovementCatalogueFilters,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
-import { autoScrollDirection, dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
+import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "./SheetMotion";
 import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, type SwipeAction } from "./SwipeActionsRow";
 
@@ -139,12 +140,13 @@ type Drag = {
   readonly pileKey: string | null;
   readonly ids: readonly string[];
   readonly from: number;
+  /** Doigt, centre et haut de la carte au départ ; relevés au premier déplacement (gestionnaire du doigt). */
+  readonly origin: { readonly y: number; readonly center: number; readonly top: number } | null;
   /**
-   * Doigt, centre et haut de la carte, défilement de la liste, au départ ; relevés au premier
-   * déplacement (gestionnaire du doigt).
+   * Déplacement du doigt seul. Le défilement automatique accumulé s'y ajoute hors rendu (`scrollFollow`,
+   * `scrollDelta`) : recette du 28/10 (f3-01), redessiner tout le Catalogue à chaque image faisait
+   * trembler la carte portée.
    */
-  readonly origin: { readonly y: number; readonly center: number; readonly top: number; readonly scroll: number } | null;
-  /** Déplacement du doigt dans le repère du contenu (défilement compris). */
   readonly dy: number;
   /**
    * Recette du 28/10 (FAM-05) : déplacement de la place de la carte portée depuis le départ — une pile
@@ -167,9 +169,8 @@ const LEAF_STEP = 6;
 const LEAF_INSET = spacing[8];
 /** Familles, règle E5 du 28/10/2026 : fenêtre d'annulation des changements d'appartenance. */
 const FAMILY_NOTICE_MS = 3000;
-/** Recette du 28/10 (FAM, limites) : bande des bords qui fait défiler la liste pendant le geste, et pas par image. */
-const AUTO_SCROLL_EDGE = 72;
-const AUTO_SCROLL_STEP = 8;
+/** Recette du 28/10 : zone de touche du filet élargie vers la carte (une carte s'ouvrait par mégarde). */
+const COLLAPSE_HIT_EXTRA = 12;
 /** Recette du 28/10 : arrêt sur une famille repliée avant qu'elle se déplie (valeur technique, non spécifiée). */
 const EXPAND_DWELL_MS = 500;
 
@@ -230,15 +231,17 @@ export function MovementCatalogueList({
     setVariantFor(null);
   }
   const lastTouchY = useRef(0);
-  // Défilement automatique pendant le geste : liste, place à l'écran, défilement et hauteur du contenu.
+  // Défilement automatique pendant le geste : celui de la Composition (PRE-6 story 7.4, recetté),
+  // partagé. La carte portée suit le défilement par une valeur animée, sans redessiner la liste.
   const scrollRef = useRef<ScrollView>(null);
   const viewportRef = useRef<View>(null);
-  const scrollY = useRef(0);
-  const contentHeight = useRef(0);
-  const viewport = useRef<{ top: number; height: number } | null>(null);
-  const lastMoveY = useRef(0);
-  const moveLatest = useRef<((pageY: number) => void) | null>(null);
-  const [autoScroll, setAutoScroll] = useState<-1 | 0 | 1>(0);
+  const autoScroll = useDragAutoScroll({
+    scrollTo: (offset) => scrollRef.current?.scrollTo({ y: offset, animated: false }),
+    measure: (callback) => viewportRef.current?.measureInWindow((_x, top, _width, height) => callback(top, height)),
+  });
+  const [scrollFollow] = useState(() => new Animated.Value(0));
+  const scrollDelta = useRef(0);
+  const scrollLatest = useRef<((delta: number) => void) | null>(null);
   // Famille repliée survolée par la carte portée, et son dépliage différé.
   const expandHover = useRef<{ key: string; timer: ReturnType<typeof setTimeout> } | null>(null);
 
@@ -389,77 +392,80 @@ export function MovementCatalogueList({
     const slot = slots.find((candidate) => candidate.id === current.id);
     const pile = current.pileKey !== null ? itemBoxes.current.get(current.pileKey) : undefined;
     const center = slot ? slot.top + slot.height / 2 : (pile?.y ?? 0) + CARD_HEIGHT / 2;
-    return { y: lastTouchY.current, center, top: liftedTop(current) ?? 0, scroll: scrollY.current };
+    return { y: lastTouchY.current, center, top: liftedTop(current) ?? 0 };
+  };
+
+  /** Ce que ferait le relâchement, carte portée décalée de `total` (doigt et défilement) depuis le départ. */
+  const intentAt = (current: Drag, origin: NonNullable<Drag["origin"]>, slots: readonly DragSlot[], total: number): DragIntent => {
+    const entry = entryById.get(current.id);
+    return dragIntent({
+      slots,
+      draggedId: current.id,
+      familyKey: current.pileKey,
+      centerY: origin.center + total,
+      reorderTo: Math.max(0, Math.min(current.ids.length - 1, current.from + Math.round(total / memberStep))),
+      free: current.pileKey === null && entry !== undefined && isFree(entry),
+    });
+  };
+
+  /** C5, recette du 28/10 : une famille repliée ne se déplie que si la carte portée s'arrête dessus. */
+  const hoverFamily = (hovered: string | null, restart: boolean) => {
+    if (hovered === expandHover.current?.key && !restart) return;
+    if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
+    expandHover.current =
+      hovered === null
+        ? null
+        : {
+            key: hovered,
+            timer: setTimeout(() => {
+              expandHover.current = null;
+              setExpanded((current) => (current.has(hovered) ? current : new Set(current).add(hovered)));
+            }, EXPAND_DWELL_MS),
+          };
   };
 
   const moveDrag = (pageY: number) => {
     if (drag === null) return;
-    lastMoveY.current = pageY;
     const slots = slotsNow();
+    if (drag.origin === null) {
+      // Premier déplacement : départ du défilement automatique, que la carte portée suit.
+      autoScroll.begin();
+      autoScroll.attach((delta) => scrollLatest.current?.(delta));
+      scrollFollow.setValue(0);
+    }
     const origin = drag.origin ?? originOf(drag, slots);
-    const dy = pageY - origin.y + (scrollY.current - origin.scroll);
+    const dy = pageY - origin.y;
+    scrollDelta.current = autoScroll.track(pageY);
     const top = liftedTop(drag);
     const drift = top === undefined ? drag.drift : top - origin.top;
-    const direction = autoScrollDirection(pageY, viewport.current, AUTO_SCROLL_EDGE);
-    if (direction !== autoScroll) setAutoScroll(direction);
-    const reorderTo = Math.max(0, Math.min(drag.ids.length - 1, drag.from + Math.round(dy / memberStep)));
-    const entry = entryById.get(drag.id);
-    const intent = dragIntent({
-      slots,
-      draggedId: drag.id,
-      familyKey: drag.pileKey,
-      centerY: origin.center + dy,
-      reorderTo,
-      free: drag.pileKey === null && entry !== undefined && isFree(entry),
-    });
-    // C5, recette du 28/10 : une famille repliée ne se déplie que si la carte portée s'arrête dessus ;
-    // la survoler sans s'arrêter ne la déplie pas.
-    const hovered = intent.kind === "EXPAND" ? intent.familyKey : null;
-    if (hovered !== expandHover.current?.key) {
-      if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
-      expandHover.current =
-        hovered === null
-          ? null
-          : {
-              key: hovered,
-              timer: setTimeout(() => {
-                expandHover.current = null;
-                setExpanded((current) => (current.has(hovered) ? current : new Set(current).add(hovered)));
-              }, EXPAND_DWELL_MS),
-            };
-    }
+    const intent = intentAt(drag, origin, slots, dy + scrollDelta.current);
+    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, false);
     setDrag({ ...drag, origin, dy, drift, intent });
   };
 
+  /**
+   * Défilement automatique, à chaque image : la carte portée suit par sa valeur animée ; la liste
+   * n'est redessinée que si la décision du geste change. Défiler n'est pas s'arrêter : le dépliage
+   * d'une famille survolée attend la fin du défilement (recette du 28/10, f3-01).
+   */
+  const onAutoScrolled = (delta: number) => {
+    scrollDelta.current = delta;
+    scrollFollow.setValue(delta);
+    if (drag === null || drag.origin === null) return;
+    const intent = intentAt(drag, drag.origin, slotsNow(), drag.dy + delta);
+    hoverFamily(intent.kind === "EXPAND" ? intent.familyKey : null, true);
+    if (!sameIntent(intent, drag.intent)) setDrag({ ...drag, intent });
+  };
+
   useEffect(() => {
-    moveLatest.current = moveDrag;
+    scrollLatest.current = onAutoScrolled;
     dragRef.current = drag;
   });
 
-  // Défilement automatique : la liste défile tant que le doigt reste près d'un bord ; la carte portée suit.
-  // Recette du 28/10 (f2-04, défilement saccadé) : une image par pas (`requestAnimationFrame`), et le
-  // défilement de référence n'est plus relu des évènements `onScroll` pendant le geste — arrivés en
-  // retard, ils ramenaient la liste en arrière et la carte oscillait.
-  useEffect(() => {
-    if (autoScroll === 0) return;
-    let frame = 0;
-    const step = () => {
-      const max = Math.max(0, contentHeight.current - (viewport.current?.height ?? 0));
-      const next = Math.max(0, Math.min(max, scrollY.current + autoScroll * AUTO_SCROLL_STEP));
-      if (next !== scrollY.current) {
-        scrollRef.current?.scrollTo({ y: next, animated: false });
-        scrollY.current = next;
-        moveLatest.current?.(lastMoveY.current);
-      }
-      frame = requestAnimationFrame(step);
-    };
-    frame = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(frame);
-  }, [autoScroll]);
-
   const stopDrag = () => {
     setDrag(null);
-    setAutoScroll(0);
+    autoScroll.end();
+    scrollDelta.current = 0;
     if (expandHover.current !== null) clearTimeout(expandHover.current.timer);
     expandHover.current = null;
   };
@@ -701,6 +707,7 @@ export function MovementCatalogueList({
             accessibilityRole="button"
             accessibilityLabel={t.pileCollapse}
             style={styles.collapseZone}
+            hitSlop={{ right: COLLAPSE_HIT_EXTRA }}
             testID={`movement-pile-${item.key}-collapse`}
           >
             <View
@@ -784,6 +791,7 @@ export function MovementCatalogueList({
                   changer d'enveloppe au début du glisser démontait la carte sous le doigt et figeait le geste. */}
               <DragShift
                 shift={isLifted ? pileDrag.dy - pileDrag.drift : shift}
+                follower={isLifted ? scrollFollow : null}
                 active={drag !== null}
                 follow={isLifted}
                 reduceMotion={reduceMotion}
@@ -815,6 +823,7 @@ export function MovementCatalogueList({
         ) : null}
         <DragShift
           shift={isLifted ? drag.dy - drag.drift : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
+          follower={isLifted ? scrollFollow : null}
           active={drag !== null}
           follow={isLifted}
           reduceMotion={reduceMotion}
@@ -867,14 +876,10 @@ export function MovementCatalogueList({
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               scrollEnabled={drag === null}
-              onScroll={(event) => {
-                // Pendant le geste, seul le défilement automatique fait foi (f2-04).
-                if (dragRef.current === null) scrollY.current = event.nativeEvent.contentOffset.y;
-              }}
+              onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
               scrollEventThrottle={16}
-              onContentSizeChange={(_width, height) => {
-                contentHeight.current = height;
-              }}
+              onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
+              onLayout={(event: LayoutChangeEvent) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
               testID="movement-catalogue-list"
             >
               {items.length === 0 ? (
@@ -886,10 +891,6 @@ export function MovementCatalogueList({
               <View
                 onTouchStart={(event) => {
                   lastTouchY.current = event.nativeEvent.pageY;
-                  // Place de la liste à l'écran, relevée à chaque toucher (défilement automatique du geste).
-                  viewportRef.current?.measureInWindow((_x, top, _width, height) => {
-                    viewport.current = { top, height };
-                  });
                 }}
                 onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
                 onTouchEnd={drag !== null ? endDrag : undefined}
@@ -915,6 +916,7 @@ export function MovementCatalogueList({
                         shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
                         active={drag !== null}
                         follow={false}
+                        follower={null}
                         reduceMotion={reduceMotion}
                         style={null}
                         testID={`movement-item-${item.key}-shift`}
@@ -964,6 +966,11 @@ export function MovementCatalogueList({
   );
 }
 
+/** Même décision du geste (évite de redessiner la liste à chaque image du défilement). */
+function sameIntent(left: DragIntent, right: DragIntent): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
 /** Haut de la carte portée dans le repère de la liste (gestionnaires seulement). */
 function liftedTopIn(current: Drag, itemBoxes: ReadonlyMap<string, Box>, memberBoxes: ReadonlyMap<string, Box>): number | undefined {
   if (current.pileKey === null) return itemBoxes.get(current.id)?.y;
@@ -998,6 +1005,7 @@ function DragShift({
   shift,
   active,
   follow,
+  follower,
   reduceMotion,
   style,
   testID,
@@ -1007,12 +1015,15 @@ function DragShift({
   readonly active: boolean;
   /** Carte portée : suit le doigt, sans animation. */
   readonly follow: boolean;
+  /** Carte portée : défilement automatique accumulé, ajouté hors rendu (`null` sinon). */
+  readonly follower: Animated.Value | null;
   readonly reduceMotion: boolean;
   readonly style: StyleProp<ViewStyle>;
   readonly testID: string | undefined;
   readonly children: ReactNode;
 }) {
   const [offset] = useState(() => new Animated.Value(0));
+  const translation = useMemo(() => (follower === null ? offset : Animated.add(offset, follower)), [offset, follower]);
   // f2-04 : appliqué avant l'affichage, dans la même image que le défilement de la liste.
   useLayoutEffect(() => {
     if (!active || reduceMotion || follow) {
@@ -1029,7 +1040,7 @@ function DragShift({
     return () => animation.stop();
   }, [offset, shift, active, follow, reduceMotion]);
   return (
-    <Animated.View style={[style, { transform: [{ translateY: offset }] }]} testID={testID}>
+    <Animated.View style={[style, { transform: [{ translateY: translation }] }]} testID={testID}>
       {children}
     </Animated.View>
   );

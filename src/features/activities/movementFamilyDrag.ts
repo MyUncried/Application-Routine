@@ -100,13 +100,3 @@ export function reorderAnchor(displayedAfter: readonly string[], movedId: string
   return index > 0 ? { anchorId: displayedAfter[index - 1]!, side: "BELOW" } : { anchorId: displayedAfter[1]!, side: "ABOVE" };
 }
 
-/**
- * Recette iPhone du 28/10 (FAM, limites) : la carte portée près du haut ou du bas de la liste fait
- * défiler celle-ci ; -1 vers le haut, 1 vers le bas, 0 sinon. `viewport` : place de la liste à l'écran.
- */
-export function autoScrollDirection(pageY: number, viewport: { readonly top: number; readonly height: number } | null, edge: number): -1 | 0 | 1 {
-  if (viewport === null || viewport.height <= 2 * edge) return 0;
-  if (pageY < viewport.top + edge) return -1;
-  if (pageY > viewport.top + viewport.height - edge) return 1;
-  return 0;
-}

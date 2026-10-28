@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { autoScrollDirection, dragIntent, placedOrder, previewLevels, reorderAnchor, type DragSlot } from "@/features/activities/movementFamilyDrag";
+import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragSlot } from "@/features/activities/movementFamilyDrag";
 
 /**
  * PRE-8 — décision du geste de famille (règles A à C du 28/10/2026) et niveaux provisoires.
@@ -71,16 +71,5 @@ describe("PRE-8 familles — niveaux provisoires et ancres", () => {
     expect(reorderAnchor(["m2", "m1", "m3"], "m2")).toEqual({ anchorId: "m1", side: "ABOVE" });
     expect(reorderAnchor(["m1", "m3", "m2"], "m2")).toEqual({ anchorId: "m3", side: "BELOW" });
     expect(reorderAnchor(["m1"], "m1")).toBeNull();
-  });
-});
-
-describe("PRE-8 familles — défilement pendant le geste (recette du 28/10)", () => {
-  it("autoScrollDirection : bande de 72 en haut et en bas de la liste ; liste non mesurée ou trop courte : aucun défilement", () => {
-    const viewport = { top: 100, height: 600 };
-    expect(autoScrollDirection(150, viewport, 72)).toBe(-1);
-    expect(autoScrollDirection(400, viewport, 72)).toBe(0);
-    expect(autoScrollDirection(650, viewport, 72)).toBe(1);
-    expect(autoScrollDirection(150, null, 72)).toBe(0);
-    expect(autoScrollDirection(110, { top: 100, height: 120 }, 72)).toBe(0);
   });
 });

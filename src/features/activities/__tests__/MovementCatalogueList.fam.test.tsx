@@ -362,6 +362,19 @@ describe("PRE-8 familles — recette iPhone du 28/10", () => {
     });
   });
 
+  it("Recette du 28/10 : la zone de touche du filet qui replie une famille déborde de 12 vers la carte", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-squat-card"));
+    });
+    await settle();
+    expect(screen.getByTestId(`movement-pile-${group}-collapse`).props.hitSlop).toEqual({ right: 12 });
+  });
+
   it("FAM-06, C2 : entrer dans une pile dépliée ouvre la place — membres suivants, filet et entrées suivantes décalés d'un pas", async () => {
     const repository = movements();
     await repository.create(movement("squat", "Squats"));

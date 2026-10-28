@@ -49,6 +49,13 @@ Pour chaque case : ✅ conforme, ❌ problème (décrire), ➖ non testé.
 - [ ] **Survol** : porter une carte par-dessus une ou plusieurs familles repliées sans s'arrêter → aucune ne se déplie ; s'arrêter une demi-seconde sur l'une → elle se déplie.
 - [ ] **Défilement** : porter une carte près du haut ou du bas de la liste → défilement régulier, la carte reste sous le doigt sans trembler.
 
+## Passe ciblée 4
+
+- [ ] **Défilement** : porter une carte près du haut ou du bas → la liste défile (plus vite près du bord), la carte reste sous le doigt **sans trembler**.
+- [ ] **Famille hors de l'écran** : la faire venir par défilement, la survoler sans s'arrêter → elle ne se déplie pas ; s'arrêter dessus une demi-seconde → elle se déplie.
+- [ ] **Filet** : toucher le filet d'une famille dépliée, un peu à droite de la barre → la famille se replie, aucune carte ne s'ouvre ; toucher la carte elle-même → elle s'ouvre.
+- [ ] Non-régression Composition : le glisser d'une carte de Séance près des bords défile comme avant.
+
 ## À trancher pendant la recette
 
 1. Libellé de l'entrée dans une famille (provisoire : « Mouvement ajouté à la famille »).

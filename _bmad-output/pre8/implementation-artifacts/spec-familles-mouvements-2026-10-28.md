@@ -124,3 +124,13 @@ Limite restante : l'emplacement pointillé (Figma `10480:23374`) n'est toujours 
 Demande complémentaire de Hermann : « si je déplace une carte elle déplie toutes les familles au-dessus desquelles elle passe sans pourtant s'arrêter. Il faudrait qu'elle ne déplie une famille que si on s'arrête dessus. » **Traité** : C5 précisé, une famille repliée ne se déplie qu'après un arrêt de 500 ms de la carte portée sur elle ; la quitter avant annule le dépliage. La durée est une valeur technique, non spécifiée, ajustable après la recette. Test : `MovementCatalogueList.fam` (« survolée sans s'arrêter ne se déplie pas »).
 
 À CLARIFIER 6 : clos pour ce lot (statu quo décidé par Hermann).
+
+## 11. Passe ciblée 3 (28/10/2026, après `4ad58fb8`)
+
+| Point | Verdict | Remarque de Hermann | Traitement |
+|---|---|---|---|
+| `f3-01` survol sans arrêt | **KO** | « Il y a toujours les mêmes mouvements saccadés, et du coup lorsqu'on arrive sur une famille qui était hors de l'écran elle se déplie (ce n'est pas le cas d'une famille repliée qui serait déjà sur l'écran). » | **Cause** : à chaque image du défilement automatique, tout le Catalogue était redessiné pour déplacer la carte portée ; la liste défilait aussitôt, la carte suivait en retard et tremblait. Comme elle ne quittait jamais vraiment la famille survolée, le délai d'arrêt s'écoulait. **Correction** : le défilement automatique de la Composition (`useDragAutoScroll`, PRE-6 story 7.4, recetté) est réutilisé tel quel, avec vitesse progressive et arrêt au bord du contenu. La carte portée suit le défilement par une valeur animée ajoutée à son décalage, sans redessiner la liste ; la liste n'est redessinée que si la décision du geste change. Défiler n'est pas s'arrêter : chaque image de défilement relance le délai de dépliage. Le module `autoScrollDirection` du lot précédent est retiré. |
+| `f3-02` défilement | OK | — | — |
+| `f3-03` non-régression | OK | — | — |
+
+Demande complémentaire de Hermann : « augmenter un peu la largeur de la bande de la fenêtre tactile des barres verticales, car une fois sur deux on ouvre une carte par mégarde. » **Traité** : la zone de touche du filet (repli de la famille, B06) déborde de 12 pt vers la carte (`hitSlop`) ; le filet ne bouge pas. Valeur technique, ajustable.
