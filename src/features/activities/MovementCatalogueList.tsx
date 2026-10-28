@@ -14,6 +14,8 @@ import {
 } from "react-native";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
+import type { MovementFamilyOutcome, MovementPriorMemberships } from "@/domain/activities/MovementRepository";
+import type { MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import type { VariantPlacement } from "@/features/activities/MovementResultCard";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
@@ -39,6 +41,7 @@ import {
   type MovementCatalogueFilters,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
+import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "./SheetMotion";
 import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, type SwipeAction } from "./SwipeActionsRow";
 
@@ -73,7 +76,17 @@ import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, typ
  * - B11, B12 : « Ajouter un niveau » ; choix Figma `10579:21707` / `10579:21709` déployé dans le
  *   Catalogue, qui repousse les cartes suivantes et allonge le filet.
  *
- * Tri (Trier grisé) et réordonnancement des familles entre elles ne sont pas développés.
+ * PRE-8, familles de niveaux (règles A à E du 28/10/2026, DSF « Composition et ordre des familles »,
+ * CE-MVT-03) — un seul geste, l'appui long puis le glisser, sur toute carte active :
+ * - A : dans l'emprise du filet, réordonnancement (pile repliée dépliée d'abord, niveaux recalculés
+ *   en direct, aucun message) ; seule la clé du Mouvement déplacé est écrite ;
+ * - B, D : au-delà du filet, sortie (filet raccourci, cartes refermées, pastille retirée) ; sortie
+ *   du dernier couple : famille dissoute ; le Mouvement libéré reprend sa place par nom ;
+ * - C : un Mouvement sans famille posé sur une carte sans famille forme une famille, sur un membre
+ *   il y entre ; le côté de la carte visée fixe le niveau ; filet de formation et niveaux
+ *   provisoires ; une pile repliée se déplie à l'approche ; un membre ne se pose sur aucune carte ;
+ * - E : appliqué au relâchement ; message de 3 s avec Annuler quand l'appartenance change.
+ * Ordre du Catalogue : par nom (Trier grisé) ; aucune position manuelle des entrées (B5).
  */
 
 const t = strings.screens.movement.catalogue;
@@ -114,10 +127,23 @@ export function useMovementCatalogue(reloadToken: number): {
   return { state, reload, catalogue };
 }
 
-type Notice = { readonly message: string; readonly undo: () => void };
+type Notice = { readonly message: string; readonly undo: () => void; readonly durationMs?: number };
 type Refusal = { readonly kind: "ARCHIVE" | "DELETE"; readonly exerciseCount: number };
-/** B08 : carte soulevée d'une pile déployée. */
-type Drag = { readonly pileKey: string; readonly ids: readonly string[]; readonly from: number; readonly originY: number; readonly dy: number };
+/**
+ * B08, familles (A à C) : carte portée — membre d'une pile déployée (`pileKey`) ou Mouvement sans
+ * famille (`pileKey` nul) ; `originCenter` : centre de la carte au départ, dans le repère de la liste.
+ */
+type Drag = {
+  readonly id: string;
+  readonly pileKey: string | null;
+  readonly ids: readonly string[];
+  readonly from: number;
+  /** Doigt et centre de la carte au départ ; relevés au premier déplacement (gestionnaire du doigt). */
+  readonly origin: { readonly y: number; readonly center: number } | null;
+  readonly dy: number;
+  readonly intent: DragIntent;
+};
+type Box = { readonly y: number; readonly height: number };
 /** B08 : ordre affiché juste après une dépose, valable pour les entrées lues avant elle. */
 type OrderOverride = { readonly entries: readonly MovementCatalogueEntry[]; readonly pileKey: string; readonly ids: readonly string[] };
 
@@ -129,6 +155,8 @@ const ITEM_GAP = spacing[12];
 /** Débord de l'épaisseur d'une pile condensée, par feuille (Figma : 6 puis 12) ; retrait 8 puis 16. */
 const LEAF_STEP = 6;
 const LEAF_INSET = spacing[8];
+/** Familles, règle E5 du 28/10/2026 : fenêtre d'annulation des changements d'appartenance. */
+const FAMILY_NOTICE_MS = 3000;
 
 export function MovementCatalogueList({
   reloadToken,
@@ -157,6 +185,18 @@ export function MovementCatalogueList({
   const [drag, setDrag] = useState<Drag | null>(null);
   const [override, setOverride] = useState<OrderOverride | null>(null);
   const [memberStep, setMemberStep] = useState(CARD_HEIGHT + MEMBER_GAP);
+  const [familyFailed, setFamilyFailed] = useState(false);
+  // Familles : place mesurée des entrées (repère de la liste) et des membres (repère de leur pile).
+  const itemBoxes = useRef(new Map<string, Box>());
+  const memberBoxes = useRef(new Map<string, Box>());
+  const recordItemBox = useCallback((key: string, event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    itemBoxes.current.set(key, { y, height });
+  }, []);
+  const recordMemberBox = useCallback((id: string, event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    memberBoxes.current.set(id, { y, height });
+  }, []);
 
   // Recette A/B du 27/10 (remarque 4) : au retour dans le Catalogue (`reloadToken`), aucune carte
   // ne reste ouverte ni aucun choix de Niveau déployé ; filtres, recherche et piles dépliées restent.
@@ -179,6 +219,24 @@ export function MovementCatalogueList({
       return members.length === item.members.length ? { ...item, members } : item;
     });
   }, [state, query, filters, override]);
+
+  const entryById = useMemo(
+    () => new Map(state.status === "ready" ? state.entries.map((entry) => [entry.movement.id, entry]) : []),
+    [state],
+  );
+  const groupSizes = useMemo(() => {
+    const sizes = new Map<string, number>();
+    if (state.status === "ready") {
+      for (const entry of state.entries) {
+        const groupId = entry.movement.levelGroup?.groupId;
+        if (groupId) sizes.set(groupId, (sizes.get(groupId) ?? 0) + 1);
+      }
+    }
+    return sizes;
+  }, [state]);
+  /** C1 : sans famille dans les données (un groupe réduit à ce seul Mouvement compte comme libre). */
+  const isFree = (entry: MovementCatalogueEntry) =>
+    entry.movement.levelGroup === null || (groupSizes.get(entry.movement.levelGroup.groupId) ?? 0) <= 1;
 
   const run = useCallback(
     (action: () => Promise<MovementLifecycleResult>, onDone: () => void, refusalKind: Refusal["kind"]) => {
@@ -259,16 +317,139 @@ export function MovementCatalogueList({
     );
   };
 
-  const dragTarget = (current: Drag) =>
-    Math.max(0, Math.min(current.ids.length - 1, current.from + Math.round(current.dy / memberStep)));
+  /** Familles : cartes affichées et leur place, lues au moment du geste (gestionnaires seulement). */
+  const slotsNow = (): readonly DragSlot[] => {
+    const slots: DragSlot[] = [];
+    for (const item of items) {
+      const box = itemBoxes.current.get(item.key);
+      if (!box) continue;
+      if (item.kind === "SINGLE") {
+        const entry = item.entry;
+        // Toute carte isolée active reçoit un Mouvement libre : sans famille, création (C1) ; singleton subi
+        // (membre restant après archivage) ou famille masquée par un filtre, entrée dans son groupe (C2, D4).
+        slots.push({ id: entry.movement.id, familyKey: null, collapsedKey: null, joinable: !entry.archived, top: box.y, height: box.height - ITEM_GAP });
+      } else if (!expanded.has(item.key)) {
+        slots.push({ id: item.members[0]!.movement.id, familyKey: null, collapsedKey: item.key, joinable: false, top: box.y, height: CARD_HEIGHT });
+      } else {
+        item.members.forEach((member, index) => {
+          const own = memberBoxes.current.get(member.movement.id);
+          if (!own) return;
+          const gap = index > 0 ? MEMBER_GAP : 0;
+          slots.push({ id: member.movement.id, familyKey: item.key, collapsedKey: null, joinable: !member.archived, top: box.y + own.y + gap, height: own.height - gap });
+        });
+      }
+    }
+    return slots;
+  };
+
+  const startDrag = (id: string, pileKey: string | null, ids: readonly string[], from: number) => {
+    setRevealedId(null);
+    setVariantFor(null);
+    setDrag({ id, pileKey, ids, from, origin: null, dy: 0, intent: { kind: "NONE" } });
+  };
+
+  /** Départ du geste : doigt au toucher initial, centre de la carte portée dans le repère de la liste. */
+  const originOf = (current: Drag, slots: readonly DragSlot[]) => {
+    const slot = slots.find((candidate) => candidate.id === current.id);
+    const pile = current.pileKey !== null ? itemBoxes.current.get(current.pileKey) : undefined;
+    return { y: lastTouchY.current, center: slot ? slot.top + slot.height / 2 : (pile?.y ?? 0) + CARD_HEIGHT / 2 };
+  };
+
+  const moveDrag = (pageY: number) => {
+    if (drag === null) return;
+    const slots = slotsNow();
+    const origin = drag.origin ?? originOf(drag, slots);
+    const dy = pageY - origin.y;
+    const reorderTo = Math.max(0, Math.min(drag.ids.length - 1, drag.from + Math.round(dy / memberStep)));
+    const entry = entryById.get(drag.id);
+    const intent = dragIntent({
+      slots,
+      draggedId: drag.id,
+      familyKey: drag.pileKey,
+      centerY: origin.center + dy,
+      reorderTo,
+      free: drag.pileKey === null && entry !== undefined && isFree(entry),
+    });
+    // C5 : une famille repliée se déplie à l'approche.
+    if (intent.kind === "EXPAND") setExpanded((current) => (current.has(intent.familyKey) ? current : new Set(current).add(intent.familyKey)));
+    setDrag({ ...drag, origin, dy, intent });
+  };
+
+  /** E : application au relâchement ; message de 3 s avec Annuler quand l'appartenance change. */
+  const applyFamily = (action: () => Promise<MovementFamilyOutcome>) => {
+    setReorderFailed(false);
+    setFamilyFailed(false);
+    action().then(
+      (outcome) => {
+        if (outcome.status !== "OK") {
+          setOverride(null);
+          setFamilyFailed(true);
+        } else {
+          const message = familyMessage(outcome.operation);
+          if (message !== null) setNotice({ message, durationMs: FAMILY_NOTICE_MS, undo: () => undoFamily(outcome.previous) });
+        }
+        reload();
+      },
+      (error: unknown) => {
+        console.error("La famille de niveaux n'a pas pu être modifiée.", error);
+        setOverride(null);
+        setFamilyFailed(true);
+        reload();
+      },
+    );
+  };
+
+  const undoFamily = (previous: MovementPriorMemberships) => {
+    if (!catalogue) return;
+    catalogue.restoreFamilyMemberships(previous).then(
+      (restored) => {
+        if (!restored) setFamilyFailed(true);
+        reload();
+      },
+      (error: unknown) => {
+        console.error("L'annulation n'a pas pu être appliquée.", error);
+        setFamilyFailed(true);
+        reload();
+      },
+    );
+  };
 
   const endDrag = () => {
     const current = drag;
     setDrag(null);
-    if (current === null) return;
-    const to = dragTarget(current);
-    if (to !== current.from) commitOrder(current.pileKey, movedTo(current.ids, current.from, to));
+    if (current === null || !catalogue || state.status !== "ready") return;
+    const { intent } = current;
+    if (intent.kind === "REORDER" && current.pileKey !== null && intent.to !== current.from) {
+      const shown = movedTo(current.ids, current.from, intent.to);
+      const anchor = reorderAnchor(shown, current.id);
+      if (anchor === null) return;
+      setOverride({ entries: state.entries, pileKey: current.pileKey, ids: shown });
+      applyFamily(() => catalogue.placeInFamily(current.id, anchor.anchorId, anchor.side));
+    } else if (intent.kind === "LEAVE") {
+      applyFamily(() => catalogue.leaveFamily(current.id));
+    } else if (intent.kind === "PLACE") {
+      applyFamily(() => catalogue.placeInFamily(current.id, intent.anchorId, intent.side));
+    }
   };
+
+  /** A4, B2, C4 : niveaux annoncés pendant le geste, `null` hors geste structurant. */
+  const levelPreview = ((): ReadonlyMap<string, MovementLevelPosition | null> | null => {
+    if (drag === null) return null;
+    const { intent } = drag;
+    const withActivity = (ids: readonly string[]) => ids.map((id) => ({ id, active: entryById.get(id)?.archived !== true }));
+    if (intent.kind === "REORDER") return previewLevels(withActivity(movedTo(drag.ids, drag.from, intent.to)));
+    if (intent.kind === "LEAVE") {
+      const levels = new Map(previewLevels(withActivity(drag.ids.filter((id) => id !== drag.id))));
+      levels.set(drag.id, null);
+      return levels;
+    }
+    if (intent.kind === "PLACE") {
+      const pile = intent.familyKey === null ? null : items.find((item) => item.kind === "PILE" && item.key === intent.familyKey);
+      const displayed = pile && pile.kind === "PILE" ? pile.members.map((member) => member.movement.id) : [intent.anchorId];
+      return previewLevels(withActivity(placedOrder(displayed, drag.id, intent.anchorId, intent.side)));
+    }
+    return null;
+  })();
 
   const actionsFor = (entry: MovementCatalogueEntry): readonly SwipeAction[] =>
     entry.archived
@@ -314,7 +495,8 @@ export function MovementCatalogueList({
     },
   ) => {
     const id = entry.movement.id;
-    const levelLabel = entry.level !== null ? levelPastilleLabel(entry.level) : null;
+    const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
+    const levelLabel = level !== null ? levelPastilleLabel(level) : null;
     const label =
       options.pileCount !== undefined
         ? fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) })
@@ -340,10 +522,10 @@ export function MovementCatalogueList({
           onLongPress={options.onLongPress}
           extraAccessibilityActions={options.reorderActions}
           accessibilityLabel={label}
-          accessibilityHint={options.pileCount !== undefined ? t.pileExpandHint : options.onLongPress ? t.reorderHint : t.openAccessibilityHint}
+          accessibilityHint={options.pileCount !== undefined ? t.pileExpandHint : options.reorderActions ? t.reorderHint : t.openAccessibilityHint}
           testID={`movement-card-${id}`}
         >
-          <MovementCatalogueCard entry={entry} />
+          <MovementCatalogueCard entry={entry} level={level} />
         </SwipeActionsRow>
         {choicesOpen ? (
           <SheetMotionView style={[styles.variantChoices, { width: actions.length * SWIPE_ACTION_WIDTH }]} testID={`movement-card-${id}-variant-choices`}>
@@ -381,24 +563,17 @@ export function MovementCatalogueList({
     const isExpanded = expanded.has(item.key);
     const ids = item.members.map((member) => member.movement.id);
     const pileDrag = drag !== null && drag.pileKey === item.key ? drag : null;
-    const dropIndex = pileDrag !== null ? dragTarget(pileDrag) : null;
+    const dropIndex = pileDrag !== null && pileDrag.intent.kind === "REORDER" ? pileDrag.intent.to : null;
+    // B2 : la carte portée hors du filet — les cartes suivantes se referment, le filet raccourcit.
+    const leaving = pileDrag !== null && pileDrag.intent.kind === "LEAVE";
     // Recette A/B du 27/10 (remarque 2) : pendant le glisser et jusqu'à la relecture du nouvel ordre,
     // ni découpe ni transition de place — la carte portée reste visible au-dessus des autres, les
     // voisines se décalent sous elle (`DragShift`) et rien ne saute à la dépose.
-    const settling = pileDrag !== null || (override !== null && override.pileKey === item.key && state.status === "ready" && override.entries === state.entries);
+    const settling = drag !== null || (override !== null && override.pileKey === item.key && state.status === "ready" && override.entries === state.entries);
     const leaves = Math.min(item.members.length - 1, 2);
     return (
       <View
         style={isExpanded ? null : { paddingBottom: leaves * LEAF_STEP }}
-        onTouchStart={(event) => {
-          lastTouchY.current = event.nativeEvent.pageY;
-        }}
-        onTouchMove={(event) => {
-          if (pileDrag === null) return;
-          setDrag({ ...pileDrag, dy: event.nativeEvent.pageY - pileDrag.originY });
-        }}
-        onTouchEnd={pileDrag !== null ? endDrag : undefined}
-        onTouchCancel={pileDrag !== null ? endDrag : undefined}
         testID={isExpanded ? `movement-pile-${item.key}-expanded` : `movement-pile-${item.key}`}
       >
         {!isExpanded
@@ -421,7 +596,7 @@ export function MovementCatalogueList({
             style={styles.collapseZone}
             testID={`movement-pile-${item.key}-collapse`}
           >
-            <View style={styles.rail} testID={`movement-pile-${item.key}-rail`} />
+            <View style={[styles.rail, leaving ? { bottom: CARD_HEIGHT / 2 + memberStep } : null]} testID={`movement-pile-${item.key}-rail`} />
           </Pressable>
         ) : null}
         {item.members.map((member, index) => {
@@ -431,6 +606,8 @@ export function MovementCatalogueList({
           if (pileDrag !== null && dropIndex !== null && !isLifted) {
             if (index > pileDrag.from && index <= dropIndex) shift = -memberStep;
             else if (index < pileDrag.from && index >= dropIndex) shift = memberStep;
+          } else if (leaving && !isLifted && index > pileDrag.from) {
+            shift = -memberStep;
           }
           const row = !isExpanded
             ? renderRow(
@@ -440,15 +617,21 @@ export function MovementCatalogueList({
                   setVariantFor(null);
                   setExpanded((current) => new Set(current).add(item.key));
                 },
-                { pileCount: item.members.length, swipe: false },
+                {
+                  pileCount: item.members.length,
+                  swipe: false,
+                  // A3 : appui long sur une pile repliée — elle se déplie, la carte du dessus est portée.
+                  onLongPress: member.archived
+                    ? undefined
+                    : () => {
+                        setExpanded((current) => new Set(current).add(item.key));
+                        startDrag(member.movement.id, item.key, ids, 0);
+                      },
+                },
               )
             : renderRow(member, () => onOpenMovement(member.movement.id), {
-                swipe: pileDrag === null,
-                onLongPress: () => {
-                  setRevealedId(null);
-                  setVariantFor(null);
-                  setDrag({ pileKey: item.key, ids, from: index, originY: lastTouchY.current, dy: 0 });
-                },
+                swipe: drag === null,
+                onLongPress: member.archived ? undefined : () => startDrag(member.movement.id, item.key, ids, index),
                 reorderActions: [
                   ...(index > 0
                     ? [
@@ -479,7 +662,10 @@ export function MovementCatalogueList({
               bleed={layout.screenGutter}
               raised={isLifted}
               style={[index > 0 ? styles.memberSpacing : null, isLifted ? styles.liftedFrame : null]}
-              onLayout={index === 0 && isExpanded ? (event: LayoutChangeEvent) => setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP) : undefined}
+              onLayout={(event: LayoutChangeEvent) => {
+                recordMemberBox(member.movement.id, event);
+                if (index === 0 && isExpanded) setMemberStep(event.nativeEvent.layout.height + MEMBER_GAP);
+              }}
               testID={`movement-pile-${item.key}-member-${member.movement.id}`}
             >
               {/* Recette du 27/10 (r10-glisser) : une seule enveloppe pour la carte portée et ses voisines —
@@ -501,14 +687,44 @@ export function MovementCatalogueList({
     );
   };
 
-  const renderItem = (item: MovementCatalogueItem) =>
-    item.kind === "SINGLE" ? renderRow(item.entry, () => onOpenMovement(item.entry.movement.id), { swipe: true }) : renderPile(item);
+  /** Familles (C) : carte sans famille, portable ; filet de formation quand elle est la carte visée (C1, C4). */
+  const renderSingle = (entry: MovementCatalogueEntry) => {
+    const id = entry.movement.id;
+    const isLifted = drag !== null && drag.id === id;
+    const forming = drag !== null && drag.intent.kind === "PLACE" && drag.intent.familyKey === null && drag.intent.anchorId === id ? drag.intent : null;
+    return (
+      <View>
+        {forming !== null ? (
+          <View
+            style={[styles.formationRail, forming.side === "ABOVE" ? { top: CARD_HEIGHT / 2 - memberStep } : { top: CARD_HEIGHT / 2 }, { height: memberStep }]}
+            testID={`movement-card-${id}-formation-rail`}
+          />
+        ) : null}
+        <DragShift
+          shift={isLifted ? drag.dy : 0}
+          active={drag !== null}
+          follow={isLifted}
+          reduceMotion={reduceMotion}
+          style={isLifted ? styles.lifted : null}
+          testID={isLifted ? `movement-card-${id}-lifted` : undefined}
+        >
+          {renderRow(entry, () => onOpenMovement(id), {
+            swipe: drag === null,
+            onLongPress: entry.archived ? undefined : () => startDrag(id, null, [id], 0),
+          })}
+        </DragShift>
+      </View>
+    );
+  };
+
+  const renderItem = (item: MovementCatalogueItem) => (item.kind === "SINGLE" ? renderSingle(item.entry) : renderPile(item));
 
   const searching = query.trim().length > 0;
 
   return (
     <View style={styles.container} testID="movement-catalogue">
-      {actionFailed || reorderFailed ? (
+      {/* Familles : échec signalé par le message d'action existant, aucun libellé inventé (CE-MVT-03). */}
+      {actionFailed || reorderFailed || familyFailed ? (
         <Text style={styles.actionError} accessibilityLiveRegion="polite" testID="movement-catalogue-action-error">
           {reorderFailed ? t.reorderError : t.actionError}
         </Text>
@@ -542,11 +758,35 @@ export function MovementCatalogueList({
                 {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
               </Text>
             ) : null}
-            {items.map((item) => (
-              <SheetMotionView key={item.key} bleed={layout.screenGutter} style={styles.item} testID={`movement-item-${item.key}`}>
-                {renderItem(item)}
-              </SheetMotionView>
-            ))}
+            {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
+            <View
+              onTouchStart={(event) => {
+                lastTouchY.current = event.nativeEvent.pageY;
+              }}
+              onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
+              onTouchEnd={drag !== null ? endDrag : undefined}
+              // Geste interrompu par le système : abandon, rien n'est écrit.
+              onTouchCancel={drag !== null ? () => setDrag(null) : undefined}
+              testID="movement-catalogue-items"
+            >
+              {items.map((item) => {
+                const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
+                return (
+                  <SheetMotionView
+                    key={item.key}
+                    bleed={layout.screenGutter}
+                    clip={drag === null}
+                    transition={drag === null}
+                    raised={lifted}
+                    style={[styles.item, lifted ? styles.liftedFrame : null]}
+                    onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
+                    testID={`movement-item-${item.key}`}
+                  >
+                    {renderItem(item)}
+                  </SheetMotionView>
+                );
+              })}
+            </View>
           </SheetMotionScrollView>
         </SheetMotionProvider>
       ) : null}
@@ -560,6 +800,7 @@ export function MovementCatalogueList({
             undo?.();
           }}
           onDismiss={() => setNotice(null)}
+          durationMs={notice?.durationMs}
           testID="movement-catalogue-notice"
         />
       </View>
@@ -582,6 +823,22 @@ export function MovementCatalogueList({
       ) : null}
     </View>
   );
+}
+
+/** Règle E2 : message d'un changement d'appartenance ; aucun pour un simple réordonnancement (E3). */
+function familyMessage(operation: Extract<MovementFamilyOutcome, { status: "OK" }>["operation"]): string | null {
+  switch (operation) {
+    case "CREATED":
+      return t.family.created;
+    case "DISSOLVED":
+      return t.family.dissolved;
+    case "LEFT":
+      return t.family.left;
+    case "JOINED":
+      return t.family.joined;
+    case "REORDERED":
+      return null;
+  }
 }
 
 /** « Archivage impossible » (Figma `10495:24054`) ; même patron pour un refus de suppression. */
@@ -693,9 +950,9 @@ function VariantChoice({
  * de la photo (B07), titre 15/18 (B02) et Niveau à droite, deux premières étapes de la
  * description, une par ligne, tronquées indépendamment (B03).
  */
-function MovementCatalogueCard({ entry }: { readonly entry: MovementCatalogueEntry }) {
+function MovementCatalogueCard({ entry, level }: { readonly entry: MovementCatalogueEntry; readonly level: MovementLevelPosition | null }) {
   const resolveUri = useMediaUriResolver();
-  const { movement, level } = entry;
+  const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
   const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
@@ -815,6 +1072,14 @@ const styles = StyleSheet.create({
     left: -layout.screenGutter,
     width: layout.screenGutter,
     zIndex: 1,
+  },
+  // C1, C4 : filet de formation, à la place du filet d'une famille, vers la carte portée.
+  formationRail: {
+    position: "absolute",
+    left: -RAIL_TO_CARD - RAIL_WIDTH,
+    width: RAIL_WIDTH,
+    borderRadius: 1,
+    backgroundColor: colors.movementFamilyRail,
   },
   rail: {
     position: "absolute",

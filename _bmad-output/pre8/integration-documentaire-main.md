@@ -85,3 +85,12 @@ Identiques sur la branche et sur `main` (`ff7600ac`) sauf mention ; aucune modif
 | ch02 (l. ~210, 214, B-077) | « ouvrir le Catalogue des Exercices depuis le sélecteur de type » | Idem | Idem, renvoi à E.8-a (accès par la sélection d'Exercices de la Composition) |
 | ch03 (l. ~174, 198, 289) | « l'utilisateur sélectionne `Exercices` » | Idem | Idem |
 | `docs/DSF-SEGMENTES-TITRES-2026-10-07.md` l. 13, `docs/BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md` l. 12 | segmenté `Exercices / Séances` | Idem | Mention « remplacé par la spécification du 27/10 §4 » en tête des passages |
+
+## Complément du 28/10/2026 — `main` @ `0a40735f` (familles de niveaux)
+
+`origin/main` a avancé de `ff7600ac` à `0a40735f` (« docs: actualiser ordre et composition des familles de mouvements », 24 fichiers). Ce commit n'a pas été fusionné : ses règles A à E sont lues et appliquées au code par le lot `fam-familles-de-niveaux-geste`. À la fusion locale soumise à décision (Q-E0), en plus des 15 blocs ci-dessus :
+
+- **Ne pas propager** les formulations contraires à b8-3 (rangs affichés recalculés sur les membres actifs après archivage ou restauration) ; liste exacte des passages et correction proposée : `implementation-artifacts/spec-familles-mouvements-2026-10-28.md`, § 7.
+- **Préciser B5** : dans PRE-8, Trier n'étant pas actif, le classement implicite par nom tient lieu de tri.
+- **Réserves à faire trancher** avant de les écrire dans `main` : libellé de l'entrée dans une famille, alternative accessible, dernier couple avec un archivé, singleton subi, renumérotation de secours (même fichier, § 6).
+- Le nombre de conflits textuels avec la branche n'a pas été recalculé pour `0a40735f` ; à refaire au moment de la fusion autorisée.

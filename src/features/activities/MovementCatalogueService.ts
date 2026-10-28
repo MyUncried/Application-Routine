@@ -1,5 +1,10 @@
 import { validateMovement, type Movement } from "@/domain/activities/Movement";
-import { DuplicateMovementNameError, type MovementRepository } from "@/domain/activities/MovementRepository";
+import {
+  DuplicateMovementNameError,
+  type MovementFamilyOutcome,
+  type MovementPriorMemberships,
+  type MovementRepository,
+} from "@/domain/activities/MovementRepository";
 import { decideMovementSave, movementContentOf, type MovementSaveDecision } from "@/domain/activities/movementSave";
 import { movementLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 
@@ -142,6 +147,25 @@ export class MovementCatalogueService {
    */
   async reorderFamily(groupId: string, orderedIds: readonly string[]): Promise<boolean> {
     return (await this.movements.reorder(groupId, orderedIds)).status === "OK";
+  }
+
+  /**
+   * PRE-8, familles de niveaux (règles A et C du 28/10/2026) : pose un Mouvement juste au-dessus
+   * (niveau supérieur) ou en dessous de l'ancre — réordonnancement dans sa famille, entrée dans une
+   * famille, ou création d'une famille avec un Mouvement sans famille. Appliqué immédiatement (E1).
+   */
+  placeInFamily(movementId: string, anchorId: string, side: "ABOVE" | "BELOW"): Promise<MovementFamilyOutcome> {
+    return this.movements.placeInFamily(movementId, anchorId, side);
+  }
+
+  /** PRE-8, familles (règles B et D) : sortie d'une famille ; dissolution du dernier couple. */
+  leaveFamily(movementId: string): Promise<MovementFamilyOutcome> {
+    return this.movements.leaveFamily(movementId);
+  }
+
+  /** PRE-8, familles (règle E) : Annuler — rétablit les appartenances d'avant l'opération. */
+  restoreFamilyMemberships(previous: MovementPriorMemberships): Promise<boolean> {
+    return this.movements.restoreFamilyMemberships(previous);
   }
 
   /** PRE-8 (B.8) : le Mouvement est-il archivé ? (fiche en consultation seule). */

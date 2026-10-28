@@ -33,6 +33,36 @@ export type MovementGroupOutcome =
    */
   | { readonly status: "INVALID_ORDER" };
 
+/**
+ * PRE-8, familles de niveaux (règles A à E du 28/10/2026, DSF « Composition et ordre des
+ * familles ») : appartenance d'un Mouvement avant une opération — de quoi l'annuler (règle E).
+ */
+export type MovementPriorMemberships = readonly {
+  readonly movementId: string;
+  readonly groupId: string | null;
+  readonly sortKey: number | null;
+}[];
+
+/**
+ * Issue d'une composition de famille par geste :
+ * - `REORDERED` (A) : seul l'ordre change ; `JOINED` (C2) : entrée dans une famille existante ;
+ *   `CREATED` (C1) : famille formée de deux Mouvements sans famille ; `LEFT` (B) : sortie ;
+ *   `DISSOLVED` (D2) : sortie du dernier couple, les deux appartenances effacées ;
+ * - `previous` : appartenances des lignes écrites, avant l'opération (Annuler) ;
+ * - `ALREADY_IN_GROUP` (C6) : un membre d'une autre famille ne se pose sur aucune carte ;
+ * - `INVALID_ORDER` : dépôt sur soi-même, ou sortie d'un Mouvement sans famille.
+ */
+export type MovementFamilyOutcome =
+  | {
+      readonly status: "OK";
+      readonly operation: "REORDERED" | "JOINED" | "CREATED" | "LEFT" | "DISSOLVED";
+      readonly groupId: string | null;
+      readonly previous: MovementPriorMemberships;
+    }
+  | { readonly status: "NOT_FOUND" }
+  | { readonly status: "ALREADY_IN_GROUP" }
+  | { readonly status: "INVALID_ORDER" };
+
 export interface MovementRepository {
   /**
    * Crée un Mouvement validé (`validateMovement`, lève sur entrée invalide),
@@ -75,6 +105,24 @@ export interface MovementRepository {
   detachFromGroup(movementId: string): Promise<MovementGroupOutcome>;
   /** Membres du groupe, dans l'ordre des clés de tri. */
   listGroup(groupId: string): Promise<readonly Movement[]>;
+  /**
+   * PRE-8, familles (règles A, C ; 28/10/2026) : pose `movementId` juste au-dessus (niveau
+   * supérieur) ou juste en dessous (niveau inférieur) de `anchorId`, dans l'ordre complet de la
+   * famille de l'ancre (archivés compris). Même famille : réordonnancement ; Mouvement sans famille
+   * sur un membre : entrée ; sur un Mouvement sans famille : création (identifiant neuf, deux
+   * lignes écrites). Hors création, seule la ligne du Mouvement posé est écrite (clé
+   * fractionnaire entre ses voisins ; renumérotation de la famille seulement si la précision est
+   * épuisée). Une transaction ; identités, contenus et références inchangés.
+   */
+  placeInFamily(movementId: string, anchorId: string, side: "ABOVE" | "BELOW"): Promise<MovementFamilyOutcome>;
+  /**
+   * PRE-8, familles (règles B, D) : sortie explicite. Au plus deux membres (archivés compris) :
+   * les deux appartenances sont effacées (`DISSOLVED`, aucun singleton fantôme) ; sinon seule
+   * celle du Mouvement sorti (`LEFT`), sans réécrire les autres clés.
+   */
+  leaveFamily(movementId: string): Promise<MovementFamilyOutcome>;
+  /** PRE-8, familles (règle E, Annuler) : rétablit, dans une transaction, les appartenances d'avant l'opération. */
+  restoreFamilyMemberships(previous: MovementPriorMemberships): Promise<boolean>;
   /**
    * PRE-8 (B.1, CE-MVT-01, C03 « Mettre à jour ») : réécrit le contenu partagé d'un Mouvement
    * existant (nom, alias, description, médias, Catégorie, Zones, structure des phases) en

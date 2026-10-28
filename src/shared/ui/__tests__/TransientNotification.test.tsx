@@ -189,6 +189,20 @@ describe("TransientNotification", () => {
     expect(props.onDismiss).not.toHaveBeenCalled();
   });
 
+  it("PRE-8 familles (règle E5) : an explicit duration of 3 s replaces the default delay", () => {
+    const props = renderProps();
+    render(<TransientNotification {...props} durationMs={3000} />);
+
+    act(() => {
+      jest.advanceTimersByTime(2999);
+    });
+    expect(props.onDismiss).not.toHaveBeenCalled();
+    act(() => {
+      jest.advanceTimersByTime(1);
+    });
+    expect(props.onDismiss).toHaveBeenCalledTimes(1);
+  });
+
   it("restarts the delay for a NEW message instead of inheriting the running countdown", () => {
     const props = renderProps();
     const { rerender } = render(<TransientNotification {...props} />);

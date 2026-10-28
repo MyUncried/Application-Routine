@@ -1188,6 +1188,15 @@ export const fr = {
         moveHarder: "Placer {name} un niveau plus haut",
         moveEasier: "Placer {name} un niveau plus bas",
         reorderError: "L’ordre des niveaux n’a pas pu être enregistré. Réessayez.",
+        // PRE-8, familles de niveaux (règle E2 du 28/10/2026) : messages des changements d'appartenance.
+        family: {
+          created: "Nouvelle famille de niveaux créée",
+          dissolved: "Famille de niveaux supprimée",
+          left: "Mouvement sorti de la famille",
+          // À CLARIFIER (DSF du 28/10, réserve de transcription) : la source ne fournit pas le libellé
+          // de l'entrée dans une famille existante. Texte provisoire, non validé par Hermann.
+          joined: "Mouvement ajouté à la famille",
+        },
         actions: {
           share: "Partager",
           // Recette A/B (B12, CE-MVT-02) : « Ajouter un niveau » remplace « Créer une variante ».

@@ -1,0 +1,296 @@
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
+import { StyleSheet } from "react-native";
+
+import type { Movement } from "@/domain/activities/Movement";
+import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
+import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
+import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { EMPTY_MOVEMENT_FILTERS } from "@/features/activities/movementCatalogueView";
+import { migrateDatabase } from "@/infrastructure/database/migrateDatabase";
+import { SqliteActivityDefinitionRepository } from "@/infrastructure/database/repositories/SqliteActivityDefinitionRepository";
+import { SqliteMovementRepository } from "@/infrastructure/database/repositories/SqliteMovementRepository";
+import { NodeSqliteDatabase } from "@/infrastructure/database/testing/NodeSqliteDatabase";
+
+/**
+ * PRE-8 — familles de niveaux par geste dans le Catalogue des Mouvements (règles A à E du
+ * 28/10/2026, DSF « Composition et ordre des familles », FAM-01 à FAM-08) sur SQLite réelle. Les
+ * places des cartes sont simulées par des évènements de mise en page (cartes de 80, écart 12 entre
+ * entrées, 4 entre membres d'une pile).
+ */
+
+jest.mock("@/infrastructure/media/VideoPoster", () => ({ generateVideoPoster: jest.fn(async () => null) }));
+
+const NOW = "2026-10-28T09:00:00.000Z";
+let database: NodeSqliteDatabase;
+let sequence = 0;
+const movements = () => new SqliteMovementRepository(database, () => `grp-${++sequence}`, () => NOW);
+const service = () =>
+  new ActivityDefinitionService(
+    new SqliteActivityDefinitionRepository(database, () => `def-${++sequence}`, () => NOW),
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    movements(),
+  );
+
+const movement = (id: string, name: string): Movement => ({
+  id,
+  name,
+  description: null,
+  media: [],
+  categoryId: "cardio",
+  bodyZoneIds: ["cuisses"],
+  phases: [],
+  nextPhaseId: 1,
+  aliases: [],
+  levelGroup: null,
+});
+
+beforeEach(async () => {
+  database = NodeSqliteDatabase.openInMemory();
+  await migrateDatabase(database);
+  sequence = 0;
+});
+
+afterEach(() => {
+  database.close();
+});
+
+const settle = () =>
+  act(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  });
+
+async function renderList() {
+  render(
+    <ActivityDefinitionServiceContext.Provider value={service()}>
+      <MovementCatalogueList reloadToken={0} query="" filters={EMPTY_MOVEMENT_FILTERS} onOpenMovement={jest.fn()} onCreateVariant={jest.fn()} />
+    </ActivityDefinitionServiceContext.Provider>,
+  );
+  await settle();
+}
+
+const layoutEvent = (y: number, height: number) => ({ nativeEvent: { layout: { x: 0, y, width: 370, height } } });
+/** Entrées du Catalogue, de haut en bas : carte de 80 + écart de 12 ; une pile dépliée : n cartes et n − 1 écarts de 4. */
+async function layOut(entries: readonly { readonly key: string; readonly members?: readonly string[] }[]) {
+  await act(async () => {
+    let y = 0;
+    for (const entry of entries) {
+      const members = entry.members ?? [];
+      const height = members.length > 0 ? members.length * 80 + (members.length - 1) * 4 + 12 : 92;
+      fireEvent(screen.getByTestId(`movement-item-${entry.key}`), "layout", layoutEvent(y, height));
+      members.forEach((id, index) => {
+        fireEvent(
+          screen.getByTestId(`movement-pile-${entry.key}-member-${id}`),
+          "layout",
+          layoutEvent(index === 0 ? 0 : index * 84 - 4, index === 0 ? 80 : 84),
+        );
+      });
+      y += height;
+    }
+  });
+}
+
+const START_Y = 500;
+async function grab(movementId: string) {
+  await act(async () => {
+    fireEvent(screen.getByTestId("movement-catalogue-items"), "touchStart", { nativeEvent: { pageX: 100, pageY: START_Y } });
+    fireEvent(screen.getByTestId(`movement-card-${movementId}-card`), "longPress");
+  });
+}
+async function moveBy(dy: number) {
+  await act(async () => {
+    fireEvent(screen.getByTestId("movement-catalogue-items"), "touchMove", { nativeEvent: { pageX: 100, pageY: START_Y + dy } });
+  });
+}
+async function release() {
+  await act(async () => {
+    fireEvent(screen.getByTestId("movement-catalogue-items"), "touchEnd", { nativeEvent: { pageX: 100, pageY: 0 } });
+  });
+  await settle();
+}
+const level = (id: string) => screen.queryByTestId(`movement-card-level-${id}`)?.props.children ?? null;
+const membership = async (id: string) => (await movements().findById(id))?.levelGroup ?? null;
+const notice = () => (screen.queryByTestId("movement-catalogue-notice-message")?.props.children as string | undefined) ?? null;
+
+describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
+  it("C1, C3, C4, E (FAM-04, FAM-08) : poser un isolé au-dessus d'un autre forme une famille ; filet et niveaux provisoires ; message et Annuler", async () => {
+    const repository = movements();
+    for (const [id, name] of [["fentes", "Fentes avant"], ["gainage", "Gainage"], ["mob", "Mobilisation du genou"]] as const) {
+      await repository.create(movement(id, name));
+    }
+    await renderList();
+    await layOut([{ key: "fentes" }, { key: "gainage" }, { key: "mob" }]);
+    // « Mobilisation » (centre 224) portée dans la moitié haute de « Gainage » (92 à 132).
+    await grab("mob");
+    await moveBy(-110);
+    expect(screen.getByTestId("movement-card-gainage-formation-rail")).toBeTruthy();
+    expect(level("mob")).toBe("Niveau 2");
+    expect(level("gainage")).toBe("Niveau 1");
+    expect(screen.queryByTestId("movement-card-fentes-formation-rail")).toBeNull();
+    // Passer de l'autre côté : les niveaux provisoires s'inversent (C4).
+    await moveBy(-70);
+    expect(level("mob")).toBe("Niveau 1");
+    expect(level("gainage")).toBe("Niveau 2");
+    await moveBy(-110);
+    await release();
+    expect(notice()).toBe("Nouvelle famille de niveaux créée");
+    const created = await membership("mob");
+    expect(created).not.toBeNull();
+    expect(await membership("gainage")).toEqual({ groupId: created!.groupId, sortKey: 0 });
+    expect(created!.sortKey).toBe(1);
+    // Annuler : les deux Mouvements redeviennent indépendants.
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-catalogue-notice-action"));
+    });
+    await settle();
+    expect(await membership("mob")).toBeNull();
+    expect(await membership("gainage")).toBeNull();
+  });
+
+  it("A, E3 (FAM-01) : réordonner dans une pile — niveaux recalculés en direct, filet inchangé, aucun message", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-jump-card"));
+    });
+    await settle();
+    await layOut([{ key: group, members: ["jump", "squat", "assist"] }]);
+    await grab("jump");
+    await moveBy(84);
+    expect(level("jump")).toBe("Niveau 2");
+    expect(level("squat")).toBe("Niveau 3");
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    await release();
+    expect(notice()).toBeNull();
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "jump", "squat"]);
+  });
+
+  it("B2, B4, B3 (FAM-02) : sortir — filet raccourci, pastille retirée, rangs recalculés ; revenir annule ; relâcher hors du filet fait sortir", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("fentes", "Fentes avant"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await repository.createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-jump-card"));
+    });
+    await settle();
+    await layOut([{ key: "fentes" }, { key: group, members: ["jump", "squat", "assist"] }]);
+    // « Squats assistés » (centre 300) portée sous la pile (emprise 92 à 340).
+    await grab("assist");
+    await moveBy(100);
+    expect(level("assist")).toBeNull();
+    expect(level("jump")).toBe("Niveau 2");
+    expect(level("squat")).toBe("Niveau 1");
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40 + 84);
+    // B4 : de retour dans le filet, la sortie est annulée.
+    await moveBy(10);
+    expect(level("assist")).toBe("Niveau 1");
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    // Sortie vers le haut, au-dessus de « Fentes avant » : acceptée comme partout (B1, B5) ; aucune pose sur une autre carte (C6).
+    await moveBy(-290);
+    expect(screen.queryByTestId("movement-card-fentes-formation-rail")).toBeNull();
+    await release();
+    expect(notice()).toBe("Mouvement sorti de la famille");
+    expect(await membership("assist")).toBeNull();
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["squat", "jump"]);
+  });
+
+  it("D2, E (FAM-07) : sortir du dernier couple dissout la famille ; Annuler la rétablit à l'identique", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const before = { squat: await membership("squat"), assist: await membership("assist") };
+    const group = before.squat!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-squat-card"));
+    });
+    await settle();
+    await layOut([{ key: group, members: ["squat", "assist"] }]);
+    await grab("assist");
+    await moveBy(150);
+    await release();
+    expect(notice()).toBe("Famille de niveaux supprimée");
+    expect(await membership("squat")).toBeNull();
+    expect(await membership("assist")).toBeNull();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-catalogue-notice-action"));
+    });
+    await settle();
+    expect({ squat: await membership("squat"), assist: await membership("assist") }).toEqual(before);
+  });
+
+  it("A3, C5 (FAM-05) : une pile repliée se déplie à l'approche ; un isolé posé sous un membre y entre, à ce rang", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("gainage", "Gainage"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    // Ordre par nom : « Gainage » puis la pile « Squats ».
+    await layOut([{ key: "gainage" }, { key: group }]);
+    await grab("gainage");
+    await moveBy(100);
+    expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
+    await layOut([{ key: "gainage" }, { key: group, members: ["squat", "assist"] }]);
+    // Moitié basse de « Squats » (92 à 172) : niveau juste en dessous.
+    await moveBy(100 + 40);
+    expect(level("gainage")).toBe("Niveau 2");
+    expect(level("squat")).toBe("Niveau 3");
+    expect(level("assist")).toBe("Niveau 1");
+    await release();
+    expect(notice()).toBe("Mouvement ajouté à la famille");
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "gainage", "squat"]);
+  });
+
+  it("A3 : l'appui long sur une pile repliée la déplie et porte sa carte du dessus", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await grab("squat");
+    expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
+    expect(screen.getByTestId(`movement-pile-${group}-lifted`)).toBeTruthy();
+    await release();
+    expect(notice()).toBeNull();
+  });
+
+  it("C6 (FAM-06) : un membre porté sur un isolé ne forme aucune famille ; un isolé relâché dans le vide ne change rien", async () => {
+    const repository = movements();
+    await repository.create(movement("aaa", "Abdos"));
+    await repository.create(movement("squat", "Squats"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-squat-card"));
+    });
+    await settle();
+    await layOut([{ key: "aaa" }, { key: group, members: ["squat", "assist"] }]);
+    await grab("squat");
+    await moveBy(-92);
+    expect(screen.queryByTestId("movement-card-aaa-formation-rail")).toBeNull();
+    // Isolé relâché sur sa propre place : rien.
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-catalogue-items"), "touchCancel", { nativeEvent: { pageX: 100, pageY: 0 } });
+    });
+    await settle();
+    await grab("aaa");
+    await moveBy(5);
+    await release();
+    expect(notice()).toBeNull();
+    expect(await membership("aaa")).toBeNull();
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "squat"]);
+  });
+});
