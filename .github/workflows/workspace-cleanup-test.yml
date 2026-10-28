@@ -1,0 +1,16 @@
+name: Verify workspace cleanup (Windows)
+on:
+  pull_request:
+    paths:
+      - 'scripts/kodjo/cleanup-workspace.ps1'
+      - 'scripts/kodjo/tests/cleanup-workspace-smoke.ps1'
+      - '.github/workflows/workspace-cleanup-test.yml'
+  workflow_dispatch:
+jobs:
+  smoke:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Exercise eligible and protected worktrees
+        shell: pwsh
+        run: ./scripts/kodjo/tests/cleanup-workspace-smoke.ps1
