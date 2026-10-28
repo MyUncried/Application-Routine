@@ -1,269 +1,179 @@
-import { fireEvent, render, screen } from "@testing-library/react-native";
 import { describe, expect, it, jest } from "@jest/globals";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
-import type { SessionSummary } from "@/domain/sessions/Session";
-import { SessionCard } from "@/features/sessions/SessionCard";
-import { strings } from "@/shared/i18n";
-import { colors } from "@/shared/ui/tokens";
+import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import type { MediaAsset } from "@/domain/media/MediaAsset";
+import type { Activity } from "@/domain/sessions/Session";
+import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
+import type { StructureElement } from "@/domain/sessions/structure";
+import { fitCategoryCount, SessionCard } from "@/features/sessions/SessionCard";
+import { projectSessionForCatalogue, type CatalogueCategoryRef } from "@/features/sessions/sessionCatalogueProjection";
 
-// `SessionSummary.activityCount` et `.tourRepeatCount` sont typés comme le
-// littéral `1` pour T01 (une seule Activité, un seul Tour) : aucune valeur
-// de test réelle ne peut donc dépasser 1 ici. La forme plurielle de
-// `formatActivityCount`/`formatTourCount` est testée directement dans
-// `formatSessionSummary.test.ts`, où ces fonctions acceptent un `number`
-// quelconque.
-function aSummary(overrides: Partial<SessionSummary> = {}): SessionSummary {
-  return {
-    id: "session-1",
-    name: "Renforcement du genou",
-    color: "#E5484D",
-    activityCount: 1,
-    estimatedDurationSeconds: 1080,
-    isEstimatedDurationApproximate: false,
-    tourRepeatCount: 1,
-    updatedAt: "2026-01-01T00:00:00.000Z",
-    categoryNames: [],
-    bodyZoneNames: [],
-    ...overrides,
-  };
-}
+/**
+ * PRE-8 (epic E, story E.2) — carte unique du Catalogue des séances (spécification du 27/10 §1 et §3 ;
+ * `6214:3572`, `6214:3625`). Remplace les tests de l'ancienne carte condensée (barre de couleur,
+ * zones et étiquette sur la carte, chevron encadré à droite), dispositions retirées par la
+ * spécification.
+ */
 
-describe("SessionCard", () => {
-  // Alignement DSF 07/10 (D11, `DSF / Cards / Séance` `6214:3572`) : la durée
-  // quitte la ligne de synthèse pour la ligne de titre, sans cadre — même
-  // valeur, même format ; la synthèse garde Exercices et Tours.
-  it("displays the session name, the duration on the title line, and the summary line", () => {
-    render(<SessionCard session={aSummary()} />);
+const CATEGORIES = new Map<string, CatalogueCategoryRef>([
+  ["renfo", { id: "renfo", name: "Renforcement", color: "#E5484D" }],
+  ["mobilite", { id: "mobilite", name: "Mobilité", color: "#2E9B62" }],
+  ["cardio", { id: "cardio", name: "Cardio", color: "#3B82F6" }],
+]);
 
-    expect(screen.getByText("Renforcement du genou")).toBeTruthy();
-    expect(screen.getByTestId("session-card-duration").props.children).toBe("18 min");
-    expect(screen.getByText("1 exercice · 1 tour")).toBeTruthy();
+let sequence = 0;
+const exercise = (overrides: Partial<Activity> = {}): Activity => ({
+  id: `ex-${++sequence}`,
+  type: "EXERCISE",
+  structuralPosition: "BEFORE_TOUR",
+  position: 0,
+  name: "Squat assisté",
+  executionParameters: durationParameters(90, 3),
+  postActivityRecoverySeconds: null,
+  instruction: null,
+  bodyZoneIds: ["genoux"],
+  categoryId: "renfo",
+  media: [],
+  ...overrides,
+});
+
+const projection = (elements: readonly StructureElement<Activity>[], overrides: Partial<CatalogueSessionRecord> = {}) =>
+  projectSessionForCatalogue(
+    {
+      id: "s1",
+      name: "Renforcement du genou",
+      color: "#F7D154",
+      labelId: "lbl-hyrox",
+      status: "ACTIVE",
+      archivedAt: null,
+      updatedAt: "2026-10-28T08:00:00.000Z",
+      structure: { elements, stopPoints: [] },
+      ...overrides,
+    },
+    CATEGORIES,
+  );
+
+const one = () => projection([{ kind: "EXERCISE", exercise: exercise() }]);
+const many = () =>
+  projection([
+    { kind: "EXERCISE", exercise: exercise({ categoryId: "renfo" }) },
+    { kind: "EXERCISE", exercise: exercise({ categoryId: "mobilite", executionParameters: repetitionParameters(10, 2) }) },
+  ]);
+
+describe("PRE-8 E.2 — carte unique", () => {
+  it("un exercice : volume en synthèse, aucun chevron, Lecture présente et indisponible", () => {
+    render(<SessionCard projection={one()} />);
+    expect(screen.getByTestId("session-card-s1-name")).toHaveTextContent("Renforcement du genou");
+    expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("3 × 1 min 30 s");
+    expect(screen.queryByTestId("session-card-s1-disclosure")).toBeNull();
+    const play = screen.getByTestId("session-card-s1-play");
+    expect(play.props.accessibilityLabel).toBe("Lancer la séance — indisponible");
+    expect(play.props.accessibilityState).toEqual({ disabled: true });
   });
 
-  it("never displays fictional data for planning, last execution, or activity detail — only the exact summary line, name, and (T01-S09) a tag line strictly reflecting the real categoryNames/bodyZoneNames provided", () => {
-    render(<SessionCard session={aSummary()} />);
-
-    // Only the exact summary line is present — nothing else is rendered
-    // beyond the name and it.
-    expect(screen.queryByText(/·.*·.*·/)).toBeNull();
+  it("plusieurs exercices : « N exercices », chevron accolé au nom, annoncé fermé", () => {
+    const onToggle = jest.fn();
+    render(<SessionCard projection={many()} onToggleExpanded={onToggle} />);
+    expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("2 exercices");
+    const disclosure = screen.getByTestId("session-card-s1-disclosure");
+    expect(disclosure.props.accessibilityState).toEqual({ expanded: false });
+    expect(disclosure.props.accessibilityLabel).toBe("Afficher la composition de Renforcement du genou");
+    fireEvent.press(disclosure);
+    expect(onToggle).toHaveBeenCalledTimes(1);
   });
 
-  it("T01-S09 correction VISUAL (point B) — restores the missing Category/body-zone line under the Session name when at least one is present, without inventing any value beyond the props", () => {
+  it("chevron pivoté et annoncé ouvert une fois déployé", () => {
+    render(<SessionCard projection={many()} expanded onToggleExpanded={() => undefined} />);
+    expect(screen.getByTestId("session-card-s1-disclosure").props.accessibilityState).toEqual({ expanded: true });
+    expect(screen.getByTestId("session-card-s1-chevron-open")).toBeTruthy();
+  });
+
+  it("jamais « 1 exercice » ; « 0 exercice » pour une Séance vide (Q-E6)", () => {
+    render(<SessionCard projection={projection([])} />);
+    expect(screen.getByTestId("session-card-s1-summary")).toHaveTextContent("0 exercice");
+  });
+
+  it("catégories dédupliquées, ni étiquette ni zone ni barre de couleur sur la carte", () => {
+    render(<SessionCard projection={many()} />);
+    expect(screen.getByTestId("session-card-s1-categories-label")).toHaveTextContent("Renforcement · Mobilité");
+    expect(screen.queryByText(/genoux/i)).toBeNull();
+    expect(screen.queryByText(/hyrox/i)).toBeNull();
+    expect(screen.queryByTestId("session-card-color-bar")).toBeNull();
+  });
+
+  it("durée : format de la durée de séance (D-443), ≥ pour une borne minimale", () => {
+    render(<SessionCard projection={many()} />);
+    expect(screen.getByTestId("session-card-s1-duration").props.children).toMatch(/^≥ /);
+  });
+
+  it("visuel : vignette Libre sans photo, photo de l'exercice sinon", () => {
+    const { unmount } = render(<SessionCard projection={one()} />);
+    expect(screen.getByTestId("session-card-s1-format-FREE")).toBeTruthy();
+    unmount();
+    const asset = { id: "a1", kind: "IMAGE", uri: "media/a1.jpg", mimeType: "image/jpeg" } as unknown as MediaAsset;
     render(
       <SessionCard
-        session={aSummary({ categoryNames: ["Cardio"], bodyZoneNames: ["Genoux", "Dos"] })}
+        projection={projection([
+          { kind: "EXERCISE", exercise: exercise({ media: [{ id: "l1", activityId: "x", assetId: "a1", position: 0, asset }] }) },
+        ])}
       />,
     );
-
-    // T01-S09 correction VISUAL, 2e contre-recette (point A, commentaire de
-    // revue 5551083690) : le séparateur entre les deux groupes est
-    // désormais " : " (auparavant " · ").
-    expect(screen.getByText("Cardio : Genoux, Dos")).toBeTruthy();
+    expect(screen.getByTestId("session-card-s1-photo")).toBeTruthy();
   });
 
-  it("T01-S09 correction VISUAL, 2e contre-recette (point A) — the Category segment is rendered in the Session's own colour, never the body-zone segment nor the separator", () => {
-    render(
-      <SessionCard
-        session={aSummary({
-          color: "#2E9B62",
-          categoryNames: ["Cardio"],
-          bodyZoneNames: ["Genoux"],
-        })}
-      />,
-    );
-
-    const categoriesSegment = screen.getByTestId("session-card-tag-line-categories");
-    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#2E9B62");
-
-    const tagLine = screen.getByTestId("session-card-tag-line");
-    expect(StyleSheet.flatten(tagLine.props.style).color).not.toBe("#2E9B62");
+  it("carte archivée : aucune action directe, texte jusqu'à la marge", () => {
+    render(<SessionCard projection={projection([{ kind: "EXERCISE", exercise: exercise() }], { status: "ARCHIVED", archivedAt: "x" })} />);
+    expect(screen.queryByTestId("session-card-s1-play")).toBeNull();
+    const card = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
+    expect(card.borderColor).toBe("#D9D9D9");
   });
 
-  it("T01-S09 correction VISUAL (point B) — never renders the tag line at all when there is no Category and no body zone (empty state — never a visible empty line)", () => {
-    render(<SessionCard session={aSummary()} />);
-
-    expect(screen.queryByTestId("session-card-tag-line")).toBeNull();
+  it("mesures du gabarit : visuel 64 à 8 du bord, Lecture cible 48 à 8 du bord, rayon 12, bordure 0,5", () => {
+    render(<SessionCard projection={one()} />);
+    const card = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
+    expect(card).toMatchObject({ borderRadius: 12, borderWidth: 0.5, borderColor: "#CCD1E0", backgroundColor: "#F9FAFC" });
+    const play = StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style);
+    expect(play).toMatchObject({ width: 48, height: 48, right: 7.5 });
   });
 
-  it("T01-S09 correction VISUAL (point B) — renders only the Category group when there is no body zone, with no separator", () => {
-    render(<SessionCard session={aSummary({ categoryNames: ["Cardio"], bodyZoneNames: [] })} />);
-    expect(screen.getByText("Cardio")).toBeTruthy();
-    expect(screen.queryByText(/:/)).toBeNull();
-  });
-
-  it("T01-S09 correction VISUAL (point B) — renders only the body-zone group when there is no Category, with no separator and no colouring", () => {
-    render(<SessionCard session={aSummary({ categoryNames: [], bodyZoneNames: ["Genoux"] })} />);
-    expect(screen.getByText("Genoux")).toBeTruthy();
-    expect(screen.queryByTestId("session-card-tag-line-categories")).toBeNull();
-  });
-
-  it("T01-S09 correction VISUAL (point B) — truncates the tag line to a single line, never wrapping onto a second line", () => {
-    render(
-      <SessionCard
-        session={aSummary({
-          categoryNames: ["Cardio", "Renforcement", "Mobilité"],
-          bodyZoneNames: ["Genoux", "Dos", "Épaules", "Chevilles et pieds"],
-        })}
-      />,
-    );
-
-    expect(screen.getByTestId("session-card-tag-line").props.numberOfLines).toBe(1);
-  });
-
-  it("T01-S09 correction VISUAL, 3e contre-recette — the chevron control is an instance of Controls / Disclosure — Source exact, State=Collapsed (2537:1033): canonical 28×28 frame, radius 6, colors.disclosureBackground, 1pt colors.disclosureBorderCollapsed border — never the earlier ad hoc colors.tourSurface/opacity borrowed from Forms / Select Field", () => {
-    render(<SessionCard session={aSummary()} />);
-
-    const frame = screen.getByTestId("session-card-disclosure-frame");
-    const flattened = StyleSheet.flatten(frame.props.style);
-    expect(flattened.width).toBe(28);
-    expect(flattened.height).toBe(28);
-    expect(flattened.borderRadius).toBe(6);
-    expect(flattened.backgroundColor).toBe(colors.disclosureBackground);
-    expect(flattened.borderWidth).toBe(1);
-    expect(flattened.borderColor).toBe(colors.disclosureBorderCollapsed);
-
-    const chevron = screen.getByTestId("session-card-disclosure-chevron");
-    expect(chevron.props.style.tintColor).toBe(colors.disclosureChevronCollapsed);
-  });
-
-  it("T01-S09 correction VISUAL, point B (commentaire de revue faisant suite à 1f28a09) — the colour bar and the Category segment both render the exact persisted Session colour, including the yellow of the palette (#F7D154), never a default fallback", () => {
-    render(
-      <SessionCard
-        session={aSummary({ color: "#F7D154", categoryNames: ["Cardio"], bodyZoneNames: [] })}
-      />,
-    );
-
-    const colorBar = screen.getByTestId("session-card-color-bar");
-    expect(StyleSheet.flatten(colorBar.props.style).backgroundColor).toBe("#F7D154");
-
-    const categoriesSegment = screen.getByTestId("session-card-tag-line-categories");
-    expect(StyleSheet.flatten(categoriesSegment.props.style).color).toBe("#F7D154");
-  });
-
-  it("renders the chevron and the Démarrer button as visible but disabled, with no wired behaviour", () => {
-    render(<SessionCard session={aSummary()} />);
-
-    const chevron = screen.getByLabelText(strings.screens.sessions.card.expandAccessibilityLabel);
-    const start = screen.getByLabelText(strings.screens.sessions.card.startAccessibilityLabel);
-
-    expect(chevron.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(start.props.accessibilityState).toMatchObject({ disabled: true });
-
-    // Pressing a disabled control must not throw. There is no callback
-    // wired at all (neither prop accepts one), which `fireEvent.press`
-    // being a no-op on a `disabled` Pressable also confirms structurally.
-    expect(() => fireEvent.press(chevron)).not.toThrow();
-    expect(() => fireEvent.press(start)).not.toThrow();
-  });
-
-  it("without onOpen (T01-S06/S09 default): the card body is not pressable — exactly two controls (chevron, Démarrer)", () => {
-    render(<SessionCard session={aSummary()} />);
-
-    expect(screen.queryByTestId("session-card-open")).toBeNull();
-    expect(screen.getAllByRole("button")).toHaveLength(2);
-  });
-
-  it("with onOpen (T01-S10, CE-T01-S10-01): the main area is a button that calls onOpen once; chevron and Démarrer stay visible-but-disabled", () => {
-    const onOpen = jest.fn();
-    render(<SessionCard session={aSummary()} onOpen={onOpen} />);
-
-    const mainArea = screen.getByLabelText(strings.screens.sessions.card.openAccessibilityLabel);
-    expect(mainArea.props.accessibilityRole).toBe("button");
-    fireEvent.press(mainArea);
-    expect(onOpen).toHaveBeenCalledTimes(1);
-
-    const chevron = screen.getByLabelText(strings.screens.sessions.card.expandAccessibilityLabel);
-    const start = screen.getByLabelText(strings.screens.sessions.card.startAccessibilityLabel);
-    expect(chevron.props.accessibilityState).toMatchObject({ disabled: true });
-    expect(start.props.accessibilityState).toMatchObject({ disabled: true });
-    // Ouvrir la carte n'active jamais le chevron ni Démarrer.
-    fireEvent.press(chevron);
-    fireEvent.press(start);
-    expect(onOpen).toHaveBeenCalledTimes(1);
-  });
-
-  it("prefixes the estimated duration with ≥ when it is approximate (T01-S09, RM-072)", () => {
-    render(<SessionCard session={aSummary({ isEstimatedDurationApproximate: true })} />);
-
-    expect(screen.getByTestId("session-card-duration").props.children).toBe("≥ 18 min");
-    expect(screen.getByText("1 exercice · 1 tour")).toBeTruthy();
+  it("le toucher de Lecture est intercepté et n'ouvre rien", () => {
+    render(<SessionCard projection={one()} />);
+    expect(() => fireEvent.press(screen.getByTestId("session-card-s1-play"))).not.toThrow();
   });
 });
 
-describe("PRE4-1.2/AC6 — carte d'une Séance sans occurrence (Séance vidée par la migration)", () => {
-  // Décision Q32 (Hermann, 2026-10-16) : zéro prend le singulier ; le format
-  // de la carte ne change pas par ailleurs. Une suite verte ne vaut pas
-  // recette visuelle (R-1.2-02, NFR-04).
-  const emptySession = aSummary({
-    activityCount: 0,
-    estimatedDurationSeconds: 0,
-    isEstimatedDurationApproximate: false,
-    durationKind: "exact",
-    tourRepeatCount: 2,
+describe("PRE-8 E.2 — « +N » sans couper un mot", () => {
+  const overflow = (hidden: number) => 20 + hidden;
+  it("toutes les catégories tiennent : aucune réduite", () => {
+    expect(fitCategoryCount([60, 50], 10, overflow, 200)).toBe(2);
   });
-
-  it("affiche « 0 exercice · 2 tours » et « 0 min » sur la ligne de titre, sans ≥ ni ≈, sans ligne d'étiquette", () => {
-    render(<SessionCard session={emptySession} />);
-
-    expect(screen.getByText("Renforcement du genou")).toBeTruthy();
-    expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
-    expect(screen.queryByText("0 exercices · 2 tours")).toBeNull();
-    const duration = screen.getByTestId("session-card-duration").props.children;
-    expect(duration).toBe("0 min");
-    expect(duration).not.toMatch(/[≥≈]/);
-    expect(screen.queryByTestId("session-card-tag-line")).toBeNull();
+  it("dépassement : noms entiers puis « +N »", () => {
+    expect(fitCategoryCount([60, 50, 70], 10, overflow, 150)).toBe(2);
+    expect(fitCategoryCount([60, 50, 70], 10, overflow, 100)).toBe(1);
   });
-
-  it("le chevron et Démarrer s'actionnent sans erreur ; l'ouverture appelle onOpen une fois", () => {
-    const onOpen = jest.fn();
-    render(<SessionCard session={emptySession} onOpen={onOpen} />);
-
-    const chevron = screen.getByLabelText(strings.screens.sessions.card.expandAccessibilityLabel);
-    const start = screen.getByLabelText(strings.screens.sessions.card.startAccessibilityLabel);
-    expect(() => fireEvent.press(chevron)).not.toThrow();
-    expect(() => fireEvent.press(start)).not.toThrow();
-    expect(onOpen).not.toHaveBeenCalled();
-
-    fireEvent.press(screen.getByLabelText(strings.screens.sessions.card.openAccessibilityLabel));
-    expect(onOpen).toHaveBeenCalledTimes(1);
-    expect(screen.getByText("0 exercice · 2 tours")).toBeTruthy();
+  it("au moins une catégorie", () => {
+    expect(fitCategoryCount([300, 50], 10, overflow, 100)).toBe(1);
+    expect(fitCategoryCount([], 10, overflow, 100)).toBe(0);
   });
-});
-
-describe("PRE4-2.2/AC6 — carte de Séance inchangée dans sa forme pour chaque nature (P41)", () => {
-  // 270 s : Séance d'un Exercice exact de 165 s et d'un Exercice partiel de
-  // 105 s (story 2.2, AC4) ; arrondi à la minute supérieure → 5 min.
-  it("PRE4-2.2/AC6 — exact « 5 min », estimé « ≈ 5 min », borne minimale « ≥ 5 min », symboles du lexique", () => {
-    const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
-    const cases = [
-      { durationKind: "exact", expected: "5 min" },
-      { durationKind: "estimated", expected: `${estimatedPrefix}5 min` },
-      { durationKind: "lowerBound", expected: `${lowerBoundPrefix}5 min` },
-    ] as const;
-    for (const { durationKind, expected } of cases) {
-      const { unmount } = render(
-        <SessionCard
-          session={aSummary({
-            estimatedDurationSeconds: 270,
-            isEstimatedDurationApproximate: durationKind === "lowerBound",
-            durationKind,
-          })}
-        />,
-      );
-      expect(screen.getByTestId("session-card-duration").props.children).toBe(expected);
-      unmount();
+  it("rendu « +N » une fois la largeur mesurée", () => {
+    render(
+      <SessionCard
+        projection={projection([
+          { kind: "EXERCISE", exercise: exercise({ categoryId: "renfo" }) },
+          { kind: "EXERCISE", exercise: exercise({ categoryId: "mobilite" }) },
+          { kind: "EXERCISE", exercise: exercise({ categoryId: "cardio" }) },
+        ])}
+      />,
+    );
+    const layout = (width: number) => ({ nativeEvent: { layout: { width, height: 15, x: 0, y: 0 } } });
+    const prefix = "session-card-s1-categories";
+    // Conteneur 130 ; noms 80, 50, 40 ; séparateur 10 ; « +1 » 20, « +2 » 22.
+    fireEvent(screen.getByTestId(`${prefix}-texts`), "layout", layout(130));
+    for (const [id, width] of [["name-0", 80], ["name-1", 50], ["name-2", 40], ["separator", 10], ["overflow-1", 20], ["overflow-2", 22]] as const) {
+      fireEvent(screen.getByTestId(`${prefix}-measure-${id}`, { includeHiddenElements: true }), "layout", layout(width));
     }
-    expect(`${estimatedPrefix}5 min`).toBe("≈ 5 min");
-    expect(`${lowerBoundPrefix}5 min`).toBe("≥ 5 min");
-  });
-
-  it("PRE4-2.2/AC6 — `durationKind` prime sur le drapeau historique : « estimated » avec drapeau vrai → « ≈ 5 min »", () => {
-    render(
-      <SessionCard
-        session={aSummary({ estimatedDurationSeconds: 270, isEstimatedDurationApproximate: true, durationKind: "estimated" })}
-      />,
-    );
-    expect(screen.getByTestId("session-card-duration").props.children).toBe("≈ 5 min");
+    expect(screen.getByTestId("session-card-s1-categories-label")).toHaveTextContent("Renforcement +2");
   });
 });

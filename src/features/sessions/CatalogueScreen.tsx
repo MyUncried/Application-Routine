@@ -1,8 +1,7 @@
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
-import type { SessionSummary } from "@/domain/sessions/Session";
 import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
 import { CatalogueCreateOptions } from "@/features/activities/CatalogueCreateOptions";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
@@ -11,7 +10,8 @@ import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { useActivityCatalogue } from "@/features/activities/useActivityCatalogue";
-import { SessionCard } from "@/features/sessions/SessionCard";
+import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
+import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
@@ -292,7 +292,11 @@ export function CatalogueScreen() {
        * bas de la bande Context et le haut réel de la barre.
        */}
       <View
-        style={[styles.body, activeSegment === "movements" ? styles.bodyFlush : null, { paddingBottom: navigationBarTotalHeight() }]}
+        style={[
+          styles.body,
+          activeSegment === "movements" || (activeSegment === "sessions" && sessionCatalogue.state.status === "ready")
+            ? styles.bodyFlush
+            : null, { paddingBottom: navigationBarTotalHeight() }]}
         testID="catalogue-body"
       >
         {activeSegment === "sessions" ? (
@@ -405,20 +409,16 @@ function ReadyBody({
   sessions,
   onOpenSession,
 }: {
-  sessions: readonly SessionSummary[];
+  sessions: readonly SessionCatalogueProjection[];
   onOpenSession: (sessionId: string) => void;
 }) {
+  // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
+  const visible = sessions.filter((session) => session.status === "ACTIVE");
   return (
-    <FlatList
-      data={sessions}
-      keyExtractor={(session) => session.id}
-      renderItem={({ item }) => (
-        <SessionCard session={item} onOpen={() => onOpenSession(item.id)} />
-      )}
-      scrollEnabled
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={styles.list}
-      testID="catalogue-session-list"
+    <SessionCatalogueList
+      sessions={visible}
+      emptyMessage={strings.screens.sessions.noMatch}
+      onOpenSession={onOpenSession}
     />
   );
 }
@@ -525,9 +525,5 @@ const styles = StyleSheet.create({
   retryLabel: {
     ...type.button,
     color: colors.background,
-  },
-  list: {
-    gap: spacing[8],
-    paddingBottom: spacing[16],
   },
 });

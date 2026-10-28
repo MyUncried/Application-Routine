@@ -45,6 +45,12 @@ export const colors = {
   divider: canonical.border,
   // `color/cards/border` — bordure renforcée (choix de silhouette du Profil).
   cardsBorder: "#CCD1E0",
+  // PRE-8 (epic E, E.2 et E.3 ; relevé DSF Catalogue des séances du 27/10) : bordure de la carte
+  // archivée (`color/cards/archive-border`), titre (`color/observed/14171c`) et lignes grisées de la
+  // composition déployée (`color/observed/80858c`), portée Catalogue des séances.
+  cardsArchiveBorder: "#D9D9D9",
+  catalogueSessionTitle: "#14171C",
+  catalogueSessionMuted: "#80858C",
   // `color/primary-soft` — décor, jamais un fond portant du texte blanc de
   // taille normale.
   primarySoft: canonical.primarySoft,

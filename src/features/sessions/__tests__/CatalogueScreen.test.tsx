@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { ActivityDefinition } from "@/domain/activities";
-import type { SessionSummary } from "@/domain/sessions/Session";
+import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { ActivityDefinitionServiceContext } from "@/features/activities/ActivityDefinitionServiceContext";
 import { CatalogueScreen } from "@/features/sessions/CatalogueScreen";
@@ -66,18 +66,17 @@ function deferred<T>(): {
   return { promise, resolve, reject };
 }
 
-function aSummary(id: string): SessionSummary {
+/** PRE-8 (E.1, E.2) : Séance lue par le Catalogue unifié (`listCatalogueSessions`). */
+function aSummary(id: string): CatalogueSessionRecord {
   return {
     id,
     name: `Séance ${id}`,
     color: "#3B82F6",
-    activityCount: 1,
-    estimatedDurationSeconds: 60,
-    isEstimatedDurationApproximate: false,
-    tourRepeatCount: 1,
+    labelId: null,
+    status: "ACTIVE",
+    archivedAt: null,
     updatedAt: "2026-01-01T00:00:00.000Z",
-    categoryNames: [],
-    bodyZoneNames: [],
+    structure: { elements: [], stopPoints: [] },
   };
 }
 
@@ -97,9 +96,9 @@ function aDefinition(id: string): ActivityDefinition {
 }
 
 function makeFakeService() {
-  const listActiveSessions = jest.fn<() => Promise<readonly SessionSummary[]>>();
-  const service = { listActiveSessions } as unknown as SessionService;
-  return { service, listActiveSessions };
+  const listCatalogueSessions = jest.fn<() => Promise<readonly CatalogueSessionRecord[]>>();
+  const service = { listCatalogueSessions } as unknown as SessionService;
+  return { service, listCatalogueSessions };
 }
 
 function makeFakeActivityService() {
@@ -147,9 +146,9 @@ beforeEach(() => {
 
 describe("CatalogueScreen — cadre commun", () => {
   it("displays the title, the full segment selector, and the active Créer action in every state", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    const pending = deferred<readonly SessionSummary[]>();
-    listActiveSessions.mockReturnValue(pending.promise);
+    const { service, listCatalogueSessions } = makeFakeService();
+    const pending = deferred<readonly CatalogueSessionRecord[]>();
+    listCatalogueSessions.mockReturnValue(pending.promise);
 
     renderScreen(service);
     act(() => {
@@ -179,8 +178,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the segments and the command row (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -213,8 +212,8 @@ describe("CatalogueScreen — cadre commun", () => {
   // blanc à 50 % (`color/background`, opacité de remplissage 0,5) — il reste
   // un fond propre au contrôle, plus clair que la zone de contexte.
   it("gives the segmented control its own white 50 % container over the pale Context band (CAT-R01, ajout C du 07/10)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -241,8 +240,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -262,8 +261,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("places the empty-state text inside a dedicated frame (surface/border/radius), not floating alone in the body (CAT-R03, contre-recette iPhone 2026-09-03)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -283,8 +282,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("reserves the real navigation footprint at the bottom of the body, so the empty-state frame centers only between the Context band and the Bottom Shell (CAT-R04, contre-recette iPhone 2026-09-03)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -299,8 +298,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("marks Séances as selected (centre) at first render, and Circuits as disabled with an explicit unavailable label, with no navigation when pressed (T01-S10/V2-CAT-01, D-108)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -333,8 +332,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("activates the Activités segment and loads persisted ActivityDefinition (V2-CAT-01)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
     const { service: activityService, listActivityDefinitions } = makeFakeActivityService();
     listActivityDefinitions.mockResolvedValue([aDefinition("a")]);
 
@@ -373,8 +372,8 @@ describe("CatalogueScreen — cadre commun", () => {
    * exactement une fois (`router.setParams` l'efface).
    */
   it("forces the Séances segment on focus when the catalogueSegment signal is present, then consumes it exactly once", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
     const { service: activityService, listActivityDefinitions } = makeFakeActivityService();
     listActivityDefinitions.mockResolvedValue([]);
 
@@ -434,8 +433,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("opens the Créer tree, and navigates to Composition d'une séance when 'Une séance' is selected (T01-S07, V2-CAT-01)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -457,8 +456,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("navigates to the new-activity editor when 'Une nouvelle activité' is selected from the Créer tree", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -477,8 +476,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("renders Créer, Filtrer and Trier as 34 circles with a ≥44 touch target via hitSlop, not visual enlargement (recette PRE-8 A/B D01, ch13 §4.5)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -503,8 +502,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("shows Rechercher in the command row on the Mouvements segment only, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -538,8 +537,8 @@ describe("CatalogueScreen — cadre commun", () => {
   // non bridé et prouve que `hitSlop` ne peut plus jamais redevenir négatif,
   // quelle que soit la géométrie visuelle du bouton.
   it("never produces a negative hitSlop on any command action, the real cause of the button being unresponsive on device (fireEvent.press cannot reveal this)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -566,8 +565,8 @@ describe("CatalogueScreen — cadre commun", () => {
   // PRE-8 (B.7, arbitrages du 27/10) : Filtrer devient actif sur le seul segment Mouvements ; Trier
   // reste grisé partout ; Séances et Exercices sont inchangés.
   it("enables Filtrer on the Mouvements segment only, Trier staying disabled (PRE-8 B.7)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -585,8 +584,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("renders the Créer, Filtrer and Trier pictograms (Figma 10579:21580), Trier from the icon/tri vector master, never a font glyph", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -603,8 +602,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("dims Trier (border colors.disabled) while it remains inert", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -619,8 +618,8 @@ describe("CatalogueScreen — cadre commun", () => {
   });
 
   it("pressing Séances (already selected) changes nothing: no reload, no navigation", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -632,12 +631,12 @@ describe("CatalogueScreen — cadre commun", () => {
     const sessionsTab = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
 
-    const callsBefore = listActiveSessions.mock.calls.length;
+    const callsBefore = listCatalogueSessions.mock.calls.length;
     const emptyMessageBefore = screen.getByText(strings.screens.sessions.empty.message);
 
     fireEvent.press(sessionsTab);
 
-    expect(listActiveSessions.mock.calls.length).toBe(callsBefore);
+    expect(listCatalogueSessions.mock.calls.length).toBe(callsBefore);
     expect(sessionsTab.props.accessibilityState).toMatchObject({ selected: true });
     expect(screen.getByText(strings.screens.sessions.empty.message)).toBe(emptyMessageBefore);
     expect(mockPush).not.toHaveBeenCalled();
@@ -646,8 +645,8 @@ describe("CatalogueScreen — cadre commun", () => {
 
 describe("CatalogueScreen — quatre états", () => {
   it("shows the loading indicator immediately after focus, before resolution", () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockReturnValue(new Promise(() => {}));
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockReturnValue(new Promise(() => {}));
 
     renderScreen(service);
     act(() => {
@@ -660,8 +659,8 @@ describe("CatalogueScreen — quatre états", () => {
   });
 
   it("shows the exact empty message when no session is returned", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     renderScreen(service);
     await act(async () => {
@@ -674,9 +673,9 @@ describe("CatalogueScreen — quatre états", () => {
   });
 
   it("shows a distinct error message and an active Réessayer button on rejection", async () => {
-    const { service, listActiveSessions } = makeFakeService();
+    const { service, listCatalogueSessions } = makeFakeService();
     const failure = new Error("boom");
-    listActiveSessions.mockRejectedValueOnce(failure);
+    listCatalogueSessions.mockRejectedValueOnce(failure);
     const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 
     try {
@@ -692,7 +691,7 @@ describe("CatalogueScreen — quatre états", () => {
 
       const retry = screen.getByLabelText(strings.screens.sessions.error.retry);
       const [reloadedSessions] = [[aSummary("after-retry")]];
-      listActiveSessions.mockResolvedValueOnce(reloadedSessions);
+      listCatalogueSessions.mockResolvedValueOnce(reloadedSessions);
 
       await act(async () => {
         fireEvent.press(retry);
@@ -700,7 +699,7 @@ describe("CatalogueScreen — quatre états", () => {
         await Promise.resolve();
       });
 
-      expect(listActiveSessions).toHaveBeenCalledTimes(2);
+      expect(listCatalogueSessions).toHaveBeenCalledTimes(2);
       expect(screen.getByText("Séance after-retry")).toBeTruthy();
     } finally {
       consoleErrorSpy.mockRestore();
@@ -708,8 +707,8 @@ describe("CatalogueScreen — quatre états", () => {
   });
 
   it("renders exactly one SessionCard per returned session when ready", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([aSummary("a"), aSummary("b")]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([aSummary("a"), aSummary("b")]);
 
     renderScreen(service);
     await act(async () => {
@@ -723,8 +722,8 @@ describe("CatalogueScreen — quatre états", () => {
   });
 
   it("opening a card's main area navigates to Composition passing only that sessionId (T01-S10, CE-T01-S10-01)", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([aSummary("card-a"), aSummary("card-b")]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([aSummary("card-a"), aSummary("card-b")]);
 
     renderScreen(service);
     await act(async () => {
@@ -733,9 +732,8 @@ describe("CatalogueScreen — quatre états", () => {
       await Promise.resolve();
     });
 
-    const openAreas = screen.getAllByTestId("session-card-open");
-    expect(openAreas).toHaveLength(2);
-    fireEvent.press(openAreas[1]!);
+    expect(screen.getByTestId("session-card-card-a-open")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("session-card-card-b-open"));
 
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith({
@@ -747,10 +745,10 @@ describe("CatalogueScreen — quatre états", () => {
 
 describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
   it("reloads on initial focus, invalidates the in-flight request on blur, and reloads again authoritatively on the next focus", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    const first = deferred<readonly SessionSummary[]>();
-    const second = deferred<readonly SessionSummary[]>();
-    listActiveSessions.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+    const { service, listCatalogueSessions } = makeFakeService();
+    const first = deferred<readonly CatalogueSessionRecord[]>();
+    const second = deferred<readonly CatalogueSessionRecord[]>();
+    listCatalogueSessions.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
 
     renderScreen(service);
 
@@ -759,7 +757,7 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
     act(() => {
       cleanupAfterFirstFocus = simulateFocus();
     });
-    expect(listActiveSessions).toHaveBeenCalledTimes(1);
+    expect(listCatalogueSessions).toHaveBeenCalledTimes(1);
     expect(
       screen.getByLabelText(strings.screens.sessions.loading.accessibilityLabel),
     ).toBeTruthy();
@@ -785,7 +783,7 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
     act(() => {
       simulateFocus();
     });
-    expect(listActiveSessions).toHaveBeenCalledTimes(2);
+    expect(listCatalogueSessions).toHaveBeenCalledTimes(2);
 
     await act(async () => {
       second.resolve([aSummary("fresh")]);
@@ -797,8 +795,8 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
   });
 
   it("does not throw when the screen unmounts", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
 
     const { unmount } = renderScreen(service);
     act(() => {
@@ -811,8 +809,8 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
 
 describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de contexte)", () => {
   it("T-49 — vues Exercices et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
-    const { service, listActiveSessions } = makeFakeService();
-    listActiveSessions.mockResolvedValue([]);
+    const { service, listCatalogueSessions } = makeFakeService();
+    listCatalogueSessions.mockResolvedValue([]);
     renderScreen(service);
     await act(async () => {});
 

@@ -177,6 +177,8 @@ export const fr = {
         message:
           "Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.",
       },
+      // PRE-8 (epic E, Q-E6) : liste sans résultat après filtrage, distincte du Catalogue vide.
+      noMatch: "Aucune séance ne correspond aux filtres.",
       error: {
         message: "Impossible de charger vos séances.",
         retry: "Réessayer",
@@ -194,6 +196,20 @@ export const fr = {
         // `Composition d'une séance` en MODIFICATION (transmet uniquement
         // `sessionId`).
         openAccessibilityLabel: "Modifier la séance",
+      },
+      // PRE-8 (epic E, E.2 et E.3) : carte unique du Catalogue des séances (spécification du 27/10).
+      catalogueCard: {
+        categoriesOverflow: "+{count}",
+        expandAccessibilityLabel: "Afficher la composition de {name}",
+        collapseAccessibilityLabel: "Masquer la composition de {name}",
+        // CE-T03-01 : destination non livrée, explicitement indisponible.
+        playUnavailableAccessibilityLabel: "Lancer la séance — indisponible",
+        archivedAccessibility: "archivée",
+        cycleLine: "Cycle · {count} {unit}",
+        cycleUnit: { singular: "répétition", plural: "répétitions" },
+        circuitLine: "Circuit · {count} {unit}",
+        recovery: "Récupération",
+        compositionAccessibilityLabel: "Composition de la séance",
       },
       // V2-CAT-01 : arbre `Créer` du Catalogue — ancré à `Créer`, conserve la
       // rangée `Créer / Filtrer / Trier` sous le scrim. Seule `Une nouvelle

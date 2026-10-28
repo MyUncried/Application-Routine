@@ -6,7 +6,6 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { createElement } from "react";
-import { StyleSheet } from "react-native";
 
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
@@ -85,6 +84,7 @@ import { SqliteMediaRepository } from "@/infrastructure/database/repositories/Sq
 // transformée dans un fichier `.ts` — même patron déjà établi par
 // `useSessionCatalogue.test.ts`.
 import { SessionCard } from "@/features/sessions/SessionCard";
+import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 
 jest.mock("expo-crypto", () => ({ randomUUID: jest.fn() }));
 
@@ -590,7 +590,7 @@ describe("SqliteSessionRepository", () => {
     // repository → `SessionSummary` (modèle de Catalogue) → composant
     // `SessionCard` — jamais deux preuves disjointes reliées par la seule
     // coïncidence d'un littéral `#F7D154` partagé.
-    it("propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to SessionCard's rendered colour bar (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
+    it("propagates the exact persisted yellow colour, unbroken, from a Session inserted directly at the SQL layer through SqliteSessionRepository.listActive() to the unified catalogue read, the card no longer drawing the label (PRE-8 E.2) (genuine historical/pre-existing row, not a repository.create() stand-in)", async () => {
       const owner = await database.getFirstAsync<{ id: string }>(
         "SELECT id FROM users WHERE singleton_key = 1",
       );
@@ -657,14 +657,15 @@ describe("SqliteSessionRepository", () => {
       expect(summary?.color).toBe("#F7D154");
       expect(summary?.bodyZoneNames).toEqual(["Dos"]);
 
-      // Étape 2 : modèle de Catalogue → composant `SessionCard` — même
-      // objet `summary` que ci-dessus, sans reconstruction ni littéral
-      // dupliqué, transmis tel quel au composant réellement utilisé par
-      // l'écran Catalogue.
-      render(createElement(SessionCard, { session: summary! }));
-
-      const colorBar = rnScreen.getByTestId("session-card-color-bar");
-      expect(StyleSheet.flatten(colorBar.props.style).backgroundColor).toBe("#F7D154");
+      // Étape 2 — PRE-8 (epic E, E.2 ; spécification « Carte de séance et catalogue des séances »
+      // du 27/10 §1 : « L'étiquette n'est pas présentée […] Cette disposition remplace l'affichage
+      // actuel de l'étiquette sur la carte de séance ») : la lecture du Catalogue unifié garde
+      // l'Étiquette et sa couleur (critère de filtre, E.6), la carte unique ne la dessine plus.
+      const record = (await repository.listCatalogue()).find((item) => item.id === sessionId);
+      expect(record).toMatchObject({ labelId, color: "#F7D154", status: "ACTIVE" });
+      render(createElement(SessionCard, { projection: projectSessionForCatalogue(record!, new Map()) }));
+      expect(rnScreen.queryByTestId("session-card-color-bar")).toBeNull();
+      expect(rnScreen.queryByText("Jaune historique")).toBeNull();
     });
 
     it("marks the estimated duration as approximate as soon as one Activity uses REPETITIONS mode (RM-072)", async () => {

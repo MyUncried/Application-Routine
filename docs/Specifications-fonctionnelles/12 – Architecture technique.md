@@ -1050,6 +1050,9 @@ Les noms avec barre oblique, par exemple `color/primary`, sont les noms physique
 | `color.textSecondary` | `#595E66` | Texte secondaire |
 | `color.iconNeutral` | `#595E66` | Icônes inactives |
 | `color.cardsBorder` | `#CCD1E0` | Bordure renforcée ; Figma `color/cards/border` |
+| `color.cardsArchiveBorder` | `#D9D9D9` | PRE-8 (epic E, E.2) : bordure de la carte de Séance archivée du Catalogue ; Figma `color/cards/archive-border` (`6214:3625`) |
+| `color.catalogueSessionTitle` | `#14171C` | PRE-8 (epic E, E.2) : nom de la carte de Séance du Catalogue ; Figma `color/observed/14171c` |
+| `color.catalogueSessionMuted` | `#80858C` | PRE-8 (epic E, E.3) : en-têtes de conteneur et récupérations de la composition déployée ; Figma `color/observed/80858c` (`6214:3696`) |
 | `color.border` | `#E0E3E8` | Bordure standard |
 | `color.divider` | `#E0E3E8` | Séparateurs et démarcation d’en-tête |
 | `color.disabled` | `#BEC2CC` | Fond d’action désactivée |

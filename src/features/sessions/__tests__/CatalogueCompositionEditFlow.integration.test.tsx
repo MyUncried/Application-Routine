@@ -8,6 +8,7 @@ import type { CategoryRepository } from "@/domain/categories/CategoryRepository"
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import type { Session, SessionSummary } from "@/domain/sessions/Session";
 import type {
+  CatalogueSessionRecord,
   SessionRepository,
   SessionStatus,
   UpdateSessionOutcome,
@@ -95,7 +96,6 @@ class FakeBodyZoneRepository implements BodyZoneRepository {
   }
 }
 
-const sessions = strings.screens.sessions;
 const composition = strings.screens.composition;
 
 const PERSISTED_SESSION_ID = "session-42";
@@ -179,6 +179,21 @@ class FakeSessionRepository implements SessionRepository {
   }
   listActive(): Promise<readonly SessionSummary[]> {
     return Promise.resolve([PERSISTED_SUMMARY]);
+  }
+  /** PRE-8 (E.1, E.2) : lecture du Catalogue unifié, seule lue par la liste des Séances. */
+  listCatalogue(): Promise<readonly CatalogueSessionRecord[]> {
+    return Promise.resolve([
+      {
+        id: PERSISTED_SESSION_ID,
+        name: PERSISTED_SUMMARY.name,
+        color: PERSISTED_SUMMARY.color,
+        labelId: null,
+        status: "ACTIVE",
+        archivedAt: null,
+        updatedAt: PERSISTED_SUMMARY.updatedAt,
+        structure: { elements: [], stopPoints: [] },
+      },
+    ]);
   }
   update(): Promise<UpdateSessionOutcome> {
     return Promise.reject(new Error("update() must never be called by merely opening a Session"));
@@ -281,7 +296,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
       const router = renderCatalogueRouter();
       await flush();
 
-      fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+      fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-open`));
 
       expect(router.getPathname()).toBe("/composition");
       // Seul l identifiant transite par la route — jamais la Séance sérialisée.
@@ -305,7 +320,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-open`));
     await flush(); // la lecture est en vol : `findSessionStatus` n'est pas résolu
 
     expect(screen.getByTestId("composition-edit-state")).toBeTruthy();
@@ -326,7 +341,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-open`));
     await flush();
 
     await act(async () => {
@@ -352,7 +367,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");
@@ -373,7 +388,7 @@ describe("Parcours Catalogue → Composition en modification (vrai navigateur, v
     renderCatalogueRouter();
     await flush();
 
-    fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+    fireEvent.press(await screen.findByTestId(`session-card-${PERSISTED_SESSION_ID}-open`));
     await flush();
     await act(async () => {
       repository.statusGate.resolve("ACTIVE");
