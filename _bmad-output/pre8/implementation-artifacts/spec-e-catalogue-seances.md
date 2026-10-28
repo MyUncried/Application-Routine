@@ -70,7 +70,7 @@
 
 ## E.7 — Raccordements, non-régression et recette
 
-- Raccordements vérifiés : carte → Composition en modification (archivée : message existant « Cette séance est archivée et ne peut pas être modifiée. ») ; Créer → Composition ; Dupliquer / Archiver / Restaurer / Supprimer → E.5 ; Planifier et Lecture indisponibles ; retour avec conservation d'état (E.4) ; après enregistrement d'une nouvelle Séance, retour forcé sur Séances (signal `catalogueSegment` existant).
+- Raccordements vérifiés : carte → Composition en modification (archivée : message existant « Cette séance est archivée et ne peut pas être modifiée. ») [remplacé par la recette du 28/10, r2-02 : Composition en consultation seule, titre « Séance archivée » ; voir section « Recette iPhone du 28/10/2026 — corrections »] ; Créer → Composition ; Dupliquer / Archiver / Restaurer / Supprimer → E.5 ; Planifier et Lecture indisponibles ; retour avec conservation d'état (E.4) ; après enregistrement d'une nouvelle Séance, retour forcé sur Séances (signal `catalogueSegment` existant).
 - Test d'intégration sur SQLite réelle : `CatalogueLifecycle.e7.integration.test.tsx` (écran + service + repository : Dupliquer, Archiver puis Annuler, filtre Archivées, Restaurer, Supprimer confirmé, Mouvement conservé ; carte et Créer → Composition).
 - Non-régression : Composition (`Composition*`, `ExerciseEditingPaths`, `CatalogueCompositionEditFlow`, `EmptySessionOpenFlow`), segment Mouvements (`MovementCatalogueList.b5`, `MovementFilterSheet.b7`, `movementLifecycle.b8`), migrations 014 et 015 (fichiers et tests inchangés depuis `7cc65037`, rejoués dans la suite complète).
 - Cahier de recette iPhone : `_bmad-output/pre8/recette-iphone-epic-e.md`.

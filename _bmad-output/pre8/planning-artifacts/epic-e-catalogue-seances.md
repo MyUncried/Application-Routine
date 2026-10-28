@@ -262,7 +262,7 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 **Tranchés par Hermann le 28/10 (arbitrages finaux).**
 - **E.8-a, option B** : trois segments, données et édition des anciennes définitions conservées, sans migration.
 - **Q-E3, option B** : caractéristiques agrégées de la Séance.
-- **Q-E4, option B complétée** : trois états du filtre, deux lignes si nécessaire, réinitialisation sans toucher la bascule.
+- **Q-E4, option B complétée** : trois états du filtre, deux lignes si nécessaire, réinitialisation sans toucher la bascule. [Révisé par la recette du 28/10, q4-02 : forme étendue toujours, « N filtres », une seule ligne.]
 - **Q-E5, option A** : vignettes visibles, Libre seul actif.
 - **Niveaux** : b8-3 conservé (§3 bis).
 

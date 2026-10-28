@@ -662,7 +662,7 @@ Aucun bouton `Ouvrir` n’est affiché dans la vue déployée.
 Chaque ligne d’Exercice présente :
 
 - le nom de l’Exercice à gauche ;
-- un groupe compact aligné à droite sous la forme `durée/reps · xN`.
+- un groupe compact aligné à droite sous la forme `durée/reps · xN`. [Remplacé dans PRE-8 par R-E4, recette iPhone du 28/10/2026 (accepté par Hermann) : format de la synthèse d'occurrence, par exemple « 3 × 12 rép. », « 45 s ».]
 
 `xN` n’est affiché que lorsque le nombre de Séries est supérieur à 1. En mode Répétition, l’abréviation `reps` est utilisée.
 
@@ -684,7 +684,7 @@ Depuis le résultat du filtre `Archivées`, `Restaurer` affiche un snackbar `Sé
 
 Si aucune Séance n’a encore été créée, l’écran affiche : `Vous verrez ici la liste de vos séances dès que vous aurez commencé à les créer.` Il présente également l’action permettant de créer la première Séance.
 
-Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration.
+Le filtre `Archivées` possède également un état vide lorsque aucune Séance n’est archivée. Il conserve l’en-tête et les commandes du Catalogue, remplace la liste par un message d’absence de Séance archivée et ne propose pas d’action de suppression ou de restauration. [Message propre remplacé dans PRE-8 par R-E5, recette iPhone du 28/10/2026 (accepté par Hermann) : message générique « Aucune séance ne correspond aux filtres. ».]
 
 Ces deux états sont fonctionnellement requis mais ne possèdent pas de frame dédiée dans le `Prototype MVP`. Ils réutilisent le composant d’état vide et la structure de leurs écrans parents ; aucune capture non issue de Figma n’est créée.
 

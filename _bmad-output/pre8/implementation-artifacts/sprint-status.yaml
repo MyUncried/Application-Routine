@@ -53,7 +53,8 @@ deferred:
   - id: q-e4
     epic: e
     status: tranche
-    decision: "Option B complétée (28/10) : inactif / actif étendu / actif compact (ouvrir + croix) ; 44 × 44 ; deux lignes si nécessaire ; réinitialiser conserve la bascule ; précision UX hors Figma."
+    decision: "Option B complétée (28/10) : inactif / actif étendu / actif compact (ouvrir + croix) ; 44 × 44 ; deux lignes si nécessaire ; réinitialiser conserve la bascule ; précision UX hors Figma. [Révisé par la recette du 28/10, q4-02 : forme étendue toujours, « N filtres » quand le nom ne tient pas, une seule ligne, sans forme compacte ni croix.]"
+    # question résolue par la révision q4-02 (la zone des commandes cède la place à la bascule).
     question: "Rangée Un exercice | Plusieurs + Filtrer étendu + Tri + Créer : environ 382 pt demandés, 370 disponibles à 402, 328 à 360 (réserve F-02)."
   - id: q-e5
     epic: e

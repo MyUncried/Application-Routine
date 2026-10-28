@@ -1,5 +1,5 @@
 diff --git a/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md b/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
-index f3e7678..bd7cbe4 100644
+index f3e7678..51d84fe 100644
 --- a/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
 +++ b/docs/DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md
 @@ -61,7 +61,7 @@ Cette règle remplace la proposition antérieure d'un choix Plus facile / Plus d
@@ -51,7 +51,7 @@ index f3e7678..bd7cbe4 100644
  
  ## Relevé Figma et captures de référence
  
-@@ -152,9 +153,19 @@ Le nœud `10484:23428`, anciennement « Réordonnée », illustre désormais **N
+@@ -152,9 +153,20 @@ Le nœud `10484:23428`, anciennement « Réordonnée », illustre désormais **N
  
  Le document source indique que ses quatre arbitrages sont clos ; ils le restent. Deux formulations demandent néanmoins de distinguer le texte fourni de ce qu'il permet de spécifier :
  
@@ -66,13 +66,14 @@ index f3e7678..bd7cbe4 100644
 +- **Emplacement pointillé** (`10480:23374`) : écart visuel connu, **accepté provisoirement** ; la référence Figma reste le rendu attendu ; le rendu n'est pas déclaré conforme sur ce point.
 +- **Place d'un mouvement sorti** : classement alphabétique conservé (Trier inactif dans PRE-8) ; point clos.
 +- **Rééquilibrage technique exceptionnel** des clés : voir « Données et invariants ».
++- **Défilement pendant le geste** : la liste défile quand la carte portée approche du haut ou du bas ; la carte reste sous le doigt (recette iPhone du 28/10, demande de Hermann).
 +- **Rangs après archivage** : b8-3 (voir « Données et invariants »).
 +- **Membres archivés** : un membre archivé reste membre ; détacher un autre membre ne dissout pas la famille tant qu'au moins deux membres enregistrés demeurent ; le mouvement resté seul à l'écran après archivage garde son appartenance, pastille masquée, et la restauration de l'autre membre retrouve la famille ; détacher explicitement le dernier couple dissout la famille et efface les deux appartenances (D2 à D4).
 +
  ## Recette à appliquer au développement
  
  | Cas | Résultat attendu |
-@@ -163,11 +174,11 @@ Le document source indique que ses quatre arbitrages sont clos ; ils le restent.
+@@ -163,11 +175,11 @@ Le document source indique que ses quatre arbitrages sont clos ; ils le restent.
  | FAM-02 — sortir puis revenir avant relâchement | Filet raccourci, cartes refermées et rangs recalculés ; pastille retirée ; retour dans le filet rétablit l'appartenance avant dépôt. |
  | FAM-03 — sortir d'une famille en tête | Dépôt au-dessus accepté ; mouvement sans famille replacé selon le tri courant ; aucune position manuelle persistée. |
  | FAM-04 — lier deux isolés, au-dessus puis en dessous | Filet en formation et deux pastilles provisoires ; niveau supérieur en haut ; deux identités préservées ; famille créée au dépôt. |
@@ -184,7 +185,7 @@ index 6373823..cb42410 100644
  ##### Règle 2 — portée du déplacement, reformulée le 28/10
  
 diff --git a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md
-index 7d4073f..d8c9319 100644
+index 7d4073f..3a7ada5 100644
 --- a/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md	
 +++ b/docs/Specifications-fonctionnelles/13 – Contrats d’écran.md	
 @@ -20,7 +20,7 @@ Rester dans le catalogue. Déposer valide l'opération ; revenir dans le filet a
@@ -204,6 +205,15 @@ index 7d4073f..d8c9319 100644
 +Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance. [Emplacement pointillé : écart visuel connu dans PRE-8, accepté provisoirement par Hermann le 28/10/2026 ; la référence Figma reste le rendu attendu.]
  
  ### 8. Éléments obligatoires
+ 
+@@ -40,7 +40,7 @@ Niveau le plus élevé en haut. Longueur du filet inchangée à membres constant
+ 
+ ### 10. Responsive, Safe Areas, texte, scroll et clavier
+ 
+-Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
++Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. [Recette iPhone du 28/10/2026, demande de Hermann : pendant le geste, la liste défile quand la carte portée approche du haut ou du bas ; la carte reste sous le doigt ; défiler n'est pas s'arrêter sur une famille repliée.] Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
+ 
+ ### 11. États de l'écran
  
 @@ -48,7 +48,7 @@ Les trois frames de référence suffisent au geste continu. Déplacement fixe la
  
