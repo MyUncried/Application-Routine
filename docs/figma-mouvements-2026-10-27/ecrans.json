@@ -36,7 +36,7 @@
       "Squats assistés",
       "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
       "Utiliser ce mouvement",
-      "Créer une variante",
+      "Ajouter un niveau",
       "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
       "Niveau 2",
       "Je",
@@ -96,7 +96,7 @@
       "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
       "Niveau 2",
       "Utiliser ce mouvement",
-      "Créer une variante",
+      "Ajouter un niveau",
       "Squats assistés",
       "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
       "Je",
@@ -155,14 +155,14 @@
       "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
       "Niveau 2",
       "Utiliser ce mouvement",
-      "Créer une variante",
+      "Ajouter un niveau",
       "Squats assistés",
       "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan."
     ]
   },
   {
     "id": "10415:21939",
-    "name": "Mouvement — Variante, plus ou moins difficile",
+    "name": "Mouvement — Niveau, plus facile ou plus difficile",
     "texts": [
       "Squats (compléter le nom)",
       "Catégorie",
@@ -180,14 +180,14 @@
       "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
       "Niveau 2",
       "Utiliser ce mouvement",
-      "Créer une variante",
+      "Ajouter un niveau",
       "Plus difficile",
       "Moins difficile"
     ]
   },
   {
     "id": "10415:21980",
-    "name": "Mouvement — Variante, formulaire vierge",
+    "name": "Mouvement — Niveau, formulaire vierge",
     "texts": [
       "Squats (compléter le nom)",
       "Renforcement",
@@ -898,6 +898,74 @@
       "9:41",
       "Mouvement",
       "Terminer"
+    ]
+  },
+  {
+    "id": "10579:21580",
+    "name": "Mouvement — Catalogue — Ajouter un niveau",
+    "texts": [
+      "Catalogue des séances",
+      "Catalogues",
+      "9:41",
+      "Catalogue",
+      "Mouvements",
+      "Séances",
+      "Programmes",
+      "Squats sautés",
+      "Descente contrôlée puis saut, réception souple, genoux fléchis.",
+      "Niveau 3",
+      "Fentes avant",
+      "Grand pas en avant, genou arrière proche du sol, buste droit.",
+      "",
+      "Gainage sur les genoux",
+      "Appui sur les avant-bras et les genoux, bassin aligné.",
+      "Niveau 2",
+      "Mobilisation du genou",
+      "Assis, jambe tendue puis fléchie lentement, sans douleur.",
+      "Rechercher",
+      "Squats assistés",
+      "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée.",
+      "Niveau 1",
+      "Archiver",
+      "Squats",
+      "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol.",
+      "Ajouter un niveau",
+      "Partager",
+      "Plus facile",
+      "Plus difficile"
+    ]
+  },
+  {
+    "id": "10475:47634",
+    "name": "Mouvement — Catalogue — Actions glissées",
+    "texts": [
+      "Catalogue des séances",
+      "Catalogues",
+      "9:41",
+      "Catalogue",
+      "Mouvements",
+      "Séances",
+      "Programmes",
+      "Squats sautés",
+      "Descente contrôlée puis saut, réception souple, genoux fléchis.",
+      "Niveau 3",
+      "Fentes avant",
+      "Grand pas en avant, genou arrière proche du sol, buste droit.",
+      "",
+      "Gainage sur les genoux",
+      "Appui sur les avant-bras et les genoux, bassin aligné.",
+      "Niveau 2",
+      "Mobilisation du genou",
+      "Assis, jambe tendue puis fléchie lentement, sans douleur.",
+      "Rechercher",
+      "Squats assistés",
+      "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée.",
+      "Niveau 1",
+      "Archiver",
+      "Squats",
+      "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol.",
+      "Ajouter un niveau",
+      "Partager"
     ]
   }
 ]

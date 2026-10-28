@@ -1,10 +1,14 @@
 {
   "scope": "documentation only; no product test run",
-  "captures": 25,
+  "captures": 29,
   "pngIntegrity": "passed",
   "contractSections": 20,
   "newLocalLinksChecked": 47,
   "missingLocalLinks": [],
-  "visualReview": "25-state contact sheet; detailed fiche inspected; no on-device conformity claimed",
-  "figmaModified": false
+  "visualReview": "Nouveau choix du sens inspecté visuellement ; pas de recette produit exécutée",
+  "figmaModified": false,
+  "newContract": "CE-MVT-02",
+  "newContractSections": 20,
+  "captureUpdate": "9 exports réalisés : 5 états de fiche/recherche actualisés, 2 états catalogue et 2 composants ajoutés",
+  "newLocalLinksCheckedForSwipeUpdate": 12
 }

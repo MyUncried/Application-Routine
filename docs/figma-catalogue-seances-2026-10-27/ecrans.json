@@ -1,0 +1,98 @@
+[
+  {
+    "id": "1992:9910",
+    "name": "P-Catalogue des séances — Liste par défaut",
+    "x": 471,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "1992:10014",
+    "name": "P-Catalogue des séances — Séance déployée",
+    "x": 2881,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "1992:10518",
+    "name": "Catalogue des séances — Liste condensée — actions glissées",
+    "x": 1917,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "1992:10628",
+    "name": "Catalogue des séances — Séance déployée — actions glissées",
+    "x": 3363,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "1992:10848",
+    "name": "Catalogue des séances — Archivées — Séance restaurée",
+    "x": 5773,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "1992:10937",
+    "name": "Catalogue des séances — Liste sans Renforcement du genou",
+    "x": 2399,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "2234:88",
+    "name": "Catalogue des séances — Archivées — actions glissées",
+    "x": 4809,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "2234:189",
+    "name": "Modal — Confirmer la suppression d’une séance archivée",
+    "x": 5291,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "4168:11149",
+    "name": "P-Catalogue des séances — Filtrer — Panneau ouvert",
+    "x": 3845,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "4593:6285",
+    "name": "P-Modal — Confirmer l’archivage d’une séance planifiée",
+    "x": 1435,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "4549:6742",
+    "name": "Catalogue des séances — Filtre actif Archivé",
+    "x": 4327,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  },
+  {
+    "id": "4592:6217",
+    "name": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+    "x": 953,
+    "y": 6994,
+    "width": 402,
+    "height": 874
+  }
+]

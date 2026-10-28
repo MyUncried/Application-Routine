@@ -1,5 +1,29 @@
 # Architecture technique
 
+## Composition — actualisation du 28/10/2026
+
+Implémenter le plan de composition avec parents explicites et ordre, sans injecter de cycle technique. Ne pas renommer automatiquement les enums persistés. Les en-têtes collantes utilisent la hauteur rendue et au plus deux niveaux ; le rail, le survol et les cibles demandent une recette réelle. La forme visuelle du survol et le stepper ouvert ne sont pas qualifiés. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
+## Catalogue des mouvements — famille et message temporaire, 28/10/2026
+
+Réutiliser les cartes Mouvement, la pastille de niveau et `DSF / Overlays / Message temporaire`, selon CE-MVT-03 et les [captures du 28/10](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Un seul filet vertical à gauche représente l'appartenance ; sa longueur suit les membres, sa naissance et sa disparition la création et la dissolution. Carte saisie soulevée, emplacement pointillé, reflux des cartes et rangs provisoires ; aucun anneau, teinte d'acceptation ou invite textuelle.
+
+Référence Figma : filet 2 px ; message `10484:24052`, 370 × 48 à (16, 738), au-dessus de la navigation, avec Annuler, durée 3 secondes. Adapter au texte et aux safe areas, sans chevauchement. La temporisation et le recalcul dynamique sont des règles, non démontrables par une image statique. Aucun nouveau token ni dépendance n'est imposé. La prévisualisation ne persiste rien avant le relâchement ; la restitution Annuler doit couvrir l'opération entière.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
+## Composants — Ajouter un niveau dans le glissé (27/10/2026)
+
+| Composant | Figma | Référence visuelle | Usage |
+| --- | --- | --- | --- |
+| DSF / Actions glissées / Mouvement | `10586:45516` | 204 × 80 ; Inter Semi Bold 11 | Partager, Ajouter un niveau, Archiver |
+| DSF / Actions glissées / Mouvement — Choix du sens | `10586:45517` | 204 × 56 ; Inter Semi Bold 11 | Plus facile ↓ / Plus difficile ↑, raccords compris, sous les actions |
+| Carte — Mouvement — Résultat | `10199:22268` | 338 × 107 relevés ; actions Inter Medium 13 | Utiliser ce mouvement / Ajouter un niveau, libellé propagé aux instances |
+
+Texte des actions glissées lié à `color/on-primary` (`VariableID:4151:6166`), blanc, déjà référencé. Aucune création de token global requise par le renommage. Réutiliser les propriétés des composants ; ne pas appliquer la typographie de carte aux actions glissées. Relevé : [ajout-niveau-glisse.json](../figma-mouvements-2026-10-27/ajout-niveau-glisse.json).
+
+La hauteur supplémentaire doit participer au layout de la liste pour décaler les cartes suivantes et prolonger le filet de famille. Ne pas monter un overlay qui les recouvre. Les raccords des deux boutons appartiennent au composant Choix du sens ; les flèches doivent être accompagnées des libellés accessibles. Les frames du prototype ne sont pas toutes des instances de ces nouveaux composants : leur existence dans le DSF est la référence de réutilisation, sans prétendre une liaison de toutes les frames.
+
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
 Relevé direct de `10453:23030` ; données brutes : [composants-tokens.json](../figma-mouvements-2026-10-27/composants-tokens.json). Ce relevé couvre la fiche et les composants qu'elle utilise, pas l'ensemble du fichier Figma.
@@ -454,7 +478,7 @@ Au démarrage d’une Exécution :
 
 Le moteur gère ensuite :
 - l’étape courante ;
-- les répétitions du Circuit, c’est-à-dire les Tours, et le Cycle technique fixé à une répétition ;
+- les tours de chaque circuit et les répétitions propres des cycles visibles (D-451) ;
 - les Séries propres à chaque Exercice ;
 - *Texte identique à celui de la section [« Structure d'un Exercice »](04%20%E2%80%93%20Mod%C3%A8le%20fonctionnel.md#structure-dun-exercice) ; il n’est pas recopié ici.*
 - l’insertion éventuelle d’une phase `SIDE_RECOVERY` entre les deux côtés lorsque `sideRecoverySeconds > 0` ;
@@ -1192,7 +1216,7 @@ La taille canonique désigne la boîte visuelle de l’icône. Le tracé interne
 | `icon.section` | `18 × 18` | Icônes de contenu, repli de section et restauration interne |
 | `icon.standard` | `24 × 24` | Retour, fermeture, ajout, navigation précédent/suivant et commandes de section |
 | `icon.action` | `28 × 28` | Démarrer, restaurer et actions circulaires |
-| `icon.navigation` | `32 × 32` | Boîte optique commune des destinations de navigation basse (cinq depuis E01 du 27/10/2026) |
+| `icon.navigation` | `32 × 32` | Boîte optique commune des cinq destinations de navigation basse |
 | `icon.status` | `32 × 32` | Statuts illustrés nécessitant une présence visuelle renforcée |
 
 Les pictogrammes de navigation sont centrés dans leur boîte `32 × 32` sans mise à l’échelle forcée de leurs tracés : leurs dimensions internes peuvent donc différer. Les triangles de lecture, chevrons ou autres chemins vectoriels internes ne créent pas de tokens supplémentaires.
@@ -1298,7 +1322,7 @@ Les valeurs historiques `9`, `9,4` et `18,8` utilisées comme rayons fixes ont �
 | Action finale d’écran | Région de référence `84` (`790–874`) ; bouton de `48` dans un conteneur intégrant marges et inset inférieur réel |
 | Action finale de modale plein écran | Région de référence `70` (`752–822`) ; bouton `354 × 48` et espace inférieur de référence `22` |
 | Région de navigation du gabarit | `77` (`797–874`) ; contient la pilule de navigation de `62` (D-225) et la réserve d’inset inférieur |
-| Navigation principale | Pilule DSF `322 × 62` (D-225), positionnée avec l’inset inférieur réel |
+| Navigation principale | Pilule DSF `354 × 62` au gabarit 402 pt (D-225), positionnée avec l’inset inférieur réel |
 | Destination active | Hauteur visuelle `56`, rayon `28` |
 | Carte standard | Nouvelles cartes Catalogue/choix/Semaine/Suivi : largeur 354 sur référence 402, rayon 8 ; les cartes structurelles hors famille conservent leur variante propre |
 | Roulette compacte à deux colonnes — `Type=Duration` | Contenu de roulette rendu dans la modale basse canonique ; barre d’actions `Annuler / Confirmer`, contenu natif et dimensions internes selon Figma/DSF actifs. Aucun overlay centré ad hoc. |
@@ -1355,7 +1379,7 @@ Les tokens Figma associés sont `component/wheel/compact-height`, `component/whe
 - Les formulaires utilisent un mécanisme de Keyboard Avoiding adapté à la plateforme et permettent de faire défiler le champ actif au-dessus du clavier.
 - Les modales basses limitent leur hauteur à `85 %` de la hauteur sûre et rendent leur contenu interne défilant au-delà.
 - Un contrôle segmenté est un conteneur horizontal dont chaque option utilise `flex: 1`. Le fond sélectionné appartient au segment et non à l’écran ; texte et fond sont centrés dans la même zone.
-- La navigation basse du MVP est un composant unique à quatre destinations `Catalogues / Calendrier / Suivi / Profil`, sans contrôle Recherche (D-221/D-225). [Recette A/B E01 du 27/10/2026 : cinq destinations, `Communauté` visible et désactivée (élément non routé de la barre), pilule 354 × 62, rayon 33, fond `#F9FAFC`, cadre actif 66 × 50 ; marge latérale de la barre 24, exception à la marge standard de 16.]
+- La navigation basse du MVP est un composant unique à cinq destinations `Catalogues / Calendrier / Suivi / Communauté / Profil`, sans contrôle Recherche (D-221/D-225). [PRE-8, recette A/B E01 du 27/10/2026 : `Communauté` visible et désactivée, sans écran, tant que son écran n'est pas développé.]
 - **Animations de mise en page (recette A/B B05, 27/10/2026).** Les changements d'état utilisateur qui insèrent, retirent, déploient ou replient du contenu passent par les primitives communes de `SheetMotion.tsx` (Reanimated, fil UI) : révélation par le bas à l'entrée, repli à la sortie, transition de place des voisins ; aucune opacité animée ; « Réduire les animations » neutralise tout, sans retarder une opération métier. Le Catalogue des Mouvements (piles, choix d'ajout de Niveau, archivage, filtres) les réutilise ; aucune animation spécifique par écran.
 - Les actions situées à droite d’une carte sont regroupées dans un conteneur `row` aligné en fin de carte. Le groupe possède une marge droite interne de `6` et un espacement fixe entre actions ; aucune action n’utilise une coordonnée calculée depuis la largeur de l’écran.
 - Les cadres de synthèse utilisent `width: '100%'`, un padding horizontal canonique et une hauteur minimale. Le texte est multi-ligne et détermine la hauteur finale ; `numberOfLines` et une hauteur fixe ne doivent pas masquer ou faire dépasser le contenu.
@@ -1562,7 +1586,7 @@ Les faibles écarts de couleurs relèvent des fusions déjà acceptées dans le 
 
 ## DSF courant — Cartes, icônes et animations d’appui
 
-Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances ne portent jamais de visuel. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
+Décisions finales du propriétaire : les 17 points du 30/09 sont clos. Révision des cartes du 03/10/2026 (D-260 à D-264) : un seul format de carte d’Exercice, avec une gouttière permanente de 64 px dans le Catalogue et les listes de sélection d’exercices ; photo si média associé, icône de nature sinon. La vignette utilise le premier média dans l’ordre de la galerie ; si ce média est une vidéo, elle utilise son image de couverture (D-264). Les Séances portent un visuel dans le seul Catalogue depuis le 27/10/2026 (CE-T03-01) ; autres contextes inchangés. Aucune photo dans les listes mixtes, le Calendrier ou le Suivi. Aucun déploiement d’Exercice ni de carte du Suivi ; le déploiement des Séances reste accessible dans le Catalogue et le Calendrier Semaine. Le Suivi présente deux lignes : nature/titre/statut, puis durée/catégorie/ressenti ; sans heure, zones corporelles ni étiquettes. Le Ressenti y est un indicateur sans action, distinct de sa saisie obligatoire en Synthèse. Les variantes déployées d’Exercice et du Suivi sont historiques, hors MVP. Pauses/récupérations et prochaine planification restent absentes des cartes concernées. Les données, instantanés, calculs et fonctions de planification sont conservés.
 
 Synthèses : « N séries de X », « N séries de N rép. », « N séries à l’échec » ; bilatéralité par miroir dans les variantes concernées. Heure Semaine « 08:00 » ; aucune heure dans la carte du Suivi. Séance sans étiquette : catégories de ses exercices ; listes de catégories/zones séparées par un point médian et tronquées avec « … ». Choix sans badge durée ; récurrence du Calendrier Semaine dans la carte déployée seulement.
 
@@ -1584,11 +1608,11 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 
 ## Contraintes DSF avant développement
 
-L’implémentation de la navigation et des composants visuels respecte D-224 à D-230 : fonds, dégradés de contexte, navigation 322×62 et intégration écran, halos/actions circulaires, steppers/badges, clipping des listes et gabarits de modales/roulettes. Ces valeurs sont centralisées dans les tokens/composants du Design System plutôt que dupliquées écran par écran. Aucun composant ni route de Recherche globale/Catalogue n’est requis pour le MVP (D-221).
+L’implémentation de la navigation et des composants visuels respecte D-224 à D-230 : fonds, dégradés de contexte, navigation 354×62 au gabarit 402 pt et intégration écran, halos/actions circulaires, steppers/badges, clipping des listes et gabarits de modales/roulettes. Ces valeurs sont centralisées dans les tokens/composants du Design System plutôt que dupliquées écran par écran. Aucun composant ni route de Recherche globale/Catalogue n’est requis pour le MVP (D-221).
 
 ### Référence DSF V2 détaillée — clôture
 
-- **Navigation basse** : pilule `322 × 62 px`, `#F9FAFC`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur/rayon 10 offset `0,2`; token `color/navigation/pill`. Icône Profil selon D-233/D-236 dans boîte 32×32 ; actif `#0508E5`, inactif `#595E66`. Cadre actif `76 × 50 px`, bleu `#0508E5` à 10 %. Boîtes d’icônes aux abscisses 68/146/224/302 dans la référence 402 px, soit 28 px entre bord de pilule et boîte extrême et 78 px entre centres. Intégration écran : 16 px sous la pilule, bande opaque 16 px puis dégradé transparent→fond sur 40 px ; ces bandes appartiennent à l’écran.
+- **Navigation basse** : set `6513:20151`, cinq destinations. Au gabarit 402 pt, pilule `354 × 62`, marges latérales 24 ; icônes `24 × 24` dans boîtes `32 × 32`. Cadre actif `66 × 50` (`78 × 50` pour Communauté). Actif `#0508E5`, inactif `#595E66` ; fond `color/navigation/pill #F9FAFC`. Répartition responsive et inset bas natif. Les captures et mesures courantes sont dans DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md ; les anciennes coordonnées à quatre onglets ne sont plus applicables.
 - *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
 - **Halo et action circulaire** : halo Annuler/Retour blanc opaque `59,28 px`, placé devant la zone de contexte et hors du conteneur clippé ; bouton circulaire clair `32 × 32`, `#FCFCFE`, stroke blanc 1 px, ombre `rgba(26,26,38,0.08)` blur 10 offset `0,2`.
 - *Texte identique à celui de la section [« Référence DSF V2 détaillée — clôture »](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#référence-dsf-v2-détaillée--clôture) ; il n’est pas recopié ici.*
@@ -1614,9 +1638,9 @@ Ordre de développement retenu :
 
 1. **Socle technique** : React Native / Expo, TypeScript, SQLite, architecture, tests, design tokens et préparation i18n.
 2. **Spike technique critique** : timer, arrière-plan, écran verrouillé, audio, voix et vibrations sur iOS et Android.
-3. **Séance simple** : création et modification d’une Séance avec quelques Exercices et un Cycle technique déjà fixé à 1.
+3. **Séance simple** : création et modification d’une Séance avec quelques exercices directs sans conteneur obligatoire (D-451).
 4. **Premier moteur d’Exécution bout-en-bout** : démarrage, timer, pause, Exercice suivant, arrêt et fin.
-5. **Structure complète du MVP** : Circuit et ses Tours, Cycle technique masqué, Récupération, Compte à rebours initial et Fin de Séance.
+5. **Structure complète du MVP** : circuits et leurs tours, cycles visibles, exercices directs, récupération (D-451), Compte à rebours initial et Fin de Séance.
 6. **Exécution complète** : règles, sons, annonces, confirmations, interruptions et Instantané.
 7. **Historique / Suivi**.
 8. **Planification / Agenda / notifications locales**.
@@ -1773,7 +1797,7 @@ Conserver les shells. Composition : sous-brouillon isolé pour placement multipl
 
 Le schéma cible doit pouvoir représenter : (1) le Circuit interne et son nombre de Tours sans confondre ce concept avec le libellé parcours de planification ; (2) Catégorie obligatoire et associations Zones corporelles `1..n` sur `ActivityDefinition`; (3) retrait logique d’une valeur de référentiel tout en conservant les références existantes et, pour Étiquette/Catégorie, sa couleur . Aucun booléen de Séance pour les phases propres aux Exercices : le générateur SESSION les exclut inconditionnellement ; seuls le Compte à rebours initial et la Fin de séance sont générés à leurs frontières.
 
-Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Lorsque le Circuit est exécuté N ≥ 2 fois et ouvre ou clôt la Séance, il omet seulement l’arrêt de début ou de fin de Tour qui suivrait le Compte à rebours initial ou précéderait la Fin de séance (D-442, RM-219) ; un passage partiel de Circuit de Séries qui ferait se suivre deux arrêts n’en exécute qu’un (RM-251). Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
+Les défauts Profil sont lus à la création uniquement : aucune synchronisation réactive ni indicateur d’héritage n’est requis. Le générateur de Plan développe les Points d’arrêt internes au Circuit à chaque Tour et ordonne, après un Exercice, `POST_ACTIVITY_RECOVERY` avant le Point d’arrêt. Lorsque le Circuit est exécuté N ≥ 2 fois et ouvre ou clôt la Séance, il omet seulement l’arrêt de début ou de fin de Tour qui suivrait le Compte à rebours initial ou précéderait la Fin de séance (D-442, RM-219) ; un passage partiel de Circuit à séries alternées qui ferait se suivre deux arrêts n’en exécute qu’un (RM-251). Les identifiants techniques historiques peuvent rester inchangés jusqu’à une refactorisation explicitement planifiée.
 
 **D-219 — composants de saisie.** Les durées conservent les pickers/roulettes en modale basse. Les entiers simples `Nombre de Séries` et `Nombre de Tours` utilisent un stepper inline ; la cible `Nombre de répétitions` utilise une roulette native à une colonne, 1 à 100, avec « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). L’implémentation réutilise en priorité un composant standard/DSF compatible React Native/Expo ; un contrôle ad hoc équivalent ne doit pas être recréé sans contrainte technique documentée. La charge fait exception : saisie directe au clavier numérique décimal (D-405, RM-239).
 
@@ -1878,3 +1902,17 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+
+
+### Contrôle transversal de navigation — 27 octobre 2026
+
+La référence courante est le composant `6513:20151`, utilisé sur les 62 écrans recensés de Prototype MVP. Le [relevé exhaustif](../DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md) associe chaque écran à sa capture courante et au contrat commun CE-UI-05, et fournit les dix exports SVG disponibles dans `KodjoIcon`. La présence de Communauté dans la barre ne vaut pas spécification de ses fonctionnalités ; une destination non livrée reste explicitement désactivée. Les anciennes preuves datées à quatre destinations ne constituent plus la cible.
+
+
+## Composants du Catalogue des séances — 27/10/2026
+
+[Relevé contrôlé : composants, tokens, captures et écarts](../DSF-CATALOGUE-SEANCES-2026-10-27.md). Set `DSF / Cards / Séance` `6214:7276`, variantes Catalogue Replié `6214:3572`, Archivé `6214:3625`, Déployé `6214:3696`. Largeur 370 à référence 402, marges 16, écart 12 ; hauteur de référence repliée/archivée 80, déployée dynamique. Visuel 64 à 8 du bord, texte x84 dans le maître replié, cible lecture 48. En déployé, contenu sur toute la largeur ; indentation 16 par niveau ; action glissée 80 constante. Segmenté `7954:14628` du set `5548:9818`, trois options, 370 × 42. Navigation `6513:20151` conservée.
+
+Ces mesures remplacent les anciennes contraintes de ces seules variantes Catalogue. Ne pas modifier Calendrier, Suivi, Choix par effet de composant partagé. Les valeurs et bindings exacts sont conservés dans `docs/figma-catalogue-seances-2026-10-27/`. La marge globale Figma signalée dans la source ne constitue pas une refonte globale de code autorisée par la tranche Catalogue.
+
+La carte doit consommer une projection de la composition D-449 pour compter les exercices, parcourir les médias, dédupliquer les catégories et afficher la structure sans déplier les répétitions. Aucun stockage de catégorie/photo/niveau dérivé sur la Séance n'est imposé. Réutiliser le calcul commun de durée, les dépôts de séances/mouvements/médias et les services de cycle de vie. Le raccordement des vignettes spécifiques aux formats reste à terminer dans Figma ; ne pas livrer le motif Libre comme asset EMOM définitif.

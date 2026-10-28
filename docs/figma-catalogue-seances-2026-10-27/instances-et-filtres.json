@@ -1,0 +1,192 @@
+{
+  "instances": [
+    {
+      "id": "2565:1632",
+      "name": "Navigation / Bottom",
+      "width": 402,
+      "height": 77,
+      "x": 0,
+      "y": 788,
+      "master": "6513:20152",
+      "masterName": "Active=Catalogue, Badge=Aucune",
+      "parent": "6513:20151",
+      "parentName": "Navigation / Bottom — 5 onglets"
+    },
+    {
+      "id": "6956:13568",
+      "name": "Barre d’état",
+      "width": 402,
+      "height": 36,
+      "x": 0,
+      "y": 0,
+      "master": "6955:26633",
+      "masterName": "DSF / Navigation / Barre d’état (décor)",
+      "parent": "5544:4443",
+      "parentName": "Fiche / En-tête fixe"
+    },
+    {
+      "id": "6955:27320",
+      "name": "En-tête fixe",
+      "width": 402,
+      "height": 95,
+      "x": 0,
+      "y": 0,
+      "master": "5544:4467",
+      "masterName": "État=Standard",
+      "parent": "5544:4504",
+      "parentName": "DSF / Navigation / En-tête fixe"
+    },
+    {
+      "id": "I6955:27320;6955:26715",
+      "name": "Barre d’état",
+      "width": 402,
+      "height": 36,
+      "x": 0,
+      "y": 0,
+      "master": "6955:26633",
+      "masterName": "DSF / Navigation / Barre d’état (décor)",
+      "parent": "5544:4443",
+      "parentName": "Fiche / En-tête fixe"
+    },
+    {
+      "id": "2566:2786",
+      "name": "Contrôle segmenté — Type de contenu",
+      "width": 370,
+      "height": 42,
+      "x": 16,
+      "y": 104,
+      "master": "7954:14628",
+      "masterName": "État=Trois options — 2 sélectionné",
+      "parent": "5548:9818",
+      "parentName": "DSF / Controls / Segmenté"
+    },
+    {
+      "id": "10647:21552",
+      "name": "Carte séance — Renforcement du genou",
+      "width": 370,
+      "height": 80,
+      "x": 16,
+      "y": 223,
+      "master": "6214:3572",
+      "masterName": "Contexte=Catalogue, État=Replié",
+      "parent": "6214:7276",
+      "parentName": "DSF / Cards / Séance"
+    },
+    {
+      "id": "10647:21600",
+      "name": "Carte séance — EMOM du matin",
+      "width": 370,
+      "height": 80,
+      "x": 16,
+      "y": 315,
+      "master": "6214:3572",
+      "masterName": "Contexte=Catalogue, État=Replié",
+      "parent": "6214:7276",
+      "parentName": "DSF / Cards / Séance"
+    },
+    {
+      "id": "10647:21648",
+      "name": "Carte séance — Tabata gainage",
+      "width": 370,
+      "height": 80,
+      "x": 16,
+      "y": 407,
+      "master": "6214:3572",
+      "masterName": "Contexte=Catalogue, État=Replié",
+      "parent": "6214:7276",
+      "parentName": "DSF / Cards / Séance"
+    },
+    {
+      "id": "10647:21696",
+      "name": "Carte séance — Squat assisté",
+      "width": 370,
+      "height": 80,
+      "x": 16,
+      "y": 499,
+      "master": "6214:3572",
+      "masterName": "Contexte=Catalogue, État=Replié",
+      "parent": "6214:7276",
+      "parentName": "DSF / Cards / Séance"
+    },
+    {
+      "id": "10647:21744",
+      "name": "Carte séance — Mobilisation du genou",
+      "width": 370,
+      "height": 80,
+      "x": 16,
+      "y": 591,
+      "master": "6214:3572",
+      "masterName": "Contexte=Catalogue, État=Replié",
+      "parent": "6214:7276",
+      "parentName": "DSF / Cards / Séance"
+    }
+  ],
+  "filter": [
+    {
+      "text": "Statut des séances",
+      "id": "4549:6532",
+      "bounds": {
+        "x": 3869,
+        "y": 7164,
+        "width": 149,
+        "height": 19
+      },
+      "visible": true
+    },
+    {
+      "text": "Étiquettes",
+      "id": "4553:6470",
+      "bounds": {
+        "x": 3869,
+        "y": 7279,
+        "width": 80,
+        "height": 19
+      },
+      "visible": true
+    },
+    {
+      "text": "Format",
+      "id": "8845:14788",
+      "bounds": {
+        "x": 3869,
+        "y": 7413,
+        "width": 55,
+        "height": 19
+      },
+      "visible": true
+    },
+    {
+      "text": "Catégories",
+      "id": "10671:20035",
+      "bounds": {
+        "x": 3869,
+        "y": 7207,
+        "width": 86,
+        "height": 19
+      },
+      "visible": true
+    },
+    {
+      "text": "Zones corporelles",
+      "id": "10671:20037",
+      "bounds": {
+        "x": 3869,
+        "y": 7243,
+        "width": 140,
+        "height": 19
+      },
+      "visible": true
+    },
+    {
+      "text": "Réinitialiser",
+      "id": "4752:6306",
+      "bounds": {
+        "x": 4030.5,
+        "y": 7816.5,
+        "width": 67,
+        "height": 15
+      },
+      "visible": true
+    }
+  ]
+}

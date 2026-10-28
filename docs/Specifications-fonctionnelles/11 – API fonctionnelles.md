@@ -1,5 +1,11 @@
 # API fonctionnelles
 
+## Opérations de famille depuis le catalogue — 28/10/2026
+
+CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) définissent réordonner, lier, entrer, sortir et dissoudre le dernier couple au relâchement. Annuler restaure l'opération pendant les 3 secondes du message d'appartenance. Les écritures et invariants sont au chapitre 09 ; aucune nouvelle route technique n'est imposée par ce lot documentaire. Ne pas assimiler dissoudre une famille à supprimer ses mouvements ni modifier les références d'exercices, l'historique ou les performances.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Contrats fonctionnels cibles — D-449
@@ -114,7 +120,7 @@ Ces opérations implémentent D-445, sans service distant imposé.
 | Préparer une sauvegarde | Comparer nom/contenu, compter autres définitions et occurrences liées, rechercher existence d’exécution par identité ; branche de dialogue selon MFN-08 |
 | Mettre à jour | Écrire le contenu du mouvement atomiquement ; garder paramètres locaux ; détecter les phases devenues incomplètes ; ne pas synchroniser des copies de contenu |
 | Créer distinct | Nouvelle identité et nom unique ; rattacher l’objet édité, remplacer l’occurrence si contexte séance ; originaux et historiques conservés |
-| Créer une variante | Description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté, exercice associé ; pas de confirmation de correction |
+| Ajouter un niveau | Nouveau mouvement, description/médias vierges, catégorie/zones reprises, nom commencé ; groupe selon difficulté choisie ; aucun exercice associé implicitement depuis le catalogue des mouvements (D-449 / CE-MVT-01) ; pas de confirmation de correction |
 | Insérer / dupliquer | Nouvelle occurrence, même référence au mouvement et paramètres locaux copiés ; aucune écriture d’indicateur d’utilisation sur insertion |
 | Démarrer | Vérifier compatibilité et complétude, résoudre contenu/paramètres puis figer l’instantané avec filiation ; pas de relecture pendant exécution |
 | Supprimer un exercice | Conserver le mouvement et tous les instantanés ; aucun ramassage automatique |
@@ -210,7 +216,7 @@ Français uniquement au MVP. Internationalisation ultérieure : gabarits et règ
 
 | ID         | Opération                              | Entrées principales                                             | Résultat                           | Règles / validations                                                                           | Objets impactés     |
 | ---------- | -------------------------------------- | --------------------------------------------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------- |
-| API-COM-01 | Initialiser le Cycle technique         | ID Séance                                                        | Cycle créé avec répétition `1`     | Opération interne à la création ; valeur non modifiable et non exposée dans le MVP                           | Cycle               |
+| API-COM-01 | Initialiser la composition | ID Séance | Brouillon avec compte à rebours et fin de séance | D-451 remplace la création obligatoire d’un cycle technique : aucun conteneur vide créé implicitement | Séance |
 | API-COM-02 | Modifier le nombre de Tours du Circuit | ID technique `Tour` représentant le Circuit, nombre de Tours | Conteneur technique `Tour` mis à jour | Nombre de Tours de **1 à 99** ; le nom technique historique n’est pas renommé par D-209. Passage de N = 1 à N ≥ 2 avec un Point de début de Tour et un Point de fin de Tour : choix de celui à conserver, ou annulation du changement ; passage à N = 1 : un Point devenu interdit par RM-219 est retiré sans message (D-442) | Tour (Circuit fonctionnel) |
 | API-COM-03 | Ajouter un exercice                   | Position structurelle éventuelle, paramètres, position | Nouvelle Exercice avec identifiant | Aucun type d’Exercice ; premier Exercice créé fonctionnellement avant le Circuit ; les valeurs techniques historiques restent `Avant Tour`, `Dans Tour`, `Après Tour` | Exercice, Cycle, Tour technique éventuel |
 | API-COM-04 | Modifier un exercice                  | ID Exercice, valeurs à modifier                                 | Exercice mis à jour               | Respect des règles du mode et des paramètres ; les Exécutions historisées ne sont pas modifiées | Exercice            |
@@ -576,3 +582,10 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+
+
+## Composition — contrats fonctionnels du 28/10
+
+Créer un circuit ou un cycle enveloppe des membres existants éligibles ; Annuler ne doit pas laisser de conteneur provisoire. Déplacer un membre concerne parent et ordre ; vider le conteneur le fait disparaître, un singleton reste présent. Modifier le compte d’un cycle redéveloppe sa séquence ; un exercice direct de cycle est exécuté une fois par répétition (RM-252). La cible zéro reste distincte d’une donnée manquante.
+
+Un dépôt qui tronque des séries dans un circuit alterné exige confirmation : Annuler conserve emplacement et données d’origine, Confirmer applique déplacement et adaptation ensemble (chapitre 10, Ajout et sortie du circuit, désormais dans le MVP). Ces contrats fonctionnels ne définissent ni schéma SQL ni endpoint nouveau. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).

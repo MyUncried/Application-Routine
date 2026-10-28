@@ -1,5 +1,9 @@
 # Versions et périmètre
 
+## Composition — actualisation du 28/10/2026
+
+Les cycles visibles avec compte propre, exercices directs de cycle et circuits multiples entrent dans la cible MVP. Cette intégration documentaire ne prouve aucune réalisation et ne modifie aucune préparation figée. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Sommaire
 
 - [V1 – KODJO MVP : séance structurée et exécution locale](#v1--kodjo-mvp--séance-structurée-et-exécution-locale)
@@ -77,7 +81,7 @@ Permettre à un utilisateur de créer des Séances structurées et des Exercices
   - en mode Durée, une Durée totale calculée et dépendante du nombre de Séries ;
 - afficher dans le MVP la vignette média associée à l’Exercice ; aucun Déployer avec ou sans média (D-261) ; l’import/ajout et la persistance de `0..n` photos ou vidéos locales ordonnées sont inclus au MVP dans PRE-3 par D-333 ;
 - ordonner les exercices du Circuit ;
-- utiliser un Cycle technique unique, toujours fixé à une répétition et jamais affiché ;
+- utiliser des cycles visibles et plusieurs circuits dans le MVP, avec leurs comptes propres (D-451) ;
 - ordonner les Exercices dans le Circuit visible, dont le nombre de répétitions est compris entre 1 et 99 ;
 - exécuter immédiatement une séance ;
 - guider l’utilisateur visuellement et sonorement pendant l’exécution ;
@@ -417,7 +421,7 @@ Le MVP permet notamment :
 - à partir de T03, gérer le cycle de vie complet des `ActivityDefinition` persistantes ;
 - ajouter plusieurs Exercices existants à une Séance par copies indépendantes ;
 - organiser les Exercices avant, dans ou après le Circuit et définir le nombre de Tours du Circuit ;
-- conserver le Cycle technique unique à une répétition fixe, sans l’exposer ;
+- composer des cycles visibles de circuits et d’exercices directs (D-451) ;
 - associer éventuellement une Étiquette à une Séance ;
 - associer une Catégorie et des Zones corporelles aux Exercices ;
 - exécuter directement un Exercice persistant à partir de T03 ;

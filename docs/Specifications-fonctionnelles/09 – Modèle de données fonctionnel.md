@@ -1,5 +1,13 @@
 # Modèle de données fonctionnel
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
+## Composition des familles — données, 28/10/2026
+
+Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.] ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
+
+Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres [sauf rééquilibrage technique exceptionnel, 28/10/2026]. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive. [Rangs après archivage et restauration : remplacés par b8-3, confirmé par Hermann le 28/10/2026 ; filtres et suppression définitive inchangés.]
+
 ## Application au lot Mouvement autonome — 27/10/2026
 
 La création par CE-MVT-01 persiste un Mouvement sans créer d'ActivityDefinition ni de SessionActivity. Les phases du mouvement portent leurs identités stables et libellés ; les durées restent locales aux exercices. La variante peut créer un groupe et son second membre dans la même opération logique ; un abandon ne laisse pas de groupe provisoire. Aucun rang historique ni nouvel indicateur irréversible d'utilisation n'est ajouté. La création d'une identité distincte depuis le catalogue ne réaffecte aucune référence active existante. Le modèle de séance unique D-449 reste la cible ; ce lot n'impose pas sa réalisation complète pour permettre le parcours autonome.
@@ -115,74 +123,26 @@ Elle ne contient pas directement :
 
 #### Structure interne de la séance
 
-La structure d’une séance est composée, dans l’ordre, de :
-1. un Compte à rebours initial obligatoire, exécuté une seule fois ;
-2. un Cycle technique unique et non affiché, toujours exécuté une fois ;
-3. zéro, une ou plusieurs Exercices placés avant le Circuit ;
-4. un Circuit unique contenant une suite ordonnée d’Exercices et répété de 1 à 99 fois ;
-5. zéro, une ou plusieurs Exercices placés après le Circuit ;
-6. une Fin de séance obligatoire, exécutée une seule fois après le dernier Exercice.
+D-451 remplace les cardinalités et le cycle technique du modèle antérieur. Séance : compte à rebours initial, séquence ordonnée d’exercices/circuits/cycles, fin de séance. Cycle : séquence ordonnée non vide d’exercices et de circuits ; Circuit : séquence ordonnée non vide d’exercices. Aucun conteneur du même type imbriqué ; aucun cycle dans un circuit.
 
-Dans le MVP, le Cycle contient :
-- son identifiant ;
-- sa position, égale à 1 ;
-- son nombre de répétitions, imposé à 1 ;
-- un Circuit unique ;
-- les Exercices positionnés avant ou après le Circuit ;
+| Objet | Attributs et invariants |
+|---|---|
+| Cycle | Identifiant stable, parent séance, ordre, compte 1..99 défaut 1, membres ordonnés ; visible et non repliable |
+| Circuit | Identifiant stable, parent séance ou cycle, ordre, compte 1..99 défaut 1, nature séries groupées/alternées, membres ordonnés |
+| Exercice | Parent séance/cycle/circuit, ordre, mouvement référencé et paramètres locaux ; N séries imposé par un circuit alterné |
 
-Dans le MVP, le Circuit contient :
-- son identifiant ;
-- sa position, égale à 1 ;
-- son nombre de répétitions, supérieur ou égal à 1 ;
-- une suite ordonnée d’Exercices.
+Un Tour est un passage développé du circuit, pas un nouveau conteneur de composition. L’état replié relève de la présentation ; la lettre affichée ne remplace pas l’identifiant stable. Un conteneur n’est créé qu’avec au moins un membre ; il disparaît vidé, reste présent avec un membre. Les cibles numériques nulles conservent leur rang ; elles sont distinctes des cibles manquantes et des cibles À l’échec.
 
-Le Cycle technique est exécuté une fois : les Exercices placés avant le Circuit sont exécutés une fois, le Circuit est développé selon sa nature : toutes les séries par exercice à chaque tour, ou série i de chaque exercice au passage i, puis les Exercices placés après le Circuit sont exécutés une fois. La Fin de séance est ensuite exécutée.
-
-Le Cycle et le Circuit sont des structures internes de la Séance et ne peuvent pas être supprimés. Le Cycle n’est jamais exposé à l’utilisateur ; le compte du Circuit et sa nature tours/séries sont modifiables.
-
-###### Attributs fonctionnels du Cycle
-
-| Attribut              | Description                              |  Caractère  | Règle principale                                                                         |
-| --------------------- | ---------------------------------------- | :---------: | ---------------------------------------------------------------------------------------- |
-| Identifiant           | Identifiant interne unique du Cycle      | Obligatoire | Stable pendant toute la durée de vie du Cycle                                            |
-| Position              | Position du Cycle dans la Séance         | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP                            |
-| Nombre de répétitions | Nombre d’exécutions successives du Cycle | Obligatoire | Valeur imposée **1** dans le MVP ; non modifiable et non exposée dans l’interface       |
-| Tours                 | Collection ordonnée des Tours du Cycle   | Obligatoire | Exactement 1 Tour dans le MVP ; extensible à plusieurs Tours dans une version ultérieure |
-| Exercices hors Circuit   | Exercices ordonnés avant ou après le Circuit | Obligatoire | Zéro ou plusieurs ; exécutées une seule fois selon leur position structurelle |
-###### Attributs fonctionnels du Tour
-
-| Attribut              | Description                               |  Caractère  | Règle principale                                              |
-| --------------------- | ----------------------------------------- | :---------: | ------------------------------------------------------------- |
-| Identifiant           | Identifiant interne unique du Tour        | Obligatoire | Stable pendant toute la durée de vie du Tour                  |
-| Position              | Position du Tour dans le Cycle            | Obligatoire | Entier déterminant l’ordre d’exécution ; valeur 1 dans le MVP |
-| Nombre de répétitions | Nombre d’exécutions successives du Tour   | Obligatoire | Entier de **1 à 99** ; valeur par défaut **1**                |
-| Exercices             | Collection ordonnée des Exercices du Tour | Obligatoire | Zéro ou plusieurs pendant l’édition                           |
-##### Évolutivité de la structure
-
-Dans le MVP :
- - une Séance contient exactement un Cycle ;
- - le Cycle contient exactement un Tour.
-
-Cette cardinalité constitue une **règle fonctionnelle du MVP** et non une limitation structurelle du modèle.
- 
-Le modèle doit permettre ultérieurement :
-- une collection ordonnée de Cycles appartenant à une même Séance ;
-- une collection ordonnée de Tours appartenant à un même Cycle.
- 
-Chaque Cycle appartient exclusivement à une Séance.  
-Chaque Tour appartient exclusivement à un Cycle et, par transitivité, à une seule Séance.  
-Les Cycles et les Tours ne sont pas réutilisables ou partageables entre plusieurs Séances.
 #### Relations principales
 
-- Une séance appartient à un seul utilisateur.
-- Une séance peut être associée à zéro ou une Étiquette.
-- Une séance peut être référencée par zéro, une ou plusieurs routines.
-- Une séance contient un cycle unique.
-- Le Cycle contient un Circuit unique. Ces cardinalités sont des contraintes fonctionnelles du MVP ; le modèle représente les Cycles et les Tours sous forme de collections ordonnées afin de permettre leur extension ultérieure.
-- Le Cycle peut contenir zéro, une ou plusieurs Exercices avant le Circuit et zéro, une ou plusieurs Exercices après le Circuit.
-- Le Circuit contient zéro, un ou plusieurs Exercices pendant l’édition.
-- Une séance exécutable contient au moins un Exercice.
-- Une séance peut être à l’origine de zéro, une ou plusieurs exécutions de séance.
+- Une séance appartient à un utilisateur, peut porter une Étiquette et être référencée par plusieurs routines et exécutions.
+- Elle contient zéro ou plusieurs cycles et circuits et des exercices directs ; elle est exécutable avec au moins un exercice valide.
+- Chaque exercice et conteneur possède un parent unique dans la composition ; aucun partage d’une même instance structurelle entre parents.
+- Les séries propres d’un exercice direct du cycle sont développées à chaque répétition de ce cycle (RM-252).
+- La création depuis une séance existante suit D-449 : copie de composition et nouveaux identifiants, pas une séance imbriquée.
+- Le déplacement inter-conteneurs change l’appartenance et l’ordre ; toute adaptation de séries reste soumise au contrat de perte, avec confirmation en cas de perte et annulation conservant emplacement et données (chapitre 10, Ajout et sortie du circuit).
+
+[Composition : circuits, cycles et création](../KODJO-Composition-conteneurs-2026-10-28.md) détaille les règles. Les migrations techniques, valeurs d’enum persistées et endpoints de réalisation ne sont pas décidés par cette mise à jour documentaire.
 
 #### Règles métier
 
@@ -304,7 +264,7 @@ Les propriétés intrinsèques énumérées dans les tableaux d’Exercice ci-de
 | Porteur | Données et contraintes |
 |---|---|
 | Mouvement | Identité stable ; nom principal et clé canonique uniques ; alias facultatifs non uniques ; description/médias/classification et structure ordonnée de phases ; compteur monotone de phase ; existence indépendante des exercices. Aucun indicateur durable d’usage à l’insertion. |
-| Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé |
+| Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé après disparition subie, mais deux appartenances effacées lors de la sortie explicite du dernier couple (D2–D4, 28/10) |
 | ActivityDefinition | Identifiant propre, `movementId` non nul avec intégrité réelle ; paramètres d’exécution propres ; durées associées par `phaseId` ; aucun alias ni contenu partagé modifiable en double |
 | SessionActivity | Identifiant propre ; movementId obligatoire avec intégrité active ; paramètres locaux complets, durées par phaseId et récupération contextuelle. Le contenu est lu depuis le mouvement courant ; aucun lien de dépendance vers ActivityDefinition. |
 | Instantané | Contenu autonome et filiation copiés au démarrage, sans relecture source ; aucun champ rang/total de niveaux ; résultats rattachés à l’exécution et ses occurrences/séries/côtés/passages |
@@ -673,7 +633,7 @@ Une représentation typée distinguera explicitement cible chiffrée et cible à
 
 Le régime identiques/variables reste indépendant du mode. En identiques, toutes les séries ont la même cible, y compris À l’échec. En variable, la collection peut mélanger cibles numériques et À l’échec ; l’ordre est conservé. Des cibles momentanément égales ne changent pas automatiquement le régime. N=1 suit la normalisation déjà actée. La Condition d’arrêt présentée est dérivée de ces cibles : aucune condition globale ni valeur Mixte n’est persistée (RM-248, RM-249).
 
-Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit de séries, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre. La charge d’une Série suit les mêmes opérations que sa cible et sa Pause (RM-238) ; elle ne porte aucune valeur distincte par côté (RM-235).
+Les mêmes prescriptions s’appliquent aux deux côtés ; leurs résultats sont distincts. Nombre hérité d’un circuit à séries alternées, ajout, suppression, copie de dernière ligne, déplacement, retour au régime identique et restauration temporaire suivent les règles existantes. Copier une cible À l’échec copie son type et sa pause, sans inventer de nombre. La charge d’une Série suit les mêmes opérations que sa cible et sa Pause (RM-238) ; elle ne porte aucune valeur distincte par côté (RM-235).
 
 Une bascule Durée/Répétitions conserve le caractère À l’échec, indépendant de l’unité. Les cibles numériques incompatibles suivent les mécanismes existants de brouillon, mise à renseigner et restauration ; aucune conversion secondes ↔ répétitions n’est introduite.
 
@@ -856,7 +816,7 @@ Le moteur d'exécution, le plan d'exécution et les structures qu'il manipule so
 
 Pour un compte borné, le plan est la représentation linéaire obtenue après résolution de la structure. Pour AMRAP/Death by, le plan cible génère progressivement les passages à partir de l’instantané et de la borne ; il n’exige pas une liste finie entièrement déroulée au départ.
 
-Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les Tours du Circuit et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Le Cycle technique enveloppe cette structure avec une répétition imposée à `1` dans le MVP ; la Fin de séance est ajoutée à la suite du plan développé.
+Le Compte à rebours initial structurellement présent, éventuellement instantané à `0 s`, les Exercices placés avant le Circuit, les Tours du Circuit et les Exercices placés après le Circuit sont développés afin d'obtenir une liste ordonnée directement exploitable. Les cycles visibles développent leurs membres selon leur compte propre (RM-252) ; la Fin de séance est ajoutée une seule fois à la suite du plan développé.
 
 ##### Contenu
 
@@ -1405,8 +1365,8 @@ Le modèle de données fonctionnel est indépendant de la technologie de persist
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- |
 | DM-001 | Le modèle cible ne possède aucun type d’Exercice `Exercice` ou `Récupération`. Une `ActivityDefinition` porte éventuellement `sideRecoverySeconds`; la récupération post-exercice est contextuelle à l’occurrence. | D-208 |
 | DM-002 | Durée intrinsèque calculable : unilatéral Σ(Ti+Pi) ; succession des côtés 2Σ(Ti+Pi)+PC ; par paire 2ΣTi+ΣPi+N×PC. N=1 normalisé succession. Occurrence calculable To=T−PN+R si R>0, sinon To=T. Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Travail + pause après chaque série, dernière comprise ; seule la dernière Pause est remplacée par la Récupération positive qui suit. Compte à rebours/Fin exclus du total intrinsèque. Aucun calcul issu de Figma ou d’Excel. | D-247/D-248/v13 |
-| DM-003 | Une séance contient un cycle unique.                                                                                                                                                                         | V1             |
-| DM-004 | Un cycle contient un Circuit unique.                                                                                                                                                                            | V1             |
+| DM-003 | Une séance peut contenir plusieurs cycles visibles ou aucun (D-451). | MVP |
+| DM-004 | Un cycle contient une suite non vide de circuits et/ou exercices directs ; aucun cycle imbriqué (D-451). | MVP |
 | DM-005 | Le cycle et le Tour sont répétés par leurs paramètres de répétition.                                                                                                                                         | V1             |
 | DM-006 | Une même Séance ou une même `ActivityDefinition` peut être planifiée par plusieurs Routines ; chaque Routine porte une liste ordonnée de références SESSION/ACTIVITY (D-328). | MVP — D-206 |
 | DM-007 | Une Exécution crée automatiquement un Instantané fonctionnel immuable et allégé de sa source (`SESSION` ou `ACTIVITY`).                                                                                                                                       | V1             |
@@ -1501,3 +1461,27 @@ Les phases forment un motif cyclique de guidage : un passage complet correspond 
 Modifier, ajouter ou supprimer une phase ne réécrit pas la cible de série. Toutes les durées de phase sont éditables, y compris sous un format à durée imposée : aucune dernière phase calculée, aucune adaptation proportionnelle pour faire tenir le motif dans la série. Une durée manquante reste à renseigner ; ne pas inventer une durée depuis l’objectif de série. Les bornes existantes des phases restent des bornes du motif, indépendantes de celles de la cible. Le retrait 2 → 1 conserve le passage à Sans mais ne remplace plus la cible par la durée restante. Sans phases conserve également la cible existante.
 
 Référence normative : [PHC-20261026](../KODJO-Phases-Guidage-Cyclique-2026-10-26.md). La règle Répétitions sans bip = non calculable concerne désormais les exercices sans phases : avec phases, R × durée du motif donne une estimation nominale, jamais une mesure. Arrêt mixte et guidage après objectif avant Suivant restent les deux points distincts décrits dans cette référence. [clos par D-446 du 26/10/2026 : l’arrêt mixte se représente par les séries variables, avec phases ; en Répétitions chiffrées, le motif continue de boucler, sans signal, entre la cible et Suivant] Les anciennes captures sont des preuves datées ; alignement Figma et code non revendiqué.
+
+
+## Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
+
+Source : instruction de Hermann du 27/10/2026. Règles 6 et 7 reproduites sans reformulation ; règle 8 remplacée par la clarification validée par Hermann le 27/10/2026. Les règles 1 à 5 et 9 sont au chapitre 10, section de même titre. Rattachement : D-437, D-439, D-445 ; lignes « Groupe sur Mouvement » et « Rang / total / suffixe - Nn » du présent chapitre.
+
+##### Règle 6 — texte de référence
+
+6. **Effet sur les données.** Le rang n'est pas une donnée : il se dérive de l'ordre des membres. Réordonner réécrit la seule clé de tri du mouvement déplacé ; aucune autre écriture n'est nécessaire et rien ne cascade. Les rangs restent contigus et sont recalculés à la lecture. Retiens la clé de tri fractionnaire ou lexicographique, qui limite l'écriture à une ligne ; une clé entière contiguë obligerait à réécrire toute la famille. [Exception technique validée par Hermann le 28/10/2026 : lorsque des déplacements répétés épuisent la précision de la clé entre deux voisines, les clés de la famille sont réécrites une fois, dans la même opération atomique (aucune renumérotation partielle en cas d'échec), en conservant identités, appartenances, associations et l'ordre attendu ; jamais à chaque déplacement. L'ordre, donc les rangs affichés, est conservé.]
+
+##### Règle 7 — texte de référence
+
+7. **Effet sur le reste.** L'identité du mouvement ne change pas. Les exercices qui le référencent continuent de le référencer, les instantanés et l'historique ne sont pas touchés, conformément à `sourceMovementId` conservé sans rang. Seul change le niveau affiché sur les cartes et l'ordre proposé dans le menu « Changer de niveau ».
+
+##### Règle 8 — clarification validée par Hermann le 27/10/2026
+
+8. **Archivage et filtres.** Archiver ou restaurer un membre conserve son appartenance et sa clé de tri ; ces opérations ne modifient pas les niveaux. [Rangs après archivage et restauration remplacés par b8-3, confirmé par Hermann le 28/10/2026 (registre, chapitre 07) : le rang affiché d'un membre actif est dérivé de l'ordre des seuls membres actifs ; un membre archivé garde son rang dans la famille complète ; appartenance, clé de tri et identités inchangées ; filtrer ne recalcule toujours pas.] Un filtre masque des membres sans recalculer les niveaux des membres visibles. Supprimer définitivement un membre peut modifier les rangs et le total affichés des membres restants, sans réécrire leurs clés de tri ni modifier leurs identités ou leurs instantanés.
+
+Le calcul porte sur la famille complète, membres archivés compris, avant filtrage. [Depuis b8-3 (28/10/2026), cela vaut pour le filtrage et pour le rang d'un membre archivé ; le rang affiché d'un actif est dérivé des seuls actifs.] Aucun rang n’est persisté et aucune place n’est réservée après suppression définitive. Cette clarification est conforme à MFN-05 et à la règle 6 ; le point est clos. Elle ne modifie pas les conditions existantes d’autorisation de suppression ni ne valide les parcours de rattachement/détachement de C08.
+
+
+## Projection Catalogue des séances — 27/10/2026
+
+La carte unique est une projection de la Séance D-449, pas une nouvelle nature d'objet. Son nombre d'exercices est le nombre de composants exercice présents dans la composition, sans multiplication par tours/cycles/séries et sans compter les récupérations. Catégories et zones proviennent des mouvements référencés ; les catégories affichées sont dédupliquées dans l'ordre de première apparition. Étiquette conservée dans les données et les filtres, absente de la carte. Visuel dérivé selon la cascade du §1 de la [spécification](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) ; aucun nouveau champ photo de séance n'est imposé. Le détail conserve l'arbre Cycle/Circuit/Exercice, au plus deux décalages ; il ne transforme pas ni n'aplatit la composition persistée. Niveaux absents du nom et de la carte, filiation et instantanés inchangés. Les règles de titre du §8 relèvent de l'édition et ne réécrivent pas automatiquement les séances existantes à la lecture du catalogue.

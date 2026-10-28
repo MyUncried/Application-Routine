@@ -1,5 +1,33 @@
 # Conception fonctionnelle par fonctionnalité
 
+## Composition — actualisation du 28/10/2026
+
+La création distingue ajout de contenu et enveloppement de membres existants. Les déplacements changent appartenance et ordre ; les séries alternées conservent N commun. Les zéros volontaires restent des lignes indexées, distinctes du tiret. Le contrat de déplacement inter-circuits précédemment futur entre dans le MVP : confirmation si perte, Annuler conserve emplacement et données. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
+## Catalogue des mouvements — composer une famille, 28/10/2026
+
+Appui long, déplacement, arrêt sur l'emplacement puis relâchement : même geste pour réordonner, sortir, créer ou rejoindre une famille. Le filet et les pastilles prévisualisent le résultat ; une famille repliée se déplie. Seul un mouvement sans famille peut être lié à une autre carte ; un changement de famille impose sortie puis liaison, en deux gestes. Le dernier couple se dissout lors d'une sortie explicite. Application immédiate, sans message pour le seul ordre ; changement d'appartenance annoncé avec Annuler pendant 3 secondes. Le tri du catalogue place le mouvement sorti, même en tête de liste. Voir [règles A à E et recette FAM-01–11](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) et CE-MVT-03. Ajouter un niveau conserve son formulaire distinct.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
+### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
+
+Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
+
+| Entrée | Choix du sens | Destination |
+| --- | --- | --- |
+| Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
+| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
+
+Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.
+
+Plus facile signifie insertion avant la source dans l'ordre de difficulté ; Plus difficile signifie après. Les flèches décrivent la difficulté, pas une position de dépose dans la liste (qui peut présenter le niveau le plus élevé en premier). La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. Préremplissage, nom unique, annulation et sauvegarde directe restent ceux de CE-MVT-01. La création de niveau depuis une séance n'est pas réintroduite.
+
+Nouvel état : **Mouvement — Catalogue — Ajouter un niveau**, `10579:21580`, après Actions glissées `10475:47634`. Le relevé du 27/10 comptait 12 états ; celui du 28/10 en compte 13 avec la création d’une famille. Le lot du 27/10 comporte 12 états, dont ces deux états intégrés au présent dossier ; cela ne clôt pas les règles de partage ou d'archivage. La livraison ciblée inclut cette entrée d'ajout de niveau, sans imposer la refonte complète du catalogue.
+
+Le relevé utilisateur signale huit libellés visibles et seize noms de calques renommés. Le relevé direct et les captures actualisées sont conservés dans `figma-mouvements-2026-10-27/ajout-niveau-glisse.json`. « Variante » reste un terme explicatif du modèle, pas le libellé de l'action. La frame `10415:21939` conserve actuellement « Moins difficile » dans son contenu : cela signifie Plus facile et ne justifie pas une troisième direction.
+
 ## Conception ciblée — fiche Mouvement
 
 Trois états fonctionnels : création indépendante/variante, consultation, édition d'un mouvement existant. La reprise d'un résultat mène à la consultation, pas à une copie. Le crayon depuis le catalogue ouvre un brouillon ; les commandes de niveau restent distinctes de l'édition du contenu. Le passage à une autre fiche protège le brouillon selon le mécanisme d'abandon existant. La sauvegarde d'une variante est directe ; le dialogue de portée concerne seulement une modification de l'identité existante. La structure des phases est éditée ici, sans aucune durée.
@@ -254,7 +282,7 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 **Charge dans le brouillon.** La charge de chaque série suit les mêmes opérations de brouillon que sa cible et sa Pause (activation et désactivation des séries variables, augmentation et réduction de N, restauration, déplacement, ✓ et ✕), sans propagation propre (RM-238). Son activation, sa saisie, le zéro, la première activation et la réactivation suivent RM-237 et RM-239. Passer à Sans ne l’efface pas : ses valeurs restent dans le brouillon et ✓ les applique au parent (RM-236). Cette conservation est propre à la charge ; elle ne modifie pas la non-persistance des variantes cachées des autres paramètres (D-403).
 
-**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
+**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit à séries alternées, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit à séries alternées, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
 
 <a id="phases-exercice"></a>
 
@@ -479,7 +507,7 @@ Les exercices sont exécutés dans l'ordre défini dans la séance.
 
 Chaque exercice est exécutée intégralement avant le passage à la suivante.
 
-Le Cycle technique est exécuté une seule fois. Le Circuit répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
+Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). Chaque circuit développe ses membres selon sa nature et son compte.
 
 Les Exercices placés après le Circuit sont exécutés une seule fois après le dernier Tour du Circuit.
 
@@ -810,3 +838,18 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). Les captures du 25/10 restent datées ; aucune nouvelle inspection ni correction de Figma n’est déclarée par cette mise à jour documentaire.
+
+
+## Catalogue des séances — parcours actualisés le 27/10/2026
+
+La [spécification carte/catalogue](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) et CE-T03-01 remplacent les parcours du catalogue autonome d'exercices dans la cible D-449. Le catalogue offre une collection de séances et les vues Un exercice/Plusieurs, désélectionnables. Le chevron du nom déploie uniquement les séances de plusieurs exercices ; il n'ouvre pas la Composition. Les entrées de modification et de lancement existantes restent distinctes. Les actions actives sont Planifier/Dupliquer/Archiver ; les archives exposent Restaurer/Supprimer dans le glissé, sans restauration ronde sur la carte. Les règles métier existantes de confirmation et de conservation d'historique restent applicables.
+
+Le panneau de filtres suit le §6 de la source : Statut, Catégories, Zones corporelles, Étiquettes, Format. Les nouvelles sections ne suppriment pas les référentiels ni leurs données. Les règles combinatoires non précisées dans la source sont signalées dans le relevé DSF, à réutiliser depuis l'existant ou à préciser pour la story filtres.
+
+### Nom de séance — trois états validés le 27/10/2026
+
+1. À l'ouverture, nom du format, en gris, non modifiable.
+2. À l'ajout du premier exercice, nom de cet exercice, éditable.
+3. À l'ajout du second exercice, invite « Entrer un nom de séance », grise et éditable ; l'obligation de nommer apparaît.
+
+Aucun suffixe de niveau dans le nom. Cette règle concerne la création/composition et sera traitée dans son lot. Les retours après retrait d'exercices et la préservation d'un titre déjà personnalisé ne sont pas spécifiés par ce texte ; aucune règle supplémentaire n'est inventée ici.

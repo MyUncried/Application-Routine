@@ -2,6 +2,7 @@
 
 
 > **Recette A/B du 27/10/2026 (Hermann).** F07 : depuis le Catalogue des Mouvements, une fiche existante s'ouvre directement en édition (plus de consultation préalable ni de crayon ; brouillon, abandon et dialogues C03 conservés ; archivé : consultation seule ; lecture seule depuis une Séance inchangée). F01/F02 : média prolongé derrière la zone de contexte sans bande blanche, zone média fixe au défilement, gabarit toujours présent. F03–F05 : « Description du mouvement » et « Phases du mouvement (pour minuter l'exécution) » en 11, mêmes marges ; phases en liste d'étapes textuelles, sans durée. F06 (MVT-09) : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`). A01 : marges de 16. Catalogue : carte selon `Carte — Mouvement` (deux premières étapes de description), « Ajouter un niveau » remplace « Créer une variante », réordonnancement par appui long dans une pile déployée, glissé réservé aux piles déployées. Détail : chapitre 07, « Recette A/B du 27/10/2026 ».
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
 
 Date : 27 octobre 2026. Statut : référence cible du lot documentaire demandé par Hermann ; aucun développement produit ni modification Figma effectué par cette mise à jour.
 
@@ -13,7 +14,7 @@ Objectif : depuis le catalogue des mouvements, créer, retrouver, consulter et m
 
 Inclus : accès minimal au catalogue et ouverture de la fiche, recherche au fil du nom, unicité, contenu, référentiels, médias, structure des phases, niveau et variante, brouillon, sauvegarde, persistance et tests automatiques. Les règles et composants déjà livrés sont réutilisés.
 
-Hors de ce lot : refonte complète des piles et filtres du catalogue, réordonnancement des familles, partage/archivage/suppression des mouvements, fusion des catalogues de séances, composition et reprise des séances, paramètres d'exécution, planification et moteur. Les entrées de catalogue hors lot ne doivent pas conduire à des actions factices ; leur livraison relève du découpage technique. Les 11 écrans de catalogue ne sont pas déclarés intégrés ici. [précisé par les arbitrages de Hermann du 27/10/2026 sur le Catalogue des Mouvements (chapitre 07) : piles et déploiement, recherche, filtres, création de variante par action glissée, archivage, restauration et suppression définitive font désormais partie du lot ; « Partager » et « Trier » restent présents mais grisés ; le réordonnancement des familles reste hors lot]
+Hors de ce lot : refonte complète des piles et filtres du catalogue, réordonnancement des familles, partage/archivage/suppression des mouvements, fusion des catalogues de séances, composition et reprise des séances, paramètres d'exécution, planification et moteur. Les entrées de catalogue hors lot ne doivent pas conduire à des actions factices ; leur livraison relève du découpage technique. La refonte complète du catalogue reste hors lot ; les états Actions glissées et Ajouter un niveau sont intégrés par le complément du 27/10 ci-dessous. [précisé par les arbitrages de Hermann du 27/10/2026 sur le Catalogue des Mouvements (chapitre 07) : piles et déploiement, recherche, filtres, création de variante par action glissée, archivage, restauration et suppression définitive font désormais partie du lot ; « Partager » et « Trier » restent présents mais grisés ; le réordonnancement des familles reste hors lot] [Réordonnancement et composition des familles intégrés ensuite : B08 (recette A/B du 27/10/2026) et lot Familles de PRE-8 (28/10/2026).]
 
 ## 2. Contenu et invariants
 
@@ -35,6 +36,25 @@ Conserver R01–R08 de la [spécification v7](KODJO-Niveaux-Recherche-Parcours-R
 Nom unique après normalisation des espaces, casse et accents : contrôle pendant la saisie et à l'enregistrement, en excluant l'identité éditée. La normalisation de recherche n'autorise pas à fusionner des noms. Les alias peuvent être partagés. L'erreur indique « Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom. » et conserve le brouillon.
 
 ### Variante et niveau
+
+### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
+
+Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
+
+| Entrée | Choix du sens | Destination |
+| --- | --- | --- |
+| Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
+| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
+
+Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.
+
+Plus facile signifie insertion avant la source dans l'ordre de difficulté ; Plus difficile signifie après. Les flèches décrivent la difficulté, pas une position de dépose dans la liste (qui peut présenter le niveau le plus élevé en premier). La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. Préremplissage, nom unique, annulation et sauvegarde directe restent ceux de CE-MVT-01. La création de niveau depuis une séance n'est pas réintroduite.
+
+Nouvel état : **Mouvement — Catalogue — Ajouter un niveau**, `10579:21580`, après Actions glissées `10475:47634`. Le relevé du 27/10 comptait 12 états ; celui du 28/10 en compte 13 avec la création d’une famille. Le lot du 27/10 comporte 12 états, dont ces deux états intégrés au présent dossier ; cela ne clôt pas les règles de partage ou d'archivage. La livraison ciblée inclut cette entrée d'ajout de niveau, sans imposer la refonte complète du catalogue.
+
+Le relevé utilisateur signale huit libellés visibles et seize noms de calques renommés. Le relevé direct et les captures actualisées sont conservés dans `figma-mouvements-2026-10-27/ajout-niveau-glisse.json`. « Variante » reste un terme explicatif du modèle, pas le libellé de l'action. La frame `10415:21939` conserve actuellement « Moins difficile » dans son contenu : cela signifie Plus facile et ne justifie pas une troisième direction.
+
 
 Depuis un résultat du catalogue ou « Ajouter un niveau », choisir une variante plus facile/moins difficile, puis ouvrir un formulaire vierge : reprendre uniquement catégorie, zones corporelles et nom commencé ; description, médias et phases restent à saisir. L'invite grise « (compléter le nom) » disparaît à la reprise de saisie et ne fait jamais partie du nom enregistré. Le nom final doit rester unique.
 
@@ -74,7 +94,7 @@ La revue du document de clôture ne valide pas ses décisions A à D (formats, n
 
 ## 4. Contrat, captures et design system
 
-Contrat normatif **CE-MVT-01**, chapitre 13 ; inventaire/captures, chapitre 06 ; composants et correspondances tokens, chapitre 12. Les 25 états sont conservés comme preuves visuelles, sans devenir 25 écrans de navigation à implémenter.
+Contrats normatifs **CE-MVT-01** et **CE-MVT-02**, chapitre 13 ; inventaire/captures, chapitre 06 ; composants et correspondances tokens, chapitre 12. Les 25 états sont conservés comme preuves visuelles, sans devenir 25 écrans de navigation à implémenter.
 
 Relevés : [écrans et textes](figma-mouvements-2026-10-27/ecrans.json), [composants et tokens de la fiche](figma-mouvements-2026-10-27/composants-tokens.json), [manifeste des captures](figma-mouvements-2026-10-27/captures.json).
 
@@ -104,6 +124,7 @@ Relevés : [écrans et textes](figma-mouvements-2026-10-27/ecrans.json), [compos
 | MVT-08 — correction partagée | Contenu courant actualisé, paramètres locaux conservés, instantanés/exécution en cours inchangés |
 | MVT-09 — phases | Identités stables au déplacement, nouvelle phase sans durée inventée ; aucune durée ni cible de série sur la fiche |
 | MVT-10 — brouillon et erreur | Annulation de dialogue conserve la saisie ; abandon confirmé ne persiste rien ; erreur d'enregistrement conserve les valeurs pour réessayer |
+| MVT-12 — ajout de niveau dans le glissé | Déploiement sans navigation ; boutons et flèches ; cartes suivantes décalées et filet allongé ; Plus facile/difficile ouvre directement le formulaire ; fermeture sans création ; entrée depuis résultats proches conservée |
 | MVT-11 — UI | Photo/contexte, description/phases, clavier, scroll, safe areas, titres/pastilles et accessibilité conformes au contrat ; ajout/consultation/retrait/réordonnancement des médias inchangés |
 
 Exécuter les tests automatiques pertinents existants et étendre leur couverture au nouveau parcours ; ne pas recréer les algorithmes de recherche ou le modèle de mouvement. La revue documentaire ne constitue pas une recette du produit. Aucune migration de données historiques n'est exigée pour cette refonte, conformément à l'autorisation de repartir d'une base vierge ; ne pas réinitialiser une base pendant une simple mise à jour documentaire.

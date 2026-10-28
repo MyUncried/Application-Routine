@@ -1142,3 +1142,8 @@ MFN/AC désigne le périmètre des recettes MFN ; les autres identifiants AC res
 ## D-445 — Clôture fonctionnelle
 
 C01–C07 et C09 clos ; C08 différé. Règles MFN-03/04/06/07/08/09/10/11 actualisées ; recettes MFN/AC01–45. Modèle actif : 04/09 ; API : 11 ; architecture : 12 ; contrats CE-T03-04, CE-T03-07/08, CE-UI-10 et CE-UI-NIV-01 : 13. Spécification v7 et prompt v7 référencés dans INDEX. Les identifiants C ne constituent plus des réserves ouvertes, sauf le périmètre C08.
+
+
+## Composition — correspondance du 28/10/2026
+
+D-451 : registre chapitre 07 ; RM-252 et SU-04 : chapitre 10 ; CS-D1 à CS-D8 : référence Composition du 28/10. D-442/D-443 partiellement remplacées sur les en-têtes ; D-232/D-430 sur le minimum de cible de série. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).

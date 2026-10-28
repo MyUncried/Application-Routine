@@ -25,15 +25,15 @@ development_status:
   b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
   b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
   fam-familles-de-niveaux-geste: done  # lot ciblé du 28/10 (règles A à E, main 0a40735f) ; recette iPhone FAM-01 à FAM-11 et passes 2 à 4 OK ; clôturé le 28/10 (spec-familles-mouvements-2026-10-28.md § 13) ; VoiceOver reporté, pointillé accepté provisoirement ; epic B non rouvert
-  epic-e: in-progress  # E.1–E.7 et E.8-a développés le 28/10 (bilan-epic-e-2026-10-28.md) ; recette iPhone du 28/10 : 70 OK, 2 KO corrigés, 7 non testés (recette-iphone-epic-e-resultats-2026-10-28.md) ; passe ciblée de Hermann requise avant clôture ; intégration documentaire de main soumise à décision
+  epic-e: done  # clôturé le 28/10 (« Clôture définitive de PRE-8 ») : E.1–E.7 et E.8-a ; recette iPhone et passes ciblées OK ; e2-11 accepté sur tests automatiques ; six points VoiceOver reportés au lot d'accessibilité de fin de MVP (recette-iphone-epic-e-resultats-2026-10-28.md)
   e-1-projection-catalogue: done  # listCatalogue + projectSessionForCatalogue, sans migration
   e-2-carte-commune-catalogue: done  # carte unique ; Lecture indisponible (aucune Exécution) ; réserve R-E1 (format de durée D-443)
   e-3-deploiement-composition: done  # Cycles et Circuits multiples vérifiés par les tests automatiques seulement (epic C)
   e-4-ecran-segment-seances: done  # trois segments, bascule de vue, rangée responsive Q-E4 ; livrée avec E.8-a
   e-5-cycle-de-vie-actions-glissees: done  # archiver / restaurer / supprimer sans migration ; Planifier grisé
   e-6-filtres-seances: done  # Q-E3 option B (agrégé), Q-E5 option A (Libre seul) ; primitives de feuille mutualisées avec les Mouvements
-  e-7-raccordements-recette: done  # code et tests ; recette iPhone à réaliser par Hermann (recette-iphone-epic-e.md)
-  e-8-transition-exercices-catalogue: in-progress  # E.8-a done (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b hors E (avec ou après l’epic C, autorisation distincte)
+  e-7-raccordements-recette: done  # code, tests et recette iPhone du 28/10 (recette-iphone-epic-e-resultats-2026-10-28.md)
+  e-8-transition-exercices-catalogue: done  # E.8-a livré (Modifier dans la sélection d’Exercices, sans migration) ; E.8-b reporté hors PRE-8 (avec ou après l’epic C, autorisation distincte)
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats
 deferred:
   - id: q-e0
@@ -78,9 +78,11 @@ deferred:
     epic: b
     status: constate-sans-correction
     question: "ch09 règle 6 : écrire la seule clé du membre déplacé ; MovementRepository.reorder (PRE-7) réécrit la famille."
+    note: "Clôture PRE-8 (28/10) : le geste du Catalogue (lot Familles) n'écrit que la clé du Mouvement déplacé ; le réordonnancement depuis le menu de la fiche (reorder) réécrit encore toute la famille. Limite connue, non bloquante, reportée."
   - id: menu-niveau-largeur
     epic: b
-    status: arbitrage
+    status: tranche
+    decision: "Hermann, recette du 27/10, troisième passage : « Garde le menu natif d'iOS » (ch07) ; largeur et taille du texte fixées par le système."
     question: "Élargir le menu Niveau sur iOS pour que les noms tiennent sur une ligne (largeur et taille du texte fixées par le système)."
     options: "A : panneau KODJO sur iOS (exception à la primitive native, autorisation explicite requise) ; B : menu natif, libellés raccourcis ; C : autre ou laisser tel quel."
   - id: filets-groupes-filtres

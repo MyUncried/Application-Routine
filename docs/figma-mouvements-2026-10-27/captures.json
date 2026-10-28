@@ -1,7 +1,7 @@
 {
   "fileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
   "pageId": "510:101",
-  "scope": "25 états fiche/création ; catalogue complet hors lot",
+  "scope": "25 états fiche/création, 2 états catalogue (actions et ajout de niveau), 2 composants DSF ; catalogue complet hors lot",
   "captures": [
     {
       "nodeId": "10415:21706",
@@ -22,7 +22,7 @@
         402,
         874
       ],
-      "sha256": "f03d4e901f9c944d7fc5131b971e587c070c44ae95210293e0ee77985af6ddc9",
+      "sha256": "8a90127caec13b5c5cb51144d0f9b185f4a519a6ae5fa71ce19bf72db5e5c0f9",
       "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21713"
     },
     {
@@ -33,7 +33,7 @@
         402,
         874
       ],
-      "sha256": "ebfa7e1d643eaf1797d3d87dcccabded34922339ac169a8da888daf903624ce5",
+      "sha256": "d225776cbf7da94c0a5f65736f0926935ab8099f903cc67a3a74e2f560894cf6",
       "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21814"
     },
     {
@@ -44,23 +44,23 @@
         402,
         874
       ],
-      "sha256": "055695977737afd35ab9ddc8da2bf92961aa7b77fb3c193fcbf70395e90a95af",
+      "sha256": "a9a471c7922593da347a7cf415fdaa311410dfb46bf0bfb5f1a2b674e06f6e58",
       "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21916"
     },
     {
       "nodeId": "10415:21939",
-      "name": "Mouvement — Variante, plus ou moins difficile",
+      "name": "Mouvement — Niveau, plus facile ou plus difficile",
       "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21939.png",
       "size": [
         402,
         874
       ],
-      "sha256": "37c4c6e0fa06e4477bd91327350d24b278df60bf199547a51e1068a9930871d9",
+      "sha256": "98866230b2b96c7b100ec21ab112443b92ef4349688abf78858a9ee4db3428bb",
       "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10415-21939"
     },
     {
       "nodeId": "10415:21980",
-      "name": "Mouvement — Variante, formulaire vierge",
+      "name": "Mouvement — Niveau, formulaire vierge",
       "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10415-21980.png",
       "size": [
         402,
@@ -277,6 +277,50 @@
       ],
       "sha256": "c7ec414fc4d4a3091cc57a6d587102f5258d57caf3e1f3015961b4d5837c9168",
       "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10453-23030"
+    },
+    {
+      "nodeId": "10579:21580",
+      "name": "Mouvement — Catalogue — Ajouter un niveau",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10579-21580.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "43ba1403a3d23bf6bb34eee47e80c89718d6b465530bc3b24036cf96a47fcef3",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10579-21580"
+    },
+    {
+      "nodeId": "10475:47634",
+      "name": "Mouvement — Catalogue — Actions glissées",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10475-47634.png",
+      "size": [
+        402,
+        874
+      ],
+      "sha256": "1c6b27d3bda5fc0d9f9fcea59abc76f992b18e16a620a92ff72b402eecf48159",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10475-47634"
+    },
+    {
+      "nodeId": "10586:45516",
+      "name": "DSF / Actions glissées / Mouvement",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10586-45516.png",
+      "size": [
+        204,
+        80
+      ],
+      "sha256": "9e7d91a09893449bcce082fa2dceef87cd389797b87e2beaaf6dbec4411cec8e",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10586-45516"
+    },
+    {
+      "nodeId": "10586:45517",
+      "name": "DSF / Actions glissées / Mouvement — Choix du sens",
+      "file": "Specifications-fonctionnelles/images/mouvements-2026-10-27/10586-45517.png",
+      "size": [
+        204,
+        56
+      ],
+      "sha256": "04dba639460ec99e1ceffdebfe032029c0e5b3328db523234cd157f3e41bbdc9",
+      "figmaUrl": "https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10586-45517"
     }
   ]
 }

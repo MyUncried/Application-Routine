@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-28",
+  "scope": "documentation uniquement",
+  "checks": {
+    "liens_locaux_ajoutes_verifies": 40,
+    "png_signatures_dimensions_sha256": 3,
+    "source_utilisateur_conservee_verbatim": true,
+    "recettes_documentees": 11,
+    "navigation_existante": "PASS: 62 screens, 67 captures, 10 exact SVG exports and code registrations",
+    "renumerotation": "Recalculée ; aucun écart signalé"
+  },
+  "application_tests": "Non exécutés : aucun code applicatif modifié."
+}

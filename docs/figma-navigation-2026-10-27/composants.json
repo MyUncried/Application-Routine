@@ -1,0 +1,3414 @@
+{
+  "parent": {
+    "id": "6513:20151",
+    "name": "Navigation / Bottom — 5 onglets",
+    "type": "COMPONENT_SET"
+  },
+  "variants": [
+    {
+      "id": "6513:20152",
+      "name": "Active=Catalogue, Badge=Aucune",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 0,
+      "y": 0,
+      "visible": true,
+      "children": [
+        {
+          "id": "6513:20154",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6513:20155",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 26.399999618530273,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6513:20156",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 26.399999618530273,
+          "y": 45,
+          "visible": true,
+          "text": "Catalogues"
+        },
+        {
+          "id": "6513:20160",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20161",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20162",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20163",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20164",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20165",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20166",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20264",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20256",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20257",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6513:20168",
+      "name": "Active=Calendar, Badge=Aucune",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 442,
+      "y": 0,
+      "visible": true,
+      "children": [
+        {
+          "id": "6513:20170",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6513:20171",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 97.19999694824219,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6513:20172",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 97.19999694824219,
+          "y": 45,
+          "visible": true,
+          "text": "Calendrier"
+        },
+        {
+          "id": "6513:20176",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20177",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20178",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20179",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20180",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20181",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20182",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20275",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20267",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20268",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6513:20184",
+      "name": "Active=History, Badge=Aucune",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 884,
+      "y": 0,
+      "visible": true,
+      "children": [
+        {
+          "id": "6513:20186",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6513:20187",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 168,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6513:20188",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 168,
+          "y": 45,
+          "visible": true,
+          "text": "Suivi"
+        },
+        {
+          "id": "6513:20192",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20193",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20194",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20195",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20196",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20197",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20198",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20286",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20278",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20279",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6513:20200",
+      "name": "Active=Profile, Badge=Aucune",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1768,
+      "y": 0,
+      "visible": true,
+      "children": [
+        {
+          "id": "6513:20202",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6513:20203",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 309.6000061035156,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6513:20207",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20208",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20209",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20210",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20211",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6513:20212",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20213",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20297",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6513:20215",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 309.6000061035156,
+          "y": 45,
+          "visible": true,
+          "text": "Profil"
+        },
+        {
+          "id": "6514:20289",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20290",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6514:20240",
+      "name": "Active=Community, Badge=Aucune",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1326,
+      "y": 0,
+      "visible": true,
+      "children": [
+        {
+          "id": "6514:20242",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6514:20243",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 78,
+          "height": 50,
+          "x": 232.8000030517578,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6514:20244",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 78,
+          "height": 16,
+          "x": 232.8000030517578,
+          "y": 45,
+          "visible": true,
+          "text": "Communauté"
+        },
+        {
+          "id": "6514:20248",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20249",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20250",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20251",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20252",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:20253",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:20254",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:23009",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6514:23001",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6514:23002",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20273",
+      "name": "Active=Catalogue, Badge=1-9",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 0,
+      "y": 107,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20275",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20276",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 26.399999618530273,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20277",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 26.399999618530273,
+          "y": 45,
+          "visible": true,
+          "text": "Catalogues"
+        },
+        {
+          "id": "6515:20278",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20279",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20280",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20281",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20282",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20283",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20284",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20285",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20286",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20287",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20307",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 18,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20308",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 8,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20309",
+      "name": "Active=Catalogue, Badge=10-99",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 0,
+      "y": 214,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20311",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20312",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 26.399999618530273,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20313",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 26.399999618530273,
+          "y": 45,
+          "visible": true,
+          "text": "Catalogues"
+        },
+        {
+          "id": "6515:20314",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20315",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20316",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20317",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20318",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20319",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20320",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20321",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20322",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20323",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20343",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 23,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20344",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 13,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20345",
+      "name": "Active=Catalogue, Badge=99+",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 0,
+      "y": 321,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20347",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20348",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 26.399999618530273,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20349",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 26.399999618530273,
+          "y": 45,
+          "visible": true,
+          "text": "Catalogues"
+        },
+        {
+          "id": "6515:20350",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20351",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20352",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20353",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20354",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20355",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20356",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20357",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20358",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20359",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20379",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 32,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20380",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 22,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "99+"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20381",
+      "name": "Active=Calendar, Badge=1-9",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 442,
+      "y": 107,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20383",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20384",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 97.19999694824219,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20385",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 97.19999694824219,
+          "y": 45,
+          "visible": true,
+          "text": "Calendrier"
+        },
+        {
+          "id": "6515:20386",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20387",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20388",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20389",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20390",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20391",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20392",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20393",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20394",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20395",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20415",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 18,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20416",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 8,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20417",
+      "name": "Active=Calendar, Badge=10-99",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 442,
+      "y": 214,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20419",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20420",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 97.19999694824219,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20421",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 97.19999694824219,
+          "y": 45,
+          "visible": true,
+          "text": "Calendrier"
+        },
+        {
+          "id": "6515:20422",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20423",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20424",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20425",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20426",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20427",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20428",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20429",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20430",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20431",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20451",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 23,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20452",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 13,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20453",
+      "name": "Active=Calendar, Badge=99+",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 442,
+      "y": 321,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20455",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20456",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 97.19999694824219,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20457",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 97.19999694824219,
+          "y": 45,
+          "visible": true,
+          "text": "Calendrier"
+        },
+        {
+          "id": "6515:20458",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20459",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20460",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20461",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20462",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20463",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20464",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20465",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20466",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20467",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20487",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 32,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20488",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 22,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "99+"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20489",
+      "name": "Active=History, Badge=1-9",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 884,
+      "y": 107,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20491",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20492",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 168,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20493",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 168,
+          "y": 45,
+          "visible": true,
+          "text": "Suivi"
+        },
+        {
+          "id": "6515:20494",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20495",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20496",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20497",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20498",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20499",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20500",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20501",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20502",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20503",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20523",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 18,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20524",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 8,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20525",
+      "name": "Active=History, Badge=10-99",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 884,
+      "y": 214,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20527",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20528",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 168,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20529",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 168,
+          "y": 45,
+          "visible": true,
+          "text": "Suivi"
+        },
+        {
+          "id": "6515:20530",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20531",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20532",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20533",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20534",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20535",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20536",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20537",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20538",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20539",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20559",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 23,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20560",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 13,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20561",
+      "name": "Active=History, Badge=99+",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 884,
+      "y": 321,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20563",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20564",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 168,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20565",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 168,
+          "y": 45,
+          "visible": true,
+          "text": "Suivi"
+        },
+        {
+          "id": "6515:20566",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20567",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20568",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20569",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20570",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20571",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20572",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20573",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20574",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20575",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20595",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 32,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20596",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 22,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "99+"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20597",
+      "name": "Active=Community, Badge=1-9",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1326,
+      "y": 107,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20599",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20600",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 78,
+          "height": 50,
+          "x": 232.8000030517578,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20601",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 78,
+          "height": 16,
+          "x": 232.8000030517578,
+          "y": 45,
+          "visible": true,
+          "text": "Communauté"
+        },
+        {
+          "id": "6515:20602",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20603",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20604",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20605",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20606",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20607",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20608",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20609",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20610",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20611",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20631",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 18,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 13,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20632",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 8,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20633",
+      "name": "Active=Community, Badge=10-99",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1326,
+      "y": 214,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20635",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20636",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 78,
+          "height": 50,
+          "x": 232.8000030517578,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20637",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 78,
+          "height": 16,
+          "x": 232.8000030517578,
+          "y": 45,
+          "visible": true,
+          "text": "Communauté"
+        },
+        {
+          "id": "6515:20638",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20639",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20640",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20641",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20642",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20643",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20644",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20645",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20646",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20647",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20667",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 23,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 13,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20668",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 13,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20669",
+      "name": "Active=Community, Badge=99+",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1326,
+      "y": 321,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20671",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20672",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 78,
+          "height": 50,
+          "x": 232.8000030517578,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20673",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 78,
+          "height": 16,
+          "x": 232.8000030517578,
+          "y": 45,
+          "visible": true,
+          "text": "Communauté"
+        },
+        {
+          "id": "6515:20674",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20675",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20676",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20677",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20678",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20679",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20680",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20681",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20682",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20683",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20703",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 32,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 13,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20704",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 22,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "99+"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20705",
+      "name": "Active=Profile, Badge=1-9",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1768,
+      "y": 107,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20707",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20708",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 309.6000061035156,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20709",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20710",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20711",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20712",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20713",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20714",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20715",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20716",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20717",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 309.6000061035156,
+          "y": 45,
+          "visible": true,
+          "text": "Profil"
+        },
+        {
+          "id": "6515:20718",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20719",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20739",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 18,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20740",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 8,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "3"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20741",
+      "name": "Active=Profile, Badge=10-99",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1768,
+      "y": 214,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20743",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20744",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 309.6000061035156,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20745",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20746",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20747",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20748",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20749",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20750",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20751",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20752",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20753",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 309.6000061035156,
+          "y": 45,
+          "visible": true,
+          "text": "Profil"
+        },
+        {
+          "id": "6515:20754",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20755",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20775",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 23,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20776",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 13,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "12"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "6515:20777",
+      "name": "Active=Profile, Badge=99+",
+      "type": "COMPONENT",
+      "width": 402,
+      "height": 77,
+      "x": 1768,
+      "y": 321,
+      "visible": true,
+      "children": [
+        {
+          "id": "6515:20779",
+          "name": "Navigation compacte — barre",
+          "type": "RECTANGLE",
+          "width": 354,
+          "height": 62,
+          "x": 24,
+          "y": 8,
+          "visible": true
+        },
+        {
+          "id": "6515:20780",
+          "name": "Navigation compacte — actif",
+          "type": "RECTANGLE",
+          "width": 66,
+          "height": 50,
+          "x": 309.6000061035156,
+          "y": 14,
+          "visible": true
+        },
+        {
+          "id": "6515:20781",
+          "name": "Boîte icône navigation — Catalogue",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 43.400001525878906,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20782",
+              "name": "Icône navigation — Catalogue (icon/catalogue)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20783",
+          "name": "Boîte icône navigation — Calendrier",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 114.19999694824219,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20784",
+              "name": "Icône navigation — Calendrier (icon/calendrier)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20785",
+          "name": "Boîte icône navigation — Suivi",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 185,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20786",
+              "name": "Icône navigation — Suivi (icon/suivi)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20787",
+          "name": "Boîte icône navigation — Profil",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 326.6000061035156,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20788",
+              "name": "Icône navigation — Profil (icon/profil-personne)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20789",
+          "name": "Navigation compacte — libellé actif",
+          "type": "TEXT",
+          "width": 66,
+          "height": 16,
+          "x": 309.6000061035156,
+          "y": 45,
+          "visible": true,
+          "text": "Profil"
+        },
+        {
+          "id": "6515:20790",
+          "name": "Boîte icône navigation — Communauté",
+          "type": "FRAME",
+          "width": 32,
+          "height": 32,
+          "x": 255.8000030517578,
+          "y": 21,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20791",
+              "name": "Icône navigation — Communauté (icon/profil)",
+              "type": "INSTANCE",
+              "width": 24,
+              "height": 24,
+              "x": 4,
+              "y": 4,
+              "visible": true
+            }
+          ]
+        },
+        {
+          "id": "6515:20811",
+          "name": "Pastille — compteur",
+          "type": "FRAME",
+          "width": 32,
+          "height": 18,
+          "x": 279.79998779296875,
+          "y": 17,
+          "visible": true,
+          "children": [
+            {
+              "id": "6515:20812",
+              "name": "Valeur",
+              "type": "TEXT",
+              "width": 22,
+              "height": 14,
+              "x": 5,
+              "y": 2,
+              "visible": true,
+              "text": "99+"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

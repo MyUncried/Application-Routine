@@ -1,5 +1,7 @@
 # Modèle fonctionnel
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Modèle cible — D-449
@@ -128,7 +130,7 @@ Elle définit :
 - son nom ;
 - sa couleur ;
 - ses catégories ;
-- sa structure (Cycle technique, Circuit et Exercices) ;
+- sa structure (cycles et circuits facultatifs, exercices directs) ;
 - ses paramètres généraux ;
 - les règles de guidage.
 
@@ -364,80 +366,27 @@ Un Exercice dont le nom ou l’intention fonctionnelle est « Récupération » 
 
 ### Structure d'une séance
 
-Le modèle fonctionnel repose sur une hiérarchie : Séance → Cycle technique → Circuit → Exercice. Chaque niveau apporte une responsabilité distincte.
+La séance contient un compte à rebours initial, une séquence ordonnée d’exercices et de conteneurs facultatifs, puis une fin de séance. Circuits et cycles peuvent être multiples. Un cycle contient des exercices directs et des circuits ; un circuit contient des exercices. Aucun cycle dans un cycle, circuit dans un circuit ou séance imbriquée (D-451).
 
-Une Séance comprend, dans l'ordre :
-1. un Compte à rebours initial ;
-2. un **Cycle technique unique**, fixé à une répétition ;
-3. zéro, une ou plusieurs Exercices avant le Circuit ;
-4. un **Circuit unique**, contenant zéro, une ou plusieurs Exercices et répété de 1 à 99 fois ;
-5. zéro, une ou plusieurs Exercices après le Circuit ;
-6. une Fin de séance.
+Le cycle visible répète ses membres 1..99 fois, défaut 1. Le circuit porte 1..99 tours et une nature séries groupées ou séries alternées ; la bilatéralité reste portée par les exercices. Un exercice direct du cycle est rejoué à chaque répétition ; un exercice direct de séance est joué une fois (RM-252). Les séries alternées héritent du compte N du circuit ; le régime identiques/variables reste propre à l’exercice.
+
+Le compte à rebours et la fin sont structurels, non déplaçables, instantanés à 0 s. Les points d’arrêt et récupérations conservent leurs règles ; leur rattachement ne se déduit pas d’un fond coloré. Le plan utilise les phases existantes et se termine à SESSION_END ; les mesures de durée conservent leurs définitions, les exemples Figma ne faisant pas foi pour le calcul.
+
+### Composer une séance / Modifier une séance — Structure affichée
+
+Aucun cycle technique implicite. La hiérarchie est lisible par trois fonds et les largeurs Cycle/Circuit/Exercice, sans indentation supplémentaire des cartes. Les circuits se replient, les cycles restent déployés. Création autour de membres existants ; déplacement par appui long ; conteneur vide disparu et singleton conservé. Voir [Composition : circuits, cycles et création](../KODJO-Composition-conteneurs-2026-10-28.md).
+
+### Règles conservées : phases, mesures et gestes
 
 Dans le Plan d’Exécution d’une Séance, ces phases sont typées `INITIAL_COUNTDOWN`, `ACTIVITY`, `SERIES_PAUSE`, `SIDE_RECOVERY`, `POST_ACTIVITY_RECOVERY` et `SESSION_END`. `SIDE_RECOVERY` appartient à l’Exercice bilatéral ; `POST_ACTIVITY_RECOVERY` appartient à l’occurrence de Séance. Aucune de ces phases n’est un Exercice autonome. Seule l’expiration de `SESSION_END`, immédiate lorsque sa durée vaut `0 s`, termine normalement l’Exécution de Séance et autorise son enregistrement final.
-
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à `0 s`. Ils ne sont jamais déplaçables et n’acceptent aucun appui long de réorganisation.
 
 Un **Point d’arrêt** est un élément de Composition sans écran dédié. Il suspend l’enchaînement jusqu’à reprise explicite et son temps d’attente est exclu de la durée de la Séance.
 
 Le modèle distingue trois mesures temporelles. La **Durée synthétique des Exercices**, utilisée dans le Catalogue, développe les occurrences d’Exercices mais exclut le Compte à rebours initial et la Fin de séance ; le total affiché sous le titre du Circuit de la Composition concerne exclusivement ce Circuit (D-382). La **Durée estimée d’exécution**, utilisée pendant l’Exécution de Séance, couvre le Plan complet et inclut ces deux phases structurelles. Le **temps total écoulé** et la **Durée réelle** couvrent toutes les phases effectivement exécutées, mais excluent les Pauses déclenchées manuellement par l’utilisateur.
 
-Le **Cycle** contient le **Circuit unique** et les Exercices ordonnés avant et après ce Circuit. Sa répétition est fixée à `1` dans le MVP.
-
-Le **Circuit** regroupe une suite ordonnée d'Exercices. Les Exercices placés hors du Circuit sont exécutés une seule fois, avant le premier Tour ou après le dernier Tour selon leur position. Dans la version actuelle, aucun réglage de changement de côté n’est exposé au niveau du Circuit ; tout support technique historique de cette propriété reste fixé à `UNILATERAL` et non modifiable. La bilatéralité reste portée par les Exercices.
-
 Un **Exercice** possède un mode Durée ou Répétitions, avec une cible chiffrée ou À l’échec par Série, un nombre de Séries propre, une Pause facultative après chaque Série, dernière comprise (D-248), et, lorsqu’elle est bilatérale, une `sideRecoverySeconds` facultative entre les deux côtés. La Récupération après exercice n’est pas une propriété intrinsèque de l’Exercice : elle appartient à l’occurrence contextualisée. L’Exercice peut également définir un Compte à rebours propre et une Fin d’exercice propre, distincts des phases structurelles de la Séance.
 
-Dans le MVP :
-- une Séance contient exactement un Cycle technique ;
-- ce Cycle contient exactement un Circuit ;
-- le Cycle est exécuté une seule fois et n’est jamais exposé dans l’interface ;
-- le compte du Circuit reste configurable de 1 à 99, avec sa nature tours/séries.
-
-L'ordre général d'exécution est le suivant :
-
-```
-Compte à rebours initial
-
-Cycle technique × 1 — non affiché
-├── Exercice avant le Circuit
-├── Circuit × N
-│      ├── Exercice
-│      ├── Exercice
-│      └── Exercice
-└── Exercice après le Circuit
-
-Fin de séance
-```
-
-Le déroulement du Cycle est donc :
-
-```
-Exécuter une fois le Cycle technique :
-    Exécuter les Exercices placés avant le Circuit
-    Répéter N fois le Circuit et ses Exercices
-    Exécuter les Exercices placés après le Circuit
-```
-
-Cette organisation permet de construire des séances simples ou plus élaborées tout en conservant un nombre limité de concepts métier.
-
 Dans l’interface de Composition, un appui long sur la carte d’une **Exercice** amorce son déplacement. L’état soulevé est transitoire et ne modifie aucune donnée ; seule la dépose à une position valide déclenche la mise à jour de la position structurelle et de l’ordre. Un toucher court conserve l’ouverture de l’Exercice en modification. Cette règle ne s’applique ni au Compte à rebours initial ni à la Fin de séance. La Récupération après exercice accompagne l’occurrence déplacée ; les Points d’arrêt ne la suivent pas et gardent leur position dans la séquence. Une dépose d’Exercice qui laisserait un Point d’arrêt à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) est appliquée : le ou les Points en cause sont retirés, sans message ; pour deux Points devenus consécutifs, le premier est conservé (D-442, qui remplace le refus de D-441 ; RM-251). Un Point d’arrêt se déplace lui-même par appui long, qui le marque visuellement comme une carte soulevée, puis glisser-déposer, vers une position autorisée, tête de Circuit comprise (D-442) ; une dépose de Point interdite est refusée sans modification (D-441). Pendant un glisser, l’approche du bord haut ou bas de la zone visible fait défiler la liste (D-442). La suppression d’un Exercice suit la même règle que son déplacement : elle est appliquée et le ou les Points en cause sont retirés, sans message (D-442, recette J6 du 22/10, qui remplace le refus doux de D-441).
-
-### Composer une séance / Modifier une séance — Structure affichée
-
-La Composition est présentée comme une structure hiérarchique ordonnée et non comme un parcours de type niveaux.
-
-Elle comprend dans le MVP :
-
-- un `Compte à rebours initial` ;
-- zéro, un ou plusieurs Exercices placés avant le Circuit ;
-- un `Circuit` unique, qui peut lui-même contenir des Exercices ;
-- zéro, un ou plusieurs Exercices placés après le Circuit ;
-- une `Fin de séance`.
-
-Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Ils sont non déplaçables : aucun appui long ni aucune poignée de déplacement ne leur est associé.
-
-Le modèle conserve un Cycle technique unique dont le nombre de répétitions vaut toujours 1. Il n’est jamais affiché ni modifiable dans le MVP.
 
 ### Composition d'une séance — Principe général
 
@@ -449,11 +398,8 @@ La structure d'une séance est entièrement définie par son contenu. Aucun comp
 
 ### Composition d'une séance — Structure d'une séance
 
-Une séance est composée, dans l'ordre, des éléments suivants :
+Compte à rebours initial → séquence d’exercices, circuits et cycles → fin de séance. Chaque membre est développé dans son parent selon D-451 et RM-252.
 
-1. un compte à rebours initial ;
-2. un Cycle technique unique contenant, dans l’ordre, les Exercices placés avant le Circuit, un Circuit unique et les Exercices placés après le Circuit ;
-3. une fin de séance.
 Le Compte à rebours initial et la Fin de séance sont des éléments structurels obligatoires et ne constituent pas des Exercices. Leur durée peut être égale à 0 s.
 
 Chaque Exercice peut en outre définir un Compte à rebours propre et une Fin d’exercice propre. Un Point d’arrêt peut être inséré dans la Composition et déplacé entre les éléments autorisés ; il ne possède pas d’écran dédié et son temps d’attente est exclu de la durée de la Séance.

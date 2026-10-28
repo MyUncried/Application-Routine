@@ -1,5 +1,9 @@
 # Documentation de KODJO
 
+> **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
+
+> **Complément du 27/10 — Ajouter un niveau** : choix du sens dans le glissé du catalogue, sans écran intermédiaire. Voir [la spécification Mouvement](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md), CE-MVT-02 au chapitre 13, captures au chapitre 06 et composants au chapitre 12.
+
 > **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
 
 > **Évolution fonctionnelle validée — D-449 (26/10/2026)** : [Séance comme objet unique, six décisions closes](KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Cette cible remplace la dualité Exercice autonome/Séance, le cycle technique unique et les catalogues séparés par nature. Elle conserve Mouvement et Exercice comme composant de séance ; plusieurs cycles successifs sans imbrication ; lancement de toute la séance ; catalogue unique à vues filtrées. Le code PRE-7 et les visuels existants restent l’état livré antérieur sur ces points.
@@ -72,3 +76,9 @@ Au démarrage, résoudre le contenu courant avec les paramètres de l’exercice
 Les relations actives vers le mouvement doivent rester intègres, depuis les définitions **et les occurrences de séance**. L’absence de contrainte référentielle et la tolérance d’orphelins concernent la filiation des instantanés, pas le contenu vivant. La suppression explicite d’un mouvement encore référencé par un exercice est interdite ; son parcours reste dans C08. La suppression du dernier exercice ne supprime jamais le mouvement : un mouvement peut exister sans exercice et reste recherchable.
 
 - [PHC-20261026 — phases cycliques, compatibilité Répétitions/échec, cible de série indépendante](KODJO-Phases-Guidage-Cyclique-2026-10-26.md) : clarification normative du 26/10/2026 ; remplace les règles contraires antérieures.
+
+- [Navigation : audit des 62 écrans, contrats et dix assets — 27/10/2026](DSF-NAVIGATION-CINQ-DESTINATIONS-2026-10-27.md).
+
+- [Carte et catalogue des séances — spécification du 27/10/2026](KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md).
+- [Catalogue des séances — douze écrans, composants, tokens et écarts](DSF-CATALOGUE-SEANCES-2026-10-27.md).
+- [Périmètre proposé et prompt de préparation BMAD — Catalogue des séances](preparation/catalogue-seances-2026-10-27/PERIMETRE-ET-PROMPT-BMAD.md).

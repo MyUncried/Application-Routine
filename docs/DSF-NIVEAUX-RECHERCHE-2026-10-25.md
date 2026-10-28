@@ -1,10 +1,12 @@
 # Niveaux et recherche — intégration documentaire du 25 octobre 2026
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 > **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
 
 ## Sources et statut
 
-Le relevé visuel du 25/10 est conservé, avec les sources reçues et les captures datées. Les décisions ultérieures de Hermann ferment C01–C07 et C09 ; seul C08 reste différé. La [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md) et D-445 remplacent les prescriptions fonctionnelles contradictoires de la v6 et du relevé initial. Aucune mise à jour effective de Figma ni du code n’est revendiquée ici.
+Le relevé visuel du 25/10 est conservé, avec les sources reçues et les captures datées. Les décisions du 25/10 ferment C01–C07 et C09. C08 est complété le 28/10 pour la composition des familles depuis le catalogue, selon le renvoi en tête. La [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md) et D-445 remplacent les prescriptions fonctionnelles contradictoires de la v6 et du relevé initial. Aucune mise à jour effective de Figma ni du code n’est revendiquée ici.
 
 ## Écrans et correspondances
 
@@ -38,7 +40,7 @@ Les captures courantes sont réunies au chapitre 06. Les captures antérieures d
 
 ### Saisie et rapprochement
 
-Le panneau se superpose sous le nom, clavier visible. Dans le parcours du catalogue des mouvements, chaque carte porte **Utiliser ce mouvement** et **Créer une variante**, sans choix radio ni action globale de sélection. Depuis une séance, seule l’action **Utiliser ce mouvement** est proposée (cible du 27/10). Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
+Le panneau se superpose sous le nom, clavier visible. Dans le parcours du catalogue des mouvements, chaque carte porte **Utiliser ce mouvement** et **Ajouter un niveau**, sans choix radio ni action globale de sélection. Depuis une séance, seule l’action **Utiliser ce mouvement** est proposée (cible du 27/10). Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
 
 R03 conserve l’accès explicite à une recherche préremplie, effaçable, et l’action Voir tous les mouvements en cas de résultat vide. L’écran du catalogue ne remplace pas cette fonction. Sa représentation courante est manquante. Les seuils et le corpus automatisé R07 demeurent obligatoires ; aucune modification arbitraire des coefficients n’est introduite par le panneau.
 
@@ -94,7 +96,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
-| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C08 | Composition des familles depuis le catalogue : règles A à E du 28/10 et CE-MVT-03 ; suppression du mouvement distincte | Clos pour rattacher/détacher/dissoudre la famille ; cycle de vie du mouvement non clôturé |
 | C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
 ## Composants et tokens vérifiés
@@ -126,7 +128,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
-| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C08 | Composition des familles depuis le catalogue : règles A à E du 28/10 et CE-MVT-03 ; suppression du mouvement distincte | Clos pour rattacher/détacher/dissoudre la famille ; cycle de vie du mouvement non clôturé |
 | C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
 Les paramètres restent directement modifiables. Le crayon ouvre un brouillon du **mouvement partagé** depuis sa fiche au catalogue des mouvements (cible du 27/10, CE-MVT-01). Une reprise depuis une séance reste en lecture seule. Nom, alias, description, médias, catégorie, zones et structure des phases sont du contenu ; la commande Niveau reste active indépendamment du crayon.
@@ -164,7 +166,7 @@ Annuler conserve le brouillon et ne persiste rien. Confirmer reste visible mais 
 
 Chapitre 06 : galerie et références courantes ; 12 : inventaire de composants/tokens et gabarits ; 13 : éditeur, sélection, composition, calendrier, catalogues et contrat Niveaux. Les chapitres 03/04/05/07/08/09/10/11 et PRODUCT/INDEX tracent la portée fonctionnelle et les réserves. La matrice de traçabilité relie règles, états et recettes.
 
-La recette automatisée R07 reste requise pour toute évolution de recherche. Ajouter les scénarios Entrée sans sélection, résultat dédupliqué par mouvement, maintien des sélections filtrées, absence de réordonnancement sous appui, variante sans dialogue de correction, annulation sans résidu, transfert des quatre cas de phases, historique inchangé et classification recalculée. Les tests couvrent D-445 et MFN/AC01–45 ; C08 seul reste différé sur le périmètre MVP.
+La recette automatisée R07 reste requise pour toute évolution de recherche. Ajouter les scénarios Entrée sans sélection, résultat dédupliqué par mouvement, maintien des sélections filtrées, absence de réordonnancement sous appui, variante sans dialogue de correction, annulation sans résidu, transfert des quatre cas de phases, historique inchangé et classification recalculée. Les tests couvrent D-445 et MFN/AC01–45 ; C08 est clos pour la composition de famille depuis le catalogue (28/10) ; le parcours de suppression du mouvement reste distinct.
 
 Mission documentaire : aucun code produit, aucune donnée, aucune maquette modifiés ; pas de migration, conformément à la base vierge autorisée. Vérification des PNG, empreintes, liens locaux introduits et structure des contrats. Cette vérification ne vaut pas recette applicative.
 
@@ -178,7 +180,7 @@ Mission documentaire : aucun code produit, aucune donnée, aucune maquette modif
 - Variante 10187:20340 : reprendre catégorie et zones, conserver description/médias vierges et invite de nom non persistée.
 - Dialogues : appliquer la matrice MFN-08, dont nom modifié sans autre exercice et confirmation pour historique seul ; garder Confirmer visible avant sélection.
 - Cible du 27/10 : aucun crayon depuis une séance ; modification partagée depuis le catalogue des mouvements. Commande Niveau active indépendamment de l’édition du contenu.
-- Retirer les annotations excluant C08 du MVP ; ce périmètre est différé.
+- Retirer les annotations excluant C08 du MVP ; les règles A à E du 28/10 définissent désormais la composition des familles depuis le catalogue.
 - Conserver le rendu C06 et le catalogue C07. Le seuil de jauge générique reste un travail de représentation, sans plafond métier.
 
 Ces alignements sont documentés, non exécutés dans Figma par la présente intervention. Le blocage précédent du quota et les 43 exports complémentaires restent tracés.

@@ -99,3 +99,7 @@ Identiques sur la branche et sur `main` (`ff7600ac`) sauf mention ; aucune modif
 ## Clôture du lot Familles (28/10/2026)
 
 Patch prêt : `_bmad-output/pre8/integration-familles-cloture-2026-10-28.patch`, établi sur `origin/main` @ `0a40735f` (`git apply --check` OK sur un index temporaire). Il porte b8-3, le rééquilibrage technique exceptionnel, le libellé d'entrée définitif, le report VoiceOver, l'écart pointillé accepté provisoirement et le dépliage à l'arrêt (DSF familles, DSF Mouvements du 27/10, ch07 avec le texte de b8-3, ch09, ch10, ch13). Le ch07 de `main` ne porte pas b8-3 : le patch en reprend le texte dans son paragraphe de clôture, il ne dépend donc pas de la fusion du ch07 de la branche. Il remplace, pour ces fichiers, la section « Réserves à faire trancher » ci-dessus (réserves désormais tranchées). **Opération soumise à décision** : application lors de l'intégration documentaire de `main` ; aucune écriture dans `main` n'a été faite.
+
+## Intégration réalisée (28/10/2026, clôture de PRE-8)
+
+Fusion de `origin/main` @ `c73079e9` dans `pre8-bmad/dev` (commit de fusion local, publié avec la branche) : conflits résolus selon le présent plan ; corrections du patch `integration-familles-cloture-2026-10-28.patch` appliquées directement aux fichiers fusionnés (le patch reste comme trace) ; Q-E4 révisé, consultation en lecture seule, R-E4, R-E5 déjà présents dans le ch07 et le ch13 de la branche. La fusion de la PR dans `main` reste soumise à l'autorisation de Hermann.

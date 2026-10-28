@@ -1,0 +1,1807 @@
+{
+  "set": {
+    "id": "6214:7276",
+    "name": "DSF / Cards / Séance"
+  },
+  "variants": [
+    {
+      "id": "6214:3572",
+      "name": "Contexte=Catalogue, État=Replié",
+      "width": 370,
+      "height": 80,
+      "properties": {
+        "Contexte": "Catalogue",
+        "État": "Replié"
+      },
+      "bound": {
+        "strokeTopWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeBottomWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeLeftWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeRightWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "fills": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:2290:56"
+          }
+        ],
+        "strokes": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:6364:10579"
+          }
+        ]
+      },
+      "children": [
+        {
+          "id": "6214:3521",
+          "name": "Rectangle",
+          "type": "RECTANGLE",
+          "x": 0,
+          "y": 0,
+          "width": 4,
+          "height": 80,
+          "visible": false,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:2"
+              }
+            ]
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3522",
+          "name": "Routine information",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 229,
+          "height": 13,
+          "visible": true,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:69"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3523",
+          "name": "Zone tactile — Déployer",
+          "type": "INSTANCE",
+          "x": 263,
+          "y": 16,
+          "width": 48,
+          "height": 48,
+          "visible": false,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingLeft": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingRight": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingBottom": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "topLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "topRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3524",
+          "name": "Zone tactile — Démarrer",
+          "type": "FRAME",
+          "x": 314,
+          "y": 16,
+          "width": 48,
+          "height": 48,
+          "visible": true,
+          "bound": {
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3527",
+          "name": "Contenu texte",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 222,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3530",
+          "name": "Renforcement du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 1,
+          "width": 175,
+          "height": 18,
+          "visible": true,
+          "text": "Renforcement du genou",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 15,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4362"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:b80fe758201c8f0ec440aa89153c511568eba60e,"
+        },
+        {
+          "id": "6214:3540",
+          "name": "Étiquette — Hyrox",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 34,
+          "height": 15,
+          "visible": true,
+          "text": "Hyrox",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4364"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3546",
+          "name": "Libellé — Hyrox",
+          "type": "TEXT",
+          "x": 26,
+          "y": 2.5,
+          "width": 34,
+          "height": 15,
+          "visible": true,
+          "text": "Hyrox",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3553",
+          "name": "Catégorie — Renforcement",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 80,
+          "height": 15,
+          "visible": true,
+          "text": "Renforcement",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3565",
+          "name": "5 exercices",
+          "type": "TEXT",
+          "x": 26,
+          "y": 0.5,
+          "width": 65,
+          "height": 15,
+          "visible": true,
+          "text": "5 exercices",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3568",
+          "name": "3 tours",
+          "type": "TEXT",
+          "x": 24,
+          "y": 0.5,
+          "width": 41,
+          "height": 15,
+          "visible": true,
+          "text": "3 tours",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "8709:31902",
+          "name": "Séparateur — point médian",
+          "type": "TEXT",
+          "x": 97,
+          "y": 0,
+          "width": 5,
+          "height": 21,
+          "visible": false,
+          "text": "·",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 17,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3532",
+          "name": "≥ 11 min 3 s",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 68,
+          "height": 15,
+          "visible": true,
+          "text": "≥ 11 min 3 s",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,"
+        },
+        {
+          "id": "6214:3571",
+          "name": "Chaque lundi",
+          "type": "TEXT",
+          "x": 18,
+          "y": 0,
+          "width": 75,
+          "height": 15,
+          "visible": true,
+          "text": "Chaque lundi",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4496"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "8694:34283",
+          "name": "Format — cadre carré",
+          "type": "INSTANCE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "I8694:34283;8694:34119",
+          "name": "Nom du modèle",
+          "type": "TEXT",
+          "x": 3,
+          "y": 50,
+          "width": 58,
+          "height": 10,
+          "visible": true,
+          "text": "Libre",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 9,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10646:26554",
+          "name": "Photo — premier exercice",
+          "type": "RECTANGLE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        }
+      ]
+    },
+    {
+      "id": "6214:3625",
+      "name": "Contexte=Catalogue, État=Archivé",
+      "width": 370,
+      "height": 80,
+      "properties": {
+        "Contexte": "Catalogue",
+        "État": "Archivé"
+      },
+      "bound": {
+        "strokeTopWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeBottomWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeLeftWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeRightWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "fills": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:2290:55"
+          }
+        ],
+        "strokes": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:6364:10582"
+          }
+        ]
+      },
+      "children": [
+        {
+          "id": "6214:3574",
+          "name": "Rectangle",
+          "type": "RECTANGLE",
+          "x": 0,
+          "y": 0,
+          "width": 4,
+          "height": 80,
+          "visible": false,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:2"
+              }
+            ]
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3575",
+          "name": "Routine information",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 229,
+          "height": 13,
+          "visible": true,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:69"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3576",
+          "name": "Zone tactile — Déployer",
+          "type": "INSTANCE",
+          "x": 263,
+          "y": 16,
+          "width": 48,
+          "height": 48,
+          "visible": false,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingLeft": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingRight": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingBottom": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "topLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "topRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3577",
+          "name": "Contenu texte",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 270,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3580",
+          "name": "Gainage express",
+          "type": "TEXT",
+          "x": 0,
+          "y": 1,
+          "width": 122,
+          "height": 18,
+          "visible": true,
+          "text": "Gainage express",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 15,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4362"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:b80fe758201c8f0ec440aa89153c511568eba60e,"
+        },
+        {
+          "id": "6214:3590",
+          "name": "Étiquette — Hyrox",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 55,
+          "height": 15,
+          "visible": true,
+          "text": "Marathon",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4364"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3596",
+          "name": "Libellé — Hyrox",
+          "type": "TEXT",
+          "x": 26,
+          "y": 2.5,
+          "width": 34,
+          "height": 15,
+          "visible": true,
+          "text": "Hyrox",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3603",
+          "name": "Catégorie — Renforcement",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 80,
+          "height": 15,
+          "visible": true,
+          "text": "Renforcement",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3615",
+          "name": "4 exercices",
+          "type": "TEXT",
+          "x": 26,
+          "y": 0.5,
+          "width": 65,
+          "height": 15,
+          "visible": true,
+          "text": "4 exercices",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3618",
+          "name": "2 tours",
+          "type": "TEXT",
+          "x": 24,
+          "y": 0.5,
+          "width": 40,
+          "height": 15,
+          "visible": true,
+          "text": "2 tours",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "8709:31903",
+          "name": "Séparateur — point médian",
+          "type": "TEXT",
+          "x": 97,
+          "y": 0,
+          "width": 5,
+          "height": 21,
+          "visible": false,
+          "text": "·",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 17,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3582",
+          "name": "10 min",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 68,
+          "height": 15,
+          "visible": true,
+          "text": "10 min",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,"
+        },
+        {
+          "id": "6214:3621",
+          "name": "Chaque lundi",
+          "type": "TEXT",
+          "x": 18,
+          "y": 0,
+          "width": 75,
+          "height": 15,
+          "visible": true,
+          "text": "Chaque lundi",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4496"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3622",
+          "name": "Zone tactile — Restaurer — Gainage express",
+          "type": "FRAME",
+          "x": 311,
+          "y": 16,
+          "width": 48,
+          "height": 48,
+          "visible": false,
+          "bound": {
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "8694:34287",
+          "name": "Format — cadre carré",
+          "type": "INSTANCE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "I8694:34287;8694:34119",
+          "name": "Nom du modèle",
+          "type": "TEXT",
+          "x": 3,
+          "y": 50,
+          "width": 58,
+          "height": 10,
+          "visible": true,
+          "text": "Libre",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 9,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10646:26555",
+          "name": "Photo — premier exercice",
+          "type": "RECTANGLE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        }
+      ]
+    },
+    {
+      "id": "6214:3696",
+      "name": "Contexte=Catalogue, État=Déployé",
+      "width": 370,
+      "height": 273,
+      "properties": {
+        "Contexte": "Catalogue",
+        "État": "Déployé"
+      },
+      "bound": {
+        "strokeTopWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeBottomWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeLeftWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "strokeRightWeight": {
+          "type": "VARIABLE_ALIAS",
+          "id": "VariableID:6364:10591"
+        },
+        "fills": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:2290:56"
+          }
+        ],
+        "strokes": [
+          {
+            "type": "VARIABLE_ALIAS",
+            "id": "VariableID:6364:10579"
+          }
+        ]
+      },
+      "children": [
+        {
+          "id": "6214:3627",
+          "name": "Rectangle",
+          "type": "RECTANGLE",
+          "x": 0,
+          "y": -4,
+          "width": 4,
+          "height": 92,
+          "visible": false,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:2"
+              }
+            ]
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3628",
+          "name": "Routine information",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 229,
+          "height": 13,
+          "visible": true,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:69"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3629",
+          "name": "Zone tactile — Démarrer",
+          "type": "FRAME",
+          "x": 314,
+          "y": 21,
+          "width": 48,
+          "height": 48,
+          "visible": true,
+          "bound": {
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3632",
+          "name": "Contenu texte",
+          "type": "FRAME",
+          "x": 84,
+          "y": 8,
+          "width": 222,
+          "height": 68,
+          "visible": true,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:69"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3635",
+          "name": "Renforcement du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 1,
+          "width": 175,
+          "height": 18,
+          "visible": true,
+          "text": "Renforcement du genou",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 15,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4362"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:b80fe758201c8f0ec440aa89153c511568eba60e,"
+        },
+        {
+          "id": "6214:3645",
+          "name": "Étiquette — Hyrox",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 34,
+          "height": 15,
+          "visible": true,
+          "text": "Hyrox",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4364"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3651",
+          "name": "Libellé — Hyrox",
+          "type": "TEXT",
+          "x": 26,
+          "y": 2.5,
+          "width": 34,
+          "height": 15,
+          "visible": true,
+          "text": "Hyrox",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3658",
+          "name": "Catégorie — Renforcement",
+          "type": "TEXT",
+          "x": 28,
+          "y": 2.5,
+          "width": 80,
+          "height": 15,
+          "visible": true,
+          "text": "Renforcement",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3670",
+          "name": "5 exercices",
+          "type": "TEXT",
+          "x": 26,
+          "y": 0.5,
+          "width": 65,
+          "height": 15,
+          "visible": true,
+          "text": "5 exercices",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3673",
+          "name": "3 tours",
+          "type": "TEXT",
+          "x": 24,
+          "y": 0.5,
+          "width": 41,
+          "height": 15,
+          "visible": true,
+          "text": "3 tours",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "8709:31904",
+          "name": "Séparateur — point médian",
+          "type": "TEXT",
+          "x": 97,
+          "y": 0,
+          "width": 5,
+          "height": 21,
+          "visible": false,
+          "text": "·",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 17,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5833:4062"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "6214:3637",
+          "name": "≥ 11 min 3 s",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 68,
+          "height": 15,
+          "visible": true,
+          "text": "≥ 11 min 3 s",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:57"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:54c850fece2e94ef9a1a01c04acd6492317421b1,"
+        },
+        {
+          "id": "6214:3676",
+          "name": "Chaque lundi",
+          "type": "TEXT",
+          "x": 18,
+          "y": 0,
+          "width": 75,
+          "height": 15,
+          "visible": true,
+          "text": "Chaque lundi",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:5541:4496"
+              }
+            ]
+          },
+          "fillStyleId": "",
+          "textStyleId": "S:da1c459f1e487f351a8865172b589510a59544f7,"
+        },
+        {
+          "id": "6214:3695",
+          "name": "Zone tactile — Déployer — Renforcement du genou",
+          "type": "INSTANCE",
+          "x": 263,
+          "y": 40,
+          "width": 48,
+          "height": 48,
+          "visible": false,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingLeft": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingRight": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "paddingBottom": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4580"
+            },
+            "width": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "height": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:2290:37"
+            },
+            "topLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "topRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomLeftRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            },
+            "bottomRightRadius": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:5541:4581"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "8694:34291",
+          "name": "Format — cadre carré",
+          "type": "INSTANCE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "I8694:34291;8694:34119",
+          "name": "Nom du modèle",
+          "type": "TEXT",
+          "x": 3,
+          "y": 50,
+          "width": 58,
+          "height": 10,
+          "visible": true,
+          "text": "Libre",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 9,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10646:27318",
+          "name": "Photo — premier exercice",
+          "type": "RECTANGLE",
+          "x": 8,
+          "y": 8,
+          "width": 64,
+          "height": 64,
+          "visible": true,
+          "bound": {},
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3677",
+          "name": "Séparateur zone",
+          "type": "FRAME",
+          "x": 16,
+          "y": 74,
+          "width": 338,
+          "height": 11,
+          "visible": true,
+          "bound": {
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:6935:11533"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "6214:3679",
+          "name": "Exercices de la séance",
+          "type": "FRAME",
+          "x": 16,
+          "y": 94,
+          "width": 338,
+          "height": 165,
+          "visible": true,
+          "bound": {
+            "itemSpacing": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:6935:11533"
+            },
+            "paddingTop": {
+              "type": "VARIABLE_ALIAS",
+              "id": "VariableID:6935:11533"
+            }
+          },
+          "fillStyleId": ""
+        },
+        {
+          "id": "10666:21546",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 238,
+          "height": 15,
+          "visible": true,
+          "text": "Mobilisation du genou",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21547",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 238,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "45 s",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21549",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 238,
+          "height": 15,
+          "visible": true,
+          "text": "Cycle · 2 répétitions",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21550",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 238,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21552",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 222,
+          "height": 15,
+          "visible": true,
+          "text": "Circuit · 3 tours",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21553",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 222,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21555",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 206,
+          "height": 15,
+          "visible": true,
+          "text": "Squat assisté",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21556",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 206,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "3 × 12 reps",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21558",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 206,
+          "height": 15,
+          "visible": true,
+          "text": "Extension de jambe",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21559",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 206,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "2 × 45 s",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21561",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 222,
+          "height": 15,
+          "visible": true,
+          "text": "Récupération",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21562",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 222,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "1 min",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        },
+        {
+          "id": "10666:21564",
+          "name": "Activité déployée — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 0,
+          "y": 0,
+          "width": 238,
+          "height": 15,
+          "visible": true,
+          "text": "Étirement ischio-jambiers",
+          "font": {
+            "family": "Inter",
+            "style": "Regular",
+            "variationSettings": {
+              "wght": 400,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": ""
+        },
+        {
+          "id": "10666:21565",
+          "name": "Valeur activité — Mobilisation du genou",
+          "type": "TEXT",
+          "x": 238,
+          "y": 0,
+          "width": 100,
+          "height": 15,
+          "visible": true,
+          "text": "30 s",
+          "font": {
+            "family": "Inter",
+            "style": "Medium",
+            "variationSettings": {
+              "wght": 500,
+              "slnt": 0
+            }
+          },
+          "fontSize": 12,
+          "bound": {},
+          "fillStyleId": "",
+          "textStyleId": "S:6ffe5eaa32d7dd368034a08287ec2c53fefbb05a,"
+        }
+      ]
+    }
+  ]
+}

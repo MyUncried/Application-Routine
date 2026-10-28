@@ -1,8 +1,10 @@
 # KODJO — Niveaux, recherche et mouvement partagé — v7
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 > **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
 
-Date : 25 octobre 2026. Statut : décisions C01–C07 et C09 validées par Hermann ; C08 seul reste différé sur son périmètre MVP. D-445.
+Date : 25 octobre 2026. Statut : décisions C01–C07 et C09 validées par Hermann ; C08 a été complété le 28/10 pour la composition des familles depuis le catalogue (renvoi en tête). D-445.
 
 Cette version remplace la v6 dans les points ci-dessous. Les sources v6 et le relevé Figma initial restent des preuves historiques, pas des instructions concurrentes. Les décisions sont intégrées aux chapitres 01 à 13 et aux contrats. Ce document ne prétend pas que le code ni les maquettes ont déjà été alignés.
 
@@ -19,7 +21,7 @@ KODJO est généraliste, fitness first. Mouvement, exercice, niveau et paramètr
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
-| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C08 | Composition des familles depuis le catalogue : règles A à E du 28/10 et CE-MVT-03 ; suppression du mouvement distincte | Clos pour rattacher/détacher/dissoudre la famille ; cycle de vie du mouvement non clôturé |
 | C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
 ## 2. Modèle et cycle de vie
@@ -79,7 +81,7 @@ Affichage conforme au relevé : pastille « Niveau N », commande vide « Niveau
 
 Le catalogue d’entretien des mouvements peut exister, avec représentation des groupes en piles ; il ne remplace pas la recherche dans la création, y compris depuis une séance. Aucun détour obligatoire par ce catalogue. La recherche inclut les mouvements sans exercice et ceux créés localement.
 
-**C08 :** rattacher un indépendant, détacher et supprimer un niveau ne sont ni inclus ni exclus du MVP par cette clôture. Distinguer retrait du groupe (mouvement conservé) et suppression du mouvement. Le mouvement survit dans tous les cas à la suppression des exercices qui l’utilisent.
+**C08 — actualisé le 28/10 :** rattacher un indépendant, détacher et dissoudre une famille depuis le catalogue sont définis par les règles A à E et CE-MVT-03. La suppression du mouvement reste un parcours distinct. Distinguer retrait du groupe (mouvement conservé) et suppression du mouvement. Le mouvement survit dans tous les cas à la suppression des exercices qui l’utilisent.
 
 ## 6. Recherche et tests automatiques
 
@@ -185,7 +187,7 @@ L'écran s'ouvre avec le nom saisi comme requête, préremplie et effaçable. **
 
 Un résultat représente un mouvement, pas un exercice paramétré. Utiliser les composants Carte — Mouvement et Carte — Mouvement — Résultat (références du DSF du 25/10). Montrer nom, média et contexte permettant le choix, dont description, zones et origine locale si nécessaire. Un mouvement local reste proposable sans publication d’un exercice Catalogue. `9959:19623` est désormais un catalogue d’entretien ; ce n’est plus la référence du sélecteur de création.
 
-Dans le panneau sous le nom, cinq résultats au maximum ; deux actions internes : Utiliser ce mouvement / Créer une variante. Entrée ne sélectionne pas de résultat. L’ordre ne change pas pendant un appui. L’accès explicite à la recherche reste disponible selon R03.
+Dans le panneau sous le nom, cinq résultats au maximum ; deux actions internes : Utiliser ce mouvement / Ajouter un niveau. Entrée ne sélectionne pas de résultat. L’ordre ne change pas pendant un appui. L’accès explicite à la recherche reste disponible selon R03.
 
 ### R05 — Alias
 

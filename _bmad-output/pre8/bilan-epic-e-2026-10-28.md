@@ -73,3 +73,7 @@ Code : `src/domain/sessions/SessionRepository.ts`, `src/infrastructure/database/
 - Suite complète de fin d'epic (après correction D-391) : **218 suites, 4714 tests, tous verts** (724 s) ; `tsc --noEmit` et ESLint (`src`, `app`) sans erreur ni avertissement.
 - Commits de l'epic : `d0a0eaa1` (E.1), `badf897d` (E.2), `ee999237` (E.3), `6fe62f60` (E.5), `255cddb2` (E.4 + E.8-a), `0d603165` (E.6), puis le commit E.7 qui contient ce bilan (`git log -1`).
 - État Git attendu après ce commit : `pre8-bmad/dev` propre, en avance sur `origin/pre8-bmad/dev` s'il existe, non poussée ; `main` non fusionnée.
+
+## Clôture (28/10/2026)
+
+Epic E clos sur décision de Hermann (« Clôture définitive de PRE-8 ») : recette iPhone et passes ciblées OK ; `e2-11` accepté sur tests automatiques ; points VoiceOver `e2-08`, `e3-07`, `e4-03`, `e5-13`, `e6-10`, `e8-08` reportés au lot d'accessibilité de fin de MVP ; E.8-b hors PRE-8. Corrections de recette : `bf2f7ff0`, `e02fc9be`, `4f66f26c`. Documentation réconciliée (`fad19d93`, `5e61cea6`) et intégrée à la fusion de `main`.

@@ -1,0 +1,1010 @@
+{
+  "screens": [
+    {
+      "id": "10579:21580",
+      "name": "Mouvement — Catalogue — Ajouter un niveau",
+      "texts": [
+        "Catalogue des séances",
+        "Catalogues",
+        "9:41",
+        "Catalogue",
+        "Mouvements",
+        "Séances",
+        "Programmes",
+        "Squats sautés",
+        "Descente contrôlée puis saut, réception souple, genoux fléchis.",
+        "Niveau 3",
+        "Fentes avant",
+        "Grand pas en avant, genou arrière proche du sol, buste droit.",
+        "",
+        "Gainage sur les genoux",
+        "Appui sur les avant-bras et les genoux, bassin aligné.",
+        "Niveau 2",
+        "Mobilisation du genou",
+        "Assis, jambe tendue puis fléchie lentement, sans douleur.",
+        "Rechercher",
+        "Squats assistés",
+        "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée.",
+        "Niveau 1",
+        "Archiver",
+        "Squats",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol.",
+        "Ajouter un niveau",
+        "Partager",
+        "Plus facile",
+        "Plus difficile"
+      ],
+      "components": []
+    },
+    {
+      "id": "10475:47634",
+      "name": "Mouvement — Catalogue — Actions glissées",
+      "texts": [
+        "Catalogue des séances",
+        "Catalogues",
+        "9:41",
+        "Catalogue",
+        "Mouvements",
+        "Séances",
+        "Programmes",
+        "Squats sautés",
+        "Descente contrôlée puis saut, réception souple, genoux fléchis.",
+        "Niveau 3",
+        "Fentes avant",
+        "Grand pas en avant, genou arrière proche du sol, buste droit.",
+        "",
+        "Gainage sur les genoux",
+        "Appui sur les avant-bras et les genoux, bassin aligné.",
+        "Niveau 2",
+        "Mobilisation du genou",
+        "Assis, jambe tendue puis fléchie lentement, sans douleur.",
+        "Rechercher",
+        "Squats assistés",
+        "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée.",
+        "Niveau 1",
+        "Archiver",
+        "Squats",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol.",
+        "Ajouter un niveau",
+        "Partager"
+      ],
+      "components": []
+    },
+    {
+      "id": "10415:21939",
+      "name": "Mouvement — Niveau, plus facile ou plus difficile",
+      "texts": [
+        "Squats (compléter le nom)",
+        "Catégorie",
+        "Zone corporelle",
+        "Niveau 1",
+        "Description du mouvement",
+        "1.",
+        "Décrivez la première étape",
+        "Phases du mouvement (pour minuter l’exécution)",
+        "Nommez la première phase",
+        "9:41",
+        "Créer un mouvement",
+        "Terminer",
+        "Squats",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
+        "Niveau 2",
+        "Utiliser ce mouvement",
+        "Ajouter un niveau",
+        "Plus difficile",
+        "Moins difficile"
+      ],
+      "components": []
+    },
+    {
+      "id": "10415:21980",
+      "name": "Mouvement — Niveau, formulaire vierge",
+      "texts": [
+        "Squats (compléter le nom)",
+        "Renforcement",
+        "Cuisses +1",
+        "Niveau 3",
+        "Description du mouvement",
+        "1.",
+        "Décrivez la première étape",
+        "Phases du mouvement (pour minuter l’exécution)",
+        "Nommez la première phase",
+        "9:41",
+        "Créer un mouvement",
+        "Terminer"
+      ],
+      "components": []
+    },
+    {
+      "id": "10415:21713",
+      "name": "Mouvement — Mouvements proches",
+      "texts": [
+        "Squats",
+        "Catégorie",
+        "Zone corporelle",
+        "Niveau 1",
+        "Description du mouvement",
+        "1.",
+        "Décrivez la première étape",
+        "Phases du mouvement (pour minuter l’exécution)",
+        "Nommez la première phase",
+        "9:41",
+        "Créer un mouvement",
+        "Terminer",
+        "Squats assistés",
+        "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+        "Utiliser ce mouvement",
+        "Ajouter un niveau",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
+        "Niveau 2",
+        "Je",
+        "Le",
+        "Séance",
+        "A",
+        "Z",
+        "E",
+        "R",
+        "T",
+        "Y",
+        "U",
+        "I",
+        "O",
+        "P",
+        "Q",
+        "S",
+        "D",
+        "F",
+        "G",
+        "H",
+        "J",
+        "K",
+        "L",
+        "M",
+        "⇧",
+        "W",
+        "X",
+        "C",
+        "V",
+        "B",
+        "N",
+        "⌫",
+        "123",
+        "🌐",
+        "espace",
+        "↵"
+      ],
+      "components": [
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        },
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "10415:21814",
+      "name": "Mouvement — Nom déjà utilisé",
+      "texts": [
+        "Squats",
+        "Catégorie",
+        "Zone corporelle",
+        "Niveau 1",
+        "Description du mouvement",
+        "1.",
+        "Décrivez la première étape",
+        "Phases du mouvement (pour minuter l’exécution)",
+        "Nommez la première phase",
+        "9:41",
+        "Créer un mouvement",
+        "Terminer",
+        "Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom.",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
+        "Niveau 2",
+        "Utiliser ce mouvement",
+        "Ajouter un niveau",
+        "Squats assistés",
+        "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+        "Je",
+        "Le",
+        "Séance",
+        "A",
+        "Z",
+        "E",
+        "R",
+        "T",
+        "Y",
+        "U",
+        "I",
+        "O",
+        "P",
+        "Q",
+        "S",
+        "D",
+        "F",
+        "G",
+        "H",
+        "J",
+        "K",
+        "L",
+        "M",
+        "⇧",
+        "W",
+        "X",
+        "C",
+        "V",
+        "B",
+        "N",
+        "⌫",
+        "123",
+        "🌐",
+        "espace",
+        "↵"
+      ],
+      "components": [
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        },
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "10415:21916",
+      "name": "Mouvement — Options d’un résultat",
+      "texts": [
+        "Squats",
+        "Catégorie",
+        "Zone corporelle",
+        "Niveau 1",
+        "Description du mouvement",
+        "1.",
+        "Décrivez la première étape",
+        "Phases du mouvement (pour minuter l’exécution)",
+        "Nommez la première phase",
+        "9:41",
+        "Créer un mouvement",
+        "Terminer",
+        "Pieds largeur d’épaules, dos neutre, descente jusqu’à la cuisse parallèle au sol, genoux dans l’axe des pieds.",
+        "Niveau 2",
+        "Utiliser ce mouvement",
+        "Ajouter un niveau",
+        "Squats assistés",
+        "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan."
+      ],
+      "components": [
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        },
+        {
+          "id": "10199:22268",
+          "name": "Carte — Mouvement — Résultat",
+          "parent": "10451:24986",
+          "width": 338,
+          "height": 107,
+          "texts": [
+            {
+              "text": "Squats assistés",
+              "size": 15,
+              "font": {
+                "family": "Inter",
+                "style": "Semi Bold",
+                "variationSettings": {
+                  "wght": 600,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Appui sur une chaise ou un banc, amplitude réduite, descente contrôlée jusqu’au contact puis remontée sans élan.",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Regular",
+                "variationSettings": {
+                  "wght": 400,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Niveau 3",
+              "size": 12,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Utiliser ce mouvement",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            },
+            {
+              "text": "Ajouter un niveau",
+              "size": 13,
+              "font": {
+                "family": "Inter",
+                "style": "Medium",
+                "variationSettings": {
+                  "wght": 500,
+                  "slnt": 0
+                }
+              },
+              "bound": {}
+            }
+          ],
+          "bound": {
+            "fills": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:2290:56"
+              }
+            ],
+            "strokes": [
+              {
+                "type": "VARIABLE_ALIAS",
+                "id": "VariableID:6364:10579"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "10586:45516",
+      "name": "DSF / Actions glissées / Mouvement",
+      "width": 204,
+      "height": 80,
+      "children": [
+        {
+          "id": "10586:45501",
+          "name": "Action glissée — Partager",
+          "type": "FRAME"
+        },
+        {
+          "id": "10586:45503",
+          "name": "Action glissée — Ajouter un niveau",
+          "type": "FRAME"
+        },
+        {
+          "id": "10586:45505",
+          "name": "Action glissée — Archiver",
+          "type": "FRAME"
+        }
+      ],
+      "texts": [
+        {
+          "text": "Partager",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "size": 11,
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {
+                "color": {
+                  "type": "VARIABLE_ALIAS",
+                  "id": "VariableID:4151:6166"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "text": "Ajouter un niveau",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "size": 11,
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {
+                "color": {
+                  "type": "VARIABLE_ALIAS",
+                  "id": "VariableID:4151:6166"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "text": "Archiver",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "size": 11,
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {
+                "color": {
+                  "type": "VARIABLE_ALIAS",
+                  "id": "VariableID:4151:6166"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "bound": {}
+    },
+    {
+      "id": "10586:45517",
+      "name": "DSF / Actions glissées / Mouvement — Choix du sens",
+      "width": 204,
+      "height": 56,
+      "children": [
+        {
+          "id": "10586:45508",
+          "name": "Action glissée — Niveau plus facile",
+          "type": "FRAME"
+        },
+        {
+          "id": "10586:45511",
+          "name": "Action glissée — Niveau plus difficile",
+          "type": "FRAME"
+        },
+        {
+          "id": "10586:45514",
+          "name": "Raccord — Plus facile",
+          "type": "VECTOR"
+        },
+        {
+          "id": "10586:45515",
+          "name": "Raccord — Plus difficile",
+          "type": "VECTOR"
+        }
+      ],
+      "texts": [
+        {
+          "text": "Plus facile",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "size": 11,
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {
+                "color": {
+                  "type": "VARIABLE_ALIAS",
+                  "id": "VariableID:4151:6166"
+                }
+              }
+            }
+          ]
+        },
+        {
+          "text": "Plus difficile",
+          "font": {
+            "family": "Inter",
+            "style": "Semi Bold",
+            "variationSettings": {
+              "wght": 600,
+              "slnt": 0
+            }
+          },
+          "size": 11,
+          "fills": [
+            {
+              "type": "SOLID",
+              "visible": true,
+              "opacity": 1,
+              "blendMode": "NORMAL",
+              "color": {
+                "r": 1,
+                "g": 1,
+                "b": 1
+              },
+              "boundVariables": {
+                "color": {
+                  "type": "VARIABLE_ALIAS",
+                  "id": "VariableID:4151:6166"
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "bound": {}
+    }
+  ]
+}

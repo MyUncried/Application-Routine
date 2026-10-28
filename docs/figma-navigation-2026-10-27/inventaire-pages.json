@@ -1,0 +1,2722 @@
+[
+  {
+    "page": "510:101",
+    "name": "Prototype MVP",
+    "navs": [
+      {
+        "id": "5828:3110",
+        "type": "FRAME",
+        "screenId": "1992:375",
+        "screenName": "P-Profil — Vue d'ensemble - Vibration désactivée",
+        "visible": true,
+        "component": null,
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "2565:2226",
+        "type": "INSTANCE",
+        "screenId": "1992:474",
+        "screenName": "Profil — Stepper Pause changement de côté",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "2565:2261",
+        "type": "INSTANCE",
+        "screenId": "1992:579",
+        "screenName": "Profil — Stepper Récupération après activité",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "2565:933",
+        "type": "INSTANCE",
+        "screenId": "1992:684",
+        "screenName": "Profil — Vue d'ensemble - Vibration activée",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "2565:968",
+        "type": "INSTANCE",
+        "screenId": "1992:5101",
+        "screenName": "P-Calendrier — Semaine",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1003",
+        "type": "INSTANCE",
+        "screenId": "1992:5237",
+        "screenName": "P-Calendrier — Mois",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1038",
+        "type": "INSTANCE",
+        "screenId": "1992:5365",
+        "screenName": "P-Modal — Supprimer une planification unique — Calendrier",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1070",
+        "type": "INSTANCE",
+        "screenId": "1992:5510",
+        "screenName": "Calendrier — Jour — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1105",
+        "type": "INSTANCE",
+        "screenId": "1992:5602",
+        "screenName": "P-Calendrier — Jour — Appui long — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1140",
+        "type": "INSTANCE",
+        "screenId": "1992:5697",
+        "screenName": "Calendrier — Jour — MAJ — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1175",
+        "type": "INSTANCE",
+        "screenId": "1992:5794",
+        "screenName": "Calendrier — Jour — Créneau à planifier — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1207",
+        "type": "INSTANCE",
+        "screenId": "1992:5962",
+        "screenName": "P-Calendrier — Semaine — Actions glissées",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1242",
+        "type": "INSTANCE",
+        "screenId": "1992:6102",
+        "screenName": "P-Modal — Supprimer des occurrences — Calendrier",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1274",
+        "type": "INSTANCE",
+        "screenId": "1992:6249",
+        "screenName": "P-Modal — Choisir une séance — Planification — Liste longue",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1306",
+        "type": "INSTANCE",
+        "screenId": "1992:6389",
+        "screenName": "P-Calendrier — Semaine — Séance déployée",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7599:14203",
+        "type": "INSTANCE",
+        "screenId": "7599:14197",
+        "screenName": "Modal — Planifier une séance — Sélectionner une séance",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1597",
+        "type": "INSTANCE",
+        "screenId": "1992:8843",
+        "screenName": "P-Suivi — Séances — Liste condensée",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "2738:3912",
+        "type": "INSTANCE",
+        "screenId": "1992:8996",
+        "screenName": "Suivi — Séances — Vue déployée",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "2565:1632",
+        "type": "INSTANCE",
+        "screenId": "1992:9910",
+        "screenName": "P-Catalogue des séances — Liste par défaut",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2564:832",
+        "type": "INSTANCE",
+        "screenId": "1992:10014",
+        "screenName": "P-Catalogue des séances — Séance déployée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:1700",
+        "type": "INSTANCE",
+        "screenId": "1992:10518",
+        "screenName": "Catalogue des séances — Liste condensée — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:1735",
+        "type": "INSTANCE",
+        "screenId": "1992:10628",
+        "screenName": "Catalogue des séances — Séance déployée — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:1805",
+        "type": "INSTANCE",
+        "screenId": "1992:10848",
+        "screenName": "Catalogue des séances — Archivées — Séance restaurée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:1840",
+        "type": "INSTANCE",
+        "screenId": "1992:10937",
+        "screenName": "Catalogue des séances — Liste sans Renforcement du genou",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:1875",
+        "type": "INSTANCE",
+        "screenId": "2059:267",
+        "screenName": "Calendrier — Jour suivant — Glissement gauche — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1910",
+        "type": "INSTANCE",
+        "screenId": "2074:86",
+        "screenName": "Calendrier — Semaine — Après suppression d’une planification",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1945",
+        "type": "INSTANCE",
+        "screenId": "2094:86",
+        "screenName": "Calendrier — Semaine — Étirements — Actions glissées",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:1980",
+        "type": "INSTANCE",
+        "screenId": "2117:86",
+        "screenName": "Catalogue des séances — État vide",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:2016",
+        "type": "INSTANCE",
+        "screenId": "2117:190",
+        "screenName": "Suivi — Séances — État vide",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "2565:2051",
+        "type": "INSTANCE",
+        "screenId": "2128:86",
+        "screenName": "Calendrier — Jour — État vide",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "2565:2086",
+        "type": "INSTANCE",
+        "screenId": "2139:86",
+        "screenName": "Profil — Vue d'ensemble — Parcours vide",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "2565:2121",
+        "type": "INSTANCE",
+        "screenId": "2234:88",
+        "screenName": "Catalogue des séances — Archivées — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:2156",
+        "type": "INSTANCE",
+        "screenId": "2234:189",
+        "screenName": "Modal — Confirmer la suppression d’une séance archivée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "2565:2191",
+        "type": "INSTANCE",
+        "screenId": "2252:86",
+        "screenName": "Calendrier — Semaine — Mardi sélectionné",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "3786:5104",
+        "type": "INSTANCE",
+        "screenId": "3786:5093",
+        "screenName": "P-Catalogue des Exercices — Liste",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4168:11160",
+        "type": "INSTANCE",
+        "screenId": "4168:11149",
+        "screenName": "P-Catalogue des séances — Filtrer — Panneau ouvert",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4168:11266",
+        "type": "INSTANCE",
+        "screenId": "4168:11262",
+        "screenName": "P-Catalogue des Exercices — Filtrer — Panneau ouvert",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "5274:5415",
+        "type": "INSTANCE",
+        "screenId": "4593:6285",
+        "screenName": "P-Modal — Confirmer l’archivage d’une séance planifiée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4521:6224",
+        "type": "INSTANCE",
+        "screenId": "4521:6220",
+        "screenName": "Catalogue des exercices — État vide",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4544:6348",
+        "type": "INSTANCE",
+        "screenId": "4544:6344",
+        "screenName": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4544:6655",
+        "type": "INSTANCE",
+        "screenId": "4544:6651",
+        "screenName": "Catalogue des Exercices — Liste — Filtre actif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4549:6393",
+        "type": "INSTANCE",
+        "screenId": "4549:6382",
+        "screenName": "Catalogue des séances — Liste — Filtre inactif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4549:6752",
+        "type": "INSTANCE",
+        "screenId": "4549:6742",
+        "screenName": "Catalogue des séances — Filtre actif Archivé",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4592:6228",
+        "type": "INSTANCE",
+        "screenId": "4592:6217",
+        "screenName": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4738:6213",
+        "type": "INSTANCE",
+        "screenId": "4738:6209",
+        "screenName": "P-Catalogue des Exercices — Liste — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "4738:6359",
+        "type": "INSTANCE",
+        "screenId": "4738:6355",
+        "screenName": "S-Catalogue des Exercices — Liste — Première carte déployée — Média",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "5451:4283",
+        "type": "INSTANCE",
+        "screenId": "5451:4272",
+        "screenName": "P-Modal — Choisir un exercice — Planification — Liste longue",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7594:34815",
+        "type": "INSTANCE",
+        "screenId": "7594:34809",
+        "screenName": "Modal — Planifier un parcours — Sélectionner plusieurs séances",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "8702:35432",
+        "type": "INSTANCE",
+        "screenId": "8598:29271",
+        "screenName": "P-Composition séance — Modèles",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "9977:19780",
+        "type": "INSTANCE",
+        "screenId": "9977:19613",
+        "screenName": "P-Composition séance — Modèles — Deux colonnes",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10266:20580",
+        "type": "INSTANCE",
+        "screenId": "10266:20575",
+        "screenName": "Mouvement — Catalogue — Piles",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10462:23375",
+        "type": "INSTANCE",
+        "screenId": "10462:23370",
+        "screenName": "Mouvement — Catalogue — Filtres",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10465:23146",
+        "type": "INSTANCE",
+        "screenId": "10465:23141",
+        "screenName": "Mouvement — Catalogue — Filtre actif",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10471:23296",
+        "type": "INSTANCE",
+        "screenId": "10471:23291",
+        "screenName": "Mouvement — Catalogue — Pile déployée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10475:47639",
+        "type": "INSTANCE",
+        "screenId": "10475:47634",
+        "screenName": "Mouvement — Catalogue — Actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10480:23379",
+        "type": "INSTANCE",
+        "screenId": "10480:23374",
+        "screenName": "Mouvement — Catalogue — Pile — Déplacement",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10484:23433",
+        "type": "INSTANCE",
+        "screenId": "10484:23428",
+        "screenName": "Mouvement — Catalogue — Pile — Réordonnée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10495:24059",
+        "type": "INSTANCE",
+        "screenId": "10495:24054",
+        "screenName": "Mouvement — Catalogue — Archivage refusé",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10495:24104",
+        "type": "INSTANCE",
+        "screenId": "10495:24099",
+        "screenName": "Mouvement — Catalogue — Archivés",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10496:23710",
+        "type": "INSTANCE",
+        "screenId": "10496:23705",
+        "screenName": "Mouvement — Catalogue — Archivés — Actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10500:23777",
+        "type": "INSTANCE",
+        "screenId": "10500:23772",
+        "screenName": "Mouvement — Catalogue — Archivés — Confirmer la suppression",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "10579:21585",
+        "type": "INSTANCE",
+        "screenId": "10579:21580",
+        "screenName": "Mouvement — Catalogue — Ajouter un niveau",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      }
+    ]
+  },
+  {
+    "page": "156:194",
+    "name": "Profil",
+    "navs": []
+  },
+  {
+    "page": "251:895",
+    "name": "Suivi ",
+    "navs": [
+      {
+        "id": "1844:2",
+        "type": "RECTANGLE",
+        "screenId": "1842:2",
+        "screenName": "Suivi — Séances — Vue déployée",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      }
+    ]
+  },
+  {
+    "page": "2291:3",
+    "name": "Validation responsive",
+    "navs": [
+      {
+        "id": "2298:256",
+        "type": "TEXT",
+        "screenId": "2294:2",
+        "screenName": "KODJO — Responsive validation matrix",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      }
+    ]
+  },
+  {
+    "page": "2317:86",
+    "name": "Référence responsive — Cible",
+    "navs": [
+      {
+        "id": "2346:935",
+        "type": "RECTANGLE",
+        "screenId": "2317:87",
+        "screenName": "KODJO — 8 familles structurantes",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "2346:1068",
+        "type": "RECTANGLE",
+        "screenId": "2317:87",
+        "screenName": "KODJO — 8 familles structurantes",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "2346:1201",
+        "type": "RECTANGLE",
+        "screenId": "2317:87",
+        "screenName": "KODJO — 8 familles structurantes",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      }
+    ]
+  },
+  {
+    "page": "5778:3435",
+    "name": "Archives — Écrans retirés du prototype",
+    "navs": [
+      {
+        "id": "I2702:4382;2718:44",
+        "type": "FRAME",
+        "screenId": "1992:10129",
+        "screenName": "Recherche globale — Champ déployé",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I2702:4382;2718:45",
+        "type": "TEXT",
+        "screenId": "1992:10129",
+        "screenName": "Recherche globale — Champ déployé",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "2565:1668",
+        "type": "INSTANCE",
+        "screenId": "1992:10129",
+        "screenName": "Recherche globale — Champ déployé",
+        "visible": true,
+        "component": "6298:11827",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "I2729:3870;2718:51",
+        "type": "FRAME",
+        "screenId": "1992:10320",
+        "screenName": "Recherche globale — Résultats affichés",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I2729:3870;2718:52",
+        "type": "TEXT",
+        "screenId": "1992:10320",
+        "screenName": "Recherche globale — Résultats affichés",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "2729:3886",
+        "type": "INSTANCE",
+        "screenId": "1992:10320",
+        "screenName": "Recherche globale — Résultats affichés",
+        "visible": true,
+        "component": "6298:12461",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "I3841:8376;2718:44",
+        "type": "FRAME",
+        "screenId": "3841:8375",
+        "screenName": "HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I3841:8376;2718:45",
+        "type": "TEXT",
+        "screenId": "3841:8375",
+        "screenName": "HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "3841:8386",
+        "type": "INSTANCE",
+        "screenId": "3841:8375",
+        "screenName": "HISTORIQUE — Catalogue Séances — ancien arbre Créer — supersédé D-187",
+        "visible": true,
+        "component": "6298:11827",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      }
+    ]
+  },
+  {
+    "page": "6016:3303",
+    "name": "Démonstrations — Animations d'appui",
+    "navs": []
+  },
+  {
+    "page": "6354:11187",
+    "name": "Cartes - Icônes",
+    "navs": []
+  },
+  {
+    "page": "6464:10219",
+    "name": "Conception — Hors MVP",
+    "navs": [
+      {
+        "id": "6513:20151",
+        "type": "COMPONENT_SET",
+        "screenId": "6513:20151",
+        "screenName": "Navigation / Bottom — 5 onglets",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Catalogues",
+          "Calendrier",
+          "Suivi",
+          "Profil",
+          "Communauté",
+          "Catalogues",
+          "3",
+          "Catalogues",
+          "12",
+          "Catalogues",
+          "99+",
+          "Calendrier",
+          "3",
+          "Calendrier",
+          "12",
+          "Calendrier",
+          "99+",
+          "Suivi",
+          "3",
+          "Suivi",
+          "12",
+          "Suivi",
+          "99+",
+          "Communauté",
+          "3",
+          "Communauté",
+          "12",
+          "Communauté",
+          "99+",
+          "Profil",
+          "3",
+          "Profil",
+          "12",
+          "Profil",
+          "99+"
+        ]
+      },
+      {
+        "id": "I6527:20808;2718:51",
+        "type": "FRAME",
+        "screenId": "6527:20807",
+        "screenName": "Communauté — Présentation",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I6527:20808;2718:52",
+        "type": "TEXT",
+        "screenId": "6527:20807",
+        "screenName": "Communauté — Présentation",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "6527:24175",
+        "type": "INSTANCE",
+        "screenId": "6527:20807",
+        "screenName": "Communauté — Présentation",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "I6539:20930;2718:44",
+        "type": "FRAME",
+        "screenId": "6539:20929",
+        "screenName": "Communauté — Accueil — Sans ami",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I6539:20930;2718:45",
+        "type": "TEXT",
+        "screenId": "6539:20929",
+        "screenName": "Communauté — Accueil — Sans ami",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "6539:20968",
+        "type": "INSTANCE",
+        "screenId": "6539:20929",
+        "screenName": "Communauté — Accueil — Sans ami",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "I6539:21048;2718:44",
+        "type": "FRAME",
+        "screenId": "6539:21047",
+        "screenName": "Communauté — Accueil — Demandes à traiter",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I6539:21048;2718:45",
+        "type": "TEXT",
+        "screenId": "6539:21047",
+        "screenName": "Communauté — Accueil — Demandes à traiter",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "6539:21086",
+        "type": "INSTANCE",
+        "screenId": "6539:21047",
+        "screenName": "Communauté — Accueil — Demandes à traiter",
+        "visible": true,
+        "component": "6515:20597",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté",
+          "3"
+        ]
+      },
+      {
+        "id": "I6547:21243;2718:44",
+        "type": "FRAME",
+        "screenId": "6547:21242",
+        "screenName": "Communauté — Accueil — Actif",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": [
+          "Slot / Bottom Navigation"
+        ]
+      },
+      {
+        "id": "I6547:21243;2718:45",
+        "type": "TEXT",
+        "screenId": "6547:21242",
+        "screenName": "Communauté — Accueil — Actif",
+        "visible": true,
+        "component": null,
+        "slots": [],
+        "active": []
+      },
+      {
+        "id": "6547:21310",
+        "type": "INSTANCE",
+        "screenId": "6547:21242",
+        "screenName": "Communauté — Accueil — Actif",
+        "visible": true,
+        "component": "6515:20597",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté",
+          "3"
+        ]
+      },
+      {
+        "id": "6842:22857",
+        "type": "INSTANCE",
+        "screenId": "6832:22849",
+        "screenName": "Communauté — Espace — Tableau de bord d’un membre — V8",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "7704:35801",
+        "type": "INSTANCE",
+        "screenId": "7704:35641",
+        "screenName": "Communauté — Espace — Tableau de bord d’un membre — V8",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "6847:22989",
+        "type": "INSTANCE",
+        "screenId": "6847:22829",
+        "screenName": "Communauté — Espace — Comparaison et classement",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "6871:23032",
+        "type": "INSTANCE",
+        "screenId": "6871:22872",
+        "screenName": "Communauté — Sélection : espaces et personnes",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "6881:23075",
+        "type": "INSTANCE",
+        "screenId": "6881:22915",
+        "screenName": "Communauté — Suivi — Vue du centre",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "6881:23320",
+        "type": "INSTANCE",
+        "screenId": "6881:23160",
+        "screenName": "Communauté — Suivi — Vue de la branche",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "6887:23161",
+        "type": "INSTANCE",
+        "screenId": "6887:23001",
+        "screenName": "Communauté — Suivi — Centre : bande de profils",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "7413:25686",
+        "type": "FRAME",
+        "screenId": "7413:25621",
+        "screenName": "Profil — Vue d'ensemble - Vibration désactivée",
+        "visible": true,
+        "component": null,
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "7413:25773",
+        "type": "INSTANCE",
+        "screenId": "7413:25703",
+        "screenName": "Profil — Stepper Pause changement de côté",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "7413:25844",
+        "type": "INSTANCE",
+        "screenId": "7413:25774",
+        "screenName": "Profil — Stepper Récupération après activité",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "7413:25909",
+        "type": "INSTANCE",
+        "screenId": "7413:25845",
+        "screenName": "Profil — Vue d'ensemble - Vibration activée",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "7413:25997",
+        "type": "INSTANCE",
+        "screenId": "7413:25932",
+        "screenName": "Calendrier — Semaine",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26080",
+        "type": "INSTANCE",
+        "screenId": "7413:26003",
+        "screenName": "Calendrier — Mois",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26143",
+        "type": "INSTANCE",
+        "screenId": "7413:26086",
+        "screenName": "Modal — Supprimer une planification unique — Calendrier",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26152",
+        "type": "INSTANCE",
+        "screenId": "7413:26146",
+        "screenName": "Calendrier — Jour — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26189",
+        "type": "INSTANCE",
+        "screenId": "7413:26183",
+        "screenName": "Calendrier — Jour — Appui long — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26229",
+        "type": "INSTANCE",
+        "screenId": "7413:26223",
+        "screenName": "Calendrier — Jour — MAJ — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26266",
+        "type": "INSTANCE",
+        "screenId": "7413:26260",
+        "screenName": "Calendrier — Jour — Créneau à planifier — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26405",
+        "type": "INSTANCE",
+        "screenId": "7413:26344",
+        "screenName": "Calendrier — Semaine — Actions glissées",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26468",
+        "type": "INSTANCE",
+        "screenId": "7413:26411",
+        "screenName": "Modal — Supprimer des occurrences — Calendrier",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26477",
+        "type": "INSTANCE",
+        "screenId": "7413:26471",
+        "screenName": "Modal — Choisir une séance — Planification — Liste longue",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:26594",
+        "type": "INSTANCE",
+        "screenId": "7413:26542",
+        "screenName": "Calendrier — Semaine — Séance déployée",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7599:14759",
+        "type": "INSTANCE",
+        "screenId": "7599:14753",
+        "screenName": "Modal — Planifier une séance — Sélectionner une séance",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:28150",
+        "type": "INSTANCE",
+        "screenId": "7413:28117",
+        "screenName": "Suivi — Séances — Liste condensée",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "7413:28181",
+        "type": "INSTANCE",
+        "screenId": "7413:28153",
+        "screenName": "Suivi — Séances — Vue déployée",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "7413:28189",
+        "type": "INSTANCE",
+        "screenId": "7413:28184",
+        "screenName": "Catalogue des séances — Liste par défaut",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:28214",
+        "type": "INSTANCE",
+        "screenId": "7413:28209",
+        "screenName": "Catalogue des séances — Séance déployée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:28239",
+        "type": "INSTANCE",
+        "screenId": "7413:28234",
+        "screenName": "Catalogue des séances — Liste condensée — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:28270",
+        "type": "INSTANCE",
+        "screenId": "7413:28265",
+        "screenName": "Catalogue des séances — Séance déployée — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:28301",
+        "type": "INSTANCE",
+        "screenId": "7413:28296",
+        "screenName": "Catalogue des séances — Archivées — Séance restaurée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:28334",
+        "type": "INSTANCE",
+        "screenId": "7413:28329",
+        "screenName": "Catalogue des séances — Liste sans Renforcement du genou",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:29174",
+        "type": "INSTANCE",
+        "screenId": "7413:29168",
+        "screenName": "Calendrier — Jour suivant — Glissement gauche — MVP",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:29253",
+        "type": "INSTANCE",
+        "screenId": "7413:29203",
+        "screenName": "Calendrier — Semaine — Après suppression d’une planification",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:29320",
+        "type": "INSTANCE",
+        "screenId": "7413:29259",
+        "screenName": "Calendrier — Semaine — Étirements — Actions glissées",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:29331",
+        "type": "INSTANCE",
+        "screenId": "7413:29326",
+        "screenName": "Catalogue des séances — État vide",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:29353",
+        "type": "INSTANCE",
+        "screenId": "7413:29350",
+        "screenName": "Suivi — Séances — État vide",
+        "visible": true,
+        "component": "6513:20184",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Suivi"
+        ]
+      },
+      {
+        "id": "7413:29379",
+        "type": "INSTANCE",
+        "screenId": "7413:29373",
+        "screenName": "Calendrier — Jour — État vide",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:29472",
+        "type": "INSTANCE",
+        "screenId": "7413:29408",
+        "screenName": "Profil — Vue d'ensemble — Parcours vide",
+        "visible": true,
+        "component": "6513:20200",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Profil"
+        ]
+      },
+      {
+        "id": "7413:29479",
+        "type": "INSTANCE",
+        "screenId": "7413:29473",
+        "screenName": "Catalogue des séances — Archivées — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:29511",
+        "type": "INSTANCE",
+        "screenId": "7413:29505",
+        "screenName": "Modal — Confirmer la suppression d’une séance archivée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:29618",
+        "type": "INSTANCE",
+        "screenId": "7413:29539",
+        "screenName": "Calendrier — Semaine — Mardi sélectionné",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7413:30285",
+        "type": "INSTANCE",
+        "screenId": "7413:30280",
+        "screenName": "Catalogue des Exercices — Liste",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:30464",
+        "type": "INSTANCE",
+        "screenId": "7413:30459",
+        "screenName": "Catalogue des séances — Filtrer — Panneau ouvert",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:30530",
+        "type": "INSTANCE",
+        "screenId": "7413:30525",
+        "screenName": "Catalogue des Exercices — Filtrer — Panneau ouvert",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:30633",
+        "type": "INSTANCE",
+        "screenId": "7413:30628",
+        "screenName": "Modal — Confirmer l’archivage d’une séance planifiée",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31247",
+        "type": "INSTANCE",
+        "screenId": "7413:31242",
+        "screenName": "Catalogue des exercices — État vide",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31271",
+        "type": "INSTANCE",
+        "screenId": "7413:31266",
+        "screenName": "Catalogue des Exercices — Liste — Filtre inactif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31299",
+        "type": "INSTANCE",
+        "screenId": "7413:31294",
+        "screenName": "Catalogue des Exercices — Liste — Filtre actif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31328",
+        "type": "INSTANCE",
+        "screenId": "7413:31323",
+        "screenName": "Catalogue des séances — Liste — Filtre inactif étendu",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31360",
+        "type": "INSTANCE",
+        "screenId": "7413:31354",
+        "screenName": "Catalogue des séances — Filtre actif Archivé",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31389",
+        "type": "INSTANCE",
+        "screenId": "7413:31384",
+        "screenName": "Catalogue des séances — Liste condensée — actions glissées — Dos et mobilité",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31912",
+        "type": "INSTANCE",
+        "screenId": "7413:31907",
+        "screenName": "Catalogue des Exercices — Liste — actions glissées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:31961",
+        "type": "INSTANCE",
+        "screenId": "7413:31939",
+        "screenName": "Catalogue des Exercices — Liste — Première carte déployée — Média",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7413:32551",
+        "type": "INSTANCE",
+        "screenId": "7413:32545",
+        "screenName": "Modal — Choisir un exercice — Planification — Liste longue",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7420:13830",
+        "type": "INSTANCE",
+        "screenId": "7420:13824",
+        "screenName": "PROG — 2 Calendrier Jour — créneau à plusieurs contenus",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7600:14114",
+        "type": "INSTANCE",
+        "screenId": "7600:14108",
+        "screenName": "Modal — Planifier un parcours — Sélectionner plusieurs séances",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7718:14494",
+        "type": "INSTANCE",
+        "screenId": "7718:14489",
+        "screenName": "PROG — 7 Catalogue des programmes — Liste",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "7719:14495",
+        "type": "INSTANCE",
+        "screenId": "7719:14489",
+        "screenName": "PROG — 9 Modal — Choisir un programme",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7720:14495",
+        "type": "INSTANCE",
+        "screenId": "7720:14489",
+        "screenName": "PROG — 10 Modal — Créer un programme",
+        "visible": true,
+        "component": "6513:20168",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Calendrier"
+        ]
+      },
+      {
+        "id": "7718:14745",
+        "type": "INSTANCE",
+        "screenId": "7718:14740",
+        "screenName": "PROG — 8 Catalogue des programmes — État vide",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "8702:35393",
+        "type": "INSTANCE",
+        "screenId": "8588:29319",
+        "screenName": "Composition séance — Modèles",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "8987:18111",
+        "type": "INSTANCE",
+        "screenId": "8987:17951",
+        "screenName": "Communauté — Espace — Tableau de bord d’un membre — V8",
+        "visible": true,
+        "component": "6514:20240",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Communauté"
+        ]
+      },
+      {
+        "id": "9081:18812",
+        "type": "INSTANCE",
+        "screenId": "9081:18648",
+        "screenName": "Composition séance — Modèles — Bande de favoris",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "9089:18501",
+        "type": "INSTANCE",
+        "screenId": "9089:18496",
+        "screenName": "Catalogue des séances — Séances épinglées",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      },
+      {
+        "id": "9089:18732",
+        "type": "INSTANCE",
+        "screenId": "9089:18727",
+        "screenName": "Catalogue des séances — Appui long — Menu de séance",
+        "visible": true,
+        "component": "6513:20152",
+        "slots": [
+          "Boîte icône navigation — Catalogue",
+          "Boîte icône navigation — Calendrier",
+          "Boîte icône navigation — Suivi",
+          "Boîte icône navigation — Communauté",
+          "Boîte icône navigation — Profil"
+        ],
+        "active": [
+          "Catalogues"
+        ]
+      }
+    ]
+  },
+  {
+    "page": "9001:15681",
+    "name": "Expérience PRE-4 — Réutilisation — 16 octobre",
+    "navs": []
+  },
+  {
+    "page": "10556:55446",
+    "name": "Page 12",
+    "navs": []
+  }
+]
