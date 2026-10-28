@@ -36,10 +36,19 @@ Pour chaque case : ✅ conforme, ❌ problème (décrire), ➖ non testé.
 - [ ] Singleton subi (famille de deux dont un membre archivé) : porter le restant vers une autre carte → rien ; poser un Mouvement libre dessus → il entre dans ce groupe (message d'entrée).
 - [ ] Création ou entrée : la place visée ne s'ouvre pas (limite connue) ; vérifier que la cible reste lisible sous la carte portée.
 
+## Passe ciblée 2 (après la recette du 28/10)
+
+- [ ] **fam-05** : porter un Mouvement sans famille placé **sous** une pile repliée vers cette pile → elle se déplie et la carte **reste sous le doigt** ; relâcher → entrée à l'endroit montré.
+- [ ] **fam-06** : porter un Mouvement sans famille sur une pile dépliée → les membres suivants **s'écartent**, le filet s'allonge, les cartes du Catalogue en dessous descendent ; ressortir → tout se referme.
+- [ ] **Création** : porter un Mouvement sur la moitié haute d'une carte sans famille → la carte visée descend pour laisser la place ; moitié basse → la place s'ouvre dessous.
+- [ ] **Défilement** : porter une carte près du haut ou du bas de la liste → la liste défile, la carte reste sous le doigt ; s'éloigner du bord → le défilement s'arrête ; relâcher sur une famille atteinte ainsi → entrée correcte.
+- [ ] Non-régression : réordonner dans une pile, sortir, dissoudre, Annuler (FAM-01, 02, 07, 08).
+
 ## À trancher pendant la recette
 
 1. Libellé de l'entrée dans une famille (provisoire : « Mouvement ajouté à la famille »).
 2. Alternative accessible pour sortir, créer, rejoindre.
 3. Dernier couple accompagné d'un membre archivé : sortie simple (choix actuel) ou dissolution.
 4. Singleton subi ou famille filtrée : comportement décrit ci-dessus.
-5. Ouverture de place, emplacement pointillé et défilement pendant le geste : limites à accepter ou à corriger.
+5. Emplacement pointillé : limite à accepter ou à corriger (ouverture de place et défilement : couverts après la recette du 28/10).
+6. Place d'un Mouvement sorti (remarque fam-07) : classement par nom, ou retour visuel sur le Mouvement sorti, ou position manuelle (nouvelle règle de tri).

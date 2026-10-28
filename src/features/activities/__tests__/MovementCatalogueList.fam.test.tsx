@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen } from "@testing-library/react-native";
-import { StyleSheet } from "react-native";
+import { AccessibilityInfo, StyleSheet } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -292,5 +292,91 @@ describe("PRE-8 familles — geste dans le Catalogue des Mouvements", () => {
     expect(notice()).toBeNull();
     expect(await membership("aaa")).toBeNull();
     expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "squat"]);
+  });
+});
+
+describe("PRE-8 familles — recette iPhone du 28/10", () => {
+  const translateY = (testID: string) =>
+    (StyleSheet.flatten(screen.getByTestId(testID).props.style).transform as { translateY: number }[] | undefined)?.[0]?.translateY ?? 0;
+  // « Réduire les animations » : décalages appliqués aussitôt, sans attendre la transition.
+  beforeEach(() => {
+    jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true);
+  });
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it("FAM-05 : une pile dépliée au-dessus de la carte portée la fait descendre — la carte reste sous le doigt", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    // Pile repliée (0 à 92), « Tirage » dessous (centre 132), portée dans la pile : elle se déplie.
+    await layOut([{ key: group }, { key: "tirage" }]);
+    await grab("tirage");
+    await moveBy(-60);
+    expect(screen.getByTestId(`movement-pile-${group}-expanded`)).toBeTruthy();
+    expect(translateY("movement-card-tirage-lifted")).toBe(-60);
+    // La pile dépliée (176) repousse la place de « Tirage » de 84 : le décalage la compense aussitôt.
+    await layOut([{ key: group, members: ["squat", "assist"] }, { key: "tirage" }]);
+    expect(translateY("movement-card-tirage-lifted")).toBe(-60 - 84);
+    await moveBy(-70);
+    expect(translateY("movement-card-tirage-lifted")).toBe(-70 - 84);
+    // Centre 62 : moitié basse de « Squats » (0 à 80) — entrée juste en dessous, là où est le doigt.
+    await release();
+    expect(notice()).toBe("Mouvement ajouté à la famille");
+    expect((await movements().listGroup(group)).map((member) => member.id)).toEqual(["assist", "tirage", "squat"]);
+  });
+
+  it("FAM-06, C2 : entrer dans une pile dépliée ouvre la place — membres suivants, filet et entrées suivantes décalés d'un pas", async () => {
+    const repository = movements();
+    await repository.create(movement("squat", "Squats"));
+    await repository.create(movement("tirage", "Tirage"));
+    await repository.create(movement("zumba", "Zumba"));
+    await repository.createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await renderList();
+    const group = (await membership("squat"))!.groupId;
+    await act(async () => {
+      fireEvent.press(screen.getByTestId("movement-card-squat-card"));
+    });
+    await settle();
+    await layOut([{ key: group, members: ["squat", "assist"] }, { key: "tirage" }, { key: "zumba" }]);
+    // « Tirage » (centre 216) portée dans la moitié basse de « Squats » (centre 60).
+    await grab("tirage");
+    await moveBy(-156);
+    expect(translateY("movement-card-squat-slot")).toBe(0);
+    expect(translateY("movement-card-assist-slot")).toBe(84);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40 - 84);
+    expect(translateY("movement-item-zumba-shift")).toBe(84);
+    expect(translateY(`movement-item-${group}-shift`)).toBe(0);
+    // Hors de la pile : la place se referme.
+    await moveBy(0);
+    expect(translateY("movement-card-assist-slot")).toBe(0);
+    expect(translateY("movement-item-zumba-shift")).toBe(0);
+    expect(StyleSheet.flatten(screen.getByTestId(`movement-pile-${group}-rail`).props.style).bottom).toBe(40);
+    await release();
+  });
+
+  it("C1 : créer une famille ouvre aussi la place — carte visée décalée quand on se pose au-dessus", async () => {
+    const repository = movements();
+    for (const [id, name] of [["fentes", "Fentes avant"], ["gainage", "Gainage"], ["mob", "Mobilisation du genou"]] as const) {
+      await repository.create(movement(id, name));
+    }
+    await renderList();
+    await layOut([{ key: "fentes" }, { key: "gainage" }, { key: "mob" }]);
+    await grab("mob");
+    await moveBy(-110);
+    expect(translateY("movement-card-gainage-slot")).toBe(84);
+    expect(translateY("movement-item-fentes-shift")).toBe(0);
+    await moveBy(-70);
+    // Moitié basse de « Gainage » : la carte visée reste, la place s'ouvre dessous.
+    expect(translateY("movement-card-gainage-slot")).toBe(0);
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-catalogue-items"), "touchCancel", { nativeEvent: { pageX: 100, pageY: 0 } });
+    });
+    await settle();
+    expect(await membership("mob")).toBeNull();
   });
 });

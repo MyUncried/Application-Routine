@@ -5,6 +5,7 @@ import {
   Animated,
   Modal,
   Pressable,
+  type ScrollView,
   StyleSheet,
   Text,
   View,
@@ -41,7 +42,7 @@ import {
   type MovementCatalogueFilters,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
-import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
+import { autoScrollDirection, dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "./SheetMotion";
 import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, type SwipeAction } from "./SwipeActionsRow";
 
@@ -138,9 +139,18 @@ type Drag = {
   readonly pileKey: string | null;
   readonly ids: readonly string[];
   readonly from: number;
-  /** Doigt et centre de la carte au départ ; relevés au premier déplacement (gestionnaire du doigt). */
-  readonly origin: { readonly y: number; readonly center: number } | null;
+  /**
+   * Doigt, centre et haut de la carte, défilement de la liste, au départ ; relevés au premier
+   * déplacement (gestionnaire du doigt).
+   */
+  readonly origin: { readonly y: number; readonly center: number; readonly top: number; readonly scroll: number } | null;
+  /** Déplacement du doigt dans le repère du contenu (défilement compris). */
   readonly dy: number;
+  /**
+   * Recette du 28/10 (FAM-05) : déplacement de la place de la carte portée depuis le départ — une pile
+   * dépliée au-dessus d'elle la fait descendre ; retranché du décalage pour qu'elle reste sous le doigt.
+   */
+  readonly drift: number;
   readonly intent: DragIntent;
 };
 type Box = { readonly y: number; readonly height: number };
@@ -157,6 +167,9 @@ const LEAF_STEP = 6;
 const LEAF_INSET = spacing[8];
 /** Familles, règle E5 du 28/10/2026 : fenêtre d'annulation des changements d'appartenance. */
 const FAMILY_NOTICE_MS = 3000;
+/** Recette du 28/10 (FAM, limites) : bande des bords qui fait défiler la liste pendant le geste, et pas par image. */
+const AUTO_SCROLL_EDGE = 72;
+const AUTO_SCROLL_STEP = 8;
 
 export function MovementCatalogueList({
   reloadToken,
@@ -189,9 +202,17 @@ export function MovementCatalogueList({
   // Familles : place mesurée des entrées (repère de la liste) et des membres (repère de leur pile).
   const itemBoxes = useRef(new Map<string, Box>());
   const memberBoxes = useRef(new Map<string, Box>());
+  // Copie de la carte portée pour les gestionnaires de mise en page (mise à jour après chaque rendu).
+  const dragRef = useRef<Drag | null>(null);
   const recordItemBox = useCallback((key: string, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
     itemBoxes.current.set(key, { y, height });
+    // FAM-05 : la place de la carte portée a changé (pile dépliée au-dessus) — elle reste sous le doigt.
+    const current = dragRef.current;
+    if (current === null || current.origin === null) return;
+    const top = liftedTopIn(current, itemBoxes.current, memberBoxes.current);
+    if (top === undefined) return;
+    setDrag((latest) => (latest === null || latest.origin === null || latest.id !== current.id ? latest : { ...latest, drift: top - latest.origin.top }));
   }, []);
   const recordMemberBox = useCallback((id: string, event: LayoutChangeEvent) => {
     const { y, height } = event.nativeEvent.layout;
@@ -207,6 +228,15 @@ export function MovementCatalogueList({
     setVariantFor(null);
   }
   const lastTouchY = useRef(0);
+  // Défilement automatique pendant le geste : liste, place à l'écran, défilement et hauteur du contenu.
+  const scrollRef = useRef<ScrollView>(null);
+  const viewportRef = useRef<View>(null);
+  const scrollY = useRef(0);
+  const contentHeight = useRef(0);
+  const viewport = useRef<{ top: number; height: number } | null>(null);
+  const lastMoveY = useRef(0);
+  const moveLatest = useRef<((pageY: number) => void) | null>(null);
+  const [autoScroll, setAutoScroll] = useState<-1 | 0 | 1>(0);
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
@@ -345,21 +375,29 @@ export function MovementCatalogueList({
   const startDrag = (id: string, pileKey: string | null, ids: readonly string[], from: number) => {
     setRevealedId(null);
     setVariantFor(null);
-    setDrag({ id, pileKey, ids, from, origin: null, dy: 0, intent: { kind: "NONE" } });
+    setDrag({ id, pileKey, ids, from, origin: null, dy: 0, drift: 0, intent: { kind: "NONE" } });
   };
 
-  /** Départ du geste : doigt au toucher initial, centre de la carte portée dans le repère de la liste. */
+  const liftedTop = (current: Drag) => liftedTopIn(current, itemBoxes.current, memberBoxes.current);
+
+  /** Départ du geste : doigt au toucher initial, centre et haut de la carte portée dans le repère de la liste. */
   const originOf = (current: Drag, slots: readonly DragSlot[]) => {
     const slot = slots.find((candidate) => candidate.id === current.id);
     const pile = current.pileKey !== null ? itemBoxes.current.get(current.pileKey) : undefined;
-    return { y: lastTouchY.current, center: slot ? slot.top + slot.height / 2 : (pile?.y ?? 0) + CARD_HEIGHT / 2 };
+    const center = slot ? slot.top + slot.height / 2 : (pile?.y ?? 0) + CARD_HEIGHT / 2;
+    return { y: lastTouchY.current, center, top: liftedTop(current) ?? 0, scroll: scrollY.current };
   };
 
   const moveDrag = (pageY: number) => {
     if (drag === null) return;
+    lastMoveY.current = pageY;
     const slots = slotsNow();
     const origin = drag.origin ?? originOf(drag, slots);
-    const dy = pageY - origin.y;
+    const dy = pageY - origin.y + (scrollY.current - origin.scroll);
+    const top = liftedTop(drag);
+    const drift = top === undefined ? drag.drift : top - origin.top;
+    const direction = autoScrollDirection(pageY, viewport.current, AUTO_SCROLL_EDGE);
+    if (direction !== autoScroll) setAutoScroll(direction);
     const reorderTo = Math.max(0, Math.min(drag.ids.length - 1, drag.from + Math.round(dy / memberStep)));
     const entry = entryById.get(drag.id);
     const intent = dragIntent({
@@ -372,7 +410,31 @@ export function MovementCatalogueList({
     });
     // C5 : une famille repliée se déplie à l'approche.
     if (intent.kind === "EXPAND") setExpanded((current) => (current.has(intent.familyKey) ? current : new Set(current).add(intent.familyKey)));
-    setDrag({ ...drag, origin, dy, intent });
+    setDrag({ ...drag, origin, dy, drift, intent });
+  };
+
+  useEffect(() => {
+    moveLatest.current = moveDrag;
+    dragRef.current = drag;
+  });
+
+  // Défilement automatique : la liste défile tant que le doigt reste près d'un bord ; la carte portée suit.
+  useEffect(() => {
+    if (autoScroll === 0) return;
+    const timer = setInterval(() => {
+      const max = Math.max(0, contentHeight.current - (viewport.current?.height ?? 0));
+      const next = Math.max(0, Math.min(max, scrollY.current + autoScroll * AUTO_SCROLL_STEP));
+      if (next === scrollY.current) return;
+      scrollRef.current?.scrollTo({ y: next, animated: false });
+      scrollY.current = next;
+      moveLatest.current?.(lastMoveY.current);
+    }, 16);
+    return () => clearInterval(timer);
+  }, [autoScroll]);
+
+  const stopDrag = () => {
+    setDrag(null);
+    setAutoScroll(0);
   };
 
   /** E : application au relâchement ; message de 3 s avec Annuler quand l'appartenance change. */
@@ -416,7 +478,7 @@ export function MovementCatalogueList({
 
   const endDrag = () => {
     const current = drag;
-    setDrag(null);
+    stopDrag();
     if (current === null || !catalogue || state.status !== "ready") return;
     const { intent } = current;
     if (intent.kind === "REORDER" && current.pileKey !== null && intent.to !== current.from) {
@@ -450,6 +512,22 @@ export function MovementCatalogueList({
     }
     return null;
   })();
+
+  /**
+   * C2, ch10 règle 5, recette du 28/10 (FAM-06) : la place visée s'ouvre pendant une entrée ou une
+   * création — membres à partir du rang d'arrivée (`at`) ou carte visée (`anchorShift`), puis entrées
+   * suivantes, décalés d'un pas ; places mesurées inchangées (décalage visuel seulement).
+   */
+  const opening = ((): { readonly itemKey: string; readonly at: number; readonly anchorShift: number } | null => {
+    if (drag === null || drag.intent.kind !== "PLACE") return null;
+    const { intent } = drag;
+    if (intent.familyKey === null) return { itemKey: intent.anchorId, at: -1, anchorShift: intent.side === "ABOVE" ? memberStep : 0 };
+    const pile = items.find((item) => item.kind === "PILE" && item.key === intent.familyKey);
+    if (!pile || pile.kind !== "PILE") return null;
+    const order = placedOrder(pile.members.map((member) => member.movement.id), drag.id, intent.anchorId, intent.side);
+    return { itemKey: pile.key, at: order.indexOf(drag.id), anchorShift: 0 };
+  })();
+  const openingIndex = opening === null ? -1 : items.findIndex((item) => item.key === opening.itemKey);
 
   const actionsFor = (entry: MovementCatalogueEntry): readonly SwipeAction[] =>
     entry.archived
@@ -566,6 +644,8 @@ export function MovementCatalogueList({
     const dropIndex = pileDrag !== null && pileDrag.intent.kind === "REORDER" ? pileDrag.intent.to : null;
     // B2 : la carte portée hors du filet — les cartes suivantes se referment, le filet raccourcit.
     const leaving = pileDrag !== null && pileDrag.intent.kind === "LEAVE";
+    // C2 : un Mouvement entre dans la pile — le filet s'allonge d'une place.
+    const joiningAt = opening !== null && opening.itemKey === item.key && opening.at >= 0 ? opening.at : null;
     // Recette A/B du 27/10 (remarque 2) : pendant le glisser et jusqu'à la relecture du nouvel ordre,
     // ni découpe ni transition de place — la carte portée reste visible au-dessus des autres, les
     // voisines se décalent sous elle (`DragShift`) et rien ne saute à la dépose.
@@ -596,7 +676,10 @@ export function MovementCatalogueList({
             style={styles.collapseZone}
             testID={`movement-pile-${item.key}-collapse`}
           >
-            <View style={[styles.rail, leaving ? { bottom: CARD_HEIGHT / 2 + memberStep } : null]} testID={`movement-pile-${item.key}-rail`} />
+            <View
+              style={[styles.rail, leaving ? { bottom: CARD_HEIGHT / 2 + memberStep } : joiningAt !== null ? { bottom: CARD_HEIGHT / 2 - memberStep } : null]}
+              testID={`movement-pile-${item.key}-rail`}
+            />
           </Pressable>
         ) : null}
         {item.members.map((member, index) => {
@@ -608,6 +691,8 @@ export function MovementCatalogueList({
             else if (index < pileDrag.from && index >= dropIndex) shift = memberStep;
           } else if (leaving && !isLifted && index > pileDrag.from) {
             shift = -memberStep;
+          } else if (joiningAt !== null && index >= joiningAt) {
+            shift = memberStep;
           }
           const row = !isExpanded
             ? renderRow(
@@ -671,12 +756,12 @@ export function MovementCatalogueList({
               {/* Recette du 27/10 (r10-glisser) : une seule enveloppe pour la carte portée et ses voisines —
                   changer d'enveloppe au début du glisser démontait la carte sous le doigt et figeait le geste. */}
               <DragShift
-                shift={isLifted ? pileDrag.dy : shift}
-                active={pileDrag !== null}
+                shift={isLifted ? pileDrag.dy - pileDrag.drift : shift}
+                active={drag !== null}
                 follow={isLifted}
                 reduceMotion={reduceMotion}
                 style={isLifted ? styles.lifted : null}
-                testID={isLifted ? `movement-pile-${item.key}-lifted` : undefined}
+                testID={isLifted ? `movement-pile-${item.key}-lifted` : `movement-card-${member.movement.id}-slot`}
               >
                 {row}
               </DragShift>
@@ -696,17 +781,18 @@ export function MovementCatalogueList({
       <View>
         {forming !== null ? (
           <View
-            style={[styles.formationRail, forming.side === "ABOVE" ? { top: CARD_HEIGHT / 2 - memberStep } : { top: CARD_HEIGHT / 2 }, { height: memberStep }]}
+            // La place s'ouvre au-dessus (carte visée décalée d'un pas) ou en dessous : le filet relie les deux centres.
+            style={[styles.formationRail, { top: CARD_HEIGHT / 2, height: memberStep }]}
             testID={`movement-card-${id}-formation-rail`}
           />
         ) : null}
         <DragShift
-          shift={isLifted ? drag.dy : 0}
+          shift={isLifted ? drag.dy - drag.drift : opening !== null && opening.itemKey === id ? opening.anchorShift : 0}
           active={drag !== null}
           follow={isLifted}
           reduceMotion={reduceMotion}
           style={isLifted ? styles.lifted : null}
-          testID={isLifted ? `movement-card-${id}-lifted` : undefined}
+          testID={isLifted ? `movement-card-${id}-lifted` : `movement-card-${id}-slot`}
         >
           {renderRow(entry, () => onOpenMovement(id), {
             swipe: drag === null,
@@ -746,48 +832,73 @@ export function MovementCatalogueList({
         // B05 : monté avec la liste prête — les entrées présentes à l'ouverture ne s'animent pas ;
         // celles qui apparaissent ou disparaissent ensuite (pile dépliée, filtre, archivage) oui.
         <SheetMotionProvider reduceMotion={reduceMotion}>
-          <SheetMotionScrollView
-            contentContainerStyle={styles.list}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={drag === null}
-            testID="movement-catalogue-list"
-          >
-            {items.length === 0 ? (
-              <Text style={styles.message} testID="movement-catalogue-empty">
-                {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
-              </Text>
-            ) : null}
-            {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
-            <View
-              onTouchStart={(event) => {
-                lastTouchY.current = event.nativeEvent.pageY;
+          {/* Place de la liste à l'écran : défilement automatique pendant le geste. */}
+          <View ref={viewportRef} style={styles.viewport} collapsable={false}>
+            <SheetMotionScrollView
+              ref={scrollRef}
+              contentContainerStyle={styles.list}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              scrollEnabled={drag === null}
+              onScroll={(event) => {
+                scrollY.current = event.nativeEvent.contentOffset.y;
               }}
-              onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
-              onTouchEnd={drag !== null ? endDrag : undefined}
-              // Geste interrompu par le système : abandon, rien n'est écrit.
-              onTouchCancel={drag !== null ? () => setDrag(null) : undefined}
-              testID="movement-catalogue-items"
+              scrollEventThrottle={16}
+              onContentSizeChange={(_width, height) => {
+                contentHeight.current = height;
+              }}
+              testID="movement-catalogue-list"
             >
-              {items.map((item) => {
-                const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
-                return (
-                  <SheetMotionView
-                    key={item.key}
-                    bleed={layout.screenGutter}
-                    clip={drag === null}
-                    transition={drag === null}
-                    raised={lifted}
-                    style={[styles.item, lifted ? styles.liftedFrame : null]}
-                    onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
-                    testID={`movement-item-${item.key}`}
-                  >
-                    {renderItem(item)}
-                  </SheetMotionView>
-                );
-              })}
-            </View>
-          </SheetMotionScrollView>
+              {items.length === 0 ? (
+                <Text style={styles.message} testID="movement-catalogue-empty">
+                  {state.entries.length === 0 ? t.empty : searching ? t.noResult : t.noMatch}
+                </Text>
+              ) : null}
+              {/* Familles : un seul suivi du doigt pour toute la liste — la carte portée peut quitter sa pile. */}
+              <View
+                onTouchStart={(event) => {
+                  lastTouchY.current = event.nativeEvent.pageY;
+                  // Place de la liste à l'écran, relevée à chaque toucher (défilement automatique du geste).
+                  viewportRef.current?.measureInWindow((_x, top, _width, height) => {
+                    viewport.current = { top, height };
+                  });
+                }}
+                onTouchMove={drag !== null ? (event) => moveDrag(event.nativeEvent.pageY) : undefined}
+                onTouchEnd={drag !== null ? endDrag : undefined}
+                // Geste interrompu par le système : abandon, rien n'est écrit.
+                onTouchCancel={drag !== null ? stopDrag : undefined}
+                testID="movement-catalogue-items"
+              >
+                {items.map((item, index) => {
+                  const lifted = drag !== null && drag.pileKey === null && item.kind === "SINGLE" && item.entry.movement.id === drag.id;
+                  return (
+                    <SheetMotionView
+                      key={item.key}
+                      bleed={layout.screenGutter}
+                      clip={drag === null}
+                      transition={drag === null}
+                      raised={lifted}
+                      style={[styles.item, lifted ? styles.liftedFrame : null]}
+                      onLayout={(event: LayoutChangeEvent) => recordItemBox(item.key, event)}
+                      testID={`movement-item-${item.key}`}
+                    >
+                      {/* C2 : entrées qui suivent la place ouverte, décalées d'un pas ; même enveloppe hors geste. */}
+                      <DragShift
+                        shift={openingIndex >= 0 && index > openingIndex && !lifted ? memberStep : 0}
+                        active={drag !== null}
+                        follow={false}
+                        reduceMotion={reduceMotion}
+                        style={null}
+                        testID={`movement-item-${item.key}-shift`}
+                      >
+                        {renderItem(item)}
+                      </DragShift>
+                    </SheetMotionView>
+                  );
+                })}
+              </View>
+            </SheetMotionScrollView>
+          </View>
         </SheetMotionProvider>
       ) : null}
       <View pointerEvents="box-none" style={styles.noticeAnchor}>
@@ -823,6 +934,14 @@ export function MovementCatalogueList({
       ) : null}
     </View>
   );
+}
+
+/** Haut de la carte portée dans le repère de la liste (gestionnaires seulement). */
+function liftedTopIn(current: Drag, itemBoxes: ReadonlyMap<string, Box>, memberBoxes: ReadonlyMap<string, Box>): number | undefined {
+  if (current.pileKey === null) return itemBoxes.get(current.id)?.y;
+  const pile = itemBoxes.get(current.pileKey);
+  const own = memberBoxes.get(current.id);
+  return pile && own ? pile.y + own.y : undefined;
 }
 
 /** Règle E2 : message d'un changement d'appartenance ; aucun pour un simple réordonnancement (E3). */
@@ -1018,6 +1137,9 @@ const styles = StyleSheet.create({
   },
   item: {
     paddingBottom: ITEM_GAP,
+  },
+  viewport: {
+    flex: 1,
   },
   memberSpacing: {
     paddingTop: MEMBER_GAP,

@@ -50,3 +50,13 @@ Remarque `e8-07` (OK) : « je pense que toutes les anciennes définitions sont p
 Traitement de `r2-02` : l'écran reconstitué est supprimé ; la Séance archivée s'ouvre dans la Composition elle-même, réhydratée et rendue sans toucher (en-tête de contexte et corps), « Continuer » remplacé par l'avis de consultation seule. Détail et limites : spec E, section « Recette iPhone du 28/10/2026 — corrections ».
 
 Restent à vérifier : `r2-02` sur cette nouvelle version, et les 7 points non testés (VoiceOver, Séance sans Exercice).
+
+## Passe ciblée 2 (28/10/2026, après `e02fc9be` et `4f66f26c`)
+
+| Point | Verdict |
+|---|---|
+| `r2-01` titre en texte agrandi | OK |
+| `r2-02` Séance archivée ouverte dans la Composition, en lecture seule | OK |
+| `r3-01` à `r3-07` consultation en lecture seule, titre « Séance archivée » | OK |
+
+Restent non testés (NT) : `e2-08`, `e2-11`, `e3-07`, `e4-03`, `e5-13`, `e6-10`, `e8-08`. L'epic E reste `in-progress` jusqu'à la validation de Hermann.

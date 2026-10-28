@@ -66,9 +66,9 @@ Résultats : voir le bilan de livraison (suite complète, TypeScript, ESLint) et
 
 ## 6 bis. Limites connues (non conformes au texte, déclarées)
 
-- **Ouverture de place** : pour une création ou une entrée, la place visée ne s'ouvre pas et le filet ne s'allonge pas (C2, ch10 règle 5, CE-MVT-03 §9) ; seuls le filet de formation (création) et les niveaux provisoires sont affichés. Le réordonnancement et la sortie ouvrent et referment bien les places.
+- ~~**Ouverture de place**~~ : levée par la recette du 28/10 (§ 9).
 - **B2** : à la sortie, ce sont les cartes **sous** la carte portée qui remontent et le filet raccourcit par le bas ; rendu équivalent à « les cartes au-dessus se referment », à confirmer.
-- **Défilement** : la liste ne défile pas pendant le geste et il n'existe pas de défilement automatique près des bords (CE-MVT-03 §10 « conserver le scroll du catalogue »). Une famille hors de l'écran ne peut pas être atteinte en un seul geste.
+- ~~**Défilement**~~ : levée par la recette du 28/10 (§ 9).
 - **Emplacement pointillé** (Figma `10480:23374`, CE-MVT-03 §7) : non rendu ; la carte portée garde son ombre et les voisines se décalent (rendu du glisser B08 recetté le 27/10).
 
 ## 7. Contradictions documentaires à ne pas propager (préparées pour l'intégration de `main`)
@@ -89,3 +89,24 @@ Résultats : voir le bilan de livraison (suite complète, TypeScript, ESLint) et
 
 - Recette E : aucun impact fonctionnel (Catalogue des Séances non modifié). Le message temporaire partagé garde 5 s par défaut.
 - Recette A/B : non rejouée ; le complément `recette-iphone-familles-2026-10-28.md` cible FAM-01 à FAM-11 et la non-régression b8-3, filtres et « Ajouter un niveau ».
+
+## 9. Recette iPhone du 28/10/2026 — résultats et corrections
+
+Section FAM de la page de recette : 12 OK, 1 KO (`fam-05`). Hermann : « Les commentaires sur les tests OK sont des besoins à couvrir, a priori non spécifiés. »
+
+| Point | Verdict | Remarque de Hermann | Traitement |
+|---|---|---|---|
+| `fam-05` entrer dans une pile repliée | **KO** | « La famille se déplie, mais la carte n'est plus sous le doigt mais en bas de la pile, relâcher le mouvement la positionne où se trouvait le doigt. » | **Défaut corrigé.** La pile dépliée au-dessus de la carte portée repoussait sa place ; le décalage de la carte n'en tenait pas compte. La carte garde maintenant sa position sous le doigt : le déplacement de sa place depuis le départ (`drift`) est relevé à chaque mise en page et à chaque mouvement, puis retranché. La décision du geste n'était pas en cause (elle suit déjà le doigt). |
+| `fam-06` pas de transfert direct | OK, remarque | « Lorsqu'on porte un membre sans famille sur une famille déployée, les membres de la famille ne s'écartent pas pour laisser la place, ce devrait être le cas. » | **Couvert.** Le besoin est déjà spécifié (C2, ch10 règle 5, CE-MVT-03 §9 ; limite déclarée § 6 bis). Entrée : les membres à partir du rang d'arrivée, puis les entrées suivantes du Catalogue, descendent d'un pas ; le filet s'allonge d'un pas. Création : la carte visée descend d'un pas si l'on se pose au-dessus, les entrées suivantes aussi ; le filet de formation relie la place ouverte et la carte visée. Décalage visuel seulement : les places mesurées ne changent pas, la décision ne bascule donc pas d'un côté à l'autre. |
+| `fam-07` dernier couple | OK, remarque | « Le mouvement sorti ne reste pas à la place où on l'a posé par rapport à l'autre mouvement, il se remet systématiquement à la place qu'il avait à l'origine dans le catalogue par rapport à l'autre mouvement. Si je le sors par en haut, je m'attends à ce qu'il reste en haut près de mon doigt, pas à ce qu'il se trouve à un tout autre emplacement, car alors je le cherche. » | **Non codé — besoin à spécifier (À CLARIFIER 6).** Contraire à B5 (« un Mouvement sans famille n'a pas de position manuelle ») et au classement par nom tenant lieu de Trier, grisé ; l'écrire demanderait une position manuelle des Mouvements, donc un tri et vraisemblablement un champ de données (migration exclue). |
+| `fam-12` limites connues | OK, remarque | « Si je déplace une carte vers le haut ou le bas en dehors de l'écran, la liste doit se déplacer aussi. » | **Couvert.** Défilement automatique : doigt à moins de 72 pt du haut ou du bas de la liste, la liste défile de 8 pt par image (≈ 480 pt/s) jusqu'à son extrémité ; la carte portée reste sous le doigt et la décision du geste tient compte du défilement. Aucune contradiction : CE-MVT-03 §10 demande de « conserver le scroll du catalogue », ce qui reste vrai hors du geste. |
+| Autres (`fam-01` à `fam-04`, `fam-08` à `fam-11`, `fam-13`) | OK | — | — |
+
+À CLARIFIER 6 — **place d'un Mouvement sorti** : options possibles, aucune retenue sans décision :
+1. garder le classement par nom (état actuel) ;
+2. garder le classement par nom et, après la sortie, amener la liste sur le Mouvement sorti et le signaler brièvement (aucune donnée nouvelle) ;
+3. position manuelle des Mouvements dans le Catalogue : nouvelle règle de tri, à spécifier avec Trier (hors de ce lot, migration probable).
+
+Fichiers : `MovementCatalogueList.tsx` (correction `drift`, place ouverte, défilement automatique ; la liste est enveloppée d'une vue qui donne sa place à l'écran), `movementFamilyDrag.ts` (`autoScrollDirection`, pur). Tests : `MovementCatalogueList.fam` (+3 : carte sous le doigt après dépliage, place ouverte à l'entrée, place ouverte à la création), `movementFamilyDrag.fam` (+1 : bandes de défilement).
+
+Limite restante : l'emplacement pointillé (Figma `10480:23374`) n'est toujours pas rendu.
