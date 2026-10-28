@@ -2752,7 +2752,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   return (
     <ScreenShell>
       <FixedHeader
-        title={composition.title}
+        title={readOnly ? composition.consultation.title : composition.title}
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
         onBack={() => (placement !== null ? cancelPlacement() : router.back())}
         backAccessibilityLabel={composition.closeAccessibilityLabel}

@@ -1854,6 +1854,9 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     };
     renderWithEditStatus("consulting", { draft: archived, hydratedBaseline: archived }, "s-archived");
 
+    // Recette E (28/10) : the screen title reads « Séance archivée ».
+    expect(screen.getByText("Séance archivée")).toBeTruthy();
+    expect(screen.queryByText(composition.title)).toBeNull();
     // The real Composition is shown: same name field and exercise card…
     expect(screen.getByLabelText(composition.name)).toBeTruthy();
     expect(screen.getByText("Gainage")).toBeTruthy();
