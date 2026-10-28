@@ -96,16 +96,29 @@ describe("PRE-8 E.5 — transitions", () => {
     expect(await service.duplicateSession(created.id, () => "copy")).toEqual({ status: "NOT_FOUND" });
   });
 
-  it("recette du 28/10 (e5-12) : une Séance archivée reste lisible pour la consultation, sans écriture", async () => {
-    const created = await repository().createStructured(input());
+  it("recette du 28/10 (e5-12) : une Séance archivée se relit pour la Composition en lecture seule, sans écriture", async () => {
+    const created = await repository().createStructured({
+      ...input(),
+      name: "Séance à un Circuit",
+      structure: {
+        elements: [{ kind: "CIRCUIT", circuit: { id: "c", repeatCount: 3, nature: "TOURS", exercises: [exercise("e1"), exercise("e2")] } }],
+        stopPoints: [],
+      },
+    });
     await repository().archive(created.id);
     const before = await database.getFirstAsync("SELECT status, archived_at, updated_at FROM sessions WHERE id = ?", [created.id]);
     const service = new SessionService(repository());
-    const record = await service.getSessionForConsultation(created.id);
-    expect(record).toMatchObject({ id: created.id, status: "ARCHIVED" });
-    expect(record?.structure.elements.length).toBeGreaterThan(0);
+    const session = await service.getSessionForConsultation(created.id);
+    expect(session).toMatchObject({ id: created.id, name: "Séance à un Circuit" });
+    expect(session?.cycle.tour.repeatCount).toBe(3);
     expect(await service.getSessionForConsultation("inconnue")).toBeNull();
     expect(await database.getFirstAsync("SELECT status, archived_at, updated_at FROM sessions WHERE id = ?", [created.id])).toEqual(before);
+  });
+
+  it("R-E6 : une Séance archivée plus riche que l'ancien modèle n'est pas tronquée (erreur explicite)", async () => {
+    const created = await repository().createStructured(input());
+    await repository().archive(created.id);
+    await expect(new SessionService(repository()).getSessionForConsultation(created.id)).rejects.toThrow("cannot represent");
   });
 });
 

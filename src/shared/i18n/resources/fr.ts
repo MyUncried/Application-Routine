@@ -509,7 +509,6 @@ export const fr = {
       // Recette E du 28/10/2026 (Hermann, e5-12) : une Séance archivée s’ouvre en consultation seule.
       consultation: {
         notice: "Séance archivée : consultation seule. Restaurez-la depuis le Catalogue pour la modifier.",
-        empty: "Cette séance ne contient aucun exercice.",
       },
       // PRE-6 (story 3.1, CIR-10, Figma `8328:28667`) : en-tête du Circuit — titre, unité du
       // compteur accordée selon la nature (N = 1 singulier) et nom VoiceOver du réglage.

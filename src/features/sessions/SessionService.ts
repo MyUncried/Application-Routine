@@ -148,11 +148,11 @@ export class SessionService {
   }
 
   /**
-   * Recette E du 28/10/2026 (Hermann, e5-12) : Séance à consulter en lecture seule (une Séance
-   * archivée s’ouvre en consultation, jamais en modification). Aucune écriture.
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : Séance archivée ouverte dans la Composition en
+   * lecture seule, jamais en modification. Aucune écriture.
    */
-  async getSessionForConsultation(sessionId: string): Promise<CatalogueSessionRecord | null> {
-    return this.catalogueRepository().findCatalogue(sessionId);
+  async getSessionForConsultation(sessionId: string): Promise<Session | null> {
+    return this.catalogueRepository().findForConsultation(sessionId);
   }
 
   /**

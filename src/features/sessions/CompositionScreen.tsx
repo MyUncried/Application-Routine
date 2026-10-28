@@ -15,6 +15,7 @@ import {
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
+  type ViewProps,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -182,7 +183,6 @@ import {
 import { focusOnNextFrame } from "@/features/sessions/deferredAccessibilityFocus";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
-import { ArchivedSessionConsultation } from "@/features/sessions/ArchivedSessionConsultation";
 import { TourBoundaryChoiceDialog } from "@/features/sessions/TourBoundaryChoiceDialog";
 import { type AnimatedShiftRegistry, type ShiftRelease, useAnimatedShiftRegistry } from "@/features/sessions/useAnimatedShift";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -2705,18 +2705,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const resolvedStatus = editStatus ?? "creating";
   const editState =
     sessionId !== null && resolvedStatus === "creating" ? "loading" : resolvedStatus;
-  // Recette E du 28/10/2026 (Hermann, e5-12) : une Séance archivée s’ouvre en consultation seule.
-  if (editState === "archived" && sessionId !== null) {
-    return (
-      <ArchivedSessionConsultation
-        sessionId={sessionId}
-        categories={categoriesReferential}
-        bodyZones={bodyZonesReferential}
-        onBack={() => router.back()}
-      />
-    );
-  }
-  if (editState !== "creating" && editState !== "ready") {
+  // Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance archivée s'ouvre dans cette même
+  // Composition, en lecture seule — aucun toucher sur le nom, les commandes, les cartes ou les
+  // bornes (`ReadOnlyFrame`), défilement conservé ; « Continuer » remplacé par l'avis.
+  const readOnly = editState === "consulting";
+  if (editState !== "creating" && editState !== "ready" && editState !== "consulting") {
     return (
       <CompositionEditState
         status={editState}
@@ -2725,6 +2718,36 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       />
     );
   }
+
+  const contextHeader = (
+    <CompositionContextHeader
+      name={draft.name}
+      onChangeName={(text) => updateDraft({ name: text })}
+      onNameFocus={closeOverlay}
+      sessionLabel={sessionLabel}
+      sessionColor={sessionColor}
+      onOpenLabelPicker={() => {
+        closeCircuitNatureMenu();
+        setIsLabelPickerOpen(true);
+      }}
+      sessionDuration={sessionDuration}
+      onAdd={() => {
+        closeCircuitNatureMenu();
+        setIsAddActivityTreeOpen(true);
+      }}
+      onAddStop={enterPlacement}
+      // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
+      // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
+      onOpenVolumes={openCircuitVolumes}
+      volumesFocusRequest={volumesFocusRequest}
+      isVolumesDisabled={draggedKey !== null}
+      isPlacementActive={isPlacementActive}
+      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
+      addStopFocusRequest={addStopFocusRequest}
+      addStopAccessibilityHint={addStopAccessibilityHint}
+      testID="composition-context-header"
+    />
+  );
 
   return (
     <ScreenShell>
@@ -2767,33 +2790,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * et bouton « + » (arbre d’ajout existant) — voir `CompositionContextHeader`. La couleur
          * de la Séance reste DÉRIVÉE de son Étiquette (V2-PRE-1), jamais écrite ici.
          */}
-        <CompositionContextHeader
-          name={draft.name}
-          onChangeName={(text) => updateDraft({ name: text })}
-          onNameFocus={closeOverlay}
-          sessionLabel={sessionLabel}
-          sessionColor={sessionColor}
-          onOpenLabelPicker={() => {
-            closeCircuitNatureMenu();
-            setIsLabelPickerOpen(true);
-          }}
-          sessionDuration={sessionDuration}
-          onAdd={() => {
-            closeCircuitNatureMenu();
-            setIsAddActivityTreeOpen(true);
-          }}
-          onAddStop={enterPlacement}
-          // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
-          // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
-          onOpenVolumes={openCircuitVolumes}
-          volumesFocusRequest={volumesFocusRequest}
-          isVolumesDisabled={draggedKey !== null}
-          isPlacementActive={isPlacementActive}
-          isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
-          addStopFocusRequest={addStopFocusRequest}
-          addStopAccessibilityHint={addStopAccessibilityHint}
-          testID="composition-context-header"
-        />
+        {/* Consultation (recette E, e5-12) : même en-tête, sans toucher ; hors consultation, enfant direct inchangé. */}
+        {readOnly ? (
+          <View pointerEvents="none" testID="composition-read-only">
+            {contextHeader}
+          </View>
+        ) : (
+          contextHeader
+        )}
       </ContextBand>
 
       {/*
@@ -2856,6 +2860,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         onScrollBeginDrag={closeCircuitNatureMenu}
         testID="composition-body"
       >
+        <ReadOnlyFrame readOnly={readOnly} style={styles.readOnlyBody}>
         {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `NatureOutsideZone`. */}
         {openOverlay === "circuitNature" ? (
           <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside" />
@@ -3216,6 +3221,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-circuit-header-counter-nature-panel"
           />
         ) : null}
+        </ReadOnlyFrame>
       </ScrollView>
 
       {/*
@@ -3262,7 +3268,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
           </Text>
         ) : null}
-        {placement === null ? (
+        {readOnly ? (
+          <Text style={styles.readOnlyNotice} accessibilityLiveRegion="polite" testID="composition-read-only-notice">
+            {composition.consultation.notice}
+          </Text>
+        ) : null}
+        {placement === null && !readOnly ? (
           <PrimaryActionButton
             label={composition.saveAction}
             onPress={handleSave}
@@ -5306,6 +5317,20 @@ function blockHeightFor(isDragged: boolean): number {
  * message + actions (Réessayer sur erreur technique, Revenir au catalogue
  * dans tous les cas — destination sûre, aucune mutation).
  */
+/**
+ * Recette E du 28/10/2026 (e5-12, r2-02) : en consultation, le contenu reste affiché et lu par
+ * VoiceOver mais ne reçoit aucun toucher ; hors consultation, aucun élément n'est ajouté (même
+ * arbre, même mise en page).
+ */
+function ReadOnlyFrame({ readOnly, style, children }: { readOnly: boolean; style?: ViewProps["style"]; children: React.ReactNode }) {
+  if (!readOnly) return <>{children}</>;
+  return (
+    <View pointerEvents="none" style={style} testID="composition-read-only">
+      {children}
+    </View>
+  );
+}
+
 function CompositionEditState({
   status,
   onRetry,
@@ -5695,6 +5720,15 @@ const styles = StyleSheet.create({
   // `exerciseList`. Les deux partagent désormais la même constante : la
   // régularité est vraie PAR CONSTRUCTION, pas par coïncidence de deux
   // littéraux.
+  // Consultation : la colonne reprend l'écart du corps (`bodyContent`), porté par le cadre.
+  readOnlyBody: {
+    gap: COMPOSITION_ROW_GAP,
+  },
+  readOnlyNotice: {
+    ...type.supporting,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
   bodyContent: {
     // PRE-6 (story 5.2, D-435) : colonne de la séquence à x 24 ; le rail est dessiné par chaque
     // élément (bornes, cartes, Circuit), plus aucune marge de repères. A01 (recette PRE-8 A/B) :

@@ -1846,14 +1846,33 @@ describe("CompositionScreen — états de réhydratation en modification (T01-S1
     expect(screen.queryByLabelText(composition.name)).toBeNull();
   });
 
-  it("recette du 28/10 (e5-12) : a persisted archived Séance opens the read-only consultation, never the form", () => {
-    renderWithEditStatus("archived", {}, "s-archived");
+  it("recette du 28/10 (e5-12, r2-02) : an archived Séance opens in this Composition, read-only", () => {
+    const archived = {
+      ...emptyEditDraft(),
+      name: "Séance archivée",
+      exercises: [{ ...createExerciseDraft("keep-1"), name: "Gainage", executionParameters: durationParameters(30) }],
+    };
+    renderWithEditStatus("consulting", { draft: archived, hydratedBaseline: archived }, "s-archived");
 
-    expect(screen.queryByText(t.archivedMessage)).toBeNull();
-    // No SessionService in this harness: the consultation reports it cannot read the Séance.
-    expect(screen.getByTestId("archived-consultation-unavailable")).toBeTruthy();
-    expect(screen.queryByLabelText(composition.name)).toBeNull();
-    expect(screen.queryByLabelText(composition.saveAction)).toBeNull();
+    // The real Composition is shown: same name field and exercise card…
+    expect(screen.getByLabelText(composition.name)).toBeTruthy();
+    expect(screen.getByText("Gainage")).toBeTruthy();
+    expect(screen.queryByTestId("composition-edit-state")).toBeNull();
+    // …but nothing receives a touch, and « Continuer » gives way to the consultation notice.
+    const frames = screen.getAllByTestId("composition-read-only");
+    expect(frames.length).toBe(2);
+    for (const frame of frames) expect(frame.props.pointerEvents).toBe("none");
+    expect(screen.queryByTestId("composition-save-action")).toBeNull();
+    expect(screen.getByTestId("composition-read-only-notice")).toHaveTextContent(
+      "Séance archivée : consultation seule. Restaurez-la depuis le Catalogue pour la modifier.",
+    );
+  });
+
+  it("outside consultation, no read-only frame is rendered", () => {
+    renderWithEditStatus("ready", { draft: { ...emptyEditDraft(), name: "Séance" } });
+
+    expect(screen.queryByTestId("composition-read-only")).toBeNull();
+    expect(screen.getByTestId("composition-save-action")).toBeTruthy();
   });
 
   it("shows a technical error with a Réessayer action that calls retryHydration, plus a return to the Catalogue", () => {

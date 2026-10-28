@@ -115,8 +115,8 @@ export type SessionLifecycleOutcome =
 export interface SessionCatalogueRepository {
   /** Séances actives et archivées, les plus récemment modifiées d'abord. */
   listCatalogue(): Promise<readonly CatalogueSessionRecord[]>;
-  /** Recette E (28/10/2026, e5-12) : une Séance, active ou archivée, pour la consultation seule ; `null` si inconnue. */
-  findCatalogue(sessionId: string): Promise<CatalogueSessionRecord | null>;
+  /** Recette E (28/10/2026, e5-12) : une Séance, active ou archivée, à ouvrir en lecture seule ; `null` si inconnue. */
+  findForConsultation(sessionId: string): Promise<Session | null>;
   /** E.5 : Séance active → archivée (`archived_at` horodaté) ; composition et rang de tri inchangés. */
   archive(sessionId: string): Promise<SessionLifecycleOutcome>;
   /** E.5 : Séance archivée → active, à l'identique. */

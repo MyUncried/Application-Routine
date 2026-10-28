@@ -35,5 +35,18 @@ Remarque `e8-07` (OK) : « je pense que toutes les anciennes définitions sont p
 
 ## Suite
 
-- Corrections livrées dans un commit dédié de recette ; nouvelle passe iPhone ciblée sur `e2-10`, `e5-12`, `e4-02`/`q4-02` et les 7 points non testés.
+- Corrections livrées dans un commit dédié de recette (`bf2f7ff0`) ; nouvelle passe iPhone ciblée sur `e2-10`, `e5-12`, `e4-02`/`q4-02` et les 7 points non testés.
 - L'epic E reste `in-progress` jusqu'à la validation de Hermann.
+
+## Passe ciblée (28/10/2026, après `bf2f7ff0`)
+
+| Point | Verdict | Remarque de Hermann |
+|---|---|---|
+| `e2-10` titre en texte agrandi | OK | — |
+| `r2-02` consultation d'une Séance archivée | **KO** | « la composition de séance n'est pas présentée correctement, seule une reconstitution ratée de circuit et de cartes d'exercices. Il faut reprendre la composition telle qu'elle existe, et la laisser en lecture seule, sans possibilité d'ouvrir les cartes d'exercice. » |
+| `r2-03` aucune modification, retour au Catalogue | OK | — |
+| `r2-04` à `r2-07` filtre étendu, « 1 filtre », une ligne, réinitialisation | OK | — |
+
+Traitement de `r2-02` : l'écran reconstitué est supprimé ; la Séance archivée s'ouvre dans la Composition elle-même, réhydratée et rendue sans toucher (en-tête de contexte et corps), « Continuer » remplacé par l'avis de consultation seule. Détail et limites : spec E, section « Recette iPhone du 28/10/2026 — corrections ».
+
+Restent à vérifier : `r2-02` sur cette nouvelle version, et les 7 points non testés (VoiceOver, Séance sans Exercice).

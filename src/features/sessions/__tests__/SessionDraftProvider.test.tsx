@@ -255,17 +255,35 @@ describe("SessionDraftProvider — mode modification (T01-S10)", () => {
     expect(captured.draft).toEqual(createEmptyDraft());
   });
 
-  it("reports ARCHIVED for an archived session", async () => {
+  it("reports ARCHIVED for an archived session that cannot be read", async () => {
     const getSessionForEdit = newGetForEdit();
     getSessionForEdit.mockResolvedValue({ status: "ARCHIVED" });
+    const getSessionForConsultation = jest.fn(async () => null);
     let captured!: SessionDraftContextValue;
-    renderWithService(makeService(getSessionForEdit), (value) => (captured = value));
+    renderWithService({ getSessionForEdit, getSessionForConsultation } as unknown as SessionService, (value) => (captured = value));
 
     act(() => {
       captured.hydrateFromSession?.("archived-1");
     });
 
     await waitFor(() => expect(captured.editStatus).toBe("archived"));
+    expect(getSessionForConsultation).toHaveBeenCalledWith("archived-1");
+  });
+
+  it("recette E (e5-12) : an archived session is rehydrated for read-only consultation", async () => {
+    const getSessionForEdit = newGetForEdit();
+    getSessionForEdit.mockResolvedValue({ status: "ARCHIVED" });
+    const getSessionForConsultation = jest.fn(async () => aSession({ id: "archived-1", name: "Séance archivée" }));
+    let captured!: SessionDraftContextValue;
+    renderWithService({ getSessionForEdit, getSessionForConsultation } as unknown as SessionService, (value) => (captured = value));
+
+    act(() => {
+      captured.hydrateFromSession?.("archived-1");
+    });
+
+    await waitFor(() => expect(captured.editStatus).toBe("consulting"));
+    expect(captured.draft.name).toBe("Séance archivée");
+    expect(captured.draft.sourceSessionId).toBe("archived-1");
   });
 
   it("reports error on a technical failure and retryHydration re-runs the load", async () => {

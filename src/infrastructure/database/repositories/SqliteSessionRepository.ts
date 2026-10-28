@@ -541,10 +541,11 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
   }
 
   /**
-   * Recette E du 28/10/2026 (Hermann, e5-12) : une Séance du Catalogue, active ou archivée, avec sa
-   * structure générale — lue par la consultation en lecture seule d’une Séance archivée.
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, dans l'ancien
+   * modèle lu par la Composition — ouverte en lecture seule quand elle est archivée. Une Séance plus
+   * riche lève `SessionStructureNotRepresentableError`, comme `findById`.
    */
-  async findCatalogue(sessionId: string): Promise<CatalogueSessionRecord | null> {
+  async findForConsultation(sessionId: string): Promise<Session | null> {
     const user = await getLocalUser(this.database);
     const header = await this.database.getFirstAsync<SessionHeaderRow>(
       `${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`,
@@ -552,7 +553,7 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     );
     if (!header) return null;
     const [assembled] = await readAssembledSessions(this.database, [header], { allowArchived: true });
-    return assembled ? toCatalogueRecord(assembled) : null;
+    return assembled ? toLegacySession(assembled) : null;
   }
 
   /**
