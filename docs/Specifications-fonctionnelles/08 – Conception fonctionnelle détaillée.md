@@ -1,5 +1,9 @@
 # Conception fonctionnelle par fonctionnalité
 
+## Composition — actualisation du 28/10/2026
+
+La création distingue ajout de contenu et enveloppement de membres existants. Les déplacements changent appartenance et ordre ; les séries alternées conservent N commun. Les zéros volontaires restent des lignes indexées, distinctes du tiret. Le contrat de déplacement inter-circuits précédemment futur entre dans le MVP : confirmation si perte, Annuler conserve emplacement et données. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Catalogue des mouvements — composer une famille, 28/10/2026
 
 Appui long, déplacement, arrêt sur l'emplacement puis relâchement : même geste pour réordonner, sortir, créer ou rejoindre une famille. Le filet et les pastilles prévisualisent le résultat ; une famille repliée se déplie. Seul un mouvement sans famille peut être lié à une autre carte ; un changement de famille impose sortie puis liaison, en deux gestes. Le dernier couple se dissout lors d'une sortie explicite. Application immédiate, sans message pour le seul ordre ; changement d'appartenance annoncé avec Annuler pendant 3 secondes. Le tri du catalogue place le mouvement sorti, même en tête de liste. Voir [règles A à E et recette FAM-01–11](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) et CE-MVT-03. Ajouter un niveau conserve son formulaire distinct.
@@ -278,7 +282,7 @@ Changement de mode : conserver N et les Pauses ; remplacer les cibles incompatib
 
 **Charge dans le brouillon.** La charge de chaque série suit les mêmes opérations de brouillon que sa cible et sa Pause (activation et désactivation des séries variables, augmentation et réduction de N, restauration, déplacement, ✓ et ✕), sans propagation propre (RM-238). Son activation, sa saisie, le zéro, la première activation et la réactivation suivent RM-237 et RM-239. Passer à Sans ne l’efface pas : ses valeurs restent dans le brouillon et ✓ les applique au parent (RM-236). Cette conservation est propre à la charge ; elle ne modifie pas la non-persistance des variantes cachées des autres paramètres (D-403).
 
-**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit de séries, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit de séries, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
+**N=1 — arbitrage explicite** : état effectif uniforme et Ordre des côtés effectif Un côté après l’autre **dès le brouillon et son calcul**, pas seulement à la sauvegarde. Champ de régime non modifiable, selon la normalisation N1 existante ; ligne Enchainement (Ordre des côtés) non affichée, le changement de côté Avec / Sans restant disponible (D-415) ; aucun texte explicatif. Conserver temporairement l’ancien état variable, ses lignes et l’ancien ordre des côtés pour les restaurer si N remonte à 2+ avant ✓. Valider à 1 ne conserve qu’une série uniforme et l’ordre par défaut. Hors circuit à séries alternées, les deux formules bilatérales ne sont pas déclarées équivalentes à N=1 : la normalisation choisit explicitement la première. Dans un circuit à séries alternées, le passage suit toujours premier côté → PC → second côté → Pi, y compris pour compte 1 ; aucun Pi supplémentaire avant PC.
 
 <a id="phases-exercice"></a>
 
@@ -503,7 +507,7 @@ Les exercices sont exécutés dans l'ordre défini dans la séance.
 
 Chaque exercice est exécutée intégralement avant le passage à la suivante.
 
-Le Cycle technique est exécuté une seule fois. Le Circuit répète automatiquement son contenu jusqu’à atteindre son nombre de répétitions défini.
+Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). Chaque circuit développe ses membres selon sa nature et son compte.
 
 Les Exercices placés après le Circuit sont exécutés une seule fois après le dernier Tour du Circuit.
 

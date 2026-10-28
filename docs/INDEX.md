@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
+
 > **Complément du 27/10 — Ajouter un niveau** : choix du sens dans le glissé du catalogue, sans écran intermédiaire. Voir [la spécification Mouvement](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md), CE-MVT-02 au chapitre 13, captures au chapitre 06 et composants au chapitre 12.
 
 > **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.

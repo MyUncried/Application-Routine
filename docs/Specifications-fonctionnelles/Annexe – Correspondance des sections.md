@@ -1001,3 +1001,8 @@ Document non normatif. Il indique, pour chaque section des chapitres avant la re
 | 13 | Implantation du bip et comportement des steppers | [Implantation du bip et comportement des steppers](06%20%E2%80%93%20Ecrans%20et%20navigation%20de%20la%20V1.md#implantation-du-bip-et-comportement-des-steppers) | déplacée au ch. 06 |
 | 13 | Rendu et accessibilité de la phrase | [Rendu et accessibilité de la phrase](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#rendu-et-accessibilité-de-la-phrase) | même chapitre |
 | 13 | Contrôles et layout de planification | [Contrôles et layout de planification](13%20%E2%80%93%20Contrats%20d%E2%80%99%C3%A9cran.md#contrôles-et-layout-de-planification) | même chapitre |
+
+
+## Composition — correspondance du 28/10/2026
+
+Les anciennes ancres Composition/Cycle technique du chapitre 10 sont conservées pour les liens entrants ; leur texte cible décrit désormais les cycles visibles D-451. Les anciennes formulations restent accessibles dans Git et dans les sources historiques, sans valeur normative courante. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).

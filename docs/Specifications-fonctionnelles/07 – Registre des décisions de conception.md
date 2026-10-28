@@ -1056,3 +1056,21 @@ Panneau : ajout Catégories/Zones corporelles, sections actives ouvertes, statut
 Le §8 introduit les trois états de nom de séance (format non éditable, nom du premier exercice éditable, invite à partir du second) et remplace sur ce point la réserve de D-449 §2 qui ne changeait pas les règles de titre. Aucun suffixe de niveau dans le nom. Cette règle est documentée pour la Composition ; elle ne fait pas partie de la tranche Catalogue proposée.
 
 La marge 16 a été appliquée dans Figma au-delà du lot ; son déploiement global dans le code reste distinct. Le périmètre de développement Catalogue est une proposition à valider, pas une autorisation de développer. Les écarts visuels et le raccordement des vignettes restent tracés dans le relevé DSF.
+
+
+## D-451 — Cycles visibles et exercices membres directs — 28/10/2026
+
+Source : synthèse fournie par Hermann, §6, sous le numéro D-450. Renumérotation d’intégration en D-451 pour éviter la collision avec la PR #402 (filtres des mouvements, D-450) ; aucun changement de fond. Précise et remplace SU-04 de D-449 : plusieurs cycles successifs, chacun composé de circuits et d’exercices et muni de son compte ; aucun cycle dans un cycle, circuit dans un circuit ou séance imbriquée. Un exercice direct est exécuté une fois par répétition du cycle (RM-252). Cycles visibles et multi-circuit entrent dans le MVP. Remplace RM-025/RM-028, DM-003/DM-004 et les clauses imposant un cycle invisible unique fixé à 1 ; compte 1..99, défaut 1. Le modèle ne crée plus de cycle technique implicite.
+
+## Complément composition — décisions rapportées du 28/10/2026
+
+Source : [synthèse fournie](../KODJO-Conteneurs-composition-2026-10-28-source.md), §§2–9 ; [référence réconciliée](../KODJO-Composition-conteneurs-2026-10-28.md). Ce complément ne reçoit pas un numéro D inventé.
+
+- Remplace D-442 sur le stepper permanent, les tailles uniformes et les cibles d’en-tête ; nombre révélé au toucher, unité non interactive, choix de nature sur l’adjectif. Le rendu compact rapporté ne constitue pas une qualification tactile.
+- Remplace la clause de D-443 masquant la durée et alignant le stepper à droite : durée de nouveau visible, compteur à abscisse fixe. Autres dispositions D-442/D-443 inchangées.
+- Renomme les natures de tours/de séries en séries groupées/alternées, sans changer leur développement. N commun en alternées maintenu ; confirmation de conversion avec perte maintenue.
+- Remplace le minimum des cibles de séries dans D-232/D-430/RM-234 : zéro autorisé à toute position ; tiret distinct et bloquant ; tout volume numérique nul refusé ; étape et pause sautées. Les bornes des durées de phases restent inchangées.
+- Valide la création autour de membres, disparition à vide, singleton conservé, déplacement par appui long, repli préalable du circuit et éclairage de destination ; aucune poignée de bord ni action de suppression de conteneur.
+- Intègre les règles de défilement D1–D8 de la source sous CS-D1–CS-D8 ; correction de la constante historique 80 pt en référence compacte 68 pt, calcul du scroll sur la hauteur réelle.
+
+Les réserves de la [revue critique](../REVUE-COMPOSITION-2026-10-28.md) ne sont pas des arbitrages : sélection d’enveloppe, frontières des points, cycle entier, cas nuls et détails de recette restent distincts des décisions closes.

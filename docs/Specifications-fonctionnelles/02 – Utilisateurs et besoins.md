@@ -1,5 +1,9 @@
 # Utilisateurs et besoins
 
+## Composition — actualisation du 28/10/2026
+
+Le besoin de répéter une mobilisation avec plusieurs blocs est couvert par un exercice directement membre du cycle, sans imposer un circuit artificiel. Le besoin de séance simple reste couvert sans conteneur. Voir [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md).
+
 ## Sommaire
 
 - [Objectif du chapitre](#objectif-du-chapitre)
@@ -70,7 +74,7 @@ Une personne qui souhaite créer, planifier, exécuter et suivre seule des Séan
 - **B-021** — Ne pouvoir continuer qu’après avoir renseigné un nom, une couleur et au moins un Exercice valide.
 - **B-022** — Pouvoir abandonner explicitement une création commencée.
 
-Le Cycle technique n’est ni manipulé ni affiché dans le MVP.
+Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252).
 
 #### Décomposer un exercice en phases
 

@@ -28,7 +28,7 @@ Dans le menu Niveau d'un exercice, un changement effectif de mouvement conserve 
 
 Le rang est calculé dans la famille complète, avant filtrage de la vue. Filtrer ne reclasse pas les mouvements. Retirer ou supprimer un membre peut modifier le rang et le total affichés des autres (MFN-05), sans changer leur identité, leur contenu ou leurs instantanés. Ne pas appliquer la formule erronée « supprimer un membre ne modifie jamais le rang des autres ». Archiver ou restaurer conserve l’appartenance et la clé de tri : le membre archivé reste pris en compte dans le calcul des niveaux de la famille complète. Ces opérations ne changent pas les niveaux ; seule la visibilité change. Supprimer définitivement peut modifier les rangs et le total affichés, sans réécriture des clés de tri des autres membres (clarification validée par Hermann le 27/10/2026, chapitre 09, règle 8). Cette précision ne clôt pas les autres parcours de cycle de vie de C08.
 
-Une conversion confirmée de circuit de tours vers circuit de séries tronque définitivement les séries excédentaires ; elles ne sont pas gardées dans la réserve du brouillon. La diminution du compteur sans changement de nature conserve au contraire temporairement les lignes retirées pendant l'édition de la séance. Annuler la conversion conserve l'état initial. Ces règles existantes restent distinctes ; aucune levée du nombre de séries imposé n'est décidée par cette correction.
+Une conversion confirmée de circuit à séries groupées vers circuit à séries alternées tronque définitivement les séries excédentaires ; elles ne sont pas gardées dans la réserve du brouillon. La diminution du compteur sans changement de nature conserve au contraire temporairement les lignes retirées pendant l'édition de la séance. Annuler la conversion conserve l'état initial. Ces règles existantes restent distinctes ; aucune levée du nombre de séries imposé n'est décidée par cette correction.
 
 La spécification ciblée du 27/10 applique C01/C02/C03 et R01–R08 à une création de mouvement sans exercice. Depuis le catalogue, le compteur de portée inclut tous les exercices liés ; il n'existe pas d'exercice courant à exclure. Nom modifié : dialogue toujours. Nom inchangé et contenu modifié : confirmation si au moins un exercice lié ou une exécution passée. La création distincte conserve l'original sans réaffectation d'exercices et sans groupe automatique. La création de variante explicite crée un mouvement et son rattachement, sans exercice et sans dialogue de correction. Les cas MVT-01 à MVT-11 constituent la recette de ce lot. La restriction de modification/variante depuis une séance remplace l'ancienne autorisation C04, sans modifier la lecture partagée ni les paramètres locaux.
 
@@ -43,7 +43,7 @@ La spécification ciblée du 27/10 applique C01/C02/C03 et R01–R08 à une cré
 | SU-01 | Mouvement partagé ; Exercice avec paramètres dans la composition ; Séance comme seul contenu enregistré, lançable et planifiable. |
 | SU-02 | L’identité et la nature Séance ne changent pas avec le nombre d’exercices. |
 | SU-03 | Reprendre une séance copie sa composition au niveau principal ; paramètres indépendants, mêmes mouvements, aucune synchronisation ; début/fin de la destination conservés. |
-| SU-04 | Plusieurs cycles successifs, chacun composé de circuits et muni de son compte ; aucun cycle, circuit ou séance imbriqué. |
+| SU-04 | Plusieurs cycles successifs, chacun composé de circuits et d’exercices directs et muni de son compte ; aucun cycle dans un cycle, circuit dans un circuit ni séance imbriquée (D-451). |
 | SU-05 | Lancement de la séance entière uniquement ; aucun lancement isolé d’exercice ajouté. |
 | SU-06 | Une collection de séances, vues filtrées un/plusieurs exercices ; compte sans développement des répétitions. |
 | SU-07 | Contenu courant pour les occurrences futures, instantané figé au démarrage ; pas de nouveau dialogue général de modification. |
@@ -91,7 +91,7 @@ Ce chapitre réunit les règles métier testables et les calculs, identifiés ou
   - [Conventions communes d’interface — Contrôles et bornes v13](#conventions-communes-dinterface--contrôles-et-bornes-v13)
 - [Composition des séances](#composition-des-séances)
   - [Création et modification d’une Séance](#création-et-modification-dune-séance)
-  - [Composition, Circuit et Cycle technique](#composition-circuit-et-cycle-technique)
+  - [Composition, Circuit et Cycle](#composition-circuit-et-cycle-technique)
   - [Avertissement non bloquant d’enchaînement (D-301)](#avertissement-non-bloquant-denchaînement-d-301)
   - [Périmètre fonctionnel du MVP — Création et composition](#périmètre-fonctionnel-du-mvp--création-et-composition)
   - [Extension du contenu planifiable — Parcours — Récupération après exercice portée par l’occurrence](#extension-du-contenu-planifiable--parcours--récupération-après-exercice-portée-par-loccurrence)
@@ -108,7 +108,7 @@ Ce chapitre réunit les règles métier testables et les calculs, identifiés ou
   - [Règles transverses — circuits](#règles-transverses--circuits)
   - [Extension validée du modèle — Développement des circuits](#extension-validée-du-modèle--développement-des-circuits)
   - [Composition d'une séance — Circuit et compte](#composition-dune-séance--circuit-et-compte)
-  - [Composition d'une séance — Cycle technique](#composition-dune-séance--cycle-technique)
+  - [Composition d'une séance — Cycle](#composition-dune-séance--cycle-technique)
   - [Composition d'une séance — Circuits de tours et de séries](#composition-dune-séance--circuits-de-tours-et-de-séries)
 - [Formats de séances](#formats-de-séances)
   - [Formats — règles métier transverses](#formats--règles-métier-transverses)
@@ -311,7 +311,7 @@ D-437 à D-440, validées le 23/10/2026. Cette section intègre les règles norm
 
 **Règle normative.**
 
-Un Exercice associe un Mouvement à des paramètres d’exécution. Plusieurs exercices peuvent partager le même mouvement avec des paramètres différents. Le mouvement n’est ni une séance imbriquée ni une étape supplémentaire de la composition : la structure Séance → Cycle technique → Circuit → Exercice est conservée.
+Un Exercice associe un Mouvement à des paramètres d’exécution. Plusieurs exercices peuvent partager le même mouvement avec des paramètres différents. Le mouvement n’est ni une séance imbriquée ni une étape supplémentaire de la composition : la structure autorise des exercices directs de séance ou de cycle et des circuits facultatifs (D-451).
 
 | Concept | Responsabilité |
 |---|---|
@@ -776,7 +776,7 @@ Trois résultats possibles, jamais trois boutons ni un choix manuel Mixte ; dès
 
 #### RM-251 — Points d’arrêt : non-consécutivité
 
-Deux Points d’arrêt ne se suivent jamais dans l’ordre structurel d’une Séance sans Exercice entre eux ; une Récupération n’est pas un séparateur. Le contrôle porte sur la séquence fonctionnelle, non sur la proximité graphique, et s’applique à quatre opérations : insertion d’un Point, déplacement d’un Point, déplacement d’un Exercice, suppression d’un Exercice. Une insertion ou un déplacement de Point qui produirait deux Points consécutifs, ou un Point à une position interdite, est refusé sans mutation du brouillon : ni réorganisation, ni suppression, ni déplacement automatique d’autres éléments. **Déplacement d’un Exercice (D-442, qui remplace sur ce point le refus de D-441).** Le déplacement est appliqué ; le ou les Points qu’il laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) sont retirés, sans message ; pour deux Points devenus consécutifs, le premier est conservé. **Suppression d’un Exercice (D-442, recette J6 du 22/10, qui remplace le refus doux de D-441).** La suppression suit la même règle : elle est appliquée et le ou les Points en cause sont retirés, sans message ; la carte supprimée disparaît en fondu et les éléments suivants glissent pour combler sa place (D-442), plus lentement et sans arrêt brutal depuis D-443. Les restrictions existantes sont conservées : aucun Point immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance (RM-219, sous réserve de l’exception de début et de fin de Tour ci-dessous). La position en tête de Circuit, avant son premier Exercice (début de Tour), est autorisée et proposée, comme la fin de Tour (D-442, qui remplace la non-proposition de D-441). Aux frontières du Circuit, sont consécutifs au sens structurel : « après le dernier Exercice du Circuit » et « après le Circuit » ; « avant le Circuit » et « après le Circuit » lorsque le Circuit est vide. **Début et fin de Tour à N ≥ 2 (D-442).** Lorsque le Circuit est exécuté plusieurs fois (N ≥ 2 Tours ou Séries), un Point de début de Tour et un Point de fin de Tour se suivraient entre deux Tours : l’application demande alors lequel conserver (« Début de tour » ou « Fin de tour »), ou Annuler l’action qui créerait les deux. Cela vaut pour le placement, le déplacement d’un Point, le déplacement d’un Exercice et le passage de N = 1 à N ≥ 2. À N ≥ 2, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance : l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, les restrictions de RM-219 s’appliquent ; un Point devenu interdit par le passage à N = 1 est retiré sans message. À l’exécution, dans un Circuit de Séries, un passage partiel (le dernier Exercice n’a plus de série) peut encore faire se suivre deux Points dans le plan développé : le plan d’exécution n’en exécute qu’un, un seul arrêt, sans rien retirer de la Séance enregistrée. Aucun changement de schéma ni d’API technique (D-441, D-442).
+Deux Points d’arrêt ne se suivent jamais dans l’ordre structurel d’une Séance sans Exercice entre eux ; une Récupération n’est pas un séparateur. Le contrôle porte sur la séquence fonctionnelle, non sur la proximité graphique, et s’applique à quatre opérations : insertion d’un Point, déplacement d’un Point, déplacement d’un Exercice, suppression d’un Exercice. Une insertion ou un déplacement de Point qui produirait deux Points consécutifs, ou un Point à une position interdite, est refusé sans mutation du brouillon : ni réorganisation, ni suppression, ni déplacement automatique d’autres éléments. **Déplacement d’un Exercice (D-442, qui remplace sur ce point le refus de D-441).** Le déplacement est appliqué ; le ou les Points qu’il laisserait à une position non autorisée (juste après le Compte à rebours, juste avant la Fin, ou consécutif à un autre Point) sont retirés, sans message ; pour deux Points devenus consécutifs, le premier est conservé. **Suppression d’un Exercice (D-442, recette J6 du 22/10, qui remplace le refus doux de D-441).** La suppression suit la même règle : elle est appliquée et le ou les Points en cause sont retirés, sans message ; la carte supprimée disparaît en fondu et les éléments suivants glissent pour combler sa place (D-442), plus lentement et sans arrêt brutal depuis D-443. Les restrictions existantes sont conservées : aucun Point immédiatement après le Compte à rebours initial ni immédiatement avant la Fin de séance (RM-219, sous réserve de l’exception de début et de fin de Tour ci-dessous). La position en tête de Circuit, avant son premier Exercice (début de Tour), est autorisée et proposée, comme la fin de Tour (D-442, qui remplace la non-proposition de D-441). Aux frontières du Circuit, sont consécutifs au sens structurel : « après le dernier Exercice du Circuit » et « après le Circuit » ; « avant le Circuit » et « après le Circuit » lorsque le Circuit est vide. **Début et fin de Tour à N ≥ 2 (D-442).** Lorsque le Circuit est exécuté plusieurs fois (N ≥ 2 Tours ou Séries), un Point de début de Tour et un Point de fin de Tour se suivraient entre deux Tours : l’application demande alors lequel conserver (« Début de tour » ou « Fin de tour »), ou Annuler l’action qui créerait les deux. Cela vaut pour le placement, le déplacement d’un Point, le déplacement d’un Exercice et le passage de N = 1 à N ≥ 2. À N ≥ 2, un Point de début ou de fin de Tour reste autorisé même si le Circuit ouvre ou clôt la Séance : l’exécution omet seulement l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin. À N = 1, les restrictions de RM-219 s’appliquent ; un Point devenu interdit par le passage à N = 1 est retiré sans message. À l’exécution, dans un Circuit à séries alternées, un passage partiel (la série du dernier Exercice vaut zéro) peut encore faire se suivre deux Points dans le plan développé : le plan d’exécution n’en exécute qu’un, un seul arrêt, sans rien retirer de la Séance enregistrée. Aucun changement de schéma ni d’API technique (D-441, D-442).
 
 <a id="cibles-mixtes"></a>
 ### Calculs et cas de recette des cibles mixtes
@@ -807,7 +807,7 @@ Comme dans l’agrégation existante, ≥ sur des répétitions cadencées expri
 
 L’omission à l’Exercice ne supprime pas ses pauses du total Circuit/Séance. Ceux-ci conservent le traitement de travail inconnu et de contributions connues déjà spécifié. Une saisie invalide reste une erreur de validation et n’est pas assimilée à omitted.
 
-Dès qu’une cible est À l’échec, aucun calcul inverse depuis un total saisi n’est disponible. Le total applicable est en lecture seule ; omitted reste absent. Le verrouillage déjà imposé par un circuit de séries reste également applicable.
+Dès qu’une cible est À l’échec, aucun calcul inverse depuis un total saisi n’est disponible. Le total applicable est en lecture seule ; omitted reste absent. Le verrouillage déjà imposé par un circuit à séries alternées reste également applicable.
 
 #### Recettes déterministes à intégrer
 
@@ -878,7 +878,7 @@ La pause après chaque série, dernière comprise, fait partie du calcul intrins
 
 ### Conventions communes d’interface — Contrôles et bornes v13
 
-Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..100` ; « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Dans le tableau de séries variables, chaque cellule utilise le sélecteur de son champ, pour cette seule cellule (D-417) ; depuis D-434 (19/10/2026), les cellules Durée et Pause et les durées de phase se saisissent au clavier numérique MMSS, la charge au clavier décimal, hors tableaux rien ne change. Durée par Série : roulette `1 s..58 min 55 s`, pas de 1 s (D-430) ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
+Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..100` ; « Aucune répétition, à l’échec » en tête dans une cellule de séries variables seulement (décision PRE-4 Q8 du 16/10, D-385 ; retirée en séries identiques par D-418). Dans le tableau de séries variables, chaque cellule utilise le sélecteur de son champ, pour cette seule cellule (D-417) ; depuis D-434 (19/10/2026), les cellules Durée et Pause et les durées de phase se saisissent au clavier numérique MMSS, la charge au clavier décimal, hors tableaux rien ne change. Durée par Série : roulette `0 s..58 min 55 s` (minimum 0 pour la cible depuis le 28/10), pas de 1 s (D-430) ; en séries identiques, durée numérique seule, À l’échec se réglant par la Condition d’arrêt ; dans une cellule de séries variables en mode Durée, durée numérique ou « À l’échec » (RM-250, D-412). Pause après chaque série et Pause entre les côtés : stepper dans la feuille Exercice, `0..5 min`, tap 1 s et maintien accéléré 1/5/10 selon DSF Bip (D-313) ; stepper pour les réglages du Profil. Cadence : choix Autre, 5 s, 2 s, 1 s et Sans, Autre conservant les bornes et le pas existants (RM-245, D-408). La Pause après chaque série est initialisée à `0 s` dans la feuille ; la Pause entre les côtés copie la valeur courante du Profil. Au changement de mode, les paramètres communs et les dernières valeurs spécifiques de chaque mode sont conservés pendant l’édition. Après la première sélection, le mode ne peut plus revenir à l’état vide. `Terminer` est désactivé avant cette première sélection.
 
 ## Composition des séances
 
@@ -898,15 +898,16 @@ Séries : stepper `1..99`. Répétitions : roulette native à une colonne, `1..1
 | RM-024 | L’enregistrement des Catégories termine la création ou la modification et revient au `Catalogue des séances`, segment `Séances` sélectionné. |
 | RM-124 | Dans le MVP, la création d’une Catégorie personnalisée attribue automatiquement l’icône officielle KODJO, persistée et non modifiable par l’utilisateur. Sa couleur est choisie dans la palette de 12 couleurs à la création (D-344) et reste modifiable par l’action `Modifier` (D-259). La couleur de la Séance reste choisie indépendamment de ses Catégories. |
 
-### Composition, Circuit et Cycle technique
+<a id="composition-circuit-et-cycle-technique"></a>
+### Composition, Circuit et Cycle
 
 | ID | Règle |
 | --- | --- |
-| RM-025 | Une Séance contient exactement un Circuit visible et un Cycle technique. |
+| RM-025 | Une Séance contient une suite ordonnée d’exercices, de circuits et de cycles visibles facultatifs ; plusieurs de chaque sont autorisés dans le MVP (D-451). |
 | RM-026 | Le Circuit est le conteneur ordonné d’Exercices ; un Tour est une exécution complète. Le nombre de Tours vaut de 1 à 99, avec 1 par défaut (D-209). |
-| RM-027 | Le nombre de Tours est modifié avec un contrôle compact affichant uniquement `N`, sans préfixe `x` ni signe `×`, et ouvrant un sélecteur. Son bord droit est aligné avec celui des cartes d’Exercice. Les boutons `+ / −` et le chevron de repli ne font pas partie de l’UX de référence. **Remplacée le 12/10/2026 pour la commande du compteur (CIR-10 ; [« Le contrôle »](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#le-contrôle)) : appuyer sur le chiffre révèle les boutons `−` et `+` ; l’ancienne cible unique sur toute la valeur ne s’applique plus.** **Remplacée le 22/10/2026 par D-442 : stepper `−` / `+` toujours affiché et actif, sans toucher préalable.** |
-| RM-028 | Le Cycle est conservé pour l’évolutivité du modèle. Dans le MVP, son nombre de répétitions vaut toujours 1, n’est pas modifiable et n’est jamais affiché. |
-| RM-029 | Des Exercices peuvent être placées avant le Circuit, dans le Circuit ou après le Circuit. Leur ordre est persistant. |
+| RM-027 | Dans un en-tête de conteneur, toucher le nombre révèle le stepper. L’unité est non interactive ; l’adjectif du circuit ouvre le choix de nature. Remplace sur ce point D-442 ; voir la référence du 28/10. |
+| RM-028 | Le Cycle est visible, compte propre de 1 à 99 répétitions, défaut 1 ; contient des circuits et des exercices directs, sans cycle imbriqué (D-451). |
+| RM-029 | Un Exercice appartient directement à la séance, à un cycle ou à un circuit ; ordre persistant. Son nombre d’exécutions dépend de ses conteneurs (D-451, RM-252). |
 | RM-030 | Le Compte à rebours initial et la Fin de séance sont structurellement présents. Une valeur de 0 seconde rend la phase instantanée sans la supprimer. Ces deux cartes structurelles ne sont pas déplaçables et n’acceptent aucun appui long de déplacement. |
 | RM-031 | Les valeurs initiales de l’application sont de 10 secondes pour le Compte à rebours initial et de 5 secondes pour la Fin de séance. |
 | RM-032 | Une modification des valeurs globales s’applique aux nouvelles Séances ; elle ne modifie pas une Séance existante ni une Exécution en cours. |
@@ -923,13 +924,13 @@ Une Séance contient :
 
 1. un Compte à rebours initial ;
 2. des Exercices éventuellement placées avant le Circuit ;
-3. un Circuit unique, visible et répétable de 1 à 99 Tours ;
+3. zéro ou plusieurs circuits et cycles visibles, avec leur compte propre, contenant des membres existants (D-451) ;
 4. des Exercices éventuellement placées après le Circuit ;
 5. une Fin de séance.
 
 Un Exercice peut également porter son propre Compte à rebours et sa propre Fin d’exercice. La Composition peut contenir un Point d’arrêt déplaçable ; son attente n’est pas comptabilisée dans la durée d’exécution.
 
-Le Cycle est conservé uniquement dans le modèle technique pour l’évolutivité. Dans le MVP, sa répétition vaut toujours 1, n’est pas modifiable et n’est jamais affichée à l’utilisateur.
+Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252).
 
 Un Exercice est une action exécutée en mode Durée ou Répétitions, avec cible chiffrée ou À l’échec par série. Elle comprend au moins une Série et peut inclure une Pause après chaque série. Un Exercice bilatéral peut en outre définir une **Pause entre les côtés**, exécutée selon l’Ordre des côtés. La **Récupération après exercice** n’est pas intrinsèque à l’Exercice : elle appartient à son occurrence lorsqu’elle est placée dans une Séance.
 
@@ -1014,7 +1015,7 @@ Aucune récupération automatique à la création d’une occurrence. Une récup
 - Passage bilatéral unique : côté de départ → PC → autre côté → Pi. Aucun Pi ajouté avant PC ; réglage propre non réécrit. R positive remplace seulement Pi terminale.
 - Conversion tours→séries : extension par dernière ligne active ; troncature au-delà de N. Confirmation si au moins un exercice perd des séries. Annuler préserve intégralement l’état précédent. Séries→tours : aucun message, valeurs conservées.
 - Diminution de N sans conversion : immédiate, sans message, réserve jusqu’à enregistrement de la séance ; augmentation restaure d’abord, puis préremplit.
-- Ajout catalogue avec perte : confirmer ou abandonner l’ajout, sans modification du catalogue. Sortie : conserver nombre et paramètres. Multicircuit hors MVP.
+- Ajout catalogue avec perte : confirmer ou abandonner l’ajout, sans modification du catalogue. Sortie : conserver nombre et paramètres. Multicircuit dans le MVP depuis D-451.
 - Régime identiques/variables indépendant de la nature. Normalisations et validations existantes conservées, sauf déroulement contextuel bilatéral explicitement défini ci-dessus.
 - Préparation/fin : séance uniquement en SESSION, exercice uniquement en autonome ; aucun booléen.
 - Points/récupérations internes répétés ; externes non répétés. R0 ne supprime pas Pi. Ne jamais compter une récupération deux fois.
@@ -1022,19 +1023,20 @@ Aucune récupération automatique à la création d’une occurrence. Une récup
 
 ### Extension validée du modèle — Développement des circuits
 
-Un circuit par composition MVP. Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à 3 séries et compte 3 : 18 occurrences en tours,6 en séries, avant côtés et pauses.
+Zéro, un ou plusieurs circuits par composition MVP (D-451). Tours : répéter N fois le bloc contenant toutes les séries de chaque exercice. Séries : pour i=1..N, exécuter série i de A, série i de B, etc. A/B à 3 séries et compte 3 : 18 occurrences en tours,6 en séries, avant côtés et pauses.
 
 Le régime n’est pas contraint par le circuit. Conversion vers séries adapte chaque copie locale à N, avec confirmation uniquement si des valeurs sont perdues ; retour tours conserve les valeurs actives. Le nombre hérité et le total affichable sont en lecture seule dans l’exercice. La sortie du circuit conserve N et les paramètres actifs. Ajout catalogue et déplacement/sortie ne modifient jamais la définition source.
 
-Les récupérations et points internes sont développés à chaque passage à leur position ; extérieurs au circuit, ils ne se répètent pas. Compte à rebours/Fin propres exclus en SESSION sans booléen. Bilatéral dans un circuit de séries : premier côté → PC → second côté → Pi ; récupération positive remplace seulement Pi terminale.
+Les récupérations et points internes sont développés à chaque passage à leur position ; extérieurs au circuit, ils ne se répètent pas. Compte à rebours/Fin propres exclus en SESSION sans booléen. Bilatéral dans un circuit à séries alternées : premier côté → PC → second côté → Pi ; récupération positive remplace seulement Pi terminale.
 
 ### Composition d'une séance — Circuit et compte
 
-Le MVP comporte un seul Circuit par composition. Sa nature est Tours ou Séries ; le compte vaut de 1 à 99, par défaut 1, dans la composition libre. Un circuit de tours répète les exercices complets ; un circuit de séries entrelace leurs séries de même indice. Les contraintes propres aux formats sont détaillées dans la section Formats.
+Le MVP accepte plusieurs circuits par composition, directement dans la séance ou dans un cycle (D-451). Sa nature est Tours ou Séries ; le compte vaut de 1 à 99, par défaut 1, dans la composition libre. Un circuit à séries groupées répète les exercices complets ; un circuit à séries alternées entrelace leurs séries de même indice. Les contraintes propres aux formats sont détaillées dans la section Formats.
 
-### Composition d'une séance — Cycle technique
+<a id="composition-dune-séance--cycle-technique"></a>
+### Composition d'une séance — Cycle
 
-Le Cycle technique reste exécuté une fois dans le MVP. Il ne constitue pas un réglage supplémentaire exposé à l’utilisateur. Le compte du Circuit est la référence effective ; aucune multiplication supplémentaire par un ancien compteur technique.
+Le cycle visible répète sa séquence de circuits et d’exercices directs de 1 à 99 fois, défaut 1 (D-451). Aucun cycle technique implicite ; les exercices directs de la séance ne sont pas répétés par un cycle.
 
 <a id="circuits"></a>
 ### Composition d'une séance — Circuits de tours et de séries
@@ -1052,23 +1054,17 @@ Un circuit porte désormais une **nature**, qui prend deux valeurs. L’ordre de
 | ce qu'un passage exécute | toutes les séries de chaque exercice | **une et une seule** série de chaque exercice |
 | statut | comportement actuel, inchangé | nouveau |
 
-Le circuit de tours **est** le comportement existant : rien n'y change. Le circuit de séries **ne crée pas de paramètre**, il **contraint** un paramètre existant — le nombre de séries de chaque exercice du circuit vaut N, le nombre porté par l'en-tête.
+Le circuit à séries groupées **est** le comportement existant : rien n'y change. Le circuit à séries alternées **ne crée pas de paramètre**, il **contraint** un paramètre existant — le nombre de séries de chaque exercice du circuit vaut N, le nombre porté par l'en-tête.
 
-C'est le circuit de séries qui rend exprimable le **circuit à volumes progressifs** : X exercices qui s'enchaînent, dont les volumes croissent d'un passage au suivant.
+C'est le circuit à séries alternées qui rend exprimable le **circuit à volumes progressifs** : X exercices qui s'enchaînent, dont les volumes croissent d'un passage au suivant.
 
 ##### Le contrôle
 
-La nature est portée par **le mot d'unité du compteur de l'en-tête de circuit**, déjà présent : « 3 tours » ou « 3 séries ».
-
-- appuyer sur **le chiffre** révèle les boutons `−` et `+`, qui changent le nombre (remplacé par D-442 du 22/10/2026 : le stepper est toujours affiché et actif, `−` et `+` autour du nombre, sans toucher préalable ; le nombre est présenté au format « Valeur modifiable » ; les cibles tactiles du `−`, du `+` et de la pastille d’unité sont espacées et d’au moins 44 pt ; tous les textes de la ligne — nombre, unité, durée — ont la taille du titre « Circuit ») ;
-- appuyer sur la pastille **« tours » ou « séries »** ouvre le choix de nature ;
-- la pastille n’entoure jamais le chiffre.
-
-Les deux cibles tactiles sont distinctes. Cette décision du 12 octobre remplace l’ancienne cible unique sur toute la valeur.
+Le compteur affiche « N tours · groupées » ou « N tours · alternées ». Toucher le nombre révèle le stepper ; l’unité tour(s) n’est pas interactive ; toucher l’adjectif ouvre le choix Séries groupées / Séries alternées. Ce rendu remplace D-442 sur la permanence du stepper et D-443 sur son alignement. La durée figure à droite. Voir [Composition : circuits, cycles et création](../KODJO-Composition-conteneurs-2026-10-28.md).
 
 ##### La conversion entre les deux natures
 
-Le nombre affiché ne change pas : « 3 tours » devient « 3 séries ».
+Le nombre et l’unité ne changent pas : « 3 tours · groupées » devient « 3 tours · alternées ».
 
 **Séries → tours ne perd rien.** La contrainte disparaît, chaque exercice garde son compte et ses valeurs. Aucune confirmation.
 
@@ -1086,7 +1082,7 @@ Un exercice qui en gagne ne la déclenche pas : rien n'est détruit, et la valeu
 
 ##### Ce que le circuit ne contraint pas
 
-**Une correction d'une formulation antérieure.** La définition du circuit de séries a été écrite une première fois comme « les exercices ont des séries variables, leur nombre est identique d'un exercice à l'autre et il est hérité ». **Le mot « variables » n'a pas lieu d'y être.**
+**Une correction d'une formulation antérieure.** La définition du circuit à séries alternées a été écrite une première fois comme « les exercices ont des séries variables, leur nombre est identique d'un exercice à l'autre et il est hérité ». **Le mot « variables » n'a pas lieu d'y être.**
 
 **Le circuit contraint le nombre de séries, jamais leur régime.** Le régime — séries identiques ou séries variables — est un réglage propre à chaque exercice, et il existe déjà dans les écrans (contrôle « Type de série » de la modale des modalités d'exécution, D-413). Basculer de tours à séries ne change que le compte.
 
@@ -1121,7 +1117,7 @@ Le régime et le repli de la liste sont **deux informations distinctes**, porté
 
 Conséquence directe : **il n'y a pas d'état « volume manquant » à signaler sur une carte de composition.** Le marqueur d'incomplétude envisagé pour la carte n'a plus d'objet et ne doit pas apparaître dans la documentation.
 
-Le préremplissage s'applique dans les deux cas où une série apparaît sans saisie : l'ajout manuel d'une série, et l'extension forcée par la conversion tours → séries.
+Depuis le 28/10, une nouvelle ligne ajoutée manuellement porte un tiret et exige une saisie ; elle n’est pas initialisée à zéro. L’extension forcée par conversion conserve la copie de la dernière valeur prévue par le contrat de conversion. Si cette valeur est zéro et que l’adaptation ne laisse aucun volume, la validation de l’exercice tout nul s’applique.
 
 ---
 
@@ -1129,13 +1125,13 @@ Le préremplissage s'applique dans les deux cas où une série apparaît sans sa
 
 ##### Périmètre et plan d’exécution
 
-Le MVP comporte **un seul circuit par composition**. Aucun écran de gestion multicircuit n’est introduit. Les décisions sur les déplacements entre circuits sont conservées pour une évolution future.
+Le MVP accepte plusieurs circuits et cycles depuis D-451. Les règles de déplacement inter-circuits ci-dessous entrent donc dans le périmètre courant.
 
-Circuit de séries : pour chaque indice i de 1 à N, parcourir les exercices dans l’ordre de composition et exécuter leur série i. Chaque passage d’un exercice bilatéral réalise ses deux côtés avant de passer à l’exercice suivant. Le côté de départ est conservé. **Le circuit n’écrit pas le réglage Ordre des côtés de l’exercice et ne le rend pas en lecture seule.** Le déroulement est unique : premier côté → Pause entre les côtés → second côté → Pause après la série → exercice suivant. Le réglage enregistré « Un côté après l’autre » ne crée pas de seconde variante de passage dans un circuit de séries.
+Circuit à séries alternées : pour chaque indice i de 1 à N, parcourir les exercices dans l’ordre de composition et exécuter leur série i. Chaque passage d’un exercice bilatéral réalise ses deux côtés avant de passer à l’exercice suivant. Le côté de départ est conservé. **Le circuit n’écrit pas le réglage Ordre des côtés de l’exercice et ne le rend pas en lecture seule.** Le déroulement est unique : premier côté → Pause entre les côtés → second côté → Pause après la série → exercice suivant. Le réglage enregistré « Un côté après l’autre » ne crée pas de seconde variante de passage dans un circuit à séries alternées.
 
 Une récupération interne suit son emplacement de composition à chaque passage. Exemple, récupération après B : A1 → B1 → R → A2 → B2 → R → A3 → B3 → R. Si R>0, elle remplace uniquement la pause terminale du passage de B ; les pauses de A sont conservées. R=0 n’ajoute aucune phase et ne remplace aucune pause. La pause configurée reste dans les données de l’exercice.
 
-Un point d’arrêt **interne** suit également son emplacement à chaque passage. Conserver l’ordre existant : Exercice → Récupération positive éventuelle → Point d’arrêt → suite. Les points extérieurs au circuit restent extérieurs : ils ne sont pas dupliqués avec ses passages. Leur attente reste exclue des durées prévues. Si un passage partiel (le dernier exercice n’a plus de série) fait encore se suivre deux points dans le plan développé, le plan d’exécution n’en exécute qu’un, sans rien retirer de la séance enregistrée (RM-251, arbitrage de Hermann du 22/10/2026).
+Un point d’arrêt **interne** suit également son emplacement à chaque passage. Conserver l’ordre existant : Exercice → Récupération positive éventuelle → Point d’arrêt → suite. Les points extérieurs au circuit restent extérieurs : ils ne sont pas dupliqués avec ses passages. Leur attente reste exclue des durées prévues. Si un passage partiel (la série du dernier exercice vaut zéro) fait encore se suivre deux points dans le plan développé, le plan d’exécution n’en exécute qu’un, sans rien retirer de la séance enregistrée (RM-251, arbitrage de Hermann du 22/10/2026).
 
 **Préparation et fin :** un exercice seul utilise son Compte à rebours et sa Fin d’exercice une fois. Dans une séance, ces paramètres propres ne sont jamais exécutés : seuls ceux de la séance s’appliquent, par substitution, une fois aux frontières de la séance. Cette décision explicite remplace pour la cible de cette évolution les mentions contraires du référentiel (voir §10). Aucun compte à rebours supplémentaire à chaque série ou passage. **Clarification du 12/10 à 09h28 : aucun booléen de Séance, même désactivé par défaut, ni contrôle correspondant. La règle est inconditionnelle. Figma est confirmé aligné par le propriétaire.**
 
@@ -1143,7 +1139,7 @@ Le déplacement d’une série conserve le comportement de paramètres d’exerc
 
 ##### Nombre imposé et diminution
 
-Dans un circuit de séries, le nombre de séries de chaque exercice est N, porté par l’en-tête. Dans la feuille de l’exercice, il reste visible avec sa valeur réelle, non modifiable. La mention discrète de son origine et un éventuel astérisque seront positionnés dans Figma. Pas de tiret à la place du nombre. **Ce nouvel état de lecture seule ne concerne pas l’Ordre des côtés.** Le régime reste celui de l’exercice, sous réserve des règles existantes de N=1.
+Dans un circuit à séries alternées, le nombre de séries de chaque exercice est N, porté par l’en-tête. Dans la feuille de l’exercice, il reste visible avec sa valeur réelle, non modifiable. La mention discrète de son origine et un éventuel astérisque seront positionnés dans Figma. Pas de tiret à la place du nombre. **Ce nouvel état de lecture seule ne concerne pas l’Ordre des côtés.** Le régime reste celui de l’exercice, sous réserve des règles existantes de N=1.
 
 Diminuer N, sans changer la nature du circuit, est immédiat et sans message. Les lignes retirées sont conservées pendant **l’édition de la séance** ; réaugmenter les restaure avec leurs paramètres et leur ordre. L’enregistrement ne conserve que les lignes actives. Une augmentation postérieure copie la dernière ligne persistée. Une ouverture/validation de la feuille d’un exercice ne doit pas purger à elle seule la réserve créée par le compteur du circuit : cette réserve appartient au brouillon de séance.
 
@@ -1157,7 +1153,7 @@ Un exercice du catalogue ajouté au circuit conserve son régime et ses paramèt
 
 Sortir l’exercice du circuit conserve le nombre actif et les paramètres actuels. Le nombre redevient modifiable ; aucun ancien nombre n’est restauré et aucun message n’est nécessaire.
 
-Futur, hors MVP : déplacement vers un autre circuit de séries selon la même adaptation. Annuler conserve emplacement et données d’origine ; confirmer réalise déplacement et adaptation ensemble.
+Dans le MVP depuis D-451 : déplacement vers un autre circuit à séries alternées selon la même adaptation. Annuler conserve emplacement et données d’origine ; confirmer réalise déplacement et adaptation ensemble.
 
 ##### Régime et validation : règles existantes conservées
 
@@ -1169,7 +1165,7 @@ L’absence de marqueur d’incomplétude sur la carte de composition **ne suppr
 
 ##### Grille des volumes
 
-- Colonnes S1…Smax, où Smax est le nombre maximal de séries des exercices ; circuit de séries : Smax=N.
+- Colonnes S1…Smax, où Smax est le nombre maximal de séries des exercices ; circuit à séries alternées : Smax=N.
 - Série inexistante : `—`, sans signifier zéro ou erreur de saisie.
 - Répétitions : nombres dans les cellules ; `rép.` en dernière colonne.
 - Durées : `min:ss` dans toutes les cellules, par exemple `0:45`, `1:00`, `1:30` ; `min:ss` en dernière colonne.
@@ -1183,7 +1179,7 @@ L’absence de marqueur d’incomplétude sur la carte de composition **ne suppr
 
 Croix de suppression : retirer immédiatement, sans confirmation ; message discret « Série supprimée — Annuler ». Annuler restaure les paramètres et la position. Toute modification du brouillon de la feuille (Cible, Pause, N, Mode, Régime, Bip, Pause commune, réordonnancement, autre retrait) invalide Annuler ; seules l’ouverture et la fermeture d’un popover ou du sélecteur, sans application, ne l’invalident pas (décision PRE-4 Q29 du 16/10, D-385). Réutiliser la convention existante de notification ; ne pas inventer une durée ou un nouvel écran. Les bornes de validité existantes restent applicables.
 
-Dans un circuit de séries, le nombre se règle dans l’en-tête : pas de suppression locale permettant de rompre l’invariant N dans un seul exercice. Le déplacement de lignes reste possible.
+Dans un circuit à séries alternées, le nombre se règle dans l’en-tête : pas de suppression locale permettant de rompre l’invariant N dans un seul exercice. Le déplacement de lignes reste possible.
 
 Un appui extérieur sur une cible destructive range d’abord l’outil sans déclencher la destruction. Un appui sur une cible inoffensive peut fermer et agir en un seul geste.
 
@@ -1257,7 +1253,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-13"></a>
 #### RM-FMT-13
 
-**FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit de séries existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
+**FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit à séries alternées existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
 
 <a id="fmt-14"></a>
 #### RM-FMT-14
@@ -1465,7 +1461,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 | Dimension | Question traitée | Exemples |
 |---|---|---|
-| Organisation / parcours | Dans quel ordre les efforts sont-ils exécutés ? | Par exercice ; en alternance ; circuit de tours ou de séries selon les règles du format |
+| Organisation / parcours | Dans quel ordre les efforts sont-ils exécutés ? | Par exercice ; en alternance ; circuit à séries groupées ou de séries selon les règles du format |
 | Indexation des objectifs | À quelle unité chaque valeur se rapporte-t-elle ? | Répétitions par série ; volume par tour |
 | Borne | Qu’est-ce qui termine l’exécution prévue ? | Compte atteint ; durée écoulée ; travail accompli ; arrêt déclaré |
 
@@ -1481,7 +1477,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 - **FMT-10.** Le format impose huit séries par exercice, 20 secondes d’effort par série et une pause de 10 secondes après chaque série.
 - **FMT-11.** Avec plusieurs exercices, le réglage global propose « Par exercice » et « En alternance ». Avec un exercice unique, la question est inutile puisque l’enchaînement est identique.
 - **FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. Le réglage de répétition de l’ensemble reste distinct des huit séries imposées.
-- **FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit de séries existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
+- **FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit à séries alternées existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
 - **FMT-14.** Le récapitulatif nomme le compte commun « Séries par exercice — 8 », compatible avec les deux organisations. Il ne présente pas ce compte comme huit tours de circuit dans le cas par exercice.
 - **FMT-15.** Le contrôle « Exécution » est en dernière ligne du bloc Paramètres, après Durée totale, avec séparateur. Son libellé et les options sont alignés sur la même ligne ; la taille de texte est celle des paramètres voisins. Le layout précis relève du DSF et du Figma courant.
 - **FMT-16.** Dans la composition par exercice, la carte affiche le volume `8 × 20 s`, sans afficher la pause dans cette expression.
@@ -1518,7 +1514,7 @@ Exemple : 6 tours × 2 exercices × 60 s = **12 min**. Ajouter C donne **18 min*
 - **FMT-26.** L’AMRAP a une durée imposée réglable. Le circuit est répété jusqu’à l’échéance globale ; le nombre de tours réalisés est un résultat, pas une borne saisie.
 - **FMT-27.** Pour les formats cadencés Tabata, Intervalles et EMOM, la borne saisie est un compte. Cette règle ne s’applique pas à l’AMRAP ni au For time. Elle ne change pas les possibilités des séances libres en dehors du périmètre décidé.
 
-SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) exclut pour l’AMRAP le circuit de séries et les séries variables : ne pas lui appliquer le sélecteur de Progression par généralisation. Les objectifs par exercice restent les valeurs prescrites du format.
+SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) exclut pour l’AMRAP le circuit à séries alternées et les séries variables : ne pas lui appliquer le sélecteur de Progression par généralisation. Les objectifs par exercice restent les valeurs prescrites du format.
 
 #### 6.2 Départs rapides et Progression
 
@@ -1628,7 +1624,7 @@ Modale « P-Modale — Résultat de série » (Figma 8937:35362). Valeur initial
 
 ### Périmètre fonctionnel du MVP — Exécution guidée
 
-L’Exécution d’une Séance présente l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression. Le Cycle n’est jamais exposé.
+L’Exécution d’une Séance présente l’Exercice en cours, la Série, le Tour, l’Exercice suivant, le temps et la progression. Le contrat visuel d’exécution antérieur ne montre pas le cycle ; son adaptation au cycle visible D-451 reste à qualifier, sans inventer un écran dans ce lot.
 
 L’Exécution continue à progresser lorsque l’application passe en arrière-plan ou que l’écran se verrouille. Au retour, l’état est recalculé à partir d’horodatages de référence. Une pause de sécurité intervient après 30 minutes sans interaction au-delà de la fin théorique d’un Exercice chronométré ou de la fin nominale recalculée d’une Série cadencée, ou après 2 heures sans interaction pour un Exercice en Répétitions sans cadence ou À l’échec.
 
@@ -1807,7 +1803,7 @@ Les règles existantes de Pause/Reprendre, Retour, réinitialisation, abandon et
 
 Aucune modification des règles déjà actées : pause après chaque série, traitement bilatéral, substitution de la toute dernière pause par une récupération positive, points d’arrêt et phases propres de séance. Le plan développé demeure la base de calcul.
 
-Dans un circuit de séries, le passage bilatéral reste : premier côté → pause de changement de côté → second côté → pause de série ou récupération substituée → exercice suivant. Il n’y a pas de pause de série supplémentaire avant la pause de changement de côté. La nouvelle cible ne crée aucune exception.
+Dans un circuit à séries alternées, le passage bilatéral reste : premier côté → pause de changement de côté → second côté → pause de série ou récupération substituée → exercice suivant. Il n’y a pas de pause de série supplémentaire avant la pause de changement de côté. La nouvelle cible ne crée aucune exception.
 
 ##### Progression et sécurité
 
@@ -2092,7 +2088,7 @@ Le préfixe s'accorde à l'unité : « **toutes les** 2 semaines », « **tous l
 | RM-080 | `Enregistrer` reste désactivé tant qu’aucun Ressenti n’est sélectionné, puis enregistre la Synthèse et ouvre le Suivi. |
 | RM-081 | La cible Formats ajoute l’achèvement fonctionnel incomplet du Death by avec motif/résultat distincts ; son mapping physique reste à qualifier ; sa représentation sera définie dans le chantier Suivi (D-381, D-365). Le Suivi conserve les Exécutions `Terminées`, `Partielles` et `Interrompues`. |
 | RM-082 | Les commandes `Vue d’ensemble`, `Filtrer` et `Trier` sont visibles mais désactivées dans le MVP. |
-| RM-083 | Chaque Résultat d’Exercice conserve les informations nécessaires à sa restitution, notamment sa position, ses indices de Série et de Tour, son statut et sa durée réelle. Le Cycle technique peut être conservé dans les données mais n’est jamais affiché. |
+| RM-083 | Chaque Résultat d’Exercice conserve les informations nécessaires à sa restitution, notamment sa position, ses indices de Série et de Tour, son statut et sa durée réelle. Le contexte de cycle doit rester restituable pour une séance D-451 ; le rendu d’exécution et de suivi n’est pas redessiné par ce lot. |
 | RM-084 | Toute modification, archivage ou suppression ultérieure de la Séance source est sans effet sur les Instantanés existants. |
 
 ### Périmètre fonctionnel du MVP — Suivi
@@ -2341,7 +2337,7 @@ Occurrence calculable To=T−PN+R si R>0 ; sinon To=T. R remplace uniquement la 
 
 Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases (R × durée du motif) ou, sans phases, avec bip : ≈ si toutes les cibles sont chiffrées. Mélange chiffré/échec calculable : ≥ au niveau Exercice, prioritaire sur ≈, somme du travail connu ou estimable et des pauses prévues. Répétitions sans bip ni phases, ou toutes les cibles À l’échec : aucun total d’Exercice (omitted). Séance/Circuit : agrégation des contributions connues du plan, ≥ si travail inconnu. Séance : exact si tout exact, ≈ si au moins une estimation et aucun inconnu, ≥ si au moins un inconnu. Erreur de cible : validation distincte, aucune fausse valeur. Une Copie en Séance dont une Cible ancienne est à renseigner contribue au total de Séance par son travail connu et ses Pauses, comme un mélange avec échec, et le total de Séance est partiel (≥) : pour 30 s, —, 45 s et des Pauses de 10 s, 30 + 45 + 30 = 105 s (décision PRE-4 Q30 du 16/10, D-385). Cette Copie n’affiche elle-même aucun total (Q30) ; dans la feuille Paramètres, la ligne Durée de l’exercice (D-409) est affichée avec « — » (D-384).
 
-**Inversion réservée à Durée uniforme avec nombre de séries libre.** Sous compte hérité d’un circuit de séries, le total calculé est en lecture seule : aucune inversion ni ajustement implicite de la cible. N dans 1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Le message porte « Annuler » dans un cadre plus clair que son fond : Annuler restaure les valeurs précédant l’ajustement ; toucher le reste du message le ferme sans annuler . Présentation d’Annuler : capsule sans contour, blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales . Total variable et Répétitions non éditable.
+**Inversion réservée à Durée uniforme avec nombre de séries libre.** Sous compte hérité d’un circuit à séries alternées, le total calculé est en lecture seule : aucune inversion ni ajustement implicite de la cible. N dans 1..99 au plus proche, égalité vers le haut. Candidats : unilatéral arrondi(Tv/(d+p)) ; succession des côtés arrondi((Tv−PC)/(2(d+p))) ; par paire arrondi(Tv/(2d+p+PC)). Comparer les candidats réalisables et N=1 calculé avec l’ordre normalisé par côté ; retenir le total le plus proche, égalité N le plus grand. Les bornes du sélecteur suivent les extrêmes réalisables. Si T(N)≠Tv : « Durée ajustée à {T(N)} pour respecter un nombre entier de séries. » Sinon aucun message. Le message porte « Annuler » dans un cadre plus clair que son fond : Annuler restaure les valeurs précédant l’ajustement ; toucher le reste du message le ferme sans annuler . Présentation d’Annuler : capsule sans contour, blanc transparent à 90 %, demi-cercles, marges droite/haut/bas égales . Total variable et Répétitions non éditable.
 
 #### Scénarios de recette normative
 
@@ -2409,9 +2405,9 @@ Exemple normatif : 4×15×4+4×15=300 s, soit ≈5 min. Il est justifié par la 
 
 #### Extension normative — niveau Circuit
 
-Le Circuit produit exact si tout le travail est exact ; estimated si au moins une estimation et aucun travail inconnu ; lowerBound si au moins un travail inconnu. Répétitions chiffrées avec Bip>0 : estimées ; Répétitions avec Bip 0 ou toute cible À l’échec : travail inconnu. Les pauses et travaux estimables contribuent même si le total propre de l’exercice est omitted. Symbole préfixé au montant de l’en-tête : ≈ ou ≥, aucun symbole en exact. La durée affichée du Circuit est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442) ; le calcul lui-même est inchangé. Remplacé par D-443 (23/10/2026) : la durée du Circuit n’est plus affichée dans son en-tête de Composition ; le calcul reste inchangé.
+Le Circuit produit exact si tout le travail est exact ; estimated si au moins une estimation et aucun travail inconnu ; lowerBound si au moins un travail inconnu. Répétitions chiffrées avec Bip>0 : estimées ; Répétitions avec Bip 0 ou toute cible À l’échec : travail inconnu. Les pauses et travaux estimables contribuent même si le total propre de l’exercice est omitted. Symbole préfixé au montant de l’en-tête : ≈ ou ≥, aucun symbole en exact. La durée affichée du Circuit est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442) ; le calcul lui-même est inchangé. Le complément du 28/10 remplace le masquage de D-443 : durée affichée à droite dans l’en-tête ; calcul inchangé.
 
-Développer d’abord la nature du circuit. En circuit de séries, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte 1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit de tours. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral 75 s ; R20 →85 s. Trois passages identiques →225 s, ou 255 s avec R20 à chaque passage. PC0 ne supprime pas Pi.
+Développer d’abord la nature du circuit. En circuit à séries alternées, un passage bilatéral calculable vaut 2Ti+PC+Pi, ou 2Ti+PC+R si R>0 le suit. Pas de Pi avant PC. Cette règle contextuelle unique s’applique aussi à un circuit de compte 1 ; elle ne réécrit pas le réglage propre ni les formules de l’exercice autonome/circuit à séries groupées. Unilatéral : Ti+Pi, ou Ti+R si R>0. Sommer les passages une seule fois. Attentes de points exclues du prévu. Tests normatifs : Ti30,Pi10,PC5 → passage bilatéral 75 s ; R20 →85 s. Trois passages identiques →225 s, ou 255 s avec R20 à chaque passage. PC0 ne supprime pas Pi.
 
 <a id="formats-raccordement"></a>
 
@@ -2443,7 +2439,7 @@ Durée : exact si toutes les cibles sont chiffrées ; Répétitions avec phases 
 
 #### Durée synthétique des Exercices
 
-La durée synthétique des Exercices est affichée sur les cartes du Catalogue ; le total affiché sous le titre du Circuit dans la Composition concerne exclusivement ce Circuit (D-382 ; affichage dans l’en-tête retiré par D-443). Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Sur les cartes Catalogue et Composition, les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) ; les règles des durées partielles `≥` sont conservées (D-391). La durée affichée sous le titre du Circuit suit D-442 : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête). Depuis D-443, la durée totale de la Séance affichée dans la zone de contexte de la Composition est une estimation arrondie aux 15 secondes les plus proches, précédée de « ≈ » ou de « ≥ » selon les Exercices qui la composent, avec la même règle de choix du préfixe que l’estimation de durée existante ; le calcul est inchangé.
+La durée synthétique des Exercices est affichée sur les cartes du Catalogue ; le total affiché sous le titre du Circuit dans la Composition concerne exclusivement ce Circuit (D-382 ; affichage rétabli par le complément du 28/10 après le retrait de D-443). Elle applique les règles de développement des Séries, Pauses entre Séries et, pour un Exercice bilatéral, de `sideRecoverySeconds`. Dans une Composition, la durée de Séance ajoute également les `postActivityRecoverySeconds` des occurrences selon leur développement dans le Circuit. Elle exclut toujours le Compte à rebours initial et la Fin de séance. Sur les cartes Catalogue et Composition, les durées exactes et estimées sont affichées en minutes et secondes, sans arrondi à la minute supérieure, selon le [format d'affichage des durées](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrases) ; les règles des durées partielles `≥` sont conservées (D-391). La durée affichée sous le titre du Circuit suit D-442 : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (masquée par D-443 puis rétablie par le complément du 28/10 ; l’arrondi du circuit demeure celui déjà défini, celui du cycle reste à préciser). Depuis D-443, la durée totale de la Séance affichée dans la zone de contexte de la Composition est une estimation arrondie aux 15 secondes les plus proches, précédée de « ≈ » ou de « ≥ » selon les Exercices qui la composent, avec la même règle de choix du préfixe que l’estimation de durée existante ; le calcul est inchangé.
 
 *Texte identique à celui de la section [« Durée estimée d’exécution »](#durée-estimée-dexécution) ; il n’est pas recopié ici.*
 
@@ -2551,7 +2547,7 @@ Toute roulette numérique de l’application produit un retour haptique léger e
 | RM-231 | **Supersédée par RM-232 / D-298.** |
 | RM-232 | [Phrase de synthèse des paramètres](08%20%E2%80%93%20Conception%20fonctionnelle%20d%C3%A9taill%C3%A9e.md#phrase-de-synthèse-des-paramètres) étendue : segments {texte, gras}, sans persistance. Cibles variables énumérées jusqu’à 3 ; au-delà, mélange compacté « de 10 rép. à l’échec » / « de 1 min 30 s à l’échec » selon minimum numérique. Tout échec : formulation existante. Total fourni par le calcul, ≥ pour mélange calculable ; sans bip en Répétitions ou tout échec : omis. Pauses variables non énumérées. Compte à rebours/Fin hors phrase. Excel exclusivement rédactionnel. Voir chapitre 08, Phrase de synthèse. |
 | RM-233 | Au changement de mode, conserver les paramètres communs et, pendant l’édition, la dernière valeur spécifique de chaque mode. Après la première sélection, aucun retour à l’état « aucun mode » ; `Terminer` reste désactivé avant cette première sélection. |
-| RM-234 | Séries `1..99`; Répétitions `1..100`; Durée par Série `1..3535 s` (minimum porté de 5 à 1 s par D-430, 19/10/2026); phases d’exercice : chaque phase validée ≥ 1 s, somme des phases `1..3535 s` (D-430); pauses inter-Séries/inter-côtés `0..300 s`. Une valeur héritée hors bornes, non modifiée, peut être conservée ; toute nouvelle saisie ou modification doit respecter ces bornes (D-383). Les deux pauses utilisent un stepper : tap 1 s, maintien accéléré 1/5/10 selon DSF Bip. |
+| RM-234 | Séries `1..99` ; cibles Répétitions `0..100`, Durée par Série `0..3535 s` depuis le 28/10 ; phases validées ≥ 1 s, somme des phases `1..3535 s` ; pauses `0..300 s`. Tiret = manquant, zéro = absence volontaire ; exercice de volume entièrement nul refusé. Étape et pause d’une série nulle sautées. Les valeurs héritées hors bornes non modifiées restent conservables (D-383). |
 
 ### Extension validée du modèle — Consolidation du modèle — D-209 à D-217
 
@@ -2567,7 +2563,7 @@ Le Point d’arrêt reste un élément structurel distinct de la Récupération.
 
 La phrase est une donnée dérivée, recalculée à chaque modification. Sans mode sélectionné elle est vide ; le mode est affiché séparément. Elle concatène dans l’ordre : nombre de Séries, valeur par Série ou `jusqu'à l'échec`, Pause après chaque série si applicable, changement de côté, puis Durée totale lorsqu’elle s’applique. Le nom de l’Exercice, le Compte à rebours, la Fin d’exercice et la Récupération post-activité n’entrent pas dans cette phrase. Une charge active y est mentionnée selon RM-240, entre parenthèses dans les formes de D-414, après la valeur par série (D-422). Source normative : chapitre 08, paramètres d’exercice, D-247 à D-255 ; classeur v10 historique.
 
-Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `1..100`, Durée par Série `1 s..58 min 55 s` (minimum de 1 s, D-430), Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap 1 s puis maintien accéléré 1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
+Les bornes fonctionnelles D-232 sont : Séries `1..99`, Répétitions par Série `0..100` (28/10), Durée par Série `0 s..58 min 55 s` (28/10 ; remplace le minimum 1 s) (minimum de 1 s, D-430), Pause après chaque série et Pause entre les côtés `0..5 min`. Dans le Profil, les réglages de durée utilisent un stepper ; dans la feuille de paramètres d’un Exercice, les pauses sont réglées par stepper. Les steppers de pauses utilisent tap 1 s puis maintien accéléré 1/5/10 selon DSF Bip ; ancienne grille dépendante de la valeur abandonnée. La Pause entre les côtés est copiée depuis le Profil lorsqu’elle devient applicable.
 
 ### Champs et comportements des fonctionnalités — Règles communes — D-209 à D-217
 
@@ -2607,3 +2603,14 @@ Le déploiement présente l'arbre, les volumes et les récupérations en place. 
 Les vues Un exercice/Plusieurs sont des filtres de la même collection, aucune active par défaut ; retoucher l'option active rétablit la collection complète. Filtrer : sections à filtre actif ouvertes ; sans filtre, seul Statut ouvert ; Réinitialiser fixe. Les nouvelles catégories/zones sont des critères de séance, sans modifier l'affichage de la carte ni les données des mouvements.
 
 Le §8 de la source et le chapitre 08 définissent séparément les trois états du titre à la création. Le §4 signale également l'ordre Filtre/Tri/Créer pour le catalogue des mouvements ; cela ne réouvre pas ses règles métier.
+
+
+## Composition simplifiée — règles consolidées du 28/10/2026
+
+[Composition : circuits, cycles et création](../KODJO-Composition-conteneurs-2026-10-28.md) constitue la définition détaillée du rendu, des déplacements G1–G8, du défilement CS-D1–CS-D8 et des séries nulles. Les nouvelles règles remplacent les clauses contraires de D-442/D-443 et les seules bornes de cible de D-232/D-430, sans changer les autres calculs.
+
+| ID | Règle |
+|---|---|
+| RM-252 | Un exercice directement membre d’un cycle est exécuté une fois, avec ses séries propres, à chaque répétition du cycle. Un exercice au niveau séance est exécuté une fois. Les circuits du cycle conservent leur compte propre ; le cycle répète leur développement complet. |
+
+Une série nulle conserve son indice, saute son étape et sa pause ; elle n’est pas une série manquante. RM-251 conserve la déduplication des arrêts dans le plan développé. Les effets sur récupération contextuelle et tours entièrement nuls sont réservés, voir la revue critique ; ne pas les inventer à partir d’une capture.

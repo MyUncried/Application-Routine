@@ -897,7 +897,7 @@ La validation de la Séance reste portée par l’action `Continuer` de la Compo
 | Nom de la Séance | Texte | Toujours | Nom enregistré | Aucune action spécifique distincte de la zone principale |
 | Métadonnées Étiquette/Catégorie | Texte | Selon données disponibles | `Étiquette · Catégorie`, une seule ligne tronquée si nécessaire | Aucune |
 | Nombre d’Exercices / durée | Texte | Toujours | Nombre d’Exercices (`0 exercice`, au singulier, pour une Séance sans Exercice, D-392) et durée synthétique des Exercices calculés ; Compte à rebours initial et Fin de séance exclus | Aucune |
-| Circuit | Conteneur unique ; nature tours/séries, compte 1..99 défaut 1. Stepper − / + toujours affiché et actif autour du nombre, en « Valeur modifiable » (D-442, remplace « chiffre → ± ») ; pastille d’unité → choix de nature ; œil permanent → grille des volumes. Total exact/≈/≥ calculé sur les passages réels, hors préparation/fin de Séance. Géométrie à aligner ensuite dans Figma/DSF. |
+| Circuit | Conteneur facultatif, multiple ; nature séries groupées/alternées, compte 1..99 défaut 1. Nombre → stepper révélé ; adjectif → choix de nature ; unité non interactive ; chevron accolé au nom → repli ; durée à droite. Voir la référence Composition du 28/10. |
 | Dernière Exécution | Texte | Si disponible | Date relative | Aucune |
 | Liste des Exercices | Liste | Carte déployée | Ordre de la Séance | Aucune |
 | Résumé d’Exercice | Texte | Carte déployée | À droite : `durée/reps · xN` en uniforme ; en variable volumes séparés par points médians, unité finale, maximum trois valeurs selon place puis ellipse | Aucune |
@@ -1440,7 +1440,7 @@ Deux modes seulement. Cible chiffrée et À l’échec mutuellement exclusives ;
 - Condition d’arrêt en séries variables : non modifiable à cet endroit ; elle suit les cibles des cellules (RM-249).
 - Charge : Avec ouvre directement la saisie (0,25 kg à la première activation), Sans conserve les valeurs ; saisie, pas, zéro et réactivation selon RM-239.
 - Chevrons de Variables et d’Avec : repli ou déploiement sans perte de valeurs ni changement de mode (RM-247). Chevron de Durée de l’exercice : replie ou déploie Compte à rebours et Fin d’exercice, indépendamment de l’édition de la durée (RM-246).
-- Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit de séries, tout total affichable est en lecture seule.
+- Le total Durée uniforme entièrement chiffré garde son inversion seulement si N est libre ; sous N imposé par un circuit à séries alternées, tout total affichable est en lecture seule.
 - omitted reste absent.
 
 PHC-20261026 : Avec crée deux phases à renseigner sans reprendre la cible de série ; ajout ultérieur reprend la dernière durée selon la convention existante. Retrait annulable, 2 → 1 revient à Sans sans modifier la cible. Durées modifiables sous format, aucune dernière phase calculée. Réutiliser clavier, stepper et chevron existants.
@@ -1760,7 +1760,9 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 ### CE-T03-08 — Composer une séance / Modifier une séance — brouillon, Circuit, points d’arrêt et validation
 
-**Complément Formats du 14/10 :** Pour une séance issue d’un format, appliquer CE-FMT-03 : réglages autorisés toujours éditables, identité et constantes conservées, synthèse et calculs actualisés. Conserver la nature et l’unité de compte propres au format.
+**Complément Formats du 14/10 :** Pour une séance issue d’un format, appliquer CE-FMT-03 : réglages autorisés toujours éditables, identité et constantes conservées, synthèse et calculs actualisés. Conserver les contraintes du format ; la nature utilise les libellés groupées/alternées et le circuit l’unité tour(s). La portée d’un format sur plusieurs conteneurs reste reportée à la définition des formats.
+
+**Référence courante du 28/10 :** [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md) remplace les dispositions antérieures contraires de ce contrat : menu à cinq actions, création par enveloppe non vide, multi-circuit, cycle visible et non repliable, appui long G1–G8 et défilement CS-D1–CS-D8. La sélection d’enveloppe transfrontière et les frontières des points d’arrêt restent explicitement réservées ; les maquettes ne valent pas règle implicite.
 
 #### 1. Identification
 
@@ -1770,7 +1772,7 @@ Règles applicables : RM-001, RM-015, RM-017, RM-018, RM-021, RM-025, RM-026, RM
 
 #### 2. Finalité fonctionnelle
 
-Créer/modifier la Séance : nom, Étiquette facultative, occurrences avant/dans/après Circuit, Tours et pauses explicites. Valider une seule fois vers le Catalogue.
+Créer/modifier la Séance : nom, Étiquette facultative, exercices directs et circuits/cycles facultatifs, comptes propres et pauses explicites. Valider une seule fois vers le Catalogue.
 
 #### 3. Contexte d’entrée
 
@@ -1782,9 +1784,9 @@ Exercice → éditeur de copie locale ; Ajouter un exercice → CE-T03-07 ; Éti
 
 #### 5. Données affichées et source de vérité
 
-**Complément cible 12/10 :** Nature, compte et régime explicites. N imposé en circuit de séries ; durées agrégées exact/≈/≥, sans lire les chiffres Figma.
+**Complément cible 12/10 :** Nature, compte et régime explicites. N imposé en circuit à séries alternées ; durées agrégées exact/≈/≥, sans lire les chiffres Figma.
 
-Brouillon Session indépendant, nom, Étiquette 0..1, compte à rebours/Fin, Circuit unique, nature tours/séries, compte 1..99, exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et spécification Circuits du 12/10. Point d’arrêt sans durée prévue.
+Brouillon Session indépendant, nom, Étiquette 0..1, compte à rebours/Fin, exercices directs et conteneurs facultatifs multiples, natures séries groupées/alternées, comptes propres 1..99 (D-451), exclusion systématique des Compte à rebours/Fin propres selon D-214 révisée, sans booléen et sans effacer leurs valeurs. Aucune récupération automatique à la création d’une occurrence. Une récupération explicite est proposée au défaut Profil (30 s initialement) lors de son ajout ; elle reste solidaire de son occurrence. postActivityRecoverySeconds est sa projection de calcul, 0 en l’absence de récupération (D-304/D-307). Chaque occurrence conserve ses séries/cadences ; To=T−PN+R si R>0, sinon To=T pour un travail calculable. Total développé selon la nature du Circuit ; exact/estimated/lowerBound selon [Résultats temporels et agrégation du circuit](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#résultats-temporels-et-agrégation-du-circuit) et spécification Circuits du 12/10. Point d’arrêt sans durée prévue.
 
 #### 6. Classification des valeurs Figma
 
@@ -1792,20 +1794,20 @@ Titres statiques : `Composer une séance` en création, `Modifier une séance` e
 
 #### 7. Structure de l’écran
 
-Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → occurrences/points avant Circuit → Circuit de tours ou de séries avec occurrences/points internes développés selon sa nature → occurrences/points après Circuit → Fin de séance → Continuer. Chaque occurrence prend la forme d’une carte v2 à trois lignes (nom et indicateur de côté, Catégorie et travail, Zones corporelles et récupération), avec média intégré. Les points d’arrêt occupent des interstices centrés, raccordés au rail segmenté ; la récupération contextualisée s’intègre à la carte qui la précède et n’occupe plus de rangée autonome. Aucun Cycle visible ni étape finale Catégories.
+Nom/contexte de Séance, Étiquette et actions → compte à rebours initial → séquence de cycles, circuits et exercices directs, avec points aux positions autorisées → Fin de séance → Continuer (D-451). Chaque occurrence prend la forme d’une carte v2 à trois lignes (nom et indicateur de côté, Catégorie et travail, Zones corporelles et récupération), avec média intégré. Les points d’arrêt occupent des interstices centrés, raccordés au rail segmenté ; la récupération contextualisée s’intègre à la carte qui la précède et n’occupe plus de rangée autonome. Cycles visibles dans le MVP depuis D-451 ; aucune étape finale Catégories.
 
 #### 8. Éléments obligatoires
 
-**Complément cible 12/10 :** Chiffre distinct de la pastille d’unité ; œil permanent ; volumes sur cartes. N× conservé même sous héritage.
+**Référence 28/10 :** nombre et adjectif de nature sont deux commandes distinctes ; l’unité est un texte. Chevron accolé au nom du circuit ; aucun chevron sur le cycle. Le repli conserve les noms des exercices.
 
-Compte à rebours/Fin non déplaçables ; stepper du nombre de Tours ou de Séries toujours affiché et actif, − et + autour du nombre présenté au format « Valeur modifiable », sans toucher préalable (D-442, qui remplace l’appui sur le chiffre pour révéler ±) ; pastille tours/séries pour choisir la nature ; œil permanent sur la ligne du titre ; aucun côté au Circuit. Dans la zone de contexte, la puce Étiquette porte l’icône d’étiquette (contour de l’étiquette), dans la couleur de l’Étiquette quand elle est choisie, et non une pastille ronde (D-442). Aucun avertissement d’enchaînement sans pause (D-301 retirée par D-442). Carte sans Pause intrinsèque affichée ; récupération contextuelle affichable sur la troisième ligne de la carte (D-435), jamais sur une rangée séparée. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du 12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
+Compte à rebours/Fin non déplaçables ; nombre au format Valeur modifiable, stepper révélé au toucher ; unité tour(s) non interactive ; adjectif groupées/alternées ouvrant le choix ; chevron de repli accolé au nom du circuit, cycle non repliable ; aucun côté au Circuit (référence 28/10). Dans la zone de contexte, la puce Étiquette porte l’icône d’étiquette (contour de l’étiquette), dans la couleur de l’Étiquette quand elle est choisie, et non une pastille ronde (D-442). Aucun avertissement d’enchaînement sans pause (D-301 retirée par D-442). Carte sans Pause intrinsèque affichée ; récupération contextuelle affichable sur la troisième ligne de la carte (D-435), jamais sur une rangée séparée. Ligne variable : volumes séparés par un point médian, unité finale ; trois valeurs au maximum selon place puis ellipse. Régime explicite, notation stable ; voir chapitre 13, Cartes et grille des volumes. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). V-04 est clos par clarification du 12/10 : aucun réglage global D-214 n’est requis ; aucune modification Figma nécessaire sur ce point, selon confirmation du propriétaire.
 
 #### 9. Layout déterministe
 
 
 **Arbitrages de recette du 21/10 — D1 et D6 :** aucun trait de démarcation entre les cartes de Composition (hors rail segmenté et liaisons des points d’arrêt) ; les anciennes prescriptions de trait permanent D-303 sont supersédées sur ce seul rendu. En mode placement, les cartes conservent un grisé visuel perceptible pour signifier leur indisponibilité au toucher ; leur couleur ne doit pas masquer les zones d’ajout, le contenu ni les repères du rail. Le retour au mode normal restaure les styles habituels ; les gestes et règles d’édition existants ne sont pas changés.
 
-Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. À la largeur Figma de 402 : cartes v2 370 × 80 dès x16, rayon12, fond blanc, bord1 `#E4E7EF` hors Circuit et sans bord dans Circuit ; média64 × 64 à x24, rayon12/bord1 `#7A7A80` ; texte dès x100, symboles x282, valeurs alignées sur x378. Les colonnes s’adaptent aux largeurs 360/402/440 et aux libellés. Catégorie et Zones sont deux propriétés distinctes ; deux valeurs éventuelles sur la ligne de travail ne repoussent pas la récupération de la ligne3. Rail `#7A7A80` 1,5, segmenté entre bords des repères et médias, calculé depuis le layout réel, jamais sur les gabarits. Circuit : aplat `#F3F4F9`, débord 8 de part et d’autre des cartes, sans rectangle de contour, cartes internes espacées de 9 ; cercle/titre/compteur centré sur page/durée à droite alignés en en-tête ; depuis D-442, les cibles tactiles du −, du + et de la pastille d’unité sont espacées et d’au moins 44 pt, et tous les textes de cette ligne (nombre, unité, durée) ont la taille du titre « Circuit ». En placement, point d’arrêt centré dans un espace dédié de 22 et raccordé au rail ; récupération proposée par cadre pointillé dans la zone de ligne3 des seules cartes éligibles. Les commandes de nature et de volumes sont conservées même absentes d’une maquette illustrative. Les états soulevé et swipe renvoient à `8328:33546` et `8328:28863` ; un Point d’arrêt saisi par appui long est marqué visuellement par un état soulevé, comme une carte (D-442). Annuler et Confirmer restent accessibles dans le pied protégé. Depuis D-443 (23/10/2026), la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite ; les cadres du Compte à rebours initial et de la Fin de séance sont alignés à droite sur le cadre des cartes d’Exercice. Le pied de Continuer et la barre de placement ✓ / Annuler suivent le composant d’action principal standardisé (D-444) : zone fixe protégée, dégradé blanc pleine largeur, bouton centré verticalement dans la zone, zone de sécurité inférieure d’iOS respectée, même position verticale sans saut au changement de mode. Le rail ne remplace pas les règles existantes sur le trait de démarcation (D-303).
+Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cibles44 dans bande 32, durée immobile et actions à droite 6 plus bas. À la largeur Figma de 402 : cartes v2 370 × 80 dès x16, rayon12, fond blanc, bord1 `#E4E7EF` hors Circuit et sans bord dans Circuit ; média64 × 64 à x24, rayon12/bord1 `#7A7A80` ; texte dès x100, symboles x282, valeurs alignées sur x378. Les colonnes s’adaptent aux largeurs 360/402/440 et aux libellés. Catégorie et Zones sont deux propriétés distinctes ; deux valeurs éventuelles sur la ligne de travail ne repoussent pas la récupération de la ligne3. Rail `#7A7A80` 1,5, segmenté entre bords des repères et médias, calculé depuis le layout réel, jamais sur les gabarits. Circuit : aplat `#F3F4F9`, débord 8 de part et d’autre des cartes, sans rectangle de contour, cartes internes espacées de 9 ; nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nom/nombre 15 pt, unité 13 pt, durée 12 pt. Le rendu du 28/10 remplace D-442 sur ces paramètres ; cibles compactes à qualifier. En placement, point d’arrêt centré dans un espace dédié de 22 et raccordé au rail ; récupération proposée par cadre pointillé dans la zone de ligne3 des seules cartes éligibles. Les commandes de nature et de volumes sont conservées même absentes d’une maquette illustrative. Les états soulevé et swipe renvoient à `8328:33546` et `8328:28863` ; un Point d’arrêt saisi par appui long est marqué visuellement par un état soulevé, comme une carte (D-442). Annuler et Confirmer restent accessibles dans le pied protégé. Depuis le complément du 28/10, qui remplace D-443 sur ce rendu, la durée du Circuit est affichée à droite et son compteur reste à abscisse fixe ; les cadres du Compte à rebours initial et de la Fin de séance sont alignés à droite sur le cadre des cartes d’Exercice. Le pied de Continuer et la barre de placement ✓ / Annuler suivent le composant d’action principal standardisé (D-444) : zone fixe protégée, dégradé blanc pleine largeur, bouton centré verticalement dans la zone, zone de sécurité inférieure d’iOS respectée, même position verticale sans saut au changement de mode. Le rail ne remplace pas les règles existantes sur le trait de démarcation (D-303).
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -1813,7 +1815,7 @@ Shell de Composition conservé ; commandes contextuelles 34/dessin20/gap10/cible
 
 #### 11. États de l’écran
 
-**Complément cible 12/10 :** Tours/séries ; compteur actif/repos (remplacé par D-442 : stepper toujours actif, sans état de repos) ; conversion avec/sans perte ; confirmation annulée/confirmée ; réserve après diminution ; grille ouverte ; N minimal/maximal.
+**Complément cible 12/10 :** Tours/séries ; compteur au repos / stepper ouvert au toucher (28/10, remplace la permanence D-442) ; conversion avec/sans perte ; confirmation annulée/confirmée ; réserve après diminution ; grille ouverte ; N minimal/maximal.
 
 Création vide ; nom saisi ; composition valide/invalide ; édition ; Étiquette sélectionnée/absente ; réglages initial/fin ; glissé/déplacement ; placement multiple sans/avec sélection ; roulette récupération ; confirmation décomptée ; retour/annulation ; Récupération existante sélectionnée/désélectionnée (retrait programmé) ou modifiée en placement (D-442, qui supprime la bulle de retrait de la récupération) ; Point d’arrêt soulevé/déplacé/dépose refusée ; déplacement d’Exercice avec Point(s) retiré(s) sans message ; défilement automatique pendant un glisser ; choix début/fin de Tour à N ≥ 2 ; placement avec Points existants sélectionnés/désélectionnés (retrait programmé) ; suppression d’Exercice avec Point(s) retiré(s) sans message et carte disparaissant en fondu (D-442, qui remplace la suppression refusée de D-441) ; abandon/sauvegarde/erreur. Rabsente/R0/Rpositive croisés avec point absent/présent et trait hors/en placement.
 
@@ -1860,9 +1862,9 @@ Annoncer type, position, durée, sélection et nombre d’ajouts ; ordre de focu
 
 **Complément cible 12/10 :** Un circuit MVP. Nature séries : tous exercices à N ; régime indépendant. Passage bilatéral unique PC puis Pi terminale. Aucun compte à rebours/fin propre en SESSION.
 
-Pause après chaque série, dernière comprise, même N1. Hors circuit de séries, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit de séries : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
+Pause après chaque série, dernière comprise, même N1. Hors circuit à séries alternées, PN puis PC se cumulent à la frontière des côtés successifs ; ordre par paire selon paramètres d’exercice du chapitre 08. Dans un circuit à séries alternées : premier côté → PC → second côté → Pi, déroulement unique ; R positive remplace Pi terminale. Seule la toute dernière Pause est remplacée si une récupération positive suit l’Exercice ; sans elle (ou R0), conserver PN. En direct, conserver PN sans récupération contextuelle. Réordonner les Séries réévalue la dernière Pause.
 
-Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Jamais deux Points d’arrêt consécutifs dans la Séance enregistrée ; un passage partiel de Circuit de Séries qui en ferait se suivre deux n’exécute qu’un arrêt, sans modifier la Séance (RM-251). À N ≥ 2, un Point de début ou de fin de Tour d’un Circuit qui ouvre ou clôt la Séance n’omet à l’exécution que l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin (D-442). Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 retirée par D-442 : aucun avertissement pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
+Circuit=groupe, Tour=répétition ; récupération positive avant point, attente exclue du prévu ; éléments internes répétés à chaque Tour. Jamais deux Points d’arrêt consécutifs dans la Séance enregistrée ; un passage partiel de Circuit à séries alternées qui en ferait se suivre deux n’exécute qu’un arrêt, sans modifier la Séance (RM-251). À N ≥ 2, un Point de début ou de fin de Tour d’un Circuit qui ouvre ou clôt la Séance n’omet à l’exécution que l’arrêt qui suivrait le Compte à rebours ou précéderait la Fin (D-442). Aucune récupération automatique ni récupération directe ACTIVITY. Hors placement, le trait de démarcation reste présent, indépendamment du contenu. Récupération absente/0 : aucune information de récupération ; aucun point : aucune information de point. Pendant le choix des emplacements, le trait est masqué au profit des contrôles de placement (D-303). D-248 confirmée sur pause terminale et substitution par R ; D-301 retirée par D-442 : aucun avertissement pour l’absence de pause effective entre Exercices ; aucune persistance avant Continuer.
 
 CF3 déjà tranché par RM-151/RM-152, amendées par D-407 : indicateur compact de changement de côté conservé, sans direction (RM-243), rendu selon Figma, sans nouvelle ligne de pause ni phrase longue injectée dans les cartes.
 
@@ -1872,11 +1874,11 @@ CF3 déjà tranché par RM-151/RM-152, amendées par D-407 : indicateur compact 
 
 Tester annulation roulette/placement/Séance, sélection multiple/désélection/décompte, Rabsente/0/positive et point absent/présent, dans/hors placement. Tester frontières des deux types, dernière récupération, répétition par Tour, retrait par désélection en placement (la bulle de retrait est remplacée par D-441 et D-442), duplication/déplacement/suppression et sauvegarde atomique. Tester erreur/double tap ; D-214 révisée : vérifier l’absence du contrôle et des phases propres en SESSION ; V-04 clos. D-301 retirée par D-442 : vérifier qu’aucun avertissement d’enchaînement sans pause n’est affiché. Vérifier symbole ≈ avec bip/omission sans bip à l’Exercice et montants issus de la spécification, aucune formule de capture.
 
-**Complément D-441 du 22/10 :** tester (1) déplacement d’un Exercice : sa récupération le suit, ses Points restent en place ; (2) dépose d’Exercice refusée si elle crée deux Points consécutifs ou un Point interdit, état initial restauré (remplacé par D-442 : voir le complément D-442, point 5) ; (3) déplacement d’un Point par appui long avant, dans et après le Circuit ; (4) dépose de Point interdite (après Compte à rebours, avant Fin, contre un autre Point) refusée sans modification ; la tête de Circuit n’est plus interdite (D-442) ; (5) Récupération entre deux Points non séparatrice ; (6) frontières « après le dernier Exercice du Circuit »/« après le Circuit » et Circuit vide « avant »/« après » ; (7) Monter / Descendre accessibles ; (8) Points existants sélectionnés en placement, désélection puis resélection ; (9) retrait seul, mélange et modification de durée seule : « Confirmer les modifications » ; ajouts seuls : « Confirmer N pauses ajoutées » ; (10) Annuler restaure tout, retraits compris ; (11) persistance seulement par Continuer ; (12) suppression d’Exercice refusée : Supprimer proposé, rien supprimé, carte refermée, raison annoncée (remplacé par D-442 : voir le complément D-442, point 5) ; (13) duplication `[A, P, B]` → `[A, A′, P, B]`, récupération copiée ; (14) passage partiel de Circuit de Séries : un seul arrêt, Séance enregistrée intacte ; (15) aucune bulle sur le Point (la bulle « Retirer la récupération » est elle-même retirée par D-442).
+**Complément D-441 du 22/10 :** tester (1) déplacement d’un Exercice : sa récupération le suit, ses Points restent en place ; (2) dépose d’Exercice refusée si elle crée deux Points consécutifs ou un Point interdit, état initial restauré (remplacé par D-442 : voir le complément D-442, point 5) ; (3) déplacement d’un Point par appui long avant, dans et après le Circuit ; (4) dépose de Point interdite (après Compte à rebours, avant Fin, contre un autre Point) refusée sans modification ; la tête de Circuit n’est plus interdite (D-442) ; (5) Récupération entre deux Points non séparatrice ; (6) frontières « après le dernier Exercice du Circuit »/« après le Circuit » et Circuit vide « avant »/« après » ; (7) Monter / Descendre accessibles ; (8) Points existants sélectionnés en placement, désélection puis resélection ; (9) retrait seul, mélange et modification de durée seule : « Confirmer les modifications » ; ajouts seuls : « Confirmer N pauses ajoutées » ; (10) Annuler restaure tout, retraits compris ; (11) persistance seulement par Continuer ; (12) suppression d’Exercice refusée : Supprimer proposé, rien supprimé, carte refermée, raison annoncée (remplacé par D-442 : voir le complément D-442, point 5) ; (13) duplication `[A, P, B]` → `[A, A′, P, B]`, récupération copiée ; (14) passage partiel de Circuit à séries alternées : un seul arrêt, Séance enregistrée intacte ; (15) aucune bulle sur le Point (la bulle « Retirer la récupération » est elle-même retirée par D-442).
 
 **Complément D-442 du 22/10 :** tester (1) aucun message lorsque deux Exercices s’enchaînent sans pause ; (2) puce Étiquette de la zone de contexte : icône d’étiquette, couleur de l’Étiquette quand elle est choisie, aucune pastille ronde ; (3) défilement automatique près du bord haut et du bord bas pendant le glisser d’une carte et d’un Point, arrêt hors du bord et à la dépose ; (4) hors placement, toucher et appui long sur la récupération sans effet ; en placement, récupération existante (0 comprise) sélectionnée avec sa durée, désélection = retrait programmé, zone non sélectionnée → roulette sur la durée existante sinon le défaut du Profil, modification de durée, Confirmer / Annuler, Pause terminale rétablie après retrait (RM-038), libellé « Confirmer les modifications » ; (5) déplacement d’Exercice laissant un Point juste après le Compte à rebours, juste avant la Fin ou contre un autre Point : déplacement appliqué, Point(s) en cause retiré(s) sans message, premier de la paire conservé ; suppression d’Exercice dans les mêmes cas : appliquée, Point(s) en cause retiré(s) sans message, carte disparaissant en fondu et éléments suivants glissant pour combler sa place (D-442, recette J6, qui remplace le refus doux de D-441) ; (6) Point en tête de Circuit proposé et accepté ; (7) à N ≥ 2, début et fin de Tour simultanés par placement, déplacement d’un Point, déplacement d’un Exercice et passage de N = 1 à N ≥ 2 : choix « Début de tour » / « Fin de tour » / Annuler ; (8) à N ≥ 2, Point de début ou de fin de Tour d’un Circuit qui ouvre ou clôt la Séance accepté, arrêt omis à l’exécution seulement après le Compte à rebours ou avant la Fin ; à N = 1, RM-219 appliquée et Point devenu interdit retiré sans message ; (9) Point saisi marqué soulevé ; (10) stepper du Circuit toujours actif, nombre en « Valeur modifiable », cibles −, + et pastille d’unité espacées et ≥ 44 pt, textes à la taille du titre « Circuit » ; (11) durée du Circuit arrondie à la minute la plus proche au-delà de 3 minutes (remplacé par D-443 : durée absente de l’en-tête).
 
-**Complément D-443 et D-444 du 23/10 :** tester (1) mouvements doux, sans arrêt brutal : disparition plus lente d’une carte supprimée, apparition en fondu lent de la carte créée par Dupliquer et glissement des éléments suivants, ouverture, fermeture et retour des actions glissées ; (2) en-tête du Circuit sans durée, stepper aligné à droite ; (3) cadres du Compte à rebours initial et de la Fin de séance alignés à droite sur le cadre des cartes, durée 0..60 s, pas 1 s, affichée en secondes seulement ; (4) durée de la Séance dans la zone de contexte arrondie aux 15 secondes les plus proches, préfixe « ≈ » ou « ≥ » ; (5) Continuer au format du bouton « Terminer », fixe, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur, dernier contenu atteignable et jamais masqué ; (6) barre de placement ✓ / Annuler dans la zone de sécurité inférieure d’iOS, à la même hauteur que les autres barres d’action, sans saut au changement de mode (D-444).
+**Complément D-443 et D-444 du 23/10 :** tester (1) mouvements doux, sans arrêt brutal : disparition plus lente d’une carte supprimée, apparition en fondu lent de la carte créée par Dupliquer et glissement des éléments suivants, ouverture, fermeture et retour des actions glissées ; (2) en-tête du 28/10 avec durée à droite, nombre à abscisse fixe et stepper révélé au toucher, remplaçant ce point de D-443 ; (3) cadres du Compte à rebours initial et de la Fin de séance alignés à droite sur le cadre des cartes, durée 0..60 s, pas 1 s, affichée en secondes seulement ; (4) durée de la Séance dans la zone de contexte arrondie aux 15 secondes les plus proches, préfixe « ≈ » ou « ≥ » ; (5) Continuer au format du bouton « Terminer », fixe, centré verticalement dans sa zone protégée, sous un dégradé blanc pleine largeur, dernier contenu atteignable et jamais masqué ; (6) barre de placement ✓ / Annuler dans la zone de sécurité inférieure d’iOS, à la même hauteur que les autres barres d’action, sans saut au changement de mode (D-444).
 
 ### Composer une séance / Modifier une séance — Objectif
 
@@ -1891,7 +1893,7 @@ L’écran affiche notamment :
 - le champ `Nom de la séance` ;
 - l’accès à la modale `Étiquettes` ;
 - l’Étiquette sélectionnée, lorsqu’elle existe, affichée sous le nom de la Séance ;
-- la durée de ce Circuit, intégrée sous `Nombre de tours` dans le conteneur Circuit ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Remplacé par D-443 (23/10/2026) : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite.
+- la durée de ce Circuit, intégrée sous `Nombre de tours` dans le conteneur Circuit ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Le complément du 28/10 remplace ce rendu D-443 : durée à droite de l’en-tête, compteur à abscisse fixe et stepper révélé au toucher.
 
 Le champ `Nom de la séance` mesure `354 × 42`. Son fond reste transparent. Lorsqu’une Étiquette est sélectionnée, sa couleur devient la couleur affichée de la Séance ; il n’existe pas de palette de couleur indépendante de l’Étiquette dans le parcours courant.
 
@@ -1919,7 +1921,7 @@ Aucune récupération automatique à la création d’une occurrence. Une récup
 
 La ligne présente le nom, la Catégorie puis les Zones corporelles sur une ligne de classement, puis la synthèse :
 
-- Séries identiques : `N × cible` avec unité ; le préfixe N × est conservé sous circuit de séries ;
+- Séries identiques : `N × cible` avec unité ; le préfixe N × est conservé sous circuit à séries alternées ;
 - Séries variables : cibles séparées par un point médian, unité à la fin ; au plus trois valeurs qui tiennent, puis ellipse ;
 - À l’échec : libellé métier conservé sur la carte ; la grille Volumes utilise ✓ pour les cibles À l’échec. Le mode reste identifiable ; le rendu d’unité des lignes mixtes reste à aligner (matrice du 13/10).
 
@@ -2005,14 +2007,14 @@ Le nom, l’Étiquette/couleur et la Composition sont réunis dans le même écr
 | Nom de la séance | Champ obligatoire de 1 à 80 caractères. Vide, il est signalé par un fond rouge pâle, sans message supplémentaire (D-389). |
 | Étiquette | Facultative ; sa couleur devient la couleur affichée de la Séance. La sélection/création s’effectue dans la modale Étiquettes intégrée à la Composition. |
 | Compte à rebours initial | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 10 s. |
-| Circuit | Conteneur unique ; nature tours/séries, compte 1..99 défaut 1. Stepper − / + toujours affiché et actif autour du nombre, en « Valeur modifiable » (D-442, remplace « chiffre → ± ») ; pastille d’unité → choix de nature ; œil permanent → grille des volumes. Total exact/≈/≥ calculé sur les passages réels, hors préparation/fin de Séance. Géométrie à aligner ensuite dans Figma/DSF. |
+| Circuit | Conteneur facultatif, multiple ; nature séries groupées/alternées, compte 1..99 défaut 1. Nombre → stepper révélé ; adjectif → choix de nature ; unité non interactive ; chevron accolé au nom → repli ; durée à droite. Voir la référence Composition du 28/10. |
 | Exercices | D-435 réintroduit uniquement la récupération contextuelle affichable sur la troisième ligne de la carte de Composition v2, sans afficher les Pauses propres aux Séries ; le trait de démarcation conserve les règles de D-303. La donnée `postActivityRecoverySeconds` appartient toujours à l’occurrence et accompagne déplacement, duplication et suppression. Le corps principal de la carte affiche le nom, la Catégorie et les Zones corporelles ; toucher ouvre la modification. |
 | Fin de séance | Élément structurel ; roulette minutes/secondes intégrée (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes ; cadre aligné à droite sur le cadre des cartes d’Exercice) ; valeur initiale 5 s. |
-| Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Remplacé par D-443 (23/10/2026) : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite. |
-| Ajouter un exercice | Un seul bouton secondaire `+ Ajouter un exercice`, placé en haut. |
+| Résumé | Durée de ce Circuit seule, placée dans l’en-tête du conteneur Circuit immédiatement sous `Nombre de tours` ; « N exercice(s) » n’est pas affiché à cet emplacement (D-390). La durée concerne exclusivement ce Circuit (D-382) et intègre les durées intrinsèques de ses Exercices ainsi que leurs récupérations après exercice. Le Compte à rebours initial et la Fin de séance en sont toujours exclus. À l'état vide, le nombre `0 exercice` de D-091 n’est pas affiché à cet emplacement ; seule la durée l’est, sous la forme « — min » (D-390, D-399). Cette durée est une estimation : au-delà de 3 minutes, elle est arrondie à la minute la plus proche (D-442). Le complément du 28/10 remplace ce rendu D-443 : durée à droite de l’en-tête, compteur à abscisse fixe et stepper révélé au toucher. |
+| Créer | Bouton + ouvrant le menu à cinq actions : nouvel exercice, mouvement existant, séance existante, circuit, cycle ; Annuler. Les conteneurs passent par le choix de membres existants. |
 | Continuer | Désactivé lorsque le nom est vide, qu’aucun Exercice valide n’est présent ou qu’un Exercice comporte une cible obligatoire non renseignée (D-380, D-123) ; valide et enregistre la Séance avec son Étiquette éventuelle. Bouton d’action principal standardisé, fixe en bas de l’écran dans sa zone protégée (D-444). |
 
-Le Cycle reste présent dans le modèle avec une répétition toujours égale à 1, mais il n’est jamais affiché ni modifiable dans le MVP. La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
+Le cycle visible contient des circuits et des exercices directs et répète sa séquence de 1 à 99 fois, défaut 1 ; aucun cycle technique implicite (D-451, RM-252). La condition métier d’exécutabilité demeure la présence d’au moins un Exercice valide.
 
 Le Compte à rebours initial et la Fin de séance conservent chacun leur propre valeur confirmée et leur propre brouillon. L’ouverture copie la dernière valeur confirmée dans le brouillon ; le défilement ne modifie ni le jalon concerné ni la synthèse intégrée au Circuit. Annuler abandonne le brouillon. Confirmer enregistre exactement les minutes et secondes centrées, puis actualise seulement le jalon structurel concerné. La synthèse sous `Nombre de tours` reste inchangée, car elle exclut ces deux éléments structurels hors Circuit. Les secondes couvrent `00` à `59` avec un pas de `1` (remplacé par D-443 du 23/10/2026 : durée bornée à 0..60 s, pas 1 s, affichée en secondes seulement, sans minutes).
 
@@ -2024,7 +2026,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 ### Champs et comportements des fonctionnalités — Composition — comportement cible
 
-En-tête : stepper − / + toujours affiché et actif autour du nombre en « Valeur modifiable », cibles −, + et pastille d’unité espacées et d’au moins 44 pt, nombre, unité et durée à la taille du titre « Circuit » (D-442, qui remplace le chiffre interactif à ± révélés au toucher), pastille tours/séries (choix de nature), œil sur la ligne du titre (volumes), total exact/≈/≥, arrondi à la minute la plus proche au-delà de 3 minutes (D-442 ; remplacé par D-443 du 23/10/2026 : la durée du Circuit n’est plus affichée dans son en-tête, et le stepper du nombre de Tours ou de Séries y est aligné à droite). Conserver shell et hiérarchie ; captures et mesures DSF seront alignées après ce lot.
+En-tête du 28/10 : nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nombre 15 pt, unité 13 pt, durée 12 pt. Nombre → stepper ; adjectif → choix de nature ; unité non interactive. Circuit replié : noms des exercices sur une ligne tronquée. Cycle non repliable. Les calculs restent ceux du chapitre 10 ; aucun chiffre de maquette ne les définit.
 
 Carte : régime identiques → forme N×valeur ; variables → valeurs séparées par points médians avec unité finale, au plus trois selon place puis ellipse, même si valeurs égales. Douze séries : aperçu tronqué ; durées composées longues : moins de valeurs. Aucun marqueur d’incomplétude sur la carte ; validation des cibles dans la feuille conservée. La grille est détaillée dans les nouveaux contrats du chapitre 13.
 
@@ -2046,7 +2048,7 @@ Choisir comment le circuit développe les séries, sans changer le nombre affich
 
 #### 3. Contexte d’entrée
 
-Brouillon de composition avec circuit unique ; appui sur unité, pas sur chiffre.
+Brouillon de composition, circuit visé identifié ; appui sur l’adjectif groupées/alternées, pas sur l’unité ni sur le chiffre.
 
 #### 4. Contexte de sortie / destinations
 
@@ -2058,7 +2060,7 @@ Nature actuelle, compte N, nombres et paramètres des exercices dans le brouillo
 
 #### 6. Classification des valeurs Figma
 
-Libellés tours/séries statiques ; nombre et sélection dynamiques ; aucune règle tirée d’un exemple.
+Libellés Séries groupées / Séries alternées statiques ; nombre et sélection dynamiques ; aucune règle tirée d’un exemple.
 
 #### 7. Structure de l’écran
 
@@ -2070,7 +2072,7 @@ Deux options et état courant identifiable ; aucune troisième nature.
 
 #### 9. Layout déterministe
 
-Pastille limitée au mot ; chiffre hors pastille. Référence 402 : popover `8328:34805`, 252 × 117, deux options 250 × 49. Ancrage au déclencheur, largeur adaptée au shell ; voir DSF Circuits du 12/10. Les ± visibles dans la capture représentent l’édition numérique, pas un nouveau repos permanent (remplacé par D-442 : le stepper − / + est désormais toujours affiché et actif).
+Adjectif de nature distinct du nombre et de l’unité. Sélecteur avec libellés complets et sous-titres ; hauteur rapportée 143 pt dans la source du 28/10, contre 117 auparavant. Le stepper est révélé au toucher du nombre ; il ne fait pas partie du sélecteur de nature.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2122,7 +2124,7 @@ Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte 
 
 #### 1. Identification
 
-Dialogue décision existant appelé par conversion ou ajout catalogue dans un circuit de séries ; frame à rattacher ensuite.
+Dialogue décision existant appelé par conversion ou ajout catalogue dans un circuit à séries alternées ; frame à rattacher ensuite.
 
 Règles applicables : RM-113, RM-FMT-03, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
@@ -2156,7 +2158,7 @@ Annuler et Confirmer ; indication explicite de suppression définitive des séri
 
 #### 9. Layout déterministe
 
-Réutiliser le dialogue générique : frame `8328:34813`, instance `8328:34964`, 354 × 215 à x24/y635 sur la référence 402 × 874. Annuler à gauche, Confirmer à droite. Titre « Passer en circuit de séries ? » ; message décrit N et les séries/valeurs supprimées. N=3 est un exemple dynamique. Fond et popover inertes. Hauteur adaptée au texte, sans figer les coordonnées sur tous les appareils.
+Réutiliser le dialogue générique : frame `8328:34813`, instance `8328:34964`, 354 × 215 à x24/y635 sur la référence 402 × 874. Annuler à gauche, Confirmer à droite. Titre « Passer en circuit à séries alternées ? » ; message décrit N et les séries/valeurs supprimées. N=3 est un exemple dynamique. Fond et popover inertes. Hauteur adaptée au texte, sans figer les coordonnées sur tous les appareils.
 
 #### 10. Responsive, Safe Areas, texte, scroll et clavier
 
@@ -2218,7 +2220,7 @@ Lire toutes les cibles série par série sans ouvrir chaque exercice.
 
 #### 3. Contexte d’entrée
 
-Composition avec circuit de tours ou de séries ; œil présent et actif dans les deux natures.
+Composition avec circuit à séries groupées ou de séries ; œil présent et actif dans les deux natures.
 
 #### 4. Contexte de sortie / destinations
 
@@ -3374,7 +3376,7 @@ Snapshot : récupérations explicitement ajoutées uniquement ; projection R0 si
 
 #### 6. Classification des valeurs Figma
 
-Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe, Tour=répétition ; Cycle technique 1 jamais affiché.
+Noms/durées/compteurs calculés ; valeurs Figma démonstratives. Circuit=groupe, Tour=passage ; cycle visible avec compte propre depuis D-451. Le rendu d’exécution de ce contexte reste à qualifier.
 
 #### 7. Structure de l’écran
 
@@ -3483,7 +3485,7 @@ L’écran affiche, de haut en bas :
 - le temps total écoulé et la durée estimée d’exécution de la Séance ; le temps écoulé inclut toutes les phases effectivement exécutées, Compte à rebours initial et Fin de séance compris, mais exclut les Pauses manuelles ; durée exacte sans symbole en mode Durée, estimée ≈ avec cadence et borne omission sans bip à l’Exercice ou en présence de composante inconnue ;
 - une barre de progression globale structurée en segments correspondant aux Tours, conformément au prototype Figma. Elle occupe exactement la largeur utile sans débordement. Les segments se répartissent dans cette largeur après déduction des espacements et ne conservent jamais la largeur fixe du gabarit `402`. Le remplissage représente l’avancement dans le Plan d’Exécution complet, Compte à rebours initial et `SESSION_END` compris, selon la pondération définie dans les chapitres 08 et 10 ; il n’est pas le simple rapport `temps écoulé / durée estimée d’exécution`. Il atteint `100 %` uniquement à l’achèvement de `SESSION_END`. Dans T04, les étapes chronométrées sont pondérées par leur durée planifiée ; les Séries Répétitions sans cadence et À l’échec acquièrent leur part avec `Suivant`. Les Séries Répétitions avec bip suivent une progression temporelle continue, plafonnée à la fin nominale sans terminer la Série ; `Suivant` acquiert le reste éventuel. La Pause abandonne la fraction d’intervalle pour la progression et la reprise lance un intervalle complet, sans effacer le temps actif réel. Les Pauses manuelles n’augmentent pas le remplissage.
 
-Le Cycle n’est jamais affiché. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
+Le rendu historique d’exécution ne montre pas le Cycle ; adaptation à D-451 à qualifier hors de ce lot de composition. Le nombre total d’étapes et la position sous la forme `x sur y` ne sont pas affichés dans le MVP.
 
 Le moteur d’Exécution peut néanmoins conserver ces informations pour son fonctionnement interne. La charge de la Série courante, lorsqu’elle est active, est aussi affichée (RM-241) ; sa place dans cette hiérarchie relève de Figma, qui ne l’illustre pas encore.
 
@@ -3537,7 +3539,7 @@ Après confirmation :
 - un Exercice en Répétitions ou À l’échec retrouve un chronomètre d’Exercice à `00:00` ;
 - la cible de répétitions reste inchangée ;
 - le temps global déjà écoulé dans la Séance est conservé ;
-- le Circuit, le Tour courant et le Cycle technique restent inchangés ;
+- le circuit, le tour courant et le contexte du cycle restent inchangés ;
 - l’Exercice redémarre selon son comportement normal.
 
 `Annuler` ferme la modale et reprend l’Exercice à son état précédent.
@@ -3648,7 +3650,7 @@ Pendant l'Exécution, l'écran affiche principalement :
 - la Série courante sous la forme `x/y` lorsqu'il s'agit d'un Exercice ;
 - la charge de la Série courante lorsqu’elle est active (RM-241), à l’emplacement défini par Figma ;
 - le temps de l’Exercice : compte à rebours pour un Exercice chronométré, chronomètre croissant pour un Exercice en Répétitions ou À l’échec ;
-- la Série et le Tour en cours ; le Cycle n’est jamais affiché ;
+- la Série et le Tour en cours ; le rendu du cycle en exécution reste à qualifier pour D-451 ;
 - l'Exercice suivant et sa durée lorsqu'elle est connue ;
 - les commandes Réinitialiser, Pause et Exercice suivant ;
 - le temps total écoulé / durée estimée d’exécution et sa barre de progression.
@@ -5279,7 +5281,7 @@ Instantané immuable au départ, résultats moteur clôturés une fois, puis fin
 
 Les contrats ACTIVITY et SESSION appliquent les phases sous la série : enchaînement automatique sans repos, cadence continue, libellé annoncé au début si voix activée, sans retard du temps ; nouvelle annonce interrompt la précédente. Transition prioritaire en cas de coïncidence sonore. Pause conserve phase et restant ; réinitialisation repart de la première phase du périmètre de série/côté existant ; Suivant ne devient pas une commande de phase. Une subdivision ne modifie pas le poids global de la série.
 
-Vérifier6+3 avec bip4 : bips à4 et8 ; annonces courtes/longues, voix désactivée, pause/reprise, reset et saut, deux côtés et circuit de séries. La position du libellé de phase et le choix du temps affiché sur le cadran restent à préciser ; aucun layout de référence n’est déclaré qualifié pour ces nouveaux éléments.
+Vérifier6+3 avec bip4 : bips à4 et8 ; annonces courtes/longues, voix désactivée, pause/reprise, reset et saut, deux côtés et circuit à séries alternées. La position du libellé de phase et le choix du temps affiché sur le cadran restent à préciser ; aucun layout de référence n’est déclaré qualifié pour ces nouveaux éléments.
 
 #### 4.13 Usage des références et portée des recettes
 
