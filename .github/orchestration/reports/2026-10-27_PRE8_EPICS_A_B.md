@@ -506,3 +506,40 @@ Hermann a terminé les tests de recette, avec succès : « j'ai terminé les tes
 - Points « À CLARIFIER » de B.9 et B.10 : sans arbitrage distinct ; le comportement livré est celui qui a été recetté.
 
 **Git.** Branche `pre8-bmad/dev`, base `main` @ `082390c0`, code recetté `88c2adde`. Rien n'est poussé, rien n'est fusionné dans `main`. Aucun test applicatif n'a été relancé : seuls des documents ont changé.
+
+## Lot B — Niveaux après archivage : arbitrage du 28/10 (option A)
+
+**Instruction.** « PRE-8 — Correction de l'arbitrage Niveaux après archivage ». Hermann confirme b8-3, demandé et validé en recette. Option A retenue. Pas de nouvelle recette A/B complète.
+
+**Vérification du comportement réel.**
+- Le Catalogue applique bien b8-3 : `MovementCatalogueService.listEntries`, test `movementLifecycle.b8.test.ts`.
+- La fiche Mouvement ne l'appliquait pas. `ActivityDefinitionService.getMovementLevels` numérote la famille complète (`rank = index + 1`, archivés compris). `MovementScreen` affichait ces rangs dans la pastille et dans le menu Niveau.
+- Exemple : famille Squats assistés, Squats (archivé), Squats sautés. La fiche de Squats sautés affichait « Niveau 3 », le Catalogue « Niveau 2 ».
+
+**Correctif minimal.**
+- `MovementScreen.displayedLevelPosition` applique, sur la fiche, la règle du Catalogue :
+  - un actif est numéroté parmi les seuls actifs ;
+  - un archivé garde son rang dans la famille complète.
+- Il couvre la pastille et les libellés du menu.
+- `LevelOption.displayRank` (`MovementLevelMenu`) porte le rang affiché. `rank` reste la position complète, utilisée comme clé du choix et pour le réordonnancement.
+- Le service, l'identité, l'appartenance et la clé de tri sont inchangés.
+- La fiche Exercice et les suffixes « - Nn » de la Composition ne sont pas modifiés : seule la fiche Mouvement était visée.
+
+**Documentation.**
+- **Sur la branche** :
+  - ch07 : b8-3 confirmé ; Q5 annoté ; point « À valider » tranché ;
+  - ch10 : note sur le rang ;
+  - DSF Mouvements : note sur Q5 ;
+  - spec B.10 : À CLARIFIER 2 tranché.
+- **Sur `main`** (ch09 règle 8, ch07 clarifications et traçabilité) : corrections consignées dans `_bmad-output/pre8/integration-documentaire-main.md`, à appliquer lors de l'intégration contrôlée (Q-E0). Aucune écriture sur `main`.
+
+**Tests.**
+- Nouveau test `MovementScreen.b2.integration` « b8-3 : la fiche affiche les rangs des actifs recalculés… ». Il vérifie :
+  - la pastille « Niveau 2 » ;
+  - le menu « Niveau 1 sur 2 · Squats assistés », « Niveau 2 sur 3 · Squats (archivé) », « Niveau 2 sur 2 · Squats sautés » ;
+  - la famille inchangée.
+- `npx jest src/features/activities src/features/sessions/__tests__/ExerciseScreen` : 52 suites, 971 tests, tous verts.
+- tsc : OK. ESLint sur les fichiers touchés : OK.
+- Suite complète non relancée, conformément à l'organisation des tests du 28/10 : changement local, sans risque transverse.
+
+**À vérifier sur l'iPhone** (non obligatoire, sans recette complète) : dans une famille dont un niveau est archivé, la fiche d'un actif affiche le même rang que sa carte du Catalogue.

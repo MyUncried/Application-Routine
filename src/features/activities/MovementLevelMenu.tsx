@@ -78,6 +78,11 @@ export type LevelOption = {
   readonly movementId?: string;
   /** Recette A/B B.10 (q6-2) : membre archivé, signalé « (archivé) » dans le libellé du choix. */
   readonly archived?: boolean;
+  /**
+   * Recette A/B (b8-3) : rang affiché, lorsqu'il diffère de `rank` (position dans la famille
+   * complète, qui reste la clé du choix). Absent : `rank`.
+   */
+  readonly displayRank?: number;
 };
 
 /**
@@ -139,7 +144,7 @@ function levelAccessibilityLabel(position: MovementLevelPosition | null): string
 export function levelOptionLabel(level: LevelOption): string {
   const t = strings.screens.activities.editor.levelMenu;
   return fillTemplate(level.archived === true ? t.levelOptionArchived : t.levelOption, {
-    rank: String(level.rank),
+    rank: String(level.displayRank ?? level.rank),
     total: String(level.total),
     name: level.name,
   });

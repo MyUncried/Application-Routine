@@ -237,7 +237,6 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 | Q-E3 | Sémantique des filtres | Proposition de Hermann du 28/10 (E.6), sans contradiction trouvée | E.6 |
 | Q-E4 | Rangée responsive | État étendu s'il tient, état compact actif sinon (E.4) ; diffère de `4549:6742` | E.4 |
 | Q-E5 | Vignettes de format autres que Libre dans le panneau | Visibles et grisées, ou absentes jusqu'à leur disponibilité | E.6 |
-| Niveaux | b8-3 contre règle 8 (§3 bis), lot B | Option A ou B | Aucune story E |
 
 ## 3 bis. Lot B — Niveaux après archivage et réordonnancement (isolé de E)
 
@@ -249,7 +248,7 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
   - la note de recette `b8-3`, saisie entre 13:10 et 14:41, consignée au ch07 PRE-8 comme « b8-3 remplace Q5 ».
 - PRE-8 est aussi incohérent en lui-même : les menus Niveau de la fiche gardent le rang de la famille complète (B.10, À CLARIFIER 2).
 
-**Correctif minimal, à choisir par Hermann.**
+**Tranché par Hermann le 28/10 : option A.** b8-3 est conservé ; la fiche Mouvement est alignée ; la documentation est corrigée (ch07, ch10, DSF Mouvements sur la branche ; ch09 et ch07 de `main` à l'intégration, voir `integration-documentaire-main.md`). Options soumises :
 - **A — garder b8-3.** Aucun code ne change ; la règle 8 est amendée à l'intégration documentaire, et les menus de la fiche sont alignés sur les rangs des actifs.
 - **B — appliquer la règle 8.** Dans `MovementCatalogueService`, le rang affiché redevient celui de la famille complète : retrait de la renumérotation b8-3, un test ajusté. L'entrée b8-3 du ch07 PRE-8 est marquée remplacée. Le reste de la recette A/B n'est pas touché.
 

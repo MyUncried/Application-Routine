@@ -61,11 +61,11 @@ deferred:
     question: "Synthèse d'une Séance sans exercice ; libellé de l'état aucun résultat après filtres."
   - id: regle-8-niveaux-archives
     epic: b
-    status: arbitrage
-    question: "ch09 règle 8 (main, 27/10) : archiver ne modifie pas les niveaux ; B.10 b8-3 (recetté) recalcule les rangs affichés des actifs. Contradiction à arbitrer dans le lot B."
+    status: tranche
+    decision: "Hermann, 28/10 : option A, b8-3 conservé (rangs des actifs recalculés sans discontinuité ; archivé au rang de la famille complète). Fiche Mouvement alignée (MovementScreen). Texte de main (ch09 règle 8, ch07) à corriger à l'intégration documentaire (integration-documentaire-main.md)."
   - id: regle-6-cle-de-tri
     epic: b
-    status: a-clarifier
+    status: constate-sans-correction
     question: "ch09 règle 6 : écrire la seule clé du membre déplacé ; MovementRepository.reorder (PRE-7) réécrit la famille."
   - id: menu-niveau-largeur
     epic: b

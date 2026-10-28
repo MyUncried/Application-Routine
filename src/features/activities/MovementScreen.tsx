@@ -8,7 +8,7 @@ import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activit
 import { validateMovement, type Movement } from "@/domain/activities/Movement";
 import { savableMovementPhases, type MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import type { MovementSaveDecision } from "@/domain/activities/movementSave";
-import { variantLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
+import { movementLevelPosition, variantLevelPosition, type MovementLevelPosition } from "@/domain/activities/movementSuggestion";
 import type { Category } from "@/domain/categories/Category";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { DraftMediaItem } from "@/domain/media/ActivityMedia";
@@ -153,6 +153,21 @@ export function MovementScreen() {
       variantPlacement={placement}
       openInEdit={openInEdit}
     />
+  );
+}
+
+/**
+ * Recette A/B (b8-3, ch07) : rang affiché d'un membre de la famille, même règle que le Catalogue
+ * (`MovementCatalogueService.listEntries`) — un membre actif est numéroté parmi les seuls actifs ;
+ * un membre archivé garde son rang dans la famille complète. `entry.rank` reste la position complète.
+ */
+function displayedLevelPosition(levels: MovementLevels, movementId: string): MovementLevelPosition | null {
+  const entry = levels.levels.find((candidate) => candidate.movement.id === movementId);
+  if (entry === undefined) return levels.position;
+  const members = levels.levels.filter((candidate) => entry.archived === true || candidate.archived !== true);
+  return movementLevelPosition(
+    entry.movement,
+    members.map((candidate) => candidate.movement),
   );
 }
 
@@ -389,21 +404,26 @@ export function MovementSheet({
     if (levels === null) return { position: null, menu: null };
     // F07 : ouverte en édition depuis le Catalogue, la fiche garde le menu Niveau (consulter un autre
     // membre, ajouter un niveau) ; une édition entrée par le crayon le garde fermé, comme avant.
-    if (origin === null || (mode === "edit" && !openInEdit)) return { position: levels.position, menu: null };
+    if (origin === null) return { position: levels.position, menu: null };
+    if (mode === "edit" && !openInEdit) return { position: displayedLevelPosition(levels, origin.id), menu: null };
     const total = levels.position?.total ?? 0;
     return {
-      position: levels.position,
+      position: displayedLevelPosition(levels, origin.id),
       menu: {
         currentDefinitionId: null,
         // Recette A/B B.10 (q6-2) : un niveau archivé reste consultable, signalé « (archivé) ».
-        levels: levels.levels.map((entry) => ({
-          rank: entry.rank,
-          total,
-          name: entry.movement.name,
-          movementId: entry.movement.id,
-          exercises: [],
-          archived: entry.archived === true,
-        })),
+        levels: levels.levels.map((entry) => {
+          const displayed = displayedLevelPosition(levels, entry.movement.id);
+          return {
+            rank: entry.rank,
+            displayRank: displayed?.rank ?? entry.rank,
+            total: displayed?.total ?? total,
+            name: entry.movement.name,
+            movementId: entry.movement.id,
+            exercises: [],
+            archived: entry.archived === true,
+          };
+        }),
         // Recette A/B B.10 (b2-8) : « Ouvrir un autre niveau », textes réduits (panneau de repli).
         levelsLabel: strings.screens.activities.editor.levelMenu.openOtherLevel,
         compact: true,

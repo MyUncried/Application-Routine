@@ -32,7 +32,7 @@ Exclus : fiche de Mouvement dans la Composition de Séance (remarque 1) ; saisie
 ## À CLARIFIER
 
 1. Taille des textes du menu Niveau sur iOS : menu natif SwiftUI, taille fixée par le système ; la réduire impose une exception à la primitive native. Toujours en ARBITRAGE (A, B ou C, voir B.11).
-2. Rang affiché d'un membre archivé : reste celui de la famille complète ; les menus Niveau de la fiche ne sont pas renumérotés.
+2. Rang affiché d'un membre archivé : reste celui de la famille complète ; les menus Niveau de la fiche ne sont pas renumérotés. **Tranché le 28/10** (b8-3 confirmé, option A) : l'archivé garde le rang de la famille complète ; la fiche est alignée sur les rangs des actifs (`MovementScreen`, `displayedLevelPosition`).
 3. Forme du repère « (archivé) » (gris, après le nom).
 4. Nouveau Niveau verrouillé tant que son nom pré-rempli n'est pas modifié.
 5. Libellé VoiceOver du bouton ↑ des Phases : « Valider les phases ».

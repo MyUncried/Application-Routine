@@ -640,6 +640,30 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.queryByTestId("movement-phases-submit", anyNode)).toBeNull();
   });
 
+  it("b8-3 : la fiche affiche les rangs des actifs recalculés après archivage, comme le Catalogue", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await movements().createVariant(movement("jump", "Squats sautés"), "squat", "AFTER_ORIGIN");
+    await movements().archive("squat");
+    await renderSheet({ movementId: "jump", mode: MOVEMENT_EDIT_MODE_PARAM });
+    // Pastille : 2e des deux actifs (et non 3e de la famille complète).
+    expect(screen.getByText("Niveau 2", anyNode)).toBeTruthy();
+    expect(screen.queryByText("Niveau 3", anyNode)).toBeNull();
+    // Menu : actifs numérotés parmi les actifs ; l'archivé garde son rang dans la famille complète.
+    // (menu natif : libellés portés par les boutons SwiftUI, clés = position dans la famille complète).
+    expect(screen.getAllByTestId(/-level-\d+$/, anyNode).map((item) => item.props.label)).toEqual([
+      "Niveau 1 sur 2 · Squats assistés",
+      "Niveau 2 sur 3 · Squats (archivé)",
+      "Niveau 2 sur 2 · Squats sautés",
+    ]);
+    // Identité et appartenance inchangées.
+    expect((await movements().listGroup((await movements().findById("jump"))!.levelGroup!.groupId)).map((member) => member.id)).toEqual([
+      "assist",
+      "squat",
+      "jump",
+    ]);
+  });
+
   it("q6-2 : Mouvement archivé — « (archivé) » après le nom, en consultation", async () => {
     await movements().create(movement("squat", "Squats"));
     await movements().archive("squat");
