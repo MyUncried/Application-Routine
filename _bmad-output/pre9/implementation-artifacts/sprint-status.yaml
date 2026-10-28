@@ -1,0 +1,45 @@
+# PRE-9 — suivi (plan en revue, 28/10/2026). Aucune story démarrée.
+# Baseline main @ 547bb7ef. Statuts : backlog (plan non validé) ; aucune story ready-for-dev avant validation de Hermann.
+project: KODJO
+slice: PRE-9
+plan_status: en-revue
+development_status:
+  epic-q: backlog
+  q-0-verification-globale-fractionnee: backlog  # dette PRE-8, recommandée avant A.1
+  q-1-qualification-fin-pre9: backlog
+  epic-a: backlog
+  a-1-fondation-structure-generale: backlog
+  a-2-exercice-depuis-mouvement: backlog
+  a-4-conversion-e8b: backlog  # ARB-01
+  a-3-retrait-parcours-exercices-autonomes: backlog
+  a-5-retrait-table-definitions: backlog  # ARB-01
+  epic-b: backlog
+  b-1-rendu-structure: backlog  # ARB-12, ARB-13, ARB-19
+  b-2-menu-creer-enveloppe: backlog  # ARB-06, ARB-07
+  b-3-series-par-circuit-cibles-zero: backlog  # ARB-10
+  b-4-glisser-deposer-conteneurs: backlog  # ARB-09, ARB-19
+  b-5-suppression-duplication: backlog  # ARB-08
+  b-6-pauses-points-arret: backlog  # ARB-02 bloquant
+  b-7-durees-syntheses: backlog  # ARB-11
+  b-8-utiliser-seance-existante: backlog  # ARB-16
+  b-9-nom-seance-trois-etats: backlog  # ARB-14
+  epic-c: backlog
+  c-1-persistance-registre-formats: backlog
+  c-2-selection-modele: backlog  # ARB-05
+  c-3-parametres-imposes-recapitulatif: backlog  # ARB-03, ARB-04, ARB-18, ARB-22
+  c-4-composition-preremplie-verrous: backlog  # ARB-15, ARB-22
+  c-5-departs-rapides: backlog  # ARB-04, ARB-22
+  c-6-edition-duplication-formats: backlog  # ARB-16, ARB-17, ARB-21
+  epic-d: backlog
+  d-1-developpement-plan: backlog
+  d-2-instantane-seance: backlog
+  d-3-descripteurs-capacites: backlog
+  d-4-validation-executabilite: backlog
+  d-5-instruction-capacites-execution: backlog  # document ; A2, A4, A6, A7
+  epic-doc: backlog
+  doc-0-tracabilite-pre8: backlog
+  doc-1-lot-documentaire-cloture: backlog
+arbitrages:
+  structurants: [ARB-01, ARB-02, ARB-03, ARB-04, ARB-05]
+  locaux: [ARB-06, ARB-07, ARB-08, ARB-09, ARB-10, ARB-11, ARB-12, ARB-13, ARB-14, ARB-15, ARB-16, ARB-17, ARB-18, ARB-19, ARB-20, ARB-21, ARB-22]
+  avant_pre10: [A2, A4, A6]
