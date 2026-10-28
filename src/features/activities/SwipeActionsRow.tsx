@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Image } from "expo-image";
-import { Animated, Pressable, StyleSheet, Text, View, type AccessibilityActionInfo, type GestureResponderEvent } from "react-native";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  type AccessibilityActionInfo,
+  type AccessibilityState,
+  type GestureResponderEvent,
+} from "react-native";
 
 import { MOTION_EASING, MOTION_SHIFT_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { clampSwipeTranslateX, isTap, shouldRevealAfterSwipe } from "@/features/sessions/compositionGesture";
@@ -31,6 +40,11 @@ import { colors, fixedRadii, type } from "@/shared/ui/tokens";
  * - B11 : `joined` — le choix Plus facile / Plus difficile est déployé sous les actions : les
  *   raccords Figma comblent les coins bas du groupe ;
  * - B08 : `onLongPress` (réordonnancement d'une pile déployée) et `extraAccessibilityActions`.
+ *
+ * PRE-8 (epic E, E.5 ; spécification du 27/10 §5) : `actionsHeight` — bloc d'actions de hauteur fixe,
+ * aligné sur le bord supérieur, quelle que soit la hauteur de la carte (carte de Séance déployée) ;
+ * `accessibilityState` transmis à la carte (déploiement annoncé). Sans ces options, comportement B
+ * inchangé (bloc de la hauteur de la carte).
  */
 
 export type SwipeAction = {
@@ -66,6 +80,8 @@ export function SwipeActionsRow({
   joined = false,
   onLongPress,
   extraAccessibilityActions = [],
+  actionsHeight,
+  accessibilityState,
   children,
   testID,
 }: {
@@ -82,6 +98,9 @@ export function SwipeActionsRow({
   readonly joined?: boolean;
   readonly onLongPress?: () => void;
   readonly extraAccessibilityActions?: readonly SwipeAccessibilityAction[];
+  /** E.5 : hauteur fixe du bloc d'actions, aligné en haut ; absent : hauteur de la carte. */
+  readonly actionsHeight?: number;
+  readonly accessibilityState?: AccessibilityState;
   readonly children: ReactNode;
   readonly testID: string;
 }) {
@@ -197,7 +216,7 @@ export function SwipeActionsRow({
           pointerEvents={translateX < 0 ? "auto" : "none"}
           accessibilityElementsHidden={translateX >= 0}
           importantForAccessibility={translateX < 0 ? "auto" : "no-hide-descendants"}
-          style={[styles.actions, { width: groupWidth }]}
+          style={[styles.actions, { width: groupWidth }, actionsHeight !== undefined ? { bottom: undefined, height: actionsHeight } : null]}
           testID={`${testID}-actions`}
         >
           {actions.map((action, index) => (
@@ -244,6 +263,7 @@ export function SwipeActionsRow({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         accessibilityHint={accessibilityHint}
+        accessibilityState={accessibilityState}
         accessibilityActions={[
           ...(enabled ? actions.filter((action) => action.disabled !== true) : []).map(
             (action): AccessibilityActionInfo => ({ name: action.key, label: action.label }),

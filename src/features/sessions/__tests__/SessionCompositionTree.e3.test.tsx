@@ -1,11 +1,14 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
+import type { ReactElement } from "react";
 import { StyleSheet } from "react-native";
 
 import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { Activity } from "@/domain/sessions/Session";
 import type { StructureCircuit, StructureElement } from "@/domain/sessions/structure";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
+import type { SessionService } from "@/features/sessions/SessionService";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { compositionAccessibilityText, SessionCompositionTree, treeLineLabel } from "@/features/sessions/SessionCompositionTree";
 import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogueProjection";
 
@@ -14,6 +17,10 @@ import { projectSessionForCatalogue } from "@/features/sessions/sessionCatalogue
  * `6214:3696`) : lignes de conteneurs, décalage de 16 par niveau, filets verticaux, récupérations
  * grisées, chevron seul contrôle, aucune ouverture ni écriture.
  */
+
+/** La liste porte le cycle de vie (E.5) : un service fictif, jamais appelé par le déploiement. */
+const inertService = new Proxy({}, { get: () => jest.fn() }) as unknown as SessionService;
+const withService = (element: ReactElement) => <SessionServiceContext.Provider value={inertService}>{element}</SessionServiceContext.Provider>;
 
 let sequence = 0;
 const exercise = (name: string, overrides: Partial<Activity> = {}): Activity => ({
@@ -118,7 +125,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
 
 describe("PRE-8 E.3 — déploiement dans la liste", () => {
   const renderList = (onOpen = jest.fn()) => {
-    render(<SessionCatalogueList sessions={[knee(), projection("seul", [{ kind: "EXERCISE", exercise: exercise("Pompes") }])]} emptyMessage={null} onOpenSession={onOpen} />);
+    render(withService(<SessionCatalogueList sessions={[knee(), projection("seul", [{ kind: "EXERCISE", exercise: exercise("Pompes") }])]} emptyMessage={null} onOpenSession={onOpen} />));
     return onOpen;
   };
 
@@ -136,23 +143,24 @@ describe("PRE-8 E.3 — déploiement dans la liste", () => {
   it("une Séance d'un seul exercice n'a rien à déployer", () => {
     renderList();
     expect(screen.queryByTestId("session-card-seul-disclosure")).toBeNull();
-    expect(screen.getByTestId("session-card-seul-open").props.accessibilityActions).toBeUndefined();
+    const actions = screen.getByTestId("session-card-seul-swipe-card").props.accessibilityActions as { name: string }[];
+    expect(actions.map((action) => action.name)).not.toContain("toggleComposition");
   });
 
   it("VoiceOver : action nommée de déploiement, état annoncé, composition ajoutée au nom", () => {
     renderList();
-    const card = screen.getByTestId("session-card-genou-open");
+    const card = screen.getByTestId("session-card-genou-swipe-card");
     expect(card.props.accessibilityState).toEqual({ expanded: false });
-    expect(card.props.accessibilityActions).toEqual([{ name: "toggleComposition", label: "Afficher la composition de Séance genou" }]);
+    expect(card.props.accessibilityActions).toContainEqual({ name: "toggleComposition", label: "Afficher la composition de Séance genou" });
     fireEvent(card, "accessibilityAction", { nativeEvent: { actionName: "toggleComposition" } });
-    const expandedCard = screen.getByTestId("session-card-genou-open");
+    const expandedCard = screen.getByTestId("session-card-genou-swipe-card");
     expect(expandedCard.props.accessibilityState).toEqual({ expanded: true });
     expect(expandedCard.props.accessibilityLabel).toContain("Composition de la séance : Mobilisation du genou 45 s");
   });
 
   it("toucher la carte ouvre la Séance ; le chevron n'ouvre rien", () => {
     const onOpen = renderList();
-    fireEvent.press(screen.getByTestId("session-card-genou-open"));
+    fireEvent.press(screen.getByTestId("session-card-genou-swipe-card"));
     expect(onOpen).toHaveBeenCalledWith("genou");
   });
 });
@@ -163,7 +171,7 @@ describe("PRE-8 E.3 — animations", () => {
 
   const reveal = async (reduce: boolean) => {
     const spy = jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(reduce);
-    render(<SessionCatalogueList sessions={[knee()]} emptyMessage={null} onOpenSession={() => undefined} />);
+    render(withService(<SessionCatalogueList sessions={[knee()]} emptyMessage={null} onOpenSession={() => undefined} />));
     await act(async () => {
       await Promise.resolve();
     });

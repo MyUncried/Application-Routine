@@ -210,6 +210,24 @@ export const fr = {
         circuitLine: "Circuit · {count} {unit}",
         recovery: "Récupération",
         compositionAccessibilityLabel: "Composition de la séance",
+        // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
+        actions: {
+          plan: "Planifier",
+          duplicate: "Dupliquer",
+          archive: "Archiver",
+          restore: "Restaurer",
+          delete: "Supprimer",
+        },
+        archived: "Séance archivée",
+        restored: "Séance restaurée",
+        undo: "Annuler",
+        deleteConfirm: {
+          title: "Supprimer cette séance ?",
+          message: "Cette séance archivée sera définitivement supprimée. Cette action est irréversible.",
+          cancel: "Annuler",
+          confirm: "Confirmer",
+        },
+        actionError: "L’action n’a pas pu être effectuée.",
       },
       // V2-CAT-01 : arbre `Créer` du Catalogue — ancré à `Créer`, conserve la
       // rangée `Créer / Filtrer / Trier` sous le scrim. Seule `Une nouvelle

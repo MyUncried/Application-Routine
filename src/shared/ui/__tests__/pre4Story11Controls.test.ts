@@ -26,7 +26,7 @@ const read = (path: string) => readFileSync(join(ROOT, path), "utf8").replace(/\
  * `6358eb15…d86c` ; puis par le bouton de lecture vidéo (`mediaPlaySurface`, `mediaPlayBorder`) :
  * `8e16c394…7c2c` ; puis par la surface éditable à 90 % (recette du 27/10).
  */
-const TOKENS_BASELINE_SHA256 = "43fbace381b846355fbe82ef310a796d4d561f2fe04e0697edfb2c3f06fcf26f";
+const TOKENS_BASELINE_SHA256 = "1af9bf37f2811b28c29209618dd9f19d63972a9c80277522cd36a34fcacbdbd1";
 
 function sources(directory: string): string[] {
   return readdirSync(directory).flatMap((entry) => {

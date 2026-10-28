@@ -115,6 +115,15 @@ export type SessionLifecycleOutcome =
 export interface SessionCatalogueRepository {
   /** Séances actives et archivées, les plus récemment modifiées d'abord. */
   listCatalogue(): Promise<readonly CatalogueSessionRecord[]>;
+  /** E.5 : Séance active → archivée (`archived_at` horodaté) ; composition et rang de tri inchangés. */
+  archive(sessionId: string): Promise<SessionLifecycleOutcome>;
+  /** E.5 : Séance archivée → active, à l'identique. */
+  restore(sessionId: string): Promise<SessionLifecycleOutcome>;
+  /**
+   * E.5 : suppression définitive d'une Séance ARCHIVÉE et de sa composition (Exercices, Circuits,
+   * Cycles, Points d'arrêt), dans une seule transaction ; jamais des Mouvements référencés.
+   */
+  deleteArchived(sessionId: string): Promise<SessionLifecycleOutcome>;
 }
 
 export function isSessionCatalogueRepository(repository: unknown): repository is SessionCatalogueRepository {

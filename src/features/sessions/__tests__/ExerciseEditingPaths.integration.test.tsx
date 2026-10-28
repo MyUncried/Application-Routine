@@ -390,10 +390,14 @@ function openAndCloseSheet() {
   fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
 }
 
-/** Ouvre la Séance persistée depuis le Catalogue (segment Séances), puis attend Composition chargée. */
+/**
+ * Ouvre la Séance persistée depuis le Catalogue (segment Séances), puis attend Composition chargée.
+ * PRE-8 (E.2, E.5) : carte unique, touchée par sa zone glissable (`session-card-<id>-swipe-card`).
+ */
 async function openSessionFromCatalogue() {
   await settle();
-  fireEvent.press(await screen.findByLabelText(sessions.card.openAccessibilityLabel));
+  const [card] = await screen.findAllByTestId(/^session-card-.+-swipe-card$/);
+  fireEvent.press(card!);
   await waitFor(() => expect(screen.getByLabelText(composition.name)).toBeTruthy());
   await settle();
 }

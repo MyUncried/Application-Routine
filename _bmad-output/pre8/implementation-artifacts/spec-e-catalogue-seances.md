@@ -32,3 +32,12 @@
 - Animations : `SheetMotionView` (révélation et transition de place communes), aucune sous « Réduire les animations ».
 - Limite (plan) : les Séances à plusieurs Cycles ou Circuits ne se créent pas encore sur l'appareil (epic C) ; leur rendu est couvert par les tests automatiques.
 - Tests : `SessionCompositionTree.e3.test.tsx` (11).
+
+## E.5 — Cycle de vie et actions glissées
+
+- Repository (`SqliteSessionRepository`, sans migration) : `archive` (ACTIVE → ARCHIVED, `archived_at` horodaté, `updated_at` inchangé), `restore` (à l'identique), `deleteArchived` (une seule transaction ; cascades de `cycles`, `tours`, `activities`, `session_stop_points`, seules tables qui référencent la Séance depuis PRE-7 ; Mouvements jamais touchés). Statut de départ relu dans la transaction : `INVALID_STATE` sinon, rien n'est écrit (double action sans effet). Services `archiveSession`, `restoreSession`, `deleteArchivedSession` ; duplication : service existant.
+- Liste : `SwipeActionsRow` réutilisé, nouvelle option `actionsHeight` (bloc de 80 aligné en haut, carte repliée ou déployée) et `accessibilityState` ; comportement B inchangé sans ces options. Active : Planifier (grisé, inerte, absent des actions VoiceOver), Dupliquer (verrou contre le double appui), Archiver ; archivée : Restaurer puis Supprimer. Snackbars « Séance archivée » / « Séance restaurée » avec Annuler (CE-T03-01 révisé) ; suppression confirmée « Supprimer cette séance ? » (ch06, `2234:189`), sans annulation. Erreur : « L’action n’a pas pu être effectuée. », liste relue.
+- `useSessionCatalogue` : une relecture garde la liste affichée (position, déploiement, snackbar conservés) ; `loading` au premier chargement seulement.
+- Plan : « catégories, liens de médias de Séance » à supprimer — ces tables n'existent plus (PRE-7, R-3) ; vérifié sur le schéma courant.
+- Tests : `sessionLifecycle.e5.test.ts` (SQLite réelle, 6 : transitions, double action, archivée non modifiable ni dupliquée, suppression en cascade sans toucher au Mouvement, échecs atomiques), `SessionCatalogueList.e5.test.tsx` (8). Empreinte des tokens (`pre4Story11Controls`) mise à jour pour les tokens E.2 ; helper `openSessionFromCatalogue` de `ExerciseEditingPaths` adapté à la carte unique.
+- Contrôle complet (point de risque) : Jest 212 suites, 4682 tests, verts après ces deux corrections ; tsc et ESLint (`src`, `app`) propres.

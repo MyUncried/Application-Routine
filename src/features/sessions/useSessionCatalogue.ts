@@ -21,6 +21,10 @@ import { useSessionService } from "@/features/sessions/SessionServiceContext";
  * inactives comprises (une Catégorie retirée garde son nom sur les Séances qui la portent). `empty` :
  * aucune Séance du tout (Catalogue réellement vide, Q-E6) ; le filtrage est l'affaire de l'écran.
  * Référentiel absent ou en échec : aucune catégorie, jamais un blocage du Catalogue.
+ *
+ * E.4 / E.5 : une relecture (retour au premier plan, action du glissé) garde la liste affichée
+ * jusqu'à la nouvelle lecture — l'état `loading` n'est montré qu'au premier chargement ou après une
+ * erreur ou un Catalogue vide : position, déploiement et snackbar sont conservés.
  */
 export type SessionCatalogueState =
   | { status: "loading" }
@@ -69,7 +73,7 @@ export function useSessionCatalogue(): UseSessionCatalogueResult {
 
   const reload = useCallback(() => {
     const requestId = ++requestIdRef.current;
-    setState({ status: "loading" });
+    setState((current) => (current.status === "ready" ? current : { status: "loading" }));
 
     const categories: Promise<ReadonlyMap<string, CatalogueCategoryRef>> =
       referentials && typeof referentials.listCategories === "function"

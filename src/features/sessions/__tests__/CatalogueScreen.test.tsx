@@ -732,8 +732,8 @@ describe("CatalogueScreen — quatre états", () => {
       await Promise.resolve();
     });
 
-    expect(screen.getByTestId("session-card-card-a-open")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("session-card-card-b-open"));
+    expect(screen.getByTestId("session-card-card-a-swipe-card")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("session-card-card-b-swipe-card"));
 
     expect(mockPush).toHaveBeenCalledTimes(1);
     expect(mockPush).toHaveBeenCalledWith({

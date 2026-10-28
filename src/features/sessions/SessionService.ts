@@ -23,6 +23,7 @@ import {
   isSessionCatalogueRepository,
   type CatalogueSessionRecord,
   type SessionCatalogueRepository,
+  type SessionLifecycleOutcome,
   type SessionRepository,
 } from "@/domain/sessions/SessionRepository";
 import { toDuplicateSessionDraft } from "@/domain/sessions/sessionDuplication";
@@ -144,6 +145,25 @@ export class SessionService {
    */
   async listCatalogueSessions(): Promise<readonly CatalogueSessionRecord[]> {
     return this.catalogueRepository().listCatalogue();
+  }
+
+  /**
+   * PRE-8 (epic E, story E.5 ; CE-T03-01 révisé) : archivage immédiat d'une Séance active. Aucune
+   * Routine n'existe dans le code : aucune confirmation (la modale « Séance planifiée » n'a pas de
+   * déclencheur). Une Séance déjà archivée renvoie `INVALID_STATE`, sans écriture.
+   */
+  async archiveSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().archive(sessionId);
+  }
+
+  /** PRE-8 (E.5) : restauration d'une Séance archivée, de retour parmi les actives. */
+  async restoreSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().restore(sessionId);
+  }
+
+  /** PRE-8 (E.5) : suppression définitive d'une Séance archivée (confirmée par l'interface). */
+  async deleteArchivedSession(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.catalogueRepository().deleteArchived(sessionId);
   }
 
   /** Repository du Catalogue unifié : le repository SQLite l'implémente (aucune migration). */

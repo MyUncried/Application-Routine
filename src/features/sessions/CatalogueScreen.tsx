@@ -309,9 +309,11 @@ export function CatalogueScreen() {
             {sessionCatalogue.state.status === "ready" ? (
               <ReadyBody
                 sessions={sessionCatalogue.state.sessions}
+                resetToken={movementsReloadToken}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
+                onChanged={reloadSessions}
               />
             ) : null}
           </>
@@ -407,10 +409,14 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
  */
 function ReadyBody({
   sessions,
+  resetToken,
   onOpenSession,
+  onChanged,
 }: {
   sessions: readonly SessionCatalogueProjection[];
+  resetToken: number;
   onOpenSession: (sessionId: string) => void;
+  onChanged: () => void;
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
   const visible = sessions.filter((session) => session.status === "ACTIVE");
@@ -418,7 +424,9 @@ function ReadyBody({
     <SessionCatalogueList
       sessions={visible}
       emptyMessage={strings.screens.sessions.noMatch}
+      resetToken={resetToken}
       onOpenSession={onOpenSession}
+      onChanged={onChanged}
     />
   );
 }

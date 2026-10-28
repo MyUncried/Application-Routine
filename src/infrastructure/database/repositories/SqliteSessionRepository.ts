@@ -33,6 +33,7 @@ import type { StopPoint } from "@/domain/sessions/StopPoint";
 import type {
   CatalogueSessionRecord,
   SessionCatalogueRepository,
+  SessionLifecycleOutcome,
   SessionRepository,
   StructuredSession,
   StructuredSessionRepository,
@@ -546,6 +547,63 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
       updatedAt: stored.header.session_updated_at,
       structure,
     }));
+  }
+
+  /**
+   * PRE-8 (epic E, story E.5) : archivage, sans migration (colonnes `status` et `archived_at` de
+   * `migration001`, CHECK de cohérence). Une seule transaction ; `updated_at` n'est pas modifié (le
+   * contenu ne change pas) : la Séance restaurée retrouve sa place.
+   */
+  async archive(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ACTIVE", (transaction) =>
+      transaction.runAsync("UPDATE sessions SET status = 'ARCHIVED', archived_at = ? WHERE id = ?", [this.now(), sessionId]),
+    );
+  }
+
+  /** PRE-8 (E.5) : restauration à l'identique. */
+  async restore(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ARCHIVED", (transaction) =>
+      transaction.runAsync("UPDATE sessions SET status = 'ACTIVE', archived_at = NULL WHERE id = ?", [sessionId]),
+    );
+  }
+
+  /**
+   * PRE-8 (E.5) : suppression définitive depuis les archives. Les clés étrangères `ON DELETE CASCADE`
+   * retirent Cycles, Circuits, Exercices et Points d'arrêt (seules tables qui référencent la Séance ;
+   * médias et catégories d'occurrence sont lus dans le Mouvement depuis PRE-7) ; les Mouvements,
+   * référencés en `RESTRICT` par les Exercices, ne sont jamais touchés.
+   */
+  async deleteArchived(sessionId: string): Promise<SessionLifecycleOutcome> {
+    return this.transition(sessionId, "ARCHIVED", (transaction) =>
+      transaction.runAsync("DELETE FROM sessions WHERE id = ?", [sessionId]),
+    );
+  }
+
+  /** Transition contrôlée : statut de départ relu dans la transaction, sinon rien n'est écrit. */
+  private async transition(
+    sessionId: string,
+    from: "ACTIVE" | "ARCHIVED",
+    write: (transaction: Database) => Promise<unknown>,
+  ): Promise<SessionLifecycleOutcome> {
+    let outcome: SessionLifecycleOutcome = { status: "NOT_FOUND" };
+    await this.database.withExclusiveTransactionAsync(async (transaction) => {
+      const user = await getLocalUser(transaction);
+      const row = await transaction.getFirstAsync<{ status: "ACTIVE" | "ARCHIVED" }>(
+        "SELECT status FROM sessions WHERE id = ? AND owner_id = ?",
+        [sessionId, user.id],
+      );
+      if (!row) {
+        outcome = { status: "NOT_FOUND" };
+        return;
+      }
+      if (row.status !== from) {
+        outcome = { status: "INVALID_STATE" };
+        return;
+      }
+      await write(transaction);
+      outcome = { status: "DONE" };
+    });
+    return outcome;
   }
 }
 

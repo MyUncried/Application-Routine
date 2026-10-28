@@ -215,7 +215,7 @@ describe("PRE4-1.2/AC6 + AC7 — Séance sans occurrence : visible dans la liste
       expect(screen.getByTestId("session-card-session-b-duration")).toHaveTextContent("0 s");
 
       // AC7 : l'écran existant s'ouvre sur la Séance, sans Exercice et sans erreur.
-      fireEvent.press(screen.getByTestId("session-card-session-b-open"));
+      fireEvent.press(screen.getByTestId("session-card-session-b-swipe-card"));
       await flush();
       await flush();
 
