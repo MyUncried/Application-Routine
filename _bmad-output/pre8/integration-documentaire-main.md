@@ -24,7 +24,18 @@ Les rangs affichés des membres actifs sont recalculés sans discontinuité apr�
 
 La partie filtres de la règle 8 (« un filtre masque des membres sans recalculer les niveaux des membres visibles ») reste valable et conforme au code.
 
+### Epic E — arbitrages du 28/10/2026 (ch07 de la branche, « PRE-8, epic E »)
+
+| Fichier sur `main` | Formulation à remplacer | Remplacement |
+|---|---|---|
+| ch13 CE-T03-01 (révisé) | « La nouvelle logique de combinaison Catégories/Zones reste à rechercher dans les règles existantes ou à préciser pour cette story » | Q-E3 option B : caractéristiques agrégées, OU dans une section, ET entre sections, exercices éventuellement différents, Étiquette et Format de la Séance, Statut d'abord, bascule combinée |
+| ch13 CE-T03-01 | Filtre étendu (« conserver les options ») ; état compact absent | Q-E4 : trois états du filtre, deux lignes si nécessaire, 44 × 44, réinitialisation sans toucher la bascule ; précision UX hors Figma |
+| ch13 CE-T03-01 | Format : « le jeu final des vignettes de formats est une dépendance de livraison » | Q-E5 : vignettes visibles, Libre sélectionnable, autres désactivées jusqu'à leur développement |
+| ch13 CE-T03-01 et ch07 « Catalogue des séances — carte unique et filtres » | « le catalogue autonome d'exercices est remplacé par la vue Un exercice » | Ajouter E.8-a : anciennes définitions conservées, consultables et modifiables par le parcours d'édition existant, jusqu'à la transition coordonnée avec l'epic C (E.8-b) |
+| DSF-CATALOGUE-SEANCES-2026-10-27.md, « Vérification et limites » | « Les règles de sélection multiple […] ne sont pas précisées » | Renvoi à Q-E3 (option B) |
+| preparation/catalogue-seances-2026-10-27/PERIMETRE-ET-PROMPT-BMAD.md | « proposition à faire valider : OU entre valeurs […], recherche sur l'ensemble des exercices » | Marquer « validée le 28/10 (Q-E3 option B) » |
+| ch13, tableau ancien « Champs et comportements des fonctionnalités — Catalogue de séances » | Toutes, Planifiées, Non planifiées, Archivées ; « T03 n'invente aucune nouvelle option Filtrer » | Aligner sur CE-T03-01 révisé (Statut Actives / Archivées, sections du panneau), en marquant l'ancien texte comme remplacé |
+
 ### Autres points relevés pendant la préparation de l'epic E
 
-- **ch13 de `main`.** Le tableau ancien « Champs et comportements des fonctionnalités — Catalogue de séances » (Toutes, Planifiées, Non planifiées, Archivées) est à aligner sur CE-T03-01 révisé (Statut Actives / Archivées), après validation de Q-E3.
 - **Chaque conflit** est résolu en gardant les décisions des deux branches et leurs sources. La résolution est consignée dans le rapport de mission de l'intégration.

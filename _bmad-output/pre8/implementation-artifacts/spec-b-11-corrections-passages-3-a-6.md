@@ -14,6 +14,8 @@ Cette story regroupe, dans le lot A/B et sans nouvel epic, les corrections livr�
 | Cinquième passage | Réserve clavier appliquée (le `KeyboardAvoidingView` ne l'écrase plus) : défilement jusqu'à la dernière Phase | `d4cf9785` |
 | Sixième passage | Défilement arrêté à la dernière ligne des Phases, juste au-dessus du clavier | `88c2adde` |
 
+| Correctif ultérieur b8-3 (28/10) | Fiche Mouvement (pastille et menu Niveau) alignée sur les rangs des actifs du Catalogue ; b8-3 confirmé par Hermann, option A | `77990e7d` |
+
 ## Limites connues
 
 - **Menu Niveau sur iOS (ARBITRAGE ouvert).** Hermann a demandé d'élargir le menu pour que les noms tiennent sur une ligne. Le menu natif d'iOS a une largeur et une taille de texte fixées par le système. Options soumises : A, panneau KODJO sur iOS (exception à la primitive native, autorisation explicite requise) ; B, menu natif et libellés raccourcis ; C, autre ou laisser tel quel. Aucun code n'a été modifié.

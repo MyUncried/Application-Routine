@@ -24,15 +24,15 @@ development_status:
   b-9-corrections-recette-a-b: done  # écarts de recette iPhone A01-A02, B01-B12, C01-C02, D01-D07, E01, F01-F07 du 27/10 ; recette validée le 27/10
   b-10-corrections-second-passage: done  # recette iPhone du 27/10 (13:10-14:41) : b2-4, b2-5, b2-8, q6-2, r9-a02, b7-5, b8-3, remarques 2 à 9 ; bouton Lecture livré en B.11
   b-11-corrections-passages-3-a-6: done  # clavier de la fiche, feuille des filtres, bouton Lecture, passages 3 à 6 ; recette validée le 27/10 sur 88c2adde
-  epic-e: backlog  # Catalogue unifié des Séances ; plan révisé le 28/10 après la revue de Hermann, soumis à validation (planning-artifacts/epic-e-catalogue-seances.md) ; développement non autorisé
-  e-1-projection-catalogue: backlog  # prêt après validation du plan
-  e-2-carte-commune-catalogue: backlog  # prêt après validation ; Lecture indisponible (aucune Exécution)
-  e-3-deploiement-composition: backlog  # prêt après validation
-  e-4-ecran-segment-seances: backlog  # trois segments confirmés ; attend la validation de Q-E4 (rangée responsive) et de E.8-a
-  e-5-cycle-de-vie-actions-glissees: backlog  # prêt après validation ; services archiver/restaurer/supprimer à créer, sans migration
-  e-6-filtres-seances: backlog  # attend la validation de Q-E3 (proposition de Hermann) et le point restant de Q-E5
-  e-7-raccordements-recette: backlog
-  e-8-transition-exercices-catalogue: backlog  # E.8-a : retrait du segment sans migration (à valider) ; E.8-b : conversion avec ou après C, autorisation distincte
+  epic-e: backlog  # Catalogue unifié des Séances ; plan approuvé par Hermann le 28/10 (arbitrages finaux) ; développement dans une nouvelle session (planning-artifacts/epic-e-catalogue-seances.md) ; développement non autorisé
+  e-1-projection-catalogue: ready-for-dev
+  e-2-carte-commune-catalogue: ready-for-dev  # Lecture indisponible (aucune Exécution)
+  e-3-deploiement-composition: ready-for-dev
+  e-4-ecran-segment-seances: ready-for-dev  # Q-E4 option B complétée ; le retrait du segment Exercices attend le point d'entrée de E.8-a
+  e-5-cycle-de-vie-actions-glissees: ready-for-dev  # services archiver/restaurer/supprimer à créer, sans migration
+  e-6-filtres-seances: ready-for-dev  # Q-E3 option B (agrégé), Q-E5 option A
+  e-7-raccordements-recette: ready-for-dev
+  e-8-transition-exercices-catalogue: backlog  # E.8-a option B validée ; seul point restant : emplacement du point d'entrée vers ExerciseScreen ; E.8-b : avec ou après C, autorisation distincte
   # Hors autorisation (instruction complémentaire requise) : epic-c (Composition), epic-d (reprise), formats
 deferred:
   - id: q-e0
@@ -41,19 +41,27 @@ deferred:
     question: "Intégrer origin/main (ff7600ac, sources E) dans pre8-bmad/dev avant le développement ; 6 conflits documentaires (DSF Mouvements, ch06, ch07, ch10, ch12, ch13), aucun conflit de code."
   - id: q-e2
     epic: e
-    status: a-valider
+    status: tranche
+    decision: "Option B (28/10) : trois segments ; anciennes définitions conservées, consultables et modifiables par ExerciseScreen ; sans migration. Reste : emplacement du point d'entrée (e8a-acces)."
     question: "Segment Exercices et Exercices du Catalogue existants (activity_definitions, encore lus par la sélection de la Composition) : garder le segment pendant E, ou convertir en Séances (migration 016, Q-E1) et le retirer."
   - id: q-e3
     epic: e
-    status: a-valider
+    status: tranche
+    decision: "Option B (28/10) : caractéristiques agrégées ; OU dans une section, ET entre sections ; Catégories et Zones sur des exercices éventuellement différents ; Étiquette et Format de la Séance ; Statut d'abord ; bascule combinée."
     question: "Sémantique des filtres Catégories, Zones, Étiquettes d'une Séance de plusieurs exercices. Proposition non validée : OU dans une section, ET entre sections, correspondance sur l'ensemble des exercices."
   - id: q-e4
     epic: e
-    status: a-valider
+    status: tranche
+    decision: "Option B complétée (28/10) : inactif / actif étendu / actif compact (ouvrir + croix) ; 44 × 44 ; deux lignes si nécessaire ; réinitialiser conserve la bascule ; précision UX hors Figma."
     question: "Rangée Un exercice | Plusieurs + Filtrer étendu + Tri + Créer : environ 382 pt demandés, 370 disponibles à 402, 328 à 360 (réserve F-02)."
   - id: q-e5
     epic: e
-    status: a-valider
+    status: tranche
+    decision: "Option A (28/10) : vignettes Figma visibles, Libre sélectionnable, autres désactivées."
+  - id: e8a-acces
+    epic: e
+    status: arbitrage
+    question: "Emplacement du point d'entrée vers ExerciseScreen pour les anciennes définitions après retrait du segment Exercices : 1 sélection d'exercices de la Composition (recommandée), 2 fiche Mouvement, 3 autre."
     question: "Section Format et premier emplacement de synthèse alors qu'aucun format n'est persisté."
   - id: q-e6
     epic: e

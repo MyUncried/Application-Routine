@@ -1,6 +1,12 @@
-# PRE-8 — Epic E : Catalogue unifié des Séances — plan révisé, soumis à validation
+# PRE-8 — Epic E : Catalogue unifié des Séances — plan approuvé (28/10/2026), sauf le point d'accès de E.8-a
 
-> Préparation demandée par Hermann le 27/10/2026 (« KODJO — PRE-8 — Préparation du développement de l'epic E : Catalogue unifié des Séances »). **Plan à valider, développement non commencé.** Branche `pre8-bmad/dev` @ `23a9a4f2` (epics A et B clos, code recetté `88c2adde`). Aucune fusion dans `main`.
+> Préparation demandée par Hermann le 27/10/2026 (« KODJO — PRE-8 — Préparation du développement de l'epic E : Catalogue unifié des Séances »). **Développement non commencé** (plan approuvé le 28/10, voir ci-dessous). Branche `pre8-bmad/dev` @ `23a9a4f2` (epics A et B clos, code recetté `88c2adde`). Aucune fusion dans `main`.
+>
+> **Arbitrages finaux de Hermann du 28/10/2026** (« Arbitrages finaux, validation du plan E et clôture de la session »).
+> - Décisions intégrées : E.8-a option B, Q-E3 option B, Q-E4 option B complétée, Q-E5 option A ; Q-E0 et Q-E6 inchangés.
+> - Plan approuvé pour E.1 à E.7.
+> - E.8-a : un seul point reste ouvert, le point d'accès aux anciennes définitions (§3).
+> - Le développement commencera dans une nouvelle session.
 >
 > **Révision du 28/10/2026**, après la « Revue du plan de l'epic E » de Hermann. Elle est limitée aux passages concernés : §0 (Q-E0), E.4, E.6, E.8, §3, §3 bis (Niveaux), §5. E.1 à E.7 sont validés dans leur principe.
 
@@ -38,9 +44,8 @@
 ## 2. Stories et ordre de réalisation
 
 Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
-- E.1, E.2, E.3, E.5 et E.7 ne dépendent d'aucun arbitrage ouvert.
-- E.4 attend la validation de Q-E4 et de E.8-a. E.5 passe donc avant E.4 : il n'en dépend pas.
-- E.6 attend Q-E3 et le point restant de Q-E5.
+- E.1 à E.7 sont prêtes à développer (arbitrages du 28/10).
+- Seul le retrait du segment Exercices (E.8-a, dans E.4) attend le choix de son point d'entrée.
 - E.8-b est hors E : avec ou après l'epic C, sous une autorisation distincte.
 
 **Dépendances envers l'epic C (non commencé)** : aucune ne bloque E.1 à E.7.
@@ -111,13 +116,16 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
   - Segmenté Mouvements / Séances / Programmes : trois entrées, cible confirmée par Hermann le 28/10. Programmes visible et indisponible. Le retrait de l'entrée Exercices relève de E.8-a.
   - Bascule « Un exercice | Plusieurs » : aucune sélection donne la collection complète ; toucher l'option active la désélectionne.
   - Commandes Filtre / Tri / Créer ; Tri grisé ; Créer ouvre la Composition existante.
-  - **Rangée responsive (précision UX à valider, Q-E4).**
-    - Marge de 16, libellés « Un exercice » et « Plusieurs », cibles d'au moins 44, aucune option Toutes.
-    - Quand un filtre est actif, la commande prend l'état étendu (rond actif, « Filtres » et résumé) si toute la rangée tient dans la largeur disponible.
-    - Sinon, elle prend un **état compact actif** : le rond bleu actif seul, comme la partie gauche de l'état étendu (`4748:6321`). Le résumé passe dans l'étiquette d'accessibilité, et le toucher ouvre toujours le panneau.
-    - Le calcul s'appuie sur les largeurs mesurées : texte agrandi compris, aucune constante.
-    - Avec les mesures Figma, la rangée étendue demande environ 382 pt. Elle tient donc au gabarit 440 (408 disponibles), mais pas à 402 (370) ni à 360 (328), où l'état compact s'applique.
-    - Cela diffère de `4549:6742`, qui montre l'état étendu à 402 avec un chevauchement ; d'où la validation demandée.
+  - **Rangée responsive (Q-E4, option B complétée, validée par Hermann le 28/10).** C'est une précision UX : l'état compact actif ne figure pas dans Figma.
+    - **Inactif** : bouton rond, qui ouvre directement le panneau.
+    - **Actif étendu** : le rond bleu réinitialise les filtres ; la zone de texte (« Filtres » et résumé) ouvre le panneau. Ce sont les primitives de B.9 (D05).
+    - **Actif compact** : deux commandes distinctes et visibles, l'une qui ouvre les filtres, l'autre (croix) qui les réinitialise immédiatement.
+    - L'état étendu s'affiche quand toute la rangée tient. Avec les mesures Figma, il faut environ 382 pt : la rangée tient au gabarit 440, pas à 402 ni à 360.
+    - À largeur compacte ou avec texte agrandi, si la rangée ne tient toujours pas, les commandes passent sur deux lignes plutôt que de se chevaucher ou de masquer une fonction.
+    - Le calcul s'appuie sur les largeurs mesurées, sans constante.
+    - Cibles d'au moins 44 × 44.
+    - Réinitialiser les filtres conserve la bascule Un exercice / Plusieurs.
+    - Marge de 16, libellés Un exercice / Plusieurs, aucune option Toutes.
   - Marges 16 (déjà en place depuis A01), écart 12 entre cartes.
   - Retour d'un parcours : vue, filtres et position conservés. Relance : Séances, collection complète.
 - **Dépendances.** E.2. Le segmenté et les commandes de B.9 sont disponibles.
@@ -125,7 +133,8 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 - **Critères d'acceptation.**
   - La vue ne modifie aucune donnée.
   - Labels et états sélectionnés annoncés, désélection possible annoncée.
-  - Cibles d'au moins 44 sans chevauchement (F-02 et Q-E4).
+  - Cibles d'au moins 44 × 44 sans chevauchement (F-02), dans les trois états du filtre, à 360, 402 et 440 et avec texte agrandi.
+  - Réinitialiser conserve la vue choisie.
 - **Tests.** Vues : complète, un exercice, plusieurs, désélection ; état vide réel ; aucun résultat ; conservation au retour ; réinitialisation à la relance.
 - **Réserves Figma.** F-02, F-05.
 
@@ -164,20 +173,21 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 - **Statut.** Les règles suivies sont celles de CE-T03-01 révisé et de Figma `4168:11149` : Actives, Archivées, statut d'abord, Actives par défaut, comme Q3 pour les Mouvements.
   - **Écart documentaire à résorber à l'intégration** : le tableau ancien « Champs et comportements des fonctionnalités — Catalogue de séances » du ch13 (`main`) liste encore Toutes, Planifiées, Non planifiées et Archivées.
   - Planifiées et Non planifiées sont de toute façon sans objet : il n'existe aucune Routine.
-- **Sémantique Q-E3 : proposition de Hermann du 28/10, à valider.** Elle ne contredit aucune décision trouvée : les règles des Mouvements (Q1, Q2, Q4) portent sur un seul Mouvement, et aucune règle de combinaison propre aux Séances n'existe.
+- **Sémantique Q-E3, option B, validée par Hermann le 28/10.** Le filtrage porte sur les caractéristiques agrégées de la Séance.
   - **Statut** : il détermine les Séances admissibles.
   - **Dans une section** : OU entre les valeurs choisies.
   - **Entre sections** : ET.
-  - **Catégories et Zones corporelles** : la correspondance combinée porte sur au moins un même exercice de la Séance. Les catégories et zones d'un exercice sont celles de son Mouvement.
-  - **Étiquette et Format** : ils portent sur la Séance (une Séance a au plus une étiquette).
-  - **Bascule Un exercice / Plusieurs** : elle se combine avec les autres filtres, par ET.
-- **Format (Q-E5).**
-  - Aucun format n'est persisté et les formats spéciaux ne sont pas développés.
-  - La section Format reste dans le panneau ; seule Libre y est sélectionnable. Libre correspond aux Séances sans format, c'est-à-dire aujourd'hui à toutes.
-  - Aucune Séance n'est présentée comme EMOM ou Tabata, et aucun format fictif n'est créé.
-  - **Raccordement ultérieur** : le lot des formats ajoutera un format persisté à la Séance. La projection (E.1) lira alors son nom (premier emplacement de synthèse) et sa vignette, par une table « format → asset » alimentée par les 12 vignettes Figma (`8852:15055` à `8852:15197`). Les options du panneau seront la liste des formats pris en charge par les services, sans autre changement de E.
-  - **Reste à décider** : les autres vignettes sont-elles visibles et grisées dès E, ou absentes jusqu'à leur disponibilité ?
-- **Prête après validation** de Q-E3 et du point restant de Q-E5. Les autres stories n'en dépendent pas.
+  - **Catégories et Zones corporelles** : agrégées sur tous les exercices de la Séance, à partir de leurs Mouvements. Elles peuvent correspondre à des exercices différents de la même Séance.
+  - **Étiquette et Format** : ils appartiennent à la Séance.
+  - **Bascule Un exercice / Plusieurs** : elle se combine avec les filtres.
+  - **Critères d'acceptation** : une Séance dont un exercice est en Mobilité et un autre en Genoux répond à Catégorie = Mobilité ET Zone = Genoux. Une Séance archivée n'apparaît que si le Statut l'admet. Réinitialiser ne touche pas la bascule.
+- **Format (Q-E5, option A, validée par Hermann le 28/10).**
+  - Le panneau garde les vignettes de formats prévues par Figma (`8852:15055` à `8852:15197`).
+  - Libre est sélectionnable ; il correspond aux Séances sans format, c'est-à-dire aujourd'hui à toutes.
+  - Les autres formats sont visibles mais désactivés, annoncés indisponibles à l'accessibilité, tant qu'ils ne sont pas développés.
+  - Aucun format fictif, aucune migration, aucun développement anticipé des formats spéciaux. Aucune Séance n'est présentée comme EMOM ou Tabata.
+  - **Raccordement ultérieur** : le lot des formats ajoutera un format persisté à la Séance. La projection (E.1) lira alors son nom (premier emplacement de synthèse) et sa vignette, par la table « format → asset ». Chaque vignette devient sélectionnable quand le service prend en charge son format, sans autre changement de E.
+- **Prête à développer** (arbitrages du 28/10).
 - **Tests.** Ouverture dynamique des sections, application et annulation, Réinitialiser, combinaison avec les vues, archives, aucun résultat.
 - **Réserve Figma.** F-04.
 
@@ -199,17 +209,23 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
 - Ils sont lus par le segment Exercices et par la sélection d'exercices de la Composition (`ActivitySelectionScreen` → `useActivityCatalogue`).
 - Choisir un Exercice dans la Composition crée une occurrence propre à la Séance. La définition est un modèle, pas un contenu partagé.
 
-**E.8-a — dans E, non destructif, sans migration (proposé).**
-- **Ce qui change.** Le segment Exercices est retiré du Catalogue : trois segments. La vue « Un exercice » montre les Séances d'un exercice.
-- **Ce qui ne change pas.**
-  - Aucune donnée n'est convertie, copiée ni supprimée : `activity_definitions`, migrations 014 et 015, `ActivityCard`, `ActivityCatalogueList`, `useActivityCatalogue` et `ActivitySelectionScreen` sont conservés.
-  - La sélection de la Composition est inchangée.
-  - Aucun second objet persistant n'est créé pour un même contenu.
-- **Limites transitoires, à accepter.**
-  - Les Exercices du Catalogue existants restent utilisables comme modèles dans la Composition, mais ne sont plus visibles ni modifiables depuis le Catalogue jusqu'à E.8-b.
-  - Ils n'apparaissent pas dans la vue « Un exercice », qui ne montre que des Séances.
-  - *À vérifier en début de story* : si un parcours de la Composition crée encore une définition du Catalogue, cette définition s'ajoute aux modèles sans être visible au Catalogue. Ce point sera établi par la lecture d'`ExerciseScreen` avant tout code.
-- **Moment.** Dans E.4, au même commit que le segmenté à trois entrées.
+**E.8-a — dans E, non destructif, sans migration (option B, Hermann, 28/10).**
+- **Ce qui change.** Le Catalogue a exactement trois segments : le segment Exercices est retiré. La vue « Un exercice » montre les Séances d'un exercice.
+- **Ce qui est conservé.**
+  - Les données : `activity_definitions`, migrations 014 et 015. Ni migration 016, ni conversion, ni duplication d'objets.
+  - La sélection de la Composition, inchangée.
+  - **La consultation et la modification des anciennes définitions**, par le parcours d'édition existant : `ExerciseScreen`, route `/exercise?catalogueDefinitionId=…`, avec son menu Niveau entre définitions.
+- **Vérification du parcours concret (28/10).** Aujourd'hui, le seul point d'entrée vers ce parcours est la carte du segment Exercices (`CatalogueScreen.openExerciseEditor`). La sélection de la Composition (`ActivitySelectionScreen`) ne fait que cocher et ajouter, et aucun autre écran n'ouvre une définition. Retirer le segment sans nouveau point d'entrée supprimerait donc la capacité. Le parcours d'édition lui-même est réutilisable tel quel, sans dépendance à l'epic C.
+- **Seul point restant : l'emplacement du point d'entrée** (§3). Options étudiées, toutes vers `ExerciseScreen` existant :
+  - **1 (recommandée)** : depuis la sélection d'exercices de la Composition, là où les définitions sont utilisées. Une commande d'ouverture par ligne, distincte de la sélection. Au retour, la liste est relue (`useFocusEffect` existant). C'est une modification locale de l'écran PRE-7, que l'epic C remplacera.
+  - **2** : depuis la fiche Mouvement (Catalogue des Mouvements), avec la liste des Exercices du Catalogue de ce Mouvement. `getMovementLevels` fournit déjà les définitions par niveau. Cette option touche une fiche recettée.
+  - **3** : autre emplacement choisi par Hermann.
+- **Pas de dépendance majeure à l'epic C** : ni la Composition ni ses structures ne sont redéveloppées.
+- **Moment.** Dans E.4, au même commit que le segmenté à trois entrées, une fois l'emplacement choisi.
+- **Critères d'acceptation.**
+  - Après retrait du segment, toute ancienne définition reste consultable et modifiable, et toujours sélectionnable en Composition.
+  - Aucune ligne n'est créée ni supprimée par le retrait.
+  - Tests ciblés : accès, modification enregistrée, sélection inchangée, absence du segment.
 
 **E.8-b — avec ou après l'epic C, soumise à une autorisation distincte.**
 - **Quand.** Une fois que la sélection de la Composition passe par les Mouvements (epic C), plus aucun parcours ne lit `activity_definitions`.
@@ -229,14 +245,18 @@ Ordre : E.1 → E.2 → E.3 → E.5 → E.4 avec E.8-a → E.6 → E.7.
   - La liste sans résultat après filtrage est distinguée du Catalogue réellement vide. Elle reprend la convention i18n existante : « Aucune séance ne correspond aux filtres. », sur le modèle de « Aucun mouvement ne correspond à la recherche ou aux filtres. ».
   - Le Catalogue vide garde son message actuel.
 
-**Restant à valider (seuls points nécessaires).**
+**Tranchés par Hermann le 28/10 (arbitrages finaux).**
+- **E.8-a, option B** : trois segments, données et édition des anciennes définitions conservées, sans migration.
+- **Q-E3, option B** : caractéristiques agrégées de la Séance.
+- **Q-E4, option B complétée** : trois états du filtre, deux lignes si nécessaire, réinitialisation sans toucher la bascule.
+- **Q-E5, option A** : vignettes visibles, Libre seul actif.
+- **Niveaux** : b8-3 conservé (§3 bis).
 
-| Id | Point | Proposition | Bloque |
+**Seul point restant**
+
+| Id | Point | Options | Bloque |
 |---|---|---|---|
-| E.8-a | Transition non destructive et ses limites transitoires | Retrait du segment sans migration ; anciens Exercices utilisables dans la Composition, non maintenables depuis le Catalogue jusqu'à E.8-b | E.4 (segmenté) |
-| Q-E3 | Sémantique des filtres | Proposition de Hermann du 28/10 (E.6), sans contradiction trouvée | E.6 |
-| Q-E4 | Rangée responsive | État étendu s'il tient, état compact actif sinon (E.4) ; diffère de `4549:6742` | E.4 |
-| Q-E5 | Vignettes de format autres que Libre dans le panneau | Visibles et grisées, ou absentes jusqu'à leur disponibilité | E.6 |
+| E.8-a | Emplacement du point d'entrée vers l'édition des anciennes définitions | 1 : sélection d'exercices de la Composition (recommandée) ; 2 : fiche Mouvement ; 3 : autre | Retrait du segment (E.4 / E.8-a) seulement |
 
 ## 3 bis. Lot B — Niveaux après archivage et réordonnancement (isolé de E)
 

@@ -90,3 +90,32 @@ Consignés dans la réponse de clôture (commit qui contient ce rapport) ; branc
 - `reorder` : `writeGroupOrder` réécrit toute la famille. Le seul effet observable est le `updated_at` des autres membres, qui n'est ni affiché ni utilisé : différence technique, aucune modification.
 
 **Aucun fichier applicatif modifié, aucune migration, aucun test applicatif lancé** : seuls des documents ont changé.
+
+## Arbitrages finaux et clôture de la session (28/10)
+
+**Instruction.** « KODJO — PRE-8 — Arbitrages finaux, validation du plan E et clôture de la session ».
+- Décisions : E.8-a option B, Q-E3 option B, Q-E4 option B complétée, Q-E5 option A ; Q-E0 et Q-E6 inchangés ; b8-3 conservé.
+- Aucune story E n'est commencée.
+
+**Intégration.**
+- Plan : en-tête, E.4 (rangée, critères), E.6 (Q-E3, Q-E5), E.8-a, §3.
+- `sprint-status.yaml` : E.1 à E.7 en `ready-for-dev` ; E.8 en `backlog` (point d'entrée) ; décisions dans `deferred`.
+- `epics.md`, spec B.11 (correctif b8-3).
+- Registre ch07 de la branche (entrée « PRE-8, epic E »).
+- `integration-documentaire-main.md` : formulations de `main` à remplacer.
+
+**Vérification du parcours d'édition des anciennes définitions.**
+- Le seul point d'entrée vers `ExerciseScreen` (`/exercise?catalogueDefinitionId`) est la carte du segment Exercices (`CatalogueScreen.openExerciseEditor`). `ActivitySelectionScreen` ne fait que cocher et ajouter.
+- Le parcours est réutilisable sans dépendance à l'epic C, mais il faut un nouveau point d'entrée.
+- **Seul point restant : son emplacement.** Options : 1, sélection d'exercices de la Composition (recommandée) ; 2, fiche Mouvement ; 3, autre.
+- E.8-a n'est donc pas présentée comme prête : le retrait du segment attend ce choix. Le reste du plan est approuvé.
+
+**Seconde vérification documentaire ciblée.**
+- Recherche des formulations « à valider », « même exercice », « rond bleu seul », « grisées, ou absentes », « Q-E2 » dans le plan, le suivi et `epics.md`.
+- Il ne reste que les mentions historiques datées (sections de révision du 27 et du 28/10, conservées pour la traçabilité).
+
+**Clôture A/B vérifiée.**
+- Stories A.1 à A.4 et B.1 à B.11 en `done`.
+- Correctif b8-3 (`77990e7d`) consigné : rapport A/B, spec B.11, `epics.md`, `sprint-status.yaml`, `integration-documentaire-main.md`.
+
+**Tests.** Aucun relancé : seuls des documents ont changé depuis `77990e7d`, dont les tests ciblés étaient verts.
