@@ -1,4 +1,5 @@
 import { seriesCountOf, seriesRowsOf } from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/SessionRepository";
@@ -136,6 +137,20 @@ function circuitLines(circuit: StructureCircuit<Activity>, depth: number): Catal
       : []),
     ...circuit.exercises.flatMap((exercise) => exerciseLines(exercise, childDepth)),
   ];
+}
+
+/**
+ * Durée de la carte Catalogue (D-391, Hermann 17/10/2026 : « durées exactes et estimées des cartes
+ * Catalogue et Composition affichées en minutes et secondes, sans arrondi à la minute supérieure ;
+ * règles des durées partielles avec ≥ conservées ») : montant exact, préfixé « ≈ » (estimée) ou « ≥ »
+ * (borne minimale), comme la durée de la carte Exercice du Catalogue (`totalClauseAmount`).
+ */
+export function formatCatalogueSessionDuration(duration: SessionDurationResult): string {
+  const amount = formatPhraseDuration(Number.isFinite(duration.seconds) ? Math.max(0, duration.seconds) : 0);
+  const { estimatedPrefix, lowerBoundPrefix } = strings.shared.durationNature;
+  if (duration.kind === "estimated") return `${estimatedPrefix}${amount}`;
+  if (duration.kind === "lowerBound") return `${lowerBoundPrefix}${amount}`;
+  return amount;
 }
 
 export function projectSessionTree(record: Pick<CatalogueSessionRecord, "structure">): readonly CatalogueTreeLine[] {

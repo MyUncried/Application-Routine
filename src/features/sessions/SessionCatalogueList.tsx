@@ -5,12 +5,11 @@ import { StyleSheet, Text, View } from "react-native";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "@/features/activities/SheetMotion";
 import { SwipeActionsRow, type SwipeAction } from "@/features/activities/SwipeActionsRow";
-import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 import { DecisionDialog } from "@/features/sessions/DecisionDialog";
 import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
 import { SESSION_CARD_HEADER_HEIGHT, SessionCard } from "@/features/sessions/SessionCard";
 import { compositionAccessibilityText, SessionCompositionTree } from "@/features/sessions/SessionCompositionTree";
-import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { formatCatalogueSessionDuration, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { useSessionService } from "@/features/sessions/SessionServiceContext";
 import type { SessionLifecycleOutcome } from "@/domain/sessions/SessionRepository";
 import { strings } from "@/shared/i18n";
@@ -53,7 +52,7 @@ export function sessionCardAccessibilityLabel(projection: SessionCatalogueProjec
     projection.name,
     projection.categories.map((category) => category.name).join(", "),
     summary,
-    formatSessionDurationEstimate(projection.duration),
+    formatCatalogueSessionDuration(projection.duration),
     projection.status === "ARCHIVED" ? tCard.archivedAccessibility : null,
     expanded && projection.tree.length > 0 ? compositionAccessibilityText(projection.tree) : null,
   ]

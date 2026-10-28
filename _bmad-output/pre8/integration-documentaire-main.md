@@ -39,3 +39,49 @@ La partie filtres de la règle 8 (« un filtre masque des membres sans recalcule
 ### Autres points relevés pendant la préparation de l'epic E
 
 - **Chaque conflit** est résolu en gardant les décisions des deux branches et leurs sources. La résolution est consignée dans le rapport de mission de l'intégration.
+
+## Préparation de la résolution — état au 28/10/2026, après le développement de l'epic E
+
+Fusion simulée le 28/10 (`git merge-tree --write-tree HEAD origin/main`, HEAD = `pre8-bmad/dev` après E.7, `origin/main` = `ff7600ac`, base `082390c0`) : **toujours 6 fichiers en conflit, 15 blocs, tous documentaires** ; le code fusionne sans conflit (`assets/icons/manifest.json` et `KodjoIcon.tsx` fusionnés automatiquement). Aucune PR documentaire ouverte ou fusionnée depuis #407 ne touche le Catalogue des séances (vérifié le 28/10 ; PR documentaires ouvertes #402, #395, #390 et #246, antérieures, sans lien direct avec le Catalogue des séances).
+
+**Opération Git soumise à décision de Hermann** : réaliser la fusion `origin/main` → `pre8-bmad/dev` (commit de fusion local, sans push), résoudre chaque bloc selon le tableau ci-dessous, puis appliquer les corrections de fond déjà décidées (sections précédentes : b8-3, epic E). Aucune de ces opérations n'a été effectuée.
+
+| Fichier | Bloc | Côté PRE-8 (HEAD) | Côté `main` | Résolution proposée (sur le fond) |
+|---|---|---|---|---|
+| DSF Mouvements | 1 « Hors de ce lot » | piles, filtres, archives intégrés au lot (arbitrages du 27/10) | refonte hors lot ; Actions glissées et Ajouter un niveau au complément 27/10 | Texte de `main` + précision PRE-8 : piles, recherche, filtres, actions glissées, archives et suppression intégrés par les arbitrages du 27/10 (ch07) |
+| ch06 | 1, 2, 4, 5 navigation | cinq destinations avec « (E01) » et Communauté « visible et désactivée » | cinq destinations, rédaction propre | Rédaction de `main` ; conserver « Communauté visible et désactivée, sans écran » (comportement livré E01), supprimer les mentions « auparavant quatre » devenues inutiles |
+| ch06 | 3 calendrier | même paragraphe, variante mineure | idem | Comparer mot à mot à la fusion ; garder la version la plus récente de `main` sauf mention PRE-8 propre |
+| ch07 | 1 fin de section 27/10 | sections « Arbitrages Catalogue des Mouvements », « Recette A/B » (1er, 2e passages), « epic E — arbitrages du 28/10 », passages 3 et 4, bouton Lecture, b8-3 | « Complément — Ajouter un niveau dans le glissé (27/10) » | **Conserver les deux** : sections PRE-8 puis complément de `main` (aucun recouvrement de règle : B11/B12 PRE-8 et le complément disent la même chose ; ajouter un renvoi réciproque) |
+| ch07 | 2 D-225 | texte ancien + « supersédé par E01 » | texte réécrit à cinq destinations (`6513:20151`) | Texte de `main` (il intègre E01) ; ajouter « Communauté visible et désactivée (E01, 27/10) » |
+| ch10 | 1 rang et archivage | « archivage tranché b8-3 (28/10) » | règle 8 : archiver ou restaurer conserve appartenance et clé de tri | Garder la phrase de `main` sur appartenance et clé de tri ; remplacer « ne modifient pas les niveaux » par la règle b8-3 (section b8-3 ci-dessus), texte d'origine marqué « [remplacé par b8-3, 28/10/2026] » |
+| ch12 | 1 `icon.navigation` | « (cinq depuis E01) » | « cinq destinations » | Texte de `main` |
+| ch12 | 2 navigation + animations | phrase navigation + **puce « Animations de mise en page (B05) »** | phrase navigation seule | Phrase de `main` **et** puce B05 de PRE-8 (règle technique propre à PRE-8, absente de `main`) |
+| ch13 | 1 CE-MVT-01 (actions de la fiche) | « variante → difficulté puis création » | « Ajouter un niveau → choix du sens puis création ; depuis le glissé, CE-MVT-02 » | Texte de `main` (B12 PRE-8 identique sur le fond) ; vérifier à la fusion qu'aucune autre précision PRE-8 de la ligne n'est perdue |
+| ch13 | 2, 3, 4 navigation | quatre → cinq avec mentions E01 | cinq destinations | Texte de `main` ; Communauté désactivée précisée dans le contrat CE-UI-05 si absente |
+
+Les tokens ajoutés par l'epic E au ch12 (`cardsArchiveBorder`, `catalogueSessionTitle`, `catalogueSessionMuted`) sont hors des blocs en conflit (fusion automatique attendue) : à vérifier dans le résultat.
+
+### Écarts relevés pendant le développement de E, à corriger sur `main` à l'intégration
+
+| Fichier sur `main` | Passage | Constat | Proposition |
+|---|---|---|---|
+| ch13, « Catalogue des séances — Filtres » (l. ~700) | « sélecteur `Exercices / Séances` […] `Exercices` actif en T03 » | Contredit les trois segments (spécification §4) et E.8-a. La phrase « T03 n'invente aucune option de filtre » est traitée par la ligne ch13 du tableau « Epic E » ci-dessus | Marquer le sélecteur « [remplacé par la spécification du 27/10 §4 et E.8-a, 28/10/2026] » |
+| ch13, « Carte de Séance — vue déployée » | « groupe compact `durée/reps · xN` […] `12 reps · x3`, `45 s · x2` » | Différence avec la spécification du 27/10 §2 (« nom à gauche, volume à droite », exemples Figma « 3 × 12 reps ») ; aucun texte ne remplace explicitement l'ancien format | **Question à Hermann (R-E4)** : le code reprend la synthèse d'occurrence existante (« 3 × 12 rép. », « 45 s ») ; confirmer et marquer l'ancien format remplacé, ou demander l'ancien format |
+| ch13, « Catalogue des séances — Actions sur une carte » | « zone `Démarrer` : ouvre l'écran initial d'Exécution » | Aucune Exécution n'existe ; CE-T03-01 (« destination non livrée explicitement indisponible ») appliqué | Ajouter « tant que l'Exécution n'est pas livrée, Lecture est présente et indisponible » |
+| ch13, « Catalogue des séances — Création d'une Séance » | Créer : « ouvre `Composer une séance` » | Conforme au code (E.4) ; l'ancienne liste d'options Créer n'existe plus | Rien, sinon retirer toute mention restante de l'arbre « Un nouvel exercice / Une séance » |
+| ch13, « Catalogue des séances — État vide » | « Le filtre `Archivées` possède également un état vide […] message d'absence de Séance archivée » | Texte non fourni ; Q-E6 ne le couvre pas ; le code affiche « Aucune séance ne correspond aux filtres. » | **Question à Hermann (R-E5)** : fournir le texte, ou confirmer le message générique |
+
+### Passages anciens relevés par la seconde passe documentaire (28/10), à marquer remplacés à l'intégration
+
+Identiques sur la branche et sur `main` (`ff7600ac`) sauf mention ; aucune modification faite sur la branche (spécifications produit : correction après validation de Hermann d'un lot proposé).
+
+| Fichier | Passage | Contradiction avec le livré | Proposition |
+|---|---|---|---|
+| ch06 (branche l. ~309) | carte « 354 × 90 […] Étiquette puis catégories […] sans vignette, définitivement (D-260) » | Carte unique (spécification §1, remplace D-260/D-261 au Catalogue) ; `main` porte déjà la mention de remplacement | Prendre la version de `main` à la fusion |
+| ch13 (branche l. ~465) | « Segment Exercices → CE-T03-02 […] Démarrer → CE-EXEC-SESSION-01 » | Segment retiré (E.8-a) ; Lecture indisponible | Marquer remplacé (E.8-a) ; Lecture indisponible tant que l'Exécution n'est pas livrée |
+| ch13 (branche l. ~638, ~650, ~658, ~732) | « `Exercices / Séances` », zone `Démarrer`, filtre `Toutes` | Trois segments, Lecture indisponible, Statut Actives / Archivées | Couvert par CE-T03-01 révisé de `main` ; vérifier après fusion |
+| ch13 (l. ~5017, ~5034) | « communs à `Exercices / Séances` », « exactement **Exercices / Séances** » | Trois segments | Marquer remplacé par la spécification du 27/10 §4 |
+| ch01 (l. ~256, 259, 260, 299) | glossaire « Catalogue des exercices », « Toutes », « Planifiées » | Plus de Catalogue des exercices autonome ; Statut Actives / Archivées | Ajouter « [remplacé, 28/10/2026 : vue Un exercice du Catalogue des séances ; Statut Actives / Archivées] » |
+| ch02 (l. ~210, 214, B-077) | « ouvrir le Catalogue des Exercices depuis le sélecteur de type » | Idem | Idem, renvoi à E.8-a (accès par la sélection d'Exercices de la Composition) |
+| ch03 (l. ~174, 198, 289) | « l'utilisateur sélectionne `Exercices` » | Idem | Idem |
+| `docs/DSF-SEGMENTES-TITRES-2026-10-07.md` l. 13, `docs/BACKLOG-SEGMENTS-CATALOGUE-2026-10-07.md` l. 12 | segmenté `Exercices / Séances` | Idem | Mention « remplacé par la spécification du 27/10 §4 » en tête des passages |

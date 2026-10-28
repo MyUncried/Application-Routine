@@ -11,6 +11,7 @@ import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
 import type { StructureCircuit, StructureElement } from "@/domain/sessions/structure";
 import {
+  formatCatalogueSessionDuration,
   formatCatalogueVolume,
   projectSessionForCatalogue,
   type CatalogueCategoryRef,
@@ -252,5 +253,15 @@ describe("PRE-8 E.1 — lecture seule et identité", () => {
   it("une Séance archivée se projette de la même manière, statut conservé", () => {
     const projection = project([{ kind: "EXERCISE", exercise: exercise({ name: "A" }) }], { status: "ARCHIVED", archivedAt: "2026-10-28T09:00:00.000Z" });
     expect(projection.status).toBe("ARCHIVED");
+  });
+});
+
+describe("PRE-8 E.2 — durée de la carte (D-391)", () => {
+  it("minutes et secondes exactes, sans arrondi ; « ≈ » estimée, « ≥ » borne minimale ; 0 s pour une Séance vide", () => {
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 315 })).toBe("5 min 15 s");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 45 })).toBe("45 s");
+    expect(formatCatalogueSessionDuration({ kind: "estimated", seconds: 663 })).toBe("≈ 11 min 3 s");
+    expect(formatCatalogueSessionDuration({ kind: "lowerBound", seconds: 663 })).toBe("≥ 11 min 3 s");
+    expect(formatCatalogueSessionDuration({ kind: "exact", seconds: 0 })).toBe("0 s");
   });
 });

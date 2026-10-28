@@ -1,5 +1,7 @@
 # PRE-8 — Epic E : Catalogue unifié des Séances — plan approuvé (28/10/2026)
 
+> **Développement réalisé le 28/10/2026** (autorisation de Hermann, « Lancement du développement de l'epic E ») : E.1 à E.7 et E.8-a, voir `implementation-artifacts/spec-e-catalogue-seances.md` et `bilan-epic-e-2026-10-28.md`. Recette iPhone à réaliser par Hermann. Le texte ci-dessous est le plan tel qu'approuvé.
+
 > Préparation demandée par Hermann le 27/10/2026 (« KODJO — PRE-8 — Préparation du développement de l'epic E : Catalogue unifié des Séances »). **Développement non commencé** (plan approuvé le 28/10, voir ci-dessous). Branche `pre8-bmad/dev` @ `23a9a4f2` (epics A et B clos, code recetté `88c2adde`). Aucune fusion dans `main`.
 >
 > **Arbitrages finaux de Hermann du 28/10/2026** (« Arbitrages finaux, validation du plan E et clôture de la session »).

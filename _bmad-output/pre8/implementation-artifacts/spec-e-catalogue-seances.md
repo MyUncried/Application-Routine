@@ -16,13 +16,13 @@
 
 - `SessionCard` réécrite en carte UNIQUE (`6214:3572`, `6214:3625`) à partir de la projection E.1 : visuel 64 à 8 du bord, texte à 84 ; nom + chevron seulement pour plusieurs Exercices ; catégories avec pastille, « +N » mesuré sans couper un mot (`fitCategoryCount`) ; ni étiquette, ni zone, ni barre de couleur ; synthèse puis durée ; Lecture cible 48 à 8 du bord, présente, désactivée, annoncée « Lancer la séance — indisponible » (CE-T03-01), toucher intercepté ; carte archivée sans action, texte jusqu'à la marge, bordure `#D9D9D9`. Tokens de B.9 (fond `#F9FAFC`, bordure 0,5 `#CCD1E0`, rayon 12, ombre 8 %).
 - `SessionCatalogueList` : liste du segment Séances (écart 12, marge 16) ; `useSessionCatalogue` lit le Catalogue unifié et projette avec les Catégories du référentiel ; `empty` = aucune Séance du tout ; « Aucune séance ne correspond aux filtres. » pour une liste filtrée vide (Q-E6). Statut Actives par défaut (filtres en E.6).
-- Durée affichée au format de la durée de séance existant (D-443, `formatSessionDurationEstimate`, celui de la Composition) — **réserve R-E1** ci-dessous.
+- Durée : minutes et secondes, sans arrondi, préfixe « ≈ » (estimée) ou « ≥ » (borne minimale) — **D-391** (Hermann, 17/10/2026, cartes Catalogue et Composition), même rendu que la carte Exercice du Catalogue et que Figma (« ≥ 11 min 3 s », « 45 s ») ; `formatCatalogueSessionDuration`. (Correction du 28/10 après la seconde passe documentaire : la première version reprenait l'arrondi à 15 s de D-443, propre à la zone de contexte de la Composition.)
 - Tokens documentés au ch12 : `cardsArchiveBorder`, `catalogueSessionTitle`, `catalogueSessionMuted`.
 - Tests remplacés ou adaptés : `SessionCard.test.tsx` (nouvelle carte, 14), `useSessionCatalogue.test.ts`, `CatalogueScreen.test.tsx` (faux service `listCatalogueSessions`), `CatalogueCompositionEditFlow` et `EmptySessionOpenFlow` (« 0 exercice », « 0 s »), test de couleur de `SqliteSessionRepository.test.ts` (l'Étiquette reste lue, la carte ne la dessine plus — spécification §1).
 
 ## Réserves et choix techniques (à valider à la recette)
 
-- **R-E1 — format de la durée sur la carte.** L'ancienne carte affichait la minute supérieure (« 11 min ») ; la spécification ne fixe pas le format, Figma montre « ≥ 11 min 3 s », « 45 s ». La carte reprend le format de la durée de séance déjà décidé pour la Composition (D-443 : tranches de 15 s, « ≈ » / « ≥ »), pour qu'une même Séance affiche la même durée dans les deux écrans. Aucun calcul nouveau.
+- **R-E1 — format de la durée sur la carte : levée.** D-391 s'applique (voir E.2). Conséquence à connaître : la carte affiche la durée exacte (« 11 min 3 s ») alors que la zone de contexte de la Composition affiche l'estimation arrondie à 15 s de D-443 (« ≈ 11 min ») ; deux décisions validées distinctes, aucune contradiction.
 - **R-E2 — vignettes Tabata et EMOM.** Le panneau Figma `4168:11149` ne les montre qu'à l'état sélectionné ; l'état non sélectionné est reconstitué en remplaçant la bordure de sélection (3 pt, hors motif) par le fond de la vignette (F-03). Elles sont désactivées (Q-E5).
 
 ## E.3 — Déploiement de la composition
@@ -61,3 +61,16 @@
 - Q-E5 option A : 12 vignettes, Libre seul sélectionnable (toutes les Séances, aucun format persisté), les 11 autres pâlies, désactivées, annoncées « … — indisponible ».
 - Résumé de la commande : libellé du critère unique, sinon « N filtres ».
 - Tests : `SessionFilterSheet.e6.test.tsx` (6), `CatalogueScreen.e6.test.tsx` (5), `sessionCatalogueViewFilters.e4e6.test.ts` (partie filtres) ; `CatalogueScreen.test.tsx` : Filtrer actif sur Mouvements et Séances.
+- **R-E3 — commande Filtrer compacte (Q-E4, précision UX hors Figma).** Rond « ouvrir » sur fond bleu pâle à bordure bleue, rond « croix » qui réinitialise ; apparence à valider sur appareil.
+- **R-E4 — format des lignes de la composition déployée.** Synthèse d'occurrence existante (« 3 × 12 rép. », « 45 s »), conforme aux exemples Figma `6214:3696` ; le ch13 de `main` (« Carte de Séance — vue déployée ») décrit encore l'ancien format `12 reps · x3` sans remplacement explicite : question posée à Hermann pour l'intégration documentaire.
+- **R-E5 — état vide du filtre Archivées.** ch13 (« Catalogue des séances — État vide ») prévoit « un message d'absence de Séance archivée » sans en fournir le texte ; Q-E6 ne le couvre pas. Le code affiche le message générique « Aucune séance ne correspond aux filtres. ». Texte à fournir par Hermann (aucun libellé inventé).
+- **R-E6 — limite de l'ancien modèle.** Une Séance à structure plus riche (plusieurs Circuits ou Cycles, epic C) s'affiche, se déploie, s'archive, se restaure et se supprime, mais ne peut être ni dupliquée ni ouverte en Composition (`SessionStructureNotRepresentableError`, comportement A.4 inchangé) ; sans objet sur l'appareil tant que l'epic C n'existe pas.
+- **Création d'anciennes définitions.** Elle disparaît du Catalogue avec le segment Exercices (E.8-a ne conserve que consultation et modification) ; « Ajouter un niveau » dans l'éditeur reste la seule création.
+- **Composants conservés sans usage** : `CatalogueCreateOptions` et `ActivityCatalogueList` ne sont plus rendus par le Catalogue ; conservés (plan, exclusions §6) jusqu'à E.8-b.
+
+## E.7 — Raccordements, non-régression et recette
+
+- Raccordements vérifiés : carte → Composition en modification (archivée : message existant « Cette séance est archivée et ne peut pas être modifiée. ») ; Créer → Composition ; Dupliquer / Archiver / Restaurer / Supprimer → E.5 ; Planifier et Lecture indisponibles ; retour avec conservation d'état (E.4) ; après enregistrement d'une nouvelle Séance, retour forcé sur Séances (signal `catalogueSegment` existant).
+- Test d'intégration sur SQLite réelle : `CatalogueLifecycle.e7.integration.test.tsx` (écran + service + repository : Dupliquer, Archiver puis Annuler, filtre Archivées, Restaurer, Supprimer confirmé, Mouvement conservé ; carte et Créer → Composition).
+- Non-régression : Composition (`Composition*`, `ExerciseEditingPaths`, `CatalogueCompositionEditFlow`, `EmptySessionOpenFlow`), segment Mouvements (`MovementCatalogueList.b5`, `MovementFilterSheet.b7`, `movementLifecycle.b8`), migrations 014 et 015 (fichiers et tests inchangés depuis `7cc65037`, rejoués dans la suite complète).
+- Cahier de recette iPhone : `_bmad-output/pre8/recette-iphone-epic-e.md`.

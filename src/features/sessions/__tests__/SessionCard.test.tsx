@@ -103,7 +103,7 @@ describe("PRE-8 E.2 — carte unique", () => {
     expect(screen.queryByTestId("session-card-color-bar")).toBeNull();
   });
 
-  it("durée : format de la durée de séance (D-443), ≥ pour une borne minimale", () => {
+  it("durée : minutes et secondes sans arrondi (D-391), ≥ pour une borne minimale", () => {
     render(<SessionCard projection={many()} />);
     expect(screen.getByTestId("session-card-s1-duration").props.children).toMatch(/^≥ /);
   });

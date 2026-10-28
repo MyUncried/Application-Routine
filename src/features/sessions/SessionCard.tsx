@@ -4,9 +4,8 @@ import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react
 
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { MediaPreview, useMediaUriResolver } from "@/features/activities/MediaPreview";
-import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 import { formatActivityCount } from "@/features/sessions/formatSessionSummary";
-import type { CatalogueCategoryRef, SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
+import { formatCatalogueSessionDuration, type CatalogueCategoryRef, type SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
 import { sessionFormatOf } from "@/features/sessions/sessionFormats";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -24,8 +23,8 @@ import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/t
  *   déploiement (E.3) ; il pointe vers le haut une fois ouvert.
  * - Catégories précédées de leur pastille, dédupliquées, « +N » quand elles dépassent la largeur,
  *   jamais coupées au milieu d'un mot (`fitCategoryCount`). Ni étiquette ni zone sur la carte.
- * - Synthèse : format, sinon N exercices, sinon volume ; puis la durée de séance (format D-443 de
- *   la Composition, `formatSessionDurationEstimate`).
+ * - Synthèse : format, sinon N exercices, sinon volume ; puis la durée en minutes et secondes, sans
+ *   arrondi, préfixée « ≈ » / « ≥ » (D-391, `formatCatalogueSessionDuration`).
  * - Lecture : présente sur toute carte active, cible 48 à 8 du bord, DÉSACTIVÉE et annoncée
  *   indisponible (aucune Exécution ; CE-T03-01). Un toucher sur elle n'ouvre rien.
  * - Archivée : aucune action directe ; la colonne de texte va jusqu'à la marge.
@@ -74,7 +73,7 @@ export function fitCategoryCount(
 export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
   const id = projection.id;
-  const duration = formatSessionDurationEstimate(projection.duration);
+  const duration = formatCatalogueSessionDuration(projection.duration);
   const summary =
     projection.summary.kind === "FORMAT"
       ? projection.summary.label
