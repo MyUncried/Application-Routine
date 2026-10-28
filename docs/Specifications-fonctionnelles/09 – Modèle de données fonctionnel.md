@@ -1,5 +1,13 @@
 # Modèle de données fonctionnel
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
+## Composition des familles — données, 28/10/2026
+
+Voir le tableau des écritures et invariants de la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Réordonner écrit la seule clé de tri du membre déplacé ; entrer/sortir écrit ou efface ensemble groupe et clé du membre concerné. Dissoudre le dernier couple efface les deux paires. Créer une famille avec deux isolés exige deux appartenances ; la restriction à une seule ligne du document source ne décrit pas cette initialisation.
+
+Rangs dérivés, clés fractionnaires ou lexicographiques, aucun reclassement des clés des autres membres. Annuler restaure l'état antérieur de l'opération. Identités, références des exercices, `sourceMovementId`, instantanés et performances inchangés. La règle 8 du 27/10 reste applicable à l'archivage, aux filtres et à la suppression définitive.
+
 ## Application au lot Mouvement autonome — 27/10/2026
 
 La création par CE-MVT-01 persiste un Mouvement sans créer d'ActivityDefinition ni de SessionActivity. Les phases du mouvement portent leurs identités stables et libellés ; les durées restent locales aux exercices. La variante peut créer un groupe et son second membre dans la même opération logique ; un abandon ne laisse pas de groupe provisoire. Aucun rang historique ni nouvel indicateur irréversible d'utilisation n'est ajouté. La création d'une identité distincte depuis le catalogue ne réaffecte aucune référence active existante. Le modèle de séance unique D-449 reste la cible ; ce lot n'impose pas sa réalisation complète pour permettre le parcours autonome.
@@ -304,7 +312,7 @@ Les propriétés intrinsèques énumérées dans les tableaux d’Exercice ci-de
 | Porteur | Données et contraintes |
 |---|---|
 | Mouvement | Identité stable ; nom principal et clé canonique uniques ; alias facultatifs non uniques ; description/médias/classification et structure ordonnée de phases ; compteur monotone de phase ; existence indépendante des exercices. Aucun indicateur durable d’usage à l’insertion. |
-| Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé |
+| Groupe sur Mouvement | Identifiant de groupe et clé de tri facultatifs, présents ensemble ; au plus un groupe ; aucun objet Niveau ni rang persisté ; singleton conservé après disparition subie, mais deux appartenances effacées lors de la sortie explicite du dernier couple (D2–D4, 28/10) |
 | ActivityDefinition | Identifiant propre, `movementId` non nul avec intégrité réelle ; paramètres d’exécution propres ; durées associées par `phaseId` ; aucun alias ni contenu partagé modifiable en double |
 | SessionActivity | Identifiant propre ; movementId obligatoire avec intégrité active ; paramètres locaux complets, durées par phaseId et récupération contextuelle. Le contenu est lu depuis le mouvement courant ; aucun lien de dépendance vers ActivityDefinition. |
 | Instantané | Contenu autonome et filiation copiés au démarrage, sans relecture source ; aucun champ rang/total de niveaux ; résultats rattachés à l’exécution et ses occurrences/séries/côtés/passages |

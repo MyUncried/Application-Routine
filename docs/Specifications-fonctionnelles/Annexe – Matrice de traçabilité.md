@@ -1,5 +1,11 @@
 # Annexe — Matrice de traçabilité
 
+## Complément manuel — familles, 28/10/2026
+
+| Source | Règles / données | Contrat | Figma | Recette |
+| --- | --- | --- | --- | --- |
+| D-439, D-445 C08, D-448 point 9 ; règles Hermann du 28/10 | MFN-05/06/07, règles A–E ; chapitre 09 groupe/clé/singleton ; chapitre 10 règles 1–5/9 | CE-MVT-03 ; CE-MVT-02 reste distinct | `10480:23374`, `10797:20492`, `10484:23428` | FAM-01–11, [spécification](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) |
+
 **Complément manuel Figma du 23/10/2026 :** [relevé MFN](../DSF-MOUVEMENT-FILIATION-NIVEAUX-2026-10-23.md). MFN-06/08 → CE-T03-04 → `9882:19049`, `9891:39982`, `9959:19518`, `9959:19623`, `9952:44349` ; MFN-07/10 → CE-T03-02 et CE-T03-04 → `9577:19843` ; MFN-09 → CE-UI-10 (verrouillage, pas de nouveau crayon). Composants au chapitre 12, captures au chapitre 06. Ce complément ne régénère pas les tableaux historiques ci-dessous.
 
 Document non normatif, généré par `openspec/changes/archive/2026-10-18-revision-documentation-kodjo/outils/tracabilite.mjs` (change archivé le 18/10/2026 ; règles RM-235 à RM-250 et phases du 18/10 non encore reprises ici). Une référence n’y figure que si elle est **écrite** dans le texte : identifiant cité, ou règle qui cite un contrat. Aucune correspondance n’est déduite du sens ; une case vide signifie « aucune référence écrite », pas « aucun rapport ».

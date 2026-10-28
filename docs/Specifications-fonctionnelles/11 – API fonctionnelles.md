@@ -1,5 +1,11 @@
 # API fonctionnelles
 
+## Opérations de famille depuis le catalogue — 28/10/2026
+
+CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) définissent réordonner, lier, entrer, sortir et dissoudre le dernier couple au relâchement. Annuler restaure l'opération pendant les 3 secondes du message d'appartenance. Les écritures et invariants sont au chapitre 09 ; aucune nouvelle route technique n'est imposée par ce lot documentaire. Ne pas assimiler dissoudre une famille à supprimer ses mouvements ni modifier les références d'exercices, l'historique ou les performances.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
 ## Contrats fonctionnels cibles — D-449

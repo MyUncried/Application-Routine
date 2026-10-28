@@ -1,5 +1,15 @@
 Ce document devient le registre permanent des décisions de conception du produit.
 
+## Composition des familles — complément du 28/10/2026 à D-439, D-445 C08 et D-448 point 9
+
+Source : [règles fournies par Hermann](../KODJO-Regles-Familles-de-niveaux-2026-10-28.md), intégrées dans la [spécification familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Aucun nouvel identifiant D n'est créé. C08 est clos pour la composition de famille depuis le catalogue, sans assimiler dissolution de famille et suppression de mouvement.
+
+A–E remplacent la portée des règles 2 à 4 du 27/10 : un geste et un filet, sortie et liaison explicites, deux gestes pour changer de famille, rang donné par la position, dissolution du dernier couple, application immédiate, aucun message de simple ordre, message d'appartenance avec Annuler pendant 3 secondes. D-445/Q10 continue à interdire le rattachement automatique. MFN-06/07 garde sa portée de création d'un nouveau niveau ; le geste porte sur des mouvements existants. Les textes remplacés sont conservés dans l'annexe Historique.
+
+Propagation : chapitre 06, trois captures ; 09, appartenances et singleton ; 10, règles 1–5/9 et A–E ; 13, CE-MVT-03 et singleton du menu Niveau ; 12, composants visuels ; DSF Niveaux, C08. La spécification consigne les limites de transcription (libellé d'entrée absent et initialisation de deux isolés) sans créer d'arbitrage supplémentaire.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 ## Complément validé par Hermann — Ajouter un niveau dans le glissé (27/10/2026)
 
 Action « Ajouter un niveau » à la place de « Créer une variante » ; choix Plus facile ↓ / Plus difficile ↑ déployé sous les trois actions du catalogue sans navigation, cartes suivantes repoussées et filet de famille allongé. Ouverture directe du formulaire après choix. L'état de choix issu des résultats proches est conservé pour cette seule entrée. Raccord avec D-448 point 9 ; aucune modification de filiation ni validation implicite du partage/archivage. Références : CE-MVT-02, écran `10579:21580`, composants `10586:45516` et `10586:45517`. Le présent complément vise le catalogue des mouvements ; les anciennes restrictions D-196 du catalogue d'exercices ne l'interdisent pas.
@@ -911,7 +921,7 @@ Historique, remplacé pour la suppression et la normalisation par D-438 : intég
 | C05 | Contenu courant lu directement depuis le mouvement ; paramètres locaux ; instantanés et exécution en cours figés ; phases manquantes signalées avant lancement | Clos |
 | C06 | Pastille Niveau N, état vide Niveau ; sans pastille, suffixe - Nn calculé près du nom, jamais stocké | Clos |
 | C07 | Catalogue d’entretien des mouvements compatible avec recherche/sélection dans le parcours de création | Clos — aucune contradiction |
-| C08 | Rattacher, détacher, supprimer : inclusion MVP à décider ultérieurement ; aucune exclusion décidée | Périmètre différé |
+| C08 | Composition des familles depuis le catalogue : règles A à E du 28/10 et CE-MVT-03 ; suppression du mouvement distincte | Clos pour rattacher/détacher/dissoudre la famille ; cycle de vie du mouvement non clôturé |
 | C09 | Commande Niveau active hors crayon ; sélectionner un autre niveau ne reclasse pas le mouvement courant | Clos |
 
 Une `ActivityDefinition` référence directement un mouvement et porte ses paramètres propres. Une `SessionActivity` possède son identifiant et référence **directement le mouvement**, sans dépendance de contenu envers l’exercice Catalogue ; elle porte une copie locale complète des paramètres au moment de l’insertion, puis les conserve indépendamment. Elle ne conserve pas une copie modifiable du nom, de la description, des médias, de la catégorie, des zones ni de la structure des phases.
@@ -1034,7 +1044,7 @@ Les règles 1, 2, 3, 5, 6, 7 et 9 sont intégrées verbatim aux emplacements ci-
 
 ### Proposition non validée
 
-Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. **Attend une décision de Hermann.** Aucun de ces éléments n'est promu en règle ; D-445 C08 reste différée.
+Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. **Statut au 27/10, remplacé le 28/10 :** les règles A à E valident le geste de composition de famille. Les actions nommées de retrait, bouton et mode d’organisation restent exclus. Voir le complément du 28/10 en tête de chapitre.
 
 
 ## Catalogue des séances — carte unique et filtres — décision du 27/10/2026

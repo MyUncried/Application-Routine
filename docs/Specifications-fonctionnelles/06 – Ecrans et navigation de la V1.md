@@ -1,5 +1,26 @@
 # Interface : navigation, écrans et conventions communes
 
+## Catalogue des mouvements — familles, référence du 28/10/2026
+
+Trois écrans documentent le geste continu selon CE-MVT-03 et les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Les niveaux sont recalculés pendant le déplacement. Le message est réservé au changement d’appartenance, avec Annuler pendant 3 secondes ; aucun message de simple réordonnancement.
+
+**Mouvement — Catalogue — Pile — Déplacement** — [10480:23374](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10480-23374)
+
+![Mouvement — Catalogue — Pile — Déplacement](images/familles-2026-10-28/10480-23374.png)
+
+**Mouvement — Catalogue — Pile — Création d’une famille** — [10797:20492](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10797-20492)
+
+![Mouvement — Catalogue — Pile — Création d’une famille](images/familles-2026-10-28/10797-20492.png)
+
+**Mouvement — Catalogue — Pile — Message de confirmation** — [10484:23428](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10484-23428)
+
+![Mouvement — Catalogue — Pile — Message de confirmation](images/familles-2026-10-28/10484-23428.png)
+
+Exports directs 402 × 874, sans retouche ; [manifest et SHA-256](../figma-familles-2026-10-28/captures.json). Le nœud `10484:23428`, auparavant Réordonnée, porte maintenant Message de confirmation et illustre la création d’une famille. Le nouvel écran `10797:20492` porte le catalogue à 13 frames. Les captures du 27/10 restent historiques pour ces deux nœuds remplacés ; celles-ci constituent la référence actuelle. Sortie et entrée n’exigent aucun écran supplémentaire : voir B2 et C.
+
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 ## Catalogue Mouvement — Ajouter un niveau dans le glissé
 
 Les libellés des cinq états de fiche/recherche concernés sont actualisés dans les captures existantes. Deux états de catalogue et deux composants sont ajoutés au dossier (29 PNG au total). Le choix depuis le catalogue ne passe jamais par `10415:21939`, réservé à l'entrée depuis les mouvements proches. Voir CE-MVT-02.
@@ -13,7 +34,7 @@ Les libellés des cinq états de fiche/recherche concernés sont actualisés dan
 
 ![Ajouter un niveau dans le glissé](images/navigation-2026-10-27/10579-21580.png)
 
-Le catalogue comporte 12 états après insertion de cet écran juste après Actions glissées. Les références numériques des frames existantes sont conservées. Les captures reproduisent le prototype, sans retouche ; les règles de déploiement et d'allongement du filet sont normatives même si un tracé de démonstration est incomplet.
+Le relevé du 27/10 comporte 12 états après insertion de cet écran juste après Actions glissées ; le catalogue en comporte 13 au 28/10 avec Création d’une famille. Les références numériques des frames existantes sont conservées. Les captures reproduisent le prototype, sans retouche ; les règles de déploiement et d'allongement du filet sont normatives même si un tracé de démonstration est incomplet.
 
 ## Parcours Mouvement — référence visuelle du lot ciblé (27/10/2026)
 

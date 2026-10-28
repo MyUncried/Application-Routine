@@ -1,0 +1,166 @@
+  <frame id="10266:20575" name="Mouvement — Catalogue — Piles" x="-11" y="1898" width="402" height="874">
+    <rounded-rectangle id="10266:20576" name="Bande — Recherche et création" x="0" y="92" width="402" height="115" />
+    <text id="10266:20577" name="Catalogue des séances" x="16" y="58" width="226" height="24" />
+    <rounded-rectangle id="10266:20578" name="Dégradé transparence — au-dessus navigation" x="0" y="732" width="402" height="40" />
+    <rounded-rectangle id="10266:20579" name="Fond blanc protégé — au-dessus navigation" x="0" y="772" width="402" height="16" />
+    <instance id="10266:20580" name="Navigation / Bottom" x="0" y="788" width="402" height="77" />
+    <instance id="10266:20581" name="Barre d’état" x="0" y="0" width="402" height="36" />
+    <instance id="10266:20582" name="En-tête fixe" x="0" y="0" width="402" height="95" />
+    <frame id="10266:20583" name="Contrôle créer — Bouton rond" x="352" y="160" width="34" height="34" />
+    <frame id="10266:20586" name="Contrôle tri — Inactif seul" x="306" y="160" width="34" height="34">
+      <instance id="10266:20587" name="Icône tri" x="7" y="7" width="20" height="20" />
+    </frame>
+    <frame id="10266:20814" name="Contrôle segmenté — Type de contenu" x="16" y="104" width="370" height="42">
+      <frame id="10266:20821" name="Option — Mouvements" x="4" y="4" width="112" height="34">
+        <text id="10266:20822" name="Libellé — Mouvements" x="15" y="9" width="82" height="16" />
+      </frame>
+      <frame id="10266:20817" name="Option — Séances" x="122" y="4" width="111" height="34">
+        <text id="10266:20818" name="Libellé — Séances" x="28.5" y="9" width="54" height="16" />
+      </frame>
+      <frame id="10266:20819" name="Option — Programmes" x="239" y="4" width="111" height="34">
+        <text id="10266:20820" name="Libellé — Programmes" x="15.5" y="9" width="80" height="16" />
+      </frame>
+    </frame>
+    <frame id="10266:20593" name="Contrôle filtre — Inactif seul" x="260" y="160" width="34" height="34">
+      <frame id="10266:20594" name="Icône filtre" x="7" y="7" width="20" height="20" />
+    </frame>
+    <rounded-rectangle id="10266:20598" name="Zone tactile — Contrôle créer — Bouton rond" x="347" y="155" width="44" height="44" />
+    <rounded-rectangle id="10266:20599" name="Zone tactile — Contrôle filtre — Inactif seul" x="255" y="155" width="44" height="44" />
+    <rounded-rectangle id="10266:20600" name="Zone tactile — Contrôle tri — Inactif seul" x="301" y="155" width="44" height="44" />
+    <rounded-rectangle id="10269:20650" name="Pile — feuille 2" x="32" y="235" width="338" height="80" />
+    <rounded-rectangle id="10269:20651" name="Pile — feuille 1" x="24" y="229" width="354" height="80" />
+    <instance id="10266:22682" name="Carte — Squats sautés" x="16" y="223" width="370" height="80" />
+    <instance id="10266:22687" name="Carte — Fentes avant" x="16" y="327" width="370" height="80" />
+    <rounded-rectangle id="10269:20652" name="Pile — feuille 1" x="24" y="425" width="354" height="80" />
+    <instance id="10266:22693" name="Carte — Gainage sur les genoux" x="16" y="419" width="370" height="80" />
+    <instance id="10266:22698" name="Carte — Mobilisation du genou" x="16" y="517" width="370" height="80" />
+    <frame id="10457:23120" name="Champ — Rechercher" x="16" y="155" width="216" height="44">
+      <text id="10457:23121" name="Rechercher" x="16" y="13" width="240" height="18" />
+    </frame>
+  </frame>
+  <frame id="10480:23374" name="Mouvement — Catalogue — Pile — Déplacement" x="2881" y="1898" width="402" height="874">
+    <rounded-rectangle id="10480:23375" name="Bande — Recherche et création" x="0" y="92" width="402" height="115" />
+    <text id="10480:23376" name="Catalogue des séances" x="16" y="58" width="226" height="24" />
+    <rounded-rectangle id="10480:23377" name="Dégradé transparence — au-dessus navigation" x="0" y="732" width="402" height="40" />
+    <rounded-rectangle id="10480:23378" name="Fond blanc protégé — au-dessus navigation" x="0" y="772" width="402" height="16" />
+    <instance id="10480:23379" name="Navigation / Bottom" x="0" y="788" width="402" height="77" />
+    <instance id="10480:23380" name="Barre d’état" x="0" y="0" width="402" height="36" />
+    <instance id="10480:23381" name="En-tête fixe" x="0" y="0" width="402" height="95" />
+    <frame id="10480:23382" name="Contrôle créer — Bouton rond" x="352" y="160" width="34" height="34" />
+    <frame id="10480:23385" name="Contrôle tri — Inactif seul" x="306" y="160" width="34" height="34">
+      <instance id="10480:23386" name="Icône tri" x="7" y="7" width="20" height="20" />
+    </frame>
+    <frame id="10480:23387" name="Contrôle segmenté — Type de contenu" x="16" y="104" width="370" height="42">
+      <frame id="10480:23388" name="Option — Mouvements" x="4" y="4" width="112" height="34">
+        <text id="10480:23389" name="Libellé — Mouvements" x="15" y="9" width="82" height="16" />
+      </frame>
+      <frame id="10480:23390" name="Option — Séances" x="122" y="4" width="111" height="34">
+        <text id="10480:23391" name="Libellé — Séances" x="28.5" y="9" width="54" height="16" />
+      </frame>
+      <frame id="10480:23392" name="Option — Programmes" x="239" y="4" width="111" height="34">
+        <text id="10480:23393" name="Libellé — Programmes" x="15.5" y="9" width="80" height="16" />
+      </frame>
+    </frame>
+    <frame id="10480:23394" name="Contrôle filtre — Inactif seul" x="260" y="160" width="34" height="34">
+      <frame id="10480:23395" name="Icône filtre" x="7" y="7" width="20" height="20" />
+    </frame>
+    <rounded-rectangle id="10480:23399" name="Zone tactile — Contrôle créer — Bouton rond" x="347" y="155" width="44" height="44" />
+    <rounded-rectangle id="10480:23400" name="Zone tactile — Contrôle filtre — Inactif seul" x="255" y="155" width="44" height="44" />
+    <rounded-rectangle id="10480:23401" name="Zone tactile — Contrôle tri — Inactif seul" x="301" y="155" width="44" height="44" />
+    <instance id="10480:23402" name="Carte — Squats sautés" x="16" y="223" width="370" height="80" />
+    <instance id="10480:23403" name="Carte — Fentes avant" x="16" y="483" width="370" height="80" />
+    <rounded-rectangle id="10480:23404" name="Pile — feuille 1" x="24" y="581" width="354" height="80" />
+    <instance id="10480:23405" name="Carte — Gainage sur les genoux" x="16" y="575" width="370" height="80" />
+    <instance id="10480:23406" name="Carte — Mobilisation du genou" x="16" y="673" width="370" height="80" />
+    <frame id="10480:23407" name="Champ — Rechercher" x="16" y="155" width="216" height="44">
+      <text id="10480:23408" name="Rechercher" x="16" y="13" width="240" height="18" />
+    </frame>
+    <rounded-rectangle id="10480:23409" name="Filet — groupe de niveaux" x="14" y="263" width="2" height="168" />
+    <instance id="10480:23410" name="Carte — Squats" x="16" y="391" width="370" height="80" />
+    <rounded-rectangle id="10480:23494" name="Emplacement visé" x="16" y="307" width="370" height="80" />
+    <instance id="10480:23411" name="Carte — Squats assistés" x="30" y="299" width="354" height="80" />
+  </frame>
+  <frame id="10484:23428" name="Mouvement — Catalogue — Pile — Message de confirmation" x="3845" y="1898" width="402" height="874">
+    <rounded-rectangle id="10484:23429" name="Bande — Recherche et création" x="0" y="92" width="402" height="115" />
+    <text id="10484:23430" name="Catalogue des séances" x="16" y="58" width="226" height="24" />
+    <rounded-rectangle id="10484:23431" name="Dégradé transparence — au-dessus navigation" x="0" y="732" width="402" height="40" />
+    <rounded-rectangle id="10484:23432" name="Fond blanc protégé — au-dessus navigation" x="0" y="772" width="402" height="16" />
+    <instance id="10484:23433" name="Navigation / Bottom" x="0" y="788" width="402" height="77" />
+    <instance id="10484:23434" name="Barre d’état" x="0" y="0" width="402" height="36" />
+    <instance id="10484:23435" name="En-tête fixe" x="0" y="0" width="402" height="95" />
+    <frame id="10484:23436" name="Contrôle créer — Bouton rond" x="352" y="160" width="34" height="34" />
+    <frame id="10484:23439" name="Contrôle tri — Inactif seul" x="306" y="160" width="34" height="34">
+      <instance id="10484:23440" name="Icône tri" x="7" y="7" width="20" height="20" />
+    </frame>
+    <frame id="10484:23441" name="Contrôle segmenté — Type de contenu" x="16" y="104" width="370" height="42">
+      <frame id="10484:23442" name="Option — Mouvements" x="4" y="4" width="112" height="34">
+        <text id="10484:23443" name="Libellé — Mouvements" x="15" y="9" width="82" height="16" />
+      </frame>
+      <frame id="10484:23444" name="Option — Séances" x="122" y="4" width="111" height="34">
+        <text id="10484:23445" name="Libellé — Séances" x="28.5" y="9" width="54" height="16" />
+      </frame>
+      <frame id="10484:23446" name="Option — Programmes" x="239" y="4" width="111" height="34">
+        <text id="10484:23447" name="Libellé — Programmes" x="15.5" y="9" width="80" height="16" />
+      </frame>
+    </frame>
+    <frame id="10484:23448" name="Contrôle filtre — Inactif seul" x="260" y="160" width="34" height="34">
+      <frame id="10484:23449" name="Icône filtre" x="7" y="7" width="20" height="20" />
+    </frame>
+    <rounded-rectangle id="10484:23453" name="Zone tactile — Contrôle créer — Bouton rond" x="347" y="155" width="44" height="44" />
+    <rounded-rectangle id="10484:23454" name="Zone tactile — Contrôle filtre — Inactif seul" x="255" y="155" width="44" height="44" />
+    <rounded-rectangle id="10484:23455" name="Zone tactile — Contrôle tri — Inactif seul" x="301" y="155" width="44" height="44" />
+    <instance id="10484:23456" name="Carte — Squats sautés" x="16" y="223" width="370" height="80" />
+    <instance id="10484:23457" name="Carte — Fentes avant" x="16" y="575" width="370" height="80" />
+    <rounded-rectangle id="10484:23458" name="Pile — feuille 1" x="24" y="673" width="354" height="80" />
+    <instance id="10484:23459" name="Carte — Gainage sur les genoux" x="16" y="667" width="370" height="80" />
+    <instance id="10484:23460" name="Carte — Mobilisation du genou" x="16" y="483" width="370" height="80" />
+    <frame id="10484:23461" name="Champ — Rechercher" x="16" y="155" width="216" height="44">
+      <text id="10484:23462" name="Rechercher" x="16" y="13" width="240" height="18" />
+    </frame>
+    <rounded-rectangle id="10484:23463" name="Filet — groupe de niveaux" x="14" y="263" width="2" height="168" />
+    <instance id="10484:23464" name="Carte — Squats" x="16" y="307" width="370" height="80" />
+    <instance id="10484:23466" name="Carte — Squats assistés" x="16" y="391" width="370" height="80" />
+    <rounded-rectangle id="10801:20215" name="Filet — groupe de niveaux (nouvelle famille)" x="14" y="523" width="2" height="92" />
+    <instance id="10484:24052" name="Message temporaire — Famille créée" x="16" y="738" width="370" height="48" />
+  </frame>
+  <frame id="10797:20492" name="Mouvement — Catalogue — Pile — Création d’une famille" x="3363" y="1898" width="402" height="874">
+    <rounded-rectangle id="10797:20493" name="Bande — Recherche et création" x="0" y="92" width="402" height="115" />
+    <text id="10797:20494" name="Catalogue des séances" x="16" y="58" width="226" height="24" />
+    <rounded-rectangle id="10797:20495" name="Dégradé transparence — au-dessus navigation" x="0" y="732" width="402" height="40" />
+    <rounded-rectangle id="10797:20496" name="Fond blanc protégé — au-dessus navigation" x="0" y="772" width="402" height="16" />
+    <instance id="10797:20497" name="Navigation / Bottom" x="0" y="788" width="402" height="77" />
+    <instance id="10797:20498" name="Barre d’état" x="0" y="0" width="402" height="36" />
+    <instance id="10797:20499" name="En-tête fixe" x="0" y="0" width="402" height="95" />
+    <frame id="10797:20500" name="Contrôle créer — Bouton rond" x="352" y="160" width="34" height="34" />
+    <frame id="10797:20503" name="Contrôle tri — Inactif seul" x="306" y="160" width="34" height="34">
+      <instance id="10797:20504" name="Icône tri" x="7" y="7" width="20" height="20" />
+    </frame>
+    <frame id="10797:20505" name="Contrôle segmenté — Type de contenu" x="16" y="104" width="370" height="42">
+      <frame id="10797:20506" name="Option — Mouvements" x="4" y="4" width="112" height="34">
+        <text id="10797:20507" name="Libellé — Mouvements" x="15" y="9" width="82" height="16" />
+      </frame>
+      <frame id="10797:20508" name="Option — Séances" x="122" y="4" width="111" height="34">
+        <text id="10797:20509" name="Libellé — Séances" x="28.5" y="9" width="54" height="16" />
+      </frame>
+      <frame id="10797:20510" name="Option — Programmes" x="239" y="4" width="111" height="34">
+        <text id="10797:20511" name="Libellé — Programmes" x="15.5" y="9" width="80" height="16" />
+      </frame>
+    </frame>
+    <frame id="10797:20512" name="Contrôle filtre — Inactif seul" x="260" y="160" width="34" height="34">
+      <frame id="10797:20513" name="Icône filtre" x="7" y="7" width="20" height="20" />
+    </frame>
+    <rounded-rectangle id="10797:20517" name="Zone tactile — Contrôle créer — Bouton rond" x="347" y="155" width="44" height="44" />
+    <rounded-rectangle id="10797:20518" name="Zone tactile — Contrôle filtre — Inactif seul" x="255" y="155" width="44" height="44" />
+    <rounded-rectangle id="10797:20519" name="Zone tactile — Contrôle tri — Inactif seul" x="301" y="155" width="44" height="44" />
+    <instance id="10797:20520" name="Carte — Squats sautés" x="16" y="223" width="370" height="80" />
+    <instance id="10797:20521" name="Carte — Fentes avant" x="16" y="567" width="370" height="80" />
+    <instance id="10797:20523" name="Carte — Gainage sur les genoux" x="16" y="659" width="370" height="80" />
+    <frame id="10797:20525" name="Champ — Rechercher" x="16" y="155" width="216" height="44">
+      <text id="10797:20526" name="Rechercher" x="16" y="13" width="240" height="18" />
+    </frame>
+    <rounded-rectangle id="10797:20527" name="Filet — groupe de niveaux" x="14" y="263" width="2" height="168" />
+    <instance id="10797:20528" name="Carte — Squats" x="16" y="307" width="370" height="80" />
+    <instance id="10797:20530" name="Carte — Squats assistés" x="16" y="391" width="370" height="80" />
+    <rounded-rectangle id="10797:20614" name="Filet — groupe en formation" x="14" y="519" width="2" height="88" />
+    <instance id="10797:20524" name="Carte — Mobilisation du genou" x="30" y="479" width="354" height="80" />
+  </frame>

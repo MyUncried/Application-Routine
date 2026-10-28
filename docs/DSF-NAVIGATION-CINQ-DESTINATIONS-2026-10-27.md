@@ -1,5 +1,7 @@
 # Navigation — cinq destinations — référence contrôlée le 27 octobre 2026
 
+> Actualisation du 28/10 : les deux captures du geste de famille sont remplacées par les exports courants ; l’écran Création d’une famille est référencé dans [CE-MVT-03 et sa spécification](DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Les inventaires et décomptes du 27/10 restent datés.
+
 > Actualisation ultérieure du 27/10 : les douze écrans du Catalogue des séances ont été modifiés et réexportés dans le [relevé Catalogue des séances](DSF-CATALOGUE-SEANCES-2026-10-27.md). Les captures ci-dessous de ces écrans sont des preuves antérieures ; les cinq destinations et leurs assets restent applicables.
 
 ## Périmètre et résultat
@@ -111,8 +113,8 @@ Chaque lien PNG ci-dessous est une nouvelle copie complète de l’écran couran
 | Mouvement — Catalogue — Filtre actif | [10465:23141](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10465-23141) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10465-23141.png) | CE-UI-05 — 5 emplacements vérifiés |
 | Mouvement — Catalogue — Pile déployée | [10471:23291](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10471-23291) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10471-23291.png) | CE-UI-05 — 5 emplacements vérifiés |
 | Mouvement — Catalogue — Actions glissées | [10475:47634](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10475-47634) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10475-47634.png) | CE-UI-05 — 5 emplacements vérifiés |
-| Mouvement — Catalogue — Pile — Déplacement | [10480:23374](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10480-23374) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10480-23374.png) | CE-UI-05 — 5 emplacements vérifiés |
-| Mouvement — Catalogue — Pile — Réordonnée | [10484:23428](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10484-23428) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10484-23428.png) | CE-UI-05 — 5 emplacements vérifiés |
+| Mouvement — Catalogue — Pile — Déplacement | [10480:23374](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10480-23374) | Catalogues | [PNG](Specifications-fonctionnelles/images/familles-2026-10-28/10480-23374.png) | CE-UI-05 — 5 emplacements vérifiés |
+| Mouvement — Catalogue — Pile — Message de confirmation | [10484:23428](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10484-23428) | Catalogues | [PNG](Specifications-fonctionnelles/images/familles-2026-10-28/10484-23428.png) | CE-UI-05 — 5 emplacements vérifiés |
 | Mouvement — Catalogue — Archivage refusé | [10495:24054](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10495-24054) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10495-24054.png) | CE-UI-05 — 5 emplacements vérifiés |
 | Mouvement — Catalogue — Archivés | [10495:24099](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10495-24099) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10495-24099.png) | CE-UI-05 — 5 emplacements vérifiés |
 | Mouvement — Catalogue — Archivés — Actions glissées | [10496:23705](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=10496-23705) | Catalogues | [PNG](Specifications-fonctionnelles/images/navigation-2026-10-27/10496-23705.png) | CE-UI-05 — 5 emplacements vérifiés |

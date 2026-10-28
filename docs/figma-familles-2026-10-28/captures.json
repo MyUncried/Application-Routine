@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-28",
+  "fileKey": "G6RY5Ebhgwb4AHIOYDwwvg",
+  "pageId": "510:101",
+  "source": "Figma get_screenshot, exports directs sans retouche",
+  "captures": [
+    {
+      "nodeId": "10480:23374",
+      "name": "Mouvement — Catalogue — Pile — Déplacement",
+      "file": "Specifications-fonctionnelles/images/familles-2026-10-28/10480-23374.png",
+      "width": 402,
+      "height": 874,
+      "sha256": "fb1afa6446d0f0ec0f30341c4988200d22efffe216ece51e69f4b630df8150e8"
+    },
+    {
+      "nodeId": "10797:20492",
+      "name": "Mouvement — Catalogue — Pile — Création d’une famille",
+      "file": "Specifications-fonctionnelles/images/familles-2026-10-28/10797-20492.png",
+      "width": 402,
+      "height": 874,
+      "sha256": "c6828e80b14e63180502b4914a9e2dc9af6f87dfdcd83539538afe69a97444fb"
+    },
+    {
+      "nodeId": "10484:23428",
+      "name": "Mouvement — Catalogue — Pile — Message de confirmation",
+      "file": "Specifications-fonctionnelles/images/familles-2026-10-28/10484-23428.png",
+      "width": 402,
+      "height": 874,
+      "sha256": "2e834c9dd373f47f118b467b35add2be49e317056eb82e034fb3a8ec90d69901"
+    }
+  ]
+}

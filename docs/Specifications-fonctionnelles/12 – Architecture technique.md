@@ -1,5 +1,13 @@
 # Architecture technique
 
+## Catalogue des mouvements — famille et message temporaire, 28/10/2026
+
+Réutiliser les cartes Mouvement, la pastille de niveau et `DSF / Overlays / Message temporaire`, selon CE-MVT-03 et les [captures du 28/10](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). Un seul filet vertical à gauche représente l'appartenance ; sa longueur suit les membres, sa naissance et sa disparition la création et la dissolution. Carte saisie soulevée, emplacement pointillé, reflux des cartes et rangs provisoires ; aucun anneau, teinte d'acceptation ou invite textuelle.
+
+Référence Figma : filet 2 px ; message `10484:24052`, 370 × 48 à (16, 738), au-dessus de la navigation, avec Annuler, durée 3 secondes. Adapter au texte et aux safe areas, sans chevauchement. La temporisation et le recalcul dynamique sont des règles, non démontrables par une image statique. Aucun nouveau token ni dépendance n'est imposé. La prévisualisation ne persiste rien avant le relâchement ; la restitution Annuler doit couvrir l'opération entière.
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 ## Composants — Ajouter un niveau dans le glissé (27/10/2026)
 
 | Composant | Figma | Référence visuelle | Usage |

@@ -1,5 +1,99 @@
 # Contrats d’écran
 
+## CE-MVT-03 — Catalogue des mouvements : ordre et composition des familles
+
+### 1. Identification
+
+Contrat du 28/10/2026. Figma Prototype MVP `510:101` : Déplacement `10480:23374`, Création d’une famille `10797:20492`, Message de confirmation `10484:23428`. Trois captures au chapitre 06. Référence normative : [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), MFN-05, D-439, D-445 C08 et D-448 point 9.
+
+### 2. Finalité fonctionnelle
+
+Réordonner les membres, constituer une famille avec des mouvements existants, rejoindre ou quitter une famille et la dissoudre par sortie du dernier couple. Aucun nouveau mouvement n'est créé par le geste.
+
+### 3. Contexte d'entrée
+
+Catalogue des mouvements, carte d'un mouvement sans famille ou membre d'une famille repliée/déployée. Le tri du catalogue reste actif ; le geste ne définit pas d'ordre manuel entre entrées du catalogue.
+
+### 4. Contexte de sortie / destinations
+
+Rester dans le catalogue. Déposer valide l'opération ; revenir dans le filet avant relâchement annule la prévisualisation de sortie. Un mouvement libéré rejoint la position donnée par le tri. Aucun écran intermédiaire, choix de sens ou menu de retrait.
+
+### 5. Données affichées et source de vérité
+
+Mouvements existants, identifiant de groupe et clé de tri ; niveaux dérivés de l'ordre complet, avant filtrage. Pendant le déplacement, le filet, les cartes et les pastilles présentent le résultat envisagé sans écriture persistante. Au relâchement, appliquer l'opération ; Annuler restaure l'état antérieur complet.
+
+### 6. Classification des valeurs Figma
+
+Les noms, contenus et nombres de niveaux des cartes sont des exemples. Le filet, l'emplacement pointillé, la carte soulevée et les pastilles constituent le vocabulaire visuel. Le message observé est **Nouvelle famille de niveaux créée**, avec **Annuler**. L'ancien titre Réordonnée de `10484:23428` ne définit plus son usage.
+
+### 7. Structure de l'écran
+
+Shell du catalogue conservé : en-tête, onglets, recherche/filtres/tri/ajout, liste, navigation. Famille déployée reliée par un filet à gauche. Carte saisie soulevée et emplacement pointillé ; cartes voisines en reflux. Message temporaire au-dessus de la navigation après changement d'appartenance.
+
+### 8. Éléments obligatoires
+
+Un seul indicateur d'appartenance : le filet. Les pastilles annoncent les rangs obtenus. Aucun anneau, teinte d'acceptation ou invite textuelle pendant le geste. Ni mode d'organisation, ni bouton de validation, ni action nommée de retrait/suppression de famille.
+
+### 9. Layout déterministe
+
+Niveau le plus élevé en haut. Longueur du filet inchangée à membres constants ; raccourcie à la sortie ; allongée à l'entrée ; naissance à la création ; disparition à la dissolution. Les cartes referment l'espace libéré ou ouvrent l'emplacement visé. Référence 402 × 874 ; filet 2 px ; message 370 × 48 à (16, 738), sans transformer ces mesures de maquette en taille de terminal imposée.
+
+### 10. Responsive, Safe Areas, texte, scroll et clavier
+
+Respecter les safe areas et la navigation ; message et Annuler restent accessibles sans masquer la navigation. Adapter les cartes et le message au texte ; conserver le scroll du catalogue. Aucun clavier ni panneau supplémentaire n'est ouvert par le geste.
+
+### 11. États de l'écran
+
+Les trois frames de référence suffisent au geste continu. Déplacement fixe la carte saisie et l'emplacement ; Création d’une famille fixe l'apparition du filet et les pastilles provisoires ; Message de confirmation fixe le retour structurel et Annuler. Sortie et entrée sont décrites par les règles B/C, sans exiger deux nouveaux écrans.
+
+### 12. Contrôles et interactions
+
+Appui long, déplacement, arrêt à l'emplacement, relâchement. Une famille repliée se déplie avant le choix de position ou à l'approche. Recalculer les niveaux en direct. Pour l'ordre interne, conserver le filet et ne montrer aucun message après dépôt. Pour sortir, raccourcir le filet, refermer les cartes, recalculer les niveaux restants et retirer la pastille de la carte déplacée. La ramener dans le filet rétablit la famille avant dépôt.
+
+### 13. Gestes
+
+Un mouvement sans famille déposé sur une carte sans famille crée une famille ; sur un membre d'une famille existante, il la rejoint. Position au-dessus = niveau supérieur, en dessous = inférieur ; entre deux membres d'une famille de trois ou plus, le rang vient de cette position. Pas de question Plus facile / Plus difficile après dépôt. Une carte déjà membre ne peut être liée à une autre carte : aucun filet de formation ; elle doit sortir librement puis être liée lors d'un second geste. Ne pas empêcher son réordonnancement dans sa propre famille.
+
+### 14. Validation
+
+Relâcher applique immédiatement. Déposer au-dessus d'une famille en tête de liste est accepté ; le tri donne ensuite la position du mouvement sans famille. Sortir un des deux derniers membres dissout la famille et efface les deux appartenances. Aucun rattachement automatique, transfert silencieux ou fusion rétroactive.
+
+### 15. Brouillon et persistance
+
+Prévisualisation seulement pendant le geste ; aucun état provisoire persistant après relâchement. Réordonner écrit la clé du membre déplacé. Entrer/sortir écrit ou efface ensemble son groupe et sa clé ; le dernier couple implique deux mouvements. Former une famille de deux isolés exige deux appartenances. Annuler restaure toute l'opération, y compris les champs des deux membres concernés ; aucun changement des contenus ou références d'exercices.
+
+### 16. Navigation et conservation d'état
+
+Conserver le contexte du catalogue, ses filtres et son tri. Annuler ne crée aucune nouvelle identité. Le menu Réordonner les niveaux de D-448 point 9 et le geste d'ordre ont le même résultat. CE-MVT-02 Ajouter un niveau garde ses choix du sens, son formulaire et sa validation ; ne pas lui appliquer la sauvegarde au relâchement.
+
+### 17. Erreurs et cas limites
+
+Le dernier couple explicitement détaché devient deux mouvements sans groupe. Le singleton subi après archivage/suppression conserve son identifiant et son rang masqué, selon le chapitre 09. Filtrer ne recalcule pas les niveaux visibles ; archivage/restauration préserve les clés ; suppression définitive selon la règle 8 du 27/10. Un échec de persistance ne doit pas être présenté comme une réussite : conserver les mécanismes d'erreur existants, sans inventer de libellé métier.
+
+### 18. Accessibilité
+
+Annoncer l'identité du mouvement, son niveau dérivé et l'action Annuler ; ne pas dépendre de la couleur seule. Conserver l'accès de réordonnancement par le menu et les cibles accessibles existantes. Ne pas inventer une action nommée de retrait dans un menu. Le retour temporaire dure les 3 secondes décidées ; aucun autre délai n'est déduit de la maquette.
+
+### 19. Invariants et messages
+
+Un groupe maximum ; pas de rang persisté ni plafond métier. Identités, exercices référents, `sourceMovementId`, instantanés, historique et performances séparées inchangés.
+
+| Opération | Message après application |
+| --- | --- |
+| Ordre interne | Aucun |
+| Création | Nouvelle famille de niveaux créée |
+| Dissolution du dernier couple | Famille de niveaux supprimée |
+| Sortie laissant une famille | Mouvement sorti de la famille |
+
+Les messages d'appartenance portent Annuler, pendant 3 secondes, au-dessus de la barre de navigation. La dissolution du dernier couple utilise le message de suppression de famille, pas celui de simple sortie. E2 s'applique aussi à l'entrée dans une famille existante, mais aucun libellé d'entrée n'est fourni : ne pas en présenter un comme validé.
+
+### 20. Recette déterministe
+
+Appliquer FAM-01 à FAM-11 de la [spécification](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) : ordre sans message, déploiement, sortie/réintégration avant dépôt, sortie en tête et tri, création dans les deux sens, insertion entre membres, interdiction du transfert direct, dernier couple, annulation à 3 secondes, archivage/filtres et invariants. Vérifier les pastilles recalculées pendant le geste, pas seulement après sauvegarde. Ces scénarios sont à exécuter au développement ; le lot documentaire ne prétend pas les avoir exécutés.
+
+
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 ## CE-MVT-02 — Catalogue des mouvements : Ajouter un niveau dans le glissé
 
 ### 1. Identification
@@ -5680,7 +5774,7 @@ Retour au contexte Catalogue ou séance, avec position et paramètres conservés
 
 #### 17. Erreurs et cas limites
 
-Groupe singleton = état vide. Le mouvement doit exister pour une définition ou occurrence vivante ; ne pas inventer de contenu de remplacement. Un mouvement sans exercice reste recherchable. Une filiation d’instantané peut être orpheline sans empêcher sa lecture ; les exécutions ne sont jamais réattribuées par nom.
+Groupe singleton après disparition subie (archivage ou suppression) = état vide, appartenance conservée. Après détachement explicite du dernier couple, les deux mouvements sont sans groupe (D2–D4 du 28/10, CE-MVT-03). Le mouvement doit exister pour une définition ou occurrence vivante ; ne pas inventer de contenu de remplacement. Un mouvement sans exercice reste recherchable. Une filiation d’instantané peut être orpheline sans empêcher sa lecture ; les exécutions ne sont jamais réattribuées par nom.
 
 #### 18. Accessibilité
 

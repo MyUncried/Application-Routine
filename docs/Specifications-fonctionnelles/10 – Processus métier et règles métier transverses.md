@@ -1,5 +1,7 @@
 # Règles métier et calculs
 
+> **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
+
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
 
 Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
@@ -14,7 +16,7 @@ Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Ar
 
 Plus facile signifie insertion avant la source dans l'ordre de difficulté ; Plus difficile signifie après. Les flèches décrivent la difficulté, pas une position de dépose dans la liste (qui peut présenter le niveau le plus élevé en premier). La sélection du sens prépare le brouillon ; seul l'enregistrement crée le nouveau niveau. Préremplissage, nom unique, annulation et sauvegarde directe restent ceux de CE-MVT-01. La création de niveau depuis une séance n'est pas réintroduite.
 
-Nouvel état : **Mouvement — Catalogue — Ajouter un niveau**, `10579:21580`, après Actions glissées `10475:47634`. La ligne catalogue comporte désormais 12 états, dont ces deux états intégrés au présent dossier ; cela ne clôt pas les règles de partage ou d'archivage. La livraison ciblée inclut cette entrée d'ajout de niveau, sans imposer la refonte complète du catalogue.
+Nouvel état : **Mouvement — Catalogue — Ajouter un niveau**, `10579:21580`, après Actions glissées `10475:47634`. Le relevé du 27/10 comptait 12 états ; celui du 28/10 en compte 13 avec la création d’une famille. Le lot du 27/10 comporte 12 états, dont ces deux états intégrés au présent dossier ; cela ne clôt pas les règles de partage ou d'archivage. La livraison ciblée inclut cette entrée d'ajout de niveau, sans imposer la refonte complète du catalogue.
 
 Le relevé utilisateur signale huit libellés visibles et seize noms de calques renommés. Le relevé direct et les captures actualisées sont conservés dans `figma-mouvements-2026-10-27/ajout-niveau-glisse.json`. « Variante » reste un terme explicatif du modèle, pas le libellé de l'action. La frame `10415:21939` conserve actuellement « Moins difficile » dans son contenu : cela signifie Plus facile et ne justifie pas une troisième direction.
 
@@ -399,7 +401,7 @@ Règles :
 - Retirer un membre ne modifie pas le contenu ni l’identité des autres. Leur rang et le total affichés peuvent changer.
 - Un déplacement dans le groupe n’est pas une modification du geste et ne déclenche pas le dialogue de correction.
 
-Un niveau créé s’insère avant ou après son origine selon le choix Plus facile que X / Plus difficile que X. L’ordre se modifie par glissement. Un groupe réduit à un membre conserve son identifiant et masque rang et total. Le groupe étant un identifiant partagé sans contenu propre, retirer son dernier membre ne demande aucun nettoyage.
+Un niveau créé s’insère avant ou après son origine selon le choix Plus facile que X / Plus difficile que X. L’ordre se modifie par glissement. Un groupe réduit à un membre par disparition subie (archivage ou suppression) conserve son identifiant et masque rang et total. La sortie explicite du dernier couple efface au contraire groupe et clé de tri des deux membres (D2–D4 du 28/10). Le groupe étant un identifiant partagé sans contenu propre, retirer son dernier membre ne demande aucun nettoyage.
 
 La catégorie est reprise depuis le niveau d’origine puis reste librement modifiable, sans contrainte d’égalité entre niveaux.
 
@@ -407,39 +409,41 @@ Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jama
 
 #### Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
 
-Source : instruction de Hermann du 27/10/2026, « Prompt — documenter le réordonnancement depuis le catalogue des mouvements ». Numérotation 1 à 9 conservée pour traçabilité ; aucun nouvel identifiant de règle ni d’écran. Rattachement : D-439, D-445, D-448 point 9 et MFN-05. Les règles 6 à 8 sont reproduites au chapitre 09, dans la section de même titre.
+**Actualisation du 28/10/2026.** Les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) étendent le même geste à la composition des familles. Les anciennes règles 2 à 4 et la proposition alors différée restent dans l'annexe Historique des consolidations ; elles ne bornent plus les règles actuelles. Numérotation 1 à 9 conservée ; règles 6 à 8 au chapitre 09. Contrat CE-MVT-03.
 
-##### Règle 1 — texte de référence
+##### Règle 1 — geste, précisé par A et C5
 
-1. **Geste.** Un appui long sur la carte d'un membre d'une famille déployée arme son déplacement. Le membre se déplace en place dans la pile, sans écran ni panneau intermédiaire.
+Un appui long sur une carte arme son déplacement en place, sans écran ni panneau intermédiaire. Une famille repliée se déplie avant de choisir la position ou à l'approche d'un mouvement entrant. Les pastilles se recalculent pendant le geste.
 
-##### Règle 2 — texte de référence
+##### Règle 2 — portée du déplacement, reformulée le 28/10
 
-2. **Portée du déplacement.** Un membre ne peut être déposé que dans sa propre famille. Un mouvement ne change pas de famille par glissement, et un mouvement sans famille ne peut pas en rejoindre une par ce geste.
+Le dépôt entre les membres de sa propre famille en modifie l'ordre. Sortir de l'emprise verticale du filet détache le mouvement (B) ; le dépôt d'un mouvement sans famille sur une carte crée ou rejoint une famille (C). Un membre ne peut pas être lié directement à une autre carte : il doit d'abord sortir librement puis être lié lors d'un second geste. Aucun rattachement automatique ni fusion rétroactive.
 
-##### Règle 3 — texte de référence
+##### Règle 3 — application immédiate, reformulée le 28/10
 
-3. **Application immédiate.** Le déplacement est appliqué dès le dépôt, sans état provisoire. Un message de confirmation en rend compte, posé au-dessus de la barre de navigation.
+Toute opération de ce geste s'applique au relâchement, sans état provisoire persistant. Le simple réordonnancement ne produit aucun message. Le changement d'appartenance donne un message temporaire au-dessus de la navigation, avec Annuler pendant 3 secondes (E). La prévisualisation pendant le geste ne constitue pas une sauvegarde.
 
-##### Règle 4 — clarification validée par Hermann le 27/10/2026
+##### Règle 4 — aucun mode, aucun bouton, reformulée le 28/10
 
-4. **Aucun mode, aucun bouton.** Le catalogue ne possède pas de mode d’organisation. Le réordonnancement s’applique dès le dépôt, avec un message de confirmation et sans bouton de validation. Cette règle ne supprime pas les validations propres aux formulaires de création ou de modification ouverts depuis le catalogue.
+Ni mode d'organisation ni bouton de validation. Aucun menu de retrait ou de suppression de famille. Les validations des formulaires de création/modification et les choix Plus facile / Plus difficile de l'action Ajouter un niveau restent inchangés.
 
-##### Règle 5 — texte de référence
+##### Règle 5 — ordre affiché, inchangé
 
-5. **Ordre affiché.** Le niveau le plus élevé figure en haut de la pile. Le filet vertical relie les membres d'une famille déployée.
+Le niveau le plus élevé figure en haut. Le filet vertical est l'unique indicateur de famille : longueur inchangée pour réordonner, raccourcie pour sortir, allongée pour entrer, naissance pour créer et disparition pour dissoudre le dernier couple. Aucun anneau, teinte d'acceptation ou invite textuelle pendant le geste ; pastilles et reflux des cartes complètent la lecture.
 
-##### Règle 9 — texte de référence
+##### Règle 9 — cohabitation avec le menu existant, inchangée
 
-9. **Cohabitation avec le menu existant.** D-448 point 9 prévoit « Réordonner les niveaux » à la racine du menu Niveau, dans les trois contextes. Les deux chemins coexistent et produisent exactement le même résultat : le geste depuis le catalogue et l'entrée de menu. Écris-le explicitement plutôt que de laisser croire à deux mécanismes distincts.
+D-448 point 9 maintient Réordonner les niveaux à la racine du menu Niveau, dans les trois contextes. Le menu et le geste de réordonnancement depuis le catalogue produisent le même résultat. Les opérations de composition B à D ne créent pas de nouvelles actions de menu.
 
-**Clarification validée le 27/10/2026.** L’application immédiate concerne le réordonnancement dans la liste. Ajouter un niveau et modifier un mouvement sont des opérations distinctes dont les validations existantes restent inchangées. L’ambiguïté de portée est close.
+#### Composition des familles depuis le catalogue — règles A à E, 28/10/2026
 
-**Proposition non validée — attend une décision de Hermann.** Rattacher un mouvement existant à une famille, ou l'en détacher, depuis le catalogue, par geste ou par action nommée. Tout bouton de validation ou mode d'organisation qui n'apparaîtrait que dans ce cas. Ces propositions ne sont ni des règles applicables ni des parcours à développer ; D-445 C08 reste inchangée. Le déplacement interne à une famille ne les autorise pas.
+Référence normative complète : [spécification des familles](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md). A : ordre interne ; B : sortie prévisualisée puis validée au relâchement, même en tête de liste, position finale donnée par le tri ; C : liaison d'un mouvement sans famille à la position choisie, y compris entre membres d'une famille de trois ou plus ; D : dissolution par sortie du dernier couple, deux appartenances effacées ; E : application immédiate, message uniquement si appartenance changée, Annuler, 3 secondes. C08 est clos pour ces opérations ; la suppression d'un mouvement reste une opération distincte.
 
 ### 5. Création et sélection
 
 #### MFN-06 — Créer un exercice
+
+**Portée précisée le 28/10 :** l’insertion avant/après origine selon Plus facile / Plus difficile relève de la création par Ajouter un niveau (MFN-07), pas du dépôt d’un mouvement existant ; pour ce dépôt, la position détermine le rang, même dans une famille de trois membres ou plus (C3/C7).
 
 La saisie du nom déclenche le rapprochement défini par R02–R07 de la spécification v7 ; les tests de référence sont automatiques. Noms principaux uniques après normalisation espaces/casse/accents : contrôler à la frappe et à la sauvegarde ; exclure le mouvement édité de sa propre collision. Les alias peuvent être communs à plusieurs mouvements ; un seul résultat par identité.
 
