@@ -152,7 +152,7 @@ Dans le MVP, les médias déjà associés à un Exercice peuvent être consulté
 
 ### Formats et départs rapides
 
-Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).
+Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). **Dans la cible PRE-9, chaque Exercice porte son éventuel Format et ses réglages ; le Circuit organise les membres sans porter de Format propre.** Plusieurs Formats peuvent se succéder dans une Séance et dans ses Circuits/Cycles. Les Circuits repliés présentent la liste existante de leurs Exercices, enrichie du Format éventuel de chacun (Figma `10717:20056` / `10725:20142`). Leurs règles sont au chapitre 10 et le contrat de Composition au chapitre 13 ; le moteur n’est pas encore développé (D-369).
 
 ### Exécution d’une Séance
 
