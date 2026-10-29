@@ -1,6 +1,6 @@
 # PRE-9 — Réponses aux questions ouvertes du plan (Hermann, 29/10/2026)
 
-> **Objet.** Ce document consigne les arbitrages de Hermann du 29/10/2026 sur les questions ouvertes du plan PRE-9 (`arbitrages-pre9.md` §2 bis) : ARB-04, ARB-22c, ARB-26, ARB-27, ARB-28.
+> **Objet.** Ce document consigne les arbitrages de Hermann du 29/10/2026 sur les questions ouvertes du plan PRE-9 (`arbitrages-pre9.md` §2 bis).
 >
 > **Base.** Branche de planification `pre9-bmad/plan`, commit `265f3d9d`. Documentation normative : `main`, commit `c73079e9`.
 >
@@ -10,13 +10,15 @@
 
 ## 1. Synthèse
 
-| Question | Statut | Décision |
-|---|---|---|
-| Valeurs initiales des réglages de format | **CLOS** | Cas de référence validés, plus deux valeurs fournies (§2) |
-| Contenu des cinq départs rapides | **OUVERT** | En attente de la définition de Hermann (§3) |
-| Format porté par un exercice déposé dans un circuit | **CLOS pour les circuits groupés**, **OUVERT pour les circuits formatés** (§4) |
+| Question | Statut |
+|---|---|
+| Valeurs initiales des réglages de format | **CLOS** (§2) |
+| Principes des circuits formatés | **CLOS** (§4) ; remplace ARB-24 sur les valeurs imposées |
+| Dépose d'un élément formaté dans un circuit | **CLOS** pour les six formats, groupé comme alterné (§4.3) |
 | Second exercice ajouté à un format porté par un exercice seul | **PARTIELLEMENT CLOS** (§5) |
 | Position d'un circuit formaté inséré par l'entrée « Format » | **CLOS** (§6) |
+| Contenu des cinq départs rapides | **OUVERT** (§3) |
+| Ajout d'un format identique dans une séance : choix entre circuit existant et nouveau circuit | **Interface** : à traiter dans Figma (§4.5) |
 
 ## 2. Valeurs initiales des réglages de format
 
@@ -34,76 +36,70 @@
 | Death by | incrément | 1 |
 | Death by | durée d'une fenêtre | 1 min |
 
-Ces valeurs sont modifiables par l'utilisateur, sauf les valeurs imposées par le format : Tabata, les constantes 30 s / 30 s du 30/30, et la structure du For time. Aucune autre valeur illustrée dans Figma ou dans les recettes ne devient un défaut. Ce changement est une évolution validée : il lève pour ces seules valeurs la réserve selon laquelle les exemples ne sont pas des défauts.
+Ces valeurs sont modifiables, sauf celles qu'un format impose : Tabata, constantes 30 s / 30 s du 30/30, structure du For time. Aucune autre valeur illustrée dans Figma ou dans les recettes ne devient un défaut.
 
 ## 3. Contenu des cinq départs rapides
 
-**[À CLARIFIER]** Renforcement, Gainage et Mobilité, Superset, Progression, À l'échec : les exercices et réglages proposés par défaut ne sont pas définis. Le mécanisme commun peut être construit sans eux ; l'activation de chaque départ attend sa définition.
+**[À CLARIFIER]** Renforcement, Gainage et Mobilité, Superset, Progression, À l'échec : les exercices et réglages par défaut ne sont pas définis. L'activation de chaque départ attend leur définition.
 
-## 4. Format porté par un exercice déposé dans un circuit
+## 4. Circuits formatés et dépose d'éléments
 
-**Question.** Un exercice porteur d'un format peut-il être déposé dans un circuit, et à quelles conditions ?
+### 4.1 Principes
 
-### 4.1 Critère
+**[DÉCIDÉ]** Définis par Hermann le 29/10/2026 :
 
-**[DÉCIDÉ]** L'opération est admise tant qu'elle ne change pas la nature du format de l'exercice. Elle est refusée sans altération dans le cas contraire.
+1. **Un circuit formaté fige** son organisation (groupé ou alterné) et tout paramètre dont la modification dénaturerait le format.
+2. **Un circuit impose son organisation et son nombre de tours, jamais les paramètres imposés de ses membres.**
+3. **Un exercice libre qui entre dans un circuit formaté hérite de son organisation et de son nombre de tours, et garde ses propres paramètres.**
+4. **Un élément déjà formaté qui entre dans un circuit suit la même règle** : il hérite de l'organisation et du nombre de tours du circuit, et garde ses propres paramètres. Son nombre de tours, lorsqu'il est variable, prend la valeur du circuit. Il n'y a pas de raison de le refuser.
+
+**Remplacement d'ARB-24.** ARB-24 disait que les valeurs imposées d'un circuit formaté sont appliquées à l'exercice qui entre. Le principe 2 remplace ce passage. La confirmation reste prévue lorsqu'une valeur est perdue (ch10 l.1077).
+
+### 4.2 Critère de dépose
+
+**[DÉCIDÉ]** L'élément peut entrer dans un circuit tant que son format ne change pas de nature. Le seul paramètre que le circuit peut contraindre est le nombre de séries (alterné) ou de tours, et seulement sous la règle de l'organisation.
 
 > « Ajouter un exercice formaté à un circuit alterné changerait la nature du format de l'exercice, donc c'est interdit, en tout cas c'est interdit si ça change la nature de l'exercice formaté. »
 
 > « J'accepte que le compte d'un circuit groupé répète un élément formaté, c'est même son principe, il n'y a pas de contradiction ni d'incohérence. »
 
-> « Le circuit […] multiplie le nombre d'exécutions d'un ou de plusieurs exercices. [...] il ne fait pas le travail du cycle, il fait le sien. »
+### 4.3 Matrice de dépose
 
-### 4.2 Circuit groupé : admis pour les six formats
+L'identité du circuit formaté n'intervient pas dans la décision : seuls comptent son organisation et son nombre de tours. Un circuit Tabata se traite donc comme un circuit alterné de 8 ; un circuit formaté groupé se traite comme un circuit groupé.
 
-**[DÉCIDÉ]** Le circuit groupé répète la passage complet de chacun de ses membres, selon son compte. Pour chaque format :
+**Circuit groupé : admis pour les six formats.**
+- **Tabata** : chaque passage exécute les 8 séries, 20 s et 10 s.
+- **30/30** : chaque passage exécute ses séries et ses pauses.
+- **EMOM** : chaque passage est un bloc complet ; la durée est la somme des blocs.
+- **For time** : chaque passage exécute l'échelle complète depuis 21. Le temps de chaque passage est enregistré ; le total est la somme.
+- **AMRAP** : chaque répétition dure 12 minutes, sans limite globale.
+- **Death by** : arrêter l'exercice met fin à cet élément seulement, pas à la séance. Le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt.
 
-| Format | Ce qui se passe à chaque passage |
-|---|---|
-| **Tabata** | Les 8 séries, 20 s d'effort et 10 s de pause sont exécutées à chaque passage. |
-| **30/30** | Les 30 s de travail et 30 s de pause sont exécutées à chaque passage. |
-| **EMOM** | Chaque passage est un bloc de fenêtres complet. La durée totale est la somme des blocs. |
-| **For time** | Chaque passage exécute l'échelle complète, depuis 21. Le temps de chaque passage est enregistré ; le temps total est la somme. |
-| **AMRAP** | Chaque répétition dure 12 minutes. Il n'existe pas de limite globale. |
-| **Death by** | Arrêter l'exercice met fin à cet élément seulement, pas à la séance. Le bloc suivant se lance automatiquement. La récupération et les points d'arrêt se déroulent normalement. |
+**Circuit alterné :**
+- **Tabata** : **ADMIS si N = 8** ; **REFUSÉ si N ≠ 8**, car le Tabata impose 8 séries.
+- **30/30** : **REFUSÉ**, son organisation alternée n'est pas décrite.
+- **EMOM** : **ADMIS**. Son nombre de tours prend la valeur N, qui reste modifiable ; confirmation si une valeur est perdue.
+- **For time** : **REFUSÉ**, son organisation alternée est exclue.
+- **AMRAP** : **REFUSÉ**, aucun nombre de séries à contraindre.
+- **Death by** : **REFUSÉ**, aucun nombre de séries à contraindre.
 
-**Point de conformité.** FMT-34 écrit qu'« un seul bouton met fin à la séance ». La décision ci-dessus en change la portée pour le Death by : le bouton met fin à l'élément en cours. Cette formulation est à annoter comme remplacée, avec son texte d'origine conservé, dans la propagation normative (§8.2).
+**Point de conformité.** FMT-34 écrit « un seul bouton met fin à la séance ». La décision sur le Death by en change la portée. La formulation est déjà annotée dans le chapitre 10 (commit `990542fd`).
 
-### 4.3 Circuit alterné
+### 4.4 Régime de la dépose
 
-**[DÉCIDÉ]** Le circuit alterné impose son compte N aux séries de ses membres. Une dépose est admise ou refusée selon le format :
+Un élément qui entre dans un circuit alterné **conserve son régime et ses paramètres**, son exemplaire est adapté à N, et une confirmation est demandée s'il faut retirer des séries (ch10 l.1152). La sortie conserve le nombre actif et les paramètres actuels (ch10 l.1154).
 
-| Format | Issue |
-|---|---|
-| **Tabata** | **ADMIS si N = 8**, avec le compte commun du Tabata. **REFUSÉ si N ≠ 8.** |
-| **30/30** | **REFUSÉ** : son organisation alternée n'est pas décrite. |
-| **EMOM** | **ADMIS AVEC CONFIRMATION** : l'organisation alternée est décidée pour l'EMOM, et la confirmation est demandée si des valeurs sont perdues. |
-| **For time** | **REFUSÉ** : son organisation alternée est exclue. |
-| **AMRAP** | **REFUSÉ** : aucun nombre de séries à contraindre. |
-| **Death by** | **REFUSÉ** : aucun nombre de séries à contraindre. |
+### 4.5 Ajout d'un format identique dans une séance
 
-Le régime de la dépose est celui des règles écrites : l'exercice conserve son régime et ses paramètres, puis son exemplaire est adapté à N, avec confirmation s'il faut retirer des séries (ch10 l.1077, l.1152, l.1156). La sortie conserve le nombre actif et les paramètres actuels (ch10 l.1154).
-
-### 4.4 Circuit formaté : À CLARIFIER
-
-**[À CLARIFIER]** Un exercice porteur d'un format est déposé dans un circuit qui porte déjà un format. Cas concret : un EMOM déposé dans un circuit Tabata.
-
-Options :
-- **a1.** Refus de toute dépose dans un circuit formaté.
-- **a2.** Admis seulement si le circuit porte le même format aux mêmes réglages. L'exercice devient simple membre, et son format propre disparaît au profit de celui du circuit. Refus sinon.
-- **a3.** Admis avec confirmation, le format du circuit l'emportant sur celui de l'exercice.
-
-L'arbitrage doit aussi dire si un exercice qui quitte ce circuit retrouve son format, et distinguer un circuit formaté groupé d'un circuit formaté alterné.
-
-**Recommandation : a2.** C'est la seule option qui n'invente aucune priorité entre deux formats. Aucune règle n'établit laquelle des deux prescriptions l'emporte.
+**[PROPOSÉ] Choix à l'utilisateur.** Lorsqu'il ajoute un format qui existe déjà dans la séance, l'utilisateur choisit entre **ajouter au circuit formaté existant** et **créer un nouveau circuit**. Ce choix est porté par l'interface. Son traitement graphique relève de Figma.
 
 ## 5. Second exercice ajouté à un format porté par un exercice seul
 
 **Cas.** Un EMOM est sur l'exercice Squat. On ajoute un second exercice, Fentes.
 
 - **[DÉCIDÉ] Le second exercice adopte l'EMOM.** Si des valeurs qu'il portait sont remplacées, une confirmation est demandée. Le nombre de tours reste 6, et la durée est recalculée.
-- **[DÉCIDÉ] Pour l'EMOM, le sélecteur d'organisation est proposé à l'arrivée du second exercice.** Il est explicitement prévu pour l'EMOM, le Tabata et la Progression, et exclu pour le For time.
-- **[PROPOSÉ] Le format remonte de l'exercice au circuit, réglages inchangés.** Hermann a validé que le second exercice adopte le format, pas le transfert de propriété. À confirmer.
+- **[DÉCIDÉ] Le sélecteur d'organisation est proposé à l'arrivée du second exercice**, pour les formats qui l'admettent : Tabata, EMOM, Progression. Il est exclu pour le For time.
+- **[PROPOSÉ] Le format remonte de l'exercice au circuit, réglages inchangés.** À confirmer.
 - **[À CLARIFIER] Le Death by dans ce geste.** Son comportement avec plusieurs exercices n'est pas défini. Exclure le Death by de ce geste pour l'instant, ou le permettre en définissant comment le rang global se calcule.
 
 ## 6. Position d'un circuit formaté inséré par l'entrée « Format »
@@ -113,49 +109,48 @@ L'arbitrage doit aussi dire si un exercice qui quitte ce circuit retrouve son fo
 ## 7. Décisions de principe
 
 1. **[DÉCIDÉ] ARB-03 est conservé.** Un format peut être porté par un exercice, sans passer par un circuit.
-2. **[DÉCIDÉ] Un exercice formaté peut être répété par un circuit groupé ou par un cycle.**
+2. **[DÉCIDÉ] Un élément formaté peut être répété par un circuit groupé ou par un cycle.**
 3. **[DÉCIDÉ] ARB-25 est précisé.** Le cycle répète la séquence entière, y compris les éléments formatés. Le circuit répète les passages de ses membres selon son compte. Le nombre de répétitions du cycle ne remplace jamais le nombre de séries d'un circuit.
-4. **[DÉCIDÉ] Arrêt d'un Death by.** Arrêter un Death by met fin à cet élément, non à la séance. Le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt.
+4. **[DÉCIDÉ] Arrêt d'un Death by.** Il met fin à cet élément, non à la séance.
 5. **[DÉCIDÉ] AMRAP répété.** Chaque répétition dure 12 minutes.
+6. **[DÉCIDÉ] Principes des circuits formatés** (§4.1), qui remplacent le passage d'ARB-24 sur les valeurs imposées.
 
 ## 8. Conséquences sur le plan et la documentation
 
-Seules les parties décidées sont propageables. Les points §4.4, §5 et §3 ne donnent lieu à aucune correction normative.
+Seules les parties décidées sont propageables.
 
 ### 8.1 Planification PRE-9
 
-- `arbitrages-pre9.md` : ARB-04 et ARB-26 pour le circuit groupé passent en **CLOS** ; ARB-26 pour le circuit formaté reste ouvert ; ARB-27 reste **PARTIELLEMENT CLOS** ; ARB-28 **CLOS**.
-- `arbitrages-pre9.md` §5, lignes 190 et 201 : les annotations prévues pour FMT-12 et CE-FMT-02 disent « la répétition intégrale d'un Tabata se fait par un Cycle » : à reformuler, le circuit groupé répétant aussi.
-- `architecture-pre9.md` §§2, 3, 5 et 6 : propriété du format lors de la transition exercice vers circuit ; statut du nombre de séries par format ; contrat de composition vers exécution pour les répétitions.
-- `epics.md` : B.4 et C.4 pour les formats admis en circuit groupé et en circuit alterné selon la matrice ; C.4 pour les cinq cas du §4.2 ; C.5 inchangé, conditionné au §3.
-- `etat-initial-et-ecarts.md`, `README.md`, `sprint-status.yaml` : statuts mis à jour.
+- `arbitrages-pre9.md` : ARB-04 et ARB-26 **CLOS** ; ARB-24 **remplacé** sur les valeurs imposées ; ARB-27 **PARTIELLEMENT CLOS** ; ARB-28 **CLOS**.
+- `arbitrages-pre9.md` §5, lignes 190 et 201 : annotations à reformuler, le circuit groupé répétant aussi.
+- `architecture-pre9.md` §§2, 3, 5, 6 : propriété du format ; statut du nombre de séries par format ; contrat de composition vers exécution.
+- `epics.md` : B.4 et C.4 selon la matrice du §4.3 ; C.5 inchangé, conditionné au §3.
+- `etat-initial-et-ecarts.md`, `README.md`, `sprint-status.yaml` : statuts.
 
 ### 8.2 Documentation normative
 
 Classe B pour les décisions validées, avec annotation des formulations remplacées, texte d'origine conservé :
 
-- **FMT-34** : portée de la fin pour le Death by (§4.2, §7 point 4).
-- **FMT-26** : borne globale de l'AMRAP, remplacée pour la répétition par 12 minutes (§7 point 5).
-- **ch10 réglages de format** : valeurs initiales (§2).
-- **CE-FMT-02 et CE-FMT-03** : contrôle de dépose, confirmation, refus sans altération.
+- **ch10, ARB-24** : valeurs imposées du circuit formaté, remplacées par le principe 2 (§4.1).
+- **ch10, FMT-26** : borne globale de l'AMRAP, remplacée pour la répétition par 12 minutes.
+- **ch10, réglages de format** : valeurs initiales (§2).
+- **CE-FMT-03** : contrôle de dépose ; le circuit n'impose pas les paramètres de ses membres.
 - **ch07 registre** : décisions du 29/10 et précision apportée à ARB-25.
 
-**Non concerné :** FMT-23 (fenêtre contiguë) reste vrai à l'intérieur d'un bloc EMOM.
+**Non concerné :** FMT-23 reste vrai à l'intérieur d'un bloc EMOM.
 
 ## 9. Écarts d'exécution, hors périmètre
 
-Trois points, sans exigence normative à ce stade :
-
-1. **[À CLARIFIER]** L'appui « Appuyez à chaque tour terminé » est présent sur les écrans AMRAP et For time, mais aucune règle ne le décrit pour ces deux formats.
+1. **[À CLARIFIER]** L'appui « Appuyez à chaque tour terminé » est présent sur les écrans AMRAP et For time, sans règle qui le décrive.
 2. **[À CLARIFIER]** Le plafond de temps du For time, rapporté comme décidé le 28/10/2026, n'est retrouvé dans aucune source au commit `c73079e9`. Hermann doit le confirmer.
-3. **[À CLARIFIER]** Le tour partiel de l'AMRAP et la règle de répétitions partielles ne sont pas raccordés explicitement.
+3. **[À CLARIFIER]** Le tour partiel de l'AMRAP n'est pas raccordé à la règle des répétitions partielles.
 
 ## 10. Points ouverts
 
 | Point | Bloque |
 |---|---|
 | Contenu des cinq départs rapides (§3) | Activation de chaque départ |
-| Circuit formaté : a1, a2 ou a3 (§4.4) | Six cas de dépose dans un circuit formaté |
-| Format remonte de l'exercice au circuit (§5, point 2) | Le geste complet d'ajout d'un second exercice |
-| Death by dans ce geste (§5, point 4) | Ce geste pour le Death by |
+| Le format remonte de l'exercice au circuit (§5) | Le geste d'ajout d'un second exercice |
+| Death by dans ce geste (§5) | Ce geste pour le Death by |
+| Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
