@@ -48,10 +48,10 @@ Ces valeurs sont modifiables, sauf celles qu'un format impose : Tabata, constant
 
 **[DÉCIDÉ]** Définis par Hermann le 29/10/2026 :
 
-1. **Un circuit formaté fige** son organisation (groupé ou alterné) et tout paramètre dont la modification dénaturerait le format.
-2. **Un circuit impose son organisation et son nombre de tours, jamais les paramètres imposés de ses membres.**
-3. **Un exercice libre qui entre dans un circuit formaté hérite de son organisation et de son nombre de tours, et garde ses propres paramètres.**
-4. **Un élément déjà formaté qui entre dans un circuit suit la même règle** : il hérite de l'organisation et du nombre de tours du circuit, et garde ses propres paramètres. Son nombre de tours, lorsqu'il est variable, prend la valeur du circuit. Il n'y a pas de raison de le refuser.
+1. **Un format appartient à l'élément qui le porte.** Un exercice porte son format ; le lien dans un circuit ne le transfère pas.
+2. **Un circuit fixe son organisation (groupé ou alterné) et son nombre de tours.** Il ne fixe jamais les paramètres propres de ses membres.
+3. **Un élément qui entre dans un circuit prend son organisation et son nombre de tours, et garde ses propres paramètres.** Si son nombre de tours est variable, il prend la valeur du circuit.
+4. **Une entrée est refusée seulement si elle change la nature de l'élément**, par exemple un alterné imposant un nombre de séries différent de celui que son format impose.
 
 **Remplacement d'ARB-24.** ARB-24 disait que les valeurs imposées d'un circuit formaté sont appliquées à l'exercice qui entre. Le principe 2 remplace ce passage. La confirmation reste prévue lorsqu'une valeur est perdue (ch10 l.1077).
 
@@ -113,7 +113,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 3. **[DÉCIDÉ] ARB-25 est précisé.** Le cycle répète la séquence entière, y compris les éléments formatés. Le circuit répète les passages de ses membres selon son compte. Le nombre de répétitions du cycle ne remplace jamais le nombre de séries d'un circuit.
 4. **[DÉCIDÉ] Arrêt d'un Death by.** Il met fin à cet élément, non à la séance.
 5. **[DÉCIDÉ] AMRAP répété.** Chaque répétition dure 12 minutes.
-6. **[DÉCIDÉ] Principes des circuits formatés** (§4.1), qui remplacent le passage d'ARB-24 sur les valeurs imposées.
+6. **[DÉCIDÉ] Principes des circuits formatés** (§4.1), qui remplacent le passage d'ARB-24 sur les valeurs imposées. Version resserrée validée le 29/10/2026.
 7. **[DÉCIDÉ] Pas de transfert automatique du format.** Le format appartient à l'élément qui le porte. ARB-03 est précisé : un format n'est porté par un circuit que si l'utilisateur place ses exercices dans ce circuit.
 
 ## 8. Conséquences sur le plan et la documentation
