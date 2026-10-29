@@ -32,6 +32,7 @@ import { useReferentialService } from "@/features/reference-data/ReferentialServ
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { EditMovementAction, EditorHeader } from "@/features/sessions/ExerciseScreen";
+import { handMovementsToComposition } from "@/features/sessions/movementExercises";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
 import { ScreenShell } from "@/shared/ui/ScreenShell";
@@ -141,10 +142,28 @@ function toEditorCategory(categoryId: string | null, categories: readonly Catego
   return found ? { name: found.name, color: found.color } : null;
 }
 
+/**
+ * PRE-9 A.2 (ARB-22a, D-449) : valeur du paramètre de route `context` qui ouvre la création d'un
+ * Mouvement depuis la Composition (« Créer un nouvel exercice »), `/movement?context=session`.
+ */
+export const MOVEMENT_SESSION_CONTEXT = "session";
+
 export function MovementScreen() {
-  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string }>();
+  const params = useLocalSearchParams<{ movementId?: string; variantOf?: string; placement?: string; mode?: string; context?: string }>();
   const placement: VariantPlacement = params.placement === "BEFORE_ORIGIN" ? "BEFORE_ORIGIN" : "AFTER_ORIGIN";
   const openInEdit = params.mode === MOVEMENT_EDIT_MODE_PARAM;
+  // PRE-9 A.2 : création seulement (ni fiche existante ni variante dans ce contexte, CE-MVT-01 §3).
+  if (params.context === MOVEMENT_SESSION_CONTEXT) {
+    return (
+      <MovementSheet
+        key="session"
+        movementId={null}
+        variantOf={null}
+        variantPlacement="AFTER_ORIGIN"
+        onMovementChosen={(movement) => handMovementsToComposition([movement])}
+      />
+    );
+  }
   return (
     <MovementSheet
       key={`${params.movementId ?? ""}|${params.variantOf ?? ""}|${placement}|${openInEdit ? "edit" : ""}`}
@@ -176,12 +195,22 @@ export function MovementSheet({
   variantOf,
   variantPlacement,
   openInEdit = false,
+  onMovementChosen,
 }: {
   readonly movementId: string | null;
   readonly variantOf: string | null;
   readonly variantPlacement: VariantPlacement;
   /** Recette A/B (F07) : fiche ouverte depuis le Catalogue des Mouvements, directement en édition. */
   readonly openInEdit?: boolean;
+  /**
+   * PRE-9 A.2 (ARB-22a, CE-MVT-01 §3-§4) : création depuis une Séance. Terminer enregistre le
+   * Mouvement puis le rend à l'appelant (« revient au contexte appelant avec l'identité
+   * enregistrée ») ; « Utiliser ce mouvement » rend le Mouvement existant, sans doublon ni fiche
+   * ouverte (son contenu reste en lecture seule dans la Séance) ; « La création de variante depuis
+   * une séance reste exclue » : l'action « Créer une variante » n'est pas proposée. Absent :
+   * comportement du Catalogue des Mouvements, inchangé.
+   */
+  readonly onMovementChosen?: (movement: Movement) => void;
 }) {
   const router = useRouter();
   const service = useActivityDefinitionService();
@@ -299,12 +328,19 @@ export function MovementSheet({
     },
     context: searchContext,
     // Recette A/B B.10 (remarque 6) : « Ajouter un niveau » / « Ouvrir ce mouvement ».
-    actionLabels: t.suggestion,
+    // PRE-9 A.2 : depuis une Séance, libellés de l'éditeur d'Exercice (« Utiliser ce mouvement »).
+    ...(onMovementChosen === undefined ? { actionLabels: t.suggestion } : {}),
     onSameMovement: (choice) => {
+      if (onMovementChosen !== undefined) {
+        // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon.
+        onMovementChosen(choice.movement);
+        setIsDone(true);
+        return;
+      }
       // « Ouvrir ce mouvement » : la fiche existante, en consultation ; aucun duplicata.
       router.replace({ pathname: "/movement", params: { movementId: choice.movement.id } });
     },
-    onVariant: (choice, placement) => {
+    onVariant: onMovementChosen !== undefined ? undefined : (choice, placement) => {
       setSaveError(false);
       setVariant({ originId: choice.movement.id, placement, position: variantLevelPosition(choice.level, placement) });
       setDraft((current) => ({
@@ -338,13 +374,15 @@ export function MovementSheet({
   const candidate = movementOfDraft(draft, origin?.id ?? "draft", origin?.levelGroup ?? null);
   const isValid = validateMovement(candidate).ok;
 
-  async function write(run: () => Promise<{ readonly status: string }>) {
+  async function write(run: () => Promise<{ readonly status: string }>, saved?: Movement) {
     setIsSaving(true);
     setSaveError(false);
     try {
       const result = await run();
       if (result.status === "SAVED") {
         service.commitMediaDraft(mediaDraftId);
+        // PRE-9 A.2 (CE-MVT-01 §4) : identité enregistrée rendue au contexte appelant (Séance).
+        if (saved !== undefined) onMovementChosen?.(saved);
         setIsDone(true);
         return;
       }
@@ -368,7 +406,7 @@ export function MovementSheet({
       if (variant !== null) {
         await write(() => catalogue.createVariant(movement, variant.originId, variant.placement === "BEFORE_ORIGIN" ? "EASIER" : "HARDER"));
       } else {
-        await write(() => catalogue.createIndependent(movement));
+        await write(() => catalogue.createIndependent(movement), movement);
       }
       return;
     }

@@ -105,6 +105,7 @@ import {
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { firstMediaPreviewSource } from "@/features/activities/MediaPreview";
+import { MOVEMENT_SESSION_CONTEXT } from "@/features/activities/MovementScreen";
 import { useCategoriesReferential } from "@/features/activities/useCategoriesReferential";
 import { useMovementLevelPositions } from "@/features/activities/useMovementLevelPositions";
 import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
@@ -118,6 +119,8 @@ import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/session
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout } from "@/features/sessions/compositionLayout";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
+import { CreateMenu } from "@/features/sessions/CreateMenu";
+import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -862,6 +865,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-7 (R-6, D-445 C06) : positions de niveau (suffixe « - Nn » des cartes), relues au retour au
   // premier plan (niveau ajouté ou réordonné depuis un éditeur).
   const levelPositions = useMovementLevelPositions(activityDefinitionService, categoriesFocusToken);
+  // PRE-9 A.2 (ARB-22a, ARB-07) : Mouvements remis par la création ou la sélection, devenus
+  // Exercices du brouillon au retour au premier plan ; feuille de paramètres de chacun.
+  const movementExerciseSheet = useMovementExerciseIntake();
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -3938,9 +3944,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        * 5753653735, point 7) : arbre exact `Une nouvelle activité` / `Une
        * activité existante` / `Annuler` — comportement PRÉSERVÉ à
        * l'identique (`Une nouvelle activité` crée une `SessionActivity`
-       * locale, route `/exercise` ; `Une activité existante` ouvre la
-       * sélection multiple, `/activity-selection` ; `Annuler` ferme sans
-       * écriture). Seuls format/dimensions/ordre/scrim/z-order sont
+       * locale, route de l'ancien éditeur ; `Une activité existante` ouvre la
+       * sélection multiple des anciennes définitions ; `Annuler` ferme sans
+       * écriture) [routes remplacées le 29/10/2026 par PRE-9 A.2, ARB-22a :
+       * création d'un Mouvement, sélection des Mouvements du Catalogue]. Seuls format/dimensions/ordre/scrim/z-order sont
        * corrigés :
        * - `top` inclut désormais la hauteur RÉELLE cumulée de l'en-tête
        *   fixe, de son séparateur et de la bande Context (même calcul que
@@ -3956,61 +3963,64 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
        *   tout le reste de l'écran, jamais dessous.
        */}
       {isAddActivityTreeOpen ? (
-        <>
-          <Pressable
-            onPress={() => setIsAddActivityTreeOpen(false)}
-            accessible={false}
-            testID="composition-add-activity-tree-backdrop"
-            style={styles.addActivityTreeScrim}
-          />
-          <View
-            style={[styles.addActivityTree, { top: addActivityTreeTop }]}
-            testID="composition-add-activity-tree"
-          >
-            {/*
-             * PRE-9 B.2 (COMP §5, Figma `10705:20223`, ARB-19) : menu Créer — cinq actions puis
-             * Annuler, dans l'ordre observé, sur l'arbre existant (mêmes options, même voile).
-             * « Utiliser une séance existante » relève de B.8 : visible, indisponible d'ici là.
-             * « Ajouter un circuit / un cycle » ouvre le mode enveloppe ; sans contenu éligible
-             * (Séance vide…), l'action est indisponible, non masquée (traitement existant des actions
-             * indisponibles : « Un circuit » du menu du Catalogue). La sixième entrée, « Format »
-             * (ARB-23), sera branchée par C.4.
-             */}
-            <AddTreeOption
-              label={addToSession.newActivity}
-              onPress={() => {
+        /*
+         * PRE-9 B.2 (COMP §5) : menu Créer au rendu de Figma `10705:20223` (`CreateMenu`) — cinq
+         * actions puis Annuler, dans l'ordre observé. « Utiliser une séance existante » relève de
+         * B.8 : visible, indisponible d'ici là. « Ajouter un circuit / un cycle » ouvre le mode
+         * enveloppe ; sans contenu éligible (Séance vide…), l'action est indisponible, non masquée.
+         * La sixième entrée, « Format » (ARB-23), sera branchée par C.4.
+         */
+        <CreateMenu
+          top={addActivityTreeTop}
+          options={[
+            {
+              key: "new",
+              label: addToSession.newActivity,
+              icon: "exercise",
+              onPress: () => {
                 setIsAddActivityTreeOpen(false);
-                router.push("/exercise");
-              }}
-              testID="composition-add-activity-tree-new"
-            />
-            <AddTreeOption
-              label={addToSession.existingActivity}
-              onPress={() => {
+                // PRE-9 A.2 (ARB-22a, D-449) : création d'un Mouvement (CE-MVT-01) en contexte Séance,
+                // puis paramètres de l'Exercice (`useMovementExerciseIntake`) ; plus l'ancien éditeur.
+                router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } });
+              },
+              testID: "composition-add-activity-tree-new",
+            },
+            {
+              key: "existing",
+              label: addToSession.existingActivity,
+              icon: "movement",
+              onPress: () => {
                 setIsAddActivityTreeOpen(false);
-                router.push("/activity-selection");
-              }}
-              testID="composition-add-activity-tree-existing"
-            />
-            <AddTreeOption label={addToSession.existingSession} testID="composition-add-activity-tree-existing-session" />
-            <AddTreeOption
-              label={addToSession.addCircuit}
-              onPress={circuitEnvelopeCandidates.length > 0 ? () => enterEnvelope("CIRCUIT") : undefined}
-              testID="composition-add-activity-tree-circuit"
-            />
-            <AddTreeOption
-              label={addToSession.addCycle}
-              onPress={cycleEnvelopeCandidates.length > 0 ? () => enterEnvelope("CYCLE") : undefined}
-              testID="composition-add-activity-tree-cycle"
-            />
-            <AddTreeOption
-              label={addToSession.cancel}
-              onPress={() => setIsAddActivityTreeOpen(false)}
-              testID="composition-add-activity-tree-cancel"
-            />
-          </View>
-        </>
+                // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
+                // Mouvements ; plus la sélection des anciennes définitions (`activity_definitions`).
+                router.push("/movement-selection");
+              },
+              testID: "composition-add-activity-tree-existing",
+            },
+            { key: "session", label: addToSession.existingSession, icon: "session", testID: "composition-add-activity-tree-existing-session" },
+            {
+              key: "circuit",
+              label: addToSession.addCircuit,
+              icon: "circuit",
+              onPress: circuitEnvelopeCandidates.length > 0 ? () => enterEnvelope("CIRCUIT") : undefined,
+              testID: "composition-add-activity-tree-circuit",
+            },
+            {
+              key: "cycle",
+              label: addToSession.addCycle,
+              icon: "cycle",
+              onPress: cycleEnvelopeCandidates.length > 0 ? () => enterEnvelope("CYCLE") : undefined,
+              testID: "composition-add-activity-tree-cycle",
+            },
+          ]}
+          onCancel={() => setIsAddActivityTreeOpen(false)}
+          cancelLabel={addToSession.cancel}
+          cancelTestID="composition-add-activity-tree-cancel"
+        />
       ) : null}
+
+      {/* PRE-9 A.2 (ARB-22a) : paramètres des Exercices créés depuis des Mouvements. */}
+      {movementExerciseSheet}
 
       {isLabelPickerOpen ? (
         <LabelPickerModal
@@ -7164,21 +7174,3 @@ const styles = StyleSheet.create({
  * absent), indisponible selon le traitement existant (« Un circuit » du menu du Catalogue,
  * `CatalogueCreateOptions`) : atténuée, inactive, nom accessible suivi de « indisponible ».
  */
-function AddTreeOption({ label, onPress, testID }: { label: string; onPress?: () => void; testID: string }) {
-  const disabled = onPress === undefined;
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      accessibilityRole="button"
-      accessibilityLabel={
-        disabled ? strings.screens.activities.addToSession.unavailableAccessibilityLabel.replace("{action}", label) : label
-      }
-      accessibilityState={{ disabled }}
-      style={[styles.addActivityTreeOption, disabled ? styles.addActivityTreeOptionDisabled : null]}
-      testID={testID}
-    >
-      <Text style={[styles.addActivityTreeOptionLabel, disabled ? styles.addActivityTreeOptionLabelDisabled : null]}>{label}</Text>
-    </Pressable>
-  );
-}

@@ -48,8 +48,11 @@ export type MovementOriginChoiceOptions = {
   readonly context?: MovementSearchContext;
   /** « Utiliser ce mouvement » (panneau ou écran de recherche). */
   readonly onSameMovement: (choice: MovementChoice) => void;
-  /** « Créer une variante » puis Plus facile / Plus difficile. */
-  readonly onVariant: (choice: MovementChoice, placement: VariantPlacement) => void;
+  /**
+   * « Créer une variante » puis Plus facile / Plus difficile. PRE-9 A.2 (CE-MVT-01 §3 : « La création
+   * de variante depuis une séance reste exclue ») : absent, l'action n'est pas proposée.
+   */
+  readonly onVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
   /**
    * Recette A/B B.10 (remarque 6) : libellés des actions des cartes du panneau (fiche Mouvement) ;
    * absent : libellés de l'éditeur d'Exercice, inchangés.
@@ -203,11 +206,11 @@ export function useMovementOriginChoice({
         setFrozen(null);
         onSameMovement(choice);
       }}
-      onCreateVariant={(choice) => setVariantOf(choice.movement.id)}
+      {...(onVariant !== undefined ? { onCreateVariant: (choice: MovementChoice) => setVariantOf(choice.movement.id) } : {})}
       onChooseVariant={(choice, placement) => {
         setVariantOf(null);
         setFrozen(null);
-        onVariant(choice, placement);
+        onVariant?.(choice, placement);
       }}
       onBack={() => setVariantOf(null)}
       onTouchingChange={(touching) => setFrozen(touching ? live : null)}
@@ -227,7 +230,7 @@ export function useMovementOriginChoice({
         }}
         onChooseVariant={(choice, placement) => {
           setIsSearchOpen(false);
-          onVariant(choice, placement);
+          onVariant?.(choice, placement);
         }}
         onClose={() => setIsSearchOpen(false)}
       />

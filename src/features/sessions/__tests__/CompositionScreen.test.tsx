@@ -474,22 +474,28 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("composition-add-activity-tree")).toBeTruthy();
   });
 
-  it("navigates to /exercise when 'Une nouvelle activité' is selected from the add-activity tree", () => {
+  // PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » ouvre la création d'un Mouvement
+  // (contexte Séance), plus l'ancien éditeur `/exercise`.
+  it("navigates to the Movement creation (session context) when 'Créer un nouvel exercice' is selected from the add-activity tree", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
 
-    expect(mockPush).toHaveBeenCalledWith("/exercise");
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/movement", params: { context: "session" } });
+    expect(mockPush).not.toHaveBeenCalledWith("/exercise");
   });
 
-  it("navigates to /activity-selection when 'Une activité existante' is selected from the add-activity tree", () => {
+  // PRE-9 A.2 — ARB-22a, D-449 : « Utiliser un mouvement existant » ouvre la sélection des Mouvements
+  // du Catalogue, plus `/activity-selection`.
+  it("navigates to /movement-selection when 'Utiliser un mouvement existant' is selected from the add-activity tree", () => {
     renderScreen();
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
 
-    expect(mockPush).toHaveBeenCalledWith("/activity-selection");
+    expect(mockPush).toHaveBeenCalledWith("/movement-selection");
+    expect(mockPush).not.toHaveBeenCalledWith("/activity-selection");
   });
 
   it("closes the add-activity tree without any navigation on Annuler", () => {
@@ -514,15 +520,17 @@ describe("CompositionScreen — état initial", () => {
 
     fireEvent.press(screen.getByLabelText(composition.addActivity));
 
-    const tree = screen.getByTestId("composition-add-activity-tree");
-    const flattenedTop = StyleSheet.flatten(tree.props.style).top as number;
+    // PRE-9 B.2 (Figma `10705:20223`) : la première rangée du menu Créer est à 8 sous la zone de contexte.
+    const firstRow = screen.getByTestId("composition-add-activity-tree-new");
+    const flattenedTop = StyleSheet.flatten(firstRow.props.style).top as number;
     // Insets de test (`TestSafeAreaProvider`) : `top: 47`.
     // Recette 3 (D-353) : plus de séparateur de 1 entre l’en-tête et la bande (auparavant « + 1 »).
     const expectedTop = 47 + dimensions.header.contentHeight + dimensions.contextBand.height + spacing[8];
     expect(flattenedTop).toBe(expectedTop);
 
     const scrim = screen.getByTestId("composition-add-activity-tree-backdrop");
-    expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe(colors.overlayScrim);
+    // PRE-9 B.2 : voile modal de Figma `10705:20311`.
+    expect(StyleSheet.flatten(scrim.props.style).backgroundColor).toBe("rgba(31, 33, 41, 0.42)");
   });
 
   // Story 7.8 : la séance vide affiche « 0 s » dans la zone de contexte (remplace le résumé vide

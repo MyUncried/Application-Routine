@@ -1,3 +1,4 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
@@ -278,12 +279,23 @@ function renderCreationRouter() {
   );
 }
 
+/**
+ * PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » du menu Créer n'ouvre plus l'ancien
+ * éditeur (création d'un Mouvement, `CompositionMovementFlow.integration.test.tsx`). L'ancien
+ * éditeur de création reste dans le code jusqu'à A.3 : ses contrats sont conservés en l'ouvrant
+ * directement par sa route.
+ */
+function openLegacyExerciseCreation() {
+  act(() => {
+    expoRouter.push("/exercise");
+  });
+}
+
 describe("Parcours Composition → Activité (écran unifié), vrai navigateur, vrai SessionDraftProvider (UI-ACT-001)", () => {
   it("1. l'écran Activité expose tout le formulaire d'un seul tenant : aucune étape intermédiaire, Terminer devient actif dès que les champs requis PRE-3 sont valides (T02-S02, D-137 ; PRE-3 §5)", async () => {
     renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     expect(screen.getByLabelText(exercise.backAccessibilityLabel)).toBeTruthy();
 
     expect(screen.getByLabelText(exercise.finishAction).props.accessibilityState).toMatchObject({
@@ -315,8 +327,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
   it("2-3-4-5. Terminer enregistre atomiquement l'Activité, revient sur Composition, l'insère entre Compte à rebours et Tour, sans changer le résumé du Tour (BEFORE_TOUR)", async () => {
     const router = renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -356,8 +367,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {
     const router = renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
 
     act(() => {
@@ -374,8 +384,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
   it("7. Continuer reste désactivé tant que le Nom de la séance est vide, même avec une Activité valide (T01-S09 : résolution de l'ARBITRAGE — Nom manquant, pas un blocage permanent)", async () => {
     renderCreationRouter();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -389,8 +398,7 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     const router = renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance du soir");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Pompes");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 

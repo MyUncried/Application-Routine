@@ -12,7 +12,7 @@ development_status:
   q-1-qualification-fin-pre9: backlog
   epic-a: in-progress
   a-1-fondation-structure-generale: done  # livrée (migration 016, chemin structuré) ; suite Jest complète verte (224 suites / 4 783 tests) le 29/10 ; spec-a-1-fondation-structure-generale.md  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
-  a-2-exercice-depuis-mouvement: backlog  # ARB-22a, ARB-07 (décidés)
+  a-2-exercice-depuis-mouvement: review  # livrée (spec-a-2-exercice-depuis-mouvement.md) ; menu Créer conforme à Figma ; suite complète verte 241 / 4 896 le 29/10 ; recette n° 1 ; ARB-22a, ARB-07 (décidés)
   a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
   a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
   a-5-retrait-table-definitions: backlog  # conditionnelle : non-utilisation, conservation prouvée, autorisation de Hermann

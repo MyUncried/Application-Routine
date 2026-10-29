@@ -1,3 +1,4 @@
+import { router as expoRouter } from "expo-router";
 import { act, fireEvent, renderRouter, screen, waitFor } from "expo-router/testing-library";
 import { describe, expect, it, jest } from "@jest/globals";
 import type { ReactNode } from "react";
@@ -179,22 +180,32 @@ async function renderCreationRouter() {
   return { router, database };
 }
 
+/**
+ * PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » du menu Créer n'ouvre plus l'ancien
+ * éditeur (création d'un Mouvement, `CompositionMovementFlow.integration.test.tsx`). L'ancien
+ * éditeur de création reste dans le code jusqu'à A.3 : ses contrats sont conservés en l'ouvrant
+ * directement par sa route.
+ */
+function openLegacyExerciseCreation() {
+  act(() => {
+    expoRouter.push("/exercise");
+  });
+}
+
 describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 ; PRE-6 story 2.1)", () => {
   it("persists a full multi-Activity, multi-Category session without any data loss, resets the draft and returns to the Catalogue only on success", async () => {
     const { router, database } = await renderCreationRouter();
 
     // Composition : Nom + Activité 1 (Durée, Zones corporelles).
     fireEvent.changeText(screen.getByLabelText(composition.name), "Circuit complet");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     // T02-S02 (D-137) : aucune étape `Valider` ; PRE-3 : saisie complète
     // (Catégorie, Zone via `BodyZonePickerModal`, feuille Paramètres).
     await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
     // Activité 2 (Répétitions) — nouvel ajout, jamais un remplacement.
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Squats", "Répétitions", "cuisses");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 
@@ -250,8 +261,7 @@ describe("Parcours Composition → Continuer → Catalogue (T01-S09 ; PRE-4 Q54 
     const { router, database } = await renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Séance qui échoue");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     // PRE-3 : les référentiels (Catégories, Zones) sont lus pendant la saisie ;
     // l'échec technique est donc provoqué juste AVANT l'enregistrement de la
     // Séance — même contrat : échec atomique, brouillon intact, action réarmée.
@@ -293,8 +303,7 @@ describe("R-3 — création locale, copie et description corrigée depuis la cop
     const { router, database } = await renderCreationRouter();
 
     fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage partagé");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(strings.screens.activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await fillNewExercise("Gainage", "Durée", "dos");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));
 

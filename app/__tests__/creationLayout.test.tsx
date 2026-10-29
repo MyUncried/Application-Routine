@@ -75,6 +75,8 @@ describe("CreationLayout — geste horizontal natif de changement d'écran (T02-
       "composition",
       "exercise",
       "activity-selection",
+      // PRE-9 A.2 (ARB-22a) : sélection des Mouvements depuis la Composition, même `Stack`.
+      "movement-selection",
     ]);
     // Aucune route ne RÉACTIVE le geste par une option locale : la
     // désactivation héritée reste donc effective partout.

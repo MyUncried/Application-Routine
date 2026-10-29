@@ -41,6 +41,7 @@ import {
   reorderedFamilyIds,
   visibleMovementItems,
   type MovementCatalogueFilters,
+  type MovementStatusFilter,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
 import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
@@ -180,6 +181,7 @@ export function MovementCatalogueList({
   filters,
   onOpenMovement,
   onCreateVariant,
+  selection,
 }: {
   readonly reloadToken: number;
   /** Recherche saisie dans la zone de contexte du Catalogue (D02). */
@@ -187,8 +189,27 @@ export function MovementCatalogueList({
   readonly filters: MovementCatalogueFilters;
   readonly onOpenMovement: (movementId: string) => void;
   readonly onCreateVariant: (originId: string, placement: VariantPlacement) => void;
+  /**
+   * PRE-9 A.2 (ARB-22a : « La sélection des Mouvements réutilise le parcours existant du
+   * Catalogue ») — même liste, mêmes piles, même recherche et mêmes filtres, en mode sélection pour
+   * une Séance : Mouvements actifs seulement, quel que soit le filtre d'état (Q6 : un Mouvement
+   * archivé n'est jamais proposé pour créer un Exercice) ; le toucher d'une carte la coche ou la
+   * décoche (une pile repliée se déplie d'abord) ; ni actions glissées, ni réordonnancement, ni
+   * fiche ouverte. `bottomInset` : réserve sous la liste (zone d'action de l'écran hôte).
+   */
+  readonly selection?: {
+    readonly selectedIds: ReadonlySet<string>;
+    readonly onToggle: (movement: MovementCatalogueEntry["movement"]) => void;
+    readonly bottomInset: number;
+  };
 }) {
   const { state, reload, catalogue } = useMovementCatalogue(reloadToken);
+  // PRE-9 A.2 (Q6) : en sélection, le filtre d'état est ramené à « Actifs » (défaut, Q2).
+  const selecting = selection !== undefined;
+  const shownFilters = useMemo(
+    () => (!selecting ? filters : { ...filters, statuses: new Set<MovementStatusFilter>() }),
+    [filters, selecting],
+  );
   const reduceMotion = useReduceMotion();
   const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set());
   const [revealedId, setRevealedId] = useState<string | null>(null);
@@ -247,7 +268,7 @@ export function MovementCatalogueList({
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
-    const visible = visibleMovementItems(state.entries, query, filters);
+    const visible = visibleMovementItems(state.entries, query, shownFilters);
     if (override === null || override.entries !== state.entries) return visible;
     return visible.map((item): MovementCatalogueItem => {
       if (item.kind !== "PILE" || item.key !== override.pileKey) return item;
@@ -255,7 +276,7 @@ export function MovementCatalogueList({
       const members = override.ids.map((id) => byId.get(id)).filter((member) => member !== undefined);
       return members.length === item.members.length ? { ...item, members } : item;
     });
-  }, [state, query, filters, override]);
+  }, [state, query, shownFilters, override]);
 
   const entryById = useMemo(
     () => new Map(state.status === "ready" ? state.entries.map((entry) => [entry.movement.id, entry]) : []),
@@ -597,14 +618,21 @@ export function MovementCatalogueList({
 
   const renderRow = (
     entry: MovementCatalogueEntry,
-    onPress: () => void,
-    options: {
+    openOrExpand: () => void,
+    catalogueOptions: {
       readonly pileCount?: number;
       readonly swipe: boolean;
       readonly onLongPress?: () => void;
       readonly reorderActions?: readonly SwipeAccessibilityAction[];
     },
   ) => {
+    // PRE-9 A.2 (ARB-22a) : en sélection, une carte (hors pile repliée) se coche au toucher ; ni
+    // actions glissées, ni appui long, ni réordonnancement.
+    const choosing = selection !== undefined && catalogueOptions.pileCount === undefined;
+    const onPress = choosing ? () => selection.onToggle(entry.movement) : openOrExpand;
+    const options: typeof catalogueOptions =
+      selection === undefined ? catalogueOptions : { pileCount: catalogueOptions.pileCount, swipe: false };
+    const selected = choosing && selection.selectedIds.has(entry.movement.id);
     const id = entry.movement.id;
     const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
     const levelLabel = level !== null ? levelPastilleLabel(level) : null;
@@ -633,10 +661,13 @@ export function MovementCatalogueList({
           onLongPress={options.onLongPress}
           extraAccessibilityActions={options.reorderActions}
           accessibilityLabel={label}
-          accessibilityHint={options.pileCount !== undefined ? t.pileExpandHint : options.reorderActions ? t.reorderHint : t.openAccessibilityHint}
+          accessibilityHint={
+            options.pileCount !== undefined ? t.pileExpandHint : choosing ? undefined : options.reorderActions ? t.reorderHint : t.openAccessibilityHint
+          }
+          {...(choosing ? { accessibilityState: { selected } } : {})}
           testID={`movement-card-${id}`}
         >
-          <MovementCatalogueCard entry={entry} level={level} />
+          <MovementCatalogueCard entry={entry} level={level} selected={selected} />
         </SwipeActionsRow>
         {choicesOpen ? (
           <SheetMotionView style={[styles.variantChoices, { width: actions.length * SWIPE_ACTION_WIDTH }]} testID={`movement-card-${id}-variant-choices`}>
@@ -872,7 +903,7 @@ export function MovementCatalogueList({
           <View ref={viewportRef} style={styles.viewport} collapsable={false}>
             <SheetMotionScrollView
               ref={scrollRef}
-              contentContainerStyle={styles.list}
+              contentContainerStyle={selection !== undefined ? [styles.list, { paddingBottom: selection.bottomInset }] : styles.list}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               scrollEnabled={drag === null}
@@ -1109,14 +1140,26 @@ function VariantChoice({
  * de la photo (B07), titre 15/18 (B02) et Niveau à droite, deux premières étapes de la
  * description, une par ligne, tronquées indépendamment (B03).
  */
-function MovementCatalogueCard({ entry, level }: { readonly entry: MovementCatalogueEntry; readonly level: MovementLevelPosition | null }) {
+function MovementCatalogueCard({
+  entry,
+  level,
+  selected = false,
+}: {
+  readonly entry: MovementCatalogueEntry;
+  readonly level: MovementLevelPosition | null;
+  /** PRE-9 A.2 : carte cochée dans la sélection pour une Séance (contour et fond de sélection existants). */
+  readonly selected?: boolean;
+}) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
   const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
   return (
-    <View style={[styles.card, entry.archived ? styles.cardArchived : null]} testID={`movement-card-surface-${movement.id}`}>
+    <View
+      style={[styles.card, entry.archived ? styles.cardArchived : null, selected ? styles.cardSelected : null]}
+      testID={`movement-card-surface-${movement.id}`}
+    >
       <View style={[styles.thumbnail, entry.archived ? styles.faded : null]}>
         {preview ? (
           <MediaPreview
@@ -1339,6 +1382,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
+  },
+  // PRE-9 A.2 : patron de sélection existant (`colors.selection` / `colors.selectionSurface`, ancienne
+  // sélection d'Exercices) ; aucun rendu Figma de la sélection dans le Catalogue des Mouvements.
+  cardSelected: {
+    borderColor: colors.selection,
+    backgroundColor: colors.selectionSurface,
   },
   cardArchived: {
     backgroundColor: colors.surface,

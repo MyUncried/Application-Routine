@@ -37,8 +37,12 @@ export type MovementResultCardProps = {
   readonly variantExpanded?: boolean;
   /** « Utiliser ce mouvement » : reprise du mouvement RÉELLEMENT choisi. */
   readonly onUse: () => void;
-  /** « Créer une variante » : déploie les deux sens (choix explicite, rien n'est créé). */
-  readonly onCreateVariant: () => void;
+  /**
+   * « Créer une variante » : déploie les deux sens (choix explicite, rien n'est créé). PRE-9 A.2
+   * (CE-MVT-01 §3) : absent, l'action n'est pas proposée (création depuis une Séance) ; « Utiliser
+   * ce mouvement » garde sa place à droite.
+   */
+  readonly onCreateVariant?: () => void;
   readonly onChooseVariant: (placement: VariantPlacement) => void;
   /**
    * Recette A/B B.10 (remarque 6) : libellés des deux actions propres à l'appelant (fiche Mouvement :
@@ -119,17 +123,21 @@ export function MovementResultCard({
         </View>
       </View>
       <View style={styles.actions}>
-        <Pressable
-          onPress={onCreateVariant}
-          accessibilityRole="button"
-          accessibilityLabel={`${createVariantLabel}, ${movement.name}`}
-          accessibilityState={{ expanded: variantExpanded }}
-          hitSlop={(minTouchTarget - ACTION_LABEL.lineHeight) / 2}
-          style={styles.variantAction}
-          testID={`${testID}-variant`}
-        >
-          <Text style={styles.variantLabel}>{createVariantLabel}</Text>
-        </Pressable>
+        {onCreateVariant === undefined ? (
+          <View />
+        ) : (
+          <Pressable
+            onPress={onCreateVariant}
+            accessibilityRole="button"
+            accessibilityLabel={`${createVariantLabel}, ${movement.name}`}
+            accessibilityState={{ expanded: variantExpanded }}
+            hitSlop={(minTouchTarget - ACTION_LABEL.lineHeight) / 2}
+            style={styles.variantAction}
+            testID={`${testID}-variant`}
+          >
+            <Text style={styles.variantLabel}>{createVariantLabel}</Text>
+          </Pressable>
+        )}
         <Pressable
           onPress={onUse}
           accessibilityRole="button"

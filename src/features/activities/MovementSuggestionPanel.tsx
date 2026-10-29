@@ -30,7 +30,8 @@ export type MovementSuggestionPanelProps = {
   /** Mouvement dont la variante est en cours de choix (`10140:20180`) ; `null` : liste. */
   readonly variantOf: string | null;
   readonly onUse: (choice: MovementChoice) => void;
-  readonly onCreateVariant: (choice: MovementChoice) => void;
+  /** PRE-9 A.2 (CE-MVT-01 §3) : absent, « Créer une variante » n'est pas proposé (Séance). */
+  readonly onCreateVariant?: (choice: MovementChoice) => void;
   readonly onChooseVariant: (
     choice: MovementChoice,
     placement: VariantPlacement,
@@ -121,9 +122,9 @@ export function MovementSuggestionPanel({
             choice={choice}
             variantExpanded={variantChoice !== null}
             onUse={() => onUse(choice)}
-            onCreateVariant={() =>
-              variantChoice !== null ? onBack() : onCreateVariant(choice)
-            }
+            {...(onCreateVariant !== undefined
+              ? { onCreateVariant: () => (variantChoice !== null ? onBack() : onCreateVariant(choice)) }
+              : {})}
             onChooseVariant={(placement) => onChooseVariant(choice, placement)}
             {...(actionLabels ? { actionLabels } : {})}
             testID={`movement-suggestion-result-${choice.movement.id}`}

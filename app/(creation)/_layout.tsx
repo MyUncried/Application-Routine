@@ -57,6 +57,8 @@ export default function CreationLayout() {
         <Stack.Screen name="composition" />
         <Stack.Screen name="exercise" />
         <Stack.Screen name="activity-selection" />
+        {/* PRE-9 A.2 (ARB-22a) : « Utiliser un mouvement existant » depuis la Composition. */}
+        <Stack.Screen name="movement-selection" />
       </Stack>
     </SessionDraftProvider>
   );

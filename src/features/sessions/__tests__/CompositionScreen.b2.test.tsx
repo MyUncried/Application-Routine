@@ -156,11 +156,13 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     await renderComposition(flatDraft());
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-new"));
-    expect(mockPush).toHaveBeenLastCalledWith("/exercise");
+    // PRE-9 A.2 — ARB-22a, D-449 : création d'un Mouvement en contexte Séance, puis sélection des
+    // Mouvements du Catalogue (plus `/exercise` ni `/activity-selection`).
+    expect(mockPush).toHaveBeenLastCalledWith({ pathname: "/movement", params: { context: "session" } });
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-existing"));
-    expect(mockPush).toHaveBeenLastCalledWith("/activity-selection");
+    expect(mockPush).toHaveBeenLastCalledWith("/movement-selection");
     openMenu();
     fireEvent.press(screen.getByTestId("composition-add-activity-tree-cancel"));
     expect(screen.queryByTestId("composition-add-activity-tree")).toBeNull();

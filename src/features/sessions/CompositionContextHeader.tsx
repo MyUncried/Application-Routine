@@ -288,14 +288,24 @@ export function CompositionContextHeader({
             style={[styles.commandTarget, isPlacementActive ? styles.attenuated : null]}
             testID="composition-add-activity-action"
           >
-            <View style={[styles.commandCircle, styles.plainCircle]} testID="composition-add-activity-action-circle">
-              <View style={styles.addGlyph} testID="composition-add-activity-icon">
-                <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID="composition-add-activity-icon-bar" />
-                <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID="composition-add-activity-icon-bar" />
-              </View>
-            </View>
+            <AddActivityCircle testID="composition-add-activity-action-circle" iconTestID="composition-add-activity-icon" />
           </Pressable>
         </View>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * Cercle « + » de l'action « Ajouter une activité » (cercle 34, contour `primary`, croix de 20).
+ * PRE-9 (B.2) : exporté pour être reposé au premier plan du menu Créer (Figma `10705:20340`).
+ */
+export function AddActivityCircle({ testID, iconTestID }: { readonly testID?: string; readonly iconTestID?: string }) {
+  return (
+    <View style={[styles.commandCircle, styles.plainCircle]} testID={testID}>
+      <View style={styles.addGlyph} testID={iconTestID}>
+        <View style={[styles.addGlyphBar, styles.addGlyphHorizontal]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
+        <View style={[styles.addGlyphBar, styles.addGlyphVertical]} testID={iconTestID === undefined ? undefined : `${iconTestID}-bar`} />
       </View>
     </View>
   );

@@ -288,6 +288,9 @@ function renderApp(options: { readonly definitionDatabase?: Database; readonly p
       "(creation)/exercise": require("../../../../app/(creation)/exercise").default,
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       "(creation)/activity-selection": require("../../../../app/(creation)/activity-selection").default,
+      // PRE-9 A.2 (ARB-22a) : sélection des Mouvements depuis la Composition.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      "(creation)/movement-selection": require("../../../../app/(creation)/movement-selection").default,
     },
     { initialUrl: "/", wrapper: Wrapper },
   );
@@ -419,6 +422,18 @@ async function continueAndSave() {
 // (Créer direct, abandon restituant le segment et le défilement, carte Exercice et son bouton Lecture),
 // retiré par E.8-a (plan approuvé du 28/10, option B). Ils sont remplacés par le parcours ci-dessous :
 // l'ancienne définition reste consultable et modifiable depuis la sélection d'Exercices de la Composition.
+/**
+ * PRE-9 A.2 — ARB-22a, D-449 : « Créer un nouvel exercice » du menu Créer n'ouvre plus l'ancien
+ * éditeur (création d'un Mouvement, `CompositionMovementFlow.integration.test.tsx`). L'ancien
+ * éditeur de création reste dans le code jusqu'à A.3 : ses contrats sont conservés en l'ouvrant
+ * directement par sa route.
+ */
+function openLegacyExerciseCreation() {
+  act(() => {
+    expoRouter.push("/exercise");
+  });
+}
+
 describe("PRE-8 E.8-a — Modifier une ancienne définition depuis la sélection d'Exercices", () => {
   it("Composition → Un exercice existant → Modifier : éditeur existant sur la définition ; Terminer enregistre ; retour : liste relue, case cochée conservée, brouillon intact, aucune ligne créée", async () => {
     const definition = await savedDefinition();
@@ -428,8 +443,11 @@ describe("PRE-8 E.8-a — Modifier une ancienne définition depuis la sélection
     await settle();
     expect(router.getPathname()).toBe("/composition");
     fireEvent.changeText(screen.getByLabelText(composition.name), "Brouillon E8a");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(within(screen.getByTestId("composition-add-activity-tree")).getByLabelText(activities.addToSession.existingActivity));
+    // PRE-9 A.2 — ARB-22a, D-449 : la sélection des anciennes définitions n'est plus atteignable
+    // depuis la Composition ; elle reste dans le code jusqu'à A.3, ouverte ici par sa route.
+    act(() => {
+      expoRouter.push("/activity-selection");
+    });
     await settle();
     expect(router.getPathname()).toBe("/activity-selection");
     expect(screen.queryByTestId("catalogue-content-type-row-activities")).toBeNull();
@@ -517,14 +535,14 @@ describe("PRE4-4.1/AC5 — Créer dans une Séance, parcours PRE-3 conservé", (
 
     fireEvent.press(within(tree).getByLabelText(activities.addToSession.existingActivity));
     await settle();
-    expect(router.getPathname()).toBe("/activity-selection");
+    // PRE-9 A.2 — ARB-22a, D-449 : sélection des Mouvements du Catalogue, plus `/activity-selection`.
+    expect(router.getPathname()).toBe("/movement-selection");
     act(() => {
       testRouter.back();
     });
     await settle(300);
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     expect(router.getPathname()).toBe("/exercise");
     expect(editorContext(router.getSearchParams())).toEqual({});
@@ -601,8 +619,7 @@ describe("PRE4-4.1/AC6, AC7, AC8 — un seul Éditeur, contexte par la route, Te
     await openSessionFromCatalogue();
     const before = await dump();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     // Le contexte est porté par la route : ni `catalogueDefinitionId` ni `exerciseId` (création en Séance).
     expect(editorContext(router.getSearchParams())).toEqual({});
@@ -893,8 +910,7 @@ describe("PRE4-4.1/AC10 — relecture à l'identique après bascules, dans les q
     const router = renderApp();
     await openSessionFromCatalogue();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     await fillNewExercise("Gainage");
     await completeNewExercise("Dos droit.");
@@ -1129,8 +1145,7 @@ describe("PRE4-4.1/AC10 — report : Cibles à l'échec saisies dans la Feuille,
     await savedSessionWithCopy(definition);
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     await fillNewExercise("Gainage");
     await completeNewExercise("Dos droit.");
@@ -1195,8 +1210,7 @@ describe("PRE4-4.2/AC10 — Séance : appuis répétés", () => {
     await savedSessionWithCopy(definition);
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     await fillNewExercise("Gainage");
     await act(async () => {
@@ -1225,8 +1239,7 @@ describe("PRE4-4.2/AC12 — abandon avec confirmation, navigation réelle", () =
     await savedSessionWithCopy(definition);
     const router = renderApp();
     await openSessionFromCatalogue();
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Brouillon");
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
@@ -1358,14 +1371,15 @@ describe("PRE4-4.1/AC11 — aucune Récupération automatique", () => {
     fireEvent.press(screen.getByLabelText(sessions.createAction));
     await settle();
     fireEvent.changeText(screen.getByLabelText(composition.name), "Gainage du soir");
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     await fillNewExercise("Planche");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
     await settle();
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.existingActivity));
+    // PRE-9 A.2 — ARB-22a, D-449 : copie d'une ancienne définition par sa route (plus par le menu).
+    act(() => {
+      expoRouter.push("/activity-selection");
+    });
     await settle();
     fireEvent.press(await screen.findByTestId(`activity-selection-row-${definition.id}`));
     await act(async () => {
@@ -1436,8 +1450,7 @@ describe("PRE4-4.1/AC12 — aucun libellé « Circuit » ni « Tour » dans l'É
     fireEvent.press(screen.getByLabelText(exercise.backAccessibilityLabel));
     await settle(300);
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     expectNoCircuitOrTour();
   }, 30000);
@@ -1608,8 +1621,7 @@ describe("PRE4-4.4/AC2 — ajouter une photo puis une vidéo dans les quatre par
     await openSessionFromCatalogue();
     const before = await dump();
 
-    fireEvent.press(screen.getByLabelText(composition.addActivity));
-    fireEvent.press(screen.getByLabelText(activities.addToSession.newActivity));
+    openLegacyExerciseCreation();
     await settle();
     await fillNewExercise("Pompes");
     await addPhotoThenVideo(picker);
