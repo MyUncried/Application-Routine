@@ -114,6 +114,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 
 - **[DÉCIDÉ] Le second exercice adopte l'EMOM.** Si des valeurs qu'il portait sont remplacées, une confirmation est demandée. Le nombre de tours reste 6, et la durée est recalculée.
 - **[DÉCIDÉ] Le sélecteur d'organisation est proposé à l'arrivée du second exercice**, pour les formats qui l'admettent : Tabata, EMOM, Progression. Il est exclu pour le For time.
+- **[DÉCIDÉ] Adoption volontaire.** Le format passe à un second élément par un geste volontaire de l'utilisateur. La simple dépose d'un élément déjà formaté dans un circuit ne transmet pas le format à ce circuit ni aux autres membres.
 - **[DÉCIDÉ] Pas de transfert automatique.** Le format appartient à chaque exercice qui le porte. Le lien dans un circuit est un choix de l'utilisateur. Il n'y a aucun mécanisme de montée du format vers le circuit.
 - **[DÉCIDÉ] Un Death by peut être lié à un autre exercice dans un circuit alterné.** Chaque Death by a sa propre horloge, qui avance pendant ses propres minutes actives dans l'alternance. Arrêter un Death by met fin à cet élément seulement.
 
