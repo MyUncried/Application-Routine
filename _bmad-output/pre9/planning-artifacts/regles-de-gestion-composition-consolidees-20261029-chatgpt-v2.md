@@ -1,10 +1,10 @@
 # PRE-9 — Règles de gestion de la composition avec Formats : version corrigée pour contre-revue (29/10/2026)
 
-> **Objet.** Ce document rassemble toutes les décisions et règles de gestion arbitrées le 29/10/2026 pour la composition d'une séance avec des formats. Il les confronte à la documentation normative existante, pour repérer les contradictions à corriger. Il est destiné à une **revue indépendante** (ChatGPT) : il doit se lire seul.
+> **Objet.** Cette version conserve les décisions et règles **attribuées à Hermann** dans la consolidation du 29/10/2026, contrôle leur portée et distingue les raccordements non démontrés des décisions validées. Elle est destinée à la **contre-revue indépendante de Claude** ; elle ne vaut pas validation de ses propositions.
 >
 > **Version de travail corrigée par ChatGPT pour contre-revue de Claude.** Source exacte : `fe8af6a5`. Cette version ne vaut pas nouveau arbitrage de Hermann et ne modifie ni plan, ni documentation normative, ni Figma. Le document d'origine reste inchangé.
 >
-> **Références.** Branche `docs/pre9-arbitrages-reponses-20261029`, commit `28dfbce5` ou plus récent. Documentation normative : `main`, commit `c73079e9`. Dans les citations, « ch10 » désigne le chapitre 10 « Processus métier et règles métier transverses », « ch13 » le chapitre 13 « Contrats d'écran », « ch05 » le chapitre 05 « Versions du produit ».
+> **Références figées.** Source originale : `regles-de-gestion-composition-consolidees-20261029.md` au commit `fe8af6a5e409c1a255a0e0c78ccc55cc0b2d1835` ; réponses aux arbitrages : fichier voisin sur le même commit ; plan PRE-9 : `pre9-bmad/plan @ 265f3d9d` ; documentation normative : `main @ c73079e9`. Le correctif FMT-34 `990542fd` est ultérieur à la baseline normative examinée. « ch10 », « ch13 » et « ch05 » renvoient aux chapitres correspondants des spécifications fonctionnelles.
 >
 > **Qualification.** **[DÉCIDÉ]** : décision attribuée à Hermann, telle que retranscrite dans le document de réponses au même commit ; **[NORMATIF]** : règle effectivement contrôlée sur `main @ c73079e9` ; **[PROPOSÉ]** : mécanisme non expressément validé ; **[À CLARIFIER]** : effet non tranché ; **[NON VÉRIFIABLE]** : attribution ou absence de problème non démontrée par les sources examinées.
 
