@@ -122,7 +122,7 @@ export function WorkPhasesTable({
           <Text style={[tableStyles.columnHeader, styles.column]}>{t.phaseColumns.label}</Text>
           <View style={styles.cellGap} />
           <Text style={[tableStyles.columnHeader, styles.column]}>{t.phaseColumns.duration}</Text>
-          <View style={tableStyles.spacer} />
+          <View style={styles.cellGap} />
           <View style={tableStyles.removeColumn} />
         </View>
         {phases.map((phase, index) => (
@@ -218,10 +218,10 @@ function WorkPhaseRow({
           {cell("phaseLabel")}
         </View>
         <View style={styles.cellGap} />
-        <View style={styles.column} testID={`${testID}-duration-cell`}>
+        <View style={[styles.column, styles.durationColumn]} testID={`${testID}-duration-cell`}>
           {cell("phaseDuration")}
         </View>
-        <View style={tableStyles.spacer} />
+        <View style={styles.cellGap} />
         <RemoveRowButton
           accessibilityLabel={t.removePhase.replace("{n}", String(number))}
           closesFieldHint={t.removePhaseClosesFieldHint}
@@ -238,10 +238,18 @@ function WorkPhaseRow({
 }
 
 const styles = StyleSheet.create({
-  // Colonne Libellé ou Durée (76, rétrécissable sur un écran étroit), en-tête compris.
+  // Colonne Libellé ou Durée, en-tête compris. Recette iPhone du 29/10/2026 (Hermann : « distribuer
+  // horizontalement les colonnes Libellé et Durée (là elles sont orientées vers la gauche) ») : les
+  // deux colonnes se partagent à parts égales la largeur entre l'amorce et la croix (plus d'espace
+  // souple tassé à droite).
   column: {
-    width: PHASE_CELL_WIDTH,
+    flexGrow: 1,
     flexShrink: 1,
+    flexBasis: 0,
+  },
+  // La cellule Durée (76) est centrée dans sa colonne, sous son en-tête.
+  durationColumn: {
+    alignItems: "center",
   },
   cellGap: {
     width: PHASE_CELL_GAP,

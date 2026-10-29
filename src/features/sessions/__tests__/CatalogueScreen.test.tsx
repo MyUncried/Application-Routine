@@ -461,6 +461,13 @@ describe("CatalogueScreen — cadre commun", () => {
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
     const row = screen.getByTestId("catalogue-command-row");
     expect(within(row).getByTestId("movement-catalogue-search")).toBeTruthy();
+    // Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à gauche, et le bouton filtre à
+    // droite ») : Créer | Rechercher | Trier | Filtrer.
+    const order = (row.props.children as ({ props?: { testID?: string } } | null)[])
+      .flat()
+      .map((child) => child?.props?.testID)
+      .filter(Boolean);
+    expect(order).toEqual(["catalogue-create-action", "movement-catalogue-search", "catalogue-sort-action", "catalogue-filter-action"]);
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
@@ -754,7 +761,7 @@ describe("CatalogueScreen — cycle focus/blur/focus/démontage", () => {
 });
 
 describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de contexte)", () => {
-  it("T-49 — vues Mouvements et Séances : aucun trait au-dessus de la zone, fondu inférieur en couches superposées vers le blanc (aucun bord net), couleur et commandes conservées", async () => {
+  it("T-49, recette iPhone du 29/10/2026 — vues Mouvements et Séances : aucun trait au-dessus de la zone, fondu inférieur vers la TRANSPARENCE (couleur du Catalogue en couches superposées, aucun voile blanc), commandes conservées", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
     renderScreen(service);
@@ -764,22 +771,27 @@ describe("CatalogueScreen — recette 3 (T-49, EXT-R3-1 : bords de la zone de co
       fireEvent.press(screen.getByTestId(`catalogue-content-type-row-${segment}`));
       expect(screen.queryByTestId("screen-header-separator")).toBeNull();
       const band = screen.getByTestId("screen-context-band");
-      // Couleur propre du Catalogue conservée (pas la lavande de l’éditeur).
-      expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe(colors.selectionSurface);
-      const fade = screen.getByTestId("catalogue-context-band-fade", { includeHiddenElements: true });
-      expect(fade.props.pointerEvents).toBe("none");
-      expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
-      const layers = fade.props.children as { props: { style: unknown } }[];
+      // Recette du 29/10/2026 : la bande elle-même est transparente ; sa couleur propre (pas la
+      // lavande de l’éditeur) est peinte par le remplissage, puis s’efface vers le bas.
+      expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe("transparent");
+      const fill = screen.getByTestId("screen-context-band-fill", { includeHiddenElements: true });
+      expect(fill.props.pointerEvents).toBe("none");
+      const fade = screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true });
+      // 20 % inférieurs de la bande de 115 : 23 points sous 92 points peints d’un bloc.
+      expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", top: 92, height: 23 });
+      const layers = (fade.props.children as { props: { style: unknown } }[]).map(
+        (layer) => StyleSheet.flatten(layer.props.style as never) as { height: number; opacity: number; backgroundColor: string },
+      );
       expect(layers.length).toBeGreaterThanOrEqual(10);
-      const opacities = layers.map((layer) => (StyleSheet.flatten(layer.props.style as never) as { opacity: number }).opacity);
-      expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
-      expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
-      for (const layer of layers) {
-        expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
-      }
-      // Fondu dessiné en premier, sous le sélecteur et les commandes, qui restent présents.
+      // Aucune couche blanche : uniquement la couleur du Catalogue, qui s’efface.
+      for (const layer of layers) expect(layer.backgroundColor).toBe(colors.selectionSurface);
+      // Haut de la part fondue (toutes les couches) : opaque ; bas (seule la couche la plus longue) : presque transparent.
+      expect(1 - layers.reduce((rest, layer) => rest * (1 - layer.opacity), 1)).toBeCloseTo(1, 5);
+      expect(layers[0]!.height).toBe(23);
+      expect(layers[0]!.opacity).toBeLessThan(0.1);
+      // Remplissage dessiné en premier, sous le sélecteur et les commandes, qui restent présents.
       const order = (band.props.children as { props?: { testID?: string } }[]).flat().map((child) => child?.props?.testID).filter(Boolean);
-      expect(order[0]).toBe("catalogue-context-band-fade");
+      expect(order[0]).toBe("screen-context-band-fill");
       expect(screen.getByTestId("catalogue-content-type-row")).toBeTruthy();
       expect(screen.getByTestId("catalogue-create-action")).toBeTruthy();
     }

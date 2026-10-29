@@ -470,12 +470,14 @@ describe("PRE4-1.1/AC16 — projection scalaire unique", () => {
 });
 
 describe("Création", () => {
-  it("brouillon de création : Mode et côté non renseignés, Série 1 à Cible à renseigner, Pause 0, Bip 0, CR/Fin du Profil", () => {
+  // Recette iPhone du 29/10/2026 (Hermann : « Sélectionner par défaut Durée, Sans (changement de côté) ») :
+  // remplace « Mode et côté non renseignés » (v13 §6) pour les nouveaux Exercices.
+  it("brouillon de création : Mode Durée et côté Sans présélectionnés, Série 1 à Cible à renseigner, Pause 0, Bip 0, CR/Fin du Profil", () => {
     expect(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 })).toEqual({
       version: 5,
-      mode: null,
+      mode: "DURATION",
       series: { kind: "UNIFORM", count: 1, target: { kind: "UNSET" }, pauseSeconds: 0, loadKg: 0, workPhases: [] },
-      sideMode: null,
+      sideMode: "UNILATERAL",
       sideOrder: "BY_SIDE",
       sideRecoverySeconds: 0,
       cadenceBeepIntervalSeconds: 0,

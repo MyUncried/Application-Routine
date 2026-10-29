@@ -1,8 +1,13 @@
 import { StyleSheet, Text, View, type ViewProps } from "react-native";
 
 import { CYCLE_REPEAT_COUNT_MAX, CYCLE_REPEAT_COUNT_MIN } from "@/domain/sessions/structure";
-import { CIRCUIT_HEADER_HEIGHT, CIRCUIT_HEADER_TOUCH_GEOMETRY, CountStepper, containerTitle } from "@/features/sessions/CircuitHeader";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
+import {
+  CIRCUIT_HEADER_HEIGHT,
+  CIRCUIT_HEADER_TOUCH_GEOMETRY,
+  CONTAINER_TITLE_MIN_WIDTH,
+  CountStepper,
+  containerTitle,
+} from "@/features/sessions/CircuitHeader";
 import { strings } from "@/shared/i18n";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
@@ -48,6 +53,8 @@ export type CycleHeaderProps = {
  *   révèle le stepper − N + (`CountStepper`, même géométrie et même maintien que le Circuit), bornes
  *   1..99 ; l'unité (13) n'est pas interactive ; AUCUN adjectif de nature ;
  * - la durée du Cycle (12, tertiaire), calée à droite.
+ * Recette iPhone du 29/10 (obs-3 c, Hermann) : compteur à l'abscisse de celui du Circuit, nombre calé
+ * à droite ; unité contiguë au nombre, dans le stepper, en gras ; durée noire et en gras.
  *
  * Accessibilité : le titre est un en-tête lu avec la durée ; puis, stepper révélé, −, le réglage
  * ajustable « Nombre de répétitions » (valeur annoncée avec l'unité), +.
@@ -94,18 +101,11 @@ export function CycleHeader({
               decrementAccessibilityLabel={t.decrementAccessibilityLabel}
               incrementAccessibilityLabel={t.incrementAccessibilityLabel}
               externalRef={counterRef}
+              // Recette du 29/10 (obs-3 c) : unité contiguë au nombre, dans le stepper, en gras ;
+              // annoncée avec la valeur du réglage.
+              unitLabel={cycleUnitLabel(count)}
               counterTestID={`${testID}-counter`}
             />
-            {/* L'unité n'est pas interactive ; elle est annoncée avec la valeur du réglage. */}
-            <Text
-              style={styles.unit}
-              numberOfLines={1}
-              accessible={false}
-              importantForAccessibility="no"
-              testID={`${testID}-counter-unit`}
-            >
-              {cycleUnitLabel(count)}
-            </Text>
           </View>
         </View>
         {/* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */}
@@ -124,7 +124,7 @@ export function CycleHeader({
 }
 
 const styles = StyleSheet.create({
-  // Même ligne que l'en-tête du Circuit : hauteur minimale 40 (Dynamic Type).
+  // Même ligne que l'en-tête du Circuit : hauteur minimale de son texte, 18 (recette du 29/10).
   header: {
     minHeight: CIRCUIT_HEADER_HEIGHT,
   },
@@ -133,9 +133,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  // Recette du 29/10 (obs-3 c) : compteur à la même abscisse que celui du Circuit.
   title: {
     flexShrink: 1,
-    minWidth: 0,
+    minWidth: CONTAINER_TITLE_MIN_WIDTH,
     ...type.compactCardTitle,
     color: colors.textPrimary,
   },
@@ -148,17 +149,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexShrink: 0,
   },
-  unit: {
-    flexShrink: 0,
-    ...type.segmentedCompactLabel,
-    color: colors.textPrimary,
-  },
+  // Recette du 29/10 (obs-3 c) : durée noire et en gras (Semi Bold 12).
   duration: {
-    ...type.supporting,
+    ...type.cardDuration,
     flex: 1,
     minWidth: 0,
     marginLeft: spacing[8],
     textAlign: "right",
-    color: TEXT_TERTIARY,
+    color: colors.textPrimary,
   },
 });

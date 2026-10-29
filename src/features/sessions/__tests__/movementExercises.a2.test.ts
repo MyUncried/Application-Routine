@@ -10,6 +10,9 @@ import type { SessionStructure, StructureStopPointLocation } from "@/domain/sess
 import {
   exerciseOfMovement,
   handMovementsToComposition,
+  inheritsCircuitSeriesCount,
+  isExerciseParametersIncomplete,
+  isPersistedMovementOccurrence,
   takeMovementsHandedToComposition,
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
@@ -57,7 +60,8 @@ describe("PRE-9 A.2 — exerciseOfMovement", () => {
       sourceMovementId: "m1",
       postActivityRecoverySeconds: null,
     });
-    expect(created.executionParameters).toMatchObject({ mode: null, countdownSeconds: 7, endSeconds: 3 });
+    // Recette iPhone du 29/10/2026 : Durée et changement de côté Sans présélectionnés, Cible à renseigner.
+    expect(created.executionParameters).toMatchObject({ mode: "DURATION", sideMode: "UNILATERAL", countdownSeconds: 7, endSeconds: 3 });
     expect(created.executionParameters.series).toMatchObject({ kind: "UNIFORM", count: 1, target: { kind: "UNSET" } });
   });
 
@@ -125,6 +129,42 @@ describe("PRE-9 A.2 — remise des Mouvements à la Composition", () => {
     expect(takeMovementsHandedToComposition()).toBeNull();
     handMovementsToComposition([]);
     expect(takeMovementsHandedToComposition()).toBeNull();
+  });
+});
+
+describe("Demande de Hermann du 29/10/2026 — carte « Paramètres à compléter » : feuille de paramètres au toucher", () => {
+  it("un Exercice tout juste créé depuis un Mouvement est à compléter ; réglé, il ne l'est plus", () => {
+    const created = exerciseOfMovement(movement("m1"), "new-1", DEFAULTS);
+    expect(isExerciseParametersIncomplete(created)).toBe(true);
+    expect(isExerciseParametersIncomplete(existing("a"))).toBe(false);
+  });
+
+  it("une Récupération n'ouvre jamais la feuille d'un Exercice", () => {
+    expect(isExerciseParametersIncomplete({ ...exerciseOfMovement(movement("m1"), "r", DEFAULTS), type: "RECOVERY" })).toBe(false);
+  });
+
+  it("N hérité : Circuit unique de Séries (ancien modèle) ; Circuit de Séries d'une disposition générale", () => {
+    const legacy: SessionDraft = { ...createEmptyDraft(), circuitNature: "SERIES", exercises: [existing("a"), existing("b", "IN_TOUR")] };
+    expect(inheritsCircuitSeriesCount(legacy, legacy.exercises[1]!)).toBe(true);
+    expect(inheritsCircuitSeriesCount(legacy, legacy.exercises[0]!)).toBe(false);
+    expect(inheritsCircuitSeriesCount({ ...legacy, circuitNature: "TOURS" }, legacy.exercises[1]!)).toBe(false);
+    const structure: SessionStructure<string, StructureStopPointLocation> = {
+      elements: [
+        { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 2, nature: "TOURS", exercises: ["a"] } },
+        { kind: "CIRCUIT", circuit: { id: "c2", repeatCount: 3, nature: "SERIES", exercises: ["b"] } },
+      ],
+      stopPoints: [],
+    };
+    const rich: SessionDraft = { ...createEmptyDraft(), exercises: [existing("a"), existing("b")], structure };
+    expect(inheritsCircuitSeriesCount(rich, rich.exercises[0]!)).toBe(false);
+    expect(inheritsCircuitSeriesCount(rich, rich.exercises[1]!)).toBe(true);
+  });
+
+  it("structure des phases verrouillée pour l'occurrence d'un Mouvement enregistré, pas d'un Mouvement nouveau du brouillon", () => {
+    expect(isPersistedMovementOccurrence({ sourceMovementId: "m1" }, undefined)).toBe(true);
+    expect(isPersistedMovementOccurrence({ sourceMovementId: undefined }, undefined)).toBe(false);
+    const fresh = { id: "m1", change: "NEW" as const, name: "M", description: null, categoryId: null, bodyZoneIds: [], media: [], phases: [], nextPhaseId: 1, aliases: [] };
+    expect(isPersistedMovementOccurrence({ sourceMovementId: "m1" }, { m1: fresh })).toBe(false);
   });
 });
 

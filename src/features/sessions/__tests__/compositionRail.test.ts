@@ -10,7 +10,7 @@ import { OCCURRENCE_CARD_HEIGHT, OCCURRENCE_CARD_MEDIA } from "@/features/sessio
 /**
  * PRE-6 (story 5.2, D-435, Figma `8328:28605`) : liens du rail segmenté. Géométrie de conception à
  * 402 : écart 8 hors Circuit, 9 dans le Circuit, marge du Circuit 14, ancres — haut du média 8,
- * haut de l'anneau du Circuit 15 (en-tête de 40), haut de l'anneau de Fin 7 (rangée de 24).
+ * haut de l'anneau du Circuit 4 (ligne d'en-tête de 18 — recette PRE-9 n° 1, Figma `10744:20185` ; avant : 15, en-tête de 40), haut de l'anneau de Fin 7 (rangée de 24).
  */
 // Story 5.2b : la géométrie même de l'écran (`railGeometryFor`), pas une copie.
 const GEOMETRY = railGeometryFor(CIRCUIT_HEADER_HEIGHT);
@@ -46,8 +46,8 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
 
   it("séquence vide : Compte à rebours → anneau du Circuit vide → bas du Circuit → Fin", () => {
     expect(summary(links({}))).toEqual({
-      // Écart 8 + marge haute du Circuit 14 + haut de l'anneau 15.
-      [RAIL_KEYS.circuitHeader]: [RAIL_KEYS.start, 8 + 14 + 15],
+      // Écart 8 + marge haute du Circuit 14 + haut de l'anneau 4.
+      [RAIL_KEYS.circuitHeader]: [RAIL_KEYS.start, 8 + 14 + 4],
       // Du bas de l'en-tête au bas du Circuit : marge basse 14.
       [RAIL_KEYS.circuitEnd]: [RAIL_KEYS.circuitHeader, 14],
       [RAIL_KEYS.end]: [RAIL_KEYS.circuitEnd, 8 + 7],
@@ -57,7 +57,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
   it("une carte avant, dans et après le Circuit : anneau → média → anneau → média → bas du Circuit → média → Fin", () => {
     expect(summary(links({ beforeTour: ["b"], inTour: ["i"], afterTour: ["a"] }))).toEqual({
       [railRowKey("b")]: [RAIL_KEYS.start, 8 + 8],
-      [RAIL_KEYS.circuitHeader]: [railRowKey("b"), 8 + 14 + 15],
+      [RAIL_KEYS.circuitHeader]: [railRowKey("b"), 8 + 14 + 4],
       [railRowKey("i")]: [RAIL_KEYS.circuitHeader, 9 + 8],
       [RAIL_KEYS.circuitEnd]: [railRowKey("i"), 14],
       [railRowKey("a")]: [RAIL_KEYS.circuitEnd, 8 + 8],
@@ -96,7 +96,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
       put(railRowKey(id), heights[id], 8);
     }
     y += 8 + 14;
-    put(RAIL_KEYS.circuitHeader, 40, 15);
+    put(RAIL_KEYS.circuitHeader, CIRCUIT_HEADER_HEIGHT, 4);
     for (const id of input.inTour) {
       y += 9;
       put(railRowKey(id), heights[id], 8);
@@ -129,7 +129,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
     // Écart 8 + carte 80 (place d'origine) + écart 8 + haut du média 8.
     expect(result.get(railRowKey("b2"))).toEqual({ prevKey: RAIL_KEYS.start, length: 8 + CARD + 8 + 8 });
     // La suite de la chaîne est inchangée.
-    expect(result.get(RAIL_KEYS.circuitHeader)).toEqual({ prevKey: railRowKey("b2"), length: 8 + 14 + 15 });
+    expect(result.get(RAIL_KEYS.circuitHeader)).toEqual({ prevKey: railRowKey("b2"), length: 8 + 14 + 4 });
   });
 
   it("glisser la seule carte du Circuit : le bas du Circuit se relie à l'en-tête à travers sa place", () => {

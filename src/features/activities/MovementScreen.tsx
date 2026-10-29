@@ -92,6 +92,13 @@ const EMPTY_DRAFT: Draft = {
   aliases: [],
 };
 
+/**
+ * Recette iPhone du 29/10/2026 (Hermann : « Remplacer le texte par défaut "Nom de l'exercice" par "Nom
+ * du mouvement", le mettre en gris clair (le texte écrit manuellement est bien noir) ») : même gris
+ * clair que les invites des étapes de Description et des Phases de la fiche (`#AEB3BA`).
+ */
+const MOVEMENT_NAME_PROMPT = { text: strings.screens.movement.namePrompt, color: "#AEB3BA" } as const;
+
 /** Paramètres neutres exigés par le type de l'éditeur commun ; jamais affichés ni enregistrés ici. */
 const UNUSED_PARAMETERS = createEmptyExecutionParameters({
   countdownSeconds: DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
@@ -540,6 +547,7 @@ export function MovementSheet({
           nameHint={
             isArchived ? t.archivedNameSuffix : nameHintVisible ? editorStrings.movementSuggestion.completeNameHint : null
           }
+          namePrompt={MOVEMENT_NAME_PROMPT}
           // Recette A/B B.10 (remarque 5) : curseur dans le Nom à l'ouverture d'une création.
           autoFocusName={mode === "create"}
           bodyLocked={isNameBlocking}

@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 
 import { AddActivityCircle } from "@/features/sessions/CompositionContextHeader";
 import { strings } from "@/shared/i18n";
@@ -17,14 +18,32 @@ import { colors, type } from "@/shared/ui/tokens";
  * Action indisponible (« Utiliser une séance existante » avant B.8, « Ajouter un circuit / un
  * cycle » sans contenu éligible) : rangée à demi-opacité, non activable (traitement existant des
  * actions indisponibles), annoncée « … — indisponible ».
+ * [Remplacé par la recette iPhone du 29/10 (obs-4, Hermann : « Options inactives : le fond gris doit
+ * rester sans opacité, le texte doit être gris un peu plus foncé ») : plus d'opacité sur la rangée ;
+ * pilule grise opaque (fond `#E5E8F0`, contour `#BABFCC`, ceux d'« Annuler » dans Figma), libellé
+ * gris foncé `#5C6170` ; icône recouverte d'un voile gris clair (`#E5E8F0` à 60 %) et cerclée de
+ * `#BABFCC` — elle reste lisible et opaque. Figma ne dessine pas d'option inactive.]
+ *
+ * Recette du 29/10, autres demandes de Hermann (qui priment sur Figma `10705:20223`) :
+ * - cre-figma : « Faire apparaître la ligne verticale bleue qui lie tous les boutons » — axe bleu
+ *   `#1414F5` (gris `#9499A8` dans Figma), du « + » jusqu'au bouton rond d'« Annuler » ;
+ * - obs-4 : « Bouton Annuler : le texte Annuler doit être bleu Kodjo » — `colors.primary` (gris
+ *   `#5C6170` dans Figma) ;
+ * - f : « faire apparaître le voile grisé et le menu de boutons avec une apparition progressive
+ *   lente » — fondu d'entrée de 600 ms (valeur de conception), immédiat si « Réduire les
+ *   animations » est actif.
  */
 
 const FIGMA_BLUE = "#1414F5";
-const AXIS_COLOR = "#9499A8";
+const AXIS_COLOR = FIGMA_BLUE;
 const CANCEL_SURFACE = "#E5E8F0";
 const CANCEL_BORDER = "#BABFCC";
-const CANCEL_TEXT = "#5C6170";
+const DISABLED_TEXT = "#5C6170";
+const DISABLED_ICON_VEIL = "rgba(229, 232, 240, 0.6)";
 const SCRIM = "rgba(31, 33, 41, 0.42)";
+/** Recette du 29/10 (f) : apparition progressive lente du voile et du menu. */
+export const CREATE_MENU_FADE_IN_MS = 600;
+const menuEntering = FadeIn.duration(CREATE_MENU_FADE_IN_MS).reduceMotion(ReduceMotion.System);
 
 const ROW_HEIGHT = 32;
 const ROW_GAP = 10;
@@ -145,7 +164,12 @@ export function CreateMenu({
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
 
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="box-none" testID="composition-add-activity-tree">
+    <Reanimated.View
+      entering={menuEntering}
+      style={StyleSheet.absoluteFill}
+      pointerEvents="box-none"
+      testID="composition-add-activity-tree"
+    >
       <Pressable onPress={onCancel} accessible={false} testID="composition-add-activity-tree-backdrop" style={[StyleSheet.absoluteFill, styles.scrim]} />
       <View
         pointerEvents="none"
@@ -173,15 +197,18 @@ export function CreateMenu({
             accessibilityRole="button"
             accessibilityLabel={disabled ? unavailable.replace("{action}", option.label) : option.label}
             accessibilityState={{ disabled }}
-            style={[styles.row, { top: rowTop, left: pillLeft }, disabled ? styles.disabled : null]}
+            style={[styles.row, { top: rowTop, left: pillLeft }]}
             testID={option.testID}
           >
-            <View style={[styles.pill, styles.pillOption]}>
-              <Text style={[styles.label, styles.labelOption]} numberOfLines={1}>
+            <View style={[styles.pill, disabled ? styles.pillDisabled : styles.pillOption]} testID={`${option.testID}-pill`}>
+              <Text style={[styles.label, disabled ? styles.labelDisabled : styles.labelOption]} numberOfLines={1} testID={`${option.testID}-label`}>
                 {option.label}
               </Text>
             </View>
-            <OptionIcon icon={option.icon} />
+            <View testID={`${option.testID}-icon`}>
+              <OptionIcon icon={option.icon} />
+              {disabled ? <View style={styles.iconDisabledVeil} testID={`${option.testID}-icon-veil`} /> : null}
+            </View>
           </Pressable>
         );
       })}
@@ -193,7 +220,7 @@ export function CreateMenu({
         testID={cancelTestID}
       >
         <View style={[styles.pill, styles.pillCancel]}>
-          <Text style={[styles.label, styles.labelCancel]} numberOfLines={1}>
+          <Text style={[styles.label, styles.labelCancel]} numberOfLines={1} testID={`${cancelTestID}-label`}>
             {cancelLabel}
           </Text>
         </View>
@@ -201,7 +228,7 @@ export function CreateMenu({
           <Image source={SVG_ICONS.cancel} style={styles.cancelGlyph} contentFit="contain" />
         </View>
       </Pressable>
-    </View>
+    </Reanimated.View>
   );
 }
 
@@ -218,7 +245,6 @@ const styles = StyleSheet.create({
   axis: { position: "absolute", width: 2, borderRadius: 1, backgroundColor: AXIS_COLOR },
   plus: { position: "absolute", width: PLUS_TARGET, height: PLUS_TARGET, alignItems: "center", justifyContent: "center" },
   row: { position: "absolute", flexDirection: "row", alignItems: "center", gap: PILL_TO_ICON, height: ROW_HEIGHT },
-  disabled: { opacity: 0.5 },
   pill: {
     width: PILL_WIDTH,
     height: ROW_HEIGHT,
@@ -231,9 +257,19 @@ const styles = StyleSheet.create({
   },
   pillOption: { backgroundColor: colors.background, borderColor: FIGMA_BLUE },
   pillCancel: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },
+  pillDisabled: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },
   label: { ...type.button, textAlign: "center" },
   labelOption: { color: FIGMA_BLUE },
-  labelCancel: { color: CANCEL_TEXT },
+  labelCancel: { color: colors.primary },
+  labelDisabled: { color: DISABLED_TEXT },
+  // Voile opaque à l'œil (posé sur une icône pleine) : l'icône reste lisible, l'option paraît inactive.
+  iconDisabledVeil: {
+    ...StyleSheet.absoluteFill,
+    borderRadius: ICON_SIZE / 2,
+    borderWidth: 1,
+    borderColor: CANCEL_BORDER,
+    backgroundColor: DISABLED_ICON_VEIL,
+  },
   iconCircle: { width: ICON_SIZE, height: ICON_SIZE, borderRadius: ICON_SIZE / 2, borderWidth: 1, overflow: "hidden", ...shadow },
   iconBlue: { backgroundColor: FIGMA_BLUE, borderColor: FIGMA_BLUE },
   iconCancel: { backgroundColor: CANCEL_SURFACE, borderColor: CANCEL_BORDER },

@@ -617,13 +617,13 @@ describe("PRE-7 A2.2 — occurrence de Séance (MFN-09, MFN/AC28, MFN/AC29)", ()
     ...overrides,
   });
 
-  it("occurrence d'un Mouvement enregistré : nom, description, Catégorie, Zones verrouillés, crayon « Modifier le mouvement » (R-4, C04) ; paramètres accessibles", async () => {
+  it("occurrence d'un Mouvement enregistré : nom, description, Catégorie, Zones verrouillés, sans crayon (PRE-9, CE-MVT-01 §3 : C04 remplacé depuis une Séance) ; paramètres accessibles", async () => {
     await renderEditor({ exerciseId: "occ-1" }, [occurrence({ sourceMovementId: "mov-1", instruction: "Dos droit" })]);
     expect(nameInput().props.editable).toBe(false);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState).toMatchObject({ disabled: true });
     expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityState).toMatchObject({ disabled: true });
-    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityLabel).toBe(editor.editMovement);
+    expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
     expect(screen.queryByTestId("media-add")).toBeNull();
     expectReferenceAccessesClosed();
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));

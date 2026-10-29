@@ -3207,21 +3207,26 @@ describe("ExecutionParametersSheet — PRE-4 story 3.4", () => {
       expect(screen.getByTestId("execution-sheet-keyboard-failure").props.accessibilityState).toMatchObject({ selected: true });
     }));
 
-  it("PRE4-3.4/AC3 — Cible à renseigner : ouverture sur 00:01 (Q25, D-430), active, sans option, ✓ du Sélecteur disponible ; la ligne garde « — » ; ✕ la laisse à renseigner ; ✓ sans tourner applique 1 s", () =>
+  // Recette iPhone du 29/10/2026 (Hermann : « ne pas sélectionner 1 s par défaut lorsqu'on ouvre la
+  // roulette ») : remplace l'ouverture sur 00:01 (Q25, D-430) par la position neutre 00:00.
+  it("PRE4-3.4/AC3, recette du 29/10/2026 — Cible à renseigner : ouverture sur 00:00, sans valeur présélectionnée ni option, ✓ du Sélecteur indisponible ; la ligne garde « — » ; ✕ la laisse à renseigner ; une seule colonne tournée suffit", () =>
     withPlatform("ios", () => {
       renderSheet(durationTarget(unsetTarget()));
       openTarget();
-      expect([selection("minutes"), selection("seconds")]).toEqual([0, 1]);
+      expect([selection("minutes"), selection("seconds")]).toEqual([0, 0]);
       expect(screen.queryByTestId("duration-wheel-failure-option")).toBeNull();
-      expect(screen.getByTestId("duration-wheel-validate").props.accessibilityState?.disabled).not.toBe(true);
+      expect(screen.getByTestId("duration-wheel-validate").props.accessibilityState?.disabled).toBe(true);
       expect(rowText()).toBe("—");
       fireEvent.press(screen.getByTestId("duration-wheel-cancel"));
       expect(text("execution-sheet-target-value")).toBe("—");
       expect(StyleSheet.flatten(screen.getByTestId("execution-sheet-target-value").props.style).backgroundColor).toBe("#FFF1F0");
       expect(sheetValidateDisabled()).toBe(true);
       openTarget();
+      expect([selection("minutes"), selection("seconds")]).toEqual([0, 0]);
+      // 1 min : la seule colonne des minutes (depuis 00:01, il fallait aussi ramener les secondes à 00).
+      fireEvent(screen.getByTestId("duration-wheel-minutes"), "selectionChange", { nativeEvent: { selection: 1 } });
       wheelValidate();
-      expect(text("execution-sheet-target-value")).toBe("1 s");
+      expect(text("execution-sheet-target-value")).toBe("1 min");
       expect(sheetValidateDisabled()).toBe(false);
     }));
 
@@ -3462,7 +3467,9 @@ describe("ExecutionParametersSheet — PRE-4 story 3.5", () => {
     withPlatform("ios", () => {
       renderSheet(params({ series: { kind: "UNIFORM", count: 3, target: unsetTarget(), pauseSeconds: 15, loadKg: 0, workPhases: [] } }));
       chooseExecutionMode("Répétitions");
-      expect(text("execution-sheet-target-value")).toBe("—");
+      // Recette PRE-9 n° 1 (29/10) : une Durée à renseigner vaut création — Répétitions reçoit la cible
+      // initiale 1 (ch13 CE-UI-10). [Avant : « — », Sélecteur ouvert sur 1.]
+      expect(text("execution-sheet-target-value")).toBe("1 rép.");
       openTarget();
       expect(selection()).toBe(1);
     }));
@@ -5618,7 +5625,8 @@ describe("ExecutionParametersSheet — PRE-5 story 2.2", () => {
     keyboard.show();
     expect(within(get("execution-sheet")).getByTestId("execution-sheet-keyboard-bar", hidden)).toBeTruthy();
     expect(styleOf("execution-sheet-keyboard-bar-host")).toMatchObject({ position: "absolute", left: 0, right: 0, bottom: 0 });
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 44, backgroundColor: "#E6E9ED" });
+    // Recette iPhone du 29/10/2026 : marges 8 (barre de 52) et fond du clavier iOS 26 (Figma `9295:43707`).
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ minHeight: 52, paddingVertical: 8, backgroundColor: "#E1E4E8" });
     // Toucher direct d'une autre cellule (sortie puis prise de focus) : la barre reste.
     blur(cell(1));
     expect(query("execution-sheet-keyboard-bar")).not.toBeNull();
@@ -6936,7 +6944,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     focus(target(1));
     showExecutionSheetKeyboard();
     const bar = get("execution-sheet-keyboard-bar");
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ flexDirection: "row", minHeight: 44 });
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ flexDirection: "row", minHeight: 52 });
     const order = bar.findAll((node) => typeof node.props.testID === "string" && /^execution-sheet-keyboard-(failure|previous|next|close)$/.test(node.props.testID) && typeof node.type === "string");
     expect([...new Set(order.map((node) => node.props.testID))]).toEqual([
       "execution-sheet-keyboard-failure",
@@ -6957,7 +6965,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     for (const id of slotIDs) {
       expect(styleOf(id)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0, minWidth: 44, minHeight: 36, borderRadius: 8, paddingHorizontal: 2 });
     }
-    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E6E9ED", gap: 6, paddingHorizontal: 8 });
+    expect(styleOf("execution-sheet-keyboard-bar")).toMatchObject({ backgroundColor: "#E1E4E8", gap: 6, paddingHorizontal: 8 });
     expect(styleOf("execution-sheet-keyboard-previous").backgroundColor).toBe("#FFFFFF");
     expect(styleOf("execution-sheet-keyboard-close").backgroundColor).toBe("#0508E5");
     expect(StyleSheet.flatten(within(get("execution-sheet-keyboard-close")).getByText("Fermer", hidden).props.style).color).toBe("#FFFFFF");
@@ -7106,9 +7114,9 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(get("execution-sheet-keyboard-previous").props.accessibilityLabel).toBe("Précédent");
     expect(get("execution-sheet-keyboard-next").props.accessibilityLabel).toBe("Suivant");
     expect(within(get("execution-sheet-keyboard-failure")).getByText("À l’échec", hidden)).toBeTruthy();
-    // Zone tactile de 44 de haut : bouton de 36 au moins, débord de 4 en haut et en bas.
+    // Zone tactile de 52 de haut (recette du 29/10/2026) : bouton de 36 au moins, débord de 8 en haut et en bas.
     expect(styleOf("execution-sheet-keyboard-previous")).toMatchObject({ minHeight: 36 });
-    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 4, bottom: 4 });
+    expect(get("execution-sheet-keyboard-previous").props.hitSlop).toMatchObject({ top: 8, bottom: 8 });
     blur(target(1));
     hideExecutionSheetKeyboard();
   });

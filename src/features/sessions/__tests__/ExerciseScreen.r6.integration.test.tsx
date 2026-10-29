@@ -318,23 +318,12 @@ describe("PRE-7 R-6 — occurrence de Séance : commande Niveau (C09, MFN-09)", 
     expect(currentDraft).toBe(draft);
   });
 
-  it("crayon : pendant l'édition du contenu, pastille sans menu ; après un changement de niveau, crayon retiré", async () => {
+  it("sans crayon depuis une Séance (PRE-9, CE-MVT-01 §3) : la commande Niveau reste active (DSF Niveaux l.49)", async () => {
     const { draft } = await sessionWithAssisted();
     await renderEditor({ exerciseId: "occ-1" }, draft);
-    await press("activity-editor-edit-movement");
-    expect(screen.queryByTestId("activity-editor-level-level-2", anyNode)).toBeNull();
-    expect(pastilleLabel()).toBe("Niveau 1");
-    expect(screen.getByTestId("activity-editor-level").props.accessibilityLabel).toBe("Niveau 1");
-    // PRE-7 (R-9, D-448 point 10) : crayon actif ; le retoucher sans changement rend le menu.
-    expect(screen.getByTestId("activity-editor-edit-movement").props.accessibilityState).toMatchObject({ selected: true });
-    await press("activity-editor-edit-movement");
-    expect(screen.getByTestId("activity-editor-level-level-2", anyNode)).toBeTruthy();
-    screen.unmount();
-
-    await renderEditor({ exerciseId: "occ-1" }, draft);
-    expect(screen.getByTestId("activity-editor-edit-movement")).toBeTruthy();
-    await pressNative("activity-editor-level-level-2");
     expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
+    expect(pastilleLabel()).toBe("Niveau 1");
+    expect(screen.getByTestId("activity-editor-level-level-2", anyNode)).toBeTruthy();
   });
 
   it("variante créée dans la Séance (Mouvement NOUVEAU rattaché à l'enregistrement) : pastille du rang prévu, sans menu (report R-5)", async () => {

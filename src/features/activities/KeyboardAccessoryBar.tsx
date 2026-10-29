@@ -41,8 +41,15 @@ import { colors } from "@/shared/ui/tokens";
  * emplacement. Mécanisme RC-1 (position, montée, focus) inchangé.
  */
 
-const BAR_HEIGHT = 44;
-const BAR_BACKGROUND = "#E6E9ED";
+/**
+ * Recette iPhone du 29/10/2026 (Hermann : « agrandir un peu la marge en haut et en bas de la barre
+ * grise optionnelle, et lui donner la couleur de fond du clavier principal ») : marges verticales de
+ * 4 → 8 (boutons de 36 inchangés, barre de 44 → 52) ; fond `#E1E4E8`, fond du clavier iOS 26 clair
+ * relevé sur la référence Figma `9295:43707` (« Clavier numérique — Référence iOS 26 », dans
+ * `9292:18077`), à la place de `#E6E9ED`. À confirmer sur iPhone (le clavier natif est translucide).
+ */
+const BAR_HEIGHT = 52;
+const BAR_BACKGROUND = "#E1E4E8";
 const BAR_TEXT_COLOR = "#5C4DFF";
 const BAR_FONT_SIZE = 14;
 /**
@@ -55,8 +62,8 @@ const BAR_SIDE_INSET = 8;
 const BAR_SLOT_GAP = 6;
 /** PRE-7 B.3 (B9) : nombre d'emplacements de la barre (D-434 : À l'échec, Précédent, Suivant, Fermer). */
 const BAR_SLOT_COUNT = 4;
-/** PRE-7 B.3 (B9) : marge verticale de la barre ; boutons de 36 dans la ligne de 44. */
-const BAR_VERTICAL_INSET = 4;
+/** PRE-7 B.3 (B9) : marge verticale de la barre ; recette du 29/10/2026 : 8, boutons de 36 dans la ligne de 52. */
+const BAR_VERTICAL_INSET = 8;
 const BAR_BUTTON_HEIGHT = BAR_HEIGHT - 2 * BAR_VERTICAL_INSET;
 /**
  * PRE-7 B.3 (B9, arbitrage A4) : rayon local des boutons et marge horizontale du libellé dans son

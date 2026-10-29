@@ -782,13 +782,17 @@ export function ExecutionParametersSheet({
    * l'ancien choix en panneau. Re-choisir l'option affichée ne modifie pas le Brouillon : le
    * message « Annuler » d'un retrait reste valable (Q29).
    */
-  function chooseInline(transition: (base: ExecutionSheetDraft) => ExecutionSheetDraft) {
+  function chooseInline(
+    transition: (base: ExecutionSheetDraft) => ExecutionSheetDraft,
+    { keepPhasesTable = false }: { readonly keepPhasesTable?: boolean } = {},
+  ) {
     // T10 : un panneau ou un sélecteur ouvert (Android, web : en ligne) se ferme sans
     // appliquer ; le choix touché n'est pas appliqué.
     if (openSurface.kind === "selector") {
       dispatchSurface({ type: "closeAll" });
       return;
     }
+    if (!keepPhasesTable) foldPhasesTable();
     // PRE-5 story 2.2 (AD-27) : la saisie en cours est appliquée avant la transition.
     const next = transition(keyboard.flush(draft));
     if (next === draft) setIsTableSelected(false);
@@ -804,7 +808,22 @@ export function ExecutionParametersSheet({
    */
   function selectTable() {
     setIsTableSelected(true);
+    foldPhasesTable();
     dispatchSurface({ type: "closeAll" });
+  }
+
+  /**
+   * Recette iPhone du 29/10/2026 (Hermann : « Tableau des phases : […] le refermer (disparition lente
+   * et progressive) lorsqu'on active un autre bouton / champ de la modale ») : toute activation d'une
+   * commande ou d'un champ HORS des phases (segmentés, valeurs, roues, ±, champs clavier, tableau des
+   * séries, chevrons) replie le tableau des phases, comme son chevron : mêmes phases, même nombre ;
+   * il disparaît par sa sortie animée existante (révélation inversée par le bas, `SheetMotion`, Q41 :
+   * sans fondu ; aucune sous « Réduire les animations »). Le chevron de l'option Avec le redéploie.
+   * La ligne « Phases de l'exercice » (Avec, nombre, chevron) et les cellules des phases n'en font pas
+   * partie.
+   */
+  function foldPhasesTable() {
+    setIsPhasesFolded(true);
   }
 
   /** Q40 : action dans le tableau (cellule, glisser, déplacement) — le tableau est sélectionné. */
@@ -822,6 +841,7 @@ export function ExecutionParametersSheet({
    */
   function handleRemove(row: number) {
     setIsTableSelected(true);
+    foldPhasesTable();
     if (!removalEnabled(surface)) {
       // L'appui range l'outil ouvert, quel qu'il soit, sans retirer : un champ ± (T23), un
       // Sélecteur ou un segmenté en ligne (Android, web), ou un panneau atteint directement.
@@ -902,14 +922,14 @@ export function ExecutionParametersSheet({
     }
     const enabled = choice === "WITH";
     if (enabled) setIsPhasesFolded(false);
-    chooseInline((base) => setWorkPhasesEnabled(base, enabled));
+    chooseInline((base) => setWorkPhasesEnabled(base, enabled), { keepPhasesTable: enabled });
   }
 
   /** PRE-5 story 2.8 (D-432, RC-4) : ouvre ou referme le stepper du nombre de phases (saisie en cours appliquée d'abord). */
   function togglePhaseCount() {
     const base = keyboard.flush(draft);
     if (base !== draft) commitKeyboard(() => base);
-    toggle(stepperSurface("phaseCount"));
+    toggle(stepperSurface("phaseCount"), { keepPhasesTable: true });
   }
 
   /**
@@ -943,6 +963,8 @@ export function ExecutionParametersSheet({
    */
   function focusKeyboardField(field: KeyboardFieldId) {
     setIsTableSelected(keyboardFieldRow(field) !== null);
+    // Recette du 29/10/2026 : un champ clavier hors des phases replie leur tableau.
+    if (keyboardFieldPhase(field) === null) foldPhasesTable();
     keyboard.onFocus(field);
   }
 
@@ -960,6 +982,7 @@ export function ExecutionParametersSheet({
       dispatchSurface({ type: "closeAll" });
       return;
     }
+    foldPhasesTable();
     const enabled = choice === "WITH";
     const activating = enabled && !draft.loadEnabled;
     const next = setLoadEnabled(keyboard.flush(draft), enabled);
@@ -974,9 +997,11 @@ export function ExecutionParametersSheet({
    * Toucher le champ d'une surface (AD-15) : T15, T16, T20, T24, T10 et second toucher
    * (fermeture), selon la surface déjà ouverte (`sheetSurfaceReducer`).
    */
-  function toggle(target: SheetSurface) {
+  function toggle(target: SheetSurface, { keepPhasesTable = false }: { readonly keepPhasesTable?: boolean } = {}) {
     // Q40 : tous les champs à surface sont hors du tableau.
     setIsTableSelected(false);
+    // Recette du 29/10/2026 : hors du réglage du nombre de phases, le tableau des phases se replie.
+    if (!keepPhasesTable) foldPhasesTable();
     dispatchSurface({ type: "touch", surface: target });
   }
 
@@ -1054,6 +1079,7 @@ export function ExecutionParametersSheet({
    */
   function toggleDuration() {
     setIsTableSelected(false);
+    foldPhasesTable();
     dispatchSurface({ type: "closeAll" });
     // PRE-7 (D-448, point 8) : au dépliage, défilement demandé à la mise en page de la ligne Fin.
     // Lu sur la valeur précédente de l'updater (deux touchers rapides : jamais une fermeture périmée).
@@ -1451,7 +1477,13 @@ export function ExecutionParametersSheet({
     const opening = selectorOpeningPosition("DURATION", target);
     return (
       <DurationWheelPicker
-        totalSeconds={opening.kind === "NUMBER" ? opening.value : 0}
+        // Recette iPhone du 29/10/2026 (Hermann : « ne pas sélectionner 1 s par défaut lorsqu'on ouvre la
+        // roulette, cela oblige à un mouvement supplémentaire ») : une Durée non renseignée (« — »)
+        // ouvre la roue sur la position neutre `00:00` — ni Cible ni valeur présélectionnée ; ✓ reste
+        // indisponible tant qu'aucune durée n'est tournée (borne 1 s, AC7). Une seule colonne à tourner
+        // pour 30 s comme pour 1 min (depuis 00:01, il fallait aussi ramener les secondes à 00).
+        // [Remplace, pour cette roue, « « — » → 00:01 » de D-430 / `selectorOpeningPosition`.]
+        totalSeconds={target.kind === "UNSET" ? 0 : opening.kind === "NUMBER" ? opening.value : 0}
         targetBounds={EXECUTION_BOUNDS.durationTarget}
         onValidate={(seconds) => {
           closeSurface(openKey);
@@ -1636,6 +1668,7 @@ export function ExecutionParametersSheet({
       toggleSeriesCount();
       return;
     }
+    foldPhasesTable();
     const variable = seriesType === "VARIABLE";
     // PRE-5 story 2.2 (AD-27) : la saisie en cours est appliquée avant la transition.
     const base = keyboard.flush(draft);
@@ -1674,6 +1707,7 @@ export function ExecutionParametersSheet({
     if (isTableFolded) selectTable();
     else {
       setIsTableSelected(false);
+      foldPhasesTable();
       dispatchSurface({ type: "closeAll" });
     }
     setIsTableFolded(!isTableFolded);

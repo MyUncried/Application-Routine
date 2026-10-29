@@ -1,10 +1,28 @@
-import { useCallback, useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View, useWindowDimensions, type ViewProps } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+  type LayoutChangeEvent,
+  type ViewProps,
+} from "react-native";
+import Reanimated, {
+  Easing as ReanimatedEasing,
+  FadeIn,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
-import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
+import { MOTION_FADE_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
@@ -14,6 +32,24 @@ import {
   type HoldRepeater,
 } from "@/shared/ui/ProfileStepper";
 import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { useReduceMotion } from "@/shared/ui/useReduceMotion";
+
+/**
+ * PRE-9, recette iPhone du 29/10 (obs-3 b, Hermann : « l'ouverture et la fermeture d'un circuit doit
+ * se faire avec une animation, un mouvement progressif d'apparition » ; « La disparition du circuit
+ * doit se faire progressivement et plus lentement ») — valeurs de conception, Figma muet :
+ * - déploiement : les cartes se dévoilent du haut vers le bas (hauteur) en fondu, 450 ms (le fondu
+ *   d'apparition de la Composition, `MOTION_FADE_DURATION_MS`) ;
+ * - repli : même mouvement en sens inverse, plus lent, 700 ms ;
+ * - courbe douce aux deux bouts (celle du fondu de la Composition, `MOTION_FADE_EASING`).
+ * « Réduire les animations » (iOS) : changement immédiat.
+ */
+export const CIRCUIT_REVEAL_DURATION_MS = MOTION_FADE_DURATION_MS;
+export const CIRCUIT_HIDE_DURATION_MS = 700;
+const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
+/** Hauteur maximale « libre » hors animation (aucune contrainte sur le contenu). */
+const UNCONSTRAINED_HEIGHT = 100000;
+const namesEntering = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
 
 /**
  * Compte du Circuit (AD-38, D-058) : 1..99, la borne même de `clampSeriesCount` appliquée par
@@ -27,11 +63,18 @@ const CIRCUIT_COUNT_MAX = EXECUTION_BOUNDS.seriesCount.max;
  * Dynamic Type), contenu centré verticalement ; le titre commence après la colonne de l'anneau du
  * rail (`titleInset`, x 69 à 402).
  */
-export const CIRCUIT_HEADER_HEIGHT = 40;
+/**
+ * PRE-9, recette iPhone du 29/10 (obs-3 b/c, Hermann : « réduire l'espace en haut et en bas de la
+ * première ligne ») : la ligne d'en-tête a la hauteur de son texte, 18 (Figma `10744:20185`, « Ligne
+ * — Titre et volume » : 18), au lieu de 40 ; hauteur MINIMALE (Dynamic Type). Les cibles de 44
+ * débordent de la ligne par des boîtes réelles (marges négatives), jamais par `hitSlop`.
+ */
+export const CIRCUIT_HEADER_HEIGHT = 18;
 /**
  * PRE-9 B.1a (D-451, complément du 28/10 ; référence « Composition : circuits, cycles et création »
- * §4, CS-D1–CS-D8) : Circuit replié — hauteur de RÉFÉRENCE 68 (la constante historique 80 est
- * périmée), appliquée comme hauteur minimale (Dynamic Type).
+ * §4, CS-D1–CS-D8) : Circuit replié — hauteur de RÉFÉRENCE 68. Recette du 29/10 : 68 est la hauteur
+ * du Circuit replié ENTIER (Figma `10744:20142`, « Fond — Circuit » : 14 + ligne 18 + 7 + noms 15
+ * + 14), plus une hauteur minimale de l'en-tête — l'en-tête replié n'a plus de hauteur imposée.
  */
 export const CIRCUIT_HEADER_COLLAPSED_HEIGHT = 68;
 /** Circuit replié : écart de 7 entre la ligne d'en-tête et la ligne des noms (référence §4). */
@@ -42,14 +85,31 @@ const MIDDLE_DOT = "·";
 /**
  * Textes de la ligne (référence §4, Figma de D-451) : nom et nombre 15 ; unité et adjectif 13 ;
  * durée 12. Bleu `color/primary` pour le nombre et la nature ; `color/text-primary` pour les autres
- * textes ; durée en texte tertiaire. Dérivés des jetons existants, sans toucher `tokens.ts`.
+ * textes. Dérivés des jetons existants, sans toucher `tokens.ts`.
+ *
+ * Recette iPhone du 29/10 (obs-3 b/c, demandes de Hermann, qui priment sur Figma `10744:20108` où
+ * ces textes sont en Medium / Regular) : unité (« tours », « répétitions ») et adjectif de nature en
+ * gras (Semi Bold 13, `editableValue`) ; durée noire et en gras (Semi Bold 12, `cardDuration`,
+ * `color/text-primary`).
  */
 const TITLE_TEXT = type.compactCardTitle;
 const NUMBER_TEXT = type.compactCardTitle;
-const UNIT_TEXT = type.segmentedCompactLabel;
-const DURATION_TEXT = type.supporting;
-/** Ligne des noms du Circuit replié : même texte que l'unité (13, texte primaire). */
-const NAMES_TEXT = type.segmentedCompactLabel;
+const UNIT_TEXT = type.editableValue;
+const DURATION_TEXT = type.cardDuration;
+/** Ligne des noms du Circuit replié (Figma `10744:20195` : Regular 12, texte primaire). */
+const NAMES_TEXT = type.supporting;
+/**
+ * Recette du 29/10 (obs-3 c : « Le nombre de cycles doit être aligné verticalement à droite avec le
+ * nombre de tours d'un circuit ») : le compteur commence à une abscisse FIXE depuis le début du titre
+ * — 103 (Figma `10744:20190` et `10744:20276`, x 103 de la ligne) —, la même pour le Circuit et le
+ * Cycle ; le titre (nom et chevron) occupe au moins cette largeur moins l'écart. Le nombre est calé à
+ * droite dans une largeur de deux chiffres : unités et dizaines restent alignées d'une ligne à
+ * l'autre.
+ */
+const COUNTER_OFFSET = 103;
+const NUMBER_MIN_WIDTH = 18;
+/** Recette du 29/10 : nombre et unité contigus (Figma : écart 5). */
+const NUMBER_TO_UNIT_GAP = 5;
 
 /**
  * Stepper révélé au toucher du nombre (RM-027) — géométrie reprise du stepper de D-442 (Figma
@@ -67,10 +127,21 @@ const STEPPER_HEIGHT = 36;
 const STEPPER_PADDING = spacing[4];
 /** Fond blanc du stepper (Figma `9819:19951`) : rayon 18, moitié de sa hauteur. */
 const STEPPER_RADIUS = STEPPER_HEIGHT / 2;
-/** Débordement vertical d'une cible de 44 hors du fond de 36 du stepper révélé. */
-const TARGET_OVERFLOW_Y_IN_STEPPER = (STEP_TOUCH_TARGET - STEPPER_HEIGHT) / 2;
-/** Débordement vertical d'une cible de 44 hors de la ligne de 40. */
-const TARGET_OVERFLOW_Y_IN_ROW = (STEP_TOUCH_TARGET - CIRCUIT_HEADER_HEIGHT) / 2;
+/** Débordement vertical du fond de 36 du stepper révélé hors de la ligne d'en-tête : la ligne garde sa hauteur. */
+const STEPPER_OVERFLOW_Y_IN_ROW = (STEPPER_HEIGHT - CIRCUIT_HEADER_HEIGHT) / 2;
+/**
+ * Recette du 29/10 : avec une ligne de 18, une cible de 44 centrée déborderait de 13 sous la ligne,
+ * au-delà de l'écart de 9 qui la sépare de la première carte (revue 5.2 : cibles tactiles disjointes).
+ * Les cibles de 44 débordent donc de 9 AU PLUS sous la ligne (l'écart du Circuit et du Cycle) et du
+ * reste (17) au-dessus, dans la marge haute de 14 du conteneur et l'écart qui le précède ; leur
+ * contenu reste centré sur la ligne (marge interne haute de 8 = 17 − 9). Dans le stepper révélé (fond
+ * de 36, débordant de 9 de chaque côté de la ligne), même boîte : 8 au-dessus du fond, 0 en dessous.
+ */
+const TARGET_OVERFLOW_BELOW_ROW = 9;
+const TARGET_OVERFLOW_ABOVE_ROW = STEP_TOUCH_TARGET - CIRCUIT_HEADER_HEIGHT - TARGET_OVERFLOW_BELOW_ROW;
+const TARGET_CONTENT_OFFSET = TARGET_OVERFLOW_ABOVE_ROW - TARGET_OVERFLOW_BELOW_ROW;
+const TARGET_OVERFLOW_ABOVE_STEPPER = TARGET_OVERFLOW_ABOVE_ROW - STEPPER_OVERFLOW_Y_IN_ROW;
+const TARGET_OVERFLOW_BELOW_STEPPER = TARGET_OVERFLOW_BELOW_ROW - STEPPER_OVERFLOW_Y_IN_ROW;
 /** Marge de la boîte − / + entre le cercle et le bord de la boîte. */
 const STEP_CIRCLE_INSET = (STEP_TOUCH_TARGET - STEP_CIRCLE) / 2;
 /** Écart entre la cible du titre (nom et chevron) et le compteur, à abscisse fixe. */
@@ -87,10 +158,16 @@ export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
   stepCircle: STEP_CIRCLE,
   stepperHeight: STEPPER_HEIGHT,
   stepperPadding: STEPPER_PADDING,
-  targetOverflowYInStepper: TARGET_OVERFLOW_Y_IN_STEPPER,
-  targetOverflowYInRow: TARGET_OVERFLOW_Y_IN_ROW,
+  targetOverflowAboveRow: TARGET_OVERFLOW_ABOVE_ROW,
+  targetOverflowBelowRow: TARGET_OVERFLOW_BELOW_ROW,
+  targetContentOffset: TARGET_CONTENT_OFFSET,
+  stepperOverflowYInRow: STEPPER_OVERFLOW_Y_IN_ROW,
   titleToCounterGap: TITLE_TO_COUNTER_GAP,
+  counterOffset: COUNTER_OFFSET,
 } as const;
+
+/** Largeur minimale du titre (nom, et chevron du Circuit) : le compteur commence à `COUNTER_OFFSET`. */
+export const CONTAINER_TITLE_MIN_WIDTH = COUNTER_OFFSET - TITLE_TO_COUNTER_GAP;
 
 /**
  * Unité accordée du compteur : « tour » / « tours » (N = 1 singulier). PRE-9 B.1a (D-451, complément
@@ -207,6 +284,9 @@ export type CircuitHeaderProps = {
  *   nom ; le compteur garde sa taille.
  * Replié : seconde ligne des noms des exercices séparés par « · », une ligne tronquée, à 7 de la
  * première ; hauteur de référence 68.
+ * [Recette iPhone du 29/10 (obs-3 b/c, demandes de Hermann) : ligne de 18 ; « N tours » contigus et
+ * en gras, dans la cible du nombre et dans le stepper révélé ; adjectif en gras ; durée noire et en
+ * gras ; noms en 12 (Figma) ; 68 = Circuit replié entier ; compteur à abscisse fixe 103.]
  *
  * Accessibilité, dans l'ordre de lecture : bouton « Circuit » (durée lue avec le nom, état
  * déplié / replié), puis, stepper révélé, bouton −, le réglage ajustable « Nombre de tours » (valeur
@@ -245,7 +325,6 @@ export function CircuitHeader({
     <Animated.View
       style={[
         styles.header,
-        isCollapsed ? styles.headerCollapsed : null,
         { paddingLeft: titleInset },
         translateY !== undefined ? { transform: [{ translateY }] } : null,
       ]}
@@ -305,13 +384,78 @@ export function CircuitHeader({
         </Text>
       </View>
       {isCollapsed ? (
-        <Text style={styles.names} numberOfLines={1} testID={`${testID}-names`}>
-          {memberNames.join(` ${MIDDLE_DOT} `)}
-        </Text>
+        // Recette du 29/10 (obs-3 b) : la ligne des noms apparaît en fondu, avec le repli des cartes.
+        <Reanimated.View entering={namesEntering} testID={`${testID}-names-reveal`}>
+          <Text style={styles.names} numberOfLines={1} testID={`${testID}-names`}>
+            {memberNames.join(` ${MIDDLE_DOT} `)}
+          </Text>
+        </Reanimated.View>
       ) : null}
     </Animated.View>
   );
 }
+
+/**
+ * PRE-9, recette iPhone du 29/10 (obs-3 b) : cartes d'un Circuit, dévoilées au déploiement et
+ * escamotées au repli (voir `CIRCUIT_REVEAL_DURATION_MS`), appliqué À LA LISTE des cartes elle-même
+ * (aucun conteneur ajouté : sa position dans le Circuit, mesurée par l'écran pour la géométrie du
+ * glisser et du rail, ne change pas au repos). La liste reste montée pendant le repli puis est démontée
+ * (`mounted` : Circuit replié, cartes masquées, ARB-12) ; hauteur (`maxHeight`), écart au-dessus
+ * (`marginTop`, de −`gap` à 0 : l'écart du Circuit entre l'en-tête et les cartes apparaît avec elles)
+ * et opacité suivent la même progression, sur le fil UI. Découpe et contrainte de hauteur seulement
+ * pendant l'animation : au repos, une carte soulevée ou glissée déborde librement.
+ */
+export function useCircuitCardsReveal(collapsed: boolean, gap: number) {
+  const reduceMotion = useReduceMotion();
+  const [mounted, setMounted] = useState(!collapsed);
+  const [animating, setAnimating] = useState(false);
+  // Dernier état reçu : un changement démarre l'animation (état ajusté au rendu, sans effet en cascade).
+  const [seenCollapsed, setSeenCollapsed] = useState(collapsed);
+  if (seenCollapsed !== collapsed) {
+    setSeenCollapsed(collapsed);
+    setAnimating(true);
+    setMounted(true);
+  }
+  const progress = useSharedValue(collapsed ? 0 : 1);
+  const naturalHeight = useSharedValue(0);
+  const previous = useRef(collapsed);
+  useEffect(() => {
+    if (previous.current === collapsed) return;
+    previous.current = collapsed;
+    const finish = (isCollapsed: boolean) => {
+      setAnimating(false);
+      if (isCollapsed) setMounted(false);
+    };
+    const duration = reduceMotion ? 0 : collapsed ? CIRCUIT_HIDE_DURATION_MS : CIRCUIT_REVEAL_DURATION_MS;
+    progress.set(
+      withTiming(collapsed ? 0 : 1, { duration, easing: CIRCUIT_REVEAL_EASING }, (finished) => {
+        if (finished === true) scheduleOnRN(finish, collapsed);
+      }),
+    );
+  }, [collapsed, progress, reduceMotion]);
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    marginTop: (progress.value - 1) * gap,
+    maxHeight:
+      progress.value >= 1 || naturalHeight.value <= 0 ? UNCONSTRAINED_HEIGHT : progress.value * naturalHeight.value,
+  }));
+  /** Mesure de la liste au repos (hauteur naturelle), base de l'animation suivante. */
+  const onLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      if (!animating) naturalHeight.set(event.nativeEvent.layout.height);
+    },
+    [animating, naturalHeight],
+  );
+  return {
+    /** Faux une fois le repli terminé : la liste n'est pas rendue. */
+    mounted: mounted || !collapsed,
+    style: [animating ? styles.reveal : null, animatedStyle],
+    onLayout,
+  };
+}
+
+/** Dévoilement des cartes d'un Circuit, appliqué à la vue (Reanimated) de leur liste. */
+export type CircuitCardsReveal = ReturnType<typeof useCircuitCardsReveal>;
 
 /**
  * Revue 7.3 : délai avant le premier pas (`unstable_pressDelay` de `Pressable`). Le stepper est
@@ -449,17 +593,18 @@ function CircuitCounter({
         decrementAccessibilityLabel={t.decrementAccessibilityLabel}
         incrementAccessibilityLabel={t.incrementAccessibilityLabel}
         externalRef={externalRef}
+        unitLabel={circuitUnitLabel(count)}
         counterTestID={testID}
       />
-      {/* RM-027 : l'unité n'est pas interactive ; elle est annoncée avec la valeur du réglage. */}
+      {/* Le point médian n'est pas interactif ni annoncé. */}
       <Text
-        style={styles.unit}
+        style={styles.separator}
         numberOfLines={1}
         accessible={false}
         importantForAccessibility="no"
-        testID={`${testID}-unit`}
+        testID={`${testID}-separator`}
       >
-        {`${circuitUnitLabel(count)} ${MIDDLE_DOT} `}
+        {` ${MIDDLE_DOT} `}
       </Text>
       <View style={styles.adjectiveSlot} testID={`${testID}-adjective-slot`}>
         <CircuitNatureMenu
@@ -501,6 +646,13 @@ export type CountStepperProps = {
   readonly incrementAccessibilityLabel: string;
   readonly externalRef?: { current: View | null };
   /**
+   * Recette iPhone du 29/10 (obs-3 b/c) : unité accordée (« tours », « répétitions »), contiguë au
+   * nombre et intégrée au stepper (entre − et +), en gras ; non interactive à part — elle fait partie
+   * de la cible du nombre et est annoncée avec la valeur du réglage. Identifiant
+   * `${counterTestID}-unit`.
+   */
+  readonly unitLabel: string;
+  /**
    * Identifiant du nombre (réglage) ; le stepper est `${counterTestID}-stepper`. Nommé autrement que
    * `testID` : l'élément composite ne porte pas l'identifiant de son nombre.
    */
@@ -526,6 +678,7 @@ export function CountStepper({
   decrementAccessibilityLabel,
   incrementAccessibilityLabel,
   externalRef,
+  unitLabel,
   counterTestID: testID,
 }: CountStepperProps) {
   const stepperStrings = strings.screens.profile.stepper;
@@ -580,6 +733,16 @@ export function CountStepper({
       >
         <Text style={styles.number} testID={`${testID}-value`}>
           {count}
+        </Text>
+        {/* RM-027 : l'unité n'est pas un élément propre ; elle est annoncée avec la valeur du réglage. */}
+        <Text
+          style={styles.unit}
+          numberOfLines={1}
+          accessible={false}
+          importantForAccessibility="no"
+          testID={`${testID}-unit`}
+        >
+          {unitLabel}
         </Text>
       </Pressable>
       {isOpen ? (
@@ -646,12 +809,9 @@ function StepButton({
 
 const styles = StyleSheet.create({
   // Revue 5.2 : hauteurs MINIMALES (Dynamic Type) ; espacements portés par chaque enfant.
+  // Recette du 29/10 : replié, l'en-tête mesure ligne + 7 + noms (68 avec les marges du Circuit).
   header: {
     minHeight: CIRCUIT_HEADER_HEIGHT,
-  },
-  // Référence §4 : Circuit replié, 68 de référence (ligne d'en-tête, écart 7, ligne des noms).
-  headerCollapsed: {
-    minHeight: CIRCUIT_HEADER_COLLAPSED_HEIGHT,
   },
   row: {
     minHeight: CIRCUIT_HEADER_HEIGHT,
@@ -663,9 +823,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     flexShrink: 1,
-    minWidth: 0,
+    // Recette du 29/10 : compteur à abscisse fixe (aligné sur celui du Cycle).
+    minWidth: CONTAINER_TITLE_MIN_WIDTH,
     minHeight: STEP_TOUCH_TARGET,
-    marginVertical: -TARGET_OVERFLOW_Y_IN_ROW,
+    marginTop: -TARGET_OVERFLOW_ABOVE_ROW,
+    marginBottom: -TARGET_OVERFLOW_BELOW_ROW,
+    paddingTop: TARGET_CONTENT_OFFSET,
     gap: TITLE_TO_CHEVRON_GAP,
   },
   title: {
@@ -695,6 +858,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexShrink: 0,
     minHeight: STEPPER_HEIGHT,
+    // Recette du 29/10 : le fond de 36 déborde de la ligne de 18, qui garde sa hauteur.
+    marginVertical: -STEPPER_OVERFLOW_Y_IN_ROW,
     paddingHorizontal: STEPPER_PADDING,
     borderRadius: STEPPER_RADIUS,
     backgroundColor: colors.background,
@@ -702,7 +867,9 @@ const styles = StyleSheet.create({
   minusTarget: {
     width: STEP_TOUCH_TARGET,
     height: STEP_TOUCH_TARGET,
-    marginVertical: -TARGET_OVERFLOW_Y_IN_STEPPER,
+    marginTop: -TARGET_OVERFLOW_ABOVE_STEPPER,
+    marginBottom: 0 - TARGET_OVERFLOW_BELOW_STEPPER, // 0 - x : jamais −0
+    paddingTop: TARGET_CONTENT_OFFSET,
     // Contre la marge 4 du fond : boîte à −4 du bord du fond, cercle à 4 (Figma).
     marginLeft: -STEP_CIRCLE_INSET,
     alignItems: "center",
@@ -711,7 +878,9 @@ const styles = StyleSheet.create({
   plusTarget: {
     width: STEP_TOUCH_TARGET,
     height: STEP_TOUCH_TARGET,
-    marginVertical: -TARGET_OVERFLOW_Y_IN_STEPPER,
+    marginTop: -TARGET_OVERFLOW_ABOVE_STEPPER,
+    marginBottom: 0 - TARGET_OVERFLOW_BELOW_STEPPER, // 0 - x : jamais −0
+    paddingTop: TARGET_CONTENT_OFFSET,
     marginRight: -STEP_CIRCLE_INSET,
     alignItems: "center",
     justifyContent: "center",
@@ -724,20 +893,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: colors.surface,
   },
+  // Recette du 29/10 : la cible porte le nombre et l'unité, contigus, depuis son bord gauche.
   numberTarget: {
     minWidth: STEP_TOUCH_TARGET,
     minHeight: STEP_TOUCH_TARGET,
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    gap: NUMBER_TO_UNIT_GAP,
   },
   numberTargetInRow: {
-    marginVertical: -TARGET_OVERFLOW_Y_IN_ROW,
+    marginTop: -TARGET_OVERFLOW_ABOVE_ROW,
+    marginBottom: -TARGET_OVERFLOW_BELOW_ROW,
+    paddingTop: TARGET_CONTENT_OFFSET,
   },
   numberTargetInStepper: {
-    marginVertical: -TARGET_OVERFLOW_Y_IN_STEPPER,
+    marginTop: -TARGET_OVERFLOW_ABOVE_STEPPER,
+    marginBottom: 0 - TARGET_OVERFLOW_BELOW_STEPPER, // 0 - x : jamais −0
+    paddingTop: TARGET_CONTENT_OFFSET,
   },
   number: {
     ...NUMBER_TEXT,
+    minWidth: NUMBER_MIN_WIDTH,
+    textAlign: "right",
     color: colors.primary,
   },
   unit: {
@@ -745,13 +923,20 @@ const styles = StyleSheet.create({
     ...UNIT_TEXT,
     color: colors.textPrimary,
   },
+  separator: {
+    flexShrink: 0,
+    ...UNIT_TEXT,
+    color: colors.textPrimary,
+  },
   adjectiveSlot: {
     flexShrink: 0,
-    marginVertical: -TARGET_OVERFLOW_Y_IN_ROW,
+    marginTop: -TARGET_OVERFLOW_ABOVE_ROW,
+    marginBottom: -TARGET_OVERFLOW_BELOW_ROW,
   },
   adjectiveTarget: {
     minHeight: STEP_TOUCH_TARGET,
     justifyContent: "center",
+    paddingTop: TARGET_CONTENT_OFFSET,
   },
   adjective: {
     ...UNIT_TEXT,
@@ -764,7 +949,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
     marginLeft: COUNTER_TO_DURATION_GAP,
     textAlign: "right",
-    color: TEXT_TERTIARY,
+    // Recette du 29/10 (obs-3 b) : durée noire et en gras.
+    color: colors.textPrimary,
+  },
+  // Découpe de la liste des cartes pendant le dévoilement / repli seulement.
+  reveal: {
+    overflow: "hidden",
   },
   // Ligne des noms du Circuit replié : une ligne tronquée, à 7 de la ligne d'en-tête.
   names: {

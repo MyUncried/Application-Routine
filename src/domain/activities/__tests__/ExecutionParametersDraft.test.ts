@@ -564,8 +564,12 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
     }
   });
 
-  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → NUMBER 1 ; Durée puis Répétitions → UNSET ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
-    const created = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
+  it("PRE4-3.2/AC2 — valeurs initiales en création ; Répétitions d'abord → NUMBER 1 ; Durée à renseigner puis Répétitions → NUMBER 1 ; côté → Sans changement au ✓ ; jamais retour à « — »", () => {
+    // Recette du 29/10/2026 : création en Durée, côté Sans, présélectionnés ; les règles de Mode non
+    // renseigné restent vérifiées sur un brouillon sans Mode ni côté (données antérieures).
+    const fresh = openSheetDraft(createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }));
+    expect(effectiveParameters(fresh)).toMatchObject({ mode: "DURATION", sideMode: "UNILATERAL", series: { target: { kind: "UNSET" } } });
+    const created = openSheetDraft({ ...createEmptyExecutionParameters({ countdownSeconds: 10, endSeconds: 5 }), mode: null, sideMode: null });
     expect(created.variable).toBe(false);
     expect(effectiveParameters(created)).toEqual({
       version: 5,
@@ -580,7 +584,12 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       loadEnabled: false,
     });
     expect(setMode(created, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
-    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
+    // Recette PRE-9 n° 1 : une Durée encore à renseigner vaut création (Durée présélectionnée) —
+    // Répétitions reçoit alors la cible initiale 1. [Avant : « Durée puis Répétitions → UNSET ».]
+    expect(setMode(setMode(created, "DURATION"), "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
+    expect(setMode(fresh, "REPETITIONS").uniform.target).toEqual({ kind: "NUMBER", value: 1 });
+    // Une Durée renseignée puis Répétitions : aucune cible inventée.
+    expect(setMode(setUniformTarget(fresh, numberTarget(30)), "REPETITIONS").uniform.target).toEqual({ kind: "UNSET" });
 
     const value = committed(setUniformTarget(setMode(created, "DURATION"), numberTarget(30)));
     expect(value.sideMode).toBe("UNILATERAL");

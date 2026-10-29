@@ -363,7 +363,7 @@ describe("CompositionScreen — état initial", () => {
     expect(counter.props.accessibilityRole).toBe("adjustable");
     expect(counter.props.accessibilityValue).toMatchObject({ now: 1, text: "1 tour" });
     expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(1);
-    expect(screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true }).props.children).toBe("tour · ");
+    expect(screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true }).props.children).toBe("tour");
     expect(screen.getByTestId("composition-circuit-header-counter-adjective", { includeHiddenElements: true }).props.children).toBe("groupées");
     expect(screen.queryByText("×1")).toBeNull();
   });
@@ -1188,7 +1188,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // suivent les bords pendant le glisser.
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
-    expect(tourSectionStyle.backgroundColor).toBe("#F3F4F9");
+    expect(tourSectionStyle.backgroundColor).toBe("#EBEDF5");
     expect(tourSectionStyle.borderRadius).toBe(18);
     expect(tourSectionStyle.borderWidth).toBeUndefined();
     expect(screen.queryByTestId("composition-tour-section-surface", { includeHiddenElements: true })).toBeNull();
@@ -1203,7 +1203,7 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
           .style,
       );
     for (const part of ["top", "band", "bottom"]) {
-      expect(surface(part).backgroundColor).toBe("#F3F4F9");
+      expect(surface(part).backgroundColor).toBe("#EBEDF5");
     }
     expect(surface("top")).toMatchObject({ top: 0, borderTopLeftRadius: 18, borderTopRightRadius: 18 });
     expect(surface("bottom")).toMatchObject({ bottom: 0, borderBottomLeftRadius: 18, borderBottomRightRadius: 18 });
@@ -1222,14 +1222,15 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
 
     // PRE-9 B.1a — D-451, complément du 28/10 (remplace la clause de D-443) : durée à droite.
     expect(within(header).getByTestId("composition-circuit-header-duration", { includeHiddenElements: true })).toBeTruthy();
-    // Story 5.2 (D-435, `9819:19948`) : en-tête de 40 sur une ligne, titre à x 69 (après l'anneau).
-    // Revue 5.2 : hauteur MINIMALE de 40 (Dynamic Type).
-    expect(headerStyle).toMatchObject({ minHeight: 40, paddingLeft: 45 });
-    expect(rowStyle).toMatchObject({ minHeight: 40, alignItems: "center" });
+    // Story 5.2 (D-435, `9819:19948`) : en-tête sur une ligne, titre à x 69 (après l'anneau). Recette du
+    // 29/10 (obs-3 b) : ligne de 18 (Figma `10744:20185`, au lieu de 40), hauteur MINIMALE (Dynamic
+    // Type) ; titre d'au moins 95 (compteur à x 103 du titre, aligné sur celui du Cycle).
+    expect(headerStyle).toMatchObject({ minHeight: 18, paddingLeft: 45 });
+    expect(rowStyle).toMatchObject({ minHeight: 18, alignItems: "center" });
     // Le nom (et son chevron) cède (ellipse) après la durée ; le compteur jamais.
     expect(StyleSheet.flatten(within(header).getByTestId("composition-circuit-header-collapse").props.style)).toMatchObject({
       flexShrink: 1,
-      minWidth: 0,
+      minWidth: 95,
     });
     const counter = within(header).getByTestId("composition-circuit-header-counter-slot");
     expect(StyleSheet.flatten(counter.props.style).flexShrink).toBe(0);
@@ -2511,7 +2512,7 @@ describe("CompositionScreen — trois zones structurelles (T02-S01, AC-01)", () 
     expect(
       StyleSheet.flatten(screen.getByTestId("composition-activity-core").props.style)
         .backgroundColor,
-    ).toBe("#F3F4F9");
+    ).toBe("#EBEDF5");
   });
 
   it("AC-05 — the fixed structural rows carry no gesture recognizer, and therefore no revealable action", () => {
@@ -2590,7 +2591,7 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     const rowBackground = (testID: string) =>
       StyleSheet.flatten(screen.getByTestId(testID).props.style).backgroundColor;
     expect(rowBackground("composition-activity-ex-1")).toBe(colors.background);
-    expect(rowBackground("composition-activity-core")).toBe("#F3F4F9");
+    expect(rowBackground("composition-activity-core")).toBe("#EBEDF5");
 
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
     // La rangée soulevée, restée à sa place, ne masque plus la voisine qui remonte dans la place libérée.
@@ -3928,23 +3929,23 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
   it("« 1 tour · groupées » in grouped series, « 3 tours · alternées » in alternated series; the stepper is hidden at rest", () => {
     renderScreenWithDraft(oneActivity);
     expect(counterValue()).toBe(1);
-    expect(unitText()).toBe("tour · ");
+    expect(unitText()).toBe("tour");
     expect(adjectiveText()).toBe("groupées");
     expect(stepper()).toBeNull();
 
     screen.unmount();
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 3, circuitNature: "SERIES" });
     expect(counterValue()).toBe(3);
-    expect(unitText()).toBe("tours · ");
+    expect(unitText()).toBe("tours");
     expect(adjectiveText()).toBe("alternées");
   });
 
   it("alternated N = 1 is singular « tour »; grouped N = 2 is plural « tours »", () => {
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 1, circuitNature: "SERIES" });
-    expect(unitText()).toBe("tour · ");
+    expect(unitText()).toBe("tour");
     screen.unmount();
     renderScreenWithDraft(oneActivity, { tourRepeatCount: 2 });
-    expect(unitText()).toBe("tours · ");
+    expect(unitText()).toBe("tours");
   });
 
   it("RM-027 — tapping the number reveals − N + on the white radius-18 background with surface circles; tapping it again closes it", () => {
@@ -3962,12 +3963,13 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
         height: 44,
       });
     }
-    // Ordre : −, nombre, +, puis l'unité et l'adjectif.
+    // Ordre : −, nombre, unité (recette du 29/10 : contiguë au nombre, dans le stepper), +, puis
+    // l'adjectif.
     const order = [
       "composition-circuit-header-counter-stepper-decrement",
       "composition-circuit-header-counter-value",
-      "composition-circuit-header-counter-stepper-increment",
       "composition-circuit-header-counter-unit",
+      "composition-circuit-header-counter-stepper-increment",
       "composition-circuit-header-counter-adjective",
     ];
     expect(testIdOrder(screen.toJSON(), order)).toEqual(order);
@@ -4008,7 +4010,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     setCircuitCountWithStepper(3);
 
     expect(counterValue()).toBe(3);
-    expect(unitText()).toBe("tours · ");
+    expect(unitText()).toBe("tours");
     expect(sessionDuration()).toBe("≈ 3 min");
     expect(circuitDuration()).toBe("≈ 3 min");
     // Sans message : aucun dialogue de confirmation.
@@ -4050,7 +4052,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
     fireEvent(minus, "pressIn");
     fireEvent(minus, "pressOut");
     expect(sessionDuration()).toBe("≈ 6 min");
-    expect(unitText()).toBe("tours · ");
+    expect(unitText()).toBe("tours");
 
     const plus = screen.getByTestId("composition-circuit-header-counter-stepper-increment");
     fireEvent(plus, "pressIn");
@@ -4137,7 +4139,7 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
 
     renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")], { tourRepeatCount: 7 });
     expect(counterValue()).toBe(7);
-    expect(unitText()).toBe("tours · ");
+    expect(unitText()).toBe("tours");
   });
 
   it("an out-of-Circuit occurrence counts once in the session duration, whatever N (correctif T02, 2026-09-08)", () => {
@@ -4212,11 +4214,13 @@ describe("CompositionScreen — repli du Circuit (PRE-9 B.1a, ARB-12)", () => {
     expect(screen.queryByTestId("composition-circuit-header-names", hidden)).toBeNull();
   });
 
-  it("collapsing shows the names line and hides the cards without changing the draft; expanding restores them", () => {
+  it("collapsing shows the names line and hides the cards without changing the draft; expanding restores them", async () => {
     renderWithProbe(exercises, { tourRepeatCount: 3 });
     const before = probe.draft;
 
     fireEvent.press(screen.getByTestId(COLLAPSE));
+    // Recette du 29/10 (obs-3 b) : les cartes sont retirées à la fin du repli animé (rappel en microtâche).
+    await act(async () => {});
 
     expect(isExpanded()).toBe(false);
     expect(screen.getByTestId("composition-circuit-header-names").props.children).toBe("Squat · Pompes");
@@ -4227,7 +4231,8 @@ describe("CompositionScreen — repli du Circuit (PRE-9 B.1a, ARB-12)", () => {
     expect(screen.getByTestId("composition-activity-warmup")).toBeTruthy();
     expect(screen.getByTestId("composition-circuit-header-duration", hidden).props.children).toBe("≈ 6 min");
     expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(3);
-    expect(StyleSheet.flatten(screen.getByTestId("composition-circuit-header").props.style).minHeight).toBe(68);
+    // Recette du 29/10 : l'en-tête replié n'a plus de hauteur imposée (68 = Circuit replié entier).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-circuit-header").props.style).minHeight).toBe(CIRCUIT_HEADER_HEIGHT);
     // ARB-12 : le repli est un état de l'écran, jamais une écriture du brouillon.
     expect(probe.draft).toBe(before);
 
@@ -4432,26 +4437,28 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     renderScreen();
 
     const band = screen.getByTestId("screen-context-band");
-    // Couleur propre de la Composition conservée (bande partagée inchangée, pas la lavande de l’éditeur).
-    expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe(colors.selectionSurface);
+    // Recette iPhone du 29/10/2026 : bande transparente, couleur propre de la Composition (pas la
+    // lavande de l’éditeur) peinte par le remplissage de `ContextBand`, qui s’efface vers le bas.
+    expect(StyleSheet.flatten(band.props.style).backgroundColor).toBe("transparent");
 
     const effects = screen.getByTestId("composition-context-band-effects", { includeHiddenElements: true });
     expect(effects.props.pointerEvents).toBe("none");
     expect(effects.props.importantForAccessibility).toBe("no-hide-descendants");
     expect(StyleSheet.flatten(effects.props.style)).toMatchObject({ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, overflow: "hidden" });
 
-    // Fondu : 20 % inférieurs, couches absolues jusqu’au bas (aucune bande juxtaposée), opacités croissantes vers le blanc.
-    const fade = screen.getByTestId("composition-context-band-fade", { includeHiddenElements: true });
-    expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", bottom: 0, height: "20%" });
-    const layers = fade.props.children as { props: { style: unknown } }[];
+    // Recette iPhone du 29/10/2026 — fondu des 20 % inférieurs (23 points sous 92) vers la
+    // TRANSPARENCE : couches superposées de la couleur de la bande, aucune couche blanche ; opaque en
+    // haut de la part fondue, presque transparent en bas.
+    const fade = screen.getByTestId("screen-context-band-fade", { includeHiddenElements: true });
+    expect(StyleSheet.flatten(fade.props.style)).toMatchObject({ position: "absolute", top: 92, height: 23 });
+    const layers = (fade.props.children as { props: { style: unknown } }[]).map(
+      (layer) => StyleSheet.flatten(layer.props.style as never) as { height: number; opacity: number; backgroundColor: string },
+    );
     expect(layers.length).toBeGreaterThanOrEqual(10);
-    const opacities = layers.map((layer) => (StyleSheet.flatten(layer.props.style as never) as { opacity: number }).opacity);
-    expect([...opacities].sort((a, b) => a - b)).toEqual(opacities);
-    expect(opacities[0]).toBeLessThan(0.1);
-    expect(opacities[opacities.length - 1]).toBeGreaterThan(0.9);
-    for (const layer of layers) {
-      expect(StyleSheet.flatten(layer.props.style as never)).toMatchObject({ position: "absolute", bottom: 0, backgroundColor: colors.background });
-    }
+    for (const layer of layers) expect(layer.backgroundColor).toBe(colors.selectionSurface);
+    expect(1 - layers.reduce((rest, layer) => rest * (1 - layer.opacity), 1)).toBeCloseTo(1, 5);
+    expect(layers[0]!.height).toBe(23);
+    expect(layers[0]!.opacity).toBeLessThan(0.1);
 
     // Courbe : halo blanc Ø 59,28 concentrique au bouton Retour (marge 16 depuis A01, cercle 38, contenu 48, séparateur 1).
     const halo = StyleSheet.flatten(screen.getByTestId("composition-context-band-halo", { includeHiddenElements: true }).props.style);
@@ -4459,12 +4466,12 @@ describe("CompositionScreen — recette 3 (T-49, EXT-R3-2 : zone de contexte)", 
     expect(halo.left).toBeCloseTo(16 + 19 - 29.64, 5);
     expect(halo.top).toBeCloseTo(-24 - 29.64, 5);
 
-    // Effets dessinés en premier : sous le champ Nom et sous Ajouter.
+    // Remplissage puis effets dessinés en premier : sous le champ Nom et sous Ajouter.
     const order = (band.props.children as { props?: { testID?: string } }[])
       .flat()
       .map((child) => child?.props?.testID)
       .filter(Boolean);
-    expect(order[0]).toBe("composition-context-band-effects");
+    expect(order.slice(0, 2)).toEqual(["screen-context-band-fill", "composition-context-band-effects"]);
     // PRE-6 story 2.1 : nom, Étiquette, durée et « + » forment le bloc `CompositionContextHeader`.
     expect(order.indexOf("composition-context-header")).toBeGreaterThan(0);
     expect(within(band).getByLabelText(composition.name)).toBeTruthy();
@@ -5287,7 +5294,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
       expect(seriesCountOfDraft("ex-1")).toBe(4);
       expect(screen.getByTestId("composition-circuit-header-counter-value").props.children).toBe(4);
       expect(natureText()).toBe("alternées");
-      expect(unitText()).toBe("tours · ");
+      expect(unitText()).toBe("tours");
     });
 
     it("Tours → Séries à N : séries inchangées, nature Séries, sans dialogue", () => {
@@ -5420,9 +5427,14 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
         // PRE-9 B.1a — D-451, complément du 28/10 : « Nombre de tours », « Séries groupées / alternées ».
         expect(screen.getByTestId("composition-circuit-header-counter").props.accessibilityLabel).toBe("Nombre de tours");
         const items = [screen.getByTestId(`${NATURE}-TOURS`, anyNode), screen.getByTestId(`${NATURE}-SERIES`, anyNode)];
-        expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-          ["Séries groupées", null],
-          ["Séries alternées", "checkmark"],
+        // Recette du 29/10 (ent-3) : titre et description (sous-titre natif) en `Text`, coche en `Image`.
+        const parts = (item: (typeof items)[number]) =>
+          ([] as { props: { children?: unknown; systemName?: string } }[])
+            .concat(item.props.children)
+            .map((child) => child.props.systemName ?? child.props.children);
+        expect(items.map(parts)).toEqual([
+          ["Séries groupées", "toutes les séries d’un exercice exécutées à chaque tour"],
+          ["Séries alternées", "une série de chaque exercice exécutée à chaque tour", "checkmark"],
         ]);
       });
 
@@ -9061,8 +9073,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(visible("composition-rail-link-B")).toBeCloseTo(restLength - PITCH, 6);
       expect(translateY("composition-rail-link-B")).toBeCloseTo(PITCH / 2, 6);
       // L'emplacement visé s'ouvre entre B (remonté) et le Circuit (immobile) : le lien de l'en-tête
-      // le traverse, allongé d'un pas.
-      expect(visible("composition-rail-link-circuit-header")).toBeCloseTo(37 + PITCH, 6);
+      // le traverse, allongé d'un pas. Recette du 29/10 : 8 + 14 + 4 (anneau centré sur la ligne de 18).
+      expect(visible("composition-rail-link-circuit-header")).toBeCloseTo(26 + PITCH, 6);
       release("A", 100);
       expect(order()).toEqual(["B:BEFORE_TOUR", "A:BEFORE_TOUR", "X:IN_TOUR", "Z:AFTER_TOUR"]);
       // Story 7.6 : A glisse jusqu'à sa place (hors de la chaîne le temps du mouvement), puis la rejoint.
@@ -10191,7 +10203,8 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     expect(span("composition-rail-link-b").height).toBe(16);
     expect(span("composition-rail-link-i").height).toBe(17);
     expect(span("composition-rail-link-a").height).toBe(16);
-    expect(span("composition-rail-link-circuit-header").height).toBe(37);
+    // Recette du 29/10 : 8 + 14 + 4 (anneau centré sur la ligne d'en-tête de 18, au lieu de 15 sur 40).
+    expect(span("composition-rail-link-circuit-header").height).toBe(26);
     expect(span("composition-rail-link-circuit-end").height).toBe(14);
     expect(span("composition-rail-link-end").height).toBe(15);
     // La queue de chaque carte part du bas du média et descend jusqu'au bas du bloc.
@@ -10299,11 +10312,14 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     renderScreenWithDraft([anActivity("i", "IN_TOUR", { name: "Pompes" })]);
     const headerHeight = styleOf("composition-circuit-header").minHeight as number;
     // Story 5.1b : l'œil a quitté l'en-tête. PRE-9 B.1a (RM-027) : restent les cibles réelles de 44
-    // du nom (repli), du nombre, de l'adjectif et, stepper révélé, du − et du +, centrées sur la
-    // ligne (débord de 2 sous l'en-tête de 40).
+    // du nom (repli), du nombre, de l'adjectif et, stepper révélé, du − et du +. Recette du 29/10 (ligne
+    // de 18) : contenu centré sur la ligne, boîte de 44 décalée vers le haut (marge interne haute de 8),
+    // bas de la boîte = centre de la ligne + (44 − 8) / 2 = 27, le haut de la première carte.
     expect(screen.queryByTestId("composition-circuit-header-volumes", hidden)).toBeNull();
     openCircuitStepper();
     const firstCardTop = headerHeight + (styleOf("composition-tour-section").gap as number);
+    const boxBottom = (style: ReturnType<typeof styleOf>, height: number) =>
+      headerHeight / 2 + (height - ((style.paddingTop as number | undefined) ?? 0)) / 2;
     for (const id of [
       "composition-circuit-header-counter-stepper-decrement",
       "composition-circuit-header-counter-stepper-increment",
@@ -10312,10 +10328,12 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     ]) {
       expect(screen.getByTestId(id).props.hitSlop).toBeUndefined();
       const style = styleOf(id);
-      const targetBottom = headerHeight / 2 + ((style.height ?? style.minHeight) as number) / 2;
-      expect(targetBottom).toBeLessThanOrEqual(firstCardTop);
+      const height = (style.height ?? style.minHeight) as number;
+      expect(height).toBeGreaterThanOrEqual(44);
+      expect(boxBottom(style, height)).toBeLessThanOrEqual(firstCardTop);
     }
-    const adjectiveBottom = headerHeight / 2 + (styleOf("composition-circuit-header-counter-adjective-target").minHeight as number) / 2;
+    const adjectiveStyle = styleOf("composition-circuit-header-counter-adjective-target");
+    const adjectiveBottom = boxBottom(adjectiveStyle, adjectiveStyle.minHeight as number);
     expect(adjectiveBottom).toBeLessThanOrEqual(firstCardTop);
   });
 

@@ -17,6 +17,7 @@ import {
   type LayoutChangeEvent,
   type ViewProps,
 } from "react-native";
+import Reanimated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
@@ -114,12 +115,18 @@ import { LabelPickerModal } from "@/features/reference-data/LabelPickerModal";
 import { useBodyZonesReferentialVersion } from "@/features/reference-data/ReferentialServiceContext";
 import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
-import { CIRCUIT_HEADER_HEIGHT, CircuitHeader } from "@/features/sessions/CircuitHeader";
+import {
+  CIRCUIT_HEADER_HEIGHT,
+  CircuitHeader,
+  useCircuitCardsReveal,
+  type CircuitCardsReveal,
+} from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout } from "@/features/sessions/compositionLayout";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
+import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
@@ -178,6 +185,7 @@ import {
   RailRing,
   RailSegment,
   SEQUENCE_GAP,
+  TEXT_TERTIARY,
 } from "@/features/sessions/CompositionSequence";
 import {
   RAIL_KEYS,
@@ -405,20 +413,10 @@ function useLabelsReferential(
 /**
  * Recette 3 (T-49, EXT-R3-2) : valeurs reprises de la zone de contexte de l’éditeur
  * (`ActivityEditorForm.tsx`, D-348) — halo figé « Halo blanc — bouton Annuler »
- * (5752:4044, Ø 59,28) et fondu figé sur les 20 % inférieurs, en couches
- * superposées dont l’opacité cumulée suit la rampe 0 → 1.
+ * (5752:4044, Ø 59,28). Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs (vers la
+ * transparence, ch. 12 / D-224) est porté par `ContextBand` (`fadeToTransparent`).
  */
 const BACK_HALO_DIAMETER = 59.28;
-const CONTEXT_BAND_FADE_SHARE = "20%";
-const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
-const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
-  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
-  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
-  return {
-    top: `${((index / CONTEXT_BAND_FADE_LAYER_COUNT) * 100).toFixed(4)}%` as `${number}%`,
-    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
-  };
-});
 
 const EMPTY_STOP_POINTS: CompositionState["stopPoints"] = [];
 
@@ -866,8 +864,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // premier plan (niveau ajouté ou réordonné depuis un éditeur).
   const levelPositions = useMovementLevelPositions(activityDefinitionService, categoriesFocusToken);
   // PRE-9 A.2 (ARB-22a, ARB-07) : Mouvements remis par la création ou la sélection, devenus
-  // Exercices du brouillon au retour au premier plan ; feuille de paramètres de chacun.
-  const movementExerciseSheet = useMovementExerciseIntake();
+  // Exercices du brouillon au retour au premier plan. Demande de Hermann du 29/10/2026 : aucune
+  // feuille à l'insertion ; la carte « Paramètres à compléter » ouvre la feuille de paramètres.
+  const { sheet: movementExerciseSheet, openParameters: openExerciseParameters } = useMovementExerciseIntake();
   // V2-PRE-2 (plan §6.5, CE-T03-16, D2/D4) : la pastille devient interactive
   // (`LabelPickerModal`, auto-alimentée via `ReferentialServiceContext`) —
   // `labelsLoadToken` relit ce référentiel d'AFFICHAGE (`sessionColor`
@@ -1809,6 +1808,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setCircuitCollapsedContent(null);
   }
   const isCircuitCollapsed = circuitCollapsedContent === circuitContentKey && placement === null;
+  /** Recette du 29/10 (obs-3 b) : dévoilement / repli animé des cartes du Circuit. */
+  const circuitCardsReveal = useCircuitCardsReveal(isCircuitCollapsed, CIRCUIT_GAP);
   /**
    * PRE-9 B.1b (D-451, COMP §1 et §4) : disposition générale (plusieurs Circuits, Cycles) — rendue
    * selon sa structure à la place des zones de l'ancien modèle ; `null` : rendu historique inchangé.
@@ -3041,9 +3042,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleEditActivity = useCallback(
     (activityId: string) => {
       closeCircuitControls();
+      // Demande de Hermann du 29/10/2026 : carte « Paramètres à compléter » → feuille de paramètres
+      // directement, sans ouvrir la carte ; complète → éditeur de l'Exercice, comme avant.
+      const touched = draft.exercises.find((exercise) => exercise.id === activityId);
+      if (touched !== undefined && isExerciseParametersIncomplete(touched)) {
+        openExerciseParameters(activityId);
+        return;
+      }
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
-    [closeCircuitControls, router],
+    [closeCircuitControls, draft.exercises, openExerciseParameters, router],
   );
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
   // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
@@ -3183,14 +3191,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       {/* Recette 3 (T-49, EXT-R3-2, D-353) : plus de trait gris entre l’en-tête et la
           zone de contexte — la courbe blanche sous Retour s’y raccorde directement. */}
 
-      <ContextBand>
+      {/* Recette iPhone du 29/10/2026 : fondu des 20 % inférieurs vers la TRANSPARENCE (ch. 12,
+          D-224), porté par `ContextBand` — plus de voile blanc posé sur la couleur de la bande. */}
+      <ContextBand fadeToTransparent>
         {/* Recette 3 (T-49, EXT-R3-2 autorisée par Hermann le 12/10) : mêmes effets que
             la zone de contexte de l’éditeur (D-348), sur la couleur PROPRE de la
             Composition (bande partagée inchangée) — courbe blanche concentrique au
-            bouton Retour (Ø 59,28) et fondu vers le fond blanc sur les 20 % inférieurs,
-            en couches superposées (aucun interstice, donc aucun liseré). Dessinés en
-            premier (sous le contenu), découpés à la bande, sans interaction ni
-            exposition à l’accessibilité. */}
+            bouton Retour (Ø 59,28). Dessinée en premier (sous le contenu), découpée à la
+            bande, sans interaction ni exposition à l’accessibilité. */}
         <View
           pointerEvents="none"
           accessibilityElementsHidden
@@ -3198,11 +3206,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           style={styles.contextBandEffects}
           testID="composition-context-band-effects"
         >
-          <View style={styles.contextBandFade} testID="composition-context-band-fade">
-            {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-              <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
-            ))}
-          </View>
           <View style={styles.backHalo} testID="composition-context-band-halo" />
         </View>
         {/*
@@ -3520,9 +3523,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             }}
             testID="composition-circuit-header"
           />
-          {/* PRE-9 B.1a (référence §4) : Circuit replié — ses cartes et ses points sont masqués. */}
-          {isCircuitCollapsed ? null : (
+          {/*
+           * PRE-9 B.1a (référence §4) : Circuit replié — ses cartes et ses points sont masqués.
+           * Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`).
+           */}
+          {circuitCardsReveal.mounted ? (
             <ActivityZoneList
+              reveal={circuitCardsReveal}
               zone="IN_TOUR"
               testID="composition-zone-in-tour"
               items={zoneItems.IN_TOUR}
@@ -3553,7 +3560,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               stopPointStepAction={stopPointStepAction}
               placement={placementRowContext}
             />
-          )}
+          ) : null}
           {/*
            * PRE-6 (story 5.2) : bas du Circuit — lien de la dernière ancre du Circuit (média ou anneau
            * de l'en-tête) jusqu'au bord bas, qui suit le bas du Circuit pendant le glisser. Porté par
@@ -3980,7 +3987,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               onPress: () => {
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, D-449) : création d'un Mouvement (CE-MVT-01) en contexte Séance,
-                // puis paramètres de l'Exercice (`useMovementExerciseIntake`) ; plus l'ancien éditeur.
+                // puis Exercice posé « Paramètres à compléter » (`useMovementExerciseIntake`) ; plus l'ancien éditeur.
                 router.push({ pathname: "/movement", params: { context: MOVEMENT_SESSION_CONTEXT } });
               },
               testID: "composition-add-activity-tree-new",
@@ -4095,6 +4102,8 @@ type ActivityZoneListProps = {
   readonly precededByPlacementRow?: boolean;
   /** PRE-9 B.2 : mode enveloppe — cartes éligibles désignables, tout le reste inactif ; `null` hors mode. */
   readonly envelope?: EnvelopeContext | null;
+  /** Recette du 29/10 (obs-3 b) : dévoilement / repli animé des cartes du Circuit (`useCircuitCardsReveal`). */
+  readonly reveal?: CircuitCardsReveal;
 };
 
 /**
@@ -4406,6 +4415,7 @@ function ActivityZoneList({
   placement,
   precededByPlacementRow = false,
   envelope = null,
+  reveal,
 }: ActivityZoneListProps) {
   if (items.length === 0) {
     return null;
@@ -4430,7 +4440,7 @@ function ActivityZoneList({
     bottom: followedByPlacementRow(index) ? gap / 2 : gap,
   });
   return (
-    <View
+    <Reanimated.View
       style={[
         styles.exerciseList,
         // PRE-6 (story 5.2, D-435) : écart 9 entre les cartes du Circuit, 8 au dehors.
@@ -4440,8 +4450,12 @@ function ActivityZoneList({
         // glisse sous leur fond opaque (blanc ou couleur du Circuit).
         // Story 5.2b : aussi pendant le dialogue de perte et le retour animé de la carte.
         items.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
+        reveal?.style,
       ]}
-      onLayout={(event) => onLayout(zone, event)}
+      onLayout={(event) => {
+        onLayout(zone, event);
+        reveal?.onLayout(event);
+      }}
       testID={testID}
     >
       {items.map((item, itemIndex) => {
@@ -4563,7 +4577,7 @@ function ActivityZoneList({
           </EnvelopeFrame>
         );
       })}
-    </View>
+    </Reanimated.View>
   );
 }
 
@@ -5503,8 +5517,11 @@ function CompositionActivityRow({
     placement === null || activity.type !== "EXERCISE"
       ? activity.postActivityRecoverySeconds
       : placementRecoverySeconds(placement.draft, activity);
-  /** Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`). */
-  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged;
+  /**
+   * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`) ou
+   * incomplète (recette du 29/10 : liseré rouge, `occurrenceCardIncompleteSurface`).
+   */
+  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged || isIncomplete;
   /**
    * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
    * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
@@ -6114,6 +6131,7 @@ function LayoutCircuitBlock({
   const natureKind = layoutCircuitNatureKind(circuit.id);
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey;
+  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const testID = `composition-layout-circuit-${circuit.id}`;
@@ -6158,8 +6176,13 @@ function LayoutCircuitBlock({
         testID={`${testID}-header`}
       />
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
-      {isCollapsed || circuit.exercises.length === 0 ? null : (
-        <View style={[styles.exerciseList, styles.exerciseListInCircuit]} testID={`${testID}-exercises`}>
+      {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
+      {!reveal.mounted || circuit.exercises.length === 0 ? null : (
+        <Reanimated.View
+          style={[styles.exerciseList, styles.exerciseListInCircuit, reveal.style]}
+          onLayout={reveal.onLayout}
+          testID={`${testID}-exercises`}
+        >
           {circuit.exercises.map((exercise, index) => (
             <LayoutExerciseRow
               key={exercise.id}
@@ -6171,7 +6194,7 @@ function LayoutCircuitBlock({
               context={context}
             />
           ))}
-        </View>
+        </Reanimated.View>
       )}
     </View>
   );
@@ -6218,9 +6241,31 @@ function LayoutCycleBlock({
     <View style={styles.layoutCycleContainer} onLayout={(event) => setCycleY(event.nativeEvent.layout.y)} testID={testID}>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
-        <RailSegment centerX={railX} top={-SEQUENCE_GAP} height={SEQUENCE_GAP + ringTop} testID={`${testID}-rail-link`} />
-        <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
+        {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
+        <RailSegment
+          centerX={railX}
+          top={-SEQUENCE_GAP}
+          height={SEQUENCE_GAP + ringTop - CYCLE_RING_OUTSET}
+          testID={`${testID}-rail-link`}
+        />
+        <RailSegment
+          centerX={railX}
+          top={ringTop + RAIL_RING_DIAMETER + CYCLE_RING_OUTSET}
+          bottom={0}
+          testID={`${testID}-rail-tail`}
+        />
         <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+        {/*
+         * Recette du 29/10 (obs-3 c, « deux cercles concentriques ») : anneau extérieur de 16 (Figma
+         * `10748:20132`, « Anneau — Cycle », trait 1 `#7A7A80`) autour du repère de 10 (`10745:20132`).
+         */}
+        <View
+          style={[
+            styles.cycleOuterRing,
+            { left: railX - CYCLE_OUTER_RING_DIAMETER / 2, top: CIRCUIT_PADDING_VERTICAL + rowHeight / 2 - CYCLE_OUTER_RING_DIAMETER / 2 },
+          ]}
+          testID={`${testID}-rail-outer-ring`}
+        />
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
       {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
@@ -6470,8 +6515,12 @@ const CIRCUIT_RADIUS = 18;
  * Aplat du Circuit (Figma `9819:19906`, `#F3F4F9`) : couleur hors registre ch12, constante locale
  * (choix D5 de l'epic 5 ; ch13 CE-T03-08 L1478). `colors.tourSurface` n'est pas modifié (partagé avec
  * `SessionCard` et `DisclosureControl`) ; ajout au registre proposé au lot documentaire.
+ * [Remplacé par la recette iPhone du 29/10 (obs-3 b, Hermann : « la couleur du circuit ne contraste
+ * pas suffisamment avec le blanc du fond des cartes ») : `#EBEDF5`, plus soutenu que `#F3F4F9` de
+ * Figma, et toujours plus clair que l'aplat du Cycle (`#E0E2EF`) — valeur de conception à valider
+ * sur iPhone ; la demande de Hermann prime sur Figma.]
  */
-const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
+const CIRCUIT_SURFACE_COLOR = "#EBEDF5";
 /**
  * PRE-9 B.1b (COMP §4 : « cycle pleine largeur, circuit 386, exercice 370 ; fonds du plus soutenu au
  * plus clair » ; Figma `10744:20108`) — valeurs locales NON ÉCRITES dans les sources, à confirmer :
@@ -6481,8 +6530,18 @@ const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
  * - Circuit dans un Cycle : en retrait de 4 de chaque côté (le fond du Cycle l'encadre), les cartes
  *   gardant leur largeur ;
  * - écart entre les membres d'un Cycle et sous son en-tête : celui du Circuit (9).
+ * [Remplacé par la recette iPhone du 29/10 (obs-3 c, Hermann : « Couleurs de fond du cycle : elle
+ * n'est pas conforme à Figma » ; « les 4 bords doivent être arrondis ») : aplat `#E0E2EF` (Figma
+ * `10744:20282`, « Fond — Cycle ») et rayon 18 (même nœud) ; la frange de dégradé (1,9 % en haut et
+ * en bas, Figma) reste non rendue.]
  */
-const CYCLE_SURFACE_COLOR = "#EAEAFF";
+const CYCLE_SURFACE_COLOR = "#E0E2EF";
+/**
+ * Recette du 29/10 (obs-3 c) : anneau extérieur du Cycle (Figma `10748:20132`, 16 de diamètre, trait
+ * 1), concentrique au repère de 10 ; le rail s'arrête à son bord (3 au-delà du repère).
+ */
+const CYCLE_OUTER_RING_DIAMETER = 16;
+const CYCLE_RING_OUTSET = (CYCLE_OUTER_RING_DIAMETER - RAIL_RING_DIAMETER) / 2;
 /** PRE-9 B.2 : fond du contenu désigné en mode enveloppe — lavande du Cycle, translucide (valeur locale). */
 const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
 const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
@@ -6808,20 +6867,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     overflow: "hidden",
   },
-  contextBandFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: CONTEXT_BAND_FADE_SHARE,
-  },
-  contextBandFadeLayer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.background,
-  },
   backHalo: {
     position: "absolute",
     width: BACK_HALO_DIAMETER,
@@ -7034,7 +7079,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: CIRCUIT_OUTSET,
     paddingVertical: CIRCUIT_PADDING_VERTICAL,
     gap: LAYOUT_CYCLE_GAP,
+    // Recette du 29/10 (obs-3 c) : quatre coins arrondis (Figma `10744:20282` : 18).
+    borderRadius: CIRCUIT_RADIUS,
     backgroundColor: CYCLE_SURFACE_COLOR,
+  },
+  // Recette du 29/10 (obs-3 c) : anneau extérieur du Cycle, concentrique au repère du rail.
+  cycleOuterRing: {
+    position: "absolute",
+    width: CYCLE_OUTER_RING_DIAMETER,
+    height: CYCLE_OUTER_RING_DIAMETER,
+    borderRadius: CYCLE_OUTER_RING_DIAMETER / 2,
+    borderWidth: 1,
+    borderColor: TEXT_TERTIARY,
   },
   // PRE-9 B.1b : couche du panneau du choix de nature (Android / web), sur tout le contenu défilant.
   layoutPanelLayer: {

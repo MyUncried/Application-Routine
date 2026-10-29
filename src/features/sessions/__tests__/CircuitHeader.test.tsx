@@ -1,14 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { Button as SwiftUIButton, Menu, RNHostView } from "@expo/ui/swift-ui";
+import { Button as SwiftUIButton, Menu, RNHostView, Text as SwiftUIText } from "@expo/ui/swift-ui";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
-import { AccessibilityInfo, Platform, StyleSheet } from "react-native";
+import { AccessibilityInfo, Platform, StyleSheet, Text, View } from "react-native";
 
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import {
   CIRCUIT_HEADER_COLLAPSED_HEIGHT,
   CIRCUIT_HEADER_HEIGHT,
   CIRCUIT_HEADER_TOUCH_GEOMETRY,
+  CONTAINER_TITLE_MIN_WIDTH,
   CircuitHeader,
+  CIRCUIT_HIDE_DURATION_MS,
+  CIRCUIT_REVEAL_DURATION_MS,
+  useCircuitCardsReveal,
   circuitCountSpokenValue,
   circuitNatureAdjective,
   circuitUnitLabel,
@@ -113,7 +117,10 @@ describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
     renderHeader({ count: 3, nature: "SERIES", duration: "≥ 19 min" });
     expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
     expect(screen.getByTestId("header-counter-value").props.children).toBe(3);
-    expect(screen.getByTestId("header-counter-unit", anyNode).props.children).toBe("tours · ");
+    // Recette du 29/10 : l'unité est dans la cible du nombre (stepper) ; le point médian est à part.
+    expect(screen.getByTestId("header-counter-unit", anyNode).props.children).toBe("tours");
+    expect(within(screen.getByTestId("header-counter")).getByTestId("header-counter-unit", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("header-counter-separator", anyNode).props.children).toBe(" · ");
     expect(screen.getByTestId("header-counter-adjective", anyNode).props.children).toBe("alternées");
     expect(screen.getByTestId("header-duration", anyNode).props.children).toBe("≥ 19 min");
     const row = screen.getByTestId("header-row");
@@ -121,7 +128,8 @@ describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
       .concat(row.props.children)
       .filter((child): child is { props: { testID: string } } => child !== null && typeof child === "object");
     expect(children.map((child) => child.props.testID)).toEqual(["header-collapse", "header-counter-slot", "header-duration"]);
-    expect(style("header-duration")).toMatchObject({ textAlign: "right", flex: 1, minWidth: 0, color: "#7A7A80" });
+    // Recette du 29/10 (obs-3 b) : durée noire et en gras.
+    expect(style("header-duration")).toMatchObject({ textAlign: "right", flex: 1, minWidth: 0, color: colors.textPrimary, fontWeight: "600" });
     expect(screen.getByTestId("header-duration", anyNode).props.numberOfLines).toBe(1);
     // VoiceOver : la durée est lue avec le nom.
     expect(screen.getByTestId("header-collapse").props.accessibilityLabel).toBe("Circuit, ≥ 19 min");
@@ -133,8 +141,11 @@ describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
     renderHeader({ count: 3 });
     expect(style("header-title")).toMatchObject({ fontSize: 15, color: colors.textPrimary });
     expect(style("header-counter-value")).toMatchObject({ fontSize: 15, color: colors.primary });
-    expect(style("header-counter-unit")).toMatchObject({ fontSize: 13, color: colors.textPrimary });
-    expect(style("header-counter-adjective")).toMatchObject({ fontSize: 13, color: colors.primary });
+    // Recette du 29/10 (obs-3 b/c) : unité et adjectif en gras ; nombre et unité contigus (écart 5).
+    expect(style("header-counter-unit")).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.textPrimary });
+    expect(style("header-counter-adjective")).toMatchObject({ fontSize: 13, fontWeight: "600", color: colors.primary });
+    expect(style("header-counter-value")).toMatchObject({ fontWeight: "600", textAlign: "right" });
+    expect(style("header-counter")).toMatchObject({ flexDirection: "row", gap: 5, justifyContent: "flex-start" });
     expect(style("header-duration")).toMatchObject({ fontSize: type.supporting.fontSize });
     expect(type.supporting.fontSize).toBe(12);
   });
@@ -154,10 +165,16 @@ describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
         expect(modifiers).toContain("Nature du circuit");
         expect(modifiers).toContain("Séries groupées");
         const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
-        expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-          ["Séries groupées", "checkmark"],
-          ["Séries alternées", null],
+        // Recette du 29/10 (ent-3) : titre, puis description en sous-titre natif, puis la coche.
+        const optionLabel = (item: (typeof items)[number]) =>
+          ([] as { type: unknown; props: { children?: unknown; systemName?: string } }[])
+            .concat(item.props.children)
+            .map((child) => (child.type === SwiftUIText ? child.props.children : `image:${child.props.systemName}`));
+        expect(items.map(optionLabel)).toEqual([
+          ["Séries groupées", "toutes les séries d’un exercice exécutées à chaque tour", "image:checkmark"],
+          ["Séries alternées", "une série de chaque exercice exécutée à chaque tour"],
         ]);
+        expect(items.map((item) => item.props.label ?? null)).toEqual([null, null]);
         expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
           expect.stringContaining("Séries groupées, toutes les séries d’un exercice exécutées à chaque tour"),
           expect.stringContaining("Séries alternées, une série de chaque exercice exécutée à chaque tour"),
@@ -265,22 +282,32 @@ describe("CircuitHeader — stepper révélé au toucher du nombre (RM-027)", ()
     expect(screen.queryByTestId(PLUS)).toBeNull();
     const counter = screen.getByTestId("header-counter");
     expect(counter.props.accessibilityState).toMatchObject({ expanded: false });
-    expect(style("header-counter")).toMatchObject({ minWidth: 44, minHeight: 44, marginVertical: -2 });
+    expect(style("header-counter")).toMatchObject({ minWidth: 44, minHeight: 44, marginTop: -17, marginBottom: -9, paddingTop: 8 });
     expect(counter.props.hitSlop).toBeUndefined();
     fireEvent.press(counter);
     expect(onToggleCounter).toHaveBeenCalledTimes(1);
     expect(onChangeCount).not.toHaveBeenCalled();
   });
 
-  it("the unit is not interactive (no role, not accessible, no press handler)", () => {
+  // Recette du 29/10 (obs-3 b) : l'unité fait partie de la cible du nombre (stepper) — pas d'élément
+  // propre ; la toucher revient à toucher le nombre ; jamais le choix de nature.
+  it("the unit is not a control of its own (no role, not accessible); it belongs to the number's target", () => {
     const { onToggleCounter, onOpenNatureMenu } = renderHeader({ count: 3 });
     const unit = screen.getByTestId("header-counter-unit", anyNode);
     expect(unit.props.accessible).toBe(false);
     expect(unit.props.accessibilityRole).toBeUndefined();
     expect(unit.props.onPress).toBeUndefined();
     fireEvent.press(unit);
-    expect(onToggleCounter).not.toHaveBeenCalled();
+    expect(onToggleCounter).toHaveBeenCalledTimes(1);
     expect(onOpenNatureMenu).not.toHaveBeenCalled();
+  });
+
+  it("revealed: the unit stays contiguous to the number, inside the stepper (between − and +)", () => {
+    renderHeader({ count: 3, isCounterOpen: true });
+    const stepper = screen.getByTestId("header-counter-stepper");
+    expect(within(stepper).getByTestId("header-counter-unit", anyNode).props.children).toBe("tours");
+    // Le fond de 36 déborde de la ligne de 18, qui garde sa hauteur.
+    expect(style("header-counter-stepper")).toMatchObject({ marginVertical: -9 });
   });
 
   it("revealed: − N + on the white background (36, radius 18, padding 4; circles of 28); tapping the number again closes it", () => {
@@ -298,10 +325,10 @@ describe("CircuitHeader — stepper révélé au toucher du nombre (RM-027)", ()
     for (const id of [MINUS, PLUS]) {
       expect(style(`${id}-circle`)).toMatchObject({ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surface });
       const box = style(id);
-      expect(box).toMatchObject({ width: 44, height: 44, marginVertical: -4 });
+      expect(box).toMatchObject({ width: 44, height: 44, marginTop: -8, marginBottom: 0, paddingTop: 8 });
       expect(screen.getByTestId(id).props.hitSlop).toBeUndefined();
     }
-    expect(style("header-counter")).toMatchObject({ minHeight: 44, marginVertical: -4 });
+    expect(style("header-counter")).toMatchObject({ minHeight: 44, marginTop: -8, marginBottom: 0, paddingTop: 8 });
     fireEvent.press(screen.getByTestId("header-counter"));
     expect(onToggleCounter).toHaveBeenCalledTimes(1);
   });
@@ -503,7 +530,9 @@ describe("CircuitHeader — stepper révélé au toucher du nombre (RM-027)", ()
   // Référence §4 : le compteur ne cède jamais ; la durée d'abord, puis le nom.
   it("narrow widths: the duration gives way first, then the name; the counter never shrinks", () => {
     renderHeader({ count: 3, isCounterOpen: true });
-    expect(style("header-collapse")).toMatchObject({ flexShrink: 1, minWidth: 0 });
+    // Recette du 29/10 (obs-3 c) : le titre occupe au moins 95 — compteur à x 103 du titre, comme le Cycle.
+    expect(style("header-collapse")).toMatchObject({ flexShrink: 1, minWidth: CONTAINER_TITLE_MIN_WIDTH });
+    expect(CONTAINER_TITLE_MIN_WIDTH + CIRCUIT_HEADER_TOUCH_GEOMETRY.titleToCounterGap).toBe(103);
     expect(style("header-title")).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(screen.getByTestId("header-title").props.numberOfLines).toBe(1);
     expect(style("header-counter-slot").flexShrink).toBe(0);
@@ -532,7 +561,7 @@ describe("CircuitHeader — stepper révélé au toucher du nombre (RM-027)", ()
 
 /** PRE-9 B.1a (ARB-12, référence §4) : chevron, Circuit replié. */
 describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
-  it("expanded: chevron up, state expanded, no names line, row of 40 (minimum)", () => {
+  it("expanded: chevron up, state expanded, no names line, row of 18 (minimum; recette du 29/10)", () => {
     renderHeader({ memberNames: ["Squat", "Pompes"] });
     const collapse = screen.getByTestId("header-collapse");
     expect(collapse.props.accessibilityRole).toBe("button");
@@ -542,7 +571,8 @@ describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
     expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_HEIGHT });
     expect(style("header").height).toBeUndefined();
     expect(style("header-row")).toMatchObject({ flexDirection: "row", minHeight: CIRCUIT_HEADER_HEIGHT, alignItems: "center" });
-    expect(style("header-collapse")).toMatchObject({ minHeight: 44, marginVertical: -2 });
+    expect(CIRCUIT_HEADER_HEIGHT).toBe(18);
+    expect(style("header-collapse")).toMatchObject({ minHeight: 44, marginTop: -17, marginBottom: -9, paddingTop: 8 });
   });
 
   it("tapping the name / chevron asks the screen to collapse; collapsed: names line « A · B », one truncated line, 7 below, 68 reference", () => {
@@ -556,12 +586,44 @@ describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
     const names = screen.getByTestId("header-names");
     expect(names.props.children).toBe("Squat · Pompes · Gainage");
     expect(names.props.numberOfLines).toBe(1);
-    expect(style("header-names")).toMatchObject({ marginTop: 7 });
-    expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_COLLAPSED_HEIGHT });
-    expect(CIRCUIT_HEADER_COLLAPSED_HEIGHT).toBe(68);
+    // Recette du 29/10 (Figma `10744:20195`) : noms en Regular 12 / 15, à 7 de la ligne ; 68 est la
+    // hauteur du Circuit replié entier (14 + 18 + 7 + 15 + 14), plus une hauteur imposée à l'en-tête.
+    expect(style("header-names")).toMatchObject({ marginTop: 7, fontSize: 12, lineHeight: 15 });
+    expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_HEIGHT });
+    expect(14 + CIRCUIT_HEADER_HEIGHT + 7 + 15 + 14).toBe(CIRCUIT_HEADER_COLLAPSED_HEIGHT);
+    expect(screen.getByTestId("header-names-reveal", anyNode).props.entering).toBeTruthy();
     // Le compteur et la durée restent sur la ligne d'en-tête.
     expect(within(screen.getByTestId("header-row")).getByTestId("header-counter")).toBeTruthy();
     fireEvent.press(screen.getByTestId("header-collapse"));
     expect(onToggleCollapsed).toHaveBeenCalledTimes(2);
+  });
+});
+
+/** Recette iPhone du 29/10 (obs-3 b) : dévoilement / repli animé des cartes du Circuit. */
+describe("useCircuitCardsReveal", () => {
+  function Cards({ collapsed }: { collapsed: boolean }) {
+    const reveal = useCircuitCardsReveal(collapsed, 9);
+    return reveal.mounted ? (
+      <View style={reveal.style as never} onLayout={reveal.onLayout} testID="cards">
+        <Text>Squat</Text>
+      </View>
+    ) : null;
+  }
+
+  it("expanded at mount; collapse unmounts the cards once the (slower) hide ends; expand mounts them again", async () => {
+    expect(CIRCUIT_HIDE_DURATION_MS).toBeGreaterThan(CIRCUIT_REVEAL_DURATION_MS);
+    const view = render(<Cards collapsed={false} />);
+    expect(screen.getByTestId("cards")).toBeTruthy();
+    view.rerender(<Cards collapsed />);
+    // Fin du repli : rappel de fin d'animation, remis au fil JS (microtâche).
+    await act(async () => {});
+    expect(screen.queryByTestId("cards")).toBeNull();
+    view.rerender(<Cards collapsed={false} />);
+    expect(screen.getByTestId("cards")).toBeTruthy();
+  });
+
+  it("collapsed at mount: nothing rendered", () => {
+    render(<Cards collapsed />);
+    expect(screen.queryByTestId("cards")).toBeNull();
   });
 });

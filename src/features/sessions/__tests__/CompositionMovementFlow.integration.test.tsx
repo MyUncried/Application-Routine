@@ -27,10 +27,12 @@ import { strings } from "@/shared/i18n";
 /**
  * PRE-9 A.2 — Créer un Exercice depuis un Mouvement (ARB-22a, ARB-07, D-449, Q6 ; CE-MVT-01).
  * Vrai navigateur (pile racine + groupe `(creation)` réel, `SessionDraftProvider` réel), SQLite en
- * mémoire : « Créer un nouvel exercice » ouvre la création d'un Mouvement (plus `/exercise`), puis
- * les paramètres de l'Exercice ; « Utiliser un mouvement existant » ouvre la sélection des
- * Mouvements actifs du Catalogue (plus `/activity-selection`) ; les Mouvements choisis deviennent
- * des Exercices insérés après le dernier Exercice entré, puis configurables.
+ * mémoire : « Créer un nouvel exercice » ouvre la création d'un Mouvement (plus `/exercise`) ;
+ * « Utiliser un mouvement existant » ouvre la sélection des Mouvements actifs du Catalogue (plus
+ * `/activity-selection`) ; les Mouvements choisis deviennent des Exercices insérés après le dernier
+ * Exercice entré. Demande de Hermann du 29/10/2026 : aucune feuille ne s'ouvre à l'insertion ; les
+ * cartes sont posées « Paramètres à compléter » ; toucher une telle carte ouvre directement la
+ * feuille de paramètres (pas l'éditeur) ; complète, la carte ouvre l'éditeur comme avant.
  */
 
 jest.mock("expo-sqlite", () => ({ useSQLiteContext: () => ({}) }));
@@ -144,6 +146,15 @@ async function openMenuAction(label: string) {
   await settle(300);
 }
 
+/** Carte d'Exercice de la Composition, par son nom. */
+const card = (name: string) => screen.getByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, ${name},`));
+
+/** Toucher d'une carte (feuille ouverte après lecture du Profil). */
+async function tapCard(name: string) {
+  fireEvent.press(card(name));
+  await settle(300);
+}
+
 /** Feuille de paramètres : mode Durée, 45 s, ✓. */
 async function setDuration45() {
   chooseExecutionMode("Durée");
@@ -156,8 +167,8 @@ async function setDuration45() {
   await settle(300);
 }
 
-describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouvement, puis paramètres", () => {
-  it("ouvre la fiche de création du Mouvement (pas l'ancien éditeur) ; Terminer enregistre le Mouvement, revient à la Composition, insère l'Exercice et ouvre ses paramètres", async () => {
+describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouvement, puis carte à compléter", () => {
+  it("ouvre la fiche de création du Mouvement (pas l'ancien éditeur) ; Terminer enregistre le Mouvement, revient à la Composition et pose l'Exercice « Paramètres à compléter », sans feuille ; la carte ouvre la feuille, puis, complète, l'éditeur", async () => {
     const router = renderApp();
     await settle();
     await openMenuAction(addToSession.newActivity);
@@ -186,14 +197,23 @@ describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouveme
     expect(router.getPathname()).toBe("/composition");
     const saved = await database.getAllAsync<{ id: string; name: string }>("SELECT id, name FROM movements WHERE name = 'Burpees'");
     expect(saved).toHaveLength(1);
-    // Paramètres de l'Exercice : la feuille existante, par-dessus la Composition.
-    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    // Demande de Hermann du 29/10/2026 : aucune feuille à l'insertion ; carte à compléter (D-389).
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
     expect(cardNames()).toEqual(["Burpees"]);
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1");
+    expect(screen.getByText(strings.executionParameters.card.incomplete)).toBeTruthy();
+    // Toucher la carte à compléter : la feuille de paramètres, par-dessus la Composition, sans l'éditeur.
+    await tapCard("Burpees");
+    expect(router.getPathname()).toBe("/composition");
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     await setDuration45();
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
-    const card = screen.getByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, Burpees`));
     // 45 s, avec Compte à rebours et Fin du Profil : durée estimée de l'Exercice.
-    expect(String(card.props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 1 min");
+    expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 1 min");
+    // Paramètres renseignés : la carte ouvre l'éditeur de l'Exercice, comme avant.
+    await tapCard("Burpees");
+    expect(router.getPathname()).toBe("/exercise");
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
   }, 40000);
 
   it("depuis une Séance, « Utiliser ce mouvement » reprend le Mouvement existant (aucun doublon) ; « Créer une variante » n'est pas proposé ; ARB-07 : après le dernier Exercice", async () => {
@@ -208,8 +228,7 @@ describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouveme
       fireEvent.press(screen.getByTestId("movement-selection-add"));
     });
     await settle(300);
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await settle(300);
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
 
     await openMenuAction(addToSession.newActivity);
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Pompes");
@@ -224,16 +243,14 @@ describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouveme
 
     expect(router.getPathname()).toBe("/composition");
     expect(await database.getAllAsync("SELECT id FROM movements WHERE name = 'Pompes'")).toHaveLength(1);
-    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
-    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
-    await settle(300);
-    // Paramètres laissés à compléter : l'Exercice reste, après le précédent.
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    // Paramètres à compléter : l'Exercice est posé après le précédent.
     expect(cardNames()).toEqual(["Squats", "Pompes"]);
   }, 40000);
 });
 
 describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le Catalogue des Mouvements", () => {
-  it("ouvre la sélection des Mouvements (pas l'ancienne sélection) ; archivés absents ; choisis → Exercices dans l'ordre du Catalogue, configurés un à un", async () => {
+  it("ouvre la sélection des Mouvements (pas l'ancienne sélection) ; archivés absents ; choisis → Exercices dans l'ordre du Catalogue, posés à compléter ; chaque carte ouvre ses paramètres", async () => {
     await movements().create(movement("fentes", "Fentes"));
     await movements().create(movement("gainage", "Gainage"));
     await movements().create(movement("abdos", "Abdos"));
@@ -264,13 +281,20 @@ describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le
 
     expect(router.getPathname()).toBe("/composition");
     expect(cardNames()).toEqual(["Abdos", "Gainage"]);
-    // Paramètres du premier (✓), puis du second (✕ : laissé à compléter).
+    // Aucune feuille à l'insertion : les deux cartes sont à compléter.
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(screen.getAllByText(strings.executionParameters.card.incomplete)).toHaveLength(2);
+    // Carte touchée → ses paramètres : Abdos (✓), puis Gainage (✕ : laissé à compléter).
+    await tapCard("Abdos");
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     await setDuration45();
+    expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    await tapCard("Gainage");
     expect(screen.getByTestId("execution-sheet")).toBeTruthy();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     await settle(300);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    expect(router.getPathname()).toBe("/composition");
     const [abdos, gainage] = screen.getAllByLabelText(new RegExp(`^${composition.occurrenceCard.accessibilityType}, `));
     expect(String(abdos!.props.accessibilityLabel)).toBe("Exercice, Abdos, 1 sur 2, 1 min");
     // Paramètres à compléter : aucune durée annoncée (D-389).

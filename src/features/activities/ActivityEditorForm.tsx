@@ -203,6 +203,20 @@ export type ActivityEditorFormProps = {
   variant?: "exercise" | "movement";
   /** PRE-8 (B.2) : structure des phases du Mouvement (variante `"movement"` seulement). */
   movementPhases?: { readonly value: MovementPhaseList; readonly onChange: (next: MovementPhaseList) => void } | null;
+  /**
+   * PRE-9 (recette iPhone du 29/10 ; CE-MVT-01, DSF Mouvements l.67 : la lecture seule depuis une
+   * Séance « ne verrouille pas les paramètres locaux de l'exercice » ; CE-UI-10) : variante
+   * `"movement"` d'un Exercice ouvert depuis la Composition — carte des paramètres d'exécution
+   * (même carte et même Feuille que l'Éditeur d'Exercice) après les phases. Défaut `false` : fiche
+   * Mouvement du Catalogue, sans paramètres.
+   */
+  executionParametersCard?: boolean;
+  /**
+   * Recette iPhone du 29/10/2026 (Hermann, fiche « Créer un mouvement ») : texte par défaut du Nom
+   * (« Nom du mouvement ») et sa couleur (gris clair ; le nom saisi reste noir). Absent : « Nom de
+   * l’exercice » en `textPrimary` (arbitrage G-3, Éditeur d'Exercice inchangé).
+   */
+  namePrompt?: { readonly text: string; readonly color: string };
   /** Recette A/B B.10 (remarque 5) : le Nom prend le focus à l'ouverture (création). Défaut `false`. */
   autoFocusName?: boolean;
   /**
@@ -387,6 +401,8 @@ export function ActivityEditorForm({
   errorTestID,
   variant = "exercise",
   movementPhases = null,
+  executionParametersCard = false,
+  namePrompt,
   autoFocusName = false,
   bodyLocked = false,
   keepNameFocusOnSubmit = false,
@@ -741,10 +757,11 @@ export function ActivityEditorForm({
         <TextInput
           value={value.name}
           onChangeText={(text) => onChange({ name: text })}
-          placeholder={editor.name}
+          placeholder={namePrompt?.text ?? editor.name}
           // PRE-5 story 3.2, arbitrage G-3 de Hermann du 19/10 : placeholder `textPrimary` (Figma `8328:35698`).
-          placeholderTextColor={colors.textPrimary}
-          accessibilityLabel={editor.name}
+          // Recette du 29/10/2026 : fiche Mouvement, texte par défaut en gris clair (`namePrompt`).
+          placeholderTextColor={namePrompt?.color ?? colors.textPrimary}
+          accessibilityLabel={namePrompt?.text ?? editor.name}
           maxLength={NAME_MAX_LENGTH}
           // PRE-7 (A2.2, MFN/AC28) : nom du geste verrouillé — primitive native non modifiable.
           editable={!contentLocked}
@@ -1055,7 +1072,10 @@ export function ActivityEditorForm({
                 ) : null}
               </View>
             ) : null
-          ) : (
+          ) : null}
+          {/* PRE-9 (recette iPhone du 29/10) : Exercice d'une Séance ouvert au gabarit Mouvement — la
+              carte des paramètres locaux suit les phases (`executionParametersCard`). */}
+          {!isMovement || executionParametersCard ? (
             <>
           {/* Q23 (AC14) : aucun bouton ni nom du Mode à droite du titre ; la Carte est la
               seule zone touchable et le seul focus (AC6) ; le Mode se choisit dans la Feuille. */}
@@ -1094,7 +1114,7 @@ export function ActivityEditorForm({
             </Pressable>
           </View>
             </>
-          )}
+          ) : null}
 
           {/* PRE-5 story 3.2, arbitrage G-7 de Hermann du 19/10 : aucun titre « Médias » visible
               (Figma `8328:35698`) ; le titre reste un en-tête VoiceOver, sans place à l'écran.

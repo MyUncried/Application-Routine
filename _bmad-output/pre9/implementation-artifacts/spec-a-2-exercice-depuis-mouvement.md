@@ -14,7 +14,7 @@ Rendu de Figma `10705:20223` (valeurs relevées en lecture seule, nœuds `10705:
 
 ## À CLARIFIER (classe C — choix provisoires en place)
 
-1. **Étape des paramètres** : feuille existante (`ExecutionParametersSheet`) sur la Composition, une par Exercice ; ✕ laisse l'Exercice « à compléter » (Continuer inactif, D-389) au lieu d'annuler l'ajout.
+1. [Remplacé le 29/10 par la décision de Hermann (recette n° 1, constat k) : aucune feuille automatique ; toucher une carte « à compléter » ouvre sa feuille — voir `spec-recette-1-corrections.md`.] **Étape des paramètres** : feuille existante (`ExecutionParametersSheet`) sur la Composition, une par Exercice ; ✕ laisse l'Exercice « à compléter » (Continuer inactif, D-389) au lieu d'annuler l'ajout.
 2. **Insertion avant configuration**, paramètres par défaut d'une série : l'entrée dans un Circuit alterné ne perd aucune série et ne demande aucune confirmation.
 3. **Mouvement créé depuis une Séance enregistré au Catalogue dès Terminer** (comportement de CE-MVT-01) : il reste si la Séance est ensuite abandonnée (l'ancien éditeur ne l'enregistrait qu'avec la Séance).
 4. **« Créer une variante » masqué** depuis une Séance (CE-MVT-01 §3 ; ch08 « La création de variante depuis une séance reste exclue »).

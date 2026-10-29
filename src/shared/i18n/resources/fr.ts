@@ -327,6 +327,10 @@ export const fr = {
         movementSuggestion: {
           nameTaken: "Ce nom est déjà utilisé. Reprenez ce mouvement ou choisissez un autre nom.",
           nameTakenEdit: "Ce nom est déjà utilisé. Choisissez un autre nom.",
+          // Recette iPhone du 29/10/2026 (Hermann) : le nom est pris par un Mouvement ARCHIVÉ (jamais
+          // proposé en carte, B.8 Q6) — « archivé » en gras (`{archived}` ← `archivedWord`).
+          nameTakenArchived: "Un mouvement {archived} porte déjà ce nom.",
+          archivedWord: "archivé",
           useMovement: "Utiliser ce mouvement",
           createVariant: "Créer une variante",
           easier: "Plus facile",
@@ -1188,6 +1192,10 @@ export const fr = {
       saveError: "Le mouvement n’a pas pu être enregistré. Vos saisies sont conservées.",
       // Recette A/B (F03) : titre de la Description sur la fiche Mouvement (Figma `10453:23036`).
       descriptionTitle: "Description du mouvement",
+      // Recette iPhone du 29/10/2026 (Hermann ; Figma `10415:21706`) : texte par défaut du Nom de la
+      // fiche Mouvement, en gris clair. [Remplace, sur cette fiche seulement, « Nom de l’exercice »
+      // (`activities.editor.name`), qui reste celui de l’Éditeur d’Exercice.]
+      namePrompt: "Nom du mouvement",
       // Recette A/B B.10 (q6-2) : invite grise après le nom d'un Mouvement archivé.
       archivedNameSuffix: "(archivé)",
       // Recette A/B B.10 (remarque 4) : compteur du gabarit photo, à la place du badge « Vidéo ».

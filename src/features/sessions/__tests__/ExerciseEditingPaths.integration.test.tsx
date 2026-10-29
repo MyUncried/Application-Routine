@@ -514,7 +514,11 @@ describe("PRE4-4.1/AC4 — Modifier une Copie en Séance", () => {
     expect(router.getPathname()).toBe("/exercise");
     expect(router.getSearchParams()).toMatchObject({ exerciseId: copy.id });
     expect(screen.getByDisplayValue("Fentes")).toBeTruthy();
-    expect(screen.getByText(exercise.titleEdit)).toBeTruthy();
+    // PRE-9 (recette iPhone du 29/10, CE-MVT-01) : gabarit Mouvement, Mouvement repris en lecture seule, sans crayon.
+    expect(screen.getByText(strings.screens.movement.titles.consult)).toBeTruthy();
+    expect(screen.getByTestId("movement-photo-template")).toBeTruthy();
+    expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
+    expect(screen.getByTestId("exercise-parameters-card")).toBeTruthy();
   }, 20000);
 });
 

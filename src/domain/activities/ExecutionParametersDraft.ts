@@ -626,8 +626,10 @@ export function setMode(draft: ExecutionSheetDraft, mode: ExecutionMode): Execut
     current.kind === "FAILURE" ? current : (targetsById[id]?.[mode] ?? unsetTarget());
   const retarget = (rows: readonly SeriesRow[], ids: readonly number[]) =>
     rows.map((row, index) => ({ ...row, target: targetFor(ids[index]!, row.target) }));
-  const initialUniform =
-    draft.mode === null && mode === "REPETITIONS" && !draft.variable ? numberTarget(1) : unsetTarget();
+  // Recette PRE-9 n° 1 (29/10) : la création présélectionne Durée ; une Durée encore à renseigner
+  // compte comme une création, pour garder la cible initiale 1 en Répétitions.
+  const isCreation = draft.mode === null || (draft.mode === "DURATION" && draft.uniform.target.kind === "UNSET");
+  const initialUniform = isCreation && mode === "REPETITIONS" && !draft.variable ? numberTarget(1) : unsetTarget();
   const uniformTarget =
     draft.uniform.target.kind === "FAILURE" || targetsById[draft.uniformId]?.[mode] !== undefined
       ? targetFor(draft.uniformId, draft.uniform.target)

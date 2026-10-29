@@ -108,7 +108,13 @@ export function SessionCommandRow({
 }
 
 const styles = StyleSheet.create({
+  // Recette iPhone du 29/10/2026 (Hermann : « les boutons d'action de la zone de contexte ne sont pas
+  // à la même hauteur que les mêmes boutons du catalogue des mouvements ») : rangée de la hauteur de
+  // celle des Mouvements (cible 44 du champ Rechercher, B.9), posée au même bas de bande. La bascule
+  // « Un exercice | Plusieurs » (cible 48) reste centrée sur la même ligne que les commandes : elle
+  // déborde de 2 de part et d'autre, sans rogner sa cible.
   row: {
+    height: COMMAND.touchTarget,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",

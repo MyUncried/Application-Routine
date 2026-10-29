@@ -14,6 +14,7 @@ import type { ActivityDefinition, CreateActivityDefinitionInput } from "@/domain
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { repriseExecutionParameters, transferParametersByRank, type MovementPhase } from "@/domain/activities/Movement";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
+import { savableMovementPhases, type MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
   decideMovementSave,
@@ -1384,6 +1385,33 @@ function isPersistedMovementOccurrence(exercise: SessionDraftExercise, movements
 }
 
 /**
+ * PRE-9 (recette iPhone du 29/10 ; CE-MVT-01 §7, DSF Mouvements l.71) : structure des phases d'une
+ * occurrence (identités, libellés, ordre — jamais de durée), vue du gabarit Mouvement. Le compteur
+ * ne recule pas sous celui du Mouvement du brouillon (MFN-02).
+ */
+function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionDraft["movements"]): MovementPhaseList {
+  const phases = exercise.executionParameters.series.workPhases.map((phase) => ({ id: phase.id, label: phase.label }));
+  const floor = phases.reduce((max, phase) => Math.max(max, phase.id), 0) + 1;
+  const movementId = (exercise.sourceMovementId ?? "").trim();
+  return { phases, nextPhaseId: Math.max(floor, movements?.[movementId]?.nextPhaseId ?? 0) };
+}
+
+/**
+ * PRE-9 : structure des phases saisie dans le gabarit Mouvement (Mouvement encore NOUVEAU du
+ * brouillon, seul cas modifiable depuis une Séance) appliquée aux paramètres de l'occurrence — durées
+ * gardées par identité de phase, phase nouvelle à renseigner (0, D-438), lignes vides écartées.
+ */
+function withPhaseStructure(parameters: ExecutionParametersInput, list: MovementPhaseList): ExecutionParametersInput {
+  const durations = new Map(parameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds] as const));
+  const workPhases = savableMovementPhases(list.phases).map((phase) => ({
+    id: phase.id,
+    label: phase.label,
+    durationSeconds: durations.get(phase.id) ?? 0,
+  }));
+  return { ...parameters, series: { ...parameters.series, workPhases } };
+}
+
+/**
  * Copie de Séance (D-137) — écrit exclusivement dans le brouillon de
  * Composition (`SessionDraftContext`), jamais dans une définition Catalogue.
  * Une nouvelle occurrence ne reçoit AUCUNE Récupération automatique
@@ -1451,6 +1479,14 @@ function CompositionExerciseEditor() {
   const [instructionSteps, setInstructionSteps] = useState<readonly string[]>(() =>
     decodeInstructionSteps(initialSnapshot.instruction),
   );
+  // PRE-9 (recette iPhone du 29/10, CE-MVT-01, DSF Mouvements l.67-69) : une occurrence existante
+  // s'ouvre au gabarit Mouvement — contenu du Mouvement en lecture seule (sans crayon), paramètres
+  // locaux par leur carte et leur Feuille (CE-UI-10). La création (sans `exerciseId`) garde
+  // l'ancien éditeur jusqu'à son retrait (A.3).
+  const opensAsMovement = isEditingExisting;
+  // PRE-9 : phases saisies dans le gabarit (Mouvement NOUVEAU du brouillon seulement) ; `null` :
+  // structure lue sur l'occurrence courante (qui suit aussi un changement de niveau).
+  const [phaseDraft, setPhaseDraft] = useState<MovementPhaseList | null>(null);
   // Q53 (8) : la Catégorie de cette Copie a été supprimée depuis sa feuille.
   const [categoryClearedByDeletion, setCategoryClearedByDeletion] = useState(false);
   const [profileApplied, setProfileApplied] = useState(isEditingExisting);
@@ -1795,7 +1831,8 @@ function CompositionExerciseEditor() {
     const shared = withDraftMovement(
       { ...draft, exercises: plan.exercises },
       draftMovementOf(finished, "NEW", {
-        nextPhaseId: previous?.nextPhaseId,
+        // PRE-9 : compteur des phases saisies dans le gabarit, jamais en recul.
+        nextPhaseId: phaseDraft === null ? previous?.nextPhaseId : Math.max(previous?.nextPhaseId ?? 0, phaseDraft.nextPhaseId),
         aliases: previous?.aliases,
         ...(levelOrigin !== undefined ? { levelOrigin } : {}),
       }),
@@ -2148,13 +2185,25 @@ function CompositionExerciseEditor() {
   return (
     <ScreenShell>
       <EditorHeader
-        title={isEditingExisting ? t.titleEdit : t.titleAdd}
+        // PRE-9 (Figma `10419:22924` « Mouvement — Repris (lecture seule) ») : titre de la fiche
+        // consultée ; Mouvement encore NOUVEAU du brouillon (modifiable) : titre d'édition.
+        title={
+          opensAsMovement
+            ? movementLocked
+              ? strings.screens.movement.titles.consult
+              : strings.screens.movement.titles.edit
+            : isEditingExisting
+              ? t.titleEdit
+              : t.titleAdd
+        }
         onClose={() => router.back()}
         accessibilityLabel={t.backAccessibilityLabel}
         // PRE-7 (R-9, D-448 point 10) : crayon interrupteur — affiché et actif pendant l'édition du
         // mouvement, qu'un nouveau toucher quitte.
+        // PRE-9 (CE-MVT-01 §3, §13 ; DSF Mouvements l.67 ; ch13 l.268) : depuis une Séance, ni crayon
+        // ni geste pour modifier le Mouvement — le crayon n'est plus rendu sur une occurrence existante.
         trailing={
-          canUnlockMovement || unlockedMovement !== null ? (
+          !opensAsMovement && (canUnlockMovement || unlockedMovement !== null) ? (
             <EditMovementAction onPress={toggleMovementEdit} active={unlockedMovement !== null} />
           ) : null
         }
@@ -2164,6 +2213,24 @@ function CompositionExerciseEditor() {
         <ActivityEditorForm
           value={value}
           onChange={patchLocal}
+          // PRE-9 (recette iPhone du 29/10) : occurrence existante au gabarit Mouvement (CE-MVT-01) —
+          // média derrière la zone de contexte, Description, Phases (lecture seule pour un Mouvement
+          // enregistré), puis carte des paramètres locaux (CE-UI-10).
+          {...(opensAsMovement && local !== null
+            ? {
+                variant: "movement" as const,
+                executionParametersCard: true,
+                movementPhases: {
+                  value: phaseDraft ?? occurrencePhaseList(local, draft.movements),
+                  onChange: (next: MovementPhaseList) => {
+                    setPhaseDraft(next);
+                    setLocal((current) =>
+                      current ? { ...current, executionParameters: withPhaseStructure(current.executionParameters, next) } : current,
+                    );
+                  },
+                },
+              }
+            : {})}
           bodyZones={bodyZonesReferential}
           onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
           silhouette={profile.silhouette}
@@ -2176,7 +2243,9 @@ function CompositionExerciseEditor() {
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
-          phaseStructureLocked={movementLocked}
+          // PRE-9 : au gabarit Mouvement, la structure des phases se lit (ou, Mouvement NOUVEAU, se
+          // saisit) dans le bloc Phases ; la Feuille n'en règle que les durées.
+          phaseStructureLocked={movementLocked || opensAsMovement}
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
           // occurrence d'un Mouvement enregistré a son contenu (nom, description, médias, Catégorie,
           // Zones) verrouillé jusqu'au crayon (R-4, D-445 C04) ; une création locale non enregistrée

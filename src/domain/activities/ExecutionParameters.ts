@@ -1707,17 +1707,21 @@ export type ExecutionProfileDefaults = {
 };
 
 /**
- * Brouillon de création (v13 §6) : Mode et côté non renseignés, Série 1 à
- * Cible à renseigner, Pause 0 s, Bip 0 ; Compte à rebours et Fin copiés du
- * Profil. Aucune Cible inventée. PRE-5 (AD-19, AD-20) : charge Sans, 0 kg,
+ * Brouillon de création (v13 §6) : Série 1 à Cible à renseigner, Pause 0 s, Bip 0 ; Compte à
+ * rebours et Fin copiés du Profil. Aucune Cible inventée. PRE-5 (AD-19, AD-20) : charge Sans, 0 kg,
  * aucune phase.
+ *
+ * Recette iPhone du 29/10/2026 (Hermann : « Sélectionner par défaut Durée, Sans (changement de
+ * côté) ») : Mode Durée et changement de côté Sans (`UNILATERAL`) présélectionnés. [Remplace « Mode
+ * et côté non renseignés » de v13 §6 pour les seuls NOUVEAUX Exercices ; les paramètres déjà
+ * enregistrés ne sont ni relus ni réécrits.] La Cible reste à renseigner.
  */
 export function createEmptyExecutionParameters(defaults: ExecutionProfileDefaults): ExecutionParametersInput {
   return {
     version: EXECUTION_PARAMETERS_VERSION,
-    mode: null,
+    mode: "DURATION",
     series: { kind: "UNIFORM", count: 1, target: unsetTarget(), pauseSeconds: 0, loadKg: 0, workPhases: [] },
-    sideMode: null,
+    sideMode: "UNILATERAL",
     sideOrder: "BY_SIDE",
     sideRecoverySeconds: 0,
     cadenceBeepIntervalSeconds: 0,

@@ -229,13 +229,16 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: false });
   });
 
-  it("PRE-7 R-2 (D-446, complément du 26/10/2026) — phases en identiques N = 3 : Variables disponible ; le toucher garde la ligne et le tableau des phases, durées comprises", () => {
+  it("PRE-7 R-2 (D-446, complément du 26/10/2026) — phases en identiques N = 3 : Variables disponible ; le toucher garde la ligne et les phases, durées comprises (recette du 29/10/2026 : tableau replié, redéployé par son chevron)", () => {
     const { onApply } = renderSheet(withPhases([["A", 5], ["B", 2]]));
     expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ disabled: false, selected: false });
     fireEvent.press(get("execution-sheet-series-type-control-VARIABLE"));
     expect(optionState("execution-sheet-series-type-control-VARIABLE")).toMatchObject({ selected: true });
     expect(get("execution-sheet-row-phases")).toBeTruthy();
     expect(optionState(WITH)).toMatchObject({ selected: true });
+    // Recette iPhone du 29/10/2026 : un autre contrôle de la Feuille replie le tableau des phases.
+    expect(phaseRows()).toHaveLength(0);
+    fireEvent.press(get(CHEVRON));
     expect(phaseRows()).toHaveLength(2);
     expect([shownDuration(1), shownDuration(2)]).toEqual(["5 s", "2 s"]);
     expect([shownLabel(1), shownLabel(2)]).toEqual(["A", "B"]);
@@ -602,13 +605,15 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(series.kind === "UNIFORM" ? series.workPhases.map((phase) => phase.label) : null).toEqual(["Maintien", "Descente"]);
   });
 
-  it("PRE5-2.8/AC3b (FR-29, Figma `9207:18817`) — tableau : en-têtes « Libellé » et « Durée », cellules de 76 séparées de 20, ni pied ni ±", () => {
+  it("PRE5-2.8/AC3b (FR-29, Figma `9207:18817`) — tableau : en-têtes « Libellé » et « Durée », séparés de 20, ni pied ni ± ; recette du 29/10/2026 : colonnes distribuées à parts égales", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
     const header = get("execution-sheet-phases-table-header");
     expect(within(header).getByText("Libellé", hidden)).toBeTruthy();
     expect(within(header).getByText("Durée", hidden)).toBeTruthy();
-    expect(styleOf(`${row(1)}-label-cell`)).toMatchObject({ width: PHASE_CELL_WIDTH, flexShrink: 1 });
-    expect(styleOf(`${row(1)}-duration-cell`)).toMatchObject({ width: PHASE_CELL_WIDTH, flexShrink: 1 });
+    // Recette iPhone du 29/10/2026 (« distribuer horizontalement les colonnes Libellé et Durée ») :
+    // les deux colonnes se partagent la largeur, plus d'espace souple tassé à droite ; cellule Durée centrée.
+    expect(styleOf(`${row(1)}-label-cell`)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0 });
+    expect(styleOf(`${row(1)}-duration-cell`)).toMatchObject({ flexGrow: 1, flexShrink: 1, flexBasis: 0, alignItems: "center" });
     expect([PHASE_CELL_WIDTH, PHASE_CELL_GAP]).toEqual([76, 20]);
     expect(within(get(TABLE)).queryAllByTestId(/-(increment|decrement)$/, hidden)).toEqual([]);
     expect(get(`${duration(1)}`).props.hitSlop).toEqual({ top: 6, bottom: 6 });
@@ -663,6 +668,9 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     expect(optionState("execution-sheet-stop-condition-control-FAILURE")).toMatchObject({ selected: true });
     fireEvent.press(get("execution-sheet-mode-control-REPETITIONS"));
     expect(optionState("execution-sheet-mode-control-REPETITIONS")).toMatchObject({ selected: true });
+    // Recette du 29/10/2026 : tableau replié par les autres contrôles, phases conservées.
+    expect(phaseRows()).toHaveLength(0);
+    fireEvent.press(get(CHEVRON));
     expect(phaseRows()).toHaveLength(2);
     expect(get("execution-sheet-validate").props.accessibilityState).toMatchObject({ disabled: false });
     validate();
@@ -742,5 +750,26 @@ describe("ExecutionParametersSheet — PRE-5 story 2.8 : phases de l'exercice", 
     fireEvent.press(get("execution-sheet-series-toggle"));
     expect(query(`${STEPPER}-increment`)).toBeNull();
     expect(get("execution-sheet-series-increment")).toBeTruthy();
+  });
+});
+
+describe("ExecutionParametersSheet — recette iPhone du 29/10/2026 : tableau des phases replié par un autre contrôle", () => {
+  it("toucher le réglage du nombre de phases le laisse ouvert ; un autre segmenté (Cadence) ou la valeur de la Cible le replie (sortie animée existante) ; phases conservées, chevron pour le redéployer", () => {
+    renderSheet(withPhases([["A", 5], ["B", 2]]));
+    expect(phaseRows()).toHaveLength(2);
+    // Option Avec (réglage du nombre) : partie de la ligne des phases, le tableau reste.
+    fireEvent.press(get(WITH));
+    expect(phaseRows()).toHaveLength(2);
+    fireEvent.press(get(WITH));
+    // Autre contrôle : le tableau se replie.
+    fireEvent.press(get("execution-sheet-cadence-control-1"));
+    expect(phaseRows()).toHaveLength(0);
+    expect(get("execution-sheet-row-phases")).toBeTruthy();
+    expect(optionState(WITH)).toMatchObject({ selected: true });
+    fireEvent.press(get(CHEVRON));
+    expect(phaseRows()).toHaveLength(2);
+    expect([shownLabel(1), shownLabel(2)]).toEqual(["A", "B"]);
+    fireEvent.press(seriesDurationPill());
+    expect(phaseRows()).toHaveLength(0);
   });
 });

@@ -673,3 +673,67 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("exercise-name-input", anyNode).props.editable).toBe(false);
   });
 });
+
+describe("Recette iPhone du 29/10/2026 — fiche « Créer un mouvement »", () => {
+  it("texte par défaut du Nom « Nom du mouvement », en gris clair (le nom saisi reste noir) ; l'Éditeur d'Exercice garde « Nom de l’exercice »", async () => {
+    await renderSheet();
+    const input = screen.getByTestId("exercise-name-input", anyNode);
+    expect(input.props.placeholder).toBe("Nom du mouvement");
+    expect(input.props.placeholderTextColor).toBe("#AEB3BA");
+    expect(input.props.accessibilityLabel).toBe("Nom du mouvement");
+    expect(StyleSheet.flatten(input.props.style).color).not.toBe("#AEB3BA");
+    expect(strings.screens.activities.editor.name).toBe("Nom de l’exercice");
+  });
+
+  it("nom pris par un Mouvement archivé : « Un mouvement archivé porte déjà ce nom. », « archivé » en gras ; nom pris par un actif : message inchangé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().archive("squat");
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    const message = screen.getByTestId("movement-suggestion-message", anyNode);
+    expect(message).toHaveTextContent("Un mouvement archivé porte déjà ce nom.");
+    const bold = screen.getByTestId("movement-suggestion-message-bold", anyNode);
+    expect(bold).toHaveTextContent("archivé");
+    expect(StyleSheet.flatten(bold.props.style)).toMatchObject({ fontWeight: "700" });
+    // Aucune carte : un Mouvement archivé n'est jamais proposé (B.8, Q6) ; Terminer indisponible.
+    expect(screen.queryByTestId("movement-suggestion-result-squat", anyNode)).toBeNull();
+    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    cleanupRender();
+
+    await movements().create(movement("fente", "Fentes"));
+    await renderSheet();
+    await type("exercise-name-input", "Fentes");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode).props.children).toBe(
+      strings.screens.activities.editor.movementSuggestion.nameTaken,
+    );
+    expect(screen.queryByTestId("movement-suggestion-message-bold", anyNode)).toBeNull();
+  });
+});
+
+describe("Recette iPhone du 29/10/2026 — recherche automatique de la création depuis une Séance (`context=session`)", () => {
+  const squatCases: [string, Record<string, string>, string[]][] = [
+    ["Séance", { context: "session" }, ["Squat"]],
+    ["Séance", { context: "session" }, ["S", "Sq", "Squ", "Squa", "Squat"]],
+    ["Catalogue", {}, ["Squat"]],
+    ["Catalogue", {}, ["S", "Sq", "Squ", "Squa", "Squat"]],
+  ];
+  it.each(squatCases)("%s — « Squat » saisi par %j trouve les cartes de Squats", async (_origin, params, steps) => {
+    await movements().create(movement("squats", "Squats"));
+    await movements().create(movement("squats-sautes", "Squats sautés"));
+    await renderSheet({ ...params });
+    for (const step of steps) await type("exercise-name-input", step);
+    const shown = ["squats", "squats-sautes"].filter((id) => screen.queryByTestId(`movement-suggestion-result-${id}`, anyNode) !== null);
+    expect(shown).toEqual(["squats", "squats-sautes"]);
+  });
+
+  it("nom d'un Mouvement archivé, depuis une Séance : message « archivé » et cartes des Mouvements actifs voisins", async () => {
+    await movements().create(movement("squat-old", "Squat"));
+    await movements().archive("squat-old");
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squat");
+    expect(screen.getByTestId("movement-suggestion-message", anyNode)).toHaveTextContent("Un mouvement archivé porte déjà ce nom.");
+    expect(screen.getByTestId("movement-suggestion-result-squats", anyNode)).toBeTruthy();
+    expect(screen.queryByTestId("movement-suggestion-result-squat-old", anyNode)).toBeNull();
+  });
+});

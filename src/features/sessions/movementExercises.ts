@@ -1,9 +1,12 @@
 import { createEmptyExecutionParameters } from "@/domain/activities/ExecutionParameters";
 import { repriseExecutionParameters, type Movement } from "@/domain/activities/Movement";
+import { DEFAULT_CIRCUIT_NATURE } from "@/domain/sessions/circuit";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import { createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
-import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
+import { structureCircuits } from "@/domain/sessions/structure";
+import { insertIntoRichLayout, resolveRichLayout } from "@/features/sessions/compositionLayout";
+import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/sessions/compositionPresentation";
 
 /**
  * PRE-9 A.2 (ARB-22a, D-449, ARB-07) — Exercices de Séance créés depuis des Mouvements.
@@ -14,7 +17,8 @@ import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
  * Catalogue (Q6, route `/movement-selection`). Chacun REMET à la Composition, à son retour, le ou
  * les Mouvements choisis (`handMovementsToComposition`) ; la Composition les reprend au retour au
  * premier plan (`takeMovementsHandedToComposition`), en fait des Exercices insérés selon ARB-07
- * (`withMovementExercises`) puis ouvre leurs paramètres. Remise en mémoire, à usage unique : la
+ * (`withMovementExercises`), posés « Paramètres à compléter » sans ouvrir de feuille (demande de
+ * Hermann du 29/10/2026) : toucher leur carte ouvre leurs paramètres. Remise en mémoire, à usage unique : la
  * fiche Mouvement est une route de la pile racine, hors du fournisseur du brouillon de Séance.
  */
 let handedMovements: readonly Movement[] | null = null;
@@ -78,4 +82,47 @@ export function withMovementExercises(
     next = appendActivityAfterLastDisplayed(next, addition);
   }
   return { exercises: settleCircuitMembership(draft, next).exercises };
+}
+
+/**
+ * Demande de Hermann du 29/10/2026 (recette iPhone n° 1) : une carte d'Exercice « Paramètres à
+ * compléter » (carte rouge, D-448 point 7 ; même règle que sa synthèse, `formatOccurrenceSummary`)
+ * ouvre directement la feuille de paramètres, sans ouvrir l'éditeur ; complète, elle ouvre
+ * l'éditeur comme avant.
+ */
+export function isExerciseParametersIncomplete(exercise: Pick<SessionDraftExercise, "type" | "executionParameters">): boolean {
+  return exercise.type === "EXERCISE" && isIncompleteSummary(formatOccurrenceSummary(exercise));
+}
+
+/**
+ * N hérité d'un Circuit de Séries (AD-37) — même règle que l'éditeur en Séance : ancien modèle,
+ * Exercice du Circuit unique de nature Séries ; disposition générale, Exercice d'un Circuit de Séries.
+ */
+export function inheritsCircuitSeriesCount(
+  draft: Pick<SessionDraft, "structure" | "exercises" | "circuitNature">,
+  exercise: Pick<SessionDraftExercise, "id" | "type" | "structuralPosition">,
+): boolean {
+  if (exercise.type !== "EXERCISE") {
+    return false;
+  }
+  const rich = resolveRichLayout(draft);
+  if (rich !== null) {
+    return structureCircuits(rich).some(
+      (circuit) => circuit.nature === "SERIES" && circuit.exercises.some((member) => member.id === exercise.id),
+    );
+  }
+  return exercise.structuralPosition === "IN_TOUR" && (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES";
+}
+
+/**
+ * PRE-7 (R-3, C05) : l'occurrence référence un Mouvement déjà enregistré (et non un Mouvement
+ * NOUVEAU de la table du brouillon) — structure de ses phases verrouillée (MFN-09), comme dans
+ * l'éditeur en Séance.
+ */
+export function isPersistedMovementOccurrence(
+  exercise: Pick<SessionDraftExercise, "sourceMovementId">,
+  movements: SessionDraft["movements"],
+): boolean {
+  const movementId = (exercise.sourceMovementId ?? "").trim();
+  return movementId.length > 0 && movements?.[movementId]?.change !== "NEW";
 }

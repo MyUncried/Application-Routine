@@ -194,23 +194,11 @@ export function CatalogueScreen() {
       {/* Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l’en-tête et la zone
           de contexte. */}
 
-      <ContextBand>
-        {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément —
-            c’est l’arête nette entre la bande et le fond blanc. Fondu vers le blanc sur les
-            20 % inférieurs (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs
-            pour Catalogues »), en couches superposées (aucun interstice), sur la couleur
-            propre du Catalogue ; sous le contenu, sans interaction ni VoiceOver. */}
-        <View
-          pointerEvents="none"
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          style={styles.contextBandFade}
-          testID="catalogue-context-band-fade"
-        >
-          {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
-            <View key={layer.top} style={[styles.contextBandFadeLayer, { top: layer.top, opacity: layer.opacity }]} />
-          ))}
-        </View>
+      {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément.
+          Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs va vers la TRANSPARENCE
+          (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs pour Catalogues »),
+          porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue. */}
+      <ContextBand fadeToTransparent>
         <SegmentedControl
           options={[
             { value: "movements", label: strings.screens.movement.catalogue.segment },
@@ -228,10 +216,12 @@ export function CatalogueScreen() {
         />
         {/* Recette A/B (D01, D02, D04, D05 ; ch13 §4.5) : commandes rondes 34, Rechercher sur la même
             rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
-        {/* Segment Mouvements : rangée de B.9 inchangée (plan E.4, « conséquence documentée » :
-            l'ordre Filtre / Tri / Créer ne s'applique qu'au segment Séances). */}
+        {/* Segment Mouvements : rangée de B.9 (plan E.4 : l'ordre Filtre / Tri / Créer ne s'applique
+            qu'au segment Séances). Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à
+            gauche, et le bouton filtre à droite ») : Créer | Rechercher | Trier | Filtrer. */}
         {activeSegment === "movements" ? (
           <View style={styles.commandRow} testID="catalogue-command-row">
+            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
             <CatalogueSearchField
               value={movementQuery}
               onChangeText={setMovementQuery}
@@ -240,7 +230,7 @@ export function CatalogueScreen() {
               clearLabel={strings.screens.movement.catalogue.searchClear}
               testID="movement-catalogue-search"
             />
-            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
+            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
             <FilterCommand
               label={t.filterAction}
               title={strings.screens.movement.catalogue.filters.command}
@@ -254,7 +244,6 @@ export function CatalogueScreen() {
               }}
               testID="catalogue-filter-action"
             />
-            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
           </View>
         ) : null}
         {activeSegment === "sessions" ? (
@@ -452,37 +441,7 @@ function ReadyBody({
   );
 }
 
-/**
- * Recette 3 (T-49, D-356) : fondu figé de la zone de contexte (20 % inférieurs), mêmes
- * valeurs que l’éditeur et la Composition — couches superposées dont l’opacité cumulée
- * suit la rampe 0 → 1.
- */
-const CONTEXT_BAND_FADE_SHARE = "20%";
-const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
-const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
-  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
-  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
-  return {
-    top: `${((index / CONTEXT_BAND_FADE_LAYER_COUNT) * 100).toFixed(4)}%` as `${number}%`,
-    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
-  };
-});
-
 const styles = StyleSheet.create({
-  contextBandFade: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: CONTEXT_BAND_FADE_SHARE,
-  },
-  contextBandFadeLayer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: colors.background,
-  },
   // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
   // désormais portés par le Shell Foundation partagé (`CMP-01`,
   // `@/shared/ui/ScreenShell`) — aucune redéclaration locale équivalente

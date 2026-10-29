@@ -22,9 +22,15 @@ const PANEL_RADIUS = 16;
 const PANEL_PADDING = 8;
 const BACK_FRAME_HEIGHT = 32;
 
+/**
+ * Message d'unicité : texte simple, ou texte dont un mot est mis en gras (recette iPhone du 29/10/2026 :
+ * « Un mouvement **archivé** porte déjà ce nom. »).
+ */
+export type MovementNameMessage = string | { readonly before: string; readonly bold: string; readonly after: string };
+
 export type MovementSuggestionPanelProps = {
   /** Message d'unicité (C01) au-dessus des cartes ; `null` : aucun. */
-  readonly message: string | null;
+  readonly message: MovementNameMessage | null;
   /** Résultats affichés, cinq au plus (R04), déjà classés ; figés pendant un appui par l'appelant. */
   readonly results: readonly MovementChoice[];
   /** Mouvement dont la variante est en cours de choix (`10140:20180`) ; `null` : liste. */
@@ -89,7 +95,17 @@ export function MovementSuggestionPanel({
           accessibilityLiveRegion="polite"
           testID="movement-suggestion-message"
         >
-          {message}
+          {typeof message === "string" ? (
+            message
+          ) : (
+            <>
+              {message.before}
+              <Text style={styles.messageBold} testID="movement-suggestion-message-bold">
+                {message.bold}
+              </Text>
+              {message.after}
+            </>
+          )}
         </Text>
       ) : null}
       {variantChoice !== null ? (
@@ -155,6 +171,11 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: colors.danger,
     paddingHorizontal: 6,
+  },
+  // Recette du 29/10/2026 : « archivé » en gras dans le message d'un nom pris par un Mouvement archivé.
+  messageBold: {
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
   },
   list: {
     flexGrow: 0,

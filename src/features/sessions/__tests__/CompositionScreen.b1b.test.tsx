@@ -182,7 +182,7 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(screen.queryByTestId(`${CY}-counter-adjective`, hidden)).toBeNull();
     expect(screen.queryByTestId(`${CY}-collapse`, hidden)).toBeNull();
     expect(text(`${CA}-counter-value`)).toBe(3);
-    expect(text(`${CA}-counter-unit`)).toBe("tours · ");
+    expect(text(`${CA}-counter-unit`)).toBe("tours");
     expect(text(`${CA}-counter-adjective`)).toBe("groupées");
     expect(text(`${CB}-counter-value`)).toBe(2);
     // Durées : Circuit A 2 × 30 s × 3 ; Circuit B 30 s × 2 ; Cycle (30 + 180 + 60) × 2 ; Séance + E0 + E2.
@@ -296,13 +296,15 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(seriesOf("a1")).toBe(3);
     expect(seriesOf("b1")).toBe(5);
     expect(text(`${CA}-counter-adjective`)).toBe("alternées");
-    expect(text(`${CA}-counter-unit`)).toBe("tours · ");
+    expect(text(`${CA}-counter-unit`)).toBe("tours");
   });
 
   it("repli du Circuit B : ligne des noms, cartes masquées ; Circuit A et brouillon inchangés ; dépli", async () => {
     await renderComposition(richDraft());
     const before = probe.draft;
     fireEvent.press(screen.getByTestId(`${CB}-collapse`));
+    // Recette du 29/10 (obs-3 b) : les cartes sont retirées à la fin du repli animé (rappel en microtâche).
+    await act(async () => {});
 
     expect(text(`${CB}-names`)).toBe("Exercice b1");
     expect(screen.queryByTestId("composition-exercise-row-b1", hidden)).toBeNull();

@@ -42,7 +42,7 @@ Dépend de : —. Arbitrages : —. Migration 016.
 
 ### A.2 — Créer un Exercice depuis un Mouvement
 Dépend de : A.1, B.2 (menu Créer). Arbitrage : ARB-22a.
-- « Créer un nouvel exercice » ouvre la création de Mouvement puis les paramètres de l'Exercice, dans la Séance ; « Utiliser un mouvement existant » ouvre la sélection des Mouvements par le parcours existant du Catalogue (PRE-8, actifs seulement, Q6 ; ARB-22a). L'Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
+- « Créer un nouvel exercice » ouvre la création de Mouvement puis les paramètres de l'Exercice, dans la Séance [29/10, recette n° 1 (Hermann) : l'Exercice est posé « Paramètres à compléter » ; toucher sa carte ouvre ses paramètres] ; « Utiliser un mouvement existant » ouvre la sélection des Mouvements par le parcours existant du Catalogue (PRE-8, actifs seulement, Q6 ; ARB-22a). L'Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
 - Plus aucune lecture d'`activity_definitions` dans la Composition ; `ActivitySelectionScreen` et les parcours `catalogueDefinitionId` ne sont plus atteignables depuis la Composition.
 
 ### A.4 — Conversion E.8-b
@@ -96,6 +96,11 @@ Dépend de : B.2. Arbitrages : ARB-06, ARB-09, ARB-24 (décidés).
 - **Point d'arrêt déposé dans un conteneur**, selon les règles de sa position de destination (ARB-06, B.6).
 - Éléments formatés (en coordination avec C.4) : Circuit ou Exercice formaté déplacé comme tout élément, y compris dans un Cycle, Format et paramètres conservés (ARB-03) ; B.4 fournit le **point d'appel** d'un contrôle avant dépose (accepté / accepté après confirmation / refusé sans mutation), neutre pour les éléments libres ; C.4 y branche les règles des éléments formatés (ARB-24) et leurs tests. Aucune interdiction générale des déplacements dans un Circuit formaté.
 - Déplacement pas à pas existant (`stepOccurrence`) conservé et généralisé aux positions de l'arbre ; son retrait éventuel demanderait une décision de Hermann (comportement qualifié). [28/10 : « ou retiré explicitement, décision consignée » — corrigé le 29/10.]
+
+### B.4b — Enveloppe multiple et périmètre ajustable
+Ajoutée le 29/10/2026 à la demande de Hermann (recette n° 1, constat i) ; placée après B.4 par sa décision du 29/10 (« Après B.4 »). Dépend de : B.2, B.4.
+- Demande, texte de Hermann : « On doit pouvoir sélectionner plusieurs exercices pour ajouter directement plusieurs circuits, ou plusieurs exercices / circuits pour ajouter plusieurs cycles en une fois. » ; « Lorsqu'on a sélectionné un exercice pour poser un circuit, deux petits traits horizontaux apparaissent au dessus et en dessous des bords du cadre aux liserés pleins, en haut et en bas, qui permettent de déplacer le périmètre du circuit (idem pour la séance) en faisant glisser les bords en haut et en bas (appui sur les traits puis glissement). »
+- Règles d'imbrication D-451 et lettres ARB-13 inchangées ; précisions de comportement (un conteneur par élément désigné ou un seul autour d'éléments contigus ; « idem pour la séance » à interpréter) à faire valider avant développement.
 
 ### B.5 — Suppression et duplication
 Dépend de : B.2. Arbitrages : ARB-08, ARB-17 (décidés).

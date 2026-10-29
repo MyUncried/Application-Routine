@@ -141,20 +141,68 @@ export function HeaderSeparator() {
 export function ContextBand({
   children,
   elevated = false,
+  fadeToTransparent = false,
 }: {
   children: ReactNode;
   /** Élève la bande au-dessus de ses frères (mêmes besoins de superposition que `CompositionScreen`'s `AnchoredRow`). */
   elevated?: boolean;
+  /**
+   * Recette iPhone du 29/10/2026 (Hermann : « le dégradé vers la transparence en bas de la zone de
+   * contexte n'existe plus, il y a un dégradé vers du blanc à 100 % à la place ») — ch. 12 / D-224 :
+   * « Zone de contexte `#EAEAFF`→transparent sur les 20 % inférieurs ». Le fond de la bande n'est
+   * plus peint d'un bloc : sa couleur couvre les 80 % supérieurs, puis des couches de la MÊME
+   * couleur, superposées (aucun interstice), dont la couverture cumulée descend vers 0 au bas de la
+   * zone — la bande devient réellement transparente, au lieu d'un voile blanc posé par-dessus.
+   * Positions en points (hauteur fixe `dimensions.contextBand.height`), sans pourcentage imbriqué.
+   * Sous le contenu, sans interaction ni VoiceOver.
+   */
+  fadeToTransparent?: boolean;
 }) {
   return (
     <View
       testID="screen-context-band"
-      style={[styles.contextBand, elevated ? styles.elevated : null]}
+      style={[styles.contextBand, fadeToTransparent ? styles.contextBandTransparent : null, elevated ? styles.elevated : null]}
     >
+      {fadeToTransparent ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={styles.contextBandFill}
+          testID="screen-context-band-fill"
+        >
+          <View style={styles.contextBandSolid} />
+          <View style={styles.contextBandFade} testID="screen-context-band-fade">
+            {CONTEXT_BAND_FADE_LAYERS.map((layer) => (
+              <View key={layer.height} style={[styles.contextBandFadeLayer, { height: layer.height, opacity: layer.opacity }]} />
+            ))}
+          </View>
+        </View>
+      ) : null}
       {children}
     </View>
   );
 }
+
+/** D-224 : part fondue de la zone de contexte (20 % inférieurs), en points. */
+export const CONTEXT_BAND_FADE_HEIGHT = Math.round(dimensions.contextBand.height * 0.2);
+/** Hauteur peinte d'un bloc au-dessus de la part fondue. */
+const CONTEXT_BAND_SOLID_HEIGHT = dimensions.contextBand.height - CONTEXT_BAND_FADE_HEIGHT;
+const CONTEXT_BAND_FADE_LAYER_COUNT = 12;
+/**
+ * Couches de la couleur de la bande, ancrées en haut de la part fondue : la couche `i` couvre
+ * `(1 − i/n)` de cette part. Leurs opacités sont calculées pour que la couverture cumulée de la
+ * marche `j` (depuis le haut) vaille `(n − j)/n` : 1 sous la partie peinte, puis vers 0 en bas.
+ * Même rampe que la fiche Mouvement (PRE-8 F01, `ActivityEditorForm`), validée sur iPhone.
+ */
+export const CONTEXT_BAND_FADE_LAYERS = Array.from({ length: CONTEXT_BAND_FADE_LAYER_COUNT }, (_, index) => {
+  const before = index / CONTEXT_BAND_FADE_LAYER_COUNT;
+  const after = (index + 1) / CONTEXT_BAND_FADE_LAYER_COUNT;
+  return {
+    height: Number((CONTEXT_BAND_FADE_HEIGHT * (1 - before)).toFixed(4)),
+    opacity: Number((1 - (1 - after) / (1 - before)).toFixed(4)),
+  };
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -201,5 +249,38 @@ const styles = StyleSheet.create({
   },
   elevated: {
     zIndex: 1,
+  },
+  // Recette du 29/10/2026 : la couleur est portée par le remplissage, qui s’efface vers le bas.
+  contextBandTransparent: {
+    backgroundColor: "transparent",
+  },
+  contextBandFill: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  contextBandSolid: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: CONTEXT_BAND_SOLID_HEIGHT,
+    backgroundColor: colors.selectionSurface,
+  },
+  contextBandFade: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: CONTEXT_BAND_SOLID_HEIGHT,
+    height: CONTEXT_BAND_FADE_HEIGHT,
+  },
+  contextBandFadeLayer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    backgroundColor: colors.selectionSurface,
   },
 });

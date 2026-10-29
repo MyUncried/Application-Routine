@@ -7,7 +7,14 @@ import { strings } from "@/shared/i18n";
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
 import type { MovementResultActionLabels, VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
-import { MovementSuggestionPanel } from "./MovementSuggestionPanel";
+import { MovementSuggestionPanel, type MovementNameMessage } from "./MovementSuggestionPanel";
+
+/** Recette du 29/10/2026 : « Un mouvement **archivé** porte déjà ce nom. » */
+function archivedNameMessage(): MovementNameMessage {
+  const t = strings.screens.activities.editor.movementSuggestion;
+  const [before = "", after = ""] = t.nameTakenArchived.split("{archived}");
+  return { before, bold: t.archivedWord, after };
+}
 
 /** R04 : cinq résultats au maximum dans le panneau sous le nom. */
 const PANEL_RESULT_LIMIT = 5;
@@ -187,7 +194,20 @@ export function useMovementOriginChoice({
   const showPanel = results.length > 0 || showMessage;
   // « Reprenez ce mouvement » seulement si le mouvement en conflit est parmi les cartes affichées.
   const conflictShown = conflicting !== null && results.some((choice) => choice.movement.id === conflicting.id);
-  const message = showMessage ? (conflictShown ? t.nameTaken : t.nameTakenEdit) : null;
+  // Recette iPhone du 29/10/2026 (Hermann) : nom pris par un Mouvement archivé (jamais en carte, B.8
+  // Q6) — le message le dit, « archivé » en gras. Un brouillon de Séance qui reprend ce Mouvement
+  // (`draftMovements`) le rend actif pour ce contrôle.
+  const conflictArchived =
+    conflicting !== null &&
+    !(uniqueness.draftMovements ?? []).some((entry) => entry.id === conflicting.id) &&
+    choices.some((choice) => choice.movement.id === conflicting.id && choice.archived === true);
+  const message: MovementNameMessage | null = !showMessage
+    ? null
+    : conflictArchived
+      ? archivedNameMessage()
+      : conflictShown
+        ? t.nameTaken
+        : t.nameTakenEdit;
 
   function checkDistinctName(candidate: string): boolean {
     const taken = findMovementNameConflict(candidate, entries, null);

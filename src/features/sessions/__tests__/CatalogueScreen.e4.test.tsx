@@ -179,6 +179,15 @@ describe("PRE-8 E.4 — rangée responsive (Q-E4, revue à la recette du 28/10/2
     if (extended !== undefined) fireEvent(screen.getByTestId("catalogue-filter-measure", { includeHiddenElements: true }), "layout", layout(extended));
   };
 
+  it("recette iPhone du 29/10/2026 : rangée de 44 de haut, comme celle des Mouvements (commandes à la même hauteur dans la bande), bascule centrée sur la même ligne", () => {
+    renderRow(null);
+    const row = StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
+    // Même bas de bande et même hauteur que la rangée des Mouvements (champ Rechercher, cible 44 ; écart 8).
+    expect(row).toMatchObject({ height: 44, marginTop: 8, alignItems: "center" });
+    // Commandes et bascule centrées sur la même ligne horizontale.
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-session-commands").props.style).alignItems).toBe("center");
+  });
+
   it("ordre Filtre, Tri, Créer ; Créer le plus à droite", () => {
     renderRow(null);
     const commands = screen.getByTestId("catalogue-session-commands");
