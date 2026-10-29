@@ -121,27 +121,37 @@ Les **12 cellules Groupé / Alterné** reproduisent les choix D-15/D-16. Les aut
 
 **Séparation de périmètre :** PRE-9 configure les Formats et prépare leur contrat. Ces cas n'ont pas à être implémentés avant les stories d'exécution correspondantes, et ne bloquent pas les travaux de Composition indépendants.
 
-## 3. Analyse de cohérence avec la documentation normative
+## 3. Analyse de cohérence avec la documentation normative — citations contrôlées
 
-Chaque ligne indique le texte normatif concerné, le conflit, et l'action proposée. **Aucune action n'a été appliquée.**
+**Référence normative : main @ c73079e9**, distincte des commits plus récents. Les mentions du plan concernent `pre9-bmad/plan @ 265f3d9d`. Un complément de portée n'est pas automatiquement une contradiction, et une décision nouvelle ne doit pas effacer l'ancienne règle sans identifier précisément ce qu'elle remplace.
+
+**Lecture des statuts :** RÈGLE REMPLACÉE, COMPLÉMENT, COHÉRENT, À CLARIFIER ou ERREUR FACTUELLE.
 
 | # | Texte normatif | Conflit avec les décisions | Action proposée |
 |---|---|---|---|
-| C-01 | ch10 FMT-26 : « Le circuit est répété jusqu'à l'échéance globale » | Contredit D-15 (AMRAP : chaque répétition dure 12 minutes, sans limite globale). | **Annoter comme remplacé** sur ce point, texte d'origine conservé (classe B). |
-| C-02 | ch10 FMT-28 et FMT-02 : listent « Gainage · Mobilité » parmi les départs | Contredit D-25. | **Annoter** : retirer Gainage · Mobilité de la liste, texte d'origine conservé. |
-| C-03 | ch10 FMT-21 : durée EMOM = tours × exercices × fenêtre | Ne dit pas comment se compte la durée d'un EMOM répété dans un circuit groupé (D-15 : somme des blocs). | **Compléter** : durée d'un bloc = tours × exercices × fenêtre, répétée par passage. Lecture cohérente, mais la règle doit le dire. |
-| C-04 | ch10 FMT-34 : « met fin à la séance » | Déjà annoté et aligné sur D-18 (commit `990542fd`). | Aucune action. |
-| C-05 | ch10 FMT-31 et FMT-32 : pas de sélecteur d'organisation pour For time ; échelle indexée par tour | Cohérent avec D-13 et D-15. | Aucune action. |
-| C-06 | ch05 R-03 : Death by à plusieurs exercices « doit être explicitement raccordé » | Levé pour le circuit alterné (D-29). Le texte de R-03 n'est pas mis à jour. | **Annoter** : raccordé pour le circuit alterné, par D-16 et D-29. |
-| C-07 | ch10 : pas de limite de temps du For time dans les sources | Le plafond est décidé (D-21). | **Ajouter** la règle de plafond au For time, avec sa source (Hermann, 29/10/2026). |
-| C-08 | ch13 CE-FMT-03 §14 : « Contraintes réappliquées après édition » | Ambigu : si les contraintes sont réappliquées après édition, cela peut contredire D-05 (un circuit ne fixe pas les paramètres de ses membres). | **À vérifier** : préciser que « contraintes » désigne les contraintes du circuit (organisation, N), non celles du format de l'élément. |
-| C-09 | ARB-24 (plan) : valeurs imposées d'un circuit formaté appliquées à l'exercice entrant | Remplacé par D-05 et D-26. | **Annoter** dans le plan. |
-| C-10 | ARB-03 (plan) : « Un Format est porté par un Circuit, lorsque son organisation nécessite un Circuit » | Précisé par D-02 et D-27 : pas de transfert automatique. | **Annoter** dans le plan. |
-| C-11 | Plan, architecture §5 l.66 : For time « Circuit ; Volume par tour = tours du Circuit » | Contredit D-02 et D-13 : le For time est porté par un exercice ; son échelle n'est pas celle du circuit. | **Corriger** dans l'architecture. |
-| C-12 | Plan, architecture §7 l.99 : For time « pas de limite de temps dans les sources » | Contredit D-21. | **Corriger** dans l'architecture. |
-| C-13 | ch10 RM-PRE5-02 : formats imposés « interruption ou série achevée sous la cible » | Étendu à l'AMRAP par D-20 (tour partiel). | **Compléter** la liste des formats concernés. |
-| C-14 | ch10 FMT-36 : un tour non appuyé n'est pas acquis (Death by) | Cohérent avec D-19 pour l'appui, mais D-20 introduit une saisie de répétitions partielles pour l'AMRAP, qui n'existe pas pour le Death by. | **À vérifier** : les deux mécanismes sont-ils distincts par construction ? |
-| C-15 | ch10 l.1152 et l.1156 : adaptation à N lors de l'ajout et du déplacement dans un circuit alterné | Cohérent avec D-07. | Aucune action. |
+| C-01 | ch10 FMT-26 : circuit répété jusqu'à l'échéance globale (citation exacte) | COMPLÉMENT DE PORTÉE : « globale » peut désigner le bloc AMRAP, pas nécessairement la Séance entière | Préciser une borne propre à chaque passage, de durée réglable ; ne pas effacer FMT-26 sans conflit démontré |
+| C-02 | ch10 FMT-02 et FMT-28 citent bien Gainage · Mobilité | RÈGLE REMPLACÉE par D-25 | Corriger les occurrences actives, leurs reprises consolidées et les références d'écran concernées |
+| C-03 | ch10 FMT-21 : durée EMOM = N × E × W (citation exacte) | COMPLÉMENT, pas contradiction : un bloc répété conserve sa formule interne | Clarifier cumul des passages et éviter tout multiplicateur caché |
+| C-04 | ch10 FMT-34 sur main @ c73079e9 : « met fin à la séance » ; correctif ultérieur 990542fd | RÈGLE REMPLACÉE, mais NON ALIGNÉE sur le commit normatif cité ; le constat « déjà annoté » est faux pour c73079e9 | Vérifier le statut sur la baseline de propagation, sans attribuer le correctif à un commit antérieur |
+| C-05 | ch10 FMT-31/32 : pas de sélecteur d'organisation For time, échelle indexée par tour | COHÉRENT avec D-13/D-16 ; répétition du bloc distincte de l'organisation | Pas de correction de fond ; vérifier l'indexation de l'échelle |
+| C-06 | ch05 R-03 : raccordement Death by multi-Exercices explicitement requis | PARTIELLEMENT COUVERT : admission D-16, exécution spécialisée encore à raccorder | Ne pas déclarer R-03 techniquement levé ; réserver le détail des fenêtres/rangs à PRE-11 |
+| C-07 | ch10 FMT-30–32 ne définissent pas de plafond temporel facultatif For time | RÈGLE NOUVELLE D-21 | Propager plafond, arrêt et résultat incomplet avec provenance |
+| C-08 | ch13 CE-FMT-03 §14 : « contraintes réappliquées après édition » (exact), sans limitation au Circuit | À CLARIFIER : la résolution proposée qui efface les contraintes du Format de l'Exercice est infondée | Conserver validation à chaque niveau ; voir §3.1 |
+| C-09 | Plan ARB-24 : réapplication des valeurs imposées du Circuit formaté à l'Exercice entrant (source : plan, non ch10) | RÈGLE DU PLAN À RÉVISER selon D-05/D-26, mais D-12 reste à articuler | Annoter arbitrages, architecture et C.4 après clarification de l'adoption explicite |
+| C-10 | Plan ARB-03 : porteur Circuit si l'organisation le nécessite | PRÉCISION D-02/D-27 : pas de transfert automatique | Séparer porteur courant, choix explicite et mécanisme de création |
+| C-11 | Plan architecture §5 : For time sur Exercice seul ou Circuit multi-Exercices ; échelle reliée au tour dans ce second cas | INCOMPATIBILITÉ POTENTIELLE, pas preuve que For time doit toujours être un Exercice | Vérifier deux porteurs et l'échelle par tour, sans remplacement automatique Circuit → Exercice |
+| C-12 | Plan architecture §7 : « pas de limite de temps dans les sources » | RÈGLE DU PLAN À ACTUALISER par D-21 | Séparer plafond facultatif et temps réalisé |
+| C-13 | ch10 RM-PRE5-02 : modale partielle avec 0 proposé, interruption ou sous-cible ; pas de liste fermée de Formats | COMPLÉMENT DE DÉCLENCHEMENT, pas extension d'une liste | Décrire échéance AMRAP et rattachement au tour partiel |
+| C-14 | ch10 FMT-36 : fenêtre Death by sans appui non acquise ; FMT-37/38 prévoient déjà ses répétitions partielles | ERREUR FACTUELLE de la version initiale : « n'existe pas pour Death by » est faux | Distinguer déclencheur Death by du déclencheur AMRAP ; voir §3.2 |
+| C-15 | ch10 l.1141–1161 : adaptation à N, confirmation avant perte, conservation à la sortie | COHÉRENT pour la mécanique générale et les Formats compatibles | Conserver la norme et contrôler les constantes du Format lors de la dépose |
+
+### 3.1 C-08 — Les contraintes ne se limitent pas à l'organisation et à N
+
+CE-FMT-03 §14 impose une réapplication des contraintes après édition, sans préciser qu'elles seraient uniquement celles du Circuit. Il faut contrôler distinctement les contraintes **intrinsèques du Format de l'Exercice**, la nature et N du Circuit, les éventuelles contraintes d'un Format **porté par le Circuit**, les valeurs saisies et les confirmations avant perte. La priorité en cas de deux porteurs formatés reste **À CLARIFIER**. Ne pas inventer un effacement automatique, ni une interdiction générale.
+
+### 3.2 C-14 — Les répétitions partielles existent déjà pour Death by
+
+FMT-36 régit l'acquisition d'une fenêtre ; **FMT-37 et FMT-38 prévoient déjà** la saisie de répétitions partielles après un arrêt de Death by, avec zéro proposé. Pour AMRAP, D-20 définit **un autre déclencheur**, à l'échéance temporelle du bloc. Le composant de modale peut être mutualisé techniquement si cela convient ; ce n'est pas une règle métier nouvelle.
 
 ## 4. Points restant ouverts
 
