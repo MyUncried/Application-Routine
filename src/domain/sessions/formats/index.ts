@@ -2,3 +2,4 @@
 
 export * from "./registry";
 export * from "./elementFormat";
+export * from "./capabilities";

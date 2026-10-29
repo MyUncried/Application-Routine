@@ -38,11 +38,13 @@ import { buildExecutionLedger, type LedgerSide } from "@/domain/activities/execu
 import { seriesRowsOf, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 
 import type { ActivityType } from "./Session";
-import type { ElementFormat } from "./formats";
+import { ELEMENT_FORMAT_KEYS, FORMAT_CAPABILITIES, type ElementFormat } from "./formats";
 import { type SessionStructure, type StructureCircuit, type StructureStopPointLocation } from "./structure";
 
-/** Formats développés en segment progressif (plan non fini : borne de temps ou de résultat). */
-const PROGRESSIVE_FORMATS: ReadonlySet<ElementFormat["key"]> = new Set(["AMRAP", "DEATH_BY"]);
+/** Formats développés en segment progressif : expansion `PROGRESSIVE` de leur descripteur (D.3). */
+const PROGRESSIVE_FORMATS: ReadonlySet<ElementFormat["key"]> = new Set(
+  ELEMENT_FORMAT_KEYS.filter((key) => FORMAT_CAPABILITIES[key].expansion === "PROGRESSIVE"),
+);
 
 /** Exercice tel que le développement le lit. */
 export type PlanExercise = {
