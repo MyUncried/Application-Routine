@@ -1193,7 +1193,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-01"></a>
 #### RM-FMT-01
 
-**FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant.
+**FMT-01 — Format appliqué (cible PRE-9, clarification du 29/10).** Un **Exercice** de la Séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by ; ses réglages définissent ses contraintes et son comportement. La Séance peut comporter plusieurs Exercices de Formats différents, y compris dans des Circuits et Cycles. Un Circuit ne porte aucun Format propre. [Ancienne formulation « Une séance peut porter […] Ce champ […] », supersédée pour le modèle cible.]
 
 <a id="fmt-02"></a>
 #### RM-FMT-02
@@ -1208,7 +1208,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-04"></a>
 #### RM-FMT-04
 
-**FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice.
+**FMT-04 — Réglages du Format d'un Exercice (cible PRE-9).** Les réglages autorisés restent modifiables après la Composition, **sur l'Exercice porteur** ; ils ne deviennent pas des paramètres de Format du Circuit ni de la Séance. Les constantes imposées restent protégées, l'historique inchangé. [Ancienne portée « réglages de séance » supersédée pour les Formats multiples.]
 
 <a id="fmt-05"></a>
 #### RM-FMT-05
@@ -1233,7 +1233,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-09"></a>
 #### RM-FMT-09
 
-**FMT-09 — Réemploi des circuits.** Conserver les circuits de tours et de séries de SRC-04. Les circuits de séries ne sont pas réservés aux seules progressions ou pyramides. Un format peut imposer une organisation ; cela ne retire pas les choix existants à une séance libre.
+**FMT-09 — Réemploi des circuits.** Conserver les Circuits de tours/séries de SRC-04, également utilisables avec des Exercices formatés. Un Format d'Exercice peut **limiter les organisations compatibles** du Circuit sans devenir un Format porté par celui-ci. Les choix de Composition libre demeurent disponibles lorsqu'ils respectent les contraintes des membres. [L'ancienne formulation « un format peut imposer une organisation » est précisée, sans transférer le Format au Circuit.]
 
 <a id="fmt-10"></a>
 #### RM-FMT-10
@@ -1449,10 +1449,10 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 #### 3.1 Format, origine et paramètres
 
-- **FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant.
+- **FMT-01 — Format appliqué (cible PRE-9, clarification du 29/10).** Un **Exercice** de la Séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by ; ses réglages définissent ses contraintes et son comportement. La Séance peut comporter plusieurs Exercices de Formats différents, y compris dans des Circuits et Cycles. Un Circuit ne porte aucun Format propre. [Ancienne formulation « Une séance peut porter […] Ce champ […] », supersédée pour le modèle cible.]
 - **FMT-02 — Origine de création.** Le modèle de départ est conservé séparément. Il classe la provenance, sans imposer à lui seul de comportement. Renforcement, Gainage · Mobilité, Superset, Progression, À l’échec et Libre alimentent cette origine sans devenir des formats.
 - **FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées.
-- **FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice.
+- **FMT-04 — Réglages du Format d'un Exercice (cible PRE-9).** Les réglages autorisés restent modifiables après la Composition, **sur l'Exercice porteur** ; ils ne deviennent pas des paramètres de Format du Circuit ni de la Séance. Les constantes imposées restent protégées, l'historique inchangé. [Ancienne portée « réglages de séance » supersédée pour les Formats multiples.]
 - **FMT-05 — Valeurs dérivées.** Toute modification d’un réglage ou de la composition met à jour les valeurs calculées et la synthèse courante. Une valeur calculée n’est pas un second réglage concurrent.
 - **FMT-06 — Historique.** Modifier la séance ne modifie pas rétroactivement les paramètres ni les résultats de ses exécutions passées. Cette préservation réutilise l’exigence générale d’instantané ; elle n’invente pas un nouvel historique parallèle.
 - **FMT-07 — Présentation et synthèse.** Le texte descriptif du modèle peut rester fixe ; la synthèse de la séance décrit ses paramètres effectifs. Une synthèse ne disparaît pas au seul motif que la séance a été composée ou modifiée.
@@ -1466,7 +1466,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 | Borne | Qu’est-ce qui termine l’exécution prévue ? | Compte atteint ; durée écoulée ; travail accompli ; arrêt déclaré |
 
 - **FMT-08 — Indexation explicite.** Une échelle de valeurs est indexée sur l’unité nommée par le paramètre. Une liste numérique ne change pas d’unité par simple changement de libellé ou réinterprétation technique.
-- **FMT-09 — Réemploi des circuits.** Conserver les circuits de tours et de séries de SRC-04. Les circuits de séries ne sont pas réservés aux seules progressions ou pyramides. Un format peut imposer une organisation ; cela ne retire pas les choix existants à une séance libre.
+- **FMT-09 — Réemploi des circuits.** Conserver les Circuits de tours/séries de SRC-04, également utilisables avec des Exercices formatés. Un Format d'Exercice peut **limiter les organisations compatibles** du Circuit sans devenir un Format porté par celui-ci. Les choix de Composition libre demeurent disponibles lorsqu'ils respectent les contraintes des membres. [L'ancienne formulation « un format peut imposer une organisation » est précisée, sans transférer le Format au Circuit.]
 
 « Exécution » sur un contrôle d’organisation ne remplace pas le mode Durée/Répétitions de l’exercice. À l’échec reste une cible par série, pas un troisième mode ni un format supplémentaire.
 
