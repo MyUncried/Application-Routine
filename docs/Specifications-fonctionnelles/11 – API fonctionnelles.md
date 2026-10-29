@@ -309,7 +309,7 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 
 | Opération | Entrée / sortie | Validation et effets |
 |---|---|---|
-| Initialiser depuis un modèle | Entrée choisie → brouillon de séance, format/origine et paramètres | Départ rapide = libre ; ne pas déduire le format du nom |
+| Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
 | Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
 | Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
 | Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
