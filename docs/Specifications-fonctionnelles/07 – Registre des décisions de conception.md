@@ -1143,3 +1143,16 @@ Source : [synthèse fournie](../KODJO-Conteneurs-composition-2026-10-28-source.m
 - Intègre les règles de défilement D1–D8 de la source sous CS-D1–CS-D8 ; correction de la constante historique 80 pt en référence compacte 68 pt, calcul du scroll sur la hauteur réelle.
 
 Les réserves de la [revue critique](../REVUE-COMPOSITION-2026-10-28.md) ne sont pas des arbitrages : sélection d’enveloppe, frontières des points, cycle entier, cas nuls et détails de recette restent distincts des décisions closes.
+
+## Clarification des décisions du 29/10/2026 — Formats dans la Composition (sans nouveau numéro D)
+
+**Décision fonctionnelle confirmée par Hermann, en complément des arbitrages PRE-9 et de l'adoption volontaire consignée dans le document de réponses au commit `c458dac6`.** Cette clarification remplace, pour le modèle cible, les formulations antérieures d'ARB-03, ARB-24 et des versions du plan PRE-9 qui traitent le Circuit comme porteur autonome d'un Format.
+
+- **Propriété :** chaque Format et ses réglages appartiennent à l'**Exercice**. Un Circuit n'a pas d'identité ni de réglages de Format ; il organise ses membres, sa nature (groupée/alternée) et son nombre de passages.
+- **Dépose :** déplacer un Exercice formaté dans un Circuit conserve le Format et ses paramètres intrinsèques ; le Circuit ne transmet aucun Format à ses autres membres. Ses contraintes de nature et de compte restent applicables avec le contrôle de compatibilité.
+- **Adoption volontaire :** ajouter explicitement un Exercice au Format choisi est une opération distincte d'une simple dépose. La confirmation des valeurs perdues conserve les règles métier existantes.
+- **Répétition :** le Circuit groupé répète ses membres selon son compte ; le Cycle répète sa séquence, sans substituer le nombre de séries imposé d'un Format ni créer un compteur supplémentaire. Cette précision complète ARB-25 ; elle n'autorise aucune double multiplication.
+- **Présentation Figma :** Circuit replié : la deuxième ligne qui énumère déjà les Exercices affiche aussi le nom de leur Format lorsqu'il existe ; Circuit déplié : les cartes des Exercices restent visibles. Le Circuit conserve « Circuit A/B… », son compte et sa nature, sans libellé commun de Format ni nouvelle règle « homogène/mixte ». Preuves visuelles vérifiées dans la page `510:101` : nœuds `10717:20056` et `10725:20142`.
+
+**Traçabilité :** le principe initial « Format porté par un Circuit ou un Exercice » et le transfert implicite proposé vers un Circuit ne sont plus actifs ; l'attribution est par Exercice, l'adoption explicite par choix utilisateur. Les questions d'horloges, de fin de bloc et de résultat restent des raccordements d'exécution PRE-10/11, sans déduction nouvelle à partir de Figma. La migration physique correspondante relève du plan technique PRE-9, sans présumer d'un schéma SQL déjà livré.
+
