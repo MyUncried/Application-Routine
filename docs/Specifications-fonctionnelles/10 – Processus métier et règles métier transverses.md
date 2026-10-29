@@ -1358,7 +1358,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-34"></a>
 #### RM-FMT-34
 
-**FMT-34.** Un seul bouton met fin à la séance et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ».
+**FMT-34.** Un seul bouton met fin à l'élément en cours, qu'il soit porté par un exercice ou par un circuit, et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ». Le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt. Il ne met pas fin à la séance. [Décision de Hermann du 29/10/2026, remplace « Un seul bouton met fin à la séance » ; formulation d'origine : « Un seul bouton met fin à la séance et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ». »]
 
 <a id="fmt-35"></a>
 #### RM-FMT-35
@@ -1538,7 +1538,7 @@ Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tou
 #### 7.1 Fenêtres, objectif et acquisition
 
 - **FMT-33.** Le rang de fenêtre est déduit de l’horloge d’exécution ; l’utilisateur ne déclare jamais un nombre de tours à chaque passage. L’objectif est calculé depuis le rang, le départ et l’incrément du format. Dans le cas de référence : une répétition la première minute, puis une de plus à chaque minute.
-- **FMT-34.** Un seul bouton met fin à la séance et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ».
+- **FMT-34.** Un seul bouton met fin à l'élément en cours, qu'il soit porté par un exercice ou par un circuit, et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ». Le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt. Il ne met pas fin à la séance. [Décision de Hermann du 29/10/2026, remplace « Un seul bouton met fin à la séance » ; formulation d'origine : « Un seul bouton met fin à la séance et ouvre une confirmation distinguant « Limite atteinte » et « Abandonner ». »]
 - **FMT-35.** Un tour est acquis lorsque l’objectif de sa fenêtre est accompli, signalé par l’appui sur le cadran. Cet appui révèle le repos restant ; il ne fait pas avancer la fenêtre et ne compte pas les mouvements individuellement.
 - **FMT-36.** Une fenêtre entamée sans appui n’est pas un tour acquis. Son échéance ne vaut pas confirmation implicite. Le rang courant et le nombre de tours acquis sont deux données distinctes. Un appui répété dans la même fenêtre ne peut acquérir deux tours.
 
