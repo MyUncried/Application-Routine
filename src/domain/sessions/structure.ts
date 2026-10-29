@@ -2,22 +2,24 @@
  * PRE-8 (story A.2, D-449 §4 et §6) — structure générale de la composition d'une Séance.
  *
  * Le niveau principal est une séquence ordonnée d'éléments : un Exercice, un Circuit (groupe
- * ordonné d'Exercices, nature Tours ou Séries, compte 1..99) ou un Cycle (un ou plusieurs
- * Circuits et son propre nombre de répétitions). Plusieurs Cycles peuvent se succéder. Aucune
- * imbrication n'est représentable : un Cycle ne contient que des Circuits, un Circuit que des
- * Exercices. Aucun plafond de Cycles ni de répétitions de Cycle n'est fixé (D-449 §4).
+ * ordonné d'Exercices, nature Tours ou Séries, compte 1..99) ou un Cycle. Plusieurs Cycles
+ * peuvent se succéder. PRE-9 (A.1, D-451) : un Cycle est une séquence ordonnée non vide
+ * d'Exercices directs et de Circuits, de compte 1..99 ; un Exercice direct est exécuté une fois
+ * par répétition du Cycle (RM-252). Aucune imbrication n'est représentable : ni Cycle dans un
+ * Cycle ou un Circuit, ni Circuit dans un Circuit ; un Circuit ne contient que des Exercices.
  *
  * L'ancien modèle à Cycle technique unique (`Session.cycle` : avant le Circuit, Circuit, après
  * le Circuit) est exactement la structure `[Exercices…, Circuit, Exercices…]` sans Cycle. Les
  * conversions des deux sens sont pures et sans perte (`structureFromLegacy`,
  * `legacyFromStructure`) : l'interface actuelle lit cette projection, inchangée.
  *
- * Point d'arrêt : `circuitId` (`null` au niveau principal) et `position`, nombre d'éléments du
- * conteneur qui le précèdent (au niveau principal : Exercices, Circuits et Cycles ; dans un
- * Circuit : ses Exercices). Les règles RM-219, RM-251 et D-442 restent celles du modèle à Circuit
- * unique ; leur généralisation relève de la Composition (Epic C). Une structure non représentable
- * dans l'ancien modèle n'accepte donc encore aucun Point d'arrêt
- * (`STRUCTURE_STOP_POINTS_UNSUPPORTED`).
+ * Point d'arrêt : conteneur et `position`, nombre d'éléments du conteneur qui le précèdent (au
+ * niveau principal : Exercices, Circuits et Cycles ; dans un Cycle : ses Exercices directs et
+ * Circuits ; dans un Circuit : ses Exercices). Conteneur : `circuitId` (Circuit), sinon `cycleId`
+ * (Cycle, PRE-9 A.1, ARB-06), sinon le niveau principal. Les règles RM-219, RM-251 et D-442
+ * restent celles du modèle à Circuit unique ; leur généralisation à toute la structure relève de
+ * PRE-9 B.6 (ARB-02a/b). Jusque-là, une structure non représentable dans l'ancien modèle
+ * n'accepte aucun Point d'arrêt (`STRUCTURE_STOP_POINTS_UNSUPPORTED`).
  *
  * Fonctions pures, sans React ni SQLite.
  */
@@ -39,8 +41,9 @@ import type { StructuralPosition } from "./Session";
 /** Borne du compte d'un Circuit, inchangée (D-058). */
 export const CIRCUIT_REPEAT_COUNT_MIN = 1;
 export const CIRCUIT_REPEAT_COUNT_MAX = 99;
-/** Borne basse des répétitions d'un Cycle ; aucune borne haute (D-449 §4). */
+/** Bornes des répétitions d'un Cycle : 1..99, défaut 1 (D-451 ; remplace « aucune borne haute » de D-449 §4). */
 export const CYCLE_REPEAT_COUNT_MIN = 1;
+export const CYCLE_REPEAT_COUNT_MAX = 99;
 
 export type StructureCircuit<E> = {
   readonly id: string;
@@ -49,10 +52,15 @@ export type StructureCircuit<E> = {
   readonly exercises: readonly E[];
 };
 
+/** Membre d'un Cycle (D-451) : Exercice direct ou Circuit. */
+export type StructureCycleMember<E> =
+  | { readonly kind: "EXERCISE"; readonly exercise: E }
+  | { readonly kind: "CIRCUIT"; readonly circuit: StructureCircuit<E> };
+
 export type StructureCycle<E> = {
   readonly id: string;
   readonly repeatCount: number;
-  readonly circuits: readonly StructureCircuit<E>[];
+  readonly members: readonly StructureCycleMember<E>[];
 };
 
 export type StructureElement<E> =
@@ -60,9 +68,14 @@ export type StructureElement<E> =
   | { readonly kind: "CIRCUIT"; readonly circuit: StructureCircuit<E> }
   | { readonly kind: "CYCLE"; readonly cycle: StructureCycle<E> };
 
-/** Emplacement d'un Point d'arrêt : conteneur (`null` = niveau principal) et rang. */
+/**
+ * Emplacement d'un Point d'arrêt : conteneur et rang. `circuitId` désigne un Circuit ; à défaut,
+ * `cycleId` (facultatif, PRE-9 A.1) désigne un Cycle ; sinon le niveau principal. Les deux
+ * renseignés à la fois : emplacement invalide.
+ */
 export type StructureStopPointLocation = {
   readonly circuitId: string | null;
+  readonly cycleId?: string | null;
   readonly position: number;
 };
 
@@ -90,6 +103,16 @@ export type LegacyStopPointLocation = {
 // Parcours
 // ---------------------------------------------------------------------------
 
+/** Circuits d'un Cycle, dans l'ordre. */
+export function cycleCircuits<E>(cycle: StructureCycle<E>): readonly StructureCircuit<E>[] {
+  return cycle.members.flatMap((member) => (member.kind === "CIRCUIT" ? [member.circuit] : []));
+}
+
+/** Exercices d'un Cycle, directs et de ses Circuits, chacun une fois, dans l'ordre. */
+export function cycleExercises<E>(cycle: StructureCycle<E>): readonly E[] {
+  return cycle.members.flatMap((member) => (member.kind === "CIRCUIT" ? member.circuit.exercises : [member.exercise]));
+}
+
 /** Circuits de la structure, Cycles compris, dans l'ordre d'affichage. */
 export function structureCircuits<E>(structure: Pick<SessionStructure<E>, "elements">): readonly StructureCircuit<E>[] {
   const circuits: StructureCircuit<E>[] = [];
@@ -101,7 +124,7 @@ export function structureCircuits<E>(structure: Pick<SessionStructure<E>, "eleme
         circuits.push(element.circuit);
         break;
       case "CYCLE":
-        circuits.push(...element.cycle.circuits);
+        circuits.push(...cycleCircuits(element.cycle));
         break;
       default: {
         const unreachable: never = element;
@@ -124,9 +147,7 @@ export function structureExercises<E>(structure: Pick<SessionStructure<E>, "elem
         exercises.push(...element.circuit.exercises);
         break;
       case "CYCLE":
-        for (const circuit of element.cycle.circuits) {
-          exercises.push(...circuit.exercises);
-        }
+        exercises.push(...cycleExercises(element.cycle));
         break;
       default: {
         const unreachable: never = element;
@@ -144,6 +165,44 @@ export function structureExercises<E>(structure: Pick<SessionStructure<E>, "elem
  */
 export function countStructureExercises<E>(structure: Pick<SessionStructure<E>, "elements">): number {
   return structureExercises(structure).length;
+}
+
+/**
+ * PRE-9 (A.1) : même structure, chaque Exercice transformé ; identités, ordre, comptes, natures et
+ * Points d'arrêt inchangés.
+ */
+export function mapStructure<E, F, P extends StructureStopPointLocation>(
+  structure: SessionStructure<E, P>,
+  map: (exercise: E) => F,
+): SessionStructure<F, P> {
+  const circuitOf = (circuit: StructureCircuit<E>): StructureCircuit<F> => ({ ...circuit, exercises: circuit.exercises.map(map) });
+  return {
+    elements: structure.elements.map((element): StructureElement<F> => {
+      switch (element.kind) {
+        case "EXERCISE":
+          return { kind: "EXERCISE", exercise: map(element.exercise) };
+        case "CIRCUIT":
+          return { kind: "CIRCUIT", circuit: circuitOf(element.circuit) };
+        case "CYCLE":
+          return {
+            kind: "CYCLE",
+            cycle: {
+              ...element.cycle,
+              members: element.cycle.members.map((member) =>
+                member.kind === "CIRCUIT"
+                  ? { kind: "CIRCUIT", circuit: circuitOf(member.circuit) }
+                  : { kind: "EXERCISE", exercise: map(member.exercise) },
+              ),
+            },
+          };
+        default: {
+          const unreachable: never = element;
+          return unreachable;
+        }
+      }
+    }),
+    stopPoints: structure.stopPoints,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -175,7 +234,7 @@ function circuitContributions<E extends ActivityDurationFacts>(
 /**
  * Total typé de la composition (exact, ≈, ≥), selon les mêmes contributions que le modèle à
  * Circuit unique (`computeStructuredSessionDuration`) : un Circuit répète ses Exercices selon sa
- * nature, un Cycle multiplie ses Circuits par son nombre de répétitions. Compte à rebours initial
+ * nature, un Cycle multiplie ses Exercices directs et ses Circuits par son nombre de répétitions. Compte à rebours initial
  * et Fin de séance exclus, comme dans la mesure d'occurrence.
  */
 export function computeStructureDuration<E extends ActivityDurationFacts>(
@@ -191,8 +250,13 @@ export function computeStructureDuration<E extends ActivityDurationFacts>(
         contributions.push(...circuitContributions(element.circuit, 1));
         break;
       case "CYCLE":
-        for (const circuit of element.cycle.circuits) {
-          contributions.push(...circuitContributions(circuit, element.cycle.repeatCount));
+        // RM-252 (D-451) : un Exercice direct est exécuté une fois par répétition du Cycle.
+        for (const member of element.cycle.members) {
+          if (member.kind === "EXERCISE") {
+            contributions.push({ result: computeActivityDurationResult(member.exercise), multiplicity: element.cycle.repeatCount });
+          } else {
+            contributions.push(...circuitContributions(member.circuit, element.cycle.repeatCount));
+          }
         }
         break;
       default: {
@@ -248,8 +312,11 @@ export function structureFromLegacy<E, P extends LegacyStopPointLocation>(
  */
 export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
-): { readonly composition: LegacyComposition<E>; readonly stopPoints: readonly (Omit<P, "circuitId" | "position"> & LegacyStopPointLocation)[] } | null {
+): { readonly composition: LegacyComposition<E>; readonly stopPoints: readonly (Omit<P, "circuitId" | "cycleId" | "position"> & LegacyStopPointLocation)[] } | null {
   const circuitIndexes = structure.elements.flatMap((element, index) => (element.kind === "CIRCUIT" ? [index] : []));
+  if (structure.stopPoints.some((point) => (point.cycleId ?? null) !== null)) {
+    return null;
+  }
   if (circuitIndexes.length !== 1 || structure.elements.some((element) => element.kind === "CYCLE")) {
     return null;
   }
@@ -264,9 +331,9 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   const beforeTour = exercisesOf(structure.elements.slice(0, circuitIndex));
   const afterTour = exercisesOf(structure.elements.slice(circuitIndex + 1));
 
-  const stopPoints: (Omit<P, "circuitId" | "position"> & LegacyStopPointLocation)[] = [];
+  const stopPoints: (Omit<P, "circuitId" | "cycleId" | "position"> & LegacyStopPointLocation)[] = [];
   for (const point of structure.stopPoints) {
-    const { circuitId, position, ...rest } = point;
+    const { circuitId, cycleId: _cycleId, position, ...rest } = point;
     if (circuitId === tour.id) {
       stopPoints.push({ ...rest, scope: "IN_TOUR", position });
     } else if (circuitId !== null) {
@@ -300,8 +367,8 @@ export type StructureViolation = { readonly code: StructureViolationCode };
 /**
  * Règles de forme de la structure, indépendantes du contenu des Exercices (validé par les règles
  * existantes de l'occurrence) : Cycle non vide, comptes entiers dans leurs bornes, nature connue,
- * identités de Circuit et de Cycle uniques, Points d'arrêt dans leur conteneur, uniques par
- * emplacement. Hors de l'ancien modèle, aucun Point d'arrêt (voir l'en-tête).
+ * identités de Circuit et de Cycle uniques, Points d'arrêt dans un seul conteneur connu, uniques
+ * par emplacement. Hors de l'ancien modèle, aucun Point d'arrêt (voir l'en-tête).
  */
 export function validateStructureShape<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
@@ -348,13 +415,23 @@ export function validateStructureShape<E, P extends StructureStopPointLocation>(
         break;
       case "CYCLE":
         claim(element.cycle.id);
-        if (!Number.isInteger(element.cycle.repeatCount) || element.cycle.repeatCount < CYCLE_REPEAT_COUNT_MIN) {
+        if (
+          !Number.isInteger(element.cycle.repeatCount) ||
+          element.cycle.repeatCount < CYCLE_REPEAT_COUNT_MIN ||
+          element.cycle.repeatCount > CYCLE_REPEAT_COUNT_MAX
+        ) {
           push("STRUCTURE_CYCLE_REPEAT_OUT_OF_RANGE");
         }
-        if (element.cycle.circuits.length === 0) {
+        if (element.cycle.members.length === 0) {
           push("STRUCTURE_EMPTY_CYCLE");
         }
-        element.cycle.circuits.forEach(checkCircuit);
+        for (const member of element.cycle.members) {
+          if (member.kind === "CIRCUIT") {
+            checkCircuit(member.circuit);
+          } else {
+            claim(idOf(member.exercise));
+          }
+        }
         break;
       default: {
         const unreachable: never = element;
@@ -364,9 +441,20 @@ export function validateStructureShape<E, P extends StructureStopPointLocation>(
   }
 
   const circuitSizes = new Map(structureCircuits(structure).map((circuit) => [circuit.id, circuit.exercises.length]));
+  const cycleSizes = new Map(
+    structure.elements.flatMap((element) => (element.kind === "CYCLE" ? [[element.cycle.id, element.cycle.members.length] as const] : [])),
+  );
   const seen = new Set<string>();
   for (const point of structure.stopPoints) {
-    const size = point.circuitId === null ? structure.elements.length : circuitSizes.get(point.circuitId);
+    const cycleId = point.cycleId ?? null;
+    const size =
+      point.circuitId !== null
+        ? cycleId === null
+          ? circuitSizes.get(point.circuitId)
+          : undefined
+        : cycleId !== null
+          ? cycleSizes.get(cycleId)
+          : structure.elements.length;
     if (size === undefined) {
       push("STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT");
       continue;
@@ -375,7 +463,7 @@ export function validateStructureShape<E, P extends StructureStopPointLocation>(
       push("STRUCTURE_STOP_POINT_OUT_OF_RANGE");
       continue;
     }
-    const key = `${point.circuitId ?? ""}:${point.position}`;
+    const key = `${point.circuitId ?? ""}:${cycleId ?? ""}:${point.position}`;
     if (seen.has(key)) {
       push("STRUCTURE_STOP_POINT_DUPLICATE");
     }

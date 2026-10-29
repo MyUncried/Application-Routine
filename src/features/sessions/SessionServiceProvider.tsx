@@ -118,7 +118,7 @@ function SessionServiceInitializer({
 
   const sessionService = useMemo(() => {
     const database = new ExpoDatabase(nativeDatabase);
-    return new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database));
+    return new SessionService(new SqliteSessionRepository(database), new SqliteCategoryRepository(database), () => Crypto.randomUUID());
   }, [nativeDatabase]);
 
   // Correction (device check Hermann, commentaire 5948936550 ; revue

@@ -53,6 +53,7 @@ import {
   structureFromLegacy,
   type SessionStructure,
   type StructureCircuit,
+  type StructureCycleMember,
   type StructureElement,
   type StructureStopPoint,
 } from "@/domain/sessions/structure";
@@ -541,11 +542,11 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
   }
 
   /**
-   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, dans l'ancien
-   * modèle lu par la Composition — ouverte en lecture seule quand elle est archivée. Une Séance plus
-   * riche lève `SessionStructureNotRepresentableError`, comme `findById`.
+   * Recette E du 28/10/2026 (Hermann, e5-12, r2-02) : une Séance, active ou archivée, ouverte en
+   * lecture seule quand elle est archivée. PRE-9 (A.1) : lue dans sa structure générale, Cycles et
+   * plusieurs Circuits compris (plus aucune projection dans l'ancien modèle).
    */
-  async findForConsultation(sessionId: string): Promise<Session | null> {
+  async findForConsultation(sessionId: string): Promise<StructuredSession | null> {
     const user = await getLocalUser(this.database);
     const header = await this.database.getFirstAsync<SessionHeaderRow>(
       `${HEADER_SELECT} WHERE sessions.id = ? AND sessions.owner_id = ?`,
@@ -553,7 +554,7 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     );
     if (!header) return null;
     const [assembled] = await readAssembledSessions(this.database, [header], { allowArchived: true });
-    return assembled ? toLegacySession(assembled) : null;
+    return assembled ? toStructuredSession(assembled) : null;
   }
 
   /**
@@ -777,8 +778,8 @@ const STAGING_POSITION = 1_000_000;
  *    référence au Mouvement inchangés), un nouvel élément est inséré ;
  * 4. les Points d'arrêt reçus sont insérés.
  *
- * Rang au niveau principal : index de l'élément ; dans un Cycle : index du Circuit ; dans un
- * Circuit : index de l'Exercice. PRE-7 (R-3, C05) : aucune donnée de contenu n'est écrite dans
+ * Rang au niveau principal : index de l'élément ; dans un Cycle : index du membre (Exercice direct
+ * ou Circuit, PRE-9 A.1) ; dans un Circuit : index de l'Exercice. PRE-7 (R-3, C05) : aucune donnée de contenu n'est écrite dans
  * l'Exercice.
  */
 async function writeStructure(
@@ -805,7 +806,7 @@ async function writeStructure(
     let staging = STAGING_POSITION;
     for (const id of existing.activities) {
       if (incomingActivities.has(id)) {
-        await transaction.runAsync("UPDATE activities SET tour_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
+        await transaction.runAsync("UPDATE activities SET tour_id = NULL, cycle_id = NULL, position = ? WHERE id = ? AND session_id = ?", [
           staging++,
           id,
           sessionId,
@@ -850,14 +851,14 @@ async function writeStructure(
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
-      await writeActivity(transaction, sessionId, exercise, circuit.id, index, existing, timestamp);
+      await writeActivity(transaction, sessionId, exercise, { tourId: circuit.id, cycleId: null }, index, existing, timestamp);
     }
   };
 
   for (const [position, element] of structure.elements.entries()) {
     switch (element.kind) {
       case "EXERCISE":
-        await writeActivity(transaction, sessionId, element.exercise, null, position, existing, timestamp);
+        await writeActivity(transaction, sessionId, element.exercise, { tourId: null, cycleId: null }, position, existing, timestamp);
         break;
       case "CIRCUIT":
         await writeCircuit(element.circuit, null, position);
@@ -878,8 +879,21 @@ async function writeStructure(
             element.cycle.repeatCount,
           ]);
         }
-        for (const [index, circuit] of element.cycle.circuits.entries()) {
-          await writeCircuit(circuit, element.cycle.id, index);
+        // PRE-9 (A.1, D-451) : Exercices directs et Circuits du Cycle, rang partagé.
+        for (const [index, member] of element.cycle.members.entries()) {
+          if (member.kind === "CIRCUIT") {
+            await writeCircuit(member.circuit, element.cycle.id, index);
+          } else {
+            await writeActivity(
+              transaction,
+              sessionId,
+              member.exercise,
+              { tourId: null, cycleId: element.cycle.id },
+              index,
+              existing,
+              timestamp,
+            );
+          }
         }
         break;
       default: {
@@ -891,23 +905,24 @@ async function writeStructure(
 
   // PRE-6 (story 1.2, AD-36) : emplacement reçu, déjà validé, enregistré tel quel.
   for (const point of structure.stopPoints) {
-    await transaction.runAsync("INSERT INTO session_stop_points (id, session_id, tour_id, position) VALUES (?, ?, ?, ?)", [
-      uuidFactory(),
-      sessionId,
-      point.circuitId,
-      point.position,
-    ]);
+    await transaction.runAsync(
+      "INSERT INTO session_stop_points (id, session_id, tour_id, cycle_id, position) VALUES (?, ?, ?, ?, ?)",
+      [uuidFactory(), sessionId, point.circuitId, point.circuitId === null ? (point.cycleId ?? null) : null, point.position],
+    );
   }
 }
 
 type StructureCircuitInput = StructureCircuit<StructureExerciseInput>;
+
+/** Parent d'un Exercice : Circuit, Cycle (membre direct, PRE-9 A.1) ou niveau principal (les deux `null`). */
+type ActivityParent = { readonly tourId: string | null; readonly cycleId: string | null };
 
 /** Un Exercice à son rang final : mise à jour en place s'il existe, insertion sinon. */
 async function writeActivity(
   transaction: Database,
   sessionId: string,
   exercise: StructureExerciseInput,
-  tourId: string | null,
+  { tourId, cycleId }: ActivityParent,
   position: number,
   existing: ExistingStructureIds | null,
   timestamp: string,
@@ -918,7 +933,7 @@ async function writeActivity(
     // projection scalaire unique (AD-3) ; sa référence au Mouvement est conservée.
     await transaction.runAsync(
       `UPDATE activities SET
-         type = ?, tour_id = ?, position = ?,
+         type = ?, tour_id = ?, cycle_id = ?, position = ?,
          execution_mode = ?, duration_seconds = ?, repetition_count = ?,
          series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
          post_activity_recovery_present = ?, updated_at = ?, side_mode = ?,
@@ -927,6 +942,7 @@ async function writeActivity(
       [
         exercise.type,
         tourId,
+        cycleId,
         position,
         values.executionMode,
         values.durationSeconds,
@@ -968,6 +984,7 @@ async function writeActivity(
       values.executionParameters,
       movementId,
       exercise.copyNumber ?? null,
+      cycleId,
     ],
   );
 }
@@ -978,7 +995,7 @@ const ACTIVITY_ROW_COLUMNS = `
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
   created_at, updated_at, side_mode, execution_parameters,
-  source_movement_id, copy_number
+  source_movement_id, copy_number, cycle_id
 `;
 
 /**
@@ -1191,7 +1208,7 @@ async function readAssembledSessions(
     ids,
   );
   const stopPoints = await database.getAllAsync<StopPointRow>(
-    `SELECT id, session_id, tour_id, position FROM session_stop_points WHERE session_id IN (${placeholders})`,
+    `SELECT id, session_id, tour_id, cycle_id, position FROM session_stop_points WHERE session_id IN (${placeholders})`,
     ids,
   );
   const movements = await readMovementRecords(
@@ -1238,16 +1255,17 @@ function inRankOrder<T extends { readonly position: number }>(rows: readonly T[]
 
 /**
  * PRE-8 (A.4) : assemble la structure persistée d'une Séance et contrôle son contrat (défense
- * en profondeur, reflet des CHECK de `migration014`) : Séance active ; Circuit de compte
- * 1..99, direction et nature connues ; Cycle d'au moins un Circuit ; rangs contigus dans chaque
- * conteneur, y compris le niveau principal partagé par Exercices, Circuits et Cycles ;
- * colonnes de chaque Exercice conformes au CHECK composite ; Points d'arrêt dans un conteneur
- * connu.
+ * en profondeur, reflet des CHECK de `migration014` et `migration016`) : Séance active ; Circuit
+ * de compte 1..99, direction et nature connues ; Cycle d'au moins un membre (Exercice direct ou
+ * Circuit, PRE-9 A.1) ; rangs uniques dans chaque conteneur, y compris le niveau principal
+ * partagé par Exercices, Circuits et Cycles et le Cycle partagé par ses Exercices directs et ses
+ * Circuits ; au plus un parent par Exercice et par Point ; colonnes de chaque Exercice conformes
+ * au CHECK composite ; Points d'arrêt dans un conteneur connu.
  *
  * Champs hérités de l'Exercice : `structuralPosition` et `position` sont ceux de l'ancien
  * modèle lorsque la structure y est représentable (avant, dans, après le Circuit ; rang dans la
- * zone) ; sinon `BEFORE_TOUR` au niveau principal et `IN_TOUR` dans un Circuit, avec le rang
- * dans le conteneur.
+ * zone) ; sinon `BEFORE_TOUR` au niveau principal et dans un Cycle, `IN_TOUR` dans un Circuit,
+ * avec le rang dans le conteneur.
  */
 export function assembleStructure(
   stored: StoredSession,
@@ -1277,9 +1295,18 @@ export function assembleStructure(
   }
 
   const activitiesByContainer = new Map<string | null, ActivityRow[]>();
+  const activitiesByCycle = new Map<string, ActivityRow[]>();
   for (const row of stored.activities) {
     assertActivityRow(row);
-    activitiesByContainer.set(row.tour_id, [...(activitiesByContainer.get(row.tour_id) ?? []), row]);
+    const cycleId = row.cycle_id ?? null;
+    if (row.tour_id !== null && cycleId !== null) {
+      throw contractError();
+    }
+    if (cycleId !== null) {
+      activitiesByCycle.set(cycleId, [...(activitiesByCycle.get(cycleId) ?? []), row]);
+    } else {
+      activitiesByContainer.set(row.tour_id, [...(activitiesByContainer.get(row.tour_id) ?? []), row]);
+    }
   }
   const circuitsByCycle = new Map<string | null, CircuitRow[]>();
   for (const row of stored.circuits) {
@@ -1289,6 +1316,7 @@ export function assembleStructure(
   const knownCycles = new Set(stored.cycles.map((row) => row.id));
   if (
     stored.activities.some((row) => row.tour_id !== null && !knownCircuits.has(row.tour_id)) ||
+    [...activitiesByCycle.keys()].some((cycleId) => !knownCycles.has(cycleId)) ||
     stored.circuits.some((row) => row.cycle_id !== null && !knownCycles.has(row.cycle_id))
   ) {
     throw contractError();
@@ -1314,11 +1342,24 @@ export function assembleStructure(
       element: { kind: "CIRCUIT" as const, circuit: circuitOf(row) },
     })),
     ...stored.cycles.map((row) => {
-      const circuits = inRankOrder(circuitsByCycle.get(row.id) ?? []).map(circuitOf);
-      if (circuits.length === 0) {
+      // PRE-9 (A.1, D-451) : Exercices directs et Circuits du Cycle, rang partagé.
+      type RankedMember = { readonly position: number; readonly member: StructureCycleMember<Activity> };
+      const members = inRankOrder<RankedMember>([
+        ...(circuitsByCycle.get(row.id) ?? []).map((circuit) => ({
+          position: circuit.position,
+          member: { kind: "CIRCUIT" as const, circuit: circuitOf(circuit) },
+        })),
+        ...(activitiesByCycle.get(row.id) ?? []).map((activity) => ({
+          position: activity.position,
+          member: { kind: "EXERCISE" as const, exercise: toActivity(activity, movements, "BEFORE_TOUR", activity.position) },
+        })),
+      ]).map(({ member }, index): StructureCycleMember<Activity> =>
+        member.kind === "EXERCISE" ? { kind: "EXERCISE", exercise: { ...member.exercise, position: index } } : member,
+      );
+      if (members.length === 0) {
         throw contractError();
       }
-      return { position: row.position, element: { kind: "CYCLE" as const, cycle: { id: row.id, repeatCount: row.repeat_count, circuits } } };
+      return { position: row.position, element: { kind: "CYCLE" as const, cycle: { id: row.id, repeatCount: row.repeat_count, members } } };
     }),
   ];
   // Rang relu d'un Exercice du niveau principal : son index (voir `inRankOrder`).
@@ -1327,18 +1368,36 @@ export function assembleStructure(
   );
 
   for (const point of stored.stopPoints) {
-    if (point.tour_id !== null && !knownCircuits.has(point.tour_id)) {
+    const cycleId = point.cycle_id ?? null;
+    if (
+      (point.tour_id !== null && !knownCircuits.has(point.tour_id)) ||
+      (cycleId !== null && (point.tour_id !== null || !knownCycles.has(cycleId)))
+    ) {
       throw contractError();
     }
   }
-  const circuitOrder = new Map(structureCircuits({ elements }).map((circuit, index) => [circuit.id, index]));
+  // Ordre des conteneurs : niveau principal, puis chaque Cycle et Circuit dans l'ordre d'affichage.
+  const containerOrder = new Map<string, number>();
+  for (const element of elements) {
+    if (element.kind === "CYCLE") {
+      containerOrder.set(element.cycle.id, containerOrder.size);
+    }
+    for (const circuit of structureCircuits({ elements: [element] })) {
+      containerOrder.set(circuit.id, containerOrder.size);
+    }
+  }
+  const containerRank = (point: StopPointRow) => {
+    const container = point.tour_id ?? point.cycle_id ?? null;
+    return container === null ? -1 : containerOrder.get(container)!;
+  };
   const stopPoints: StructureStopPoint[] = [...stored.stopPoints]
-    .sort(
-      (a, b) =>
-        (a.tour_id === null ? -1 : circuitOrder.get(a.tour_id)!) - (b.tour_id === null ? -1 : circuitOrder.get(b.tour_id)!) ||
-        a.position - b.position,
-    )
-    .map((point) => ({ id: point.id, circuitId: point.tour_id, position: point.position }));
+    .sort((a, b) => containerRank(a) - containerRank(b) || a.position - b.position)
+    .map((point) => ({
+      id: point.id,
+      circuitId: point.tour_id,
+      ...((point.cycle_id ?? null) !== null ? { cycleId: point.cycle_id } : {}),
+      position: point.position,
+    }));
 
   return withLegacyZones({ elements, stopPoints });
 }

@@ -61,8 +61,20 @@ import {
 import { DEFAULT_CIRCUIT_NATURE, type CircuitNature } from "./circuit";
 import type { ValidationResult } from "./errors";
 import { fail } from "./errors";
+import type { StructuredSession } from "./SessionRepository";
 import type { SideMode } from "./sideMode";
 import { stopPointKey, type StopPoint } from "./StopPoint";
+import {
+  legacyFromStructure,
+  mapStructure,
+  structureExercises,
+  structureFromLegacy,
+  type SessionStructure,
+  type StructureCycleMember,
+  type StructureElement,
+  type StructureStopPointLocation,
+} from "./structure";
+import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "./structuredInput";
 import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -263,6 +275,17 @@ export type SessionDraft = {
    * enregistré. Champ optionnel de transition, comme `stopPoints`.
    */
   readonly movements?: Readonly<Record<string, DraftMovement>>;
+  /**
+   * PRE-9 (A.1, D-449 / D-451) : disposition générale de la Séance relue (`toSessionDraft`) —
+   * Exercices par identifiant, Circuits et Cycles dans leur ordre avec leurs identités, comptes et
+   * natures, Points d'arrêt. Source de l'enregistrement par le chemin structuré
+   * (`toStructuredSessionInput`). Tant que la Composition n'édite que l'ancien modèle (jusqu'à la
+   * story B.1), une disposition représentable dans l'ancien modèle est recalculée depuis les zones,
+   * le compte, la nature et les Points du brouillon (seule l'identité du Circuit en est reprise) ;
+   * une disposition plus riche fait foi, le contenu des Exercices venant de `exercises`. Absente :
+   * brouillon de création. Jamais comparée (`sessionDraftsEqual`).
+   */
+  readonly structure?: SessionStructure<string, StructureStopPointLocation>;
 };
 
 /**
@@ -353,14 +376,12 @@ export function createExerciseDraft(
  * lui-même (réouverture/modification d'une Séance existante, T01-S10) —
  * elle n'est appelée par aucun écran câblé avant cette tranche future.
  */
-export function toSessionDraft(session: Session): SessionDraft {
-  const structuralActivities: readonly Activity[] = [
-    ...(session.cycle.beforeTour ?? []),
-    ...session.cycle.tour.exercises,
-    ...(session.cycle.afterTour ?? []),
-  ];
-
-  return {
+export function toSessionDraft(session: Session | StructuredSession): SessionDraft {
+  // PRE-9 (A.1) : la structure générale fait foi ; une Séance de l'ancien modèle sans structure
+  // (fixtures antérieures) en reçoit une, exactement équivalente.
+  const structure = session.structure ?? structureOfLegacySession(session as Session);
+  const layout = mapStructure(structure, (activity) => activity.id);
+  const header = {
     sourceSessionId: session.id,
     name: session.name,
     labelId: session.labelId ?? null,
@@ -369,16 +390,60 @@ export function toSessionDraft(session: Session): SessionDraft {
     // est réenregistrée à 60 s au prochain enregistrement.
     initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),
     finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
-    tourRepeatCount: session.cycle.tour.repeatCount,
-    // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
-    ...(session.cycle.tour.nature !== undefined ? { circuitNature: session.cycle.tour.nature } : {}),
+  };
+  const legacy = legacyFromStructure(structure);
+  if (legacy === null) {
+    // Structure plus riche que l'ancien modèle (Cycles, plusieurs Circuits) : la disposition fait
+    // foi ; la Composition actuelle n'en reçoit que la liste des Exercices (B.1 la rendra).
+    const activities = structureExercises(structure);
+    return {
+      ...header,
+      tourRepeatCount: DEFAULT_TOUR_REPEAT_COUNT,
+      exercises: activities.map((activity) => activityToDraftExercise(activity)),
+      persistedExerciseIds: activities.map((activity) => activity.id),
+      structure: layout,
+    };
+  }
+
+  const { beforeTour, tour, afterTour } = legacy.composition;
+  const structuralActivities: readonly Activity[] = [...beforeTour, ...tour.exercises, ...afterTour];
+  // PRE-6 (story 1.1) : nature relue ; absente (fixture antérieure) = Tours.
+  const nature = "cycle" in session && session.cycle !== undefined ? session.cycle.tour.nature : tour.nature;
+  // PRE-6 (story 1.2) : points relus tels qu'enregistrés (copies), dans l'ordre des portées.
+  const stopPoints: StopPoint[] =
+    "stopPoints" in session && session.stopPoints !== undefined
+      ? session.stopPoints.map((point) => ({ ...point }))
+      : legacy.stopPoints
+          .map((point) => ({ id: point.id, scope: point.scope, position: point.position }))
+          .sort((a, b) => STRUCTURAL_ORDER.indexOf(a.scope) - STRUCTURAL_ORDER.indexOf(b.scope) || a.position - b.position);
+  return {
+    ...header,
+    tourRepeatCount: tour.repeatCount,
+    ...(nature !== undefined ? { circuitNature: nature } : {}),
     exercises: structuralActivities.map((activity) => activityToDraftExercise(activity)),
     persistedExerciseIds: structuralActivities.map((activity) => activity.id),
-    // PRE-6 (story 1.2) : points relus tels qu'enregistrés (copies).
-    ...(session.stopPoints !== undefined
-      ? { stopPoints: session.stopPoints.map((point) => ({ ...point })) }
-      : {}),
+    ...(stopPoints.length > 0 || ("stopPoints" in session && session.stopPoints !== undefined) ? { stopPoints } : {}),
+    structure: layout,
   };
+}
+
+const STRUCTURAL_ORDER: readonly StructuralPosition[] = ["BEFORE_TOUR", "IN_TOUR", "AFTER_TOUR"];
+
+/** Séance de l'ancien modèle sans structure jointe : `[avant…, Circuit, après…]` (`structureFromLegacy`). */
+function structureOfLegacySession(session: Session): SessionStructure<Activity, StructureStopPointLocation & { readonly id: string }> {
+  return structureFromLegacy(
+    {
+      beforeTour: session.cycle.beforeTour ?? [],
+      tour: {
+        id: session.cycle.tour.id,
+        repeatCount: session.cycle.tour.repeatCount,
+        nature: session.cycle.tour.nature ?? DEFAULT_CIRCUIT_NATURE,
+        exercises: session.cycle.tour.exercises,
+      },
+      afterTour: session.cycle.afterTour ?? [],
+    },
+    session.stopPoints ?? [],
+  );
 }
 
 /**
@@ -819,6 +884,100 @@ export function toCreateSessionInput(draft: SessionDraft): ValidationResult<Crea
     movements: toSessionMovementInputs(draft),
     stopPoints: toStopPointInputs(draft),
   });
+}
+
+/**
+ * PRE-9 (A.1, D-449 / D-451) : valide et convertit un brouillon vers une entrée d'écriture à
+ * structure générale, pour la création comme pour la modification (le service y joint les
+ * Exercices persistés à l'ouverture). Aucune règle n'est réécrite : `validateStructuredSessionInput`
+ * applique les règles de la Séance, de chaque Exercice et, pour une structure de l'ancien modèle,
+ * celles du Circuit et des Points d'arrêt (RM-219, D-442).
+ *
+ * Disposition (voir `SessionDraft.structure`) : absente ou représentable dans l'ancien modèle, la
+ * structure est `[avant…, Circuit, après…]` recalculée depuis les zones, le compte, la nature et
+ * les Points du brouillon ; le Circuit garde son identité relue, ou en reçoit une
+ * (`newContainerId`) à la création. Plus riche, la disposition fait foi : chaque Exercice y prend
+ * son contenu dans `exercises` ; un Exercice retiré du brouillon en est retiré, un Exercice
+ * nouveau est ajouté à la fin du niveau principal. Ne lève jamais d'exception.
+ */
+export function toStructuredSessionInput(
+  draft: SessionDraft,
+  newContainerId: () => string,
+): ValidationResult<StructuredSessionInput> {
+  const inputs = new Map<string, StructureExerciseInput>(
+    draft.exercises.map((exercise) => [exercise.id, { id: exercise.id, ...toDraftActivityParameters(exercise) }]),
+  );
+  const layout = draft.structure;
+  const legacyLayout = layout === undefined ? null : legacyFromStructure(layout);
+  let structure: SessionStructure<StructureExerciseInput, StructureStopPointLocation>;
+  if (layout === undefined || legacyLayout !== null) {
+    const zone = (position: StructuralPosition) =>
+      draft.exercises.filter((exercise) => exercise.structuralPosition === position).map((exercise) => inputs.get(exercise.id)!);
+    const tour = legacyLayout?.composition.tour;
+    structure = structureFromLegacy(
+      {
+        beforeTour: zone("BEFORE_TOUR"),
+        tour: {
+          id: tour?.id ?? newContainerId(),
+          repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+          nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
+          exercises: zone("IN_TOUR"),
+        },
+        afterTour: zone("AFTER_TOUR"),
+      },
+      toStopPointInputs(draft),
+    );
+  } else {
+    structure = withDraftExercises(layout, inputs, draft.exercises);
+  }
+  return validateStructuredSessionInput({
+    name: draft.name,
+    labelId: draft.labelId,
+    initialCountdownSeconds: draft.initialCountdownSeconds,
+    finalPhaseSeconds: draft.finalPhaseSeconds,
+    structure,
+    movements: toSessionMovementInputs(draft),
+  });
+}
+
+/** Disposition plus riche que l'ancien modèle, Exercices pris dans le brouillon (voir `toStructuredSessionInput`). */
+function withDraftExercises(
+  layout: SessionStructure<string, StructureStopPointLocation>,
+  inputs: ReadonlyMap<string, StructureExerciseInput>,
+  exercises: readonly SessionDraftExercise[],
+): SessionStructure<StructureExerciseInput, StructureStopPointLocation> {
+  const placed = new Set(structureExercises(layout));
+  const kept = (ids: readonly string[]) => ids.flatMap((id) => (inputs.has(id) ? [inputs.get(id)!] : []));
+  const elements = layout.elements.flatMap((element): StructureElement<StructureExerciseInput>[] => {
+    switch (element.kind) {
+      case "EXERCISE":
+        return kept([element.exercise]).map((exercise) => ({ kind: "EXERCISE", exercise }));
+      case "CIRCUIT":
+        return [{ kind: "CIRCUIT", circuit: { ...element.circuit, exercises: kept(element.circuit.exercises) } }];
+      case "CYCLE":
+        return [
+          {
+            kind: "CYCLE",
+            cycle: {
+              ...element.cycle,
+              members: element.cycle.members.flatMap((member): StructureCycleMember<StructureExerciseInput>[] =>
+                member.kind === "CIRCUIT"
+                  ? [{ kind: "CIRCUIT" as const, circuit: { ...member.circuit, exercises: kept(member.circuit.exercises) } }]
+                  : kept([member.exercise]).map((exercise) => ({ kind: "EXERCISE" as const, exercise })),
+              ),
+            },
+          },
+        ];
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  });
+  const added = exercises
+    .filter((exercise) => !placed.has(exercise.id))
+    .map((exercise): StructureElement<StructureExerciseInput> => ({ kind: "EXERCISE", exercise: inputs.get(exercise.id)! }));
+  return { elements: [...elements, ...added], stopPoints: layout.stopPoints };
 }
 
 /**

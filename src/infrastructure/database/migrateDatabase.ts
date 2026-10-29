@@ -17,6 +17,7 @@ import { applyMigration012 } from "./migrations/migration012";
 import { applyMigration013 } from "./migrations/migration013";
 import { applyMigration014 } from "./migrations/migration014";
 import { applyMigration015 } from "./migrations/migration015";
+import { applyMigration016 } from "./migrations/migration016";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -204,6 +205,14 @@ export async function migrateDatabase(
     if (pending(14)) {
       await applyMigration015(transaction);
       version = 15;
+    }
+
+    // PRE-9 (A.1, D-451, ARB-06) : Exercice direct de Cycle et Point d'arrêt dans un Cycle ;
+    // `activities` et `session_stop_points` reconstruites SANS PERTE (lignes recopiées, aucune
+    // Séance modifiée). Un échec annule tout et laisse `user_version` à 15.
+    if (pending(15)) {
+      await applyMigration016(transaction);
+      version = 16;
     }
 
     if (version !== targetVersion) {

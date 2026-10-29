@@ -88,13 +88,20 @@ export type ActivityRow = {
   source_movement_id: string;
   /** PRE-7 (R-3, Q3) : numéro de copie, `NULL` pour l'original. */
   copy_number: number | null;
+  /** PRE-9 (A.1, `migration016`) : Cycle dont l'Exercice est membre direct, `null` sinon ; jamais avec `tour_id`. */
+  cycle_id: string | null;
 };
 
-/** PRE-8 (A.4) : Point d'arrêt ; `tour_id` `null` au niveau principal, sinon son Circuit. */
+/**
+ * PRE-8 (A.4) : Point d'arrêt ; `tour_id` `null` au niveau principal, sinon son Circuit. PRE-9
+ * (A.1, `migration016`) : `cycle_id` désigne un Cycle lorsque le Point y est placé (jamais avec
+ * `tour_id`).
+ */
 export type StopPointRow = {
   id: string;
   session_id: string;
   tour_id: string | null;
+  cycle_id: string | null;
   position: number;
 };
 

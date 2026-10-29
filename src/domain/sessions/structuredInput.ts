@@ -7,7 +7,7 @@
  * représentable dans l'ancien modèle (`[Exercices…, Circuit, Exercices…]`) est validée
  * exactement comme aujourd'hui, Points d'arrêt et compte du Circuit compris (RM-219, D-442).
  * Pour une structure plus riche, chaque Exercice est validé par les mêmes règles ; les Points
- * d'arrêt y restent refusés tant que la Composition (Epic C) n'a pas généralisé leurs règles.
+ * d'arrêt y restent refusés tant que PRE-9 B.6 n'a pas généralisé leurs règles (ARB-02a/b).
  *
  * Les identifiants des Exercices, Circuits et Cycles sont fournis par l'appelant (brouillon).
  */
@@ -49,7 +49,7 @@ export type StructuredSessionInput = {
 const STRUCTURE_VIOLATIONS: Record<StructureViolationCode, ValidationViolation> = {
   STRUCTURE_EMPTY_CYCLE: { code: "REQUIRED", field: "session.structure" },
   STRUCTURE_CIRCUIT_REPEAT_OUT_OF_RANGE: { code: "OUT_OF_RANGE", field: "session.structure", details: { min: 1, max: 99 } },
-  STRUCTURE_CYCLE_REPEAT_OUT_OF_RANGE: { code: "OUT_OF_RANGE", field: "session.structure", details: { min: 1 } },
+  STRUCTURE_CYCLE_REPEAT_OUT_OF_RANGE: { code: "OUT_OF_RANGE", field: "session.structure", details: { min: 1, max: 99 } },
   STRUCTURE_CIRCUIT_NATURE_UNRECOGNIZED: { code: "UNRECOGNIZED", field: "session.circuitNature" },
   STRUCTURE_DUPLICATE_ID: { code: "DUPLICATE", field: "session.structure" },
   STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT: { code: "UNRECOGNIZED", field: "session.stopPoints" },
@@ -111,7 +111,11 @@ function mapElements(
           kind: "CYCLE",
           cycle: {
             ...element.cycle,
-            circuits: element.cycle.circuits.map((circuit) => ({ ...circuit, exercises: circuit.exercises.map(normalize) })),
+            members: element.cycle.members.map((member) =>
+              member.kind === "CIRCUIT"
+                ? { kind: "CIRCUIT", circuit: { ...member.circuit, exercises: member.circuit.exercises.map(normalize) } }
+                : { kind: "EXERCISE", exercise: normalize(member.exercise) },
+            ),
           },
         };
       default: {

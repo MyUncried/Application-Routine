@@ -3,7 +3,7 @@ import { formatPhraseDuration } from "@/domain/activities/durationFormat";
 import type { SessionDurationResult } from "@/domain/activities/executionCalculations";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord, SessionStatus } from "@/domain/sessions/SessionRepository";
-import { computeStructureDuration, structureExercises, type StructureCircuit } from "@/domain/sessions/structure";
+import { computeStructureDuration, cycleExercises, structureExercises, type StructureCircuit } from "@/domain/sessions/structure";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
@@ -162,13 +162,13 @@ export function projectSessionTree(record: Pick<CatalogueSessionRecord, "structu
         return circuitLines(element.circuit, 0);
       case "CYCLE": {
         const { cycle } = element;
-        const shown = isShownContainer(
-          cycle.repeatCount,
-          cycle.circuits.flatMap((circuit) => circuit.exercises),
-        );
+        const shown = isShownContainer(cycle.repeatCount, cycleExercises(cycle));
         return [
           ...(shown ? [{ kind: "CYCLE" as const, key: cycle.id, depth: 0, repeatCount: cycle.repeatCount }] : []),
-          ...cycle.circuits.flatMap((circuit) => circuitLines(circuit, shown ? 1 : 0)),
+          // PRE-9 (A.1, D-451) : Exercices directs et Circuits du Cycle, dans leur ordre.
+          ...cycle.members.flatMap((member) =>
+            member.kind === "CIRCUIT" ? circuitLines(member.circuit, shown ? 1 : 0) : exerciseLines(member.exercise, shown ? 1 : 0),
+          ),
         ];
       }
       default: {

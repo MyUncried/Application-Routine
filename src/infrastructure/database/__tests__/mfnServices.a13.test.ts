@@ -13,7 +13,8 @@ import {
   variableParameters,
 } from "@/domain/activities/testing/executionParametersFixtures";
 import { duplicateActivity } from "@/domain/sessions/composition";
-import type { Session } from "@/domain/sessions/Session";
+import type { StructuredSession } from "@/domain/sessions/SessionRepository";
+import { occurrencesOf } from "@/domain/sessions/testing/structuredSession";
 import {
   createEmptyDraft,
   createExerciseDraft,
@@ -110,7 +111,7 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
   }
 
   // PRE-7 (R-3, C05) : Exercices créés dans la Séance = créations locales terminées (Mouvements NEW).
-  async function save(draft: SessionDraft): Promise<Session> {
+  async function save(draft: SessionDraft): Promise<StructuredSession> {
     const result = await sessionService().createSession(withLocalMovements(draft));
     if (!result.ok) {
       throw new Error(JSON.stringify(result.violations));
@@ -118,7 +119,6 @@ describe("PRE-7 A1.3 — services MFN (NodeSqliteDatabase REAL)", () => {
     return result.value;
   }
 
-  const occurrencesOf = (session: Session) => [...(session.cycle.beforeTour ?? []), ...session.cycle.tour.exercises, ...(session.cycle.afterTour ?? [])];
 
   /** Deux Exercices du même geste à phases [6, 3] et [8, 4]. */
   async function twoSharing(name = "Squat") {

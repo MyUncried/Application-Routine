@@ -67,12 +67,12 @@ const knee = () =>
       cycle: {
         id: "cy",
         repeatCount: 2,
-        circuits: [
+        members: [
           circuit("c1", [
             exercise("Squat assisté", { id: "sq", executionParameters: repetitionParameters(12, 3) }),
             exercise("Extension de jambe", { id: "ext", executionParameters: durationParameters(45, 2), postActivityRecoverySeconds: 60 }),
           ], 3),
-        ],
+        ].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })),
       },
     },
     { kind: "EXERCISE", exercise: exercise("Étirement ischio-jambiers", { id: "cool", executionParameters: durationParameters(30) }) },

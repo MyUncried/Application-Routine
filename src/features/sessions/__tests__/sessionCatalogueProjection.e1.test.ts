@@ -108,7 +108,7 @@ describe("PRE-8 E.1 — compte et synthèse", () => {
       { kind: "EXERCISE", exercise: squat("a") },
       {
         kind: "CYCLE",
-        cycle: { id: "cy", repeatCount: 3, circuits: [circuit("c1", [squat("b"), squat("c")], 5), circuit("c2", [squat("d")], 2)] },
+        cycle: { id: "cy", repeatCount: 3, members: [circuit("c1", [squat("b"), squat("c")], 5), circuit("c2", [squat("d")], 2)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) },
       },
     ]);
     expect(projection.exerciseCount).toBe(4);
@@ -163,7 +163,7 @@ describe("PRE-8 E.1 — durée", () => {
   it("durée par l'autorité du Domaine (Cycles et Circuits compris)", () => {
     const projection = project([
       { kind: "EXERCISE", exercise: exercise({ name: "A", executionParameters: durationParameters(30) }) },
-      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, circuits: [circuit("c", [exercise({ name: "B", executionParameters: durationParameters(30) })], 3)] } },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 2, members: [circuit("c", [exercise({ name: "B", executionParameters: durationParameters(30) })], 3)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ]);
     expect(projection.duration).toEqual({ kind: "exact", seconds: 30 + 2 * 3 * 30 });
   });
@@ -183,12 +183,12 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
         cycle: {
           id: "cy",
           repeatCount: 2,
-          circuits: [
+          members: [
             circuit("c1", [
               exercise({ id: "sq", name: "Squat assisté", executionParameters: repetitionParameters(12, 3) }),
               exercise({ id: "ext", name: "Extension de jambe", executionParameters: durationParameters(45, 2), postActivityRecoverySeconds: 60 }),
             ], 3),
-          ],
+          ].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })),
         },
       },
       { kind: "EXERCISE", exercise: exercise({ id: "cool", name: "Étirement ischio-jambiers", executionParameters: durationParameters(30) }) },
@@ -209,7 +209,7 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
     const projection = project([
       { kind: "CIRCUIT", circuit: circuit("trivial", [exercise({ id: "a", name: "A" })], 1) },
       { kind: "CIRCUIT", circuit: circuit("repeated", [exercise({ id: "b", name: "B" })], 2, "SERIES") },
-      { kind: "CYCLE", cycle: { id: "cy1", repeatCount: 1, circuits: [circuit("inner", [exercise({ id: "c", name: "C" })], 1)] } },
+      { kind: "CYCLE", cycle: { id: "cy1", repeatCount: 1, members: [circuit("inner", [exercise({ id: "c", name: "C" })], 1)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
       { kind: "CIRCUIT", circuit: circuit("pair", [exercise({ id: "d", name: "D" }), exercise({ id: "e", name: "E" })], 1) },
     ]);
     expect(projection.tree.map((line) => [line.kind, line.key, line.depth])).toEqual([
@@ -225,7 +225,7 @@ describe("PRE-8 E.1 — arbre de la composition", () => {
 
   it("Cycle non répété de plusieurs Circuits : le Cycle est montré (il contient plusieurs exercices)", () => {
     const projection = project([
-      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 1, circuits: [circuit("x", [exercise({ id: "a", name: "A" })]), circuit("y", [exercise({ id: "b", name: "B" })])] } },
+      { kind: "CYCLE", cycle: { id: "cy", repeatCount: 1, members: [circuit("x", [exercise({ id: "a", name: "A" })]), circuit("y", [exercise({ id: "b", name: "B" })])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     ]);
     expect(projection.tree.map((line) => [line.kind, line.depth])).toEqual([
       ["CYCLE", 0],

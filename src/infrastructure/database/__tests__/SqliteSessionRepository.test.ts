@@ -2142,6 +2142,7 @@ function validActivityRow(): ActivityRow {
     id: IDS[3]!,
     session_id: IDS[0]!,
     tour_id: IDS[2]!,
+    cycle_id: null,
     type: "EXERCISE",
     position: 0,
     execution_mode: "DURATION",

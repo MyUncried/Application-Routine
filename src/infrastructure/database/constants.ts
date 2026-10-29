@@ -87,7 +87,13 @@ export const DATABASE_NAME = "kodjo.db";
  * colonne additive `movements.archived_at`, aucun Mouvement archivé par la
  * migration. 001..014 inchangées.
  */
-export const DATABASE_VERSION = 15;
+/**
+ * **PRE-9 (version 16, `migration016`, story A.1)** : structure D-451 complète —
+ * Exercice direct de Cycle (`activities.cycle_id`) et Point d'arrêt dans un
+ * Cycle (`session_stop_points.cycle_id`), au plus un parent. Tables reconstruites,
+ * lignes recopiées à l'identique, aucune donnée supprimée. 001..015 inchangées.
+ */
+export const DATABASE_VERSION = 16;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

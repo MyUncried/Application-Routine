@@ -8,7 +8,7 @@ import type { ExecutionParameters, WorkPhase } from "@/domain/activities/Executi
 import { durationParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createDefaultProfile } from "@/domain/preferences/Profile";
 import { duplicateActivity } from "@/domain/sessions/composition";
-import type { Session } from "@/domain/sessions/Session";
+import { occurrencesOf } from "@/domain/sessions/testing/structuredSession";
 import { createEmptyDraft, toCreateSessionInput, type SessionDraft } from "@/domain/sessions/SessionDraft";
 import { ActivityCatalogueList } from "@/features/activities/ActivityCatalogueList";
 import { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
@@ -176,11 +176,6 @@ async function renderSelection(initial: SessionDraft = { ...createEmptyDraft(), 
   await waitFor(() => expect(screen.getByTestId("activity-selection-list")).toBeTruthy());
 }
 
-const occurrencesOf = (session: Session) => [
-  ...(session.cycle.beforeTour ?? []),
-  ...session.cycle.tour.exercises,
-  ...(session.cycle.afterTour ?? []),
-];
 
 describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase REAL)", () => {
   it("Catalogue : les deux Exercices du geste sont contigus (A1, A2, B), chacun sa carte et son résumé", async () => {

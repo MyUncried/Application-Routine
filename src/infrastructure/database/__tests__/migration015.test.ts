@@ -115,8 +115,9 @@ describe("PRE-8 B.8 — migration 015 (archivage du Mouvement)", () => {
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(DATABASE_VERSION).toBe(15);
-    expect(await version(database)).toBe(15);
+    // PRE-9 (A.1) : le démarrage enchaîne 015 puis 016.
+    expect(DATABASE_VERSION).toBe(16);
+    expect(await version(database)).toBe(16);
     expect(await database.getAllAsync(MOVEMENT_SNAPSHOT)).toEqual(before);
     expect(await database.getAllAsync("SELECT id FROM movements WHERE archived_at IS NOT NULL")).toEqual([]);
     expect(await new SqliteMovementRepository(database).listArchivedIds()).toEqual(new Set());
@@ -136,10 +137,10 @@ describe("PRE-8 B.8 — migration 015 (archivage du Mouvement)", () => {
     expect(await database.getAllAsync(MOVEMENT_SNAPSHOT)).toEqual(before);
   });
 
-  it("installation neuve : schéma 015 directement, colonne présente", async () => {
+  it("installation neuve : schéma courant directement (015, puis 016 en PRE-9), colonne présente", async () => {
     const database = open();
     await initializeDatabase(database);
-    expect(await version(database)).toBe(15);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(movements)")).map((row) => row.name);
     expect(columns).toContain("archived_at");
   });

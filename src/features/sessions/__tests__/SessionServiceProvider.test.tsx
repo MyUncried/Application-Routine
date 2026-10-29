@@ -22,6 +22,7 @@ import {
 } from "@/features/reference-data/ReferentialServiceContext";
 import { DEFAULT_SESSION_COLOR } from "@/domain/sessions/Session";
 import { createEmptyDraft, createExerciseDraft } from "@/domain/sessions/SessionDraft";
+import { occurrencesOf } from "@/domain/sessions/testing/structuredSession";
 import { withLocalMovements } from "@/domain/sessions/testing/draftMovements";
 import {
   LOCAL_PROFILE_SINGLETON_KEY,
@@ -367,7 +368,7 @@ describe("SessionServiceProvider — câblage réel du Profil et des référenti
     const result = await capturedService!.createSession(draft);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.cycle.beforeTour?.[0]?.postActivityRecoverySeconds).toBe(
+      expect(occurrencesOf(result.value)[0]?.postActivityRecoverySeconds).toBe(
         OCCURRENCE_OWN_SECONDS,
       );
     }

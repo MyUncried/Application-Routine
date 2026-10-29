@@ -115,8 +115,11 @@ export type SessionLifecycleOutcome =
 export interface SessionCatalogueRepository {
   /** Séances actives et archivées, les plus récemment modifiées d'abord. */
   listCatalogue(): Promise<readonly CatalogueSessionRecord[]>;
-  /** Recette E (28/10/2026, e5-12) : une Séance, active ou archivée, à ouvrir en lecture seule ; `null` si inconnue. */
-  findForConsultation(sessionId: string): Promise<Session | null>;
+  /**
+   * Recette E (28/10/2026, e5-12) : une Séance, active ou archivée, à ouvrir en lecture seule ; `null` si inconnue.
+   * PRE-9 (A.1) : lue dans sa structure générale (Cycles et plusieurs Circuits compris).
+   */
+  findForConsultation(sessionId: string): Promise<StructuredSession | null>;
   /** E.5 : Séance active → archivée (`archived_at` horodaté) ; composition et rang de tri inchangés. */
   archive(sessionId: string): Promise<SessionLifecycleOutcome>;
   /** E.5 : Séance archivée → active, à l'identique. */
@@ -126,6 +129,11 @@ export interface SessionCatalogueRepository {
    * Cycles, Points d'arrêt), dans une seule transaction ; jamais des Mouvements référencés.
    */
   deleteArchived(sessionId: string): Promise<SessionLifecycleOutcome>;
+}
+
+/** PRE-9 (A.1) : le repository SQLite implémente le port structuré, chemin de production du service. */
+export function isStructuredSessionRepository(repository: unknown): repository is StructuredSessionRepository {
+  return typeof (repository as Partial<StructuredSessionRepository> | null)?.findStructuredById === "function";
 }
 
 export function isSessionCatalogueRepository(repository: unknown): repository is SessionCatalogueRepository {

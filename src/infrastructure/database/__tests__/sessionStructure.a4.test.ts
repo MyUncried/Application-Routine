@@ -66,8 +66,8 @@ const circuit = (id: string, exercises: readonly StructureExerciseInput[], repea
 const multiCycle = (): StructureInput => ({
   elements: [
     { kind: "EXERCISE", exercise: exercise("warmup", "mv-pompes") },
-    { kind: "CYCLE", cycle: { id: "cycle-a", repeatCount: 3, circuits: [circuit("c1", [exercise("e1")]), circuit("c2", [exercise("e2"), exercise("e3", "mv-pompes")])] } },
-    { kind: "CYCLE", cycle: { id: "cycle-b", repeatCount: 2, circuits: [circuit("c3", [exercise("e4")], 2)] } },
+    { kind: "CYCLE", cycle: { id: "cycle-a", repeatCount: 3, members: [circuit("c1", [exercise("e1")]), circuit("c2", [exercise("e2"), exercise("e3", "mv-pompes")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
+    { kind: "CYCLE", cycle: { id: "cycle-b", repeatCount: 2, members: [circuit("c3", [exercise("e4")], 2)].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
     { kind: "EXERCISE", exercise: exercise("cooldown", "mv-pompes", 60) },
   ],
   stopPoints: [],
@@ -93,7 +93,11 @@ const shape = (structure: StructureInput | NonNullable<Awaited<ReturnType<Sqlite
         return {
           cycle: element.cycle.id,
           repeat: element.cycle.repeatCount,
-          circuits: element.cycle.circuits.map((item) => ({ circuit: item.id, repeat: item.repeatCount, exercises: item.exercises.map((ex) => ex.id) })),
+          members: element.cycle.members.map((member) =>
+            member.kind === "CIRCUIT"
+              ? { circuit: member.circuit.id, repeat: member.circuit.repeatCount, exercises: member.circuit.exercises.map((ex) => ex.id) }
+              : member.exercise.id,
+          ),
         };
     }
   });
@@ -174,7 +178,7 @@ describe("PRE-8 A.4 — structure générale persistée", () => {
         elements: [
           // e3 sort du Cycle A vers le niveau principal ; le Cycle B et le Circuit c2 sont retirés.
           { kind: "EXERCISE", exercise: exercise("e3", "mv-pompes", 45) },
-          { kind: "CYCLE", cycle: { id: "cycle-a", repeatCount: 5, circuits: [circuit("c1", [exercise("e1"), exercise("e4")]), circuit("c-new", [exercise("fresh")])] } },
+          { kind: "CYCLE", cycle: { id: "cycle-a", repeatCount: 5, members: [circuit("c1", [exercise("e1"), exercise("e4")]), circuit("c-new", [exercise("fresh")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } },
         ],
         stopPoints: [],
       }),
@@ -187,7 +191,7 @@ describe("PRE-8 A.4 — structure générale persistée", () => {
       {
         cycle: "cycle-a",
         repeat: 5,
-        circuits: [
+        members: [
           { circuit: "c1", repeat: 1, exercises: ["e1", "e4"] },
           { circuit: "c-new", repeat: 1, exercises: ["fresh"] },
         ],
@@ -220,7 +224,7 @@ describe("PRE-8 A.4 — structure générale persistée", () => {
 
   it("refuse les formes invalides et les Points d'arrêt hors de l'ancien modèle, sans écrire", async () => {
     for (const structure of [
-      { elements: [{ kind: "CYCLE" as const, cycle: { id: "empty", repeatCount: 2, circuits: [] } }], stopPoints: [] },
+      { elements: [{ kind: "CYCLE" as const, cycle: { id: "empty", repeatCount: 2, members: [] } }], stopPoints: [] },
       { elements: [{ kind: "CIRCUIT" as const, circuit: circuit("c", [exercise("x")], 100) }], stopPoints: [] },
       { ...multiCycle(), stopPoints: [{ circuitId: "c1", position: 0 }] },
       { elements: [], stopPoints: [] },

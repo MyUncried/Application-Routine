@@ -10,8 +10,11 @@ import type {
   CatalogueSessionRecord,
   SessionRepository,
   SessionStatus,
+  StructuredSession,
   UpdateSessionOutcome,
+  UpdateStructuredSessionOutcome,
 } from "@/domain/sessions/SessionRepository";
+import { withStructure } from "@/domain/sessions/testing/structuredSession";
 import type { ActivityDefinition, ActivityDefinitionRepository } from "@/domain/activities";
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { BodyZoneRepository } from "@/domain/body-zones/BodyZoneRepository";
@@ -122,6 +125,16 @@ class EmptySessionRepository implements SessionRepository {
         structure: { elements: [{ kind: "CIRCUIT", circuit: { id: "tour-b", repeatCount: 2, nature: "TOURS", exercises: [] } }], stopPoints: [] },
       },
     ]);
+  }
+  /** PRE-9 (A.1) : port structuré, seul lu et écrit par le service (aucune écriture à l'ouverture). */
+  findStructuredById(sessionId: string): Promise<StructuredSession | null> {
+    return Promise.resolve(sessionId === EMPTY_SESSION_ID ? withStructure(EMPTY_SESSION) : null);
+  }
+  createStructured(): Promise<StructuredSession> {
+    return Promise.reject(new Error("createStructured() must never be called by an edit flow"));
+  }
+  updateStructured(): Promise<UpdateStructuredSessionOutcome> {
+    return Promise.reject(new Error("updateStructured() must never be called by merely opening a Session"));
   }
   update(): Promise<UpdateSessionOutcome> {
     return Promise.reject(new Error("update() must never be called by merely opening a Session"));
