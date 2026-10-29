@@ -78,16 +78,22 @@
 
 ## 2. Règles de gestion consolidées
 
-### 2.1 Les six formats
+### 2.1 Les six Formats — matrice de compatibilité corrigée
 
-| Format | Porté par | Valeurs imposées | Circuit groupé | Circuit alterné | Organisation choisissable |
+**Lecture :** D-15/D-16 décident l'admission dans un Circuit groupé ou alterné. Les valeurs initiales viennent de D-14 ; les constantes, les sélecteurs et la propriété du Format viennent des FMT et de D-02. Un Format peut être porté par un Exercice seul ou par un Circuit choisi ; ne pas transformer « peut » en « toujours ». La présence simultanée d'un Format sur le Circuit et sur un membre reste **À CLARIFIER**.
+
+| Format | Constantes / contraintes imposées | Valeurs initiales modifiables | Groupé (D-15) | Alterné (D-16) | Sélecteur propre au Format |
 |---|---|---|---|---|---|
-| Tabata | exercice | 8 séries, 20 s, 10 s | admis (D-15) | admis si N = 8 (D-16) | oui |
-| 30/30 | exercice | 30 s / 30 s | admis (D-15) | refusé (D-16) | non |
-| EMOM | exercice | fenêtre 60 s | admis, bloc par passage (D-15) | admis, tours = N (D-16) | oui |
-| For time | exercice | échelle 21 · 15 · 9 | admis, échelle par passage (D-15) | refusé (D-16) | non |
-| AMRAP | exercice | 12:00 par répétition | admis (D-15) | refusé (D-16) | non |
-| Death by | exercice | départ 1, incrément 1, fenêtre 1 min | admis (D-15) | admis, horloge propre (D-16) | non |
+| Tabata | 8 séries/Exercice ; 20 s effort ; 10 s pause | Aucune cadence réglable | Admis : bloc entier par passage | Admis si N = 8, sinon refus | Oui, FMT-11 |
+| 30/30 | 30 s effort / 30 s pause | 6 séries | Admis : bloc entier par passage | Refusé | Aucun sélecteur propre décidé par FMT-19 |
+| EMOM | Fenêtres cadencées et durée calculée, sans nombre numérique imposé | W = 60 s, N = 6 | Admis : bloc entier par passage | Admis avec adaptation de N ; interaction avec FMT-22 **À CLARIFIER** | Oui, FMT-20 |
+| For time | Échelle indexée par tour ; pas de sélecteur d'organisation | 21 · 15 · 9 | Admis : échelle complète par passage | Refusé | Non, FMT-31 |
+| AMRAP | Borne temporelle du bloc, tours réalisés = résultat | Durée 12:00 | Admis, durée configurée par bloc | Refusé | Non |
+| Death by | Progression par fenêtres/rangs, acquisition déclarée | Départ 1, incrément 1, W = 1 min | Admis fonctionnellement | Admis fonctionnellement ; raccordement temporel **À CLARIFIER** | Pas de sélecteur autonome défini ; dépose alternée autorisée |
+
+Les **12 cellules Groupé / Alterné** reproduisent les choix D-15/D-16. Les autres cellules ne doivent pas être présentées comme découlant de ces deux seules décisions.
+
+**Réserve structurelle :** si un Circuit porte déjà un Format, il reste à distinguer compatibilité des contraintes, adoption volontaire du Format par un membre, coexistence éventuelle de Formats et conservation à la sortie. Aucune règle de priorité ni de transfert n'est inventée ici.
 
 ### 2.2 Départs rapides
 
@@ -96,18 +102,24 @@
 | Renforcement | 3 × 15 |
 | Progression | 10 · 12 · 14 |
 | À l'échec | 3 séries à l'échec |
-| Superset | circuit groupé d'un tour, deux exercices vides |
+| Superset | Circuit groupé d'un tour, deux **emplacements d'Exercices vides** ; aucun Mouvement présélectionné |
 | Libre | séance vide |
 | Gainage · Mobilité | **supprimé** (D-25) |
 
-### 2.3 Exécution
+### 2.3 Exécution — décisions et raccordements à réaliser
 
-| Sujet | Règle |
-|---|---|
-| Appui de tour (AMRAP, For time) | un appui acquiert un tour ; un seul par tour ; tour inachevé non compté (D-19) |
-| Tour partiel AMRAP | répétitions réalisées saisies dans la modale, 0 par défaut (D-20) |
-| Plafond For time | optionnel ; arrêt à l'atteinte ; résultat incomplet (D-21) |
-| Arrêt Death by | met fin à l'élément ; bloc suivant automatique (D-18) |
+| Sujet | Décision existante | Cas non entièrement définis |
+|---|---|---|
+| Tour terminé AMRAP / For time | Un appui acquiert un tour, au plus une fois ; tour inachevé non acquis (D-19) | Si le tour comprend plusieurs Exercices, déclenchement exact et rattachement des volumes **À CLARIFIER** |
+| Tour partiel AMRAP | Au terme du bloc, modale de répétitions réellement réalisées avec 0 proposé (D-20) | Répartition d'un tour partiel entre Exercices et côtés **À CLARIFIER** |
+| AMRAP répété | Chaque passage est borné par la durée **configurée**, initialement 12:00 (D-14/D-15) | Reprise, résultat par passage, agrégation |
+| Plafond For time | Facultatif ; atteinte entraîne arrêt et résultat incomplet (D-21) | Tour en cours, volume acquis, continuation dans une Séance multi-Formats, arrêt volontaire |
+| Arrêt Death by | Termine l'élément, pas la Séance, puis enchaînement (D-18) | Dernier membre d'un Circuit alterné, N, fenêtres, récupération et points d'arrêt |
+| Partiels Death by | FMT-36 : sans appui, fenêtre non acquise ; **FMT-37/38 prévoient déjà** des répétitions partielles à la clôture, 0 proposé | Déclencheur différent de l'AMRAP ; mutualisation technique éventuelle, non imposée |
+| Fenêtres et commandes | FMT-23–25/33–38 et RM-066–070 demeurent applicables dans leur périmètre | Pause, reprise, arrière-plan, réinitialisation, bilatéralité : réserves ch05 |
+| Résultats d'exécution | Motif, résultat acquis et achèvement distincts lorsqu'ils ont une utilité | Agrégation par Exercice/Format/Séance et répétitions : PRE-10/11 |
+
+**Séparation de périmètre :** PRE-9 configure les Formats et prépare leur contrat. Ces cas n'ont pas à être implémentés avant les stories d'exécution correspondantes, et ne bloquent pas les travaux de Composition indépendants.
 
 ## 3. Analyse de cohérence avec la documentation normative
 
