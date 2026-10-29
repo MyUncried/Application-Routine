@@ -490,12 +490,14 @@ describe("PRE-4 story 1.3 — copies, duplications, Instantanés et Médias (Nod
     const production = [...sourceFiles(join(root, "src")), ...sourceFiles(join(root, "app"))]
       .map((path) => ({ path: relative(root, path).replace(/\\/g, "/"), code: readFileSync(path, "utf8") }))
       .filter((file) => !file.path.includes("/__tests__/") && !file.path.includes("/testing/"));
-    // Seul le module de l'Instantané crée, sérialise ou relit une enveloppe.
-    expect(
-      production
-        .filter((file) => /\b(createExerciseSnapshot|serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code))
-        .map((file) => file.path),
-    ).toEqual(["src/domain/activities/exerciseSnapshot.ts"]);
+    // Seul le module de l'Instantané crée, sérialise ou relit une enveloppe. PRE-9 (D.2) :
+    // l'instantané de Séance, pur, crée en mémoire l'instantané de chaque Exercice, sans le
+    // sérialiser ni le stocker (persistance reportée à PRE-10).
+    const users = production.filter((file) => /\b(createExerciseSnapshot|serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code));
+    expect(users.map((file) => file.path)).toEqual(["src/domain/activities/exerciseSnapshot.ts", "src/domain/sessions/sessionSnapshot.ts"]);
+    expect(users.filter((file) => /\b(serializeExerciseSnapshot|parseExerciseSnapshot)\b/.test(file.code)).map((file) => file.path)).toEqual([
+      "src/domain/activities/exerciseSnapshot.ts",
+    ]);
     // Aucun repository, aucune migration, aucun SQL ne mentionne un Instantané.
     expect(production.filter((file) => file.path.startsWith("src/infrastructure/") && /snapshot/i.test(file.code)).map((file) => file.path)).toEqual([]);
   });
