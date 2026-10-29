@@ -21,3 +21,4 @@ export * from "./structure";
 export * from "./structuredInput";
 export * from "./formats";
 export * from "./planExpansion";
+export * from "./sessionSnapshot";

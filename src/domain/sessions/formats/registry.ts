@@ -26,6 +26,12 @@
 
 import type { CircuitNature } from "../circuit";
 
+/**
+ * PRE-9 (D.2) : version des règles de Format du registre, figée par élément formaté dans
+ * l'instantané de Séance (ch09 l.593-598) ; incrémentée à tout changement de règle d'un Format.
+ */
+export const FORMAT_RULES_VERSION = 1;
+
 /** Formats contraignants (FMT-01), dans l'ordre de la grille Figma `4168:11149`. */
 export const ELEMENT_FORMAT_KEYS = ["TABATA", "INTERVALS_30_30", "EMOM", "AMRAP", "FOR_TIME", "DEATH_BY"] as const;
 
