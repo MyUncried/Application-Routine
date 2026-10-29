@@ -291,6 +291,39 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
     expect(await database.getAllAsync("SELECT movement_id FROM movement_body_zones WHERE movement_id = 'mv-disparu'")).toEqual([{ movement_id: "mv-disparu" }]);
   });
 
+  it("Exercices orphelins d'une Séance disparue (préexistants) : supprimés, rien d'autre touché (second incident du 29/10, décision de Hermann)", async () => {
+    let database = await seededVersion15();
+    // Base d'appareil : deux Exercices dont la Séance n'existe plus, écrits clés étrangères désactivées.
+    await database.execAsync("PRAGMA foreign_keys = OFF");
+    for (const id of ["orphan-1", "orphan-2"]) {
+      await database.runAsync(
+        `INSERT INTO activities (
+           id, session_id, tour_id, type, position, execution_mode, duration_seconds, repetition_count, series_count,
+           pause_seconds, post_activity_recovery_seconds, post_activity_recovery_present, created_at, updated_at, side_mode,
+           execution_parameters, source_movement_id, copy_number
+         ) VALUES (?, 'session-disparue', NULL, 'EXERCISE', ?, 'DURATION', 30, NULL, 2, 10, 0, 0, ?, ?, 'UNILATERAL', ?, 'mv-1', NULL)`,
+        [id, id === "orphan-1" ? 0 : 1, T, T, PARAMETERS],
+      );
+    }
+    await database.execAsync("PRAGMA foreign_keys = ON");
+    expect(await database.getAllAsync("PRAGMA foreign_key_check(activities)")).toHaveLength(2);
+    const before = await snapshot(database);
+    const orphans = (before.activities as { session_id: string }[]).filter((row) => row.session_id === "session-disparue");
+    expect(orphans).toHaveLength(2);
+    const expected = { ...before, activities: (before.activities as { session_id: string }[]).filter((row) => row.session_id !== "session-disparue") };
+
+    await initializeDatabase(database);
+    database = reopen(database);
+
+    expect(await version(database)).toBe(DATABASE_VERSION);
+    expect(await snapshot(database)).toEqual(expected);
+    expect(await database.getAllAsync("SELECT id FROM activities WHERE session_id = 'session-disparue'")).toEqual([]);
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual([]);
+    // Les Séances existantes restent lisibles.
+    const repository = new SqliteSessionRepository(database, () => "unused", () => T);
+    expect((await repository.findStructuredById("session-1"))?.structure.elements.length).toBeGreaterThan(0);
+  });
+
   it("installation neuve : 001 à la version courante, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);

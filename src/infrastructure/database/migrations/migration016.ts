@@ -125,7 +125,17 @@ function describeViolations(violations: readonly ForeignKeyViolation[]): string 
 }
 
 /** Tables reconstruites par la 016 : contrôle strict de leurs clés étrangères. */
-const REBUILT_TABLES = ["activities", "session_stop_points"] as const;
+const REBUILT_TABLES: readonly string[] = ["activities", "session_stop_points"];
+
+/**
+ * Lignes orphelines des tables reconstruites : Exercice ou Point d'arrêt dont la Séance n'existe
+ * plus. Aucun écran ne les lit (toute lecture part de la Séance) ; la copie dans les tables
+ * reconstruites les refuserait (clés étrangères actives).
+ */
+const ORPHAN_CLEANUP: readonly string[] = [
+  "DELETE FROM session_stop_points WHERE session_id NOT IN (SELECT id FROM sessions)",
+  "DELETE FROM activities WHERE session_id NOT IN (SELECT id FROM sessions)",
+];
 
 /** Applique `migration016` dans la transaction fournie. */
 export async function applyMigration016(transaction: Database): Promise<void> {
@@ -133,7 +143,20 @@ export async function applyMigration016(transaction: Database): Promise<void> {
   // E7) : une violation sans rapport avec la 016 dans une table qu'elle ne touche pas est tolérée
   // et laissée intacte ; elle bloquait sinon la migration à chaque démarrage (incident de la
   // recette du 29/10/2026 : « foreign_key_check is not empty (5) » sur la base de l'iPhone).
-  const violationsBefore = new Set((await transaction.getAllAsync<ForeignKeyViolation>("PRAGMA foreign_key_check")).map(violationKey));
+  //
+  // Second incident de la même recette : « foreign_key_check is not empty for activities (2:
+  // activities#17→sessions, activities#18→sessions) » — deux Exercices orphelins d'une Séance
+  // disparue, antérieurs à la 016. Décision de Hermann du 29/10/2026 (« Tu peux supprimer des
+  // données si nécessaires ») : les Exercices et Points d'arrêt sans Séance sont supprimés avant
+  // la reconstruction ; aucune autre ligne n'est touchée.
+  const violationsBefore = new Set(
+    (await transaction.getAllAsync<ForeignKeyViolation>("PRAGMA foreign_key_check"))
+      .filter((violation) => !REBUILT_TABLES.includes(violation.table))
+      .map(violationKey),
+  );
+  for (const statement of ORPHAN_CLEANUP) {
+    await transaction.runAsync(statement);
+  }
   const before = {
     activities: await fingerprint(transaction, FINGERPRINTS.activities),
     stopPoints: await fingerprint(transaction, FINGERPRINTS.stopPoints),
@@ -175,7 +198,7 @@ export async function applyMigration016(transaction: Database): Promise<void> {
   }
   // (2) Autres tables : aucune violation nouvelle.
   const newViolations = (await transaction.getAllAsync<ForeignKeyViolation>("PRAGMA foreign_key_check")).filter(
-    (violation) => !violationsBefore.has(violationKey(violation)),
+    (violation) => !REBUILT_TABLES.includes(violation.table) && !violationsBefore.has(violationKey(violation)),
   );
   if (newViolations.length > 0) {
     throw new Migration016StructuralError(`new foreign key violation (${newViolations.length}: ${describeViolations(newViolations)})`);
