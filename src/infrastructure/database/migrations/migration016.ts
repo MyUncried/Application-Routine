@@ -109,8 +109,31 @@ async function fingerprint(transaction: Database, query: string): Promise<Finger
   return { count: row?.count ?? 0, weight: row?.weight ?? 0 };
 }
 
+/** Ligne de `PRAGMA foreign_key_check`. */
+type ForeignKeyViolation = { readonly table: string; readonly rowid: number | null; readonly parent: string; readonly fkid: number };
+
+function violationKey(violation: ForeignKeyViolation): string {
+  return `${violation.table}|${String(violation.rowid)}|${violation.parent}|${violation.fkid}`;
+}
+
+/** Détail lisible des premières violations (diagnostic sur appareil). */
+function describeViolations(violations: readonly ForeignKeyViolation[]): string {
+  return violations
+    .slice(0, 5)
+    .map((violation) => `${violation.table}#${String(violation.rowid)}→${violation.parent}`)
+    .join(", ");
+}
+
+/** Tables reconstruites par la 016 : contrôle strict de leurs clés étrangères. */
+const REBUILT_TABLES = ["activities", "session_stop_points"] as const;
+
 /** Applique `migration016` dans la transaction fournie. */
 export async function applyMigration016(transaction: Database): Promise<void> {
+  // Relevé des violations PRÉEXISTANTES, avant toute écriture (patron de `migration010`, report
+  // E7) : une violation sans rapport avec la 016 dans une table qu'elle ne touche pas est tolérée
+  // et laissée intacte ; elle bloquait sinon la migration à chaque démarrage (incident de la
+  // recette du 29/10/2026 : « foreign_key_check is not empty (5) » sur la base de l'iPhone).
+  const violationsBefore = new Set((await transaction.getAllAsync<ForeignKeyViolation>("PRAGMA foreign_key_check")).map(violationKey));
   const before = {
     activities: await fingerprint(transaction, FINGERPRINTS.activities),
     stopPoints: await fingerprint(transaction, FINGERPRINTS.stopPoints),
@@ -143,8 +166,18 @@ export async function applyMigration016(transaction: Database): Promise<void> {
       );
     }
   }
-  const violations = await transaction.getAllAsync("PRAGMA foreign_key_check");
-  if (violations.length > 0) {
-    throw new Migration016StructuralError(`foreign_key_check is not empty (${violations.length})`);
+  // (1) Strict sur les tables reconstruites : toute violation y est une erreur structurelle.
+  for (const table of REBUILT_TABLES) {
+    const violations = await transaction.getAllAsync<ForeignKeyViolation>(`PRAGMA foreign_key_check(${table})`);
+    if (violations.length > 0) {
+      throw new Migration016StructuralError(`foreign_key_check is not empty for ${table} (${violations.length}: ${describeViolations(violations)})`);
+    }
+  }
+  // (2) Autres tables : aucune violation nouvelle.
+  const newViolations = (await transaction.getAllAsync<ForeignKeyViolation>("PRAGMA foreign_key_check")).filter(
+    (violation) => !violationsBefore.has(violationKey(violation)),
+  );
+  if (newViolations.length > 0) {
+    throw new Migration016StructuralError(`new foreign key violation (${newViolations.length}: ${describeViolations(newViolations)})`);
   }
 }

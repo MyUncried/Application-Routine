@@ -272,6 +272,25 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
     expect(await snapshot(database)).toEqual(before);
   });
 
+  it("violation de clé étrangère préexistante hors des tables reconstruites : tolérée et laissée intacte (incident de la recette du 29/10)", async () => {
+    let database = await seededVersion15();
+    // Base d'appareil abîmée : une Zone de Mouvement vers un Mouvement absent, écrite clés étrangères désactivées.
+    await database.execAsync("PRAGMA foreign_keys = OFF");
+    await database.runAsync("INSERT INTO movement_body_zones (movement_id, body_zone_id) VALUES ('mv-disparu', 'dos')");
+    await database.execAsync("PRAGMA foreign_keys = ON");
+    const violationsBefore = await database.getAllAsync("PRAGMA foreign_key_check");
+    expect(violationsBefore).toHaveLength(1);
+    const before = await snapshot(database);
+
+    await initializeDatabase(database);
+    database = reopen(database);
+
+    expect(await version(database)).toBe(DATABASE_VERSION);
+    expect(await snapshot(database)).toEqual(before);
+    expect(await database.getAllAsync("PRAGMA foreign_key_check")).toEqual(violationsBefore);
+    expect(await database.getAllAsync("SELECT movement_id FROM movement_body_zones WHERE movement_id = 'mv-disparu'")).toEqual([{ movement_id: "mv-disparu" }]);
+  });
+
   it("installation neuve : 001 à la version courante, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
