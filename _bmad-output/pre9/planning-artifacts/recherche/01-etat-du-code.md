@@ -4,7 +4,7 @@ Lecture seule. Chemins relatifs à `C:\Dev\KODJO-BMAD-PRE8`. `DATABASE_VERSION =
 
 ## Synthèse en une ligne
 
-**Le stockage et le Domaine savent représenter Exercices directs + plusieurs Circuits + plusieurs Cycles (D-449, migration 014) ; l'interface (Composition, brouillon, service, édition, duplication) ne manipule encore que l'ancien modèle « avant / Circuit unique / après ». Aucun Format n'est persisté (vignettes affichées, seul « Libre » est disponible). Aucun moteur d'exécution, mais des briques pures (développement d'étapes, calcul de durée, instantané) existent.**
+**Le stockage et le Domaine savent représenter Exercices directs + plusieurs Circuits + plusieurs Cycles (D-449, migration 014) [correction du 29/10 : sauf les Exercices directs de Cycle introduits par D-451 — `StructureCycle` ne contient que des Circuits, `activities` et `session_stop_points` n'ont pas de `cycle_id` ; voir `etat-initial-et-ecarts.md` §1] ; l'interface (Composition, brouillon, service, édition, duplication) ne manipule encore que l'ancien modèle « avant / Circuit unique / après ». Aucun Format n'est persisté (vignettes affichées, seul « Libre » est disponible). Aucun moteur d'exécution, mais des briques pures (développement d'étapes, calcul de durée, instantané) existent.**
 
 ---
 
