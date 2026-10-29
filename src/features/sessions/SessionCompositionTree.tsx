@@ -13,7 +13,9 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  *
  * - Sous un filet, sur toute la largeur utile de la carte (elle passe sous le visuel).
  * - Conteneurs en lignes d'en-tête grises sans valeur : « Cycle · N répétitions », « Circuit · N
- *   tours » (unité accordée à la nature du Circuit, lexique de la Composition).
+ *   tours · groupées » / « Circuit · N tours · alternées » (PRE-9 B.1b, référence « Composition :
+ *   circuits, cycles et création » §2 : l'unité reste « tour(s) », la nature est l'adjectif de
+ *   l'en-tête de la Composition ; remplace « Circuit · N séries » pour un Circuit alterné).
  * - Membres décalés de 16 par niveau, reliés par un filet vertical dans la marge dégagée (motif des
  *   familles de niveaux du Catalogue des Mouvements, B.5) ; deux décalages au plus.
  * - Nom à gauche, volume à droite ; récupérations en gris clair, à leur position, avec leur durée.
@@ -22,7 +24,7 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  */
 
 const t = strings.screens.sessions.catalogueCard;
-const circuitUnits = strings.screens.composition.circuit.unit;
+const circuitStrings = strings.screens.composition.circuit;
 
 export function treeLineLabel(line: CatalogueTreeLine): { readonly name: string; readonly value: string | null } {
   switch (line.kind) {
@@ -35,9 +37,13 @@ export function treeLineLabel(line: CatalogueTreeLine): { readonly name: string;
         value: null,
       };
     case "CIRCUIT": {
-      const unit = circuitUnits[line.nature];
+      const unit = circuitStrings.countUnit;
       return {
-        name: fillTemplate(t.circuitLine, { count: String(line.repeatCount), unit: line.repeatCount === 1 ? unit.singular : unit.plural }),
+        name: fillTemplate(t.circuitLine, {
+          count: String(line.repeatCount),
+          unit: line.repeatCount === 1 ? unit.singular : unit.plural,
+          nature: circuitStrings.natureAdjective[line.nature],
+        }),
         value: null,
       };
     }

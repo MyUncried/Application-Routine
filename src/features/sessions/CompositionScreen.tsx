@@ -40,6 +40,14 @@ import {
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import {
+  applyLayoutNatureChange,
+  containerLetters,
+  prepareLayoutNatureChange,
+  setLayoutCircuitCount,
+  setLayoutCycleCount,
+} from "@/domain/sessions/layoutOperations";
+import { structureCircuits, type StructureCircuit, type StructureCycle } from "@/domain/sessions/structure";
+import {
   STRUCTURAL_ZONES,
   duplicateOccurrence,
   moveOccurrenceInSequence,
@@ -103,6 +111,8 @@ import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfir
 import { CIRCUIT_HEADER_HEIGHT, CircuitHeader } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
+import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout } from "@/features/sessions/compositionLayout";
+import { CycleHeader } from "@/features/sessions/CycleHeader";
 import {
   clampSwipeTranslateX,
   isTap,
@@ -214,11 +224,39 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * PRE-9 B.1a (D-451, complément du 28/10, qui remplace D-442 sur ce point ; RM-027) : le stepper
  * est de nouveau révélé au toucher du nombre (`circuitCounter`), un seul contrôle ouvert à la fois.
  */
-type OverlayKind = "countdown" | "finalPhase" | "circuitCounter" | "circuitNature" | "circuitVolumes";
+type OverlayKind =
+  | "countdown"
+  | "finalPhase"
+  | "circuitCounter"
+  | "circuitNature"
+  | "circuitVolumes"
+  | LayoutControlKind;
 
-/** Contrôles de l'en-tête du Circuit refermés par un toucher ailleurs (RC-4) : stepper révélé, choix de nature. */
+/**
+ * PRE-9 B.1b (RM-027, D-451) : contrôles des en-têtes d'une disposition générale (plusieurs Circuits,
+ * Cycles), clés par identifiant de conteneur — toujours un seul contrôle ouvert à la fois.
+ */
+type LayoutControlKind =
+  | `layout-circuit-counter:${string}`
+  | `layout-circuit-nature:${string}`
+  | `layout-cycle-counter:${string}`;
+
+const LAYOUT_CIRCUIT_NATURE_PREFIX = "layout-circuit-nature:";
+const layoutCircuitCounterKind = (circuitId: string): LayoutControlKind => `layout-circuit-counter:${circuitId}`;
+const layoutCircuitNatureKind = (circuitId: string): LayoutControlKind => `layout-circuit-nature:${circuitId}`;
+const layoutCycleCounterKind = (cycleId: string): LayoutControlKind => `layout-cycle-counter:${cycleId}`;
+
+/**
+ * Contrôles de l'en-tête du Circuit refermés par un toucher ailleurs (RC-4) : stepper révélé, choix de
+ * nature. PRE-9 B.1b : aussi ceux des en-têtes d'une disposition générale (Circuits, Cycles).
+ */
 function isCircuitControl(kind: OverlayKind | null): boolean {
-  return kind === "circuitCounter" || kind === "circuitNature";
+  return kind === "circuitCounter" || kind === "circuitNature" || (kind !== null && kind.startsWith("layout-"));
+}
+
+/** PRE-9 B.1b : Circuit de la disposition dont le choix de nature est ouvert, sinon `null`. */
+function layoutNatureCircuitOf(kind: OverlayKind | null): string | null {
+  return kind !== null && kind.startsWith(LAYOUT_CIRCUIT_NATURE_PREFIX) ? kind.slice(LAYOUT_CIRCUIT_NATURE_PREFIX.length) : null;
 }
 
 /**
@@ -951,7 +989,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       : null;
   // PRE-6 (story 3.2, CE-CIR-02) : conversion Tours → Séries avec perte en attente de confirmation.
   // Le garde-fou `ref` n'applique qu'une conversion, même sur un double appui de « Confirmer ».
-  const [pendingNatureChange, setPendingNatureChange] = useState<CircuitNature | null>(null);
+  // PRE-9 B.1b : `circuitId` désigne le Circuit d'une disposition générale ; `null` : le Circuit
+  // unique de l'ancien modèle (flux inchangé).
+  const [pendingNatureChange, setPendingNatureChange] = useState<{
+    readonly nature: CircuitNature;
+    readonly circuitId: string | null;
+  } | null>(null);
   const natureChangeConfirmedRef = useRef(false);
   // Demande de focus sur la pastille, seulement quand l'utilisateur ferme le choix ou le dialogue
   // de perte (jamais à l'ouverture d'un dialogue, au début d'une sortie ni à la perte du focus).
@@ -1630,6 +1673,39 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setCircuitCollapsedContent(null);
   }
   const isCircuitCollapsed = circuitCollapsedContent === circuitContentKey && placement === null;
+  /**
+   * PRE-9 B.1b (D-451, COMP §1 et §4) : disposition générale (plusieurs Circuits, Cycles) — rendue
+   * selon sa structure à la place des zones de l'ancien modèle ; `null` : rendu historique inchangé.
+   */
+  const richLayout = useMemo(() => resolveRichLayout(draft), [draft]);
+  /** ARB-13 : lettres des Circuits et des Cycles (aucune pour un conteneur seul de sa nature). */
+  const layoutLetters = useMemo(
+    () => (richLayout === null || draft.structure === undefined ? new Map<string, string>() : containerLetters(draft.structure)),
+    [draft.structure, richLayout],
+  );
+  const layoutCircuitById = useMemo(
+    () => new Map((richLayout === null ? [] : structureCircuits(richLayout)).map((circuit) => [circuit.id, circuit])),
+    [richLayout],
+  );
+  /**
+   * PRE-9 B.1b (ARB-12) : Circuits repliés d'une disposition générale — identifiant → contenu (ses
+   * Exercices) au moment du repli. État de l'écran seul, non persisté ; tous dépliés à l'ouverture.
+   * Comme pour le Circuit unique (B.1a), un Circuit dont le contenu change se déplie (ajustement
+   * pendant le rendu).
+   */
+  const [layoutCollapsed, setLayoutCollapsed] = useState<ReadonlyMap<string, string>>(() => new Map());
+  const layoutContentKeyOf = (circuit: StructureCircuit<SessionDraftExercise>) => circuit.exercises.map((exercise) => exercise.id).join(" ");
+  const staleCollapsed = [...layoutCollapsed].filter(([id, key]) => {
+    const circuit = layoutCircuitById.get(id);
+    return circuit === undefined || layoutContentKeyOf(circuit) !== key;
+  });
+  if (staleCollapsed.length > 0) {
+    setLayoutCollapsed((current) => {
+      const next = new Map(current);
+      for (const [id] of staleCollapsed) next.delete(id);
+      return next;
+    });
+  }
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
@@ -1700,10 +1776,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * `applyNatureChange` immédiat, sans message. Avec perte (Tours → Séries, un exercice au-delà
    * de N) : dialogue de confirmation, rien n'est appliqué avant « Confirmer ».
    */
-  const openNatureConfirmation = useCallback((nature: CircuitNature) => {
+  const openNatureConfirmation = useCallback((nature: CircuitNature, circuitId: string | null = null) => {
     natureChangeConfirmedRef.current = false;
-    setPendingNatureChange(nature);
+    setPendingNatureChange({ nature, circuitId });
   }, []);
+  /**
+   * PRE-9 B.1b : demandes de focus sur l'adjectif de chaque Circuit d'une disposition générale, par
+   * identifiant (chaque menu ne réagit qu'à un changement de SA demande).
+   */
+  const [layoutNatureFocus, setLayoutNatureFocus] = useState<Readonly<Record<string, number>>>({});
+  const requestLayoutNatureFocus = useCallback((circuitId: string) => {
+    setLayoutNatureFocus((current) => ({ ...current, [circuitId]: (current[circuitId] ?? 0) + 1 }));
+  }, []);
+  /** Focus rendu à l'adjectif du Circuit concerné : celui de l'ancien modèle (`null`) ou de la disposition. */
+  const requestNatureFocusOf = useCallback(
+    (circuitId: string | null) => (circuitId === null ? requestNatureFocus() : requestLayoutNatureFocus(circuitId)),
+    [requestLayoutNatureFocus, requestNatureFocus],
+  );
   const handleSelectNature = useCallback(
     (nature: CircuitNature) => {
       closeCircuitControls();
@@ -1740,14 +1829,60 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     closeCircuitControls();
     requestNatureFocus();
   }, [closeCircuitControls, requestNatureFocus]);
+  /**
+   * PRE-9 B.1b (COMP §2, D-451) : nature choisie pour un Circuit d'une disposition générale — mêmes
+   * règles que `handleSelectNature`, appliquées au Circuit désigné (`prepareLayoutNatureChange` /
+   * `applyLayoutNatureChange`) : perte annoncée par le même dialogue avant toute mutation ; sans
+   * perte, appliquée aussitôt.
+   */
+  const handleLayoutSelectNature = useCallback(
+    (circuitId: string, nature: CircuitNature) => {
+      closeCircuitControls();
+      const circuit = draft.structure === undefined ? undefined : structureCircuits(draft.structure).find((item) => item.id === circuitId);
+      if (circuit === undefined) return;
+      if (nature === circuit.nature) {
+        if (Platform.OS !== "ios") requestLayoutNatureFocus(circuitId);
+        return;
+      }
+      if (prepareLayoutNatureChange(draft, circuitId, nature).losses.length > 0) {
+        openNatureConfirmation(nature, circuitId);
+        return;
+      }
+      requestLayoutNatureFocus(circuitId);
+      updateDraft((current) => {
+        if (prepareLayoutNatureChange(current, circuitId, nature).losses.length > 0) {
+          queueMicrotask(() => openNatureConfirmation(nature, circuitId));
+          return current;
+        }
+        return applyLayoutNatureChange(current, circuitId, nature);
+      });
+    },
+    [closeCircuitControls, draft, openNatureConfirmation, requestLayoutNatureFocus, updateDraft],
+  );
+  /** PRE-9 B.1b : fermeture du choix d'un Circuit de la disposition (Android / web), sans mutation. */
+  const dismissLayoutNatureMenu = useCallback(
+    (circuitId: string) => {
+      closeCircuitControls();
+      requestLayoutNatureFocus(circuitId);
+    },
+    [closeCircuitControls, requestLayoutNatureFocus],
+  );
   // PRE-9 B.1a (RC-4) : un toucher ailleurs referme le contrôle ouvert de l'en-tête du Circuit.
-  const handleCircuitOutsidePress = openOverlay === "circuitNature" ? dismissNatureMenu : closeCircuitControls;
+  // B.1b : de même pour les en-têtes d'une disposition générale.
+  const openLayoutNatureCircuit = layoutNatureCircuitOf(openOverlay);
+  const handleCircuitOutsidePress =
+    openOverlay === "circuitNature"
+      ? dismissNatureMenu
+      : openLayoutNatureCircuit !== null
+        ? () => dismissLayoutNatureMenu(openLayoutNatureCircuit)
+        : closeCircuitControls;
 
   /** « Annuler » (ou retour système) du dialogue de perte : rien n'est appliqué. */
   const cancelNatureChange = useCallback(() => {
+    const circuitId = pendingNatureChange?.circuitId ?? null;
     setPendingNatureChange(null);
-    requestNatureFocus();
-  }, [requestNatureFocus]);
+    requestNatureFocusOf(circuitId);
+  }, [pendingNatureChange, requestNatureFocusOf]);
 
   /**
    * « Confirmer » de la conversion avec perte : une seule fois (double appui ignoré), sur le
@@ -1759,11 +1894,48 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       return;
     }
     natureChangeConfirmedRef.current = true;
-    const nature = pendingNatureChange;
+    const { nature, circuitId } = pendingNatureChange;
     setPendingNatureChange(null);
-    updateDraft((current) => applyNatureChange(current, nature));
-    requestNatureFocus();
-  }, [pendingNatureChange, requestNatureFocus, updateDraft]);
+    updateDraft((current) =>
+      circuitId === null ? applyNatureChange(current, nature) : applyLayoutNatureChange(current, circuitId, nature),
+    );
+    requestNatureFocusOf(circuitId);
+  }, [pendingNatureChange, requestNatureFocusOf, updateDraft]);
+
+  /**
+   * PRE-9 B.1b (D-451, AD-38) : compte d'un Circuit ou d'un Cycle d'une disposition générale, 1..99,
+   * appliqué au seul conteneur désigné (`setLayoutCircuitCount` : en séries alternées, les Exercices
+   * du Circuit suivent N, réserve AD-38 ; `setLayoutCycleCount`). Forme fonctionnelle : chaque pas
+   * (maintien compris) part du brouillon COURANT. Un pas referme le choix de nature éventuellement
+   * ouvert. Aucun Point d'arrêt dans une disposition générale avant B.6 : aucun choix de Tour.
+   */
+  const handleLayoutCircuitCount = useCallback(
+    (circuitId: string, count: number) => {
+      setOpenOverlay((current) => (layoutNatureCircuitOf(current) !== null ? null : current));
+      updateDraft((current) => setLayoutCircuitCount(current, circuitId, count));
+    },
+    [updateDraft],
+  );
+  const handleLayoutCycleCount = useCallback(
+    (cycleId: string, count: number) => {
+      setOpenOverlay((current) => (layoutNatureCircuitOf(current) !== null ? null : current));
+      updateDraft((current) => setLayoutCycleCount(current, cycleId, count));
+    },
+    [updateDraft],
+  );
+  /** PRE-9 B.1b (ARB-12) : repli d'un Circuit de la disposition — état de l'écran, brouillon inchangé. */
+  const toggleLayoutCircuitCollapsed = useCallback(
+    (circuit: StructureCircuit<SessionDraftExercise>) => {
+      closeCircuitControls();
+      setLayoutCollapsed((current) => {
+        const next = new Map(current);
+        if (next.has(circuit.id)) next.delete(circuit.id);
+        else next.set(circuit.id, circuit.exercises.map((exercise) => exercise.id).join(" "));
+        return next;
+      });
+    },
+    [closeCircuitControls],
+  );
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
     zoneTopsRef.current[zone] = event.nativeEvent.layout.y;
@@ -2720,11 +2892,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
   // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
   // durée du Circuit n'est plus affichée (en-tête du Circuit).
-  const sessionDuration = formatCompositionSessionDuration({
-    exercises: durationDraft.exercises,
-    tourRepeatCount,
-    circuitNature: draft.circuitNature,
-  });
+  // PRE-9 B.1b : disposition générale — même calcul sur sa structure (Circuits, Cycles, RM-252), même
+  // format (l'arrondi du Cycle reste à qualifier, B.7).
+  const sessionDuration =
+    richLayout !== null
+      ? formatLayoutDuration(richLayout.elements)
+      : formatCompositionSessionDuration({
+          exercises: durationDraft.exercises,
+          tourRepeatCount,
+          circuitNature: draft.circuitNature,
+        });
   // PRE-9 B.1a (D-451, complément du 28/10, qui remplace la clause de D-443 masquant la durée) :
   // durée du Circuit, à droite de son en-tête — mêmes calculs (zone `IN_TOUR`, nature, N), même
   // brouillon que la durée de séance (recalculée en direct pendant le placement).
@@ -2824,9 +3001,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
       onOpenVolumes={openCircuitVolumes}
       volumesFocusRequest={volumesFocusRequest}
-      isVolumesDisabled={draggedKey !== null}
+      // PRE-9 B.1b : disposition générale — les Volumes (Circuit unique) et le placement des pauses
+      // (B.6) ne s'appliquent pas encore à plusieurs Circuits ni aux Cycles : indisponibles.
+      isVolumesDisabled={draggedKey !== null || richLayout !== null}
       isPlacementActive={isPlacementActive}
-      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null}
+      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || richLayout !== null}
       addStopFocusRequest={addStopFocusRequest}
       addStopAccessibilityHint={addStopAccessibilityHint}
       testID="composition-context-header"
@@ -2973,6 +3152,37 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <BoundaryRail kind="start" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-countdown" />
         </View>
 
+        {/*
+         * PRE-9 B.1b (D-451, COMP §1 et §4 ; Figma `10725:20142`, `10744:20108`) : une disposition
+         * générale (plusieurs Circuits, Cycles) est rendue selon sa structure — Exercices directs,
+         * Circuits, Cycles — entre les deux bornes ; sinon, rendu historique par zones, inchangé.
+         */}
+        {richLayout !== null ? (
+          <LayoutSequence
+            layout={richLayout}
+            letters={layoutLetters}
+            openOverlay={openOverlay}
+            onToggleOverlay={toggleOverlay}
+            onCircuitCount={handleLayoutCircuitCount}
+            onCycleCount={handleLayoutCycleCount}
+            onSelectNature={handleLayoutSelectNature}
+            onDismissNature={dismissLayoutNatureMenu}
+            natureFocusRequests={layoutNatureFocus}
+            onOutsidePress={handleCircuitOutsidePress}
+            isChoicePending={pendingNatureChange !== null}
+            collapsed={layoutCollapsed}
+            onToggleCollapsed={toggleLayoutCircuitCollapsed}
+            bodyZonesReferential={bodyZonesReferential}
+            categoriesReferential={categoriesReferential}
+            levelPositions={levelPositions}
+            onEdit={handleEditActivity}
+            railShiftOf={railShiftOf}
+            autoScroll={autoScroll}
+            panelRight={styles.bodyContent.paddingRight}
+          />
+        ) : null}
+        {richLayout === null ? (
+        <>
         {/*
          * UI-COMP-003 : une nouvelle Activité s'insère ICI — entre Compte à
          * rebours initial et Tour (`DEFAULT_STRUCTURAL_POSITION` =
@@ -3265,6 +3475,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           stopPointStepAction={stopPointStepAction}
           placement={placementRowContext}
         />
+        </>
+        ) : null}
 
         {/* PRE-6 (story 2.3b) : « Fin de séance » suit le décalage net du geste (`end`). */}
         <Animated.View
@@ -3288,7 +3500,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           </PlacementAttenuation>
           <BoundaryRail kind="end" railCenterX={RAIL_CENTER_X_IN_COLUMN} testID="composition-boundary-final-phase" />
           {/* PRE-6 (story 5.2) : lien de Fin de séance, hors atténuation, jusqu'au haut de son anneau. */}
-          {endRailLink !== null ? (
+          {/* PRE-9 B.1b : disposition générale — rail simplifié, lien fixe à travers l'écart de la séquence. */}
+          {richLayout !== null ? (
+            <RailSegment
+              centerX={RAIL_CENTER_X_IN_COLUMN}
+              top={-SEQUENCE_GAP}
+              height={SEQUENCE_GAP + BOUNDARY_RING_TOP}
+              testID="composition-rail-link-end"
+            />
+          ) : endRailLink !== null ? (
             <RailLink
               centerX={RAIL_CENTER_X_IN_COLUMN}
               entryY={BOUNDARY_RING_TOP}
@@ -3485,7 +3705,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       {pendingNatureChange !== null ? (
         <CircuitEntryConfirmModal
           kind="NATURE"
-          seriesCount={tourRepeatCount}
+          // PRE-9 B.1b : N du Circuit concerné (disposition générale) ou du Circuit unique.
+          seriesCount={
+            pendingNatureChange.circuitId === null
+              ? tourRepeatCount
+              : (layoutCircuitById.get(pendingNatureChange.circuitId)?.repeatCount ?? tourRepeatCount)
+          }
           onCancel={cancelNatureChange}
           onConfirm={confirmNatureChange}
         />
@@ -4430,6 +4655,13 @@ type CompositionActivityRowProps = {
   readonly placement: PlacementRowContext | null;
   /** Revue 6.3 : la rangée sous la carte est suivie d'une rangée de point non proposé (écart partagé). */
   readonly placementRowFollowed?: boolean;
+  /**
+   * PRE-9 B.1b : carte d'une disposition générale (`LayoutSequence`) — écart au-dessus d'elle dans sa
+   * liste, que son rail traverse. Défini : seul l'appui court (modification) est actif ; glisser,
+   * balayage (Dupliquer / Supprimer) et leurs actions accessibles relèvent de B.4 et B.5 ; rail
+   * simplifié porté par la carte (lien à travers l'écart au-dessus, queue sous le média).
+   */
+  readonly layoutRailGap?: number;
 };
 
 /**
@@ -4586,7 +4818,10 @@ function CompositionActivityRow({
   placementRowFollowed = false,
   focusRequest,
   onFocusConsumed,
+  layoutRailGap,
 }: CompositionActivityRowProps) {
+  /** PRE-9 B.1b : carte d'une disposition générale — voir `layoutRailGap`. */
+  const inLayout = layoutRailGap !== undefined;
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<View>(null);
@@ -5062,12 +5297,16 @@ function CompositionActivityRow({
         () => formatCompactDuration(displayedRecoverySeconds),
       )}`
     : formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName);
-  const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = {
-    ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
-    ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
-    duplicate: onDuplicate,
-    delete: onDelete,
-  };
+  // PRE-9 B.1b : dans une disposition générale, aucune action de réorganisation, duplication ni
+  // suppression (B.4, B.5).
+  const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = inLayout
+    ? {}
+    : {
+        ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
+        ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+        duplicate: onDuplicate,
+        delete: onDelete,
+      };
   const accessibilityActionLabels: Record<OccurrenceAccessibilityActionName, string> = {
     moveUp: composition.activityActions.moveUp,
     moveDown: composition.activityActions.moveDown,
@@ -5117,7 +5356,8 @@ function CompositionActivityRow({
       importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
       // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
       // les puces de l'emplacement répondent.
-      {...(placement === null
+      // PRE-9 B.1b : ni glisser ni balayage dans une disposition générale (B.4, B.5).
+      {...(placement === null && !inLayout
         ? {
             onTouchStart: handleTouchStart,
             onTouchMove: handleTouchMove,
@@ -5186,7 +5426,7 @@ function CompositionActivityRow({
       <AnimatedPressable
         ref={cardRef}
         onPress={handlePress}
-        onLongPress={handleLongPress}
+        onLongPress={inLayout ? undefined : handleLongPress}
         delayLongPress={LONG_PRESS_DELAY_MS}
         // PRE-6 (story 4.1) : en placement, carte inactive. Arbitrage D6 (PR #391) : son contenu
         // est grisé par `OccurrenceCard`, hors récupération de ligne 3 ; elle n'est plus un élément accessible (son contenu est masqué par
@@ -5198,7 +5438,11 @@ function CompositionActivityRow({
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
-        accessibilityHint={`${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`}
+        accessibilityHint={
+          inLayout
+            ? composition.exerciseRow.editAccessibilityLabel
+            : `${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`
+        }
         accessibilityState={{ selected: isDragged }}
         accessibilityActions={accessibilityActions}
         onAccessibilityAction={(event) =>
@@ -5260,7 +5504,23 @@ function CompositionActivityRow({
        * balayage ni la carte soulevée : le
        * rail ne glisse pas ; il suit les décalages du bloc (translation du conteneur).
        */}
-      {railLink !== undefined ? (
+      {/* PRE-9 B.1b : rail simplifié d'une carte de disposition générale (voir `LayoutSequence`). */}
+      {layoutRailGap !== undefined ? (
+        <>
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={-layoutRailGap}
+            height={layoutRailGap + OCCURRENCE_CARD_MEDIA.top}
+            testID={`composition-rail-link-${activity.id}`}
+          />
+          <RailSegment
+            centerX={OCCURRENCE_CARD_MEDIA.centerX}
+            top={OCCURRENCE_CARD_MEDIA.bottom}
+            bottom={0}
+            testID={`composition-rail-tail-${activity.id}`}
+          />
+        </>
+      ) : railLink !== undefined ? (
         <>
           <RailLink
             centerX={OCCURRENCE_CARD_MEDIA.centerX}
@@ -5322,6 +5582,366 @@ function CompositionActivityRow({
       ) : null}
 
     </Animated.View>
+  );
+}
+
+/** PRE-9 B.1b : ce que chaque bloc d'une disposition générale reçoit de l'écran. */
+type LayoutRenderContext = {
+  readonly letters: ReadonlyMap<string, string>;
+  readonly openOverlay: OverlayKind | null;
+  readonly onToggleOverlay: (kind: OverlayKind) => void;
+  readonly onCircuitCount: (circuitId: string, count: number) => void;
+  readonly onCycleCount: (cycleId: string, count: number) => void;
+  readonly onSelectNature: (circuitId: string, nature: CircuitNature) => void;
+  readonly onDismissNature: (circuitId: string) => void;
+  readonly natureFocusRequests: Readonly<Record<string, number>>;
+  /** Toucher hors du contrôle ouvert (RC-4) : le referme. */
+  readonly onOutsidePress: () => void;
+  /** Dialogue de perte en attente : un maintien de − / + s'arrête. */
+  readonly isChoicePending: boolean;
+  /** Circuits repliés : identifiant → contenu au moment du repli (ARB-12). */
+  readonly collapsed: ReadonlyMap<string, string>;
+  readonly onToggleCollapsed: (circuit: StructureCircuit<SessionDraftExercise>) => void;
+  readonly bodyZonesReferential: readonly BodyZone[];
+  readonly categoriesReferential: readonly Category[];
+  readonly levelPositions: ReadonlyMap<string, MovementLevelPosition>;
+  readonly onEdit: (activityId: string) => void;
+  readonly railShiftOf: (key: string) => Animated.Value;
+  readonly autoScroll: DragAutoScroll;
+};
+
+type LayoutSequenceProps = LayoutRenderContext & {
+  readonly layout: ResolvedLayout;
+  /** Marge droite du contenu défilant : ancrage du panneau du choix de nature (Android / web). */
+  readonly panelRight: number;
+};
+
+const NO_RAIL_LINKS: ReadonlyMap<string, RailLinkGeometry> = new Map();
+const NO_SKIPPED_KEYS: ReadonlySet<string> = new Set();
+const noop = () => {};
+
+/**
+ * PRE-9 B.1b (D-451, COMP §1 et §4, ARB-12, ARB-13, ARB-19 ; Figma `10725:20142`, `10744:20108`) —
+ * rendu d'une disposition générale, élément par élément, entre les deux bornes (qui restent hors de
+ * tout conteneur) : Exercices directs de la Séance, Circuits (en-tête B.1a avec sa lettre, repli),
+ * Cycles (`CycleHeader`, jamais repliés) avec leurs Exercices directs et leurs Circuits.
+ *
+ * Hiérarchie par les fonds (COMP §4) : Cycle pleine largeur sur un aplat lavande plus soutenu,
+ * Circuit sur l'aplat du Circuit (dans un Cycle, en retrait de 4 de chaque côté pour que le fond du
+ * Cycle l'encadre), cartes de la largeur habituelle, sans indentation supplémentaire.
+ *
+ * Gestes : seul l'appui court d'une carte (modification) est actif ; glisser-déposer (B.4),
+ * Dupliquer / Supprimer (B.5) et le placement des pauses (B.6) ne s'appliquent pas encore ici.
+ *
+ * Rail simplifié : chaque élément porte ses segments — lien à travers l'écart qui le précède, anneau
+ * sur l'en-tête d'un conteneur, queue jusqu'à son bas ; un conteneur trace sa queue derrière ses
+ * membres (visible dans leurs écarts), chaque carte trace le sien sur sa surface. Pas de liens
+ * mesurés (`resolveRailLinks`) ni d'animation de glisser.
+ */
+function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps) {
+  // Android / web : bas de l'en-tête de chaque Circuit dans le contenu défilant (panneau de nature).
+  const [anchors, setAnchors] = useState<Readonly<Record<string, number>>>({});
+  const reportAnchor = useCallback((circuitId: string, y: number) => {
+    setAnchors((current) => (current[circuitId] === y ? current : { ...current, [circuitId]: y }));
+  }, []);
+  const rail = useMemo<SequenceRailContext>(
+    () => ({ links: NO_RAIL_LINKS, shiftOf: context.railShiftOf, skippedKeys: NO_SKIPPED_KEYS }),
+    [context.railShiftOf],
+  );
+  const directExercises = layout.elements.flatMap((element) => (element.kind === "EXERCISE" ? [element.exercise] : []));
+  const natureCircuitId = layoutNatureCircuitOf(context.openOverlay);
+  const natureCircuit =
+    natureCircuitId === null ? undefined : structureCircuits(layout).find((circuit) => circuit.id === natureCircuitId);
+  const natureAnchor = natureCircuitId === null ? undefined : anchors[natureCircuitId];
+  return (
+    <>
+      {layout.elements.map((element) => {
+        switch (element.kind) {
+          case "EXERCISE":
+            return (
+              <View key={`exercise:${element.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${element.exercise.id}`}>
+                <LayoutExerciseRow
+                  exercise={element.exercise}
+                  circuit={null}
+                  position={{ index: directExercises.indexOf(element.exercise), count: directExercises.length }}
+                  railGap={SEQUENCE_GAP}
+                  rail={rail}
+                  context={context}
+                />
+              </View>
+            );
+          case "CIRCUIT":
+            return (
+              <LayoutCircuitBlock
+                key={`circuit:${element.circuit.id}`}
+                circuit={element.circuit}
+                inCycle={false}
+                offsetY={0}
+                railGap={SEQUENCE_GAP}
+                rail={rail}
+                context={context}
+                onAnchor={reportAnchor}
+              />
+            );
+          case "CYCLE":
+            return (
+              <LayoutCycleBlock
+                key={`cycle:${element.cycle.id}`}
+                cycle={element.cycle}
+                rail={rail}
+                context={context}
+                onAnchor={reportAnchor}
+              />
+            );
+          default: {
+            const unreachable: never = element;
+            return unreachable;
+          }
+        }
+      })}
+      {/*
+       * Android / web : panneau du choix de nature, dans une couche qui couvre tout le contenu
+       * défilant (un toucher hors des limites d'un parent n'atteint pas ses enfants sur Android),
+       * au-dessus des éléments suivants ; jamais rendu avant la mesure de l'en-tête.
+       */}
+      {natureCircuit !== undefined && natureAnchor !== undefined ? (
+        <View pointerEvents="box-none" style={styles.layoutPanelLayer} testID="composition-layout-nature-panel-layer">
+          <CircuitNaturePanel
+            nature={natureCircuit.nature}
+            placement={{ top: natureAnchor + CIRCUIT_NATURE_PANEL_GAP, right: panelRight }}
+            onDismiss={() => context.onDismissNature(natureCircuit.id)}
+            onSelect={(nature) => context.onSelectNature(natureCircuit.id, nature)}
+            testID={`composition-layout-circuit-${natureCircuit.id}-header-counter-nature-panel`}
+          />
+        </View>
+      ) : null}
+    </>
+  );
+}
+
+/** PRE-9 B.1b : carte d'occurrence d'une disposition générale — `CompositionActivityRow`, appui court seul. */
+function LayoutExerciseRow({
+  exercise,
+  circuit,
+  position,
+  railGap,
+  rail,
+  context,
+}: {
+  exercise: SessionDraftExercise;
+  /** Circuit qui la contient, ou `null` (Exercice direct de la Séance ou d'un Cycle). */
+  circuit: StructureCircuit<SessionDraftExercise> | null;
+  position: { readonly index: number; readonly count: number };
+  railGap: number;
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+}) {
+  // La carte lit sa position structurelle pour son aplat (dans un Circuit : sans bord, fond du
+  // Circuit) et sa durée (Circuit alterné : total de ses passages) — celle de son conteneur réel.
+  const displayed = useMemo<SessionDraftExercise>(
+    () => ({ ...exercise, structuralPosition: circuit === null ? "BEFORE_TOUR" : "IN_TOUR" }),
+    [circuit, exercise],
+  );
+  const circuitContext: OccurrenceCircuitContext =
+    circuit === null ? {} : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount };
+  const { onEdit } = context;
+  const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
+  return (
+    <CompositionActivityRow
+      activity={displayed}
+      position={position}
+      areActionsRevealed={false}
+      isDragged={false}
+      isRaised={false}
+      isBlockedByOtherReveal={false}
+      bodyZonesReferential={context.bodyZonesReferential}
+      categoriesReferential={context.categoriesReferential}
+      levelPositions={context.levelPositions}
+      circuitContext={circuitContext}
+      onLayout={noop}
+      focusRequest={null}
+      onFocusConsumed={noop}
+      onEdit={edit}
+      onRevealActions={noop}
+      onHideActions={noop}
+      onDragStart={() => false}
+      onDragCancel={noop}
+      onDragMove={noop}
+      onDragEnd={noop}
+      rail={rail}
+      autoScroll={context.autoScroll}
+      onDuplicate={noop}
+      onDelete={noop}
+      onMoveUp={null}
+      onMoveDown={null}
+      placement={null}
+      layoutRailGap={railGap}
+    />
+  );
+}
+
+/** PRE-9 B.1b : Circuit d'une disposition générale — en-tête B.1a (lettre, compteur, nature, repli) et cartes. */
+function LayoutCircuitBlock({
+  circuit,
+  inCycle,
+  offsetY,
+  railGap,
+  rail,
+  context,
+  onAnchor,
+}: {
+  circuit: StructureCircuit<SessionDraftExercise>;
+  inCycle: boolean;
+  /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance. */
+  offsetY: number;
+  railGap: number;
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+  onAnchor: (circuitId: string, y: number) => void;
+}) {
+  const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
+  const [blockY, setBlockY] = useState<number | null>(null);
+  const [headerBottom, setHeaderBottom] = useState<number | null>(null);
+  useEffect(() => {
+    if (blockY !== null && headerBottom !== null) onAnchor(circuit.id, offsetY + blockY + headerBottom);
+  }, [blockY, circuit.id, headerBottom, offsetY, onAnchor]);
+  const { openOverlay, onToggleOverlay } = context;
+  const counterKind = layoutCircuitCounterKind(circuit.id);
+  const natureKind = layoutCircuitNatureKind(circuit.id);
+  const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
+  const isCollapsed = context.collapsed.get(circuit.id) === contentKey;
+  const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
+  const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
+  const testID = `composition-layout-circuit-${circuit.id}`;
+  return (
+    <View
+      style={[styles.tourSectionContainer, styles.tourSectionStaticSurface, inCycle ? styles.layoutCircuitInCycle : null]}
+      onLayout={(event) => setBlockY(event.nativeEvent.layout.y)}
+      testID={testID}
+    >
+      {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
+        <RailSegment centerX={railX} top={-railGap} height={railGap + ringTop} testID={`${testID}-rail-link`} />
+        <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
+        <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+      </View>
+      <CircuitHeader
+        nature={circuit.nature}
+        letter={context.letters.get(circuit.id)}
+        count={circuit.repeatCount}
+        duration={formatLayoutDuration([{ kind: "CIRCUIT", circuit }])}
+        isCounterOpen={openOverlay === counterKind}
+        onToggleCounter={() => onToggleOverlay(counterKind)}
+        onChangeCount={(count) => context.onCircuitCount(circuit.id, count)}
+        isNatureMenuOpen={openOverlay === natureKind}
+        onOpenNatureMenu={() => onToggleOverlay(natureKind)}
+        onCloseNatureMenu={() => context.onDismissNature(circuit.id)}
+        onSelectNature={(nature) => context.onSelectNature(circuit.id, nature)}
+        natureFocusRequest={context.natureFocusRequests[circuit.id] ?? 0}
+        isChoicePending={context.isChoicePending}
+        titleInset={SEQUENCE_LABEL_INSET}
+        isCollapsed={isCollapsed}
+        onToggleCollapsed={() => context.onToggleCollapsed(circuit)}
+        memberNames={circuit.exercises.map((exercise) => occurrenceCardName(exercise, context.levelPositions))}
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          setHeaderBottom(y + height);
+        }}
+        onRowLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          if (height > 0) setRowHeight(height);
+        }}
+        testID={`${testID}-header`}
+      />
+      {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
+      {isCollapsed || circuit.exercises.length === 0 ? null : (
+        <View style={[styles.exerciseList, styles.exerciseListInCircuit]} testID={`${testID}-exercises`}>
+          {circuit.exercises.map((exercise, index) => (
+            <LayoutExerciseRow
+              key={exercise.id}
+              exercise={exercise}
+              circuit={circuit}
+              position={{ index, count: circuit.exercises.length }}
+              railGap={CIRCUIT_GAP}
+              rail={rail}
+              context={context}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** PRE-9 B.1b : Cycle d'une disposition générale — en-tête (jamais replié), Exercices directs et Circuits. */
+function LayoutCycleBlock({
+  cycle,
+  rail,
+  context,
+  onAnchor,
+}: {
+  cycle: StructureCycle<SessionDraftExercise>;
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+  onAnchor: (circuitId: string, y: number) => void;
+}) {
+  const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
+  const [cycleY, setCycleY] = useState(0);
+  const { openOverlay, onToggleOverlay } = context;
+  const counterKind = layoutCycleCounterKind(cycle.id);
+  const railX = RAIL_CENTER_X_IN_CIRCUIT;
+  const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
+  const directExercises = cycle.members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : []));
+  const testID = `composition-layout-cycle-${cycle.id}`;
+  return (
+    <View style={styles.layoutCycleContainer} onLayout={(event) => setCycleY(event.nativeEvent.layout.y)} testID={testID}>
+      {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
+        <RailSegment centerX={railX} top={-SEQUENCE_GAP} height={SEQUENCE_GAP + ringTop} testID={`${testID}-rail-link`} />
+        <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
+        <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+      </View>
+      <CycleHeader
+        letter={context.letters.get(cycle.id)}
+        count={cycle.repeatCount}
+        duration={formatLayoutDuration([{ kind: "CYCLE", cycle }])}
+        isCounterOpen={openOverlay === counterKind}
+        onToggleCounter={() => onToggleOverlay(counterKind)}
+        onChangeCount={(count) => context.onCycleCount(cycle.id, count)}
+        isChoicePending={context.isChoicePending}
+        titleInset={SEQUENCE_LABEL_INSET}
+        onRowLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          if (height > 0) setRowHeight(height);
+        }}
+        testID={`${testID}-header`}
+      />
+      {cycle.members.map((member) =>
+        member.kind === "EXERCISE" ? (
+          <View key={`exercise:${member.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${member.exercise.id}`}>
+            <LayoutExerciseRow
+              exercise={member.exercise}
+              circuit={null}
+              position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
+              railGap={LAYOUT_CYCLE_GAP}
+              rail={rail}
+              context={context}
+            />
+          </View>
+        ) : (
+          <LayoutCircuitBlock
+            key={`circuit:${member.circuit.id}`}
+            circuit={member.circuit}
+            inCycle
+            offsetY={cycleY}
+            railGap={LAYOUT_CYCLE_GAP}
+            rail={rail}
+            context={context}
+            onAnchor={onAnchor}
+          />
+        ),
+      )}
+    </View>
   );
 }
 
@@ -5527,6 +6147,19 @@ const CIRCUIT_RADIUS = 18;
  * `SessionCard` et `DisclosureControl`) ; ajout au registre proposé au lot documentaire.
  */
 const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
+/**
+ * PRE-9 B.1b (COMP §4 : « cycle pleine largeur, circuit 386, exercice 370 ; fonds du plus soutenu au
+ * plus clair » ; Figma `10744:20108`) — valeurs locales NON ÉCRITES dans les sources, à confirmer :
+ * - aplat du Cycle : lavande plus soutenu que celui du Circuit (`#EAEAFF`, valeur du jeton existant
+ *   `segmentedInactiveSurface`), pleine largeur, sans rayon ; la frange de dégradé de 4 (COMP §4)
+ *   n'est pas rendue ;
+ * - Circuit dans un Cycle : en retrait de 4 de chaque côté (le fond du Cycle l'encadre), les cartes
+ *   gardant leur largeur ;
+ * - écart entre les membres d'un Cycle et sous son en-tête : celui du Circuit (9).
+ */
+const CYCLE_SURFACE_COLOR = "#EAEAFF";
+const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
+const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /**
  * Haut de l'anneau du Circuit, centré sur la hauteur de l'en-tête (Figma `9819:20017` : y 15 pour
  * 40). Revue 5.2 : l'en-tête a une hauteur MINIMALE de 40 (Dynamic Type) ; l'anneau suit sa hauteur
@@ -6062,6 +6695,28 @@ const styles = StyleSheet.create({
   // Story 2.3b : fond du conteneur tant qu'il n'est pas mesuré (sans les couches animées).
   tourSectionStaticSurface: {
     backgroundColor: CIRCUIT_SURFACE_COLOR,
+  },
+  // PRE-9 B.1b : Circuit dans un Cycle — en retrait de 4 de chaque côté, même colonne de contenu.
+  layoutCircuitInCycle: {
+    marginHorizontal: -LAYOUT_CIRCUIT_IN_CYCLE_OUTSET,
+    paddingHorizontal: LAYOUT_CIRCUIT_IN_CYCLE_OUTSET,
+  },
+  // PRE-9 B.1b : Cycle pleine largeur (débord du Circuit), aplat plus soutenu, sans rayon.
+  layoutCycleContainer: {
+    marginHorizontal: -CIRCUIT_OUTSET,
+    paddingHorizontal: CIRCUIT_OUTSET,
+    paddingVertical: CIRCUIT_PADDING_VERTICAL,
+    gap: LAYOUT_CYCLE_GAP,
+    backgroundColor: CYCLE_SURFACE_COLOR,
+  },
+  // PRE-9 B.1b : couche du panneau du choix de nature (Android / web), sur tout le contenu défilant.
+  layoutPanelLayer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1,
   },
   circuitSurfaceTop: {
     position: "absolute",

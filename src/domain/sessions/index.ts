@@ -23,3 +23,4 @@ export * from "./formats";
 export * from "./planExpansion";
 export * from "./sessionSnapshot";
 export * from "./configurationValidity";
+export * from "./layoutOperations";

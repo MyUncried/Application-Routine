@@ -111,8 +111,18 @@ export function circuitNatureAdjective(nature: CircuitNature): string {
   return strings.screens.composition.circuit.natureAdjective[nature];
 }
 
+/**
+ * PRE-9 B.1b (référence §4, ARB-13) : nom affiché d'un conteneur — « Circuit », « Circuit A »… ; la
+ * lettre (`containerLetters`) est absente quand le conteneur est seul de sa nature.
+ */
+export function containerTitle(title: string, letter: string | undefined): string {
+  return letter === undefined ? title : `${title} ${letter}`;
+}
+
 export type CircuitHeaderProps = {
   readonly nature: CircuitNature;
+  /** PRE-9 B.1b (ARB-13) : lettre de désignation (« A »…) ; absente pour un Circuit unique. */
+  readonly letter?: string;
   /** N du Circuit (1..99). */
   readonly count: number;
   /**
@@ -206,6 +216,7 @@ export type CircuitHeaderProps = {
  */
 export function CircuitHeader({
   nature,
+  letter,
   count,
   duration,
   isCounterOpen,
@@ -229,6 +240,7 @@ export function CircuitHeader({
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
+  const title = containerTitle(t.title, letter);
   return (
     <Animated.View
       style={[
@@ -249,13 +261,13 @@ export function CircuitHeader({
           onPress={onToggleCollapsed}
           accessibilityRole="button"
           // Revue 5.2 : VoiceOver lit la durée juste après le nom (elle est affichée à droite).
-          accessibilityLabel={`${t.title}, ${duration}`}
+          accessibilityLabel={`${title}, ${duration}`}
           accessibilityState={{ expanded: !isCollapsed }}
           style={styles.titleTarget}
           testID={`${testID}-collapse`}
         >
           <Text style={styles.title} numberOfLines={1} testID={`${testID}-title`}>
-            {t.title}
+            {title}
           </Text>
           <KodjoIcon
             name={isCollapsed ? "control-chevron-down" : "control-chevron-up"}
@@ -323,7 +335,13 @@ const STEP_PRESS_DELAY_MS = 100;
  * `onPress`) ; ignorée quand un `pressIn` vient de faire le pas (VoiceOver et le doigt passent par
  * `pressIn` / `pressOut` puis `onPress`).
  */
-function useCountStepper(count: number, onChange: (count: number) => void, isInterrupted: boolean) {
+function useCountStepper(
+  count: number,
+  onChange: (count: number) => void,
+  isInterrupted: boolean,
+  min: number,
+  max: number,
+) {
   const countRef = useRef(count);
   const onChangeRef = useRef(onChange);
   const pressedInRef = useRef(false);
@@ -338,7 +356,7 @@ function useCountStepper(count: number, onChange: (count: number) => void, isInt
   }, [isInterrupted]);
   const applyStep = (direction: 1 | -1, stepSize = 1) => {
     const current = countRef.current;
-    const next = steppedValue(current, direction, stepSize, CIRCUIT_COUNT_MIN, CIRCUIT_COUNT_MAX);
+    const next = steppedValue(current, direction, stepSize, min, max);
     if (next === current) return;
     countRef.current = next;
     onChangeRef.current(next);
@@ -413,83 +431,26 @@ function CircuitCounter({
   testID: string;
 }) {
   const t = strings.screens.composition.circuit;
-  const stepperStrings = strings.screens.profile.stepper;
-  const stepper = useCountStepper(count, onChange, isInterrupted);
-  const atMin = count <= CIRCUIT_COUNT_MIN;
-  const atMax = count >= CIRCUIT_COUNT_MAX;
-  // Revue 7.3 : ref de rappel stable (sinon détachée puis rattachée à chaque rendu).
-  const attachCounter = useCallback(
-    (node: View | null) => {
-      if (externalRef) externalRef.current = node;
-    },
-    [externalRef],
-  );
-  const stepTestID = `${testID}-stepper`;
   // Story 7.9 (revue) : la taille du texte (Dynamic Type) change aussi la largeur du déclencheur.
   const { fontScale } = useWindowDimensions();
 
   return (
     <View style={styles.counter} testID={`${testID}-row`}>
-      {/* Le nombre reste le même élément, stepper révélé ou non (focus VoiceOver conservé). */}
-      <View style={isOpen ? styles.stepperOpen : styles.stepperClosed} testID={stepTestID}>
-        {isOpen ? (
-          <StepButton
-            direction={-1}
-            disabled={atMin}
-            accessibilityLabel={
-              atMin ? `${t.decrementAccessibilityLabel} — ${stepperStrings.minimumReachedSuffix}` : t.decrementAccessibilityLabel
-            }
-            onPressIn={() => stepper.start(-1)}
-            onPressOut={stepper.stop}
-            onPress={() => stepper.press(-1)}
-            testID={`${stepTestID}-decrement`}
-          />
-        ) : null}
-        <Pressable
-          ref={attachCounter}
-          onPress={onToggle}
-          accessible
-          accessibilityRole="adjustable"
-          accessibilityLabel={t.countAccessibilityLabel}
-          accessibilityValue={{
-            min: CIRCUIT_COUNT_MIN,
-            max: CIRCUIT_COUNT_MAX,
-            now: count,
-            text: circuitCountSpokenValue(count),
-          }}
-          accessibilityState={{ expanded: isOpen }}
-          accessibilityActions={[
-            ...(atMax ? [] : [{ name: "increment" }]),
-            ...(atMin ? [] : [{ name: "decrement" }]),
-            { name: "activate" },
-          ]}
-          onAccessibilityAction={(event) => {
-            const action = event.nativeEvent.actionName;
-            if (action === "increment") stepper.step(1);
-            if (action === "decrement") stepper.step(-1);
-            if (action === "activate") onToggle();
-          }}
-          style={[styles.numberTarget, isOpen ? styles.numberTargetInStepper : styles.numberTargetInRow]}
-          testID={testID}
-        >
-          <Text style={styles.number} testID={`${testID}-value`}>
-            {count}
-          </Text>
-        </Pressable>
-        {isOpen ? (
-          <StepButton
-            direction={1}
-            disabled={atMax}
-            accessibilityLabel={
-              atMax ? `${t.incrementAccessibilityLabel} — ${stepperStrings.maximumReachedSuffix}` : t.incrementAccessibilityLabel
-            }
-            onPressIn={() => stepper.start(1)}
-            onPressOut={stepper.stop}
-            onPress={() => stepper.press(1)}
-            testID={`${stepTestID}-increment`}
-          />
-        ) : null}
-      </View>
+      <CountStepper
+        count={count}
+        min={CIRCUIT_COUNT_MIN}
+        max={CIRCUIT_COUNT_MAX}
+        isOpen={isOpen}
+        onToggle={onToggle}
+        onChange={onChange}
+        isInterrupted={isInterrupted}
+        accessibilityLabel={t.countAccessibilityLabel}
+        spokenValue={circuitCountSpokenValue(count)}
+        decrementAccessibilityLabel={t.decrementAccessibilityLabel}
+        incrementAccessibilityLabel={t.incrementAccessibilityLabel}
+        externalRef={externalRef}
+        counterTestID={testID}
+      />
       {/* RM-027 : l'unité n'est pas interactive ; elle est annoncée avec la valeur du réglage. */}
       <Text
         style={styles.unit}
@@ -515,6 +476,125 @@ function CircuitCounter({
           testID={`${testID}-nature`}
         />
       </View>
+    </View>
+  );
+}
+
+export type CountStepperProps = {
+  readonly count: number;
+  /** Bornes du compte (Circuit et Cycle : 1..99, chacune depuis sa source). */
+  readonly min: number;
+  readonly max: number;
+  /** Stepper révélé (RM-027) — contrôlé par l'écran. */
+  readonly isOpen: boolean;
+  /** Toucher du nombre (ou « activer » VoiceOver) : révèle ou referme le stepper. */
+  readonly onToggle: () => void;
+  /** Chaque pas : compte demandé, appliqué par l'écran. */
+  readonly onChange: (count: number) => void;
+  /** Vrai : un maintien en cours s'arrête (stepper refermé, placement, dialogue en attente). */
+  readonly isInterrupted: boolean;
+  /** Nom du réglage ajustable (« Nombre de tours », « Nombre de répétitions »). */
+  readonly accessibilityLabel: string;
+  /** Valeur annoncée avec son unité (« 4 tours »). */
+  readonly spokenValue: string;
+  readonly decrementAccessibilityLabel: string;
+  readonly incrementAccessibilityLabel: string;
+  readonly externalRef?: { current: View | null };
+  /**
+   * Identifiant du nombre (réglage) ; le stepper est `${counterTestID}-stepper`. Nommé autrement que
+   * `testID` : l'élément composite ne porte pas l'identifiant de son nombre.
+   */
+  readonly counterTestID: string;
+};
+
+/**
+ * PRE-9 B.1b : nombre et stepper révélé au toucher du nombre (RM-027), extraits du compteur du
+ * Circuit pour être partagés avec l'en-tête du Cycle (`CycleHeader`) — même géométrie (fond blanc de
+ * 36, cibles réelles de 44), même maintien (`useCountStepper`), même accessibilité ; rendu du Circuit
+ * inchangé.
+ */
+export function CountStepper({
+  count,
+  min,
+  max,
+  isOpen,
+  onToggle,
+  onChange,
+  isInterrupted,
+  accessibilityLabel,
+  spokenValue,
+  decrementAccessibilityLabel,
+  incrementAccessibilityLabel,
+  externalRef,
+  counterTestID: testID,
+}: CountStepperProps) {
+  const stepperStrings = strings.screens.profile.stepper;
+  const stepper = useCountStepper(count, onChange, isInterrupted, min, max);
+  const atMin = count <= min;
+  const atMax = count >= max;
+  // Revue 7.3 : ref de rappel stable (sinon détachée puis rattachée à chaque rendu).
+  const attachCounter = useCallback(
+    (node: View | null) => {
+      if (externalRef) externalRef.current = node;
+    },
+    [externalRef],
+  );
+  const stepTestID = `${testID}-stepper`;
+  return (
+    // Le nombre reste le même élément, stepper révélé ou non (focus VoiceOver conservé).
+    <View style={isOpen ? styles.stepperOpen : styles.stepperClosed} testID={stepTestID}>
+      {isOpen ? (
+        <StepButton
+          direction={-1}
+          disabled={atMin}
+          accessibilityLabel={
+            atMin ? `${decrementAccessibilityLabel} — ${stepperStrings.minimumReachedSuffix}` : decrementAccessibilityLabel
+          }
+          onPressIn={() => stepper.start(-1)}
+          onPressOut={stepper.stop}
+          onPress={() => stepper.press(-1)}
+          testID={`${stepTestID}-decrement`}
+        />
+      ) : null}
+      <Pressable
+        ref={attachCounter}
+        onPress={onToggle}
+        accessible
+        accessibilityRole="adjustable"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityValue={{ min, max, now: count, text: spokenValue }}
+        accessibilityState={{ expanded: isOpen }}
+        accessibilityActions={[
+          ...(atMax ? [] : [{ name: "increment" }]),
+          ...(atMin ? [] : [{ name: "decrement" }]),
+          { name: "activate" },
+        ]}
+        onAccessibilityAction={(event) => {
+          const action = event.nativeEvent.actionName;
+          if (action === "increment") stepper.step(1);
+          if (action === "decrement") stepper.step(-1);
+          if (action === "activate") onToggle();
+        }}
+        style={[styles.numberTarget, isOpen ? styles.numberTargetInStepper : styles.numberTargetInRow]}
+        testID={testID}
+      >
+        <Text style={styles.number} testID={`${testID}-value`}>
+          {count}
+        </Text>
+      </Pressable>
+      {isOpen ? (
+        <StepButton
+          direction={1}
+          disabled={atMax}
+          accessibilityLabel={
+            atMax ? `${incrementAccessibilityLabel} — ${stepperStrings.maximumReachedSuffix}` : incrementAccessibilityLabel
+          }
+          onPressIn={() => stepper.start(1)}
+          onPressOut={stepper.stop}
+          onPress={() => stepper.press(1)}
+          testID={`${stepTestID}-increment`}
+        />
+      ) : null}
     </View>
   );
 }

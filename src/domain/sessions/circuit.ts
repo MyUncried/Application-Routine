@@ -340,8 +340,8 @@ function countOf(draft: SessionDraft): number {
   return circuitBoundCount(circuitBoundOf(draft));
 }
 
-/** Séries perdues par un exercice ramené à `count` (0 si aucune). */
-function lostSeriesCount(exercise: SessionDraftExercise, count: number): number {
+/** Séries perdues par un exercice ramené à `count` (0 si aucune). PRE-9 (B.1b) : exporté pour les Circuits d'une disposition générale. */
+export function lostSeriesCount(exercise: SessionDraftExercise, count: number): number {
   return Math.max(seriesCountOf(exercise.executionParameters) - count, 0);
 }
 
@@ -349,9 +349,10 @@ function lostSeriesCount(exercise: SessionDraftExercise, count: number): number 
  * Adapte un exercice à N : identiques → `count = N` ; variables → lignes
  * ramenées à N (restauration depuis `reserve`, puis copie de la dernière
  * ligne active). Régime et autres paramètres inchangés ; même référence si
- * rien ne change.
+ * rien ne change. PRE-9 (B.1b) : exporté pour les Circuits d'une disposition générale
+ * (`layoutOperations.ts`).
  */
-function adaptExercise(
+export function adaptExercise(
   exercise: SessionDraftExercise,
   count: number,
   reserve: readonly SeriesRow[],

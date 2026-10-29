@@ -83,7 +83,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
     render(<SessionCompositionTree tree={knee().tree} testID="tree" />);
     expect(screen.getByTestId("tree-divider")).toBeTruthy();
     expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle · 2 répétitions");
-    expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · 3 tours");
+    expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · 3 tours · groupées");
     expect(screen.getByTestId("tree-line-sq")).toHaveTextContent("Squat assisté3 × 12 rép.");
     expect(screen.getByTestId("tree-line-ext:recovery")).toHaveTextContent("Récupération1 min");
     const recoveryName = screen.getByText("Récupération");
@@ -113,13 +113,14 @@ describe("PRE-8 E.3 — arbre rendu", () => {
     expect(StyleSheet.flatten(screen.getByTestId("tree-line-g").props.style).paddingLeft).toBe(0);
   });
 
-  it("libellés au singulier et nature Séries du Circuit", () => {
+  it("libellés au singulier ; Circuit : unité « tour(s) » et adjectif de nature (PRE-9 B.1b, référence §2)", () => {
     expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 1 }).name).toBe("Cycle · 1 répétition");
-    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 4, nature: "SERIES" }).name).toBe("Circuit · 4 séries");
+    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 4, nature: "SERIES" }).name).toBe("Circuit · 4 tours · alternées");
+    expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 1, nature: "TOURS" }).name).toBe("Circuit · 1 tour · groupées");
   });
 
   it("texte d'accessibilité de la composition", () => {
-    expect(compositionAccessibilityText(knee().tree)).toMatch(/^Composition de la séance : Mobilisation du genou 45 s, Cycle · 2 répétitions, Circuit · 3 tours/);
+    expect(compositionAccessibilityText(knee().tree)).toMatch(/^Composition de la séance : Mobilisation du genou 45 s, Cycle · 2 répétitions, Circuit · 3 tours · groupées/);
   });
 });
 

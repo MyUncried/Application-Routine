@@ -207,7 +207,10 @@ export const fr = {
         archivedAccessibility: "archivée",
         cycleLine: "Cycle · {count} {unit}",
         cycleUnit: { singular: "répétition", plural: "répétitions" },
-        circuitLine: "Circuit · {count} {unit}",
+        // PRE-9 B.1b (référence « Composition : circuits, cycles et création » §2 : « L’unité reste
+        // tour(s) ») : « Circuit · N tours · groupées|alternées » [remplace « Circuit · N tours|séries »
+        // (unité accordée à la nature), 29/10/2026].
+        circuitLine: "Circuit · {count} {unit} · {nature}",
         recovery: "Récupération",
         compositionAccessibilityLabel: "Composition de la séance",
         // E.5 (CE-T03-01 révisé ; ch06 « Supprimer cette séance ? ») : actions glissées et cycle de vie.
@@ -524,7 +527,8 @@ export const fr = {
         // « Composition : circuits, cycles et création » §2) : l’unité du compteur de l’en-tête
         // reste « tour(s) » pour les deux natures, accordée à N ; la nature est portée par
         // l’adjectif « groupées » / « alternées » (identifiants persistés `TOURS` / `SERIES`
-        // inchangés). `unit` ci-dessus reste celui de la carte du Catalogue (hors périmètre).
+        // inchangés). `unit` ci-dessus n’est plus lu [PRE-9 B.1b : la carte du Catalogue emploie aussi
+        // `countUnit` et `natureAdjective`] ; conservé, sans effet.
         countUnit: { singular: "tour", plural: "tours" },
         natureAdjective: {
           TOURS: "groupées",
@@ -576,6 +580,16 @@ export const fr = {
             unset: "à renseigner",
           },
         },
+      },
+      // PRE-9 B.1b (D-451 ; référence §4 : « Le cycle ne se replie pas […] Sa ligne n’a pas
+      // d’adjectif de nature ; unité « répétition(s) » ») : en-tête du Cycle. Compte 1..99, nombre
+      // révélant le stepper (RM-027, comme le Circuit) ; l’unité n’est pas interactive.
+      cycle: {
+        title: "Cycle",
+        countUnit: { singular: "répétition", plural: "répétitions" },
+        countAccessibilityLabel: "Nombre de répétitions",
+        decrementAccessibilityLabel: "Retirer une répétition",
+        incrementAccessibilityLabel: "Ajouter une répétition",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
