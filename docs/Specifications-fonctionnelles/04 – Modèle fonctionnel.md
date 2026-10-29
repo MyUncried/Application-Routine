@@ -472,7 +472,7 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 <a id="formats-modele"></a>
 #### Formats — modèle fonctionnel
 
-Le format appliqué, l’origine de création et les paramètres du format sont trois informations distinctes de Séance. Les constantes sont imposées ; les réglages autorisés restent éditables ; les valeurs dérivées sont recalculées. Une modification n’altère jamais les instantanés passés.
+**Cible PRE-9 clarifiée le 29/10/2026 :** un Format et ses réglages sont attachés à chaque **Exercice de la Séance** ; ils ne constituent ni un Format unique de Séance, ni un Format du Circuit. L’origine de création reste une information distincte de la Séance. Le Circuit organise ses membres, sa nature et son compte ; le Cycle répète sa séquence. Les constantes de chaque Exercice formaté sont imposées ; les réglages autorisés restent éditables ; les valeurs dérivées sont recalculées. Une modification n’altère jamais les instantanés passés. [La précédente portée « trois informations distinctes de Séance » est supersédée pour le Format et ses réglages.]
 
 | Format / origine | Organisation et borne | Indexation |
 |---|---|---|
