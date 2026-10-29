@@ -11,7 +11,7 @@ development_status:
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
   q-1-qualification-fin-pre9: backlog
   epic-a: in-progress
-  a-1-fondation-structure-generale: review  # livrée (migration 016, chemin structuré) ; src/domain 48/1625 et src/infrastructure 31/493 verts ; lot src/features/sessions interrompu par manque de mémoire (Claude Code) : à relancer avant done ; spec-a-1-fondation-structure-generale.md  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
+  a-1-fondation-structure-generale: done  # livrée (migration 016, chemin structuré) ; suite Jest complète verte (224 suites / 4 783 tests) le 29/10 ; spec-a-1-fondation-structure-generale.md  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
   a-2-exercice-depuis-mouvement: backlog  # ARB-22a, ARB-07 (décidés)
   a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
   a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
