@@ -161,9 +161,9 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 
 **[DÉCIDÉ] Appui « tour terminé » (AMRAP et For time).** Calqué sur le Death by : chaque appui acquiert un tour ; un seul appui par tour ; un tour inachevé n'est pas compté.
 
-**[À CLARIFIER] Tour partiel de l'AMRAP.** Non validé. Proposition à arbitrer : au terme du temps, les répétitions réalisées du tour inachevé sont saisies dans la modale des répétitions partielles, valeur initiale 0.
+**[DÉCIDÉ] Tour partiel de l'AMRAP.** Au terme du temps, les répétitions réalisées du tour inachevé sont saisies dans la modale des répétitions partielles, valeur initiale 0.
 
-**[À CLARIFIER] Résultat à l'arrêt sur plafond.** Aucune décision : un For time arrêté par son plafond est-il présenté comme incomplet, comme le Death by arrêté par « Limite atteinte » ?
+**[DÉCIDÉ] Résultat d'un For time arrêté par son plafond.** Il est présenté comme incomplet, comme le Death by arrêté par « Limite atteinte ».
 
 ## 10. Points ouverts
 
@@ -171,4 +171,3 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 |---|---|
 | Confirmation des valeurs proposées (§3) | Activation de chaque départ |
 | Traitement graphique du choix circuit existant ou nouveau circuit (§4.5) | Figma, hors règles |
-| Tour partiel de l'AMRAP ; résultat d'un For time arrêté par son plafond (§9) | Écran d'exécution AMRAP et For time |
