@@ -108,6 +108,18 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 
 **[DÉCIDÉ] Choix à l'utilisateur.** Lorsqu'il ajoute un format qui existe déjà dans la séance, l'utilisateur choisit entre **ajouter au circuit formaté existant** et **créer un nouveau circuit**. Ce choix est porté par l'interface. Son traitement graphique relève de Figma.
 
+### 4.6 Inclusion et exclusion dans un circuit
+
+**[DÉCIDÉ] Règles déduites des principes de §4.1 et des définitions des formats** ; aucun arbitrage supplémentaire.
+
+- **Exercice libre dans un circuit libre (groupé ou alterné)** : admis sans restriction. Il prend l'organisation et le nombre de tours du circuit ; ses paramètres propres restent les siens. Un nombre variable prend la valeur du circuit.
+- **Exercice libre sorti d'un circuit** : il garde ses paramètres. Le nombre de tours du circuit n'est pas modifié.
+- **Exercice libre dans un circuit contenant des exercices formatés** : admis. Il n'a pas de format à transférer.
+- **Exercice formaté dans un circuit, libre ou formaté** : règle de la matrice de §4.3, selon l'organisation et le nombre de tours du circuit, et non selon son identité. Refus seulement si la nature de l'exercice change.
+- **Exercice formaté sorti d'un circuit** : il garde son format et ses paramètres. Le circuit ne transmet aucun format à ses membres.
+- **Circuit réduit à un seul membre** : il subsiste avec son organisation et son nombre de tours.
+- **Exercice libre dans un circuit alterné à 8 tours fixé par un Tabata** : admis ; son nombre de tours prend la valeur 8.
+
 ## 5. Second exercice ajouté à un format porté par un exercice seul
 
 **Cas.** Un EMOM est sur l'exercice Squat. On ajoute un second exercice, Fentes.
