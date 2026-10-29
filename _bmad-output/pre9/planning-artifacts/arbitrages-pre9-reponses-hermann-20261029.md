@@ -99,7 +99,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 
 - **[DÉCIDÉ] Le second exercice adopte l'EMOM.** Si des valeurs qu'il portait sont remplacées, une confirmation est demandée. Le nombre de tours reste 6, et la durée est recalculée.
 - **[DÉCIDÉ] Le sélecteur d'organisation est proposé à l'arrivée du second exercice**, pour les formats qui l'admettent : Tabata, EMOM, Progression. Il est exclu pour le For time.
-- **[PROPOSÉ] Le format remonte de l'exercice au circuit, réglages inchangés.** À confirmer.
+- **[DÉCIDÉ] Pas de transfert automatique.** Le format appartient à chaque exercice qui le porte. Le lien dans un circuit est un choix de l'utilisateur. Il n'y a aucun mécanisme de montée du format vers le circuit.
 - **[À CLARIFIER] Le Death by dans ce geste.** Son comportement avec plusieurs exercices n'est pas défini. Exclure le Death by de ce geste pour l'instant, ou le permettre en définissant comment le rang global se calcule.
 
 ## 6. Position d'un circuit formaté inséré par l'entrée « Format »
@@ -114,6 +114,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 4. **[DÉCIDÉ] Arrêt d'un Death by.** Il met fin à cet élément, non à la séance.
 5. **[DÉCIDÉ] AMRAP répété.** Chaque répétition dure 12 minutes.
 6. **[DÉCIDÉ] Principes des circuits formatés** (§4.1), qui remplacent le passage d'ARB-24 sur les valeurs imposées.
+7. **[DÉCIDÉ] Pas de transfert automatique du format.** Le format appartient à l'élément qui le porte. ARB-03 est précisé : un format n'est porté par un circuit que si l'utilisateur place ses exercices dans ce circuit.
 
 ## 8. Conséquences sur le plan et la documentation
 
@@ -150,7 +151,6 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 | Point | Bloque |
 |---|---|
 | Contenu des cinq départs rapides (§3) | Activation de chaque départ |
-| Le format remonte de l'exercice au circuit (§5) | Le geste d'ajout d'un second exercice |
 | Death by dans ce geste (§5) | Ce geste pour le Death by |
 | Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
