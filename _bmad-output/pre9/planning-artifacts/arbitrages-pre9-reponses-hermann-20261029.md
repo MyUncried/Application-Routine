@@ -48,7 +48,7 @@ Ces valeurs sont modifiables, sauf celles qu'un format impose : Tabata, constant
 
 **[DÉCIDÉ] Superset** : un circuit groupé d'un tour, avec deux exercices vides ; les réglages de chaque exercice restent libres.
 
-**[PROPOSÉ] Valeurs tirées des exemples existants**, à confirmer :
+**[DÉCIDÉ] Valeurs confirmées par Hermann le 29/10/2026 :**
 
 | Départ | Réglage proposé |
 |---|---|
