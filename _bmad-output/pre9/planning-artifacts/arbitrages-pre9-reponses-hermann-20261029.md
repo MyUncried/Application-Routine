@@ -155,11 +155,15 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 
 **Non concerné :** FMT-23 reste vrai à l'intérieur d'un bloc EMOM.
 
-## 9. Écarts d'exécution, hors périmètre
+## 9. Exécution : AMRAP et For time
 
-1. **[À CLARIFIER]** L'appui « Appuyez à chaque tour terminé » est présent sur les écrans AMRAP et For time, sans règle qui le décrive.
-2. **[À CLARIFIER]** Le plafond de temps du For time, rapporté comme décidé le 28/10/2026, n'est retrouvé dans aucune source au commit `c73079e9`. Hermann doit le confirmer.
-3. **[À CLARIFIER]** Le tour partiel de l'AMRAP n'est pas raccordé à la règle des répétitions partielles.
+**[DÉCIDÉ] Plafond de temps du For time.** Il est optionnel, et sert en général pour des raisons de sécurité. Quand il est atteint, l'exercice s'arrête.
+
+**[DÉCIDÉ] Appui « tour terminé » (AMRAP et For time).** Calqué sur le Death by : chaque appui acquiert un tour ; un seul appui par tour ; un tour inachevé n'est pas compté.
+
+**[À CLARIFIER] Tour partiel de l'AMRAP.** Non validé. Proposition à arbitrer : au terme du temps, les répétitions réalisées du tour inachevé sont saisies dans la modale des répétitions partielles, valeur initiale 0.
+
+**[À CLARIFIER] Résultat à l'arrêt sur plafond.** Aucune décision : un For time arrêté par son plafond est-il présenté comme incomplet, comme le Death by arrêté par « Limite atteinte » ?
 
 ## 10. Points ouverts
 
@@ -167,4 +171,4 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 |---|---|
 | Confirmation des valeurs proposées (§3) | Activation de chaque départ |
 | Traitement graphique du choix circuit existant ou nouveau circuit (§4.5) | Figma, hors règles |
-| Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
+| Tour partiel de l'AMRAP ; résultat d'un For time arrêté par son plafond (§9) | Écran d'exécution AMRAP et For time |
