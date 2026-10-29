@@ -41,7 +41,7 @@ Une nouvelle ligne porte un tiret, jamais un zéro initialisé. Le tiret signifi
 
 Les bornes numériques de cible deviennent 0..100 répétitions et 0..3535 s par série. Le nombre de séries demeure 1..99 et les bornes des pauses demeurent inchangées. Cette ouverture ne rend pas nulles les durées de phases du mouvement, qui conservent leur minimum propre. D-232, D-430 et RM-234 sont remplacées sur le seul minimum de cible de série.
 
-La récupération contextuelle après exercice est distincte de la pause de série. La source ne tranche pas son sort quand l’occurrence est sautée ; ce point est réservé dans la revue, sans règle inventée. Le plan développé applique toujours la déduplication des points d’arrêt déjà prévue par RM-251, sans modifier la séance enregistrée.
+La récupération contextuelle après exercice est distincte de la pause de série. La source ne tranche pas son sort quand l’occurrence est sautée ; ce point est réservé dans la revue, sans règle inventée. [29/10/2026, tranché par ARB-10b (registre ch07 « Arbitrages PRE-9 ») : une occurrence sautée n’exécute pas la récupération qui lui est directement associée ; les pauses indépendantes placées dans la Séance restent conservées.] Le plan développé applique toujours la déduplication des points d’arrêt déjà prévue par RM-251, sans modifier la séance enregistrée.
 
 ## 4. En-têtes et identification
 

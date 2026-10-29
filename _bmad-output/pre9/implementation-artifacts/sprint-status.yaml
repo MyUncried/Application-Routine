@@ -34,7 +34,7 @@ development_status:
   c-5-departs-rapides: backlog  # ARB-22b (décidé) ; ARB-22c EN ATTENTE DE DÉFINITION FONCTIONNELLE
   c-6-edition-duplication-formats: backlog  # ARB-17, ARB-21 (décidés)
   epic-d: backlog
-  d-1-developpement-plan: backlog  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
+  d-1-developpement-plan: done  # livrée ; planExpansion.d1 9/9 ; spec-d-1-developpement-plan.md ;  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
   d-2-instantane-seance: backlog
   d-3-descripteurs-capacites: backlog
   d-4-validation-executabilite: backlog  # validité de configuration ≠ disponibilité du moteur
