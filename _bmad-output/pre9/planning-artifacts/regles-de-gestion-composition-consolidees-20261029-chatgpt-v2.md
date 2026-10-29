@@ -153,17 +153,45 @@ CE-FMT-03 §14 impose une réapplication des contraintes après édition, sans p
 
 FMT-36 régit l'acquisition d'une fenêtre ; **FMT-37 et FMT-38 prévoient déjà** la saisie de répétitions partielles après un arrêt de Death by, avec zéro proposé. Pour AMRAP, D-20 définit **un autre déclencheur**, à l'échéance temporelle du bloc. Le composant de modale peut être mutualisé techniquement si cela convient ; ce n'est pas une règle métier nouvelle.
 
-## 4. Points restant ouverts
+## 4. Points restant ouverts — localisés par opération
 
-**Aucune décision ouverte côté règles.** Les points C-08 et C-14 sont à vérifier par la revue, et ne demandent pas d'arbitrage de Hermann sauf si la vérification révèle un conflit réel.
+L'assertion initiale « aucune décision ouverte côté règles » est **retirée**. Les arbitrages explicitement rendus ne sont pas remis en cause ; ce sont leurs raccordements incomplets ou certaines attributions insuffisamment sourcées qui restent à instruire.
 
-Restent hors règles : le graphisme du choix entre circuit existant et nouveau circuit (D-11, Figma).
+| Contrôle de cohérence (pas un nouvel arbitrage) | Question / conflit observable | Dépendance limitée |
+|---|---|---|
+| **PC-01** | D-05/D-07 : distinguer valeurs intrinsèques, régime, nombre actif de séries, adaptation à N et constante imposée | Dépose d'un Exercice formaté, C.4 |
+| **PC-02** | D-05/D-12/D-26 : adoption volontaire du Format par un second Exercice contre simple dépose d'un Exercice déjà formaté | Ajout à un élément formaté, C.4 |
+| **PC-03** | D-02/D-11/D-27 : Format porté par le Circuit, par chaque membre, ou par les deux ; règles quand les Formats sont identiques / distincts et lors de la sortie | Modèle et validation C.1/C.4 |
+| **PC-04** | D-06 : preuve de la décision de figer l'organisation et portée Format par Format | Verrouillages C.3/C.4 |
+| **PC-05** | D-16/D-29 : Death by alterné, compte N, horloges des membres, rangs/fenêtres, fin d'un membre avant les autres | Contrat D.3/D.5 ; exécution PRE-11 |
+| **PC-06** | Exécution multi-Exercices AMRAP / For time, tours partiels, plafond et résultats cumulés ; commandes générales en fenêtres | Contrat D.3/D.5 ; PRE-10/11 |
 
-## 5. Questions à la revue
+**C-08 : À CLARIFIER** sur les règles de coexistence des contraintes. **C-14 : erreur documentaire corrigée**, sans besoin de réinventer les règles de partiels Death by.
 
-1. Chaque décision D-01 à D-29 est-elle fidèlement résumée et sans extrapolation ? Signale tout ce qui va au-delà de ce qui est écrit.
-2. La matrice du §2.1 est-elle cohérente avec D-15 et D-16 ? Chaque cellule découle-t-elle d'une décision ?
-3. Les conflits C-01 à C-15 sont-ils exacts ? Vérifie les citations sur `main` @ `c73079e9`.
-4. Y a-t-il une contradiction entre deux décisions que cette analyse n'a pas relevée ? En particulier entre D-05, D-06, D-07 et D-15.
-5. Les règles de §2.3 couvrent-elles les cas d'exécution sans trou ? Signale tout cas qui n'est pas tranché.
-6. Verdict : COHÉRENT, COHÉRENT SOUS RÉSERVE DE CORRECTIONS, ou INCOHÉRENT, avec la liste des corrections.
+**Graphisme D-11 :** le rendu du choix « Circuit existant / nouveau Circuit » relève de Figma, sans constituer un arbitrage technique ou un blocage produit général.
+
+**Règle de priorité opérationnelle :** aucun point ne bloque la totalité du plan. Seule l'opération dont le comportement est réellement non défini attend clarification ; les autres stories PRE-9 demeurent développables sous leurs règles et tests existants.
+
+## 5. Consignes pour la contre-revue de Claude
+
+1. Vérifier la fidélité de **D-01 à D-29**, en distinguant le texte attribué à Hermann de ce qui est seulement dérivé de règles ou proposé. Ne pas remplacer une décision validée par une préférence technique.
+2. Vérifier les **12 cellules Groupé / Alterné** du §2.1, puis séparément la qualification des constantes, des valeurs initiales et des porteurs.
+3. Vérifier **C-01 à C-15** sur la version **exacte** des sources : main @ c73079e9 ; ancien plan pre9-bmad/plan @ 265f3d9d ; correctif FMT-34 @ 990542fd à signaler séparément.
+4. Contrôler particulièrement les cas : Tabata N=8 / N différent ; EMOM réglable N différent ; ajout d'Exercice Libre à Circuit déjà formaté ; dépose d'un Exercice déjà formaté dans Circuit du même Format ou d'un autre ; AMRAP et For time répétés ; Death by alterné avec fin d'un seul membre.
+5. Indiquer pour PC-01 à PC-06 si la correction est une **précision documentaire**, une **décision fonctionnelle manquante**, ou un **raccordement technique différable à PRE-10/11**.
+6. Contester, si nécessaire, chaque correction ChatGPT en citant l'**évidence textuelle exacte** et l'effet observable. Ne pas invoquer l'absence de preuve comme conformité.
+7. Formuler un verdict : **COHÉRENT**, **COHÉRENT SOUS RÉSERVE DE CORRECTIONS** ou **INCOHÉRENT**, avec corrections ciblées et ordre de priorité.
+
+**Point d'arrêt :** contre-revue seulement ; ne pas réviser le plan BMAD ni la documentation normative, ne pas modifier Figma et ne pas développer l'application sur la seule base de ce document.
+
+## 6. Traçabilité et limites de la version corrigée
+
+**Original conservé :** `regles-de-gestion-composition-consolidees-20261029.md`, commit `fe8af6a5`.
+
+**Sections affectées :** qualification de D-05, D-06, D-07, D-12, D-15, D-16 et D-29 ; matrice §2.1 ; précision Superset §2.2 ; règles d'exécution §2.3 ; C-01 à C-15 et analyses distinctes C-08/C-14 ; points ouverts §4 ; demandes de revue §5.
+
+**Aucune décision nouvelle :** les « À CLARIFIER » désignent des limites de preuve ou de raccordement, pas des règles créées par ChatGPT.
+
+**Propagation ultérieure à contrôler après contre-revue :** plan BMAD (PRD, architecture §§2/3/5/6/7, Epics B.4/C.1/C.3/C.4/D.1/D.3/D.5, matrice d'écarts, statut) ; registre ch07, conception ch08, modèle ch09, règles ch10, API ch11, architecture ch12, contrats ch13, réserves ch05, matrice et DSF Formats ; PRODUCT.md/INDEX.md uniquement si réellement impactés. Respecter les noms Unicode et les références Markdown exactes.
+
+**Seconde passe requise :** contrôler les 29 décisions et 15 conflits individuellement, rechercher les formulations antérieures contradictoires, vérifier que chaque règle repose sur une évidence et ne pas qualifier « vérifié » ce qui ne l'est pas.
