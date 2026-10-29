@@ -7,7 +7,8 @@
  * Fonctions pures.
  */
 
-import { legacyFromStructure, computeStructureDuration, type SessionStructure, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
+import { insertExerciseInLayout } from "@/domain/sessions/layoutOperations";
+import { legacyFromStructure, computeStructureDuration, structureExercises, type SessionStructure, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
 import type { SessionDraft, SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
 
@@ -78,4 +79,33 @@ export function resolveRichLayout(draft: Pick<SessionDraft, "structure" | "exerc
  */
 export function formatLayoutDuration(elements: readonly ResolvedLayoutElement[]): string {
   return formatSessionDurationEstimate(computeStructureDuration({ elements }));
+}
+
+/**
+ * PRE-9 B.2 (ARB-07 : « Nouvel Exercice inséré après le dernier Exercice entré, dans son conteneur,
+ * comme actuellement ») — ajout de nouvelles occurrences à une disposition générale. Le repère est
+ * celui de l'ancien modèle (`appendActivityAfterLastDisplayed` : le dernier Exercice affiché) ; la
+ * première occurrence est insérée après lui, dans son conteneur (`insertExerciseInLayout`), les
+ * suivantes chacune après la précédente. `null` : le brouillon relève de l'ancien modèle, dont
+ * l'insertion existante s'applique, inchangée.
+ *
+ * Le réglage d'une occurrence qui entre dans un Circuit alterné (N du Circuit) relève de B.3 : il
+ * n'est pas appliqué ici.
+ */
+export function insertIntoRichLayout(
+  draft: SessionDraft,
+  additions: readonly SessionDraftExercise[],
+): Pick<SessionDraft, "exercises" | "structure"> | null {
+  const resolved = resolveRichLayout(draft);
+  if (resolved === null) {
+    return null;
+  }
+  const displayed = structureExercises(resolved);
+  let anchor = displayed[displayed.length - 1]?.id ?? null;
+  let next = draft;
+  for (const exercise of additions) {
+    next = insertExerciseInLayout(next, exercise, anchor);
+    anchor = exercise.id;
+  }
+  return { exercises: next.exercises, structure: next.structure };
 }

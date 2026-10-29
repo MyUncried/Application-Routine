@@ -10,7 +10,7 @@ import type { BodyZone } from "@/domain/body-zones/BodyZone";
 import type { Category } from "@/domain/categories/Category";
 import { settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
-import type { SessionDraftExercise } from "@/domain/sessions/SessionDraft";
+import type { SessionDraft, SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import type { ActivityDefinitionService } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { withLevelSuffix } from "@/features/activities/movementChoicePresentation";
@@ -25,6 +25,7 @@ import {
   resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
+import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { strings } from "@/shared/i18n";
 import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
@@ -174,17 +175,23 @@ export function ActivitySelectionScreen() {
     const orderedSelection = state.definitions.filter((definition) =>
       availableSelectedIds.includes(definition.id),
     );
+    // V2-PRE-1 (plan §3.2) : `postActivityRecoverySeconds` est une
+    // propriété de l'OCCURRENCE, jamais dérivée de la définition.
+    // PRE-3 (spécification du 07/10, P3-13/no-auto-R) : une nouvelle
+    // occurrence ne reçoit AUCUNE Récupération automatique — le défaut du
+    // Profil n'est utilisé que par l'ajout explicite d'une Récupération
+    // (placement PRE-4). Copie complète : paramètres, Catégorie et médias
+    // ordonnés (`activityDefinitionToDraftExercise`). PRE-6 (story 1.1,
+    // AD-35) : l'occurrence naît sans récupération (`null`, absente).
+    const copies = orderedSelection.map((definition) => activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), null));
+    // PRE-9 B.2 (ARB-07) : disposition générale — copies insérées après le dernier Exercice affiché,
+    // dans son conteneur, chacune à la suite de la précédente ; aucun réglage de Circuit (B.3).
+    const richInsertion = insertIntoRichLayout(draft, copies);
+    if (richInsertion !== null) {
+      return { exercises: richInsertion.exercises, structure: richInsertion.structure, losses: [], targetCount: 0, enteringCount: 0 };
+    }
     let nextExercises = draft.exercises;
-    for (const definition of orderedSelection) {
-      // V2-PRE-1 (plan §3.2) : `postActivityRecoverySeconds` est une
-      // propriété de l'OCCURRENCE, jamais dérivée de la définition.
-      // PRE-3 (spécification du 07/10, P3-13/no-auto-R) : une nouvelle
-      // occurrence ne reçoit AUCUNE Récupération automatique — le défaut du
-      // Profil n'est utilisé que par l'ajout explicite d'une Récupération
-      // (placement PRE-4). Copie complète : paramètres, Catégorie et médias
-      // ordonnés (`activityDefinitionToDraftExercise`). PRE-6 (story 1.1,
-      // AD-35) : l'occurrence naît sans récupération (`null`, absente).
-      const copy = activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), null);
+    for (const copy of copies) {
       nextExercises = appendActivityAfterLastDisplayed(nextExercises, copy);
     }
     // PRE-6 (story 2.3, AD-39) : copies arrivées dans un Circuit de Séries adaptées à N ; si au
@@ -208,13 +215,14 @@ export function ActivitySelectionScreen() {
       setPendingAdd({ enteringCount: plan.enteringCount, targetCount: plan.targetCount });
       return;
     }
-    commitAdd(plan.exercises);
+    commitAdd(plan.exercises, "structure" in plan ? plan.structure : undefined);
   }
 
   // Insertion atomique : une seule mutation du brouillon pour l'ensemble des copies — toutes
   // ou aucune — puis retour à la Composition.
-  function commitAdd(exercises: readonly SessionDraftExercise[]) {
-    updateDraft({ exercises });
+  function commitAdd(exercises: readonly SessionDraftExercise[], structure?: SessionDraft["structure"]) {
+    // PRE-9 B.2 (ARB-07) : disposition générale avec les copies insérées.
+    updateDraft({ exercises, ...(structure !== undefined ? { structure } : {}) });
     router.back();
   }
 
@@ -325,7 +333,7 @@ export function ActivitySelectionScreen() {
             // Ajout rejoué sur le brouillon et la sélection courants : rien n'est écrasé.
             const plan = planAdd();
             if (plan !== null) {
-              commitAdd(plan.exercises);
+              commitAdd(plan.exercises, "structure" in plan ? plan.structure : undefined);
             }
           }}
         />

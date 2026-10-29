@@ -40,6 +40,16 @@ export type PlacementBarProps = {
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
   readonly testID?: string;
+} | {
+  /**
+   * PRE-9 B.2 (ARB-19, Figma `10819:20344`, `10836:20478`) : même barre pour le mode enveloppe —
+   * « Confirmer le circuit / le cycle » et « Annuler » ; libellé et disponibilité fournis.
+   */
+  readonly confirmLabel: string;
+  readonly isConfirmDisabled: boolean;
+  readonly onConfirm: () => void;
+  readonly onCancel: () => void;
+  readonly testID?: string;
 };
 
 /**
@@ -51,10 +61,11 @@ export type PlacementBarProps = {
  * l'effet d'un toucher et le changement de disponibilité de « Confirmer » (son libellé), pour
  * qu'aucune annonce n'en interrompe une autre. Le libellé reste lu au focus du bouton.
  */
-export function PlacementBar({ confirmation, onConfirm, onCancel, testID = "composition-placement-bar" }: PlacementBarProps) {
+export function PlacementBar(props: PlacementBarProps) {
+  const { onConfirm, onCancel, testID = "composition-placement-bar" } = props;
   const t = strings.screens.composition.placement;
-  const label = formatPlacementConfirmLabel(confirmation);
-  const disabled = confirmation.kind === "NONE";
+  const label = "confirmation" in props ? formatPlacementConfirmLabel(props.confirmation) : props.confirmLabel;
+  const disabled = "confirmation" in props ? props.confirmation.kind === "NONE" : props.isConfirmDisabled;
 
   // À l'apparition de la barre, le focus d'accessibilité est porté sur « Confirmer ».
   const confirmRef = useRef<View>(null);

@@ -22,7 +22,6 @@ import {
   DEFAULT_EXERCISE_DURATION_SECONDS,
   DEFAULT_FINAL_PHASE_SECONDS,
   DEFAULT_INITIAL_COUNTDOWN_SECONDS,
-  DEFAULT_TOUR_REPEAT_COUNT,
 } from "@/domain/sessions/defaults";
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { SessionValidationError } from "@/domain/sessions/errors";
@@ -191,13 +190,11 @@ describe("SessionService.createSession (PRE-9 A.1 : chemin structuré)", () => {
       finalPhaseSeconds: 5,
       // PRE-7 (R-3, C05) : le contenu va au Mouvement NEW, nom normalisé.
       movements: [newMovement("ex-1", "Gainage")],
-      // Ancien modèle `[avant…, Circuit, après…]` : Exercice avant le Circuit (vide) créé avec la
-      // Séance ; aucun Point d'arrêt porté par le brouillon.
+      // PRE-9 B.2 — D-451, COMP §1 (« une Séance commence sans Circuit », « un conteneur n'est jamais
+      // vide ») : l'Exercice est au niveau de la Séance, sans Circuit vide [auparavant : Circuit vide
+      // créé avec la Séance] ; aucun Point d'arrêt porté par le brouillon.
       structure: {
-        elements: [
-          { kind: "EXERCISE", exercise: expect.objectContaining(normalizedExercise()) },
-          { kind: "CIRCUIT", circuit: { id: NEW_CIRCUIT_ID, repeatCount: DEFAULT_TOUR_REPEAT_COUNT, nature: "TOURS", exercises: [] } },
-        ],
+        elements: [{ kind: "EXERCISE", exercise: expect.objectContaining(normalizedExercise()) }],
         stopPoints: [],
       },
     });

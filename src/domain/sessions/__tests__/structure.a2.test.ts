@@ -6,6 +6,7 @@ import {
   computeStructureDuration,
   countStructureExercises,
   legacyFromStructure,
+  NO_CIRCUIT_ID,
   structureCircuits,
   structureExercises,
   structureFromLegacy,
@@ -128,7 +129,7 @@ describe("structure — projection ancienne sans perte", () => {
     expect(legacyFromStructure(structureFromLegacy(empty, emptyPoints))).toEqual({ composition: empty, stopPoints: emptyPoints });
   });
 
-  it("refuse la projection d'une structure plus riche (Cycle, plusieurs Circuits ou aucun)", () => {
+  it("refuse la projection d'une structure plus riche (Cycle, plusieurs Circuits) ; sans Circuit : Circuit vide absent (PRE-9 B.2)", () => {
     const withCycle: SessionStructure<Facts> = {
       elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, members: [circuit("c1", [exercise("x")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } }],
       stopPoints: [],
@@ -143,7 +144,12 @@ describe("structure — projection ancienne sans perte", () => {
     const noCircuit: SessionStructure<Facts> = { elements: [{ kind: "EXERCISE", exercise: exercise("x") }], stopPoints: [] };
     expect(legacyFromStructure(withCycle)).toBeNull();
     expect(legacyFromStructure(twoCircuits)).toBeNull();
-    expect(legacyFromStructure(noCircuit)).toBeNull();
+    // PRE-9 (B.2, D-451, COMP §1) : une Séance sans Circuit est l'ancien modèle à Circuit vide, jamais écrit.
+    expect(legacyFromStructure(noCircuit)?.composition).toEqual({
+      beforeTour: [exercise("x")],
+      tour: { id: NO_CIRCUIT_ID, repeatCount: 1, nature: "TOURS", exercises: [] },
+      afterTour: [],
+    });
   });
 });
 

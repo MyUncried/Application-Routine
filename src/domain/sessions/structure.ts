@@ -276,6 +276,37 @@ export function computeStructureDuration<E extends ActivityDurationFacts>(
 // ---------------------------------------------------------------------------
 
 /**
+ * PRE-9 (B.2, D-451, COMP §1 : un conteneur n'est jamais vide) : structure sans le Circuit vide de
+ * l'ancien modèle. Un Point en tête du Circuit vide prend sa place au niveau principal ; les
+ * Points d'après le Circuit reculent d'un rang ; deux Points au même emplacement n'en font qu'un.
+ * Toute autre structure est rendue telle quelle.
+ */
+export function withoutEmptyLegacyCircuit<E, P extends StructureStopPointLocation>(structure: SessionStructure<E, P>): SessionStructure<E, P> {
+  const index = structure.elements.findIndex((element) => element.kind === "CIRCUIT");
+  const element = structure.elements[index];
+  if (element === undefined || element.kind !== "CIRCUIT" || element.circuit.exercises.length > 0 || structureCircuits(structure).length !== 1) {
+    return structure;
+  }
+  const circuitId = element.circuit.id;
+  const seen = new Set<number>();
+  const stopPoints: P[] = [];
+  for (const point of structure.stopPoints) {
+    if ((point.cycleId ?? null) !== null) {
+      return structure;
+    }
+    const position = point.circuitId === circuitId ? index : point.circuitId === null && point.position > index ? point.position - 1 : point.position;
+    if (point.circuitId !== null && point.circuitId !== circuitId) {
+      return structure;
+    }
+    if (!seen.has(position)) {
+      seen.add(position);
+      stopPoints.push({ ...point, circuitId: null, position });
+    }
+  }
+  return { elements: structure.elements.filter((_, at) => at !== index), stopPoints };
+}
+
+/**
  * Ancien modèle → structure : `[avant…, Circuit, après…]`. Le Circuit est toujours présent,
  * même vide, pour un aller-retour exact ; le Cycle technique unique (`position = 1`,
  * `repeat_count = 1`) n'est pas un Cycle utilisateur et ne produit aucun élément `CYCLE`.
@@ -310,8 +341,16 @@ export function structureFromLegacy<E, P extends LegacyStopPointLocation>(
 }
 
 /**
- * Structure → ancien modèle, ou `null` si elle n'y est pas représentable : aucun Cycle et
- * exactement un Circuit au niveau principal (seule forme produite par l'ancien modèle).
+ * PRE-9 (B.2, D-451, COMP §1) : identifiant du Circuit absent de l'ancien modèle. Une Séance
+ * commence sans Circuit et un conteneur n'est jamais vide : une structure sans Circuit ni Cycle
+ * est lue comme l'ancien modèle à Circuit vide, d'identifiant `NO_CIRCUIT_ID`, jamais écrit.
+ */
+export const NO_CIRCUIT_ID = "";
+
+/**
+ * Structure → ancien modèle, ou `null` si elle n'y est pas représentable : aucun Cycle et au plus
+ * un Circuit au niveau principal (seule forme produite par l'ancien modèle). PRE-9 (B.2) : sans
+ * Circuit, tous les Exercices sont avant un Circuit vide d'identifiant `NO_CIRCUIT_ID`.
  */
 export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
@@ -320,7 +359,23 @@ export function legacyFromStructure<E, P extends StructureStopPointLocation>(
   if (structure.stopPoints.some((point) => (point.cycleId ?? null) !== null)) {
     return null;
   }
-  if (circuitIndexes.length !== 1 || structure.elements.some((element) => element.kind === "CYCLE")) {
+  if (structure.elements.some((element) => element.kind === "CYCLE")) {
+    return null;
+  }
+  if (circuitIndexes.length === 0) {
+    if (structure.stopPoints.some((point) => point.circuitId !== null)) {
+      return null;
+    }
+    const exercises = structure.elements.flatMap((element) => (element.kind === "EXERCISE" ? [element.exercise] : []));
+    return {
+      composition: { beforeTour: exercises, tour: { id: NO_CIRCUIT_ID, repeatCount: 1, nature: "TOURS", exercises: [] }, afterTour: [] },
+      stopPoints: structure.stopPoints.map((point) => {
+        const { circuitId: _circuitId, cycleId: _cycleId, position, ...rest } = point;
+        return { ...rest, scope: "BEFORE_TOUR" as const, position };
+      }),
+    };
+  }
+  if (circuitIndexes.length !== 1) {
     return null;
   }
   const circuitIndex = circuitIndexes[0]!;

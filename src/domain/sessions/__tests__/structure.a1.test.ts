@@ -203,7 +203,7 @@ describe("PRE-9 A.1 — brouillon porteur de la disposition générale", () => {
     expect(structureExercises(result.value.structure).find((item) => item.id === "x")?.executionParameters).toEqual(durationParameters(40));
   });
 
-  it("toStructuredSessionInput : ancien modèle relu, le Circuit garde son identité et sa nature ; brouillon neuf, un Circuit lui est créé", () => {
+  it("toStructuredSessionInput : ancien modèle relu, le Circuit garde son identité et sa nature ; brouillon neuf sans Circuit (PRE-9 B.2, D-451)", () => {
     const legacy: Session = {
       ...HEADER,
       cycle: { id: "s1", position: 1, repeatCount: 1, beforeTour: [activity("w")], tour: { id: "tour-1", position: 1, repeatCount: 2, nature: "SERIES", exercises: [activity("x", "IN_TOUR")] } },
@@ -220,8 +220,8 @@ describe("PRE-9 A.1 — brouillon porteur de la disposition générale", () => {
     const created = toStructuredSessionInput(fresh, () => "circuit-new");
     if (!created.ok) throw new Error(JSON.stringify(created.violations));
     expect(mapStructure(created.value.structure, (item) => item.id).elements).toEqual([
+      // PRE-9 (B.2, D-451, COMP §1) : une Séance commence sans Circuit ; aucun conteneur vide n'est écrit.
       { kind: "EXERCISE", exercise: "e1" },
-      { kind: "CIRCUIT", circuit: { id: "circuit-new", repeatCount: 1, nature: "TOURS", exercises: [] } },
     ]);
   });
 

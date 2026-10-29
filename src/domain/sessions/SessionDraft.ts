@@ -67,8 +67,10 @@ import { stopPointKey, type StopPoint } from "./StopPoint";
 import {
   legacyFromStructure,
   mapStructure,
+  NO_CIRCUIT_ID,
   structureExercises,
   structureFromLegacy,
+  withoutEmptyLegacyCircuit,
   type SessionStructure,
   type StructureCycleMember,
   type StructureElement,
@@ -932,7 +934,8 @@ export function toStructuredSessionInput(
       {
         beforeTour: zone("BEFORE_TOUR"),
         tour: {
-          id: tour?.id ?? newContainerId(),
+          // PRE-9 (B.2) : un Circuit absent (`NO_CIRCUIT_ID`) n'a pas d'identité à reprendre.
+          id: tour !== undefined && tour.id !== NO_CIRCUIT_ID ? tour.id : newContainerId(),
           repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
           nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
           exercises: zone("IN_TOUR"),
@@ -943,6 +946,8 @@ export function toStructuredSessionInput(
       },
       toStopPointInputs(draft),
     );
+    // PRE-9 (B.2, D-451, COMP §1) : une Séance sans Exercice dans le Circuit n'a pas de Circuit.
+    structure = withoutEmptyLegacyCircuit(structure);
   } else {
     structure = withDraftExercises(layout, inputs, draft.exercises);
   }

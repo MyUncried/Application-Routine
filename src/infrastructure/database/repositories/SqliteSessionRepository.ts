@@ -56,6 +56,7 @@ import {
   computeStructureDuration,
   countStructureExercises,
   legacyFromStructure,
+  NO_CIRCUIT_ID,
   structureCircuits,
   structureExercises,
   structureFromLegacy,
@@ -391,7 +392,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
       return {
         ...normalized,
         structure: structureInputFromLegacy(normalized.activities, normalized.stopPoints ?? [], {
-          id: tour.id,
+          // PRE-9 (B.2) : Séance sans Circuit — le Circuit écrit par l'ancien port reçoit une identité.
+          id: tour.id !== NO_CIRCUIT_ID ? tour.id : this.uuidFactory(),
           repeatCount: normalized.tourRepeatCount,
           nature: normalized.circuitNature ?? tour.nature,
         }, this.uuidFactory),
@@ -1457,7 +1459,8 @@ export function assembleStructure(
  */
 function withLegacyZones(structure: SessionStructure<Activity>): SessionStructure<Activity> {
   const circuitIndex = structure.elements.findIndex((element) => element.kind === "CIRCUIT");
-  if (legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
+  // PRE-9 (B.2) : sans Circuit, tous les Exercices restent avant le Circuit (`BEFORE_TOUR`).
+  if (circuitIndex < 0 || legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
     return structure;
   }
   return {

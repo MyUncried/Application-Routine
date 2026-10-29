@@ -464,10 +464,19 @@ export const fr = {
         // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
         editAccessibilityLabel: "Modifier l’exercice {name}",
       },
+      // PRE-9 B.2 (COMP §5, Figma `10705:20223`) : menu Créer de la Composition — cinq actions puis
+      // Annuler, dans l'ordre observé. [Anciens libellés « Un nouvel exercice » / « Un exercice
+      // existant » : remplacés le 29/10/2026 par ceux de COMP §5.]
       addToSession: {
-        newActivity: "Un nouvel exercice",
-        existingActivity: "Un exercice existant",
+        newActivity: "Créer un nouvel exercice",
+        existingActivity: "Utiliser un mouvement existant",
+        existingSession: "Utiliser une séance existante",
+        addCircuit: "Ajouter un circuit",
+        addCycle: "Ajouter un cycle",
         cancel: "Annuler",
+        // Action indisponible : même traitement que « Un circuit » du menu du Catalogue (atténuée,
+        // nom suivi de « indisponible »). Formulation à valider.
+        unavailableAccessibilityLabel: "{action} — indisponible",
       },
     },
     composition: {
@@ -660,6 +669,22 @@ export const fr = {
         existingRecoveryRemovedHint: "Toucher pour choisir sa durée et la conserver.",
         recoveryRemovedAnnouncement: "Récupération retirée",
         recoverySelectedAnnouncement: "Récupération sélectionnée",
+      },
+      // PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) : mode enveloppe — désigner
+      // le premier contenu du Circuit ou du Cycle, barre « Confirmer le circuit / le cycle » et
+      // « Annuler ». Noms accessibles et annonces : formulations à valider.
+      envelope: {
+        confirmCircuit: "Confirmer le circuit",
+        confirmCycle: "Confirmer le cycle",
+        cancel: "Annuler",
+        exerciseInCircuitAccessibilityLabel: "Envelopper {name} dans le circuit",
+        exerciseInCycleAccessibilityLabel: "Envelopper {name} dans le cycle",
+        circuitInCycleAccessibilityLabel: "Envelopper {name} dans le cycle",
+        circuitName: "le circuit",
+        circuitNameWithLetter: "le circuit {letter}",
+        designatedAnnouncement: "{name} désigné",
+        circuitCreatedAnnouncement: "Circuit créé autour de {name}",
+        cycleCreatedAnnouncement: "Cycle créé autour de {name}",
       },
       // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
       // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte

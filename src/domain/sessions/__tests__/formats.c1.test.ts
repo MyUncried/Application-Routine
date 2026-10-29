@@ -152,10 +152,10 @@ describe("PRE-9 C.1 — validation d'une Séance à éléments formatés", () =>
   });
 });
 
-const activity = (id: string, format?: ElementFormat): Activity => ({
+const activity = (id: string, format?: ElementFormat, structuralPosition: Activity["structuralPosition"] = "BEFORE_TOUR"): Activity => ({
   id,
   type: "EXERCISE",
-  structuralPosition: "BEFORE_TOUR",
+  structuralPosition,
   position: 0,
   name: id,
   executionParameters: durationParameters(30),
@@ -188,7 +188,7 @@ describe("PRE-9 C.1 — brouillon et duplication", () => {
     {
       elements: [
         { kind: "EXERCISE", exercise: activity("avant", EMOM) },
-        { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 1, nature: "TOURS", exercises: [activity("t1"), activity("t2")], format: tabata } },
+        { kind: "CIRCUIT", circuit: { id: "c1", repeatCount: 1, nature: "TOURS", exercises: [activity("t1", undefined, "IN_TOUR"), activity("t2", undefined, "IN_TOUR")], format: tabata } },
       ],
       stopPoints: [],
     },

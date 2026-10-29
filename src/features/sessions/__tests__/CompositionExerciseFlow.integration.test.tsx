@@ -349,7 +349,8 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
     // 5. PRE-9 B.1a — D-451, complément du 28/10 (remplace la clause de D-443 qui masquait la
     // durée) : l’en-tête du Circuit affiche de nouveau sa durée ; l’Activité est `BEFORE_TOUR`,
     // le Circuit est vide : « 0 s ».
-    expect(screen.getByTestId("composition-circuit-header-duration", { includeHiddenElements: true }).props.children).toBe("0 s");
+    // PRE-9 B.2 — D-451, COMP §1 : une Séance commence sans Circuit — aucun Circuit vide, ni sa durée.
+    expect(screen.queryByTestId("composition-circuit-header-duration", { includeHiddenElements: true })).toBeNull();
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {

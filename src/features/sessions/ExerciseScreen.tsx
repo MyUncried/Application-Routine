@@ -73,6 +73,7 @@ import { CategoryPickerModal } from "@/features/reference-data/CategoryPickerMod
 import { useReferentialService } from "@/features/reference-data/ReferentialServiceContext";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
+import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
 import { formatExerciseRowSummary } from "@/features/sessions/compositionPresentation";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
@@ -1743,6 +1744,8 @@ function CompositionExerciseEditor() {
   function planFinish(current: SessionDraftExercise): Pick<CircuitMembershipSettlement, "exercises" | "losses" | "targetCount"> & {
     readonly movements: SessionDraft["movements"];
     readonly circuitSeriesReserve?: SessionDraft["circuitSeriesReserve"];
+    /** PRE-9 B.2 (ARB-07) : disposition générale avec la nouvelle occurrence insérée. */
+    readonly structure?: SessionDraft["structure"];
   } {
     // PRE-5 story 3.1 (AC4) : l'occurrence reçoit l'encodage des étapes à `Terminer` seulement.
     // PRE-7 (R-3, C05) : une création locale reçoit un Mouvement NOUVEAU à son identifiant.
@@ -1767,13 +1770,20 @@ function CompositionExerciseEditor() {
     }
     const createsMovement = encoded.type === "EXERCISE" && (encoded.sourceMovementId ?? "").trim().length === 0;
     const finished: SessionDraftExercise = createsMovement ? { ...encoded, sourceMovementId: encoded.id } : encoded;
+    // PRE-9 B.2 (ARB-07) : disposition générale — insertion après le dernier Exercice affiché, dans
+    // son conteneur ; l'ancien modèle garde son insertion et son réglage de Circuit.
+    const richInsertion = draft.exercises.some((exercise) => exercise.id === finished.id)
+      ? null
+      : insertIntoRichLayout(draft, [finished]);
     const plan = draft.exercises.some((exercise) => exercise.id === finished.id)
       ? {
           exercises: draft.exercises.map((exercise) => (exercise.id === finished.id ? finished : exercise)),
           losses: [],
           targetCount: 0,
         }
-      : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
+      : richInsertion !== null
+        ? { exercises: richInsertion.exercises, losses: [], targetCount: 0, structure: richInsertion.structure }
+        : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
     if (!createsMovement && isPersistedMovementOccurrence(finished, draft.movements)) {
       return { ...plan, movements: draft.movements };
     }
@@ -1919,7 +1929,7 @@ function CompositionExerciseEditor() {
     }
     if (decision.kind === "NONE") {
       const plan = planFinish(current);
-      commitFinished(plan.exercises, plan.movements);
+      commitFinished(plan.exercises, plan.movements, undefined, plan.structure);
       return;
     }
     if (decision.kind === "SILENT") {
@@ -2051,15 +2061,16 @@ function CompositionExerciseEditor() {
       return;
     }
     finishingRef.current = true;
-    commitFinished(plan.exercises, plan.movements, plan.circuitSeriesReserve);
+    commitFinished(plan.exercises, plan.movements, plan.circuitSeriesReserve, plan.structure);
   }
 
   function commitFinished(
     nextExercises: readonly SessionDraftExercise[],
     nextMovements: SessionDraft["movements"],
     nextReserve?: SessionDraft["circuitSeriesReserve"],
+    nextStructure?: SessionDraft["structure"],
   ) {
-    writeDraft(nextExercises, nextMovements, nextReserve);
+    writeDraft(nextExercises, nextMovements, nextReserve, nextStructure);
     setIsFinishing(true);
   }
 
@@ -2071,6 +2082,8 @@ function CompositionExerciseEditor() {
     nextExercises: readonly SessionDraftExercise[],
     nextMovements: SessionDraft["movements"],
     nextReserve?: SessionDraft["circuitSeriesReserve"],
+    // PRE-9 B.2 (ARB-07) : disposition générale où la nouvelle occurrence est insérée.
+    nextStructure?: SessionDraft["structure"],
   ) {
     // PRE-6 (story 3.3, report de la story 1.4) : une occurrence existante dont les séries
     // diffèrent de celles qu'elle avait à l'ouverture perd son entrée de réserve de Circuit (même
@@ -2097,6 +2110,7 @@ function CompositionExerciseEditor() {
         exercises: nextExercises,
         ...(nextMovements !== undefined ? { movements: nextMovements } : {}),
         ...(nextReserve !== undefined ? { circuitSeriesReserve: nextReserve } : {}),
+        ...(nextStructure !== undefined ? { structure: nextStructure } : {}),
       });
     }
     // Les copies préparées deviennent des références du brouillon de Séance ;
@@ -2224,7 +2238,7 @@ function CompositionExerciseEditor() {
             // Ajout rejoué sur le brouillon courant (aucun instantané rejoué).
             finishingRef.current = true;
             const replayed = planFinish(local);
-            commitFinished(replayed.exercises, replayed.movements);
+            commitFinished(replayed.exercises, replayed.movements, undefined, replayed.structure);
           }}
         />
       ) : null}

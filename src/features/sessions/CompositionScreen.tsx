@@ -42,9 +42,14 @@ import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessi
 import {
   applyLayoutNatureChange,
   containerLetters,
+  currentLayout,
+  envelopeCandidates,
   prepareLayoutNatureChange,
   setLayoutCircuitCount,
   setLayoutCycleCount,
+  withLayout,
+  wrapInContainer,
+  type EnvelopeTarget,
 } from "@/domain/sessions/layoutOperations";
 import { structureCircuits, type StructureCircuit, type StructureCycle } from "@/domain/sessions/structure";
 import {
@@ -241,7 +246,45 @@ type LayoutControlKind =
   | `layout-circuit-nature:${string}`
   | `layout-cycle-counter:${string}`;
 
-const LAYOUT_CIRCUIT_NATURE_PREFIX = "layout-circuit-nature:";
+/** PRE-9 B.2 (ARB-06) : mode enveloppe — conteneur à poser et premier contenu désigné. */
+type EnvelopeContainer = "CIRCUIT" | "CYCLE";
+/** Contenu désigné (`designated`) : nommé ainsi pour ne pas être confondu avec une Cible de série (garde PRE-4 AC1). */
+type EnvelopeState = { readonly container: EnvelopeContainer; readonly designated: EnvelopeTarget | null; readonly targetName: string };
+
+/**
+ * PRE-9 B.2 : ce que chaque rangée ou bloc reçoit en mode enveloppe — éligibilité (Domaine,
+ * `envelopeCandidates`), désignation et toucher de désignation. `null` hors mode.
+ */
+type EnvelopeContext = {
+  readonly container: EnvelopeContainer;
+  readonly isCandidate: (target: EnvelopeTarget) => boolean;
+  readonly isDesignated: (target: EnvelopeTarget) => boolean;
+  readonly onDesignate: (target: EnvelopeTarget, name: string) => void;
+};
+
+function sameEnvelopeTarget(a: EnvelopeTarget | null, b: EnvelopeTarget): boolean {
+  return a !== null && a.kind === b.kind && a.id === b.id;
+}
+
+/**
+ * PRE-9 B.2 (ARB-06) : brouillon après « Confirmer » — `wrapInContainer` sur le brouillon courant.
+ * Un brouillon de l'ancien modèle encore sans structure (jamais enregistré) n'a pas d'identifiant de
+ * Circuit stable : sa disposition courante lui est d'abord donnée (`withLayout`, sans autre
+ * changement), et le Circuit désigné est celui qu'elle porte (au plus un dans l'ancien modèle).
+ */
+function draftAfterEnvelope(current: SessionDraft, container: EnvelopeContainer, target: EnvelopeTarget): SessionDraft {
+  const newContainerId = () => Crypto.randomUUID();
+  if (current.structure !== undefined) {
+    return wrapInContainer(current, target, container, newContainerId);
+  }
+  const seeded = withLayout(current, currentLayout(current, newContainerId));
+  const legacyCircuit = seeded.structure === undefined ? undefined : structureCircuits(seeded.structure)[0];
+  const seededTarget: EnvelopeTarget = target.kind === "CIRCUIT" && legacyCircuit !== undefined ? { kind: "CIRCUIT", id: legacyCircuit.id } : target;
+  const next = wrapInContainer(seeded, seededTarget, container, newContainerId);
+  return next === seeded ? current : next;
+}
+
+const LAYOUT_CIRCUIT_NATURE_PREFIX ="layout-circuit-nature:";
 const layoutCircuitCounterKind = (circuitId: string): LayoutControlKind => `layout-circuit-counter:${circuitId}`;
 const layoutCircuitNatureKind = (circuitId: string): LayoutControlKind => `layout-circuit-nature:${circuitId}`;
 const layoutCycleCounterKind = (cycleId: string): LayoutControlKind => `layout-cycle-counter:${cycleId}`;
@@ -841,6 +884,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
+  /**
+   * PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) : mode enveloppe — conteneur à
+   * poser (Circuit ou Cycle) et premier contenu désigné (`null` tant qu'aucun ne l'est) ; `null` hors
+   * mode. État de l'écran seul : seul « Confirmer » écrit dans le brouillon.
+   */
+  const [envelope, setEnvelope] = useState<EnvelopeState | null>(null);
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
   // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
   // de l'en-tête fixe et de la bande Context, jamais seulement
@@ -1108,8 +1157,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const shouldBlockExit =
     !hasSaved &&
     // Revue 7.5 : une suppression animée en cours n'est pas encore écrite dans le brouillon.
+    // PRE-9 B.2 : le mode enveloppe aussi, annulé d'abord comme le placement.
     (deletion !== null ||
       placement !== null ||
+      envelope !== null ||
       (hydratedBaseline ? !sessionDraftsEqual(draft, hydratedBaseline) : isSessionDraftDirty(draft, creationBaseline)));
   const { isPendingExit, cancelExit, confirmExit } = useCompositionExitGuard(
     shouldBlockExit,
@@ -1133,6 +1184,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // mutation et sans dialogue d'abandon par-dessus la barre ; la sortie elle-même est abandonnée.
     if (isPendingExit && placement !== null) {
       leavePlacement();
+      cancelExit();
+    }
+    // PRE-9 B.2 : de même, une sortie pendant le mode enveloppe l'annule d'abord, sans mutation.
+    if (isPendingExit && envelope !== null) {
+      setEnvelope(null);
       cancelExit();
     }
   }
@@ -1217,6 +1273,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
         // Story 4.1 : le placement est abandonné sans mutation.
         leavePlacement();
+        // PRE-9 B.2 : le mode enveloppe aussi.
+        setEnvelope(null);
         // Story 7.5 : une suppression animée en cours est écrite.
         flushDeletion();
       },
@@ -1329,6 +1387,69 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     leavePlacement();
     setAddStopFocusRequest((current) => current + 1);
   }, [leavePlacement]);
+
+  /**
+   * PRE-9 B.2 (ARB-06, COMP §5, D-451) — « Ajouter un circuit / un cycle » : contenus éligibles du
+   * Domaine (`envelopeCandidates` : pour un Circuit, un Exercice du niveau Séance ou d'un Cycle ; pour
+   * un Cycle, un Exercice ou un Circuit du niveau Séance ; jamais une Séance qui sortirait de l'ancien
+   * modèle tant qu'elle porte des Points d'arrêt, B.6). Sans contenu éligible, l'action du menu est
+   * indisponible.
+   */
+  const circuitEnvelopeCandidates = useMemo(() => envelopeCandidates(draft, "CIRCUIT"), [draft]);
+  const cycleEnvelopeCandidates = useMemo(() => envelopeCandidates(draft, "CYCLE"), [draft]);
+  const isEnvelopeActive = envelope !== null;
+  /**
+   * Entrée en mode enveloppe, comme l'entrée en placement : toute surface ouverte se referme, un
+   * aperçu de glisser se termine, une suppression animée est écrite ; rien n'est désigné.
+   */
+  const enterEnvelope = useCallback(
+    (container: EnvelopeContainer) => {
+      if (draggedKeyRef.current !== null || placement !== null) return;
+      flushDeletion();
+      Keyboard.dismiss();
+      setOpenOverlay(null);
+      setPendingNatureChange(null);
+      setPendingCircuitEntry(null);
+      finishDragPreview(false);
+      setIsAddActivityTreeOpen(false);
+      setRevealedActionsId(null);
+      setEnvelope({ container, designated: null, targetName: "" });
+    },
+    [finishDragPreview, flushDeletion, placement],
+  );
+  /** Toucher d'un contenu éligible : il devient le contenu désigné (un seul ; un autre toucher le déplace). */
+  const designateEnvelopeTarget = useCallback((target: EnvelopeTarget, name: string) => {
+    setEnvelope((current) => (current === null ? current : { ...current, designated: target, targetName: name }));
+    AccessibilityInfo.announceForAccessibility(strings.screens.composition.envelope.designatedAnnouncement.replace("{name}", name));
+  }, []);
+  /** « Annuler » (et retour système, X, perte du premier plan) : sortie sans aucune mutation. */
+  const cancelEnvelope = useCallback(() => setEnvelope(null), []);
+  /** « Confirmer le circuit / le cycle » : le conteneur est posé sur le contenu désigné, puis sortie du mode. */
+  const confirmEnvelope = useCallback(() => {
+    if (envelope === null || envelope.designated === null) return;
+    const { container, designated, targetName } = envelope;
+    updateDraft((current) => draftAfterEnvelope(current, container, designated));
+    setEnvelope(null);
+    const t = strings.screens.composition.envelope;
+    AccessibilityInfo.announceForAccessibility(
+      (container === "CIRCUIT" ? t.circuitCreatedAnnouncement : t.cycleCreatedAnnouncement).replace("{name}", targetName),
+    );
+  }, [envelope, updateDraft]);
+  const envelopeContext = useMemo<EnvelopeContext | null>(() => {
+    if (envelope === null) return null;
+    const candidates = envelope.container === "CIRCUIT" ? circuitEnvelopeCandidates : cycleEnvelopeCandidates;
+    return {
+      container: envelope.container,
+      isCandidate: (target) => candidates.some((candidate) => sameEnvelopeTarget(candidate, target)),
+      isDesignated: (target) => sameEnvelopeTarget(envelope.designated, target),
+      onDesignate: designateEnvelopeTarget,
+    };
+  }, [circuitEnvelopeCandidates, cycleEnvelopeCandidates, designateEnvelopeTarget, envelope]);
+  /** Circuit unique de l'ancien modèle, tel que le Domaine le désigne parmi les contenus éligibles d'un Cycle. */
+  const legacyCircuitTarget: EnvelopeTarget = cycleEnvelopeCandidates.find((candidate) => candidate.kind === "CIRCUIT") ?? {
+    kind: "CIRCUIT",
+    id: "",
+  };
   /**
    * PRE-6 story 6.3 (D-441, RM-251) : composition sur laquelle se jugent les bascules de point et
    * l'applicabilité du sous-brouillon — toujours fournie au Domaine (`togglePlacementStopPoint`,
@@ -1646,6 +1767,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
 
   const composition = strings.screens.composition;
+  const addToSession = strings.screens.activities.addToSession;
 
   // T02-S01 (CE-T02-01) : la Composition restitue le brouillon réel dans
   // l'ordre structurel — Compte à rebours ; Activités AVANT le Tour ; Tour et
@@ -1668,6 +1790,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * changement du brouillon ne reste caché (ajustement pendant le rendu, patron React « ajuster un
    * état sur un changement de prop »). Jamais replié en placement (emplacements du Circuit visibles).
    */
+  /**
+   * PRE-9 B.2 (D-451, COMP §1 : « une Séance commence sans Circuit », « un conteneur n'est jamais
+   * vide », « il disparaît lorsque son dernier membre en sort ») : le Circuit de l'ancien modèle n'est
+   * rendu que s'il contient au moins un Exercice. Sans lui, les zones avant et après se suivent en une
+   * seule séquence ; un Circuit naît par « Ajouter un circuit » (mode enveloppe), jamais par un dépôt
+   * dans un Circuit vide.
+   */
+  const hasLegacyCircuit = zoneItems.IN_TOUR.some((item) => item.kind === "OCCURRENCE");
   const circuitContentKey = zoneItems.IN_TOUR.map(zoneItemKey).join(" ");
   if (circuitCollapsedContent !== null && circuitCollapsedContent !== circuitContentKey) {
     setCircuitCollapsedContent(null);
@@ -1999,12 +2129,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         rows.push({ id: key, zone, top: zoneBaseTop(zone) + rowLayout.top, height: rowLayout.height });
       }
     }
+    if (!hasLegacyCircuit) {
+      // PRE-9 B.2 (D-451, COMP §1) : sans Circuit, aucune dépose n'entre dans le Circuit — la
+      // frontière avant / après est la limite entre les deux zones, qui se suivent : le haut de la
+      // première rangée après, à défaut le bas de la dernière rangée avant (moitié de l'écart).
+      const afterTops = rows.filter((row) => row.zone === "AFTER_TOUR").map((row) => row.top);
+      const beforeBottoms = rows.filter((row) => row.zone === "BEFORE_TOUR").map((row) => row.top + row.height);
+      const boundary =
+        afterTops.length > 0
+          ? Math.min(...afterTops) - SEQUENCE_GAP / 2
+          : beforeBottoms.length > 0
+            ? Math.max(...beforeBottoms) + SEQUENCE_GAP / 2
+            : 0;
+      return { tourTop: boundary, tourBottom: boundary, rows };
+    }
     return {
       tourTop: tourLayoutRef.current.top,
       tourBottom: tourLayoutRef.current.top + tourLayoutRef.current.height,
       rows,
     };
-  }, [isCircuitCollapsed, zoneItems, zoneBaseTop]);
+  }, [hasLegacyCircuit, isCircuitCollapsed, zoneItems, zoneBaseTop]);
 
   const itemAbsoluteCenterY = useCallback(
     (key: string, zone: StructuralPosition): number => {
@@ -2440,13 +2584,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * Revue 5.2 : la Fin suit-elle une rangée de point d'arrêt ? Story 6.2 : dernière rangée de la
    * zone après le Circuit. Hors placement seulement (en placement, la Fin est inactive).
    */
-  const finPrecededByStopPoint = placement === null && zoneItems.AFTER_TOUR[zoneItems.AFTER_TOUR.length - 1]?.kind === "STOP_POINT";
+  // PRE-9 B.2 : sans Circuit ni rangée après lui, la dernière rangée de la zone avant.
+  const lastSequenceZone = hasLegacyCircuit || zoneItems.AFTER_TOUR.length > 0 ? zoneItems.AFTER_TOUR : zoneItems.BEFORE_TOUR;
+  const finPrecededByStopPoint = placement === null && lastSequenceZone[lastSequenceZone.length - 1]?.kind === "STOP_POINT";
   /**
    * Revue 6.2 : le Compte à rebours est-il suivi d'une rangée de point (première rangée de la zone
    * avant le Circuit) ? Seules ces rangées touchent une borne : une rangée du Circuit en est séparée
    * par sa marge (14), une rangée après le Circuit par le Circuit lui-même.
    */
-  const countdownFollowedByStopPoint = placement === null && zoneItems.BEFORE_TOUR[0]?.kind === "STOP_POINT";
+  // PRE-9 B.2 : sans Circuit ni rangée avant, la première rangée de la zone après.
+  const firstSequenceZone = hasLegacyCircuit || zoneItems.BEFORE_TOUR.length > 0 ? zoneItems.BEFORE_TOUR : zoneItems.AFTER_TOUR;
+  const countdownFollowedByStopPoint = placement === null && firstSequenceZone[0]?.kind === "STOP_POINT";
   // Story 5.2b : sort de la chaîne la carte qui n'est pas à sa place — soulevée, maintenue à sa
   // position de dépôt pendant le dialogue de perte (elle comble l'emplacement ouvert, comme pendant
   // le geste), puis en retour animé (translation du registre vers 0, synchronisée avec ses voisines)
@@ -2488,6 +2636,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     // relie directement au bas du Circuit.
     inTour: isCircuitCollapsed ? [] : zoneItems.IN_TOUR.map(railChainItemOf),
     afterTour: zoneItems.AFTER_TOUR.map(railChainItemOf),
+    // PRE-9 B.2 (D-451, COMP §1) : sans Exercice, le Circuit n'est pas rendu ni chaîné.
+    hasCircuit: hasLegacyCircuit,
     hasAfterCircuit: hasAfterCircuitRail,
     skipped: railSkipped,
     geometry: railGeometry,
@@ -3017,7 +3167,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       <FixedHeader
         title={readOnly ? composition.consultation.title : composition.title}
         // PRE-6 (story 4.1) : pendant le placement, le X annule d'abord le placement (sans mutation).
-        onBack={() => (placement !== null ? cancelPlacement() : router.back())}
+        // PRE-9 B.2 : de même, en mode enveloppe, le X l'annule d'abord.
+        onBack={() => (placement !== null ? cancelPlacement() : envelope !== null ? cancelEnvelope() : router.back())}
         backAccessibilityLabel={composition.closeAccessibilityLabel}
         // PRE-6 (story 2.1, Figma `8328:28730`) : bouton fermer (X) — même action et même
         // garde d’abandon (`useCompositionExitGuard`) que le retour précédent.
@@ -3058,6 +3209,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           <View pointerEvents="none" testID="composition-read-only">
             {contextHeader}
           </View>
+        ) : isEnvelopeActive ? (
+          // PRE-9 B.2 : en mode enveloppe, nom, Étiquette et commandes sont inactifs (comme le
+          // contenu hors emplacements en placement) ; seuls les contenus éligibles et la barre répondent.
+          <PlacementAttenuation active testID="composition-envelope-context-header">
+            {contextHeader}
+          </PlacementAttenuation>
         ) : (
           contextHeader
         )}
@@ -3136,7 +3293,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             uniforme du rail), posés sur la rangée. */}
         {/* Story 7.8 (D-443) : cadre aligné à droite sur le bord droit des cartes d'Exercice. */}
         <View style={styles.boundaryTrailingOutset} testID="composition-boundary-countdown-step">
-          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-countdown-placement">
+          <PlacementAttenuation active={isPlacementActive || isEnvelopeActive} testID="composition-boundary-countdown-placement">
             <BoundaryStep
               kind="start"
               railCenterX={RAIL_CENTER_X_IN_COLUMN}
@@ -3178,6 +3335,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             onEdit={handleEditActivity}
             railShiftOf={railShiftOf}
             autoScroll={autoScroll}
+            envelope={envelopeContext}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -3205,6 +3363,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         <ActivityZoneList
           zone="BEFORE_TOUR"
           testID="composition-zone-before-tour"
+          envelope={envelopeContext}
           items={zoneItems.BEFORE_TOUR}
           allOccurrences={draft.exercises}
           revealedActionsId={revealedActionsId}
@@ -3240,6 +3399,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          * occurrences `IN_TOUR` (CE-T02-01). PRE-6 (story 3.1, AD-41, Figma `8328:28667`) :
          * `CircuitHeader` remplace `TourCard` et sa roulette du compte.
          */}
+        {/*
+         * PRE-9 B.2 (D-451, COMP §1) : sans Exercice, le Circuit n'est pas rendu (aucun conteneur
+         * vide). En mode enveloppe, il est un bloc : éligible pour « Ajouter un cycle » (contour
+         * pointillé, désignable), inactif sinon — ses cartes ne sont jamais éligibles (déjà dans un
+         * Circuit).
+         */}
+        {hasLegacyCircuit ? (
+        <EnvelopeFrame
+          envelope={envelopeContext}
+          target={legacyCircuitTarget}
+          name={composition.envelope.circuitName}
+          testID="composition-envelope-circuit"
+        >
         <View
           style={[
             styles.tourSectionContainer,
@@ -3248,7 +3420,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             // Correctif 2.3b : le Circuit qui porte la carte soulevée passe au-dessus de ses sœurs.
             zoneItems.IN_TOUR.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
           ]}
-          onLayout={handleTourLayout}
+          // PRE-9 B.2 : dans le cadre du mode enveloppe, la mesure serait relative au cadre — ignorée
+          // (aucun glisser dans ce mode ; le Circuit est remonté et remesuré à la sortie).
+          onLayout={envelopeContext === null ? handleTourLayout : undefined}
           testID="composition-tour-section"
         >
           {/* PRE-6 (story 2.3b, amendement du 21/10/2026) : fond du conteneur mesuré, qui suit ses
@@ -3398,6 +3572,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             </Animated.View>
           ) : null}
         </View>
+        </EnvelopeFrame>
+        ) : null}
 
         {/*
          * Rangée « après le Circuit » : en placement, l'emplacement (point d'arrêt seul, story 4.1) ;
@@ -3447,6 +3623,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           zone="AFTER_TOUR"
           precededByPlacementRow={hasAfterCircuitRail}
           testID="composition-zone-after-tour"
+          envelope={envelopeContext}
           items={zoneItems.AFTER_TOUR}
           allOccurrences={draft.exercises}
           revealedActionsId={revealedActionsId}
@@ -3484,7 +3661,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           style={[styles.boundaryTrailingOutset, { transform: [{ translateY: endShift }] }]}
           testID="composition-boundary-final-phase-track"
         >
-          <PlacementAttenuation active={isPlacementActive} testID="composition-boundary-final-phase-placement">
+          <PlacementAttenuation active={isPlacementActive || isEnvelopeActive} testID="composition-boundary-final-phase-placement">
             <BoundaryStep
               kind="end"
               railCenterX={RAIL_CENTER_X_IN_COLUMN}
@@ -3583,6 +3760,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             testID="composition-placement-bar"
           />
         ) : null}
+        {/* PRE-9 B.2 (ARB-06, ARB-19 ; Figma `10819:20344`, `10836:20478`) : en mode enveloppe, la même barre
+            porte « Confirmer le circuit / le cycle », disponible une fois un contenu désigné, et « Annuler ». */}
+        {envelope !== null ? (
+          <PlacementBar
+            confirmLabel={envelope.container === "CIRCUIT" ? composition.envelope.confirmCircuit : composition.envelope.confirmCycle}
+            isConfirmDisabled={envelope.designated === null}
+            onConfirm={confirmEnvelope}
+            onCancel={cancelEnvelope}
+            testID="composition-envelope-bar"
+          />
+        ) : null}
         {placement === null && (saveState === "error" || saveState === "nameTaken") ? (
           <Text style={styles.saveErrorText} accessibilityLiveRegion="polite" testID="composition-save-error">
             {saveState === "nameTaken" ? composition.nameTakenError : composition.saveError}
@@ -3593,7 +3781,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             {composition.consultation.notice}
           </Text>
         ) : null}
-        {placement === null && !readOnly ? (
+        {placement === null && envelope === null && !readOnly ? (
           <PrimaryActionButton
             label={composition.saveAction}
             onPress={handleSave}
@@ -3696,7 +3884,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         />
       ) : null}
 
-      {isPendingExit && placement === null ? (
+      {isPendingExit && placement === null && envelope === null ? (
         <AbandonCreationModal onCancel={cancelExit} onConfirm={confirmExit} />
       ) : null}
 
@@ -3779,45 +3967,47 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             style={[styles.addActivityTree, { top: addActivityTreeTop }]}
             testID="composition-add-activity-tree"
           >
-            <Pressable
+            {/*
+             * PRE-9 B.2 (COMP §5, Figma `10705:20223`, ARB-19) : menu Créer — cinq actions puis
+             * Annuler, dans l'ordre observé, sur l'arbre existant (mêmes options, même voile).
+             * « Utiliser une séance existante » relève de B.8 : visible, indisponible d'ici là.
+             * « Ajouter un circuit / un cycle » ouvre le mode enveloppe ; sans contenu éligible
+             * (Séance vide…), l'action est indisponible, non masquée (traitement existant des actions
+             * indisponibles : « Un circuit » du menu du Catalogue). La sixième entrée, « Format »
+             * (ARB-23), sera branchée par C.4.
+             */}
+            <AddTreeOption
+              label={addToSession.newActivity}
               onPress={() => {
                 setIsAddActivityTreeOpen(false);
                 router.push("/exercise");
               }}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.newActivity}
-              style={styles.addActivityTreeOption}
               testID="composition-add-activity-tree-new"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.newActivity}
-              </Text>
-            </Pressable>
-            <Pressable
+            />
+            <AddTreeOption
+              label={addToSession.existingActivity}
               onPress={() => {
                 setIsAddActivityTreeOpen(false);
                 router.push("/activity-selection");
               }}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.existingActivity}
-              style={styles.addActivityTreeOption}
               testID="composition-add-activity-tree-existing"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.existingActivity}
-              </Text>
-            </Pressable>
-            <Pressable
+            />
+            <AddTreeOption label={addToSession.existingSession} testID="composition-add-activity-tree-existing-session" />
+            <AddTreeOption
+              label={addToSession.addCircuit}
+              onPress={circuitEnvelopeCandidates.length > 0 ? () => enterEnvelope("CIRCUIT") : undefined}
+              testID="composition-add-activity-tree-circuit"
+            />
+            <AddTreeOption
+              label={addToSession.addCycle}
+              onPress={cycleEnvelopeCandidates.length > 0 ? () => enterEnvelope("CYCLE") : undefined}
+              testID="composition-add-activity-tree-cycle"
+            />
+            <AddTreeOption
+              label={addToSession.cancel}
               onPress={() => setIsAddActivityTreeOpen(false)}
-              accessibilityRole="button"
-              accessibilityLabel={strings.screens.activities.addToSession.cancel}
-              style={styles.addActivityTreeOption}
               testID="composition-add-activity-tree-cancel"
-            >
-              <Text style={styles.addActivityTreeOptionLabel}>
-                {strings.screens.activities.addToSession.cancel}
-              </Text>
-            </Pressable>
+            />
           </View>
         </>
       ) : null}
@@ -3893,6 +4083,8 @@ type ActivityZoneListProps = {
   readonly placement: PlacementRowContext | null;
   /** Revue 6.3 : en placement, la rangée « après le Circuit » précède immédiatement cette zone. */
   readonly precededByPlacementRow?: boolean;
+  /** PRE-9 B.2 : mode enveloppe — cartes éligibles désignables, tout le reste inactif ; `null` hors mode. */
+  readonly envelope?: EnvelopeContext | null;
 };
 
 /**
@@ -4108,6 +4300,59 @@ function PlacementAttenuation({
 }
 
 /**
+ * PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) — cadre d'un contenu en mode
+ * enveloppe : le contenu lui-même est inactif et masqué à l'accessibilité (comme en placement) ;
+ * éligible, il porte une cible qui le désigne — contour pointillé ; désigné, contour plein et fond
+ * lavande. Bouton accessible « Envelopper {nom} dans le circuit / le cycle », état sélectionné.
+ * Hors mode (`envelope` nul), le contenu est rendu tel quel.
+ */
+function EnvelopeFrame({
+  envelope,
+  target,
+  name,
+  testID,
+  children,
+}: {
+  envelope: EnvelopeContext | null;
+  target: EnvelopeTarget;
+  /** Nom du contenu (carte d'Exercice, « le circuit [A] »), pour le nom accessible et les annonces. */
+  name: string;
+  testID: string;
+  children: React.ReactNode;
+}) {
+  if (envelope === null) {
+    return <>{children}</>;
+  }
+  const isCandidate = envelope.isCandidate(target);
+  const isDesignated = isCandidate && envelope.isDesignated(target);
+  const t = strings.screens.composition.envelope;
+  const label = (
+    target.kind === "CIRCUIT"
+      ? t.circuitInCycleAccessibilityLabel
+      : envelope.container === "CIRCUIT"
+        ? t.exerciseInCircuitAccessibilityLabel
+        : t.exerciseInCycleAccessibilityLabel
+  ).replace("{name}", name);
+  return (
+    <View testID={testID}>
+      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        {children}
+      </View>
+      {isCandidate ? (
+        <Pressable
+          onPress={() => envelope.onDesignate(target, name)}
+          accessibilityRole="button"
+          accessibilityLabel={label}
+          accessibilityState={{ selected: isDesignated }}
+          style={[styles.envelopeTarget, isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate]}
+          testID={`${testID}-target`}
+        />
+      ) : null}
+    </View>
+  );
+}
+
+/**
  * Liste des Activités d'UNE zone structurelle (T02-S01, CE-T02-01).
  *
  * Conserve exactement le conteneur à écart réduit de la correction compacte
@@ -4150,6 +4395,7 @@ function ActivityZoneList({
   stopPointStepAction,
   placement,
   precededByPlacementRow = false,
+  envelope = null,
 }: ActivityZoneListProps) {
   if (items.length === 0) {
     return null;
@@ -4218,7 +4464,7 @@ function ActivityZoneList({
         if (item.kind === "STOP_POINT") {
           // PRE-6 story 6.2 (D-441) : rangée autonome du Point d'arrêt, sœur des cartes.
           const key = railStopKey(item.point.id);
-          return (
+          const stopPointRow = (
             <StopPointRow
               key={key}
               point={item.point}
@@ -4242,10 +4488,18 @@ function ActivityZoneList({
               onMoveDown={stopPointStepAction(item.point.id, "DOWN")}
             />
           );
+          // PRE-9 B.2 : en mode enveloppe, un Point d'arrêt n'est jamais éligible — inactif.
+          return envelope === null ? (
+            stopPointRow
+          ) : (
+            <PlacementAttenuation key={key} active>
+              {stopPointRow}
+            </PlacementAttenuation>
+          );
         }
         const activity = item.occurrence;
         const key = railRowKey(activity.id);
-        return (
+        const row = (
         <CompositionActivityRow
           key={activity.id}
           activity={activity}
@@ -4283,6 +4537,20 @@ function ActivityZoneList({
           placement={placement}
           placementRowFollowed={followedByPlacementRow(itemIndex)}
         />
+        );
+        // PRE-9 B.2 (ARB-06) : en mode enveloppe, la carte est désignable si elle est éligible, inactive sinon.
+        return envelope === null ? (
+          row
+        ) : (
+          <EnvelopeFrame
+            key={activity.id}
+            envelope={envelope}
+            target={{ kind: "EXERCISE", id: activity.id }}
+            name={occurrenceCardName(activity, levelPositions)}
+            testID={`composition-envelope-exercise-${activity.id}`}
+          >
+            {row}
+          </EnvelopeFrame>
         );
       })}
     </View>
@@ -5608,6 +5876,8 @@ type LayoutRenderContext = {
   readonly onEdit: (activityId: string) => void;
   readonly railShiftOf: (key: string) => Animated.Value;
   readonly autoScroll: DragAutoScroll;
+  /** PRE-9 B.2 : mode enveloppe (contenus éligibles désignables, le reste inactif) ; `null` hors mode. */
+  readonly envelope: EnvelopeContext | null;
 };
 
 type LayoutSequenceProps = LayoutRenderContext & {
@@ -5660,6 +5930,13 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
           case "EXERCISE":
             return (
               <View key={`exercise:${element.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${element.exercise.id}`}>
+                {/* PRE-9 B.2 : Exercice direct de la Séance — éligible pour un Circuit ou un Cycle. */}
+                <EnvelopeFrame
+                  envelope={context.envelope}
+                  target={{ kind: "EXERCISE", id: element.exercise.id }}
+                  name={occurrenceCardName(element.exercise, context.levelPositions)}
+                  testID={`composition-envelope-exercise-${element.exercise.id}`}
+                >
                 <LayoutExerciseRow
                   exercise={element.exercise}
                   circuit={null}
@@ -5668,10 +5945,19 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                   rail={rail}
                   context={context}
                 />
+                </EnvelopeFrame>
               </View>
             );
           case "CIRCUIT":
             return (
+              // PRE-9 B.2 : Circuit du niveau Séance — éligible pour un Cycle, en bloc.
+              <EnvelopeFrame
+                key={`circuit:${element.circuit.id}`}
+                envelope={context.envelope}
+                target={{ kind: "CIRCUIT", id: element.circuit.id }}
+                name={layoutCircuitName(element.circuit.id, context.letters)}
+                testID={`composition-envelope-circuit-${element.circuit.id}`}
+              >
               <LayoutCircuitBlock
                 key={`circuit:${element.circuit.id}`}
                 circuit={element.circuit}
@@ -5682,6 +5968,7 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                 context={context}
                 onAnchor={reportAnchor}
               />
+              </EnvelopeFrame>
             );
           case "CYCLE":
             return (
@@ -5717,6 +6004,13 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
       ) : null}
     </>
   );
+}
+
+/** PRE-9 B.2 : nom d'un Circuit dans le mode enveloppe — « le circuit », ou « le circuit A » (ARB-13). */
+function layoutCircuitName(circuitId: string, letters: ReadonlyMap<string, string>): string {
+  const t = strings.screens.composition.envelope;
+  const letter = letters.get(circuitId);
+  return letter === undefined ? t.circuitName : t.circuitNameWithLetter.replace("{letter}", letter);
 }
 
 /** PRE-9 B.1b : carte d'occurrence d'une disposition générale — `CompositionActivityRow`, appui court seul. */
@@ -5893,6 +6187,23 @@ function LayoutCycleBlock({
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const directExercises = cycle.members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : []));
   const testID = `composition-layout-cycle-${cycle.id}`;
+  const header = (
+    <CycleHeader
+      letter={context.letters.get(cycle.id)}
+      count={cycle.repeatCount}
+      duration={formatLayoutDuration([{ kind: "CYCLE", cycle }])}
+      isCounterOpen={openOverlay === counterKind}
+      onToggleCounter={() => onToggleOverlay(counterKind)}
+      onChangeCount={(count) => context.onCycleCount(cycle.id, count)}
+      isChoicePending={context.isChoicePending}
+      titleInset={SEQUENCE_LABEL_INSET}
+      onRowLayout={(event) => {
+        const { height } = event.nativeEvent.layout;
+        if (height > 0) setRowHeight(height);
+      }}
+      testID={`${testID}-header`}
+    />
+  );
   return (
     <View style={styles.layoutCycleContainer} onLayout={(event) => setCycleY(event.nativeEvent.layout.y)} testID={testID}>
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
@@ -5901,44 +6212,48 @@ function LayoutCycleBlock({
         <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
         <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
       </View>
-      <CycleHeader
-        letter={context.letters.get(cycle.id)}
-        count={cycle.repeatCount}
-        duration={formatLayoutDuration([{ kind: "CYCLE", cycle }])}
-        isCounterOpen={openOverlay === counterKind}
-        onToggleCounter={() => onToggleOverlay(counterKind)}
-        onChangeCount={(count) => context.onCycleCount(cycle.id, count)}
-        isChoicePending={context.isChoicePending}
-        titleInset={SEQUENCE_LABEL_INSET}
-        onRowLayout={(event) => {
-          const { height } = event.nativeEvent.layout;
-          if (height > 0) setRowHeight(height);
-        }}
-        testID={`${testID}-header`}
-      />
+      {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
+      {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
       {cycle.members.map((member) =>
         member.kind === "EXERCISE" ? (
           <View key={`exercise:${member.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${member.exercise.id}`}>
-            <LayoutExerciseRow
-              exercise={member.exercise}
-              circuit={null}
-              position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
+            {/* PRE-9 B.2 : Exercice direct d'un Cycle — éligible pour un Circuit. */}
+            <EnvelopeFrame
+              envelope={context.envelope}
+              target={{ kind: "EXERCISE", id: member.exercise.id }}
+              name={occurrenceCardName(member.exercise, context.levelPositions)}
+              testID={`composition-envelope-exercise-${member.exercise.id}`}
+            >
+              <LayoutExerciseRow
+                exercise={member.exercise}
+                circuit={null}
+                position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
+                railGap={LAYOUT_CYCLE_GAP}
+                rail={rail}
+                context={context}
+              />
+            </EnvelopeFrame>
+          </View>
+        ) : (
+          // PRE-9 B.2 : Circuit d'un Cycle — jamais éligible (un Cycle ne s'imbrique pas), inactif.
+          <EnvelopeFrame
+            key={`circuit:${member.circuit.id}`}
+            envelope={context.envelope}
+            target={{ kind: "CIRCUIT", id: member.circuit.id }}
+            name={layoutCircuitName(member.circuit.id, context.letters)}
+            testID={`composition-envelope-circuit-${member.circuit.id}`}
+          >
+            <LayoutCircuitBlock
+              key={`circuit:${member.circuit.id}`}
+              circuit={member.circuit}
+              inCycle
+              offsetY={cycleY}
               railGap={LAYOUT_CYCLE_GAP}
               rail={rail}
               context={context}
+              onAnchor={onAnchor}
             />
-          </View>
-        ) : (
-          <LayoutCircuitBlock
-            key={`circuit:${member.circuit.id}`}
-            circuit={member.circuit}
-            inCycle
-            offsetY={cycleY}
-            railGap={LAYOUT_CYCLE_GAP}
-            rail={rail}
-            context={context}
-            onAnchor={onAnchor}
-          />
+          </EnvelopeFrame>
         ),
       )}
     </View>
@@ -6158,6 +6473,8 @@ const CIRCUIT_SURFACE_COLOR = "#F3F4F9";
  * - écart entre les membres d'un Cycle et sous son en-tête : celui du Circuit (9).
  */
 const CYCLE_SURFACE_COLOR = "#EAEAFF";
+/** PRE-9 B.2 : fond du contenu désigné en mode enveloppe — lavande du Cycle, translucide (valeur locale). */
+const ENVELOPE_DESIGNATED_FILL = "rgba(234, 234, 255, 0.6)";
 const LAYOUT_CIRCUIT_IN_CYCLE_OUTSET = CARD_OUTSET + spacing[4];
 const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 /**
@@ -6793,6 +7110,34 @@ const styles = StyleSheet.create({
     ...type.body,
     color: colors.textPrimary,
   },
+  // PRE-9 B.2 : action indisponible — mêmes valeurs que `CatalogueCreateOptions` (`optionDisabled`).
+  addActivityTreeOptionDisabled: {
+    opacity: 0.5,
+  },
+  addActivityTreeOptionLabelDisabled: {
+    color: colors.disabled,
+  },
+  // PRE-9 B.2 (Figma `10819:20344`, `10836:20478`) : cible d'un contenu éligible du mode enveloppe,
+  // posée sur lui — contour bleu pointillé ; désigné, contour plein et fond lavande. Épaisseur 2, fond
+  // lavande translucide (le contenu reste lisible dessous) : valeurs locales NON ÉCRITES dans les
+  // sources, à confronter au rendu iPhone (ARB-19).
+  envelopeTarget: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: dimensions.standardCard.radius,
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
+  envelopeTargetCandidate: {
+    borderStyle: "dashed",
+  },
+  envelopeTargetDesignated: {
+    borderStyle: "solid",
+    backgroundColor: ENVELOPE_DESIGNATED_FILL,
+  },
   // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer`.
   // A-01 : plus de `marginTop: "auto"` ici — `body` (`flex: 1`, ci-dessus)
   // absorbe désormais tout l'espace disponible, `bottomAction` suit
@@ -6813,3 +7158,27 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+
+/**
+ * PRE-9 B.2 (COMP §5, ARB-19) : option du menu Créer de la Composition — sans action (`onPress`
+ * absent), indisponible selon le traitement existant (« Un circuit » du menu du Catalogue,
+ * `CatalogueCreateOptions`) : atténuée, inactive, nom accessible suivi de « indisponible ».
+ */
+function AddTreeOption({ label, onPress, testID }: { label: string; onPress?: () => void; testID: string }) {
+  const disabled = onPress === undefined;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={
+        disabled ? strings.screens.activities.addToSession.unavailableAccessibilityLabel.replace("{action}", label) : label
+      }
+      accessibilityState={{ disabled }}
+      style={[styles.addActivityTreeOption, disabled ? styles.addActivityTreeOptionDisabled : null]}
+      testID={testID}
+    >
+      <Text style={[styles.addActivityTreeOptionLabel, disabled ? styles.addActivityTreeOptionLabelDisabled : null]}>{label}</Text>
+    </Pressable>
+  );
+}

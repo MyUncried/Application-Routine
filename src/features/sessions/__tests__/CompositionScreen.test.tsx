@@ -345,6 +345,16 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByLabelText(composition.name)).toBeTruthy();
     expect(screen.getByLabelText(composition.countdown.label)).toBeTruthy();
     expect(screen.getByLabelText(composition.finalPhase.label)).toBeTruthy();
+    // PRE-9 B.2 — D-451, COMP §1 : une Séance commence sans Circuit (aucun compteur de Circuit).
+    expect(screen.queryByLabelText(composition.circuit.countAccessibilityLabel)).toBeNull();
+
+    const continueAction = screen.getByLabelText(composition.saveAction);
+    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
+  });
+
+  // PRE-9 B.2 — D-451, COMP §1 : le compteur est vérifié sur une Séance qui a un Circuit.
+  it("renders the Circuit counter of a session with a Circuit", () => {
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     // PRE-6 (story 3.1, CIR-10) : le compteur du Circuit est un réglage ajustable qui annonce
     // N avec son unité ; au repos, « 1 » puis « tour · groupées » (PRE-9 B.1a, D-451, complément
@@ -356,9 +366,6 @@ describe("CompositionScreen — état initial", () => {
     expect(screen.getByTestId("composition-circuit-header-counter-unit", { includeHiddenElements: true }).props.children).toBe("tour · ");
     expect(screen.getByTestId("composition-circuit-header-counter-adjective", { includeHiddenElements: true }).props.children).toBe("groupées");
     expect(screen.queryByText("×1")).toBeNull();
-
-    const continueAction = screen.getByLabelText(composition.saveAction);
-    expect(continueAction.props.accessibilityState).toMatchObject({ disabled: true });
   });
 
   // PRE-6 story 2.1 : le X de l’en-tête est annoncé « Fermer » ; même action `router.back()`.
@@ -377,7 +384,8 @@ describe("CompositionScreen — état initial", () => {
   // PRE-6 story 5.2 (D-435, `8328:28605`) : plus de rail continu ; des segments relient les anneaux
   // (cercle de 10, contour extérieur 1,5 `#7A7A80`, fond blanc).
   it("PRE6-2.1 / 5.2 — Séquence : segments de rail, anneau pour Compte à rebours, Circuit et Fin ; aucune icône de rôle de carte limite", () => {
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : l'anneau du Circuit n'existe qu'avec un Circuit (jamais vide).
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     // Rail et anneaux sont décoratifs, masqués à l'accessibilité.
     const hidden = { includeHiddenElements: true };
@@ -521,10 +529,11 @@ describe("CompositionScreen — état initial", () => {
   // « — min » des stories 1.3 / REWORK09). PRE-9 B.1a — D-451, complément du 28/10 (remplace la
   // clause de D-443 qui masquait la durée du Circuit) : la durée du Circuit est de nouveau affichée
   // à droite de son en-tête, au même format ; Circuit vide : « 0 s ».
+  // PRE-9 B.2 — D-451, COMP §1 : une Séance vide n'a plus de Circuit (ni sa durée).
   it("PRE-9 B.1a — the Circuit duration is shown again (« 0 s » when empty); the empty session shows « 0 s » in the context area", () => {
     renderScreen();
 
-    expect(screen.getByTestId("composition-circuit-header-duration", { includeHiddenElements: true }).props.children).toBe("0 s");
+    expect(screen.queryByTestId("composition-circuit-header-duration", { includeHiddenElements: true })).toBeNull();
     expect(screen.queryByText("— min")).toBeNull();
     expect(screen.getByTestId("composition-session-duration").props.children).toBe("0 s");
   });
@@ -992,7 +1001,8 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
       composition.circuit.title,
       composition.finalPhase.label,
     ]);
-    expect(labelOrder).toEqual([composition.countdown.label, composition.circuit.title, composition.finalPhase.label]);
+    // PRE-9 B.2 — D-451, COMP §1 : une Séance commence sans Circuit — aucun Circuit entre les bornes.
+    expect(labelOrder).toEqual([composition.countdown.label, composition.finalPhase.label]);
   });
 
   it("order once an Activity exists: Compte à rebours initial, then the created Activity, then the Circuit, then Fin de séance (UI-COMP-003) — never after the Circuit", () => {
@@ -1014,7 +1024,8 @@ describe("CompositionScreen — ordre structurel (UI-COMP-001/002/003, cycle de 
       composition.circuit.title,
       composition.finalPhase.label,
     ]);
-    expect(labelOrder).toEqual([composition.countdown.label, composition.circuit.title, composition.finalPhase.label]);
+    // PRE-9 B.2 — D-451, COMP §1 : l'Exercice créé est au niveau de la Séance, sans Circuit.
+    expect(labelOrder).toEqual([composition.countdown.label, composition.finalPhase.label]);
   });
 });
 
@@ -1159,7 +1170,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   });
 
   it("PRE6-3.1 — Circuit header (Figma `8328:28667`): the outer structure keeps the only surface; « Circuit » Semi Bold 16 primary; the counter on the right (story 7.8 : no Circuit duration)", () => {
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     // La seule surface visuelle est la structure extérieure (PRE-6 story 5.2, D-435, choix D5 :
     // aplat `#F3F4F9` sans contour, rayon 18 ; `tourSurface` inchangé). PRE-6 (story 2.3b,
@@ -1223,7 +1235,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
   // PRE-9 B.1a — D-451, complément du 28/10 (remplace D-442 : nombre et pastille à 16, stepper
   // permanent) ; RM-027 : nombre bleu 15 (cible de 44), unité 13 non interactive, adjectif bleu 13.
   it("PRE-9 B.1a — number in blue 15 (44 target), unit 13 not interactive, adjective in blue 13", () => {
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     const digit = screen.getByTestId("composition-circuit-header-counter-value");
     expect(StyleSheet.flatten(digit.props.style)).toMatchObject({ fontSize: 15, color: colors.primary });
@@ -1370,7 +1383,8 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // `limitCardBase` (rayon `12`, bordure grise) — ce test remplace T-01
     // explicitement, documentant la supersession plutôt que de la
     // silencieusement contredire.
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourCard = screen.getByTestId("composition-circuit-header");
@@ -1423,7 +1437,11 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
   // PRE-6 (story 2.2, `5544:6797`) : nom de l'occurrence en Inter Semi Bold 15, une ligne.
   // PRE-9 B.1a (D-451, complément du 28/10 ; référence §4) : le nom du Circuit passe à 15 (16 avant).
   it("PRE6-2.2 — the occurrence name is Inter Semi Bold 15 on one line; the Circuit name is 15 (PRE-9 B.1a)", () => {
-    renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
+    // PRE-9 B.2 — D-451, COMP §1 : un Exercice dans le Circuit, pour que le Circuit soit rendu.
+    renderScreenWithDraft([
+      { ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) },
+      anActivity("circuit-member", "IN_TOUR"),
+    ]);
 
     const name = within(screen.getByTestId("composition-exercise-row-ex-1")).getByText("Gainage");
     expect(name.props.numberOfLines).toBe(1);
@@ -1463,7 +1481,8 @@ describe("CompositionScreen — REWORK04 (`[ChatGPT] REWORK04 IMPLEMENTATION AUT
   // REWORK12 retirés) — absence vérifiée par le test « PRE6-3.1 — Circuit header ».
 
   it("R4-12 — the Tour Section container is wider than its inner card (breaks out of body's own padding by the canonical inset on each side)", () => {
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     const container = screen.getByTestId("composition-tour-section");
     const flattened = StyleSheet.flatten(container.props.style);
@@ -1519,7 +1538,8 @@ describe("CompositionScreen — R4-13/S-01…S-09 (Fixed Shell / Activities Scro
   });
 
   it("S-04 — the scrollable list contains, in order, Compte à rebours initial, the Tour section, then Fin de séance", () => {
-    renderScreen();
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")]);
 
     const scrollable = screen.getByTestId("composition-body");
     expect(within(scrollable).getByLabelText(composition.countdown.label)).toBeTruthy();
@@ -2028,7 +2048,8 @@ describe("CompositionScreen — espacement Activité/Activité (LOT_3_OF_3, rév
   });
 
   it("keeps Compte à rebours initial, the Tour section and Fin de séance OUTSIDE the reduced-gap container — they are direct children of the scrollable content, which now carries the SAME gap", () => {
-    renderScreenWithDraft(twoActivities);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([...twoActivities, anActivity("circuit-member", "IN_TOUR")]);
 
     const list = screen.getByTestId("composition-zone-before-tour");
     expect(within(list).queryByLabelText(composition.countdown.label)).toBeNull();
@@ -2585,7 +2606,8 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
   });
 
   it("CE-T02-02 — the other cards, the Tour and the structural rows keep their exact style while a card is lifted", () => {
-    renderScreenWithDraft(twoActivities);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    renderScreenWithDraft([...twoActivities, anActivity("circuit-member", "IN_TOUR")]);
 
     const otherBefore = StyleSheet.flatten(
       screen.getByTestId("composition-exercise-row-ex-2").props.style,
@@ -2638,6 +2660,9 @@ describe("CompositionScreen — déplacement d'une Activité (T02-S01, AC-04)", 
     fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
     fireLayout(screen.getByTestId("composition-activity-ex-2"), 80, 70);
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'existe qu'avec un Exercice — `ex-3`, à 290–360 en absolu.
+    fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
+    fireLayout(screen.getByTestId("composition-activity-ex-3"), 0, 70);
   }
 
   /**
@@ -2657,6 +2682,7 @@ describe("CompositionScreen — déplacement d'une Activité (T02-S01, AC-04)", 
     renderScreenWithDraft([
       anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage" }),
       anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
+      anActivity("ex-3", "IN_TOUR", { name: "Pompes" }),
     ]);
     layoutTwoBeforeTour();
   });
@@ -3696,11 +3722,14 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   });
 
   it("moves the Récupération WITH its Activity — it stays in line 3 of the card across zones", () => {
-    renderScreenWithDraft(withRecovery);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'existe qu'avec un Exercice (`circuit-member`, 290–360).
+    renderScreenWithDraft([...withRecovery, anActivity("circuit-member", "IN_TOUR")]);
 
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 100);
     fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 80);
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
+    fireLayout(screen.getByTestId("composition-activity-circuit-member"), 0, 70);
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
@@ -3715,13 +3744,16 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
   });
 
   it("drag still works on a card without a stop point row (décision Hermann 21/10/2026)", () => {
-    renderScreenWithDraft(withZeroRecovery);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'existe qu'avec un Exercice (`circuit-member`, 290–360).
+    renderScreenWithDraft([...withZeroRecovery, anActivity("circuit-member", "IN_TOUR")]);
     expect(screen.queryByTestId("composition-activity-recovery-slot-ex-1")).toBeNull();
 
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 100);
     // Bloc sans rangée : la mesure du conteneur n'est que la carte.
     fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 80);
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
+    fireLayout(screen.getByTestId("composition-activity-circuit-member"), 0, 70);
 
     const container = () => screen.getByTestId("composition-activity-ex-1");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
@@ -4089,9 +4121,13 @@ describe("CompositionScreen — en-tête du Circuit et compteur (PRE-6 story 3.1
   });
 
   it("empty Circuit: session and Circuit « 0 s »; rehydrated drafts show their persisted count", () => {
+    // PRE-9 B.2 — D-451, COMP §1 : sans Exercice, aucun Circuit (ni sa durée, ni son compteur).
     renderScreenWithDraft([], { tourRepeatCount: 7 });
     expect(sessionDuration()).toBe("0 s");
-    expect(circuitDuration()).toBe("0 s");
+    expect(screen.queryByTestId("composition-circuit-header-duration", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("composition-circuit-header-counter-value")).toBeNull();
+
+    renderScreenWithDraft([anActivity("circuit-member", "IN_TOUR")], { tourRepeatCount: 7 });
     expect(counterValue()).toBe(7);
     expect(unitText()).toBe("tours · ");
   });
@@ -4512,7 +4548,9 @@ describe("CompositionScreen — Points d'arrêt du brouillon (PRE-6 story 1.2)",
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
     fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
     fireLayout(screen.getByTestId("composition-activity-ex-2"), 80, 70);
-    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'est rendu qu'avec au moins un Exercice.
+    const tour = screen.queryByTestId("composition-tour-section");
+    if (tour !== null) fireLayout(tour, 230, 170);
   }
 
   const twoBefore = () => [
@@ -4915,6 +4953,9 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
     fireLayout(screen.getByTestId("composition-activity-ex-1"), 0, 70);
     fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    // PRE-9 B.2 : `circuit-member` à 290–360 en absolu ; le dépôt (300) le précède.
+    fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
+    fireLayout(screen.getByTestId("composition-activity-circuit-member"), 0, 70);
     const container = () => screen.getByTestId("composition-activity-ex-1");
     fireEvent(container(), "touchStart", { nativeEvent: { pageX: 200, pageY: 100 } });
     fireEvent(screen.getByTestId("composition-exercise-row-ex-1"), "longPress");
@@ -4923,9 +4964,11 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   }
 
   const seriesDraft = (count: number): Partial<Draft> => ({ circuitNature: "SERIES", tourRepeatCount: count });
+  // PRE-9 B.2 — D-451, COMP §1 : le Circuit n'existe qu'avec un Exercice (N séries en Séries).
+  const circuitMember = (series: number) => anActivity("circuit-member", "IN_TOUR", { executionParameters: durationParameters(30, series) });
 
   it("glisser vers un Circuit de Séries avec perte : dialogue ; Annuler restitue la position", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }), circuitMember(2)], seriesDraft(2));
     dragIntoCircuit();
 
     expect(screen.getByText(t.moveTitle)).toBeTruthy();
@@ -4944,7 +4987,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 
   it("glisser vers un Circuit de Séries avec perte : Confirmer déplace et adapte à N", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }), circuitMember(2)], seriesDraft(2));
     dragIntoCircuit();
     fireEvent.press(screen.getByLabelText(t.confirm));
 
@@ -4954,7 +4997,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 
   it("entrée en Séries sans perte : adaptée à N, sans dialogue", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(4));
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }), circuitMember(4)], seriesDraft(4));
     dragIntoCircuit();
 
     expect(screen.queryByTestId("circuit-entry-confirm-card")).toBeNull();
@@ -4963,7 +5006,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 
   it("Circuit de Tours : déplacement inchangé, paramètres conservés, sans dialogue", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], {
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }), circuitMember(1)], {
       tourRepeatCount: 2,
     });
     dragIntoCircuit();
@@ -5104,7 +5147,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
   });
 
   it("Confirmer rejoue le déplacement sur le brouillon courant : une modification faite pendant le dialogue est conservée", () => {
-    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) })], seriesDraft(2));
+    renderWithProbe([anActivity("ex-1", "BEFORE_TOUR", { executionParameters: durationParameters(30, 3) }), circuitMember(2)], seriesDraft(2));
     dragIntoCircuit();
     expect(screen.getByText(t.moveTitle)).toBeTruthy();
 
@@ -5119,6 +5162,7 @@ describe("CompositionScreen — organisation des occurrences et Circuit (PRE-6, 
     expect(probe.draft!.name).toBe("Renommée");
     expect(probe.draft!.exercises.map((exercise) => [exercise.id, exercise.structuralPosition])).toEqual([
       ["ex-1", "IN_TOUR"],
+      ["circuit-member", "IN_TOUR"],
       ["ex-new", "AFTER_TOUR"],
     ]);
     expect(seriesCountOfDraft("ex-1")).toBe(2);
@@ -5578,7 +5622,8 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     expect(eye.props.testID).toBe(EYE);
     expect(eye.props.accessibilityRole).toBe("button");
     expect(eye.props.accessibilityState).toMatchObject({ disabled: false });
-    expect(within(screen.getByTestId("composition-circuit-header")).queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
+    // PRE-9 B.2 — D-451, COMP §1 : Séance vide, aucun Circuit (l'œil reste disponible, comportement inchangé).
+    expect(screen.queryByTestId("composition-circuit-header")).toBeNull();
     // Ordre des commandes contextuelles : œil, « Ajouter un arrêt », « + ».
     const order = screen
       .getByTestId("composition-info-row")
@@ -5590,6 +5635,7 @@ describe("CompositionScreen — modales « Volumes du circuit » (PRE-6 story 3.
     screen.unmount();
     renderWithProbe(circuitExercises(), { circuitNature: "SERIES", tourRepeatCount: 4 });
     expect(screen.getByTestId(EYE)).toBeTruthy();
+    expect(within(screen.getByTestId("composition-circuit-header")).queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
   });
 
   // Gabarit des commandes contextuelles (ch13 L1480 / L1591 : 34 / dessin 20 / écart 10 / cibles 44).
@@ -7997,7 +8043,9 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     fireLayout(screen.getByTestId("composition-zone-before-tour"), 70, 150);
     fireLayout(screen.getByTestId("composition-activity-A"), 0, 70);
     fireLayout(screen.getByTestId("composition-activity-B"), 80, 70);
-    fireLayout(screen.getByTestId("composition-tour-section"), 230, 170);
+    // PRE-9 B.2 — D-451, COMP §1 : sans `X`, aucun Circuit n'est rendu.
+    const tour = screen.queryByTestId("composition-tour-section");
+    if (tour !== null) fireLayout(tour, 230, 170);
     if (withX) {
       fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 70);
       fireLayout(screen.getByTestId("composition-activity-X"), 0, 70);
@@ -8308,24 +8356,27 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     expect(rowShift("A")).toBe(-PITCH);
   });
 
-  it("Fin de séance : décalée du net des pas — hors Circuit vers un Circuit vide (écart 9 au lieu de 8)", () => {
+  // PRE-9 B.2 — D-451, COMP §1 (« une Séance commence sans Circuit », « un conteneur n'est jamais
+  // vide ») : remplace « Fin de séance : décalée du net des pas — hors Circuit vers un Circuit vide ».
+  // Sans Exercice dans le Circuit, aucun Circuit n'est rendu ni proposé comme destination : un dépôt
+  // à son ancienne place reste au niveau de la Séance (un Circuit naît par « Ajouter un circuit »).
+  it("sans Circuit : aucune dépose dans un Circuit vide — B reste au niveau de la Séance, entre A et Z", () => {
     renderLaidOut(undefined, { withX: false });
-    // Circuit vide : 230–284 ; Z après lui.
-    fireLayout(screen.getByTestId("composition-tour-section"), 230, 54);
-    fireLayout(screen.getByTestId("composition-zone-after-tour"), 290, 70);
+    expect(screen.queryByTestId("composition-tour-section", { includeHiddenElements: true })).toBeNull();
+    // Z suit directement la zone avant (230–300).
+    fireLayout(screen.getByTestId("composition-zone-after-tour"), 230, 70);
     lift("B");
-    // Centre de B = 185 ; +70 → 255, dans le Circuit.
+    // Centre de B = 185 ; +70 → 255, là où se trouvait le Circuit vide.
     moveTo("B", 70);
     settle();
-    const net = 70 + CIRCUIT_GAP - PITCH;
-    expect(translateY("composition-tour-section-surface-top")).toBe(-PITCH);
-    expect(translateY("composition-tour-section-surface-bottom")).toBe(net);
-    expect(rowShift("Z")).toBe(net);
-    expect(translateY("composition-boundary-final-phase-track")).toBe(net);
-    // Pas égaux (entre deux cartes) : la Fin ne bouge pas.
-    moveTo("B", -100);
+    release("B", 70);
     settle();
-    expect(translateY("composition-boundary-final-phase-track")).toBe(0);
+    expect(order().some((entry) => entry.endsWith(":IN_TOUR"))).toBe(false);
+    expect(testIdOrder(screen.toJSON(), ["composition-exercise-row-A", "composition-exercise-row-B", "composition-exercise-row-Z"])).toEqual([
+      "composition-exercise-row-A",
+      "composition-exercise-row-B",
+      "composition-exercise-row-Z",
+    ]);
   });
 
   // PRE-6 story 5.1 (D-435) : la carte v2 garde 80 avec ou sans durée estimée (ligne 2) ; le calcul
@@ -8502,7 +8553,10 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
     advance(400);
     advance(400);
     expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR"]);
-    expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
+    // PRE-9 B.2 — D-451, COMP §1 : son dernier membre supprimé, le Circuit disparaît (au lieu d'un
+    // Circuit vide revenu à sa place).
+    expect(screen.queryByTestId("composition-tour-section-surface-bottom", { includeHiddenElements: true })).toBeNull();
+    expect(screen.queryByTestId("composition-tour-section", { includeHiddenElements: true })).toBeNull();
   });
 
   it("story 7.5 (revue) — pendant une suppression animée : seconde suppression, soulèvement, Dupliquer ignorés ; la carte qui s'efface est masquée à VoiceOver", () => {
@@ -8655,7 +8709,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(circuitFrame().bottom).toBe(-(70 + CIRCUIT_GAP));
       release("X", 200);
       expect(order()).toEqual(["A:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR", "X:AFTER_TOUR"]);
-      expect(circuitFrame()).toEqual(RESTING_FRAME);
+      // PRE-9 B.2 — D-451, COMP §1 : X était le dernier membre — le Circuit disparaît (aucun cadre à poser).
+      expect(screen.queryByTestId("composition-tour-section", { includeHiddenElements: true })).toBeNull();
       expect(rowShift("Z")).toBe(0);
     });
 
@@ -8773,9 +8828,10 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         release("X", -200);
         expect(order()).toEqual(["A:BEFORE_TOUR", "X:BEFORE_TOUR", "B:BEFORE_TOUR", "Z:AFTER_TOUR"]);
         settle();
-        expectResting();
-        // Le Circuit se rétracte de sa seule carte.
-        expectCircuitEdgesResyncedAfterResize(170 - 70 - CIRCUIT_GAP);
+        for (const id of ["A", "B", "X", "Z"]) expect(rowShift(id)).toBe(0);
+        // PRE-9 B.2 — D-451, COMP §1 : sa seule carte sortie, le Circuit disparaît (au lieu de se
+        // rétracter en Circuit vide).
+        expect(screen.queryByTestId("composition-tour-section", { includeHiddenElements: true })).toBeNull();
       });
     });
 
@@ -10102,21 +10158,19 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     return { top: style.top as number | undefined, height: style.height as number, bottom: style.bottom as number | undefined };
   };
 
-  it("séquence vide : Compte à rebours → anneau du Circuit vide → bas du Circuit → Fin, sans aucun repère d'occurrence", () => {
+  // PRE-9 B.2 — D-451, COMP §1 (« une Séance commence sans Circuit ») : remplace « séquence vide :
+  // Compte à rebours → anneau du Circuit vide → bas du Circuit → Fin ».
+  it("séquence vide : Compte à rebours → Fin, sans Circuit ni aucun repère d'occurrence", () => {
     renderScreen();
     // Compte à rebours : queue du bas de l'anneau (12 + 5) au bas de la rangée de 27.
     expect(styleOf("composition-boundary-countdown-rail-tail")).toMatchObject({ top: 17, height: 10, width: 1.5, left: 32 - 0.75 });
-    // En-tête : lien jusqu'au haut de l'anneau (14 + 15 dans le Circuit), 8 + 14 + 15 de long ;
-    // queue du bas de l'anneau au bas de l'en-tête (15) ; axe à 48 dans le Circuit (x 56 à 402).
-    expect(span("composition-rail-link-circuit-header")).toMatchObject({ top: 14 + 15 - 37, height: 37 });
-    expect(styleOf("composition-rail-link-circuit-header").left).toBe(48 - 0.75);
-    expect(styleOf("composition-rail-tail-circuit-header")).toMatchObject({ top: 14 + 25, height: 15 });
-    expect(styleOf("composition-sequence-marker-circuit")).toMatchObject({ left: 48 - 6.5, top: 14 + 20 - 6.5 });
-    // Bas du Circuit : 14 depuis le bas de l'en-tête, ancré au bord bas.
-    expect(span("composition-rail-link-circuit-end")).toMatchObject({ bottom: 0, height: 14 });
-    // Fin : 8 + 7, jusqu'au haut de son anneau.
+    // Aucun Circuit : ni anneau, ni lien d'en-tête, ni bas de Circuit.
+    expect(screen.queryByTestId("composition-sequence-marker-circuit", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-rail-link-circuit-header", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-rail-link-circuit-end", hidden)).toBeNull();
+    // Fin : 8 + 7, jusqu'au haut de son anneau, depuis le bas du Compte à rebours.
     expect(span("composition-rail-link-end")).toMatchObject({ top: 7 - 15, height: 15 });
-    expect(screen.queryByTestId(/^composition-rail-link-(?!circuit|end|after)/u, hidden)).toBeNull();
+    expect(screen.queryByTestId(/^composition-rail-link-(?!end)/u, hidden)).toBeNull();
   });
 
   it("une carte avant, dans et après le Circuit : chaque lien rejoint le bord bas de l'élément précédent", () => {
@@ -10281,7 +10335,8 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
   });
 
   it("aucun élément du rail n'est interactif ni exposé à l'accessibilité", () => {
-    renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" })], {
+    // PRE-9 B.2 — D-451, COMP §1 : un Exercice dans le Circuit, pour que son rail soit rendu.
+    renderScreenWithDraft([anActivity("b", "BEFORE_TOUR", { name: "Gainage" }), anActivity("i", "IN_TOUR", { name: "Pompes" })], {
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
     for (const testID of [

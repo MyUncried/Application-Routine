@@ -69,6 +69,12 @@ export type RailChainInput = {
   readonly beforeTour: readonly RailChainItem[];
   readonly inTour: readonly RailChainItem[];
   readonly afterTour: readonly RailChainItem[];
+  /**
+   * PRE-9 B.2 (D-451, COMP §1 : une Séance commence sans Circuit, un conteneur n'est jamais vide) :
+   * Circuit rendu ? Absent (aucun Exercice dans le Circuit), ni en-tête ni bas de Circuit dans la
+   * chaîne : les zones avant et après se suivent. Par défaut, présent.
+   */
+  readonly hasCircuit?: boolean;
   /** Rangée « après le Circuit » rendue (story 6.2 : emplacement du placement seulement). */
   readonly hasAfterCircuit: boolean;
   /**
@@ -130,9 +136,13 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
   const chain: ChainNode[] = [
     { key: RAIL_KEYS.start, kind: "start", zone: null, id: null },
     ...input.beforeTour.map(rowNode("BEFORE_TOUR")),
-    { key: RAIL_KEYS.circuitHeader, kind: "circuitHeader", zone: null, id: null },
-    ...input.inTour.map(rowNode("IN_TOUR")),
-    { key: RAIL_KEYS.circuitEnd, kind: "circuitEnd", zone: null, id: null },
+    ...(input.hasCircuit === false
+      ? []
+      : [
+          { key: RAIL_KEYS.circuitHeader, kind: "circuitHeader" as const, zone: null, id: null },
+          ...input.inTour.map(rowNode("IN_TOUR")),
+          { key: RAIL_KEYS.circuitEnd, kind: "circuitEnd" as const, zone: null, id: null },
+        ]),
     ...(input.hasAfterCircuit ? [{ key: RAIL_KEYS.afterCircuit, kind: "afterCircuit" as const, zone: null, id: null }] : []),
     ...input.afterTour.map(rowNode("AFTER_TOUR")),
     { key: RAIL_KEYS.end, kind: "end", zone: null, id: null },
