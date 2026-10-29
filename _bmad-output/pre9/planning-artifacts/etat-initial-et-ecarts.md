@@ -57,7 +57,7 @@ Statuts : **QUALIFIÉ** (développé et qualifié) · **PARTIEL** · **DOC NON D
 
 | Élément | État actuel | Cible PRE-9 | Écart | Source de vérité | Impact technique | Traitement proposé |
 |---|---|---|---|---|---|---|
-| Persistance du Format | Aucune colonne | Format et réglages portés par le Circuit ou l'Exercice (ARB-03) ; origine de création sur la Séance ; organisation = nature du Circuit ; version de règle dans l'instantané | Tout | ARB-03 ; ch09 l.593-598 (à annoter), FMT-42 | **Migration** 017 sur `tours`, `activities`, `sessions.origin` | **DOC NON DÉV.** — C.1 [28/10 : migration sur `sessions` seulement, remplacé] |
+| Persistance du Format | Aucune colonne | **Format et réglages par Exercice uniquement** (clarification du 29/10) ; origine sur la Séance ; nature et compte sur Circuit ; version de règle par Exercice dans l'instantané | Tout | D-05, décision `c458dac6`, ch07, FMT-03/04 | **Migration 017** : attributs sur `activities` et `sessions.origin` ; **aucune** colonne Format sur `tours` | **DOC NON DÉV.** — C.1 [hypothèse antérieure Circuit/Exercice supersédée] |
 | Sélection du modèle | Vignettes pour le filtre seulement | Écran de choix avec cartes Exercice et Séance (ARB-05) | Tout | CE-FMT-01 (`8598:29271`), ARB-05 | — | **DOC NON DÉV.** — C.2 ; présentation confrontée à Figma (ARB-19) [28/10 : À CLARIFIER] |
 | Paramètres imposés et récapitulatif | Absent | CE-FMT-02 par modèle, par élément porteur | Tout | FMT-10…38, ARB-18, Figma `8624:*`, `8656:*` | Registre de Formats | **DOC NON DÉV.** — C.3 ; ARB-04 (défauts) |
 | Composition préremplie, verrouillage | Absent | CE-FMT-03/04, modale grisée | Tout | DSF §3, FMT-17, Figma `8747:14451` | Feuille de paramètres : état verrouillé | **DOC NON DÉV.** — C.4 |
@@ -65,7 +65,7 @@ Statuts : **QUALIFIÉ** (développé et qualifié) · **PARTIEL** · **DOC NON D
 | Départs rapides | Absent | Préremplissages d'éléments libres, un seul mécanisme (cas A, B, C) | Contenu des cinq départs | FMT-28, ch10 l.1524, ARB-22b | Aucun moteur | **DOC NON DÉV.** — C.5 ; contenu **EN ATTENTE DE DÉFINITION FONCTIONNELLE** (ARB-22c) |
 | Modification, duplication, réouverture | Absent | Format conservé par élément | — | FMT-03/40, ch09 l.617, ARB-16, ARB-17 | — | **DOC NON DÉV.** — C.6 |
 | Information « exécution non disponible » | Lecture indisponible partout (PRE-8) | Inchangée (ARB-21) | Aucun | ARB-21 | — | **QUALIFIÉ** — conservé, sans développement [28/10 : À CLARIFIER] |
-| Plusieurs Formats dans une Séance | Absent | Éléments formatés successifs, directement ou dans un Cycle (ARB-03) ; entrée « Format » du menu Créer (ARB-23) ; répétition intégrale par Cycle (ARB-25) | Tout | ARB-03, ARB-16, ARB-23, ARB-25 ; COMP l.64 (à annoter) | Aucune structure ni compteur nouveaux | **DOC NON DÉV.** — C.1, C.4, B.8 [révision 1 : À CLARIFIER — ARB-23, ARB-25] |
+| Plusieurs Formats dans une Séance | Absent | Exercices porteurs de leurs Formats successifs, directement ou dans des Circuits/Cycles ; adoption volontaire ; Circuit groupé répète ses membres, Cycle répète sa séquence ; affichage des Formats sur la deuxième ligne du Circuit replié (`10717:20056`, `10725:20142`) | Tout | ARB-03/25 précisés, D-05/D-12, `c458dac6` | Aucun porteur/compteur de Format sur Circuit | **DOC NON DÉV.** — C.1, C.4, B.1/B.8 |
 | Choix des Exercices dans le flux d'un Format ; contenu des départs rapides | Absent | Parcours Catalogue existant (ARB-22a) ; contenu des départs selon leur définition | Contenu des départs | ch03 l.646 ; ARB-22a/b/c ; Figma `8624:29980`, `8624:30040` | Sélection de Mouvements réutilisée | **DOC NON DÉV.** — C.3 ; **EN ATTENTE** — C.5 (ARB-22c) |
 
 ### Chantier D — Contrat avec le futur moteur
@@ -73,7 +73,7 @@ Statuts : **QUALIFIÉ** (développé et qualifié) · **PARTIEL** · **DOC NON D
 | Élément | État actuel | Cible PRE-9 | Écart | Source de vérité | Impact technique | Traitement proposé |
 |---|---|---|---|---|---|---|
 | Développement du plan (ordre) | `expandComposition`, Circuit unique, tests seulement | Toute la structure, ordre C2, plans finis seulement ; segments pour AMRAP et Death by | Cycles, multi-Circuits, Exercices de Cycle, éléments formatés | RM-252, ch10 l.1014-1015, l.1130, l.992, ch12 l.1829 | Fonction pure | **PARTIEL** — D.1 |
-| Instantané de Séance | Instantané d'Exercice v3 inutilisé | Instantané de Séance versionné (structure ; Format, réglages effectifs et version de règle par élément formaté) | Niveau Séance | SU-07, ch09 l.593-598, ch11 l.13, ARB-03 | Type (sérialisation : PRE-10) | **PARTIEL** — D.2 |
+| Instantané de Séance | Instantané d'Exercice v3 inutilisé | Instantané de Séance versionné (structure ; Format et réglages effectifs **par Exercice**, version de règle propre ; Circuit sans Format) | Niveau Séance et Exercices | SU-07, ch09 cible PRE-9, D-05 | Type (sérialisation : PRE-10) | **PARTIEL** — D.2 |
 | Descripteurs de capacités par Format | Absent | Matrice Format × capacité (expansion, horloges, déclencheurs, fin, résultats) | Tout | ch11 l.315, ch12 l.1824-1834, FMT | Données déclaratives | **DOC NON DÉV.** — D.3 |
 | Validité de configuration | `validateStructureShape` | Validité par élément et pour la Séance, distincte de la disponibilité du moteur | Règles ch10 et par Format | cadrage §2.C (l.47) ; CE-FMT-02/04 §14 | Pur | **PARTIEL** — D.4 |
 | Résultats, références temporelles, expiration, interruptions et reprise, signaux (interface, audio, haptique) | Absent | **Capacités définies par Format** (table sourcée), non implémentées | Définition à produire ; cas non définis listés | A2, A4, A6, A7, R-01, RM-066…070 | Aucun code | **DOC NON DÉV.** — D.3, D.5 (implémentation : PRE-10/11) |
@@ -88,7 +88,7 @@ A.1 structure D-451 complète (migration 016) ──┬─> B.1 rendu D-451 ─�
                                                │                     └─> B.3 séries par Circuit
                                                │                     └─> B.7 durées (+ D.1)
                                                ├─> A.2 Exercice depuis Mouvement (+ B.2) ──> A.4 conversion (ARB-01) ──> A.3 retrait des parcours ··> A.5 retrait de la table (conditionnel)
-                                               └─> C.1 Format porté par l'élément (migration 017) ──┬─> D.1 plans finis ──> D.2 instantané ;  D.1 + D.3 ──> D.4 validité
+                                               └─> C.1 Format sur Exercice uniquement (migration 017) ──┬─> D.1 plans finis ──> D.2 instantané ;  D.1 + D.3 ──> D.4 validité
                                                         │                                         └─> D.3 descripteurs ──> D.5 instruction des capacités
                                                         └─> C.2 sélection (+ A.2) ──> C.3 paramètres (ARB-04 : défauts) ──> C.4 préremplie, verrous, entrée « Format », compatibilité (+ B.2, B.3, B.4) ──> C.6 édition/duplication
                                                                      └─> C.5 départs rapides (ARB-22c : contenu)
