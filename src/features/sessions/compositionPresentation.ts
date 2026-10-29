@@ -82,6 +82,30 @@ export function formatCompositionSessionDuration(facts: CompositionSummaryFacts)
 }
 
 /**
+ * PRE-9 B.1a (D-451, complément du 28/10, qui remplace la clause de D-443 masquant la durée ;
+ * ch. 10 « Le contrôle » : « La durée figure à droite ») : durée de l'en-tête du Circuit.
+ *
+ * - Périmètre et calcul (inchangés, ancien résumé du Circuit, D-382, D-390, D-399) : les seules
+ *   occurrences `IN_TOUR`, développées selon la nature et N par l'autorité unique du Domaine
+ *   (`computeStructuredSessionDuration` restreinte à la zone `IN_TOUR`) ; aucune formule locale.
+ * - Format : celui de la durée de la Séance (`formatSessionDurationEstimate`, « ≈ » / « ≥ », tranches
+ *   de 15 s), le seul format d'estimation en vigueur — la référence (§4) laisse « l'arrondi précis »
+ *   à qualifier ; aucun arrondi propre au Circuit n'est inventé. Circuit vide : « 0 s ».
+ */
+export function formatCircuitDuration(facts: CompositionSummaryFacts): string {
+  const zones = groupActivitiesByZone(facts.exercises);
+  return formatSessionDurationEstimate(
+    computeStructuredSessionDuration({
+      beforeTour: [],
+      inTour: zones.inTour,
+      afterTour: [],
+      tourRepeatCount: facts.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
+      circuitNature: facts.circuitNature ?? DEFAULT_CIRCUIT_NATURE,
+    }),
+  );
+}
+
+/**
  * Format partagé d'une durée typée du Domaine. PRE-3 : « ≥ » si un travail est inconnu, « ≈ » si une
  * contribution est estimée (Répétitions avec bip), aucun symbole sinon. PRE-4 (story 2.4, AC5) : la
  * borne minimale garde ses secondes (105 s → « ≥ 1 min 45 s ») ; `exact` et `estimated` gardent

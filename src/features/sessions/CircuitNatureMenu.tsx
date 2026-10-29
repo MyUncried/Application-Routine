@@ -70,7 +70,9 @@ export type CircuitNatureMenuProps = {
 /**
  * Déclencheur du choix de nature du Circuit (PRE-6 story 3.2, CE-CIR-01, CIR-10, Figma
  * `8328:34805`) : la pastille d'unité seule. Deux options « Circuit de tours » / « Circuit de
- * séries », la nature courante cochée ; aucune troisième option.
+ * séries », la nature courante cochée ; aucune troisième option. PRE-9 B.1a (D-451, complément du
+ * 28/10 ; RM-027) : le déclencheur est l'adjectif de nature de l'en-tête (« groupées » /
+ * « alternées ») ; options « Séries groupées » / « Séries alternées ».
  *
  * - iOS (primitives natives, AGENTS.md) : `Menu` SwiftUI d'`@expo/ui`, hébergé par `Host` et
  *   `RNHostView`, même mécanisme que l'Enchaînement de la Feuille (`SideOrderMenu` de
@@ -78,7 +80,7 @@ export type CircuitNatureMenuProps = {
  *   courante. Le sous-texte est porté par le nom accessible de l'option (comme l'Enchaînement) :
  *   le `Button` d'`@expo/ui` n'expose pas de sous-titre avec une icône système. Un toucher
  *   extérieur ferme le menu sans rien choisir. PRE-6 story 7.3 : la pastille reste le déclencheur,
- *   entre le nombre et le + du stepper toujours affiché.
+ *   entre le nombre et le + du stepper toujours affiché [remplacé par PRE-9 B.1a : l'adjectif].
  * - Android et web : bouton « Nature du circuit » (cible 44) ; le panneau `CircuitNaturePanel`
  *   est hébergé par l'écran dans un parent qui le contient entièrement (sur Android, un toucher
  *   hors des limites du parent n'atteint pas ses enfants).

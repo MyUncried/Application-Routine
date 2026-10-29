@@ -5,10 +5,12 @@ import { AccessibilityInfo, Platform, StyleSheet } from "react-native";
 
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import {
+  CIRCUIT_HEADER_COLLAPSED_HEIGHT,
   CIRCUIT_HEADER_HEIGHT,
   CIRCUIT_HEADER_TOUCH_GEOMETRY,
   CircuitHeader,
   circuitCountSpokenValue,
+  circuitNatureAdjective,
   circuitUnitLabel,
 } from "@/features/sessions/CircuitHeader";
 import { CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
@@ -17,28 +19,40 @@ import { colors, type } from "@/shared/ui/tokens";
 type HeaderOverrides = Partial<{
   nature: CircuitNature;
   count: number;
+  duration: string;
+  isCounterOpen: boolean;
   isNatureMenuOpen: boolean;
   natureFocusRequest: number;
+  isCollapsed: boolean;
+  memberNames: readonly string[];
   isAttenuated: boolean;
   isChoicePending: boolean;
 }>;
 
 function renderHeader(overrides: HeaderOverrides = {}) {
   const onChangeCount = jest.fn<(count: number) => void>();
+  const onToggleCounter = jest.fn();
   const onOpenNatureMenu = jest.fn();
   const onCloseNatureMenu = jest.fn();
   const onSelectNature = jest.fn<(nature: CircuitNature) => void>();
+  const onToggleCollapsed = jest.fn();
   const counterRef: { current: unknown } = { current: null };
   const element = (next: HeaderOverrides) => (
     <CircuitHeader
       nature={next.nature ?? "TOURS"}
       count={next.count ?? 1}
+      duration={next.duration ?? "≈ 4 min"}
+      isCounterOpen={next.isCounterOpen ?? false}
+      onToggleCounter={onToggleCounter}
       onChangeCount={onChangeCount}
       isNatureMenuOpen={next.isNatureMenuOpen ?? false}
       natureFocusRequest={next.natureFocusRequest ?? 0}
       onOpenNatureMenu={onOpenNatureMenu}
       onCloseNatureMenu={onCloseNatureMenu}
       onSelectNature={onSelectNature}
+      isCollapsed={next.isCollapsed ?? false}
+      onToggleCollapsed={onToggleCollapsed}
+      memberNames={next.memberNames ?? []}
       counterRef={counterRef as { current: null }}
       isAttenuated={next.isAttenuated}
       isChoicePending={next.isChoicePending}
@@ -48,9 +62,11 @@ function renderHeader(overrides: HeaderOverrides = {}) {
   const view = render(element(overrides));
   return {
     onChangeCount,
+    onToggleCounter,
     onOpenNatureMenu,
     onCloseNatureMenu,
     onSelectNature,
+    onToggleCollapsed,
     counterRef,
     rerender: (next: HeaderOverrides) => view.rerender(element({ ...overrides, ...next })),
   };
@@ -82,65 +98,103 @@ function tap(testID: string) {
 const MINUS = "header-counter-stepper-decrement";
 const PLUS = "header-counter-stepper-increment";
 
-describe("CircuitHeader (PRE-6 story 3.1)", () => {
-  it("accords the unit with the nature and N (N = 1 singular)", () => {
-    expect(circuitUnitLabel("TOURS", 1)).toBe("tour");
-    expect(circuitUnitLabel("TOURS", 2)).toBe("tours");
-    expect(circuitUnitLabel("SERIES", 1)).toBe("série");
-    expect(circuitUnitLabel("SERIES", 3)).toBe("séries");
-    expect(circuitCountSpokenValue("TOURS", 4)).toBe("4 tours");
+describe("CircuitHeader (PRE-6 story 3.1 ; PRE-9 B.1a)", () => {
+  // D-451, complément du 28/10 (remplace D-442 / D-443) : l'unité reste « tour(s) » pour les deux
+  // natures ; la nature est l'adjectif « groupées » / « alternées ».
+  it("unit is always « tour(s) », accorded with N; nature adjective « groupées » / « alternées »", () => {
+    expect(circuitUnitLabel(1)).toBe("tour");
+    expect(circuitUnitLabel(2)).toBe("tours");
+    expect(circuitCountSpokenValue(4)).toBe("4 tours");
+    expect(circuitNatureAdjective("TOURS")).toBe("groupées");
+    expect(circuitNatureAdjective("SERIES")).toBe("alternées");
   });
 
-  describe("nature choice (PRE-6 story 3.2, CE-CIR-01)", () => {
-    it("iOS: the pill is the trigger of a native SwiftUI Menu (two options, current checked, subtitle in the accessible name)", () =>
+  it("one line: « Circuit », chevron, « N tours · adjective », duration right-aligned", () => {
+    renderHeader({ count: 3, nature: "SERIES", duration: "≥ 19 min" });
+    expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
+    expect(screen.getByTestId("header-counter-value").props.children).toBe(3);
+    expect(screen.getByTestId("header-counter-unit", anyNode).props.children).toBe("tours · ");
+    expect(screen.getByTestId("header-counter-adjective", anyNode).props.children).toBe("alternées");
+    expect(screen.getByTestId("header-duration", anyNode).props.children).toBe("≥ 19 min");
+    const row = screen.getByTestId("header-row");
+    const children = ([] as unknown[])
+      .concat(row.props.children)
+      .filter((child): child is { props: { testID: string } } => child !== null && typeof child === "object");
+    expect(children.map((child) => child.props.testID)).toEqual(["header-collapse", "header-counter-slot", "header-duration"]);
+    expect(style("header-duration")).toMatchObject({ textAlign: "right", flex: 1, minWidth: 0, color: "#7A7A80" });
+    expect(screen.getByTestId("header-duration", anyNode).props.numberOfLines).toBe(1);
+    // VoiceOver : la durée est lue avec le nom.
+    expect(screen.getByTestId("header-collapse").props.accessibilityLabel).toBe("Circuit, ≥ 19 min");
+    // Aucune lettre pour un Circuit unique.
+    expect(screen.queryByText(/Circuit [A-Z]$/)).toBeNull();
+  });
+
+  it("text sizes and colours (reference §4): name and number 15, unit and adjective 13, duration 12; number and nature in blue", () => {
+    renderHeader({ count: 3 });
+    expect(style("header-title")).toMatchObject({ fontSize: 15, color: colors.textPrimary });
+    expect(style("header-counter-value")).toMatchObject({ fontSize: 15, color: colors.primary });
+    expect(style("header-counter-unit")).toMatchObject({ fontSize: 13, color: colors.textPrimary });
+    expect(style("header-counter-adjective")).toMatchObject({ fontSize: 13, color: colors.primary });
+    expect(style("header-duration")).toMatchObject({ fontSize: type.supporting.fontSize });
+    expect(type.supporting.fontSize).toBe(12);
+  });
+
+  describe("nature choice on the adjective (PRE-6 story 3.2 ; RM-027)", () => {
+    it("iOS: the adjective is the trigger of a native SwiftUI Menu (two options, current checked, subtitle in the accessible name)", () =>
       withPlatform("ios", () => {
-        const { onSelectNature, onChangeCount } = renderHeader({ nature: "TOURS", count: 3 });
+        const { onSelectNature, onChangeCount, onToggleCounter } = renderHeader({ nature: "TOURS", count: 3 });
         const host = screen.getByTestId("header-counter-nature", anyNode);
         const menu = within(host).UNSAFE_getByType(Menu);
         expect(within(host).UNSAFE_getAllByType(RNHostView)).toHaveLength(1);
-        // Pastille rendue dans le déclencheur (avec sa cible de 44), sans rôle propre.
-        expect(within(host).getByTestId("header-counter-unit-text", anyNode).props.children).toBe("tours");
-        expect(within(host).getByTestId("header-counter-unit-target", anyNode)).toBeTruthy();
+        // L'adjectif est rendu dans le déclencheur (avec sa cible de 44) ; l'unité ne l'est pas.
+        expect(within(host).getByTestId("header-counter-adjective", anyNode).props.children).toBe("groupées");
+        expect(within(host).getByTestId("header-counter-adjective-target", anyNode)).toBeTruthy();
+        expect(within(host).queryByTestId("header-counter-unit", anyNode)).toBeNull();
         const modifiers = JSON.stringify(menu.props.modifiers);
         expect(modifiers).toContain("Nature du circuit");
-        expect(modifiers).toContain("Circuit de tours");
+        expect(modifiers).toContain("Séries groupées");
         const items = within(menu).UNSAFE_getAllByType(SwiftUIButton);
         expect(items.map((item) => [item.props.label, item.props.systemImage ?? null])).toEqual([
-          ["Circuit de tours", "checkmark"],
-          ["Circuit de séries", null],
+          ["Séries groupées", "checkmark"],
+          ["Séries alternées", null],
         ]);
         expect(items.map((item) => JSON.stringify(item.props.modifiers))).toEqual([
-          expect.stringContaining("Circuit de tours, les séries d’un exercice s’enchaînent"),
-          expect.stringContaining("Circuit de séries, une série de chaque exercice par passage"),
+          expect.stringContaining("Séries groupées, toutes les séries d’un exercice exécutées à chaque tour"),
+          expect.stringContaining("Séries alternées, une série de chaque exercice exécutée à chaque tour"),
         ]);
         act(() => {
           fireEvent(screen.getByTestId("header-counter-nature-SERIES", anyNode), "buttonPress");
         });
         expect(onSelectNature).toHaveBeenCalledWith("SERIES");
         expect(onChangeCount).not.toHaveBeenCalled();
-        // Le chiffre reste un réglage distinct.
+        expect(onToggleCounter).not.toHaveBeenCalled();
+        // Le nombre reste un réglage distinct.
         expect(screen.getByTestId("header-counter").props.accessibilityLabel).toBe("Nombre de tours");
       }));
 
-    it("Android: the pill is a distinct button « Nature du circuit » (44 target) opening the choice", () =>
+    it("Android: the adjective is a distinct button « Nature du circuit » (44 target) opening the choice", () =>
       withPlatform("android", () => {
-        const { onOpenNatureMenu, onCloseNatureMenu, onChangeCount, rerender } = renderHeader({ nature: "SERIES", count: 2 });
-        const pill = screen.getByTestId("header-counter-nature");
-        expect(pill.props.accessibilityRole).toBe("button");
-        expect(pill.props.accessibilityLabel).toBe("Nature du circuit");
-        expect(pill.props.accessibilityValue).toEqual({ text: "Circuit de séries" });
-        expect(StyleSheet.flatten(pill.props.style)).toMatchObject({ minWidth: 44, minHeight: 44 });
-        expect(screen.getByTestId("header-counter").props.accessibilityLabel).toBe("Nombre de séries");
-        fireEvent.press(pill);
+        const { onOpenNatureMenu, onCloseNatureMenu, onChangeCount, onToggleCounter, rerender } = renderHeader({
+          nature: "SERIES",
+          count: 2,
+        });
+        const trigger = screen.getByTestId("header-counter-nature");
+        expect(trigger.props.accessibilityRole).toBe("button");
+        expect(trigger.props.accessibilityLabel).toBe("Nature du circuit");
+        expect(trigger.props.accessibilityValue).toEqual({ text: "Séries alternées" });
+        expect(StyleSheet.flatten(trigger.props.style)).toMatchObject({ minWidth: 44, minHeight: 44 });
+        expect(screen.getByTestId("header-counter").props.accessibilityLabel).toBe("Nombre de tours");
+        fireEvent.press(trigger);
         expect(onOpenNatureMenu).toHaveBeenCalledTimes(1);
         expect(onChangeCount).not.toHaveBeenCalled();
+        expect(onToggleCounter).not.toHaveBeenCalled();
         rerender({ isNatureMenuOpen: true });
         expect(screen.getByTestId("header-counter-nature").props.accessibilityState).toMatchObject({ expanded: true });
         fireEvent.press(screen.getByTestId("header-counter-nature"));
         expect(onCloseNatureMenu).toHaveBeenCalledTimes(1);
       }));
 
-    it("Android: focus goes to the pill only on a focus request, never on a mere close", () =>
+    it("Android: focus goes to the adjective only on a focus request, never on a mere close", () =>
       withPlatform("android", () => {
         const focus = jest.spyOn(AccessibilityInfo, "sendAccessibilityEvent").mockImplementation(() => undefined);
         try {
@@ -156,6 +210,18 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
           focus.mockRestore();
         }
       }));
+
+    it("iOS: the native menu host is remounted when the adjective changes (story 7.9), kept otherwise", () =>
+      withPlatform("ios", () => {
+        const host = () => screen.getByTestId("header-counter-nature", anyNode);
+        const { rerender } = renderHeader({ nature: "TOURS", count: 3 });
+        const grouped = host();
+        rerender({ count: 12 });
+        expect(host()).toBe(grouped);
+        rerender({ nature: "SERIES" });
+        expect(host()).not.toBe(grouped);
+        expect(screen.getByTestId("header-counter-adjective", anyNode).props.children).toBe("alternées");
+      }));
   });
 
   describe("CircuitNaturePanel (Android / web)", () => {
@@ -167,14 +233,14 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
       );
       const panel = screen.getByTestId("panel");
       expect(StyleSheet.flatten(panel.props.style)).toMatchObject({ top: 50, right: 24 });
-      expect(within(panel).getByText("Circuit de tours")).toBeTruthy();
-      expect(within(panel).getByText("les séries d’un exercice s’enchaînent")).toBeTruthy();
-      expect(within(panel).getByText("Circuit de séries")).toBeTruthy();
-      expect(within(panel).getByText("une série de chaque exercice par passage")).toBeTruthy();
+      expect(within(panel).getByText("Séries groupées")).toBeTruthy();
+      expect(within(panel).getByText("toutes les séries d’un exercice exécutées à chaque tour")).toBeTruthy();
+      expect(within(panel).getByText("Séries alternées")).toBeTruthy();
+      expect(within(panel).getByText("une série de chaque exercice exécutée à chaque tour")).toBeTruthy();
       expect(screen.getByTestId("panel-TOURS").props.accessibilityState).toMatchObject({ selected: true });
       expect(screen.getByTestId("panel-SERIES").props.accessibilityState).toMatchObject({ selected: false });
       expect(screen.getByTestId("panel-TOURS").props.accessibilityLabel).toBe(
-        "Circuit de tours, les séries d’un exercice s’enchaînent",
+        "Séries groupées, toutes les séries d’un exercice exécutées à chaque tour",
       );
       expect(screen.getByTestId("panel-TOURS-check")).toBeTruthy();
       expect(screen.queryByTestId("panel-SERIES-check")).toBeNull();
@@ -186,38 +252,74 @@ describe("CircuitHeader (PRE-6 story 3.1)", () => {
       expect(onDismiss).toHaveBeenCalledTimes(2);
     });
   });
-
-  // Story 7.8 (D-443) : plus de durée du Circuit — le titre est lu seul, sans durée.
-  it("story 7.8 — no Circuit duration: neither text nor accessible name", () => {
-    renderHeader({ count: 3 });
-    expect(screen.queryByTestId("header-duration", anyNode)).toBeNull();
-    expect(screen.getByTestId("header-title").props.accessibilityLabel).toBeUndefined();
-    expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
-  });
 });
 
 /**
- * PRE-6 story 7.3 (D-442, recette du 22/10, commentaires 8 à 11 ; Figma `8328:28605`) : stepper
- * toujours affiché et actif, nombre en « Valeur modifiable », textes à la taille du titre, cibles
- * réelles de 44 espacées.
+ * PRE-9 B.1a — D-451, complément du 28/10 (remplace D-442 / D-443) ; RM-027 : toucher le nombre
+ * révèle le stepper ; l'unité n'est pas interactive.
  */
-describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)", () => {
-  it("renders « Circuit » and − N unit + at once, without any reveal", () => {
-    renderHeader({ count: 3, nature: "SERIES" });
-    expect(screen.getByTestId("header-title").props.children).toBe("Circuit");
-    expect(screen.getByTestId(MINUS)).toBeTruthy();
-    expect(screen.getByTestId(PLUS)).toBeTruthy();
-    expect(screen.getByTestId("header-counter-value").props.children).toBe(3);
-    expect(screen.getByTestId("header-counter-unit-text", anyNode).props.children).toBe("séries");
-    // Ni état révélé, ni chiffre tactile, ni champ ouvert.
-    expect(screen.queryByTestId("header-counter-value-press")).toBeNull();
-    expect(screen.queryByTestId("header-counter-field")).toBeNull();
-    expect(screen.queryByTestId("header-counter-rest")).toBeNull();
-    expect(screen.getByTestId("header-counter").props.accessibilityState).toBeUndefined();
+describe("CircuitHeader — stepper révélé au toucher du nombre (RM-027)", () => {
+  it("at rest: no − / +; the number is a 44 target that asks the screen to reveal the stepper", () => {
+    const { onToggleCounter, onChangeCount } = renderHeader({ count: 3 });
+    expect(screen.queryByTestId(MINUS)).toBeNull();
+    expect(screen.queryByTestId(PLUS)).toBeNull();
+    const counter = screen.getByTestId("header-counter");
+    expect(counter.props.accessibilityState).toMatchObject({ expanded: false });
+    expect(style("header-counter")).toMatchObject({ minWidth: 44, minHeight: 44, marginVertical: -2 });
+    expect(counter.props.hitSlop).toBeUndefined();
+    fireEvent.press(counter);
+    expect(onToggleCounter).toHaveBeenCalledTimes(1);
+    expect(onChangeCount).not.toHaveBeenCalled();
   });
 
+  it("the unit is not interactive (no role, not accessible, no press handler)", () => {
+    const { onToggleCounter, onOpenNatureMenu } = renderHeader({ count: 3 });
+    const unit = screen.getByTestId("header-counter-unit", anyNode);
+    expect(unit.props.accessible).toBe(false);
+    expect(unit.props.accessibilityRole).toBeUndefined();
+    expect(unit.props.onPress).toBeUndefined();
+    fireEvent.press(unit);
+    expect(onToggleCounter).not.toHaveBeenCalled();
+    expect(onOpenNatureMenu).not.toHaveBeenCalled();
+  });
+
+  it("revealed: − N + on the white background (36, radius 18, padding 4; circles of 28); tapping the number again closes it", () => {
+    const { onToggleCounter } = renderHeader({ count: 3, isCounterOpen: true });
+    expect(screen.getByTestId(MINUS)).toBeTruthy();
+    expect(screen.getByTestId(PLUS)).toBeTruthy();
+    expect(screen.getByTestId("header-counter").props.accessibilityState).toMatchObject({ expanded: true });
+    expect(style("header-counter-stepper")).toMatchObject({
+      backgroundColor: colors.background,
+      minHeight: 36,
+      borderRadius: 18,
+      paddingHorizontal: 4,
+      flexShrink: 0,
+    });
+    for (const id of [MINUS, PLUS]) {
+      expect(style(`${id}-circle`)).toMatchObject({ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surface });
+      const box = style(id);
+      expect(box).toMatchObject({ width: 44, height: 44, marginVertical: -4 });
+      expect(screen.getByTestId(id).props.hitSlop).toBeUndefined();
+    }
+    expect(style("header-counter")).toMatchObject({ minHeight: 44, marginVertical: -4 });
+    fireEvent.press(screen.getByTestId("header-counter"));
+    expect(onToggleCounter).toHaveBeenCalledTimes(1);
+  });
+
+  it("reading order when revealed: −, the adjustable, +, then the nature", () =>
+    withPlatform("android", () => {
+      renderHeader({ count: 3, isCounterOpen: true });
+      const row = screen.getByTestId("header-counter-row");
+      const order = [MINUS, "header-counter", PLUS, "header-counter-nature"];
+      const ids = within(row)
+        .UNSAFE_queryAllByProps({})
+        .map((node) => node.props.testID as string | undefined)
+        .filter((id): id is string => id !== undefined && order.includes(id));
+      expect([...new Set(ids)]).toEqual(order);
+    }));
+
   it("− and + are active within 1..99; each tap asks the screen for N ± 1 (applied by `circuitCountOutcome`)", () => {
-    const { onChangeCount } = renderHeader({ count: 5 });
+    const { onChangeCount } = renderHeader({ count: 5, isCounterOpen: true });
     expect(screen.getByTestId(MINUS).props.accessibilityState).toMatchObject({ disabled: false });
     expect(screen.getByTestId(PLUS).props.accessibilityState).toMatchObject({ disabled: false });
     tap(PLUS);
@@ -225,7 +327,7 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
   });
 
   it("the step follows the CURRENT N after a re-render (no stale value)", () => {
-    const { onChangeCount, rerender } = renderHeader({ count: 5 });
+    const { onChangeCount, rerender } = renderHeader({ count: 5, isCounterOpen: true });
     tap(MINUS);
     expect(onChangeCount).toHaveBeenLastCalledWith(4);
     rerender({ count: 4 });
@@ -241,17 +343,27 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     [1, MINUS, "Retirer un tour — minimum atteint", PLUS],
     [99, PLUS, "Ajouter un tour — maximum atteint", MINUS],
   ])("at %i, the bound button is disabled (grey sign, announced) and does nothing; the other stays active", (count, bound, label, other) => {
-    const { onChangeCount } = renderHeader({ count });
+    const { onChangeCount } = renderHeader({ count, isCounterOpen: true });
     const button = screen.getByTestId(bound);
     expect(button.props.accessibilityState).toMatchObject({ disabled: true });
     expect(button.props.accessibilityLabel).toBe(label);
     expect(screen.getByTestId(other).props.accessibilityState).toMatchObject({ disabled: false });
     tap(bound);
     expect(onChangeCount).not.toHaveBeenCalled();
+    const tint = (id: string) => StyleSheet.flatten(screen.getByTestId(`${id}-icon`, anyNode).props.style).tintColor;
+    expect(tint(bound)).toBe(colors.disabled);
+    expect(tint(other)).toBe(colors.primary);
   });
 
-  it("revue 7.3 — activation without touch (TalkBack, keyboard: `onPress` alone) takes one step; a touch (pressIn, pressOut, press) takes only one", () => {
-    const { onChangeCount, rerender } = renderHeader({ count: 3 });
+  it("− and + are named after « tour » for both natures", () => {
+    renderHeader({ count: 3, nature: "SERIES", isCounterOpen: true });
+    expect(screen.getByTestId(MINUS).props.accessibilityRole).toBe("button");
+    expect(screen.getByTestId(MINUS).props.accessibilityLabel).toBe("Retirer un tour");
+    expect(screen.getByTestId(PLUS).props.accessibilityLabel).toBe("Ajouter un tour");
+  });
+
+  it("revue 7.3 — activation without touch takes one step; a touch (pressIn, pressOut, press) takes only one", () => {
+    const { onChangeCount, rerender } = renderHeader({ count: 3, isCounterOpen: true });
     fireEvent.press(screen.getByTestId(PLUS));
     expect(onChangeCount.mock.calls).toEqual([[4]]);
     rerender({ count: 4 });
@@ -263,25 +375,11 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
   });
 
   it("revue 7.3 — a press delay lets a scroll starting on − or + take the gesture without a step", () => {
-    renderHeader({ count: 3 });
+    renderHeader({ count: 3, isCounterOpen: true });
     for (const id of [MINUS, PLUS]) {
       const pressable = screen.UNSAFE_getAllByProps({ testID: id }).find((node) => node.props.unstable_pressDelay !== undefined);
       expect(pressable?.props.unstable_pressDelay).toBe(100);
     }
-  });
-
-  it("revue 7.3 — the sign is greyed (`colors.disabled`) at the bound, primary otherwise", () => {
-    renderHeader({ count: 1 });
-    const tint = (id: string) => StyleSheet.flatten(screen.getByTestId(`${id}-icon`, anyNode).props.style).tintColor;
-    expect(tint(MINUS)).toBe(colors.disabled);
-    expect(tint(PLUS)).toBe(colors.primary);
-  });
-
-  it("− and + are separate accessible buttons named after the nature", () => {
-    renderHeader({ count: 3, nature: "SERIES" });
-    expect(screen.getByTestId(MINUS).props.accessibilityRole).toBe("button");
-    expect(screen.getByTestId(MINUS).props.accessibilityLabel).toBe("Retirer une série");
-    expect(screen.getByTestId(PLUS).props.accessibilityLabel).toBe("Ajouter une série");
   });
 
   describe("maintien appuyé (EXECUTION_UNIT_HOLD_POLICY)", () => {
@@ -293,7 +391,7 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     });
 
     it("holding + repeats after 500 ms then every 150 ms, from the last requested value; release stops", () => {
-      const { onChangeCount } = renderHeader({ count: 3 });
+      const { onChangeCount } = renderHeader({ count: 3, isCounterOpen: true });
       const plus = screen.getByTestId(PLUS);
       fireEvent(plus, "pressIn");
       expect(onChangeCount.mock.calls).toEqual([[4]]);
@@ -313,7 +411,7 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     });
 
     it("holding − stops asking at the bound 1", () => {
-      const { onChangeCount } = renderHeader({ count: 2 });
+      const { onChangeCount } = renderHeader({ count: 2, isCounterOpen: true });
       fireEvent(screen.getByTestId(MINUS), "pressIn");
       act(() => {
         jest.advanceTimersByTime(2000);
@@ -322,16 +420,21 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
       fireEvent(screen.getByTestId(MINUS), "pressOut");
     });
 
-    it.each(["isAttenuated", "isChoicePending"] as const)("revue 7.3 — %s stops a hold in progress (no step resumed after the dialog)", (prop) => {
-      const { onChangeCount, rerender } = renderHeader({ count: 3 });
-      fireEvent(screen.getByTestId(PLUS), "pressIn");
-      expect(onChangeCount).toHaveBeenCalledTimes(1);
-      rerender(prop === "isAttenuated" ? { isAttenuated: true } : { isChoicePending: true });
-      act(() => {
-        jest.advanceTimersByTime(2000);
-      });
-      expect(onChangeCount).toHaveBeenCalledTimes(1);
-    });
+    it.each(["isAttenuated", "isChoicePending", "closed"] as const)(
+      "revue 7.3 — %s stops a hold in progress (no step resumed afterwards)",
+      (prop) => {
+        const { onChangeCount, rerender } = renderHeader({ count: 3, isCounterOpen: true });
+        fireEvent(screen.getByTestId(PLUS), "pressIn");
+        expect(onChangeCount).toHaveBeenCalledTimes(1);
+        rerender(
+          prop === "isAttenuated" ? { isAttenuated: true } : prop === "isChoicePending" ? { isChoicePending: true } : { isCounterOpen: false },
+        );
+        act(() => {
+          jest.advanceTimersByTime(2000);
+        });
+        expect(onChangeCount).toHaveBeenCalledTimes(1);
+      },
+    );
 
     it("unmounting during a hold stops the repetition", () => {
       const onChangeCount = jest.fn<(count: number) => void>();
@@ -339,12 +442,18 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
         <CircuitHeader
           nature="TOURS"
           count={3}
+          duration="≈ 1 min"
+          isCounterOpen
+          onToggleCounter={jest.fn()}
           onChangeCount={onChangeCount}
           isNatureMenuOpen={false}
           natureFocusRequest={0}
           onOpenNatureMenu={jest.fn()}
           onCloseNatureMenu={jest.fn()}
           onSelectNature={jest.fn()}
+          isCollapsed={false}
+          onToggleCollapsed={jest.fn()}
+          memberNames={[]}
           testID="header"
         />,
       );
@@ -357,8 +466,8 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     });
   });
 
-  it("VoiceOver: adjustable « Nombre de tours », value with its unit, increment / decrement bounded, no « activate »", () => {
-    const { onChangeCount, counterRef } = renderHeader({ count: 5 });
+  it("VoiceOver: adjustable « Nombre de tours », value with its unit, increment / decrement bounded, « activate » reveals", () => {
+    const { onChangeCount, onToggleCounter, counterRef } = renderHeader({ count: 5, nature: "SERIES" });
     const counter = screen.getByTestId("header-counter");
     expect(counter.props.accessible).toBe(true);
     expect(counter.props.accessibilityRole).toBe("adjustable");
@@ -367,20 +476,22 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     expect((counter.props.accessibilityActions as { name: string }[]).map((action) => action.name)).toEqual([
       "increment",
       "decrement",
+      "activate",
     ]);
     accessibilityAction("header-counter", "increment");
     accessibilityAction("header-counter", "increment");
     accessibilityAction("header-counter", "decrement");
-    accessibilityAction("header-counter", "activate");
     // Revue 7.3 : deux gestes avant un nouveau rendu partent de la dernière valeur demandée.
     expect(onChangeCount.mock.calls).toEqual([[6], [7], [6]]);
+    accessibilityAction("header-counter", "activate");
+    expect(onToggleCounter).toHaveBeenCalledTimes(1);
     // Story 5.1b : l'écran porte le focus sur ce réglage, toujours monté.
     expect(counterRef.current).not.toBeNull();
   });
 
   it.each([
-    [1, ["increment"]],
-    [99, ["decrement"]],
+    [1, ["increment", "activate"]],
+    [99, ["decrement", "activate"]],
   ])("VoiceOver at %i: only the available step is offered", (count, actions) => {
     const { onChangeCount } = renderHeader({ count });
     const counter = screen.getByTestId("header-counter");
@@ -389,111 +500,20 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     expect(onChangeCount).not.toHaveBeenCalled();
   });
 
-  it("reading order: −, the adjustable, the nature pill, +", () =>
-    withPlatform("android", () => {
-      renderHeader({ count: 3 });
-      const stepper = screen.getByTestId("header-counter-stepper");
-      const order = [MINUS, "header-counter", "header-counter-nature", PLUS];
-      const ids = within(stepper)
-        .UNSAFE_queryAllByProps({})
-        .map((node) => node.props.testID as string | undefined)
-        .filter((id): id is string => id !== undefined && order.includes(id));
-      expect([...new Set(ids)]).toEqual(order);
-    }));
-
-  it("the number is a « Valeur modifiable » (surface, radius 10, 10 / 4, primary); number and unit at the title size", () => {
-    renderHeader({ count: 3 });
-    expect(style("header-counter")).toMatchObject({
-      backgroundColor: colors.surface,
-      borderRadius: 10,
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-    });
-    const titleSize = style("header-title").fontSize;
-    expect(titleSize).toBe(type.cardTitle.fontSize);
-    expect(style("header-counter-value")).toMatchObject({ color: colors.primary, fontSize: titleSize });
-    expect(style("header-counter-unit-text")).toMatchObject({ color: colors.primary, fontSize: titleSize });
-    expect(style("header-counter-unit")).toMatchObject({ backgroundColor: colors.surface, borderRadius: 10 });
-  });
-
-  it("stepper background (Figma `9819:19951`): white, 36 high, radius 18, padding 4; surface circles of 28", () => {
-    renderHeader({ count: 3 });
-    expect(style("header-counter-stepper")).toMatchObject({
-      backgroundColor: colors.background,
-      minHeight: 36,
-      borderRadius: 18,
-      paddingHorizontal: 4,
-      flexShrink: 0,
-    });
-    for (const id of [MINUS, PLUS]) {
-      expect(style(`${id}-circle`)).toMatchObject({ width: 28, height: 28, borderRadius: 14, backgroundColor: colors.surface });
-    }
-  });
-
-  /**
-   * Cibles réelles (revue 5.3 : Fabric iOS écarte un `hitSlop` hors du parent) : boîtes de 44 dont
-   * le débordement est compensé par des marges négatives — la mise en page garde 36 dans le fond et
-   * 40 pour l'en-tête. Rectangles calculés le long de la ligne depuis les styles rendus.
-   */
-  it("−, + and the pill are real 44-high boxes, overflowing the 36 background without growing the 40 header", () => {
-    renderHeader({ count: 3 });
-    const g = CIRCUIT_HEADER_TOUCH_GEOMETRY;
-    expect(g.touchTarget).toBe(44);
-    for (const id of [MINUS, PLUS]) {
-      const box = style(id);
-      expect(box).toMatchObject({ width: 44, height: 44, marginVertical: -4 });
-      expect(screen.getByTestId(id).props.hitSlop).toBeUndefined();
-      // Hauteur occupée dans le fond : 44 − 2 × 4 = 36.
-      expect((box.height as number) + 2 * (box.marginVertical as number)).toBe(g.stepperHeight);
-    }
-    expect(style("header-counter-unit-target")).toMatchObject({ minHeight: 44 });
-    expect(style("header-counter-unit-slot")).toMatchObject({ marginVertical: -4 });
-    // L'en-tête : une rangée de hauteur MINIMALE 40 ; le fond de 36 y tient, les cibles débordent de 2.
-    expect(style("header")).toMatchObject({ flexDirection: "row", minHeight: CIRCUIT_HEADER_HEIGHT, alignItems: "center" });
-    expect(style("header").height).toBeUndefined();
-    expect((g.touchTarget - CIRCUIT_HEADER_HEIGHT) / 2).toBe(2);
-  });
-
-  it("targets never overlap each other nor the title; the circles sit 4 inside the background (Figma)", () => {
-    renderHeader({ count: 3 });
-    const g = CIRCUIT_HEADER_TOUCH_GEOMETRY;
-    const slotGap = style("header-counter-slot").marginLeft as number;
-    const padding = style("header-counter-stepper").paddingHorizontal as number;
-    const minus = style(MINUS);
-    const plus = style(PLUS);
-    const circleInset = (g.touchTarget - g.stepCircle) / 2;
-    // Repère : bord droit du bloc du titre = 0.
-    const minusLeft = slotGap + padding + (minus.marginLeft as number);
-    // Valeurs littérales (revue 7.3) : la cible du − commence à 4 du titre.
-    expect(minusLeft).toBe(4);
-    expect(g.minusTargetLeft).toBe(4);
-    // Cercle − à 4 du bord gauche du fond, cercle + à 4 du bord droit.
-    expect(padding + (minus.marginLeft as number) + circleInset).toBe(4);
-    expect(padding + (plus.marginRight as number) + circleInset).toBe(4);
-    // Entre la cible du − et le chiffre (non tactile) : rien ne se chevauche au-delà de la boîte.
-    expect(minus.marginRight as number).toBeGreaterThanOrEqual(0);
-    // Pastille → + : la cible du + commence après la pastille (écart ≥ 4).
-    expect(plus.marginLeft as number).toBe(4);
-    expect(g.unitToPlusTargetGap).toBe(4);
-    // Écarts visibles : cercle − → chiffre 8, chiffre → pastille 6, pastille → cercle + 12.
-    expect((minus.marginRight as number) + circleInset).toBe(8);
-    expect(style("header-counter-unit-slot").marginLeft).toBe(6);
-    expect((plus.marginLeft as number) + circleInset).toBe(12);
-  });
-
-  // Revue 5.2 / story 7.8 : à court de place, le titre cède (ellipse) ; le stepper (et la pastille
-  // de nature) ne rétrécit jamais et ne quitte pas la ligne.
-  it("narrow widths: the title gives way; the stepper never shrinks", () => {
-    renderHeader({ count: 3 });
-    expect(style("header-text-block")).toMatchObject({ flexShrink: 1, minWidth: 0 });
-    expect(style("header-title-row").minWidth).toBe(0);
+  // Référence §4 : le compteur ne cède jamais ; la durée d'abord, puis le nom.
+  it("narrow widths: the duration gives way first, then the name; the counter never shrinks", () => {
+    renderHeader({ count: 3, isCounterOpen: true });
+    expect(style("header-collapse")).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(style("header-title")).toMatchObject({ flexShrink: 1, minWidth: 0 });
     expect(screen.getByTestId("header-title").props.numberOfLines).toBe(1);
     expect(style("header-counter-slot").flexShrink).toBe(0);
+    expect(style("header-counter-row").flexShrink).toBe(0);
     expect(style("header-counter-stepper").flexShrink).toBe(0);
-    expect(style("header-counter").flexShrink).toBe(0);
-    expect(style("header-counter-unit-slot").flexShrink).toBe(0);
-    expect(style("header").flexWrap).toBeUndefined();
+    expect(style("header-counter-adjective-slot").flexShrink).toBe(0);
+    expect(style("header-duration")).toMatchObject({ flex: 1, minWidth: 0 });
+    // Compteur à abscisse fixe après le nom : aucun centrage dans l'espace résiduel.
+    expect(style("header-counter-slot")).toMatchObject({ marginLeft: CIRCUIT_HEADER_TOUCH_GEOMETRY.titleToCounterGap });
+    expect(style("header-row").justifyContent).toBeUndefined();
   });
 
   it("placement: the header is not interactive and hidden from accessibility", () => {
@@ -502,84 +522,46 @@ describe("CircuitHeader — stepper toujours affiché (PRE-6 story 7.3, D-442)",
     expect(header.props.pointerEvents).toBe("none");
     expect(header.props.accessibilityElementsHidden).toBe(true);
   });
-});
 
-// PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes est dans la zone de
-// contexte (`CompositionContextHeader.test.tsx`, `CompositionScreen.test.tsx`), plus dans l'en-tête.
-describe("CircuitHeader — sans l'œil des volumes (PRE-6 story 5.1b)", () => {
-  it("no eye in the header", () => {
+  it("no eye of the volumes in the header (story 5.1b)", () => {
     renderHeader();
     expect(screen.queryByTestId("header-volumes", anyNode)).toBeNull();
     expect(screen.queryByLabelText("Voir les volumes du circuit", anyNode)).toBeNull();
-    expect(screen.queryByTestId("header-volumes-icon", anyNode)).toBeNull();
-  });
-
-  // Story 5.2 (D-435, `9819:19948`) : une seule ligne de 40 ; story 5.1b : la ligne du titre ne
-  // porte que « Circuit » ; story 7.8 (D-443) : plus de durée, le stepper est calé à droite.
-  it("story 7.8 — one line: « Circuit » alone on the left, the stepper right-aligned, nothing after it", () => {
-    renderHeader({ count: 3 });
-    const titleRow = screen.getByTestId("header-title-row");
-    expect(StyleSheet.flatten(titleRow.props.style)).toMatchObject({ flexDirection: "row", alignItems: "center" });
-    const children = ([] as unknown[])
-      .concat(titleRow.props.children)
-      .filter((child): child is { props: { testID: string } } => child !== null && typeof child === "object");
-    expect(children.map((child) => child.props.testID)).toEqual(["header-title"]);
-    expect(within(titleRow).queryByTestId("header-counter-stepper")).toBeNull();
-    const header = screen.getByTestId("header");
-    const rowChildren = (header.props.children as ({ props: { testID: string } } | null)[])
-      .flat()
-      .filter((child): child is { props: { testID: string } } => child !== null);
-    // Le stepper est le DERNIER élément de la ligne, et le bloc du titre prend toute la place libre :
-    // le bord droit du stepper est donc le bord droit de l'en-tête (aligné à droite).
-    expect(rowChildren.map((child) => child.props.testID)).toEqual(["header-text-block", "header-counter-slot"]);
-    expect(style("header-text-block").flexGrow).toBe(1);
-    expect(style("header-counter-slot").marginRight).toBeUndefined();
-    expect(style("header").paddingRight).toBeUndefined();
-    expect(style("header").justifyContent).toBeUndefined();
   });
 });
 
-/**
- * PRE-6 story 7.9 (recette J6d, j6d-5 : « Quand on sélectionne Séries, le libellé Série est tronqué
- * dans le stepper ») : sur iOS, la pastille est le libellé d'un `Menu` natif hébergé
- * (`RNHostView matchContents`), mesuré une fois — un texte qui s'allonge y était mis en page dans
- * l'ancienne largeur. L'hôte natif est remonté (remesuré) à chaque changement du texte de l'unité.
- */
-describe("CircuitHeader — unité jamais tronquée (PRE-6 story 7.9)", () => {
-  const host = () => screen.getByTestId("header-counter-nature", anyNode);
+/** PRE-9 B.1a (ARB-12, référence §4) : chevron, Circuit replié. */
+describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
+  it("expanded: chevron up, state expanded, no names line, row of 40 (minimum)", () => {
+    renderHeader({ memberNames: ["Squat", "Pompes"] });
+    const collapse = screen.getByTestId("header-collapse");
+    expect(collapse.props.accessibilityRole).toBe("button");
+    expect(collapse.props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByTestId("header-chevron", anyNode).props.source).toBeTruthy();
+    expect(screen.queryByTestId("header-names", anyNode)).toBeNull();
+    expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_HEIGHT });
+    expect(style("header").height).toBeUndefined();
+    expect(style("header-row")).toMatchObject({ flexDirection: "row", minHeight: CIRCUIT_HEADER_HEIGHT, alignItems: "center" });
+    expect(style("header-collapse")).toMatchObject({ minHeight: 44, marginVertical: -2 });
+  });
 
-  it("iOS: the native menu host is remounted when the unit text changes (tours → séries, série → séries, tour → tours), kept otherwise", () =>
-    withPlatform("ios", () => {
-      const { rerender } = renderHeader({ nature: "TOURS", count: 3 });
-      const tours = host();
-      rerender({ count: 12 });
-      // Même texte (« tours ») : même hôte, pas de remontage inutile.
-      expect(host()).toBe(tours);
-      rerender({ nature: "SERIES", count: 12 });
-      const series = host();
-      expect(series).not.toBe(tours);
-      expect(screen.getByTestId("header-counter-unit-text", anyNode).props.children).toBe("séries");
-      rerender({ nature: "SERIES", count: 1 });
-      const single = host();
-      expect(single).not.toBe(series);
-      rerender({ nature: "SERIES", count: 2 });
-      expect(host()).not.toBe(single);
-      rerender({ nature: "TOURS", count: 1 });
-      const tour = host();
-      rerender({ nature: "TOURS", count: 2 });
-      expect(host()).not.toBe(tour);
-    }));
-
-  it("the unit pill has no fixed width and never shrinks; the title is the only element that gives way", () => {
-    renderHeader({ nature: "SERIES", count: 99 });
-    for (const id of ["header-counter-unit", "header-counter-unit-target", "header-counter-unit-slot"]) {
-      const box = style(id);
-      expect(box.width).toBeUndefined();
-      expect(box.maxWidth).toBeUndefined();
-    }
-    expect(style("header-counter-unit-slot").flexShrink).toBe(0);
-    expect(style("header-counter-stepper").flexShrink).toBe(0);
-    expect(style("header-counter-slot").flexShrink).toBe(0);
-    expect(style("header-text-block")).toMatchObject({ flexShrink: 1, minWidth: 0 });
+  it("tapping the name / chevron asks the screen to collapse; collapsed: names line « A · B », one truncated line, 7 below, 68 reference", () => {
+    const { onToggleCollapsed, rerender } = renderHeader({ memberNames: ["Squat", "Pompes", "Gainage"] });
+    const expandedChevron = screen.getByTestId("header-chevron", anyNode).props.source;
+    fireEvent.press(screen.getByTestId("header-collapse"));
+    expect(onToggleCollapsed).toHaveBeenCalledTimes(1);
+    rerender({ isCollapsed: true });
+    expect(screen.getByTestId("header-collapse").props.accessibilityState).toMatchObject({ expanded: false });
+    expect(screen.getByTestId("header-chevron", anyNode).props.source).not.toEqual(expandedChevron);
+    const names = screen.getByTestId("header-names");
+    expect(names.props.children).toBe("Squat · Pompes · Gainage");
+    expect(names.props.numberOfLines).toBe(1);
+    expect(style("header-names")).toMatchObject({ marginTop: 7 });
+    expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_COLLAPSED_HEIGHT });
+    expect(CIRCUIT_HEADER_COLLAPSED_HEIGHT).toBe(68);
+    // Le compteur et la durée restent sur la ligne d'en-tête.
+    expect(within(screen.getByTestId("header-row")).getByTestId("header-counter")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("header-collapse"));
+    expect(onToggleCollapsed).toHaveBeenCalledTimes(2);
   });
 });

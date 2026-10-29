@@ -520,26 +520,31 @@ export const fr = {
           TOURS: { singular: "tour", plural: "tours" },
           SERIES: { singular: "série", plural: "séries" },
         },
-        countAccessibilityLabel: {
-          TOURS: "Nombre de tours",
-          SERIES: "Nombre de séries",
+        // PRE-9 B.1a (D-451, complément du 28/10, remplace D-442 sur ce point ; référence
+        // « Composition : circuits, cycles et création » §2) : l’unité du compteur de l’en-tête
+        // reste « tour(s) » pour les deux natures, accordée à N ; la nature est portée par
+        // l’adjectif « groupées » / « alternées » (identifiants persistés `TOURS` / `SERIES`
+        // inchangés). `unit` ci-dessus reste celui de la carte du Catalogue (hors périmètre).
+        countUnit: { singular: "tour", plural: "tours" },
+        natureAdjective: {
+          TOURS: "groupées",
+          SERIES: "alternées",
         },
-        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper toujours affiché, éléments
-        // accessibles distincts du réglage « Nombre de tours ».
-        decrementAccessibilityLabel: {
-          TOURS: "Retirer un tour",
-          SERIES: "Retirer une série",
-        },
-        incrementAccessibilityLabel: {
-          TOURS: "Ajouter un tour",
-          SERIES: "Ajouter une série",
-        },
-        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature par la pastille d’unité.
+        countAccessibilityLabel: "Nombre de tours",
+        // PRE-6 (story 7.3, D-442) : boutons − et + du stepper, éléments accessibles distincts du
+        // réglage « Nombre de tours ». PRE-9 B.1a : stepper révélé au toucher du nombre (RM-027).
+        decrementAccessibilityLabel: "Retirer un tour",
+        incrementAccessibilityLabel: "Ajouter un tour",
+        // PRE-6 (story 3.2, CE-CIR-01, Figma `8328:34805`) : choix de nature. PRE-9 B.1a (RM-027,
+        // référence §2) : ouvert par l’adjectif ; options renommées « Séries groupées » / « Séries
+        // alternées », descriptions de la référence [remplacent « Circuit de tours » — « les séries
+        // d’un exercice s’enchaînent » et « Circuit de séries » — « une série de chaque exercice
+        // par passage », 29/10/2026].
         nature: {
           accessibilityLabel: "Nature du circuit",
           options: {
-            TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
-            SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+            TOURS: { title: "Séries groupées", subtitle: "toutes les séries d’un exercice exécutées à chaque tour" },
+            SERIES: { title: "Séries alternées", subtitle: "une série de chaque exercice exécutée à chaque tour" },
           },
         },
         // PRE-6 (story 3.4, CE-CIR-03, Figma `8328:34965` / `8328:35135`) : œil de l’en-tête et
@@ -736,10 +741,13 @@ export const fr = {
       // Circuit de Séries (dialogue `8328:34964`). Formulation calquée sur la conversion
       // (ch13), à valider par Hermann. `{series}` = « N série(s) », `{ordinal}` = N-ième.
       circuitEntryConfirmModal: {
-        addTitle: "Ajouter au circuit de séries ?",
-        moveTitle: "Déplacer dans le circuit de séries ?",
+        // PRE-9 (B.1a, D-451, COMP §2) : « circuit de séries » devient un terme historique ; nature
+        // active « séries alternées ». [Avant : « Ajouter au circuit de séries ? », « Déplacer dans
+        // le circuit de séries ? », « Passer en circuit de séries ? ».]
+        addTitle: "Ajouter au circuit à séries alternées ?",
+        moveTitle: "Déplacer dans le circuit à séries alternées ?",
         // PRE-6 (story 3.2, CE-CIR-02, Figma `8328:34964`) : conversion Tours → Séries avec perte.
-        natureTitle: "Passer en circuit de séries ?",
+        natureTitle: "Passer en séries alternées ?",
         natureMessage:
           "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
         addMessagePlural:

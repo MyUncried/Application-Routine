@@ -346,9 +346,10 @@ describe("Parcours Composition → Activité (écran unifié), vrai navigateur, 
       exerciseRowTestId,
     ]);
 
-    // 5. Story 7.8 (D-443) : l'en-tête du Circuit n'affiche plus de durée (l'ancien résumé du
-    // Tour, qui restait vide pour une Activité `BEFORE_TOUR`, a disparu avec elle).
-    expect(screen.queryByTestId("composition-circuit-header-duration")).toBeNull();
+    // 5. PRE-9 B.1a — D-451, complément du 28/10 (remplace la clause de D-443 qui masquait la
+    // durée) : l’en-tête du Circuit affiche de nouveau sa durée ; l’Activité est `BEFORE_TOUR`,
+    // le Circuit est vide : « 0 s ».
+    expect(screen.getByTestId("composition-circuit-header-duration", { includeHiddenElements: true }).props.children).toBe("0 s");
   });
 
   it("6. un double-appui rapproché sur Terminer (avant tout rendu intermédiaire) n'enregistre l'Activité qu'une seule fois — pas de doublon", async () => {

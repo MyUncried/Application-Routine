@@ -130,6 +130,7 @@ import { CompositionContextHeader } from "@/features/sessions/CompositionContext
 import {
   formatCompactDuration,
   formatBoundarySecondsValue,
+  formatCircuitDuration,
   formatCompositionSessionDuration,
   formatExerciseBodyZones,
   formatOccurrenceAccessibilityLabel,
@@ -210,8 +211,15 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * « Volumes du circuit » (`circuitVolumes`), ouverte par l'œil — l'ouvrir referme les autres.
  * PRE-6 story 7.3 (D-442) : le stepper du compte du Circuit est toujours affiché et actif ; il
  * n'est plus un champ « révélé » (ancien `circuitCount`, choix D8 remplacé).
+ * PRE-9 B.1a (D-451, complément du 28/10, qui remplace D-442 sur ce point ; RM-027) : le stepper
+ * est de nouveau révélé au toucher du nombre (`circuitCounter`), un seul contrôle ouvert à la fois.
  */
-type OverlayKind = "countdown" | "finalPhase" | "circuitNature" | "circuitVolumes";
+type OverlayKind = "countdown" | "finalPhase" | "circuitCounter" | "circuitNature" | "circuitVolumes";
+
+/** Contrôles de l'en-tête du Circuit refermés par un toucher ailleurs (RC-4) : stepper révélé, choix de nature. */
+function isCircuitControl(kind: OverlayKind | null): boolean {
+  return kind === "circuitCounter" || kind === "circuitNature";
+}
 
 /**
  * Référentiel persistant des Zones corporelles (V2-PRE-1, plan §3.1,
@@ -966,6 +974,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Android / web : position de l'en-tête dans le conteneur Circuit, pour ancrer le panneau du
   // choix dans le corps défilant (un parent qui le contient entièrement).
   const [circuitHeaderLayout, setCircuitHeaderLayout] = useState<{ y: number; height: number } | null>(null);
+  /**
+   * PRE-9 B.1a : hauteur mesurée de la seule ligne d'en-tête du Circuit (nom, chevron, compteur,
+   * durée) — l'anneau du rail y est centré, la ligne des noms du Circuit replié étant dessous.
+   */
+  const [circuitHeaderRowHeight, setCircuitHeaderRowHeight] = useState<number | null>(null);
+  /**
+   * PRE-9 B.1a (ARB-12 : état replié/déplié NON persisté, Circuit déplié à l'ouverture, aucun
+   * contenu du brouillon perdu pendant un repli) : `null` = Circuit déplié ; sinon, Circuit replié,
+   * avec la liste de ses éléments (clés) au moment du repli. Un état local de l'écran : le brouillon
+   * n'en sait rien. Voir `isCircuitCollapsed`.
+   */
+  const [circuitCollapsedContent, setCircuitCollapsedContent] = useState<string | null>(null);
   const [circuitSectionTop, setCircuitSectionTop] = useState(0);
   // PRE-6 (story 4.1, AD-43) : mode placement — sous-brouillon LOCAL des ajouts (`null` hors
   // placement). Seul « Confirmer » l'applique au brouillon de séance ; seul « Continuer » persiste
@@ -1059,7 +1079,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   if (isPendingExit !== observedPendingExit) {
     setObservedPendingExit(isPendingExit);
     // Story 3.4 : la feuille des volumes aussi — jamais deux modales empilées.
-    if (isPendingExit && (openOverlay === "circuitNature" || openOverlay === "circuitVolumes")) {
+    if (isPendingExit && (isCircuitControl(openOverlay) || openOverlay === "circuitVolumes")) {
       setOpenOverlay(null);
     }
     // Story 3.2 : la sortie annule une conversion en attente — jamais deux dialogues empilés.
@@ -1091,7 +1111,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    */
   async function handleSave() {
     // PRE-6 (story 3.1, RC-4) : « Continuer » referme le choix de nature du Circuit.
-    closeCircuitNatureMenu();
+    closeCircuitControls();
     // Story 7.5 : pendant une suppression animée, le brouillon n'est pas encore écrit — elle est
     // terminée aussitôt, et l'enregistrement demande un nouveau toucher (choix 7.5).
     if (deletionRef.current !== null) {
@@ -1139,16 +1159,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
 
   // PRE-6 (story 3.1, RC-4 ; story 3.2) : un toucher ailleurs referme le panneau du choix de nature
   // (Android / web), sans rien appliquer ; une roulette de borne éventuellement ouverte n'est pas
-  // concernée. Story 7.3 (D-442) : le stepper du compte, toujours affiché, n'a rien à refermer.
-  const closeCircuitNatureMenu = useCallback(() => {
-    setOpenOverlay((current) => (current === "circuitNature" ? null : current));
+  // concernée. PRE-9 B.1a (RM-027) : referme aussi le stepper révélé du compte du Circuit.
+  const closeCircuitControls = useCallback(() => {
+    setOpenOverlay((current) => (isCircuitControl(current) ? null : current));
   }, []);
-  // Écran quitté (perte du premier plan) : le choix de nature se referme.
+  // Écran quitté (perte du premier plan) : le stepper révélé et le choix de nature se referment.
   // Story 3.2 : une conversion en attente de confirmation est aussi abandonnée (aucune mutation).
   useFocusEffect(
     useCallback(
       () => () => {
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         setPendingNatureChange(null);
         // Story 3.4 : la feuille des volumes se referme aussi (aucune mutation).
         setOpenOverlay((current) => (current === "circuitVolumes" ? null : current));
@@ -1157,7 +1177,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // Story 7.5 : une suppression animée en cours est écrite.
         flushDeletion();
       },
-      [closeCircuitNatureMenu, flushDeletion, leavePlacement],
+      [closeCircuitControls, flushDeletion, leavePlacement],
     ),
   );
 
@@ -1197,16 +1217,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const handleRevealActions = useCallback(
     (activityId: string | null) => {
       if (activityId !== null) {
-        closeCircuitNatureMenu();
+        closeCircuitControls();
       }
       setRevealedActionsId(activityId);
     },
-    [closeCircuitNatureMenu],
+    [closeCircuitControls],
   );
   const handleDragStart = useCallback(
     (key: string | null) => {
       if (key !== null) {
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         // Story 4.2 : le glisser d'un point referme les actions glissées révélées.
         if (key.startsWith(RAIL_STOP_KEY_PREFIX)) setRevealedActionsId(null);
       }
@@ -1215,7 +1235,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       draggedKeyRef.current = key;
       setDraggedKey(key);
     },
-    [autoScroll, closeCircuitNatureMenu],
+    [autoScroll, closeCircuitControls],
   );
 
   /**
@@ -1241,6 +1261,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     setIsAddActivityTreeOpen(false);
     setRevealedActionsId(null);
     setRecoveryWheel(null);
+    // PRE-9 B.1a : les emplacements du Circuit (début de Tour, après ses exercices) doivent être
+    // visibles — le Circuit replié se déplie à l'entrée en placement.
+    setCircuitCollapsedContent(null);
     setPlacement(EMPTY_PLACEMENT_DRAFT);
     profileRequestRef.current += 1;
     const request = profileRequestRef.current;
@@ -1595,6 +1618,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     () => displayedZoneItems(draft.exercises, draft.stopPoints ?? EMPTY_STOP_POINTS, unofferedStopPointIds, hasCircuitHeadRow),
     [draft.exercises, draft.stopPoints, hasCircuitHeadRow, unofferedStopPointIds],
   );
+  /**
+   * PRE-9 B.1a (ARB-12) : Circuit replié. Le repli ne vaut que pour le contenu qu'il masquait : si
+   * le contenu du Circuit change pendant le repli (exercice entré ou sorti par « Monter » /
+   * « Descendre », point d'arrêt retiré au passage à N = 1…), le Circuit se déplie, pour qu'aucun
+   * changement du brouillon ne reste caché (ajustement pendant le rendu, patron React « ajuster un
+   * état sur un changement de prop »). Jamais replié en placement (emplacements du Circuit visibles).
+   */
+  const circuitContentKey = zoneItems.IN_TOUR.map(zoneItemKey).join(" ");
+  if (circuitCollapsedContent !== null && circuitCollapsedContent !== circuitContentKey) {
+    setCircuitCollapsedContent(null);
+  }
+  const isCircuitCollapsed = circuitCollapsedContent === circuitContentKey && placement === null;
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
@@ -1632,12 +1667,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * tour / Fin de tour » est demandé AVANT tout changement (Annuler : N inchangé). Pendant le
    * dialogue, les pas suivants (maintien) sont ignorés. Story 7.3 (D-442) : le stepper étant toujours
    * affiché, un pas referme le choix de nature éventuellement ouvert (un seul contrôle actif, CIR-10).
+   * PRE-9 B.1a (RM-027) : le stepper est révélé ; un pas le laisse ouvert (VoiceOver peut aussi
+   * régler N sans le révéler) et referme seulement le choix de nature.
    */
   // Forme fonctionnelle : chaque pas (maintien compris) part du brouillon COURANT, jamais de
   // celui du rendu.
   const handleCircuitCountChange = useCallback(
     (count: number) => {
-      closeCircuitNatureMenu();
+      setOpenOverlay((current) => (current === "circuitNature" ? null : current));
       if (tourChoicePendingRef.current) return;
       // Revue 7.5 : une suppression animée en cours est écrite d'abord (N peut changer ses retraits).
       flushDeletion();
@@ -1654,7 +1691,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
       reportRemovedStopPoints(outcome.removedStopPointIds);
     },
-    [closeCircuitNatureMenu, draft, flushDeletion, openTourChoice, reportRemovedStopPoints, updateDraft],
+    [draft, flushDeletion, openTourChoice, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -1669,7 +1706,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   }, []);
   const handleSelectNature = useCallback(
     (nature: CircuitNature) => {
-      closeCircuitNatureMenu();
+      closeCircuitControls();
       // Sur iOS, le menu natif rend lui-même le focus à son déclencheur.
       const focusPillAfterChoice = Platform.OS !== "ios";
       if (nature === (draft.circuitNature ?? DEFAULT_CIRCUIT_NATURE)) {
@@ -1695,14 +1732,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         return applyNatureChange(current, nature);
       });
     },
-    [closeCircuitNatureMenu, draft, openNatureConfirmation, requestNatureFocus, updateDraft],
+    [closeCircuitControls, draft, openNatureConfirmation, requestNatureFocus, updateDraft],
   );
 
-  /** Fermeture du choix par l'utilisateur (Android / web) : rien n'est appliqué, focus à la pastille. */
+  /** Fermeture du choix par l'utilisateur (Android / web) : rien n'est appliqué, focus à l'adjectif. */
   const dismissNatureMenu = useCallback(() => {
-    closeCircuitNatureMenu();
+    closeCircuitControls();
     requestNatureFocus();
-  }, [closeCircuitNatureMenu, requestNatureFocus]);
+  }, [closeCircuitControls, requestNatureFocus]);
+  // PRE-9 B.1a (RC-4) : un toucher ailleurs referme le contrôle ouvert de l'en-tête du Circuit.
+  const handleCircuitOutsidePress = openOverlay === "circuitNature" ? dismissNatureMenu : closeCircuitControls;
 
   /** « Annuler » (ou retour système) du dialogue de perte : rien n'est appliqué. */
   const cancelNatureChange = useCallback(() => {
@@ -1772,6 +1811,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * retiré — l'indice attendu par `moveOccurrenceInSequence`.
    */
   const buildDragLayout = useCallback((): CompositionDragLayout | null => {
+    // PRE-9 B.1a : Circuit replié — ses rangées ne sont pas affichées (leurs mesures sont celles
+    // d'avant le repli) : aucune géométrie fiable, comme une rangée non mesurée.
+    if (isCircuitCollapsed) return null;
     const rows: ActivityRowLayout[] = [];
     for (const zone of STRUCTURAL_ZONES) {
       for (const item of zoneItems[zone]) {
@@ -1790,7 +1832,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       tourBottom: tourLayoutRef.current.top + tourLayoutRef.current.height,
       rows,
     };
-  }, [zoneItems, zoneBaseTop]);
+  }, [isCircuitCollapsed, zoneItems, zoneBaseTop]);
 
   const itemAbsoluteCenterY = useCallback(
     (key: string, zone: StructuralPosition): number => {
@@ -1824,14 +1866,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // Story 7.2 (D-442) : conflit de Tour — rien n'est appliqué avant le choix ; la carte lâchée
         // reste tenue là où elle a été lâchée, comme pendant le dialogue de perte (story 5.2b).
         if (!openTourChoice({ kind: "OCCURRENCE_MOVE", move, fromStep: focusKey !== undefined })) return "REFUSED";
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         return "PENDING";
       }
       if (plan.losses.length > 0) {
         // Seule l'intention est retenue : « Confirmer » rejoue le déplacement sur le brouillon
         // COURANT (aucun instantané rejoué).
         // PRE-6 (story 3.1, RC-4) : un dialogue de décision referme le choix de nature.
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         setPendingCircuitEntry({ ...move, targetCount: plan.targetCount, focusKey });
         return "PENDING";
       }
@@ -1844,7 +1886,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       reportRemovedStopPoints(plan.removedStopPointIds, focusKey);
       return "APPLIED";
     },
-    [closeCircuitNatureMenu, draft, openTourChoice, reportRemovedStopPoints, updateDraft],
+    [closeCircuitControls, draft, openTourChoice, reportRemovedStopPoints, updateDraft],
   );
 
   /**
@@ -1980,6 +2022,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         if (draggedKeyRef.current !== null) return false;
         // Story 7.5 : aucun soulèvement pendant une suppression animée (disposition en mouvement).
         if (deletionRef.current !== null) return false;
+        // PRE-9 B.1a : Circuit replié — un dépôt pourrait viser ses rangées masquées. Le soulèvement
+        // est refusé (rien ne bouge, rien n'est écrit) et le Circuit se déplie : un nouvel appui
+        // long saisit l'élément, le Circuit visible.
+        if (isCircuitCollapsed) {
+          setCircuitCollapsedContent(null);
+          return false;
+        }
         const originLayout = buildDragLayout();
         if (originLayout === null) return false;
         // Story 5.2b : un nouveau geste pendant un retour arrête ce retour et pose toutes les
@@ -1999,7 +2048,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       handleDragStart(key);
       return true;
     },
-    [autoScroll, buildDragLayout, handleDragStart],
+    [autoScroll, buildDragLayout, handleDragStart, isCircuitCollapsed],
   );
 
   /**
@@ -2205,8 +2254,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // suivent sa hauteur mesurée ; son haut reste à la marge du Circuit (14), dans le flux.
   const circuitHeaderHeight =
     circuitHeaderLayout !== null && circuitHeaderLayout.height > 0 ? circuitHeaderLayout.height : CIRCUIT_HEADER_HEIGHT;
-  const circuitHeaderRingTopY = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(circuitHeaderHeight);
-  const railGeometry = railGeometryFor(circuitHeaderHeight);
+  // PRE-9 B.1a : l'anneau est centré sur la ligne d'en-tête — tout l'en-tête quand le Circuit est
+  // déplié ; replié, la seule première ligne (mesurée), la ligne des noms étant dessous. La queue
+  // de l'anneau descend toujours jusqu'au bas de l'en-tête (rail continu).
+  const circuitHeaderRingRowHeight = isCircuitCollapsed
+    ? circuitHeaderRowHeight !== null && circuitHeaderRowHeight > 0
+      ? circuitHeaderRowHeight
+      : CIRCUIT_HEADER_HEIGHT
+    : circuitHeaderHeight;
+  const circuitHeaderRingTopY = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(circuitHeaderRingRowHeight);
+  const railGeometry = railGeometryFor(circuitHeaderRingRowHeight);
   /**
    * Revue 5.2 : la Fin suit-elle une rangée de point d'arrêt ? Story 6.2 : dernière rangée de la
    * zone après le Circuit. Hors placement seulement (en placement, la Fin est inactive).
@@ -2255,7 +2312,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const railSkippedKeys = new Set(railSkipped.map((item) => item.key));
   const railLinks = resolveRailLinks({
     beforeTour: zoneItems.BEFORE_TOUR.map(railChainItemOf),
-    inTour: zoneItems.IN_TOUR.map(railChainItemOf),
+    // PRE-9 B.1a : Circuit replié — ses rangées ne sont pas affichées ; l'anneau de l'en-tête se
+    // relie directement au bas du Circuit.
+    inTour: isCircuitCollapsed ? [] : zoneItems.IN_TOUR.map(railChainItemOf),
     afterTour: zoneItems.AFTER_TOUR.map(railChainItemOf),
     hasAfterCircuit: hasAfterCircuitRail,
     skipped: railSkipped,
@@ -2643,20 +2702,20 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const result = deletionResult(draft, activityId, null);
       if (result === null) return;
       if (result === "CHOICE") {
-        if (openTourChoice({ kind: "OCCURRENCE_DELETE", activityId })) closeCircuitNatureMenu();
+        if (openTourChoice({ kind: "OCCURRENCE_DELETE", activityId })) closeCircuitControls();
         return;
       }
       startDeletion(activityId, null);
     },
-    [closeCircuitNatureMenu, draft, openTourChoice, startDeletion],
+    [closeCircuitControls, draft, openTourChoice, startDeletion],
   );
 
   const handleEditActivity = useCallback(
     (activityId: string) => {
-      closeCircuitNatureMenu();
+      closeCircuitControls();
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
-    [closeCircuitNatureMenu, router],
+    [closeCircuitControls, router],
   );
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
   // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
@@ -2666,6 +2725,31 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     tourRepeatCount,
     circuitNature: draft.circuitNature,
   });
+  // PRE-9 B.1a (D-451, complément du 28/10, qui remplace la clause de D-443 masquant la durée) :
+  // durée du Circuit, à droite de son en-tête — mêmes calculs (zone `IN_TOUR`, nature, N), même
+  // brouillon que la durée de séance (recalculée en direct pendant le placement).
+  const circuitDuration = formatCircuitDuration({
+    exercises: durationDraft.exercises,
+    tourRepeatCount,
+    circuitNature: draft.circuitNature,
+  });
+  // PRE-9 B.1a (référence §4) : ligne du Circuit replié — noms de ses exercices, dans l'ordre, tels
+  // que sur leurs cartes (`occurrenceCardName`).
+  const circuitMemberNames = zoneItems.IN_TOUR.flatMap((item) =>
+    item.kind === "OCCURRENCE" ? [occurrenceCardName(item.occurrence, levelPositions)] : [],
+  );
+  /**
+   * PRE-9 B.1a (ARB-12) : le nom ou le chevron replie ou déplie le Circuit — état de l'écran seul,
+   * sans écriture du brouillon. Le stepper révélé et le choix de nature se referment (un seul
+   * contrôle ouvert). Sans effet pendant le glisser ; une suppression animée est écrite d'abord.
+   */
+  const toggleCircuitCollapsed = useCallback(() => {
+    if (draggedKeyRef.current !== null) return;
+    flushDeletion();
+    closeCircuitControls();
+    setRevealedActionsId(null);
+    setCircuitCollapsedContent((current) => (current === null ? circuitContentKey : null));
+  }, [circuitContentKey, closeCircuitControls, flushDeletion]);
 
   // T01-S09 (AC-01/AC-02, CE-T01-11) : `Continuer` s'active uniquement pour
   // une Composition valide — `toCreateSessionInput` est la même validation
@@ -2727,12 +2811,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       sessionLabel={sessionLabel}
       sessionColor={sessionColor}
       onOpenLabelPicker={() => {
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         setIsLabelPickerOpen(true);
       }}
       sessionDuration={sessionDuration}
       onAdd={() => {
-        closeCircuitNatureMenu();
+        closeCircuitControls();
         setIsAddActivityTreeOpen(true);
       }}
       onAddStop={enterPlacement}
@@ -2857,13 +2941,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         onContentSizeChange={(_width, height) => autoScroll.handleContentSize(height)}
         onLayout={(event) => autoScroll.handleLayout(event.nativeEvent.layout.height)}
         // PRE-6 (story 3.1, RC-4) : faire défiler la liste referme le choix de nature du Circuit.
-        onScrollBeginDrag={closeCircuitNatureMenu}
+        onScrollBeginDrag={closeCircuitControls}
         testID="composition-body"
       >
         <ReadOnlyFrame readOnly={readOnly} style={styles.readOnlyBody}>
-        {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `NatureOutsideZone`. */}
-        {openOverlay === "circuitNature" ? (
-          <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside" />
+        {/* PRE-6 (story 3.1, RC-4) : zone d'appui extérieur du corps — voir `NatureOutsideZone`.
+            PRE-9 B.1a : elle referme aussi le stepper révélé du compte. */}
+        {isCircuitControl(openOverlay) ? (
+          <NatureOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-nature-outside" />
         ) : null}
         {/* PRE-6 (story 5.2, D-435) : plus de rail continu — chaque élément de la séquence porte ses
             segments (`compositionRail.ts`) ; le Compte à rebours porte son anneau et sa queue. */}
@@ -2968,8 +3053,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             />
           ) : null}
           {/* Zone propre au conteneur Circuit — voir `NatureOutsideZone`. */}
-          {openOverlay === "circuitNature" ? (
-            <NatureOutsideZone onPress={dismissNatureMenu} testID="composition-circuit-nature-outside-section" />
+          {isCircuitControl(openOverlay) ? (
+            <NatureOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-nature-outside-section" />
           ) : null}
           {/*
            * PRE-6 (story 5.2, Figma `9819:20017`) : rail de l'en-tête du Circuit — lien vers l'élément
@@ -2999,15 +3084,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             />
             <RailRing
               centerX={RAIL_CENTER_X_IN_CIRCUIT}
-              centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight / 2}
+              centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderRingRowHeight / 2}
               testID="composition-sequence-marker-circuit"
             />
           </Animated.View>
           <CircuitHeader
             nature={circuitNature}
             count={tourRepeatCount}
-            // PRE-6 story 7.3 (D-442) : stepper toujours affiché ; chaque pas passe par
-            // `circuitCountOutcome` (dialogue de Tour, story 7.2).
+            duration={circuitDuration}
+            // PRE-9 B.1a (RM-027, remplace D-442 sur ce point) : stepper révélé au toucher du nombre,
+            // un seul contrôle ouvert à la fois ; chaque pas passe par `circuitCountOutcome`
+            // (dialogue de Tour, story 7.2).
+            isCounterOpen={openOverlay === "circuitCounter"}
+            onToggleCounter={() => toggleOverlay("circuitCounter")}
             onChangeCount={handleCircuitCountChange}
             // PRE-6 (story 3.2) : un seul contrôle ouvert à la fois (CIR-10).
             isNatureMenuOpen={openOverlay === "circuitNature"}
@@ -3025,45 +3114,56 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             translateY={circuitTopShift}
             // PRE-6 (story 5.2) : le titre laisse la colonne de l'anneau (x 69 à 402).
             titleInset={SEQUENCE_LABEL_INSET}
+            // PRE-9 B.1a (ARB-12) : repli non persisté, déplié à l'ouverture de l'écran.
+            isCollapsed={isCircuitCollapsed}
+            onToggleCollapsed={toggleCircuitCollapsed}
+            memberNames={circuitMemberNames}
             onLayout={(event) => {
               const { y, height } = event.nativeEvent.layout;
               setCircuitHeaderLayout((current) =>
                 current !== null && current.y === y && current.height === height ? current : { y, height },
               );
             }}
+            onRowLayout={(event) => {
+              const { height } = event.nativeEvent.layout;
+              setCircuitHeaderRowHeight((current) => (current === height ? current : height));
+            }}
             testID="composition-circuit-header"
           />
-          <ActivityZoneList
-            zone="IN_TOUR"
-            testID="composition-zone-in-tour"
-            items={zoneItems.IN_TOUR}
-            allOccurrences={draft.exercises}
-            revealedActionsId={revealedActionsId}
-            draggedKey={draggedKey}
-            raisedKey={raisedKey}
-            bodyZonesReferential={bodyZonesReferential}
-            categoriesReferential={categoriesReferential}
-            levelPositions={levelPositions}
-            circuitContext={occurrenceCircuitContext}
-            onLayout={handleZoneLayout}
-            onRowLayout={handleRowLayout}
-            focusRequest={itemFocusRequest}
-            onFocusConsumed={consumeItemFocus}
-            onEdit={handleEditActivity}
-            onRevealActions={handleRevealActions}
-            onDragStart={handleRowDragStart}
-            onDragMove={handleDragMove}
-            onDragEnd={handleDropItem}
-            rail={sequenceRail}
-            autoScroll={autoScroll}
-            fading={deletionFading}
-            onDuplicate={handleDuplicateActivity}
-            onDelete={handleDeleteActivity}
-            canStep={canStepActivity}
-            onStep={handleStepActivity}
-            stopPointStepAction={stopPointStepAction}
-            placement={placementRowContext}
-          />
+          {/* PRE-9 B.1a (référence §4) : Circuit replié — ses cartes et ses points sont masqués. */}
+          {isCircuitCollapsed ? null : (
+            <ActivityZoneList
+              zone="IN_TOUR"
+              testID="composition-zone-in-tour"
+              items={zoneItems.IN_TOUR}
+              allOccurrences={draft.exercises}
+              revealedActionsId={revealedActionsId}
+              draggedKey={draggedKey}
+              raisedKey={raisedKey}
+              bodyZonesReferential={bodyZonesReferential}
+              categoriesReferential={categoriesReferential}
+              levelPositions={levelPositions}
+              circuitContext={occurrenceCircuitContext}
+              onLayout={handleZoneLayout}
+              onRowLayout={handleRowLayout}
+              focusRequest={itemFocusRequest}
+              onFocusConsumed={consumeItemFocus}
+              onEdit={handleEditActivity}
+              onRevealActions={handleRevealActions}
+              onDragStart={handleRowDragStart}
+              onDragMove={handleDragMove}
+              onDragEnd={handleDropItem}
+              rail={sequenceRail}
+              autoScroll={autoScroll}
+              fading={deletionFading}
+              onDuplicate={handleDuplicateActivity}
+              onDelete={handleDeleteActivity}
+              canStep={canStepActivity}
+              onStep={handleStepActivity}
+              stopPointStepAction={stopPointStepAction}
+              placement={placementRowContext}
+            />
+          )}
           {/*
            * PRE-6 (story 5.2) : bas du Circuit — lien de la dernière ancre du Circuit (média ou anneau
            * de l'en-tête) jusqu'au bord bas, qui suit le bas du Circuit pendant le glisser. Porté par

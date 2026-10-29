@@ -17,7 +17,7 @@ development_status:
   a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
   a-5-retrait-table-definitions: backlog  # conditionnelle : non-utilisation, conservation prouvée, autorisation de Hermann
   epic-b: backlog
-  b-1-rendu-structure: backlog  # ARB-12, ARB-13, ARB-19 (décidés)
+  b-1-rendu-structure: in-progress  # B.1a livrée (en-tête D-451, repli ; spec-b-1a-en-tete-circuit-d451.md) ; B.1b (multi-Circuits, Cycles, lettres) à suivre ; suite complète verte 232 / 4 837 le 29/10 ; ARB-12, ARB-13, ARB-19 (décidés)
   b-2-menu-creer-enveloppe: backlog  # ARB-06, ARB-07 (décidés)
   b-3-series-par-circuit-cibles-zero: backlog  # ARB-10 (décidé)
   b-4-glisser-deposer-conteneurs: backlog  # ARB-06, ARB-09, ARB-24 (décidés)

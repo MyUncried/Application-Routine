@@ -188,16 +188,20 @@ describe("strings", () => {
         TOURS: { singular: "tour", plural: "tours" },
         SERIES: { singular: "série", plural: "séries" },
       },
-      countAccessibilityLabel: { TOURS: "Nombre de tours", SERIES: "Nombre de séries" },
-      // PRE-6 story 7.3 (D-442) : boutons − et + du stepper toujours affiché.
-      decrementAccessibilityLabel: { TOURS: "Retirer un tour", SERIES: "Retirer une série" },
-      incrementAccessibilityLabel: { TOURS: "Ajouter un tour", SERIES: "Ajouter une série" },
-      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit.
+      // PRE-9 B.1a — D-451, complément du 28/10 (remplace D-442 / D-443) : unité « tour(s) » pour
+      // les deux natures, adjectif de nature, stepper révélé au toucher du nombre (RM-027).
+      countUnit: { singular: "tour", plural: "tours" },
+      natureAdjective: { TOURS: "groupées", SERIES: "alternées" },
+      countAccessibilityLabel: "Nombre de tours",
+      decrementAccessibilityLabel: "Retirer un tour",
+      incrementAccessibilityLabel: "Ajouter un tour",
+      // PRE-6 story 3.2 (CE-CIR-01, `8328:34805`) : choix de nature du Circuit ; PRE-9 B.1a
+      // (référence §2) : « Séries groupées » / « Séries alternées ».
       nature: {
         accessibilityLabel: "Nature du circuit",
         options: {
-          TOURS: { title: "Circuit de tours", subtitle: "les séries d’un exercice s’enchaînent" },
-          SERIES: { title: "Circuit de séries", subtitle: "une série de chaque exercice par passage" },
+          TOURS: { title: "Séries groupées", subtitle: "toutes les séries d’un exercice exécutées à chaque tour" },
+          SERIES: { title: "Séries alternées", subtitle: "une série de chaque exercice exécutée à chaque tour" },
         },
       },
       // PRE-6 story 3.4 (CE-CIR-03, `8328:34965`) : œil et feuille « Volumes du circuit ».
@@ -224,7 +228,7 @@ describe("strings", () => {
 
   it("exposes the Circuit conversion loss dialog texts (PRE-6 story 3.2, CE-CIR-02, `8328:34964`)", () => {
     const t = strings.screens.composition.circuitEntryConfirmModal;
-    expect(t.natureTitle).toBe("Passer en circuit de séries ?");
+    expect(t.natureTitle).toBe("Passer en séries alternées ?");
     expect(t.natureMessage).toBe(
       "Tous les exercices auront {series}. Les séries au-delà de la {ordinal} seront supprimées, avec les valeurs qu’elles portent.",
     );
