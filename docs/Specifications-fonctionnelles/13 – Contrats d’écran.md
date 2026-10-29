@@ -2478,7 +2478,7 @@ Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT
 
 #### 2. Finalité fonctionnelle
 
-Éditer les réglages autorisés d’une séance déjà composée et consulter sa prescription effective.
+Éditer les réglages autorisés **des Exercices formatés de la Séance** et consulter leurs prescriptions effectives sans créer de Format propre à la Séance ou au Circuit.
 
 #### 3. Contexte d’entrée
 
@@ -2490,7 +2490,7 @@ Modale de paramètres CE-FMT-04 ; sauvegarde de séance ; départ vers exécutio
 
 #### 5. Données affichées et source de vérité
 
-Format, origine, paramètres contextualisés, organisation, cartes et synthèse calculées depuis la séance courante.
+**Formats et paramètres sur les Exercices**, origine sur la Séance, organisation et compte sur les Circuits, cartes et synthèse calculées depuis la Composition courante.
 
 #### 6. Classification des valeurs Figma
 
@@ -2518,7 +2518,7 @@ Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde 
 
 #### 12. Contrôles et interactions
 
-Édition autorisée recalcule immédiatement synthèse et métriques. Ajout/retrait EMOM conserve N. Les opérations permises ne changent pas le format.
+Édition autorisée d'un Exercice formaté recalcule immédiatement synthèse et métriques ; l'ajout/retrait volontaire d'un Exercice dans le même Format EMOM conserve N (FMT-22). La simple dépose ne modifie ni ne transmet le Format des Exercices.
 
 #### 13. Gestes
 
@@ -2530,7 +2530,7 @@ Au moins un exercice valide ; aucune double multiplication du compte du format p
 
 #### 15. Brouillon et persistance
 
-Persister paramètres et origine/format ; générer la phrase en segments. Ne pas modifier ActivityDefinition du catalogue pour un héritage contextuel.
+Persister **Format et réglages par Exercice**, origine sur la Séance, nature et compte sur chaque Circuit ; ne persister aucun Format sur le Circuit. Générer les phrases en segments ; ne pas modifier le Mouvement partagé pour un héritage contextuel.
 
 #### 16. Navigation et conservation d’état
 
