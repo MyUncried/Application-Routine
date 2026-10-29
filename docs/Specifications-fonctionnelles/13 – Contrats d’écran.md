@@ -2029,7 +2029,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 ### Champs et comportements des fonctionnalités — Composition — comportement cible
 
-En-tête du 28/10 : nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nombre 15 pt, unité 13 pt, durée 12 pt. Nombre → stepper ; adjectif → choix de nature ; unité non interactive. Circuit replié : noms des exercices sur une ligne tronquée. Cycle non repliable. Les calculs restent ceux du chapitre 10 ; aucun chiffre de maquette ne les définit.
+En-tête du 28/10 : nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nombre 15 pt, unité 13 pt, durée 12 pt. Nombre → stepper ; adjectif → choix de nature ; unité non interactive. Circuit replié : deuxième ligne existante listant les noms des Exercices, complétée du **nom du Format de chaque Exercice lorsqu'il en porte un**, avec troncature selon la place disponible ; aucun nom de Format commun n'est déduit ou persisté sur le Circuit. Circuit déplié : les cartes individuelles des Exercices demeurent visibles ; les règles Figma d'affichage des informations de Format sont à respecter sans inventer de nouvelle interaction. Cycle non repliable. Référence visuelle vérifiée : Prototype MVP `10717:20056` (deux Circuits repliés), `10725:20142` (un déplié, un replié), `10744:20108` (dans un Cycle). Les calculs restent ceux du chapitre 10 ; aucun chiffre de maquette ne les définit.
 
 Carte : régime identiques → forme N×valeur ; variables → valeurs séparées par points médians avec unité finale, au plus trois selon place puis ellipse, même si valeurs égales. Douze séries : aperçu tronqué ; durées composées longues : moins de valeurs. Aucun marqueur d’incomplétude sur la carte ; validation des cibles dans la feuille conservée. La grille est détaillée dans les nouveaux contrats du chapitre 13.
 
@@ -2037,7 +2037,7 @@ Carte : régime identiques → forme N×valeur ; variables → valeurs séparée
 
 ### CE-CIR-01 — Choix de nature du circuit
 
-**Complément Formats du 14/10 :** Le format peut imposer la nature du circuit selon CE-FMT-03. Le choix libre Tours/Séries ne permet pas de contourner ses constantes ou l’indexation du Volume par tour For time.
+**Clarification du 29/10 remplaçant le complément précédent :** le Circuit ne porte pas de Format propre ; son choix de nature et de compte ne peut pas rendre invalide le Format d'un Exercice membre. Les contraintes intrinsèques de chaque Exercice formaté demeurent applicables, y compris l'indexation du tour d'échelle For time, distincte du passage du Circuit englobant. Le changement de nature s'appuie sur les règles de compatibilité et de confirmation existantes, sans transfert implicite du Format.
 
 #### 1. Identification
 
@@ -2526,7 +2526,7 @@ Gestes de composition existants ; pas de mouvement de conversion du format ajout
 
 #### 14. Validation
 
-Au moins un exercice valide ; aucune double multiplication du compte du format par sa représentation locale. Contraintes réappliquées après édition.
+Au moins un exercice valide ; aucune double multiplication du compte du format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
 
 #### 15. Brouillon et persistance
 
