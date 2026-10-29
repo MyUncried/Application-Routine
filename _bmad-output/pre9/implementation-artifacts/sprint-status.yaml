@@ -25,7 +25,7 @@ development_status:
   b-8-utiliser-seance-existante: backlog  # ARB-16 (décidé)
   b-9-nom-seance-trois-etats: backlog  # ARB-14, ARB-15 (décidés)
   epic-c: backlog
-  c-1-persistance-registre-formats: backlog  # migration 017 ; Format porté par l'élément (ARB-03) ; aucun compteur de répétition (ARB-25)
+  c-1-persistance-registre-formats: backlog  # migration 017 : Format et réglages sur Exercice seulement, pas sur Circuit ; aucun compteur de répétition ajouté
   c-2-selection-modele: backlog  # ARB-05 (décidé)
   c-3-parametres-imposes-recapitulatif: backlog  # ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format)
   c-4-composition-preremplie-verrous: backlog  # ARB-15, ARB-23, ARB-24 (décidés) ; ARB-26, ARB-27, ARB-28 (une opération chacun)
