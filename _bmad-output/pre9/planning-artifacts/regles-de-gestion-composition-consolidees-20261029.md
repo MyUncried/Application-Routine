@@ -43,7 +43,7 @@
   - Tabata et 30/30 : chaque passage exécute ses séries et ses pauses.
   - EMOM : chaque passage est un bloc complet ; la durée totale est la somme des blocs.
   - For time : chaque passage exécute l'échelle complète depuis 21 ; le temps de chaque passage est enregistré ; le total est la somme.
-  - AMRAP : chaque répétition dure 12 minutes, sans limite globale.
+  - AMRAP : chaque répétition dure la durée réglée de l'AMRAP (12:00 par défaut), sans limite globale.
   - Death by : arrêter l'exercice met fin à cet élément seulement ; le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt.
 - **D-16 [DÉCIDÉ] Circuit alterné** :
   - Tabata : admis si N = 8, refusé sinon.
@@ -74,6 +74,7 @@
 - **D-27 [DÉCIDÉ] Précise ARB-03** : un format est porté par un circuit si l'utilisateur place ses exercices dans ce circuit. Il n'y a pas de transfert automatique (D-02).
 - **D-28 [DÉCIDÉ] Précise ARB-25** : voir D-17.
 - **D-29 [DÉCIDÉ] Lève la réserve documentaire sur le Death by à plusieurs exercices** pour le cas du circuit alterné (D-16). Aucun blocage technique identifié.
+- **D-30 [DÉCIDÉ] La durée de l'AMRAP est réglable.** Dans un circuit répété, cette durée s'applique à chaque répétition, sans limite globale. L'exemple de 12 minutes ne fixe pas la valeur.
 
 ## 2. Règles de gestion consolidées
 
@@ -85,7 +86,7 @@
 | 30/30 | exercice | 30 s / 30 s | admis (D-15) | refusé (D-16) | non |
 | EMOM | exercice | fenêtre 60 s | admis, bloc par passage (D-15) | admis, tours = N (D-16) | oui |
 | For time | exercice | échelle 21 · 15 · 9 | admis, échelle par passage (D-15) | refusé (D-16) | non |
-| AMRAP | exercice | 12:00 par répétition | admis (D-15) | refusé (D-16) | non |
+| AMRAP | exercice | durée réglable (12:00 par défaut), appliquée à chaque répétition | admis (D-15) | refusé (D-16) | non |
 | Death by | exercice | départ 1, incrément 1, fenêtre 1 min | admis (D-15) | admis, horloge propre (D-16) | non |
 
 ### 2.2 Départs rapides
@@ -114,7 +115,7 @@ Chaque ligne indique le texte normatif concerné, le conflit, et l'action propos
 
 | # | Texte normatif | Conflit avec les décisions | Action proposée |
 |---|---|---|---|
-| C-01 | ch10 FMT-26 : « Le circuit est répété jusqu'à l'échéance globale » | Contredit D-15 (AMRAP : chaque répétition dure 12 minutes, sans limite globale). | **Annoter comme remplacé** sur ce point, texte d'origine conservé (classe B). |
+| C-01 | ch10 FMT-26 : « Le circuit est répété jusqu'à l'échéance globale » | Contredit D-15 et D-30 (durée réglable appliquée à chaque répétition, sans limite globale). | **Annoter comme remplacé** sur ce point, texte d'origine conservé (classe B). |
 | C-02 | ch10 FMT-28 et FMT-02 : listent « Gainage · Mobilité » parmi les départs | Contredit D-25. | **Annoter** : retirer Gainage · Mobilité de la liste, texte d'origine conservé. |
 | C-03 | ch10 FMT-21 : durée EMOM = tours × exercices × fenêtre | Ne dit pas comment se compte la durée d'un EMOM répété dans un circuit groupé (D-15 : somme des blocs). | **Compléter** : durée d'un bloc = tours × exercices × fenêtre, répétée par passage. Lecture cohérente, mais la règle doit le dire. |
 | C-04 | ch10 FMT-34 : « met fin à la séance » | Déjà annoté et aligné sur D-18 (commit `990542fd`). | Aucune action. |
