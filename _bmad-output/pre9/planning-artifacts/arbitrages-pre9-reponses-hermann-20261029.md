@@ -100,7 +100,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 - **[DÉCIDÉ] Le second exercice adopte l'EMOM.** Si des valeurs qu'il portait sont remplacées, une confirmation est demandée. Le nombre de tours reste 6, et la durée est recalculée.
 - **[DÉCIDÉ] Le sélecteur d'organisation est proposé à l'arrivée du second exercice**, pour les formats qui l'admettent : Tabata, EMOM, Progression. Il est exclu pour le For time.
 - **[DÉCIDÉ] Pas de transfert automatique.** Le format appartient à chaque exercice qui le porte. Le lien dans un circuit est un choix de l'utilisateur. Il n'y a aucun mécanisme de montée du format vers le circuit.
-- **[À CLARIFIER] Le Death by dans ce geste.** Son comportement avec plusieurs exercices n'est pas défini. Exclure le Death by de ce geste pour l'instant, ou le permettre en définissant comment le rang global se calcule.
+- **[DÉCIDÉ] Un Death by peut être lié à un autre exercice dans un circuit alterné.** Chaque Death by a sa propre horloge, qui avance pendant ses propres minutes actives dans l'alternance. Arrêter un Death by met fin à cet élément seulement.
 
 ## 6. Position d'un circuit formaté inséré par l'entrée « Format »
 
@@ -151,6 +151,5 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 | Point | Bloque |
 |---|---|
 | Contenu des cinq départs rapides (§3) | Activation de chaque départ |
-| Death by dans ce geste (§5) | Ce geste pour le Death by |
 | Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
