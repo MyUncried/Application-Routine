@@ -17,6 +17,8 @@ Statut : **plan consolidé (révision 2 du 29/10/2026), soumis à l'approbation 
 | Suivi | `implementation-artifacts/sprint-status.yaml` |
 | Recherches sourcées (code, décisions, Formats, Figma) | `planning-artifacts/recherche/01` à `04` |
 
+**Clarification documentaire du 29/10 :** dans la cible PRE-9, le Format et ses réglages sont portés **uniquement par l'Exercice** ; le Circuit porte nature, compte et membres, pas de Format. La deuxième ligne existante du Circuit replié liste les Exercices et leur Format éventuel (Figma `10717:20056`, `10725:20142`). L'hypothèse antérieure « Format porté par un Circuit ou un Exercice » mentionnée dans l'historique ci-dessous est **supersédée** sur la propriété. Les corrections sont préparées sur une branche documentaire distincte ; elles ne valent pas qualification de code ou approbation automatique des stories.
+
 Point d'arrêt : revue et validation du plan. Aucune story ne démarre avant.
 
 Révision 1 (29/10/2026), après la revue ChatGPT (REVISE) et la mission de Hermann « PRE-9 : révision ciblée du plan BMAD après arbitrages » : décisions intégrées (`arbitrages-pre9.md` §0, dont ARB-03 — plusieurs Formats par Séance, Format porté par un Circuit ou un Exercice) ; questions encore ouvertes et opérations qu'elles bloquent (`arbitrages-pre9.md` §2 bis) ; lacune corrigée (Exercices directs de Cycle non représentables, traités dans A.1) ; 29 unités de travail, aucune ajoutée ni supprimée, A.5 conditionnelle, Q.0 hors chemin critique. Seconde passe indépendante (29/10) : 6 constats à corriger et 5 mineurs, tous traités (dont ARB-25 — répétition de l'ensemble Tabata, FMT-13 — et la demande de choix D-442 étendue au Cycle dans ARB-02b).
