@@ -90,8 +90,14 @@ async function untouched(database: Database): Promise<Record<string, unknown>> {
   for (const table of tables) {
     // PRE-8 (B.8) : la 015, jouée ensuite au démarrage, ajoute `movements.archived_at` (NULL) ; elle
     // est éprouvée par `migration015.test.ts`. La comparaison de la 014 porte sur les colonnes d'avant.
+    // PRE-9 (C.1) : de même pour `sessions.origin` (017, `migration017.test.ts`).
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
-    snapshot[table] = table === "movements" ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest) : rows;
+    snapshot[table] =
+      table === "movements"
+        ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest)
+        : table === "sessions"
+          ? rows.map(({ origin: _origin, ...rest }) => rest)
+          : rows;
   }
   return snapshot;
 }
@@ -181,8 +187,8 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 }
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
-  it("version courante 16 (014, 015 puis 016, PRE-9 A.1)", () => {
-    expect(DATABASE_VERSION).toBe(16);
+  it("version courante 17 (014, 015, 016 puis 017, PRE-9 A.1 et C.1)", () => {
+    expect(DATABASE_VERSION).toBe(17);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {
@@ -290,7 +296,18 @@ describe("migration014 — structure générale de Séance, conversion sans pert
     database = reopen(database);
     expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await count(database, "migration_notices")).toBe(0);
-    expect(await columns(database, "tours")).toEqual(["id", "session_id", "cycle_id", "position", "repeat_count", "side_mode", "nature"]);
+    // PRE-9 (C.1, `migration017`) : Format porté par le Circuit.
+    expect(await columns(database, "tours")).toEqual([
+      "id",
+      "session_id",
+      "cycle_id",
+      "position",
+      "repeat_count",
+      "side_mode",
+      "nature",
+      "format_key",
+      "format_settings",
+    ]);
     expect(await columns(database, "cycles")).toEqual(["id", "session_id", "position", "repeat_count"]);
     // PRE-9 (A.1, `migration016`) : Point d'arrêt dans un Cycle.
     expect(await columns(database, "session_stop_points")).toEqual(["id", "session_id", "tour_id", "cycle_id", "position"]);

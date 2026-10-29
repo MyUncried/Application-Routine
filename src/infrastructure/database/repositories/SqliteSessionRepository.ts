@@ -15,6 +15,14 @@ import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "@/domain/sessions/circuit";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
+  decodeFormatSettings,
+  encodeFormatSettings,
+  isElementFormatKey,
+  isSessionOrigin,
+  type ElementFormat,
+  type SessionOrigin,
+} from "@/domain/sessions/formats";
+import {
   DEFAULT_SESSION_COLOR,
   type Activity,
   type ActivityType,
@@ -333,8 +341,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
         `INSERT INTO sessions (
           id, owner_id, name, label_id, status,
           initial_countdown_seconds, final_phase_seconds,
-          created_at, updated_at
-        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?)`,
+          created_at, updated_at, origin
+        ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?)`,
         [
           sessionId,
           user.id,
@@ -344,6 +352,8 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
           input.finalPhaseSeconds,
           timestamp,
           timestamp,
+          // PRE-9 (C.1, FMT-02) : origine écrite à la création seulement, jamais modifiée.
+          input.origin ?? null,
         ],
       );
       await writeSessionMovements(transaction, input.movements ?? [], timestamp, this.uuidFactory);
@@ -372,7 +382,9 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     const normalized = validated.value;
     const outcome = await this.replaceSession(sessionId, normalized.persistedActivityIds, (existing) => {
       const legacy = legacyFromStructure(existing.structure);
-      if (legacy === null) {
+      // PRE-9 (C.1) : l'ancien modèle ne porte aucun Format ; il ne réécrit jamais une Séance qui
+      // en contient (aucun Format effacé silencieusement).
+      if (legacy === null || structureCarriesFormat(existing.structure)) {
         throw new SessionStructureNotRepresentableError(sessionId);
       }
       const tour = legacy.composition.tour;
@@ -839,15 +851,15 @@ async function writeStructure(
   const writeCircuit = async (circuit: StructureCircuitInput, cycleId: string | null, position: number) => {
     if (existing?.circuits.has(circuit.id)) {
       await transaction.runAsync(
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, circuit.id, sessionId],
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format)],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
@@ -914,6 +926,37 @@ async function writeStructure(
 
 type StructureCircuitInput = StructureCircuit<StructureExerciseInput>;
 
+/** PRE-9 (C.1, `migration017`) : colonnes `format_key`, `format_settings` d'un élément (libre : deux `NULL`). */
+function formatSqlValues(format: ElementFormat | null | undefined): [string | null, string | null] {
+  return format === undefined || format === null ? [null, null] : [format.key, encodeFormatSettings(format.settings)];
+}
+
+/** PRE-9 (C.1) : Format relu d'une ligne ; clé inconnue, réglages sans clé ou JSON illisible → contrat rompu. */
+function rowFormat(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): ElementFormat | null {
+  const key = row.format_key ?? null;
+  const json = row.format_settings ?? null;
+  if (key === null && json === null) {
+    return null;
+  }
+  const settings = json === null ? null : decodeFormatSettings(json);
+  if (key === null || !isElementFormatKey(key) || settings === null) {
+    throw contractError();
+  }
+  return { key, settings };
+}
+
+function formatField(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): { readonly format?: ElementFormat } {
+  const format = rowFormat(row);
+  return format === null ? {} : { format };
+}
+
+function structureCarriesFormat(structure: SessionStructure<Activity>): boolean {
+  return (
+    structureCircuits(structure).some((circuit) => (circuit.format ?? null) !== null) ||
+    structureExercises(structure).some((activity) => (activity.format ?? null) !== null)
+  );
+}
+
 /** Parent d'un Exercice : Circuit, Cycle (membre direct, PRE-9 A.1) ou niveau principal (les deux `null`). */
 type ActivityParent = { readonly tourId: string | null; readonly cycleId: string | null };
 
@@ -937,7 +980,7 @@ async function writeActivity(
          execution_mode = ?, duration_seconds = ?, repetition_count = ?,
          series_count = ?, pause_seconds = ?, post_activity_recovery_seconds = ?,
          post_activity_recovery_present = ?, updated_at = ?, side_mode = ?,
-         execution_parameters = ?, copy_number = ?
+         execution_parameters = ?, copy_number = ?, format_key = ?, format_settings = ?
        WHERE id = ? AND session_id = ?`,
       [
         exercise.type,
@@ -955,6 +998,7 @@ async function writeActivity(
         values.sideMode,
         values.executionParameters,
         exercise.copyNumber ?? null,
+        ...formatSqlValues(exercise.format),
         exercise.id,
         sessionId,
       ],
@@ -985,6 +1029,7 @@ async function writeActivity(
       movementId,
       exercise.copyNumber ?? null,
       cycleId,
+      ...formatSqlValues(exercise.format),
     ],
   );
 }
@@ -995,7 +1040,8 @@ const ACTIVITY_ROW_COLUMNS = `
   repetition_count, series_count, pause_seconds, post_activity_recovery_seconds,
   post_activity_recovery_present,
   created_at, updated_at, side_mode, execution_parameters,
-  source_movement_id, copy_number, cycle_id
+  source_movement_id, copy_number, cycle_id,
+  format_key, format_settings
 `;
 
 /**
@@ -1133,7 +1179,8 @@ SELECT
   sessions.initial_countdown_seconds,
   sessions.final_phase_seconds,
   sessions.created_at AS session_created_at,
-  sessions.updated_at AS session_updated_at
+  sessions.updated_at AS session_updated_at,
+  sessions.origin
 FROM sessions
 LEFT JOIN labels ON labels.id = sessions.label_id`;
 
@@ -1200,7 +1247,7 @@ async function readAssembledSessions(
     ids,
   );
   const circuits = await database.getAllAsync<CircuitRow>(
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
   const activities = await database.getAllAsync<ActivityRow>(
@@ -1329,6 +1376,8 @@ export function assembleStructure(
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),
+    // PRE-9 (C.1) : Format porté par le Circuit ; absent pour un Circuit libre.
+    ...formatField(row),
   });
 
   type Ranked = { readonly position: number; readonly element: StructureElement<Activity> };
@@ -1437,7 +1486,19 @@ function sessionBase(header: SessionHeaderRow) {
     finalPhaseSeconds: header.final_phase_seconds,
     createdAt: header.session_created_at,
     updatedAt: header.session_updated_at,
+    // PRE-9 (C.1, FMT-02) : origine de création, absente si inconnue ; valeur hors liste → contrat rompu.
+    ...originField(header.origin ?? null),
   };
+}
+
+function originField(origin: string | null): { readonly origin?: SessionOrigin } {
+  if (origin === null) {
+    return {};
+  }
+  if (!isSessionOrigin(origin)) {
+    throw contractError();
+  }
+  return { origin };
 }
 
 function toStructuredSession(assembled: AssembledSession): StructuredSession {
@@ -1601,6 +1662,8 @@ function toActivity(
         })),
     sourceMovementId: row.source_movement_id,
     copyNumber: row.copy_number,
+    // PRE-9 (C.1) : Format porté par l'Exercice ; absent pour un Exercice libre.
+    ...formatField(row),
     id: row.id,
     type: row.type,
     structuralPosition,

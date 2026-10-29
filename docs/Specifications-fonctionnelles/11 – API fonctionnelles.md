@@ -319,6 +319,8 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 | Générer les modalités | Paramètres effectifs → segments ordonnés texte/gras | Pas de phrase persistée ; unité par tour/série préservée |
 | Lire l’historique | Identité d’exécution → instantané et résultat | Jamais de recalcul depuis la séance source actuelle |
 
+[29/10/2026, ARB-03 (registre ch07 « Arbitrages PRE-9 ») : ces opérations portent sur un élément formaté (Circuit ou Exercice), non sur la Séance ; l’identité de son Format est fixée à la création de l’élément ; une Séance peut en contenir plusieurs ; l’origine de création reste celle de la Séance. Contrôle de compatibilité avant toute dépose : ARB-24 (PRE-9 C.4).]
+
 La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’est pas exposée. L’horloge génère les échéances ; les commandes doivent être idempotentes face aux doublons. Le formulaire proposé à zéro n’est pas une mesure avant validation. Erreurs : format incompatible, constante modifiée, objectif ou compte invalide selon sa borne existante, unité incohérente et fenêtre obsolète ne doivent pas être acceptés silencieusement. Les détails des combinaisons non résolues sont tracés dans la revue, pas compensés par une valeur métier arbitraire.
 
 ## Bilatéralité

@@ -27,6 +27,8 @@ export type SessionHeaderRow = {
   final_phase_seconds: number;
   session_created_at: string;
   session_updated_at: string;
+  /** PRE-9 (C.1, `migration017`) : origine de création, `NULL` si inconnue ; absente des fixtures antérieures. */
+  origin?: string | null;
 };
 
 /** PRE-8 (A.4) : Cycle utilisateur ; `position` = rang au niveau principal ; `repeat_count ≥ 1`. */
@@ -50,6 +52,10 @@ export type CircuitRow = {
   repeat_count: number;
   side_mode: SideMode;
   nature: CircuitNature;
+  /** PRE-9 (C.1, `migration017`) : Format porté par le Circuit, `NULL` = libre ; absent des fixtures antérieures. */
+  format_key?: string | null;
+  /** PRE-9 (C.1) : réglages JSON versionnés, présents si et seulement si `format_key` l'est. */
+  format_settings?: string | null;
 };
 
 /**
@@ -90,6 +96,10 @@ export type ActivityRow = {
   copy_number: number | null;
   /** PRE-9 (A.1, `migration016`) : Cycle dont l'Exercice est membre direct, `null` sinon ; jamais avec `tour_id`. */
   cycle_id: string | null;
+  /** PRE-9 (C.1, `migration017`) : Format porté par l'Exercice, `NULL` = libre ; absent des fixtures antérieures. */
+  format_key?: string | null;
+  /** PRE-9 (C.1) : réglages JSON versionnés, présents si et seulement si `format_key` l'est. */
+  format_settings?: string | null;
 };
 
 /**

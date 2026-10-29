@@ -75,6 +75,7 @@ import {
   type StructureStopPointLocation,
 } from "./structure";
 import { validateStructuredSessionInput, type StructureExerciseInput, type StructuredSessionInput } from "./structuredInput";
+import { cloneElementFormat, elementFormatsEqual, type ElementFormat, type SessionOrigin } from "./formats";
 import { normalizeInstruction, normalizeName, validateCreateSessionInput, validateUpdateSessionInput } from "./validation";
 
 /**
@@ -175,6 +176,8 @@ export type SessionDraftExercise = {
   readonly sourceMovementId?: string;
   /** PRE-7 (R-3, Q3) : numéro de copie (`Activity.copyNumber`) ; absent/`null` = original. */
   readonly copyNumber?: number | null;
+  /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice (`Activity.format`), conservé à la duplication (ARB-17) ; absent/`null` = libre. */
+  readonly format?: ElementFormat | null;
 };
 
 /**
@@ -286,6 +289,11 @@ export type SessionDraft = {
    * brouillon de création. Jamais comparée (`sessionDraftsEqual`).
    */
   readonly structure?: SessionStructure<string, StructureStopPointLocation>;
+  /**
+   * PRE-9 (C.1, FMT-02) : origine de création de la Séance, relue (`toSessionDraft`) ou fixée par
+   * l'entrée de la grille (C.2) ; écrite à la création seulement. Non éditable, jamais comparée.
+   */
+  readonly origin?: SessionOrigin | null;
 };
 
 /**
@@ -390,6 +398,7 @@ export function toSessionDraft(session: Session | StructuredSession): SessionDra
     // est réenregistrée à 60 s au prochain enregistrement.
     initialCountdownSeconds: clampSessionBoundarySeconds(session.initialCountdownSeconds),
     finalPhaseSeconds: clampSessionBoundarySeconds(session.finalPhaseSeconds),
+    ...(session.origin !== undefined && session.origin !== null ? { origin: session.origin } : {}),
   };
   const legacy = legacyFromStructure(structure);
   if (legacy === null) {
@@ -475,6 +484,8 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     // PRE-7 (A1.2, MFN-03 ; R-3, C05) : Mouvement relu, contenu courant déjà résolu par le repository.
     ...(activity.sourceMovementId !== undefined ? { sourceMovementId: activity.sourceMovementId } : {}),
     ...(activity.copyNumber !== undefined && activity.copyNumber !== null ? { copyNumber: activity.copyNumber } : {}),
+    // PRE-9 (C.1) : Format porté, copie indépendante.
+    ...(activity.format !== undefined && activity.format !== null ? { format: cloneElementFormat(activity.format) } : {}),
   };
 }
 
@@ -739,7 +750,9 @@ export function exerciseEquals(
     draftMediaEqual(a.media, b.media) &&
     // PRE-7 (R-3) : Mouvement référencé et numéro de copie.
     (a.sourceMovementId ?? null) === (b.sourceMovementId ?? null) &&
-    (a.copyNumber ?? null) === (b.copyNumber ?? null)
+    (a.copyNumber ?? null) === (b.copyNumber ?? null) &&
+    // PRE-9 (C.1) : Format porté et réglages.
+    elementFormatsEqual(a.format, b.format)
   );
 }
 
@@ -847,6 +860,7 @@ function toDraftActivityParameters(exercise: SessionDraftExercise) {
     sideMode: exercise.sideMode,
     ...(exercise.sourceMovementId !== undefined ? { sourceMovementId: exercise.sourceMovementId } : {}),
     ...(exercise.copyNumber !== undefined && exercise.copyNumber !== null ? { copyNumber: exercise.copyNumber } : {}),
+    ...(exercise.format !== undefined && exercise.format !== null ? { format: cloneElementFormat(exercise.format) } : {}),
   };
 }
 
@@ -922,6 +936,8 @@ export function toStructuredSessionInput(
           repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
           nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
           exercises: zone("IN_TOUR"),
+          // PRE-9 (C.1) : le Format du Circuit relu le suit (la Composition actuelle ne l'édite pas).
+          ...(tour?.format !== undefined && tour.format !== null ? { format: tour.format } : {}),
         },
         afterTour: zone("AFTER_TOUR"),
       },
@@ -933,6 +949,7 @@ export function toStructuredSessionInput(
   return validateStructuredSessionInput({
     name: draft.name,
     labelId: draft.labelId,
+    ...(draft.origin !== undefined && draft.origin !== null ? { origin: draft.origin } : {}),
     initialCountdownSeconds: draft.initialCountdownSeconds,
     finalPhaseSeconds: draft.finalPhaseSeconds,
     structure,

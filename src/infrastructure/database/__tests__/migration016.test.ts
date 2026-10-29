@@ -81,10 +81,15 @@ const STOP_POINT_SNAPSHOT = "SELECT id, session_id, tour_id, position FROM sessi
 /** Tables que la 016 ne touche pas. */
 const UNTOUCHED = ["users", "profiles", "categories", "body_zones", "labels", "sessions", "cycles", "tours", "movements", "activity_definitions", "migration_notices"];
 
+const MIGRATION_017_COLUMNS = new Set(["origin", "format_key", "format_settings"]);
+
 async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
   for (const table of UNTOUCHED) {
-    result[table] = await database.getAllAsync(`SELECT * FROM ${table} ORDER BY 1`);
+    // PRE-9 (C.1) : la 017, jouée ensuite au démarrage, ajoute `sessions.origin` et le Format des
+    // Circuits (NULL) ; elle est éprouvée par `migration017.test.ts`. Comparaison sur les colonnes d'avant.
+    const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1`);
+    result[table] = rows.map((row) => Object.fromEntries(Object.entries(row).filter(([column]) => !MIGRATION_017_COLUMNS.has(column))));
   }
   result.activities = await database.getAllAsync(ACTIVITY_SNAPSHOT);
   result.stopPoints = await database.getAllAsync(STOP_POINT_SNAPSHOT);
@@ -166,8 +171,8 @@ async function seededVersion15(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un Cycle)", () => {
-  it("version courante 16", () => {
-    expect(DATABASE_VERSION).toBe(16);
+  it("version courante 17 (016 puis 017, PRE-9 C.1)", () => {
+    expect(DATABASE_VERSION).toBe(17);
   });
 
   it("reconstruit activities et session_stop_points sans perte : lignes identiques, cycle_id NULL, aucune autre table touchée", async () => {
@@ -177,7 +182,7 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(16);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM activities WHERE cycle_id IS NOT NULL")).toEqual([{ count: 0 }]);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM session_stop_points WHERE cycle_id IS NOT NULL")).toEqual([{ count: 0 }]);
@@ -194,7 +199,7 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
     // Démarrage suivant : aucune nouvelle conversion.
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(16);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -263,15 +268,15 @@ describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un C
     // Reprise : le démarrage suivant applique la 016.
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(16);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await snapshot(database)).toEqual(before);
   });
 
-  it("installation neuve : 001 à 016, aucun avis", async () => {
+  it("installation neuve : 001 à la version courante, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(16);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM migration_notices")).toEqual([{ count: 0 }]);
     expect(await columns(database, "activities")).toContain("cycle_id");
   });

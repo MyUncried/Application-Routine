@@ -36,6 +36,7 @@ import {
   type ActivityDurationFacts,
 } from "./calculations";
 import { isCircuitNature, type CircuitNature } from "./circuit";
+import type { ElementFormat } from "./formats";
 import type { StructuralPosition } from "./Session";
 
 /** Borne du compte d'un Circuit, inchangée (D-058). */
@@ -50,6 +51,8 @@ export type StructureCircuit<E> = {
   readonly repeatCount: number;
   readonly nature: CircuitNature;
   readonly exercises: readonly E[];
+  /** PRE-9 (C.1, ARB-03) : Format porté par le Circuit (`tours.format_key`, `tours.format_settings`) ; absent/`null` = Circuit libre. */
+  readonly format?: ElementFormat | null;
 };
 
 /** Membre d'un Cycle (D-451) : Exercice direct ou Circuit. */

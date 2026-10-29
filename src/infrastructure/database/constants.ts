@@ -93,7 +93,13 @@ export const DATABASE_NAME = "kodjo.db";
  * Cycle (`session_stop_points.cycle_id`), au plus un parent. Tables reconstruites,
  * lignes recopiées à l'identique, aucune donnée supprimée. 001..015 inchangées.
  */
-export const DATABASE_VERSION = 16;
+/**
+ * **PRE-9 (version 17, `migration017`, story C.1)** : Format porté par l'élément
+ * (`tours.format_key`/`format_settings`, `activities.format_key`/`format_settings`)
+ * et origine de création (`sessions.origin`) — colonnes additives nullables, toute
+ * Séance existante reste libre. 001..016 inchangées.
+ */
+export const DATABASE_VERSION = 17;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -43,6 +43,12 @@ export type ValidationField =
   | "session.stopPoints"
   /** PRE-8 (A.2, D-449 §4) : forme de la structure générale (Cycle vide, comptes, nature, identités). */
   | "session.structure"
+  /** PRE-9 (C.1, FMT-02) : origine de création de la Séance. */
+  | "session.origin"
+  /** PRE-9 (C.1, ARB-03) : Format porté par un Circuit ou un Exercice (Format inconnu, porteur réservé). */
+  | "element.format"
+  /** PRE-9 (C.1) : réglages d'un Format porté (réglage inconnu, non réglable, hors borne structurelle). */
+  | "element.formatSettings"
   | "exercise.name"
   | "exercise.durationSeconds"
   | "exercise.instruction"

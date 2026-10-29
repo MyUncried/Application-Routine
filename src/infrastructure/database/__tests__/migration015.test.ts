@@ -116,8 +116,8 @@ describe("PRE-8 B.8 — migration 015 (archivage du Mouvement)", () => {
     database = reopen(database);
 
     // PRE-9 (A.1) : le démarrage enchaîne 015 puis 016.
-    expect(DATABASE_VERSION).toBe(16);
-    expect(await version(database)).toBe(16);
+    expect(DATABASE_VERSION).toBe(17);
+    expect(await version(database)).toBe(DATABASE_VERSION);
     expect(await database.getAllAsync(MOVEMENT_SNAPSHOT)).toEqual(before);
     expect(await database.getAllAsync("SELECT id FROM movements WHERE archived_at IS NOT NULL")).toEqual([]);
     expect(await new SqliteMovementRepository(database).listArchivedIds()).toEqual(new Set());

@@ -13,7 +13,8 @@
  *   (A.1) : une structure de l'ancien modèle reçoit un Circuit neuf à
  *   l'enregistrement ; une structure plus riche (Cycles, plusieurs Circuits)
  *   est copiée à l'identique avec de nouveaux identifiants de Cycle et de
- *   Circuit (`newActivityId`) ;
+ *   Circuit (`newActivityId`) ; PRE-9 (C.1, ARB-17) : le Format porté par un Circuit ou un
+ *   Exercice et ses réglages sont copiés (la disposition d'un Circuit formaté est conservée) ;
  * - filiation (`sourceMovementId`) de chaque occurrence conservée à
  *   l'identique, jamais relue ni réécrite (MFN-03).
  *
@@ -24,16 +25,27 @@ import { nextCopyName } from "./composition";
 import type { Session } from "./Session";
 import { toSessionDraft, type SessionDraft } from "./SessionDraft";
 import type { StructuredSession } from "./SessionRepository";
-import { legacyFromStructure, mapStructure, type SessionStructure, type StructureCircuit, type StructureStopPointLocation } from "./structure";
+import {
+  legacyFromStructure,
+  mapStructure,
+  structureCircuits,
+  type SessionStructure,
+  type StructureCircuit,
+  type StructureStopPointLocation,
+} from "./structure";
 
 export function toDuplicateSessionDraft(
   session: Session | StructuredSession,
   newActivityId: () => string,
   takenSessionNames: Iterable<string>,
 ): SessionDraft {
-  const { persistedExerciseIds: _persisted, structure: layout, ...draft } = toSessionDraft(session);
+  // PRE-9 (C.1) : l'origine de création n'est pas recopiée (la copie n'est pas créée depuis la grille ; À CLARIFIER, spec C.1).
+  const { persistedExerciseIds: _persisted, structure: layout, origin: _origin, ...draft } = toSessionDraft(session);
   const exerciseIds = new Map(draft.exercises.map((exercise) => [exercise.id, newActivityId()]));
-  const copiedLayout = layout === undefined || legacyFromStructure(layout) !== null ? undefined : renewIdentities(layout, exerciseIds, newActivityId);
+  const copiedLayout =
+    layout === undefined || (legacyFromStructure(layout) !== null && !structureCircuits(layout).some((circuit) => (circuit.format ?? null) !== null))
+      ? undefined
+      : renewIdentities(layout, exerciseIds, newActivityId);
   return {
     ...draft,
     // Création : aucune Séance source, aucune occurrence tenue pour existante.

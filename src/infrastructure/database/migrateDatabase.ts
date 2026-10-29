@@ -18,6 +18,7 @@ import { applyMigration013 } from "./migrations/migration013";
 import { applyMigration014 } from "./migrations/migration014";
 import { applyMigration015 } from "./migrations/migration015";
 import { applyMigration016 } from "./migrations/migration016";
+import { applyMigration017 } from "./migrations/migration017";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -213,6 +214,14 @@ export async function migrateDatabase(
     if (pending(15)) {
       await applyMigration016(transaction);
       version = 16;
+    }
+
+    // PRE-9 (C.1, ARB-03, FMT-02) : Format porté par un Circuit ou un Exercice et origine de
+    // création de la Séance ; colonnes additives nullables, toute Séance existante reste libre
+    // (FMT-40). Un échec annule tout et laisse `user_version` à 16.
+    if (pending(16)) {
+      await applyMigration017(transaction);
+      version = 17;
     }
 
     if (version !== targetVersion) {

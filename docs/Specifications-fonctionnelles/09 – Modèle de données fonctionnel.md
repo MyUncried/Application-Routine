@@ -591,9 +591,9 @@ Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et com
 
 | Porteur | Information | Règle de cohérence |
 |---|---|---|
-| Séance | Format facultatif | Six formats ; absent = libre. Aucune déduction depuis le titre ou des valeurs similaires. |
+| Séance | Format facultatif | Six formats ; absent = libre. Aucune déduction depuis le titre ou des valeurs similaires. [29/10/2026, ARB-03 (registre ch07 « Arbitrages PRE-9 ») : porteur = élément de la Séance (Circuit, ou Exercice lorsqu’un Circuit n’est pas nécessaire), non la Séance ; plusieurs éléments formatés par Séance, directement ou dans un Cycle ; élément sans Format = libre. Livré par PRE-9 C.1.] |
 | Séance | Origine de création | Distincte du format ; les départs rapides ne portent aucune contrainte. |
-| Séance | Réglages de format et organisation applicable | Modifiables dans la composition ; ne modifient pas les constantes ni l’historique. |
+| Séance | Réglages de format et organisation applicable | Modifiables dans la composition ; ne modifient pas les constantes ni l’historique. [29/10/2026, ARB-03 : portés par l’élément formaté ; l’organisation d’un Circuit formaté est sa nature (séries groupées ou alternées). Format et réglages conservés par l’insertion dans une autre Séance et par la duplication (ARB-16, ARB-17).] |
 | Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, tour pour For time. Pas de réinterprétation implicite. |
 | Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Ne pas réécrire ActivityDefinition du catalogue pour appliquer le contexte. |
 | Instantané | Format, origine, réglages effectifs, prescription et version de règle | Lecture stable après modification/suppression de la source. |

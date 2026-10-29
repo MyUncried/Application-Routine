@@ -14,6 +14,7 @@
 
 import {
   legacyFromStructure,
+  structureCircuits,
   structureExercises,
   validateStructureShape,
   type SessionStructure,
@@ -29,6 +30,14 @@ import type {
   StructuralPosition,
 } from "./Session";
 import { validateCreateSessionInput } from "./validation";
+import {
+  elementFormatViolations,
+  isSessionOrigin,
+  type ElementFormat,
+  type ElementFormatViolationCode,
+  type FormatCarrierKind,
+  type SessionOrigin,
+} from "./formats";
 
 /** Exercice d'une structure écrite : l'occurrence sans zone structurelle, identité obligatoire. */
 export type StructureExerciseInput = Omit<CreateSessionActivityInput, "structuralPosition" | "id"> & {
@@ -39,6 +48,8 @@ export type StructureInput = SessionStructure<StructureExerciseInput, StructureS
 
 export type StructuredSessionInput = {
   readonly name: string;
+  /** PRE-9 (C.1, FMT-02) : origine de création, écrite à la création seulement ; absente = `null`. */
+  readonly origin?: SessionOrigin | null;
   readonly labelId?: string | null;
   readonly initialCountdownSeconds: number;
   readonly finalPhaseSeconds: number;
@@ -57,6 +68,31 @@ const STRUCTURE_VIOLATIONS: Record<StructureViolationCode, ValidationViolation> 
   STRUCTURE_STOP_POINT_DUPLICATE: { code: "DUPLICATE", field: "session.stopPoints" },
   STRUCTURE_STOP_POINTS_UNSUPPORTED: { code: "FORBIDDEN_PLACEMENT" satisfies ValidationErrorCode, field: "session.stopPoints" },
 };
+
+const FORMAT_VIOLATIONS: Record<ElementFormatViolationCode, ValidationViolation> = {
+  FORMAT_UNKNOWN: { code: "UNRECOGNIZED", field: "element.format" },
+  FORMAT_CARRIER_RESERVED: { code: "FORBIDDEN_PLACEMENT", field: "element.format" },
+  FORMAT_SETTING_UNKNOWN: { code: "UNRECOGNIZED", field: "element.formatSettings" },
+  FORMAT_SETTING_NOT_ADJUSTABLE: { code: "MUST_BE_ABSENT", field: "element.formatSettings" },
+  FORMAT_SETTING_INVALID: { code: "OUT_OF_RANGE", field: "element.formatSettings" },
+};
+
+/** PRE-9 (C.1) : Formats portés par les Circuits et les Exercices de la structure, à tout niveau. */
+function formatsOf(structure: StructureInput): readonly { readonly format: ElementFormat; readonly carrier: FormatCarrierKind }[] {
+  const carried: { format: ElementFormat; carrier: FormatCarrierKind }[] = [];
+  const visit = (format: ElementFormat | null | undefined, carrier: FormatCarrierKind) => {
+    if (format !== undefined && format !== null) {
+      carried.push({ format, carrier });
+    }
+  };
+  for (const circuit of structureCircuits(structure)) {
+    visit(circuit.format, "CIRCUIT");
+  }
+  for (const exercise of structureExercises(structure)) {
+    visit(exercise.format, "EXERCISE");
+  }
+  return carried;
+}
 
 function asActivity(exercise: StructureExerciseInput, structuralPosition: StructuralPosition): CreateSessionActivityInput {
   return { ...exercise, structuralPosition };
@@ -140,6 +176,18 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
   for (const violation of validateStructureShape(input.structure, (exercise) => exercise.id)) {
     violations.push(STRUCTURE_VIOLATIONS[violation.code]);
   }
+  // PRE-9 (C.1) : contrôle structurel de chaque Format porté (registre) ; règles propres : C.3.
+  for (const { format, carrier } of formatsOf(input.structure)) {
+    for (const code of elementFormatViolations(format, carrier)) {
+      if (!violations.includes(FORMAT_VIOLATIONS[code])) {
+        violations.push(FORMAT_VIOLATIONS[code]);
+      }
+    }
+  }
+  const origin = input.origin ?? null;
+  if (origin !== null && !isSessionOrigin(origin)) {
+    violations.push({ code: "UNRECOGNIZED", field: "session.origin" });
+  }
 
   const legacy = validateCreateSessionInput(equivalentLegacyInput(input));
   if (!legacy.ok) {
@@ -152,12 +200,14 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
   const normalizedById = new Map(legacy.value.exercises.map((exercise) => [exercise.id!, exercise]));
   const normalize = (exercise: StructureExerciseInput): StructureExerciseInput => {
     const { structuralPosition: _zone, ...rest } = normalizedById.get(exercise.id.trim())!;
-    return { ...rest, id: exercise.id.trim() };
+    // PRE-9 (C.1) : le Format porté, hors des règles de l'occurrence, reste celui de l'entrée.
+    return { ...rest, id: exercise.id.trim(), ...(exercise.format !== undefined && exercise.format !== null ? { format: exercise.format } : {}) };
   };
   return {
     ok: true,
     value: {
       name: legacy.value.name,
+      ...(origin !== null ? { origin } : {}),
       labelId: legacy.value.labelId ?? null,
       initialCountdownSeconds: legacy.value.initialCountdownSeconds,
       finalPhaseSeconds: legacy.value.finalPhaseSeconds,
