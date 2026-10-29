@@ -24,8 +24,9 @@
   2. Un circuit fixe son organisation (groupé ou alterné) et son nombre de tours. Il ne fixe jamais les paramètres propres de ses membres.
   3. Un élément qui entre dans un circuit prend son organisation et son nombre de tours, et garde ses propres paramètres. Si son nombre de tours est variable, il prend la valeur du circuit.
   4. Une entrée est refusée seulement si elle change la nature de l'élément.
-- **D-06 [DÉCIDÉ]** Un circuit formaté fige son organisation et tout paramètre dont la modification dénaturerait le format.
-- **D-07 [DÉCIDÉ]** Un élément qui entre dans un circuit **alterné** conserve son régime et ses paramètres. Son exemplaire est adapté au nombre de tours N. Une confirmation est demandée s'il faut retirer des séries. Sa sortie conserve le nombre actif et les paramètres actuels.
+  - **[NORMATIF / À CLARIFIER]** Le ch10 distingue le Circuit groupé (N répète un passage complet sans changer les séries des membres) du Circuit alterné (N impose le nombre actif de séries, avec adaptation et confirmation en cas de perte). « Garde ses paramètres » ne signifie donc pas conservation inconditionnelle d'un nombre de séries différent de N. Les contraintes intrinsèques du Format et les conflits de Formats doivent rester contrôlés ; ces quatre principes ne suffisent pas à les résoudre.
+- **D-06 [NON VÉRIFIABLE comme décision explicite]** Un Circuit formaté figerait son organisation et tout paramètre dont la modification dénaturerait le Format. FMT-09 précise seulement qu'un Format **peut** imposer une organisation. **[À CLARIFIER]** Identifier la source de validation et la liste des paramètres figés Format par Format ; ne pas généraliser.
+- **D-07 [DÉCIDÉ + NORMATIF, portée précisée]** Un élément entrant dans un Circuit **alterné** conserve son **régime** et ses paramètres intrinsèques compatibles ; son exemplaire actif est adapté au nombre de séries N du Circuit. Confirmation si des valeurs sont perdues ; à la sortie, le nombre actif et les valeurs actuelles sont conservés. Les règles de réserve temporaire du brouillon et d'annulation restent applicables. **[À CLARIFIER]** Aucun ajustement ne doit violer une constante imposée ; distinguer simple dépose et adoption volontaire d'un Format.
 - **D-08 [DÉCIDÉ]** Un circuit **groupé** répète le passage complet de chacun de ses membres, selon son compte. Il ne modifie pas le nombre de séries de ses membres.
 - **D-09 [DÉCIDÉ]** Une confirmation est demandée seulement si au moins un exercice perd des valeurs.
 - **D-10 [DÉCIDÉ]** Insertion d'un circuit formaté par l'entrée « Format » : il est inséré immédiatement après le circuit qui contient le dernier exercice entré, dans le même parent (cycle si le circuit en fait partie, niveau séance sinon).
@@ -33,7 +34,7 @@
 
 ### 1.3 Ajout d'exercices à un format existant
 
-- **D-12 [DÉCIDÉ]** Un second exercice ajouté à un format porté par un exercice seul **adopte le format**. Si des valeurs qu'il portait sont remplacées, une confirmation est demandée. Le nombre de tours reste inchangé.
+- **D-12 [DÉCIDÉ, mécanisme à raccorder]** Le second Exercice **ajouté volontairement au Format** adopte ce Format ; confirmation avant remplacement de valeurs renseignées, nombre de tours conservé. **[À CLARIFIER]** Le geste et le niveau qui matérialisent cette adoption doivent être distingués d'une simple dépose d'Exercice déjà formaté (D-02/D-05/D-26 : pas de transfert automatique).
 - **D-13 [DÉCIDÉ]** Le sélecteur d'organisation (Par exercice / En alternance) est proposé à l'arrivée du second exercice pour Tabata, EMOM et Progression. Il est exclu pour For time.
 
 ### 1.4 Formats
@@ -43,7 +44,7 @@
   - Tabata et 30/30 : chaque passage exécute ses séries et ses pauses.
   - EMOM : chaque passage est un bloc complet ; la durée totale est la somme des blocs.
   - For time : chaque passage exécute l'échelle complète depuis 21 ; le temps de chaque passage est enregistré ; le total est la somme.
-  - AMRAP : chaque répétition dure 12 minutes, sans limite globale.
+  - AMRAP : chaque répétition utilise **la durée réglée de son bloc**, initialement proposée à 12:00 (D-14), sans échéance commune fusionnant les répétitions.
   - Death by : arrêter l'exercice met fin à cet élément seulement ; le bloc suivant se lance automatiquement, avec sa récupération et ses points d'arrêt.
 - **D-16 [DÉCIDÉ] Circuit alterné** :
   - Tabata : admis si N = 8, refusé sinon.
@@ -51,7 +52,7 @@
   - EMOM : admis ; le nombre de tours prend la valeur N, réglable ; confirmation si une valeur est perdue.
   - For time : refusé, son organisation alternée est exclue.
   - AMRAP : refusé, aucun nombre de séries à contraindre.
-  - Death by : admis, chaque Death by avec sa propre horloge, qui avance pendant ses minutes actives dans l'alternance ; arrêter un Death by ne met fin qu'à lui.
+  - Death by : **admis fonctionnellement**, chaque Death by avec sa référence temporelle propre, active pendant ses minutes dans l'alternance ; arrêter un Death by ne met fin qu'à lui. **[À CLARIFIER pour l'exécution]** Articulation de N du Circuit avec rangs, fenêtres, membres arrêtés et changement de bloc (ch05 R-03).
 - **D-17 [DÉCIDÉ] Un cycle répète la séquence entière**, y compris les éléments formatés. Un circuit répète les passages de ses membres selon son compte. Le nombre de répétitions d'un cycle ne remplace jamais le nombre de séries d'un circuit.
 
 ### 1.5 Exécution
@@ -73,7 +74,7 @@
 - **D-26 [DÉCIDÉ] Remplace ARB-24** sur les valeurs imposées d'un circuit formaté : elles ne sont plus appliquées à l'exercice qui entre (D-05).
 - **D-27 [DÉCIDÉ] Précise ARB-03** : un format est porté par un circuit si l'utilisateur place ses exercices dans ce circuit. Il n'y a pas de transfert automatique (D-02).
 - **D-28 [DÉCIDÉ] Précise ARB-25** : voir D-17.
-- **D-29 [DÉCIDÉ] Lève la réserve documentaire sur le Death by à plusieurs exercices** pour le cas du circuit alterné (D-16). Aucun blocage technique identifié.
+- **D-29 [DÉCIDÉ : admission fonctionnelle ; À CLARIFIER : exécution]** D-16 autorise le Death by en Circuit alterné. R-03 (ch05) continue de demander le raccordement des rangs, fenêtres, changements d'Exercice et incréments. La formule « aucun blocage technique identifié » n'est pas démontrée par les sources examinées ; ne pas déclarer le moteur qualifié.
 
 ## 2. Règles de gestion consolidées
 
