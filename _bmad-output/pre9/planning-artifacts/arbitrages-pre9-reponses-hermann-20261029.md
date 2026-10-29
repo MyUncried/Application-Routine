@@ -18,7 +18,7 @@
 | Second exercice ajouté à un format porté par un exercice seul | **PARTIELLEMENT CLOS** (§5) |
 | Position d'un circuit formaté inséré par l'entrée « Format » | **CLOS** (§6) |
 | Contenu des cinq départs rapides | **OUVERT** (§3) |
-| Ajout d'un format identique dans une séance : choix entre circuit existant et nouveau circuit | **Interface** : à traiter dans Figma (§4.5) |
+| Ajout d'un format identique dans une séance : choix entre circuit existant et nouveau circuit | **CLOS** côté règles ; graphisme dans Figma (§4.5) |
 
 ## 2. Valeurs initiales des réglages de format
 
@@ -96,7 +96,7 @@ L'identité du circuit formaté n'intervient pas dans la décision : seuls compt
 - **EMOM** : **ADMIS**. Son nombre de tours prend la valeur N, qui reste modifiable ; confirmation si une valeur est perdue.
 - **For time** : **REFUSÉ**, son organisation alternée est exclue.
 - **AMRAP** : **REFUSÉ**, aucun nombre de séries à contraindre.
-- **Death by** : **REFUSÉ**, aucun nombre de séries à contraindre.
+- **Death by** : **ADMIS**, chaque Death by avec sa propre horloge (décision du 29/10, §5).
 
 **Point de conformité.** FMT-34 écrit « un seul bouton met fin à la séance ». La décision sur le Death by en change la portée. La formulation est déjà annotée dans le chapitre 10 (commit `990542fd`).
 
@@ -106,7 +106,7 @@ Un élément qui entre dans un circuit alterné **conserve son régime et ses pa
 
 ### 4.5 Ajout d'un format identique dans une séance
 
-**[PROPOSÉ] Choix à l'utilisateur.** Lorsqu'il ajoute un format qui existe déjà dans la séance, l'utilisateur choisit entre **ajouter au circuit formaté existant** et **créer un nouveau circuit**. Ce choix est porté par l'interface. Son traitement graphique relève de Figma.
+**[DÉCIDÉ] Choix à l'utilisateur.** Lorsqu'il ajoute un format qui existe déjà dans la séance, l'utilisateur choisit entre **ajouter au circuit formaté existant** et **créer un nouveau circuit**. Ce choix est porté par l'interface. Son traitement graphique relève de Figma.
 
 ## 5. Second exercice ajouté à un format porté par un exercice seul
 
@@ -166,5 +166,5 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 | Point | Bloque |
 |---|---|
 | Confirmation des valeurs proposées (§3) | Activation de chaque départ |
-| Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
+| Traitement graphique du choix circuit existant ou nouveau circuit (§4.5) | Figma, hors règles |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
