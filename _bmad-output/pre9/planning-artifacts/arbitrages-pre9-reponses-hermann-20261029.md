@@ -40,7 +40,19 @@ Ces valeurs sont modifiables, sauf celles qu'un format impose : Tabata, constant
 
 ## 3. Contenu des cinq départs rapides
 
-**[À CLARIFIER]** Renforcement, Gainage et Mobilité, Superset, Progression, À l'échec : les exercices et réglages par défaut ne sont pas définis. L'activation de chaque départ attend leur définition.
+**[DÉCIDÉ]** Aucun exercice n'est proposé par défaut. C'est l'utilisateur qui choisit les exercices au moment du choix du format.
+
+**[DÉCIDÉ]** Les réglages proposés par défaut sont ceux qui définissent le format. Exemple donné par Hermann : 15 répétitions pour Renforcement.
+
+**[PROPOSÉ] Valeurs tirées des exemples existants**, à confirmer :
+
+| Départ | Réglage proposé | Source de l'exemple |
+|---|---|---|
+| Renforcement | 3 séries de 15 répétitions | 3 × 15 |
+| Progression | 10 · 12 · 14 répétitions | 10 · 12 · 14 |
+| À l'échec | 3 séries à l'échec | trois séries à l'échec |
+| Gainage · Mobilité | **à fournir** | exemple de postures, sans valeur chiffrée |
+| Superset | **à fournir** | deux exercices enchaînés, sans valeur chiffrée |
 
 ## 4. Circuits formatés et dépose d'éléments
 
@@ -150,6 +162,6 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 
 | Point | Bloque |
 |---|---|
-| Contenu des cinq départs rapides (§3) | Activation de chaque départ |
+| Réglages de Gainage · Mobilité et de Superset ; confirmation des trois autres (§3) | Activation de chaque départ |
 | Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
