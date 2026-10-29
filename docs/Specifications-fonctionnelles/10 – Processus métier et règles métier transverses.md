@@ -1248,7 +1248,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-12"></a>
 #### RM-FMT-12
 
-**FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. Le réglage de répétition de l’ensemble reste distinct des huit séries imposées.
+**FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. Le réglage de répétition de l’ensemble reste distinct des huit séries imposées. [29/10/2026, ARB-25 (Hermann, registre ch07 « Arbitrages PRE-9 ») : aucun réglage propre de répétition de l’ensemble. La répétition intégrale d’un Tabata se fait en le plaçant dans un Cycle, dont le nombre de répétitions ne remplace jamais les huit séries ; Par exercice = séries groupées, compte du circuit 1 ; En alternance = séries alternées, compte 8 (FMT-13) ; huit séries par exercice dans les deux cas (FMT-14). Exemple : Tabata A, B dans un Cycle × 2 → 16 séries par exercice.]
 
 <a id="fmt-13"></a>
 #### RM-FMT-13
@@ -1476,7 +1476,7 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 - **FMT-10.** Le format impose huit séries par exercice, 20 secondes d’effort par série et une pause de 10 secondes après chaque série.
 - **FMT-11.** Avec plusieurs exercices, le réglage global propose « Par exercice » et « En alternance ». Avec un exercice unique, la question est inutile puisque l’enchaînement est identique.
-- **FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. Le réglage de répétition de l’ensemble reste distinct des huit séries imposées.
+- **FMT-12.** Par exercice : A1…A8, puis B1…B8. La configuration illustrée comporte un circuit d’un tour et deux cartes affichant chacune `8 × 20 s`. Le réglage de répétition de l’ensemble reste distinct des huit séries imposées. [29/10/2026, ARB-25 (Hermann, registre ch07 « Arbitrages PRE-9 ») : aucun réglage propre de répétition de l’ensemble. La répétition intégrale d’un Tabata se fait en le plaçant dans un Cycle, dont le nombre de répétitions ne remplace jamais les huit séries ; Par exercice = séries groupées, compte du circuit 1 ; En alternance = séries alternées, compte 8 (FMT-13) ; huit séries par exercice dans les deux cas (FMT-14). Exemple : Tabata A, B dans un Cycle × 2 → 16 séries par exercice.]
 - **FMT-13.** En alternance : A1, B1, A2, B2…A8, B8. Le circuit à séries alternées existant exprime cette organisation avec huit séries par exercice. Les huit séries ne deviennent pas huit efforts au total répartis entre A et B.
 - **FMT-14.** Le récapitulatif nomme le compte commun « Séries par exercice — 8 », compatible avec les deux organisations. Il ne présente pas ce compte comme huit tours de circuit dans le cas par exercice.
 - **FMT-15.** Le contrôle « Exécution » est en dernière ligne du bloc Paramètres, après Durée totale, avec séparateur. Son libellé et les options sont alignés sur la même ligne ; la taille de texte est celle des paramètres voisins. Le layout précis relève du DSF et du Figma courant.

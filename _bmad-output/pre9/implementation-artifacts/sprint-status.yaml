@@ -1,15 +1,17 @@
-# PRE-9 — suivi (plan en revue, 28/10/2026 ; révisions 1 et 2 du 29/10/2026). Aucune story démarrée.
-# Baseline main @ 547bb7ef. Statuts : backlog (plan non validé) ; aucune story ready-for-dev avant validation de Hermann.
+# PRE-9 — suivi (plan du 28/10/2026 ; révisions 1 et 2 du 29/10/2026). Plan validé par Hermann le 29/10/2026 (« KODJO — PRE-9 : lancement du développement BMAD »).
+# Baseline main @ 547bb7ef ; plan approuvé pre9-bmad/plan @ 265f3d9d ; développement sur pre9-bmad/dev.
+# [28/10–29/10 : « Statuts : backlog (plan non validé) ; aucune story ready-for-dev avant validation de Hermann » — remplacé par la validation du 29/10.]
 project: KODJO
 slice: PRE-9
-plan_status: en-revue  # révision 2 (29/10), approbation finale de Hermann après revue ChatGPT
+plan_status: valide  # révision 2 validée par Hermann le 29/10/2026 après la revue ChatGPT ; enchaînement progressif autorisé (hors A.5, opérations dépendant d'ARB-04/22c/26/27/28, PRE-10/11)
+development_branch: pre9-bmad/dev
 plan_revision: 2
 development_status:
   epic-q: backlog
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
   q-1-qualification-fin-pre9: backlog
-  epic-a: backlog
-  a-1-fondation-structure-generale: backlog  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
+  epic-a: in-progress
+  a-1-fondation-structure-generale: in-progress  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
   a-2-exercice-depuis-mouvement: backlog  # ARB-22a, ARB-07 (décidés)
   a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
   a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
@@ -37,8 +39,8 @@ development_status:
   d-3-descripteurs-capacites: backlog
   d-4-validation-executabilite: backlog  # validité de configuration ≠ disponibilité du moteur
   d-5-instruction-capacites-execution: backlog  # document ; A2, A4, A6 par Format
-  epic-doc: backlog
-  doc-0-tracabilite-pre8: backlog
+  epic-doc: in-progress
+  doc-0-tracabilite-pre8: done  # 29/10 : ch07 « Arbitrages PRE-9 », FMT-12 annotée (ch10, deux emplacements), ch09 l.19 annotée (D-451), artefacts PRE-8 (fusion PR #409, E.8-b/Q-E1 → PRE-9 A.4, conversion ARB-01)
   doc-1-lot-documentaire-cloture: backlog
 arbitrages:
   decides_2026_10_29_revision_2: [ARB-01, ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24, ARB-25]

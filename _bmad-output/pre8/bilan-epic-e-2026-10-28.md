@@ -72,7 +72,7 @@ Code : `src/domain/sessions/SessionRepository.ts`, `src/infrastructure/database/
 
 - Suite complète de fin d'epic (après correction D-391) : **218 suites, 4714 tests, tous verts** (724 s) ; `tsc --noEmit` et ESLint (`src`, `app`) sans erreur ni avertissement.
 - Commits de l'epic : `d0a0eaa1` (E.1), `badf897d` (E.2), `ee999237` (E.3), `6fe62f60` (E.5), `255cddb2` (E.4 + E.8-a), `0d603165` (E.6), puis le commit E.7 qui contient ce bilan (`git log -1`).
-- État Git attendu après ce commit : `pre8-bmad/dev` propre, en avance sur `origin/pre8-bmad/dev` s'il existe, non poussée ; `main` non fusionnée.
+- État Git attendu après ce commit : `pre8-bmad/dev` propre, en avance sur `origin/pre8-bmad/dev` s'il existe, non poussée ; `main` non fusionnée. [PRE-8 fusionnée dans `main` le 28/10/2026 par la PR #409 (commit de fusion `547bb7ef`), sur autorisation de Hermann (« Fusion PR #409 ») ; baseline de PRE-9. Annotation DOC.0 du 29/10/2026.]
 
 ## Clôture (28/10/2026)
 
