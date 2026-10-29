@@ -38,21 +38,24 @@
 
 Ces valeurs sont modifiables, sauf celles qu'un format impose : Tabata, constantes 30 s / 30 s du 30/30, structure du For time. Aucune autre valeur illustrée dans Figma ou dans les recettes ne devient un défaut.
 
-## 3. Contenu des cinq départs rapides
+## 3. Contenu des départs rapides
 
-**[DÉCIDÉ]** Aucun exercice n'est proposé par défaut. C'est l'utilisateur qui choisit les exercices au moment du choix du format.
+**[DÉCIDÉ]** Aucun exercice n'est proposé par défaut : l'utilisateur choisit les exercices au moment du format.
 
-**[DÉCIDÉ]** Les réglages proposés par défaut sont ceux qui définissent le format. Exemple donné par Hermann : 15 répétitions pour Renforcement.
+**[DÉCIDÉ]** Les réglages proposés par défaut sont ceux qui définissent le format.
+
+**[DÉCIDÉ]** Le départ **Gainage · Mobilité est supprimé.** Il ne se distinguait pas d'une séance libre.
+
+**[DÉCIDÉ] Superset** : un circuit groupé d'un tour, avec deux exercices vides ; les réglages de chaque exercice restent libres.
 
 **[PROPOSÉ] Valeurs tirées des exemples existants**, à confirmer :
 
-| Départ | Réglage proposé | Source de l'exemple |
-|---|---|---|
-| Renforcement | 3 séries de 15 répétitions | 3 × 15 |
-| Progression | 10 · 12 · 14 répétitions | 10 · 12 · 14 |
-| À l'échec | 3 séries à l'échec | trois séries à l'échec |
-| Gainage · Mobilité | **à fournir** | exemple de postures, sans valeur chiffrée |
-| Superset | **à fournir** | deux exercices enchaînés, sans valeur chiffrée |
+| Départ | Réglage proposé |
+|---|---|
+| Renforcement | 3 séries de 15 répétitions |
+| Progression | 10, 12, puis 14 répétitions |
+| À l'échec | 3 séries à l'échec |
+| Superset | circuit groupé d'un tour, deux exercices vides |
 
 ## 4. Circuits formatés et dépose d'éléments
 
@@ -162,6 +165,6 @@ Classe B pour les décisions validées, avec annotation des formulations remplac
 
 | Point | Bloque |
 |---|---|
-| Réglages de Gainage · Mobilité et de Superset ; confirmation des trois autres (§3) | Activation de chaque départ |
+| Confirmation des valeurs proposées (§3) | Activation de chaque départ |
 | Choix circuit existant ou nouveau circuit (§4.5) | Interface, dans Figma |
 | Trois écarts d'exécution (§9) | Aucun développement PRE-9 |
