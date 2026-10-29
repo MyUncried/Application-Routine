@@ -1,9 +1,9 @@
-# PRE-9 — suivi (plan en revue, 28/10/2026 ; révision 1 du 29/10/2026). Aucune story démarrée.
+# PRE-9 — suivi (plan en revue, 28/10/2026 ; révisions 1 et 2 du 29/10/2026). Aucune story démarrée.
 # Baseline main @ 547bb7ef. Statuts : backlog (plan non validé) ; aucune story ready-for-dev avant validation de Hermann.
 project: KODJO
 slice: PRE-9
-plan_status: en-revue  # révision 1 (29/10), seconde revue ChatGPT
-plan_revision: 1
+plan_status: en-revue  # révision 2 (29/10), approbation finale de Hermann après revue ChatGPT
+plan_revision: 2
 development_status:
   epic-q: backlog
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
@@ -11,28 +11,28 @@ development_status:
   epic-a: backlog
   a-1-fondation-structure-generale: backlog  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
   a-2-exercice-depuis-mouvement: backlog  # ARB-22a, ARB-07 (décidés)
-  a-4-conversion-e8b: backlog  # ARB-01 (confirmation attendue)
-  a-3-retrait-parcours-exercices-autonomes: backlog  # après décision ARB-01
+  a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
+  a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
   a-5-retrait-table-definitions: backlog  # conditionnelle : non-utilisation, conservation prouvée, autorisation de Hermann
   epic-b: backlog
   b-1-rendu-structure: backlog  # ARB-12, ARB-13, ARB-19 (décidés)
   b-2-menu-creer-enveloppe: backlog  # ARB-06, ARB-07 (décidés)
   b-3-series-par-circuit-cibles-zero: backlog  # ARB-10 (décidé)
-  b-4-glisser-deposer-conteneurs: backlog  # ARB-06, ARB-09 (décidés) ; ARB-24 (deux déposes)
+  b-4-glisser-deposer-conteneurs: backlog  # ARB-06, ARB-09, ARB-24 (décidés)
   b-5-suppression-duplication: backlog  # ARB-08, ARB-17 (décidés)
-  b-6-pauses-points-arret: backlog  # ARB-02a/b (positions internes à un Cycle seulement)
+  b-6-pauses-points-arret: backlog  # ARB-02a/b (décidés)
   b-7-durees-syntheses: backlog  # ARB-11 (décidé)
   b-8-utiliser-seance-existante: backlog  # ARB-16 (décidé)
   b-9-nom-seance-trois-etats: backlog  # ARB-14, ARB-15 (décidés)
   epic-c: backlog
-  c-1-persistance-registre-formats: backlog  # migration 017 ; Format porté par l'élément (ARB-03), ARB-25
+  c-1-persistance-registre-formats: backlog  # migration 017 ; Format porté par l'élément (ARB-03) ; aucun compteur de répétition (ARB-25)
   c-2-selection-modele: backlog  # ARB-05 (décidé)
-  c-3-parametres-imposes-recapitulatif: backlog  # ARB-18, ARB-22a (décidés) ; ARB-04 (défauts, par Format) ; ARB-25 (Tabata)
-  c-4-composition-preremplie-verrous: backlog  # ARB-15 (décidé) ; ARB-24 (deux déposes)
+  c-3-parametres-imposes-recapitulatif: backlog  # ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format)
+  c-4-composition-preremplie-verrous: backlog  # ARB-15, ARB-23, ARB-24 (décidés) ; ARB-26, ARB-27, ARB-28 (une opération chacun)
   c-5-departs-rapides: backlog  # ARB-22b (décidé) ; ARB-22c EN ATTENTE DE DÉFINITION FONCTIONNELLE
   c-6-edition-duplication-formats: backlog  # ARB-17, ARB-21 (décidés)
   epic-d: backlog
-  d-1-developpement-plan: backlog  # plans finis ; ARB-02a/b, ARB-10b (signalé)
+  d-1-developpement-plan: backlog  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
   d-2-instantane-seance: backlog
   d-3-descripteurs-capacites: backlog
   d-4-validation-executabilite: backlog  # validité de configuration ≠ disponibilité du moteur
@@ -41,7 +41,9 @@ development_status:
   doc-0-tracabilite-pre8: backlog
   doc-1-lot-documentaire-cloture: backlog
 arbitrages:
+  decides_2026_10_29_revision_2: [ARB-01, ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24, ARB-25]
   decides_2026_10_29: [ARB-03, ARB-05, ARB-06, ARB-07, ARB-08, ARB-09, ARB-10, ARB-11, ARB-12, ARB-13, ARB-14, ARB-15, ARB-16, ARB-17, ARB-18a, ARB-18b, ARB-19, ARB-20, ARB-21, ARB-22a, ARB-22b]
-  ouverts: [ARB-01, ARB-02a, ARB-02b, ARB-04, ARB-22c, ARB-23, ARB-24, ARB-25, ARB-10b]
+  ouverts: [ARB-04, ARB-22c]
+  ouverts_application_c4: [ARB-26, ARB-27, ARB-28]
   en_attente_definition_fonctionnelle: [ARB-22c]
   avant_pre11: [A4 cas non définis, A6 cas non définis, suite après élément AMRAP ou Death by, R-01, R-02, R-03, R-04]
