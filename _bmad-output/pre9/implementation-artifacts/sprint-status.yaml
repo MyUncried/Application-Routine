@@ -38,7 +38,7 @@ development_status:
   d-2-instantane-seance: done  # livrée ; sessionSnapshot.d2 4/4 ; spec-d-2-instantane-seance.md ;
   d-3-descripteurs-capacites: done  # livrée ; formatCapabilities.d3 4/4 ; spec-d-3-descripteurs-capacites.md ;
   d-4-validation-executabilite: done  # livrée (domaine) ; raccordement à Continuer en C.4 / B.3 ; configurationValidity.d4 6/6 ; spec-d-4-validite-configuration.md ;  # validité de configuration ≠ disponibilité du moteur
-  d-5-instruction-capacites-execution: backlog  # document ; A2, A4, A6 par Format
+  d-5-instruction-capacites-execution: done  # document ; spec-d-5-instruction-capacites-execution.md ;  # document ; A2, A4, A6 par Format
   epic-doc: in-progress
   doc-0-tracabilite-pre8: done  # 29/10 : ch07 « Arbitrages PRE-9 », FMT-12 annotée (ch10, deux emplacements), ch09 l.19 annotée (D-451), artefacts PRE-8 (fusion PR #409, E.8-b/Q-E1 → PRE-9 A.4, conversion ARB-01)
   doc-1-lot-documentaire-cloture: backlog
