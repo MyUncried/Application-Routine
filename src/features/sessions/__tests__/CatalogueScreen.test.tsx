@@ -462,12 +462,13 @@ describe("CatalogueScreen — cadre commun", () => {
     const row = screen.getByTestId("catalogue-command-row");
     expect(within(row).getByTestId("movement-catalogue-search")).toBeTruthy();
     // Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à gauche, et le bouton filtre à
-    // droite ») : Créer | Rechercher | Trier | Filtrer.
+    // droite ») : Créer | Rechercher | Trier | Filtrer ; remplacé le 30/10/2026 (Hermann : « rechercher,
+    // filtrer, trier puis créer »).
     const order = (row.props.children as ({ props?: { testID?: string } } | null)[])
       .flat()
       .map((child) => child?.props?.testID)
       .filter(Boolean);
-    expect(order).toEqual(["catalogue-create-action", "movement-catalogue-search", "catalogue-sort-action", "catalogue-filter-action"]);
+    expect(order).toEqual(["movement-catalogue-search", "catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]);
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");

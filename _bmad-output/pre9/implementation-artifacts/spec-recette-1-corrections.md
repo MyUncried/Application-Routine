@@ -12,7 +12,7 @@ Résultats de Hermann : cahier de recette en ligne (https://claude.ai/artifact/8
 6. **Menu Créer (cre-figma, obs-4, constat f)** : axe bleu jusqu'à Annuler ; options inactives opaques (`#E5E8F0`, contour `#BABFCC`, libellé `#5C6170`) ; « Annuler » en `colors.primary` ; apparition en fondu de 600 ms.
 7. **Carte à compléter** : texte sur deux lignes, chronomètre à sa place, liseré rouge de 1.
 8. **Zone de contexte (constat a)** : `ContextBand` `fadeToTransparent` — couleur de la zone puis dégradé vers la transparence (Catalogue des Séances, Composition). Le fondu blanc datait de D-356 (PRE-3), aucune régression récente.
-9. **Catalogues (constats d, e)** : Mouvements : Créer | Rechercher | Trier | Filtrer ; Séances : rangée de 44, boutons à la hauteur de ceux des Mouvements.
+9. **Catalogues (constats d, e)** : Mouvements : ~~Créer | Rechercher | Trier | Filtrer~~ Rechercher | Filtrer | Trier | Créer (Hermann, 30/10/2026 : « rechercher, filtrer, trier puis créer ») ; Séances : rangée de 44, boutons à la hauteur de ceux des Mouvements.
 10. **Fiche Mouvement (constats b, g)** : invite « Nom du mouvement » en gris clair (`#AEB3BA`) ; nom d'un Mouvement archivé : « Un mouvement **archivé** porte déjà ce nom. ».
 11. **Paramètres d'exécution (constat h)** : nouvel Exercice en Durée, côté Sans (données existantes non modifiées) ; roulette d'une cible vide ouverte à 00:00, ✓ inactif jusqu'à une valeur ; barre du clavier 52 (marges 8), fond `#E1E4E8` (Figma `9295:43707`) ; colonnes Libellé / Durée réparties ; tableau des phases refermé par tout autre contrôle de la feuille (animation de sortie existante, 350 ms).
 

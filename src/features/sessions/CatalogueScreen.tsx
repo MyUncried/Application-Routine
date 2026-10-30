@@ -218,10 +218,10 @@ export function CatalogueScreen() {
             rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
         {/* Segment Mouvements : rangée de B.9 (plan E.4 : l'ordre Filtre / Tri / Créer ne s'applique
             qu'au segment Séances). Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à
-            gauche, et le bouton filtre à droite ») : Créer | Rechercher | Trier | Filtrer. */}
+            gauche, et le bouton filtre à droite ») : Créer | Rechercher | Trier | Filtrer.
+            [30/10/2026, Hermann : « rechercher, filtrer, trier puis créer » — remplace l'ordre précédent.] */}
         {activeSegment === "movements" ? (
           <View style={styles.commandRow} testID="catalogue-command-row">
-            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
             <CatalogueSearchField
               value={movementQuery}
               onChangeText={setMovementQuery}
@@ -230,7 +230,6 @@ export function CatalogueScreen() {
               clearLabel={strings.screens.movement.catalogue.searchClear}
               testID="movement-catalogue-search"
             />
-            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
             <FilterCommand
               label={t.filterAction}
               title={strings.screens.movement.catalogue.filters.command}
@@ -244,6 +243,8 @@ export function CatalogueScreen() {
               }}
               testID="catalogue-filter-action"
             />
+            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
+            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
           </View>
         ) : null}
         {activeSegment === "sessions" ? (
