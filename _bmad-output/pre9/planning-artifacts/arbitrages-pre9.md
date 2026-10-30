@@ -161,7 +161,7 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 
 ## 2 bis. Questions de révision 2 — **CLOSES par §0 quater** (historique)
 
-Deux questions sont ouvertes par décision de Hermann (ARB-04, ARB-22c) ; trois questions d'application, nées des décisions de la révision 2 et non déductibles, sont présentées au format demandé (ARB-26 à ARB-28). Chacune ne bloque que l'opération citée ; aucune n'empêche la validation du plan.
+[HISTORIQUE 29/10, supersédé par §0 quater et la consolidation du 30/10 : ARB-04, ARB-22c et ARB-26 à ARB-28 sont désormais CLOS.] Deux questions étaient ouvertes lors de la révision 2 (ARB-04, ARB-22c) ; trois questions d'application n'étaient pas encore déductibles (ARB-26 à ARB-28). Chacune ne bloque que l'opération citée ; aucune n'empêche la validation du plan.
 
 | ID | Question | Source | Cas concret | Options | Seule opération dépendante |
 |---|---|---|---|---|---|

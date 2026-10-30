@@ -40,7 +40,7 @@ Les captures courantes sont réunies au chapitre 06. Les captures antérieures d
 
 ### Saisie et rapprochement
 
-Le panneau se superpose sous le nom, clavier visible. Dans le parcours du catalogue des mouvements, chaque carte porte **Utiliser ce mouvement** et **Ajouter un niveau**, sans choix radio ni action globale de sélection. Depuis une séance, seule l’action **Utiliser ce mouvement** est proposée (cible du 27/10). Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
+Le panneau se superpose sous le nom, clavier visible. [État graphique du 25/10 supersédé sur les actions des cartes par CAT.2 du 30/10 : l'action **Utiliser ce mouvement** était représentée.] Dans le parcours **Créer un Mouvement**, les cartes Résultat portent **Ajouter un niveau** à droite et aucun bouton Utiliser. Depuis la Composition / création d'un Exercice, les cartes Composition ne portent aucun bouton interne : elles conservent leur sélection selon le parcours existant (CE-MVT-RESULT-01). Entrée valide la saisie et poursuit le formulaire ; elle ne sélectionne jamais un résultat et ne sauvegarde pas à elle seule l’exercice. Cinq résultats au maximum dans le panneau ; ne pas les réordonner pendant un appui. Le dédoublonnage reste par identifiant de mouvement, sur la meilleure correspondance entre nom et alias. Les mouvements créés dans une séance restent recherchables sans devenir des exercices Catalogue.
 
 R03 conserve l’accès explicite à une recherche préremplie, effaçable, et l’action Voir tous les mouvements en cas de résultat vide. L’écran du catalogue ne remplace pas cette fonction. Sa représentation courante est manquante. Les seuils et le corpus automatisé R07 demeurent obligatoires ; aucune modification arbitraire des coefficients n’est introduite par le panneau.
 
@@ -104,7 +104,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | Élément | Référence réelle | Observation / contrat |
 |---|---|---|
 | Carte — Mouvement | `10124:21979` | Component set, Sélection = Absente / Vide / Cochée ; chaque variante 322 × 80, instances extensibles à 354 |
-| Carte — Mouvement — Résultat | `10199:22268` | Composant distinct 338 × 107 ; actions internes ; photo observée 57 × 57. Ne pas lui imposer les 80 pt de la carte simple |
+| Carte — Mouvement — Résultat | `10199:22268` | Relevé historique du 25/10 : composant distinct 338 × 107, photo observée 57 × 57. **Cible PRE-9 du 30/10** : carte Résultat avec action « Ajouter un niveau » ; état déplié de difficulté 338 × 104 (`10415:21939`). La carte Composition distincte est 338 × 73, sans action et sans assimilation au gabarit 80 pt (CE-MVT-RESULT-01). |
 | icon/modifier | `9925:41240` | Composant 24 × 24 ; crayon plein bleu sur les nouveaux écrans, état actif sur pastille blanche ; dimensions visuelles distinctes de la cible tactile |
 | icon/niveau | `9932:44044` | Trois variantes 1 / 2 / 3, 24 × 24 ; ne couvre pas encore explicitement tous les rangs |
 | Sélecteur classification | `9003:15638` | Rôle Catégorie / Zone / Niveau ; Niveau vide `9925:41506`, renseigné `9925:41515` |

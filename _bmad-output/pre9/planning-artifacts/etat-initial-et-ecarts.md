@@ -66,7 +66,7 @@ Statuts : **QUALIFIÉ** (développé et qualifié) · **PARTIEL** · **DOC NON D
 | Modification, duplication, réouverture | Absent | Format conservé par élément | — | FMT-03/40, ch09 l.617, ARB-16, ARB-17 | — | **DOC NON DÉV.** — C.6 |
 | Information « exécution non disponible » | Lecture indisponible partout (PRE-8) | Inchangée (ARB-21) | Aucun | ARB-21 | — | **QUALIFIÉ** — conservé, sans développement [28/10 : À CLARIFIER] |
 | Plusieurs Formats dans une Séance | Absent | Exercices porteurs de leurs Formats successifs, directement ou dans des Circuits/Cycles ; adoption volontaire ; Circuit groupé répète ses membres, Cycle répète sa séquence ; affichage des Formats sur la deuxième ligne du Circuit replié (`10717:20056`, `10725:20142`) | Tout | ARB-03/25 précisés, D-05/D-12, `c458dac6` | Aucun porteur/compteur de Format sur Circuit | **DOC NON DÉV.** — C.1, C.4, B.1/B.8 |
-| Choix des Exercices dans le flux d'un Format ; contenu des départs rapides | Absent | Parcours Catalogue existant (ARB-22a) ; contenu des départs selon leur définition | Contenu des départs | ch03 l.646 ; ARB-22a/b/c ; Figma `8624:29980`, `8624:30040` | Sélection de Mouvements réutilisée | **DOC NON DÉV.** — C.3 ; **EN ATTENTE** — C.5 (ARB-22c) |
+| Choix des Exercices dans le flux d'un Format ; contenu des départs rapides | Absent | Parcours Catalogue existant (ARB-22a) ; contenu des départs selon leur définition | Contenu des départs | ch03 l.646 ; ARB-22a/b/c ; Figma `8624:29980`, `8624:30040` | Sélection de Mouvements réutilisée | **DOC NON DÉV.** — C.3/C.5 ; ARB-22c **CLOS** (départs rapides définis le 29/10, consolidation du 30/10) |
 
 ### Chantier D — Contrat avec le futur moteur
 

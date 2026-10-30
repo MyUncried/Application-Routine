@@ -168,7 +168,7 @@ Carte fermée ; actions glissées ; choix du sens déployé ; formulaire après 
 
 ### 12. Contrôles et interactions
 
-Ajouter un niveau déploie en place. Plus facile prépare une insertion avant l'origine dans l'ordre de difficulté ; Plus difficile prépare une insertion après. Le choix ne persiste rien : validation du formulaire requise. Depuis les mouvements proches, Ajouter un niveau conserve `10415:21939` et le choix entre utiliser le mouvement et en dériver un nouveau.
+Ajouter un niveau déploie en place. Plus facile prépare une insertion avant l'origine dans l'ordre de difficulté ; Plus difficile prépare une insertion après. Le choix ne persiste rien : validation du formulaire requise. Depuis les mouvements proches, « Ajouter un niveau » conduit à l'état `10415:21939` pour choisir « Plus facile » ou « Plus difficile » avant la création d'un nouveau Mouvement. La carte Résultat n'offre pas « Utiliser ce mouvement » (CE-MVT-RESULT-01 ; ancienne présentation du 27/10 supersédée).
 
 ### 13. Gestes
 
@@ -256,7 +256,7 @@ Initial ; nom en cours et mouvements proches ; nom déjà utilisé ; options d'u
 
 ### 12. Contrôles et interactions
 
-Nom → recherche R01–R08, cinq résultats au plus. Utiliser → identité existante ; Ajouter un niveau → choix du sens puis création ; depuis le glissé du catalogue, appliquer CE-MVT-02 sans écran intermédiaire. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction. [Recette A/B du 27/10/2026, F07 : depuis le Catalogue des Mouvements, la fiche est directement modifiable ; C02 : après Plus facile / Plus difficile, le nouveau Niveau s'ouvre en édition, sans crayon, nom commencé sans rang ajouté et invite « (compléter le nom) » non persistée ; F06 : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`), même règle en création et en modification.]
+Nom → recherche R01–R08, cinq résultats au plus. Cartes Résultat de création de Mouvement : « Ajouter un niveau » → choix du sens puis création, sans bouton « Utiliser ce mouvement » ; cartes Composition de création d'Exercice : aucun bouton interne (CE-MVT-RESULT-01). La reprise d'une identité existante suit ses autres parcours déjà validés. Depuis le glissé du catalogue, appliquer CE-MVT-02 sans écran intermédiaire. Crayon → brouillon modifiable depuis catalogue. Pastilles → sélecteurs ; Niveau → consultation d'un autre membre ou ajout de niveau. Phases → libellés/structure, jamais durées. Description → invite d'étape suivante seulement dans le champ actif. Terminer → validation puis table C03 de la spécification ciblée. Une variante ne repasse pas par le dialogue de correction. [Recette A/B du 27/10/2026, F07 : depuis le Catalogue des Mouvements, la fiche est directement modifiable ; C02 : après Plus facile / Plus difficile, le nouveau Niveau s'ouvre en édition, sans crayon, nom commencé sans rang ajouté et invite « (compléter le nom) » non persistée ; F06 : libellé de phase limité à 20 points de code (`WORK_PHASE_LIMITS.labelMaxLength`), même règle en création et en modification.]
 
 ### 13. Gestes
 

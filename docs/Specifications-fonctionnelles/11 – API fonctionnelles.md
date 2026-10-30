@@ -321,6 +321,8 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 | Générer les modalités | Paramètres effectifs → segments ordonnés texte/gras | Pas de phrase persistée ; unité par tour/série préservée |
 | Lire l’historique | Identité d’exécution → instantané et résultat | Jamais de recalcul depuis la séance source actuelle |
 
+**Décisions d'acquisition à prévoir dans les services d'exécution PRE-10/11 (D-19 à D-21, 29/10/2026).** AMRAP et For time acquièrent un tour complet par appui « Tour terminé », une seule fois par tour ; un tour inachevé n'est pas acquis. À l'échéance d'un AMRAP, la saisie distincte des répétitions partielles propose 0 avant validation (D-20). Un plafond temporel facultatif For time arrête seulement l'Exercice avec résultat incomplet (D-21). Ces comportements ne sont ni une nouvelle condition d'ouverture de PRE-9 ni un format porté par le Circuit.
+
 La saisie du rang de fenêtre ou d’un nombre de tours à chaque passage n’est pas exposée. L’horloge génère les échéances ; les commandes doivent être idempotentes face aux doublons. Le formulaire proposé à zéro n’est pas une mesure avant validation. Erreurs : format incompatible, constante modifiée, objectif ou compte invalide selon sa borne existante, unité incohérente et fenêtre obsolète ne doivent pas être acceptés silencieusement. Les détails des combinaisons non résolues sont tracés dans la revue, pas compensés par une valeur métier arbitraire.
 
 ## Bilatéralité

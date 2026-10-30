@@ -1304,7 +1304,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-21"></a>
 #### RM-FMT-21
 
-**FMT-21 — Durée.** La durée du bloc EMOM est calculée et affichée en direct : `nombre de tours × nombre d’exercices × durée de fenêtre`. Elle n’est jamais saisie. Les éventuelles phases propres de séance restent distinguées de ce total de bloc.
+**FMT-21 — Durée.** La durée intrinsèque du bloc EMOM est calculée : `nombre de tours × nombre d’exercices × durée de fenêtre`, jamais saisie. Un Circuit groupé répète le bloc complet à chaque passage ; un Cycle répète sa séquence sans double multiplication des tours internes (D-15/D-17). Les phases propres de Séance restent distinctes.
 
 <a id="fmt-22"></a>
 #### RM-FMT-22
@@ -1359,7 +1359,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-32"></a>
 #### RM-FMT-32
 
-**FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat.
+**FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat. **D-21 (29/10/2026) :** un plafond temporel facultatif peut borner l’Exercice For time ; à son atteinte l’Exercice s’arrête avec un résultat incomplet, sans imposer l’arrêt de la Séance. La valeur du plafond n’est pas inventée ; son exécution relève de PRE-10/11.
 
 <a id="fmt-33"></a>
 #### RM-FMT-33
@@ -1508,7 +1508,7 @@ La généralisation aux formats cadencés porte sur la borne par compte. Elle ne
 ### Formats de séances — comportements consolidés — EMOM : fenêtres et borne
 
 - **FMT-20 — Réglages.** L’utilisateur règle la cadence, c’est-à-dire la durée d’une fenêtre, le nombre de tours et l’organisation « Par exercice » ou « En alternance ».
-- **FMT-21 — Durée.** La durée du bloc EMOM est calculée et affichée en direct : `nombre de tours × nombre d’exercices × durée de fenêtre`. Elle n’est jamais saisie. Les éventuelles phases propres de séance restent distinguées de ce total de bloc.
+- **FMT-21 — Durée.** La durée intrinsèque du bloc EMOM est calculée : `nombre de tours × nombre d’exercices × durée de fenêtre`, jamais saisie. Un Circuit groupé répète le bloc complet à chaque passage ; un Cycle répète sa séquence sans double multiplication des tours internes (D-15/D-17). Les phases propres de Séance restent distinctes.
 - **FMT-22 — Composition.** Ajouter ou retirer un exercice conserve le nombre de tours et recalcule la durée. La durée n’entraîne aucun arrondi du nombre de tours ni dernier tour tronqué.
 - **FMT-23 — Fenêtre.** Chaque fenêtre va jusqu’à son terme ; la suivante commence à l’échéance. Terminer l’objectif avant l’échéance ne raccourcit pas la fenêtre. Ne pas terminer l’objectif ne prolonge pas la fenêtre.
 - **FMT-24 — Appui.** L’appui sur le cadran indique que le travail de la fenêtre est terminé et révèle le repos restant. Il ne passe pas à la fenêtre suivante.
@@ -1538,11 +1538,13 @@ Les exemples 3 × 15, postures, deux exercices enchaînés, 10 · 12 · 14 et tr
 
 - **FMT-30.** Le paramètre s’appelle « Volume par tour ». Pour `21 · 15 · 9`, chaque Exercice suit le **tour de l'échelle For time** : 21 répétitions au premier rang, 15 au deuxième, 9 au troisième. Ce « tour » est distinct du **passage d'un Circuit englobant** ; chaque passage extérieur répète l'échelle **entière depuis 21** (D-15).
 - **FMT-31.** Aucun sélecteur « Par exercice / En alternance » n’est proposé pour For time. L’échelle reste indexée par tour ; elle n’est pas transformée en trois séries successives à l’intérieur de chaque exercice.
-- **FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat.
+- **FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat. **D-21 (29/10/2026) :** un plafond temporel facultatif peut borner l’Exercice For time ; à son atteinte l’Exercice s’arrête avec un résultat incomplet, sans imposer l’arrêt de la Séance. La valeur du plafond n’est pas inventée ; son exécution relève de PRE-10/11.
 
 Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tours. Le modèle doit garantir la cohérence entre nombre de tours et valeurs applicables, sans inventer un objectif pour une entrée manquante. La mécanique exacte de l’éditeur d’échelle sera raccordée au contrat d’écran courant, sans recopier automatiquement la règle des séries variables si elle change l’unité.
 
 « Le plus vite possible » exprime l’objectif du format, pas l’interdiction de faire une pause ni une détection automatique des mouvements. Les commandes générales non remplacées restent applicables.
+
+**D-19 — Acquisition de tour AMRAP et For time (29/10/2026).** Dans chacun de ces deux Formats, l'appui « Tour terminé » acquiert au plus un tour complet ; un appui répété ne peut en acquérir plusieurs et un tour inachevé n'est pas compté comme tour complet. Pour l'AMRAP, les répétitions du tour partiel à l'échéance suivent RM-PRE5-02 (D-20). Ces commandes et résultats sont à raccorder en exécution PRE-10/11 et ne bloquent pas la configuration PRE-9.
 
 ### Formats de séances — comportements consolidés — Death by
 
@@ -1578,7 +1580,7 @@ Un Exercice bilatéral exécute ses Séries selon son Ordre des côtés : avec `
 Par défaut, aucune évaluation avant exécution ; après, Ressenti obligatoire à trois choix. Parcours enrichi uniquement lorsque le lancement intervient dans le contexte d'un Programme dont l'option est active ; un lancement indépendant reste standard, même pour un contenu appartenant au Programme. Enrichi avant : douleur 0–10 obligatoire, choix explicite, aucune localisation, Commencer bloqué sans réponse. Enrichi après : douleur 0–10 obligatoire et sans présélection (indépendante de la valeur avant) et effort perçu 1–10 obligatoire, en remplacement du Ressenti ; Enregistrer bloqué tant que les valeurs requises manquent. Si douleur finale supérieure à zéro : au moins une localisation choisie parmi les zones corporelles KODJO avec latéralité si pertinente, sélection multiple admise ; aucune localisation imposée à zéro. Zéro n'est jamais déduit d'une absence de réponse. Configuration précise de l'option Programme : À CLARIFIER.
 
 ### RM-PRE5-02 — Répétitions partielles (D-428)
-Modale « P-Modale — Répétitions partielles » (Figma 8928:15098). Formats imposés : interruption ou série achevée sous la cible. Valeur initiale proposée 0, minimum 0, dépassement de la cible autorisé. Zéro proposé n'est pas une mesure avant validation. Valider enregistre le résultat réel et poursuit automatiquement le plan (récupération, série suivante ou fin) ; fermer sans valider n'enregistre aucun résultat et revient à l'étape courante sans progression.
+Modale « P-Modale — Répétitions partielles » (Figma 8928:15098). Formats imposés : interruption ou série achevée sous la cible. **AMRAP (D-20, 29/10/2026) :** à l'échéance du bloc, les répétitions réalisées dans le tour inachevé sont saisies dans cette modale ; ce tour n'est pas acquis comme complet. Ce déclencheur est distinct de la fenêtre partielle du Death by (FMT-37/38). Valeur initiale proposée 0, minimum 0, dépassement de la cible autorisé. Zéro proposé n'est pas une mesure avant validation. Valider enregistre le résultat réel et poursuit automatiquement le plan (récupération, série suivante ou fin) ; fermer sans valider n'enregistre aucun résultat et revient à l'étape courante sans progression. L'exécution spécialisée reste à qualifier en PRE-10/11.
 
 ### RM-PRE5-03 — Résultat de série (D-429)
 Modale « P-Modale — Résultat de série » (Figma 8937:35362). Valeur initiale proposée 0, minimum 0, dépassement de cible autorisé. Valider enregistre le résultat réel indépendamment de la cible et poursuit automatiquement le plan ; fermer sans validation n'enregistre rien, conserve l'état et revient à l'étape courante sans progression. Le déclencheur exact non encore arbitré reste À CLARIFIER.
