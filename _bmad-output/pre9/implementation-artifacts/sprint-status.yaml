@@ -1,10 +1,12 @@
-# PRE-9 — suivi (plan en revue, 28/10/2026 ; révisions 1 et 2 du 29/10/2026). Aucune story démarrée.
-# Baseline main @ 547bb7ef. Statuts : backlog (plan non validé) ; aucune story ready-for-dev avant validation de Hermann.
+# PRE-9 — suivi : ajout CAT.1 validé le 30/10/2026, démarrage immédiat autorisé ; autres stories selon le plan.
+# Baseline applicative : main @ 547bb7ef. CAT.1 est autorisée par Hermann le 30/10 indépendamment des autres arbitrages.
 project: KODJO
 slice: PRE-9
 plan_status: en-revue  # révision 2 (29/10), approbation finale de Hermann après revue ChatGPT
 plan_revision: 2
 development_status:
+  epic-cat: ready-for-dev  # zone de contexte des Catalogues, indépendante
+  cat-1-zones-contexte-catalogues: ready-for-dev  # spécification docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md
   epic-q: backlog
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
   q-1-qualification-fin-pre9: backlog
