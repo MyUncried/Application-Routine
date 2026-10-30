@@ -1,5 +1,7 @@
 # Matrice de traçabilité — Formats de séances — 14 octobre 2026
 
+> **STATUT HISTORIQUE POUR LES RÈGLES MODIFIÉES LE 29–30/10/2026.** Les lignes FMT-01/02/04/12/26/28/30/34 et les hypothèses de Format unique sur Séance/Circuit ne constituent **plus des prescriptions actives** lorsqu'elles contredisent la [consolidation PRE-9 des décisions D-01 à D-30](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les anciennes formulations de cette matrice sont conservées comme évidences de la baseline d'octobre, pas comme nouveaux défauts, contrats de stockage ou mécanismes du moteur. Les règles FMT non remplacées demeurent applicables à leur portée. Les tests FMT de cette matrice sont des recettes prescrites et non exécutées.
+
 Baseline : `main` `55aa34480d51472b540156e2e664b8528c511f6b`. Lot exclusivement documentaire ; aucune preuve de livraison du moteur. La matrice distingue propagation, capture observée et recette future. « Documenté » ne signifie pas « implémenté », « qualifié visuellement » ou « intégrable sans les raccordements restants ».
 
 ## 1. Couverture exhaustive des exigences
