@@ -13,6 +13,18 @@
 
 **Critères de validation :** dimensions à 402 pt, exclusion/désélection des compteurs Mouvements, bascule Séances non régressée, calculs en listes vides/repliées/filtrées/archivées, recherche combinée, accord des résultats et absence de chevauchement tactile. Réalisation **dès PRE-9**.
 
+## CE-MVT-RESULT-01 — Cartes de résultats de recherche des Mouvements — PRE-9
+
+**Contrat final :** [spécification PRE-9 — résultats de recherche](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md). Références Figma `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939` (création de Mouvement), et `9882:19049`, `10175:20349`, `10131:21995` (création d'Exercice depuis un Mouvement).
+
+- **Carte « Mouvement — Résultat » :** description large de **179 pt**, commande **« Ajouter un niveau »** de **66 × 32 pt**, `x=264`, sur deux lignes à droite et alignée avec le bas de la description ; zone tactile **78 × 36 pt** à `x=258, y=31` dans le composant. Cette variante appartient aux résultats de **création de Mouvement** ; aucun bouton « Utiliser » n'est affiché sur ses cartes.
+- **Carte « Mouvement — Composition » :** **338 × 73 pt** dans les listes de référence, **sans aucun bouton** ; description sur **253 pt**, deux lignes au maximum, tronquée par « … ». Le composant conserve ce comportement dans tous les emplois de Composition du projet.
+- **Familles** : filet bleu à `x=3`, largeur **2 pt**, débutant au centre de la première carte affichée de la famille et se terminant au centre de la dernière ; applicable aux six listes concernées, sans modification du calcul des familles, rangs ou identités.
+- **Choix du Niveau** : état `10415:21939`, un seul cadre **338 × 104 pt**, marges verticales 8 pt, liste de recherche **178 pt** ; carte Résultat sur trois lignes avec « Ajouter un niveau » à droite. Quatrième ligne « **Plus facile | Plus difficile** » ; « Plus facile » à `x=90,5`, largeur 64 pt, `y=68`, hauteur 28 pt ; « Plus difficile » à `x=183,5, y=68`, hauteur 28 pt. Séparateur **1,5 × 12 pt** à `x=166,5, y=74,5`. Ancienne commande « Utiliser ce mouvement », deuxième cadre et symboles d'arbre **absents** de cet état.
+- **Navigation et données** : recherche existante, maximum de cinq résultats illustrés, filtres cumulables, classement/identités de Niveaux et validations de création inchangés. « Ajouter un niveau » prépare une nouvelle identité, non créée avant validation. Aucun des noms ou quantités des maquettes n'est codé en dur.
+
+**Recette PRE-9 :** comparer les deux variantes de composants dans les écrans cités ; vérifier l'alignement, la troncature, l'absence de boutons dans la Composition, la ligne de difficulté et ses actions, le filet de familles, le clavier, le choix de niveau et l'absence de régression dans la recherche.
+
 ## CE-MVT-03 — Catalogue des mouvements : ordre et composition des familles
 
 ### 1. Identification
