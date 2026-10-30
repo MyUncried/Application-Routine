@@ -644,7 +644,7 @@ D-333 inclut l’import/ajout de photos ou vidéos locales depuis l’éditeur, 
 
 1. Choisir une entrée : six formats contraignants ou six origines libres.
 2. Lire les constantes et régler les paramètres autorisés. Le parcours Tabata inclut une sélection d’exercices ; ne pas imposer quatre étapes identiques à toutes les entrées.
-3. Au récapitulatif, vérifier l’ordre des exercices et les paramètres. Tabata, EMOM et Progression proposent « Exécution : Par exercice / En alternance » selon leurs conditions ; For time ne propose pas ce contrôle.
+3. Au récapitulatif, vérifier l’ordre des exercices et les paramètres. Tabata, EMOM, Progression et For time proposent « Exécution : Par exercice / En alternance » selon leurs conditions. Pour For time, chaque volume de l’échelle suit le passage du Circuit sans modifier le nombre de Séries des Exercices.
 4. Composer la séance préremplie. Les réglages autorisés restent éditables, avec synthèse et durée calculée actualisées. Les constantes ne deviennent pas éditables dans la modale d’exercice.
 5. Démarrer à partir d’un instantané. EMOM/Death by : l’appui sur le cadran révèle le repos sans avancer la fenêtre. Death by : il confirme aussi l’objectif accompli, ce qui acquiert le tour.
 6. Arrêt Death by : un seul déclencheur ouvre les deux issues « Limite atteinte » et « Abandonner ». Si la dernière fenêtre n’est pas acquise, renseigner les répétitions partielles, proposées à zéro. Résultat conservé, état incomplet dans les deux cas.
