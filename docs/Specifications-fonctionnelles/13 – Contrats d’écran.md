@@ -220,7 +220,7 @@ Le verrouillage depuis une séance concerne uniquement un mouvement existant ou 
 
 ### 4. Contexte de sortie / destinations
 
-Terminer valide le brouillon et revient au contexte appelant avec l'identité enregistrée ; celle-ci est retrouvable au catalogue. « Utiliser ce mouvement » ouvre l'existant en consultation sans doublon. Changer de niveau ouvre le membre choisi de la famille, sans reclassement. Fermer protège les modifications non enregistrées ; Annuler un dialogue revient au brouillon.
+Terminer valide le brouillon et revient au contexte appelant avec l'identité enregistrée ; celle-ci est retrouvable au catalogue. La réutilisation d'un Mouvement existant conserve son comportement sans création de doublon, mais **les cartes Résultat de création de Mouvement n'affichent aucun bouton « Utiliser ce mouvement »** (CE-MVT-RESULT-01). Changer de niveau ouvre le membre choisi de la famille, sans reclassement. Fermer protège les modifications non enregistrées ; Annuler un dialogue revient au brouillon.
 
 ### 5. Données affichées et source de vérité
 
