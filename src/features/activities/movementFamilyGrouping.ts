@@ -10,6 +10,11 @@ import type { MovementChoice } from "./ActivityDefinitionService";
  * dans l'ordre initial ; ses membres y gardent leur ordre relatif ; un résultat indépendant classé
  * avant ce premier membre reste avant la pile, tout autre après ; l'ordre relatif des résultats
  * indépendants est conservé. Fonction pure, sans effet sur le calcul du classement (R02).
+ *
+ * Réponse de Hermann du 30/10/2026 (« La pile d'une famille doit-elle aussi montrer ses membres qui
+ * ne correspondent pas à la recherche ? » — « Oui ») : la pile contient TOUS les membres
+ * proposables de la famille (`pool`, Mouvements actifs), même ceux que la recherche ne trouve pas,
+ * dans l'ordre des Niveaux (rang dérivé croissant, comme la pile du Catalogue).
  */
 
 /** Famille d'une carte : groupe de niveaux d'au moins deux membres (rang dérivé présent). */
@@ -17,7 +22,10 @@ export function familyOfChoice(choice: MovementChoice): string | null {
   return choice.level !== null ? (choice.movement.levelGroup?.groupId ?? null) : null;
 }
 
-export function groupResultsByFamily(results: readonly MovementChoice[]): readonly MovementChoice[] {
+export function groupResultsByFamily(
+  results: readonly MovementChoice[],
+  pool: readonly MovementChoice[] = results,
+): readonly MovementChoice[] {
   const grouped: MovementChoice[] = [];
   const placed = new Set<string>();
   for (const choice of results) {
@@ -28,9 +36,11 @@ export function groupResultsByFamily(results: readonly MovementChoice[]): readon
     }
     if (placed.has(family)) continue;
     placed.add(family);
-    for (const member of results) {
-      if (familyOfChoice(member) === family) grouped.push(member);
+    const members = new Map<string, MovementChoice>();
+    for (const member of [...results, ...pool]) {
+      if (familyOfChoice(member) === family && !members.has(member.movement.id)) members.set(member.movement.id, member);
     }
+    grouped.push(...[...members.values()].sort((a, b) => (a.level?.rank ?? 0) - (b.level?.rank ?? 0)));
   }
   return grouped;
 }

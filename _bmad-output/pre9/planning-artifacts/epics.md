@@ -110,6 +110,7 @@ Ajoutée le 29/10/2026 à la demande de Hermann (recette n° 1, constat i) ; pla
 - Règles d'imbrication D-451 et lettres ARB-13 inchangées ; précisions de comportement (un conteneur par élément désigné ou un seul autour d'éléments contigus ; « idem pour la séance » à interpréter) à faire valider avant développement.
 
 ### B.5 — Suppression et duplication
+- [30/10/2026, Hermann] « Circuit : l'apparition et la disparition du circuit doivent se faire progressivement et plus lentement » — précision de Hermann du 30/10/2026 : la disparition vise aussi le retrait d'un Circuit de la Séance (« b) et ok pour le traiter en B.4 / B.5 ») : effacement progressif et lent du Circuit retiré, puis remontée douce des éléments suivants. À réaliser avec le retrait de Circuit (B.4 dépose, B.5 suppression).
 Dépend de : B.2. Arbitrages : ARB-08, ARB-17 (décidés).
 - Suppression d'un Exercice (dernier membre : conteneur retiré ; points d'arrêt devenus interdits retirés sans message) ; duplication d'un Exercice (D-441), Format et paramètres conservés pour un Exercice formaté (ARB-17).
 - Pas de duplication de Circuit ni de Cycle dans PRE-9 (ARB-08). [28/10 : « duplication d'un conteneur selon ARB-08 » — remplacé.]

@@ -192,8 +192,10 @@ export function useMovementOriginChoice({
   // [remplace R04 « cinq résultats au maximum »] tous les résultats classés ; le panneau défile.
   // CAT.2, clarification de Hermann du 30/10 : chaque famille forme une pile unique et continue,
   // au rang de son premier membre (`groupResultsByFamily`).
+  // Réponse du 30/10 : la pile montre aussi les membres actifs que la recherche ne trouve pas.
   const listed = groupResultsByFamily(
     ranked.map((result) => byId.get(result.id)).filter((choice): choice is MovementChoice => choice !== undefined),
+    selectable,
   );
   // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).
   // PRE-7 (R-8, D-448 point 1) : une correspondance par début de mot ouvre le panneau comme une

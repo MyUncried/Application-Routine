@@ -78,3 +78,8 @@ Classe **B** (évolution validée : spécification CAT.2 + décision du 30/10/20
 Réalisé : `groupResultsByFamily` (`src/features/activities/movementFamilyGrouping.ts`), appliqué aux résultats du panneau sous le nom (`useMovementOriginChoice`) et de l'écran de recherche explicite (`MovementSearchScreen`) ; `familyRuns` donne désormais un seul filet par famille. L'À CLARIFIER n° 1 (« un filet par suite contiguë ») est remplacé. Test : `movementFamilyGrouping.cat2.test.ts` (exemple A1, B, A2, C → A1, A2, B, C).
 Documentation de la branche `docs/pre9-resultats-mouvements-20261030` : correctif préparé, non appliqué (`patch-cat-2-familles-contigues.patch`, `git apply --check` sur `af2e64a4` : OK).
 
+
+Réponse de Hermann du 30/10/2026 à « La pile d'une famille doit-elle aussi montrer ses membres qui ne correspondent pas à la recherche ? » : « Oui ». La pile contient tous les membres actifs de la famille (proposables), dans l'ordre des Niveaux (rang dérivé croissant, comme la pile du Catalogue) — ordre interne : choix de réalisation, à confirmer en recette.
+
+Réalisé : `groupResultsByFamily(results, pool)` ; `pool` = Mouvements actifs (panneau) ou proposés (écran de recherche). Tests : `movementFamilyGrouping.cat2.test.ts` (membres hors recherche), `MovementScreen.b2` (ordre des Niveaux, un seul filet).
+

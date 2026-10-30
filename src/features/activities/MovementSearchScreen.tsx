@@ -78,6 +78,7 @@ export function MovementSearchScreen({ choices, initialQuery, context, onUse, on
       )
         .map((result) => byId.get(result.id))
         .filter((choice): choice is MovementChoice => choice !== undefined),
+      choices,
     );
   }, [query, choices, context]);
 

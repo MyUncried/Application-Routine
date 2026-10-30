@@ -784,7 +784,7 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     expect(await count("movements")).toBe(1);
   });
 
-  it("Catalogue : filet de famille sur les cartes consécutives d'une même famille ; classement inchangé", async () => {
+  it("Catalogue : une pile par famille (ordre des Niveaux), au rang de son premier membre ; un seul filet", async () => {
     await movements().create(movement("squat", "Squats"));
     await movements().createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
     await movements().create(movement("bulgare", "Squats bulgares"));
@@ -793,10 +793,11 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     const order = screen
       .getAllByTestId(/^movement-suggestion-result-.+-slot$/, anyNode)
       .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-slot$/, "$1"));
-    // Nom identique, puis débuts de mot par ordre alphabétique (D-448) : la famille est consécutive.
-    expect(order).toEqual(["squat", "assist", "bulgare"]);
+    // Clarification de Hermann du 30/10 : la famille forme une pile au rang de son premier membre
+    // classé (« Squats », nom identique), ses membres dans l'ordre des Niveaux ; un seul filet.
+    expect(order).toEqual(["assist", "squat", "bulgare"]);
     expect(screen.getAllByTestId(/^movement-suggestion-family-rail-/, anyNode).map((node) => node.props.testID)).toEqual([
-      "movement-suggestion-family-rail-squat",
+      "movement-suggestion-family-rail-assist",
     ]);
     expect(screen.getByTestId("movement-suggestion-result-squat-level", anyNode).props.children).toBe("Niveau 2");
     expect(screen.getByTestId("movement-suggestion-result-assist-level", anyNode).props.children).toBe("Niveau 1");

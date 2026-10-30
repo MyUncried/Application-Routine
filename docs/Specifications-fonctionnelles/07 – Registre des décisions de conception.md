@@ -1251,3 +1251,10 @@ Classe B. Remplace, pour les résultats de recherche des Mouvements, « sans mod
 
 « Dans les résultats de recherche, tous les mouvements appartenant à une même famille doivent être affichés ensemble, de manière contiguë, et reliés par un filet continu. Aucun autre résultat ne doit pouvoir s'intercaler entre les mouvements d'une même famille. » Règle : « Les mouvements d'une même famille constituent un bloc indivisible (une pile) dans les résultats de recherche. La position de cette pile est déterminée par le premier mouvement de la famille rencontré dans l'ordre initial des résultats. Tout résultat indépendant classé avant ce premier mouvement reste affiché avant la pile. Tout résultat indépendant classé après ce premier mouvement est affiché après la pile, même s'il se trouvait initialement entre deux mouvements de la famille. L'ordre relatif des résultats indépendants est conservé. » « Le regroupement visuel des mouvements d'une même famille est prioritaire sur le maintien strict de leur position individuelle dans les résultats de recherche. »
 
+
+Réponse de Hermann du 30/10/2026 à « La pile d'une famille doit-elle aussi montrer ses membres qui ne correspondent pas à la recherche ? » : « Oui ». La pile contient tous les membres actifs de la famille (proposables), dans l'ordre des Niveaux (rang dérivé croissant, comme la pile du Catalogue) — ordre interne : choix de réalisation, à confirmer en recette.
+
+
+## Retrait d'un Circuit — précision de Hermann du 30/10/2026
+
+« Circuit : l'apparition et la disparition du circuit doivent se faire progressivement et plus lentement » — précision de Hermann du 30/10/2026 : la disparition vise aussi le retrait d'un Circuit de la Séance (« b) et ok pour le traiter en B.4 / B.5 ») : effacement progressif et lent du Circuit retiré, puis remontée douce des éléments suivants. Réalisation : stories B.4 / B.5.
