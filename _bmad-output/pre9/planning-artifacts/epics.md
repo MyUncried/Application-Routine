@@ -10,6 +10,8 @@
 
 > **Extensions validées le 30/10/2026** : **CAT.1 — Zone de contexte des Catalogues** et **CAT.2 — Résultats de recherche des Mouvements** ; deux stories indépendantes à développer immédiatement dans PRE-9, sans attendre A.1/C.1 ni le moteur. **31 unités au total** : 26 stories de développement, 3 unités documentaires et 2 activités de qualification. Le décompte historique de 29 ci-dessus concerne la révision 2 antérieure aux deux ajouts.
 
+> **Consolidation active du 30/10 :** [décisions D-01 à D-30 et matrice des six Formats](../../../docs/KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). **ARB-04, ARB-22c et ARB-26 à ARB-28 sont clos** ; les mentions « ouverts » dans les révisions antérieures restent historiques. Porteur du Format = Exercice uniquement ; 31 unités BMAD et CAT.1/CAT.2 inchangées.
+
 ## Ordre recommandé
 
 `CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
@@ -149,7 +151,7 @@ Dépend de : B.1, D.1. Arbitrage : ARB-11 (décidé).
 ### B.8 — Utiliser une Séance existante
 Dépend de : B.2, C.1. Arbitrage : ARB-16 (décidé).
 - Copie de la composition au niveau principal à l'endroit choisi, nouveaux identifiants, mêmes Mouvements, paramètres copiés, sans début/fin propres ni synchronisation (D-449 §3).
-- Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel élément formaté depuis la Composition : ARB-23 (ouvert, hors de cette story).
+- Éléments formatés copiés avec leur Format et leurs paramètres spécifiques (ARB-16). [28/10 : « copie sans le Format » — remplacé.] Ajout direct d'un nouvel Exercice formaté depuis la Composition : ARB-23 clos, implémenté via C.4 (hors B.8).
 
 ### B.9 — Nom de séance à trois états
 Dépend de : B.2. Arbitrages : ARB-14, ARB-15 (décidés).
@@ -172,13 +174,13 @@ Dépend de : A.1. Migration 017.
 ### C.2 — Sélection du modèle
 Dépend de : C.1, A.2. Arbitrage : ARB-05 (décidé).
 - Grille CE-FMT-01 (entrée `8598:29271`) avec les deux cartes **Exercice** et **Séance**, non fusionnées (ARB-05) : Séance ouvre la Composition vide ; Exercice mène, par la sélection d'un Mouvement (parcours Catalogue, ARB-22a), à une Séance contenant ce seul Exercice ; chaque Format ou départ rapide ouvre son écran de paramètres.
-- Présentation définitive (dont libellé « Mobilité » / « Gainage · Mobilité ») confrontée à Figma pendant la story, sans modification de Figma ni blocage (ARB-19). Enchaînement exact des écrans de la carte Exercice : à confronter à Figma, signalé s'il manque.
-- Format dont les défauts manquent (ARB-04) ou départ rapide non défini (ARB-22c) : vignette indisponible, comme en PRE-8.
+- Présentation définitive (dont **retrait** de Gainage · Mobilité des départs rapides actifs, D-25) confrontée à Figma pendant la story, sans modification de Figma ni blocage (ARB-19). Enchaînement exact des écrans de la carte Exercice : à confronter à Figma, signalé s'il manque.
+- Les défauts de tous les six Formats et des départs rapides sont définis (ARB-04/ARB-22c clos). Aucune vignette n'est rendue indisponible au seul motif de cette ancienne attente ; Gainage · Mobilité est retiré de la grille active.
 
 ### C.3 — Paramètres imposés et récapitulatif
-Dépend de : C.2. Arbitrages : ARB-03, ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format).
+Dépend de : C.2. Arbitrages : ARB-03, ARB-18, ARB-22a, ARB-25, ARB-04 (**valeurs initiales validées**).
 - Choix des Exercices dans le flux du Format par le Catalogue existant (ARB-22a) ; **le Format appartient à chaque Exercice**, y compris quand les Exercices sont organisés en Circuit. Le registre vérifie les contraintes propres à chaque Format et la compatibilité de l'organisation, sans identité de Format sur le Circuit.
-- Tabata : aucun champ « Répétition de l'ensemble » ; compte du Circuit 1 en Par exercice, 8 en En alternance, 8 séries par Exercice dans les deux cas (FMT-12/13/14, D-360, ARB-25). Pour les autres Formats, représentation du compte confirmée Format par Format dans la spec de la story (`arbitrages-pre9.md` §0 bis, point 2).
+- Tabata : aucun champ « Répétition de l'ensemble » ; compte du Circuit 1 en Par exercice, 8 en En alternance, 8 séries par Exercice dans les deux cas (FMT-12/13/14, D-360, ARB-25). Pour les autres Formats, appliquer les valeurs initiales et la matrice D-14 à D-16 ; ne pas transformer le compte du Circuit en multiplicateur propre au Format.
 - **Changement d'organisation d'un Circuit contenant des Exercices formatés** : appliquer les règles de compatibilité des Formats présents (Tabata N=8 en alternées, 30/30 et For time non admis en alternées selon D-16, etc.). Une conversion générique ne peut jamais écraser les constantes des Exercices ; la règle du brouillon et les confirmations en cas de perte restent applicables. Un Cycle peut répéter la séquence et un Circuit groupé répéter ses membres, sans multiplication cachée.
 - Par Format : constantes des Exercices affichées et grisées avec leur raison ; valeurs initiales réglables, calculs en direct (ex. EMOM `N × E × W`, par bloc) ; choix Par exercice / En alternance lorsque le Format le permet, représenté par l'organisation compatible du Circuit sans propriété de Format sur celui-ci ; 30/30 : 6 séries initiales, constantes 30 s / 30 s ; For time : échelle initiale 21·15·9, zéro admis dans une position si volume total non nul (CE-FMT-02 ; D-14, D-16, ARB-18).
 
