@@ -407,6 +407,15 @@ La catégorie est reprise depuis le niveau d’origine puis reste librement modi
 
 Le retrait, le rattachement ou la réorganisation d’un groupe ne fusionne jamais des identités de mouvement. Le rapprochement de doublons identiques est une autre opération.
 
+#### Comptage et combinaison des critères dans les Catalogues — PRE-9
+
+[Spécification fonctionnelle finalisée des zones de contexte](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) ; contrat CE-CAT-CTX-01.
+
+- **Mouvements** : deux compteurs de première ligne « N familles · N mouvements », activables exclusivement, désélectionnables au deuxième appui, intégrés au filtrage avec recherche et autres filtres. Le compte Familles désigne les familles ayant **au moins une carte effectivement affichée** ; le compte Mouvements désigne **les cartes effectivement affichées**, pas les membres masqués d'une pile repliée. Les deux comptes se recalculent depuis le résultat affiché.
+- **Séances** : « Un exercice N | Plusieurs N ». Chaque N reflète le nombre réel de Séances correspondant à cette vue ; les nombres ne sont pas interactifs. Le comportement mutuellement exclusif et désélectionnable de la bascule reste inchangé.
+- **Résultats** : sur les écrans filtrés ou archivés, « N résultats » représente le nombre d'éléments de liste après combinaison de la recherche et des filtres actifs. La mise à jour est immédiate ; singulariser uniquement « 1 résultat ».
+- Ces données dérivées ne deviennent pas de nouvelles propriétés persistées des Mouvements, familles ou Séances ; le tri, l'archivage et les identités conservent leur portée actuelle.
+
 #### Réordonnancement des niveaux depuis le catalogue des mouvements — 27/10/2026
 
 **Actualisation du 28/10/2026.** Les [règles A à E](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md) étendent le même geste à la composition des familles. Les anciennes règles 2 à 4 et la proposition alors différée restent dans l'annexe Historique des consolidations ; elles ne bornent plus les règles actuelles. Numérotation 1 à 9 conservée ; règles 6 à 8 au chapitre 09. Contrat CE-MVT-03.
