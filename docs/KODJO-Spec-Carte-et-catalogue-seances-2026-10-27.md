@@ -52,7 +52,7 @@ La carte archivée ne porte **aucune action** : l'icône ronde de restauration e
 
 **Contrôle segmenté à trois entrées**, Mouvements, Séances, Programmes, sur tous les écrans du catalogue.
 
-**Bascule de vue**, à gauche de la rangée des contrôles : deux textes simples, « Un exercice | Plusieurs ». Elle réalise les vues filtrées de D-449 §6. Aucune des deux n'est sélectionnée par défaut, ce qui correspond à la collection complète.
+**Bascule de vue**, sur la première ligne de la zone de contexte : « Un exercice N | Plusieurs N ». Les libellés conservent la bascule existante (aucun actif par défaut ; toucher la sélection active la désactive) ; les compteurs N, **purement informatifs**, ne deviennent pas cliquables. Les chiffres reflètent les nombres de Séances de chaque vue, et non les exemples 2 et 3 du prototype. Texte de 14 pt, libellés inactifs #595E66, actifs #0508E5 gras, compteurs #333333 Regular, séparateur | #9499A8 à x127. Voir [spécification PRE-9 de la zone de contexte](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md).
 
 *Limite acceptée :* le retour à la collection complète se fait en désélectionnant l'option active, ce qui ne se devine pas. Une troisième option « Toutes » le résoudrait mais ne tient pas sur la ligne, qui doit laisser la place au contrôle de filtre déployé. La disposition est conservée en l'état.
 
