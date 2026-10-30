@@ -979,7 +979,7 @@
     },
     {
       "producer": "scripts/kodjo/consume-vnext-work-signal.js",
-      "producer_blob_oid": "1b13498c48d4697670675d816f663ff07d06e1fd",
+      "producer_blob_oid": "6773158c91e64b97ba2b34e3855efd5e86b1e040",
       "authorization_condition": "VERIFIED_SIGNAL_ATOMIC_OWNERSHIP_CHECKPOINT_NONFORCED_TRANSPORT_CONSUMPTION_ONLY",
       "required_job": null,
       "capabilities": [

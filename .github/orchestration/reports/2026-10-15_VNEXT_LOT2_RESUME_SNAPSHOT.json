@@ -1,0 +1,435 @@
+{
+  "schema_version": "kodjo.vnext.work-resume.v1",
+  "repository": "MyUncried/Application-Routine",
+  "binding_hash": "e0422a5993424774b07f9dcf63a98ff2086fb0f99c2560276a1792c1b4c32f18",
+  "main_head": "81d962cdb438f5a801c0519d7d637b09b431b10b",
+  "transport_head": "165bfc6ddf8b0d28a076ca420a95e9e8114608a8",
+  "rows": [
+    {
+      "signal_key": "0e199b03d86493f81643b4ba4051f223d3293ff801e40c13249a036ccfb345af",
+      "signal_hash": "35a6e318decd365e0cbad0d7b0e56d9ec732291515efe4a735e10bfe04376d6e",
+      "operation_hash": "e97fd8833a891e6385d96623a1257f959c2e6b69aae5f824188bb3eacc3959a4",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "139b5986a65878f1a5c3b4194aa28bb59aa2312047885360c491056182dcff24",
+      "signal_hash": "0fb82be267c027ea404949858ba539e9d83a6cc0c275603fa0c4f696957f386f",
+      "operation_hash": "46933f4171d0d5b1c92f906f840b6f0eb30a8e22a2c08cdca3f17fa3a1e4837a",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Resultat technique CI 38745507004 de la PR364 candidat 196e24ea25e1ca09d88559e5cf67aec165d58d9c verifie: 7 jobs, 4 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "139b5986a65878f1a5c3b4194aa28bb59aa2312047885360c491056182dcff24",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Resultat technique CI 38745507004 de la PR364 candidat 196e24ea25e1ca09d88559e5cf67aec165d58d9c verifie: 7 jobs, 4 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38745507004",
+          "https://github.com/MyUncried/Application-Routine/pull/364",
+          "git:507938e6672be6afe98ccfd6f6020939bcf2b621:.github/orchestration/requests/vnext-work/signals/139b5986a65878f1a5c3b4194aa28bb59aa2312047885360c491056182dcff24.json",
+          "sha256:19de4bab0292d8da31aa74f276ebacec6e56cc803e706758aa2d88d069746752",
+          "sha256:8e0887e4b9528ec348f3f08f8f822322ade95b9413b925adbe1ab17e4038e604",
+          "sha256:88345fe10787bf760d69f70153260cf1981b4b9e0b70eee195faed553bb1d8e3",
+          "sha256:dab174e0b50173c4732d8f8a48d02e0dd4cab76975354bab9c2379e7f0dd3d2b"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "15bf8882f7e493c3436ad1866ed38bc4e0bccbbaa4c2f65b25b757a44bdf4b2b",
+      "signal_hash": "959d7fa367e98d9aa749dc9e40712d465df89895bc1b9a1ba08e6a478a7dfb0f",
+      "operation_hash": "009f3c7e4c1b46d063d85df22ded86523bb9ac93eb8b9ad7b1887f2e5fd4a340",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Resultat technique CI 38743638498 de la PR366 candidat f59f99b3661f79fef04bbcc5f9063fd7cdf478ee verifie: 7 jobs, 4 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "15bf8882f7e493c3436ad1866ed38bc4e0bccbbaa4c2f65b25b757a44bdf4b2b",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Resultat technique CI 38743638498 de la PR366 candidat f59f99b3661f79fef04bbcc5f9063fd7cdf478ee verifie: 7 jobs, 4 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38743638498",
+          "https://github.com/MyUncried/Application-Routine/pull/366",
+          "git:dd62e3b26fa05580156f944cf9540bd013e2f707:.github/orchestration/requests/vnext-work/signals/15bf8882f7e493c3436ad1866ed38bc4e0bccbbaa4c2f65b25b757a44bdf4b2b.json",
+          "sha256:4f953e73d5739f4a29d02f41d611a0a3280c588422243581132ea0f89563efdb",
+          "sha256:270addfb4c1ad715c6c2bab83ef29041059e4451ae41e64bfd074fd5353e773d",
+          "sha256:bf1f09bbdb097b0dc04d5c23f8d688f7da1ad7eadae20f85e82f57c8186d31e5",
+          "sha256:c53c22fb7fe7b1cc1384c2046feeca1a8a2becca49bc451e7e419341c4602afe"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "34d48251a848bc0a3c7096c18758f719e4d640d32c5218f21b8e845dafb80821",
+      "signal_hash": "91c568e8b63f4eab5744291a7b160f96e488030b179a90e4ff44275d44b3011b",
+      "operation_hash": "e97fd8833a891e6385d96623a1257f959c2e6b69aae5f824188bb3eacc3959a4",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "BLOCKED_WITH_EVIDENCE",
+      "next_action": "Pilote: echec des controles PR364 sur le candidat 557ab98ea3470206a79c545e849f0819a1bfd9a5. Les quatre ZIP sont verifies. Le test vnext-chatgpt-plan-review.pilot.js:86 attend les anciennes permissions et refuse checks:read ajoute au workflow. Mettre en coherence le test et le droit minimal requis releve du pilote, sans correction, fusion, relance ni appel modele dans cette automation. Aucune qualification, approbation de plan ou reprise PRE-4.",
+      "notification": {
+        "title": "Résultat VNext à traiter",
+        "signal_key": "34d48251a848bc0a3c7096c18758f719e4d640d32c5218f21b8e845dafb80821",
+        "result": "EXECUTION_NOT_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "BLOCKED_WITH_EVIDENCE",
+        "next_action": "Pilote: echec des controles PR364 sur le candidat 557ab98ea3470206a79c545e849f0819a1bfd9a5. Les quatre ZIP sont verifies. Le test vnext-chatgpt-plan-review.pilot.js:86 attend les anciennes permissions et refuse checks:read ajoute au workflow. Mettre en coherence le test et le droit minimal requis releve du pilote, sans correction, fusion, relance ni appel modele dans cette automation. Aucune qualification, approbation de plan ou reprise PRE-4.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38735464076",
+          "https://github.com/MyUncried/Application-Routine/pull/364",
+          "git:797c5c0783ceb8482294271e9683226e100344cd:.github/orchestration/requests/vnext-work/signals/34d48251a848bc0a3c7096c18758f719e4d640d32c5218f21b8e845dafb80821.json",
+          "sha256:dcbd72033ddfd0bf8b4b4672afc68e4c4f160be268e572b5cae909dea7b66770",
+          "sha256:ba80746089e1ecbbfd770c9f60e3b328caabb1c93363284ad785b8cb2482cbb8",
+          "sha256:158f8609d035ebbd1d454fb26a0260fe00312e7c27c0a7602f2494174fbe5283",
+          "sha256:1cf47a58df1b64346c3731850fef202dba07aab5570247f20b504055494b3a4c"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "3a141864038cdaa8a6acfcfd72eaf30e89ec02cdc14047b24a25e609d5531f84",
+      "signal_hash": "e7c64d54f3704fc4d8216dd15220f2ae5a78712aec04dd121b739da762aee7c4",
+      "operation_hash": "e2466f0314ca58007c88f6267adb8964bf42152b7be8a99bef5698653f3e392d",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Resultat CI 38737898708 PR365 PE32 candidat af112474bb2ff98348c8b55848b7de5792e3abb5 verifie: 4 jobs, 3 archives et tous membres intacts. Le pilote conserve le gate de revue et integration; aucune fusion, approbation produit, validation PR364 ou reprise PRE-4 dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "3a141864038cdaa8a6acfcfd72eaf30e89ec02cdc14047b24a25e609d5531f84",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Resultat CI 38737898708 PR365 PE32 candidat af112474bb2ff98348c8b55848b7de5792e3abb5 verifie: 4 jobs, 3 archives et tous membres intacts. Le pilote conserve le gate de revue et integration; aucune fusion, approbation produit, validation PR364 ou reprise PRE-4 dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38737898708",
+          "https://github.com/MyUncried/Application-Routine/pull/365",
+          "git:c4d66c716779d53b942a77e1f9537ab58163e3bd:.github/orchestration/requests/vnext-work/signals/3a141864038cdaa8a6acfcfd72eaf30e89ec02cdc14047b24a25e609d5531f84.json",
+          "sha256:c230f11cf156a983dc657b7e841abb2d5cb5a2a60e128274dc7c50a4f297f314",
+          "sha256:21aae0fed61fb80a073d23b183deafd0d5a1fe2571196c87d288976a45461e9a",
+          "sha256:bfd478eef60fb1a91beacaa223d4ac42a2bf065bc3b49b81c6f57d3af81d5ce8"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "42140a26dc427b1978e6c76871e3df6daf645f5292e36296b828e42a73be4db9",
+      "signal_hash": "6f157cc129a4eb3085cc650d36058c114b11f5e3313dffdf1588466ba89237c8",
+      "operation_hash": "46933f4171d0d5b1c92f906f840b6f0eb30a8e22a2c08cdca3f17fa3a1e4837a",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Resultat technique CI 38745507363 de la PR364 candidat 196e24ea25e1ca09d88559e5cf67aec165d58d9c verifie: 4 jobs, 3 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "42140a26dc427b1978e6c76871e3df6daf645f5292e36296b828e42a73be4db9",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Resultat technique CI 38745507363 de la PR364 candidat 196e24ea25e1ca09d88559e5cf67aec165d58d9c verifie: 4 jobs, 3 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38745507363",
+          "https://github.com/MyUncried/Application-Routine/pull/364",
+          "git:57c558efcc7731d3093b86faec30313a7f891d20:.github/orchestration/requests/vnext-work/signals/42140a26dc427b1978e6c76871e3df6daf645f5292e36296b828e42a73be4db9.json",
+          "sha256:59b97935aca29a4c416d4133a882c2e6bf1a77a19fcebab5936d70d172661f73",
+          "sha256:cb3c57e6c334f30e7ba76f590f0bca5309d69bad085a65a8767aa9f5a8cb64e6",
+          "sha256:2819d2b73094375b9e8163765984e2c937709c0d0983fbe069268936a9a86a2f"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "4f02bee48983cf2e0e322a720987232308e7855c0fe4166f7e98bba5995661be",
+      "signal_hash": "bdbe8a1aae9e4c34ea2cbebbcab0c15ddeeeac12ec654782893e5aecc13e7fae",
+      "operation_hash": "006dadabc318fe9451c44dc77e5a7baab205e1e777ad70ba971cef569135cb21",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "4f6c6d4317e795d0493e66ef66afa226c42b8c53f6aafd2191f00c9430ea115b",
+      "signal_hash": "ac3fafa12270a0770a6b8d073bf4d49cccdc2a8b4fe159bdc531fb137c0e8790",
+      "operation_hash": "43a736d87f6d100877b761507116c61fb55fbfc70f54f2bdaa14b9f3ae79875c",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "57b6cba0b9c6d0de92c34e45d10757640b0acf44ae4d75b3a071fd20f0fa717e",
+      "signal_hash": "6b0907fbaa297e4605e8be9be5bd9b42cf35337b0c16afd2c334cc4113e712ad",
+      "operation_hash": "28d271189c2b8ff85fbfee968d97cc8ec5a697efc0c1b0ef5539910254021a9e",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "66edca569c6a0d3f9219a14760868d57dbcfee3ea58fa3d835502466350a9cb3",
+      "signal_hash": "293ac27bcf45e45b442377cc67f4de05d42af472e0edbf9565214de5d0ab735b",
+      "operation_hash": "9f8af0b68a97131f6148463eee4624109b51f73bb66aedbed25a2d329e1d9998",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "BLOCKED_WITH_EVIDENCE",
+      "next_action": "Pilote: diagnostiquer l interruption du run initial 38704388261 et retrouver sa reponse/session existante. La recuperation 38713120109 refuse CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY, model_invoked=false pour cette recuperation uniquement; intent et progression initiale conserves, aucune reponse finale. Aucun nouvel appel ni approbation.",
+      "notification": {
+        "title": "Résultat VNext à traiter",
+        "signal_key": "66edca569c6a0d3f9219a14760868d57dbcfee3ea58fa3d835502466350a9cb3",
+        "result": "ORCHESTRATION_FAILURE",
+        "semantic_verdict": null,
+        "diagnostic": "CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY",
+        "model_invoked": false,
+        "continuation_state": "BLOCKED_WITH_EVIDENCE",
+        "next_action": "Pilote: diagnostiquer l interruption du run initial 38704388261 et retrouver sa reponse/session existante. La recuperation 38713120109 refuse CHATGPT_REVIEW_PRIOR_INVOCATION_UNKNOWN_NO_RETRY, model_invoked=false pour cette recuperation uniquement; intent et progression initiale conserves, aucune reponse finale. Aucun nouvel appel ni approbation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38713120109",
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38704388261",
+          "git:18ff8fdc0c61b6640d9e2a4f28b69d018c26c322:.github/orchestration/requests/vnext-work/signals/66edca569c6a0d3f9219a14760868d57dbcfee3ea58fa3d835502466350a9cb3.json",
+          "git:18ff8fdc0c61b6640d9e2a4f28b69d018c26c322:.github/orchestration/requests/vnext-work/consumption/archive-cache/39fd603f6b2cacb0d5205f3fc87c5dd2e128d663261af5a593475519a3f83741.json",
+          "sha256:39fd603f6b2cacb0d5205f3fc87c5dd2e128d663261af5a593475519a3f83741",
+          "evidence-manifest:c07612b7e1cd65b1a37ced7be9f21d9d0fd7c685bbd6622ce303e2835cd9144a"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "85d13a4655205c9c99ad44719cf9de57e6e3cedb7227de505a182467c973b225",
+      "signal_hash": "de8f6b3f57ee1e4e32c3080a150015260adcf912dae6fa669bd8d73f1956c2e3",
+      "operation_hash": "e97fd8833a891e6385d96623a1257f959c2e6b69aae5f824188bb3eacc3959a4",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "BLOCKED_WITH_EVIDENCE",
+      "next_action": "Le run PR 38735463939 est en echec dans le job protocol, avec quatre jobs et zero archive. Aucune qualification ni approbation. Diagnostic et correction restent au pilote; aucune fusion, relance ou invocation modele dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext à traiter",
+        "signal_key": "85d13a4655205c9c99ad44719cf9de57e6e3cedb7227de505a182467c973b225",
+        "result": "EXECUTION_NOT_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "BLOCKED_WITH_EVIDENCE",
+        "next_action": "Le run PR 38735463939 est en echec dans le job protocol, avec quatre jobs et zero archive. Aucune qualification ni approbation. Diagnostic et correction restent au pilote; aucune fusion, relance ou invocation modele dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38735463939",
+          "https://github.com/MyUncried/Application-Routine/pull/364",
+          "git:0d81367311c28c378a554fd4c2d325e78ae435b5:.github/orchestration/requests/vnext-work/signals/85d13a4655205c9c99ad44719cf9de57e6e3cedb7227de505a182467c973b225.json"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "940047e713a8ab3400c1719ba22746f53342a019ce68abf696c755a9b94cc86c",
+      "signal_hash": "cb52f5f8021f99869c20821852dd59079ea725a76f76c593f641743fc62a9b1e",
+      "operation_hash": "43a736d87f6d100877b761507116c61fb55fbfc70f54f2bdaa14b9f3ae79875c",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "951478e431542833fdaa8f15fcb3e962b911a9e5b100e6b5994c43c8bf9bbbc0",
+      "signal_hash": "c7898fb7389fafd4bc15ef035c0cbd7aef30b071409fe0dee2f0ca1b8bdcc137",
+      "operation_hash": "062a34455c5301623d7340e55cd41f569fa92f093c373ee35e40931f9b53dc21",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "977cc0127c0889676c919a134e08c6e35510ccce55b37cedaabc6a0e69bef991",
+      "signal_hash": "2622fc7a19c861f5dfeac077e025ce58c4bd6fbcbcae2b03ec0dda3ab4154f30",
+      "operation_hash": "006dadabc318fe9451c44dc77e5a7baab205e1e777ad70ba971cef569135cb21",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "9d88492242266862067d95143ef48b7c221429465c6abe6bfd67c8ab795c6921",
+      "signal_hash": "4c65e1ce3a3238e7817ecd6e42f8072318d2b02e873f646aed3f2cc913e6ac1a",
+      "operation_hash": "540b058a1f20df22eaa500673473c45751cc1a44517e61a2eb72d5d310d31b03",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "a68a28662300dea1e85e3efccf54517eb5db31ab7a8835810a137c5a923c03b8",
+      "signal_hash": "51014600bf1e6d89ad9de19c145f32e5a5a8035e9194aaaee014f29001196c0f",
+      "operation_hash": "062a34455c5301623d7340e55cd41f569fa92f093c373ee35e40931f9b53dc21",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Technical CI result received and physical archives verified. No product approval or PRE-4 operation authorized by this receipt. Pilot conversation delivery remains unverified.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "a68a28662300dea1e85e3efccf54517eb5db31ab7a8835810a137c5a923c03b8",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Technical CI result received and physical archives verified. No product approval or PRE-4 operation authorized by this receipt. Pilot conversation delivery remains unverified.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38621132357",
+          "git:b039530b99b8d69f44e7fbcbf859080c2a11bede:.github/orchestration/requests/vnext-work/signals/a68a28662300dea1e85e3efccf54517eb5db31ab7a8835810a137c5a923c03b8.json",
+          "git:b039530b99b8d69f44e7fbcbf859080c2a11bede:.github/orchestration/requests/vnext-work/consumption/archive-cache/56ce830d32c0a453596fffe1ccbeed6b7d928eddeed4d5a1590fe204ed0f3280.json",
+          "git:b039530b99b8d69f44e7fbcbf859080c2a11bede:.github/orchestration/requests/vnext-work/consumption/archive-cache/a7e76d6c6d03604e24839fa8aedf7866c7cc785d41aaffb2c18e6f66ae4af31c.json",
+          "git:b039530b99b8d69f44e7fbcbf859080c2a11bede:.github/orchestration/requests/vnext-work/consumption/archive-cache/ea9bfc493cc3e932505b174d727f4bfad6678fe66bfbcfc4c282587a71af3c06.json",
+          "git:b039530b99b8d69f44e7fbcbf859080c2a11bede:.github/orchestration/requests/vnext-work/consumption/archive-cache/f854634f669244b33185635133df1ba17a5e4a7f008189fe34d489011778ae80.json"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "b894daafe05c28ff010659854010efaa4bacb33f2ca910bdace62c72b548806e",
+      "signal_hash": "6466d635a3272bc76c1b89008d0f79a5144b278c266285edab4931fd04f69cff",
+      "operation_hash": "28d271189c2b8ff85fbfee968d97cc8ec5a697efc0c1b0ef5539910254021a9e",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "bb19099ab66c3d0e9a8d041277de404d3fc3d97ece256984902073d217f953f9",
+      "signal_hash": "6dae8b4804858fa19a41d74322ba856c02ffa3c9a871aacf626a06900763271f",
+      "operation_hash": "009f3c7e4c1b46d063d85df22ded86523bb9ac93eb8b9ad7b1887f2e5fd4a340",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "Resultat technique CI 38743638473 de la PR366 candidat f59f99b3661f79fef04bbcc5f9063fd7cdf478ee verifie: 4 jobs, 3 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "bb19099ab66c3d0e9a8d041277de404d3fc3d97ece256984902073d217f953f9",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "Resultat technique CI 38743638473 de la PR366 candidat f59f99b3661f79fef04bbcc5f9063fd7cdf478ee verifie: 4 jobs, 3 ZIP et tous membres/hashes/tailles intacts. La revue semantique et le prochain gate restent au pilote. Aucune approbation produit, fusion, execution de workflow ou reprise PRE-4 dans cette automation.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38743638473",
+          "https://github.com/MyUncried/Application-Routine/pull/366",
+          "git:c1e8769d895949ecb91ad12cc8de95a16c9d84d1:.github/orchestration/requests/vnext-work/signals/bb19099ab66c3d0e9a8d041277de404d3fc3d97ece256984902073d217f953f9.json",
+          "sha256:85808ffade871ac35c947ed1d90707d56dadf0e8c09d6940e057781ed6c5e670",
+          "sha256:d5daa2d881ed22d7ae03aa4e333bb6c5865c43869b56d81fe6b72a96c2235f3b",
+          "sha256:476d5b5a279625ec6c5ee7197e1244336e628a464693b712952d4786f879f5b6"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    },
+    {
+      "signal_key": "d4f3ff070ca56f435564923505023565ed490b5d0286110afc95c14777cbfaa1",
+      "signal_hash": "e14470978449bb3284f69a0044c5746ed08dad1daeb45618d028c48167f91872",
+      "operation_hash": "aa2c58b97ead09ef6a70ff14eaadf9c407d2109fe0088e16660f58de52b014a9",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "d9300199f4eeeefddd13c077afaae3738e1934768ea51f670d6240f4199ab2aa",
+      "signal_hash": "17462d369f1e008a1088b795b4dead39972ea8693acaa535c920919718a41601",
+      "operation_hash": "1f0eeb5f4b4c9dea78ea1b5703312968f1570f8b404892530e991fcbd0d0c623",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "db6c98cadf68f8ba1dfeff97014ea4c1f4f3481a8c0267b228b2cdd623edfd54",
+      "signal_hash": "020082babd241ce5e9016f6dbf828e10d90499ee626f3489aad9a33ba4ebcb86",
+      "operation_hash": "aa2c58b97ead09ef6a70ff14eaadf9c407d2109fe0088e16660f58de52b014a9",
+      "state": "PENDING",
+      "owner_conversation": null,
+      "continuation_state": null,
+      "next_action": "Verify archives, then use the existing consumer.",
+      "notification": null
+    },
+    {
+      "signal_key": "e1ee6365dfdb71da9f24c389ae2ac85bd2f19aff87c220cd5050bf33575467ca",
+      "signal_hash": "f0ef094033b0f5b1fe7fa4f404522f20a8eaa9e3b3b0228017869af67b5cc78f",
+      "operation_hash": "e2466f0314ca58007c88f6267adb8964bf42152b7be8a99bef5698653f3e392d",
+      "state": "PROCESSED",
+      "owner_conversation": "6acfe188-8b54-83eb-8a60-05d95fd9425e",
+      "continuation_state": "RESULT_CONSUMED",
+      "next_action": "CI du candidat af112474bb2ff98348c8b55848b7de5792e3abb5 de la PR365 PE32 verifiee: 7 jobs, 4 ZIP et tous membres intacts; 573 tests Linux passent, 572 Windows passent et 1 ignore sans echec. Le pilote conserve le gate de revue et integration de cette evolution. Ce resultat ne vaut ni fusion, ni approbation de plan, ni validation de PR364, ni reprise PRE-4. Aucune nouvelle operation declenchee.",
+      "notification": {
+        "title": "Résultat VNext reçu",
+        "signal_key": "e1ee6365dfdb71da9f24c389ae2ac85bd2f19aff87c220cd5050bf33575467ca",
+        "result": "EXECUTION_SUCCEEDED",
+        "semantic_verdict": null,
+        "diagnostic": null,
+        "model_invoked": null,
+        "continuation_state": "RESULT_CONSUMED",
+        "next_action": "CI du candidat af112474bb2ff98348c8b55848b7de5792e3abb5 de la PR365 PE32 verifiee: 7 jobs, 4 ZIP et tous membres intacts; 573 tests Linux passent, 572 Windows passent et 1 ignore sans echec. Le pilote conserve le gate de revue et integration de cette evolution. Ce resultat ne vaut ni fusion, ni approbation de plan, ni validation de PR364, ni reprise PRE-4. Aucune nouvelle operation declenchee.",
+        "evidence_refs": [
+          "https://github.com/MyUncried/Application-Routine/actions/runs/38737898684",
+          "https://github.com/MyUncried/Application-Routine/pull/365",
+          "git:cfcf9e0c9925a4c6f3630a6f56b8bf0c20fe90ed:.github/orchestration/requests/vnext-work/signals/e1ee6365dfdb71da9f24c389ae2ac85bd2f19aff87c220cd5050bf33575467ca.json",
+          "sha256:c6c953e9036c230fbdf26b4cf94710bb4af39a3c7e46a9bac1b3e3e5df97912b",
+          "sha256:e398249cf15b1b4648d0ae565be661c62cd39a64968b55fd57cf67cf49b81c94",
+          "sha256:34138b1f054431b15d97b62f83de6e0b561664a3e6ffdd50a7d6077b8a9e1288",
+          "sha256:a89b708f1c090f8efd2f6fc1cfb699b0868999606b130c0380337874121a6001"
+        ],
+        "delivery_scope": "CURRENT_EXECUTION",
+        "pilot_delivery_verified": false,
+        "grants_authority": false
+      }
+    }
+  ],
+  "operations": [],
+  "mission_completed": false,
+  "grants_authority": false,
+  "pilot_delivery_verified": false,
+  "contract_hash": "7261a71ea867e1cd829a00f09d01239346249a2e56bc28511628efb6a0deb5d5"
+}

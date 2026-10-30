@@ -84,6 +84,65 @@ Une archive de revue absente, perdue, altérée ou sans provenance empêche le s
 
 ## Consommation atomique et récupération
 
+### Lecture commune de reprise et messages — lot 2
+
+`inspect-vnext-work.js` reconstitue en lecture seule le travail depuis les références
+GitHub réellement observées : binding sur main, signaux, claims, checkpoints et
+reçus sur la branche de transport. Les références restent figées pendant la lecture ;
+un changement de tête impose une nouvelle observation, jamais un assemblage annoncé frais.
+Chaque reçu est lié au checkpoint effectivement publié et à son ascendance Git.
+Le résultat distingue un signal traité de la mission terminée et conserve la
+prochaine action, y compris après PROCESSED. Il ne divulgue pas les nonces de possession,
+ne prend aucune charge et n'accorde aucune autorisation d'écriture ou de retry.
+Sans `gh`, `step-inspect transcript.json` utilise le même adaptateur de rejeu
+`vnext-connector-step` que step-claim/step-finish : prochaine lecture GET retournée
+au connecteur autorisé, réponse normalisée conservée, contexte et ordre contrôlés.
+La liste globale des runs est paginée puis filtrée sur les producteurs inscrits ;
+aucun endpoint privé supplémentaire ni adaptateur particulier à une tranche n'est requis.
+
+La fin du consommateur retourne un message utilisable dans son chat d'exécution :
+résultat réel, erreur/verdict éventuels, état, prochaine action et preuves. Ce message
+n'atteste pas une publication dans une autre conversation. Une erreur dans ce retour
+indicatif ne rend pas invalide un reçu déjà publié et vérifié.
+
+La récupération horaire existante utilise cette même lecture par défaut. Elle observe
+aussi les runs non terminés et les demandes enregistrées de revue, queue et clôture
+dont aucun run correspondant n'est observé. Les demandes sont retrouvées dans Git,
+avec identité, source, cycle, hash et commit d'introduction ; les reprises v1/v2 gardent
+leur validation propre. Une absence de correspondance ne prouve pas une non-invocation :
+un dispatch ambigu exige réconciliation avant tout appel. Les dates de création et de
+mise à jour observées permettent le diagnostic sans délai arbitraire ni nouveau timeout.
+L'absence de demande enregistrée ne permet pas d'inventer une opération attendue.
+
+Le wakeup conserve ce dossier de reprise et une empreinte des observations utiles.
+Le même état ne génère pas un nouveau commit seulement parce que le cron a tourné
+ou que le transport a avancé. Un changement de résultat, d'attente ou de diagnostic
+peut produire un nouveau réveil. Les anciennes preuves et wakeups sont conservés.
+Si la reconstruction supplémentaire est indisponible, elle devient un diagnostic
+explicite ; elle n'ajoute pas de gate aux opérations ni ne supprime la récupération existante.
+
+### Changement de conversation sans nouvelle autorité
+
+Le pilote peut utiliser `inspect-vnext-work.js prepare-handover observed-automations.json`
+pour produire une proposition de binding depuis une lecture fraîche et les métadonnées
+Work réellement observées. Cette commande ne configure aucune automation et ne publie
+aucune écriture. Les identifiants sont des paramètres observés ; aucune destination
+n'est inventée ou déduite du titre d'une conversation.
+
+La procédure conserve les protections existantes : arrêter le déclencheur précédent,
+vérifier les travaux possédés et leur checkpoint, observer la nouvelle automation et sa
+destination, puis préparer le binding conservant les destinations historiques admises.
+Une charge encore possédée demande réconciliation avec son propriétaire : aucun vol par
+expiration ou reprise de son nonce. Avant publication du binding, relire la configuration
+et les charges courantes ; publier par la transaction Git non forcée existante et relire
+le résultat. Reprendre depuis le dossier reconstruit, dans les autorisations revalidées.
+Ne jamais rediriger une tranche déjà pilotée vers une autre conversation sans transfert explicite.
+
+Enfin, distinguer proposition/configuration, réception d'un événement, accusé durable
+et action réelle du nouveau pilote. Le dépôt ne peut ni créer de lui-même un nouveau
+chat Work ni garantir le routage de son interface. La limite Work connue du lot 1
+reste applicable ; les tests du dépôt ne deviennent pas une preuve de handover réel.
+
 Le consommateur prend une charge immuable sous .github/orchestration/requests/vnext-work/consumption/claims/ avec son propre nonce, relit cette charge et ne peut agir qu'en tant que propriétaire. Une charge existante d'un autre consommateur n'expire pas et ne peut pas être volée. Un checkpoint scellé porte l'état de continuation et les preuves ; le reçu PROCESSED est écrit seulement après publication et relecture de ce checkpoint Git. MANUAL_RECOVERY est distinct de AUTOMATION_EVENT : une reprise manuelle ne prouve jamais le réveil automatique.
 
 La récupération commune parcourt les exécutions des producteurs inscrits depuis recovery_since, avec pagination complète et déduplication par opération/run/tentative. Elle republie uniquement les signaux manquants et un marqueur de réveil des travaux pendants. Elle ne lance aucun modèle et ne remplace pas une charge bloquée. Les commits de charges, checkpoints et reçus ne constituent pas un nouveau travail ; seuls les signaux et wakeup nécessitent une consommation. Les données JSON de consommation sont exclues des CI lourdes ; le code et la configuration restent qualifiés.

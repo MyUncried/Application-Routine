@@ -306,6 +306,10 @@ L'ajout de la dépendance commune à la liste figée du runtime IMPLEMENT prése
 | `scripts/kodjo/lib/vnext-work-archive-cache.js` | Copie exacte des octets ZIP, reconstruction locale et refus de digest/binding divergent |
 | `tests/kodjo/vnext-work-archive-cache.pilot.js` | Publication atomique signal/copie et refus d’altération |
 | `scripts/kodjo/recover-vnext-work.js` | Rattrapage des opérations enregistrées et réveil des signaux pendants, sans appel modèle |
+| `scripts/kodjo/inspect-vnext-work.js` | Lecture commune figée de reprise, demandes sans run observé, proposition de transfert sans écriture |
+| `scripts/kodjo/lib/vnext-work-resume.js` | Reconstruction des reçus, message de résultat et conservation des destinations historiques |
+| `scripts/kodjo/lib/vnext-connector-step.js` | Adaptateur de rejeu commun au consommateur et au lecteur, préservant les contextes et requêtes existants |
+| `tests/kodjo/vnext-work-resume.pilot.js` | Deux identités, sources altérées, changement de tête, transfert, absence de lancement et réveil sans boucle |
 | `tests/kodjo/vnext-work-execution.pilot.js` | Refus de provenance, archive absente, concurrence, déplacement de tête et migration |
 
 | `scripts/kodjo/lib/vnext-implementation-cumulative.js` | Portées, réponses partielles et agrégat d'implémentation sans nouveau modèle |
