@@ -1196,7 +1196,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 
 ## Formats de séances
 
-**Consolidation PRE-9 du 30/10/2026 — règles actives.** [Référence D-01 à D-30, valeurs initiales et compatibilités](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Le Format et les réglages sont portés uniquement par l'Exercice ; Circuit = nature groupée/alternée, compte et membres, sans Format propre. Un Circuit groupé admet les six Formats et répète le bloc entier de ses membres. En alternance, Tabata admis seulement si N=8 ; EMOM et Death by admis ; 30/30, For time et AMRAP refusés. La simple dépose conserve le Format, l'adoption d'un Format est volontaire, le contrôle avant mutation refuse toute dénaturation et confirme la perte de valeurs. Un Cycle répète sa séquence sans multiplicateur de Format ajouté. Les valeurs de défaut et départs rapides sont décidés ; les règles spécialisées d'exécution relèvent de PRE-10/11. Les passages historiquement rédigés à l'échelle d'une Séance ou d'un Circuit unique sont supersédés dans cette portée.
+**Consolidation PRE-9 du 30/10/2026 — règles actives.** [Référence D-01 à D-30, valeurs initiales et compatibilités](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Le Format et les réglages sont portés uniquement par l'Exercice ; Circuit = nature groupée/alternée, compte et membres, sans Format propre. Un Circuit groupé admet les six Formats et exécute les membres selon leurs prescriptions ; pour For time, le volume de chaque passage suit la valeur correspondante de l’échelle. En alternance, Tabata est admis seulement si N=8 ; EMOM, For time et Death by sont admis ; 30/30 et AMRAP sont refusés. La simple dépose conserve le Format, l'adoption d'un Format est volontaire, le contrôle avant mutation refuse toute dénaturation et confirme la perte de valeurs. Un Cycle répète sa séquence sans multiplicateur de Format ajouté. Les valeurs de défaut et départs rapides sont décidés ; les règles spécialisées d'exécution relèvent de PRE-10/11. Les passages historiquement rédigés à l'échelle d'une Séance ou d'un Circuit unique sont supersédés dans cette portée.
 
 <a id="formats-regles"></a>
 ### Formats — règles métier transverses
@@ -1349,12 +1349,12 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-30"></a>
 #### RM-FMT-30
 
-**FMT-30.** Le paramètre s’appelle « Volume par tour ». Pour `21 · 15 · 9`, chaque Exercice suit le **tour de l'échelle For time** : 21 répétitions au premier rang, 15 au deuxième, 9 au troisième. Ce « tour » est distinct du **passage d'un Circuit englobant** ; chaque passage extérieur répète l'échelle **entière depuis 21** (D-15).
+**FMT-30.** Le paramètre s’appelle « Volume par tour ». L’échelle du For time est indexée par **passage du Circuit** : pour `21 · 15 · 9`, le premier passage prescrit 21 répétitions par Exercice, le deuxième 15 et le troisième 9. Une valeur de l’échelle est un volume du passage correspondant, pas une série propre à l’Exercice ; elle ne renseigne jamais son nombre de Séries.
 
 <a id="fmt-31"></a>
 #### RM-FMT-31
 
-**FMT-31.** Aucun sélecteur « Par exercice / En alternance » n’est proposé pour For time. L’échelle reste indexée par tour ; elle n’est pas transformée en trois séries successives à l’intérieur de chaque exercice.
+**FMT-31.** Le For time propose le sélecteur d’organisation « Par exercice / En alternance » lorsqu’il comporte plusieurs Exercices, selon les principes de FMT-12 et FMT-13. Avec A et B et l’échelle `21 · 15 · 9` : « Par exercice » exécute A21, A15, A9, puis B21, B15, B9 ; « En alternance » exécute A21, B21, A15, B15, A9, B9. Dans les deux organisations, l’échelle reste indexée par **passage du Circuit**, sans devenir des Séries successives à l’intérieur de chaque Exercice ; « Volume par tour » n’alimente pas le nombre de Séries. Le For time est admis dans un Circuit alterné ; AMRAP et Intervalles 30/30 y restent refusés.
 
 <a id="fmt-32"></a>
 #### RM-FMT-32
@@ -1436,7 +1436,7 @@ Ces recettes sont prescrites, **non exécutées sur l’application**. Elles con
 | REC-14 | Intervalles : modifier le compte | Durée recalculée ; aucune durée globale saisie | 19, 27 |
 | REC-15 | AMRAP atteint sa durée | Arrêt selon borne temporelle, non selon nombre prédéfini de tours | 26 |
 | REC-16 | Progression A/B 10 · 12 · 14, changer organisation | Ordre modifié, valeurs toujours indexées par série | 08–09, 29 |
-| REC-17 | For time A/B 21 · 15 · 9 | A21 B21 A15 B15 A9 B9 ; aucun sélecteur d’organisation | 30–31 |
+| REC-17 | For time A/B 21 · 15 · 9 | En alternance : A21 B21 A15 B15 A9 B9 ; Par exercice : A21 A15 A9 B21 B15 B9 ; même échelle indexée par passage | 30–31 |
 | REC-18 | Phrase For time | Texte exact validé ; segments/gras conformes au générateur existant | 32, 42 |
 | REC-19 | Death by, fenêtre 13, départ 1/incrément 1 | Objectif 13 calculé ; aucune saisie du rang | 33 |
 | REC-20 | Death by : appui puis second appui dans la même fenêtre | Un seul tour acquis ; repos révélé ; échéance inchangée | 35–36 |
@@ -1503,7 +1503,7 @@ La copie avec 1 tour et 8 × 20 s est nommée « Par exercice », indépendammen
 
 - **FMT-19.** Les constantes sont 30 secondes de travail et 30 secondes de pause. La borne réglée est un compte, jamais une durée totale saisie. La durée se déduit des occurrences effectivement prévues et de leurs phases. Les réglages de compte et la récupération éventuelle restent ceux du format décrit par SRC-01 ([Formats de séance — analyse d’impacts V2](../sources/formats-2026-10-14/concept-V2.md)) ; ne pas déduire d’un chiffre de maquette une règle supplémentaire.
 
-La généralisation aux formats cadencés porte sur la borne par compte. Elle ne suffit pas à créer, à elle seule, un sélecteur d’organisation pour tous les formats : ce sélecteur est explicitement décidé pour Tabata, EMOM et Progression, et explicitement exclu pour For time.
+La généralisation aux formats cadencés porte sur la borne par compte. Elle ne suffit pas à créer, à elle seule, un sélecteur d’organisation pour tous les formats : le sélecteur « Par exercice / En alternance » s’applique à Tabata, EMOM, Progression et For time selon les contraintes propres à chacun. Intervalles 30/30 et AMRAP ne proposent pas l’alternance.
 
 ### Formats de séances — comportements consolidés — EMOM : fenêtres et borne
 
@@ -1536,11 +1536,11 @@ Les exemples 3 × 15, postures, deux exercices enchaînés, 10 · 12 · 14 et tr
 
 #### 6.3 For time
 
-- **FMT-30.** Le paramètre s’appelle « Volume par tour ». Pour `21 · 15 · 9`, chaque Exercice suit le **tour de l'échelle For time** : 21 répétitions au premier rang, 15 au deuxième, 9 au troisième. Ce « tour » est distinct du **passage d'un Circuit englobant** ; chaque passage extérieur répète l'échelle **entière depuis 21** (D-15).
-- **FMT-31.** Aucun sélecteur « Par exercice / En alternance » n’est proposé pour For time. L’échelle reste indexée par tour ; elle n’est pas transformée en trois séries successives à l’intérieur de chaque exercice.
+- **FMT-30.** Le paramètre s’appelle « Volume par tour ». L’échelle du For time est indexée par **passage du Circuit** : pour `21 · 15 · 9`, le premier passage prescrit 21 répétitions par Exercice, le deuxième 15 et le troisième 9. Une valeur de l’échelle est un volume du passage correspondant, pas une série propre à l’Exercice ; elle ne renseigne jamais son nombre de Séries.
+- **FMT-31.** Le For time propose le sélecteur d’organisation « Par exercice / En alternance » lorsqu’il comporte plusieurs Exercices, selon les principes de FMT-12 et FMT-13. Avec A et B et l’échelle `21 · 15 · 9` : « Par exercice » exécute A21, A15, A9, puis B21, B15, B9 ; « En alternance » exécute A21, B21, A15, B15, A9, B9. Dans les deux organisations, l’échelle reste indexée par **passage du Circuit**, sans devenir des Séries successives à l’intérieur de chaque Exercice ; « Volume par tour » n’alimente pas le nombre de Séries. Le For time est admis dans un Circuit alterné ; AMRAP et Intervalles 30/30 y restent refusés.
 - **FMT-32.** La phrase normative est : « 21 répétitions au premier tour, 15 au deuxième, 9 au troisième. Le plus vite possible. » Le travail prescrit borne le format ; le temps réellement nécessaire pour l’accomplir est un résultat. **D-21 (29/10/2026) :** un plafond temporel facultatif peut borner l’Exercice For time ; à son atteinte l’Exercice s’arrête avec un résultat incomplet, sans imposer l’arrêt de la Séance. La valeur du plafond n’est pas inventée ; son exécution relève de PRE-10/11.
 
-Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tours. Le modèle doit garantir la cohérence entre nombre de tours et valeurs applicables, sans inventer un objectif pour une entrée manquante. La mécanique exacte de l’éditeur d’échelle sera raccordée au contrat d’écran courant, sans recopier automatiquement la règle des séries variables si elle change l’unité.
+Avec A et B : « Par exercice » donne A21, A15, A9, B21, B15, B9 ; « En alternance » donne A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent les volumes des trois passages du Circuit. Le modèle doit garantir la cohérence entre nombre de tours et valeurs applicables, sans inventer un objectif pour une entrée manquante. La mécanique exacte de l’éditeur d’échelle sera raccordée au contrat d’écran courant, sans recopier automatiquement la règle des séries variables si elle change l’unité.
 
 « Le plus vite possible » exprime l’objectif du format, pas l’interdiction de faire une pause ni une détection automatique des mouvements. Les commandes générales non remplacées restent applicables.
 
