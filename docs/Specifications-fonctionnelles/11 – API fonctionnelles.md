@@ -307,13 +307,13 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 <a id="formats-api"></a>
 ### Formats — contrats de services fonctionnels
 
-**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/Death by admis, les autres refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
+**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/For time/Death by admis, Intervalles 30/30 et AMRAP refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
 
 | Opération | Entrée / sortie | Validation et effets |
 |---|---|---|
 | Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
 | Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
-| Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
+| Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression/For time selon leurs règles ; Volume par tour For time indexé par passage du Circuit, sans effet sur le nombre de Séries de l'Exercice |
 | Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
 | Calculer les métriques | Prescription effective → durée typée | EMOM N × E × W ; aucun repos résiduel ajouté ; aucune durée Death by inventée |
 | Signaler le travail accompli | Identité d’exécution et de fenêtre courante | Révèle repos ; échéance inchangée ; Death by acquiert au plus une fois la fenêtre |

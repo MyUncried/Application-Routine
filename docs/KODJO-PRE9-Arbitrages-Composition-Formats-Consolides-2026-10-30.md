@@ -30,7 +30,7 @@
 | **D-10** | Un nouveau Circuit créé via le flux Format s'insère **après le Circuit** contenant le dernier Exercice entré, au même parent (Cycle ou Séance), sans imbrication. |
 | **D-11** | Pour ajouter un Format déjà présent dans la Séance, proposer le choix **joindre un Circuit contenant déjà ce Format** ou **créer un Circuit nouveau**, selon le parcours validé ; ce choix ne transfère aucun Format au Circuit. L'UX est celle de Figma. |
 | **D-12** | Ajout **volontaire** d'un deuxième Exercice au Format d'un premier : le nouvel Exercice adopte explicitement ce Format ; préserver le nombre de passages ; confirmation si des valeurs renseignées seraient remplacées. Une simple dépose d'un Exercice déjà formaté ne provoque **aucune adoption**. |
-| **D-13** | Pour Tabata, EMOM, Progression : proposer l'organisation à l'ajout du second Exercice ; pas de sélecteur d'organisation pour For time. |
+| **D-13** | Pour Tabata, EMOM, Progression et For time : proposer le sélecteur « Par exercice / En alternance » lorsque plusieurs Exercices sont concernés, selon les contraintes propres à chaque Format. |
 
 ### 2.2 D-14 à D-17 et D-30 — Matrice des six Formats
 
@@ -41,11 +41,11 @@ Les **valeurs initiales réglables ne sont jamais des constantes imposées**. Le
 | **Tabata** | 8 séries par Exercice, 20 s effort / 10 s pause | — | **Admise** : bloc intégral à chaque passage | **Admise si N=8** ; refusée sinon |
 | **Intervalles 30/30** | 30 s effort / 30 s pause | **6 séries** | **Admise**, bloc complet par passage | **Refusée** (D-16) |
 | **EMOM** | Fenêtres cadencées ; durée calculée à partir du nombre de passages et des Exercices | **W=60 s ; N=6** | **Admise**, bloc complet par passage | **Admise** ; le N réglable s'adapte à celui du Circuit (D-16). FMT-22, qui conserve N quand on ajoute ou retire un Exercice **dans** un EMOM, vise une autre opération. |
-| **For time** | Échelle **indexée par tour de l'échelle**, distinct du passage du Circuit | **21 · 15 · 9** | **Admise** ; chaque passage rejoue **toute l'échelle depuis 21**, sans reprendre au rang du Circuit | **Refusée** |
+| **For time** | Échelle **indexée par passage du Circuit** ; le Volume par tour ne renseigne pas le nombre de Séries des Exercices | **21 · 15 · 9** | **Admise** ; « Par exercice » : A21 A15 A9, puis B21 B15 B9 | **Admise** ; « En alternance » : A21 B21 A15 B15 A9 B9 |
 | **AMRAP** | La durée configurée borne **chaque occurrence du bloc** ; les tours réalisés sont un résultat | **12:00** | **Admise** ; nouvelle borne de durée configurée **à chaque passage** (D-15/D-30), pas une limite commune à tous les passages | **Refusée** |
 | **Death by** | Progression par rang/fenêtre et acquisition déclarée | **Départ 1 ; incrément 1 ; fenêtre 1 min** | **Admise** ; l'arrêt termine cet élément, pas toute la Séance | **Admise** ; chaque Death by conserve sa référence temporelle propre (D-16) ; raccordement détaillé des fenêtres et de la fin d'un membre en PRE-11 |
 
-**D-15** : Circuit groupé admis pour les six Formats. **D-16** : décisions alternées cellule par cellule reprises ci-dessus. **D-17** : le Circuit groupé répète ses membres, le Cycle répète sa **séquence entière** ; aucun compteur artificiel de « répétition de l'ensemble » n'est ajouté. Les constantes des Formats ne sont jamais effacées ou modifiées silencieusement. **D-30** : la durée AMRAP reste réglable ; 12 minutes est **une valeur initiale**, jamais la durée obligatoire de toutes les exécutions.
+**D-15** : Circuit groupé admis pour les six Formats, avec les volumes For time déterminés par passage. **D-16** : Tabata (N=8), EMOM, For time et Death by admis en Circuit alterné ; Intervalles 30/30 et AMRAP refusés. **D-17** : le Circuit groupé exécute les membres selon leurs prescriptions, dont la valeur d’échelle For time propre à chaque passage ; le Cycle répète sa **séquence entière** ; aucun compteur artificiel de « répétition de l'ensemble » n'est ajouté. Les constantes des Formats ne sont jamais effacées ou modifiées silencieusement. **D-30** : la durée AMRAP reste réglable ; 12 minutes est **une valeur initiale**, jamais la durée obligatoire de toutes les exécutions.
 
 ### 2.3 D-22 à D-28 — Départs rapides et interactions
 
@@ -82,7 +82,7 @@ Les **valeurs initiales réglables ne sont jamais des constantes imposées**. Le
 - **Cycle :** contient des Exercices directs et des Circuits, répète toute sa séquence ; aucun Cycle imbriqué.
 - **Séance :** contenu autonome unique enregistré/planifiable/lançable (D-449) ; origine de création distincte des Formats des Exercices.
 
-Ne pas confondre **tour d'échelle For time**, **passage d'un Circuit**, **série d'un Exercice** et **répétition de Cycle**.
+Pour For time, **l'indice de l'échelle correspond au passage du Circuit**. Le Volume par tour ne modifie jamais le nombre de Séries propre à un Exercice ; la répétition d'un Cycle reste une dimension distincte.
 
 ## 4. Traçabilité des corrections normatives
 
@@ -93,7 +93,7 @@ Ne pas confondre **tour d'échelle For time**, **passage d'un Circuit**, **séri
 | FMT-12/13, répétition de l'ensemble Tabata | Circuit groupé répète le passage complet ; Cycle répète une séquence ; aucun multiplicateur propre. |
 | FMT-21/22 | EMOM : conserver la formule interne ; différencier ajout dans un EMOM (N conservé) et dépose de l'EMOM entier dans un Circuit alterné (N adapté). |
 | FMT-26 | Clarifier « échéance globale » : **borne interne** de chaque bloc AMRAP ; la répétition extérieure recommence le bloc à sa durée configurée. Texte historique à conserver comme formulation remplacée **sur sa portée**. |
-| FMT-30/31 et architecture For time | Tour = **rang de l'échelle** ; une répétition extérieure recommence l'échelle complète. |
+| FMT-30/31 et architecture For time | Le rang de l'échelle est celui du **passage du Circuit**. Les organisations Par exercice / En alternance conservent les mêmes volumes par passage, sans conversion en Séries locales. |
 | FMT-34 | Fin du Death by **élément**, pas fin de Séance ; mentionner la provenance ultérieure et la réserve PRE-11. |
 | FMT-36 à FMT-38 | Saisie partielle Death by déjà définie ; AMRAP possède un déclencheur différent. |
 | CE-FMT-03 §14 | Réappliquer **les constantes de l'Exercice formaté** et les contraintes de nature/N du Circuit, sans transfert implicite. |

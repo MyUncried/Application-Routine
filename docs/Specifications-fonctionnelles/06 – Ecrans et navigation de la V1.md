@@ -1751,6 +1751,8 @@ Nœud [8624:31157](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 ##### Composition séance — Modèles — For time (paramètres)
 
+Règle de présentation fonctionnelle : « Par exercice / En alternance » est proposé avec plusieurs Exercices ; le Volume par tour reste indexé par passage du Circuit, sans alimenter leur nombre de Séries (RM-FMT-30/31).
+
 Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30255) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
 
@@ -1758,6 +1760,8 @@ Nœud [8624:30255](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 <a id="format-8624-30672"></a>
 
 ##### Composition séance — Modèles — For time (récapitulatif)
+
+Le récapitulatif indique l'organisation choisie et l'échelle par passage du Circuit. L'ordre d'exécution change, pas le volume de chaque passage (RM-FMT-31).
 
 Nœud [8624:30672](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8624-30672) · Contrat [CE-FMT-02](13%20–%20Contrats%20d’écran.md#ce-fmt-02). Capture du layout courant ; données illustratives.
 
