@@ -20,7 +20,7 @@ import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
-import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
+import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
@@ -323,6 +323,7 @@ export function CatalogueScreen() {
                 view={sessionView}
                 filters={sessionFilters}
                 resetToken={movementsReloadToken}
+                topInset={LIST_TOP_INSET}
                 onOpenSession={(sessionId) =>
                   router.push({ pathname: "/composition", params: { sessionId } })
                 }
@@ -334,6 +335,7 @@ export function CatalogueScreen() {
         {activeSegment === "movements" ? (
           <MovementCatalogueList
             reloadToken={movementsReloadToken}
+            topInset={LIST_TOP_INSET}
             query={movementQuery}
             filters={movementFilters}
             onOpenMovement={openMovement}
@@ -418,6 +420,7 @@ function ReadyBody({
   view,
   filters,
   resetToken,
+  topInset,
   onOpenSession,
   onChanged,
 }: {
@@ -425,6 +428,7 @@ function ReadyBody({
   view: SessionCatalogueView | null;
   filters: SessionCatalogueFilters;
   resetToken: number;
+  topInset: number;
   onOpenSession: (sessionId: string) => void;
   onChanged: () => void;
 }) {
@@ -436,11 +440,19 @@ function ReadyBody({
       sessions={visible}
       emptyMessage={strings.screens.sessions.noMatch}
       resetToken={resetToken}
+      topInset={topInset}
       onOpenSession={onOpenSession}
       onChanged={onChanged}
     />
   );
 }
+
+/**
+ * Contre-recette n° 2 du 30/10/2026 (Hermann : « Liste qui défile derrière ») : le corps remonte
+ * sous la part fondue de la zone de contexte ; au repos, la première carte garde sa place (8 sous
+ * la bande, comme avant), puis la liste défile derrière le dégradé.
+ */
+const LIST_TOP_INSET = spacing[8] + CONTEXT_BAND_FADE_HEIGHT;
 
 const styles = StyleSheet.create({
   // `container`/`header`/`title`/`headerSeparator`/`contextBand` sont
@@ -468,11 +480,13 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     paddingHorizontal: layout.screenGutter,
-    paddingTop: spacing[16],
+    // Contre-recette n° 2 : corps remonté sous la part fondue de la bande (voir `LIST_TOP_INSET`).
+    marginTop: -CONTEXT_BAND_FADE_HEIGHT,
+    paddingTop: spacing[16] + CONTEXT_BAND_FADE_HEIGHT,
   },
   bodyFlush: {
     paddingHorizontal: 0,
-    paddingTop: spacing[8],
+    paddingTop: 0,
   },
   centeredBody: {
     flex: 1,

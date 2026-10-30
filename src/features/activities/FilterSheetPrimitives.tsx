@@ -1,8 +1,10 @@
 import { Image } from "expo-image";
 import type { ReactNode } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Reanimated, { FadeIn, ReduceMotion, SlideInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { CREATE_MENU_FADE_IN_MS } from "@/features/sessions/CreateMenu";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
@@ -20,6 +22,15 @@ const HEADER_ACTION_SIZE = 38;
 const HEADER_ACTION_HIT_SLOP = (minTouchTarget - HEADER_ACTION_SIZE) / 2;
 const RESET = dimensions.resetAction;
 const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
+/**
+ * Contre-recette n° 2 du 30/10/2026 (Hermann : « le voile grisé doit apparaître en fondu progressif
+ * et non pas de bas en haut avec la modale. Prendre l'exemple de l'apparition du voile à
+ * l'activation du bouton Créer dans la composition de séance ») : le voile apparaît en fondu, à la
+ * durée du menu Créer ; seule la feuille monte du bas (durée d'une feuille système, choix).
+ */
+const scrimEntering = FadeIn.duration(CREATE_MENU_FADE_IN_MS).reduceMotion(ReduceMotion.System);
+const SHEET_SLIDE_IN_MS = 300;
+const sheetEntering = SlideInDown.duration(SHEET_SLIDE_IN_MS).reduceMotion(ReduceMotion.System);
 
 export function FilterSheetFrame({
   title,
@@ -43,9 +54,16 @@ export function FilterSheetFrame({
 }) {
   const insets = useSafeAreaInsets();
   return (
-    <Modal transparent visible animationType="slide" onRequestClose={onClose} testID={`${testIDPrefix}-sheet`}>
+    <Modal transparent visible animationType="none" onRequestClose={onClose} testID={`${testIDPrefix}-sheet`}>
       <View style={styles.backdrop}>
-        <View
+        <Reanimated.View
+          entering={scrimEntering}
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, styles.scrim]}
+          testID={`${testIDPrefix}-scrim`}
+        />
+        <Reanimated.View
+          entering={sheetEntering}
           style={[styles.sheet, footer ? styles.sheetWithFooter : null, { paddingBottom: insets.bottom + spacing[16] }]}
           accessibilityViewIsModal
         >
@@ -84,7 +102,7 @@ export function FilterSheetFrame({
               {footer}
             </View>
           ) : null}
-        </View>
+        </Reanimated.View>
       </View>
     </Modal>
   );
@@ -159,6 +177,8 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: "flex-end",
+  },
+  scrim: {
     backgroundColor: colors.overlayScrim,
   },
   // Cadre, poignée, en-tête, cercles et filet : valeurs de la feuille Paramètres d'exécution.

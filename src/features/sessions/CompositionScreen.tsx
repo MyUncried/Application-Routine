@@ -167,6 +167,7 @@ import {
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
 import {
+  OCCURRENCE_CARD_HEIGHT,
   OCCURRENCE_CARD_MEDIA,
   OCCURRENCE_CARD_RADIUS,
   OccurrenceCard,
@@ -227,7 +228,7 @@ import { RECOVERY_WHEEL_VALUES, snapToGrid } from "@/features/sessions/wheelPick
 import { WheelPickerOverlay } from "@/features/sessions/WheelPickerOverlay";
 import { strings } from "@/shared/i18n";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
-import { ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
+import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -900,6 +901,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const [envelope, setEnvelope] = useState<EnvelopeState | null>(null);
   /** Contre-recette du 30/10 : Cycles connus avant la pose d'un Cycle (apparition progressive du nouveau). */
   const [cycleReveal, setCycleReveal] = useState<{ readonly known: ReadonlySet<string> } | null>(null);
+  /**
+   * Contre-recette du 30/10 (constat b) : Exercices déjà dans un Circuit avant la pose d'un Circuit —
+   * le Circuit qui naît (sur un Exercice qui n'était dans aucun Circuit) apparaît progressivement.
+   * Les Exercices servent de repère : l'identifiant d'un Circuit de l'ancien modèle n'existe qu'une
+   * fois la structure générale écrite.
+   */
+  const [circuitReveal, setCircuitReveal] = useState<{ readonly knownMembers: ReadonlySet<string> } | null>(null);
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
   // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
   // de l'en-tête fixe et de la bande Context, jamais seulement
@@ -1424,6 +1432,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setIsAddActivityTreeOpen(false);
       setRevealedActionsId(null);
       setCycleReveal(null);
+      setCircuitReveal(null);
       setEnvelope({ container, designated: null, targetName: "" });
     },
     [finishDragPreview, flushDeletion, placement],
@@ -1441,6 +1450,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const { container, designated, targetName } = envelope;
     // Contre-recette du 30/10 : Cycles présents avant la pose — celui qui naît apparaît progressivement.
     if (container === "CYCLE") setCycleReveal({ known: new Set(layoutCycleIds(resolveRichLayout(draft))) });
+    // Contre-recette du 30/10 (constat b) : de même pour le Circuit qui naît.
+    if (container === "CIRCUIT") setCircuitReveal({ knownMembers: new Set(draftCircuitMembers(draft)) });
     updateDraft((current) => draftAfterEnvelope(current, container, designated));
     setEnvelope(null);
     const t = strings.screens.composition.envelope;
@@ -1832,7 +1843,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   }
   const isCircuitCollapsed = circuitCollapsedContent === circuitContentKey && placement === null;
   /** Recette du 29/10 (obs-3 b) : dévoilement / repli animé des cartes du Circuit. */
-  const circuitCardsReveal = useCircuitCardsReveal(isCircuitCollapsed, CIRCUIT_GAP);
+  const circuitCardsReveal = useCircuitCardsReveal(isCircuitCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP);
   /**
    * PRE-9 B.1b (D-451, COMP §1 et §4) : disposition générale (plusieurs Circuits, Cycles) — rendue
    * selon sa structure à la place des zones de l'ancien modèle ; `null` : rendu historique inchangé.
@@ -1847,6 +1858,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     if (cycleReveal === null) return NO_APPEARING_CYCLES;
     return new Set(layoutCycleIds(richLayout).filter((id) => !cycleReveal.known.has(id)));
   }, [cycleReveal, richLayout]);
+  /**
+   * Contre-recette du 30/10 (constat b) : Circuits posés à l'instant (« Confirmer le circuit ») —
+   * ceux dont aucun Exercice n'était dans un Circuit auparavant. Même cycle de vie que les Cycles.
+   */
+  const appearingCircuitIds = useMemo<ReadonlySet<string>>(() => {
+    if (circuitReveal === null || draft.structure === undefined) return NO_APPEARING_CONTAINERS;
+    return new Set(
+      structureCircuits(draft.structure)
+        .filter((circuit) => circuit.exercises.length > 0 && circuit.exercises.every((id) => !circuitReveal.knownMembers.has(id)))
+        .map((circuit) => circuit.id),
+    );
+  }, [circuitReveal, draft.structure]);
+  /** Contre-recette du 30/10 (constat b) : le Circuit de l'ancien modèle vient d'être posé. */
+  const isLegacyCircuitAppearing =
+    draft.structure !== undefined && structureCircuits(draft.structure).some((circuit) => appearingCircuitIds.has(circuit.id));
   /** ARB-13 : lettres des Circuits et des Cycles (aucune pour un conteneur seul de sa nature). */
   const layoutLetters = useMemo(
     () => (richLayout === null || draft.structure === undefined ? new Map<string, string>() : containerLetters(draft.structure)),
@@ -3379,6 +3405,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             autoScroll={autoScroll}
             envelope={envelopeContext}
             appearingCycleIds={appearingCycleIds}
+            appearingCircuitIds={appearingCircuitIds}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -3460,8 +3487,6 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         <View
           style={[
             styles.tourSectionContainer,
-            // Story 2.3b : tant que le Circuit n'est pas mesuré, fond statique du conteneur.
-            circuitMeasuredHeight > 0 ? null : styles.tourSectionStaticSurface,
             // Correctif 2.3b : le Circuit qui porte la carte soulevée passe au-dessus de ses sœurs.
             zoneItems.IN_TOUR.some((item) => zoneItemKey(item) === raisedKey) ? styles.dragElevated : null,
           ]}
@@ -3470,17 +3495,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           onLayout={envelopeContext === null ? handleTourLayout : undefined}
           testID="composition-tour-section"
         >
-          {/* PRE-6 (story 2.3b, amendement du 21/10/2026) : fond du conteneur mesuré, qui suit ses
-              bords pendant le glisser — voir `CircuitSurface`. */}
-          {circuitMeasuredHeight > 0 ? (
-            <CircuitSurface
-              top={circuitTopShift}
-              bottom={circuitBottomShift}
-              // Revue 7.5 : pendant une suppression, hauteur du Circuit relevée à son début.
-              dragHeight={deletion !== null ? deletion.layout.tourBottom - deletion.layout.tourTop : dragSession.circuitHeight}
-              testID="composition-tour-section-surface"
-            />
-          ) : null}
+          {/*
+           * PRE-6 (story 2.3b, amendement du 21/10/2026) : fond du conteneur mesuré, qui suit ses
+           * bords pendant le glisser — voir `CircuitSurface` ; tant que le Circuit n'est pas mesuré,
+           * fond statique. Contre-recette du 30/10 (constat b) : les deux dans une couche qui apparaît
+           * progressivement quand le Circuit vient d'être posé.
+           */}
+          <Reanimated.View
+            entering={isLegacyCircuitAppearing ? CIRCUIT_ENTERING : undefined}
+            pointerEvents="none"
+            style={StyleSheet.absoluteFill}
+            testID="composition-tour-section-reveal"
+          >
+            {circuitMeasuredHeight > 0 ? (
+              <CircuitSurface
+                top={circuitTopShift}
+                bottom={circuitBottomShift}
+                // Revue 7.5 : pendant une suppression, hauteur du Circuit relevée à son début.
+                dragHeight={deletion !== null ? deletion.layout.tourBottom - deletion.layout.tourTop : dragSession.circuitHeight}
+                testID="composition-tour-section-surface"
+              />
+            ) : (
+              <View
+                style={[StyleSheet.absoluteFill, styles.tourSectionStaticSurface]}
+                testID="composition-tour-section-static-surface"
+              />
+            )}
+          </Reanimated.View>
           {/* Zone propre au conteneur Circuit — voir `NatureOutsideZone`. */}
           {isCircuitControl(openOverlay) ? (
             <NatureOutsideZone onPress={handleCircuitOutsidePress} testID="composition-circuit-nature-outside-section" />
@@ -3511,11 +3552,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               height={CIRCUIT_PADDING_VERTICAL + circuitHeaderHeight - circuitHeaderRingTopY - RAIL_RING_DIAMETER}
               testID="composition-rail-tail-circuit-header"
             />
-            <RailRing
-              centerX={RAIL_CENTER_X_IN_CIRCUIT}
-              centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderRingRowHeight / 2}
-              testID="composition-sequence-marker-circuit"
-            />
+            {/* Contre-recette du 30/10 (constat b) : l'anneau apparaît avec le Circuit posé. */}
+            <Reanimated.View
+              entering={isLegacyCircuitAppearing ? CIRCUIT_ENTERING : undefined}
+              style={StyleSheet.absoluteFill}
+              testID="composition-sequence-marker-circuit-reveal"
+            >
+              <RailRing
+                centerX={RAIL_CENTER_X_IN_CIRCUIT}
+                centerY={CIRCUIT_PADDING_VERTICAL + circuitHeaderRingRowHeight / 2}
+                testID="composition-sequence-marker-circuit"
+              />
+            </Reanimated.View>
           </Animated.View>
           <CircuitHeader
             nature={circuitNature}
@@ -3541,6 +3589,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             isChoicePending={pendingTourChoice !== null}
             // PRE-6 (story 2.3b) : l'en-tête suit le bord haut du Circuit pendant le glisser.
             translateY={circuitTopShift}
+            // Contre-recette du 30/10 (constat b) : apparition progressive du Circuit posé.
+            entering={isLegacyCircuitAppearing ? CIRCUIT_ENTERING : undefined}
             // PRE-6 (story 5.2) : le titre laisse la colonne de l'anneau (x 69 à 402).
             titleInset={SEQUENCE_LABEL_INSET}
             // PRE-9 B.1a (ARB-12) : repli non persisté, déplié à l'ouverture de l'écran.
@@ -3613,7 +3663,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 anchorBottom
                 length={circuitEndRailLink.length}
                 // Story 5.2b : la marge basse du Circuit est la surface propre de son bas.
-                minLength={CIRCUIT_PADDING_VERTICAL}
+                // Contre-recette du 30/10 (obs-3) : 8 sous des cartes déployées, 14 replié.
+                minLength={isCircuitCollapsed ? CIRCUIT_PADDING_VERTICAL : CONTAINER_PADDING_BOTTOM}
                 shift={circuitBottomShift}
                 prevShift={railShiftOf(circuitEndRailLink.prevKey)}
                 testID="composition-rail-link-circuit-end"
@@ -5685,7 +5736,11 @@ function CompositionActivityRow({
           // doigt), devient transparente ; sinon son fond opaque masque la voisine qui remonte dans
           // la place libérée. Aucun balayage n'est possible pendant le glisser.
           // Story 5.2b : de même pendant le dialogue de perte et le retour animé (`isRaised`).
-          backgroundColor: isRaised
+          // Contre-recette iPhone du 30/10 (constat c, Hermann : « Une carte d'exercice se trouvant
+          // directement dans un cycle : […] le fond du cadre a un fond blanc rectangulaire (coins
+          // carrés) ») : dans une disposition générale, aucun balayage ne découvre ce fond (B.5) ; la
+          // rangée est transparente, la carte seule (coins arrondis) repose sur le fond du Cycle.
+          backgroundColor: isRaised || inLayout
             ? "transparent"
             : activity.structuralPosition === "IN_TOUR"
               ? CIRCUIT_SURFACE_COLOR
@@ -5965,6 +6020,8 @@ type LayoutRenderContext = {
   readonly envelope: EnvelopeContext | null;
   /** Contre-recette du 30/10 : Cycles qui viennent d'être posés (« Confirmer le cycle »), apparition progressive. */
   readonly appearingCycleIds: ReadonlySet<string>;
+  /** Contre-recette du 30/10 (constat b) : Circuits qui viennent d'être posés (« Confirmer le circuit »), apparition progressive. */
+  readonly appearingCircuitIds: ReadonlySet<string>;
 };
 
 type LayoutSequenceProps = LayoutRenderContext & {
@@ -5979,6 +6036,16 @@ const NO_APPEARING_CYCLES: ReadonlySet<string> = new Set();
 /** Identifiants des Cycles d'une disposition générale (niveau Séance) ; aucun sans disposition. */
 function layoutCycleIds(layout: ResolvedLayout | null): string[] {
   return layout === null ? [] : layout.elements.flatMap((element) => (element.kind === "CYCLE" ? [element.cycle.id] : []));
+}
+const NO_APPEARING_CONTAINERS: ReadonlySet<string> = new Set();
+/**
+ * Contre-recette du 30/10 (constat b) : Exercices placés dans un Circuit — de la structure générale
+ * (Circuits des Cycles compris), ou à défaut de l'ancien modèle (zone `IN_TOUR`).
+ */
+function draftCircuitMembers(draft: Pick<SessionDraft, "structure" | "exercises">): string[] {
+  return draft.structure !== undefined
+    ? structureCircuits(draft.structure).flatMap((circuit) => circuit.exercises)
+    : draft.exercises.flatMap((exercise) => (exercise.structuralPosition === "IN_TOUR" ? [exercise.id] : []));
 }
 const noop = () => {};
 
@@ -6198,23 +6265,35 @@ function LayoutCircuitBlock({
   const natureKind = layoutCircuitNatureKind(circuit.id);
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
   const isCollapsed = context.collapsed.get(circuit.id) === contentKey;
-  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP);
+  const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const testID = `composition-layout-circuit-${circuit.id}`;
+  // Contre-recette du 30/10 (constat b) : le Circuit qui vient d'être posé apparaît progressivement
+  // (fond, anneau et en-tête) ; ses cartes, déjà visibles, restent.
+  const entering = context.appearingCircuitIds.has(circuit.id) ? CIRCUIT_ENTERING : undefined;
   return (
     <View
-      style={[styles.tourSectionContainer, styles.tourSectionStaticSurface, inCycle ? styles.layoutCircuitInCycle : null]}
+      style={[styles.tourSectionContainer, inCycle ? styles.layoutCircuitInCycle : null]}
       onLayout={(event) => setBlockY(event.nativeEvent.layout.y)}
       testID={testID}
     >
+      <Reanimated.View
+        entering={entering}
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.layoutCircuitSurface]}
+        testID={`${testID}-surface`}
+      />
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
         <RailSegment centerX={railX} top={-railGap} height={railGap + ringTop} testID={`${testID}-rail-link`} />
         <RailSegment centerX={railX} top={ringTop + RAIL_RING_DIAMETER} bottom={0} testID={`${testID}-rail-tail`} />
-        <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+        <Reanimated.View entering={entering} style={StyleSheet.absoluteFill} testID={`${testID}-rail-ring-reveal`}>
+          <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
+        </Reanimated.View>
       </View>
       <CircuitHeader
+        entering={entering}
         nature={circuit.nature}
         letter={context.letters.get(circuit.id)}
         count={circuit.repeatCount}
@@ -6590,6 +6669,17 @@ const CARD_OUTSET = spacing[8];
 const CIRCUIT_OUTSET = CARD_OUTSET + spacing[8];
 /** Circuit (Figma `9819:19906`, `9819:19947`) : marge verticale 14, écart 9, rayon 18, aplat sans contour. */
 const CIRCUIT_PADDING_VERTICAL = spacing[14];
+/**
+ * Contre-recette iPhone du 30/10 (obs-3, Hermann : « Réduire la marge entre le bord bas du cadre d'un
+ * exercice et le bord du circuit ou d'un cycle ; le bord bas du cadre d'un circuit et le bord du
+ * cycle. Cette marge doit être égale à celle entre le bord bas du gabarit photo et le cadre d'un
+ * exercice ») : marge basse d'un Circuit sous ses cartes et d'un Cycle sous son dernier membre =
+ * écart entre le bas du média et le bas de la carte (80 − 72 = 8), par construction. La marge haute
+ * (14) et le Circuit replié (14 sous l'en-tête, 68 au total) sont inchangés.
+ */
+const CONTAINER_PADDING_BOTTOM = OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom;
+/** Circuit déployé : réduction de sa marge basse (14 → 8), portée par la liste de ses cartes. */
+const CIRCUIT_CARDS_BOTTOM_OVERLAP = CIRCUIT_PADDING_VERTICAL - CONTAINER_PADDING_BOTTOM;
 const CIRCUIT_GAP = 9;
 const CIRCUIT_RADIUS = 18;
 /**
@@ -6621,9 +6711,18 @@ const CYCLE_SURFACE_COLOR = "#E0E2EF";
  * Contre-recette iPhone du 30/10 (Hermann : « Animation : à la validation il faut que le cycle
  * apparaisse progressivement ») : fondu d'entrée du Cycle posé, à la durée du dévoilement des cartes
  * d'un Circuit (`CIRCUIT_REVEAL_DURATION_MS`, 450 ms) — valeur de conception, Figma muet ; immédiat
- * si « Réduire les animations » est actif.
+ * si « Réduire les animations » est actif. [Contre-recette du 30/10, constat b : le dévoilement du
+ * Circuit passe à 700 ms ; le Cycle garde 450 ms (`MOTION_FADE_DURATION_MS`), non visé par le constat.]
  */
-const CYCLE_ENTERING = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
+const CYCLE_ENTERING = FadeIn.duration(MOTION_FADE_DURATION_MS).reduceMotion(ReduceMotion.System);
+/**
+ * Contre-recette iPhone du 30/10 (constat b, Hermann : « Circuit : l'apparition et la disparition du
+ * circuit doivent se faire progressivement et plus lentement ») : fondu d'entrée du Circuit posé
+ * (« Confirmer le circuit ») — fond, anneau et en-tête ; ses cartes, déjà visibles, restent. Durée du
+ * déploiement de ses cartes (`CIRCUIT_REVEAL_DURATION_MS`, 700 ms) — valeur de conception, Figma
+ * muet ; immédiat si « Réduire les animations » est actif.
+ */
+const CIRCUIT_ENTERING = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
 /**
  * Recette du 29/10 (obs-3 c) : anneau extérieur du Cycle (Figma `10748:20132`, 16 de diamètre, trait
  * 1), concentrique au repère de 10 ; le rail s'arrête à son bord (3 au-delà du repère).
@@ -6662,6 +6761,7 @@ export function railGeometryFor(circuitHeaderHeight: number): RailGeometry {
     sequenceGap: SEQUENCE_GAP,
     circuitGap: CIRCUIT_GAP,
     circuitPadding: CIRCUIT_PADDING_VERTICAL,
+    circuitPaddingBottom: CONTAINER_PADDING_BOTTOM,
     rowEntry: OCCURRENCE_CARD_MEDIA.top,
     circuitHeaderEntry: circuitHeaderRingTop(circuitHeaderHeight),
     endEntry: BOUNDARY_RING_TOP,
@@ -6776,7 +6876,7 @@ function dropSettlePose(
     translationY,
     DRAG_SHIFT_GAPS,
     shifts,
-    CIRCUIT_PADDING_VERTICAL,
+    CONTAINER_PADDING_BOTTOM,
     insertionHeight,
     new Set(removedStopPointIds.map(railStopKey)),
   );
@@ -6915,6 +7015,10 @@ const styles = StyleSheet.create({
   // `ScrollView`, donc jamais recouverts ni déplacés par le défilement.
   body: {
     flex: 1,
+    // Contre-recette n° 2 du 30/10/2026 (Hermann : « Liste qui défile derrière ») : la séquence
+    // remonte sous la part fondue de la zone de contexte et défile derrière son dégradé ; au repos,
+    // son haut garde sa place (`bodyContent.paddingTop`).
+    marginTop: -CONTEXT_BAND_FADE_HEIGHT,
   },
   //
   // **T02-S02 (continuation après recette visuelle)** : `gap` passe de `16`
@@ -6942,7 +7046,7 @@ const styles = StyleSheet.create({
     // marge standard `layout.screenGutter` (16).
     paddingLeft: layout.screenGutter,
     paddingRight: layout.screenGutter,
-    paddingTop: spacing[16],
+    paddingTop: spacing[16] + CONTEXT_BAND_FADE_HEIGHT,
     paddingBottom: spacing[16],
     gap: COMPOSITION_ROW_GAP,
   },
@@ -7153,7 +7257,15 @@ const styles = StyleSheet.create({
     gap: CIRCUIT_GAP,
   },
   // Story 2.3b : fond du conteneur tant qu'il n'est pas mesuré (sans les couches animées).
+  // Contre-recette du 30/10 (constat b) : porté par une couche (apparition progressive à la pose).
   tourSectionStaticSurface: {
+    borderRadius: CIRCUIT_RADIUS,
+    backgroundColor: CIRCUIT_SURFACE_COLOR,
+  },
+  // Contre-recette du 30/10 (constat b) : aplat du Circuit d'une disposition générale, porté par une
+  // couche (apparition progressive à la pose).
+  layoutCircuitSurface: {
+    borderRadius: CIRCUIT_RADIUS,
     backgroundColor: CIRCUIT_SURFACE_COLOR,
   },
   // PRE-9 B.1b : Circuit dans un Cycle — en retrait de 4 de chaque côté, même colonne de contenu.
@@ -7165,7 +7277,9 @@ const styles = StyleSheet.create({
   layoutCycleContainer: {
     marginHorizontal: -CIRCUIT_OUTSET,
     paddingHorizontal: CIRCUIT_OUTSET,
-    paddingVertical: CIRCUIT_PADDING_VERTICAL,
+    paddingTop: CIRCUIT_PADDING_VERTICAL,
+    // Contre-recette du 30/10 (obs-3) : 8 sous le dernier membre (carte ou Circuit), comme sous le média.
+    paddingBottom: CONTAINER_PADDING_BOTTOM,
     gap: LAYOUT_CYCLE_GAP,
     // Recette du 29/10 (obs-3 c) : quatre coins arrondis (Figma `10744:20282` : 18).
     borderRadius: CIRCUIT_RADIUS,

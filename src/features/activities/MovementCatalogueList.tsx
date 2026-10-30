@@ -182,8 +182,11 @@ export function MovementCatalogueList({
   onOpenMovement,
   onCreateVariant,
   selection,
+  topInset,
 }: {
   readonly reloadToken: number;
+  /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
+  readonly topInset?: number;
   /** Recherche saisie dans la zone de contexte du Catalogue (D02). */
   readonly query: string;
   readonly filters: MovementCatalogueFilters;
@@ -635,13 +638,21 @@ export function MovementCatalogueList({
     const options: typeof catalogueOptions =
       selection === undefined ? catalogueOptions : { pileCount: catalogueOptions.pileCount, swipe: false };
     const selected = choosing && selection.selectedIds.has(entry.movement.id);
+    const inSession = choosing && (selection.inSessionIds?.has(entry.movement.id) ?? false);
     const id = entry.movement.id;
     const level = levelPreview?.has(id) ? levelPreview.get(id)! : entry.level;
     const levelLabel = level !== null ? levelPastilleLabel(level) : null;
     const label =
       options.pileCount !== undefined
         ? fillTemplate(t.pileAccessibilityLabel, { name: entry.movement.name, count: String(options.pileCount) })
-        : [entry.movement.name, levelLabel, entry.archived ? t.archivedAccessibility : null].filter(Boolean).join(", ");
+        : [
+            entry.movement.name,
+            levelLabel,
+            entry.archived ? t.archivedAccessibility : null,
+            inSession ? strings.screens.activities.selection.inSessionAccessibility : null,
+          ]
+            .filter(Boolean)
+            .join(", ");
     const actions = actionsFor(entry);
     const choicesOpen = options.swipe && variantFor === id && revealedId === id;
     return (
@@ -673,7 +684,7 @@ export function MovementCatalogueList({
             entry={entry}
             level={level}
             selected={selected}
-            inSession={choosing && (selection.inSessionIds?.has(entry.movement.id) ?? false)}
+            inSession={inSession}
           />
         </SwipeActionsRow>
         {choicesOpen ? (
@@ -910,7 +921,11 @@ export function MovementCatalogueList({
           <View ref={viewportRef} style={styles.viewport} collapsable={false}>
             <SheetMotionScrollView
               ref={scrollRef}
-              contentContainerStyle={selection !== undefined ? [styles.list, { paddingBottom: selection.bottomInset }] : styles.list}
+              contentContainerStyle={[
+                styles.list,
+                selection !== undefined ? { paddingBottom: selection.bottomInset } : null,
+                topInset !== undefined ? { paddingTop: spacing[4] + topInset } : null,
+              ]}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               scrollEnabled={drag === null}
@@ -1157,13 +1172,17 @@ function MovementCatalogueCard({
   readonly level: MovementLevelPosition | null;
   /** PRE-9 A.2 : carte cochée dans la sélection pour une Séance (contour et fond de sélection existants). */
   readonly selected?: boolean;
-  /** Contre-recette du 30/10 : mention « Dans la séance » sous le nom ; la carte garde sa hauteur (une étape de description). */
+  /**
+   * Contre-recette n° 2 du 30/10 (Hermann) : Mouvement déjà présent dans la Séance marqué par un
+   * coin replié bleu Kodjo dans l'angle inférieur droit, à l'intérieur du contour (bordure continue,
+   * arrondi de l'angle épousé, dimensions inchangées) ; remplace la mention « Dans la séance ».
+   */
   readonly inSession?: boolean;
 }) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
-  const steps = decodeInstructionSteps(movement.description).slice(0, inSession ? 1 : 2);
+  const steps = decodeInstructionSteps(movement.description).slice(0, 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
   return (
     <View
@@ -1195,22 +1214,24 @@ function MovementCatalogueCard({
             </Text>
           ) : null}
         </View>
-        {inSession ? (
-          <Text style={styles.inSession} numberOfLines={1} testID={`movement-card-in-session-${movement.id}`}>
-            {strings.screens.activities.selection.inSession}
-          </Text>
-        ) : null}
         {steps.map((step, index) => (
           <Text key={index} style={styles.description} numberOfLines={1} testID={`movement-card-step-${movement.id}-${index + 1}`}>
             {step}
           </Text>
         ))}
       </View>
+      {inSession ? (
+        <View style={styles.foldedCorner} pointerEvents="none" testID={`movement-card-in-session-${movement.id}`}>
+          <View style={styles.foldedCornerTriangle} />
+        </View>
+      ) : null}
     </View>
   );
 }
 
 const THUMBNAIL_SIZE = 64;
+/** Coin replié (contre-recette n° 2) : côté de la zone triangulaire, découpe à 45°. */
+const FOLDED_CORNER_SIZE = 18;
 /** Figma : photo à 7,5 dans une bordure de 0,5 — 8 du bord extérieur. */
 const CARD_BORDER = 0.5;
 const CARD_PADDING = spacing[8] - CARD_BORDER;
@@ -1448,8 +1469,23 @@ const styles = StyleSheet.create({
     ...type.movementCardDescription,
     color: colors.movementCardDescription,
   },
-  inSession: {
-    ...type.movementCardDescription,
-    color: colors.textSecondary,
+  // Positionné dans la boîte intérieure à la bordure : le contour de la carte reste continu ; le
+  // rayon intérieur (rayon extérieur moins la bordure) épouse l'arrondi de l'angle.
+  foldedCorner: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: FOLDED_CORNER_SIZE,
+    height: FOLDED_CORNER_SIZE,
+    borderBottomRightRadius: fixedRadii[12] - CARD_BORDER,
+    overflow: "hidden",
+  },
+  foldedCornerTriangle: {
+    width: 0,
+    height: 0,
+    borderLeftWidth: FOLDED_CORNER_SIZE,
+    borderLeftColor: "transparent",
+    borderBottomWidth: FOLDED_CORNER_SIZE,
+    borderBottomColor: colors.primary,
   },
 });

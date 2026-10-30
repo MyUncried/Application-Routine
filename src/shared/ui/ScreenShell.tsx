@@ -155,13 +155,23 @@ export function ContextBand({
    * zone — la bande devient réellement transparente, au lieu d'un voile blanc posé par-dessus.
    * Positions en points (hauteur fixe `dimensions.contextBand.height`), sans pourcentage imbriqué.
    * Sous le contenu, sans interaction ni VoiceOver.
+   *
+   * Contre-recette n° 2 du 30/10/2026 (Hermann : « Liste qui défile derrière ») : la bande passe
+   * AU-DESSUS du corps de l'écran ; le corps remonte de `CONTEXT_BAND_FADE_HEIGHT` (à l'écran
+   * hôte de le faire) et sa liste défile derrière la part fondue. Les touchers de la part fondue
+   * hors commandes traversent la bande (`box-none`) jusqu'aux cartes.
    */
   fadeToTransparent?: boolean;
 }) {
   return (
     <View
       testID="screen-context-band"
-      style={[styles.contextBand, fadeToTransparent ? styles.contextBandTransparent : null, elevated ? styles.elevated : null]}
+      pointerEvents={fadeToTransparent ? "box-none" : "auto"}
+      style={[
+        styles.contextBand,
+        fadeToTransparent ? styles.contextBandTransparent : null,
+        elevated || fadeToTransparent ? styles.elevated : null,
+      ]}
     >
       {fadeToTransparent ? (
         <View

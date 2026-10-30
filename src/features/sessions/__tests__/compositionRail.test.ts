@@ -31,6 +31,12 @@ const summary = (result: ReturnType<typeof links>) =>
   Object.fromEntries([...result].map(([key, link]) => [key, [link.prevKey, link.length]]));
 
 describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
+  it("contre-recette du 30/10 (obs-3) — marge basse du Circuit sous ses cartes = bas du média → bas de la carte (8) ; 14 sans carte", () => {
+    expect(GEOMETRY.circuitPaddingBottom).toBe(OCCURRENCE_CARD_HEIGHT - OCCURRENCE_CARD_MEDIA.bottom);
+    expect(GEOMETRY.circuitPaddingBottom).toBe(8);
+    expect(GEOMETRY.circuitPadding).toBe(14);
+  });
+
   it("story 6.2 — un point (rangée autonome) est un nœud : écart de sa zone au-dessus, ancre au haut de sa rangée ; le suivant s'y relie", () => {
     expect(summary(links({ beforeTour: ["a", { stopPointId: "p" }, "b"], inTour: ["i", { stopPointId: "q" }, "j"] }))).toMatchObject({
       [railStopKey("p")]: [railRowKey("a"), 8],
@@ -59,7 +65,8 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
       [railRowKey("b")]: [RAIL_KEYS.start, 8 + 8],
       [RAIL_KEYS.circuitHeader]: [railRowKey("b"), 8 + 14 + 4],
       [railRowKey("i")]: [RAIL_KEYS.circuitHeader, 9 + 8],
-      [RAIL_KEYS.circuitEnd]: [railRowKey("i"), 14],
+      // Contre-recette du 30/10 (obs-3) : sous la dernière carte, marge basse 8 (bas du média → bas de la carte).
+      [RAIL_KEYS.circuitEnd]: [railRowKey("i"), 8],
       [railRowKey("a")]: [RAIL_KEYS.circuitEnd, 8 + 8],
       [RAIL_KEYS.end]: [railRowKey("a"), 8 + 7],
     });
@@ -101,7 +108,8 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
       y += 9;
       put(railRowKey(id), heights[id], 8);
     }
-    y += 14;
+    // Contre-recette du 30/10 (obs-3) : marge basse 8 sous les cartes du Circuit.
+    y += 8;
     put(RAIL_KEYS.circuitEnd, 0, 0);
     y += 8;
     put(RAIL_KEYS.afterCircuit, 22, 0);
@@ -136,7 +144,7 @@ describe("resolveRailLinks (rail segmenté, story 5.2)", () => {
     const result = links({ inTour: ["i1"], skipped: { key: railRowKey("i1"), height: CARD + 9 + 22 } });
     expect(result.get(RAIL_KEYS.circuitEnd)).toMatchObject({
       prevKey: RAIL_KEYS.circuitHeader,
-      length: 9 + CARD + 9 + 22 + 14,
+      length: 9 + CARD + 9 + 22 + 8,
     });
   });
 });
@@ -235,9 +243,11 @@ describe("rail pendant le glisser et le retour : jonctions visibles, aucun médi
       y += G.circuitGap;
       list("IN_TOUR", G.circuitGap, "circuit");
     }
-    y += G.circuitPadding;
+    // Contre-recette du 30/10 (obs-3) : marge basse 8 sous les cartes, 14 sans carte.
+    const paddingBottom = has("IN_TOUR") ? G.circuitPaddingBottom : G.circuitPadding;
+    y += paddingBottom;
     const tourBottom = y;
-    elements.push({ key: RAIL_KEYS.circuitEnd, group: "circuit", top: tourBottom, bottom: tourBottom, entry: tourBottom, minLength: G.circuitPadding, media: null });
+    elements.push({ key: RAIL_KEYS.circuitEnd, group: "circuit", top: tourBottom, bottom: tourBottom, entry: tourBottom, minLength: paddingBottom, media: null });
     if (has("AFTER_TOUR")) {
       y += G.sequenceGap;
       list("AFTER_TOUR", G.sequenceGap, "after");

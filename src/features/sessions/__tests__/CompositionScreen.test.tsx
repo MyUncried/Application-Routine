@@ -1186,17 +1186,23 @@ describe("CompositionScreen — Phase 2 Shell Foundation (CMP-01/02/03/04/05/06,
     // amendement du 21/10/2026) : non mesurée, elle porte un fond statique ; mesurée, le fond est
     // porté par les trois couches de `CircuitSurface` (haut et bas arrondis, bande centrale), qui
     // suivent les bords pendant le glisser.
+    // Contre-recette du 30/10 (constat b) : le fond statique est porté par une couche
+    // (`composition-tour-section-static-surface`, apparition progressive à la pose), plus par le conteneur.
     const tourSection = screen.getByTestId("composition-tour-section");
     const tourSectionStyle = StyleSheet.flatten(tourSection.props.style);
-    expect(tourSectionStyle.backgroundColor).toBe("#EBEDF5");
+    expect(tourSectionStyle.backgroundColor).toBeUndefined();
     expect(tourSectionStyle.borderRadius).toBe(18);
     expect(tourSectionStyle.borderWidth).toBeUndefined();
+    expect(
+      StyleSheet.flatten(within(tourSection).getByTestId("composition-tour-section-static-surface", { includeHiddenElements: true }).props.style),
+    ).toMatchObject({ backgroundColor: "#EBEDF5", borderRadius: 18 });
     expect(screen.queryByTestId("composition-tour-section-surface", { includeHiddenElements: true })).toBeNull();
 
     fireLayout(tourSection, 230, 170);
     const measuredStyle = StyleSheet.flatten(screen.getByTestId("composition-tour-section").props.style);
     expect(measuredStyle.backgroundColor).toBeUndefined();
     expect(measuredStyle.borderRadius).toBe(18);
+    expect(screen.queryByTestId("composition-tour-section-static-surface", { includeHiddenElements: true })).toBeNull();
     const surface = (part: string) =>
       StyleSheet.flatten(
         within(tourSection).getByTestId(`composition-tour-section-surface-${part}`, { includeHiddenElements: true }).props
@@ -9092,8 +9098,8 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       moveTo("Z", -100);
       settle();
       // Bas du Circuit : de X (immobile) au bord bas, qui descend d'un pas du Circuit.
-      expect(linkHeight("composition-rail-link-circuit-end")).toBe(14);
-      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
+      expect(linkHeight("composition-rail-link-circuit-end")).toBe(8);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(8 + CIRCUIT_PITCH, 6);
       // La rangée du point après le Circuit suit le bas du Circuit : son lien ne change pas.
       expect(scaleY("composition-rail-link-stop-pc")).toBe(1);
       // Fin : à travers la place de Z (8 + 70) ; elle descend du net, la rangée d'un pas du Circuit.
@@ -9228,7 +9234,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         if (ids("IN_TOUR").length > 0) {
           const height = rowsOf("IN_TOUR", CIRCUIT_GAP, tourTop + listTop, "circuit");
           fireLayout(screen.getByTestId("composition-zone-in-tour"), listTop, height);
-          tourHeight = listTop + height + 14;
+          tourHeight = listTop + height + 8; // Contre-recette du 30/10 (obs-3) : marge basse 8 sous les cartes.
         }
         fireLayout(screen.getByTestId("composition-tour-section"), tourTop, tourHeight);
         const tourBottom = tourTop + tourHeight;
@@ -9238,7 +9244,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           top: tourBottom,
           bottom: tourBottom,
           entry: tourBottom,
-          minLength: 14,
+          minLength: ids("IN_TOUR").length > 0 ? 8 : 14,
           linkTestID: "composition-rail-link-circuit-end",
           shift: () => translateY("composition-rail-circuit-end-track"),
           media: null,
@@ -10086,7 +10092,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
         </TestSafeAreaProvider>,
       );
       const layOutCircuit = (ids: readonly string[]) => {
-        fireLayout(screen.getByTestId("composition-tour-section"), 230, 60 + 3 * 70 + 2 * CIRCUIT_GAP + 14);
+        fireLayout(screen.getByTestId("composition-tour-section"), 230, 60 + 3 * 70 + 2 * CIRCUIT_GAP + 8);
         fireLayout(screen.getByTestId("composition-zone-in-tour"), 60, 3 * 70 + 2 * CIRCUIT_GAP);
         ids.forEach((id, index) => fireLayout(container(id), index * CIRCUIT_PITCH, 70));
       };
@@ -10100,7 +10106,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
           expect(scaleY(`composition-rail-link-${id}`)).toBe(1);
           expect(translateY(`composition-rail-link-${id}`)).toBe(0);
         }
-        expect(linkHeight("composition-rail-link-circuit-end")).toBe(14);
+        expect(linkHeight("composition-rail-link-circuit-end")).toBe(8);
         expect(scaleY("composition-rail-link-circuit-end")).toBe(1);
         expect(translateY("composition-tour-section-surface-top")).toBe(0);
         expect(translateY("composition-tour-section-surface-bottom")).toBe(0);
@@ -10124,7 +10130,7 @@ describe("CompositionScreen — réorganisation animée pendant le glisser (PRE-
       expect(visible("composition-rail-link-Q")).toBeCloseTo(IN_CIRCUIT_REST, 6);
       expectJoined("R", CIRCUIT_PITCH * 2, { id: "Q", layoutTop: CIRCUIT_PITCH });
       // Le bas du Circuit traverse l'emplacement ouvert sous R.
-      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(14 + CIRCUIT_PITCH, 6);
+      expect(visible("composition-rail-link-circuit-end")).toBeCloseTo(8 + CIRCUIT_PITCH, 6);
       release("P", 200);
       // Story 7.6 : P part de l'endroit du lâcher et glisse jusqu'à sa place.
       expect(rowShift("P")).toBeGreaterThan(0);
@@ -10205,7 +10211,7 @@ describe("CompositionScreen — rail segmenté, Circuit, bornes et points d'arr�
     expect(span("composition-rail-link-a").height).toBe(16);
     // Recette du 29/10 : 8 + 14 + 4 (anneau centré sur la ligne d'en-tête de 18, au lieu de 15 sur 40).
     expect(span("composition-rail-link-circuit-header").height).toBe(26);
-    expect(span("composition-rail-link-circuit-end").height).toBe(14);
+    expect(span("composition-rail-link-circuit-end").height).toBe(8); // Contre-recette du 30/10 (obs-3) : marge basse 8 sous la carte.
     expect(span("composition-rail-link-end").height).toBe(15);
     // La queue de chaque carte part du bas du média et descend jusqu'au bas du bloc.
     for (const id of ["b", "i", "a"]) {

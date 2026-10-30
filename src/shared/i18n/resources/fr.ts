@@ -465,8 +465,9 @@ export const fr = {
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
-        // Contre-recette PRE-9 n° 1 (Hermann, 30/10/2026) : Mouvement déjà présent dans la Séance.
-        inSession: "Dans la séance",
+        // Contre-recette PRE-9 n° 1 (Hermann, 30/10/2026) : Mouvement déjà présent dans la Séance,
+        // marqué par un coin replié (contre-recette n° 2) ; annoncé seulement à VoiceOver.
+        inSessionAccessibility: "dans la séance",
         // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
         editAccessibilityLabel: "Modifier l’exercice {name}",
       },

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type ComponentProps, useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Pressable,
@@ -22,7 +22,6 @@ import { scheduleOnRN } from "react-native-worklets";
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
-import { MOTION_FADE_DURATION_MS } from "@/features/sessions/compositionMotion";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
@@ -43,9 +42,13 @@ import { useReduceMotion } from "@/shared/ui/useReduceMotion";
  * - repli : même mouvement en sens inverse, plus lent, 700 ms ;
  * - courbe douce aux deux bouts (celle du fondu de la Composition, `MOTION_FADE_EASING`).
  * « Réduire les animations » (iOS) : changement immédiat.
+ * [Remplacé par la contre-recette iPhone du 30/10 (constat b, Hermann : « Circuit : l'apparition et la
+ * disparition du circuit doivent se faire progressivement et plus lentement ») : déploiement 700 ms
+ * (450 auparavant), repli 900 ms (700 auparavant) — valeurs de conception, Figma muet. Le Circuit
+ * qui vient d'être posé apparaît en fondu à la durée du déploiement.]
  */
-export const CIRCUIT_REVEAL_DURATION_MS = MOTION_FADE_DURATION_MS;
-export const CIRCUIT_HIDE_DURATION_MS = 700;
+export const CIRCUIT_REVEAL_DURATION_MS = 700;
+export const CIRCUIT_HIDE_DURATION_MS = 900;
 const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
 /** Hauteur maximale « libre » hors animation (aucune contrainte sur le contenu). */
 const UNCONSTRAINED_HEIGHT = 100000;
@@ -261,6 +264,12 @@ export type CircuitHeaderProps = {
    */
   readonly translateY?: Animated.Value;
   /**
+   * Contre-recette du 30/10 (constat b) : apparition du contenu de l'en-tête au montage (Circuit qui
+   * vient d'être posé) ; sans effet ensuite. Porté par une vue intérieure : la mesure (`onLayout`) et
+   * la translation de l'en-tête sont inchangées.
+   */
+  readonly entering?: ComponentProps<typeof Reanimated.View>["entering"];
+  /**
    * PRE-6 story 5.2 : retrait du titre, depuis le bord gauche de l'en-tête, qui laisse la colonne
    * de l'anneau du rail (dessiné par l'écran) ; 0 par défaut.
    */
@@ -316,6 +325,7 @@ export function CircuitHeader({
   isAttenuated = false,
   isChoicePending = false,
   translateY,
+  entering,
   titleInset = 0,
   testID,
 }: CircuitHeaderProps) {
@@ -334,6 +344,7 @@ export function CircuitHeader({
       importantForAccessibility={isAttenuated ? "no-hide-descendants" : "auto"}
       testID={testID}
     >
+      <Reanimated.View entering={entering} testID={`${testID}-reveal`}>
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
         {/* ARB-12 : le nom et le chevron forment une seule cible réelle de 44 de haut. */}
         <Pressable
@@ -391,6 +402,7 @@ export function CircuitHeader({
           </Text>
         </Reanimated.View>
       ) : null}
+      </Reanimated.View>
     </Animated.View>
   );
 }
@@ -404,8 +416,12 @@ export function CircuitHeader({
  * (`marginTop`, de −`gap` à 0 : l'écart du Circuit entre l'en-tête et les cartes apparaît avec elles)
  * et opacité suivent la même progression, sur le fil UI. Découpe et contrainte de hauteur seulement
  * pendant l'animation : au repos, une carte soulevée ou glissée déborde librement.
+ *
+ * Contre-recette du 30/10 (obs-3) : `bottomOverlap` — réduction de la marge basse du Circuit quand
+ * ses cartes sont déployées (marge basse négative de la liste, de 0 à −`bottomOverlap`) ; repliées
+ * (liste démontée), la marge basse reste entière.
  */
-export function useCircuitCardsReveal(collapsed: boolean, gap: number) {
+export function useCircuitCardsReveal(collapsed: boolean, gap: number, bottomOverlap = 0) {
   const reduceMotion = useReduceMotion();
   const [mounted, setMounted] = useState(!collapsed);
   const [animating, setAnimating] = useState(false);
@@ -436,6 +452,7 @@ export function useCircuitCardsReveal(collapsed: boolean, gap: number) {
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
     marginTop: (progress.value - 1) * gap,
+    marginBottom: -progress.value * bottomOverlap,
     maxHeight:
       progress.value >= 1 || naturalHeight.value <= 0 ? UNCONSTRAINED_HEIGHT : progress.value * naturalHeight.value,
   }));

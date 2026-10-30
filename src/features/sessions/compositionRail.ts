@@ -42,6 +42,11 @@ export type RailGeometry = {
   readonly circuitGap: number;
   /** Marge verticale intérieure du Circuit (Figma : 14). */
   readonly circuitPadding: number;
+  /**
+   * Contre-recette du 30/10 (obs-3) : marge basse du Circuit sous sa dernière rangée — l'écart entre
+   * le bas du média et le bas d'une carte (8) ; sans rangée (Circuit replié), `circuitPadding`.
+   */
+  readonly circuitPaddingBottom: number;
   /** Ancre (haut du média) depuis le haut d'une carte (Figma : 8). */
   readonly rowEntry: number;
   /** Ancre (haut de l'anneau) depuis le haut de l'en-tête du Circuit : centré sur sa hauteur mesurée (Figma : 15 pour 40). */
@@ -159,7 +164,7 @@ export function resolveRailLinks(input: RailChainInput): ReadonlyMap<string, Rai
       case "circuitHeader":
         return g.sequenceGap + g.circuitPadding;
       case "circuitEnd":
-        return g.circuitPadding;
+        return input.inTour.length > 0 ? g.circuitPaddingBottom : g.circuitPadding;
       case "afterCircuit":
       case "end":
         return g.sequenceGap;

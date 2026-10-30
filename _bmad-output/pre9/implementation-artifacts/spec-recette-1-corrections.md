@@ -61,3 +61,14 @@ Résultats lus dans le cahier en ligne : OK r1-k, r1-stop, r1-circuit, r1-nature
 12. **Menu Créer** (B) : « Créer un nouveau mouvement » (libellé complété et confirmé par Hermann le 30/10).
 13. **Choisir un mouvement existant** (B) : mention « Dans la séance » sous le nom des Mouvements déjà présents (rendu choisi par Hermann le 30/10), carte de hauteur constante (une étape de description au lieu de deux) ; le Mouvement reste sélectionnable.
 14. **Durées des phases portées par le Mouvement** (B) : story A.2b, après B.3 (décision du 30/10) ; DSF Mouvements §2, MVT-09 et ch13 annotés.
+
+## Contre-recette n° 2 du 30/10/2026
+
+Résultats : OK r1-carte, r1-menu, r2-arret, r2-catal, r2-cycle, r2-cycle-anim, r2-existant, r2-exo, r2-menu, r2-params, r2-recherche, r2-seance (séance incomplète validée : au moins un Exercice à compléter) ; KO r1-fondu, obs-3 ; nouveaux constats a–c et demande sur le voile des filtres. Demandes recopiées au ch07, « Contre-recette PRE-9 n° 2 ».
+
+1. **Coin replié** (B) : « Dans la séance » remplacé par un coin replié bleu Kodjo (`colors.primary`) dans l'angle inférieur droit de la carte du Catalogue des Mouvements, en sélection pour une Séance : triangle de 18 à 45°, dans la boîte intérieure à la bordure (contour continu), arrondi intérieur 11,5 ; deux étapes de description rétablies ; VoiceOver annonce « dans la séance ».
+2. **obs-3, marges** (B) : marge basse d'un Circuit déplié (sous la dernière carte) et d'un Cycle (sous son dernier membre) = 8, écart gabarit photo → bord de la carte (`CONTAINER_PADDING_BOTTOM`) ; marges hautes 14 ; Circuit replié inchangé (validé r1-circuit) — à confirmer ; rail recalculé.
+3. **Circuit, apparition et disparition** (B) : un Circuit créé par « Confirmer le circuit » apparaît en 700 ms (fond, anneau, en-tête) ; dépliage 450 → 700 ms, repliage 700 → 900 ms (choix, sans maquette). Retrait d'un Circuit de la structure : instantané — À CLARIFIER : « disparition » = repliage (fait) ou retrait (non fait ; retrait de Circuit en structure générale : B.4/B.5).
+4. **Exercice directement dans un Cycle** (A, anomalie) : la rangée de la carte n'a plus de fond blanc rectangulaire (fond utile au balayage seulement, désactivé en structure générale jusqu'à B.5).
+5. **Fondu** (B) : choix de Hermann « Liste qui défile derrière » ; la zone de contexte passe au-dessus du corps (Catalogue : Mouvements et Séances ; Composition), le corps remonte de la part fondue (23) et sa liste défile derrière le dégradé ; position de repos inchangée ; touchers de la part fondue transmis aux cartes.
+6. **Voile des feuilles de filtres** (B) : le voile apparaît en fondu (600 ms, comme le menu Créer), la feuille seule monte du bas (300 ms, choix).

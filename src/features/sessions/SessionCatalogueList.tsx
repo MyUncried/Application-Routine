@@ -66,6 +66,7 @@ export function SessionCatalogueList({
   sessions,
   emptyMessage,
   resetToken = 0,
+  topInset,
   onOpenSession,
   onChanged,
 }: {
@@ -74,6 +75,8 @@ export function SessionCatalogueList({
   readonly emptyMessage: string | null;
   /** Retour au premier plan : aucune carte ne reste ouverte (comme le Catalogue des Mouvements). */
   readonly resetToken?: number;
+  /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
+  readonly topInset?: number;
   readonly onOpenSession: (sessionId: string) => void;
   /** Relecture du Catalogue après une action. */
   readonly onChanged?: () => void;
@@ -185,13 +188,13 @@ export function SessionCatalogueList({
   return (
     <View style={styles.container} testID="catalogue-session-list-frame">
       {actionFailed ? (
-        <Text style={styles.actionError} accessibilityLiveRegion="polite" testID="catalogue-session-action-error">
+        <Text style={[styles.actionError, topInset !== undefined ? { marginTop: topInset } : null]} accessibilityLiveRegion="polite" testID="catalogue-session-action-error">
           {tCard.actionError}
         </Text>
       ) : null}
       <SheetMotionProvider reduceMotion={reduceMotion}>
         <SheetMotionScrollView
-          contentContainerStyle={styles.list}
+          contentContainerStyle={topInset !== undefined ? [styles.list, { paddingTop: spacing[4] + topInset }] : styles.list}
           showsVerticalScrollIndicator={false}
           testID="catalogue-session-list"
         >

@@ -302,14 +302,16 @@ describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le
     // Aucun Mouvement créé ni modifié par la sélection.
     expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(4);
 
-    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque « Dans la séance » les
-    // Mouvements déjà présents ; ils restent sélectionnables.
+    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque d'un coin replié (annoncé
+    // « dans la séance ») les Mouvements déjà présents ; ils restent sélectionnables.
     await openMenuAction(addToSession.existingActivity);
     expect(await screen.findByTestId("movement-card-in-session-abdos")).toBeTruthy();
     expect(screen.getByTestId("movement-card-in-session-gainage")).toBeTruthy();
     expect(screen.queryByTestId("movement-card-in-session-fentes")).toBeNull();
+    expect(screen.queryByText("Dans la séance")).toBeNull();
     fireEvent.press(screen.getByTestId("movement-card-abdos"));
-    expect(screen.getByLabelText("Abdos").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByLabelText("Abdos, dans la séance").props.accessibilityState).toMatchObject({ selected: true });
+    expect(screen.getByLabelText("Fentes").props.accessibilityState).toMatchObject({ selected: false });
   }, 40000);
 
   it("Annuler revient à la Composition sans rien ajouter", async () => {

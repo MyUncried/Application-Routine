@@ -369,3 +369,80 @@ describe("contre-recette du 30/10 — cadre du Circuit et apparition du Cycle", 
     expect(screen.getByTestId(`${id}-header-reveal`, hidden).props.entering).toBeUndefined();
   });
 });
+
+/**
+ * Contre-recette iPhone du 30/10 (Hermann) — obs-3 : « Réduire la marge entre le bord bas du cadre
+ * d'un exercice et le bord du circuit ou d'un cycle ; le bord bas du cadre d'un circuit et le bord du
+ * cycle » (égale à celle entre le bas du gabarit photo et le cadre de la carte, 8) ; constat b :
+ * apparition progressive du Circuit posé ; constat c : carte directement dans un Cycle sans fond
+ * blanc rectangulaire.
+ */
+describe("contre-recette du 30/10 — marges basses, apparition du Circuit, carte dans un Cycle", () => {
+  const circuitIdOf = (exerciseId: string): string => {
+    const circuit = structureCircuits(probe.draft!.structure!).find((candidate) => candidate.exercises.includes(exerciseId));
+    if (circuit === undefined) throw new Error("Circuit absent");
+    return circuit.id;
+  };
+  const cycleId = (): string => {
+    const cycle = probe.draft!.structure!.elements.find((element) => element.kind === "CYCLE");
+    if (cycle?.kind !== "CYCLE") throw new Error("Cycle absent");
+    return cycle.cycle.id;
+  };
+
+  it("obs-3 — Circuit: bottom margin 8 under its cards (14 − 6), top margin 14; Cycle: 14 on top, 8 under its last member", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    // Circuit de l'ancien modèle : marge 14, la liste des cartes déployées en reprend 6.
+    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ paddingVertical: 14 });
+    expect(StyleSheet.flatten(screen.getByTestId("composition-zone-in-tour", hidden).props.style)).toMatchObject({ marginBottom: -6 });
+
+    await envelopeAround("CYCLE", "composition-envelope-circuit");
+    const cycle = `composition-layout-cycle-${cycleId()}`;
+    expect(StyleSheet.flatten(screen.getByTestId(cycle, hidden).props.style)).toMatchObject({ paddingTop: 14, paddingBottom: 8 });
+    // Circuit dans le Cycle : 8 sous ses cartes, puis 8 jusqu'au bord du Cycle.
+    const circuit = `composition-layout-circuit-${circuitIdOf("b")}`;
+    expect(StyleSheet.flatten(screen.getByTestId(circuit, hidden).props.style)).toMatchObject({ paddingVertical: 14 });
+    expect(StyleSheet.flatten(screen.getByTestId(`${circuit}-exercises`, hidden).props.style)).toMatchObject({ marginBottom: -6 });
+  });
+
+  it("constat b — the first Circuit posed by « Confirmer le circuit » fades in (surface, ring, header); not once saved and reopened", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    expect(screen.getByTestId("composition-tour-section-reveal", hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId("composition-sequence-marker-circuit-reveal", hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId("composition-circuit-header-reveal", hidden).props.entering).toBeTruthy();
+    // L'aplat (statique tant que le Circuit n'est pas mesuré) est dans la couche qui apparaît.
+    const layer = screen.getByTestId("composition-tour-section-reveal", hidden);
+    expect(StyleSheet.flatten(within(layer).getByTestId("composition-tour-section-static-surface", hidden).props.style)).toMatchObject({
+      backgroundColor: "#EBEDF5",
+      borderRadius: 18,
+    });
+
+    const saved = probe.draft!;
+    screen.unmount();
+    await renderComposition(saved);
+    expect(screen.getByTestId("composition-tour-section-reveal", hidden).props.entering).toBeUndefined();
+    expect(screen.getByTestId("composition-circuit-header-reveal", hidden).props.entering).toBeUndefined();
+  });
+
+  it("constat b — a second Circuit fades in; the Circuit already there does not", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-a");
+    const posed = `composition-layout-circuit-${circuitIdOf("a")}`;
+    const existing = `composition-layout-circuit-${circuitIdOf("b")}`;
+    expect(screen.getByTestId(`${posed}-surface`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${posed}-rail-ring-reveal`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${posed}-header-reveal`, hidden).props.entering).toBeTruthy();
+    expect(StyleSheet.flatten(screen.getByTestId(`${posed}-surface`, hidden).props.style)).toMatchObject({ backgroundColor: "#EBEDF5", borderRadius: 18 });
+    expect(screen.getByTestId(`${existing}-surface`, hidden).props.entering).toBeUndefined();
+    expect(screen.getByTestId(`${existing}-header-reveal`, hidden).props.entering).toBeUndefined();
+  });
+
+  it("constat c — an Exercise card directly in a Cycle: its row has no (square) white background, only the rounded card", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CYCLE", "composition-envelope-exercise-a");
+    const row = within(screen.getByTestId(`composition-layout-cycle-${cycleId()}`, hidden)).getByTestId("composition-activity-a", hidden);
+    expect(StyleSheet.flatten(row.props.style).backgroundColor).toBe("transparent");
+  });
+});
