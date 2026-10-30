@@ -8,15 +8,33 @@
 
 > **Clarification documentée du 29/10 :** le Format appartient exclusivement à l'Exercice ; la table des porteurs Exercice/Circuit de la révision 2 est supersédée. Les états replié/déplié réutilisent Figma (`10717:20056`, `10725:20142`).
 
+> **Extension de périmètre validée le 30/10/2026** : ajout de la story indépendante **CAT.1 — Zone de contexte des Catalogues Mouvements et Séances**, à engager **dès PRE-9**, sans dépendance à A.1/C.1 ni au moteur. **30 unités au total** : 25 stories de développement, 3 unités documentaires et 2 activités de qualification. Les décomptes historiques 29 ci-dessus concernent la révision 2 antérieure.
+
 ## Ordre recommandé
 
-`DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+`CAT.1` (immédiatement, indépendant) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
 
 Hors chemin critique : `Q.0` (activité distincte, à tout moment) ; `A.5` (conditionnelle, après `A.3`, seulement si ses conditions sont réunies).
 
 [Ordre du 28/10 : `DOC.0` → `Q.0` → `A.1` → (`B.1`, `D.1`, `C.1`) → … → `A.4` → `A.3` → `A.5` → `DOC.1` → `Q.1`. Modifié le 29/10 : Q.0 non bloquant ; D.1 après C.1 (segments des éléments formatés progressifs) ; A.5 conditionnelle.]
 
 Points de contrôle iPhone : après B.2 (structure éditable), après B.6 (Composition complète), après C.4 (premier Format complet), en fin de PRE-9 (passe ciblée).
+
+---
+
+## Epic CAT — Catalogues (extension PRE-9 indépendante)
+
+### CAT.1 — Zones de contexte des Catalogues Mouvements et Séances
+
+**Exécution dès PRE-9**, sans dépendance au moteur ni à la Composition de Séance. Décision fonctionnelle validée le 30/10/2026.
+
+**Spécification complète, source de vérité de développement :** [KODJO — Zones de contexte des Catalogues — PRE-9](../../../docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md), et **CE-CAT-CTX-01** (chapitre 13). Sources Figma `10266:20575`, `10465:23141`, `10495:24099`, `1992:9910`, `4549:6742`.
+
+**Livrer :** bande lilas y=92..207 à 402×874 ; compteurs à x24/y118 ; recherche x16/y155 de 216×44 pt (107×44 en filtré/archivé), placeholder « Rechercher » en 15 pt #7A7A80 ; Filtre/Tri/Créer visuels 34 pt à x260/306/352, y160, touchers 44×44 ; titre de page masqué ; deux compteurs filtrants et exclusifs « N familles · N mouvements » avec décompte des cartes affichées, sans compter les membres cachés ; « Un exercice N | Plusieurs N », bascule existante inchangée et nombres informatifs ; « N résultats » en filtré/archivé, bord droit x378, calcul live après recherche et filtres, singulier pour 1 seulement. Couleurs, graisses, espacement, sources de données et tous les états suivent la spécification complète.
+
+**Tests ciblés :** géométrie et cibles à 402×874 ; navigation et titres ; bascule/désélection mutuellement exclusive Mouvements ; non-régression des vues Séances ; valeurs dérivées des cartes réellement affichées (piles déployées/repliées, archives, 0 résultat, recherche croisée) ; calcul de « N résultats » et accords 0/1/2 ; cumul des critères et actions Filtre/Tri/Créer.
+
+**Livraison :** modifications applicatives ciblées et tests associés ; synchronisation de la documentation dans la même livraison, sans modifier Figma, sans recréer des données fixes de maquette ni modifier les règles de catalogues hors zone.
 
 ---
 
