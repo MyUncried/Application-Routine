@@ -48,7 +48,7 @@ Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** d
 | Entrée | Choix du sens | Destination |
 | --- | --- | --- |
 | Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
-| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Liste des mouvements proches en création de Mouvement : Ajouter un niveau | État `10415:21939`, « Mouvement — Niveau, plus facile ou plus difficile » ; **aucun bouton « Utiliser ce mouvement » dans la carte** ; choix Plus facile / Plus difficile présenté sur la quatrième ligne | Formulaire du nouveau niveau après choix du sens |
 | Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
 
 Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.
