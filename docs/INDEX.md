@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Résultats de recherche des Mouvements — PRE-9, 30/10/2026 :** [spécification finale](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01 au chapitre 13. Cartes Résultat avec « Ajouter un niveau » ; cartes Composition sans bouton et description tronquée ; regroupement des familles et choix de difficulté. Story CAT.2 immédiatement autorisée.
+
 > **Zones de contexte des Catalogues — décision du 30/10/2026, PRE-9 :** [spécification finale de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et CE-CAT-CTX-01 au chapitre 13. Mouvements : compteurs familles/mouvements exclusifs et cumul avec recherche/filtres ; Séances : compteurs informatifs Un exercice/Plusieurs, bascule préservée ; « N résultats » sur filtres/archives. Cible Figma 402 × 874 pt ; story CAT.1 immédiatement réalisable dans PRE-9.
 
 > **Composition actualisée — 28/10/2026 :** [référence consolidée](KODJO-Composition-conteneurs-2026-10-28.md), [analyse critique et réserves](REVUE-COMPOSITION-2026-10-28.md). D-451 : cycles visibles avec exercices directs et multi-circuit dans le MVP ; création par enveloppe, séries groupées/alternées, zéro intentionnel, en-têtes et défilement. Les maquettes de composition ont été vérifiées ; réalisation non qualifiée.
