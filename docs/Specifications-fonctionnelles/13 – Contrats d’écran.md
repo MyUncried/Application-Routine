@@ -168,7 +168,7 @@ Carte fermée ; actions glissées ; choix du sens déployé ; formulaire après 
 
 ### 12. Contrôles et interactions
 
-Ajouter un niveau déploie en place. Plus facile prépare une insertion avant l'origine dans l'ordre de difficulté ; Plus difficile prépare une insertion après. Le choix ne persiste rien : validation du formulaire requise. Depuis les mouvements proches, Ajouter un niveau conserve `10415:21939` et le choix entre utiliser le mouvement et en dériver un nouveau.
+Ajouter un niveau déploie en place. Plus facile prépare une insertion avant l'origine dans l'ordre de difficulté ; Plus difficile prépare une insertion après. Le choix ne persiste rien : validation du formulaire requise. Depuis les mouvements proches, « Ajouter un niveau » conduit à l'état `10415:21939` pour choisir « Plus facile » ou « Plus difficile » avant la création d'un nouveau Mouvement. La carte Résultat n'offre pas « Utiliser ce mouvement » (CE-MVT-RESULT-01 ; ancienne présentation du 27/10 supersédée).
 
 ### 13. Gestes
 
