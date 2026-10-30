@@ -480,7 +480,7 @@ Contenu identique à la section [« Saisie des paramètres d’exécution »](10
 | Intervalles 30/30 | Compte réglable, jamais durée globale saisie | Occurrences de 30 s + 30 s |
 | EMOM | Organisation réglable ; compte et fenêtre réglables | N passages de chaque exercice ; durée N × E × W |
 | AMRAP | Répétition jusqu’à la durée imposée | Tours réalisés, nombre non fixé au départ |
-| For time | Travail prescrit jusqu’à son accomplissement ; pas de choix d’organisation | Volume par tour, pas séries locales successives |
+| For time | Travail prescrit jusqu’à son accomplissement ; organisation « Par exercice / En alternance » avec plusieurs Exercices | Volume par passage du Circuit ; aucune conversion en Séries propres aux Exercices |
 | Death by | Fenêtres cadencées à objectif croissant ; arrêt déclaré | Rang par horloge ; tour acquis par objectif confirmé |
 | Départs rapides | Valeurs préremplies, librement modifiables | Progression : répétitions par série, y compris en alternance |
 
