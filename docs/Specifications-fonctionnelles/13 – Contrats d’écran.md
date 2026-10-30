@@ -2504,7 +2504,7 @@ REC-02, 04–05, 09–11, 14, 16–18, 28 ; vérifier même volume avant/après 
 
 Famille des compositions préremplies ; notamment Tabata 8747:14320, EMOM 8795:14449, Progression 8795:14681. Complète CE-T03-08.
 
-Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT-07, RM-FMT-12, RM-FMT-16, RM-FMT-18, RM-FMT-22, RM-FMT-29, RM-FMT-40, RM-FMT-41, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT-07, RM-FMT-12, RM-FMT-16, RM-FMT-18, RM-FMT-22, RM-FMT-29, RM-FMT-31, RM-FMT-40, RM-FMT-41, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
