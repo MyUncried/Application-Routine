@@ -425,16 +425,40 @@ describe("Recette A/B B.10 — fiche Mouvement", () => {
     expect(screen.getByTestId("movement-phases-invite", anyNode)).toBeTruthy();
   });
 
-  it("remarque 6 : cartes de résultat « Ajouter un niveau » et « Ouvrir ce mouvement »", async () => {
+  // PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 : « À partir du catalogue des
+  // mouvements, cette option n'est pas utile, seul la création d'un niveau est une action
+  // pertinente » [remplace « Ouvrir ce mouvement » de la remarque 6].
+  it("CAT.2 : carte Résultat — « Ajouter un niveau » seul ; aucune action « Ouvrir / Utiliser ce mouvement », le toucher de la carte n'ouvre rien", async () => {
     await movements().create(movement("squat", "Squats"));
     await renderSheet();
     await type("exercise-name-input", "Squats");
     const card = screen.getByTestId("movement-suggestion-result-squat", anyNode);
-    expect(within(card).getByText(t.suggestion.createVariant, anyNode)).toBeTruthy();
-    expect(within(card).getByText(t.suggestion.useMovement, anyNode)).toBeTruthy();
-    expect(screen.getByTestId("movement-suggestion-result-squat-use", anyNode).props.accessibilityLabel).toBe("Ouvrir ce mouvement, Squats");
-    await press("movement-suggestion-result-squat-use");
-    expect(mockReplace).toHaveBeenCalledWith({ pathname: "/movement", params: { movementId: "squat" } });
+    expect(screen.getByTestId("movement-suggestion-result-squat-variant", anyNode).props.accessibilityLabel).toBe("Ajouter un niveau, Squats");
+    expect(within(card).getByText("Ajouter\nun niveau", anyNode)).toBeTruthy();
+    expect(within(card).queryByText(t.suggestion.useMovement, anyNode)).toBeNull();
+    expect(within(card).queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-squat-use", anyNode)).toBeNull();
+    fireEvent.press(screen.getByTestId("movement-suggestion-result-squat-summary", anyNode));
+    expect(mockReplace).not.toHaveBeenCalled();
+    // Nom déjà utilisé : message affiché, Terminer indisponible, le brouillon reste ouvert.
+    expect(screen.getByTestId("movement-suggestion-message", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-finish-action", anyNode).props.accessibilityState).toMatchObject({ disabled: true });
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squats");
+  });
+
+  it("CAT.2 : « Ajouter un niveau » déplie la carte (Plus facile | Plus difficile), puis le choix ouvre le nouveau Niveau sans rien créer", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    await press("movement-suggestion-result-squat-variant");
+    expect(screen.getByTestId("movement-suggestion-back", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-squat-options", anyNode)).toBeTruthy();
+    expect(screen.getByTestId("movement-suggestion-result-squat-options-separator", anyNode)).toBeTruthy();
+    expect(screen.queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    await press("movement-suggestion-result-squat-easier");
+    expect(screen.queryByTestId("movement-suggestion-panel", anyNode)).toBeNull();
+    expect(screen.getByText(strings.screens.activities.editor.movementSuggestion.completeNameHint, anyNode)).toBeTruthy();
+    expect(await count("movements")).toBe(1);
   });
 
   it("remarque 7 : nouveau niveau — recherche de mouvement similaire et blocage du nom déjà utilisé", async () => {
@@ -735,5 +759,70 @@ describe("Recette iPhone du 29/10/2026 — recherche automatique de la création
     expect(screen.getByTestId("movement-suggestion-message", anyNode)).toHaveTextContent("Un mouvement archivé porte déjà ce nom.");
     expect(screen.getByTestId("movement-suggestion-result-squats", anyNode)).toBeTruthy();
     expect(screen.queryByTestId("movement-suggestion-result-squat-old", anyNode)).toBeNull();
+  });
+});
+
+/**
+ * PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 (« CAT.2 - Utiliser ce mouvement
+ * n'est plus utile sur la carte de résultat de recherche dans la composition de séance, l'utilisateur
+ * doit simplement appuyer sur la carte pour l'utiliser. Et À partir du catalogue des mouvements, cette
+ * option n'est pas utile, seul la création d'un niveau est une action pertinente. »).
+ */
+describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)", () => {
+  it("Séance (`context=session`) : cartes Composition sans bouton ; le toucher de la carte utilise le Mouvement existant, sans doublon", async () => {
+    await movements().create(movement("squats", "Squats"));
+    await renderSheet({ context: "session" });
+    await type("exercise-name-input", "Squats");
+    const card = screen.getByTestId("movement-suggestion-result-squats", anyNode);
+    expect(card.props.accessibilityRole).toBe("button");
+    expect(card.props.accessibilityHint).toBe(strings.screens.activities.editor.movementSuggestion.useMovement);
+    expect(screen.queryByTestId("movement-suggestion-result-squats-variant", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-squats-use", anyNode)).toBeNull();
+    expect(screen.queryByText("Utiliser ce mouvement", anyNode)).toBeNull();
+    await press("movement-suggestion-result-squats");
+    expect(mockBack).toHaveBeenCalled();
+    expect(await count("movements")).toBe(1);
+  });
+
+  it("Catalogue : filet de famille sur les cartes consécutives d'une même famille ; classement inchangé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await movements().createVariant(movement("assist", "Squats assistés"), "squat", "BEFORE_ORIGIN");
+    await movements().create(movement("bulgare", "Squats bulgares"));
+    await renderSheet();
+    await type("exercise-name-input", "Squats");
+    const order = screen
+      .getAllByTestId(/^movement-suggestion-result-.+-slot$/, anyNode)
+      .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-slot$/, "$1"));
+    // Nom identique, puis débuts de mot par ordre alphabétique (D-448) : la famille est consécutive.
+    expect(order).toEqual(["squat", "assist", "bulgare"]);
+    expect(screen.getAllByTestId(/^movement-suggestion-family-rail-/, anyNode).map((node) => node.props.testID)).toEqual([
+      "movement-suggestion-family-rail-squat",
+    ]);
+    expect(screen.getByTestId("movement-suggestion-result-squat-level", anyNode).props.children).toBe("Niveau 2");
+    expect(screen.getByTestId("movement-suggestion-result-assist-level", anyNode).props.children).toBe("Niveau 1");
+  });
+
+  it("Catalogue, étape « Niveau » : la fin de saisie la conserve, « Retour » revient à la liste ; une vraie modification du nom revient à la liste ; rien n'est créé", async () => {
+    await movements().create(movement("squat", "Squats"));
+    await renderSheet();
+    await type("exercise-name-input", "Squ");
+    await press("movement-suggestion-result-squat-variant");
+    fireEvent(screen.getByTestId("exercise-name-input", anyNode), "endEditing", { nativeEvent: { text: "Squ" } });
+    await settle(10);
+    expect(screen.getByTestId("movement-suggestion-result-squat-options", anyNode)).toBeTruthy();
+    await press("movement-suggestion-back");
+    expect(screen.queryByTestId("movement-suggestion-result-squat-options", anyNode)).toBeNull();
+    await type("exercise-name-input", "Squa");
+    await press("movement-suggestion-result-squat-variant");
+    expect(screen.getByTestId("movement-suggestion-back", anyNode)).toBeTruthy();
+    await type("exercise-name-input", "Squat");
+    expect(screen.queryByTestId("movement-suggestion-back", anyNode)).toBeNull();
+    expect(screen.getByTestId("movement-suggestion-result-squat", anyNode)).toBeTruthy();
+    await press("movement-suggestion-result-squat-variant");
+    await press("movement-suggestion-result-squat-harder");
+    expect(screen.getByTestId("exercise-name-input", anyNode).props.value).toBe("Squat");
+    expect(screen.getByText(strings.screens.activities.editor.movementSuggestion.completeNameHint, anyNode)).toBeTruthy();
+    expect(await count("movements")).toBe(1);
+    expect(mockBack).not.toHaveBeenCalled();
   });
 });

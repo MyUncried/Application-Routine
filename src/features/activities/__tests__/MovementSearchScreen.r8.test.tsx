@@ -72,13 +72,29 @@ describe("PRE-7 R-8 — MovementSearchScreen (sans point d'entrée)", () => {
     expect(resultIds()).toEqual(["squats", "sautes-haut", "sautes-bas", "genou"]);
   });
 
-  it("« Utiliser ce mouvement » transmet le mouvement choisi ; ✕ ferme sans choix", () => {
+  it("PRE-9 CAT.2 — cartes Résultat (création de Mouvement) : aucune action de réutilisation ; ✕ ferme sans choix", () => {
     const props = renderScreen("mobil");
     expect(resultIds()).toEqual(["genou"]);
-    fireEvent.press(screen.getByTestId("movement-search-result-genou-use"));
-    expect(props.onUse).toHaveBeenCalledWith(CHOICES[3]);
+    expect(screen.queryByTestId("movement-search-result-genou-use")).toBeNull();
+    expect(screen.queryByText("Utiliser ce mouvement")).toBeNull();
+    fireEvent.press(screen.getByTestId("movement-search-result-genou-summary"));
+    expect(props.onUse).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("movement-search-result-genou-variant"));
+    fireEvent.press(screen.getByTestId("movement-search-result-genou-harder"));
+    expect(props.onChooseVariant).toHaveBeenCalledWith(CHOICES[3], "AFTER_ORIGIN");
     fireEvent.press(screen.getAllByLabelText(t.closeAccessibilityLabel).at(-1)!);
     expect(props.onClose).toHaveBeenCalled();
-    expect(props.onChooseVariant).not.toHaveBeenCalled();
+  });
+
+  it("PRE-9 CAT.2 — cartes Composition (sans « Ajouter un niveau ») : le toucher de la carte transmet le mouvement choisi", () => {
+    const onUse = jest.fn();
+    render(
+      <TestSafeAreaProvider>
+        <MovementSearchScreen choices={CHOICES} initialQuery="mobil" onUse={onUse} onClose={jest.fn()} />
+      </TestSafeAreaProvider>,
+    );
+    expect(screen.queryByTestId("movement-search-result-genou-variant")).toBeNull();
+    fireEvent.press(screen.getByTestId("movement-search-result-genou"));
+    expect(onUse).toHaveBeenCalledWith(CHOICES[3]);
   });
 });

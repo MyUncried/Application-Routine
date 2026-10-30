@@ -1223,3 +1223,12 @@ Demandes explicites de Hermann (cahier de recette PRE-9 n° 1, contre-recette n�
 - **Marges des conteneurs (obs-3).** « Réduire la marge entre le bord bas du cadre d'un exercice et le bord du circuit ou d'un cycle, le bord bas du cadre d'un circuit et le bord du cycle. Cette marge doit être égale à celle entre le bord bas du gabarit photo et le cadre d'un exercice. »
 - **Zone de contexte (D-356, D-224).** Dégradé vers la transparence : choix de Hermann du 30/10, « Liste qui défile derrière » — la liste du Catalogue et de la Composition défile derrière la part fondue de la zone de contexte (comme la photo sous la zone de contexte de la fiche Mouvement).
 - **Feuilles de filtres des Catalogues.** « activation du filtre dans le catalogue des mouvements et des séances, le voile grisé doit apparaître en fondu progressif et non pas de bas en haut avec la modale. Prendre l'exemple de l'apparition du voile à l'activation du bouton Créer dans la composition de séance. »
+
+## CAT.2 — reprise d'un Mouvement existant — décision de Hermann du 30/10/2026
+
+Classe B (story CAT.2, spécification `docs/KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md` et CE-MVT-RESULT-01 sur la branche `docs/pre9-resultats-mouvements-20261030` @ `af2e64a4`, non fusionnée). Texte de Hermann :
+
+« CAT.2 - Utiliser ce mouvement n'est plus utile sur la carte de résultat de recherche dans la composition de séance, l'utilisateur doit simplement appuyer sur la carte pour l'utiliser. Et À partir du catalogue des mouvements, cette option n'est pas utile, seul la création d'un niveau est une action pertinente. »
+
+- Composition de Séance : toucher la carte « Mouvement — Composition » reprend le Mouvement existant (effet de l'ancien « Utiliser ce mouvement ») ; la carte n'a aucun bouton.
+- Catalogue des Mouvements : la carte « Mouvement — Résultat » ne propose que « Ajouter un niveau » ; aucune reprise.

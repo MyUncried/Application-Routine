@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
+import { act, fireEvent, render, screen } from "@testing-library/react-native";
 
 import type { CreateActivityDefinitionInput } from "@/domain/activities/ActivityDefinition";
 import type { ExecutionParameters, WorkPhase } from "@/domain/activities/ExecutionParameters";
@@ -65,8 +65,6 @@ const CARDIO: Category = {
   createdAt: "2026-01-01T00:00:00.000Z",
 };
 const editor = strings.screens.activities.editor;
-const panelText = editor.movementSuggestion;
-const anyNode = { includeHiddenElements: true } as const;
 
 let database: NodeSqliteDatabase;
 let sequence = 0;
@@ -198,8 +196,8 @@ async function press(testID: string) {
 /** Mouvements des cartes du panneau, dans l'ordre affiché. */
 const resultIds = () =>
   screen
-    .queryAllByTestId(/^movement-suggestion-result-.+-summary$/)
-    .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-summary$/, "$1"));
+    .queryAllByTestId(/^movement-suggestion-result-.+-slot$/)
+    .map((node) => String(node.props.testID).replace(/^movement-suggestion-result-(.+)-slot$/, "$1"));
 
 /** Fin de saisie telle que le clavier iOS l'émet : `endEditing`, puis `changeText` du même texte. */
 async function keyboardDismissedSameText() {
@@ -208,9 +206,6 @@ async function keyboardDismissedSameText() {
   fireEvent.changeText(nameInput(), text);
   await settle(10);
 }
-
-const hintShown = () =>
-  within(screen.getByTestId("exercise-name-hint", anyNode)).getByText(` ${panelText.completeNameHint}`, anyNode) !== null;
 
 describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
   it("Catalogue avec Squats et Squats sautés bas : « Squ » ouvre le panneau avec ces deux cartes", async () => {
@@ -268,80 +263,30 @@ describe("PRE-7 R-8 — lien de recherche retiré (D-448 point 2)", () => {
   });
 });
 
-describe("PRE-7 R-8 — variante et fin de saisie (cr-8)", () => {
-  it("étape de variante, fin de saisie, puis « Retour » : panneau fermé", async () => {
+// PRE-9 CAT.2 (CE-MVT-RESULT-01) : la carte Composition de l'éditeur d'Exercice n'a aucun bouton
+// [remplace « Créer une variante » du panneau, R-5 C02] ; l'étape de variante et la fin de saisie
+// (cr-8) sont vérifiées sur la fiche Mouvement (`MovementScreen.b2.integration.test.tsx`, CAT.2).
+describe("PRE-9 CAT.2 — éditeur d'Exercice : cartes Composition, fin de saisie", () => {
+  it("Catalogue et Séance : aucune étape de variante ; fin de saisie : panneau fermé, nom conservé ; la frappe le rouvre", async () => {
     const squats = await catalogueSquats();
     await renderEditor({ catalogueDefinitionId: "new" });
     await typeName("Squ");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await endNameEditing();
-    expect(screen.getByTestId("movement-suggestion-back")).toBeTruthy();
-    await press("movement-suggestion-back");
-    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
-  });
-
-  it("étape de variante : une modification réelle du nom revient à la liste", async () => {
-    const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squ");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    expect(screen.getByTestId("movement-suggestion-back")).toBeTruthy();
-    await typeName("Squa");
-    expect(screen.queryByTestId("movement-suggestion-back")).toBeNull();
     expect(resultIds()).toEqual([squats.movementId]);
-    expect(screen.getByTestId(`movement-suggestion-result-${squats.movementId}-use`)).toBeTruthy();
-  });
-
-  it("Catalogue : Créer une variante, fin de saisie et même texte, puis Plus facile → nom « Squats » conservé, invite affichée", async () => {
-    const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
+    expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-variant`)).toBeNull();
     await keyboardDismissedSameText();
-    expect(screen.getByTestId("movement-suggestion-back")).toBeTruthy();
-    await press(`movement-suggestion-result-${squats.movementId}-easier`);
-
-    expect(nameInput().props.value).toBe("Squats");
-    expect(hintShown()).toBe(true);
-    // Le clavier se ferme encore une fois : l'invite reste ; seule une vraie modification la masque.
-    await keyboardDismissedSameText();
-    expect(nameInput().props.value).toBe("Squats");
-    expect(hintShown()).toBe(true);
-    await typeName("Squats assistés");
-    expect(screen.queryByTestId("exercise-name-hint", anyNode)).toBeNull();
-    expect(nameInput().props.value).toBe("Squats assistés");
-  });
-
-  it("Catalogue, nom sans conflit : fin de saisie pendant le toucher de « Créer une variante », puis de nouveau → étape ouverte, Plus difficile", async () => {
-    const squats = await catalogueSquats();
-    await renderEditor({ catalogueDefinitionId: "new" });
-    await typeName("Squ");
-    // Le doigt se pose sur le panneau, le clavier se ferme (fin de saisie), puis l'appui aboutit.
-    fireEvent(screen.getByTestId("movement-suggestion-panel"), "touchStart");
-    await endNameEditing();
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    fireEvent(screen.getByTestId("movement-suggestion-panel"), "touchEnd");
-    await settle(10);
-    expect(screen.getByTestId("movement-suggestion-back")).toBeTruthy();
-    await keyboardDismissedSameText();
-    await press(`movement-suggestion-result-${squats.movementId}-harder`);
+    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
     expect(nameInput().props.value).toBe("Squ");
-    expect(hintShown()).toBe(true);
-    expect(screen.getByTestId("activity-editor-level-label", anyNode).props.children).toBe("Niveau 2");
-  });
+    await typeName("Squa");
+    expect(resultIds()).toEqual([squats.movementId]);
+    screen.unmount();
 
-  it("Séance : même parcours, nom conservé et invite affichée", async () => {
-    const squats = await catalogueSquats();
     await renderEditor({});
     await typeName("Squats");
-    await press(`movement-suggestion-result-${squats.movementId}-variant`);
-    await keyboardDismissedSameText();
-    await press(`movement-suggestion-result-${squats.movementId}-easier`);
+    expect(screen.queryByTestId(`movement-suggestion-result-${squats.movementId}-variant`)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-back")).toBeNull();
+    // Toucher de la carte (décision du 30/10/2026) : le Mouvement est repris, le panneau se ferme.
+    await press(`movement-suggestion-result-${squats.movementId}`);
     expect(nameInput().props.value).toBe("Squats");
-    expect(hintShown()).toBe(true);
-    await keyboardDismissedSameText();
-    expect(hintShown()).toBe(true);
-    await typeName("Squats sumo");
-    expect(screen.queryByTestId("exercise-name-hint", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
   });
 });

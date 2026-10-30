@@ -19,7 +19,7 @@ import {
   type ActivityEditorFormValue,
   type EditorCategory,
 } from "@/features/activities/ActivityEditorForm";
-import type { MovementLevels } from "@/features/activities/ActivityDefinitionService";
+import type { MovementChoice, MovementLevels } from "@/features/activities/ActivityDefinitionService";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import type { EditorLevel } from "@/features/activities/MovementLevelMenu";
 import { MovementLevelsScreen } from "@/features/activities/MovementLevelsScreen";
@@ -50,8 +50,9 @@ import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
  * feuilles de Catégorie et de Zones, menu de Niveau, réordonnancement des niveaux existant,
  * dialogue C03 (`MovementSaveDialog`), garde d'abandon, import de médias.
  *
- * - Création : formulaire vierge, pastille « Niveau ». « Utiliser ce mouvement » ouvre la fiche
- *   existante en consultation (aucun doublon) ; « Créer une variante » reprend seulement
+ * - Création : formulaire vierge, pastille « Niveau ». PRE-9 CAT.2 : cartes Résultat, sans action de
+ *   réutilisation [remplace « Ouvrir ce mouvement », décision de Hermann du 30/10/2026] ; « Ajouter
+ *   un niveau » reprend seulement
  *   Catégorie, Zones et nom commencé, avec l'invite « (compléter le nom) ».
  * - Variante (route `variantOf` + `placement`, ou choix du panneau) : nouvelle identité, insérée
  *   avant (plus facile) ou après (plus difficile) son origine ; aucune seconde confirmation.
@@ -212,7 +213,8 @@ export function MovementSheet({
   /**
    * PRE-9 A.2 (ARB-22a, CE-MVT-01 §3-§4) : création depuis une Séance. Terminer enregistre le
    * Mouvement puis le rend à l'appelant (« revient au contexte appelant avec l'identité
-   * enregistrée ») ; « Utiliser ce mouvement » rend le Mouvement existant, sans doublon ni fiche
+   * enregistrée ») ; le toucher d'une carte Composition (PRE-9 CAT.2, ancien « Utiliser ce
+   * mouvement ») rend le Mouvement existant, sans doublon ni fiche
    * ouverte (son contenu reste en lecture seule dans la Séance) ; « La création de variante depuis
    * une séance reste exclue » : l'action « Créer une variante » n'est pas proposée. Absent :
    * comportement du Catalogue des Mouvements, inchangé.
@@ -334,19 +336,23 @@ export function MovementSheet({
       messageHidden: nameHintVisible,
     },
     context: searchContext,
-    // Recette A/B B.10 (remarque 6) : « Ajouter un niveau » / « Ouvrir ce mouvement ».
-    // PRE-9 A.2 : depuis une Séance, libellés de l'éditeur d'Exercice (« Utiliser ce mouvement »).
+    // PRE-9 CAT.2 (CE-MVT-RESULT-01) et décision de Hermann du 30/10/2026 : « Utiliser ce mouvement
+    // n'est plus utile sur la carte de résultat de recherche dans la composition de séance,
+    // l'utilisateur doit simplement appuyer sur la carte pour l'utiliser. Et À partir du catalogue
+    // des mouvements, cette option n'est pas utile, seul la création d'un niveau est une action
+    // pertinente. » — Catalogue : carte Résultat, « Ajouter un niveau » seul [remplace « Ouvrir ce
+    // mouvement », recette A/B B.10 remarque 6] ; Séance : carte Composition, toucher = utiliser.
+    cardVariant: onMovementChosen !== undefined ? "composition" : "result",
     ...(onMovementChosen === undefined ? { actionLabels: t.suggestion } : {}),
-    onSameMovement: (choice) => {
-      if (onMovementChosen !== undefined) {
-        // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon.
-        onMovementChosen(choice.movement);
-        setIsDone(true);
-        return;
-      }
-      // « Ouvrir ce mouvement » : la fiche existante, en consultation ; aucun duplicata.
-      router.replace({ pathname: "/movement", params: { movementId: choice.movement.id } });
-    },
+    ...(onMovementChosen !== undefined
+      ? {
+          onSameMovement: (choice: MovementChoice) => {
+            // PRE-9 A.2 : le Mouvement existant devient l'Exercice de la Séance ; aucun doublon.
+            onMovementChosen(choice.movement);
+            setIsDone(true);
+          },
+        }
+      : {}),
     onVariant: onMovementChosen !== undefined ? undefined : (choice, placement) => {
       setSaveError(false);
       setVariant({ originId: choice.movement.id, placement, position: variantLevelPosition(choice.level, placement) });

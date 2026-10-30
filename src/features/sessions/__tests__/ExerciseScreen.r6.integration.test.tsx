@@ -491,7 +491,8 @@ describe("PRE-7 R-6 — revue : compléments de vérification", () => {
     await renderEditor({});
     fireEvent.changeText(nameInput(), "Squats sauté");
     await settle(10);
-    await press(`movement-suggestion-result-${jumps.movementId}-use`);
+    // PRE-9 CAT.2 : toucher de la carte Composition (ancien « Utiliser ce mouvement »).
+    await press(`movement-suggestion-result-${jumps.movementId}`);
     await settle(20);
     fillParameters(["7", "2", "4"]);
     expect(pastilleLabel()).toBe("Niveau 3");

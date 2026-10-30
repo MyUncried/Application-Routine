@@ -404,15 +404,6 @@ export function EditMovementAction({ onPress, active = false }: { onPress: () =>
 }
 
 /**
- * PRE-7 (R-5, D-445 C02, v7 l.37, MFN-07 l.373) : contenu d'une variante — description et médias
- * VIERGES (aucune reprise de l'origine), Zones reprises de l'origine si aucune n'est choisie ; le
- * nom commencé est conservé. Aucune sélection n'écrase silencieusement une information déjà saisie.
- */
-function withVariantContent(value: ActivityEditorFormValue, originBodyZoneIds: readonly string[]): ActivityEditorFormValue {
-  return { ...value, bodyZoneIds: value.bodyZoneIds.length === 0 ? [...originBodyZoneIds] : value.bodyZoneIds };
-}
-
-/**
  * PRE-7 (A3.1, D-439, MFN-05, MFN-07, MFN-10) : modèle de la pastille de Niveau de la fiche — rang
  * dérivé, et popover (niveaux du groupe, Exercices distingués par le résumé de leurs paramètres).
  * Lecture en échec : pastille vide, sans popover.
@@ -726,6 +717,12 @@ function CatalogueActivityEditorScreen({
       suspended: contentLocked,
       messageHidden: nameHintVisible,
     },
+    // PRE-9 CAT.2 (CE-MVT-RESULT-01) : création d'un Exercice — cartes Composition, sans bouton ;
+    // décision de Hermann du 30/10/2026 : « l'utilisateur doit simplement appuyer sur la carte pour
+    // l'utiliser ». La carte Composition ne porte jamais « Ajouter un niveau » [remplace « Créer une
+    // variante » du panneau de l'éditeur d'Exercice, R-5] : les autres accès au nouveau Niveau
+    // (menu Niveau, paramètres de route) sont inchangés.
+    cardVariant: "composition",
     context: searchContext,
     onSameMovement: (choice) => {
       // Reprise du geste RÉELLEMENT choisi : contenu en lecture seule + crayon (A2.2), Profil
@@ -739,16 +736,6 @@ function CatalogueActivityEditorScreen({
       setProfileApplied(false);
       setLoadState("loading");
       setRepriseMovementId(choice.movement.id);
-    },
-    onVariant: (choice, placement) => {
-      setSaveError(false);
-      setVariantOrigin({ movementId: choice.movement.id, joinOriginGroup: true, placement });
-      setValue((current) => (current ? withVariantContent(current, choice.movement.bodyZoneIds) : current));
-      // MFN-05 l.375, MFN/AC33 : Catégorie reprise de l'origine, puis librement modifiable.
-      setCategoryId((current) => current ?? choice.movement.categoryId);
-      setNameHintVisible(true);
-      // C06 : pastille « Niveau N » de la variante, rang prévu dérivé de celui de l'origine.
-      setVariantLevel({ position: variantLevelPosition(choice.level, placement), menu: null });
     },
   });
 
@@ -1520,7 +1507,9 @@ function CompositionExerciseEditor() {
   // choisi (contenu verrouillé, MFN-09) ; variante (R-5, C02) : création LOCALE (Mouvement `NEW`
   // créé à l'enregistrement de la Séance, rattaché avant / après l'origine), description et médias
   // vierges. Rien n'est publié au Catalogue ; « Continuer » seul persiste.
-  const [variantOrigin, setVariantOrigin] = useState<MovementLevelOrigin | null>(null);
+  // PRE-9 CAT.2 : la carte Composition ne propose plus « Créer une variante » (seul accès à cette
+  // variante LOCALE) ; l'état reste lu par l'enregistrement (`levelOrigin`), toujours `null` ici.
+  const [variantOrigin] = useState<MovementLevelOrigin | null>(null);
   const [nameHintVisible, setNameHintVisible] = useState(false);
   // PRE-7 (R-8, cr-8) : dernier nom connu, comparé par `patchLocal` (synchronisé après chaque rendu).
   const nameRef = useRef<string | undefined>(undefined);
@@ -1576,6 +1565,12 @@ function CompositionExerciseEditor() {
       suspended: movementLocked || repriseLocked,
       messageHidden: nameHintVisible,
     },
+    // PRE-9 CAT.2 (CE-MVT-RESULT-01) : création d'un Exercice — cartes Composition, sans bouton ;
+    // décision de Hermann du 30/10/2026 : « l'utilisateur doit simplement appuyer sur la carte pour
+    // l'utiliser ». La carte Composition ne porte jamais « Ajouter un niveau » [remplace « Créer une
+    // variante » du panneau de l'éditeur d'Exercice, R-5] : les autres accès au nouveau Niveau
+    // (menu Niveau, paramètres de route) sont inchangés.
+    cardVariant: "composition",
     context: searchContext,
     onSameMovement: ({ movement }) => {
       setInstructionSteps(decodeInstructionSteps(movement.description));
@@ -1590,20 +1585,6 @@ function CompositionExerciseEditor() {
               media: [...movement.media],
               executionParameters: repriseExecutionParameters(movement, current.executionParameters),
               sourceMovementId: movement.id,
-            }
-          : current,
-      );
-    },
-    onVariant: ({ movement }, placement) => {
-      // C02 : description et médias vierges ; Catégorie et Zones reprises si vides ; nom conservé.
-      setVariantOrigin({ movementId: movement.id, placement });
-      setNameHintVisible(true);
-      setLocal((current) =>
-        current
-          ? {
-              ...current,
-              bodyZoneIds: current.bodyZoneIds.length === 0 ? [...movement.bodyZoneIds] : current.bodyZoneIds,
-              categoryId: current.categoryId ?? movement.categoryId,
             }
           : current,
       );

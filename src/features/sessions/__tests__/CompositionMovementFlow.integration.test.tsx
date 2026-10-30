@@ -216,7 +216,9 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
   }, 40000);
 
-  it("depuis une Séance, « Utiliser ce mouvement » reprend le Mouvement existant (aucun doublon) ; « Créer une variante » n'est pas proposé ; ARB-07 : après le dernier Exercice", async () => {
+  // PRE-9 CAT.2 et décision de Hermann du 30/10/2026 : « l'utilisateur doit simplement appuyer sur
+  // la carte pour l'utiliser » — carte Composition, sans bouton.
+  it("depuis une Séance, le toucher de la carte Composition reprend le Mouvement existant (aucun doublon) ; aucun bouton ; ARB-07 : après le dernier Exercice", async () => {
     await movements().create(movement("pompes", "Pompes"));
     await movements().create(movement("squats", "Squats"));
     const router = renderApp();
@@ -234,10 +236,13 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Pompes");
     await settle();
     const result = await screen.findByTestId("movement-suggestion-result-pompes");
-    expect(within(result).queryByTestId("movement-suggestion-result-pompes-variant")).toBeNull();
-    expect(within(result).getByText(strings.screens.activities.editor.movementSuggestion.useMovement)).toBeTruthy();
+    expect(screen.queryByTestId("movement-suggestion-result-pompes-variant")).toBeNull();
+    expect(screen.queryByTestId("movement-suggestion-result-pompes-use")).toBeNull();
+    expect(within(result).queryByText(strings.screens.activities.editor.movementSuggestion.useMovement)).toBeNull();
+    expect(result.props.accessibilityRole).toBe("button");
+    expect(result.props.accessibilityHint).toBe(strings.screens.activities.editor.movementSuggestion.useMovement);
     await act(async () => {
-      fireEvent.press(screen.getByTestId("movement-suggestion-result-pompes-use"));
+      fireEvent.press(result);
     });
     await settle(300);
 

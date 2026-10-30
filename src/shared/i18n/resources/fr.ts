@@ -352,6 +352,9 @@ export const fr = {
           archivedWord: "archivé",
           useMovement: "Utiliser ce mouvement",
           createVariant: "Créer une variante",
+          // PRE-9 CAT.2 (CE-MVT-RESULT-01, `10199:22268`) : « Ajouter un niveau » affiché sur deux
+          // lignes dans la carte Résultat ; le nom accessible reste `movement.suggestion.createVariant`.
+          addLevelTwoLines: "Ajouter\nun niveau",
           easier: "Plus facile",
           harder: "Plus difficile",
           backToResults: "Retour aux résultats",

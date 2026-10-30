@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { decodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { strings } from "@/shared/i18n";
-import { colors, fixedRadii, minTouchTarget } from "@/shared/ui/tokens";
+import { colors, fixedRadii } from "@/shared/ui/tokens";
 
 import type { MovementChoice } from "./ActivityDefinitionService";
 import { MediaPreview, firstMediaPreviewSource, useMediaUriResolver } from "./MediaPreview";
@@ -12,178 +12,335 @@ import { fillTemplate } from "./movementChoicePresentation";
 export type VariantPlacement = "BEFORE_ORIGIN" | "AFTER_ORIGIN";
 
 /**
- * Valeurs du composant « Carte — Mouvement — Résultat » `10199:22268` (relevé du 25/10,
- * `releve-composants.json` ; DSF l.103 et l.110) : composant distinct de 338 × 107 (hauteur
- * minimale ici, le texte agrandi grandit ; le gabarit 80 de la carte simple ne s'applique pas) ;
- * photo 57 ; nom 15, description 12, niveau 12, actions 13 ; bouton « Utiliser ce mouvement » 26
- * de haut ; zone tactile de « Créer une variante » 44. Fond et contour : liaisons
- * `VariableID:2290:56` et `color/cards/border`, rapprochées des jetons existants (`surfaceSubtle`,
- * `border`) sans en créer. Couleur du bouton et marges : lues sur les captures `9882:19049` et
- * `10140:20180`, valeurs de rendu. Constantes locales : `tokens.ts` inchangé.
+ * PRE-9 CAT.2 (CE-MVT-RESULT-01, spécification « Résultats de recherche des Mouvements — PRE-9 » du
+ * 30/10/2026 ; Figma `10199:22268` Résultat, `10895:19870` Composition, relevé MCP en lecture seule
+ * de `10415:21959` et `10175:20369`). Coordonnées du composant (bord extérieur) :
+ * - carte 338 × 73, contour 0,5 `color/cards/border` (#CCD1E0), fond `surfaceSubtle`, rayon 12 ;
+ * - photo 57 à (8, 8), rayon 12 ; nom Semi Bold 15 à (77, 11), bord droit à 74 du bord de la carte ;
+ *   « Niveau N » Medium 12, bord droit à 8, centré à y = 20 ; description Regular 12/16 à (77, 33),
+ *   deux lignes au plus, « … » ;
+ * - Résultat : description de 179 (bord droit à 82) ; « Ajouter un niveau » 66 × 32 à x = 264,
+ *   deux lignes Medium 13/16 alignées à droite, bas aligné sur la fin de la description (y = 65) ;
+ *   zone tactile 78 × 36 à (258, 31) ;
+ * - Composition : description de 253 (bord droit à 8), aucun bouton ;
+ * - carte dépliée (« Niveau, plus facile ou plus difficile », `10415:21939`) : 338 × 104, marges
+ *   verticales 8 ; « Plus facile » 64 × 28 à (90,5 ; 68), « Plus difficile » à (183,5 ; 68), hauteur
+ *   28 ; séparateur 1,5 × 12 à (166,5 ; 74,5).
+ * Les décalages internes sont exprimés depuis le bord intérieur du contour (0,5). Constantes
+ * locales : `tokens.ts` inchangé (contrat gelé).
  */
-const CARD_MIN_HEIGHT = 107;
+const BORDER = 0.5;
+const CARD_HEIGHT = 73;
+const EXPANDED_HEIGHT = 104;
+const CARD_BORDER_COLOR = "#CCD1E0";
+const CARD_RADIUS = fixedRadii[12];
+const PADDING = 8 - BORDER;
 const PHOTO = 57;
-const PHOTO_RADIUS = 10;
+const PHOTO_RADIUS = 12;
 const PHOTO_FILL = "#DEE2EC";
-const PADDING = 8;
-const USE_BUTTON_HEIGHT = 26;
+const PHOTO_TEXT_GAP = 12;
+const TEXT_TOP = 11 - 8;
+const NAME_LINE = 18;
+const DESCRIPTION_TOP = 33 - 11 - NAME_LINE;
 const SECONDARY_TEXT = "#7A7A80";
-/** Sous-choix de la variante (`10140:20180`) : retrait sous « Créer une variante ». */
-const SUB_CHOICE_INDENT = 16;
+/** Bord droit du nom (74) et de la description Résultat (82) depuis le bord de la carte. */
+const NAME_RIGHT = 74;
+const RESULT_DESCRIPTION_RIGHT = 82;
+const COMPOSITION_DESCRIPTION_RIGHT = 8;
+const LEVEL_RIGHT = 8;
+const LEVEL_WIDTH = 58;
+const LEVEL_LINE = 16;
+const LEVEL_CENTER = 20;
+/** « Ajouter un niveau » : 66 × 32 à x = 264, bord droit à 8 ; zone tactile 78 × 36 à (258, 31). */
+const ADD_LEVEL_WIDTH = 66;
+const ADD_LEVEL_HEIGHT = 32;
+const ADD_LEVEL_TOUCH_WIDTH = 78;
+const ADD_LEVEL_TOUCH_HEIGHT = 36;
+const ADD_LEVEL_TOUCH_TOP = 31;
+const ADD_LEVEL_TOUCH_RIGHT = 338 - 258 - ADD_LEVEL_TOUCH_WIDTH;
+/** Quatrième ligne de la carte dépliée. */
+const OPTION_TOP = 68;
+const OPTION_HEIGHT = 28;
+const EASIER_X = 90.5;
+const EASIER_WIDTH = 64;
+const HARDER_X = 183.5;
+const SEPARATOR_X = 166.5;
+const SEPARATOR_Y = 74.5;
+const SEPARATOR_WIDTH = 1.5;
+const SEPARATOR_HEIGHT = 12;
+
+/** Valeurs nominales exportées pour le filet de famille du panneau (centres des cartes). */
+export const MOVEMENT_RESULT_CARD_HEIGHT = CARD_HEIGHT;
+export const MOVEMENT_RESULT_CARD_EXPANDED_HEIGHT = EXPANDED_HEIGHT;
+
+/** Libellés des actions d'une carte Résultat. */
+export type MovementResultActionLabels = {
+  /** « Ajouter un niveau » (nom accessible ; affiché sur deux lignes). */
+  readonly createVariant: string;
+  /** Action du toucher de la carte (indication VoiceOver), p. ex. « Ouvrir ce mouvement ». */
+  readonly useMovement: string;
+};
+
+type CardContent = {
+  readonly name: string;
+  readonly level: string | null;
+  readonly description: string;
+  readonly summary: string;
+  readonly preview: ReturnType<typeof firstMediaPreviewSource>;
+};
+
+function useCardContent(choice: MovementChoice): CardContent {
+  const t = strings.screens.activities.editor.movementSuggestion;
+  const { movement } = choice;
+  const description = decodeInstructionSteps(movement.description).join(" ");
+  const level = choice.level !== null ? fillTemplate(t.level, { rank: String(choice.level.rank) }) : null;
+  const summary = [movement.name, level, description].filter((part) => part !== null && part.length > 0).join(", ");
+  return { name: movement.name, level, description, summary, preview: firstMediaPreviewSource(movement.media) };
+}
+
+/** Photo, nom et description (communs aux deux variantes), dans la zone du toucher de la carte. */
+function CardBody({ content, descriptionRight, testID }: { content: CardContent; descriptionRight: number; testID: string }) {
+  const resolveUri = useMediaUriResolver();
+  return (
+    <>
+      <View
+        style={styles.photo}
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        testID={`${testID}-photo`}
+      >
+        {content.preview ? (
+          <MediaPreview
+            uri={resolveUri(content.preview.uri)}
+            isVideo={content.preview.isVideo}
+            imageStyle={styles.photoFill}
+            fallbackStyle={styles.photoFill}
+            imageTestID={`${testID}-photo-image`}
+            fallbackTestID={`${testID}-photo-fallback`}
+          />
+        ) : null}
+      </View>
+      {/* Colonne de texte jusqu'au bord droit de la description ; le nom s'étend jusqu'à 74 du bord. */}
+      <View style={[styles.texts, { marginRight: descriptionRight - PADDING - BORDER }]}>
+        <Text style={[styles.name, { marginRight: NAME_RIGHT - descriptionRight }]} numberOfLines={1} testID={`${testID}-name`}>
+          {content.name}
+        </Text>
+        {content.description.length > 0 ? (
+          <Text
+            style={styles.description}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+            testID={`${testID}-description`}
+          >
+            {content.description}
+          </Text>
+        ) : null}
+      </View>
+    </>
+  );
+}
+
+function LevelLabel({ level, testID }: { level: string | null; testID: string }) {
+  if (level === null) return null;
+  return (
+    <Text
+      style={styles.level}
+      numberOfLines={1}
+      accessible={false}
+      importantForAccessibility="no"
+      testID={`${testID}-level`}
+    >
+      {level}
+    </Text>
+  );
+}
 
 export type MovementResultCardProps = {
   readonly choice: MovementChoice;
-  /** Sous-choix Plus facile / Plus difficile déployés (après « Créer une variante »). */
+  /**
+   * État « Niveau, plus facile ou plus difficile » (`10415:21939`) : la même carte, dépliée à
+   * 338 × 104, porte la quatrième ligne « Plus facile | Plus difficile ».
+   */
   readonly variantExpanded?: boolean;
-  /** « Utiliser ce mouvement » : reprise du mouvement RÉELLEMENT choisi. */
-  readonly onUse: () => void;
-  /**
-   * « Créer une variante » : déploie les deux sens (choix explicite, rien n'est créé). PRE-9 A.2
-   * (CE-MVT-01 §3) : absent, l'action n'est pas proposée (création depuis une Séance) ; « Utiliser
-   * ce mouvement » garde sa place à droite.
-   */
-  readonly onCreateVariant?: () => void;
+  /** « Ajouter un niveau » : déploie (ou replie) le choix du sens ; rien n'est créé. */
+  readonly onCreateVariant: () => void;
   readonly onChooseVariant: (placement: VariantPlacement) => void;
-  /**
-   * Recette A/B B.10 (remarque 6) : libellés des deux actions propres à l'appelant (fiche Mouvement :
-   * « Ajouter un niveau » / « Ouvrir ce mouvement ») ; absent : libellés de l'éditeur d'Exercice.
-   */
+  /** Libellés propres à l'appelant ; absent : ceux de la fiche Mouvement. */
   readonly actionLabels?: MovementResultActionLabels;
   readonly testID: string;
 };
 
-/** Libellés des deux actions internes d'une carte Résultat. */
-export type MovementResultActionLabels = { readonly createVariant: string; readonly useMovement: string };
-
 /**
- * PRE-7 story R-5 (D-445 C02, v7 §6 R04 ; `10199:22268`, `9882:19049`, `10140:20180`) — un résultat
- * représente un MOUVEMENT, pas un exercice paramétré : photo (premier média, rendu du Catalogue,
- * à défaut le gabarit gris), nom tel que saisi (jamais normalisé, v7 l.158), « Niveau N » (rang
- * dérivé, absent sans groupe, C06), description sur deux lignes et deux actions internes :
- * « Créer une variante » (texte bleu, à gauche) et « Utiliser ce mouvement » (bouton, à droite).
- * Aucune sélection radio, aucune action globale. Déployée, la carte montre les deux sens de la
- * variante ; le choix d'un sens est le rattachement explicite (MFN-05).
+ * PRE-9 CAT.2 — composant « Carte — Mouvement — Résultat » (`10199:22268`), résultats du parcours
+ * « Créer un Mouvement » : photo, nom, « Niveau N », description sur 179 pt et une seule action
+ * visible, « Ajouter un niveau », à droite sur deux lignes. Aucun bouton « Utiliser » ni « Utiliser
+ * ce mouvement » (CE-MVT-RESULT-01). Décision de Hermann du 30/10/2026 : « À partir du catalogue
+ * des mouvements, cette option n'est pas utile, seul la création d'un niveau est une action
+ * pertinente » — le corps de la carte n'est pas activable. Dépliée (`10415:21939`), la carte reste
+ * unique et ajoute la ligne « Plus facile | Plus difficile » ; ni second cadre ni symbole
+ * d'arborescence.
  */
 export function MovementResultCard({
   choice,
   variantExpanded = false,
-  onUse,
   onCreateVariant,
   onChooseVariant,
   actionLabels,
   testID,
 }: MovementResultCardProps) {
   const t = strings.screens.activities.editor.movementSuggestion;
-  const createVariantLabel = actionLabels?.createVariant ?? t.createVariant;
-  const useMovementLabel = actionLabels?.useMovement ?? t.useMovement;
-  const resolveUri = useMediaUriResolver();
-  const { movement } = choice;
-  const preview = firstMediaPreviewSource(movement.media);
-  const description = decodeInstructionSteps(movement.description).join(" ");
-  const level = choice.level !== null ? fillTemplate(t.level, { rank: String(choice.level.rank) }) : null;
-  const summary = [movement.name, level, description].filter((part) => part !== null && part.length > 0).join(", ");
+  const labels = actionLabels ?? strings.screens.movement.suggestion;
+  const content = useCardContent(choice);
 
   return (
-    <View style={styles.card} testID={testID}>
-      <View style={styles.main} accessible accessibilityLabel={summary} testID={`${testID}-summary`}>
-        <View
-          style={styles.photo}
-          accessible={false}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-          testID={`${testID}-photo`}
-        >
-          {preview ? (
-            <MediaPreview
-              uri={resolveUri(preview.uri)}
-              isVideo={preview.isVideo}
-              imageStyle={styles.photoFill}
-              fallbackStyle={styles.photoFill}
-              imageTestID={`${testID}-photo-image`}
-              fallbackTestID={`${testID}-photo-fallback`}
-            />
-          ) : null}
-        </View>
-        <View style={styles.texts}>
-          <View style={styles.titleRow}>
-            <Text style={styles.name} numberOfLines={1} testID={`${testID}-name`}>
-              {movement.name}
-            </Text>
-            {level !== null ? (
-              <Text style={styles.level} testID={`${testID}-level`}>
-                {level}
-              </Text>
-            ) : null}
-          </View>
-          {description.length > 0 ? (
-            <Text style={styles.description} numberOfLines={2} testID={`${testID}-description`}>
-              {description}
-            </Text>
-          ) : null}
-        </View>
+    <View style={[styles.card, styles.resultShadow, variantExpanded ? styles.cardExpanded : null]} testID={testID}>
+      {/* Corps non activable (décision de Hermann du 30/10/2026) : seule « Ajouter un niveau » agit. */}
+      <View
+        style={[styles.body, variantExpanded ? styles.bodyExpanded : null]}
+        accessible
+        accessibilityLabel={content.summary}
+        testID={`${testID}-summary`}
+      >
+        <CardBody content={content} descriptionRight={RESULT_DESCRIPTION_RIGHT} testID={testID} />
       </View>
-      <View style={styles.actions}>
-        {onCreateVariant === undefined ? (
-          <View />
-        ) : (
-          <Pressable
-            onPress={onCreateVariant}
-            accessibilityRole="button"
-            accessibilityLabel={`${createVariantLabel}, ${movement.name}`}
-            accessibilityState={{ expanded: variantExpanded }}
-            hitSlop={(minTouchTarget - ACTION_LABEL.lineHeight) / 2}
-            style={styles.variantAction}
-            testID={`${testID}-variant`}
-          >
-            <Text style={styles.variantLabel}>{createVariantLabel}</Text>
-          </Pressable>
-        )}
-        <Pressable
-          onPress={onUse}
-          accessibilityRole="button"
-          accessibilityLabel={`${useMovementLabel}, ${movement.name}`}
-          hitSlop={(minTouchTarget - USE_BUTTON_HEIGHT) / 2}
-          style={styles.useButton}
-          testID={`${testID}-use`}
-        >
-          <Text style={styles.useLabel}>{useMovementLabel}</Text>
-        </Pressable>
-      </View>
+      <LevelLabel level={content.level} testID={testID} />
+      <Pressable
+        onPress={onCreateVariant}
+        accessibilityRole="button"
+        accessibilityLabel={`${labels.createVariant}, ${content.name}`}
+        accessibilityState={{ expanded: variantExpanded }}
+        style={styles.addLevelTouch}
+        testID={`${testID}-variant`}
+      >
+        <Text style={styles.addLevelLabel} numberOfLines={2} testID={`${testID}-variant-label`}>
+          {t.addLevelTwoLines}
+        </Text>
+      </Pressable>
       {variantExpanded ? (
-        <View style={styles.subChoices}>
-          <SubChoice label={t.easier} onPress={() => onChooseVariant("BEFORE_ORIGIN")} testID={`${testID}-easier`} />
-          <SubChoice label={t.harder} onPress={() => onChooseVariant("AFTER_ORIGIN")} testID={`${testID}-harder`} />
+        <View style={styles.options} testID={`${testID}-options`}>
+          <Pressable
+            onPress={() => onChooseVariant("BEFORE_ORIGIN")}
+            accessibilityRole="button"
+            accessibilityLabel={t.easier}
+            style={[styles.option, styles.easier]}
+            testID={`${testID}-easier`}
+          >
+            <Text style={styles.optionLabel} numberOfLines={1}>
+              {t.easier}
+            </Text>
+          </Pressable>
+          <View
+            style={styles.separator}
+            accessible={false}
+            importantForAccessibility="no"
+            testID={`${testID}-options-separator`}
+          />
+          <Pressable
+            onPress={() => onChooseVariant("AFTER_ORIGIN")}
+            accessibilityRole="button"
+            accessibilityLabel={t.harder}
+            style={[styles.option, styles.harder]}
+            testID={`${testID}-harder`}
+          >
+            <Text style={styles.optionLabel} numberOfLines={1}>
+              {t.harder}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
     </View>
   );
 }
 
-function SubChoice({ label, onPress, testID }: { label: string; onPress: () => void; testID: string }) {
+export type MovementCompositionCardProps = {
+  readonly choice: MovementChoice;
+  /**
+   * Toucher de la carte : utilisation du Mouvement existant (effet de l'ancien « Utiliser ce
+   * mouvement » : reprise, sans doublon). Décision de Hermann du 30/10/2026 : « l'utilisateur doit
+   * simplement appuyer sur la carte pour l'utiliser ». Absent : carte non activable.
+   */
+  readonly onPress?: () => void;
+  /** Indication VoiceOver de l'action du toucher (p. ex. « Utiliser ce mouvement »). */
+  readonly actionHint?: string;
+  readonly testID: string;
+};
+
+/**
+ * PRE-9 CAT.2 — composant commun « Carte — Mouvement — Composition » (`10895:19870`) : 338 × 73,
+ * **aucun bouton** (ni « Ajouter un niveau » ni « Utiliser »), description sur 253 pt, deux lignes
+ * au plus, tronquée par « … ». Utilisé par la création d'un Exercice (éditeurs d'Exercice) et la
+ * création d'un Mouvement depuis la Composition d'une Séance.
+ */
+export function MovementCompositionCard({ choice, onPress, actionHint, testID }: MovementCompositionCardProps) {
+  const content = useCardContent(choice);
+  // Toute la carte est un seul élément accessible (bouton) ; « Niveau N » est dans la zone du toucher.
+  const body = (
+    <>
+      <CardBody content={content} descriptionRight={COMPOSITION_DESCRIPTION_RIGHT} testID={testID} />
+      <LevelLabel level={content.level} testID={testID} />
+    </>
+  );
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.subChoice} testID={testID}>
-      {/* Marque de hiérarchie de `10140:20180` (angle fin), décorative. */}
-      <View style={styles.subChoiceMark} accessible={false} importantForAccessibility="no" />
-      <Text style={styles.variantLabel}>{label}</Text>
-    </Pressable>
+    <View style={[styles.card, styles.compositionShadow]}>
+      {onPress !== undefined ? (
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={content.summary}
+          {...(actionHint !== undefined ? { accessibilityHint: actionHint } : {})}
+          style={({ pressed }) => [styles.body, pressed ? styles.bodyPressed : null]}
+          testID={testID}
+        >
+          {body}
+        </Pressable>
+      ) : (
+        <View style={styles.body} accessible accessibilityLabel={content.summary} testID={testID}>
+          {body}
+        </View>
+      )}
+    </View>
   );
 }
 
-const ACTION_LABEL = { fontFamily: "Inter_500Medium", fontWeight: "500", fontSize: 13, lineHeight: 16 } as const;
-
 const styles = StyleSheet.create({
   card: {
-    minHeight: CARD_MIN_HEIGHT,
-    borderRadius: fixedRadii[12],
-    borderWidth: 1,
-    borderColor: colors.border,
+    minHeight: CARD_HEIGHT,
+    borderRadius: CARD_RADIUS,
+    borderWidth: BORDER,
+    borderColor: CARD_BORDER_COLOR,
     backgroundColor: colors.surfaceSubtle,
-    padding: PADDING,
-    gap: PADDING,
   },
-  main: {
+  cardExpanded: {
+    minHeight: EXPANDED_HEIGHT,
+  },
+  // Figma : ombre 0/2/5 à 8 % (Résultat), 0/2/10 à 8 % (Composition), teinte #1A1A26.
+  resultShadow: {
+    shadowColor: "#1A1A26",
+    shadowOpacity: 0.08,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  compositionShadow: {
+    shadowColor: "#1A1A26",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  body: {
+    minHeight: CARD_HEIGHT - 2 * BORDER,
     flexDirection: "row",
-    gap: 12,
+    alignItems: "flex-start",
+    gap: PHOTO_TEXT_GAP,
+    padding: PADDING,
+  },
+  // Retour visuel du toucher de la carte Composition (aucune valeur Figma : opacité système).
+  bodyPressed: {
+    opacity: 0.6,
+  },
+  // Dépliée : la quatrième ligne commence à y = 68, au-dessus du bas de la zone haute (73).
+  bodyExpanded: {
+    marginBottom: -(CARD_HEIGHT - BORDER - OPTION_TOP),
   },
   photo: {
     width: PHOTO,
@@ -199,74 +356,84 @@ const styles = StyleSheet.create({
   },
   texts: {
     flex: 1,
-    gap: 2,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: 8,
+    paddingTop: TEXT_TOP,
   },
   name: {
-    flex: 1,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     fontSize: 15,
-    lineHeight: 18,
-    color: colors.textPrimary,
-  },
-  level: {
-    fontFamily: "Inter_500Medium",
-    fontWeight: "500",
-    fontSize: 12,
-    lineHeight: 16,
+    lineHeight: NAME_LINE,
     color: colors.textPrimary,
   },
   description: {
+    marginTop: DESCRIPTION_TOP,
     fontFamily: "Inter_400Regular",
     fontWeight: "400",
     fontSize: 12,
     lineHeight: 16,
     color: SECONDARY_TEXT,
   },
-  actions: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+  level: {
+    position: "absolute",
+    top: LEVEL_CENTER - LEVEL_LINE / 2 - BORDER,
+    right: LEVEL_RIGHT - BORDER,
+    width: LEVEL_WIDTH,
+    textAlign: "right",
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 12,
+    lineHeight: LEVEL_LINE,
+    color: colors.textPrimary,
   },
-  variantAction: {
-    minHeight: ACTION_LABEL.lineHeight,
+  addLevelTouch: {
+    position: "absolute",
+    top: ADD_LEVEL_TOUCH_TOP - BORDER,
+    right: ADD_LEVEL_TOUCH_RIGHT - BORDER,
+    width: ADD_LEVEL_TOUCH_WIDTH,
+    height: ADD_LEVEL_TOUCH_HEIGHT,
+    alignItems: "center",
     justifyContent: "center",
   },
-  variantLabel: {
-    ...ACTION_LABEL,
+  addLevelLabel: {
+    width: ADD_LEVEL_WIDTH,
+    height: ADD_LEVEL_HEIGHT,
+    textAlign: "right",
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 13,
+    lineHeight: 16,
     color: colors.primary,
   },
-  useButton: {
-    height: USE_BUTTON_HEIGHT,
-    borderRadius: USE_BUTTON_HEIGHT / 2,
-    paddingHorizontal: 8,
+  options: {
+    height: OPTION_HEIGHT,
+    marginBottom: 8 - BORDER,
+  },
+  option: {
+    position: "absolute",
+    top: 0,
+    height: OPTION_HEIGHT,
     justifyContent: "center",
-    backgroundColor: colors.selectionSurface,
   },
-  useLabel: {
-    ...ACTION_LABEL,
+  easier: {
+    left: EASIER_X - BORDER,
+    width: EASIER_WIDTH,
+  },
+  harder: {
+    left: HARDER_X - BORDER,
+  },
+  optionLabel: {
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    fontSize: 13,
+    lineHeight: 16,
     color: colors.primary,
   },
-  subChoices: {
-    paddingLeft: SUB_CHOICE_INDENT,
-  },
-  subChoice: {
-    minHeight: minTouchTarget,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-  },
-  subChoiceMark: {
-    width: 8,
-    height: 10,
-    marginTop: -8,
-    borderLeftWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: colors.border,
+  separator: {
+    position: "absolute",
+    left: SEPARATOR_X - BORDER,
+    top: SEPARATOR_Y - OPTION_TOP,
+    width: SEPARATOR_WIDTH,
+    height: SEPARATOR_HEIGHT,
+    backgroundColor: colors.primary,
   },
 });

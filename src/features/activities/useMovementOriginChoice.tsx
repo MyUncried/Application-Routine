@@ -7,7 +7,11 @@ import { strings } from "@/shared/i18n";
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
 import type { MovementResultActionLabels, VariantPlacement } from "./MovementResultCard";
 import { MovementSearchScreen } from "./MovementSearchScreen";
-import { MovementSuggestionPanel, type MovementNameMessage } from "./MovementSuggestionPanel";
+import {
+  MovementSuggestionPanel,
+  type MovementNameMessage,
+  type MovementResultCardVariant,
+} from "./MovementSuggestionPanel";
 
 /** Recette du 29/10/2026 : « Un mouvement **archivé** porte déjà ce nom. » */
 function archivedNameMessage(): MovementNameMessage {
@@ -50,11 +54,21 @@ export type MovementOriginChoiceOptions = {
   };
   /** R02 : Catégorie et Zones renseignées dans le brouillon (bonus de classement). */
   readonly context?: MovementSearchContext;
-  /** « Utiliser ce mouvement » (panneau ou écran de recherche). */
-  readonly onSameMovement: (choice: MovementChoice) => void;
   /**
-   * « Créer une variante » puis Plus facile / Plus difficile. PRE-9 A.2 (CE-MVT-01 §3 : « La création
-   * de variante depuis une séance reste exclue ») : absent, l'action n'est pas proposée.
+   * PRE-9 CAT.2 (CE-MVT-RESULT-01) : variante des cartes du panneau. `"result"` — création d'un
+   * Mouvement depuis le Catalogue : « Ajouter un niveau » seul, aucune réutilisation (décision de
+   * Hermann du 30/10/2026) ; `"composition"` — création d'un Exercice / depuis la Composition :
+   * aucun bouton, le toucher de la carte utilise le Mouvement (`onSameMovement`).
+   */
+  readonly cardVariant: MovementResultCardVariant;
+  /**
+   * Utilisation du Mouvement existant (ancien « Utiliser ce mouvement ») : toucher d'une carte
+   * Composition (panneau ou écran de recherche). Sans effet pour la carte Résultat.
+   */
+  readonly onSameMovement?: (choice: MovementChoice) => void;
+  /**
+   * « Ajouter un niveau » puis Plus facile / Plus difficile — carte Résultat seulement (CAT.2 : la
+   * carte Composition n'a aucun bouton). PRE-9 A.2 (CE-MVT-01 §3) : exclu depuis une Séance.
    */
   readonly onVariant?: (choice: MovementChoice, placement: VariantPlacement) => void;
   /**
@@ -113,6 +127,7 @@ export function useMovementOriginChoice({
   available,
   uniqueness,
   context,
+  cardVariant,
   onSameMovement,
   onVariant,
   actionLabels,
@@ -215,17 +230,22 @@ export function useMovementOriginChoice({
     return false;
   }
 
+  // CAT.2 : « Ajouter un niveau » n'existe que sur la carte Résultat ; la réutilisation, que sur la
+  // carte Composition.
+  const offersLevel = cardVariant === "result" && onVariant !== undefined;
   const nameAssist = showPanel ? (
     <MovementSuggestionPanel
       message={message}
       results={results}
+      cardVariant={offersLevel ? "result" : "composition"}
       variantOf={variantOf}
       onUse={(choice) => {
+        if (cardVariant !== "composition") return;
         setVariantOf(null);
         setFrozen(null);
-        onSameMovement(choice);
+        onSameMovement?.(choice);
       }}
-      {...(onVariant !== undefined ? { onCreateVariant: (choice: MovementChoice) => setVariantOf(choice.movement.id) } : {})}
+      {...(offersLevel ? { onCreateVariant: (choice: MovementChoice) => setVariantOf(choice.movement.id) } : {})}
       onChooseVariant={(choice, placement) => {
         setVariantOf(null);
         setFrozen(null);
@@ -243,14 +263,19 @@ export function useMovementOriginChoice({
         choices={selectable}
         initialQuery={name}
         context={context}
-        onUse={(choice) => {
-          setIsSearchOpen(false);
-          onSameMovement(choice);
-        }}
-        onChooseVariant={(choice, placement) => {
-          setIsSearchOpen(false);
-          onVariant?.(choice, placement);
-        }}
+        {...(offersLevel
+          ? {
+              onChooseVariant: (choice: MovementChoice, placement: VariantPlacement) => {
+                setIsSearchOpen(false);
+                onVariant?.(choice, placement);
+              },
+            }
+          : {
+              onUse: (choice: MovementChoice) => {
+                setIsSearchOpen(false);
+                onSameMovement?.(choice);
+              },
+            })}
         onClose={() => setIsSearchOpen(false)}
       />
     ) : null;
