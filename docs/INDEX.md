@@ -1,5 +1,7 @@
 # Documentation de KODJO
 
+> **Coin inférieur droit « replié » des cartes — contrôle graphique du 30/10 :** [description et réserve de vérification Figma](KODJO-Coin-replie-cartes-2026-10-30.md). Aucun comportement métier n’est déduit ; nœud et variantes concernés à identifier avant d'en prescrire le rendu.
+
 > **PRE-9 — arbitrages et Composition avec Formats consolidés le 30/10/2026 :** [règles actives D-01 à D-30, valeurs initiales, compatibilités et départs rapides](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). ARB-04/22c/26–28 clos. Le Format appartient à l'Exercice ; le Circuit n'en porte pas ; la répétition groupée, le Cycle, l'échelle For time et les bornes AMRAP ont des portées distinctes. Les raccordements de l'exécution spécialisée restent PRE-10/11.
 
 > **Résultats de recherche des Mouvements — PRE-9, 30/10/2026 :** [spécification finale](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01 au chapitre 13. Cartes Résultat avec « Ajouter un niveau » ; cartes Composition sans bouton et description tronquée ; regroupement des familles et choix de difficulté. Story CAT.2 immédiatement autorisée.
