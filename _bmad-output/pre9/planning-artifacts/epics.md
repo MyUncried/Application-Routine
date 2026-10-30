@@ -8,7 +8,7 @@
 
 > **Clarification documentée du 29/10 :** le Format appartient exclusivement à l'Exercice ; la table des porteurs Exercice/Circuit de la révision 2 est supersédée. Les états replié/déplié réutilisent Figma (`10717:20056`, `10725:20142`).
 
-> **Extension de périmètre validée le 30/10/2026** : ajout de la story indépendante **CAT.1 — Zone de contexte des Catalogues Mouvements et Séances**, à engager **dès PRE-9**, sans dépendance à A.1/C.1 ni au moteur. **31 unités au total** : 26 stories de développement, 3 unités documentaires et 2 activités de qualification. Les décomptes historiques 29 ci-dessus concernent la révision 2 antérieure.
+> **Extensions validées le 30/10/2026** : **CAT.1 — Zone de contexte des Catalogues** et **CAT.2 — Résultats de recherche des Mouvements** ; deux stories indépendantes à développer immédiatement dans PRE-9, sans attendre A.1/C.1 ni le moteur. **31 unités au total** : 26 stories de développement, 3 unités documentaires et 2 activités de qualification. Le décompte historique de 29 ci-dessus concerne la révision 2 antérieure aux deux ajouts.
 
 ## Ordre recommandé
 
