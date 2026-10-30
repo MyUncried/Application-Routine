@@ -30,9 +30,9 @@ development_status:
   epic-c: backlog
   c-1-persistance-registre-formats: backlog  # migration 017 : Format et réglages sur Exercice seulement, pas sur Circuit ; aucun compteur de répétition ajouté
   c-2-selection-modele: backlog  # ARB-05 (décidé)
-  c-3-parametres-imposes-recapitulatif: backlog  # ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format)
-  c-4-composition-preremplie-verrous: backlog  # ARB-15, ARB-23, ARB-24 (décidés) ; ARB-26, ARB-27, ARB-28 (une opération chacun)
-  c-5-departs-rapides: backlog  # ARB-22b (décidé) ; ARB-22c EN ATTENTE DE DÉFINITION FONCTIONNELLE
+  c-3-parametres-imposes-recapitulatif: backlog  # ARB-04 clos : valeurs initiales des 6 Formats décidées ; ARB-18/22a/25
+  c-4-composition-preremplie-verrous: backlog  # ARB-26/27/28 clos, compatibilité D-15/16 ; adoption volontaire
+  c-5-departs-rapides: backlog  # ARB-22b/c clos ; 4 départs définis + Libre, Gainage · Mobilité supprimé
   c-6-edition-duplication-formats: backlog  # ARB-17, ARB-21 (décidés)
   epic-d: backlog
   d-1-developpement-plan: backlog  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
@@ -46,7 +46,7 @@ development_status:
 arbitrages:
   decides_2026_10_29_revision_2: [ARB-01, ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24, ARB-25]
   decides_2026_10_29: [ARB-03, ARB-05, ARB-06, ARB-07, ARB-08, ARB-09, ARB-10, ARB-11, ARB-12, ARB-13, ARB-14, ARB-15, ARB-16, ARB-17, ARB-18a, ARB-18b, ARB-19, ARB-20, ARB-21, ARB-22a, ARB-22b]
-  ouverts: [ARB-04, ARB-22c]
-  ouverts_application_c4: [ARB-26, ARB-27, ARB-28]
-  en_attente_definition_fonctionnelle: [ARB-22c]
+  ouverts: []  # aucun arbitrage de configuration Formats manquant dans cette consolidation
+  ouverts_application_c4: []  # compatibilités et adoption décidées
+  en_attente_definition_fonctionnelle: []  # contenus des départs rapides définis
   avant_pre11: [A4 cas non définis, A6 cas non définis, suite après élément AMRAP ou Death by, R-01, R-02, R-03, R-04]
