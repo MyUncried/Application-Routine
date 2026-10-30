@@ -1144,6 +1144,12 @@ Source : [synthèse fournie](../KODJO-Conteneurs-composition-2026-10-28-source.m
 
 Les réserves de la [revue critique](../REVUE-COMPOSITION-2026-10-28.md) ne sont pas des arbitrages : sélection d’enveloppe, frontières des points, cycle entier, cas nuls et détails de recette restent distincts des décisions closes.
 
+## Décision du 30/10/2026 — Résultats de recherche des Mouvements — PRE-9
+
+**Modification validée de l'affichage.** [Spécification finale](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01. La carte **Résultat** utilisée en création de Mouvement comporte « Ajouter un niveau » à droite (66 × 32 pt, x264, zone tactile 78 × 36 pt à x258/y31), description 179 pt ; aucun bouton « Utiliser » sur les cartes de création de Mouvement. La carte **Composition** utilisée depuis la Composition/création d'Exercice ne comporte aucun bouton (338 × 73 pt, description 253 pt et deux lignes ellipsées). Le filet bleu des familles (x3, largeur 2 pt) va du centre de la première au centre de la dernière carte affichée. L'état de choix du niveau (`10415:21939`) comprend un seul cadre 338 × 104 pt, une quatrième ligne « Plus facile | Plus difficile », sans « Utiliser ce mouvement », second cadre ni symboles d'arbre. Les parcours métier et la recherche ne changent pas. Décision à développer immédiatement dans PRE-9 ; aucun numéro D artificiel attribué.
+
+La suppression accidentelle du sélecteur Jour/Semaine/Mois dans les modales de planification, les modifications du Profil et du Suivi, ainsi que les restaurations éventuelles d'écrans Gainage · Mobilité, ne constituent pas des décisions fonctionnelles issues de cette évolution des résultats. Ces travaux restent hors périmètre de ce correctif.
+
 ## Décision du 30/10/2026 — Zone de contexte commune des Catalogues — PRE-9
 
 **Validée par Hermann.** [Spécification de développement et règles complètes](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md), contrat CE-CAT-CTX-01. Bande lilas pleine largeur `y=92..207`, référence 402 × 874 pt, marges 16 pt. Ligne de compteurs à `x=24, y=118` ; champ « Rechercher » à `x=16, y=155`, largeur 216 pt (107 pt en filtré/archivé), hauteur 44 pt, placeholder 15 pt `#7A7A80` ; contrôles Filtre/Tri/Créer de 34 pt à `x=260/306/352, y=160`, cibles 44 × 44 à `y=155`. Titre individuel de page masqué dans les deux Catalogues, segmenté principal conservé.
