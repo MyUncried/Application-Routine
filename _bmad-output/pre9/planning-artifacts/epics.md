@@ -266,7 +266,7 @@ Dépend de : D.3.
 4. Fin de PRE-9 : chaque Format disponible et départ rapide défini, Séance à plusieurs Formats, conversion E.8-b sur les données réelles, non-régression Catalogue PRE-8.
 
 ## Risques de planification
-- Arbitrages encore ouverts et opérations bloquées (`arbitrages-pre9.md` §2 bis) : ARB-04 (mise à disposition des Formats concernés) ; ARB-22c (activation des départs rapides) ; ARB-26, ARB-27, ARB-28 (une opération chacun dans C.4). Aucune story n'est bloquée en entier. [Révision 1 : liste ARB-01, ARB-02a/b, ARB-04, ARB-22c, ARB-24, ARB-25, ARB-23, ARB-10b — clos en révision 2, sauf ARB-04 et ARB-22c.] [28/10 : « ARB-01 à ARB-05 conditionnent environ 11 stories » — remplacé.]
+- [HISTORIQUE de la révision 2, supersédé le 30/10 ; aucun de ces arbitrages n'est encore ouvert] Anciennes opérations bloquées (`arbitrages-pre9.md` §2 bis) : ARB-04 (mise à disposition des Formats concernés) ; ARB-22c (activation des départs rapides) ; ARB-26, ARB-27, ARB-28 (une opération chacun dans C.4). Aucune story n'est bloquée en entier. [Révision 1 : liste ARB-01, ARB-02a/b, ARB-04, ARB-22c, ARB-24, ARB-25, ARB-23, ARB-10b — clos en révision 2, sauf ARB-04 et ARB-22c.] [28/10 : « ARB-01 à ARB-05 conditionnent environ 11 stories » — remplacé.]
 - Le volume du chantier B est le plus élevé ; la découpe B.1–B.9 permet une recette intermédiaire.
 - C.4 regroupe le flux de Format dans la Composition, l'entrée « Format » et la compatibilité des déposes : story la plus dense de l'epic C, à découper en tâches au moment de sa spec si nécessaire, sans nouvelle story.
 - A.1 porte désormais une migration (016) en plus du changement de modèle : tests sur copie de base réelle obligatoires.
