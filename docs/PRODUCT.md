@@ -85,6 +85,8 @@ Pour un plan bilatéral, cet instantané conserve le changement de côté effect
 
 ### Catalogue des séances
 
+**Zones de contexte — PRE-9.** Les Catalogues Mouvements et Séances partagent la bande lilas Recherche et création, leurs champs Recherche, Filtre/Tri/Créer et les compteurs en première ligne selon [la spécification de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Mouvements : « N familles · N mouvements » avec compteurs de filtrage exclusifs et désélectionnables ; Séances : « Un exercice N | Plusieurs N » avec nombres informatifs, bascule inchangée ; sur les états filtrés/archivés, « N résultats » égale la taille réelle de liste après filtres et recherche. Aucun titre de page individuel ; navigation des Catalogues conservée.
+
 Le MVP permet de :
 - créer une Séance avec un nom obligatoire, au moins un Exercice valide et une Étiquette facultative dont la couleur devient la couleur affichée de la Séance ;
 - composer et modifier une Séance ;
