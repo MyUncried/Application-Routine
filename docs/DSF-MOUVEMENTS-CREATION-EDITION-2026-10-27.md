@@ -29,7 +29,7 @@ Hors de ce lot : refonte complète des piles et filtres du catalogue, réordonna
 
 ### Création indépendante et recherche
 
-Le formulaire initial est vierge et sa pastille affiche « Niveau ». Saisir un nom déclenche les suggestions ; aucune sélection n'est implicite. Sans sélection, enregistrer crée un mouvement indépendant sans groupe, sous réserve d'un nom disponible. « Utiliser ce mouvement » reprend l'identité existante et ouvre sa fiche en lecture seule ; il ne crée pas un duplicata ni un exercice.
+Le formulaire initial est vierge et sa pastille affiche « Niveau ». Saisir un nom déclenche les suggestions ; aucune sélection n'est implicite. Sans sélection, enregistrer crée un mouvement indépendant sans groupe, sous réserve d'un nom disponible. [Portée historique du 27/10 supersédée par CAT.2 le 30/10 : l'action « Utiliser ce mouvement » figurait sur ces cartes.] Dans les résultats de **création de Mouvement**, les cartes Résultat ne présentent plus ce bouton : « Ajouter un niveau » reste leur seule action interne. La reprise d'un Mouvement existant par les autres parcours prévus conserve son identité, sans créer de duplicata ni d'Exercice.
 
 Conserver R01–R08 de la [spécification v7](KODJO-Niveaux-Recherche-Parcours-Regles-v7.md), dont corpus automatique R07, paramètres de classement et recherche par nom/alias. Rechercher aussi les mouvements créés localement dans une séance. Un seul résultat par identité de mouvement, même si plusieurs alias correspondent ; retenir sa meilleure correspondance. Au plus cinq résultats dans le panneau et pas de réordonnancement pendant un appui. Entrée valide la saisie, sans sélectionner un résultat ni enregistrer la fiche.
 
