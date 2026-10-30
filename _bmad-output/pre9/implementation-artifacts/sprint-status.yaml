@@ -7,6 +7,7 @@ plan_revision: 2
 development_status:
   epic-cat: ready-for-dev  # zone de contexte des Catalogues, indépendante
   cat-1-zones-contexte-catalogues: ready-for-dev  # spécification docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md
+  cat-2-resultats-recherche-mouvements: ready-for-dev  # spec docs/KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md
   epic-q: backlog
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
   q-1-qualification-fin-pre9: backlog
