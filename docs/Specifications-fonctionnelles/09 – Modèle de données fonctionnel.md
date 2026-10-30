@@ -589,14 +589,19 @@ Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et com
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
 
+**Décisions consolidées du 30/10/2026 :** [Formats et Composition PRE-9](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les réglages initialisés **sur les Exercices** sont ceux des six Formats décidés ; ne pas créer de schéma de Format sur Circuit ni de multiplicateur propre au Format. Les quatre départs rapides actifs et Libre constituent une **origine de création** distincte, sans Mouvement présélectionné ; Gainage · Mobilité n'est plus une origine active. Une occurrence répétée d'AMRAP garde sa durée réglable, et For time conserve l'indice propre de son échelle, indépendant du passage de Circuit.
+
+**Clarification fonctionnelle du 29/10/2026 — Format porté par l'Exercice.** Les lignes historiques qui plaçaient Format et réglages au niveau de la Séance ou du Circuit sont supersédées pour le modèle cible PRE-9 ; le Circuit reste une structure d'ordonnancement. Le détail d'affichage des Circuits repliés est documenté au chapitre 13 et référencé à Figma (`10717:20056`, `10725:20142`).
+
 | Porteur | Information | Règle de cohérence |
 |---|---|---|
-| Séance | Format facultatif | Six formats ; absent = libre. Aucune déduction depuis le titre ou des valeurs similaires. |
-| Séance | Origine de création | Distincte du format ; les départs rapides ne portent aucune contrainte. |
-| Séance | Réglages de format et organisation applicable | Modifiables dans la composition ; ne modifient pas les constantes ni l’historique. |
-| Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, tour pour For time. Pas de réinterprétation implicite. |
-| Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Ne pas réécrire ActivityDefinition du catalogue pour appliquer le contexte. |
-| Instantané | Format, origine, réglages effectifs, prescription et version de règle | Lecture stable après modification/suppression de la source. |
+| Séance | Origine de création | Distincte du Format ; les départs rapides n'ajoutent pas de contrainte métier à eux seuls. |
+| Exercice dans la Séance | Format facultatif, identité et réglages propres | Six Formats possibles ; absent = Exercice libre. Le Format n'est jamais déduit du titre, de valeurs similaires ou du Circuit parent ; il demeure lié à l'Exercice lors d'une copie ou dépose. |
+| Circuit | Organisation groupée/alternée, nombre de passages et membres ordonnés | **Aucune identité ni réglage de Format propre au Circuit.** Il organise ses Exercices et leur nombre de passages ; en alternance, N contraint le compte actif compatible de leurs séries selon les règles existantes. |
+| Action d'adoption volontaire | Format choisi pour un nouvel Exercice | Un Exercice peut adopter explicitement le Format déjà sélectionné ; une simple dépose d'un Exercice formaté ne le transmet ni au Circuit ni aux autres membres. Confirmation seulement si des valeurs renseignées sont perdues. |
+| Prescription | Valeurs ordonnées et unité d’indexation | Série pour Progression, **tour de l'échelle** pour For time, distinct du passage du Circuit englobant. Pas de réinterprétation implicite. |
+| Occurrence contextualisée | Valeur effective, provenance et caractère imposé | Le Format est contrôlé par Exercice ; ne pas réécrire le Mouvement partagé pour appliquer le contexte. |
+| Instantané | Format par Exercice, origine de Séance, réglages effectifs et version de règle | Lecture stable après modification/suppression de la source, y compris quand le Circuit est déplacé ou répété. |
 | Fenêtre exécutée | Rang, début, échéance, objectif, signal de fin du travail | Une fin de travail ne change pas l’échéance ; horloge indépendante de l’audio. |
 | Acquisition Death by | Fenêtre confirmée, tour acquis | Au plus une acquisition par fenêtre ; aucun tour acquis sans appui. |
 | Clôture Death by | Répétitions partielles confirmées, motif, état d’achèvement | Formulaire proposé à 0, résultat déclaré après validation ; limite/abandon distincts, état incomplet dans les deux cas. |

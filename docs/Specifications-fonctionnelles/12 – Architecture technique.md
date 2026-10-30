@@ -18,11 +18,20 @@ Référence Figma : filet 2 px ; message `10484:24052`, 370 × 48 à (16, 738), 
 | --- | --- | --- | --- |
 | DSF / Actions glissées / Mouvement | `10586:45516` | 204 × 80 ; Inter Semi Bold 11 | Partager, Ajouter un niveau, Archiver |
 | DSF / Actions glissées / Mouvement — Choix du sens | `10586:45517` | 204 × 56 ; Inter Semi Bold 11 | Plus facile ↓ / Plus difficile ↑, raccords compris, sous les actions |
-| Carte — Mouvement — Résultat | `10199:22268` | 338 × 107 relevés ; actions Inter Medium 13 | Utiliser ce mouvement / Ajouter un niveau, libellé propagé aux instances |
+| Carte — Mouvement — Résultat | `10199:22268` | Bouton « Ajouter un niveau » 66 × 32 à x264 ; zone tactile 78 × 36 à x258/y31 ; description 179 pt | **Une seule action visible sur la carte de création de Mouvement** ; « Utiliser ce mouvement » absent (CE-MVT-RESULT-01) |
 
 Texte des actions glissées lié à `color/on-primary` (`VariableID:4151:6166`), blanc, déjà référencé. Aucune création de token global requise par le renommage. Réutiliser les propriétés des composants ; ne pas appliquer la typographie de carte aux actions glissées. Relevé : [ajout-niveau-glisse.json](../figma-mouvements-2026-10-27/ajout-niveau-glisse.json).
 
 La hauteur supplémentaire doit participer au layout de la liste pour décaler les cartes suivantes et prolonger le filet de famille. Ne pas monter un overlay qui les recouvre. Les raccords des deux boutons appartiennent au composant Choix du sens ; les flèches doivent être accompagnées des libellés accessibles. Les frames du prototype ne sont pas toutes des instances de ces nouveaux composants : leur existence dans le DSF est la référence de réutilisation, sans prétendre une liaison de toutes les frames.
+
+## Composants Résultat / Composition — PRE-9, 30/10/2026
+
+**Source visuelle active :** Figma `10199:22268` (« Carte — Mouvement — Résultat ») et `10895:19870` (« Carte — Mouvement — Composition »), [spécification fonctionnelle](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Ne pas créer un nouveau composant pour ce correctif.
+
+- **Résultat** : description 179 pt ; « Ajouter un niveau » sur deux lignes, x264, 66 × 32 pt, zone tactile x258/y31 de 78 × 36 pt. Ne pas réintroduire « Utiliser ce mouvement » dans cette variante de carte.
+- **Composition** : 338 × 73 pt, description 253 pt sur deux lignes avec « … », **aucun bouton** dans toutes les instances de ce composant.
+- **Familles** : filet bleu x3, largeur 2 pt, de centre à centre des cartes visibles extrêmes. **Choix du sens** : cadre 338 × 104 pt, une ligne supplémentaire « Plus facile | Plus difficile » ; aucun second cadre ou symbole d'arbre.
+- Utiliser les composants et comportements de recherche/famille existants ; la séparation des deux variantes est une règle d'affichage, sans mutation des données ni nouveau service.
 
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
@@ -1824,6 +1833,12 @@ Prévoir transactions de conversion et adaptation, compatibilité tours par déf
 <a id="formats-architecture"></a>
 ## Formats — architecture cible du moteur à construire
 
+**Raccordement documentaire PRE-9 du 30/10/2026 :** [matrice et décisions consolidées](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). L'Exercice demeure le seul porteur de Format et de ses réglages. Le registre de Format contient les valeurs initiales décidées (30/30 = 6 séries, EMOM W60/N6, AMRAP 12:00 réglable, For time 21·15·9, Death by 1/1/1, constantes Tabata), non des valeurs de maquette inventées. L'adaptation à N du Circuit alterné est contrôlée avant mutation ; le Circuit groupé répète les blocs complets, le Cycle répète sa séquence, sans double multiplication. L'architecture doit distinguer le **tour de l'échelle For time** du **passage du Circuit**, et la durée AMRAP propre à chaque passage. Fenêtres, acquisition et clôture spécialisés attendent PRE-10/11 ; aucune migration SQL n'est livrée par cette clarification.
+
+**Clarification PRE-9 du 29/10/2026 — répartition des responsabilités.** Le **Format et ses réglages appartiennent à chaque Exercice** de la Séance ; un Circuit n'a ni `format_key` ni `format_settings` en propre. Le Circuit stocke uniquement sa nature (groupées/alternées), son compte et son ordonnancement. La migration 017 proposée dans le plan PRE-9 doit donc porter les attributs de Format sur les activités de Séance, **pas sur `tours`** ; le numéro et le contenu effectifs des migrations restent à vérifier sur le schéma physique au moment du développement. Lors d'une simple dépose, l'Exercice conserve son Format ; l'adoption par un second Exercice résulte d'un choix explicite. La validation doit séparer contraintes propres au Format, organisation et compte du Circuit, sans transfert implicite.
+
+**Contrat de présentation (source Figma)** : lorsqu'un Circuit est replié, sa deuxième ligne existante liste les Exercices et peut afficher leur Format respectif ; lorsqu'il est déplié, les cartes des Exercices sont visibles. La propriété métier du Format n'est pas déduite de cette présentation ; aucun nouvel état persistant du Circuit n'est créé. Figma, page `510:101`, nœuds `10717:20056` et `10725:20142` ; contrat de Composition au chapitre 13.
+
 Séparer prescription versionnée, paramètres contextuels, développement des occurrences, horloge, acquisition de résultat et formatage UI. Réutiliser les circuits de tours/séries ; porter l’unité d’indexation afin qu’un volume par tour ne soit pas interprété comme des séries successives.
 
 Les plans à compte fini peuvent être déroulés ; AMRAP/Death by doivent générer leurs passages progressivement jusqu’à leur borne. Les fenêtres EMOM/Death by ont une échéance indépendante de la fin du travail : un appui ne provoque pas la transition. Le signal audio n’est pas l’horloge métier et ne prouve pas une répétition physique. Conserver des identités de fenêtre pour éviter une double acquisition lors d’une reprise ou d’un doublon d’événement.
@@ -1877,7 +1892,7 @@ Le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md#composants-et-tokens
 | Composant | Identifiant | Contrat |
 |---|---|---|
 | Carte — Mouvement | 10124:21979 | Sélection Absente / Vide / Cochée, 322 × 80 ; instances 354 × 80 |
-| Carte — Mouvement — Résultat | 10199:22268 | 338 × 107, photo 57, deux actions ; pas de radio dans la recherche |
+| Carte — Mouvement — Résultat | 10199:22268 | Variante résultats de création Mouvement ; description 179 pt ; « Ajouter un niveau » 66 × 32, zone tactile 78 × 36 ; **aucun bouton Utiliser** |
 | icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve D-445 (clos) |
 | icon/niveau | 9932:44044 | Variantes 1/2/3 ; état vide via Sélecteur classification, rangs supérieurs à compléter |
 | Sélecteur classification | 9003:15638 | Rôles Catégorie / Zone / Niveau ; vide 9925:41506, renseigné 9925:41515 |

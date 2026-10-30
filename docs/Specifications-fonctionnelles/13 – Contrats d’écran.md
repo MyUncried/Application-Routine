@@ -1,5 +1,30 @@
 # Contrats d’écran
 
+## CE-CAT-CTX-01 — Zones de contexte des Catalogues Mouvements et Séances
+
+**Contrat final PRE-9 :** [spécification de développement](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Cible visuelle Figma `10266:20575`, `10465:23141`, `10495:24099` (Mouvements), `1992:9910`, `4549:6742`, `1992:10848` (Séances), page `510:101`.
+
+- Bande lilas « Recherche et création » pleine largeur : `y=92..207`, référence écran **402 × 874 pt**, marge latérale **16 pt**. Ligne 1 à `x=24, y=118` ; ligne 2 : champ Rechercher `x=16, y=155`, `216 × 44 pt`, placeholder « Rechercher » 15 pt, `#7A7A80`. En état filtré ou archivé, champ `107 × 44 pt`.
+- Contrôles **Filtre**, **Tri**, **Créer** de **34 pt** à `y=160`, respectivement `x=260`, `306`, `352` ; chaque cible tactile mesure **44 × 44 pt** à partir de `y=155`. Titre individuel de page masqué ; conserver la navigation des Catalogues.
+- **Mouvements** : première ligne « N familles · N mouvements », 14 pt Regular `#333333`, séparateur « · ». Les deux compteurs sont activables séparément, mutuellement exclusifs, désélectionnables au second toucher. Actif : bleu `#0508E5`, Semi Bold ou Bold ; inactif : `#333333`, Regular. Le choix se cumule avec filtres et recherche. Familles = celles ayant **au moins une carte visible** ; Mouvements = **cartes visibles** (sans inclure les membres cachés dans une pile repliée).
+- **Séances** : première ligne « Un exercice N | Plusieurs N ». Les libellés conservent **exactement leur bascule existante**, actif bleu `#0508E5` et gras, inactif `#595E66` Regular ; compteurs `N` purement informatifs, 14 pt `#333333` ; séparateur « | » `#9499A8` à `x=127`. Chaque `N` est le nombre réel de Séances de la vue ; les valeurs 2/3 de Figma sont des exemples.
+- **États filtrés/archivés** : « N résultats » bord droit `x=378`, 14 pt Regular `#333333`, nombre d'éléments **après tous les filtres et la recherche**, actualisé en direct. « 1 résultat » ; « 0 résultat » et « 2 résultats ».
+- Recherche, vue et filtres s'appliquent conjointement à la même liste. Les chiffres ne sont jamais des données stockées ni des commandes, à l'exception des deux compteurs activables de Mouvements. Aucune nouvelle règle de tri, de cartes ou d'archivage.
+
+**Critères de validation :** dimensions à 402 pt, exclusion/désélection des compteurs Mouvements, bascule Séances non régressée, calculs en listes vides/repliées/filtrées/archivées, recherche combinée, accord des résultats et absence de chevauchement tactile. Réalisation **dès PRE-9**.
+
+## CE-MVT-RESULT-01 — Cartes de résultats de recherche des Mouvements — PRE-9
+
+**Contrat final :** [spécification PRE-9 — résultats de recherche](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md). Références Figma `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939` (création de Mouvement), et `9882:19049`, `10175:20349`, `10131:21995` (création d'Exercice depuis un Mouvement).
+
+- **Carte « Mouvement — Résultat » :** description large de **179 pt**, commande **« Ajouter un niveau »** de **66 × 32 pt**, `x=264`, sur deux lignes à droite et alignée avec le bas de la description ; zone tactile **78 × 36 pt** à `x=258, y=31` dans le composant. Cette variante appartient aux résultats de **création de Mouvement** ; aucun bouton « Utiliser » n'est affiché sur ses cartes.
+- **Carte « Mouvement — Composition » :** **338 × 73 pt** dans les listes de référence, **sans aucun bouton** ; description sur **253 pt**, deux lignes au maximum, tronquée par « … ». Le composant conserve ce comportement dans tous les emplois de Composition du projet.
+- **Familles** : filet bleu à `x=3`, largeur **2 pt**, débutant au centre de la première carte affichée de la famille et se terminant au centre de la dernière ; applicable aux six listes concernées, sans modification du calcul des familles, rangs ou identités.
+- **Choix du Niveau** : état `10415:21939`, un seul cadre **338 × 104 pt**, marges verticales 8 pt, liste de recherche **178 pt** ; carte Résultat sur trois lignes avec « Ajouter un niveau » à droite. Quatrième ligne « **Plus facile | Plus difficile** » ; « Plus facile » à `x=90,5`, largeur 64 pt, `y=68`, hauteur 28 pt ; « Plus difficile » à `x=183,5, y=68`, hauteur 28 pt. Séparateur **1,5 × 12 pt** à `x=166,5, y=74,5`. Ancienne commande « Utiliser ce mouvement », deuxième cadre et symboles d'arbre **absents** de cet état.
+- **Navigation et données** : recherche existante, maximum de cinq résultats illustrés, filtres cumulables, classement/identités de Niveaux et validations de création inchangés. « Ajouter un niveau » prépare une nouvelle identité, non créée avant validation. Aucun des noms ou quantités des maquettes n'est codé en dur.
+
+**Recette PRE-9 :** comparer les deux variantes de composants dans les écrans cités ; vérifier l'alignement, la troncature, l'absence de boutons dans la Composition, la ligne de difficulté et ses actions, le filet de familles, le clavier, le choix de niveau et l'absence de régression dans la recherche.
+
 ## CE-MVT-03 — Catalogue des mouvements : ordre et composition des familles
 
 ### 1. Identification
@@ -195,7 +220,7 @@ Le verrouillage depuis une séance concerne uniquement un mouvement existant ou 
 
 ### 4. Contexte de sortie / destinations
 
-Terminer valide le brouillon et revient au contexte appelant avec l'identité enregistrée ; celle-ci est retrouvable au catalogue. « Utiliser ce mouvement » ouvre l'existant en consultation sans doublon. Changer de niveau ouvre le membre choisi de la famille, sans reclassement. Fermer protège les modifications non enregistrées ; Annuler un dialogue revient au brouillon.
+Terminer valide le brouillon et revient au contexte appelant avec l'identité enregistrée ; celle-ci est retrouvable au catalogue. La réutilisation d'un Mouvement existant conserve son comportement sans création de doublon, mais **les cartes Résultat de création de Mouvement n'affichent aucun bouton « Utiliser ce mouvement »** (CE-MVT-RESULT-01). Changer de niveau ouvre le membre choisi de la famille, sans reclassement. Fermer protège les modifications non enregistrées ; Annuler un dialogue revient au brouillon.
 
 ### 5. Données affichées et source de vérité
 
@@ -645,7 +670,7 @@ Mouvements, Séances, Programmes, Un exercice, Plusieurs, Planifier, Dupliquer, 
 
 #### 7. Structure de l’écran
 
-En-tête → segmenté trois entrées → bascule Un exercice | Plusieurs à gauche et Filtre/Tri/Créer à droite → liste de cartes/état vide → navigation. Panneau de filtres : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe.
+En-tête de navigation Catalogues à trois entrées conservé → zone de contexte commune **CE-CAT-CTX-01** (bande lilas, première ligne « Un exercice N | Plusieurs N », deuxième ligne Rechercher et Filtre/Tri/Créer) → liste de cartes/état vide → navigation. Le titre individuel de page est masqué. La bascule existante est inchangée ; **les compteurs ajoutés sont informatifs, non interactifs**. En état filtré ou archivé, « N résultats » est affiché à droite et le champ Rechercher est réduit à 107 pt. Panneau de filtres inchangé : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe.
 
 #### 8. Éléments obligatoires
 
@@ -698,6 +723,9 @@ Une Séance reste une Séance avec un ou plusieurs exercices ; aucun catalogue a
 #### 20. Recette déterministe
 
 Tester automatiquement : comptage structurel (cycles/circuits/récupérations), vues et désélection, cascade photo/format/Libre, déduplication et ordre des catégories, volume unique et priorité du format, omission des durées For time/Death by, masquage conditionnel des conteneurs, conservation des données lors des actions. Tests UI : chevron unique, aucune lecture par déploiement, actions actives/archivées dans le bon ordre, confirmations et annulation, état vide, filtres actifs à l’ouverture et pied fixe. Recette visuelle : douze états et variantes, marges/largeurs/espacement, actions 80 sur carte déployée, textes longs, accessibilité et non-régression des trois contextes hors lot. Les valeurs des maquettes ne servent pas d’oracle aux calculs. L’opérateur de combinaison des nouveaux filtres doit être fixé avant les assertions correspondantes.
+
+
+**Zone de contexte PRE-9** : tests de la position des deux lignes, cibles 44 × 44, libellés N réels non cliquables, maintien de la bascule, largeur réduite en filtré/archivé et « N résultats » recalculé après recherche + filtres, selon CE-CAT-CTX-01.
 
 ### CE-T03-16 — Étiquettes de Séance — sélectionner, créer, retirer
 
@@ -2029,7 +2057,7 @@ Retour pendant une nouvelle création ouvre le dialogue centré `Abandonner la c
 
 ### Champs et comportements des fonctionnalités — Composition — comportement cible
 
-En-tête du 28/10 : nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nombre 15 pt, unité 13 pt, durée 12 pt. Nombre → stepper ; adjectif → choix de nature ; unité non interactive. Circuit replié : noms des exercices sur une ligne tronquée. Cycle non repliable. Les calculs restent ceux du chapitre 10 ; aucun chiffre de maquette ne les définit.
+En-tête du 28/10 : nom et chevron en colonne fixe, compteur à abscisse fixe et durée à droite ; nombre 15 pt, unité 13 pt, durée 12 pt. Nombre → stepper ; adjectif → choix de nature ; unité non interactive. Circuit replié : deuxième ligne existante listant les noms des Exercices, complétée du **nom du Format de chaque Exercice lorsqu'il en porte un**, avec troncature selon la place disponible ; aucun nom de Format commun n'est déduit ou persisté sur le Circuit. Circuit déplié : les cartes individuelles des Exercices demeurent visibles ; les règles Figma d'affichage des informations de Format sont à respecter sans inventer de nouvelle interaction. Cycle non repliable. Référence visuelle vérifiée : Prototype MVP `10717:20056` (deux Circuits repliés), `10725:20142` (un déplié, un replié), `10744:20108` (dans un Cycle). Les calculs restent ceux du chapitre 10 ; aucun chiffre de maquette ne les définit.
 
 Carte : régime identiques → forme N×valeur ; variables → valeurs séparées par points médians avec unité finale, au plus trois selon place puis ellipse, même si valeurs égales. Douze séries : aperçu tronqué ; durées composées longues : moins de valeurs. Aucun marqueur d’incomplétude sur la carte ; validation des cibles dans la feuille conservée. La grille est détaillée dans les nouveaux contrats du chapitre 13.
 
@@ -2037,7 +2065,7 @@ Carte : régime identiques → forme N×valeur ; variables → valeurs séparée
 
 ### CE-CIR-01 — Choix de nature du circuit
 
-**Complément Formats du 14/10 :** Le format peut imposer la nature du circuit selon CE-FMT-03. Le choix libre Tours/Séries ne permet pas de contourner ses constantes ou l’indexation du Volume par tour For time.
+**Clarification du 29/10 remplaçant le complément précédent :** le Circuit ne porte pas de Format propre ; son choix de nature et de compte ne peut pas rendre invalide le Format d'un Exercice membre. Les contraintes intrinsèques de chaque Exercice formaté demeurent applicables, y compris l'indexation du tour d'échelle For time, distincte du passage du Circuit englobant. Le changement de nature s'appuie sur les règles de compatibilité et de confirmation existantes, sans transfert implicite du Format.
 
 #### 1. Identification
 
@@ -2297,6 +2325,8 @@ A2/B4 avec tirets ; 45 s/60 s/90 s→0:45/1:00/1:30 ; échec✓ ; variables éga
 
 ## Formats de séances
 
+**Décisions de configuration actives (30/10/2026)** : [consolidation D-01 à D-30, valeurs et compatibilité](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les contrats CE-FMT-01/02/03 ci-dessous sont à lire avec cette référence pour les Formats multiples et les départs rapides définis.
+
 ### CE-FMT-01 — Choix du modèle et du format
 <a id="ce-fmt-01"></a>
 
@@ -2332,7 +2362,7 @@ Titre, groupes de cartes de modèles, libellés et descriptions, navigation exis
 
 #### 8. Éléments obligatoires
 
-Distinguer les six formats et les départs rapides ; entrée Libre disponible.
+Distinguer les six Formats et les départs rapides actifs **Renforcement, Progression, À l'échec, Superset et Libre** ; **Gainage · Mobilité retiré** (D-25). Conserver les deux cartes de création Exercice / Séance, sans créer d'Exercice autonome.
 
 #### 9. Layout déterministe
 
@@ -2360,7 +2390,7 @@ Entrée reconnue ; aucune affectation d’un format par comparaison de titre ou 
 
 #### 15. Brouillon et persistance
 
-Le choix initialise format/origine et paramètres du brouillon ; la sauvegarde explicite de séance reste celle du parcours existant.
+Le choix initialise l'origine de Séance et les paramètres du **Format sur les Exercices choisis**, ou les préremplissages des départs rapides libres ; aucun Format propre n'est créé sur la Séance ou le Circuit. La sauvegarde explicite de Séance reste celle du parcours existant.
 
 #### 16. Navigation et conservation d’état
 
@@ -2405,11 +2435,11 @@ Validation → CE-FMT-03 ; retour → étape précédente en conservant les vale
 
 #### 5. Données affichées et source de vérité
 
-Paramètres effectifs du brouillon. EMOM : tours, fenêtre, organisation ; durée calculée N×E×W. For time : Volume par tour.
+Paramètres effectifs du brouillon **par Exercice formaté**. **Défauts validés** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30 s/30 s imposés) ; EMOM fenêtre 60 s, 6 passages ; AMRAP durée 12:00 réglable ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. EMOM : durée calculée N×E×W, sans double multiplication. For time : Volume **par tour de l'échelle**, distinct du passage du Circuit englobant.
 
 #### 6. Classification des valeurs Figma
 
-Constantes Tabata et Intervalles normatives ; nombres d’exercices/tours d’exemple illustratifs ; aucune formule tirée de la maquette.
+Constantes Tabata et 30/30 normatives ; seules les **valeurs initiales explicitement décidées** font référence ; les autres chiffres de maquette sont illustratifs, aucune formule tirée de la maquette.
 
 #### 7. Structure de l’écran
 
@@ -2478,7 +2508,7 @@ Règles applicables : RM-218, RM-FMT-03, RM-FMT-04, RM-FMT-05, RM-FMT-06, RM-FMT
 
 #### 2. Finalité fonctionnelle
 
-Éditer les réglages autorisés d’une séance déjà composée et consulter sa prescription effective.
+Éditer les réglages autorisés **des Exercices formatés de la Séance** et consulter leurs prescriptions effectives sans créer de Format propre à la Séance ou au Circuit.
 
 #### 3. Contexte d’entrée
 
@@ -2490,7 +2520,7 @@ Modale de paramètres CE-FMT-04 ; sauvegarde de séance ; départ vers exécutio
 
 #### 5. Données affichées et source de vérité
 
-Format, origine, paramètres contextualisés, organisation, cartes et synthèse calculées depuis la séance courante.
+**Formats et paramètres sur les Exercices**, origine sur la Séance, organisation et compte sur les Circuits, cartes et synthèse calculées depuis la Composition courante.
 
 #### 6. Classification des valeurs Figma
 
@@ -2518,7 +2548,7 @@ Brouillon initial/modifié/sauvegardé ; réorganisation ; erreur de sauvegarde 
 
 #### 12. Contrôles et interactions
 
-Édition autorisée recalcule immédiatement synthèse et métriques. Ajout/retrait EMOM conserve N. Les opérations permises ne changent pas le format.
+Édition autorisée d'un Exercice formaté recalcule immédiatement synthèse et métriques ; l'ajout/retrait volontaire d'un Exercice dans le même Format EMOM conserve N (FMT-22). La simple dépose ne modifie ni ne transmet le Format des Exercices.
 
 #### 13. Gestes
 
@@ -2526,11 +2556,11 @@ Gestes de composition existants ; pas de mouvement de conversion du format ajout
 
 #### 14. Validation
 
-Au moins un exercice valide ; aucune double multiplication du compte du format par sa représentation locale. Contraintes réappliquées après édition.
+Au moins un Exercice valide ; en groupées, le Circuit répète le bloc complet de chaque membre ; le Cycle répète sa séquence, sans compteur de répétition propre au Format. Déposes : six Formats admis en groupées ; alternées Tabata seulement N=8, EMOM et Death by admis, 30/30, For time et AMRAP refusés (D-15/D-16). Aucune double multiplication du compte du Format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
 
 #### 15. Brouillon et persistance
 
-Persister paramètres et origine/format ; générer la phrase en segments. Ne pas modifier ActivityDefinition du catalogue pour un héritage contextuel.
+Persister **Format et réglages par Exercice**, origine sur la Séance, nature et compte sur chaque Circuit ; ne persister aucun Format sur le Circuit. Générer les phrases en segments ; ne pas modifier le Mouvement partagé pour un héritage contextuel.
 
 #### 16. Navigation et conservation d’état
 

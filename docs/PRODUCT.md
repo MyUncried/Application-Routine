@@ -85,6 +85,10 @@ Pour un plan bilatéral, cet instantané conserve le changement de côté effect
 
 ### Catalogue des séances
 
+**Résultats de recherche Mouvements — PRE-9.** Les résultats de création de Mouvement utilisent la carte Résultat avec « Ajouter un niveau » à droite (description 179 pt) ; les cartes réutilisées depuis la Composition/création d'un Exercice ne portent aucun bouton (description 253 pt sur deux lignes ellipsées). Les familles conservent le filet bleu centre-à-centre ; le choix « Plus facile | Plus difficile » utilise une seule carte dépliée, sans « Utiliser ce mouvement ». Référence : [spécification de développement](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01.
+
+**Zones de contexte — PRE-9.** Les Catalogues Mouvements et Séances partagent la bande lilas Recherche et création, leurs champs Recherche, Filtre/Tri/Créer et les compteurs en première ligne selon [la spécification de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Mouvements : « N familles · N mouvements » avec compteurs de filtrage exclusifs et désélectionnables ; Séances : « Un exercice N | Plusieurs N » avec nombres informatifs, bascule inchangée ; sur les états filtrés/archivés, « N résultats » égale la taille réelle de liste après filtres et recherche. Aucun titre de page individuel ; navigation des Catalogues conservée.
+
 Le MVP permet de :
 - créer une Séance avec un nom obligatoire, au moins un Exercice valide et une Étiquette facultative dont la couleur devient la couleur affichée de la Séance ;
 - composer et modifier une Séance ;
@@ -152,7 +156,9 @@ Dans le MVP, les médias déjà associés à un Exercice peuvent être consulté
 
 ### Formats et départs rapides
 
-Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). Leurs règles sont au chapitre 08, section Formats de séances ; le moteur n’est pas encore développé (D-369).
+**PRE-9, décisions consolidées du 30/10/2026 :** [règles actives de Composition et Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Six Formats configurables avec leurs valeurs initiales et contraintes : Tabata, 30/30, EMOM, AMRAP (12:00 proposé, réglable), For time et Death by ; compatibilité des Circuits déterminée Format par Format. Départs rapides sans Mouvement présélectionné : Renforcement 3×15, Progression 10/12/14, À l'échec 3 séries, Superset Circuit groupé d'un passage/deux emplacements vides, Libre ; **Gainage · Mobilité supprimé**. Seul l'Exercice porte le Format, le Circuit organise ses membres, le Cycle répète sa séquence. L'exécution spécialisée reste hors PRE-9.
+
+Les six formats d’entraînement (Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by) et les départs rapides appartiennent au MVP (D-378). **Dans la cible PRE-9, chaque Exercice porte son éventuel Format et ses réglages ; le Circuit organise les membres sans porter de Format propre.** Plusieurs Formats peuvent se succéder dans une Séance et dans ses Circuits/Cycles. Les Circuits repliés présentent la liste existante de leurs Exercices, enrichie du Format éventuel de chacun (Figma `10717:20056` / `10725:20142`). Leurs règles sont au chapitre 10 et le contrat de Composition au chapitre 13 ; le moteur n’est pas encore développé (D-369).
 
 ### Exécution d’une Séance
 

@@ -1,0 +1,53 @@
+# PRE-9 — suivi : ajout CAT.1 validé le 30/10/2026, démarrage immédiat autorisé ; autres stories selon le plan.
+# Baseline applicative : main @ 547bb7ef. CAT.1 est autorisée par Hermann le 30/10 indépendamment des autres arbitrages.
+project: KODJO
+slice: PRE-9
+plan_status: en-revue  # révision 2 (29/10), approbation finale de Hermann après revue ChatGPT
+plan_revision: 2
+development_status:
+  epic-cat: ready-for-dev  # zone de contexte des Catalogues, indépendante
+  cat-1-zones-contexte-catalogues: ready-for-dev  # spécification docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md
+  cat-2-resultats-recherche-mouvements: ready-for-dev  # spec docs/KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md
+  epic-q: backlog
+  q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
+  q-1-qualification-fin-pre9: backlog
+  epic-a: backlog
+  a-1-fondation-structure-generale: backlog  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
+  a-2-exercice-depuis-mouvement: backlog  # ARB-22a, ARB-07 (décidés)
+  a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
+  a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
+  a-5-retrait-table-definitions: backlog  # conditionnelle : non-utilisation, conservation prouvée, autorisation de Hermann
+  epic-b: backlog
+  b-1-rendu-structure: backlog  # ARB-12, ARB-13, ARB-19 (décidés)
+  b-2-menu-creer-enveloppe: backlog  # ARB-06, ARB-07 (décidés)
+  b-3-series-par-circuit-cibles-zero: backlog  # ARB-10 (décidé)
+  b-4-glisser-deposer-conteneurs: backlog  # ARB-06, ARB-09, ARB-24 (décidés)
+  b-5-suppression-duplication: backlog  # ARB-08, ARB-17 (décidés)
+  b-6-pauses-points-arret: backlog  # ARB-02a/b (décidés)
+  b-7-durees-syntheses: backlog  # ARB-11 (décidé)
+  b-8-utiliser-seance-existante: backlog  # ARB-16 (décidé)
+  b-9-nom-seance-trois-etats: backlog  # ARB-14, ARB-15 (décidés)
+  epic-c: backlog
+  c-1-persistance-registre-formats: backlog  # migration 017 : Format et réglages sur Exercice seulement, pas sur Circuit ; aucun compteur de répétition ajouté
+  c-2-selection-modele: backlog  # ARB-05 (décidé)
+  c-3-parametres-imposes-recapitulatif: backlog  # ARB-04 clos : valeurs initiales des 6 Formats décidées ; ARB-18/22a/25
+  c-4-composition-preremplie-verrous: backlog  # ARB-26/27/28 clos, compatibilité D-15/16 ; adoption volontaire
+  c-5-departs-rapides: backlog  # ARB-22b/c clos ; 4 départs définis + Libre, Gainage · Mobilité supprimé
+  c-6-edition-duplication-formats: backlog  # ARB-17, ARB-21 (décidés)
+  epic-d: backlog
+  d-1-developpement-plan: backlog  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
+  d-2-instantane-seance: backlog
+  d-3-descripteurs-capacites: backlog
+  d-4-validation-executabilite: backlog  # validité de configuration ≠ disponibilité du moteur
+  d-5-instruction-capacites-execution: backlog  # document ; A2, A4, A6 par Format
+  epic-doc: backlog
+  doc-0-tracabilite-pre8: backlog
+  doc-1-lot-documentaire-cloture: backlog
+arbitrages:
+  decides_2026_10_30_consolidation: [ARB-04, ARB-22c, ARB-26, ARB-27, ARB-28]  # validation source 29/10 ; consolidation de la traçabilité le 30/10
+  decides_2026_10_29_revision_2: [ARB-01, ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24, ARB-25]
+  decides_2026_10_29: [ARB-03, ARB-05, ARB-06, ARB-07, ARB-08, ARB-09, ARB-10, ARB-11, ARB-12, ARB-13, ARB-14, ARB-15, ARB-16, ARB-17, ARB-18a, ARB-18b, ARB-19, ARB-20, ARB-21, ARB-22a, ARB-22b]
+  ouverts: []  # aucun arbitrage de configuration Formats manquant dans cette consolidation
+  ouverts_application_c4: []  # compatibilités et adoption décidées
+  en_attente_definition_fonctionnelle: []  # contenus des départs rapides définis
+  avant_pre11: [A4 cas non définis, A6 cas non définis, suite après élément AMRAP ou Death by, R-01, R-02, R-03, R-04]

@@ -37,6 +37,10 @@ Nom unique après normalisation des espaces, casse et accents : contrôle pendan
 
 ### Variante et niveau
 
+### Résultats de recherche des Mouvements — rendu PRE-9
+
+**Référence finale active :** [Résultats de recherche des Mouvements — PRE-9](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01. La **carte Résultat** du parcours « Créer un Mouvement » conserve « Ajouter un niveau » à droite (66 × 32 pt à x264, deux lignes), description 179 pt et zone tactile 78 × 36 pt à x258/y31 ; **aucun bouton Utiliser** sur ces cartes. La **carte Composition** du parcours « Créer un Exercice » n'a aucun bouton (338 × 73 pt, description 253 pt tronquée à deux lignes avec « … »), dans tous ses emplois. Les familles conservent leur filet bleu x3, largeur 2 pt, de centre à centre des cartes affichées. L'état « Niveau, plus facile ou plus difficile » utilise un cadre unique 338 × 104 pt et une quatrième ligne « Plus facile | Plus difficile », sans « Utiliser ce mouvement », deuxième cadre ni symboles d'arbre. Les conditions métier de création et le choix de sens demeurent ceux déjà validés.
+
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
 
 Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
@@ -44,7 +48,7 @@ Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** d
 | Entrée | Choix du sens | Destination |
 | --- | --- | --- |
 | Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
-| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Liste des mouvements proches en création de Mouvement : Ajouter un niveau | État `10415:21939`, « Mouvement — Niveau, plus facile ou plus difficile » ; **aucun bouton « Utiliser ce mouvement » dans la carte** ; choix Plus facile / Plus difficile présenté sur la quatrième ligne | Formulaire du nouveau niveau après choix du sens |
 | Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
 
 Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.

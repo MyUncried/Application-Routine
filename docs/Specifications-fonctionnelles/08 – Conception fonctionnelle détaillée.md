@@ -10,6 +10,10 @@ Appui long, déplacement, arrêt sur l'emplacement puis relâchement : même ges
 
 > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
 
+### Résultats de recherche — variantes de cartes, PRE-9
+
+**Comportement cible validé :** [spécification des résultats Mouvement](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01. **Créer un Mouvement** : carte Résultat avec « Ajouter un niveau » à droite et sans bouton « Utiliser ». **Créer un Exercice depuis un Mouvement** : carte Composition, sans action en carte, description limitée à deux lignes ellipsées. La liste de Niveaux affiche le filet de groupe centre-à-centre ; l'état de choix affiche « Plus facile | Plus difficile » dans un seul cadre, sans seconde carte ni symboles d'arbre. Le parcours de création/confirmation et la recherche existants restent inchangés.
+
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
 
 Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
@@ -17,7 +21,7 @@ Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** d
 | Entrée | Choix du sens | Destination |
 | --- | --- | --- |
 | Catalogue : glissé sur un mouvement → Ajouter un niveau | Deux boutons **Plus facile ↓** et **Plus difficile ↑** se déploient sous les trois actions, dans la liste, sans navigation | Après choix, formulaire du nouveau niveau `10415:21980`, directement |
-| Liste des mouvements proches : Ajouter un niveau | État `10415:21939`, désormais nommé « Mouvement — Niveau, plus facile ou plus difficile » ; le choix Utiliser ce mouvement reste pertinent dans cette origine | Formulaire du nouveau niveau après choix du sens |
+| Liste des mouvements proches en création de Mouvement : Ajouter un niveau | État `10415:21939`, « Mouvement — Niveau, plus facile ou plus difficile » ; **aucun bouton « Utiliser ce mouvement » dans la carte** ; choix Plus facile / Plus difficile présenté sur la quatrième ligne | Formulaire du nouveau niveau après choix du sens |
 | Menu Niveau de la fiche | Ajouter un niveau → Plus facile / Plus difficile, selon D-448 point 9 | Formulaire du nouveau niveau |
 
 Dans le catalogue, les trois actions restent **Partager / Ajouter un niveau / Archiver**. L'ouverture du choix est un état de la carte, pas un écran de navigation : ne pas router vers `10415:21939`, ne pas ajouter de barre de retour ou de commande Utiliser ce mouvement à cette étape. Les cartes suivantes descendent pour libérer l'espace nécessaire ; le filet de la famille s'allonge d'autant. Aucun recouvrement, aucun changement d'ordre ou de rang. Refermer le choix restitue la disposition sans créer de mouvement.
@@ -471,7 +475,11 @@ Ces fragments étendent les gabarits ; les autres clauses, segments gras et ponc
 <a id="formats-conception"></a>
 #### Formats de séances — comportements consolidés
 
+**Configuration PRE-9 active — 30/10/2026 :** [consolidation des décisions et matrice des six Formats](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les valeurs initiales et les départs rapides sont définis (ARB-04/ARB-22c clos). Le Circuit groupé peut répéter des Exercices formatés, sans imposer un Format propre. L'organisation alternée suit D-16 ; l'adoption d'un même Format par un second Exercice est volontaire. La Séance peut juxtaposer plusieurs Formats. Les différences entre tour d'échelle For time, passage de Circuit et répétition de Cycle restent explicites. Les horaires, fenêtres et résultats spécialisés ne sont pas développés dans PRE-9.
+
 Source normative : la présente section, issue de la [spécification Formats du 14/10](https://github.com/MyUncried/Application-Routine/blob/3623466af5a6dcf44dfe676f0ae8019b9c56bf76/docs/Specifications-fonctionnelles/SPECIFICATION-FORMATS-SEANCES-2026-10-14.md) intégrée le 14/10/2026, FMT-01–38. Les six formats et les départs rapides appartiennent au MVP (D-378). Ces règles étendent les parcours libres ; elles ne déclarent pas le moteur livré.
+
+**Clarification de Composition du 29/10/2026 (active) :** chaque Exercice conserve son Format et ses réglages ; le Circuit ne porte pas de Format propre. La dépose dans un Circuit adapte, si nécessaire et si compatible, l’organisation/le nombre actif de séries, sans transmettre le Format. L’adoption d’un Format par un nouvel Exercice est un choix explicite, distinct de la dépose. En position **repliée**, la deuxième ligne existante du Circuit indique les noms des Exercices et leurs Formats éventuels ; en position **dépliée**, leurs cartes restent visibles (Figma page Prototype MVP, `10717:20056`, `10725:20142`). Aucun nouveau nom de Format commun au Circuit ni nouvel état d’interface persistant.
 
 ## Exécution
 
@@ -841,6 +849,8 @@ Référence : [spécification v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.
 
 
 ## Catalogue des séances — parcours actualisés le 27/10/2026
+
+**Zones de contexte communes aux Catalogues — cible PRE-9.** [Spécification des compteurs et de la recherche](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md), contrat CE-CAT-CTX-01. Sur Mouvements, « N familles · N mouvements » constitue deux filtres de compteurs activables indépendamment, exclusifs et désélectionnables ; leur sélection se cumule aux filtres existants et à la recherche, tandis que les valeurs comptent les cartes effectivement visibles. Sur Séances, « Un exercice N | Plusieurs N » conserve le comportement de la bascule et n'ajoute que des chiffres informatifs. En état filtré/archivé, « N résultats » indique en direct la taille de la liste résultante ; les chiffres ne sont pas persistés. Les libellés de titre individuel de page sont masqués, sans masquer le segmenté principal Mouvements/Séances/Programmes.
 
 La [spécification carte/catalogue](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) et CE-T03-01 remplacent les parcours du catalogue autonome d'exercices dans la cible D-449. Le catalogue offre une collection de séances et les vues Un exercice/Plusieurs, désélectionnables. Le chevron du nom déploie uniquement les séances de plusieurs exercices ; il n'ouvre pas la Composition. Les entrées de modification et de lancement existantes restent distinctes. Les actions actives sont Planifier/Dupliquer/Archiver ; les archives exposent Restaurer/Supprimer dans le glissé, sans restauration ronde sur la carte. Les règles métier existantes de confirmation et de conservation d'historique restent applicables.
 

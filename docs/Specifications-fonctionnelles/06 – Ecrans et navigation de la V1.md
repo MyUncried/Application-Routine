@@ -52,6 +52,8 @@ Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres
 
 ![Mouvement — Fiche](images/mouvements-2026-10-27/10453-23030.png)
 
+**Référence active PRE-9 — Résultats de recherche des Mouvements :** [spécification finale](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Les nœuds Figma `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939` utilisent la carte Résultat avec bouton « Ajouter un niveau ». Les nœuds `9882:19049`, `10175:20349`, `10131:21995` utilisent la carte Composition **sans bouton**. Les **sept copies PNG des écrans cités** ont été actualisées dans leurs chemins physiques existants depuis Figma le 30/10/2026 ; le composant Résultat `10199:22268` a également sa capture actualisée au chapitre 12. Les noms d'exemples des captures ne sont pas des données fixes.
+
 **Mouvement — Mouvements proches**
 
 ![Mouvement — Mouvements proches](images/mouvements-2026-10-27/10415-21713.png)
@@ -345,6 +347,8 @@ Valeur initiale fonctionnelle de la préférence `Vibration`
 Présentation du Profil avant que l’utilisateur ait créé du contenu
 
 ### Catalogue des séances
+
+**Zone de contexte cible PRE-9.** Le bandeau « Recherche et création » des Catalogues Mouvements et Séances, les deux lignes, les compteurs et leurs états sont définis dans [la spécification finale PRE-9](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et le contrat CE-CAT-CTX-01. À 402 × 874 pt, bande lilas `y=92..207`, recherche `216 × 44` à `x=16, y=155` (`107` pt de large en état filtré/archivé), contrôles Filtre/Tri/Créer à `x=260/306/352` et `y=160`, cibles 44 pt ; aucun titre individuel de page. Figma : Mouvements `10266:20575`/`10465:23141`, Séances `1992:9910`/`4549:6742`. Les captures ci-dessous restent des références d'états ; leurs valeurs chiffrées ne sont pas des données statiques à implémenter.
 
 #### Carte unique et écran — référence du 27/10/2026
 

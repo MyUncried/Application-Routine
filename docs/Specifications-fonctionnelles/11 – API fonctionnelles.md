@@ -307,9 +307,11 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 <a id="formats-api"></a>
 ### Formats — contrats de services fonctionnels
 
+**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/Death by admis, les autres refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
+
 | Opération | Entrée / sortie | Validation et effets |
 |---|---|---|
-| Initialiser depuis un modèle | Entrée choisie → brouillon de séance, format/origine et paramètres | Départ rapide = libre ; ne pas déduire le format du nom |
+| Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
 | Modifier un réglage | Brouillon + réglage autorisé → paramètres effectifs, synthèse et durée | Constantes et format inchangés ; refus d’une édition non autorisée |
 | Changer l’organisation | Choix admis → ordre effectif | Tabata/EMOM/Progression selon règles ; interdit For time ; volume conservé |
 | Développer la prescription | Instantané → occurrences finies ou générateur progressif | Unité d’indexation explicite ; aucun double multiplicateur série × tour |
