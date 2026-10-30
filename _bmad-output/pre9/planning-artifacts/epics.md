@@ -146,7 +146,7 @@ Dépend de : B.4. Arbitrages : ARB-02, ARB-02a/b (**validés**, révision 2). Co
 
 ### B.7 — Durées et synthèses
 Dépend de : B.1, D.1. Arbitrage : ARB-11 (décidé).
-- Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa durée imposée ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
+- Durée par Circuit et par Cycle dans les en-têtes, total de Séance (≈/≥, D-443) calculés sur le plan développé (D.1) ; durée et arrondi du Cycle selon les règles de la Séance (ARB-11) ; un élément AMRAP contribue par sa **durée configurée**, initialement 12:00 ; un élément Death by, sans durée calculable, est traité comme un Exercice sans durée conventionnelle, préfixe « ≥ » (application de D-070, à confirmer en revue) ; un Cycle × k multiplie une fois la durée de ses éléments, formatés compris (ARB-25) ; aucune valeur Figma prise comme oracle.
 
 ### B.8 — Utiliser une Séance existante
 Dépend de : B.2, C.1. Arbitrage : ARB-16 (décidé).
@@ -196,10 +196,10 @@ Dépend de : C.3, B.2, B.3, B.4. Arbitrages : ARB-15, ARB-23, ARB-24, ARB-25 (d�
 - [28/10 : « Composition préremplie conforme à la structure admise (ARB-03) » — remplacé le 29/10.]
 
 ### C.5 — Départs rapides
-Dépend de : C.2. Arbitrages : ARB-22b (décidé) ; ARB-22c (**EN ATTENTE DE DÉFINITION FONCTIONNELLE**).
-- Un seul mécanisme de préremplissage piloté par des données (`architecture-pre9.md` §5), capable des cas A (paramètres seuls), B (Mouvements et paramètres) et C (contenu variable par départ), testé sur des données de test ; aucun parcours propre à un départ.
-- Renforcement, Gainage · Mobilité, Superset, Progression, À l'échec préremplissent une Séance d'éléments libres, sans verrouillage (FMT-28).
-- Le contenu de chaque départ est ajouté comme donnée à la réception de sa définition ; un départ non défini reste indisponible. Seule cette activation est bloquée ; aucune valeur n'est inventée.
+Dépend de : C.2. Arbitrages : ARB-22b, **ARB-22c (clos)** ; D-22 à D-25.
+- Un seul mécanisme de préremplissage piloté par des données (`architecture-pre9.md` §5), capable des trois types validés, **sans Mouvements présélectionnés** dans les départs actuellement décidés.
+- **Renforcement** : 3 séries × 15 répétitions ; **Progression** : 10 / 12 / 14 répétitions ; **À l'échec** : 3 séries à l'échec ; **Superset** : Circuit groupé 1 passage et deux emplacements d'Exercices vides, paramètres libres ; **Libre** : Séance vide.
+- **Gainage · Mobilité supprimé** des départs rapides actifs (D-25) ; ne pas utiliser les exemples Figma comme autres valeurs par défaut. Tests ciblés des préréglages et absence de Mouvement arbitrairement choisi.
 
 ### C.6 — Modifier, dupliquer, rouvrir une Séance contenant des éléments formatés
 Dépend de : C.4. Arbitrages : ARB-17, ARB-21 (décidés).
