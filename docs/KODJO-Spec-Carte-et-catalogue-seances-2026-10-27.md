@@ -4,6 +4,8 @@ Lot à verser à la documentation. Il remplace et complète `KODJO-Spec-Carte-se
 
 Périmètre : la carte de séance dans le contexte Catalogue, l'écran du catalogue des séances et son panneau de filtres. Les contextes Calendrier, Suivi et Choix ne sont pas modifiés.
 
+> **Limite de portée après les décisions PRE-9 du 29–30/10 :** [Format par Exercice et Formats multiples par Séance](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les prescriptions historiques de cette spécification parlant d'une « séance à format » ou de « la vignette du format de la séance » ne peuvent pas être interprétées comme la création d'un Format unique au niveau Séance. Elles décrivent les exemples de séances ayant un Format identifiable ; **le choix d'une vignette ou d'un libellé unique pour une Séance contenant plusieurs Formats différents n'est pas décidé par le présent lot**. Ne pas inventer une règle de priorité entre les Formats des Exercices. Les autres règles de cartes et de filtres restent inchangées.
+
 ---
 
 ## 1. Une seule carte pour toutes les séances
