@@ -187,7 +187,7 @@ L'écran s'ouvre avec le nom saisi comme requête, préremplie et effaçable. **
 
 Un résultat représente un mouvement, pas un exercice paramétré. Utiliser les composants Carte — Mouvement et Carte — Mouvement — Résultat (références du DSF du 25/10). Montrer nom, média et contexte permettant le choix, dont description, zones et origine locale si nécessaire. Un mouvement local reste proposable sans publication d’un exercice Catalogue. `9959:19623` est désormais un catalogue d’entretien ; ce n’est plus la référence du sélecteur de création.
 
-Dans le panneau sous le nom, cinq résultats au maximum ; deux actions internes : Utiliser ce mouvement / Ajouter un niveau. Entrée ne sélectionne pas de résultat. L’ordre ne change pas pendant un appui. L’accès explicite à la recherche reste disponible selon R03.
+Dans le panneau sous le nom, cinq résultats au maximum [30/10/2026, contre-recette PRE-9 n° 1 (Hermann) : « Ne pas limiter à 5 le nombre de résultats » — tous les résultats sont listés ; voir ch07 « Contre-recette PRE-9 n° 1 ».] ; deux actions internes : Utiliser ce mouvement / Ajouter un niveau. Entrée ne sélectionne pas de résultat. L’ordre ne change pas pendant un appui. L’accès explicite à la recherche reste disponible selon R03.
 
 ### R05 — Alias
 

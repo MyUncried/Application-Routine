@@ -263,3 +263,40 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
   });
 });
+
+/**
+ * Contre-recette iPhone du 30/10 (Hermann : « Appuyer de nouveau sur le bouton d'action point
+ * d'arrêt referme l'écran de sélection (même comportement sur confirmer) »).
+ */
+describe("contre-recette du 30/10 — second appui sur « Ajouter un arrêt »", () => {
+  it("in placement the button stays active (selected); pressing it again applies the selection like « Confirmer »", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    const before = probe.draft!.stopPoints ?? [];
+    fireEvent.press(addStop());
+    await act(async () => undefined);
+    expect(addStop().props.accessibilityState).toEqual({ selected: true, disabled: false });
+    fireEvent.press(screen.getByLabelText(placementStrings.addStopPointAfterCircuitAccessibilityLabel));
+    await act(async () => undefined);
+    expect(screen.getByTestId("composition-placement-bar-confirm").props.accessibilityState).toMatchObject({ disabled: false });
+    fireEvent.press(addStop());
+    await act(async () => undefined);
+    // Sélection refermée, Point posé (comme « Confirmer »).
+    expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
+    expect(probe.draft!.stopPoints ?? []).toHaveLength(before.length + 1);
+    expect(addStop().props.accessibilityState).toEqual(enabled);
+  });
+
+  it("without any applicable change, the second press closes the selection without mutation", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    const before = probe.draft;
+    fireEvent.press(addStop());
+    await act(async () => undefined);
+    expect(screen.getByTestId("composition-placement-bar")).toBeTruthy();
+    fireEvent.press(addStop());
+    await act(async () => undefined);
+    expect(screen.queryByTestId("composition-placement-bar")).toBeNull();
+    expect(probe.draft).toBe(before);
+  });
+});

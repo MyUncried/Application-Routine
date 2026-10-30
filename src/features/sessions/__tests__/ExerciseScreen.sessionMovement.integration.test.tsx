@@ -204,14 +204,18 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
     expect(screen.getByTestId("exercise-name-input").props.value).toBe("Squat");
     expect(screen.getByTestId("exercise-name-input").props.editable).toBe(false);
     expect(screen.getByTestId("exercise-instruction-input").props.editable).toBe(false);
-    expect(screen.getByTestId("movement-section-phases")).toBeTruthy();
-    // Phases du Mouvement : libellés seuls, texte non modifiable (aucune invite de saisie).
-    expect(screen.getByTestId("movement-phases-label-1").props.children).toBe("Descente");
-    expect(screen.getByTestId("movement-phases-label-2").props.children).toBe("Montée");
-    expect(screen.queryByTestId("movement-phases-invite")).toBeNull();
+    // Contre-recette iPhone du 30/10 (r1-exo) : aucune section « Phases du mouvement » (titre et
+    // contenu) — les phases sont dans les paramètres d'exécution.
+    expect(screen.queryByTestId("movement-section-phases")).toBeNull();
+    expect(screen.queryByText(strings.screens.movement.phases.title)).toBeNull();
 
     expect(screen.getByTestId("exercise-parameters-card")).toBeTruthy();
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState).toMatchObject({ disabled: true });
+
+    // Phases lues dans la Feuille, structure verrouillée (Mouvement enregistré, MFN-09).
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.value).toBe("Descente");
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).toBe(false);
   });
 
   it("paramètres locaux modifiables par la Feuille ; Terminer les inscrit dans le brouillon, sans Mouvement inscrit ni autre occurrence touchée", async () => {
@@ -267,8 +271,16 @@ describe("PRE-9 — Exercice d'une Séance ouvert au gabarit Mouvement (CE-MVT-0
     expect(screen.queryByTestId("activity-editor-edit-movement")).toBeNull();
     expect(screen.getByTestId("exercise-name-input").props.editable).not.toBe(false);
     fireEvent.changeText(screen.getByTestId("exercise-instruction-input"), "Dos bien plat");
-    // Phases : libellé renommé au gabarit, durée de l'occurrence gardée par identité.
-    fireEvent.changeText(screen.getByTestId("movement-phases-label-1"), "Gainer");
+    // Contre-recette du 30/10 (r1-exo) : pas de bloc Phases au gabarit ; libellé renommé dans la
+    // Feuille des paramètres (structure modifiable : Mouvement NOUVEAU), durée gardée par identité.
+    expect(screen.queryByTestId("movement-section-phases")).toBeNull();
+    fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+    const phaseLabel = screen.getByTestId("execution-sheet-phase-row-1-label");
+    expect(phaseLabel.props.editable).not.toBe(false);
+    fireEvent(phaseLabel, "focus");
+    fireEvent.changeText(screen.getByTestId("execution-sheet-phase-row-1-label"), "Gainer");
+    fireEvent(screen.getByTestId("execution-sheet-phase-row-1-label"), "blur");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
     await press("exercise-finish-action");
 
     expect(screen.queryByTestId("movement-save-dialog")).toBeNull();

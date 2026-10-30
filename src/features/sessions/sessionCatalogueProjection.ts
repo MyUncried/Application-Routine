@@ -7,7 +7,7 @@ import { computeStructureDuration, cycleExercises, structureExercises, type Stru
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { firstMediaPreviewSource, type MediaPreviewSource } from "@/features/activities/MediaPreview";
 import { isDisplayableRecovery } from "@/features/sessions/ActivityRecoveryLine";
-import { formatOccurrenceSummary } from "@/features/sessions/compositionPresentation";
+import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 
 import { FREE_SESSION_FORMAT, sessionFormatOf, type SessionFormatKey } from "./sessionFormats";
@@ -70,6 +70,13 @@ export type SessionCatalogueProjection = {
   readonly summary: CatalogueSummarySlot;
   readonly duration: SessionDurationResult;
   readonly tree: readonly CatalogueTreeLine[];
+  /**
+   * Contre-recette iPhone du 30/10/2026 (Hermann : « Une séance incomplète doit avoir le même format
+   * qu'un exercice incomplet (fond rouge liseré rouge) ») : au moins un de ses Exercices porte la
+   * synthèse « Paramètres à compléter. » — même signal que la carte d'Exercice de la Composition
+   * (D-448 point 7, `isIncompleteSummary`). Lecture seule, rien n'est stocké.
+   */
+  readonly incomplete: boolean;
 };
 
 const isExercise = (activity: Activity) => activity.type !== "RECOVERY";
@@ -221,5 +228,8 @@ export function projectSessionForCatalogue(
     summary,
     duration: computeStructureDuration(record.structure),
     tree: projectSessionTree(record),
+    incomplete: exercises.some((exercise) =>
+      isIncompleteSummary(formatOccurrenceSummary({ executionParameters: exercise.executionParameters })),
+    ),
   };
 }

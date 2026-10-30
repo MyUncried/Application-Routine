@@ -31,7 +31,10 @@ export type MovementNameMessage = string | { readonly before: string; readonly b
 export type MovementSuggestionPanelProps = {
   /** Message d'unicité (C01) au-dessus des cartes ; `null` : aucun. */
   readonly message: MovementNameMessage | null;
-  /** Résultats affichés, cinq au plus (R04), déjà classés ; figés pendant un appui par l'appelant. */
+  /**
+   * Résultats affichés, déjà classés ; figés pendant un appui par l'appelant. Contre-recette du
+   * 30/10 : plus de limite à cinq (R04 remplacé) — la liste défile dans la hauteur de l'hôte.
+   */
   readonly results: readonly MovementChoice[];
   /** Mouvement dont la variante est en cours de choix (`10140:20180`) ; `null` : liste. */
   readonly variantOf: string | null;
@@ -55,7 +58,8 @@ export type MovementSuggestionPanelProps = {
  * superposé sous le nom, clavier visible, rendu par l'éditeur (`ActivityEditorForm`, prop
  * `nameAssist`). Remplace la feuille à trois choix d'A2.3. Il porte :
  * - le message rouge « nom déjà utilisé » (`10175:20349`), affiché dès la frappe ;
- * - jusqu'à cinq cartes Résultat (`10199:22268`), chacune avec ses deux actions internes ; Entrée
+ * - les cartes Résultat (`10199:22268`) — toutes, sans limite depuis la contre-recette du 30/10 (R04
+ *   « cinq au plus » remplacé) —, chacune avec ses deux actions internes ; Entrée
  *   ne sélectionne jamais un résultat (le panneau se ferme à la fin de la saisie du nom) ;
  * - après « Créer une variante », la seule carte d'origine sous un cadre de retour, avec les deux
  *   sens Plus facile / Plus difficile (`10140:20180`).

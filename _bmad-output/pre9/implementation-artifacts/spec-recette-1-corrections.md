@@ -42,3 +42,22 @@ Résultats de Hermann : cahier de recette en ligne (https://claude.ai/artifact/8
 ## Tests
 
 Nouveaux : `CompositionScreen.recette1` (7), `CreateMenu`, `OccurrenceCardIncomplete`, `ExerciseScreen.sessionMovement.integration` (6), cas ajoutés à `MovementScreen.b2.integration`, `ExecutionParametersSheet.phases`, `movementExercises.a2`. Tests du crayon depuis une Séance (r4, r9, r10) retirés (CE-MVT-01). Suite complète : voir le message de commit. Aucune vérification sur iPhone.
+
+## Contre-recette du 30/10/2026
+
+Résultats lus dans le cahier en ligne : OK r1-k, r1-stop, r1-circuit, r1-nature, r1-catal, r1-fiche, r1-params ; KO r1-carte, r1-cycle, r1-menu, r1-exo, r1-fondu ; nouveaux constats. Demandes recopiées au ch07, « Contre-recette PRE-9 n° 1 ». Suivi : classe, puis réalisation.
+
+1. **r1-catal / ordre** (B) : Rechercher | Filtrer | Trier | Créer (commit `c4c217a6`).
+2. **r1-carte** (A, D-448 point 7) : la rangée des valeurs d'une carte incomplète couvre les lignes 2 et 3 (le texte tenait dans une hauteur fixe de 16, coupé par iOS) ; chronomètre dans sa propre boîte de 16, même position sur toutes les cartes. Aucune maquette de carte incomplète dans Figma : disposition à confirmer sur l'iPhone.
+3. **r1-cycle** (A) : le cadre d'enveloppe d'un Circuit suit son fond (débord de 16, ou 12 dans un Cycle, rayon 18).
+4. **r1-menu** (A pour le « + » unique ; B pour le texte inactif en regular) : le menu mesure le « + » réel et place le sien exactement dessus ; un seul « + » visible. Interprétation de « qui apparaît activé » : affiché normalement, non voilé (Figma `10705:20223`) — À CLARIFIER si un état « enfoncé » était attendu.
+5. **r1-exo** (B) : section « Phases du mouvement » retirée de l'Exercice ouvert depuis une Séance ; libellés et structure des phases dans la feuille des paramètres (verrouillés pour un Mouvement enregistré).
+6. **r1-fondu** : non corrigé. Historique `main`, `pre8-bmad/dev`, `pre9-bmad/dev` : depuis `ee32191a` / `ce8e35a2` (12/10), le dégradé a toujours fini sur le blanc, le contenu étant placé sous la bande, jamais derrière ; aucun commit de régression trouvé. Seule la fiche Mouvement (F01) fait passer un contenu sous un fondu. À CLARIFIER avec Hermann : quel écran, ou quelle version, montrait le bon rendu.
+7. **Cycle progressif** (B) : à la confirmation, fond, anneau et en-tête du Cycle apparaissent en 450 ms (durée choisie, sans maquette) ; ignoré si « Réduire les animations ».
+8. **Second appui sur « Ajouter un arrêt »** (B) : applique comme Confirmer ; sans changement, referme seulement (ch08, ch13 annotés).
+9. **Paramètres d'exécution, séparateurs** (B) : aucun trait entre la ligne et son tableau déployé (phases, séries) ; trait sous le tableau. Diffère de Figma `9207:18817` (aucun trait sous le tableau des phases) : la demande explicite prévaut.
+10. **Recherche de nom** (B) : plus de limite à 5 résultats (DSF Mouvements, ch10, ch13, Règles v7 annotés).
+11. **Séance incomplète** (C, interprétation) : une Séance est marquée incomplète (fond rouge, liseré rouge, mêmes jetons que la carte d'Exercice) si l'un de ses Exercices est « Paramètres à compléter ». Aucune règle écrite ni maquette pour cet état : À CLARIFIER.
+12. **Menu Créer** (B) : « Créer un nouveau mouvement » (libellé complété et confirmé par Hermann le 30/10).
+13. **Choisir un mouvement existant** (B) : mention « Dans la séance » sous le nom des Mouvements déjà présents (rendu choisi par Hermann le 30/10), carte de hauteur constante (une étape de description au lieu de deux) ; le Mouvement reste sélectionnable.
+14. **Durées des phases portées par le Mouvement** (B) : story A.2b, après B.3 (décision du 30/10) ; DSF Mouvements §2, MVT-09 et ch13 annotés.

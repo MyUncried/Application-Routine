@@ -14,7 +14,7 @@ import type { ActivityDefinition, CreateActivityDefinitionInput } from "@/domain
 import { decodeInstructionSteps, encodeInstructionSteps } from "@/domain/activities/instructionSteps";
 import { repriseExecutionParameters, transferParametersByRank, type MovementPhase } from "@/domain/activities/Movement";
 import { DuplicateMovementNameError } from "@/domain/activities/MovementRepository";
-import { savableMovementPhases, type MovementPhaseList } from "@/domain/activities/movementPhaseList";
+import type { MovementPhaseList } from "@/domain/activities/movementPhaseList";
 import { variantLevelPosition } from "@/domain/activities/movementSuggestion";
 import {
   decideMovementSave,
@@ -1397,21 +1397,6 @@ function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionD
 }
 
 /**
- * PRE-9 : structure des phases saisie dans le gabarit Mouvement (Mouvement encore NOUVEAU du
- * brouillon, seul cas modifiable depuis une Séance) appliquée aux paramètres de l'occurrence — durées
- * gardées par identité de phase, phase nouvelle à renseigner (0, D-438), lignes vides écartées.
- */
-function withPhaseStructure(parameters: ExecutionParametersInput, list: MovementPhaseList): ExecutionParametersInput {
-  const durations = new Map(parameters.series.workPhases.map((phase) => [phase.id, phase.durationSeconds] as const));
-  const workPhases = savableMovementPhases(list.phases).map((phase) => ({
-    id: phase.id,
-    label: phase.label,
-    durationSeconds: durations.get(phase.id) ?? 0,
-  }));
-  return { ...parameters, series: { ...parameters.series, workPhases } };
-}
-
-/**
  * Copie de Séance (D-137) — écrit exclusivement dans le brouillon de
  * Composition (`SessionDraftContext`), jamais dans une définition Catalogue.
  * Une nouvelle occurrence ne reçoit AUCUNE Récupération automatique
@@ -1484,9 +1469,6 @@ function CompositionExerciseEditor() {
   // locaux par leur carte et leur Feuille (CE-UI-10). La création (sans `exerciseId`) garde
   // l'ancien éditeur jusqu'à son retrait (A.3).
   const opensAsMovement = isEditingExisting;
-  // PRE-9 : phases saisies dans le gabarit (Mouvement NOUVEAU du brouillon seulement) ; `null` :
-  // structure lue sur l'occurrence courante (qui suit aussi un changement de niveau).
-  const [phaseDraft, setPhaseDraft] = useState<MovementPhaseList | null>(null);
   // Q53 (8) : la Catégorie de cette Copie a été supprimée depuis sa feuille.
   const [categoryClearedByDeletion, setCategoryClearedByDeletion] = useState(false);
   const [profileApplied, setProfileApplied] = useState(isEditingExisting);
@@ -1831,8 +1813,9 @@ function CompositionExerciseEditor() {
     const shared = withDraftMovement(
       { ...draft, exercises: plan.exercises },
       draftMovementOf(finished, "NEW", {
-        // PRE-9 : compteur des phases saisies dans le gabarit, jamais en recul.
-        nextPhaseId: phaseDraft === null ? previous?.nextPhaseId : Math.max(previous?.nextPhaseId ?? 0, phaseDraft.nextPhaseId),
+        // PRE-9 : compteur des phases du Mouvement NOUVEAU, jamais en recul (`draftMovementOf` le
+        // relève au-dessus des identités de l'occurrence terminée).
+        nextPhaseId: previous?.nextPhaseId,
         aliases: previous?.aliases,
         ...(levelOrigin !== undefined ? { levelOrigin } : {}),
       }),
@@ -2214,23 +2197,14 @@ function CompositionExerciseEditor() {
           value={value}
           onChange={patchLocal}
           // PRE-9 (recette iPhone du 29/10) : occurrence existante au gabarit Mouvement (CE-MVT-01) —
-          // média derrière la zone de contexte, Description, Phases (lecture seule pour un Mouvement
-          // enregistré), puis carte des paramètres locaux (CE-UI-10).
-          {...(opensAsMovement && local !== null
-            ? {
-                variant: "movement" as const,
-                executionParametersCard: true,
-                movementPhases: {
-                  value: phaseDraft ?? occurrencePhaseList(local, draft.movements),
-                  onChange: (next: MovementPhaseList) => {
-                    setPhaseDraft(next);
-                    setLocal((current) =>
-                      current ? { ...current, executionParameters: withPhaseStructure(current.executionParameters, next) } : current,
-                    );
-                  },
-                },
-              }
-            : {})}
+          // média derrière la zone de contexte, Description, puis carte des paramètres locaux
+          // (CE-UI-10).
+          // Contre-recette iPhone du 30/10 (Hermann, r1-exo : « La section « phases du mouvement »
+          // (titre et contenu) ne doit pas apparaître, car elle est dans les paramètres
+          // d'exécution. ») : aucun bloc Phases ici — la structure se lit et, Mouvement NOUVEAU du
+          // brouillon seulement, se règle dans la Feuille des paramètres. La fiche Mouvement du
+          // Catalogue garde son bloc Phases.
+          {...(opensAsMovement && local !== null ? { variant: "movement" as const, executionParametersCard: true } : {})}
           bodyZones={bodyZonesReferential}
           onBodyZonesPickerClose={() => setBodyZonesLoadToken((current) => current + 1)}
           silhouette={profile.silhouette}
@@ -2243,16 +2217,19 @@ function CompositionExerciseEditor() {
           // Feuille ne présente ni Compte à rebours ni Fin d'exercice (valeurs conservées).
           exerciseSignals="absent"
           inheritedSeriesCount={inheritedSeriesCount}
-          // PRE-9 : au gabarit Mouvement, la structure des phases se lit (ou, Mouvement NOUVEAU, se
-          // saisit) dans le bloc Phases ; la Feuille n'en règle que les durées.
-          phaseStructureLocked={movementLocked || opensAsMovement}
+          // Contre-recette iPhone du 30/10 (r1-exo) : sans bloc Phases au gabarit, la structure des
+          // phases se règle dans la Feuille, verrouillée pour un Mouvement enregistré (MFN-09).
+          phaseStructureLocked={movementLocked}
           // PRE-7 (A2.2, D-437, MFN-09, MFN/AC28, MFN/AC29) : même seuil que la structure — une
           // occurrence d'un Mouvement enregistré a son contenu (nom, description, médias, Catégorie,
           // Zones) verrouillé jusqu'au crayon (R-4, D-445 C04) ; une création locale non enregistrée
           // reste modifiable, ainsi que sa copie en attente (recette JA, décision du 26/10/2026).
           contentLocked={movementLocked || repriseLocked}
           // PRE-7 (R-4, MFN/AC30) : compteur du Mouvement déverrouillé, jamais max + 1.
-          nextPhaseId={unlockedMovement?.nextPhaseId}
+          nextPhaseId={
+            unlockedMovement?.nextPhaseId ??
+            (opensAsMovement && local !== null ? occurrencePhaseList(local, draft.movements).nextPhaseId : undefined)
+          }
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? strings.screens.activities.editor.movementSuggestion.completeNameHint : null}

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 import { AccessibilityInfo, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import type { Label } from "@/domain/labels/Label";
@@ -94,8 +94,18 @@ export type CompositionContextHeaderProps = {
   readonly sessionDuration: string;
   /** Ouvre l'arbre d'ajout existant (V2-CAT-01). */
   readonly onAdd: () => void;
-  /** PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). */
+  /**
+   * PRE-6 story 4.1 : entre en mode placement (« Ajouter un arrêt »). Contre-recette iPhone du 30/10
+   * (Hermann : « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de
+   * sélection (même comportement sur confirmer) ») : en placement, le bouton reste actif et l'écran
+   * referme la sélection comme « Confirmer ».
+   */
   readonly onAddStop: () => void;
+  /**
+   * Contre-recette du 30/10 (menu Créer) : boîte réelle du « + », mesurée par le menu pour reposer
+   * l'unique « + » du premier plan exactement à sa place.
+   */
+  readonly addActionRef?: RefObject<View | null>;
   /** PRE-6 story 4.1 : mode placement en cours — bouton « Ajouter un arrêt » actif, « + » atténué et inactif. */
   readonly isPlacementActive?: boolean;
   /** PRE-6 story 4.1 : aucun emplacement où ajouter une pause (Composition vide, tout est déjà présent). */
@@ -152,6 +162,7 @@ export function CompositionContextHeader({
   onOpenVolumes,
   volumesFocusRequest = 0,
   isVolumesDisabled = false,
+  addActionRef,
   testID = "composition-context-header",
 }: CompositionContextHeaderProps) {
   const composition = strings.screens.composition;
@@ -255,11 +266,12 @@ export function CompositionContextHeader({
           <Pressable
             ref={addStopRef}
             onPress={onAddStop}
-            disabled={isPlacementActive || addStopUnavailable}
+            // Contre-recette du 30/10 : actif en placement (second appui = « Confirmer »).
+            disabled={addStopUnavailable}
             accessibilityRole="button"
             accessibilityLabel={composition.placement.addStopAccessibilityLabel}
             accessibilityHint={isPlacementActive ? undefined : addStopAccessibilityHint}
-            accessibilityState={{ selected: isPlacementActive, disabled: isPlacementActive || addStopUnavailable }}
+            accessibilityState={{ selected: isPlacementActive, disabled: addStopUnavailable }}
             style={[styles.commandTarget, addStopUnavailable ? styles.attenuated : null]}
             testID="composition-add-stop-action"
           >
@@ -280,6 +292,7 @@ export function CompositionContextHeader({
             </View>
           </Pressable>
           <Pressable
+            ref={addActionRef}
             onPress={onAdd}
             disabled={isPlacementActive}
             accessibilityRole="button"

@@ -773,3 +773,27 @@ describe("ExecutionParametersSheet — recette iPhone du 29/10/2026 : tableau de
     expect(phaseRows()).toHaveLength(0);
   });
 });
+
+/** Contre-recette iPhone du 30/10/2026 : séparateurs (trait 1, `colors.divider`) rendus sous un nœud. */
+function separatorsUnder(testID: string) {
+  return get(testID).findAll((node) => {
+    if (typeof node.type !== "string") return false;
+    const style = StyleSheet.flatten(node.props.style) ?? {};
+    return style.height === 1 && style.backgroundColor === colors.divider;
+  });
+}
+
+describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des phases", () => {
+  it("tableau déployé : aucun trait entre la ligne « Phases » et son tableau ; un trait sous le tableau", () => {
+    renderSheet(withPhases([["A", 6], ["B", 3]]));
+    expect(get(TABLE)).toBeTruthy();
+    expect(separatorsUnder("execution-sheet-phases-group")).toHaveLength(0);
+    expect(separatorsUnder("execution-sheet-phases-separator")).not.toHaveLength(0);
+  });
+
+  it("sans phases : le trait sous la ligne « Phases » reste", () => {
+    renderSheet(params());
+    expect(query(TABLE)).toBeNull();
+    expect(get("execution-sheet-phases-separator")).toBeTruthy();
+  });
+});

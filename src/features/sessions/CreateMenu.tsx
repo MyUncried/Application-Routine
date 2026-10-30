@@ -1,4 +1,5 @@
 import { Image } from "expo-image";
+import { type RefObject, useLayoutEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 
@@ -140,12 +141,45 @@ function OptionIcon({ icon }: { readonly icon: CreateMenuIcon }) {
   }
 }
 
+/** Boîte du « + » d'origine, dans le repère du menu. */
+type PlusAnchor = { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
+
+/**
+ * Contre-recette iPhone du 30/10 (Hermann : « Le bouton "+" est dupliqué et décalé, on en voit deux.
+ * Il ne faut qu'un seul bouton, l'original, qui apparaît activé. Les autres boutons restent alignés
+ * dessous ») : le « + » du premier plan était posé aux cotes de Figma (402 − 41, 40 au-dessus de la
+ * première rangée), alors que le « + » d'origine de la zone de contexte, visible sous le voile, est
+ * placé par la mise en page réelle — deux « + » décalés. Le menu mesure désormais la boîte du « + »
+ * d'origine (`measureInWindow`, rapportée à son propre repère) et y repose le sien, qui le recouvre
+ * exactement : un seul « + » visible, au-dessus du voile ; l'axe et les boutons ronds s'alignent sur
+ * son centre. Sans mesure (avant la première, ou en test), les cotes de Figma.
+ */
+function usePlusAnchor(menuRef: RefObject<View | null>, plusRef: RefObject<View | null> | undefined): PlusAnchor | null {
+  const [anchor, setAnchor] = useState<PlusAnchor | null>(null);
+  useLayoutEffect(() => {
+    const menu = menuRef.current;
+    const plus = plusRef?.current;
+    if (!menu || !plus) return;
+    let active = true;
+    menu.measureInWindow((menuX, menuY) => {
+      plus.measureInWindow((x, y, width, height) => {
+        if (active && width > 0 && height > 0) setAnchor({ x: x - menuX, y: y - menuY, width, height });
+      });
+    });
+    return () => {
+      active = false;
+    };
+  }, [menuRef, plusRef]);
+  return anchor;
+}
+
 export function CreateMenu({
   top,
   options,
   onCancel,
   cancelLabel,
   cancelTestID,
+  plusAnchorRef,
 }: {
   /** Ordonnée de la première rangée (8 sous la zone de contexte). */
   readonly top: number;
@@ -153,12 +187,17 @@ export function CreateMenu({
   readonly onCancel: () => void;
   readonly cancelLabel: string;
   readonly cancelTestID: string;
+  /** Contre-recette du 30/10 : boîte du « + » d'origine, recouverte par celui du menu. */
+  readonly plusAnchorRef?: RefObject<View | null>;
 }) {
   const { width } = useWindowDimensions();
+  const menuRef = useRef<View>(null);
+  const anchor = usePlusAnchor(menuRef, plusAnchorRef);
   const rows = options.length + 1;
-  const iconLeft = width - PLUS_CENTER_FROM_RIGHT - ICON_SIZE / 2;
+  const plusCenterX = anchor ? anchor.x + anchor.width / 2 : width - PLUS_CENTER_FROM_RIGHT;
+  const plusCenterY = anchor ? anchor.y + anchor.height / 2 : top - PLUS_CENTER_ABOVE_FIRST_ROW;
+  const iconLeft = plusCenterX - ICON_SIZE / 2;
   const pillLeft = iconLeft - PILL_TO_ICON - PILL_WIDTH;
-  const plusCenterY = top - PLUS_CENTER_ABOVE_FIRST_ROW;
   const axisTop = plusCenterY + PLUS_TARGET / 2;
   const lastRowCenter = top + (rows - 1) * (ROW_HEIGHT + ROW_GAP) + ROW_HEIGHT / 2;
   const unavailable = strings.screens.activities.addToSession.unavailableAccessibilityLabel;
@@ -171,9 +210,11 @@ export function CreateMenu({
       testID="composition-add-activity-tree"
     >
       <Pressable onPress={onCancel} accessible={false} testID="composition-add-activity-tree-backdrop" style={[StyleSheet.absoluteFill, styles.scrim]} />
+      {/* Repère du menu pour la mesure du « + » d'origine (sans dessin, sans toucher). */}
+      <View ref={menuRef} collapsable={false} pointerEvents="none" style={StyleSheet.absoluteFill} testID="composition-add-activity-tree-frame" />
       <View
         pointerEvents="none"
-        style={[styles.axis, { left: width - PLUS_CENTER_FROM_RIGHT - 1, top: axisTop, height: Math.max(0, lastRowCenter - axisTop) }]}
+        style={[styles.axis, { left: plusCenterX - 1, top: axisTop, height: Math.max(0, lastRowCenter - axisTop) }]}
         testID="composition-add-activity-tree-axis"
       />
       {/* « + » au premier plan (Figma `10705:20340`) : le toucher referme le menu. */}
@@ -181,7 +222,7 @@ export function CreateMenu({
         onPress={onCancel}
         // Doublon visuel du « + » de la zone de contexte : « Annuler » porte cette action pour VoiceOver.
         accessible={false}
-        style={[styles.plus, { left: width - PLUS_CENTER_FROM_RIGHT - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
+        style={[styles.plus, { left: plusCenterX - PLUS_TARGET / 2, top: plusCenterY - PLUS_TARGET / 2 }]}
         testID="composition-add-activity-tree-plus"
       >
         <AddActivityCircle />
@@ -261,7 +302,8 @@ const styles = StyleSheet.create({
   label: { ...type.button, textAlign: "center" },
   labelOption: { color: FIGMA_BLUE },
   labelCancel: { color: colors.primary },
-  labelDisabled: { color: DISABLED_TEXT },
+  // Contre-recette du 30/10 (Hermann : « Texte d'options inactive : pas en gras ») : Inter Regular.
+  labelDisabled: { color: DISABLED_TEXT, fontFamily: "Inter_400Regular", fontWeight: "400" },
   // Voile opaque à l'œil (posé sur une icône pleine) : l'icône reste lisible, l'option paraît inactive.
   iconDisabledVeil: {
     ...StyleSheet.absoluteFill,

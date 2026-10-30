@@ -241,13 +241,14 @@ describe("PRE-7 R-8 — début de mot (D-448 point 1)", () => {
     expect(screen.queryByTestId("movement-suggestion-panel")).toBeNull();
   });
 
-  it("plus de cinq débuts de mot : cinq cartes au plus", async () => {
+  // Contre-recette iPhone du 30/10 (Hermann) : plus de limite à cinq résultats (R04 remplacé).
+  it("plus de cinq débuts de mot : toutes les cartes, sans limite à cinq", async () => {
     for (const name of ["Squats A", "Squats B", "Squats C", "Squats D", "Squats E", "Squats F"]) {
       await catalogueSquats({ name });
     }
     await renderEditor({ catalogueDefinitionId: "new" });
     await typeName("Squ");
-    expect(resultIds()).toHaveLength(5);
+    expect(resultIds()).toHaveLength(6);
   });
 });
 

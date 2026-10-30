@@ -72,6 +72,7 @@ export function fitCategoryCount(
 
 export function SessionCard({ projection, expanded = false, onToggleExpanded, children }: SessionCardProps) {
   const archived = projection.status === "ARCHIVED";
+  const incomplete = projection.incomplete;
   const id = projection.id;
   const duration = formatCatalogueSessionDuration(projection.duration);
   const summary =
@@ -82,8 +83,11 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
         : formatActivityCount(projection.summary.count);
 
   return (
-    <View style={[styles.card, archived ? styles.cardArchived : null]} testID={`session-card-${id}`}>
-      <View style={styles.header}>
+    <View
+      style={[styles.card, archived ? styles.cardArchived : null, incomplete ? styles.cardIncomplete : null]}
+      testID={`session-card-${id}`}
+    >
+      <View style={[styles.header, incomplete ? styles.headerIncomplete : null]}>
         <CardVisual projection={projection} />
         <View style={[styles.texts, archived ? styles.textsArchived : null]}>
           <View style={styles.titleRow}>
@@ -135,7 +139,7 @@ export function SessionCard({ projection, expanded = false, onToggleExpanded, ch
           accessibilityRole="button"
           accessibilityLabel={t.playUnavailableAccessibilityLabel}
           accessibilityState={{ disabled: true }}
-          style={styles.play}
+          style={[styles.play, incomplete ? styles.playIncomplete : null]}
           testID={`session-card-${id}-play`}
         >
           <KodjoIcon name="action-start" opacity={0.55} />
@@ -243,6 +247,11 @@ function CategoryLine({ categories, testID }: { readonly categories: readonly Ca
 }
 
 const CARD_BORDER = 0.5;
+/**
+ * Contre-recette du 30/10/2026 : liseré d'une Séance incomplète, celui de la carte d'Exercice à
+ * compléter de la Composition (`OCCURRENCE_CARD_BORDER_WIDTH`, `occurrenceCardIncompleteSurface`).
+ */
+const INCOMPLETE_BORDER = 1;
 const VISUAL_SIZE = 64;
 /** Spécification §1 : visuel et zone de Lecture à 8 du bord. */
 const EDGE = spacing[8];
@@ -270,6 +279,23 @@ const styles = StyleSheet.create({
   },
   cardArchived: {
     borderColor: colors.cardsArchiveBorder,
+  },
+  // Contre-recette iPhone du 30/10/2026 (Hermann : « Une séance incomplète doit avoir le même format
+  // qu'un exercice incomplet (fond rouge liseré rouge) ») : mêmes jetons que la carte d'Exercice à
+  // compléter (`colors.dangerSurface`, bord 1 `colors.danger`) ; le contenu ne bouge pas (marges
+  // compensées du demi-point de bord en plus).
+  cardIncomplete: {
+    backgroundColor: colors.dangerSurface,
+    borderWidth: INCOMPLETE_BORDER,
+    borderColor: colors.danger,
+  },
+  headerIncomplete: {
+    minHeight: SESSION_CARD_HEADER_HEIGHT - 2 * INCOMPLETE_BORDER,
+    padding: EDGE - INCOMPLETE_BORDER,
+  },
+  playIncomplete: {
+    top: (SESSION_CARD_HEADER_HEIGHT - PLAY_TARGET) / 2 - INCOMPLETE_BORDER,
+    right: EDGE - INCOMPLETE_BORDER,
   },
   header: {
     minHeight: SESSION_CARD_HEADER_HEIGHT - 2 * CARD_BORDER,

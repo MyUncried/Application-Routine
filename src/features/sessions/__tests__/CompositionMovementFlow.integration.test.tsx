@@ -167,7 +167,7 @@ async function setDuration45() {
   await settle(300);
 }
 
-describe("PRE-9 A.2 — « Créer un nouvel exercice » : création d'un Mouvement, puis carte à compléter", () => {
+describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouvement, puis carte à compléter", () => {
   it("ouvre la fiche de création du Mouvement (pas l'ancien éditeur) ; Terminer enregistre le Mouvement, revient à la Composition et pose l'Exercice « Paramètres à compléter », sans feuille ; la carte ouvre la feuille, puis, complète, l'éditeur", async () => {
     const router = renderApp();
     await settle();
@@ -301,6 +301,15 @@ describe("PRE-9 A.2 — « Utiliser un mouvement existant » : sélection par le
     expect(String(gainage!.props.accessibilityLabel)).toBe("Exercice, Gainage, 2 sur 2");
     // Aucun Mouvement créé ni modifié par la sélection.
     expect(await database.getAllAsync("SELECT id FROM movements")).toHaveLength(4);
+
+    // Contre-recette du 30/10 (Hermann) : rouverte, la sélection marque « Dans la séance » les
+    // Mouvements déjà présents ; ils restent sélectionnables.
+    await openMenuAction(addToSession.existingActivity);
+    expect(await screen.findByTestId("movement-card-in-session-abdos")).toBeTruthy();
+    expect(screen.getByTestId("movement-card-in-session-gainage")).toBeTruthy();
+    expect(screen.queryByTestId("movement-card-in-session-fentes")).toBeNull();
+    fireEvent.press(screen.getByTestId("movement-card-abdos"));
+    expect(screen.getByLabelText("Abdos").props.accessibilityState).toMatchObject({ selected: true });
   }, 40000);
 
   it("Annuler revient à la Composition sans rien ajouter", async () => {

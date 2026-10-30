@@ -1197,3 +1197,18 @@ Demandes explicites de Hermann (cahier de recette PRE-9 n° 1, 29/10/2026), clas
 - **Fiche Mouvement.** « Remplacer le texte par défaut "Nom de l'exercice" par "Nom du mouvement", le mettre en gris clair » ; nom déjà porté par un Mouvement archivé : « le message en rouge stipule qu'un mouvement archivé (en gras) existe déjà » — « Un mouvement **archivé** porte déjà ce nom. ».
 - **Paramètres d'exécution (CE-UI-10).** « Sélectionner par défaut Durée, Sans (changement de côté) » — pour un nouvel Exercice ; « Durée d'une série : ne pas sélectionner 1 s par défaut lorsqu'on ouvre la roulette » — ouverture à 00:00 sans valeur retenue ; barre grise du clavier : marges agrandies, couleur du fond du clavier ; tableau des phases : colonnes Libellé et Durée réparties, refermé « (disparition lente et progressive) lorsqu'on active un autre bouton / champ de la modale ».
 - **Enveloppe multiple et périmètre ajustable** : nouvelle story B.4b, placée après B.4 (décision du 29/10, « Après B.4 »).
+
+## Contre-recette PRE-9 n° 1 — décisions de Hermann du 30/10/2026
+
+Demandes explicites de Hermann (cahier de recette PRE-9 n° 1, contre-recette du 30/10/2026), classe B de la règle de synchronisation. Textes de Hermann recopiés ; détail de réalisation : `_bmad-output/pre9/implementation-artifacts/spec-recette-1-corrections.md`, section « Contre-recette ».
+
+- **Catalogue des Mouvements (D-184).** « rechercher, filtrer, trier puis créer » — remplace l'ordre du 29/10.
+- **Menu Créer de la Composition.** « Il faut remplacer le texte "Créer un nouvel exercice" par "Créer un nouveau mouvement" » (libellé complété et confirmé par Hermann le 30/10). Menu : « Texte d'options inactive : pas en gras » ; « Le bouton « + » est dupliqué et décalé, on en voit deux. Il ne faut qu'un seul bouton, l'original, qui apparaît activé. Les autres boutons restent alignés dessous ».
+- **Exercice ouvert depuis une Séance.** « La section « phases du mouvement » (titre et contenu) ne doit pas apparaître, car elle est dans les paramètres d'exécution. »
+- **Carte à compléter.** « Le chronomètre ne change jamais de position » ; texte « Paramètres à compléter » sur deux lignes, sans troncature. « Une séance incomplète doit avoir le même format qu'un exercice incomplet (fond rouge liseré rouge) ».
+- **Choisir un mouvement existant.** « les mouvements déjà présents dans la séance sont identifiables » — rendu choisi par Hermann le 30/10 : mention « Dans la séance » sous le nom ; le Mouvement reste sélectionnable.
+- **Création d'un Mouvement.** « Ne pas limiter à 5 le nombre de résultats de recherche de mouvements lors de la saisie du nom pendant la création d'un mouvement ».
+- **Durées des phases du Mouvement (DSF Mouvements §2, MVT-09).** « Créer un mouvement : les durées de la phase peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par défaut et peuvent être changées dans la séance, si elles n'existent pas elles sont à renseigner dans la séance » — remplace « sa durée n'est pas une propriété du mouvement » ; réalisation : story A.2b, placée après B.3 par décision du 30/10.
+- **Points d'arrêt.** « Appuyer de nouveau sur le bouton d'action point d'arrêt referme l'écran de sélection (même comportement sur confirmer) ».
+- **Cycle.** « à la validation il faut que le cycle apparaisse progressivement » ; au choix de l'emplacement, le cadre au liseré bleu suit les bords gauche et droit du Circuit.
+- **Paramètres d'exécution.** « tableaux phases du mouvement et / ou séries déployée : il faut le trait de séparation sous le tableau et il ne faut pas de trait de séparation entre la ligne de paramètres et son tableau ».

@@ -2265,7 +2265,19 @@ describe("ExecutionParametersSheet — PRE-4 Q41 (révélation par le bas, panne
     }
   });
 
-  it("PRE4-Q41 — groupe du tableau (Q40) : sélectionné ou non, mêmes marges et paddings ; le séparateur ne change que de couleur", () => {
+  // Contre-recette iPhone du 30/10/2026 (Hermann) : aucun trait entre la ligne « Type de série » et
+  // son tableau déployé ; le trait sous le tableau est celui de la ligne « Charge », hors du groupe.
+  it("contre-recette du 30/10 — tableau des séries déployé : aucun séparateur entre sa ligne et lui", () => {
+    renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
+    const separators = screen.getByTestId("execution-sheet-variable-group", { includeHiddenElements: true }).findAll((node) => {
+      if (typeof node.type !== "string") return false;
+      const style = StyleSheet.flatten(node.props.style) ?? {};
+      return style.height === 1 && (style.backgroundColor === colors.divider || style.backgroundColor === "transparent");
+    });
+    expect(separators).toHaveLength(0);
+  });
+
+  it("PRE4-Q41 — groupe du tableau (Q40) : sélectionné ou non, mêmes marges et paddings", () => {
     renderSheet(params({ series: variableRows([[30, 5], [45, 10]]) }));
     const geometry = (testID: string) => {
       const style = { ...styleOf(testID) };

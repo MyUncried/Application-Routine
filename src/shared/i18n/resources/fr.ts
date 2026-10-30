@@ -465,6 +465,8 @@ export const fr = {
         },
         addAction: "Ajouter",
         cancelAccessibilityLabel: "Annuler",
+        // Contre-recette PRE-9 n° 1 (Hermann, 30/10/2026) : Mouvement déjà présent dans la Séance.
+        inSession: "Dans la séance",
         // PRE-8 (epic E, E.8-a, option 1) : accès transitoire à l'éditeur des anciennes définitions.
         editAccessibilityLabel: "Modifier l’exercice {name}",
       },
@@ -472,7 +474,7 @@ export const fr = {
       // Annuler, dans l'ordre observé. [Anciens libellés « Un nouvel exercice » / « Un exercice
       // existant » : remplacés le 29/10/2026 par ceux de COMP §5.]
       addToSession: {
-        newActivity: "Créer un nouvel exercice",
+        newActivity: "Créer un nouveau mouvement",
         existingActivity: "Utiliser un mouvement existant",
         existingSession: "Utiliser une séance existante",
         addCircuit: "Ajouter un circuit",

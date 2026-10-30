@@ -1900,11 +1900,12 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(screen.getByTestId("exercise-instruction-input").props.editable).not.toBe(false);
     expect(screen.getByTestId("activity-editor-category-button").props.accessibilityState?.disabled).not.toBe(true);
     expect(screen.getByTestId("exercise-body-zones-open").props.accessibilityState?.disabled).not.toBe(true);
-    // PRE-9 (recette iPhone du 29/10, CE-MVT-01 §7) : au gabarit Mouvement, la structure se saisit dans
-    // le bloc Phases ; la Feuille n'en règle que les durées.
-    expect(screen.getByTestId("movement-phases-label-1").props.editable).not.toBe(false);
+    // Contre-recette iPhone du 30/10 (r1-exo) : aucun bloc Phases au gabarit ; la structure se règle
+    // dans la Feuille des paramètres (Mouvement NOUVEAU du brouillon).
+    expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
-    expect(isStructureLocked()).toBe(true);
+    expect(isStructureLocked()).toBe(false);
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     fireEvent.changeText(screen.getByTestId("exercise-name-input"), "Fentes lentes");
     fireEvent.press(screen.getByTestId("exercise-finish-action"));
@@ -1919,11 +1920,12 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
 
   it("création locale (nouvelle occurrence, ou occurrence sans filiation non encore enregistrée) : structure modifiable (exception MFN-09)", () => {
     renderRoute({ params: { exerciseId: "occ-1" }, exercises: [canonicalOccurrence({ executionParameters: PHASED, sideMode: "UNILATERAL" })] });
-    // PRE-9 (recette iPhone du 29/10, CE-MVT-01 §7) : occurrence existante au gabarit Mouvement —
-    // structure modifiable dans le bloc Phases (la Feuille n'en règle que les durées).
-    expect(screen.getByTestId("movement-phases-label-1").props.editable).not.toBe(false);
+    // Contre-recette iPhone du 30/10 (r1-exo) : occurrence existante au gabarit Mouvement, sans bloc
+    // Phases — structure modifiable dans la Feuille des paramètres.
+    expect(screen.queryByTestId("movement-section-phases")).toBeNull();
     openSheet();
-    expect(isStructureLocked()).toBe(true);
+    expect(isStructureLocked()).toBe(false);
+    expect(screen.getByTestId("execution-sheet-phase-row-1-label").props.editable).not.toBe(false);
     screen.unmount();
     renderRoute({});
     openSheet();

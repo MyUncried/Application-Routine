@@ -2,13 +2,14 @@ import { describe, expect, it, jest } from "@jest/globals";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
-import { durationParameters, repetitionParameters } from "@/domain/activities/testing/executionParametersFixtures";
+import { durationParameters, repetitionParameters, uniformParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import type { Activity } from "@/domain/sessions/Session";
 import type { CatalogueSessionRecord } from "@/domain/sessions/SessionRepository";
 import type { StructureElement } from "@/domain/sessions/structure";
 import { fitCategoryCount, SessionCard } from "@/features/sessions/SessionCard";
 import { projectSessionForCatalogue, type CatalogueCategoryRef } from "@/features/sessions/sessionCatalogueProjection";
+import { colors } from "@/shared/ui/tokens";
 
 /**
  * PRE-8 (epic E, story E.2) — carte unique du Catalogue des séances (spécification du 27/10 §1 et §3 ;
@@ -175,5 +176,39 @@ describe("PRE-8 E.2 — « +N » sans couper un mot", () => {
       fireEvent(screen.getByTestId(`${prefix}-measure-${id}`, { includeHiddenElements: true }), "layout", layout(width));
     }
     expect(screen.getByTestId("session-card-s1-categories-label")).toHaveTextContent("Renforcement +2");
+  });
+});
+
+/**
+ * Contre-recette iPhone du 30/10/2026 (Hermann : « Une séance incomplète doit avoir le même format
+ * qu'un exercice incomplet (fond rouge liseré rouge) ») : Séance dont un Exercice porte « Paramètres
+ * à compléter. » (ici, une phase sans durée) — fond `dangerSurface`, liseré 1 `danger`.
+ */
+describe("Contre-recette du 30/10 — Séance incomplète", () => {
+  const incompleteExercise = () =>
+    exercise({
+      executionParameters: uniformParameters({ count: 3, target: 30, workPhases: [{ id: 1, label: "Tenir", durationSeconds: 0 }] }),
+    });
+
+  it("un Exercice à compléter : fond rouge, liseré rouge de 1 ; le contenu garde sa place", () => {
+    const value = projection([{ kind: "EXERCISE", exercise: exercise() }, { kind: "EXERCISE", exercise: incompleteExercise() }]);
+    expect(value.incomplete).toBe(true);
+    render(<SessionCard projection={value} />);
+    expect(StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style)).toMatchObject({
+      backgroundColor: colors.dangerSurface,
+      borderColor: colors.danger,
+      borderWidth: 1,
+    });
+    const play = StyleSheet.flatten(screen.getByTestId("session-card-s1-play").props.style);
+    expect(play.right).toBe(7);
+  });
+
+  it("Séance complète : carte inchangée", () => {
+    const value = one();
+    expect(value.incomplete).toBe(false);
+    render(<SessionCard projection={value} />);
+    const style = StyleSheet.flatten(screen.getByTestId("session-card-s1").props.style);
+    expect(style.backgroundColor).toBe(colors.surfaceSubtle);
+    expect(style.borderWidth).toBe(0.5);
   });
 });

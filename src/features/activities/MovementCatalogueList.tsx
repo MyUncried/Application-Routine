@@ -199,6 +199,8 @@ export function MovementCatalogueList({
    */
   readonly selection?: {
     readonly selectedIds: ReadonlySet<string>;
+    /** Contre-recette du 30/10 (Hermann) : Mouvements déjà présents dans la Séance, marqués « Dans la séance ». */
+    readonly inSessionIds?: ReadonlySet<string>;
     readonly onToggle: (movement: MovementCatalogueEntry["movement"]) => void;
     readonly bottomInset: number;
   };
@@ -667,7 +669,12 @@ export function MovementCatalogueList({
           {...(choosing ? { accessibilityState: { selected } } : {})}
           testID={`movement-card-${id}`}
         >
-          <MovementCatalogueCard entry={entry} level={level} selected={selected} />
+          <MovementCatalogueCard
+            entry={entry}
+            level={level}
+            selected={selected}
+            inSession={choosing && (selection.inSessionIds?.has(entry.movement.id) ?? false)}
+          />
         </SwipeActionsRow>
         {choicesOpen ? (
           <SheetMotionView style={[styles.variantChoices, { width: actions.length * SWIPE_ACTION_WIDTH }]} testID={`movement-card-${id}-variant-choices`}>
@@ -1144,16 +1151,19 @@ function MovementCatalogueCard({
   entry,
   level,
   selected = false,
+  inSession = false,
 }: {
   readonly entry: MovementCatalogueEntry;
   readonly level: MovementLevelPosition | null;
   /** PRE-9 A.2 : carte cochée dans la sélection pour une Séance (contour et fond de sélection existants). */
   readonly selected?: boolean;
+  /** Contre-recette du 30/10 : mention « Dans la séance » sous le nom ; la carte garde sa hauteur (une étape de description). */
+  readonly inSession?: boolean;
 }) {
   const resolveUri = useMediaUriResolver();
   const { movement } = entry;
   const preview = firstMediaPreviewSource(movement.media);
-  const steps = decodeInstructionSteps(movement.description).slice(0, 2);
+  const steps = decodeInstructionSteps(movement.description).slice(0, inSession ? 1 : 2);
   const levelLabel = level !== null ? levelPastilleLabel(level) : null;
   return (
     <View
@@ -1185,6 +1195,11 @@ function MovementCatalogueCard({
             </Text>
           ) : null}
         </View>
+        {inSession ? (
+          <Text style={styles.inSession} numberOfLines={1} testID={`movement-card-in-session-${movement.id}`}>
+            {strings.screens.activities.selection.inSession}
+          </Text>
+        ) : null}
         {steps.map((step, index) => (
           <Text key={index} style={styles.description} numberOfLines={1} testID={`movement-card-step-${movement.id}-${index + 1}`}>
             {step}
@@ -1432,5 +1447,9 @@ const styles = StyleSheet.create({
   description: {
     ...type.movementCardDescription,
     color: colors.movementCardDescription,
+  },
+  inSession: {
+    ...type.movementCardDescription,
+    color: colors.textSecondary,
   },
 });

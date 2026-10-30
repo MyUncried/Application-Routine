@@ -2122,7 +2122,9 @@ export function ExecutionParametersSheet({
                     <Row label={t.workPhases} selected={phaseCountOpen} testID="execution-sheet-row-phases">
                       {phasesControl}
                     </Row>
-                    {hasWorkPhases && !isPhasesFolded ? <Separator /> : null}
+                    {/* Contre-recette iPhone du 30/10 (Hermann : « il ne faut pas de trait de
+                        séparation entre la ligne de paramètres et son tableau ») : le tableau
+                        déployé suit sa ligne sans séparateur. */}
                     {hasWorkPhases && !isPhasesFolded ? (
                       <WorkPhasesTable
                         phases={draft.workPhases}
@@ -2149,8 +2151,11 @@ export function ExecutionParametersSheet({
                     {adjustment?.kind === "phaseRemoval" ? adjustmentMessage : null}
                   </SheetMotionView>
                   {/* Story 2.8 (AC3b, PR-02, Figma `9207:18817`) : aucun séparateur après le tableau
-                      des phases déployé ; sinon, séparateur entre les deux lignes. */}
-                  {hasWorkPhases && !isPhasesFolded ? null : <Separator />}
+                      des phases déployé ; sinon, séparateur entre les deux lignes.
+                      [Remplacé le 30/10/2026 — contre-recette iPhone, Hermann : « il faut le trait
+                      de séparation sous le tableau » : séparateur toujours présent, sous le tableau
+                      déployé comme sous la ligne repliée.] */}
+                  <Separator testID="execution-sheet-phases-separator" />
                   {/* Recette du 20/10 (RC-15) : plus de ligne « Nombre de séries » ; le nombre est
                       porté par le segmenté du Type de série (NR Δ38 : règles et accessibilité du
                       stepper conservées, présentation remplacée). */}
@@ -2186,7 +2191,9 @@ export function ExecutionParametersSheet({
                     </Row>
                     {/* Story 3.6 (AC1) : le tableau suit la grille à cellules du DSF du 12/10,
                         sans retrait x52 : il commence au bord des lignes de premier niveau. */}
-                    {showVariableTable && !isTableFolded ? <Separator hidden={tableSelected} /> : null}
+                    {/* Contre-recette iPhone du 30/10 (Hermann) : aucun séparateur entre la ligne
+                        « Type de série » et son tableau déployé ; le séparateur sous le tableau
+                        est celui de la ligne « Charge ». */}
                     {showVariableTable && !isTableFolded ? (
                       <VariableTable
                         draft={draft}
@@ -3354,8 +3361,8 @@ function SideOrderDropdown({
 }
 
 /** Q40 : `hidden` garde la place du séparateur, rendu transparent (groupe sélectionné). */
-function Separator({ hidden = false }: { hidden?: boolean }) {
-  return <SheetMotionView style={[styles.separator, hidden ? styles.separatorHidden : null]} />;
+function Separator({ hidden = false, testID }: { hidden?: boolean; testID?: string }) {
+  return <SheetMotionView style={[styles.separator, hidden ? styles.separatorHidden : null]} testID={testID} />;
 }
 
 /**

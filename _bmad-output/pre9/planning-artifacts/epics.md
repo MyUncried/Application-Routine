@@ -8,7 +8,9 @@
 
 ## Ordre recommandé
 
-`DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+`DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `A.2b` → `B.4` → `B.4b` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+
+[29/10–30/10 : B.4b ajoutée après B.4 (recette n° 1, constat i) ; A.2b ajoutée après B.3 (contre-recette du 30/10), décisions de Hermann.]
 
 Hors chemin critique : `Q.0` (activité distincte, à tout moment) ; `A.5` (conditionnelle, après `A.3`, seulement si ses conditions sont réunies).
 
@@ -44,6 +46,11 @@ Dépend de : —. Arbitrages : —. Migration 016.
 Dépend de : A.1, B.2 (menu Créer). Arbitrage : ARB-22a.
 - « Créer un nouvel exercice » ouvre la création de Mouvement puis les paramètres de l'Exercice, dans la Séance [29/10, recette n° 1 (Hermann) : l'Exercice est posé « Paramètres à compléter » ; toucher sa carte ouvre ses paramètres] ; « Utiliser un mouvement existant » ouvre la sélection des Mouvements par le parcours existant du Catalogue (PRE-8, actifs seulement, Q6 ; ARB-22a). L'Exercice est inséré après le dernier Exercice entré, dans son conteneur (ARB-07).
 - Plus aucune lecture d'`activity_definitions` dans la Composition ; `ActivitySelectionScreen` et les parcours `catalogueDefinitionId` ne sont plus atteignables depuis la Composition.
+
+### A.2b — Durées des phases portées par le Mouvement
+Ajoutée le 30/10/2026 à la demande de Hermann (contre-recette PRE-9 n° 1) ; placée après B.3 par sa décision du 30/10 (« Story dédiée après B.3 »). Dépend de : A.2. Remplace DSF Mouvements §2 « sa durée n'est pas une propriété du mouvement » et MVT-09 « aucune durée […] sur la fiche ».
+- Demande, texte de Hermann : « Créer un mouvement : les durées de la phase peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par défaut et peuvent être changées dans la séance, si elles n'existent pas elles sont à renseigner dans la séance. »
+- Durée facultative par phase dans la fiche Mouvement ; reprise par identité stable de phase dans un nouvel Exercice ; modification locale dans la Séance sans effet sur le Mouvement. À préciser avant développement : effet d'une modification ultérieure des durées du Mouvement sur les Exercices existants (règle proposée : aucun) ; persistance (forme du stockage des phases).
 
 ### A.4 — Conversion E.8-b
 Dépend de : A.2. Arbitrage : ARB-01 (**validé**, révision 2). Migration 018.

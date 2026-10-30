@@ -16,9 +16,6 @@ function archivedNameMessage(): MovementNameMessage {
   return { before, bold: t.archivedWord, after };
 }
 
-/** R04 : cinq résultats au maximum dans le panneau sous le nom. */
-const PANEL_RESULT_LIMIT = 5;
-
 /** Nom d'un mouvement pour le contrôle d'unicité (identifiant et nom tel que saisi). */
 export type MovementNameEntry = { readonly id: string; readonly name: string };
 
@@ -174,8 +171,10 @@ export function useMovementOriginChoice({
   const conflict = conflicting !== null;
   const refused = takenFor !== null && takenFor.key === normalizeMovementName(name);
   const nameTaken = conflict || (refused && takenFor.blocking);
+  // Contre-recette iPhone du 30/10 (Hermann : « Ne pas limiter à 5 le nombre de résultats de
+  // recherche de mouvements lors de la saisie du nom pendant la création d'un mouvement ») :
+  // [remplace R04 « cinq résultats au maximum »] tous les résultats classés ; le panneau défile.
   const listed = ranked
-    .slice(0, PANEL_RESULT_LIMIT)
     .map((result) => byId.get(result.id))
     .filter((choice): choice is MovementChoice => choice !== undefined);
   // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).

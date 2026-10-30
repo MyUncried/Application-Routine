@@ -17,7 +17,7 @@ import {
   type LayoutChangeEvent,
   type ViewProps,
 } from "react-native";
-import Reanimated from "react-native-reanimated";
+import Reanimated, { FadeIn, ReduceMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { BodyZone } from "@/domain/body-zones/BodyZone";
@@ -117,6 +117,7 @@ import { AbandonCreationModal } from "@/features/sessions/AbandonCreationModal";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import {
   CIRCUIT_HEADER_HEIGHT,
+  CIRCUIT_REVEAL_DURATION_MS,
   CircuitHeader,
   useCircuitCardsReveal,
   type CircuitCardsReveal,
@@ -126,7 +127,7 @@ import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout } from "@/features/sessions/compositionLayout";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
-import { isExerciseParametersIncomplete } from "@/features/sessions/movementExercises";
+import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
 import { useMovementExerciseIntake } from "@/features/sessions/useMovementExerciseIntake";
 import {
   clampSwipeTranslateX,
@@ -889,12 +890,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // V2-CAT-01 (plan §4.4) : arbre `Ajouter une activité` — `Une nouvelle
   // activité` / `Une activité existante` / `Annuler`.
   const [isAddActivityTreeOpen, setIsAddActivityTreeOpen] = useState(false);
+  /** Contre-recette du 30/10 : « + » de la zone de contexte, mesuré par le menu Créer. */
+  const addActionRef = useRef<View>(null);
   /**
    * PRE-9 B.2 (ARB-06, COMP §5 ; Figma `10819:20344`, `10836:20478`) : mode enveloppe — conteneur à
    * poser (Circuit ou Cycle) et premier contenu désigné (`null` tant qu'aucun ne l'est) ; `null` hors
    * mode. État de l'écran seul : seul « Confirmer » écrit dans le brouillon.
    */
   const [envelope, setEnvelope] = useState<EnvelopeState | null>(null);
+  /** Contre-recette du 30/10 : Cycles connus avant la pose d'un Cycle (apparition progressive du nouveau). */
+  const [cycleReveal, setCycleReveal] = useState<{ readonly known: ReadonlySet<string> } | null>(null);
   // VISUAL_CORRECTION (revue indépendante 5753653735, point 7) : même
   // calcul que `CatalogueCreateOptions.menuTop` — la hauteur RÉELLE cumulée
   // de l'en-tête fixe et de la bande Context, jamais seulement
@@ -1418,6 +1423,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       finishDragPreview(false);
       setIsAddActivityTreeOpen(false);
       setRevealedActionsId(null);
+      setCycleReveal(null);
       setEnvelope({ container, designated: null, targetName: "" });
     },
     [finishDragPreview, flushDeletion, placement],
@@ -1433,13 +1439,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const confirmEnvelope = useCallback(() => {
     if (envelope === null || envelope.designated === null) return;
     const { container, designated, targetName } = envelope;
+    // Contre-recette du 30/10 : Cycles présents avant la pose — celui qui naît apparaît progressivement.
+    if (container === "CYCLE") setCycleReveal({ known: new Set(layoutCycleIds(resolveRichLayout(draft))) });
     updateDraft((current) => draftAfterEnvelope(current, container, designated));
     setEnvelope(null);
     const t = strings.screens.composition.envelope;
     AccessibilityInfo.announceForAccessibility(
       (container === "CIRCUIT" ? t.circuitCreatedAnnouncement : t.cycleCreatedAnnouncement).replace("{name}", targetName),
     );
-  }, [envelope, updateDraft]);
+  }, [draft, envelope, updateDraft]);
   const envelopeContext = useMemo<EnvelopeContext | null>(() => {
     if (envelope === null) return null;
     const candidates = envelope.container === "CIRCUIT" ? circuitEnvelopeCandidates : cycleEnvelopeCandidates;
@@ -1500,6 +1508,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       requestItemFocus(railRowKey(first.id));
     }
   }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
+  /**
+   * Contre-recette iPhone du 30/10 (Hermann : « Appuyer de nouveau sur le bouton d'action point
+   * d'arrêt referme l'écran de sélection (même comportement sur confirmer) ») : hors placement,
+   * « Ajouter un arrêt » y entre ; en placement, le même bouton referme la sélection comme
+   * « Confirmer » (changements appliqués). Sans changement applicable (« Confirmer » inactif), il n'y
+   * a rien à appliquer : la sélection se referme sans mutation.
+   */
+  const toggleAddStop = useCallback(() => {
+    if (placement === null) {
+      enterPlacement();
+      return;
+    }
+    if (confirmation !== null && confirmation.kind !== "NONE") confirmPlacement();
+    else cancelPlacement();
+  }, [cancelPlacement, confirmPlacement, confirmation, enterPlacement, placement]);
   /**
    * PRE-6 story 7.2 (D-442, ch13 CE-T03-08 L1496) : toucher une zone de récupération — sélectionnée
    * (ajout, ou récupération existante, 0 comprise, conservée) : désélection (`deselectPlacementRecovery` :
@@ -1815,6 +1838,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * selon sa structure à la place des zones de l'ancien modèle ; `null` : rendu historique inchangé.
    */
   const richLayout = useMemo(() => resolveRichLayout(draft), [draft]);
+  /**
+   * Contre-recette du 30/10 : Cycles posés à l'instant (absents avant « Confirmer le cycle »).
+   * L'apparition (`entering`) ne joue qu'au montage du Cycle ; la demande est levée à l'entrée
+   * suivante en mode enveloppe.
+   */
+  const appearingCycleIds = useMemo<ReadonlySet<string>>(() => {
+    if (cycleReveal === null) return NO_APPEARING_CYCLES;
+    return new Set(layoutCycleIds(richLayout).filter((id) => !cycleReveal.known.has(id)));
+  }, [cycleReveal, richLayout]);
   /** ARB-13 : lettres des Circuits et des Cycles (aucune pour un conteneur seul de sa nature). */
   const layoutLetters = useMemo(
     () => (richLayout === null || draft.structure === undefined ? new Map<string, string>() : containerLetters(draft.structure)),
@@ -3160,7 +3192,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         closeCircuitControls();
         setIsAddActivityTreeOpen(true);
       }}
-      onAddStop={enterPlacement}
+      onAddStop={toggleAddStop}
+      addActionRef={addActionRef}
       // PRE-6 story 5.1b (D4 remplacé par Hermann le 22/10/2026) : l'œil des Volumes, dans les
       // commandes contextuelles ; mêmes modales, même retour du focus (story 3.4).
       onOpenVolumes={openCircuitVolumes}
@@ -3345,6 +3378,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             railShiftOf={railShiftOf}
             autoScroll={autoScroll}
             envelope={envelopeContext}
+            appearingCycleIds={appearingCycleIds}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -3420,6 +3454,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           target={legacyCircuitTarget}
           name={composition.envelope.circuitName}
           testID="composition-envelope-circuit"
+          outset={CIRCUIT_OUTSET}
+          radius={CIRCUIT_RADIUS}
         >
         <View
           style={[
@@ -3979,6 +4015,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
          */
         <CreateMenu
           top={addActivityTreeTop}
+          // Contre-recette du 30/10 : un seul « + », reposé exactement sur celui de la zone de contexte.
+          plusAnchorRef={addActionRef}
           options={[
             {
               key: "new",
@@ -4000,6 +4038,10 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
                 setIsAddActivityTreeOpen(false);
                 // PRE-9 A.2 (ARB-22a, Q6) : sélection des Mouvements actifs par le Catalogue des
                 // Mouvements ; plus la sélection des anciennes définitions (`activity_definitions`).
+                // Contre-recette du 30/10 : Mouvements déjà dans la Séance marqués « Dans la séance ».
+                markMovementsInSession(
+                  draft.exercises.flatMap((exercise) => (exercise.sourceMovementId !== undefined ? [exercise.sourceMovementId] : [])),
+                );
                 router.push("/movement-selection");
               },
               testID: "composition-add-activity-tree-existing",
@@ -4330,6 +4372,8 @@ function EnvelopeFrame({
   target,
   name,
   testID,
+  outset = 0,
+  radius = dimensions.standardCard.radius,
   children,
 }: {
   envelope: EnvelopeContext | null;
@@ -4337,6 +4381,16 @@ function EnvelopeFrame({
   /** Nom du contenu (carte d'Exercice, « le circuit [A] »), pour le nom accessible et les annonces. */
   name: string;
   testID: string;
+  /**
+   * Contre-recette iPhone du 30/10 (Hermann : « le cadre avec liseré bleu n'entoure pas correctement
+   * le circuit, les bords gauche et droit ne suivent pas le cadre du circuit ») : le cadre du Circuit
+   * déborde de sa boîte de mise en page par des marges négatives (`CIRCUIT_OUTSET`, 16 de chaque
+   * côté ; dans un Cycle, `LAYOUT_CIRCUIT_IN_CYCLE_OUTSET`) ; la cible, posée sur la boîte, restait 16
+   * en retrait de chaque bord. `outset` la fait déborder d'autant ; `radius` reprend l'arrondi du
+   * contenu (Circuit : 18).
+   */
+  outset?: number;
+  radius?: number;
   children: React.ReactNode;
 }) {
   if (envelope === null) {
@@ -4363,7 +4417,11 @@ function EnvelopeFrame({
           accessibilityRole="button"
           accessibilityLabel={label}
           accessibilityState={{ selected: isDesignated }}
-          style={[styles.envelopeTarget, isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate]}
+          style={[
+            styles.envelopeTarget,
+            outset === 0 ? { borderRadius: radius } : { left: -outset, right: -outset, borderRadius: radius },
+            isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate,
+          ]}
           testID={`${testID}-target`}
         />
       ) : null}
@@ -5905,6 +5963,8 @@ type LayoutRenderContext = {
   readonly autoScroll: DragAutoScroll;
   /** PRE-9 B.2 : mode enveloppe (contenus éligibles désignables, le reste inactif) ; `null` hors mode. */
   readonly envelope: EnvelopeContext | null;
+  /** Contre-recette du 30/10 : Cycles qui viennent d'être posés (« Confirmer le cycle »), apparition progressive. */
+  readonly appearingCycleIds: ReadonlySet<string>;
 };
 
 type LayoutSequenceProps = LayoutRenderContext & {
@@ -5915,6 +5975,11 @@ type LayoutSequenceProps = LayoutRenderContext & {
 
 const NO_RAIL_LINKS: ReadonlyMap<string, RailLinkGeometry> = new Map();
 const NO_SKIPPED_KEYS: ReadonlySet<string> = new Set();
+const NO_APPEARING_CYCLES: ReadonlySet<string> = new Set();
+/** Identifiants des Cycles d'une disposition générale (niveau Séance) ; aucun sans disposition. */
+function layoutCycleIds(layout: ResolvedLayout | null): string[] {
+  return layout === null ? [] : layout.elements.flatMap((element) => (element.kind === "CYCLE" ? [element.cycle.id] : []));
+}
 const noop = () => {};
 
 /**
@@ -5984,6 +6049,8 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                 target={{ kind: "CIRCUIT", id: element.circuit.id }}
                 name={layoutCircuitName(element.circuit.id, context.letters)}
                 testID={`composition-envelope-circuit-${element.circuit.id}`}
+                outset={CIRCUIT_OUTSET}
+                radius={CIRCUIT_RADIUS}
               >
               <LayoutCircuitBlock
                 key={`circuit:${element.circuit.id}`}
@@ -6237,8 +6304,17 @@ function LayoutCycleBlock({
       testID={`${testID}-header`}
     />
   );
+  // Contre-recette du 30/10 : le Cycle qui vient d'être posé apparaît progressivement (fond, anneau
+  // et en-tête), comme les cartes d'un Circuit qui se déploie ; ses membres, déjà visibles, restent.
+  const entering = context.appearingCycleIds.has(cycle.id) ? CYCLE_ENTERING : undefined;
   return (
     <View style={styles.layoutCycleContainer} onLayout={(event) => setCycleY(event.nativeEvent.layout.y)} testID={testID}>
+      <Reanimated.View
+        entering={entering}
+        pointerEvents="none"
+        style={[StyleSheet.absoluteFill, styles.layoutCycleSurface]}
+        testID={`${testID}-surface`}
+      />
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
         {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
@@ -6259,7 +6335,8 @@ function LayoutCycleBlock({
          * Recette du 29/10 (obs-3 c, « deux cercles concentriques ») : anneau extérieur de 16 (Figma
          * `10748:20132`, « Anneau — Cycle », trait 1 `#7A7A80`) autour du repère de 10 (`10745:20132`).
          */}
-        <View
+        <Reanimated.View
+          entering={entering}
           style={[
             styles.cycleOuterRing,
             { left: railX - CYCLE_OUTER_RING_DIAMETER / 2, top: CIRCUIT_PADDING_VERTICAL + rowHeight / 2 - CYCLE_OUTER_RING_DIAMETER / 2 },
@@ -6268,7 +6345,9 @@ function LayoutCycleBlock({
         />
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
-      {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
+      <Reanimated.View entering={entering} testID={`${testID}-header-reveal`}>
+        {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
+      </Reanimated.View>
       {cycle.members.map((member) =>
         member.kind === "EXERCISE" ? (
           <View key={`exercise:${member.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${member.exercise.id}`}>
@@ -6297,6 +6376,8 @@ function LayoutCycleBlock({
             target={{ kind: "CIRCUIT", id: member.circuit.id }}
             name={layoutCircuitName(member.circuit.id, context.letters)}
             testID={`composition-envelope-circuit-${member.circuit.id}`}
+            outset={LAYOUT_CIRCUIT_IN_CYCLE_OUTSET}
+            radius={CIRCUIT_RADIUS}
           >
             <LayoutCircuitBlock
               key={`circuit:${member.circuit.id}`}
@@ -6536,6 +6617,13 @@ const CIRCUIT_SURFACE_COLOR = "#EBEDF5";
  * en bas, Figma) reste non rendue.]
  */
 const CYCLE_SURFACE_COLOR = "#E0E2EF";
+/**
+ * Contre-recette iPhone du 30/10 (Hermann : « Animation : à la validation il faut que le cycle
+ * apparaisse progressivement ») : fondu d'entrée du Cycle posé, à la durée du dévoilement des cartes
+ * d'un Circuit (`CIRCUIT_REVEAL_DURATION_MS`, 450 ms) — valeur de conception, Figma muet ; immédiat
+ * si « Réduire les animations » est actif.
+ */
+const CYCLE_ENTERING = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
 /**
  * Recette du 29/10 (obs-3 c) : anneau extérieur du Cycle (Figma `10748:20132`, 16 de diamètre, trait
  * 1), concentrique au repère de 10 ; le rail s'arrête à son bord (3 au-delà du repère).
@@ -7080,6 +7168,10 @@ const styles = StyleSheet.create({
     paddingVertical: CIRCUIT_PADDING_VERTICAL,
     gap: LAYOUT_CYCLE_GAP,
     // Recette du 29/10 (obs-3 c) : quatre coins arrondis (Figma `10744:20282` : 18).
+    borderRadius: CIRCUIT_RADIUS,
+  },
+  // Contre-recette du 30/10 : aplat du Cycle porté par une couche (apparition progressive à la pose).
+  layoutCycleSurface: {
     borderRadius: CIRCUIT_RADIUS,
     backgroundColor: CYCLE_SURFACE_COLOR,
   },

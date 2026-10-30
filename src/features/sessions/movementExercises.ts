@@ -23,6 +23,24 @@ import { formatOccurrenceSummary, isIncompleteSummary } from "@/features/session
  */
 let handedMovements: readonly Movement[] | null = null;
 
+/**
+ * Contre-recette PRE-9 n° 1 (Hermann, 30/10/2026 : « Choisir un mouvement existant : les mouvements
+ * déjà présents dans la séance sont identifiables » ; rendu choisi : mention « Dans la séance ») —
+ * Mouvements dont la Séance en cours contient déjà un Exercice, remis par la Composition à la
+ * sélection au moment de l'ouvrir (même raison que `handedMovements` : route hors du brouillon).
+ */
+let movementIdsInSession: ReadonlySet<string> = new Set();
+
+/** Mouvements déjà présents dans la Séance, pour la sélection qui va s'ouvrir. */
+export function markMovementsInSession(movementIds: Iterable<string>): void {
+  movementIdsInSession = new Set(movementIds);
+}
+
+/** Lecture (sans consommation) des Mouvements déjà présents dans la Séance. */
+export function movementsInSession(): ReadonlySet<string> {
+  return movementIdsInSession;
+}
+
 /** Remet à la Composition les Mouvements choisis, dans l'ordre d'insertion voulu. */
 export function handMovementsToComposition(movements: readonly Movement[]): void {
   handedMovements = movements.length > 0 ? [...movements] : null;

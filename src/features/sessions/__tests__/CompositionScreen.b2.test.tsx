@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native";
 import { useLayoutEffect, useMemo, useState, type ReactNode } from "react";
-import { Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 import { durationParameters } from "@/domain/activities/testing/executionParametersFixtures";
 import { createEmptyDraft, createExerciseDraft, type SessionDraft, type SessionDraftExercise } from "@/domain/sessions/SessionDraft";
@@ -145,7 +145,7 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
       menu.addCycle,
       menu.cancel,
     ]);
-    expect(labels.slice(0, 2)).toEqual(["Créer un nouvel exercice", "Utiliser un mouvement existant"]);
+    expect(labels.slice(0, 2)).toEqual(["Créer un nouveau mouvement", "Utiliser un mouvement existant"]);
     const session = screen.getByTestId("composition-add-activity-tree-existing-session");
     expect(session.props.accessibilityState).toEqual({ disabled: true });
     expect(within(session).getByText(menu.existingSession)).toBeTruthy();
@@ -329,5 +329,43 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     expect(probe.draft).toBe(before);
     expect(screen.queryByTestId("composition-tour-section")).toBeNull();
     expect(screen.queryByTestId("composition-envelope-exercise-b-target")).toBeNull();
+  });
+});
+
+/**
+ * Contre-recette iPhone du 30/10 (Hermann) — « le cadre avec liseré bleu n'entoure pas correctement
+ * le circuit » ; « à la validation il faut que le cycle apparaisse progressivement ».
+ */
+describe("contre-recette du 30/10 — cadre du Circuit et apparition du Cycle", () => {
+  it("the envelope frame of a Circuit follows its left and right edges (outset 16) and its radius (18)", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CIRCUIT", "composition-envelope-exercise-b");
+    openMenu();
+    fireEvent.press(screen.getByTestId("composition-add-activity-tree-cycle"));
+    const frame = StyleSheet.flatten(screen.getByTestId("composition-envelope-circuit-target").props.style);
+    expect(frame).toMatchObject({ position: "absolute", top: 0, bottom: 0, left: -16, right: -16, borderRadius: 18 });
+    // Le Circuit déborde de 16 de sa boîte : même valeur que le cadre.
+    expect(StyleSheet.flatten(screen.getByTestId("composition-tour-section", hidden).props.style)).toMatchObject({ marginHorizontal: -16 });
+    // Une carte garde le cadre à ses bords (aucun débord).
+    expect(StyleSheet.flatten(screen.getByTestId("composition-envelope-exercise-a-target").props.style)).toMatchObject({ left: 0, right: 0 });
+  });
+
+  it("the Cycle posed by « Confirmer le cycle » fades in (surface, ring, header); a Cycle already there does not", async () => {
+    await renderComposition(flatDraft());
+    await envelopeAround("CYCLE", "composition-envelope-exercise-a");
+    const cycle = probe.draft!.structure!.elements.find((element) => element.kind === "CYCLE");
+    if (cycle?.kind !== "CYCLE") throw new Error("Cycle absent");
+    const id = `composition-layout-cycle-${cycle.cycle.id}`;
+    expect(screen.getByTestId(`${id}-surface`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${id}-rail-outer-ring`, hidden).props.entering).toBeTruthy();
+    expect(screen.getByTestId(`${id}-header-reveal`, hidden).props.entering).toBeTruthy();
+    // Aplat du Cycle porté par la couche qui apparaît.
+    expect(StyleSheet.flatten(screen.getByTestId(`${id}-surface`, hidden).props.style)).toMatchObject({ backgroundColor: "#E0E2EF", borderRadius: 18 });
+
+    const saved = probe.draft!;
+    screen.unmount();
+    await renderComposition(saved);
+    expect(screen.getByTestId(`${id}-surface`, hidden).props.entering).toBeUndefined();
+    expect(screen.getByTestId(`${id}-header-reveal`, hidden).props.entering).toBeUndefined();
   });
 });

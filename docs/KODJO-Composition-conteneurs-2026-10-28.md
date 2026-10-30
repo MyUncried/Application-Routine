@@ -57,7 +57,7 @@ La durée réapparaît dans les en-têtes observés : la clause de D-443 qui la 
 
 ## 5. Écran de choix et placement
 
-Le menu observé propose, dans l’ordre : Créer un nouvel exercice ; Utiliser un mouvement existant ; Utiliser une séance existante ; Ajouter un circuit ; Ajouter un cycle ; Annuler. Les trois premières entrées alimentent la composition selon D-449. Les deux dernières ouvrent le choix de membres existants ; elles ne créent pas immédiatement un objet vide.
+Le menu observé propose, dans l’ordre : Créer un nouvel exercice [30/10/2026, contre-recette PRE-9 n° 1 (Hermann) : libellé « Créer un nouveau mouvement »] ; Utiliser un mouvement existant ; Utiliser une séance existante ; Ajouter un circuit ; Ajouter un cycle ; Annuler. Les trois premières entrées alimentent la composition selon D-449. Les deux dernières ouvrent le choix de membres existants ; elles ne créent pas immédiatement un objet vide.
 
 Le placement montre l’enveloppe choisie en trait plein et les candidats en pointillé. Pied : « Confirmer le circuit » ou « Confirmer le cycle », avec Annuler. Le cycle accepte des circuits et des exercices directs. Le circuit accepte des exercices. L’illustration de cycle ne montrant que deux circuits n’annule pas l’admission d’un exercice direct.
 

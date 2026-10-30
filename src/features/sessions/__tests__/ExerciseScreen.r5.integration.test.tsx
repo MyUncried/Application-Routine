@@ -322,13 +322,14 @@ describe("PRE-7 R-5 — panneau sous le nom (R03, R04)", () => {
     expect(screen.getByTestId("movement-suggestion-panel")).toBeTruthy();
   });
 
-  it("cinq résultats au plus ; l'ordre est figé pendant un appui sur le panneau", async () => {
+  // Contre-recette iPhone du 30/10 (Hermann) : plus de limite à cinq résultats (R04 remplacé).
+  it("tous les résultats, sans limite à cinq ; l'ordre est figé pendant un appui sur le panneau", async () => {
     for (const name of ["Squats", "Squats A", "Squats B", "Squats C", "Squats D", "Squats E"]) {
       await catalogueSquats({ name });
     }
     await renderEditor({ catalogueDefinitionId: "new" });
     await typeName("Squats");
-    expect(resultIds()).toHaveLength(5);
+    expect(resultIds()).toHaveLength(6);
     const before = resultIds();
     fireEvent(screen.getByTestId("movement-suggestion-panel"), "touchStart");
     await typeName("Squats E");

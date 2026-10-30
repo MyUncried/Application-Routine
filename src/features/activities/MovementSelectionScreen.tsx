@@ -8,7 +8,7 @@ import { MovementCatalogueList } from "@/features/activities/MovementCatalogueLi
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
-import { handMovementsToComposition } from "@/features/sessions/movementExercises";
+import { handMovementsToComposition, movementsInSession } from "@/features/sessions/movementExercises";
 import { strings } from "@/shared/i18n";
 import { CatalogueSearchField, FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
@@ -46,6 +46,7 @@ export function MovementSelectionScreen() {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [selected, setSelected] = useState<ReadonlyMap<string, Movement>>(new Map());
   const [isAdding, setIsAdding] = useState(false);
+  const [inSessionIds] = useState(movementsInSession);
   const addingRef = useRef(false);
 
   const filterSummary =
@@ -131,7 +132,7 @@ export function MovementSelectionScreen() {
           filters={filters}
           onOpenMovement={() => undefined}
           onCreateVariant={() => undefined}
-          selection={{ selectedIds, onToggle: toggle, bottomInset: actionZone.scrollReserve }}
+          selection={{ selectedIds, inSessionIds, onToggle: toggle, bottomInset: actionZone.scrollReserve }}
         />
       </View>
 

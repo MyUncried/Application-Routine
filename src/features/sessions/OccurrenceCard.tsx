@@ -367,8 +367,15 @@ export function OccurrenceCard({
             style={[styles.valuesColumn, twoLineIncomplete ? styles.valuesColumnIncomplete : null]}
             testID="composition-exercise-values-column"
           >
-            <View style={[styles.workLine, styles.valueRow, dimmed]} {...hidden} testID="composition-exercise-work-row">
-              <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
+            <View
+              style={[styles.workLine, styles.valueRow, twoLineIncomplete ? styles.workLineTwoLines : null, dimmed]}
+              {...hidden}
+              testID="composition-exercise-work-row"
+            >
+              {/* Contre-recette du 30/10 : le symbole garde la boîte de la ligne 2 (même ordonnée). */}
+              <View style={styles.workSymbol} testID="composition-exercise-work-symbol-box">
+                <KodjoIcon name="card-work-duration" testID="composition-exercise-work-symbol" />
+              </View>
               <View style={[styles.work, twoLineIncomplete ? styles.workTwoLines : null]} testID="composition-exercise-work">
                 <Text
                   // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
@@ -394,9 +401,11 @@ export function OccurrenceCard({
                 ) : null}
               </View>
             </View>
-            <View style={styles.recoveryLine} testID="composition-exercise-recovery-slot">
-              {twoLineIncomplete ? null : recovery}
-            </View>
+            {twoLineIncomplete ? null : (
+              <View style={styles.recoveryLine} testID="composition-exercise-recovery-slot">
+                {recovery}
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -478,12 +487,26 @@ const styles = StyleSheet.create({
   valuesColumnIncomplete: {
     width: VALUE_COLUMN_MIN_WIDTH,
   },
-  // Deux lignes depuis le haut de la ligne 2 : la seconde descend dans la ligne 3 de la colonne
-  // (hauteur de la ligne 2 inchangée, débordement visible).
+  // Contre-recette iPhone du 30/10 (« "Paramètres à compléter" est tronqué ») : la ligne 2 gardait
+  // sa hauteur de 16 ; sous iOS, le texte est mesuré dans cette hauteur et s'abrégeait après une
+  // ligne. La ligne des valeurs couvre désormais les lignes 2 et 3 (16 + 2 + 17), calée en haut :
+  // deux lignes de 15 y tiennent sans coupure ; la récupération n'y est pas dessinée.
+  workLineTwoLines: {
+    height: WORK_LINE_HEIGHT + WORK_TO_ZONES_GAP + ZONES_LINE_HEIGHT,
+    alignItems: "flex-start",
+  },
+  // Symbole de durée dans une boîte de la hauteur de la ligne 2, centré : même position, carte
+  // complète ou à compléter.
+  workSymbol: {
+    height: WORK_LINE_HEIGHT,
+    justifyContent: "center",
+  },
+  // Texte sur deux lignes, première ligne à l'ordonnée de la synthèse d'une carte complète
+  // (interligne 15 centré dans la ligne 2 de 16).
   workTwoLines: {
     alignSelf: "flex-start",
     alignItems: "flex-start",
-    overflow: "visible",
+    paddingTop: (WORK_LINE_HEIGHT - REGULAR_12.lineHeight) / 2,
   },
   workLine: {
     height: WORK_LINE_HEIGHT,

@@ -40,6 +40,24 @@ describe("OccurrenceCard — carte incomplète (recette du 29/10)", () => {
     expect(style("composition-exercise-summary").color).toBe(colors.danger);
     // La ligne 3 de la colonne des valeurs est laissée à la seconde ligne.
     expect(screen.queryByTestId("recovery", hidden)).toBeNull();
+    expect(screen.queryByTestId("composition-exercise-recovery-slot", hidden)).toBeNull();
+  });
+
+  it("contre-recette du 30/10 — the work row spans lines 2 and 3 (two lines of 15 fit, no iOS truncation); the stopwatch keeps its box", () => {
+    renderCard(INCOMPLETE);
+    // 16 (ligne 2) + 2 (écart) + 17 (ligne 3) : la hauteur de mesure du texte en contient deux lignes.
+    const row = style("composition-exercise-work-row");
+    expect(row).toMatchObject({ height: 35, alignItems: "flex-start" });
+    expect(row.height).toBeGreaterThanOrEqual(2 * style("composition-exercise-summary").lineHeight);
+    const symbolBox = style("composition-exercise-work-symbol-box");
+    expect(symbolBox).toMatchObject({ height: 16, justifyContent: "center" });
+  });
+
+  it("the stopwatch box is identical on a complete card (same position)", () => {
+    renderCard("10 rép.");
+    expect(style("composition-exercise-work-row").height).toBe(16);
+    const symbolBox = style("composition-exercise-work-symbol-box");
+    expect(symbolBox).toMatchObject({ height: 16, justifyContent: "center" });
   });
 
   it("a complete card is unchanged: one line, column free to widen, recovery shown", () => {
