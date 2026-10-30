@@ -4,7 +4,7 @@
 >
 > **Révision 1 du 29/10/2026.** Source des décisions : mission de Hermann « KODJO — PRE-9 : révision ciblée du plan BMAD après arbitrages » (29/10/2026), après la revue indépendante de ChatGPT (conclusion REVISE). Les décisions y sont recopiées textuellement ou au plus près (§0). Les propositions initiales remplacées sont conservées et annotées entre crochets. Les nouvelles questions sont en §2 bis ; elles ne bloquent que les stories nommées.
 >
-> **Révision 2 du 29/10/2026.** Source : mission de Hermann « KODJO — PRE-9 : intégration des derniers arbitrages et finalisation du plan BMAD » (29/10/2026), après la seconde revue de ChatGPT. ARB-01 (conversion), ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24 et ARB-25 sont **validés et clos** (§0 bis). Restent ouverts ARB-04 et ARB-22c, ainsi que trois questions d'application limitées à C.4 (ARB-26 à ARB-28, §2 bis).
+> **Révision 2 du 29/10/2026.** Source : mission de Hermann « KODJO — PRE-9 : intégration des derniers arbitrages et finalisation du plan BMAD » (29/10/2026), après la seconde revue de ChatGPT. ARB-01 (conversion), ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24 et ARB-25 sont **validés et clos** (§0 bis). [HISTORIQUE 29/10, SUPERSÉDÉ §0 quater] Restaient ouverts ARB-04 et ARB-22c, ainsi que trois questions d'application limitées à C.4 (ARB-26 à ARB-28, §2 bis).
 
 ## 0. Décisions de Hermann du 29/10/2026 (révision 1)
 
@@ -73,6 +73,22 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 
 **Traçabilité :** les options historiques conservées ci-après servent à expliquer les versions antérieures, mais ne doivent plus être traitées comme des prescriptions actives lorsqu'elles contredisent ce §0 ter.
 
+## 0 quater. Consolidation active du 30/10/2026 — réponses et règles Composition/Formats
+
+**Référence fonctionnelle unique à appliquer dans PRE-9 :** [décisions consolidées, D-01 à D-30 et matrice six Formats](../../../docs/KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Source des réponses : `docs/pre9-arbitrages-reponses-20261029 @ 522c1b93`, §§2–9, dont §4.6 ; priorité aux principes resserrés et à la clarification ultérieure « Format par Exercice ». Les libellés et propositions des sections antérieures demeurent des **archives d'arbitrage** lorsqu'ils contredisent la présente consolidation.
+
+| Référence | État actif / effet concret |
+|---|---|
+| **ARB-04** | **CLOS** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30/30 imposé) ; EMOM W 60 s et N 6 ; AMRAP durée initiale 12:00 **réglable** ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. Ces valeurs sont des **défauts**, sauf les constantes explicitement imposées. |
+| **ARB-22c** | **CLOS pour les départs rapides** : aucun Mouvement présélectionné. Renforcement 3×15 ; Progression 10/12/14 ; À l'échec 3 séries ; Superset Circuit groupé 1 passage et deux emplacements d'Exercices vides, paramètres libres ; Libre = Séance vide. **Gainage · Mobilité supprimé**. |
+| **ARB-26** | **CLOS** : entrée/sortie des Exercices libres et formatés dans les Circuits selon D-05/D-07, six cas D-15/D-16. Le Circuit ne porte ni ne transmet de Format. Adapter N compatible en alternance ; refus sans mutation si dénaturation ; confirmation si valeurs perdues. |
+| **ARB-27** | **CLOS sur l'adoption volontaire** : second Exercice ajoutée au Format existant reçoit explicitement ce Format ; une simple dépose ne transmet rien. Organisation proposée quand applicable (Tabata, EMOM, Progression). Death by alterné admis fonctionnellement ; raccordement d'exécution en PRE-11. |
+| **ARB-28** | **CLOS** : nouveau Circuit inséré après le Circuit du dernier Exercice entré, dans le même parent, sans imbrication. |
+| **ARB-24 / ARB-25** | **PRÉCISÉS / SUPERSEDÉS PARTIELLEMENT** : pas de valeurs de Format imposées par le Circuit lui-même ; Circuit groupé répète ses membres, Cycle répète sa séquence, sans multiplicateur de Format indépendant. |
+| **D-06 et ancienne propriété ARB-03** | **REMPLACÉES** : seule l'identité du Format portée par l'Exercice est active ; le Circuit fixe sa nature et son compte. Le verrouillage générique d'un « Circuit formaté » n'est pas une règle active. |
+
+**Périmètre de vérification restant hors PRE-9 :** horloges, fenêtres et résultats spécialisés AMRAP / For time / Death by (D-18 à D-21, D-29), à raccorder selon PRE-10/11 ; ces travaux ne sont pas de nouveaux arbitrages de configuration. La suppression des tables historiques A.5 requiert toujours une autorisation explicite distincte. Les choix de rendu non dessinés ne deviennent pas des blocages généraux.
+
 ## 1. Arbitrages structurants (à trancher avant les stories concernées ; aucun n'empêche la validation du plan)
 
 ### ARB-01 — Conversion E.8-b des anciens Exercices du Catalogue — **VALIDÉ ET CLOS (révision 2) ; suppression physique conditionnelle**
@@ -110,7 +126,7 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 - **Clos en révision 2** : ARB-23, ARB-24, ARB-25 (§0 bis). [Révision 1 : « Ouvert : ARB-24, ARB-23, ARB-25 ; table des porteurs à confirmer ; un élément formaté à un seul Exercice ne pourrait pas recevoir un second Exercice » — remplacé : ARB-23 à ARB-25 clos ; second Exercice : ARB-27.]
 - **Impact** : C.1 à C.6, D.1 à D.5 révisés (`epics.md`).
 
-### ARB-04 — Valeurs par défaut des réglages de Format — **OUVERT**
+### ARB-04 — Valeurs par défaut des réglages de Format — **CLOS (§0 quater) ; historique ci-dessous**
 - **Règle existante** : constantes Tabata (8 × 20 s / 10 s) et 30/30 (30 s / 30 s) définies ; autres défauts **non définis** (nombre de séries 30/30, W et N EMOM, durée AMRAP, échelle For time, q0/d/W Death by). Les chiffres Figma et des recettes sont des exemples (ch10 l.1524 ; REC-10 ; FMT-33).
 - **Options** : A — adopter les exemples Figma/REC comme défauts (EMOM 1 min × 6, Death by 1 + 1/min, For time 21-15-9, AMRAP à fixer) ; B — Hermann fournit la table ; C — pas de défaut, champ à renseigner (tiret, bloquant).
 - **Impact (révision 1)** : ne bloque que la **mise à disposition** de chaque Format dans la grille ; le registre (C.1) porte les défauts comme données ; un Format dont les défauts manquent reste indisponible, comme aujourd'hui (vignette PRE-8).
@@ -143,7 +159,7 @@ Distinction : **règle existante appliquée** (citée) ; **représentation techn
 | ARB-21 | Information pour une Séance dont l'exécution n'est pas livrée | cadrage l.47 ; Lecture indisponible (PRE-8, CE-T03-01) | — | **DÉCIDÉ** — « Lecture indisponible » conservé, sans développement transitoire. |
 | ARB-22 | Choix des Exercices dans le flux d'un Format ; contenu des départs rapides | ch03 l.646 ; `recherche/03-formats.md` l.56, l.138 | C.3, C.5 | **22a DÉCIDÉ** (parcours Catalogue existant) ; **22b DÉCIDÉ** (capacités A, B, C, un seul mécanisme) ; **22c EN ATTENTE DE DÉFINITION FONCTIONNELLE** (contenu des cinq départs, défini en parallèle avec Hermann). |
 
-## 2 bis. Questions encore ouvertes (révision 2)
+## 2 bis. Questions de révision 2 — **CLOSES par §0 quater** (historique)
 
 Deux questions sont ouvertes par décision de Hermann (ARB-04, ARB-22c) ; trois questions d'application, nées des décisions de la révision 2 et non déductibles, sont présentées au format demandé (ARB-26 à ARB-28). Chacune ne bloque que l'opération citée ; aucune n'empêche la validation du plan.
 
