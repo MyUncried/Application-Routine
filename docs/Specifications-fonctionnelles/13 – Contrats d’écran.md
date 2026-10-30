@@ -1,5 +1,18 @@
 # Contrats d’écran
 
+## CE-CAT-CTX-01 — Zones de contexte des Catalogues Mouvements et Séances
+
+**Contrat final PRE-9 :** [spécification de développement](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Cible visuelle Figma `10266:20575`, `10465:23141`, `10495:24099` (Mouvements), `1992:9910`, `4549:6742`, `1992:10848` (Séances), page `510:101`.
+
+- Bande lilas « Recherche et création » pleine largeur : `y=92..207`, référence écran **402 × 874 pt**, marge latérale **16 pt**. Ligne 1 à `x=24, y=118` ; ligne 2 : champ Rechercher `x=16, y=155`, `216 × 44 pt`, placeholder « Rechercher » 15 pt, `#7A7A80`. En état filtré ou archivé, champ `107 × 44 pt`.
+- Contrôles **Filtre**, **Tri**, **Créer** de **34 pt** à `y=160`, respectivement `x=260`, `306`, `352` ; chaque cible tactile mesure **44 × 44 pt** à partir de `y=155`. Titre individuel de page masqué ; conserver la navigation des Catalogues.
+- **Mouvements** : première ligne « N familles · N mouvements », 14 pt Regular `#333333`, séparateur « · ». Les deux compteurs sont activables séparément, mutuellement exclusifs, désélectionnables au second toucher. Actif : bleu `#0508E5`, Semi Bold ou Bold ; inactif : `#333333`, Regular. Le choix se cumule avec filtres et recherche. Familles = celles ayant **au moins une carte visible** ; Mouvements = **cartes visibles** (sans inclure les membres cachés dans une pile repliée).
+- **Séances** : première ligne « Un exercice N | Plusieurs N ». Les libellés conservent **exactement leur bascule existante**, actif bleu `#0508E5` et gras, inactif `#595E66` Regular ; compteurs `N` purement informatifs, 14 pt `#333333` ; séparateur « | » `#9499A8` à `x=127`. Chaque `N` est le nombre réel de Séances de la vue ; les valeurs 2/3 de Figma sont des exemples.
+- **États filtrés/archivés** : « N résultats » bord droit `x=378`, 14 pt Regular `#333333`, nombre d'éléments **après tous les filtres et la recherche**, actualisé en direct. « 1 résultat » ; « 0 résultat » et « 2 résultats ».
+- Recherche, vue et filtres s'appliquent conjointement à la même liste. Les chiffres ne sont jamais des données stockées ni des commandes, à l'exception des deux compteurs activables de Mouvements. Aucune nouvelle règle de tri, de cartes ou d'archivage.
+
+**Critères de validation :** dimensions à 402 pt, exclusion/désélection des compteurs Mouvements, bascule Séances non régressée, calculs en listes vides/repliées/filtrées/archivées, recherche combinée, accord des résultats et absence de chevauchement tactile. Réalisation **dès PRE-9**.
+
 ## CE-MVT-03 — Catalogue des mouvements : ordre et composition des familles
 
 ### 1. Identification
@@ -645,7 +658,7 @@ Mouvements, Séances, Programmes, Un exercice, Plusieurs, Planifier, Dupliquer, 
 
 #### 7. Structure de l’écran
 
-En-tête → segmenté trois entrées → bascule Un exercice | Plusieurs à gauche et Filtre/Tri/Créer à droite → liste de cartes/état vide → navigation. Panneau de filtres : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe.
+En-tête de navigation Catalogues à trois entrées conservé → zone de contexte commune **CE-CAT-CTX-01** (bande lilas, première ligne « Un exercice N | Plusieurs N », deuxième ligne Rechercher et Filtre/Tri/Créer) → liste de cartes/état vide → navigation. Le titre individuel de page est masqué. La bascule existante est inchangée ; **les compteurs ajoutés sont informatifs, non interactifs**. En état filtré ou archivé, « N résultats » est affiché à droite et le champ Rechercher est réduit à 107 pt. Panneau de filtres inchangé : Statut des séances, Catégories, Zones corporelles, Étiquettes, Format ; pied Réinitialiser fixe.
 
 #### 8. Éléments obligatoires
 
@@ -698,6 +711,9 @@ Une Séance reste une Séance avec un ou plusieurs exercices ; aucun catalogue a
 #### 20. Recette déterministe
 
 Tester automatiquement : comptage structurel (cycles/circuits/récupérations), vues et désélection, cascade photo/format/Libre, déduplication et ordre des catégories, volume unique et priorité du format, omission des durées For time/Death by, masquage conditionnel des conteneurs, conservation des données lors des actions. Tests UI : chevron unique, aucune lecture par déploiement, actions actives/archivées dans le bon ordre, confirmations et annulation, état vide, filtres actifs à l’ouverture et pied fixe. Recette visuelle : douze états et variantes, marges/largeurs/espacement, actions 80 sur carte déployée, textes longs, accessibilité et non-régression des trois contextes hors lot. Les valeurs des maquettes ne servent pas d’oracle aux calculs. L’opérateur de combinaison des nouveaux filtres doit être fixé avant les assertions correspondantes.
+
+
+**Zone de contexte PRE-9** : tests de la position des deux lignes, cibles 44 × 44, libellés N réels non cliquables, maintien de la bascule, largeur réduite en filtré/archivé et « N résultats » recalculé après recherche + filtres, selon CE-CAT-CTX-01.
 
 ### CE-T03-16 — Étiquettes de Séance — sélectionner, créer, retirer
 
