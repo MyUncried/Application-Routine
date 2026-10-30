@@ -1544,6 +1544,8 @@ Avec A et B : A21, B21, A15, B15, A9, B9. Les trois valeurs décrivent trois tou
 
 « Le plus vite possible » exprime l’objectif du format, pas l’interdiction de faire une pause ni une détection automatique des mouvements. Les commandes générales non remplacées restent applicables.
 
+**D-19 — Acquisition de tour AMRAP et For time (29/10/2026).** Dans chacun de ces deux Formats, l'appui « Tour terminé » acquiert au plus un tour complet ; un appui répété ne peut en acquérir plusieurs et un tour inachevé n'est pas compté comme tour complet. Pour l'AMRAP, les répétitions du tour partiel à l'échéance suivent RM-PRE5-02 (D-20). Ces commandes et résultats sont à raccorder en exécution PRE-10/11 et ne bloquent pas la configuration PRE-9.
+
 ### Formats de séances — comportements consolidés — Death by
 
 #### 7.1 Fenêtres, objectif et acquisition
