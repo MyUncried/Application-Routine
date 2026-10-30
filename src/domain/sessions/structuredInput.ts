@@ -35,7 +35,6 @@ import {
   isSessionOrigin,
   type ElementFormat,
   type ElementFormatViolationCode,
-  type FormatCarrierKind,
   type SessionOrigin,
 } from "./formats";
 
@@ -71,27 +70,27 @@ const STRUCTURE_VIOLATIONS: Record<StructureViolationCode, ValidationViolation> 
 
 const FORMAT_VIOLATIONS: Record<ElementFormatViolationCode, ValidationViolation> = {
   FORMAT_UNKNOWN: { code: "UNRECOGNIZED", field: "element.format" },
-  FORMAT_CARRIER_RESERVED: { code: "FORBIDDEN_PLACEMENT", field: "element.format" },
   FORMAT_SETTING_UNKNOWN: { code: "UNRECOGNIZED", field: "element.formatSettings" },
   FORMAT_SETTING_NOT_ADJUSTABLE: { code: "MUST_BE_ABSENT", field: "element.formatSettings" },
   FORMAT_SETTING_INVALID: { code: "OUT_OF_RANGE", field: "element.formatSettings" },
 };
 
-/** PRE-9 (C.1) : Formats portés par les Circuits et les Exercices de la structure, à tout niveau. */
-function formatsOf(structure: StructureInput): readonly { readonly format: ElementFormat; readonly carrier: FormatCarrierKind }[] {
-  const carried: { format: ElementFormat; carrier: FormatCarrierKind }[] = [];
-  const visit = (format: ElementFormat | null | undefined, carrier: FormatCarrierKind) => {
-    if (format !== undefined && format !== null) {
-      carried.push({ format, carrier });
-    }
-  };
-  for (const circuit of structureCircuits(structure)) {
-    visit(circuit.format, "CIRCUIT");
-  }
-  for (const exercise of structureExercises(structure)) {
-    visit(exercise.format, "EXERCISE");
-  }
-  return carried;
+/**
+ * PRE-9 (correction C.1 du 30/10, D-02) : le Circuit ne porte aucun Format. Le type ne le permet
+ * plus ; une entrée non typée qui en porterait un est refusée, jamais transmise aux membres.
+ */
+const FORMAT_ON_CIRCUIT: ValidationViolation = { code: "FORBIDDEN_PLACEMENT", field: "element.format" };
+
+function circuitCarriesFormat(structure: StructureInput): boolean {
+  return structureCircuits(structure).some((circuit) => {
+    const stray = (circuit as { readonly format?: unknown }).format;
+    return stray !== undefined && stray !== null;
+  });
+}
+
+/** PRE-9 (C.1) : Formats portés par les Exercices de la structure, à tout niveau. */
+function formatsOf(structure: StructureInput): readonly ElementFormat[] {
+  return structureExercises(structure).flatMap((exercise) => (exercise.format !== undefined && exercise.format !== null ? [exercise.format] : []));
 }
 
 function asActivity(exercise: StructureExerciseInput, structuralPosition: StructuralPosition): CreateSessionActivityInput {
@@ -176,9 +175,12 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
   for (const violation of validateStructureShape(input.structure, (exercise) => exercise.id)) {
     violations.push(STRUCTURE_VIOLATIONS[violation.code]);
   }
+  if (circuitCarriesFormat(input.structure)) {
+    violations.push(FORMAT_ON_CIRCUIT);
+  }
   // PRE-9 (C.1) : contrôle structurel de chaque Format porté (registre) ; règles propres : C.3.
-  for (const { format, carrier } of formatsOf(input.structure)) {
-    for (const code of elementFormatViolations(format, carrier)) {
+  for (const format of formatsOf(input.structure)) {
+    for (const code of elementFormatViolations(format)) {
       if (!violations.includes(FORMAT_VIOLATIONS[code])) {
         violations.push(FORMAT_VIOLATIONS[code]);
       }

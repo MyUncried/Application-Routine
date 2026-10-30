@@ -25,3 +25,7 @@ Story PRE-9, epic D. Autorisation : mission de Hermann « KODJO — PRE-9 : lanc
 ## Tests
 
 - 6 tests verts ; `tsc` et ESLint sans erreur.
+
+## Correction du 30/10 — Format porté par l'Exercice
+
+Plus de transmission du Format d'un Circuit à ses membres ni de contrôle du « Circuit porteur » (compte Tabata groupé 1 retiré). Chaque Exercice formaté est contrôlé avec ses propres constantes et contre l'organisation et le compte de **son** Circuit (`circuitCompatibility`, matrice §2.2) : refus → motif `INCOMPATIBLE_CIRCUIT` (30/30 et AMRAP alternés, Tabata alterné si N ≠ 8) ; combinaison non décidée (For time alterné) → `openQuestions`, jamais bloquante. EMOM alterné : adaptation de N par le geste de dépose (C.4), non contrôlée ici. voir `spec-c-1-persistance-registre-formats.md`, section « Correction du 30/10 — Format porté exclusivement par l'Exercice » (décision de Hermann, classe B). Tests : `configurationValidity.d4` 8/8.

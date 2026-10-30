@@ -27,3 +27,7 @@ Story PRE-9, epic D. Autorisation : mission de Hermann « KODJO — PRE-9 : lanc
 ## Tests
 
 - `sessionSnapshot.d2.test.ts` : 4 tests verts ; `tsc --noEmit` et ESLint sans erreur.
+
+## Correction du 30/10 — Format porté par l'Exercice
+
+Un Circuit de l'instantané ne porte que son identité, son organisation, son compte et ses Exercices (champs recopiés un à un : aucun Format de Circuit, même d'une entrée non typée) ; chaque Exercice formaté, Circuit compris, est figé avec son Format, ses réglages et la version de règle ; voir `spec-c-1-persistance-registre-formats.md`, section « Correction du 30/10 — Format porté exclusivement par l'Exercice » (décision de Hermann, classe B). Tests : `sessionSnapshot.d2` 6/6.

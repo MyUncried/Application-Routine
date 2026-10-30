@@ -28,3 +28,7 @@ Les cas NON DÉFINI ne sont pas tranchés ici ; ils sont instruits par D.5 (docu
 ## Tests
 
 - `src/domain/sessions/__tests__/formatCapabilities.d3.test.ts` : 4 tests verts (un descripteur par modèle, aucun moteur disponible, expansion progressive d'AMRAP et Death by seulement, porteur cohérent avec le registre, lacunes explicites) ; `planExpansion.d1` relancé, vert ; `tsc` et ESLint sans erreur.
+
+## Correction du 30/10 — Format porté par l'Exercice
+
+Porteur `EXERCISE` pour les six Formats ; `EXERCISE_OR_CIRCUIT` retiré. La colonne « Porteur » de la table ci-dessus (« Exercice ou Circuit », « Exercice (plusieurs : R-03) ») est historique : le porteur est l'Exercice ; la question Death by « plusieurs Exercices (R-03) » est remplacée par celle du rang de reprise au passage groupé suivant et du raccordement en alternance (D-29, PRE-10/11) ; voir `spec-c-1-persistance-registre-formats.md`, section « Correction du 30/10 — Format porté exclusivement par l'Exercice » (décision de Hermann, classe B). Tests : `formatCapabilities.d3` 4/4.

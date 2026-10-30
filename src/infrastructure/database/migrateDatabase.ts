@@ -217,6 +217,7 @@ export async function migrateDatabase(
     }
 
     // PRE-9 (C.1, ARB-03, FMT-02) : Format porté par un Circuit ou un Exercice et origine de
+    // [Correction du 30/10 : Format porté par l'Exercice seul (D-02) ; `tours.format_*` vestiges inutilisés.]
     // création de la Séance ; colonnes additives nullables, toute Séance existante reste libre
     // (FMT-40). Un échec annule tout et laisse `user_version` à 16.
     if (pending(16)) {

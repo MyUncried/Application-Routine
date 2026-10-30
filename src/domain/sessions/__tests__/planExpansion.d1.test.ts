@@ -18,12 +18,12 @@ const exercise = (id: string, parameters = durationParameters(30), extra: Partia
   ...extra,
 });
 
-const circuit = (id: string, exercises: readonly PlanExercise[], repeatCount = 1, nature: "TOURS" | "SERIES" = "TOURS", format?: ElementFormat): StructureCircuit<PlanExercise> => ({
+/** Circuit : organisation et nombre de tours seulement ; aucun Format (correction C.1 du 30/10, D-02). */
+const circuit = (id: string, exercises: readonly PlanExercise[], repeatCount = 1, nature: "TOURS" | "SERIES" = "TOURS"): StructureCircuit<PlanExercise> => ({
   id,
   repeatCount,
   nature,
   exercises,
-  ...(format !== undefined ? { format } : {}),
 });
 
 const structure = (elements: readonly StructureElement<PlanExercise>[], stopPoints: readonly StructureStopPoint[] = []): SessionStructure<PlanExercise> => ({
@@ -144,11 +144,11 @@ describe("PRE-9 D.1 — développement du plan sur toute la structure", () => {
 
   it("Tabata A, B dans un Cycle × 2 : 16 séries par Exercice en groupées comme en alternées, 960 s (ARB-25)", () => {
     const tabata: ElementFormat = { key: "TABATA", settings: {} };
-    const eight = (id: string) => exercise(id, durationParameters(20, 8, 10));
+    const eight = (id: string) => exercise(id, durationParameters(20, 8, 10), { format: tabata });
     const inCycle = (nature: "TOURS" | "SERIES") =>
       expandStructure({
         structure: structure([
-          { kind: "CYCLE", cycle: { id: "y", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: circuit("t", [eight("A"), eight("B")], nature === "TOURS" ? 1 : 8, nature, tabata) }] } },
+          { kind: "CYCLE", cycle: { id: "y", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: circuit("t", [eight("A"), eight("B")], nature === "TOURS" ? 1 : 8, nature) }] } },
         ]),
       });
     const grouped = inCycle("TOURS");
@@ -163,23 +163,100 @@ describe("PRE-9 D.1 — développement du plan sur toute la structure", () => {
       expect(series.filter((step) => step.kind === "SERIES" && step.exerciseId === "B")).toHaveLength(16);
       // 32 séries × (20 s de travail + 10 s de pause) = 960 s.
       expect(series.length * (20 + 10)).toBe(960);
-      expect(series.every((step) => step.kind === "SERIES" && step.context.formattedElementId === "t")).toBe(true);
+      // Chaque étape est rattachée à l'Exercice qui porte le Format, jamais au Circuit (D-02).
+      expect(series.every((step) => step.kind === "SERIES" && step.context.formattedElementId === step.exerciseId)).toBe(true);
     }
   });
 
-  it("élément AMRAP ou Death by : un segment progressif par répétition de son Cycle, aucune occurrence générée", () => {
+  it("Exercice AMRAP ou Death by direct : un segment progressif par répétition de son Cycle, aucune occurrence générée", () => {
     const amrap: ElementFormat = { key: "AMRAP", settings: { durationSeconds: 600 } };
     const deathBy: ElementFormat = { key: "DEATH_BY", settings: {} };
     const plan = expandStructure({
       structure: structure([
-        { kind: "CYCLE", cycle: { id: "y", repeatCount: 2, members: [{ kind: "CIRCUIT", circuit: circuit("a", [exercise("A"), exercise("B")], 1, "TOURS", amrap) }] } },
+        { kind: "CYCLE", cycle: { id: "y", repeatCount: 2, members: [{ kind: "EXERCISE", exercise: exercise("A", durationParameters(30), { format: amrap }) }] } },
         { kind: "EXERCISE", exercise: exercise("D", durationParameters(30), { format: deathBy }) },
         { kind: "EXERCISE", exercise: exercise("E") },
       ]),
     });
-    expect(compact(plan)).toEqual(["[AMRAP:a]", "[AMRAP:a]", "[DEATH_BY:D]", "E1"]);
+    expect(compact(plan)).toEqual(["[AMRAP:A]", "[AMRAP:A]", "[DEATH_BY:D]", "E1"]);
     const [first] = plan;
     expect(first!.kind === "PROGRESSIVE_SEGMENT" && first!.context.cycle).toEqual({ id: "y", repetition: 1, count: 2 });
+    expect(plan.every((step) => step.kind !== "PROGRESSIVE_SEGMENT" || (step.elementKind === "EXERCISE" && step.openQuestion === undefined))).toBe(true);
+  });
+
+  describe("Exercices formatés membres d'un Circuit (correction C.1 du 30/10)", () => {
+    const TABATA: ElementFormat = { key: "TABATA", settings: {} };
+    const AMRAP: ElementFormat = { key: "AMRAP", settings: { durationSeconds: 720 } };
+    const DEATH_BY: ElementFormat = { key: "DEATH_BY", settings: { startRepetitions: 1, incrementRepetitions: 1, windowSeconds: 60 } };
+    const tabata = (id: string) => exercise(id, durationParameters(20, 8, 10), { format: TABATA });
+    const eightOf = (id: string) => Array.from({ length: 8 }, (_, i) => `${id}${i + 1}`);
+
+    it("groupé × 3 (D-08, D-15, D-30) : à chaque passage, bloc AMRAP complet (durée configurée entière) puis bloc Tabata complet ; Exercice libre sans Format", () => {
+      const plan = expandStructure({
+        structure: structure([
+          { kind: "CIRCUIT", circuit: circuit("c", [exercise("A", durationParameters(30), { format: AMRAP }), tabata("T"), exercise("L")], 3, "TOURS") },
+        ]),
+      });
+      const perTour = ["[AMRAP:A]", ...eightOf("T"), "L1"];
+      expect(compact(plan)).toEqual([...perTour, ...perTour, ...perTour]);
+      const segments = plan.filter((step) => step.kind === "PROGRESSIVE_SEGMENT");
+      expect(segments).toHaveLength(3);
+      segments.forEach((step, index) => {
+        if (step.kind !== "PROGRESSIVE_SEGMENT") throw new Error("segment");
+        // Durée configurée complète à chaque passage, aucune limite commune ; aucune question ouverte (décidé).
+        expect(step.format).toEqual(AMRAP);
+        expect(step.context).toEqual({ cycle: null, circuit: { id: "c", tour: index + 1, count: 3 }, formattedElementId: "A" });
+        expect(step.openQuestion).toBeUndefined();
+      });
+      expect(new Set(segments.map((step) => step.stepId)).size).toBe(3);
+      // Aucune transmission : l'Exercice libre reste libre, le Tabata est rattaché à lui-même.
+      const ctx = (id: string) => plan.flatMap((step) => (step.kind === "SERIES" && step.exerciseId === id ? [step.context.formattedElementId] : []));
+      expect(new Set(ctx("L"))).toEqual(new Set([null]));
+      expect(new Set(ctx("T"))).toEqual(new Set(["T"]));
+    });
+
+    it("Death by groupé × 2 : un segment par passage ; le rang de reprise n'est pas encodé (À CLARIFIER)", () => {
+      const plan = expandStructure({
+        structure: structure([{ kind: "CIRCUIT", circuit: circuit("c", [exercise("D", durationParameters(30), { format: DEATH_BY }), exercise("L")], 2, "TOURS") }]),
+      });
+      expect(compact(plan)).toEqual(["[DEATH_BY:D]", "L1", "[DEATH_BY:D]", "L1"]);
+      for (const step of plan.filter((item) => item.kind === "PROGRESSIVE_SEGMENT")) {
+        expect(step.kind === "PROGRESSIVE_SEGMENT" && step.format).toEqual(DEATH_BY);
+        expect(step.kind === "PROGRESSIVE_SEGMENT" && step.openQuestion).toMatch(/rang de reprise/);
+      }
+    });
+
+    it("Tabata alterné A/B, N = 8 : séries entrelacées A1 B1 … A8 B8 — distinct de deux Tabata successifs (groupé ou Exercices directs)", () => {
+      const alternated = expandStructure({ structure: structure([{ kind: "CIRCUIT", circuit: circuit("c", [tabata("A"), tabata("B")], 8, "SERIES") }]) });
+      expect(compact(alternated)).toEqual(Array.from({ length: 8 }, (_, i) => [`A${i + 1}`, `B${i + 1}`]).flat());
+      const groupedOnce = expandStructure({ structure: structure([{ kind: "CIRCUIT", circuit: circuit("c", [tabata("A"), tabata("B")], 1, "TOURS") }]) });
+      const direct = expandStructure({ structure: structure([{ kind: "EXERCISE", exercise: tabata("A") }, { kind: "EXERCISE", exercise: tabata("B") }]) });
+      expect(compact(groupedOnce)).toEqual([...eightOf("A"), ...eightOf("B")]);
+      expect(compact(direct)).toEqual(compact(groupedOnce));
+      expect(compact(alternated)).not.toEqual(compact(groupedOnce));
+    });
+
+    it("Death by alterné (D-16, D-29) : un segment par membre et par tour, rattaché à son Exercice ; raccordement des fenêtres et rangs laissé à PRE-10/11", () => {
+      const plan = expandStructure({
+        structure: structure([
+          { kind: "CIRCUIT", circuit: circuit("c", [exercise("D", durationParameters(30), { format: DEATH_BY }), exercise("E", durationParameters(30), { format: DEATH_BY })], 2, "SERIES") },
+        ]),
+      });
+      expect(compact(plan)).toEqual(["[DEATH_BY:D]", "[DEATH_BY:E]", "[DEATH_BY:D]", "[DEATH_BY:E]"]);
+      for (const step of plan) {
+        if (step.kind !== "PROGRESSIVE_SEGMENT") throw new Error("segment");
+        expect(step.context.formattedElementId).toBe(step.elementId);
+        expect(step.openQuestion).toMatch(/PRE-10\/11/);
+      }
+    });
+
+    it("For time membre d'un Circuit groupé : séries ordinaires rattachées à l'Exercice ; l'échelle n'est pas lue (rattachement aux passages À CLARIFIER)", () => {
+      const forTime: ElementFormat = { key: "FOR_TIME", settings: { volumePerRound: [21, 15, 9] } };
+      const plan = expandStructure({
+        structure: structure([{ kind: "CIRCUIT", circuit: circuit("c", [exercise("F", durationParameters(30, 2), { format: forTime }), exercise("L")], 2, "TOURS") }]),
+      });
+      expect(compact(plan)).toEqual(["F1", "F2", "L1", "F1", "F2", "L1"]);
+    });
   });
 
   it("le plan ne modifie pas la structure", () => {

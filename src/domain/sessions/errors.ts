@@ -45,7 +45,7 @@ export type ValidationField =
   | "session.structure"
   /** PRE-9 (C.1, FMT-02) : origine de création de la Séance. */
   | "session.origin"
-  /** PRE-9 (C.1, ARB-03) : Format porté par un Circuit ou un Exercice (Format inconnu, porteur réservé). */
+  /** PRE-9 (C.1, ARB-03 ; correction du 30/10, D-02) : Format porté par un Exercice (Format inconnu) ; Format sur un Circuit refusé. */
   | "element.format"
   /** PRE-9 (C.1) : réglages d'un Format porté (réglage inconnu, non réglable, hors borne structurelle). */
   | "element.formatSettings"

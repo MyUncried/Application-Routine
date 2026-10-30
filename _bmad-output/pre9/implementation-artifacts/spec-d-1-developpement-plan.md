@@ -42,3 +42,7 @@ Une fonction pure qui développe le plan fini d'une Séance sur toute sa structu
 ## Tests
 
 - `planExpansion.d1.test.ts` : 9 tests verts. `tsc --noEmit` et ESLint sans erreur. Régression : suite complète à la livraison groupée (voir `sprint-status.yaml`).
+
+## Correction du 30/10 — Format porté par l'Exercice
+
+Le chemin « Circuit formaté » (segment progressif ou rattachement porté par le Circuit) est supprimé : voir `spec-c-1-persistance-registre-formats.md`, section « Correction du 30/10 — Format porté exclusivement par l'Exercice » (décision de Hermann, classe B). Chaque Exercice membre est développé selon **son** Format et rattaché à lui-même (`formattedElementId`). Circuit groupé : à chaque passage, bloc complet de chaque membre (séries ; segment AMRAP borné par sa durée configurée complète à chaque passage, D-15/D-30 ; segment Death by, D-18). Circuit alterné : série i de chaque membre fini au tour i (Tabata N = 8 : A1 B1 … A8 B8, distinct de deux Tabata successifs) ; segment d'un membre progressif à chaque tour. Aucun développement fini générique d'un membre progressif. `PROGRESSIVE_SEGMENT.elementKind` vaut toujours `EXERCISE` ; `openQuestion` signale les points non décidés : rang de reprise d'un Death by groupé au passage suivant ; unité et raccordement d'un membre progressif en alternance (PRE-10/11, D-29). For time dans un Circuit : échelle non lue, rattachement aux passages À CLARIFIER (main / branche non fusionnée). Tests : `planExpansion.d1` 14/14.

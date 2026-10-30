@@ -939,8 +939,6 @@ export function toStructuredSessionInput(
           repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
           nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
           exercises: zone("IN_TOUR"),
-          // PRE-9 (C.1) : le Format du Circuit relu le suit (la Composition actuelle ne l'édite pas).
-          ...(tour?.format !== undefined && tour.format !== null ? { format: tour.format } : {}),
         },
         afterTour: zone("AFTER_TOUR"),
       },

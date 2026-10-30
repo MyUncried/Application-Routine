@@ -222,7 +222,6 @@ export function currentLayout(draft: SessionDraft, newContainerId: () => string)
         repeatCount: draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT,
         nature: draft.circuitNature ?? tour?.nature ?? DEFAULT_CIRCUIT_NATURE,
         exercises: zone("IN_TOUR"),
-        ...(tour?.format !== undefined && tour.format !== null ? { format: tour.format } : {}),
       },
       afterTour: zone("AFTER_TOUR"),
     },

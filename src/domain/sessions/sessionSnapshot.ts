@@ -8,7 +8,9 @@
  * complète avec ses identifiants stables (Exercices, Circuits, Cycles, Points d'arrêt) ; pour
  * chaque Exercice, l'instantané d'Exercice existant (`createExerciseSnapshot` v3 : contenu du
  * Mouvement résolu — nom, Catégorie, Zones, médias, phases —, paramètres, récupération) ; **par
- * élément formaté** (Circuit ou Exercice) : Format, réglages effectifs et version de règle.
+ * Exercice formaté** (où qu'il soit, Circuit compris) : Format, réglages effectifs et version de
+ * règle. Correction C.1 du 30/10 (D-02) : un Circuit de l'instantané ne porte que son identité, son
+ * organisation, son compte et ses Exercices — jamais de Format.
  *
  * Aucune phrase, aucun total, aucun plan développé n'y est stocké : le plan se développe depuis
  * l'instantané (`expandStructure`, D.1), dont les Exercices en sont directement lisibles. La
@@ -93,9 +95,12 @@ function snapshotExercise(activity: Activity): SessionSnapshotExercise {
 /** Instantané gelé d'une Séance relue dans sa structure générale (voir l'en-tête). */
 export function createSessionSnapshot(session: StructuredSession): SessionSnapshot {
   const mapped = mapStructure(session.structure, snapshotExercise);
+  // Champs du Circuit recopiés un à un : aucune propriété étrangère (ancien Format de Circuit) n'entre dans l'instantané.
   const circuitOf = (circuit: StructureCircuit<SessionSnapshotExercise>): StructureCircuit<SessionSnapshotExercise> => ({
-    ...circuit,
-    format: snapshotFormat(circuit.format),
+    id: circuit.id,
+    repeatCount: circuit.repeatCount,
+    nature: circuit.nature,
+    exercises: circuit.exercises,
   });
   const elements = mapped.elements.map((element): StructureElement<SessionSnapshotExercise> => {
     switch (element.kind) {

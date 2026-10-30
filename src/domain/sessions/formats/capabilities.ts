@@ -1,6 +1,7 @@
 /**
  * PRE-9 (story D.3, ch11 l.315, ch12 l.1824-1834, FMT-01 à FMT-40, ARB-03) — descripteurs de
- * capacités d'exécution des douze modèles de la grille, appliqués à leur élément porteur.
+ * capacités d'exécution des douze modèles de la grille, appliqués à leur élément porteur (un
+ * Exercice formaté, correction C.1 du 30/10, D-02 ; ou des éléments libres).
  *
  * Donnée documentaire sourcée, **sans logique d'exécution** : ce que le futur moteur (PRE-10,
  * PRE-11) devra savoir faire pour chaque modèle. Toute capacité que les sources ne définissent pas
@@ -23,8 +24,8 @@ export const UNDEFINED_CAPABILITY = "NON_DEFINI" as const;
 type Undefined = { readonly status: typeof UNDEFINED_CAPABILITY; readonly question: string };
 type Maybe<T> = T | Undefined;
 
-/** Porteur : élément libre (aucun Format porté, FMT-28) ou élément formaté (ARB-03). */
-export type CapabilityCarrier = "FREE_ELEMENTS" | "EXERCISE_OR_CIRCUIT" | "EXERCISE";
+/** Porteur : éléments libres (aucun Format porté, FMT-28) ou Exercice formaté (D-02 : jamais un Circuit). */
+export type CapabilityCarrier = "FREE_ELEMENTS" | "EXERCISE";
 
 /** Plan fini (développé par D.1) ou progressif (segment, borne de l'élément). */
 export type CapabilityExpansion = "FINITE" | "PROGRESSIVE";
@@ -106,7 +107,7 @@ const freeModel = (model: CapabilityModelKey): FormatCapabilityDescriptor => ({
 export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapabilityDescriptor>> = {
   TABATA: {
     model: "TABATA",
-    carrier: "EXERCISE_OR_CIRCUIT",
+    carrier: "EXERCISE",
     expansion: "FINITE",
     timeReferences: ["STEP", "SERIES_PAUSE"],
     triggers: ["STEP_DEADLINE"],
@@ -120,7 +121,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   INTERVALS_30_30: {
     model: "INTERVALS_30_30",
-    carrier: "EXERCISE_OR_CIRCUIT",
+    carrier: "EXERCISE",
     expansion: "FINITE",
     timeReferences: ["STEP", "SERIES_PAUSE"],
     triggers: ["STEP_DEADLINE"],
@@ -134,7 +135,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   EMOM: {
     model: "EMOM",
-    carrier: "EXERCISE_OR_CIRCUIT",
+    carrier: "EXERCISE",
     expansion: "FINITE",
     timeReferences: ["ELEMENT_WINDOW", "STEP", "PHASES"],
     triggers: ["WINDOW_DEADLINE", "WORK_DONE_TAP"],
@@ -151,7 +152,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   AMRAP: {
     model: "AMRAP",
-    carrier: "EXERCISE_OR_CIRCUIT",
+    carrier: "EXERCISE",
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_DEADLINE", "STEP", "PHASES"],
     triggers: ["ELEMENT_BOUND", "TARGET_REACHED", "NEXT"],
@@ -165,7 +166,7 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   FOR_TIME: {
     model: "FOR_TIME",
-    carrier: "EXERCISE_OR_CIRCUIT",
+    carrier: "EXERCISE",
     expansion: "FINITE",
     timeReferences: ["ELEMENT_STOPWATCH", "STEP", "PHASES"],
     triggers: ["TARGET_REACHED", "NEXT"],
@@ -180,7 +181,6 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
   },
   DEATH_BY: {
     model: "DEATH_BY",
-    // Plusieurs Exercices : réservé (R-03, ch05 l.484).
     carrier: "EXERCISE",
     expansion: "PROGRESSIVE",
     timeReferences: ["ELEMENT_WINDOW", "WINDOW_RANK_FROM_CLOCK"],
@@ -191,11 +191,18 @@ export const FORMAT_CAPABILITIES: Readonly<Record<CapabilityModelKey, FormatCapa
     results: [...GENERIC_RESULTS, "ACQUIRED_ROUNDS_AND_PARTIAL_REPETITIONS"],
     undefinedAspects: [
       { status: UNDEFINED_CAPABILITY, question: "Suite après une fenêtre non acquise (A4)." },
-      { status: UNDEFINED_CAPABILITY, question: "Death by à plusieurs Exercices (R-03)." },
+      // Correction C.1 du 30/10 : chaque Exercice porte son propre Death by (D-02) ; l'ancienne réserve R-03
+      // (un Death by porté par un Circuit de plusieurs Exercices) n'a plus d'objet.
+      {
+        status: UNDEFINED_CAPABILITY,
+        question:
+          "Death by membre d'un Circuit : rang à la reprise d'un nouveau passage groupé (rang initial ou poursuite, non décidé) ; " +
+          "raccordement des rangs, fenêtres et de la fin d'un membre en alternance (D-29, PRE-10/11).",
+      },
       NEXT_AFTER_PROGRESSIVE,
     ],
     executionAvailable: false,
-    sources: ["FMT-33…38", "D-368", "CE-FMT-05 §15", "ch05 l.484", "recherche/03-formats §1.4"],
+    sources: ["FMT-33…38", "D-368", "CE-FMT-05 §15", "ch05 l.484", "D-16", "D-18", "D-29", "recherche/03-formats §1.4"],
   },
   STRENGTH: freeModel("STRENGTH"),
   CORE_MOBILITY: freeModel("CORE_MOBILITY"),

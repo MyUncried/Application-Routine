@@ -7,15 +7,23 @@
  *   - `MISSING_TARGET` : une cible à renseigner (tiret, COMP §3) ;
  *   - `ZERO_VOLUME` : toutes les cibles numériques d'un Exercice valent 0 (COMP §3, ARB-10), ou
  *     l'échelle « Volume par tour » d'un For time est entièrement nulle (ARB-18b) ;
- *   - `LOCKED_CONSTANT_CHANGED` : un Exercice d'un élément formaté s'écarte d'une constante imposée
+ *   - `LOCKED_CONSTANT_CHANGED` : un Exercice formaté s'écarte d'une constante imposée
  *     par son Format (FMT-03, FMT-17, CE-FMT-04 §14 : refus métier d'une constante modifiée) ;
  *   - `MISSING_SETTING` : un réglage du Format non renseigné ;
- *   - `INVALID_STRUCTURE` : forme de la structure, Format porté (registre), organisation du Circuit
- *     porteur non admise par son Format, compte du Circuit différent de celui que le Format
- *     gouverne (Tabata, FMT-12/13), Séance sans Exercice.
+ *   - `INCOMPATIBLE_CIRCUIT` : un Exercice formaté est membre d'un Circuit dont l'organisation ou
+ *     le compte est refusé par la matrice §2.2 pour son Format (D-16 : 30/30 et AMRAP alternés ;
+ *     Tabata alterné si N ≠ 8) ;
+ *   - `INVALID_STRUCTURE` : forme de la structure, Format porté invalide (registre), Séance sans
+ *     Exercice.
+ * - **Questions ouvertes** (`openQuestions`) : combinaison non décidée (`UNDECIDED` du registre,
+ *   For time alterné) — jamais bloquante, signalée, présente seulement lorsqu'elle existe.
  * - **Disponibilité du moteur** (`engineAvailability`) : lue dans le descripteur de capacités
  *   (D.3), jamais déduite de la validité. Aucun affichage nouveau (« Lecture indisponible »
  *   inchangé, ARB-21).
+ *
+ * Correction C.1 du 30/10 (D-02, D-26, D-27) : le Format est porté par l'Exercice seul ; aucun
+ * Format n'est transmis par le Circuit à ses membres. Chaque Exercice formaté est contrôlé avec ses
+ * propres constantes et contre l'organisation et le compte de son propre Circuit.
  *
  * Les règles propres aux réglages de chaque Format (bornes fonctionnelles, compte commun) relèvent
  * de C.3, qui complétera cette fonction sans changer son contrat. Fonctions pures.
@@ -23,31 +31,28 @@
 
 import { seriesRowsOf, type ExecutionParametersInput } from "@/domain/activities/ExecutionParameters";
 
-import {
-  elementFormatViolations,
-  FORMAT_CAPABILITIES,
-  FORMAT_REGISTRY,
-  type ElementFormat,
-  type FormatCarrierKind,
-} from "./formats";
+import { circuitCompatibility, elementFormatViolations, FORMAT_CAPABILITIES, FORMAT_REGISTRY, type ElementFormat } from "./formats";
 import type { ActivityType } from "./Session";
-import {
-  structureCircuits,
-  structureExercises,
-  validateStructureShape,
-  type SessionStructure,
-  type StructureCircuit,
-  type StructureStopPointLocation,
-} from "./structure";
+import { structureCircuits, structureExercises, validateStructureShape, type SessionStructure, type StructureStopPointLocation } from "./structure";
 
-export type ConfigurationReason = "MISSING_TARGET" | "ZERO_VOLUME" | "LOCKED_CONSTANT_CHANGED" | "MISSING_SETTING" | "INVALID_STRUCTURE";
+export type ConfigurationReason =
+  | "MISSING_TARGET"
+  | "ZERO_VOLUME"
+  | "LOCKED_CONSTANT_CHANGED"
+  | "MISSING_SETTING"
+  | "INCOMPATIBLE_CIRCUIT"
+  | "INVALID_STRUCTURE";
 
 /** Motif rattaché à un élément (Exercice, Circuit) ou à la Séance (`elementId` nul). */
 export type ConfigurationIssue = { readonly elementId: string | null; readonly reason: ConfigurationReason };
 
+/** Combinaison non décidée (registre `UNDECIDED`) : signalée, jamais bloquante. */
+export type ConfigurationOpenQuestion = { readonly elementId: string; readonly circuitId: string; readonly question: string };
+
+/** `openQuestions` n'est présent que lorsqu'au moins une question ouverte existe. */
 export type ConfigurationValidity =
-  | { readonly status: "valid" }
-  | { readonly status: "invalid"; readonly issues: readonly ConfigurationIssue[] };
+  | { readonly status: "valid"; readonly openQuestions?: readonly ConfigurationOpenQuestion[] }
+  | { readonly status: "invalid"; readonly issues: readonly ConfigurationIssue[]; readonly openQuestions?: readonly ConfigurationOpenQuestion[] };
 
 export type ValidityExercise = {
   readonly id: string;
@@ -91,15 +96,6 @@ function zeroLadder(format: ElementFormat): boolean {
   return Array.isArray(ladder) && ladder.length > 0 && ladder.every((value) => value === 0);
 }
 
-function circuitOrganisationAdmitted(circuit: StructureCircuit<unknown>, format: ElementFormat): boolean {
-  const carrier = FORMAT_REGISTRY[format.key].carriers.CIRCUIT;
-  if (carrier.status !== "ALLOWED" || !carrier.natures.includes(circuit.nature)) {
-    return false;
-  }
-  const governed = carrier.countByNature?.[circuit.nature];
-  return governed === undefined || governed === circuit.repeatCount;
-}
-
 /** Validité de configuration de la Séance et de chacun de ses éléments (voir l'en-tête). */
 export function configurationValidity<E extends ValidityExercise>(
   structure: SessionStructure<E, StructureStopPointLocation>,
@@ -119,8 +115,10 @@ export function configurationValidity<E extends ValidityExercise>(
     add(null, "INVALID_STRUCTURE");
   }
 
-  const checkFormat = (elementId: string, format: ElementFormat, carrier: FormatCarrierKind) => {
-    if (elementFormatViolations(format, carrier).length > 0) {
+  const openQuestions: ConfigurationOpenQuestion[] = [];
+
+  const checkFormat = (elementId: string, format: ElementFormat) => {
+    if (elementFormatViolations(format).length > 0) {
       add(elementId, "INVALID_STRUCTURE");
       return false;
     }
@@ -133,25 +131,32 @@ export function configurationValidity<E extends ValidityExercise>(
     return true;
   };
 
+  // Format propre de chaque Exercice, contrôlé ; jamais hérité d'un Circuit ni d'un autre membre.
   const formatOfExercise = new Map<string, ElementFormat>();
+  for (const exercise of exercises) {
+    const own = exercise.format ?? null;
+    if (own !== null && checkFormat(exercise.id, own)) {
+      formatOfExercise.set(exercise.id, own);
+    }
+  }
+
+  // Exercice formaté membre d'un Circuit : organisation et compte de son Circuit (matrice §2.2).
   for (const circuit of structureCircuits(structure)) {
-    const format = circuit.format ?? null;
-    if (format === null || !checkFormat(circuit.id, format, "CIRCUIT")) {
-      continue;
-    }
-    if (!circuitOrganisationAdmitted(circuit, format)) {
-      add(circuit.id, "INVALID_STRUCTURE");
-    }
-    for (const exercise of circuit.exercises) {
-      formatOfExercise.set(exercise.id, format);
+    for (const member of circuit.exercises) {
+      const format = formatOfExercise.get(member.id);
+      if (format === undefined) {
+        continue;
+      }
+      const compatibility = circuitCompatibility(format.key, circuit);
+      if (compatibility.status === "REFUSED") {
+        add(member.id, "INCOMPATIBLE_CIRCUIT");
+      } else if (compatibility.status === "UNDECIDED") {
+        openQuestions.push({ elementId: member.id, circuitId: circuit.id, question: compatibility.question });
+      }
     }
   }
 
   for (const exercise of exercises) {
-    const own = exercise.format ?? null;
-    if (own !== null && checkFormat(exercise.id, own, "EXERCISE")) {
-      formatOfExercise.set(exercise.id, own);
-    }
     if (exercise.type !== "EXERCISE" || exercise.executionParameters.mode === null) {
       continue;
     }
@@ -169,7 +174,8 @@ export function configurationValidity<E extends ValidityExercise>(
     }
   }
 
-  return issues.length === 0 ? { status: "valid" } : { status: "invalid", issues };
+  const open = openQuestions.length > 0 ? { openQuestions } : {};
+  return issues.length === 0 ? { status: "valid", ...open } : { status: "invalid", issues, ...open };
 }
 
 /** Disponibilité du moteur pour un élément formaté ou libre, lue dans son descripteur (D.3). */

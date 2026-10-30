@@ -1193,7 +1193,7 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-01"></a>
 #### RM-FMT-01
 
-**FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant. [29/10/2026, ARB-03 (Hermann, registre ch07 « Arbitrages PRE-9 ») : le Format est porté par un élément de la Séance — un Circuit lorsque son organisation l’exige, sinon un Exercice —, non par la Séance ; une Séance peut contenir plusieurs éléments formatés, directement ou dans un Cycle ; un élément sans Format est libre. Données livrées par PRE-9 C.1.]
+**FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant. [29/10/2026, ARB-03 (Hermann, registre ch07 « Arbitrages PRE-9 ») : le Format est porté par un élément de la Séance — un Circuit lorsque son organisation l’exige, sinon un Exercice —, non par la Séance ; une Séance peut contenir plusieurs éléments formatés, directement ou dans un Cycle ; un élément sans Format est libre. Données livrées par PRE-9 C.1.] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « un Circuit lorsque son organisation l’exige, sinon un Exercice » remplacé — le Format est porté par l’Exercice seul ; le Circuit porte son organisation et son nombre de tours.]
 
 <a id="fmt-02"></a>
 #### RM-FMT-02
@@ -1203,12 +1203,12 @@ La pastille de nature et le chiffre sont deux cibles distinctes ([Le contrôle](
 <a id="fmt-03"></a>
 #### RM-FMT-03
 
-**FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées. [29/10/2026, ARB-03 : le Format est fixé à la création de l’élément formaté (Circuit ou Exercice).]
+**FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées. [29/10/2026, ARB-03 : le Format est fixé à la création de l’élément formaté (Circuit ou Exercice).] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « (Circuit ou Exercice) » remplacé par « (Exercice) ».]
 
 <a id="fmt-04"></a>
 #### RM-FMT-04
 
-**FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice. [29/10/2026, ARB-03 : leur portée est l’élément formaté (Circuit ou Exercice), distincte des paramètres propres à chaque exercice.]
+**FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice. [29/10/2026, ARB-03 : leur portée est l’élément formaté (Circuit ou Exercice), distincte des paramètres propres à chaque exercice.] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « (Circuit ou Exercice) » remplacé par « (Exercice) » ; le Circuit ne porte aucun réglage de Format.]
 
 <a id="fmt-05"></a>
 #### RM-FMT-05
@@ -1449,10 +1449,10 @@ Le générateur reste une fonction des paramètres produisant des segments {text
 
 #### 3.1 Format, origine et paramètres
 
-- **FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant. [29/10/2026, ARB-03 (Hermann, registre ch07 « Arbitrages PRE-9 ») : le Format est porté par un élément de la Séance — un Circuit lorsque son organisation l’exige, sinon un Exercice —, non par la Séance ; une Séance peut contenir plusieurs éléments formatés, directement ou dans un Cycle ; un élément sans Format est libre. Données livrées par PRE-9 C.1.]
+- **FMT-01 — Format appliqué.** Une séance peut porter Tabata, Intervalles 30/30, EMOM, AMRAP, For time ou Death by. Ce champ détermine des contraintes et un comportement d’exécution. Une séance libre ne porte aucun format contraignant. [29/10/2026, ARB-03 (Hermann, registre ch07 « Arbitrages PRE-9 ») : le Format est porté par un élément de la Séance — un Circuit lorsque son organisation l’exige, sinon un Exercice —, non par la Séance ; une Séance peut contenir plusieurs éléments formatés, directement ou dans un Cycle ; un élément sans Format est libre. Données livrées par PRE-9 C.1.] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « un Circuit lorsque son organisation l’exige, sinon un Exercice » remplacé — le Format est porté par l’Exercice seul ; le Circuit porte son organisation et son nombre de tours.]
 - **FMT-02 — Origine de création.** Le modèle de départ est conservé séparément. Il classe la provenance, sans imposer à lui seul de comportement. Renforcement, Gainage · Mobilité, Superset, Progression, À l’échec et Libre alimentent cette origine sans devenir des formats.
-- **FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées. [29/10/2026, ARB-03 : le Format est fixé à la création de l’élément formaté (Circuit ou Exercice).]
-- **FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice. [29/10/2026, ARB-03 : leur portée est l’élément formaté (Circuit ou Exercice), distincte des paramètres propres à chaque exercice.]
+- **FMT-03 — Identité du format.** Le format est fixé à la création et ne devient pas un autre format par édition ordinaire. Les constantes restent imposées. [29/10/2026, ARB-03 : le Format est fixé à la création de l’élément formaté (Circuit ou Exercice).] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « (Circuit ou Exercice) » remplacé par « (Exercice) ».]
+- **FMT-04 — Réglages de séance.** Les réglages autorisés par le format restent modifiables après composition. Leur portée est la séance, distincte des paramètres propres à chaque exercice. [29/10/2026, ARB-03 : leur portée est l’élément formaté (Circuit ou Exercice), distincte des paramètres propres à chaque exercice.] [30/10/2026, décision de Hermann du 30/10/2026, correction PRE-9 C.1 : « (Circuit ou Exercice) » remplacé par « (Exercice) » ; le Circuit ne porte aucun réglage de Format.]
 - **FMT-05 — Valeurs dérivées.** Toute modification d’un réglage ou de la composition met à jour les valeurs calculées et la synthèse courante. Une valeur calculée n’est pas un second réglage concurrent.
 - **FMT-06 — Historique.** Modifier la séance ne modifie pas rétroactivement les paramètres ni les résultats de ses exécutions passées. Cette préservation réutilise l’exigence générale d’instantané ; elle n’invente pas un nouvel historique parallèle.
 - **FMT-07 — Présentation et synthèse.** Le texte descriptif du modèle peut rester fixe ; la synthèse de la séance décrit ses paramètres effectifs. Une synthèse ne disparaît pas au seul motif que la séance a été composée ou modifiée.

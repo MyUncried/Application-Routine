@@ -853,15 +853,17 @@ async function writeStructure(
   const writeCircuit = async (circuit: StructureCircuitInput, cycleId: string | null, position: number) => {
     if (existing?.circuits.has(circuit.id)) {
       await transaction.runAsync(
-        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ?, format_key = ?, format_settings = ? WHERE id = ? AND session_id = ?",
-        [cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format), circuit.id, sessionId],
+        // PRE-9 (correction C.1 du 30/10, D-02) : `tours.format_*` (migration 017) sont des vestiges inutilisés,
+        // ni écrits ni lus ; le Circuit ne porte aucun Format.
+        "UPDATE tours SET cycle_id = ?, position = ?, repeat_count = ?, nature = ? WHERE id = ? AND session_id = ?",
+        [cycleId, position, circuit.repeatCount, circuit.nature, circuit.id, sessionId],
       );
     } else {
       // V2-PRE-1 : le Circuit n'a plus de direction propre — toujours `'UNILATERAL'` en base.
       await transaction.runAsync(
-        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings)
-         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?, ?, ?)`,
-        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature, ...formatSqlValues(circuit.format)],
+        `INSERT INTO tours (id, session_id, cycle_id, position, repeat_count, side_mode, nature)
+         VALUES (?, ?, ?, ?, ?, 'UNILATERAL', ?)`,
+        [circuit.id, sessionId, cycleId, position, circuit.repeatCount, circuit.nature],
       );
     }
     for (const [index, exercise] of circuit.exercises.entries()) {
@@ -928,12 +930,12 @@ async function writeStructure(
 
 type StructureCircuitInput = StructureCircuit<StructureExerciseInput>;
 
-/** PRE-9 (C.1, `migration017`) : colonnes `format_key`, `format_settings` d'un élément (libre : deux `NULL`). */
+/** PRE-9 (C.1, `migration017`) : colonnes `activities.format_key`, `format_settings` d'un Exercice (libre : deux `NULL`). */
 function formatSqlValues(format: ElementFormat | null | undefined): [string | null, string | null] {
   return format === undefined || format === null ? [null, null] : [format.key, encodeFormatSettings(format.settings)];
 }
 
-/** PRE-9 (C.1) : Format relu d'une ligne ; clé inconnue, réglages sans clé ou JSON illisible → contrat rompu. */
+/** PRE-9 (C.1) : Format relu d'une ligne d'Exercice ; clé inconnue, réglages sans clé ou JSON illisible → contrat rompu. */
 function rowFormat(row: { readonly format_key?: string | null; readonly format_settings?: string | null }): ElementFormat | null {
   const key = row.format_key ?? null;
   const json = row.format_settings ?? null;
@@ -953,10 +955,7 @@ function formatField(row: { readonly format_key?: string | null; readonly format
 }
 
 function structureCarriesFormat(structure: SessionStructure<Activity>): boolean {
-  return (
-    structureCircuits(structure).some((circuit) => (circuit.format ?? null) !== null) ||
-    structureExercises(structure).some((activity) => (activity.format ?? null) !== null)
-  );
+  return structureExercises(structure).some((activity) => (activity.format ?? null) !== null);
 }
 
 /** Parent d'un Exercice : Circuit, Cycle (membre direct, PRE-9 A.1) ou niveau principal (les deux `null`). */
@@ -1249,7 +1248,8 @@ async function readAssembledSessions(
     ids,
   );
   const circuits = await database.getAllAsync<CircuitRow>(
-    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature, format_key, format_settings FROM tours WHERE session_id IN (${placeholders})`,
+    // PRE-9 (correction C.1 du 30/10) : `tours.format_*` non lus (vestiges de la migration 017).
+    `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
   const activities = await database.getAllAsync<ActivityRow>(
@@ -1378,8 +1378,6 @@ export function assembleStructure(
     exercises: inRankOrder(activitiesByContainer.get(row.id) ?? []).map((activity, rank) =>
       toActivity(activity, movements, "IN_TOUR", rank),
     ),
-    // PRE-9 (C.1) : Format porté par le Circuit ; absent pour un Circuit libre.
-    ...formatField(row),
   });
 
   type Ranked = { readonly position: number; readonly element: StructureElement<Activity> };

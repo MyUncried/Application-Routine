@@ -52,10 +52,8 @@ export type CircuitRow = {
   repeat_count: number;
   side_mode: SideMode;
   nature: CircuitNature;
-  /** PRE-9 (C.1, `migration017`) : Format porté par le Circuit, `NULL` = libre ; absent des fixtures antérieures. */
-  format_key?: string | null;
-  /** PRE-9 (C.1) : réglages JSON versionnés, présents si et seulement si `format_key` l'est. */
-  format_settings?: string | null;
+  // PRE-9 (correction C.1 du 30/10, D-02) : `tours.format_key` / `format_settings` (migration 017) sont des
+  // vestiges inutilisés, ni lus ni écrits ; le Circuit ne porte aucun Format.
 };
 
 /**

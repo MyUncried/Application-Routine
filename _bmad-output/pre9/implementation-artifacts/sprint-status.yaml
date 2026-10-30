@@ -32,17 +32,17 @@ development_status:
   b-8-utiliser-seance-existante: backlog  # ARB-16 (décidé)
   b-9-nom-seance-trois-etats: backlog  # ARB-14, ARB-15 (décidés)
   epic-c: backlog
-  c-1-persistance-registre-formats: done  # livrée ; suite Jest complète verte (228 suites / 4 809 tests) le 29/10 ; (migration 017, registre, Format porté par Circuit ou Exercice, origine) ; spec-c-1-persistance-registre-formats.md ; À CLARIFIER : origine d'une copie ; migration 017 ; Format porté par l'élément (ARB-03) ; aucun compteur de répétition (ARB-25)
+  c-1-persistance-registre-formats: done  # livrée ; suite Jest complète verte (228 suites / 4 809 tests) le 29/10 ; (migration 017, registre, Format porté par Circuit ou Exercice, origine) ; spec-c-1-persistance-registre-formats.md ; À CLARIFIER : origine d'une copie ; migration 017 ; Format porté par l'élément (ARB-03) ; aucun compteur de répétition (ARB-25) ; CORRECTION 30/10 (Hermann, classe B) : Format porté par l'Exercice seul, Circuit sans Format, tours.format_* vestiges inutilisés (017 inchangée), registre inCircuit (matrice §2.2), For time alterné UNDECIDED — section « Correction du 30/10 » de la spec
   c-2-selection-modele: backlog  # ARB-05 (décidé)
   c-3-parametres-imposes-recapitulatif: backlog  # ARB-18, ARB-22a, ARB-25 (décidés) ; ARB-04 (défauts, par Format)
   c-4-composition-preremplie-verrous: backlog  # ARB-15, ARB-23, ARB-24 (décidés) ; ARB-26, ARB-27, ARB-28 (une opération chacun)
   c-5-departs-rapides: backlog  # ARB-22b (décidé) ; ARB-22c EN ATTENTE DE DÉFINITION FONCTIONNELLE
   c-6-edition-duplication-formats: backlog  # ARB-17, ARB-21 (décidés)
   epic-d: backlog
-  d-1-developpement-plan: done  # livrée ; planExpansion.d1 9/9 ; spec-d-1-developpement-plan.md ;  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés)
-  d-2-instantane-seance: done  # livrée ; sessionSnapshot.d2 4/4 ; spec-d-2-instantane-seance.md ;
-  d-3-descripteurs-capacites: done  # livrée ; formatCapabilities.d3 4/4 ; spec-d-3-descripteurs-capacites.md ;
-  d-4-validation-executabilite: done  # livrée (domaine) ; raccordement à Continuer en C.4 / B.3 ; configurationValidity.d4 6/6 ; spec-d-4-validite-configuration.md ;  # validité de configuration ≠ disponibilité du moteur
+  d-1-developpement-plan: done  # livrée ; planExpansion.d1 9/9 ; spec-d-1-developpement-plan.md ;  # plans finis ; ARB-02a/b, ARB-10b, ARB-25 (décidés) ; correction 30/10 : chemin « Circuit formaté » retiré, Format de chaque membre développé ; planExpansion.d1 14/14
+  d-2-instantane-seance: done  # livrée ; sessionSnapshot.d2 4/4 ; spec-d-2-instantane-seance.md ; correction 30/10 : aucun Format de Circuit ; sessionSnapshot.d2 6/6
+  d-3-descripteurs-capacites: done  # livrée ; formatCapabilities.d3 4/4 ; spec-d-3-descripteurs-capacites.md ; correction 30/10 : porteur EXERCISE pour les six ; formatCapabilities.d3 4/4
+  d-4-validation-executabilite: done  # livrée (domaine) ; raccordement à Continuer en C.4 / B.3 ; configurationValidity.d4 6/6 ; spec-d-4-validite-configuration.md ;  # validité de configuration ≠ disponibilité du moteur ; correction 30/10 : aucune transmission, INCOMPATIBLE_CIRCUIT, openQuestions ; configurationValidity.d4 8/8
   d-5-instruction-capacites-execution: done  # document ; spec-d-5-instruction-capacites-execution.md ;  # document ; A2, A4, A6 par Format
   epic-doc: in-progress
   doc-0-tracabilite-pre8: done  # 29/10 : ch07 « Arbitrages PRE-9 », FMT-12 annotée (ch10, deux emplacements), ch09 l.19 annotée (D-451), artefacts PRE-8 (fusion PR #409, E.8-b/Q-E1 → PRE-9 A.4, conversion ARB-01)

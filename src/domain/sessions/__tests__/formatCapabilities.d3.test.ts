@@ -34,10 +34,10 @@ describe("PRE-9 D.3 — descripteurs de capacités par Format", () => {
     }
   });
 
-  it("porteur cohérent avec le registre : Death by porté par un Exercice seulement (R-03), les autres par un Exercice ou un Circuit", () => {
+  it("porteur : l'Exercice pour les six Formats, jamais un Circuit (correction C.1 du 30/10, D-02)", () => {
     for (const key of ELEMENT_FORMAT_KEYS) {
-      const reserved = FORMAT_REGISTRY[key].carriers.CIRCUIT.status === "RESERVED";
-      expect(FORMAT_CAPABILITIES[key].carrier).toBe(reserved ? "EXERCISE" : "EXERCISE_OR_CIRCUIT");
+      expect(FORMAT_CAPABILITIES[key].carrier).toBe("EXERCISE");
+      expect(FORMAT_REGISTRY[key]).not.toHaveProperty("carriers");
     }
   });
 

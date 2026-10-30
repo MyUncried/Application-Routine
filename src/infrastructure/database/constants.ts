@@ -98,6 +98,10 @@ export const DATABASE_NAME = "kodjo.db";
  * (`tours.format_key`/`format_settings`, `activities.format_key`/`format_settings`)
  * et origine de création (`sessions.origin`) — colonnes additives nullables, toute
  * Séance existante reste libre. 001..016 inchangées.
+ * [Correction C.1 du 30/10 (décision de Hermann, D-02) : le Format est porté par
+ * l'Exercice seul. `tours.format_key` / `tours.format_settings` restent dans le
+ * schéma comme vestiges inutilisés : ni lus ni écrits par le code actif ; aucune
+ * migration de suppression. Leur vacuité sur l'iPhone n'est pas vérifiée.]
  */
 export const DATABASE_VERSION = 17;
 export const LOCAL_USER_SINGLETON_KEY = 1;
