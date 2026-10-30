@@ -2325,6 +2325,8 @@ A2/B4 avec tirets ; 45 s/60 s/90 s→0:45/1:00/1:30 ; échec✓ ; variables éga
 
 ## Formats de séances
 
+**Décisions de configuration actives (30/10/2026)** : [consolidation D-01 à D-30, valeurs et compatibilité](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les contrats CE-FMT-01/02/03 ci-dessous sont à lire avec cette référence pour les Formats multiples et les départs rapides définis.
+
 ### CE-FMT-01 — Choix du modèle et du format
 <a id="ce-fmt-01"></a>
 
@@ -2360,7 +2362,7 @@ Titre, groupes de cartes de modèles, libellés et descriptions, navigation exis
 
 #### 8. Éléments obligatoires
 
-Distinguer les six formats et les départs rapides ; entrée Libre disponible.
+Distinguer les six Formats et les départs rapides actifs **Renforcement, Progression, À l'échec, Superset et Libre** ; **Gainage · Mobilité retiré** (D-25). Conserver les deux cartes de création Exercice / Séance, sans créer d'Exercice autonome.
 
 #### 9. Layout déterministe
 
@@ -2388,7 +2390,7 @@ Entrée reconnue ; aucune affectation d’un format par comparaison de titre ou 
 
 #### 15. Brouillon et persistance
 
-Le choix initialise format/origine et paramètres du brouillon ; la sauvegarde explicite de séance reste celle du parcours existant.
+Le choix initialise l'origine de Séance et les paramètres du **Format sur les Exercices choisis**, ou les préremplissages des départs rapides libres ; aucun Format propre n'est créé sur la Séance ou le Circuit. La sauvegarde explicite de Séance reste celle du parcours existant.
 
 #### 16. Navigation et conservation d’état
 
@@ -2433,11 +2435,11 @@ Validation → CE-FMT-03 ; retour → étape précédente en conservant les vale
 
 #### 5. Données affichées et source de vérité
 
-Paramètres effectifs du brouillon. EMOM : tours, fenêtre, organisation ; durée calculée N×E×W. For time : Volume par tour.
+Paramètres effectifs du brouillon **par Exercice formaté**. **Défauts validés** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30 s/30 s imposés) ; EMOM fenêtre 60 s, 6 passages ; AMRAP durée 12:00 réglable ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. EMOM : durée calculée N×E×W, sans double multiplication. For time : Volume **par tour de l'échelle**, distinct du passage du Circuit englobant.
 
 #### 6. Classification des valeurs Figma
 
-Constantes Tabata et Intervalles normatives ; nombres d’exercices/tours d’exemple illustratifs ; aucune formule tirée de la maquette.
+Constantes Tabata et 30/30 normatives ; seules les **valeurs initiales explicitement décidées** font référence ; les autres chiffres de maquette sont illustratifs, aucune formule tirée de la maquette.
 
 #### 7. Structure de l’écran
 
@@ -2554,7 +2556,7 @@ Gestes de composition existants ; pas de mouvement de conversion du format ajout
 
 #### 14. Validation
 
-Au moins un exercice valide ; aucune double multiplication du compte du format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
+Au moins un Exercice valide ; en groupées, le Circuit répète le bloc complet de chaque membre ; le Cycle répète sa séquence, sans compteur de répétition propre au Format. Déposes : six Formats admis en groupées ; alternées Tabata seulement N=8, EMOM et Death by admis, 30/30, For time et AMRAP refusés (D-15/D-16). Aucune double multiplication du compte du Format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
 
 #### 15. Brouillon et persistance
 
