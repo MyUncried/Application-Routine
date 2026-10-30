@@ -8,11 +8,11 @@
 
 > **Clarification documentée du 29/10 :** le Format appartient exclusivement à l'Exercice ; la table des porteurs Exercice/Circuit de la révision 2 est supersédée. Les états replié/déplié réutilisent Figma (`10717:20056`, `10725:20142`).
 
-> **Extension de périmètre validée le 30/10/2026** : ajout de la story indépendante **CAT.1 — Zone de contexte des Catalogues Mouvements et Séances**, à engager **dès PRE-9**, sans dépendance à A.1/C.1 ni au moteur. **30 unités au total** : 25 stories de développement, 3 unités documentaires et 2 activités de qualification. Les décomptes historiques 29 ci-dessus concernent la révision 2 antérieure.
+> **Extension de périmètre validée le 30/10/2026** : ajout de la story indépendante **CAT.1 — Zone de contexte des Catalogues Mouvements et Séances**, à engager **dès PRE-9**, sans dépendance à A.1/C.1 ni au moteur. **31 unités au total** : 26 stories de développement, 3 unités documentaires et 2 activités de qualification. Les décomptes historiques 29 ci-dessus concernent la révision 2 antérieure.
 
 ## Ordre recommandé
 
-`CAT.1` (immédiatement, indépendant) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
+`CAT.1` et `CAT.2` (immédiatement, indépendantes) ; `DOC.0` (dès validation) → `A.1` → (`B.1`, `C.1`) → `D.1` → `B.2` → `A.2` → `B.3` → `B.4` → `B.5` → `B.6` → `B.7` → `B.8` → `B.9` → `C.2` → `C.3` → `C.4` → `C.5` → `C.6` → `D.2` → `D.3` → `D.4` → `D.5` → `A.4` → `A.3` → `DOC.1` → `Q.1`
 
 Hors chemin critique : `Q.0` (activité distincte, à tout moment) ; `A.5` (conditionnelle, après `A.3`, seulement si ses conditions sont réunies).
 
@@ -35,6 +35,18 @@ Points de contrôle iPhone : après B.2 (structure éditable), après B.6 (Compo
 **Tests ciblés :** géométrie et cibles à 402×874 ; navigation et titres ; bascule/désélection mutuellement exclusive Mouvements ; non-régression des vues Séances ; valeurs dérivées des cartes réellement affichées (piles déployées/repliées, archives, 0 résultat, recherche croisée) ; calcul de « N résultats » et accords 0/1/2 ; cumul des critères et actions Filtre/Tri/Créer.
 
 **Livraison :** modifications applicatives ciblées et tests associés ; synchronisation de la documentation dans la même livraison, sans modifier Figma, sans recréer des données fixes de maquette ni modifier les règles de catalogues hors zone.
+### CAT.2 — Résultats de recherche des Mouvements : cartes Résultat et Composition
+
+**À réaliser immédiatement dans PRE-9**, indépendamment du moteur et de la persistance des Formats. N'altère pas CAT.1 ; les deux stories peuvent avancer sans dépendance fonctionnelle nouvelle.
+
+**Référence complète :** [Résultats de recherche des Mouvements — PRE-9](../../../docs/KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01, maquettes `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939`, `9882:19049`, `10175:20349`, `10131:21995`.
+
+**Livrer :** carte de Résultat de création Mouvement, bouton « Ajouter un niveau » (66 × 32 pt à x264 ; tactile 78 × 36 pt x258/y31), description 179 pt ; carte Composition sans bouton, 338 × 73 pt, description 253 pt et deux lignes ellipsées, sur tous ses emplois ; regroupement par filet bleu (x3, largeur 2 pt, centres des cartes extrêmes) ; état Niveau avec unique carte 338 × 104 pt, quatrième ligne « Plus facile | Plus difficile », contrôles, séparateur et hauteur de liste spécifiés ; aucune commande « Utiliser ce mouvement » ni second cadre dans cet état.
+
+**Tests et recette :** vérifier les deux contextes de création séparément, les états nom déjà utilisé/options, la liste de cinq exemples sans en figer les valeurs, les six regroupements, l'ouverture/fermeture du choix de Niveau, la création seulement après validation, et les non-régressions clavier, recherche, familles, classement, filtres et Composition. Aucun changement des autres écrans (planification, Profil, Suivi, archivage Séances) au titre de CAT.2.
+
+**Livrable :** code et tests ciblés, preuve de comparaison Figma, modification documentaire de classe B synchronisée, compte rendu des écarts. Pas de fusion dans `main` sans accord explicite.
+
 
 ---
 
