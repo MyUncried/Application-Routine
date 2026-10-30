@@ -307,6 +307,8 @@ L’API de mise à jour des paramètres refuse une modification locale de N lors
 <a id="formats-api"></a>
 ### Formats — contrats de services fonctionnels
 
+**Contrat cible PRE-9 (30/10/2026) :** [décisions D-01 à D-30](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La validation de dépose compare l'**Exercice porteur de son Format** aux contraintes de nature/N du Circuit (six Formats : groupées admises ; alternées Tabata seulement N=8, EMOM/Death by admis, les autres refusés). Elle produit accepté, accepté avec confirmation si des valeurs sont perdues ou refusé **sans mutation**. La simple dépose ne transmet pas de Format ; l'adoption sur un second Exercice est une opération volontaire distincte. Les valeurs initiales sont proposées, non persistées comme constantes lorsqu'elles sont réglables. Les indicateurs d'acquisition/résultats relèvent du contrat du moteur PRE-10/11.
+
 | Opération | Entrée / sortie | Validation et effets |
 |---|---|---|
 | Initialiser depuis un modèle | Entrée choisie → brouillon de Séance, origine et **Exercices porteurs de leur Format/réglages** | Départ rapide = libre ; ne jamais inférer le Format depuis un titre ou le Circuit parent |
