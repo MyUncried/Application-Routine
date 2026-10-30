@@ -85,6 +85,8 @@ Pour un plan bilatéral, cet instantané conserve le changement de côté effect
 
 ### Catalogue des séances
 
+**Résultats de recherche Mouvements — PRE-9.** Les résultats de création de Mouvement utilisent la carte Résultat avec « Ajouter un niveau » à droite (description 179 pt) ; les cartes réutilisées depuis la Composition/création d'un Exercice ne portent aucun bouton (description 253 pt sur deux lignes ellipsées). Les familles conservent le filet bleu centre-à-centre ; le choix « Plus facile | Plus difficile » utilise une seule carte dépliée, sans « Utiliser ce mouvement ». Référence : [spécification de développement](KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01.
+
 **Zones de contexte — PRE-9.** Les Catalogues Mouvements et Séances partagent la bande lilas Recherche et création, leurs champs Recherche, Filtre/Tri/Créer et les compteurs en première ligne selon [la spécification de développement](KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md). Mouvements : « N familles · N mouvements » avec compteurs de filtrage exclusifs et désélectionnables ; Séances : « Un exercice N | Plusieurs N » avec nombres informatifs, bascule inchangée ; sur les états filtrés/archivés, « N résultats » égale la taille réelle de liste après filtres et recherche. Aucun titre de page individuel ; navigation des Catalogues conservée.
 
 Le MVP permet de :
