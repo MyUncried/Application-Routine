@@ -1819,6 +1819,8 @@ Nœud [8656:34356](https://www.figma.com/design/G6RY5Ebhgwb4AHIOYDwwvg?node-id=8
 
 
 
+**État historique conservé — Gainage · Mobilité.** Les trois captures suivantes et leurs lignes d'inventaire décrivent un départ rapide antérieur, **retiré de la cible PRE-9 par D-25 du 29/10/2026**. Elles ne prescrivent pas son affichage dans la grille « Créer » ; conserver les nœuds et les images comme preuves historiques, sans les réactiver.
+
 <a id="format-8656-34494"></a>
 
 ##### Composition séance — Modèles — Gainage · Mobilité (paramètres)
