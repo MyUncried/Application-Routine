@@ -1,6 +1,6 @@
 # DSF — Formats de séances — 14 octobre 2026
 
-> **Complément fonctionnel actif PRE-9 du 30/10/2026 :** [décisions D-01 à D-30 et matrice des six Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La présente DSF demeure la référence des **éléments graphiques effectivement représentés** dans Figma ; elle ne permet pas d'inférer un Format unique porté par Séance/Circuit, une valeur initiale à partir d'un exemple ou la présence de Gainage · Mobilité comme départ actif. Le Format appartient à l'Exercice. Tabata est répétable en Circuit groupé ou Cycle ; AMRAP possède une durée configurable par passage ; For time distingue rang d'échelle et passage du Circuit. L'exécution spécialisée ne relève pas de PRE-9.
+> **Complément fonctionnel actif PRE-9 du 30/10/2026 :** [décisions D-01 à D-30 et matrice des six Formats](KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). La présente DSF demeure la référence des **éléments graphiques effectivement représentés** dans Figma ; elle ne permet pas d'inférer un Format unique porté par Séance/Circuit, une valeur initiale à partir d'un exemple ou la présence de Gainage · Mobilité comme départ actif. Le Format appartient à l'Exercice. Tabata est répétable en Circuit groupé ou Cycle ; AMRAP possède une durée configurable par passage ; For time indexe le « Volume par tour » sur le passage du Circuit, avec sélection « Par exercice / En alternance » ; les Séries propres aux Exercices restent distinctes. L'exécution spécialisée ne relève pas de PRE-9.
 
 Statut : extension documentaire du DSF courant. Aucun composant Figma modifié par ce lot. Sources de layout : Prototype MVP, fichier G6RY5Ebhgwb4AHIOYDwwvg, inventaire/captures du chapitre 06. Comportements : spécification Formats, D-357…369. Le moteur n’est pas livré.
 
@@ -16,7 +16,7 @@ Libellé « Exécution ». Options « Par exercice » et « En alternance ». De
 
 Relevé du contrôle courant : conteneur segmenté 236 × 28, texte 13 ; ligne 34. Ce sont des repères de la maquette 402 × 874, pas des dimensions imposées à tous les appareils. Réutiliser le composant segmenté du DSF (`5548:9818`, variantes `7388:13779`/`7388:13786`) selon l’état sélectionné ; conserver couleurs, arrondis et alignements de la source. Adapter aux Safe Areas et au texte agrandi sans rogner une option.
 
-Tabata : « Séries par exercice — 8 », compatible avec les deux choix. EMOM : durée calculée en direct. Progression : répétitions par série ; alternance comptée en séries. For time : aucun segment d’organisation ; « Volume par tour ».
+Tabata : « Séries par exercice — 8 », compatible avec les deux choix. EMOM : durée calculée en direct. Progression : répétitions par série ; alternance comptée en séries. For time : « Volume par tour » et sélecteur d'organisation « Par exercice / En alternance » lorsque plusieurs Exercices sont concernés.
 
 ## 3. Valeur imposée mais effective
 
@@ -28,7 +28,7 @@ Ce cas complète les états de lignes de la modale existante (famille `7092:1360
 
 Tabata par exercice : carte `8 × 20 s`, sans pause dans ce volume ; pas de cadre autour de la durée. La pause de 10 s demeure visible dans la modale comme « Pause après chaque série ». Ne pas créer une récupération pour la rendre visible sur la composition.
 
-EMOM par exercice : garder le compte global de passages distinct de la représentation locale ; aucune multiplication série × tour supplémentaire. Progression alternée : séries ; For time : volume par tour.
+EMOM par exercice : garder le compte global de passages distinct de la représentation locale ; aucune multiplication série × tour supplémentaire. Progression alternée : valeurs par série ; For time : valeurs par passage du Circuit, sans modifier le nombre de Séries des Exercices.
 
 Les phrases sont rendues en segments `{texte, gras}`, issus des paramètres, non stockées. Le texte For time normatif est conservé dans le corpus Formats associé. Un calcul illustratif faux dans Figma n’est pas une nouvelle règle ; les écarts de libellé/unité/constante sont suivis séparément.
 
