@@ -2588,7 +2588,7 @@ Règles de gestion transférées sans modification depuis le [DSF — Cartes, ic
 
 ## Conventions actualisées — cartes et niveaux (25/10/2026)
 
-Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : composant distinct de 107 pt avec actions internes, non soumis au gabarit simple. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
+Référence : [relevé et écarts](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md). Carte simple repliée 80 pt ; photo 64 à 8/8, texte x84 ; pas de photo ajoutée aux séances ni aux listes mixtes. Carte Mouvement — Résultat : ancienne mesure 107 pt du relevé du 25/10, **supersédée pour les états PRE-9 du 30/10** par CE-MVT-RESULT-01 ; état déplié « Plus facile | Plus difficile » de 338 × 104 pt. La carte Composition distincte mesure 338 × 73 pt et ne porte aucun bouton. Ne pas appliquer à ces cartes le gabarit simple de 80 pt. Petites icônes de ligne 14 sans cercle, bilatéralité après les zones en ligne 2. Sablier et horloge alignés dans une réserve commune de largeur adaptée à la valeur la plus longue ; aucun point médian avant l’heure du calendrier semaine.
 
 **D-445 — décisions validées le 25/10 :** C01–C07 et C09 sont clos ; C08 seul reste différé sur le périmètre MVP. [Spécification consolidée v7](../KODJO-Niveaux-Recherche-Parcours-Regles-v7.md). [bandeau répété dans ce chapitre, sans portée propre : même renvoi à D-445 que celui d’en-tête — annotation du 26/10/2026]
 
