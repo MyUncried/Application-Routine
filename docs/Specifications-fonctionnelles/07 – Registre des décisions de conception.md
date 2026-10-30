@@ -1158,6 +1158,18 @@ La suppression accidentelle du sélecteur Jour/Semaine/Mois dans les modales de 
 
 **Implémentation demandée dans PRE-9 dès à présent**, par story autonome. Références Figma `10266:20575`, `10465:23141`, `10495:24099`, `1992:9910`, `4549:6742`. Cette décision remplace, sur ce seul périmètre, les dispositions de recherche absente, de titre individuel visible ou de mise en page qui la contredisent ; les autres règles des Catalogues restent applicables. Aucun nouveau numéro D n'est attribué ici.
 
+## Consolidation des arbitrages PRE-9 — 30/10/2026 (sans nouveau numéro D)
+
+**Référence active :** [D-01 à D-30, matrice des six Formats et règles d'inclusion/exclusion](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md), fondées sur les réponses de Hermann du 29/10 (`docs/pre9-arbitrages-reponses-20261029 @ 522c1b93`, notamment §4.6). **ARB-04, ARB-22c, ARB-26/27/28 clos** ; l'ancienne mention « départs rapides en attente » n'est plus active.
+
+**Propriété et Compatibilité.** Un Format appartient exclusivement à son Exercice ; le Circuit ne porte aucun Format ni réglage de Format. Un Exercice libre n'adopte pas de Format par simple dépose. L'adoption volontaire d'un même Format par un deuxième Exercice est distincte de la dépose. Groupées : les six Formats admis, avec répétition complète à chaque passage. Alternées : Tabata N=8 uniquement, EMOM et Death by admis ; 30/30, For time et AMRAP refusés. Confirmer la perte de valeurs, refuser les déposes incompatibles sans mutation. D-06 (« gel global d'un Circuit formaté ») remplacée par D-05 resserrée.
+
+**Défauts validés.** Tabata 8×20 s/10 s imposés ; 30/30 6 séries, cadence 30/30 imposée ; EMOM fenêtre 60 s/N 6 ; AMRAP durée 12:00 **réglable** ; For time 21·15·9 ; Death by départ1/incrément1/fenêtre1 min. **Départs rapides** sans Mouvement présélectionné : Renforcement 3×15, Progression 10/12/14, À l'échec 3 séries, Superset Circuit groupé 1 passage/deux emplacements vides, Libre Séance vide ; Gainage · Mobilité supprimé. Aucune autre valeur de maquette n'est un défaut.
+
+**Répétitions.** Le Circuit groupé répète le bloc complet de ses Exercices ; le Cycle répète sa séquence, aucun multiplicateur de Format autonome. For time : tour de l'échelle distinct du passage du Circuit ; chaque nouveau passage reprend l'échelle depuis 21. AMRAP : chaque bloc répété recommence à sa durée configurée, sans échéance générale commune. FMT-34 « met fin à la Séance » est remplacé dans sa portée par « met fin à l'élément Death by ». Le raccordement temporel et les résultats restent en PRE-10/11.
+
+**Traçabilité** : anciennes propositions sur le Format porté par Circuit, la durée AMRAP systématiquement 12 min, les départs rapides non définis et le Death by alterné « interdit » sont désormais historiques, non prescriptives. Les sources normatives antérieures à ces décisions conservent leur valeur de preuve historique, non d'exigence concurrente.
+
 ## Clarification des décisions du 29/10/2026 — Formats dans la Composition (sans nouveau numéro D)
 
 **Décision fonctionnelle confirmée par Hermann, en complément des arbitrages PRE-9 et de l'adoption volontaire consignée dans le document de réponses au commit `c458dac6`.** Cette clarification remplace, pour le modèle cible, les formulations antérieures d'ARB-03, ARB-24 et des versions du plan PRE-9 qui traitent le Circuit comme porteur autonome d'un Format.
