@@ -589,6 +589,8 @@ Migration de l’ancien TO_FAILURE : REPETITIONS + cibles échec, valeurs et com
 <a id="formats-donnees"></a>
 #### Formats — données fonctionnelles et invariants
 
+**Décisions consolidées du 30/10/2026 :** [Formats et Composition PRE-9](../KODJO-PRE9-Arbitrages-Composition-Formats-Consolides-2026-10-30.md). Les réglages initialisés **sur les Exercices** sont ceux des six Formats décidés ; ne pas créer de schéma de Format sur Circuit ni de multiplicateur propre au Format. Les quatre départs rapides actifs et Libre constituent une **origine de création** distincte, sans Mouvement présélectionné ; Gainage · Mobilité n'est plus une origine active. Une occurrence répétée d'AMRAP garde sa durée réglable, et For time conserve l'indice propre de son échelle, indépendant du passage de Circuit.
+
 **Clarification fonctionnelle du 29/10/2026 — Format porté par l'Exercice.** Les lignes historiques qui plaçaient Format et réglages au niveau de la Séance ou du Circuit sont supersédées pour le modèle cible PRE-9 ; le Circuit reste une structure d'ordonnancement. Le détail d'affichage des Circuits repliés est documenté au chapitre 13 et référencé à Figma (`10717:20056`, `10725:20142`).
 
 | Porteur | Information | Règle de cohérence |
