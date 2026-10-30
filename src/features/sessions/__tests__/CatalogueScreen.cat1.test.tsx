@@ -159,6 +159,18 @@ const sessionsShown = () =>
 const movementsShown = () => screen.queryAllByTestId(/^movement-card-name-/).map((node) => node.props.children as string);
 const text = (testID: string) => screen.getByTestId(testID).props.children as string;
 const searchWidth = (testID: string) => StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style).width;
+/**
+ * Recette iPhone du 30/10/2026 (Hermann, cat-commandes : « le champ de la zone de recherche est trop
+ * raccourci, il faut qu'il conserve le même espace qu'entre deux boutons d'action ») : en état filtré
+ * ou archivé, le champ s'étend jusqu'à la commande Filtre, à l'écart 12 des commandes, sans descendre
+ * sous 107.
+ */
+function expectSearchFillsToFilter(testID: string) {
+  expect(StyleSheet.flatten(screen.getByTestId(`${testID}-field`).props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 107 });
+  expect(searchWidth(testID)).toBeUndefined();
+  expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
+  expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).gap).toBe(12);
+}
 
 beforeEach(async () => {
   mockPush.mockClear();
@@ -255,14 +267,14 @@ describe("PRE-9 CAT.1 — Catalogue des Séances", () => {
     expect(screen.getByTestId("catalogue-session-no-match")).toHaveTextContent("Aucune séance ne correspond à la recherche.");
   });
 
-  it("archivées : champ réduit à 107 et « N résultats » recalculé en direct après recherche et vue (2, 1, 0)", async () => {
+  it("archivées : champ étendu jusqu'à Filtre (≥ 107) et « N résultats » recalculé en direct après recherche et vue (2, 1, 0)", async () => {
     renderScreen();
     await focus();
     await press("catalogue-filter-action");
     fireEvent.press(screen.getByTestId("session-filter-status-archived"));
     await press("session-filter-apply");
     expect(sessionsShown()).toEqual(["mobilite", "etirements"]);
-    expect(searchWidth("session-catalogue-search")).toBe(107);
+    expectSearchFillsToFilter("session-catalogue-search");
     expect(text("catalogue-results")).toBe("2 résultats");
     expect(StyleSheet.flatten(screen.getByTestId("catalogue-results").props.style)).toMatchObject({ fontSize: 14, color: "#333333" });
     await press("catalogue-session-view-SINGLE");
@@ -294,11 +306,12 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
     await press("catalogue-content-type-row-movements");
   }
 
-  it("« N familles · N mouvements » : pile repliée = 1 carte ; dépliée = ses membres", async () => {
+  it("« N familles · N mouvements » : les Mouvements masqués d'une pile repliée sont comptés (recette du 30/10, cat-compteurs)", async () => {
     await openMovements();
     expect(movementsShown()).toEqual(["Fentes avant", "Gainage", "Squats sautés"]);
     expect(text("movement-catalogue-counter-FAMILIES-label")).toBe("1 famille");
-    expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("3 mouvements");
+    // Hermann : « Le nombre de mouvements doit inclure le comptage des cartes invisibles des plis ».
+    expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("5 mouvements");
     await press("movement-card-jump-card");
     expect(movementsShown()).toHaveLength(5);
     expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("5 mouvements");
@@ -319,16 +332,21 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
     expect(labelStyle("FAMILIES")).toMatchObject({ color: colors.primary, fontFamily: "Inter_600SemiBold" });
     // Lecture retenue (À CLARIFIER) : « familles » restreint la liste aux cartes d'une famille.
     expect(movementsShown()).toEqual(["Squats sautés"]);
-    expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("1 mouvement");
+    expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("3 mouvements");
 
+    // Recette du 30/10 (cat-bascule) : « appuyer sur mouvements déplie toutes les listes affichées ».
     await press("movement-catalogue-counter-MOVEMENTS");
     expect(counter("FAMILIES").props.accessibilityState).toEqual({ selected: false });
     expect(counter("MOVEMENTS").props.accessibilityState).toEqual({ selected: true });
-    expect(movementsShown()).toEqual(["Fentes avant", "Gainage", "Squats sautés"]);
+    expect(movementsShown()).toHaveLength(5);
+    expect(screen.queryAllByTestId(/^movement-pile-.+-expanded$/)).toHaveLength(1);
+    expect(text("movement-catalogue-counter-MOVEMENTS-label")).toBe("5 mouvements");
 
+    // Désactivation : l'état de dépliage d'avant revient (pile repliée).
     await press("movement-catalogue-counter-MOVEMENTS");
     expect(counter("MOVEMENTS").props.accessibilityState).toEqual({ selected: false });
     expect(counter("FAMILIES").props.accessibilityState).toEqual({ selected: false });
+    expect(movementsShown()).toEqual(["Fentes avant", "Gainage", "Squats sautés"]);
   });
 
   it("cumul recherche + compteur, sans réinitialiser la recherche ; « N résultats » absent hors filtre du panneau", async () => {
@@ -348,12 +366,12 @@ describe("PRE-9 CAT.1 — Catalogue des Mouvements", () => {
     expect(searchWidth("movement-catalogue-search")).toBe(216);
   });
 
-  it("filtre du panneau actif : champ 107, « N résultats » = cartes affichées, recalculé avec compteur et recherche", async () => {
+  it("filtre du panneau actif : champ étendu jusqu'à Filtre (≥ 107), « N résultats » = cartes affichées, recalculé avec compteur et recherche", async () => {
     await openMovements();
     await press("catalogue-filter-action");
     fireEvent.press(screen.getByTestId("movement-filter-status-active"));
     await press("movement-filter-apply");
-    expect(searchWidth("movement-catalogue-search")).toBe(107);
+    expectSearchFillsToFilter("movement-catalogue-search");
     expect(text("catalogue-results")).toBe("3 résultats");
     await press("movement-catalogue-counter-FAMILIES");
     expect(text("catalogue-results")).toBe("1 résultat");

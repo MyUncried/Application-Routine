@@ -296,7 +296,7 @@ describe("PRE-7 A4.1 — Catalogue par geste et sélection (NodeSqliteDatabase R
 
     await renderSelection();
     const incomplete = strings.executionParameters.card.incomplete;
-    expect(incomplete).toBe("Paramètres à compléter.");
+    expect(incomplete).toBe("Paramètres à compléter");
     expect(screen.getAllByText(incomplete)).toHaveLength(1);
     // PRE-7 (D-448, PH-5, remplace « sans durée » en Durée) : le total ne dépend pas des phases.
     expect(screen.getByTestId(`activity-selection-row-duration-${sibling.id}`)).toBeTruthy();

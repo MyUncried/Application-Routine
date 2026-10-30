@@ -100,3 +100,34 @@ describe("PRE-8 B.7 — feuille des filtres des Mouvements", () => {
     expect(onApply).not.toHaveBeenCalled();
   });
 });
+
+describe("Recette iPhone CAT.1 du 30/10/2026 — feuille des filtres des Mouvements (cat-resultats)", () => {
+  it("« il manque les chevrons aux titres de section » : cinq sections repliables, toutes dépliées à l'ouverture (Figma 10462:23370)", async () => {
+    await renderSheet();
+    for (const section of ["STATUS", "LEVELS", "USAGE", "CATEGORIES", "BODY_ZONES"]) {
+      const toggle = screen.getByTestId(`movement-filter-section-${section}-toggle`);
+      expect(toggle.props.accessibilityState).toMatchObject({ expanded: true });
+      expect(screen.getByTestId(`movement-filter-section-${section}-toggle-chevron`)).toBeTruthy();
+    }
+    // Le titre replie puis déplie sa section ; le brouillon est conservé.
+    fireEvent.press(screen.getByTestId("movement-filter-zone-genoux"));
+    fireEvent.press(screen.getByTestId("movement-filter-section-BODY_ZONES-toggle"));
+    expect(screen.queryByTestId("movement-filter-zone-genoux")).toBeNull();
+    expect(screen.getByTestId("movement-filter-section-BODY_ZONES-toggle").props.accessibilityState).toMatchObject({ expanded: false });
+    fireEvent.press(screen.getByTestId("movement-filter-section-BODY_ZONES-toggle"));
+    expect(screen.getByTestId("movement-filter-zone-genoux").props.accessibilityState).toMatchObject({ checked: true });
+  });
+
+  it("toutes les sections atteignables : Réinitialiser fixé en pied hors défilement ; feuille et zone défilante réductibles, montée sans animation de mise en page", async () => {
+    await renderSheet();
+    expect(screen.getByTestId("movement-filter-footer")).toBeTruthy();
+    const scroll = screen.getByTestId("movement-filter-scroll");
+    expect(StyleSheet.flatten(scroll.props.style)).toMatchObject({ flexShrink: 1, flexGrow: 0 });
+    const panel = screen.getByTestId("movement-filter-panel");
+    const style = StyleSheet.flatten(panel.props.style);
+    expect(style.flexShrink).toBe(1);
+    expect(typeof style.maxHeight).toBe("number");
+    // Animation de mise en page (cadre natif figé au montage) retirée : simple translation.
+    expect(panel.props.entering).toBeUndefined();
+  });
+});

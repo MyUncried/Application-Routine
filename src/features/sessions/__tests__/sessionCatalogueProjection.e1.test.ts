@@ -99,7 +99,7 @@ describe("PRE-8 E.1 — compte et synthèse", () => {
     expect(formatCatalogueVolume(exercise({ name: "b", executionParameters: allFailureParameters(2) }))).toBe("2 séries à l’échec");
     expect(
       formatCatalogueVolume(exercise({ name: "c", executionParameters: uniformParameters({ count: 1, target: "UNSET" }) })),
-    ).toBe("Paramètres à compléter.");
+    ).toBe("Paramètres à compléter");
   });
 
   it("plusieurs exercices : compte sans multiplier par séries, tours ni répétitions de Cycle ; même Mouvement compté deux fois", () => {

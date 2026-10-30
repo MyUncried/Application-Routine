@@ -1,20 +1,34 @@
 import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import type { Movement } from "@/domain/activities/Movement";
 import { useActivityDefinitionService } from "@/features/activities/ActivityDefinitionServiceContext";
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
-import { EMPTY_MOVEMENT_FILTERS, visibleMovementItems, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
+import {
+  sameMovementSummary,
+  toggledMovementCounter,
+  type MovementCatalogueSummary,
+  type MovementCounter,
+} from "@/features/activities/movementCatalogueCounters";
+import {
+  countActiveFilters,
+  EMPTY_MOVEMENT_FILTERS,
+  visibleMovementItems,
+  type MovementCatalogueFilters,
+} from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { handMovementsToComposition, movementsInSession } from "@/features/sessions/movementExercises";
 import { strings } from "@/shared/i18n";
-import { CatalogueSearchField, FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
-import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
+import { colors, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * PRE-9 A.2 (ARB-22a : « La sélection des Mouvements réutilise le parcours existant du Catalogue ;
@@ -32,6 +46,13 @@ import { colors, dimensions, spacing, type } from "@/shared/ui/tokens";
  * Composition dans l'ordre de présentation du Catalogue (même règle que l'ancienne sélection :
  * jamais l'ordre des touchers, V2-CAT-01 plan §4.4) ; la Composition en fait des Exercices insérés
  * selon ARB-07, puis ouvre leurs paramètres (`useMovementExerciseIntake`).
+ *
+ * Recette iPhone CAT.1 du 30/10/2026, constat a) (Hermann : « Réutiliser le contenu et format de la
+ * zone de contexte du catalogue des mouvements, sans le bouton "Créer" ») : la bande reprend la zone
+ * de contexte du Catalogue des Mouvements (`CatalogueContextZone`, mêmes marges) — « N familles ·
+ * N mouvements » (mêmes compteurs activables), Rechercher, Filtre, Tri (indisponible, comme au
+ * Catalogue), « N résultats » en état filtré — sans Créer. Les piles dont un Mouvement déjà utilisé
+ * est masqué s'ouvrent dépliées (`MovementCatalogueList`, `pilesHidingIds`).
  */
 export function MovementSelectionScreen() {
   const router = useRouter();
@@ -47,6 +68,18 @@ export function MovementSelectionScreen() {
   const [selected, setSelected] = useState<ReadonlyMap<string, Movement>>(new Map());
   const [isAdding, setIsAdding] = useState(false);
   const [inSessionIds] = useState(movementsInSession);
+  const [counter, setCounter] = useState<MovementCounter | null>(null);
+  const [summary, setSummary] = useState<MovementCatalogueSummary | null>(null);
+  const handleSummary = useCallback((next: MovementCatalogueSummary | null) => {
+    setSummary((current) => (sameMovementSummary(current, next) ? current : next));
+  }, []);
+  const tContext = strings.screens.catalogueContext;
+  const results =
+    countActiveFilters(filters) === 0
+      ? null
+      : summary !== null
+        ? countLabel(summary.displayed, { one: tContext.resultsOne, many: tContext.resultsMany })
+        : "";
   const addingRef = useRef(false);
 
   const filterSummary =
@@ -99,30 +132,43 @@ export function MovementSelectionScreen() {
         onBack={() => router.back()}
         backAccessibilityLabel={tSelection.backAccessibilityLabel}
       />
-      <ContextBand>
-        <View style={styles.commandRow} testID="movement-selection-command-row">
-          <CatalogueSearchField
-            value={query}
-            onChangeText={setQuery}
-            placeholder={tCatalogue.searchPlaceholder}
-            accessibilityLabel={tCatalogue.searchAccessibilityLabel}
-            clearLabel={tCatalogue.searchClear}
-            testID="movement-selection-search"
-          />
-          <FilterCommand
-            label={strings.screens.sessions.filterAction}
-            title={tCatalogue.filters.command}
-            summary={filterSummary}
-            clearLabel={tCatalogue.filters.clearAccessibility}
-            editLabel={tCatalogue.filters.editAccessibility}
-            onOpen={() => setIsFilterOpen(true)}
-            onClear={() => {
-              setFilters(EMPTY_MOVEMENT_FILTERS);
-              setFilterLabels([]);
-            }}
-            testID="movement-selection-filter"
-          />
-        </View>
+      <ContextBand padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}>
+        <CatalogueContextZone
+          summary={
+            summary !== null ? (
+              <MovementCounterToggles
+                summary={summary}
+                active={counter}
+                onToggle={(touched) => setCounter((current) => toggledMovementCounter(current, touched))}
+            />
+            ) : null
+          }
+          results={results}
+          search={{
+            value: query,
+            onChangeText: setQuery,
+            placeholder: tCatalogue.searchPlaceholder,
+            accessibilityLabel: tCatalogue.searchAccessibilityLabel,
+            clearLabel: tCatalogue.searchClear,
+            testID: "movement-selection-search",
+          }}
+          sortLabel={strings.screens.sessions.sortAction}
+          filter={
+            <FilterCommand
+              label={strings.screens.sessions.filterAction}
+              title={tCatalogue.filters.command}
+              summary={filterSummary}
+              clearLabel={tCatalogue.filters.clearAccessibility}
+              editLabel={tCatalogue.filters.editAccessibility}
+              onOpen={() => setIsFilterOpen(true)}
+              onClear={() => {
+                setFilters(EMPTY_MOVEMENT_FILTERS);
+                setFilterLabels([]);
+              }}
+              testID="movement-selection-filter"
+            />
+          }
+        />
       </ContextBand>
 
       <View style={styles.body} testID="movement-selection-body">
@@ -130,6 +176,8 @@ export function MovementSelectionScreen() {
           reloadToken={0}
           query={query}
           filters={filters}
+          counter={counter}
+          onSummaryChange={handleSummary}
           onOpenMovement={() => undefined}
           onCreateVariant={() => undefined}
           selection={{ selectedIds, inSessionIds, onToggle: toggle, bottomInset: actionZone.scrollReserve }}
@@ -178,13 +226,6 @@ export function MovementSelectionScreen() {
 }
 
 const styles = StyleSheet.create({
-  commandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: dimensions.catalogueCommand.gap,
-    marginTop: spacing[8],
-  },
   body: {
     flex: 1,
   },

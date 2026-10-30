@@ -875,7 +875,7 @@ describe("ExerciseScreen — PRE-4 story 1.1 (ligne de base, Cible à renseigner
   it("PRE4-1.1/AC23 — Cible héritée à renseigner : « Paramètres à compléter. », Terminer et ✓ indisponibles ; une Cible réglée est enregistrée NUMBER, jamais FAILURE", async () => {
     const updateActivityDefinition = renderDefinition(legacyDefinition(repetitionParameters("UNSET", 3, 10)));
     await screen.findByDisplayValue("Gainage");
-    expect(screen.getByTestId("exercise-parameters-phrase").props.children).toBe("Paramètres à compléter.");
+    expect(screen.getByTestId("exercise-parameters-phrase").props.children).toBe("Paramètres à compléter");
     expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
     fireEvent.press(screen.getByTestId("exercise-parameters-card"));
     expect(screen.getByTestId("execution-sheet-target-value-text").props.children).toBe("—");

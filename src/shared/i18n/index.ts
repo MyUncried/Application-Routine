@@ -18,7 +18,8 @@ const executionParameters = {
     // Recette 3 (N-05) : action ↑ du champ Description.
     descriptionSubmitAccessibilityLabel: "Valider la description",
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
-    incomplete: "Paramètres à compléter.",
+    // Recette iPhone du 30/10/2026 (Hermann : « Il faut enlever le point après "compléter" »).
+    incomplete: "Paramètres à compléter",
     // PRE-5 story 3.2 (R-14, FR-36) : `countdown` et `end` retirés avec les lignes
     // Compte à rebours / Fin de la Carte (la Feuille garde les siennes : `sheet`).
   },

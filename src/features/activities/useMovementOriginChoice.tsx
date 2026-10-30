@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { findMovementNameConflict, normalizeMovementName } from "@/domain/activities/Movement";
 import { rankMovements, type MovementSearchContext } from "@/domain/activities/movementSuggestion";
+import { groupResultsByFamily } from "@/features/activities/movementFamilyGrouping";
 import { strings } from "@/shared/i18n";
 
 import type { ActivityDefinitionService, MovementChoice } from "./ActivityDefinitionService";
@@ -189,9 +190,11 @@ export function useMovementOriginChoice({
   // Contre-recette iPhone du 30/10 (Hermann : « Ne pas limiter à 5 le nombre de résultats de
   // recherche de mouvements lors de la saisie du nom pendant la création d'un mouvement ») :
   // [remplace R04 « cinq résultats au maximum »] tous les résultats classés ; le panneau défile.
-  const listed = ranked
-    .map((result) => byId.get(result.id))
-    .filter((choice): choice is MovementChoice => choice !== undefined);
+  // CAT.2, clarification de Hermann du 30/10 : chaque famille forme une pile unique et continue,
+  // au rang de son premier membre (`groupResultsByFamily`).
+  const listed = groupResultsByFamily(
+    ranked.map((result) => byId.get(result.id)).filter((choice): choice is MovementChoice => choice !== undefined),
+  );
   // Nom déjà utilisé : le panneau garde ses cartes même après la fin de saisie (reprendre ou corriger).
   // PRE-7 (R-8, D-448 point 1) : une correspondance par début de mot ouvre le panneau comme une
   // suggestion. Étape de variante en cours (cr-8) : le panneau reste ouvert jusqu'au choix Plus

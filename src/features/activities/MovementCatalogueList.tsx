@@ -47,6 +47,8 @@ import {
 import {
   applyMovementCounter,
   movementCatalogueSummary,
+  pileKeysOf,
+  pilesHidingIds,
   type MovementCatalogueSummary,
   type MovementCounter,
 } from "./movementCatalogueCounters";
@@ -296,8 +298,37 @@ export function MovementCatalogueList({
     });
   }, [state, query, shownFilters, override, counter]);
 
-  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteurs dérivés de la liste affichée elle-même — piles repliées
-  // comptées pour leur seule carte du dessus. Remontés à l’écran hôte (zone de contexte).
+  // Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-bascule : « appuyer sur mouvements déplie toutes
+  // les listes affichées ») : à l'activation du compteur « mouvements », toutes les piles affichées se
+  // déplient ; à sa désactivation (ou au passage à « familles »), l'état de dépliage d'avant revient
+  // (choix minimal, non spécifié). Ajusté pendant le rendu : aucune image intermédiaire repliée.
+  const activeCounter = counter ?? null;
+  const [seenCounter, setSeenCounter] = useState<MovementCounter | null>(activeCounter);
+  const [expandedBeforeMovements, setExpandedBeforeMovements] = useState<ReadonlySet<string> | null>(null);
+  if (seenCounter !== activeCounter) {
+    setSeenCounter(activeCounter);
+    if (activeCounter === "MOVEMENTS") {
+      setExpandedBeforeMovements(expanded);
+      setExpanded(new Set([...expanded, ...pileKeysOf(items)]));
+    } else if (seenCounter === "MOVEMENTS" && expandedBeforeMovements !== null) {
+      setExpanded(expandedBeforeMovements);
+      setExpandedBeforeMovements(null);
+    }
+  }
+  // Recette iPhone CAT.1 du 30/10/2026, constat a) (Hermann : « les piles où se trouvent un ou des
+  // mouvements déjà utilisés doivent être dépliées si le ou les mouvements ne sont pas visibles ») :
+  // en sélection, à la première lecture du Catalogue, une pile dont un membre masqué est déjà dans la
+  // Séance s'ouvre dépliée. Les gestes de l'utilisateur ne sont plus surchargés ensuite.
+  const inSessionIds = selection?.inSessionIds;
+  const [inSessionUnfolded, setInSessionUnfolded] = useState(false);
+  if (!inSessionUnfolded && state.status === "ready" && inSessionIds !== undefined) {
+    setInSessionUnfolded(true);
+    const hiding = pilesHidingIds(items, inSessionIds);
+    if (hiding.length > 0) setExpanded((current) => new Set([...current, ...hiding]));
+  }
+
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteurs dérivés de la liste courante elle-même (familles affichées,
+  // Mouvements des piles repliées compris, cartes affichées). Remontés à l’écran hôte (zone de contexte).
   const summary = useMemo(() => movementCatalogueSummary(items, expanded), [items, expanded]);
   const ready = state.status === "ready";
   useEffect(() => {

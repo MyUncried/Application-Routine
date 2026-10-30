@@ -142,14 +142,25 @@ export function CatalogueSearchField({
    * PRE-9 CAT.1 (zones de contexte, CE-CAT-CTX-01 ; Figma `10266:20575`, `10465:23141`) : champ de
    * la zone de contexte des Catalogues — largeur de référence (216 ou 107 pt, réductible sur un
    * écran plus étroit), hauteur visible 44, fond `#F3F4F9` fondu vers la transparence. Absente :
-   * champ flexible de hauteur visible 34 (sélection des Mouvements, inchangée).
+   * champ flexible de hauteur visible 34.
+   *
+   * `{ fillFrom }` [Recette iPhone CAT.1 du 30/10/2026, Hermann (cat-commandes) : « le champ de la
+   * zone de recherche est trop raccourci, il faut qu'il conserve le même espace qu'entre deux boutons
+   * d'action »] : état filtré ou archivé — le champ s'étend jusqu'à la commande suivante, à l'écart
+   * des commandes (`gap` de la rangée), sans descendre sous `fillFrom` (107 de la spécification §2).
    */
-  readonly width?: number;
+  readonly width?: number | { readonly fillFrom: number };
   readonly testID: string;
 }) {
   const context = width !== undefined;
+  const targetStyle =
+    width === undefined
+      ? styles.searchTarget
+      : typeof width === "number"
+        ? [styles.searchContextTarget, { width }]
+        : [styles.searchContextTarget, styles.searchContextFill, { minWidth: width.fillFrom }];
   return (
-    <View style={context ? [styles.searchContextTarget, { width }] : styles.searchTarget} testID={`${testID}-field`}>
+    <View style={targetStyle} testID={`${testID}-field`}>
       <View style={context ? styles.searchContext : styles.search}>
         <TextInput
           value={value}
@@ -311,6 +322,10 @@ const styles = StyleSheet.create({
     flexShrink: 1,
     minWidth: 0,
     height: COMMAND.touchTarget,
+  },
+  searchContextFill: {
+    flexGrow: 1,
+    flexBasis: 0,
   },
   searchContext: {
     flex: 1,

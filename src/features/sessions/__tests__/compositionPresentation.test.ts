@@ -459,7 +459,7 @@ describe("PRE-3 — synthèses de Composition (adaptation minimale, P3-22)", () 
     expect(failure).toBe("3 séries à l’échec, avec 10 s de pause entre les séries");
     expect(failure).not.toMatch(/(^|[^0-9])0 s|0 rép/);
     expect(formatExerciseRowSummary({ executionParameters: repetitionParameters("UNSET", 3, 10) })).toBe(
-      "Paramètres à compléter.",
+      "Paramètres à compléter",
     );
   });
 });
@@ -571,14 +571,14 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
   });
 
   it("PRE4-2.4/AC3 — Cible à renseigner : « Paramètres à compléter. », aucune valeur ni durée", () => {
-    expect(strings.executionParameters.card.incomplete).toBe("Paramètres à compléter.");
+    expect(strings.executionParameters.card.incomplete).toBe("Paramètres à compléter");
     for (const executionParameters of [
       durationParameters("UNSET", 3, 10),
       repetitionParameters("UNSET", 3, 10),
       variableParameters({ rows: [[30, 10], ["UNSET", 10], [45, 10]] }),
       variableParameters({ mode: "REPETITIONS", rows: [[12, 10], ["UNSET", 10], ["FAILURE", 10]] }),
     ]) {
-      expect(formatExerciseRowSummary({ executionParameters })).toBe("Paramètres à compléter.");
+      expect(formatExerciseRowSummary({ executionParameters })).toBe("Paramètres à compléter");
     }
   });
 
@@ -589,7 +589,7 @@ describe("PRE-4 story 2.4 — durées et résumés des cartes", () => {
    */
   it("PRE4-2.4/AC4 — matrice Mode × Régime × position de l’échec × bilatéral : jamais « 0 s » ni « 0 rép. »", () => {
     const ZERO = /(^|[^0-9])0 (s|min|rép\.)/u;
-    const INCOMPLETE = "Paramètres à compléter.";
+    const INCOMPLETE = "Paramètres à compléter";
     const modes = ["DURATION", "REPETITIONS"] as const;
     const failurePositions = ["none", "first", "middle", "last", "all", "unset", "unsetAndFailure"] as const;
     // Bilatéralité héritée : les paramètres propres de l’Exercice restent UNILATERAL.

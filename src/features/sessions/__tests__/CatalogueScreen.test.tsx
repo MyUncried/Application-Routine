@@ -192,10 +192,10 @@ describe("CatalogueScreen — cadre commun", () => {
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
-  // Complément d'alignement du 07/10 (ajout C) : le cadre standard devient
-  // blanc à 50 % (`color/background`, opacité de remplissage 0,5) — il reste
-  // un fond propre au contrôle, plus clair que la zone de contexte.
-  it("gives the segmented control its own white 50 % container over the pale Context band (CAT-R01, ajout C du 07/10)", async () => {
+  // Complément d'alignement du 07/10 (ajout C, CAT-R01) : cadre blanc à 50 % du contrôle segmenté.
+  // [Remplacé le 30/10/2026 — recette iPhone CAT.1, Hermann (cat-titre) : « Adopter le style texte de
+  // Figma » : la navigation des Catalogues n'est plus un contrôle segmenté encadré.]
+  it("recette iPhone CAT.1 du 30/10/2026 (cat-titre) : navigation au style texte de Figma — sélectionné Inter Bold 17 bleu Kodjo, autres Regular 17 noir, séparateurs « | », aucun cadre", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -206,21 +206,26 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
-    const filterRow = screen.getByTestId("catalogue-content-type-row");
-    expect(StyleSheet.flatten(filterRow.props.style).backgroundColor).toBe(colors.segmentedSurface);
-    expect(colors.segmentedSurface).toBe("rgba(255, 255, 255, 0.5)");
+    const row = screen.getByTestId("catalogue-content-type-row");
+    expect(row.props.accessibilityRole).toBe("tablist");
+    expect(StyleSheet.flatten(row.props.style).backgroundColor).toBeUndefined();
+    expect(screen.queryByTestId("catalogue-content-type-row-indicator")).toBeNull();
+    const label = (value: string) => StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-${value}-label`).props.style);
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_700Bold", fontSize: 17, color: colors.primary });
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: "#000000" });
+    expect(label("programs")).toMatchObject({ fontFamily: "Inter_400Regular", fontSize: 17, color: "#000000" });
+    for (const index of [1, 2]) {
+      const separator = StyleSheet.flatten(screen.getByTestId(`catalogue-content-type-row-separator-${index}`).props.style);
+      expect(separator).toMatchObject({ width: 1.5, height: 12.2, marginHorizontal: 14, backgroundColor: "#000000" });
+    }
+    // Cible tactile : au moins 44 de haut.
+    const tab = screen.getByTestId("catalogue-content-type-row-movements");
+    expect(21 + tab.props.hitSlop.top + tab.props.hitSlop.bottom).toBeGreaterThanOrEqual(44);
 
-    // Le segment sélectionné (`Séances`, au centre) reste annoncé comme tel,
-    // et son texte reste blanc — non touché par le passage au sélecteur de
-    // type. Le fond bleu/violet DS est désormais porté par le cadre animé
-    // unique (V2-CAT-01, revue 5732014381 obligation 3), jamais par le
-    // segment lui-même.
-    const selected = screen.getByLabelText(strings.screens.sessions.contentTypes.sessions);
-    expect(selected.props.accessibilityState).toMatchObject({ selected: true });
-
-    fireEvent(filterRow, "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 354, height: 42 } } });
-    const indicator = screen.getByTestId("catalogue-content-type-row-indicator");
-    expect(StyleSheet.flatten(indicator.props.style).backgroundColor).toBe(colors.selection);
+    fireEvent.press(tab);
+    expect(label("movements")).toMatchObject({ fontFamily: "Inter_700Bold", color: colors.primary });
+    expect(label("sessions")).toMatchObject({ fontFamily: "Inter_400Regular", color: "#000000" });
+    expect(screen.getByLabelText(strings.screens.movement.catalogue.segment).props.accessibilityState).toMatchObject({ selected: true });
   });
 
   it("gives Créer its own white background instead of letting the Context band's pale tint show through (CAT-R02, contre-recette iPhone 2026-09-03)", async () => {

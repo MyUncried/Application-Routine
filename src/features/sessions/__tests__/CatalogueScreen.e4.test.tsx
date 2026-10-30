@@ -222,7 +222,7 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("3 filtres");
   });
 
-  it("filtre inactif : bouton rond, champ Rechercher 216 ; filtre actif : champ 107 et « N résultats »", () => {
+  it("filtre inactif : bouton rond, champ Rechercher 216 ; filtre actif : champ étendu jusqu'à Filtre (≥ 107, recette du 30/10) et « N résultats »", () => {
     const view = renderRow(null);
     measure(328);
     expect(screen.queryByTestId("catalogue-filter-action-clear")).toBeNull();
@@ -230,7 +230,7 @@ describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de conte
     expect(screen.queryByTestId("catalogue-results")).toBeNull();
     view.unmount();
     renderRow("Archivées");
-    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style).width).toBe(107);
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style)).toMatchObject({ flexGrow: 1, flexBasis: 0, minWidth: 107 });
     expect(screen.getByTestId("catalogue-results")).toHaveTextContent("2 résultats");
   });
 });

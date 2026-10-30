@@ -687,7 +687,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     const onChangeSpy = jest.fn<(patch: Partial<ActivityEditorFormValue>) => void>();
     const inherited = repetitionParameters("UNSET", 3, 10);
     render(<Harness onChangeSpy={onChangeSpy} initial={{ name: "Pompes", executionParameters: inherited }} />);
-    expect(phrase()).toBe("Paramètres à compléter.");
+    expect(phrase()).toBe("Paramètres à compléter");
     expect(isActivityEditorFormValid(baseValue({ name: "Pompes", executionParameters: inherited }), {
       requireReferences: false,
       hasCategory: true,
@@ -703,7 +703,7 @@ describe("ActivityEditorForm — PRE-4 story 1.1", () => {
     const applied = onChangeSpy.mock.calls.at(-1)?.[0].executionParameters;
     expect(applied?.series).toEqual({ kind: "UNIFORM", count: 3, target: numberTarget(1), pauseSeconds: 10, loadKg: 0, workPhases: [] });
     expect(JSON.stringify(applied)).not.toContain("FAILURE");
-    expect(phrase()).not.toBe("Paramètres à compléter.");
+    expect(phrase()).not.toBe("Paramètres à compléter");
   });
 
   it("PRE4-1.1/AC24 — isActivityEditorFormValid avec ligne de base (H25) : valeur historique 5999 s inchangée tolérée ; modifiée, elle doit respecter les bornes", () => {

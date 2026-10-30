@@ -220,7 +220,7 @@ describe("ActivityCard — PRE-4 story 1.1", () => {
     renderCard(
       <ActivityCard definition={{ ...DEFINITION, executionParameters: durationParameters("UNSET", 3, 10) }} onOpen={jest.fn()} />,
     );
-    expect(screen.getByText("Paramètres à compléter.")).toBeTruthy();
+    expect(screen.getByText("Paramètres à compléter")).toBeTruthy();
     expect(screen.queryByTestId(`activity-card-${DEFINITION.id}-duration`)).toBeNull();
   });
 });
@@ -311,7 +311,7 @@ describe("ActivityCard — PRE-4 story 2.4", () => {
     ]) {
       const view = renderCard(<ActivityCard definition={{ ...DEFINITION, executionParameters }} onOpen={jest.fn()} />);
       expect(screen.queryByTestId(`activity-card-${DEFINITION.id}-duration`)).toBeNull();
-      expect(screen.getByText("Paramètres à compléter.")).toBeTruthy();
+      expect(screen.getByText("Paramètres à compléter")).toBeTruthy();
       expect(screen.queryAllByText(/(^|[^0-9])0 s|—/u)).toHaveLength(0);
       view.unmount();
     }

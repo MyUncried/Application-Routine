@@ -12,8 +12,12 @@ import { dimensions, type } from "@/shared/ui/tokens";
  *
  * - Ligne 1 (`y = 118`, `x = 24`) : compteurs ou bascule propres au Catalogue (`summary`) ; en état
  *   filtré ou archivé, « N résultats » à droite (bord droit `x = 378`), texte informatif.
- * - Ligne 2 (`y = 155`) : champ Rechercher (216 × 44, 107 × 44 en état filtré ou archivé) ; Filtre,
- *   Tri et Créer (visuels 34 à `y = 160`, cibles 44 × 44), alignés à droite, écart 12.
+ * - Ligne 2 (`y = 155`) : champ Rechercher (216 × 44 ; en état filtré ou archivé, au moins 107 et
+ *   étendu jusqu'à la commande suivante à l'écart 12 des commandes — recette iPhone du 30/10/2026,
+ *   cat-commandes) ; Filtre, Tri et Créer (visuels 34 à `y = 160`, cibles 44 × 44), alignés à droite,
+ *   écart 12.
+ * - Créer est facultatif (recette du 30/10/2026, constat a) : la sélection « Utiliser un mouvement
+ *   existant » reprend cette zone sans le bouton Créer).
  *
  * La hauteur et les marges verticales sont portées par `ContextBand` (`CONTEXT_ZONE_GEOMETRY`).
  */
@@ -44,8 +48,9 @@ export function CatalogueContextZone({
   /** Commande Filtre (`FilterCommand`), propre au Catalogue. */
   readonly filter: ReactNode;
   readonly sortLabel: string;
-  readonly createLabel: string;
-  readonly onCreate: () => void;
+  /** Absent (avec `onCreate`) : pas de bouton Créer. */
+  readonly createLabel?: string;
+  readonly onCreate?: () => void;
   /** Largeur mesurée de la deuxième ligne (disposition de la commande Filtre étendue, Séances). */
   readonly onCommandRowLayout?: (event: LayoutChangeEvent) => void;
 }) {
@@ -62,12 +67,14 @@ export function CatalogueContextZone({
       <View style={styles.line2} onLayout={onCommandRowLayout} testID="catalogue-command-row">
         <CatalogueSearchField
           {...search}
-          width={results !== null ? CONTEXT_SEARCH_WIDTH.compact : CONTEXT_SEARCH_WIDTH.default}
+          width={results !== null ? { fillFrom: CONTEXT_SEARCH_WIDTH.compact } : CONTEXT_SEARCH_WIDTH.default}
         />
         <View style={styles.commands} testID="catalogue-context-commands">
           {filter}
           <CommandCircle label={sortLabel} icon="sort" disabled testID="catalogue-sort-action" />
-          <CommandCircle label={createLabel} icon="create" onPress={onCreate} testID="catalogue-create-action" />
+          {createLabel !== undefined && onCreate !== undefined ? (
+            <CommandCircle label={createLabel} icon="create" onPress={onCreate} testID="catalogue-create-action" />
+          ) : null}
         </View>
       </View>
     </View>

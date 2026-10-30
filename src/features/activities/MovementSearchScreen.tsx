@@ -8,6 +8,7 @@ import { colors, fixedRadii, minTouchTarget } from "@/shared/ui/tokens";
 
 import type { MovementChoice } from "./ActivityDefinitionService";
 import { EDITOR_HEADER, editorSideMargin } from "./ActivityEditorForm";
+import { groupResultsByFamily } from "./movementFamilyGrouping";
 import { MovementCompositionCard, MovementResultCard, type VariantPlacement } from "./MovementResultCard";
 
 export type MovementSearchScreenProps = {
@@ -68,13 +69,16 @@ export function MovementSearchScreen({ choices, initialQuery, context, onUse, on
   const results = useMemo(() => {
     if (normalizeSearchText(query).length === 0) return choices;
     const byId = new Map(choices.map((choice) => [choice.movement.id, choice]));
-    return rankMovements(
-      query,
-      choices.map((choice) => choice.movement),
-      context,
-    )
-      .map((result) => byId.get(result.id))
-      .filter((choice): choice is MovementChoice => choice !== undefined);
+    // CAT.2, clarification de Hermann du 30/10 : familles contiguës, au rang de leur premier membre.
+    return groupResultsByFamily(
+      rankMovements(
+        query,
+        choices.map((choice) => choice.movement),
+        context,
+      )
+        .map((result) => byId.get(result.id))
+        .filter((choice): choice is MovementChoice => choice !== undefined),
+    );
   }, [query, choices, context]);
 
   return (

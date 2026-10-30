@@ -17,10 +17,16 @@ import { matchesView, type SessionCatalogueView } from "./sessionCatalogueView";
  * - « N résultats » = Séances réellement affichées (recherche + filtres + vue).
  */
 
+/**
+ * Recette iPhone CAT.1 du 30/10/2026 (Hermann : « Séance : recherche sur le nom de la séance et sur
+ * le nom des exercices de la séance ») : sous-chaîne, sans casse ni accents, sur le nom de la Séance
+ * ou celui de l'un de ses Exercices (lignes de l'arbre de la carte, toute profondeur).
+ */
 export function matchesSessionQuery(projection: SessionCatalogueProjection, query: string): boolean {
   const needle = normalizeSearchText(query);
   if (needle.length === 0) return true;
-  return normalizeSearchText(projection.name).includes(needle);
+  if (normalizeSearchText(projection.name).includes(needle)) return true;
+  return projection.tree.some((line) => line.kind === "EXERCISE" && normalizeSearchText(line.name).includes(needle));
 }
 
 export type SessionCatalogueContext = {

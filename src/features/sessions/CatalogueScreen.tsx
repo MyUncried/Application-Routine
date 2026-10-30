@@ -7,6 +7,7 @@ import { MovementCounterToggles } from "@/features/activities/MovementCounterTog
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
 import {
+  sameMovementSummary,
   toggledMovementCounter,
   type MovementCatalogueSummary,
   type MovementCounter,
@@ -17,6 +18,7 @@ import {
   type MovementCatalogueFilters,
 } from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
+import { CatalogueNavigation } from "@/features/sessions/CatalogueNavigation";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
 import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
@@ -31,7 +33,6 @@ import { FilterCommand } from "@/shared/ui/CatalogueCommands";
 import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
-import { SegmentedControl } from "@/shared/ui/SegmentedControl";
 import { colors, dimensions, layout, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -129,11 +130,7 @@ export function CatalogueScreen() {
   const [movementCounter, setMovementCounter] = useState<MovementCounter | null>(null);
   const [movementSummary, setMovementSummary] = useState<MovementCatalogueSummary | null>(null);
   const handleMovementSummary = useCallback((next: MovementCatalogueSummary | null) => {
-    setMovementSummary((current) =>
-      current !== null && next !== null && current.families === next.families && current.movements === next.movements
-        ? current
-        : next,
-    );
+    setMovementSummary((current) => (sameMovementSummary(current, next) ? current : next));
   }, []);
   // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
   const [sessionQuery, setSessionQuery] = useState("");
@@ -188,7 +185,7 @@ export function CatalogueScreen() {
       ? resultsLabel(sessionContext.visible.length)
       : "";
   const movementResults =
-    countActiveFilters(movementFilters) === 0 ? null : movementSummary !== null ? resultsLabel(movementSummary.movements) : "";
+    countActiveFilters(movementFilters) === 0 ? null : movementSummary !== null ? resultsLabel(movementSummary.displayed) : "";
   // T01-S10/V2-CAT-01 (D-108, plan §4.1) : le titre suit le segment actif —
   // `Catalogue des séances` / `Catalogue des activités` / `Catalogue des
   // circuits`, un mapping RÉEL des trois segments même si `Circuits` reste
@@ -232,13 +229,14 @@ export function CatalogueScreen() {
   return (
     <ScreenShell>
       {/* PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») :
-          l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes, conservée
-          telle quelle, à la place du titre. */}
+          l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes à la place du
+          titre. Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-titre : « Adopter le style texte de
+          Figma ») : libellés texte séparés par « | » (`CatalogueNavigation`), comportement inchangé. */}
       <FixedHeader
         title={title}
         content={
           <View style={styles.headerNavigation}>
-            <SegmentedControl
+            <CatalogueNavigation
               options={[
                 { value: "movements", label: strings.screens.movement.catalogue.segment },
                 { value: "sessions", label: t.contentTypes.sessions },
@@ -531,8 +529,8 @@ const styles = StyleSheet.create({
   // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
   // FOUNDATION CORRECTION`).
   //
-  // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`SegmentedControl`, composant
-  // canonique partagé, V2-CAT-01) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`CatalogueNavigation`, style texte de
+  // Figma depuis la recette du 30/10) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
   headerNavigation: {
     flex: 1,
   },

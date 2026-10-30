@@ -6,6 +6,7 @@ import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import { colors, fixedRadii } from "@/shared/ui/tokens";
 
 import type { MovementChoice } from "./ActivityDefinitionService";
+import { familyOfChoice } from "./movementFamilyGrouping";
 import {
   MOVEMENT_RESULT_CARD_HEIGHT,
   MovementCompositionCard,
@@ -85,16 +86,13 @@ export type MovementSuggestionPanelProps = {
   readonly actionLabels?: MovementResultActionLabels;
 };
 
-/** Famille affichée d'une carte : groupe de niveaux d'au moins deux membres (rang dérivé présent). */
-function familyOf(choice: MovementChoice): string | null {
-  return choice.level !== null ? (choice.movement.levelGroup?.groupId ?? null) : null;
-}
+const familyOf = familyOfChoice;
 
 /**
  * Suites de cartes CONSÉCUTIVES d'une même famille (au moins deux), dans l'ordre affiché :
- * `[première, dernière]`. Le classement n'est jamais modifié (CE-MVT-RESULT-01 « sans modification
- * du calcul des familles, rangs ou identités ») : des membres séparés par un autre résultat forment
- * des suites distinctes (À CLARIFIER CAT.2).
+ * `[première, dernière]`. [Remplacé par la clarification de Hermann du 30/10/2026 : « des membres
+ * séparés par un autre résultat forment des suites distinctes » ne se produit plus — les résultats
+ * sont regroupés par famille en amont (`groupResultsByFamily`), une famille = une seule suite.]
  */
 export function familyRuns(results: readonly MovementChoice[]): readonly (readonly [number, number])[] {
   const runs: [number, number][] = [];

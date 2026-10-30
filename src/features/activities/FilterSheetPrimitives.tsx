@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
-import type { ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Reanimated, { FadeIn, ReduceMotion, SlideInDown } from "react-native-reanimated";
+import { useEffect, type ReactNode } from "react";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import Reanimated, { FadeIn, ReduceMotion, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { CREATE_MENU_FADE_IN_MS } from "@/features/sessions/CreateMenu";
@@ -19,9 +19,12 @@ import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@
 
 /** Cercles d'en-tête 38 (feuille Paramètres d'exécution), cible tactile minimale (`minTouchTarget`). */
 const HEADER_ACTION_SIZE = 38;
+/** Hauteur maximale de la feuille : 92 % de la fenêtre (valeur inchangée, posée en points). */
+const SHEET_MAX_HEIGHT_RATIO = 0.92;
 const HEADER_ACTION_HIT_SLOP = (minTouchTarget - HEADER_ACTION_SIZE) / 2;
 const RESET = dimensions.resetAction;
 const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
+const CHEVRON_ICON = require("../../../assets/icons/filtre-chevron-modifier.svg");
 /**
  * Contre-recette n° 2 du 30/10/2026 (Hermann : « le voile grisé doit apparaître en fondu progressif
  * et non pas de bas en haut avec la modale. Prendre l'exemple de l'apparition du voile à
@@ -30,7 +33,20 @@ const RESET_ICON = require("../../../assets/icons/filtre-reinitialiser.svg");
  */
 const scrimEntering = FadeIn.duration(CREATE_MENU_FADE_IN_MS).reduceMotion(ReduceMotion.System);
 const SHEET_SLIDE_IN_MS = 300;
-const sheetEntering = SlideInDown.duration(SHEET_SLIDE_IN_MS).reduceMotion(ReduceMotion.System);
+/**
+ * Recette iPhone CAT.1 du 30/10/2026 (Hermann, cat-resultats : « la modale du filtre de mouvements
+ * […] ne fait pas apparaître toutes les sections (elle n'est pas assez haute), elle s'arrête avant
+ * la fin et le défilement ne marche pas (blocage vers le haut avec effet ressort) ») — cause la plus
+ * probable (déduite du code ; Jest ne joue ni la mise en page native ni les animations) : la
+ * montée de la feuille était une animation de MISE EN PAGE de Reanimated (`entering={SlideInDown}`,
+ * contre-recette n° 2), qui pilote le cadre natif (origine, taille) relevé au montage. Or la feuille
+ * des Mouvements grandit juste après son montage (Catégories et Zones lues de façon asynchrone, toutes
+ * sections ouvertes) : le cadre restait celui du premier rendu, plus court que le contenu, et le
+ * défilement butait ; la feuille des Séances, sections repliées, ne grandit pas et n'était pas touchée. La montée est désormais une simple translation (`transform`), qui ne touche
+ * jamais au cadre : la mise en page suit le contenu à tout moment. Feuille et zone défilante sont en
+ * outre toujours réductibles sous la hauteur maximale (auparavant seulement avec un pied fixe).
+ */
+const SHEET_TIMING = { duration: SHEET_SLIDE_IN_MS, reduceMotion: ReduceMotion.System };
 
 export function FilterSheetFrame({
   title,
@@ -53,6 +69,12 @@ export function FilterSheetFrame({
   readonly children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const slide = useSharedValue(windowHeight);
+  useEffect(() => {
+    slide.value = withTiming(0, SHEET_TIMING);
+  }, [slide]);
+  const slideStyle = useAnimatedStyle(() => ({ transform: [{ translateY: slide.value }] }));
   return (
     <Modal transparent visible animationType="none" onRequestClose={onClose} testID={`${testIDPrefix}-sheet`}>
       <View style={styles.backdrop}>
@@ -63,9 +85,9 @@ export function FilterSheetFrame({
           testID={`${testIDPrefix}-scrim`}
         />
         <Reanimated.View
-          entering={sheetEntering}
-          style={[styles.sheet, footer ? styles.sheetWithFooter : null, { paddingBottom: insets.bottom + spacing[16] }]}
+          style={[styles.sheet, { maxHeight: windowHeight * SHEET_MAX_HEIGHT_RATIO, paddingBottom: insets.bottom + spacing[16] }, slideStyle]}
           accessibilityViewIsModal
+          testID={`${testIDPrefix}-panel`}
         >
           <View style={styles.handle} testID={`${testIDPrefix}-handle`} />
           <View style={styles.header} testID={`${testIDPrefix}-header`}>
@@ -94,7 +116,7 @@ export function FilterSheetFrame({
             </Pressable>
           </View>
           <View style={styles.headerDivider} testID={`${testIDPrefix}-header-divider`} />
-          <ScrollView style={footer ? styles.scroll : null} contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null]}>
+          <ScrollView style={styles.scroll} contentContainerStyle={[styles.body, footer ? styles.bodyWithFooter : null]} testID={`${testIDPrefix}-scroll`}>
             {children}
           </ScrollView>
           {footer ? (
@@ -142,6 +164,39 @@ export function FilterChip({
   );
 }
 
+/**
+ * Titre de section repliable (E.6, spécification du 27/10 §6 ; chevron `10671:20036`) : le titre est
+ * le bouton qui ouvre ou ferme la section placée dessous, chevron accolé, vers le bas fermé, vers le
+ * haut ouvert. Partagé par les feuilles des Séances et, depuis la recette iPhone CAT.1 du 30/10/2026
+ * (Hermann : « il manque les chevrons aux titres de section »), des Mouvements.
+ */
+export function FilterSectionToggle({
+  title,
+  open,
+  onPress,
+  testID,
+}: {
+  readonly title: string;
+  readonly open: boolean;
+  readonly onPress: () => void;
+  readonly testID: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      accessibilityState={{ expanded: open }}
+      hitSlop={{ top: 12, bottom: 12 }}
+      style={styles.sectionHeader}
+      testID={testID}
+    >
+      <Text style={filterSheetStyles.groupTitle}>{title}</Text>
+      <Image source={CHEVRON_ICON} style={[styles.chevron, open ? styles.chevronOpen : null]} accessible={false} testID={`${testID}-chevron`} />
+    </Pressable>
+  );
+}
+
 export function ResetFiltersButton({ label, onPress, testID }: { readonly label: string; readonly onPress: () => void; readonly testID: string }) {
   return (
     <Pressable
@@ -183,14 +238,11 @@ const styles = StyleSheet.create({
   },
   // Cadre, poignée, en-tête, cercles et filet : valeurs de la feuille Paramètres d'exécution.
   sheet: {
-    maxHeight: "92%",
+    flexShrink: 1,
     borderTopLeftRadius: fixedRadii[24],
     borderTopRightRadius: fixedRadii[24],
     overflow: "hidden",
     backgroundColor: colors.background,
-  },
-  sheetWithFooter: {
-    flexShrink: 1,
   },
   handle: {
     alignSelf: "center",
@@ -235,6 +287,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.divider,
   },
   scroll: {
+    flexGrow: 0,
     flexShrink: 1,
   },
   body: {
@@ -248,6 +301,20 @@ const styles = StyleSheet.create({
   footer: {
     alignItems: "center",
     paddingTop: spacing[8],
+  },
+  sectionHeader: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing[8],
+  },
+  // Chevron accolé, pointé vers le bas fermé, vers le haut ouvert (`10671:20036`).
+  chevron: {
+    width: 10,
+    height: 5.75,
+  },
+  chevronOpen: {
+    transform: [{ rotate: "180deg" }],
   },
   chip: {
     flexDirection: "row",

@@ -17,7 +17,7 @@ import { strings } from "@/shared/i18n";
  */
 
 const projection = (id: string, name: string, exerciseCount: number, status: "ACTIVE" | "ARCHIVED" = "ACTIVE") =>
-  ({ id, name, exerciseCount, status, labelId: null, categories: [], bodyZoneIds: [], format: "FREE" }) as unknown as SessionCatalogueProjection;
+  ({ id, name, exerciseCount, status, labelId: null, categories: [], bodyZoneIds: [], format: "FREE", tree: [] }) as unknown as SessionCatalogueProjection;
 
 const SESSIONS = [
   projection("a", "Renforcement du genou", 5),
@@ -36,6 +36,21 @@ describe("PRE-9 CAT.1 — zone de contexte du Catalogue des Séances", () => {
     expect(matchesSessionQuery(SESSIONS[0]!, "  GENOU ")).toBe(true);
     expect(matchesSessionQuery(SESSIONS[4]!, "etirements")).toBe(true);
     expect(matchesSessionQuery(SESSIONS[0]!, "matin")).toBe(false);
+  });
+
+  // Recette iPhone du 30/10/2026 (Hermann) : « recherche sur le nom de la séance et sur le nom des exercices de la séance ».
+  it("recherche : aussi le nom des Exercices de la Séance, à toute profondeur de l'arbre", () => {
+    const withTree = {
+      ...SESSIONS[0]!,
+      tree: [
+        { kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 2, nature: "GROUPED" },
+        { kind: "EXERCISE", key: "x", depth: 1, name: "Fentes bulgares", volume: "10 rép." },
+        { kind: "RECOVERY", key: "r", depth: 1, seconds: 30 },
+      ],
+    } as unknown as SessionCatalogueProjection;
+    expect(matchesSessionQuery(withTree, "BULGARES")).toBe(true);
+    expect(matchesSessionQuery(withTree, "genou")).toBe(true);
+    expect(matchesSessionQuery(withTree, "squat")).toBe(false);
   });
 
   it("nombres de vue réels (collection courante, avant le choix de la vue) ; la Séance sans Exercice n'appartient à aucune vue", () => {
