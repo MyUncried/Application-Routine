@@ -784,7 +784,7 @@ Document non normatif. Il indique, pour chaque section des chapitres avant la re
 | 10 | RM-FMT-28 | [RM-FMT-28](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-28) | même chapitre |
 | 10 | RM-FMT-29 | [RM-FMT-29](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-29) | même chapitre |
 | 10 | RM-FMT-30 | [RM-FMT-30](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-30) | même chapitre |
-| 10 | RM-FMT-31 | [RM-FMT-31](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-31) | même chapitre |
+| 10 | RM-FMT-31 — For time, sélecteur Par exercice / En alternance et Volume par passage de Circuit | [RM-FMT-31](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-31) | même chapitre ; contrat CE-FMT-02, CE-FMT-03 et CE-CIR-03 |
 | 10 | RM-FMT-32 | [RM-FMT-32](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-32) | même chapitre |
 | 10 | RM-FMT-33 | [RM-FMT-33](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-33) | même chapitre |
 | 10 | RM-FMT-34 | [RM-FMT-34](10%20%E2%80%93%20Processus%20m%C3%A9tier%20et%20r%C3%A8gles%20m%C3%A9tier%20transverses.md#rm-fmt-34) | même chapitre |
