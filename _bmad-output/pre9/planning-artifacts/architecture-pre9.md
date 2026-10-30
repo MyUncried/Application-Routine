@@ -88,7 +88,7 @@ Référence de configuration : [décisions D-14 à D-30 consolidées](../../../d
 | Intervalles 30/30 | Exercice | Fini | **30 s / 30 s imposés**, 6 séries initiales | admis / refusé | Comptes et pauses propres |
 | EMOM | Exercice | Fini, fenêtres | W **60 s** ; N **6**, réglables | admis / admis, N adopte celui du Circuit | FMT-22 conserve N à l'ajout **dans** l'EMOM ; distinct de sa dépose extérieure |
 | AMRAP | Exercice | Progressif (segment PRE-9) | **12:00 initial, durée réglable** par passage | admis / refusé | Échéance propre à chaque passage, tours partiels et acquis PRE-11 |
-| For time | Exercice | Fini | **21·15·9 initial**, échelle indexée par **tour de l'échelle** | admis / refusé | **Plafond temporel optionnel** ; résultat incomplet si atteint, PRE-11 |
+| For time | Exercice | Fini | **21·15·9 initial**, échelle indexée par **passage du Circuit** ; Par exercice / En alternance, sans conversion en Séries locales | admis / refusé | **Plafond temporel optionnel** ; résultat incomplet si atteint, PRE-11 |
 | Death by | Exercice | Progressif (segment PRE-9) | Départ 1 ; incrément 1 ; fenêtre 1 min, valeurs initiales | admis / admis, horloges propres | Arrêt de l'élément ; fenêtres et progression alternées PRE-11 |
 
 **Aucune valeur initiale supplémentaire** provenant d'une maquette. **Aucun compteur de répétition propre au Format** : en groupées, le Circuit répète le bloc complet ; le Cycle répète sa séquence. Les plans à développement progressif restent des segments descriptifs en PRE-9, sans moteur de fenêtres.
