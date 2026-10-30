@@ -104,7 +104,7 @@ La lecture partagée supprime la synchronisation du contenu, pas la vérificatio
 | Élément | Référence réelle | Observation / contrat |
 |---|---|---|
 | Carte — Mouvement | `10124:21979` | Component set, Sélection = Absente / Vide / Cochée ; chaque variante 322 × 80, instances extensibles à 354 |
-| Carte — Mouvement — Résultat | `10199:22268` | Composant distinct 338 × 107 ; actions internes ; photo observée 57 × 57. Ne pas lui imposer les 80 pt de la carte simple |
+| Carte — Mouvement — Résultat | `10199:22268` | Relevé historique du 25/10 : composant distinct 338 × 107, photo observée 57 × 57. **Cible PRE-9 du 30/10** : carte Résultat avec action « Ajouter un niveau » ; état déplié de difficulté 338 × 104 (`10415:21939`). La carte Composition distincte est 338 × 73, sans action et sans assimilation au gabarit 80 pt (CE-MVT-RESULT-01). |
 | icon/modifier | `9925:41240` | Composant 24 × 24 ; crayon plein bleu sur les nouveaux écrans, état actif sur pastille blanche ; dimensions visuelles distinctes de la cible tactile |
 | icon/niveau | `9932:44044` | Trois variantes 1 / 2 / 3, 24 × 24 ; ne couvre pas encore explicitement tous les rangs |
 | Sélecteur classification | `9003:15638` | Rôle Catégorie / Zone / Niveau ; Niveau vide `9925:41506`, renseigné `9925:41515` |
