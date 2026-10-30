@@ -44,6 +44,7 @@ development_status:
   doc-0-tracabilite-pre8: backlog
   doc-1-lot-documentaire-cloture: backlog
 arbitrages:
+  decides_2026_10_30_consolidation: [ARB-04, ARB-22c, ARB-26, ARB-27, ARB-28]  # validation source 29/10 ; consolidation de la traçabilité le 30/10
   decides_2026_10_29_revision_2: [ARB-01, ARB-02a, ARB-02b, ARB-10b, ARB-23, ARB-24, ARB-25]
   decides_2026_10_29: [ARB-03, ARB-05, ARB-06, ARB-07, ARB-08, ARB-09, ARB-10, ARB-11, ARB-12, ARB-13, ARB-14, ARB-15, ARB-16, ARB-17, ARB-18a, ARB-18b, ARB-19, ARB-20, ARB-21, ARB-22a, ARB-22b]
   ouverts: []  # aucun arbitrage de configuration Formats manquant dans cette consolidation
