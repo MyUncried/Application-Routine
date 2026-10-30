@@ -125,6 +125,8 @@ function produceInternal(recipe, { cwd, github } = {}) {
   Requirements.assertReady(requirementRegistry);
   if(figmaReferences.length)require('./vnext-figma-source').validateRegistry(figmaReferences,requirementRegistry);
   const candidateManifest = Impact.buildCandidateManifest({ cwd, revision: planningEnvelope.application_head, createSlots: recipe.createSlots || [] });
+  // A bad target among valid roots must fail before scanning any importers.
+  Impact.validateImpactClassifications({ requirementRegistry, candidateManifest, classifications: recipe.classifications });
   const roots = [...new Set(recipe.classifications.filter(c => c.change_kind === 'MODIFY')
     .map(c => c.candidate_id))].filter(id => candidateManifest.candidates.some(c => c.candidate_id === id
       && c.origin === 'GIT_TREE' && c.candidate_kind === 'CODE' && /\.(?:js|jsx|ts|tsx|mjs|cjs)$/.test(c.path)));
