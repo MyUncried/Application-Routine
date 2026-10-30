@@ -1,15 +1,22 @@
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from "react-native";
 
 import { strings } from "@/shared/i18n";
+import { CONTEXT_LINE_SELECTED, CONTEXT_SEPARATOR_COLOR, CONTEXT_TEXT_COLOR } from "@/shared/ui/catalogueContext";
 import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 import type { SessionCatalogueView } from "./sessionCatalogueView";
 
 /**
  * PRE-8 (epic E, story E.4 ; spécification du 27/10 §4) — bascule de vue « Un exercice | Plusieurs »,
- * deux textes simples à gauche de la rangée des commandes, sans option « Toutes ». Aucune option
- * choisie : collection complète ; toucher l'option active la désélectionne (annoncé). Cibles de
- * 44 de haut par `hitSlop` vertical, sans débord horizontal entre les deux options.
+ * deux textes simples, sans option « Toutes ». Aucune option choisie : collection complète ; toucher
+ * l'option active la désélectionne (annoncé). Cibles de 44 de haut par `hitSlop` vertical, sans
+ * débord horizontal entre les deux options.
+ *
+ * PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026 §4 ; CE-CAT-CTX-01 ;
+ * Figma `1992:9910`) : première ligne de la zone de contexte, « Un exercice N | Plusieurs N ». Seul
+ * le LIBELLÉ est une commande (bascule inchangée) ; le nombre `N`, accolé, est un texte informatif
+ * (14 Regular `#333333`), hors de la cible. Libellés 14 pt, inactifs `#595E66` Regular, actif bleu
+ * Kodjo Semi Bold ; séparateur « | » `#9499A8`. `counts` absent (liste non chargée) : libellés seuls.
  */
 
 const t = strings.screens.sessions.view;
@@ -19,17 +26,20 @@ const OPTIONS: readonly { readonly value: SessionCatalogueView; readonly label: 
   { value: "MULTIPLE", label: t.multiple },
 ];
 
-const LABEL_LINE = 16;
+const LABEL_LINE = 17;
 const VERTICAL_SLOP = Math.max(0, (minTouchTarget - LABEL_LINE) / 2);
 
 export function SessionViewToggle({
   value,
   onToggle,
+  counts,
   onLayout,
   testID,
 }: {
   readonly value: SessionCatalogueView | null;
   readonly onToggle: (view: SessionCatalogueView) => void;
+  /** Nombre réel de Séances de chaque vue ; absent : aucun nombre affiché. */
+  readonly counts?: { readonly SINGLE: number; readonly MULTIPLE: number } | null;
   readonly onLayout?: (event: LayoutChangeEvent) => void;
   readonly testID: string;
 }) {
@@ -39,7 +49,11 @@ export function SessionViewToggle({
         const selected = value === option.value;
         return (
           <View key={option.value} style={styles.optionGroup}>
-            {index > 0 ? <View style={styles.separator} accessible={false} /> : null}
+            {index > 0 ? (
+              <Text style={styles.separator} accessible={false} importantForAccessibility="no" testID={`${testID}-separator`}>
+                |
+              </Text>
+            ) : null}
             <Pressable
               onPress={() => onToggle(option.value)}
               accessibilityRole="button"
@@ -54,6 +68,11 @@ export function SessionViewToggle({
                 {option.label}
               </Text>
             </Pressable>
+            {counts ? (
+              <Text style={styles.count} numberOfLines={1} testID={`${testID}-${option.value}-count`}>
+                {String(counts[option.value])}
+              </Text>
+            ) : null}
           </View>
         );
       })}
@@ -66,7 +85,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
-    minHeight: minTouchTarget,
   },
   optionGroup: {
     flexDirection: "row",
@@ -76,18 +94,24 @@ const styles = StyleSheet.create({
     minHeight: LABEL_LINE,
     justifyContent: "center",
   },
+  // Figma `1992:9910` : « | » à 10 du nombre qui précède et du libellé qui suit (x = 127).
   separator: {
-    width: 1,
-    height: 14,
-    marginHorizontal: spacing[8],
-    backgroundColor: colors.cardsBorder,
+    ...type.contextLine,
+    color: CONTEXT_SEPARATOR_COLOR,
+    marginHorizontal: spacing[10],
   },
   label: {
-    ...type.segmentedCompactLabel,
+    ...type.contextLine,
     color: colors.textSecondary,
   },
   labelSelected: {
-    ...type.editableValue,
+    ...CONTEXT_LINE_SELECTED,
     color: colors.primary,
+  },
+  // Figma : nombre à 6 du libellé (« Un exercice » 24..102, « 2 » à 108).
+  count: {
+    ...type.contextLine,
+    color: CONTEXT_TEXT_COLOR,
+    marginLeft: spacing[6],
   },
 });

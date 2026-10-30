@@ -130,6 +130,7 @@ export function CatalogueSearchField({
   placeholder,
   accessibilityLabel,
   clearLabel,
+  width,
   testID,
 }: {
   readonly value: string;
@@ -137,11 +138,19 @@ export function CatalogueSearchField({
   readonly placeholder: string;
   readonly accessibilityLabel: string;
   readonly clearLabel: string;
+  /**
+   * PRE-9 CAT.1 (zones de contexte, CE-CAT-CTX-01 ; Figma `10266:20575`, `10465:23141`) : champ de
+   * la zone de contexte des Catalogues — largeur de référence (216 ou 107 pt, réductible sur un
+   * écran plus étroit), hauteur visible 44, fond `#F3F4F9` fondu vers la transparence. Absente :
+   * champ flexible de hauteur visible 34 (sélection des Mouvements, inchangée).
+   */
+  readonly width?: number;
   readonly testID: string;
 }) {
+  const context = width !== undefined;
   return (
-    <View style={styles.searchTarget}>
-      <View style={styles.search}>
+    <View style={context ? [styles.searchContextTarget, { width }] : styles.searchTarget} testID={`${testID}-field`}>
+      <View style={context ? styles.searchContext : styles.search}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -150,7 +159,7 @@ export function CatalogueSearchField({
           accessibilityLabel={accessibilityLabel}
           autoCorrect={false}
           returnKeyType="search"
-          style={styles.searchInput}
+          style={[styles.searchInput, context ? styles.searchContextInput : null]}
           testID={testID}
         />
         {value.length > 0 ? (
@@ -242,6 +251,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: colors.background,
+    // PRE-9 CAT.1 : la pilule cède de la place (résumé tronqué) plutôt que de chevaucher le champ Rechercher.
+    flexShrink: 1,
+    minWidth: 0,
   },
   pillCircle: {
     width: COMMAND.visual,
@@ -259,9 +271,13 @@ const styles = StyleSheet.create({
     gap: spacing[8],
     paddingLeft: spacing[12],
     paddingRight: spacing[12],
+    flexShrink: 1,
+    minWidth: 0,
   },
   pillTexts: {
     maxWidth: 96,
+    flexShrink: 1,
+    minWidth: 0,
   },
   pillTitle: {
     ...type.filterCommandTitle,
@@ -288,6 +304,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 12,
     backgroundColor: colors.searchFieldSurface,
+  },
+  // PRE-9 CAT.1 (Figma `Champ — Rechercher`, `10457:23120`) : 44 de haut, rayon 12, dégradé vertical
+  // `#F3F4F9` → transparent ; réductible (jamais au-delà de la largeur de référence).
+  searchContextTarget: {
+    flexShrink: 1,
+    minWidth: 0,
+    height: COMMAND.touchTarget,
+  },
+  searchContext: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 12,
+    experimental_backgroundImage: `linear-gradient(to bottom, ${colors.searchFieldSurface} 0%, ${colors.searchFieldSurface}00 100%)`,
+  },
+  searchContextInput: {
+    height: COMMAND.touchTarget,
   },
   searchInput: {
     ...type.searchField,

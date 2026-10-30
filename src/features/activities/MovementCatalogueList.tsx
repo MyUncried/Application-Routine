@@ -44,6 +44,12 @@ import {
   type MovementStatusFilter,
   type MovementCatalogueItem,
 } from "./movementCatalogueView";
+import {
+  applyMovementCounter,
+  movementCatalogueSummary,
+  type MovementCatalogueSummary,
+  type MovementCounter,
+} from "./movementCatalogueCounters";
 import { dragIntent, placedOrder, previewLevels, reorderAnchor, type DragIntent, type DragSlot } from "./movementFamilyDrag";
 import { SheetMotionProvider, SheetMotionScrollView, SheetMotionView } from "./SheetMotion";
 import { SWIPE_ACTION_WIDTH, SwipeActionsRow, type SwipeAccessibilityAction, type SwipeAction } from "./SwipeActionsRow";
@@ -183,10 +189,16 @@ export function MovementCatalogueList({
   onCreateVariant,
   selection,
   topInset,
+  counter,
+  onSummaryChange,
 }: {
   readonly reloadToken: number;
   /** Contre-recette n° 2 du 30/10 : réserve en tête de liste quand la liste défile sous la zone de contexte. */
   readonly topInset?: number;
+  /** PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur actif de la zone de contexte ; absent : aucun. */
+  readonly counter?: MovementCounter | null;
+  /** PRE-9 CAT.1 : compteurs de la liste affichée (`null` tant qu’elle n’est pas prête). */
+  readonly onSummaryChange?: (summary: MovementCatalogueSummary | null) => void;
   /** Recherche saisie dans la zone de contexte du Catalogue (D02). */
   readonly query: string;
   readonly filters: MovementCatalogueFilters;
@@ -273,7 +285,8 @@ export function MovementCatalogueList({
 
   const items = useMemo(() => {
     if (state.status !== "ready") return [];
-    const visible = visibleMovementItems(state.entries, query, shownFilters);
+    // PRE-9 CAT.1 : le compteur actif (« familles » / « mouvements ») se cumule à la recherche et aux filtres.
+    const visible = applyMovementCounter(visibleMovementItems(state.entries, query, shownFilters), counter ?? null);
     if (override === null || override.entries !== state.entries) return visible;
     return visible.map((item): MovementCatalogueItem => {
       if (item.kind !== "PILE" || item.key !== override.pileKey) return item;
@@ -281,7 +294,15 @@ export function MovementCatalogueList({
       const members = override.ids.map((id) => byId.get(id)).filter((member) => member !== undefined);
       return members.length === item.members.length ? { ...item, members } : item;
     });
-  }, [state, query, shownFilters, override]);
+  }, [state, query, shownFilters, override, counter]);
+
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteurs dérivés de la liste affichée elle-même — piles repliées
+  // comptées pour leur seule carte du dessus. Remontés à l’écran hôte (zone de contexte).
+  const summary = useMemo(() => movementCatalogueSummary(items, expanded), [items, expanded]);
+  const ready = state.status === "ready";
+  useEffect(() => {
+    onSummaryChange?.(ready ? summary : null);
+  }, [onSummaryChange, ready, summary]);
 
   const entryById = useMemo(
     () => new Map(state.status === "ready" ? state.entries.map((entry) => [entry.movement.id, entry]) : []),

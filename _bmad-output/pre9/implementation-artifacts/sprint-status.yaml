@@ -7,6 +7,8 @@ plan_status: valide  # révision 2 validée par Hermann le 29/10/2026 après la 
 development_branch: pre9-bmad/dev
 plan_revision: 2
 development_status:
+  epic-cat: in-progress  # ajoutée et autorisée par Hermann le 30/10 (« KODJO — PRE-9 / CAT.1 — Développement immédiat ») ; source : branche docs/pre9-zones-contexte-catalogues-20261030 @ 2b7ba4fa (non fusionnée)
+  cat-1-zones-contexte-catalogues: review  # livrée 30/10 (spec-cat-1-zones-contexte-catalogues.md), suite complète verte, recette iPhone en attente ; spécification docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md @ 2b7ba4fa ; CE-CAT-CTX-01
   epic-q: backlog
   q-0-verification-globale-fractionnee: backlog  # dette PRE-8, activité distincte hors chemin critique
   q-1-qualification-fin-pre9: backlog

@@ -57,6 +57,12 @@ export type FixedHeaderProps = {
    * « Modifier le geste » de l'Éditeur en création sur geste repris. Absente : rendu inchangé.
    */
   trailing?: ReactNode;
+  /**
+   * PRE-9 CAT.1 (zones de contexte des Catalogues, CE-CAT-CTX-01 : « Masquer le titre de page
+   * individuel ») : contenu rendu à la place du titre (navigation Mouvements / Séances / Programmes
+   * des Catalogues). Absent : titre inchangé.
+   */
+  content?: ReactNode;
 };
 
 /**
@@ -91,6 +97,7 @@ export function FixedHeader({
   titleStyle,
   backIconTintColor,
   trailing,
+  content,
 }: FixedHeaderProps) {
   const insets = useSafeAreaInsets();
   const backHitSlop = (minTouchTarget - dimensions.backAction.visualCircle) / 2;
@@ -124,9 +131,13 @@ export function FixedHeader({
           />
         </Pressable>
       ) : null}
-      <Text style={[styles.title, titleStyle]} accessibilityRole="header">
-        {title}
-      </Text>
+      {content !== undefined ? (
+        content
+      ) : (
+        <Text style={[styles.title, titleStyle]} accessibilityRole="header">
+          {title}
+        </Text>
+      )}
       {trailing ?? null}
     </View>
   );
@@ -142,6 +153,7 @@ export function ContextBand({
   children,
   elevated = false,
   fadeToTransparent = false,
+  padding,
 }: {
   children: ReactNode;
   /** Élève la bande au-dessus de ses frères (mêmes besoins de superposition que `CompositionScreen`'s `AnchoredRow`). */
@@ -162,6 +174,12 @@ export function ContextBand({
    * hors commandes traversent la bande (`box-none`) jusqu'aux cartes.
    */
   fadeToTransparent?: boolean;
+  /**
+   * PRE-9 CAT.1 (zones de contexte des Catalogues, CE-CAT-CTX-01) : marges verticales du contenu
+   * (première ligne à 26 sous le haut de la bande, cibles de la deuxième ligne à 8 du bas). Absentes :
+   * marges canoniques inchangées.
+   */
+  padding?: { readonly top: number; readonly bottom: number };
 }) {
   return (
     <View
@@ -171,6 +189,7 @@ export function ContextBand({
         styles.contextBand,
         fadeToTransparent ? styles.contextBandTransparent : null,
         elevated || fadeToTransparent ? styles.elevated : null,
+        padding === undefined ? null : { paddingTop: padding.top, paddingBottom: padding.bottom },
       ]}
     >
       {fadeToTransparent ? (

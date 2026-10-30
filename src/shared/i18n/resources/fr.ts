@@ -132,6 +132,18 @@ export const fr = {
         backHome: "Retourner à l’accueil",
       },
     },
+    // PRE-9 CAT.1 (spécification « Zones de contexte des Catalogues » du 30/10/2026, CE-CAT-CTX-01) :
+    // textes de la première ligne communs aux Catalogues Mouvements et Séances.
+    catalogueContext: {
+      resultsOne: "{count} résultat",
+      resultsMany: "{count} résultats",
+      familiesOne: "{count} famille",
+      familiesMany: "{count} familles",
+      movementsOne: "{count} mouvement",
+      movementsMany: "{count} mouvements",
+      counterSelectHint: "Restreint la liste à ces cartes",
+      counterDeselectHint: "Touchez de nouveau pour retirer ce filtre",
+    },
     sessions: {
       title: "Catalogue des séances",
       circuitsTitle: "Catalogue des circuits",
@@ -179,6 +191,13 @@ export const fr = {
       },
       // PRE-8 (epic E, Q-E6) : liste sans résultat après filtrage, distincte du Catalogue vide.
       noMatch: "Aucune séance ne correspond aux filtres.",
+      // PRE-9 CAT.1 (zones de contexte, 30/10/2026) : recherche du Catalogue des Séances.
+      noResult: "Aucune séance ne correspond à la recherche.",
+      search: {
+        placeholder: "Rechercher",
+        accessibilityLabel: "Rechercher une séance",
+        clear: "Effacer la recherche",
+      },
       error: {
         message: "Impossible de charger vos séances.",
         retry: "Réessayer",

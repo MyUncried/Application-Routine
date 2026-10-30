@@ -159,13 +159,17 @@ describe("PRE-8 E.4 — vues du segment Séances", () => {
   });
 });
 
-describe("PRE-8 E.4 — rangée responsive (Q-E4, revue à la recette du 28/10/2026)", () => {
+describe("PRE-8 E.4 — commande Filtre étendue ; PRE-9 CAT.1 — zone de contexte (CE-CAT-CTX-01)", () => {
   const layout = (width: number) => ({ nativeEvent: { layout: { width, height: 44, x: 0, y: 0 } } });
   const renderRow = (summary: string | null, count: string | null = summary === null ? null : "1 filtre") =>
     render(
       <SessionCommandRow
         view={null}
         onToggleView={() => undefined}
+        counts={{ SINGLE: 2, MULTIPLE: 3 }}
+        results={summary === null ? null : "2 résultats"}
+        query=""
+        onChangeQuery={() => undefined}
         filterSummary={summary}
         filterCount={count}
         onOpenFilters={() => undefined}
@@ -173,61 +177,60 @@ describe("PRE-8 E.4 — rangée responsive (Q-E4, revue à la recette du 28/10/2
         onCreate={() => undefined}
       />,
     );
-  const measure = (available: number, toggle: number, extended?: number) => {
+  const measure = (available: number, extended?: number) => {
     fireEvent(screen.getByTestId("catalogue-command-row"), "layout", layout(available));
-    fireEvent(screen.getByTestId("catalogue-session-view"), "layout", layout(toggle));
     if (extended !== undefined) fireEvent(screen.getByTestId("catalogue-filter-measure", { includeHiddenElements: true }), "layout", layout(extended));
   };
 
-  it("recette iPhone du 29/10/2026 : rangée de 44 de haut, comme celle des Mouvements (commandes à la même hauteur dans la bande), bascule centrée sur la même ligne", () => {
+  it("deuxième ligne de 44 de haut ; commandes et champ centrés sur la même ligne", () => {
     renderRow(null);
     const row = StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
-    // Même bas de bande et même hauteur que la rangée des Mouvements (champ Rechercher, cible 44 ; écart 8).
-    expect(row).toMatchObject({ height: 44, marginTop: 8, alignItems: "center" });
-    // Commandes et bascule centrées sur la même ligne horizontale.
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-session-commands").props.style).alignItems).toBe("center");
+    expect(row).toMatchObject({ height: 44, alignItems: "center", flexDirection: "row" });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).alignItems).toBe("center");
   });
 
-  it("ordre Filtre, Tri, Créer ; Créer le plus à droite", () => {
+  it("ordre Rechercher, puis Filtre, Tri, Créer ; Créer le plus à droite", () => {
     renderRow(null);
-    const commands = screen.getByTestId("catalogue-session-commands");
-    expect(commands.children.map((child) => (typeof child === "string" ? child : child.props.testID))).toEqual([
-      "catalogue-filter-action",
-      "catalogue-sort-action",
-      "catalogue-create-action",
-    ]);
+    const ids = (testID: string) =>
+      screen.getByTestId(testID).children.map((child) => (typeof child === "string" ? child : child.props.testID));
+    expect(ids("catalogue-command-row")).toEqual(["session-catalogue-search", "catalogue-context-commands"]);
+    expect(ids("catalogue-context-commands")).toEqual(["catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]);
   });
 
-  it("filtre actif : toujours étendu, sur une ligne ; nom du critère à 440, « 1 filtre » à 402 et 360 ; aucune croix", () => {
+  it("filtre actif : toujours étendu, sur une ligne ; nom du critère s'il tient à côté du champ réduit (107), sinon « 1 filtre » ; aucune croix", () => {
     renderRow("Archivées");
-    const row = () => StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
-    measure(408, 150, 132);
+    // 402 pt : 370 disponibles ; 107 + 12 + pilule + 2 × (12 + 34) ≤ 370 ⇔ pilule ≤ 159.
+    measure(370, 132);
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("Archivées");
     expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, Archivées");
     expect(screen.getByTestId("catalogue-filter-action-clear").props.accessibilityLabel).toBe("Réinitialiser les filtres");
 
-    for (const available of [370, 328]) {
-      measure(available, 150, 132);
-      expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("1 filtre");
-      expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, 1 filtre");
-      expect(row().flexDirection).toBe("row");
+    for (const available of [343, 328]) {
+      measure(available, 132);
+      expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent(available === 343 ? "Archivées" : "1 filtre");
     }
+    measure(370, 171);
+    expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("1 filtre");
+    expect(screen.getByTestId("catalogue-filter-action-edit").props.accessibilityLabel).toBe("Modifier les filtres, 1 filtre");
     // Plus de forme compacte : un seul rond de réinitialisation, celui de la pilule étendue.
     expect(screen.getAllByTestId("catalogue-filter-action-clear")).toHaveLength(1);
   });
 
   it("plusieurs filtres : « N filtres » dans tous les cas", () => {
     renderRow("3 filtres", "3 filtres");
-    measure(328, 150, 132);
+    measure(328, 132);
     expect(screen.getByTestId("catalogue-filter-action-summary")).toHaveTextContent("3 filtres");
   });
 
-  it("filtre inactif ou texte agrandi : toujours une seule ligne", () => {
-    renderRow(null);
-    measure(328, 150);
+  it("filtre inactif : bouton rond, champ Rechercher 216 ; filtre actif : champ 107 et « N résultats »", () => {
+    const view = renderRow(null);
+    measure(328);
     expect(screen.queryByTestId("catalogue-filter-action-clear")).toBeNull();
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("row");
-    measure(328, 260);
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).flexDirection).toBe("row");
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style).width).toBe(216);
+    expect(screen.queryByTestId("catalogue-results")).toBeNull();
+    view.unmount();
+    renderRow("Archivées");
+    expect(StyleSheet.flatten(screen.getByTestId("session-catalogue-search-field").props.style).width).toBe(107);
+    expect(screen.getByTestId("catalogue-results")).toHaveTextContent("2 résultats");
   });
 });

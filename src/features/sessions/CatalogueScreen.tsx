@@ -3,23 +3,32 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { MovementCatalogueList } from "@/features/activities/MovementCatalogueList";
+import { MovementCounterToggles } from "@/features/activities/MovementCounterToggles";
 import { MovementFilterSheet } from "@/features/activities/MovementFilterSheet";
 import { MOVEMENT_EDIT_MODE_PARAM } from "@/features/activities/MovementScreen";
-import { EMPTY_MOVEMENT_FILTERS, type MovementCatalogueFilters } from "@/features/activities/movementCatalogueView";
+import {
+  toggledMovementCounter,
+  type MovementCatalogueSummary,
+  type MovementCounter,
+} from "@/features/activities/movementCatalogueCounters";
+import {
+  countActiveFilters,
+  EMPTY_MOVEMENT_FILTERS,
+  type MovementCatalogueFilters,
+} from "@/features/activities/movementCatalogueView";
 import { fillTemplate } from "@/features/activities/movementChoicePresentation";
 import { SessionCatalogueList } from "@/features/sessions/SessionCatalogueList";
+import { isSessionCatalogueFiltered, sessionCatalogueContext } from "@/features/sessions/sessionCatalogueContext";
 import type { SessionCatalogueProjection } from "@/features/sessions/sessionCatalogueProjection";
-import { matchesView, toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
-import {
-  EMPTY_SESSION_FILTERS,
-  matchesSessionFilters,
-  type SessionCatalogueFilters,
-} from "@/features/sessions/sessionCatalogueFilters";
+import { toggledView, type SessionCatalogueView } from "@/features/sessions/sessionCatalogueView";
+import { EMPTY_SESSION_FILTERS, type SessionCatalogueFilters } from "@/features/sessions/sessionCatalogueFilters";
 import { SessionFilterSheet } from "@/features/sessions/SessionFilterSheet";
 import { SessionCommandRow } from "@/features/sessions/SessionCommandRow";
 import { useSessionCatalogue } from "@/features/sessions/useSessionCatalogue";
 import { strings } from "@/shared/i18n";
-import { CatalogueSearchField, CommandCircle, FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CONTEXT_ZONE_GEOMETRY, countLabel } from "@/shared/ui/catalogueContext";
+import { FilterCommand } from "@/shared/ui/CatalogueCommands";
+import { CatalogueContextZone } from "@/shared/ui/CatalogueContextZone";
 import { CONTEXT_BAND_FADE_HEIGHT, ContextBand, FixedHeader, ScreenShell } from "@/shared/ui/ScreenShell";
 import { navigationBarTotalHeight } from "@/shared/ui/navigationLayout";
 import { SegmentedControl } from "@/shared/ui/SegmentedControl";
@@ -115,6 +124,19 @@ export function CatalogueScreen() {
   // Recette A/B (D02) : recherche des Mouvements dans la zone de contexte, conservée pendant la
   // session comme les filtres.
   const [movementQuery, setMovementQuery] = useState("");
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : compteur « familles » / « mouvements » actif (état de l'écran,
+  // jamais persisté, cumulé à la recherche et aux filtres) et compteurs de la liste affichée.
+  const [movementCounter, setMovementCounter] = useState<MovementCounter | null>(null);
+  const [movementSummary, setMovementSummary] = useState<MovementCatalogueSummary | null>(null);
+  const handleMovementSummary = useCallback((next: MovementCatalogueSummary | null) => {
+    setMovementSummary((current) =>
+      current !== null && next !== null && current.families === next.families && current.movements === next.movements
+        ? current
+        : next,
+    );
+  }, []);
+  // PRE-9 CAT.1 : recherche des Séances dans la zone de contexte, conservée comme les filtres.
+  const [sessionQuery, setSessionQuery] = useState("");
   const movementFilterSummary =
     movementFilterLabels.length === 0
       ? null
@@ -148,6 +170,25 @@ export function CatalogueScreen() {
   );
 
   const t = strings.screens.sessions;
+  const tContext = strings.screens.catalogueContext;
+  const resultsLabel = (count: number) => countLabel(count, { one: tContext.resultsOne, many: tContext.resultsMany });
+  // PRE-9 CAT.1 (§4, §5) : liste des Séances, nombres de vue et « N résultats » d'une même dérivation.
+  const sessionContext =
+    sessionCatalogueContext(sessionCatalogue.state.status === "ready" ? sessionCatalogue.state.sessions : [], {
+      query: sessionQuery,
+      filters: sessionFilters,
+      view: sessionView,
+    });
+  const sessionCountsKnown = sessionCatalogue.state.status === "ready" || sessionCatalogue.state.status === "empty";
+  // État filtré ou archivé : critère du panneau Filtre (Statut Archivés compris). Liste pas encore
+  // chargée : place réservée (champ réduit), aucun nombre.
+  const sessionResults = !isSessionCatalogueFiltered(sessionFilters)
+    ? null
+    : sessionCountsKnown
+      ? resultsLabel(sessionContext.visible.length)
+      : "";
+  const movementResults =
+    countActiveFilters(movementFilters) === 0 ? null : movementSummary !== null ? resultsLabel(movementSummary.movements) : "";
   // T01-S10/V2-CAT-01 (D-108, plan §4.1) : le titre suit le segment actif —
   // `Catalogue des séances` / `Catalogue des activités` / `Catalogue des
   // circuits`, un mapping RÉEL des trois segments même si `Circuits` reste
@@ -190,67 +231,96 @@ export function CatalogueScreen() {
 
   return (
     <ScreenShell>
-      <FixedHeader title={title} />
+      {/* PRE-9 CAT.1 (CE-CAT-CTX-01 : « Masquer le titre de page individuel dans les deux Catalogues ») :
+          l'en-tête porte la navigation des Catalogues Mouvements / Séances / Programmes, conservée
+          telle quelle, à la place du titre. */}
+      <FixedHeader
+        title={title}
+        content={
+          <View style={styles.headerNavigation}>
+            <SegmentedControl
+              options={[
+                { value: "movements", label: strings.screens.movement.catalogue.segment },
+                { value: "sessions", label: t.contentTypes.sessions },
+                {
+                  value: "programs",
+                  label: t.programsSegment,
+                  disabled: true,
+                  accessibilityLabel: t.programsUnavailableAccessibilityLabel,
+                },
+              ]}
+              value={activeSegment}
+              onChange={setActiveSegment}
+              testID="catalogue-content-type-row"
+            />
+          </View>
+        }
+      />
       {/* Recette 3 (T-49, EXT-R3-1, D-356) : plus de trait gris entre l’en-tête et la zone
           de contexte. */}
 
       {/* Recette 3 (T-49, D-356) : le bord bas de la zone n’est dessiné par aucun élément.
           Recette iPhone du 29/10/2026 : le fondu des 20 % inférieurs va vers la TRANSPARENCE
           (ch. 12 : « Zone de contexte → transparent sur les 20 % inférieurs pour Catalogues »),
-          porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue. */}
-      <ContextBand fadeToTransparent>
-        <SegmentedControl
-          options={[
-            { value: "movements", label: strings.screens.movement.catalogue.segment },
-            { value: "sessions", label: t.contentTypes.sessions },
-            {
-              value: "programs",
-              label: t.programsSegment,
-              disabled: true,
-              accessibilityLabel: t.programsUnavailableAccessibilityLabel,
-            },
-          ]}
-          value={activeSegment}
-          onChange={setActiveSegment}
-          testID="catalogue-content-type-row"
-        />
-        {/* Recette A/B (D01, D02, D04, D05 ; ch13 §4.5) : commandes rondes 34, Rechercher sur la même
-            rangée (segment Mouvements), Filtrer étendu avec résumé quand un critère est actif. */}
-        {/* Segment Mouvements : rangée de B.9 (plan E.4 : l'ordre Filtre / Tri / Créer ne s'applique
-            qu'au segment Séances). Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à
-            gauche, et le bouton filtre à droite ») : Créer | Rechercher | Trier | Filtrer.
-            [30/10/2026, Hermann : « rechercher, filtrer, trier puis créer » — remplace l'ordre précédent.] */}
+          porté par `ContextBand` — plus de voile blanc posé sur la couleur du Catalogue.
+          PRE-9 CAT.1 (spécification du 30/10/2026, CE-CAT-CTX-01) : bande « Recherche et création »
+          à deux lignes — compteurs (ligne 1, 26 sous le haut de la bande), Rechercher et
+          Filtre / Tri / Créer (ligne 2, 63 sous le haut). Ordre des Mouvements [30/10/2026, Hermann :
+          « rechercher, filtrer, trier puis créer »] conservé, identique pour les Séances. */}
+      <ContextBand
+        fadeToTransparent
+        padding={{ top: CONTEXT_ZONE_GEOMETRY.paddingTop, bottom: CONTEXT_ZONE_GEOMETRY.paddingBottom }}
+      >
         {activeSegment === "movements" ? (
-          <View style={styles.commandRow} testID="catalogue-command-row">
-            <CatalogueSearchField
-              value={movementQuery}
-              onChangeText={setMovementQuery}
-              placeholder={strings.screens.movement.catalogue.searchPlaceholder}
-              accessibilityLabel={strings.screens.movement.catalogue.searchAccessibilityLabel}
-              clearLabel={strings.screens.movement.catalogue.searchClear}
-              testID="movement-catalogue-search"
-            />
-            <FilterCommand
-              label={t.filterAction}
-              title={strings.screens.movement.catalogue.filters.command}
-              summary={movementFilterSummary}
-              clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
-              editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
-              onOpen={() => setIsMovementFilterOpen(true)}
-              onClear={() => {
-                setMovementFilters(EMPTY_MOVEMENT_FILTERS);
-                setMovementFilterLabels([]);
-              }}
-              testID="catalogue-filter-action"
-            />
-            <CommandCircle label={t.sortAction} icon="sort" disabled testID="catalogue-sort-action" />
-            <CommandCircle label={t.createAction} icon="create" onPress={handleCreatePress} testID="catalogue-create-action" />
-          </View>
+          <CatalogueContextZone
+            summary={
+              movementSummary !== null ? (
+                <MovementCounterToggles
+                  summary={movementSummary}
+                  active={movementCounter}
+                  onToggle={(touched) => setMovementCounter((current) => toggledMovementCounter(current, touched))}
+                />
+              ) : null
+            }
+            results={movementResults}
+            search={{
+              value: movementQuery,
+              onChangeText: setMovementQuery,
+              placeholder: strings.screens.movement.catalogue.searchPlaceholder,
+              accessibilityLabel: strings.screens.movement.catalogue.searchAccessibilityLabel,
+              clearLabel: strings.screens.movement.catalogue.searchClear,
+              testID: "movement-catalogue-search",
+            }}
+            filter={
+              <FilterCommand
+                label={t.filterAction}
+                title={strings.screens.movement.catalogue.filters.command}
+                summary={movementFilterSummary}
+                clearLabel={strings.screens.movement.catalogue.filters.clearAccessibility}
+                editLabel={strings.screens.movement.catalogue.filters.editAccessibility}
+                onOpen={() => setIsMovementFilterOpen(true)}
+                onClear={() => {
+                  setMovementFilters(EMPTY_MOVEMENT_FILTERS);
+                  setMovementFilterLabels([]);
+                }}
+                testID="catalogue-filter-action"
+              />
+            }
+            sortLabel={t.sortAction}
+            createLabel={t.createAction}
+            onCreate={handleCreatePress}
+          />
         ) : null}
         {activeSegment === "sessions" ? (
           <SessionCommandRow
             view={sessionView}
             onToggleView={(touched) => setSessionView((current) => toggledView(current, touched))}
+            counts={
+              sessionCountsKnown ? { SINGLE: sessionContext.singleCount, MULTIPLE: sessionContext.multipleCount } : null
+            }
+            results={sessionResults}
+            query={sessionQuery}
+            onChangeQuery={setSessionQuery}
             filterSummary={sessionFilterSummary}
             filterCount={sessionFilterCount}
             onOpenFilters={() => setIsSessionFilterOpen(true)}
@@ -319,9 +389,8 @@ export function CatalogueScreen() {
             ) : null}
             {sessionCatalogue.state.status === "ready" ? (
               <ReadyBody
-                sessions={sessionCatalogue.state.sessions}
-                view={sessionView}
-                filters={sessionFilters}
+                sessions={sessionContext.visible}
+                searching={sessionQuery.trim().length > 0}
                 resetToken={movementsReloadToken}
                 topInset={LIST_TOP_INSET}
                 onOpenSession={(sessionId) =>
@@ -338,6 +407,8 @@ export function CatalogueScreen() {
             topInset={LIST_TOP_INSET}
             query={movementQuery}
             filters={movementFilters}
+            counter={movementCounter}
+            onSummaryChange={handleMovementSummary}
             onOpenMovement={openMovement}
             onCreateVariant={(variantOf, placement) => {
               if (isOpeningEditorRef.current) return;
@@ -417,16 +488,15 @@ function ErrorBody({ onRetry }: { onRetry: () => void }) {
  */
 function ReadyBody({
   sessions,
-  view,
-  filters,
+  searching,
   resetToken,
   topInset,
   onOpenSession,
   onChanged,
 }: {
+  /** PRE-9 CAT.1 : liste déjà dérivée (`sessionCatalogueContext` : filtres, recherche et vue). */
   sessions: readonly SessionCatalogueProjection[];
-  view: SessionCatalogueView | null;
-  filters: SessionCatalogueFilters;
+  searching: boolean;
   resetToken: number;
   topInset: number;
   onOpenSession: (sessionId: string) => void;
@@ -434,11 +504,11 @@ function ReadyBody({
 }) {
   // PRE-8 (E.2) : carte unique ; Statut Actives par défaut (CE-T03-01 révisé), filtres en E.6.
   // E.4, E.6 : Statut d'abord (Actives par défaut), puis filtres (Q-E3), combinés à la vue.
-  const visible = sessions.filter((session) => matchesSessionFilters(session, filters) && matchesView(session, view));
+  // PRE-9 CAT.1 : la même liste fournit les nombres de la zone de contexte (aucune autre collection).
   return (
     <SessionCatalogueList
-      sessions={visible}
-      emptyMessage={strings.screens.sessions.noMatch}
+      sessions={sessions}
+      emptyMessage={searching ? strings.screens.sessions.noResult : strings.screens.sessions.noMatch}
       resetToken={resetToken}
       topInset={topInset}
       onOpenSession={onOpenSession}
@@ -461,19 +531,10 @@ const styles = StyleSheet.create({
   // n'est plus autorisée ici (correction Foundation, `[ChatGPT] PHASE02
   // FOUNDATION CORRECTION`).
   //
-  // V2-CAT-01 : le sélecteur de segment lui-même est désormais porté par
-  // `@/shared/ui/SegmentedControl` (composant canonique partagé) — cette
-  // rangée ne porte plus que `Créer / Filtrer / Trier` (plan §4.1).
-  // Recette A/B (D01, ch13 §4.5) : commandes rondes de `CatalogueCommands`, écart visuel 12,
-  // alignées à droite ; le champ Rechercher (segment Mouvements) occupe la largeur restante.
-  commandRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    gap: dimensions.catalogueCommand.gap,
-    // Recette A/B du 27/10 (remarque 9) : écart de 8 sous les segments, rétabli (retiré par erreur
-    // en B.9 ; valeur de `main`).
-    marginTop: spacing[8],
+  // PRE-9 CAT.1 (CE-CAT-CTX-01) : la navigation des Catalogues (`SegmentedControl`, composant
+  // canonique partagé, V2-CAT-01) occupe la place du titre masqué, sur toute la largeur de l'en-tête.
+  headerNavigation: {
+    flex: 1,
   },
   // A01 : marge standard `layout.screenGutter`. Segment Mouvements : la liste porte sa marge
   // elle-même (cartes glissées et filet de famille dans la marge, B06/B10).

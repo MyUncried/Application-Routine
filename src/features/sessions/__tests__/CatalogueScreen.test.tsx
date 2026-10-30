@@ -129,7 +129,7 @@ beforeEach(() => {
 });
 
 describe("CatalogueScreen — cadre commun", () => {
-  it("displays the title, the full segment selector, and the active Créer action in every state", async () => {
+  it("PRE-9 CAT.1 — hides the individual page title, keeps the full segment selector and the active Créer action in every state", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     const pending = deferred<readonly CatalogueSessionRecord[]>();
     listCatalogueSessions.mockReturnValue(pending.promise);
@@ -141,7 +141,7 @@ describe("CatalogueScreen — cadre commun", () => {
 
     // Still loading: the frame is already present.
     const types = strings.screens.sessions.contentTypes;
-    expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
     // PRE-8 (E.4, E.8-a) : trois segments, Programmes indisponible, plus de segment Exercices.
     expect(screen.queryByLabelText(types.activities)).toBeNull();
@@ -155,12 +155,12 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     // Empty now, frame still present.
-    expect(screen.getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(screen.queryByText(strings.screens.sessions.title)).toBeNull();
     expect(screen.getByLabelText(types.sessions)).toBeTruthy();
     expect(screen.getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
   });
 
-  it("recomposes the Shell — fixed Header with the title, a separator immediately below, and a Context band (distinct background) holding the segments and the command row (LAY-01, Phase 1; Shell Foundation partagé, CMP-01)", async () => {
+  it("PRE-9 CAT.1 — recomposes the Shell: fixed Header carrying the Catalogue navigation in place of the hidden title, no separator, and a Context band (distinct background) holding the two context lines (CE-CAT-CTX-01)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -171,23 +171,24 @@ describe("CatalogueScreen — cadre commun", () => {
       await Promise.resolve();
     });
 
+    // Titre individuel masqué ; la navigation Mouvements / Séances / Programmes occupe l'en-tête.
     const header = screen.getByTestId("screen-header");
-    expect(within(header).getByText(strings.screens.sessions.title)).toBeTruthy();
+    expect(within(header).queryByText(strings.screens.sessions.title)).toBeNull();
+    expect(within(header).getByTestId("catalogue-content-type-row")).toBeTruthy();
+    expect(within(header).getByLabelText(strings.screens.sessions.contentTypes.sessions)).toBeTruthy();
 
     // Recette 3 (T-49, D-356) : plus de séparateur gris sous l'en-tête du Catalogue
     // (auparavant : séparateur présent, de couleur distincte du fond).
     expect(screen.queryByTestId("screen-header-separator")).toBeNull();
 
-    // Bande Context : fond distinct du fond général, contient le sélecteur
-    // de segments ET l'action Créer (pas seulement l'un des deux).
+    // Bande Context : fond distinct du fond général ; première ligne (bascule) et deuxième ligne
+    // (Rechercher, Filtre, Tri, Créer).
     const contextBand = screen.getByTestId("screen-context-band");
     expect(StyleSheet.flatten(contextBand.props.style).backgroundColor).not.toBe(colors.background);
-    expect(
-      within(contextBand).getByLabelText(strings.screens.sessions.contentTypes.sessions),
-    ).toBeTruthy();
+    expect(within(contextBand).getByTestId("catalogue-context-line1")).toBeTruthy();
+    expect(within(contextBand).getByTestId("session-catalogue-search")).toBeTruthy();
     expect(within(contextBand).getByLabelText(strings.screens.sessions.createAction)).toBeTruthy();
-
-    // Le titre du Header n'est jamais dupliqué dans la bande Context.
+    expect(within(contextBand).queryByTestId("catalogue-content-type-row")).toBeNull();
     expect(within(contextBand).queryByText(strings.screens.sessions.title)).toBeNull();
   });
 
@@ -441,12 +442,14 @@ describe("CatalogueScreen — cadre commun", () => {
       expect(flattened.width + hitSlop.left + hitSlop.right).toBeGreaterThanOrEqual(44);
       expect(flattened.height + hitSlop.top + hitSlop.bottom).toBeGreaterThanOrEqual(44);
     }
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).gap).toBe(12);
-    // Remarque 9 de la recette A/B du 27/10 : 8 sous les segments, comme sur `main`.
-    expect(StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style).marginTop).toBe(8);
+    // PRE-9 CAT.1 (CE-CAT-CTX-01) : deuxième ligne de 44 (cibles 44 × 44 à y = 155), écart 12 entre
+    // les commandes (x = 260 / 306 / 352 à 402 pt).
+    const row = StyleSheet.flatten(screen.getByTestId("catalogue-command-row").props.style);
+    expect(row).toMatchObject({ height: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between" });
+    expect(StyleSheet.flatten(screen.getByTestId("catalogue-context-commands").props.style).gap).toBe(12);
   });
 
-  it("shows Rechercher in the command row on the Mouvements segment only, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
+  it("shows the Mouvements Rechercher (distinct from the Séances one) in the context command row, with a clear cross once text is typed (recette PRE-8 A/B D02, D03)", async () => {
     const { service, listCatalogueSessions } = makeFakeService();
     listCatalogueSessions.mockResolvedValue([]);
 
@@ -458,17 +461,22 @@ describe("CatalogueScreen — cadre commun", () => {
     });
 
     expect(screen.queryByTestId("movement-catalogue-search")).toBeNull();
+    // PRE-9 CAT.1 : le segment Séances porte sa propre recherche.
+    expect(screen.getByTestId("session-catalogue-search")).toBeTruthy();
     fireEvent.press(screen.getByTestId("catalogue-content-type-row-movements"));
     const row = screen.getByTestId("catalogue-command-row");
     expect(within(row).getByTestId("movement-catalogue-search")).toBeTruthy();
     // Recette iPhone du 29/10/2026 (Hermann : « mettre le bouton Créer à gauche, et le bouton filtre à
     // droite ») : Créer | Rechercher | Trier | Filtrer ; remplacé le 30/10/2026 (Hermann : « rechercher,
-    // filtrer, trier puis créer »).
-    const order = (row.props.children as ({ props?: { testID?: string } } | null)[])
-      .flat()
-      .map((child) => child?.props?.testID)
-      .filter(Boolean);
-    expect(order).toEqual(["movement-catalogue-search", "catalogue-filter-action", "catalogue-sort-action", "catalogue-create-action"]);
+    // filtrer, trier puis créer »). PRE-9 CAT.1 : même ordre dans la zone de contexte.
+    const testIDsOf = (node: { children: (unknown)[] }) =>
+      node.children.map((child) => (typeof child === "string" ? child : (child as { props: { testID?: string } }).props.testID));
+    expect(testIDsOf(row)).toEqual(["movement-catalogue-search", "catalogue-context-commands"]);
+    expect(testIDsOf(screen.getByTestId("catalogue-context-commands"))).toEqual([
+      "catalogue-filter-action",
+      "catalogue-sort-action",
+      "catalogue-create-action",
+    ]);
     expect(screen.queryByTestId("movement-catalogue-search-clear")).toBeNull();
     fireEvent.changeText(screen.getByTestId("movement-catalogue-search"), "squat");
     expect(screen.getByTestId("movement-catalogue-search").props.value).toBe("squat");
