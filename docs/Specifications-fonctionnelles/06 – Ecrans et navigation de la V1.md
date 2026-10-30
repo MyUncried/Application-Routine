@@ -52,6 +52,8 @@ Le gabarit `10453:23030` et ses états remplacent le shell ancien « Paramètres
 
 ![Mouvement — Fiche](images/mouvements-2026-10-27/10453-23030.png)
 
+**Référence active PRE-9 — Résultats de recherche des Mouvements :** [spécification finale](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Les nœuds Figma `10415:21713`, `10415:21814`, `10415:21916`, `10415:21939` utilisent la carte Résultat avec bouton « Ajouter un niveau ». Les nœuds `9882:19049`, `10175:20349`, `10131:21995` utilisent la carte Composition **sans bouton**. Les légendes et captures antérieures de ces mêmes nœuds ne font pas autorité sur les dispositions modifiées de composants : vérifier les états Figma actuels (captures à resynchroniser si les PNG existants diffèrent).
+
 **Mouvement — Mouvements proches**
 
 ![Mouvement — Mouvements proches](images/mouvements-2026-10-27/10415-21713.png)
