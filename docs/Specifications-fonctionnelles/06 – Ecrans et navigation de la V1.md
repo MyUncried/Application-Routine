@@ -346,6 +346,8 @@ Présentation du Profil avant que l’utilisateur ait créé du contenu
 
 ### Catalogue des séances
 
+**Zone de contexte cible PRE-9.** Le bandeau « Recherche et création » des Catalogues Mouvements et Séances, les deux lignes, les compteurs et leurs états sont définis dans [la spécification finale PRE-9](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et le contrat CE-CAT-CTX-01. À 402 × 874 pt, bande lilas `y=92..207`, recherche `216 × 44` à `x=16, y=155` (`107` pt de large en état filtré/archivé), contrôles Filtre/Tri/Créer à `x=260/306/352` et `y=160`, cibles 44 pt ; aucun titre individuel de page. Figma : Mouvements `10266:20575`/`10465:23141`, Séances `1992:9910`/`4549:6742`. Les captures ci-dessous restent des références d'états ; leurs valeurs chiffrées ne sont pas des données statiques à implémenter.
+
 #### Carte unique et écran — référence du 27/10/2026
 
 La [spécification carte et catalogue](../KODJO-Spec-Carte-et-catalogue-seances-2026-10-27.md) remplace ici le gabarit antérieur : une carte pour une ou plusieurs occurrences d'exercice, photo ou vignette de format 64, catégories dédupliquées par première apparition et débordement +N, aucune zone corporelle ni étiquette ni niveau. Nom suivi du seul chevron de déploiement, uniquement pour plusieurs exercices. Synthèse : format si présent, sinon nombre d'exercices pour plusieurs, sinon volume de l'exercice unique ; durée dans le second emplacement, omise pour For time et Death by. Lecture de la séance entière sur carte active ; aucune action directe sur carte archivée, restauration/suppression dans le glissé.
