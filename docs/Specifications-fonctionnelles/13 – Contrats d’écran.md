@@ -2065,13 +2065,13 @@ Carte : régime identiques → forme N×valeur ; variables → valeurs séparée
 
 ### CE-CIR-01 — Choix de nature du circuit
 
-**Clarification du 29/10 remplaçant le complément précédent :** le Circuit ne porte pas de Format propre ; son choix de nature et de compte ne peut pas rendre invalide le Format d'un Exercice membre. Les contraintes intrinsèques de chaque Exercice formaté demeurent applicables, y compris l'indexation du tour d'échelle For time, distincte du passage du Circuit englobant. Le changement de nature s'appuie sur les règles de compatibilité et de confirmation existantes, sans transfert implicite du Format.
+**Clarification du 29/10 remplaçant le complément précédent :** le Circuit ne porte pas de Format propre ; son choix de nature et de compte ne peut pas rendre invalide le Format d'un Exercice membre. Les contraintes intrinsèques de chaque Exercice formaté demeurent applicables, y compris l'indexation du Volume par tour For time sur le passage du Circuit. Le changement de nature s'appuie sur les règles de compatibilité et de confirmation existantes, sans transfert implicite du Format.
 
 #### 1. Identification
 
 Popover de CE-T03-08, déclenché uniquement par la pastille tours/séries. Référence Prototype MVP `8328:34662`, capture au chapitre 06 ; DSF Circuits du 12/10.
 
-Règles applicables : RM-025, RM-FMT-03, RM-FMT-09, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-025, RM-FMT-03, RM-FMT-09 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2151,13 +2151,13 @@ Tours→séries avec exercices<N,=N,>N ; séries→tours ; Annuler après perte 
 
 ### CE-CIR-02 — Confirmation d’adaptation avec perte
 
-**Complément Formats du 14/10 :** Les confirmations de conversion libre restent applicables seulement aux conversions autorisées. Un format n’est pas changé par cette confirmation ; aucune conversion For time en séries locales.
+Les confirmations de conversion restent applicables aux changements de nature autorisés. Le Format de l'Exercice conserve son identité et ses paramètres, et la validation ne transforme pas le Volume par tour For time en Séries locales.
 
 #### 1. Identification
 
 Dialogue décision existant appelé par conversion ou ajout catalogue dans un circuit à séries alternées ; frame à rattacher ensuite.
 
-Règles applicables : RM-113, RM-FMT-03, RM-FMT-31 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-113, RM-FMT-03 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2237,13 +2237,13 @@ Confirmer/Annuler conversions et ajouts ; comparaison complète avant/après ; t
 
 ### CE-CIR-03 — Volumes du circuit
 
-**Complément Formats du 14/10 :** Pour For time, l’échelle est un Volume par tour ; pour Progression, des répétitions par série. Le nombre de valeurs et le compte correspondant restent cohérents ; le parcours détaillé de redimensionnement For time reste le raccordement R-04 de la revue.
+**Complément Formats du 14/10 :** Pour For time, le Volume par tour suit le passage du Circuit, quelle que soit l'organisation « Par exercice / En alternance » (RM-FMT-30/31). Ces volumes ne sont pas des Séries propres aux Exercices ; pour Progression, les valeurs restent des répétitions par série. Le nombre de valeurs et le compte correspondant restent cohérents ; le parcours détaillé de redimensionnement For time reste le raccordement R-04 de la revue.
 
 #### 1. Identification
 
 Fenêtre de lecture seule ouverte par œil sur la ligne du titre de circuit ; frame à rattacher ensuite.
 
-Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-033, RM-FMT-08, RM-FMT-29, RM-FMT-30, RM-FMT-31, RM-243 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2419,7 +2419,7 @@ REC-01, REC-25 ; choisir chaque entrée et vérifier format/origine, puis la pos
 
 Famille des paramètres, sélection Tabata et récapitulatifs : inventaire chapitre 06, CE-FMT-02 ; plusieurs états, pas un écran universel inventé.
 
-Règles applicables : RM-FMT-05, RM-FMT-11, RM-FMT-13, RM-FMT-14, RM-FMT-15, RM-FMT-20, RM-FMT-21, RM-FMT-22, RM-FMT-27, RM-FMT-29, RM-FMT-30, RM-FMT-31, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
+Règles applicables : RM-FMT-05, RM-FMT-11, RM-FMT-13, RM-FMT-14, RM-FMT-15, RM-FMT-20, RM-FMT-21, RM-FMT-22, RM-FMT-27, RM-FMT-29, RM-FMT-30, RM-FMT-42 (rattachement documentaire : règle citée, règle citant ce contrat, ou même condition et même résultat énoncés ; preuves dans l’annexe « Matrice de traçabilité »)
 
 #### 2. Finalité fonctionnelle
 
@@ -2435,7 +2435,7 @@ Validation → CE-FMT-03 ; retour → étape précédente en conservant les vale
 
 #### 5. Données affichées et source de vérité
 
-Paramètres effectifs du brouillon **par Exercice formaté**. **Défauts validés** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30 s/30 s imposés) ; EMOM fenêtre 60 s, 6 passages ; AMRAP durée 12:00 réglable ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. EMOM : durée calculée N×E×W, sans double multiplication. For time : Volume **par tour de l'échelle**, distinct du passage du Circuit englobant.
+Paramètres effectifs du brouillon **par Exercice formaté**. **Défauts validés** : Tabata 8×20 s/10 s imposés ; 30/30 6 séries (30 s/30 s imposés) ; EMOM fenêtre 60 s, 6 passages ; AMRAP durée 12:00 réglable ; For time échelle 21·15·9 ; Death by départ 1, incrément 1, fenêtre 1 min. EMOM : durée calculée N×E×W, sans double multiplication. For time : Volume **par passage du Circuit**, suivant l'échelle sélectionnée ; ce volume ne modifie pas le nombre de Séries d'un Exercice.
 
 #### 6. Classification des valeurs Figma
 
@@ -2447,7 +2447,7 @@ En-tête, exercices et bloc de paramètres, durée calculée lorsqu’applicable
 
 #### 8. Éléments obligatoires
 
-Tabata : Séries par exercice 8 ; Exécution si plusieurs exercices. EMOM : compte/fenêtre/organisation et total. For time : Volume par tour sans sélecteur. Progression : répétitions par série et organisation.
+Tabata : Séries par exercice 8 ; Exécution si plusieurs exercices. EMOM : compte/fenêtre/organisation et total. For time : Volume par tour et sélecteur « Par exercice / En alternance » lorsque plusieurs Exercices sont concernés (RM-FMT-31). Progression : répétitions par série et organisation.
 
 #### 9. Layout déterministe
 
@@ -2463,7 +2463,7 @@ Paramètres initiaux/modifiés ; organisation sélectionnée ; sélection d’ex
 
 #### 12. Contrôles et interactions
 
-Changer un réglage recalcule synthèse et durée. Segment change ordre, pas volume. Aucun champ Durée totale éditable EMOM. For time ne propose pas le segment.
+Changer un réglage recalcule synthèse et durée. Segment change ordre, pas volume. Aucun champ Durée totale éditable EMOM. For time propose le segment « Par exercice / En alternance » avec plusieurs Exercices (RM-FMT-31) ; le segment modifie l'ordre d'exécution, sans modifier l'échelle par passage ni le nombre de Séries des Exercices.
 
 #### 13. Gestes
 
@@ -2556,7 +2556,7 @@ Gestes de composition existants ; pas de mouvement de conversion du format ajout
 
 #### 14. Validation
 
-Au moins un Exercice valide ; en groupées, le Circuit répète le bloc complet de chaque membre ; le Cycle répète sa séquence, sans compteur de répétition propre au Format. Déposes : six Formats admis en groupées ; alternées Tabata seulement N=8, EMOM et Death by admis, 30/30, For time et AMRAP refusés (D-15/D-16). Aucune double multiplication du compte du Format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
+Au moins un Exercice valide ; en groupées, le Circuit exécute les membres selon leurs prescriptions (For time : valeur d'échelle par passage) ; le Cycle répète sa séquence, sans compteur de répétition propre au Format. Déposes : six Formats admis en groupées ; alternées Tabata seulement N=8, EMOM, For time et Death by admis ; 30/30 et AMRAP refusés (D-15/D-16, RM-FMT-31). Aucune double multiplication du compte du Format par sa représentation locale. Contraintes réappliquées après édition **à leurs niveaux respectifs** : constantes propres au Format de chaque Exercice, organisation et nombre de passages du Circuit. La simple dépose d'un Exercice formaté ne transmet aucun Format au Circuit ou aux autres membres ; l'adoption volontaire par un nouvel Exercice constitue une action distincte, avec confirmation si des valeurs existantes sont perdues. Le Circuit ne porte aucune identité de Format.
 
 #### 15. Brouillon et persistance
 
