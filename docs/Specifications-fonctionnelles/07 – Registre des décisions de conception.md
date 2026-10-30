@@ -1144,6 +1144,14 @@ Source : [synthèse fournie](../KODJO-Conteneurs-composition-2026-10-28-source.m
 
 Les réserves de la [revue critique](../REVUE-COMPOSITION-2026-10-28.md) ne sont pas des arbitrages : sélection d’enveloppe, frontières des points, cycle entier, cas nuls et détails de recette restent distincts des décisions closes.
 
+## Décision du 30/10/2026 — Zone de contexte commune des Catalogues — PRE-9
+
+**Validée par Hermann.** [Spécification de développement et règles complètes](../KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md), contrat CE-CAT-CTX-01. Bande lilas pleine largeur `y=92..207`, référence 402 × 874 pt, marges 16 pt. Ligne de compteurs à `x=24, y=118` ; champ « Rechercher » à `x=16, y=155`, largeur 216 pt (107 pt en filtré/archivé), hauteur 44 pt, placeholder 15 pt `#7A7A80` ; contrôles Filtre/Tri/Créer de 34 pt à `x=260/306/352, y=160`, cibles 44 × 44 à `y=155`. Titre individuel de page masqué dans les deux Catalogues, segmenté principal conservé.
+
+**Mouvements** : « N familles · N mouvements », 14 pt Regular `#333333`, séparateur médian ; chaque compteur est cliquable, exclusif, désélectionnable ; actif bleu Kodjo `#0508E5` et Semi Bold/Bold ; le critère actif se cumule à la recherche et aux autres filtres. Familles : familles ayant au moins une carte visible ; mouvements : cartes visibles. **Séances** : « Un exercice N | Plusieurs N », libellés 14 pt inactifs `#595E66`, actifs bleu Kodjo gras, N informatifs 14 pt `#333333`, séparateur `|` `#9499A8` à `x=127` ; comportement de bascule inchangé. **Écrans filtrés/archivés** : `N résultats`, bord droit `x=378`, 14 pt Regular `#333333`, égal à la longueur réelle de la liste après recherche et filtres ; « 1 résultat » sinon pluriel. Tout chiffre de maquette est une illustration. Aucun compteur supplémentaire n'est persisté.
+
+**Implémentation demandée dans PRE-9 dès à présent**, par story autonome. Références Figma `10266:20575`, `10465:23141`, `10495:24099`, `1992:9910`, `4549:6742`. Cette décision remplace, sur ce seul périmètre, les dispositions de recherche absente, de titre individuel visible ou de mise en page qui la contredisent ; les autres règles des Catalogues restent applicables. Aucun nouveau numéro D n'est attribué ici.
+
 ## Clarification des décisions du 29/10/2026 — Formats dans la Composition (sans nouveau numéro D)
 
 **Décision fonctionnelle confirmée par Hermann, en complément des arbitrages PRE-9 et de l'adoption volontaire consignée dans le document de réponses au commit `c458dac6`.** Cette clarification remplace, pour le modèle cible, les formulations antérieures d'ARB-03, ARB-24 et des versions du plan PRE-9 qui traitent le Circuit comme porteur autonome d'un Format.
