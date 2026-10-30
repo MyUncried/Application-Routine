@@ -8,6 +8,8 @@
 
 > **Clarification ciblée (29/10/2026) :** les formulations antérieures du PRD « Format porté par Circuit ou Exercice » sont remplacées par la propriété **par Exercice uniquement**, et la présentation replié/déplié s'appuie sur Figma ; le plan historique reste traçable dans le registre.
 
+**Extension validée le 30/10/2026 :** zones de contexte des Catalogues Mouvements et Séances à réaliser dès PRE-9, suivant [la spécification complète](../../../docs/KODJO-Zones-contexte-catalogues-PRE9-2026-10-30.md) et le contrat CE-CAT-CTX-01, indépendamment des travaux de Composition et du moteur.
+
 ## 1. Objectif
 
 À l'issue de PRE-9, KODJO permet de **créer, modifier, organiser, enregistrer et rouvrir** les Séances du MVP, libres ou configurées par un Format, selon le modèle simplifié (D-449) et la Composition à conteneurs (D-451) ; une Séance peut réunir plusieurs éléments formatés et libres, directement ou dans des Cycles (ARB-03). Leur structure, leurs contraintes et leur instantané sont assez définis pour que PRE-10 développe le moteur commun sans reconstruire le modèle de Séance.
@@ -21,6 +23,7 @@ Hermann, utilisateur unique sur iPhone, compose ses séances d'entraînement : i
 ## 3. Périmètre
 
 ### Inclus
+- **Chantier CAT — Zone de contexte des Catalogues** : bande lilas et deux lignes, recherche, filtre/tri/création, compteurs de Mouvements interactifs et exclusifs, compteurs de vues Séances informatifs, « N résultats » filtrés/archivés en direct, titres individuels masqués, adaptation 402 × 874 ; sans modification des cartes ni des comportements métier existants.
 - **Chantier A — Séance simplifiée** : Composition, consultation, duplication et réouverture sur la structure générale (Exercices directs de Cycle compris) ; création d'Exercice uniquement depuis un Mouvement ; fin des parcours `activity_definitions` ; conversion E.8-b et titres Q-E1 selon ARB-01 ; suppression des tables historiques seulement sous conditions (A.5).
 - **Chantier B — Composition D-451** : Cycles, multi-Circuits, Exercices directs (Séance et Cycle), séries groupées/alternées, comptes, menu Créer à six actions (dont « Format », ARB-23), création par enveloppe (ARB-06), replié/déployé, glisser-déposer entre conteneurs et déplacement d'un Cycle entier avec défilement automatique, suppression, duplication d'Exercice, pauses et points d'arrêt (ARB-02), durées et synthèses, reprise d'une Séance existante, nom à trois états.
 - **Chantier C — Formats** : sélection du modèle (cartes Exercice et Séance, Formats, départs rapides), paramètres imposés, récapitulatif, Composition préremplie, états verrouillé / réglable / calculé / libre / non applicable, validation des contraintes **par élément formaté**, édition, duplication, réouverture, persistance — pour Tabata, Intervalles 30/30, EMOM, AMRAP, For time, Death by, les cinq départs rapides et Libre. Mise à disposition de chaque Format et départ rapide conditionnée à ses valeurs (ARB-04, ARB-22c).
