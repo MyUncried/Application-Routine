@@ -10,6 +10,10 @@ Appui long, déplacement, arrêt sur l'emplacement puis relâchement : même ges
 
 > **C08 — actualisation du 28/10/2026.** La [composition des familles depuis le catalogue](../DSF-FAMILLES-CATALOGUE-MOUVEMENTS-2026-10-28.md), règles A à E et CE-MVT-03, est désormais définie : rattacher, détacher et dissoudre une famille par geste. Les mentions antérieures « C08 différé » restent historiques pour ces opérations ; elles ne sont plus une restriction active. La suppression définitive d'un mouvement reste distincte et n'est pas clôturée par ce lot.
 
+### Résultats de recherche — variantes de cartes, PRE-9
+
+**Comportement cible validé :** [spécification des résultats Mouvement](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md), contrat CE-MVT-RESULT-01. **Créer un Mouvement** : carte Résultat avec « Ajouter un niveau » à droite et sans bouton « Utiliser ». **Créer un Exercice depuis un Mouvement** : carte Composition, sans action en carte, description limitée à deux lignes ellipsées. La liste de Niveaux affiche le filet de groupe centre-à-centre ; l'état de choix affiche « Plus facile | Plus difficile » dans un seul cadre, sans seconde carte ni symboles d'arbre. Le parcours de création/confirmation et la recherche existants restent inchangés.
+
 ### Ajouter un niveau — glissé du catalogue et résultats proches (27/10/2026)
 
 Le libellé utilisateur **Ajouter un niveau** remplace **Créer une variante** dans les actions du catalogue des mouvements et dans les cartes de résultats. L'opération reste la création d'un mouvement distinct dans la même famille ; aucun changement d'identité ou de filiation de la source. La décision ne crée pas une quatrième action glissée.
