@@ -18,11 +18,20 @@ Référence Figma : filet 2 px ; message `10484:24052`, 370 × 48 à (16, 738), 
 | --- | --- | --- | --- |
 | DSF / Actions glissées / Mouvement | `10586:45516` | 204 × 80 ; Inter Semi Bold 11 | Partager, Ajouter un niveau, Archiver |
 | DSF / Actions glissées / Mouvement — Choix du sens | `10586:45517` | 204 × 56 ; Inter Semi Bold 11 | Plus facile ↓ / Plus difficile ↑, raccords compris, sous les actions |
-| Carte — Mouvement — Résultat | `10199:22268` | 338 × 107 relevés ; actions Inter Medium 13 | Utiliser ce mouvement / Ajouter un niveau, libellé propagé aux instances |
+| Carte — Mouvement — Résultat | `10199:22268` | Bouton « Ajouter un niveau » 66 × 32 à x264 ; zone tactile 78 × 36 à x258/y31 ; description 179 pt | **Une seule action visible sur la carte de création de Mouvement** ; « Utiliser ce mouvement » absent (CE-MVT-RESULT-01) |
 
 Texte des actions glissées lié à `color/on-primary` (`VariableID:4151:6166`), blanc, déjà référencé. Aucune création de token global requise par le renommage. Réutiliser les propriétés des composants ; ne pas appliquer la typographie de carte aux actions glissées. Relevé : [ajout-niveau-glisse.json](../figma-mouvements-2026-10-27/ajout-niveau-glisse.json).
 
 La hauteur supplémentaire doit participer au layout de la liste pour décaler les cartes suivantes et prolonger le filet de famille. Ne pas monter un overlay qui les recouvre. Les raccords des deux boutons appartiennent au composant Choix du sens ; les flèches doivent être accompagnées des libellés accessibles. Les frames du prototype ne sont pas toutes des instances de ces nouveaux composants : leur existence dans le DSF est la référence de réutilisation, sans prétendre une liaison de toutes les frames.
+
+## Composants Résultat / Composition — PRE-9, 30/10/2026
+
+**Source visuelle active :** Figma `10199:22268` (« Carte — Mouvement — Résultat ») et `10895:19870` (« Carte — Mouvement — Composition »), [spécification fonctionnelle](../KODJO-Resultats-recherche-mouvements-PRE9-2026-10-30.md) et CE-MVT-RESULT-01. Ne pas créer un nouveau composant pour ce correctif.
+
+- **Résultat** : description 179 pt ; « Ajouter un niveau » sur deux lignes, x264, 66 × 32 pt, zone tactile x258/y31 de 78 × 36 pt. Ne pas réintroduire « Utiliser ce mouvement » dans cette variante de carte.
+- **Composition** : 338 × 73 pt, description 253 pt sur deux lignes avec « … », **aucun bouton** dans toutes les instances de ce composant.
+- **Familles** : filet bleu x3, largeur 2 pt, de centre à centre des cartes visibles extrêmes. **Choix du sens** : cadre 338 × 104 pt, une ligne supplémentaire « Plus facile | Plus difficile » ; aucun second cadre ou symbole d'arbre.
+- Utiliser les composants et comportements de recherche/famille existants ; la séparation des deux variantes est une règle d'affichage, sans mutation des données ni nouveau service.
 
 ## Design system — fiche Mouvement (lot ciblé du 27/10/2026)
 
@@ -1881,7 +1890,7 @@ Le [relevé courant](../DSF-NIVEAUX-RECHERCHE-2026-10-25.md#composants-et-tokens
 | Composant | Identifiant | Contrat |
 |---|---|---|
 | Carte — Mouvement | 10124:21979 | Sélection Absente / Vide / Cochée, 322 × 80 ; instances 354 × 80 |
-| Carte — Mouvement — Résultat | 10199:22268 | 338 × 107, photo 57, deux actions ; pas de radio dans la recherche |
+| Carte — Mouvement — Résultat | 10199:22268 | Variante résultats de création Mouvement ; description 179 pt ; « Ajouter un niveau » 66 × 32, zone tactile 78 × 36 ; **aucun bouton Utiliser** |
 | icon/modifier | 9925:41240 | Crayon plein 24, état actif blanc/bleu ; portée dans CE-T03-04, réserve D-445 (clos) |
 | icon/niveau | 9932:44044 | Variantes 1/2/3 ; état vide via Sélecteur classification, rangs supérieurs à compléter |
 | Sélecteur classification | 9003:15638 | Rôles Catégorie / Zone / Niveau ; vide 9925:41506, renseigné 9925:41515 |
