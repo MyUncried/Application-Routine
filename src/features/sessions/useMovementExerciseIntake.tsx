@@ -14,6 +14,7 @@ import {
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
 } from "@/domain/preferences/Profile";
 import { exitCircuit } from "@/domain/sessions/circuit";
+import { withoutPhasesToVerify } from "@/domain/sessions/SessionDraft";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
@@ -25,6 +26,7 @@ import {
   withMovementExercises,
 } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 
 type ProfileDefaults = {
   readonly countdownSeconds: number;
@@ -81,6 +83,7 @@ export type MovementExerciseIntake = {
 export function useMovementExerciseIntake(): MovementExerciseIntake {
   const { draft, updateDraft } = useSessionDraft();
   const profileService = useContext(ProfileServiceContext);
+  const sessionService = useContext(SessionServiceContext);
   const [defaults, setDefaults] = useState<ProfileDefaults>(DOMAIN_DEFAULTS);
   /**
    * Feuille ouverte : Exercice, compteur de phases et — recette iPhone n° 2 du 31/10/2026 (constat c :
@@ -156,6 +159,21 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
     setOpened({ ...opened, opening: { parameters, baseline: isExerciseParametersIncomplete(exercise) ? null : parameters } });
   }
   const opening = opened.opening ?? { parameters: exercise.executionParameters, baseline: null };
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (constat e, Hermann : « Ouverture de la feuille
+   * (Recommandé) ») : la feuille ouverte puis fermée (✓ ou ✕), l'Exercice n'est plus « à vérifier » —
+   * marque retirée du brouillon (sans le rendre modifié, `exerciseEquals`) et de la Séance enregistrée.
+   */
+  const marked = (exercise.phasesToVerify ?? []).length > 0;
+  const acknowledge = () => {
+    if (!marked) return;
+    updateDraft((current) => ({
+      exercises: current.exercises.map((candidate) => (candidate.id === exercise.id ? withoutPhasesToVerify(candidate) : candidate)),
+    }));
+    sessionService?.acknowledgeParametersToVerify(exercise.id).catch((error: unknown) => {
+      console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+    });
+  };
   const close = () => setOpened(null);
   const movementId = (exercise.sourceMovementId ?? "").trim();
   const nextPhaseId = opened.nextPhaseId ?? draft.movements?.[movementId]?.nextPhaseId;
@@ -171,6 +189,10 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
         inheritedSeriesCount={inheritsCircuitSeriesCount(draft, exercise)}
         phaseStructureLocked={isPersistedMovementOccurrence(exercise, draft.movements)}
         {...(nextPhaseId !== undefined ? { nextPhaseId } : {})}
+        // Recette iPhone n° 2 du 31/10/2026 (constat d) : ouverture plus lente et fermeture animée.
+        presentation="compositionCard"
+        // Constat e : phases « à vérifier » en orange dans la feuille.
+        {...(marked ? { phasesToVerify: exercise.phasesToVerify } : {})}
         onApply={(parameters) => {
           const validated = validateForSave(parameters, opening.baseline);
           const applied = validated.ok ? validated.value : parameters;
@@ -181,17 +203,28 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
           const seriesChanged = !openedSeries.some((before) => executionParametersEqual(applied, { ...applied, series: before.series }));
           updateDraft((current) => {
             const exercises = current.exercises.map((candidate) =>
-              candidate.id === exercise.id ? { ...candidate, executionParameters: applied, sideMode: applied.sideMode } : candidate,
+              candidate.id === exercise.id
+                ? { ...withoutPhasesToVerify(candidate), executionParameters: applied, sideMode: applied.sideMode }
+                : candidate,
             );
             const hasReserveEntry = current.circuitSeriesReserve !== undefined && Object.prototype.hasOwnProperty.call(current.circuitSeriesReserve, exercise.id);
             if (!seriesChanged || !hasReserveEntry) return { exercises };
             const occurrence = exercises.find((candidate) => candidate.id === exercise.id)!;
             return { exercises, circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve };
           });
+          if (marked) {
+            sessionService?.acknowledgeParametersToVerify(exercise.id).catch((error: unknown) => {
+              console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+            });
+          }
           close();
         }}
-        onCancel={close}
+        onCancel={() => {
+          acknowledge();
+          close();
+        }}
       />
     ),
   };
 }
+

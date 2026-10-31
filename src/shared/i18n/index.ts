@@ -20,6 +20,10 @@ const executionParameters = {
     openAccessibilityLabel: "Modifier les paramètres d’exécution",
     // Recette iPhone du 30/10/2026 (Hermann : « Il faut enlever le point après "compléter" »).
     incomplete: "Paramètres à compléter",
+    // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e, Hermann : « avec le texte « Paramètre à
+    // vérifier » à la place de « Paramètre à compléter » ») : texte exact de Hermann (singulier) ;
+    // « Paramètres à compléter » prime.
+    toVerify: "Paramètre à vérifier",
     // PRE-5 story 3.2 (R-14, FR-36) : `countdown` et `end` retirés avec les lignes
     // Compte à rebours / Fin de la Carte (la Feuille garde les siennes : `sheet`).
   },

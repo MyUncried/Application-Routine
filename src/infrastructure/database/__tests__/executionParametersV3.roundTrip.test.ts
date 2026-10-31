@@ -198,7 +198,7 @@ describe("PRE5-1.1/AC11 — aller-retour v3 sur node:sqlite réel (AD-18)", () =
 
   // PRE-5 n'ajoutait aucune migration ; PRE-6 ajoute `migration011`, PRE-7 `migration012` (A1.2) et `migration013` (R-3), PRE-8 `migration014` (A.3) et `migration015` (B.8).
   it("PRE-5 n'ajoute aucune migration : DATABASE_VERSION vaut 18 depuis PRE-9 (A.2b) et la base migrée est à la version courante", async () => {
-    expect(DATABASE_VERSION).toBe(18);
+    expect(DATABASE_VERSION).toBe(19);
     const version = await database.getFirstAsync<{ user_version: number }>("PRAGMA user_version");
     expect(version?.user_version).toBe(DATABASE_VERSION);
   });

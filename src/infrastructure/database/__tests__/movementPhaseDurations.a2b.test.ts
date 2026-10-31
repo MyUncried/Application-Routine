@@ -127,6 +127,8 @@ describe("PRE-9 A.2b — Séance : l'Exercice et le Mouvement sont indépendants
 
     const exerciseRow = await database.getAllAsync("SELECT id, execution_parameters FROM activities");
     // Modification ultérieure du Mouvement (durées) : l'Exercice existant est « Inchangé » (Hermann, 31/10).
+    // [Recette iPhone n° 2 du 31/10/2026, constat e : vrai pour des durées RENSEIGNÉES, comme ici ; une
+    // durée vide recevrait la valeur ajoutée, « à vérifier » — `parametersToVerify.recette2.test.ts`.]
     await movements().update(
       squat({ phases: [{ id: 1, label: "Descente", durationSeconds: 20 }, { id: 2, label: "Pause", durationSeconds: 20 }, { id: 3, label: "Montée", durationSeconds: 20 }] }),
     );

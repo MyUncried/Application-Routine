@@ -98,6 +98,11 @@ export type ActivityRow = {
   format_key?: string | null;
   /** PRE-9 (C.1) : réglages JSON versionnés, présents si et seulement si `format_key` l'est. */
   format_settings?: string | null;
+  /**
+   * PRE-9 (recette iPhone n° 2 du 31/10/2026, constat e, `migration019`) : identités des phases « à
+   * vérifier » (liste JSON), `NULL` = aucune ; absente des fixtures et des lectures antérieures.
+   */
+  phases_to_verify?: string | null;
 };
 
 /**
@@ -146,6 +151,8 @@ export type ActivityDefinitionRow = {
   id: string;
   movement_id: string;
   execution_parameters: string;
+  /** PRE-9 (recette iPhone n° 2, constat e, `migration019`) : phases « à vérifier » (JSON), `NULL` = aucune. */
+  phases_to_verify?: string | null;
   created_at: string;
   updated_at: string;
 };

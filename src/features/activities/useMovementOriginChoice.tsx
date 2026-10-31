@@ -148,6 +148,13 @@ export function useMovementOriginChoice({
   const variantOf = variantStep !== null && variantStep.name === name ? variantStep.movementId : null;
   const setVariantOf = (movementId: string | null) =>
     setVariantStep(movementId === null ? null : { movementId, name });
+  // Recette iPhone n° 2 du 31/10/2026 (Hermann : « entrer Squat […] appuyer sur entrée : la liste de
+  // recherche disparaît > effacer des lettres et réécrire Squat : la liste de recherche n'affiche
+  // rien ») : la fermeture (et l'étape de variante) restait liée au texte « Squat » ; revenu au même
+  // texte après des effacements, le panneau restait fermé. Toute modification du nom les oublie
+  // (ajustement d'état pendant le rendu, motif React « état dérivé d'une prop »).
+  if (dismissedFor !== null && dismissedFor !== name) setDismissedFor(null);
+  if (variantStep !== null && variantStep.name !== name) setVariantStep(null);
   // R04 : résultats figés pendant un appui sur le panneau (`null` : aucun appui en cours).
   const [frozen, setFrozen] = useState<readonly MovementChoice[] | null>(null);
 

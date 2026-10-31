@@ -158,6 +158,7 @@ import {
   inlineSelectedLabelStyle,
 } from "@/shared/ui/SegmentedControl";
 import { TRANSIENT_NOTIFICATION_DURATION_MS } from "@/shared/ui/TransientNotification";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, dimensions, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
 
@@ -344,6 +345,25 @@ export type ExecutionParametersSheetProps = {
   readonly nextPhaseId?: number;
   readonly onApply: (parameters: ExecutionParameters) => void;
   readonly onCancel: () => void;
+  /**
+   * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat d, Hermann : « appui sur une carte d'exercice,
+   * la modale doit s'ouvrir plus lentement et s'arrêter moins brutalement. Fermeture de la modale de
+   * bas en haut jusqu'à disparition, même vitesse que l'apparition ») : `"compositionCard"` —
+   * feuille ouverte depuis une carte de la Composition : montée plus lente (`CARD_SHEET_MOTION_MS`,
+   * ease-out), voile en fondu sur la même durée, et fermeture (✓, ✕, retour système) par le
+   * mouvement inverse — la feuille redescend jusqu'à disparaître, voile en fondu, même durée — avant
+   * `onApply` / `onCancel`. « Réduire les animations » : ni montée ni descente (D-7). Absent
+   * (`"default"`) : prototype figé inchangé (montée 0,25 s, Modal en fondu, fermeture immédiate).
+   */
+  readonly presentation?: "default" | "compositionCard";
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « que les champs (et l'ensemble
+   * de la ligne de couleur) soient identifiés en orange ») : phases « à vérifier » de l'Exercice, lues
+   * à l'ouverture — leurs cellules de durée et la ligne « Phases » en orange (`toVerifyColors`, rendu
+   * choisi sans maquette). « Paramètres à compléter » prime : une durée manquante garde son rouge et
+   * la ligne n'est pas orange. Absent : aucun orange.
+   */
+  readonly phasesToVerify?: readonly number[];
 };
 
 const t = strings.executionParameters.sheet;
@@ -455,6 +475,13 @@ const PANEL_OUTSIDE_INSETS = { top: spacing[12], right: spacing[24], bottom: spa
 /** Durée de montée de la feuille (prototype figé : ouverture 0,25 s, ease-out). */
 const SHEET_ENTRY_DURATION_MS = 250;
 /**
+ * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat d) : feuille ouverte depuis une carte de la
+ * Composition — montée plus lente, décélération plus douce (ease-out cubique sur 0,45 s au lieu de
+ * 0,25 s) ; descente de fermeture à la même durée, courbe inverse (ease-in). Valeurs CHOISIES, à
+ * valider sur iPhone.
+ */
+export const CARD_SHEET_MOTION_MS = 450;
+/**
  * Hauteur minimale des lignes de la Feuille : 44 pt, pour que les ± et les pastilles
  * aient une cible tactile verticale de 44 pt (NFR-09). Décision Q42 de Hermann du
  * 2026-10-17 (recette iPhone) ; remplace les 42 pt du DSF et du code PRE-3. Aucun jeton
@@ -541,6 +568,8 @@ export function ExecutionParametersSheet({
   nextPhaseId,
   onApply,
   onCancel,
+  presentation = "default",
+  phasesToVerify,
 }: ExecutionParametersSheetProps) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
@@ -587,6 +616,12 @@ export function ExecutionParametersSheet({
   // figé : aucune translation du voile) ; seule la feuille garde sa montée depuis le bas.
   const reduceMotion = useReduceMotion();
   const [sheetEntry] = useState(() => new Animated.Value(windowHeight));
+  // PRE-9, recette iPhone n° 2 (constat d) : carte de la Composition — voile animé par la feuille
+  // (Modal sans animation propre) et fermeture animée en cours (une seule).
+  const cardMotion = presentation === "compositionCard";
+  const [scrimOpacity] = useState(() => new Animated.Value(cardMotion ? 0 : 1));
+  const closingRef = useRef(false);
+  const [isClosing, setIsClosing] = useState(false);
   // Recette 2 (T-15) : pendant le glisser d’une Série, le corps ne défile pas.
   // Sinon le défilement natif d’iOS prend le geste, déplace la feuille et
   // interrompt le responder : la ligne n’est jamais déposée.
@@ -634,20 +669,52 @@ export function ExecutionParametersSheet({
   });
   useEffect(() => {
     // D-7 : « Réduire les animations » → feuille en place, sans montée.
+    if (closingRef.current) return;
     if (reduceMotion) {
       sheetEntry.stopAnimation();
       sheetEntry.setValue(0);
+      scrimOpacity.stopAnimation();
+      scrimOpacity.setValue(1);
       return;
     }
-    const animation = Animated.timing(sheetEntry, {
-      toValue: 0,
-      duration: SHEET_ENTRY_DURATION_MS,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
+    const easing = Easing.out(Easing.cubic);
+    const animation = cardMotion
+      ? Animated.parallel([
+          Animated.timing(sheetEntry, { toValue: 0, duration: CARD_SHEET_MOTION_MS, easing, useNativeDriver: true }),
+          Animated.timing(scrimOpacity, { toValue: 1, duration: CARD_SHEET_MOTION_MS, easing, useNativeDriver: true }),
+        ])
+      : Animated.timing(sheetEntry, {
+          toValue: 0,
+          duration: SHEET_ENTRY_DURATION_MS,
+          easing,
+          useNativeDriver: true,
+        });
     animation.start();
     return () => animation.stop();
-  }, [sheetEntry, reduceMotion]);
+  }, [sheetEntry, scrimOpacity, cardMotion, reduceMotion]);
+
+  /**
+   * PRE-9, recette iPhone n° 2 (constat d) : fermeture d'une feuille ouverte depuis une carte — la
+   * feuille redescend jusqu'à disparaître et le voile s'efface, à la durée de la montée, puis `done`
+   * (`onApply` / `onCancel`). Une seule fermeture ; « Réduire les animations » ou autre présentation :
+   * `done` immédiat.
+   */
+  function closeAnimated(done: () => void) {
+    if (!cardMotion || reduceMotion) {
+      done();
+      return;
+    }
+    if (closingRef.current) return;
+    closingRef.current = true;
+    setIsClosing(true);
+    sheetEntry.stopAnimation();
+    scrimOpacity.stopAnimation();
+    const easing = Easing.in(Easing.cubic);
+    Animated.parallel([
+      Animated.timing(sheetEntry, { toValue: windowHeight, duration: CARD_SHEET_MOTION_MS, easing, useNativeDriver: true }),
+      Animated.timing(scrimOpacity, { toValue: 0, duration: CARD_SHEET_MOTION_MS, easing, useNativeDriver: true }),
+    ]).start(() => done());
+  }
 
   // Story 3.6 (AD-15, « Ligne disparue ») : après toute transition du Brouillon, une Cellule
   // active ou un Sélecteur de ligne dont la ligne n'existe plus est retiré (règle défensive).
@@ -679,11 +746,26 @@ export function ExecutionParametersSheet({
   // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a, Hermann : « Si la durée d'une phase manque
   // dans un exercice, le cadre de l'option phase doit être rouge lorsque le tableau des phases est
   // replié ») : au moins une durée de phase manquante (vide ou 0 s, `hasMissingPhaseDuration`) et
-  // tableau replié → ligne « Phases de l'exercice » en rouge (`Row.invalid`).
+  // tableau replié → ligne « Phases de l'exercice » en rouge (`Row.invalid`). [Remplacé le 31/10/2026,
+  // contrôle de la recette n° 2 (cr2-phases-rouge, Hermann : « Seul le cadre du champ du nombre de
+  // phases doit être rouge. Pas toute la ligne. ») : cadre rouge de l'option Avec sélectionnée
+  // (« n phases », `SegmentedControl` option `invalid`), la ligne reste neutre.]
   const isPhasesRowIncomplete =
     hasWorkPhases &&
     isPhasesFolded &&
     draft.workPhases.some((phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin));
+  // PRE-9, recette iPhone n° 2 (constat e) : phases « à vérifier » lues à l'ouverture, encore
+  // présentes et renseignées ; ligne « Phases » orange sauf si une durée manque (le rouge prime).
+  const [openingPhasesToVerify] = useState(() => new Set(phasesToVerify ?? []));
+  const toVerifyPhaseIds = new Set(
+    draft.workPhases
+      .filter((phase) => openingPhasesToVerify.has(phase.id) && typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin)
+      .map((phase) => phase.id),
+  );
+  const hasMissingPhase = draft.workPhases.some(
+    (phase) => !(typeof phase.durationSeconds === "number" && phase.durationSeconds >= WORK_PHASE_LIMITS.durationMin),
+  );
+  const isPhasesRowToVerify = toVerifyPhaseIds.size > 0 && !hasMissingPhase;
   // AD-23 : seule autorité de la Condition d'arrêt, sur l'état effectif.
   const stopCondition = stopConditionOf(effective);
   // FR-21 : en identiques à l'échec, la ligne de cible (Durée ou Répétitions) est masquée.
@@ -1134,13 +1216,14 @@ export function ExecutionParametersSheet({
   function handleValidate() {
     if (absorbSheetCommand()) return;
     if (validation.ok) {
-      onApply(validation.value);
+      const value = validation.value;
+      closeAnimated(() => onApply(value));
     }
   }
 
   function handleCancel() {
     if (absorbSheetCommand()) return;
-    onCancel();
+    closeAnimated(onCancel);
   }
 
   function handleTotalValidated(requestedSeconds: number) {
@@ -1898,6 +1981,8 @@ export function ExecutionParametersSheet({
         // Story 3.8 (AC2) : « — » annoncé « aucune valeur », jamais « tiret ».
         spokenDisplayValue={spokenValue(text)}
         invalid={missing || phaseSumViolation !== undefined}
+        // Recette iPhone n° 2 (constat e) : durée reprise du Mouvement, « à vérifier » (orange).
+        toVerify={toVerifyPhaseIds.has(phaseId)}
         accessibilityHint={missing ? t.invalidHint : phaseSumHint}
         accessibilityLabel={t.phaseDuration.replace("{n}", String(number))}
         style={[tableCellStyle, styles.keyboardCell]}
@@ -1932,6 +2017,8 @@ export function ExecutionParametersSheet({
               width: phaseCountOpen ? PHASE_OPTION_OPEN_WIDTH : PHASE_OPTION_CLOSED_WIDTH,
               // RC-16 : réglage ouvert, l'option dessine son fond clair (`#EAEAFF`, comme la charge active).
               ownSurface: phaseCountOpen,
+              // Contrôle de la recette n° 2 (cr2-phases-rouge) : seul le cadre du champ « n phases » est rouge.
+              invalid: isPhasesRowIncomplete,
               selectedContent: (
                 <PhaseCountField
                   isOpen={phaseCountOpen}
@@ -1996,10 +2083,18 @@ export function ExecutionParametersSheet({
   ) : null;
 
   return (
-    <Modal transparent visible animationType="fade" onRequestClose={handleCancel} testID="execution-sheet-modal">
+    <Modal
+      transparent
+      visible
+      // Constat d (carte de la Composition) : voile animé ci-dessous, à la durée de la feuille.
+      animationType={cardMotion ? "none" : "fade"}
+      onRequestClose={handleCancel}
+      testID="execution-sheet-modal"
+    >
       <View
         ref={scrimRef}
-        style={styles.scrim}
+        style={[styles.scrim, cardMotion ? styles.scrimTransparent : null]}
+        pointerEvents={isClosing ? "none" : "auto"}
         // RC-1 : bas réel de la zone de la `Modal` (coordonnées de la fenêtre), repère de la barre du clavier.
         onLayout={() => {
           scrimRef.current?.measureInWindow((_x, y, _width, height) => {
@@ -2008,6 +2103,13 @@ export function ExecutionParametersSheet({
         }}
         testID="execution-sheet-scrim"
       >
+        {cardMotion ? (
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFill, styles.scrimShade, { opacity: scrimOpacity }]}
+            testID="execution-sheet-scrim-shade"
+          />
+        ) : null}
         {/* Q39 (Hermann, 2026-10-17, E-13) : la montée (`sheetEntry`, fil natif, inchangée)
             porte sur un cadre transparent plein écran ; la surface blanche, ancrée en bas
             à l'intérieur, glisse vers sa nouvelle hauteur (Reanimated, fil UI) quand une
@@ -2140,7 +2242,7 @@ export function ExecutionParametersSheet({
                     <Row
                       label={t.workPhases}
                       selected={phaseCountOpen}
-                      invalid={isPhasesRowIncomplete}
+                      toVerify={isPhasesRowToVerify}
                       testID="execution-sheet-row-phases"
                     >
                       {phasesControl}
@@ -2801,7 +2903,7 @@ function Row({
   label,
   labelAccessory = null,
   selected = false,
-  invalid = false,
+  toVerify = false,
   longLabel = false,
   below = null,
   onLayout,
@@ -2813,12 +2915,14 @@ function Row({
   labelAccessory?: ReactNode;
   selected?: boolean;
   /**
-   * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : ligne à compléter — cadre de la ligne en
-   * rouge, mêmes jetons que la carte d'Exercice à compléter (fond `colors.dangerSurface`, bord 1
-   * `colors.danger`). Rendu CHOISI (aucun état Figma de la ligne repliée à compléter), prioritaire
-   * sur la sélection.
+   * [PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : `invalid`, ligne à compléter en rouge —
+   * retiré le même jour (cr2-phases-rouge : « Seul le cadre du champ du nombre de phases doit être
+   * rouge. Pas toute la ligne. »), voir `SegmentedControl` option `invalid`.]
+   * PRE-9, recette iPhone n° 2 (constat e) : ligne « à vérifier » — toute la ligne en orange (fond
+   * `toVerifyColors.surface`, bord 1 `toVerifyColors.border`), rendu choisi sans maquette,
+   * prioritaire sur la sélection.
    */
-  invalid?: boolean;
+  toVerify?: boolean;
   longLabel?: boolean;
   below?: ReactNode;
   onLayout?: (event: LayoutChangeEvent) => void;
@@ -2847,7 +2951,7 @@ function Row({
         pointerEvents="none"
         style={[
           styles.selectionBackground,
-          invalid ? styles.selectionBackgroundInvalid : selected ? styles.selectionBackgroundSelected : null,
+          toVerify ? styles.selectionBackgroundToVerify : selected ? styles.selectionBackgroundSelected : null,
         ]}
         testID={`${testID}-selection`}
       />
@@ -3624,6 +3728,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
     backgroundColor: colors.overlayScrim,
   },
+  // PRE-9, recette iPhone n° 2 (constat d) : voile porté par `scrimShade`, en fondu avec la feuille.
+  scrimTransparent: {
+    backgroundColor: "transparent",
+  },
+  scrimShade: {
+    backgroundColor: colors.overlayScrim,
+  },
   // Q39 : cadre transparent de la montée ; la surface reste ancrée en bas à l'intérieur.
   sheetFrame: {
     flex: 1,
@@ -3743,11 +3854,12 @@ const styles = StyleSheet.create({
   selectionBackgroundSelected: {
     backgroundColor: colors.stepperSurface,
   },
-  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat a) : ligne à compléter, cadre rouge.
-  selectionBackgroundInvalid: {
-    backgroundColor: colors.dangerSurface,
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : ligne « à vérifier », toute la ligne en
+  // orange. [Constat a : `selectionBackgroundInvalid` (ligne rouge) retiré le même jour, cr2-phases-rouge.]
+  selectionBackgroundToVerify: {
+    backgroundColor: toVerifyColors.surface,
     borderWidth: 1,
-    borderColor: colors.danger,
+    borderColor: toVerifyColors.border,
   },
   // Story 3.3 (T23) : zone d'appui extérieur étendue aux marges de `bodyContent`.
   bodyOutside: {

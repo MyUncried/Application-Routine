@@ -173,6 +173,13 @@ export type Activity = {
    * `activities.format_settings`, `migration017`) ; absent/`null` = Exercice libre (FMT-40).
    */
   format?: ElementFormat | null;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (`activities.phases_to_verify`,
+   * `migration019`) : identités des phases dont la durée a été reprise d'une valeur par défaut
+   * ajoutée au Mouvement (« Paramètre à vérifier », orange) ; absent ou vide : rien à vérifier.
+   * Marque retirée à l'ouverture de la feuille des paramètres ; « Paramètres à compléter » prime.
+   */
+  phasesToVerify?: readonly number[];
 };
 
 /** @deprecated Ancien alias T01-S01 à Activité unique figée — conservé uniquement pour ne pas casser un import externe déjà publié ; `Activity` est désormais le type de référence. */

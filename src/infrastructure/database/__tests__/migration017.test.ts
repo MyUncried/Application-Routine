@@ -112,7 +112,8 @@ const TABLES = [
 ];
 
 /** Colonnes ajoutées par la 017, retirées pour comparer les lignes d'avant ligne pour ligne. */
-const ADDED = new Set(["format_key", "format_settings", "origin"]);
+// [Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (migration 019) ajoutée au démarrage, ignorée ici.]
+const ADDED = new Set(["format_key", "format_settings", "origin", "phases_to_verify"]);
 
 async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
@@ -203,8 +204,8 @@ async function seededVersion16(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de création)", () => {
-  it("version courante 18 (017 puis 018, A.2b) ; listes figées de la 017 égales au registre du domaine", () => {
-    expect(DATABASE_VERSION).toBe(18);
+  it("version courante 19 (017 à 019, A.2b et recette n° 2 constat e) ; listes figées de la 017 égales au registre du domaine", () => {
+    expect(DATABASE_VERSION).toBe(19);
     expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...ELEMENT_FORMAT_KEYS]);
     expect([...MIGRATION_017_SESSION_ORIGINS]).toEqual([...SESSION_ORIGINS]);
   });
@@ -216,7 +217,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await snapshot(database)).toEqual(before);
     expect(await columns(database, "tours")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
     expect(await columns(database, "activities")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
@@ -231,7 +232,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     // Démarrage suivant : rien n'est rejoué.
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -274,7 +275,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -282,7 +283,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM migration_notices")).toEqual([{ count: 0 }]);
     expect(await columns(database, "sessions")).toContain("origin");
   });

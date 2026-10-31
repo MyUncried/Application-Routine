@@ -848,7 +848,7 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
     expect(shownPhaseDuration(1)).toBe("30 s");
   });
 
-  it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant reste inchangé", async () => {
+  it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant ne reçoit la valeur que dans une durée vide, « à vérifier » (recette n° 2, constat e)", async () => {
     await movements().create(
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
@@ -869,8 +869,14 @@ describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
       { id: 1, label: "Descente" },
       { id: 2, label: "Montée", durationSeconds: 45 },
     ]);
-    // Hermann, 31/10 : « Inchangés » — l'Exercice existant garde ses paramètres locaux.
-    expect(await database.getAllAsync("SELECT * FROM activities")).toEqual(exerciseBefore);
+    // Hermann, 31/10 : « Inchangés » — l'Exercice existant garde ses paramètres locaux. [Remplacé en
+    // partie le 31/10/2026, recette iPhone n° 2, constat e : ses durées VIDES reçoivent la valeur ajoutée,
+    // marquées « à vérifier » (phase 2 ici) ; le reste de la ligne est inchangé, phase 1 toujours vide.]
+    const [after] = await database.getAllAsync<Record<string, unknown>>("SELECT * FROM activities");
+    const [before] = exerciseBefore as Record<string, unknown>[];
+    expect({ ...after, execution_parameters: null, phases_to_verify: null }).toEqual({ ...before, execution_parameters: null, phases_to_verify: null });
+    expect(JSON.parse(String(after!.execution_parameters)).series.phaseDurations).toEqual([{ phaseId: 2, durationSeconds: 45 }]);
+    expect(after!.phases_to_verify).toBe("[2]");
     expect(mockBack).toHaveBeenCalled();
   });
 
@@ -932,7 +938,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     };
   }
 
-  it("a2b-creer : libellé (clavier texte, Entrée « suivant ») → durée de la même ligne (pavé numérique) → ligne suivante, puis invite après la dernière ; le clavier n'est jamais fermé", async () => {
+  it("a2b-creer / cr2-phases : libellé (clavier texte, Entrée au libellé par défaut, jamais « Next ») → durée de la même ligne (pavé numérique, sans touche Entrée) ; aucun passage automatique à la ligne suivante ; le clavier n'est jamais fermé", async () => {
     await movements().create(
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
@@ -942,7 +948,7 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
       await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
       const label1 = screen.getByTestId("movement-phases-label-1", anyNode);
       expect(label1.props.keyboardType ?? "default").toBe("default");
-      expect(label1.props.returnKeyType).toBe("next");
+      expect(label1.props.returnKeyType).toBe("default");
       expect(label1.props.submitBehavior).toBe("submit");
       focus.clear();
       // Entrée sur le libellé 1 → durée de la ligne 1.
@@ -951,38 +957,25 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
         fireEvent(label1, "submitEditing");
       });
       expect(focus.focused()).toEqual(["movement-phases-duration-1-input"]);
-      // Durée saisie, Entrée (Android) → libellé de la ligne 2.
+      // Durée : pavé numérique, sans touche Entrée ni « Next » (cr2-phases).
       const duration1 = screen.getByTestId("movement-phases-duration-1-input", anyNode);
       expect(duration1.props.keyboardType).toBe("number-pad");
-      expect(duration1.props.submitBehavior).toBe("submit");
+      expect(duration1.props.returnKeyType).toBeUndefined();
+      expect(duration1.props.onSubmitEditing).toBeUndefined();
       await act(async () => {
         fireEvent(label1, "blur");
         fireEvent(duration1, "focus");
       });
       typeInExecutionSheetCell("movement-phases-duration-1", "5");
-      focus.clear();
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "submitEditing");
-      });
-      expect(focus.focused()).toEqual(["movement-phases-label-2"]);
-      // Toujours en saisie (Jest ne simule pas la perte de focus native) : « MM:SS ».
       expect(shownPhaseDuration(1)).toBe("00:05");
-      // Ligne 2 : durée, puis Entrée → invite (nouvelle phase) en fin de liste.
+      // L'utilisateur touche lui-même le libellé de la ligne 2.
+      focus.clear();
       await act(async () => {
         fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
-        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "focus");
+        fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "focus");
       });
+      expect(focus.focused()).toEqual([]);
       expect(shownPhaseDuration(1)).toBe("5 s");
-      typeInExecutionSheetCell("movement-phases-duration-2", "130");
-      focus.clear();
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "submitEditing");
-      });
-      expect(focus.focused()).toEqual(["movement-phases-invite"]);
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-duration-2-input", anyNode), "blur");
-      });
-      expect(shownPhaseDuration(2)).toBe("1 min 30 s");
       expect(dismiss).not.toHaveBeenCalled();
     } finally {
       focus.restore();
@@ -990,53 +983,28 @@ describe("Recette iPhone n° 2 du 31/10/2026 — fiche Mouvement", () => {
     }
   });
 
-  it("a2b-creer : pavé numérique iOS sans Entrée — barre du clavier pendant la saisie d'une durée : « Suivant → » ligne suivante, « ← Précédent » libellé de la ligne, « Fermer » ferme le clavier ; aucune barre sur un libellé", async () => {
+  it("cr2-phases : aucune barre du clavier (« ← Précédent », « Suivant → », « Fermer ») pendant la saisie d'un libellé ou d'une durée", async () => {
     await movements().create(
       movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
     );
-    const dismiss = jest.spyOn(Keyboard, "dismiss");
-    const focus = spyFocus();
-    try {
-      await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
-      });
-      showExecutionSheetKeyboard();
-      await settle();
-      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
-        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
-      });
-      await settle();
-      expect(screen.getByTestId("execution-sheet-keyboard-bar", anyNode)).toBeTruthy();
-      // Aucun « À l'échec » : emplacement réservé vide.
-      expect(screen.queryByTestId("execution-sheet-keyboard-failure", anyNode)).toBeNull();
-      focus.clear();
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-next", anyNode));
-      });
-      expect(focus.focused()).toEqual(["movement-phases-label-2"]);
-      focus.clear();
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-previous", anyNode));
-      });
-      expect(focus.focused()).toEqual(["movement-phases-label-1"]);
-      expect(dismiss).not.toHaveBeenCalled();
-      await act(async () => {
-        fireEvent.press(screen.getByTestId("execution-sheet-keyboard-close", anyNode));
-      });
-      expect(dismiss).toHaveBeenCalled();
-      await act(async () => {
-        fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
-      });
-      await settle(5);
-      expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
-      hideExecutionSheetKeyboard();
-    } finally {
-      focus.restore();
-      dismiss.mockRestore();
-    }
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "focus");
+    });
+    showExecutionSheetKeyboard();
+    await settle();
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-1", anyNode), "blur");
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "focus");
+    });
+    await settle();
+    expect(screen.queryByTestId("execution-sheet-keyboard-bar", anyNode)).toBeNull();
+    expect(screen.queryByTestId("movement-keyboard-bar-host", anyNode)).toBeNull();
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-duration-1-input", anyNode), "blur");
+    });
+    hideExecutionSheetKeyboard();
   });
 
   it("a2b-creer : règles des cellules de durée (D-434) — « MM:SS » en saisie, secondes > 59 reportées, au-delà de 58:55 ramenée à 3 535 s, 0 ramené à 1 s", async () => {

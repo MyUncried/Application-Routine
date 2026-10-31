@@ -13,10 +13,12 @@ import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
   isIncompleteSummary,
+  isToVerifySummary,
 } from "@/features/sessions/compositionPresentation";
 import { strings } from "@/shared/i18n";
 import { CardTitleLine } from "@/shared/ui/CardTitleLine";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, fixedRadii, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -175,7 +177,11 @@ export function ActivityCard({ definition, onOpen, levelPosition = null }: Activ
              */}
             {/* PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`. */}
             <Text
-              style={[styles.secondaryLine, isIncompleteSummary(summary) ? styles.incompleteLine : null]}
+              // PRE-9, recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
+              style={[
+                styles.secondaryLine,
+                isIncompleteSummary(summary) ? styles.incompleteLine : isToVerifySummary(summary) ? styles.toVerifyLine : null,
+              ]}
               testID={`activity-card-summary-${definition.id}`}
             >
               {summary}
@@ -361,6 +367,9 @@ const styles = StyleSheet.create({
   },
   incompleteLine: {
     color: colors.danger,
+  },
+  toVerifyLine: {
+    color: toVerifyColors.text,
   },
   actions: {
     position: "absolute",

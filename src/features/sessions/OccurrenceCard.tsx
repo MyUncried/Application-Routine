@@ -2,7 +2,8 @@ import type { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { MediaPreview, type MediaPreviewSource, useMediaUriResolver } from "@/features/activities/MediaPreview";
-import { isIncompleteSummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
+import { isIncompleteSummary, isToVerifySummary, type OccurrenceCategory } from "@/features/sessions/compositionPresentation";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { TEXT_TERTIARY } from "@/features/sessions/CompositionSequence";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
@@ -181,6 +182,17 @@ export const occurrenceCardIncompleteSurface = {
   borderColor: colors.danger,
 } as const;
 
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026 (constat e) : carte « Paramètre à vérifier » — même
+ * place que la carte à compléter, en orange (`toVerifyColors`, rendu choisi sans maquette) ;
+ * « Paramètres à compléter » prime.
+ */
+export const occurrenceCardToVerifySurface = {
+  backgroundColor: toVerifyColors.surface,
+  borderWidth: OCCURRENCE_CARD_BORDER_WIDTH,
+  borderColor: toVerifyColors.border,
+} as const;
+
 export type OccurrenceCardProps = {
   readonly name: string;
   readonly category: OccurrenceCategory | null;
@@ -302,7 +314,8 @@ export function OccurrenceCard({
    * reste dans le nom accessible de la carte). En placement, la ligne 3 porte le cadre de la
    * récupération : la synthèse reste sur une ligne.
    */
-  const twoLineIncomplete = isIncompleteSummary(summary) && !attenuated;
+  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » suit la même mise en page.
+  const twoLineIncomplete = (isIncompleteSummary(summary) || isToVerifySummary(summary)) && !attenuated;
   return (
     <View
       style={[
@@ -379,7 +392,12 @@ export function OccurrenceCard({
               <View style={[styles.work, twoLineIncomplete ? styles.workTwoLines : null]} testID="composition-exercise-work">
                 <Text
                   // PRE-7 (D-448, point 7) : « Paramètres à compléter. » en `colors.danger`.
-                  style={[styles.value, styles.summary, isIncompleteSummary(summary) ? styles.incompleteSummary : null]}
+                  // Recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
+                  style={[
+                    styles.value,
+                    styles.summary,
+                    isIncompleteSummary(summary) ? styles.incompleteSummary : isToVerifySummary(summary) ? styles.toVerifySummary : null,
+                  ]}
                   numberOfLines={twoLineIncomplete ? 2 : 1}
                   testID="composition-exercise-summary"
                 >
@@ -552,6 +570,9 @@ const styles = StyleSheet.create({
   },
   incompleteSummary: {
     color: colors.danger,
+  },
+  toVerifySummary: {
+    color: toVerifyColors.text,
   },
   separator: {
     flexShrink: 0,

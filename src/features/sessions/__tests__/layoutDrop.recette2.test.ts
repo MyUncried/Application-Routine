@@ -1,7 +1,16 @@
 import { describe, expect, it } from "@jest/globals";
 
 import type { SessionStructure, StructureStopPointLocation } from "@/domain/sessions/structure";
-import { layoutDropCandidates, layoutHeaderKey, layoutItemKey, layoutStopBoxKey, resolveLayoutDrop, sameLayoutDrop, type LayoutBox } from "@/features/sessions/layoutDrop";
+import {
+  hoveredCollapsedCircuit,
+  layoutDropCandidates,
+  layoutHeaderKey,
+  layoutItemKey,
+  layoutStopBoxKey,
+  resolveLayoutDrop,
+  sameLayoutDrop,
+  type LayoutBox,
+} from "@/features/sessions/layoutDrop";
 
 /**
  * PRE-9 — recette iPhone n° 2 du 31/10/2026, lot 3 (b6-deplacer, Hermann) : « Exercice dans un cycle,
@@ -68,5 +77,23 @@ describe("Recette n° 2 (b6-deplacer) — emplacements avant et après un Point 
     expect(session.map((candidate) => candidate.afterStopPoints === true)).toEqual([false, true]);
     expect(session[0]!.lineY).toBeLessThanOrEqual(84);
     expect(session[1]!.lineY).toBeGreaterThanOrEqual(84);
+  });
+});
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (Hermann : « L'arrêt d'une carte sur un circuit replié doit
+ * l'ouvrir ») — Circuit replié visé par la destination.
+ */
+describe("hoveredCollapsedCircuit — arrêt sur un Circuit replié", () => {
+  const collapsed = new Set(["cb"]);
+  const isCollapsed = (id: string) => collapsed.has(id);
+  it("destination dans un Circuit replié (sa fin, au niveau Séance ou dans un Cycle) : ce Circuit", () => {
+    expect(hoveredCollapsedCircuit({ container: { kind: "CIRCUIT", id: "cb" }, index: 1 }, isCollapsed)).toBe("cb");
+  });
+  it("Circuit déployé, Cycle, niveau Séance ou aucune destination : null", () => {
+    expect(hoveredCollapsedCircuit({ container: { kind: "CIRCUIT", id: "ca" }, index: 0 }, isCollapsed)).toBeNull();
+    expect(hoveredCollapsedCircuit({ container: { kind: "CYCLE", id: "cb" }, index: 0 }, isCollapsed)).toBeNull();
+    expect(hoveredCollapsedCircuit({ container: { kind: "SESSION" }, index: 2 }, isCollapsed)).toBeNull();
+    expect(hoveredCollapsedCircuit(null, isCollapsed)).toBeNull();
   });
 });

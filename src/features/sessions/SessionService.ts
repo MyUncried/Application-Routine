@@ -101,6 +101,15 @@ export class SessionService {
   ) {}
 
   /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : retire la
+   * marque « Paramètre à vérifier » persistée de l'occurrence `activityId`. Sans effet si le dépôt
+   * ne le permet pas ou si l'occurrence n'est pas enregistrée.
+   */
+  async acknowledgeParametersToVerify(activityId: string): Promise<void> {
+    await this.sessionRepository.acknowledgeParametersToVerify?.(activityId);
+  }
+
+  /**
    * Convertit le brouillon via `toStructuredSessionInput` (Domaine). En cas
    * d'échec, aucune tentative d'écriture n'est faite : le résultat
    * structuré est renvoyé tel quel. En cas de succès, délègue la

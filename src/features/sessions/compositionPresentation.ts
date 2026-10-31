@@ -12,6 +12,7 @@ import {
   type SeriesTarget,
 } from "@/domain/activities/ExecutionParameters";
 import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { phasesToVerifyIn } from "@/domain/activities/parametersToVerify";
 import {
   computeSeriesCircuitOccurrenceDuration,
   hasDurationAmount,
@@ -184,7 +185,34 @@ export type ExerciseRowSummaryFacts = {
    * une direction héritée.
    */
   readonly isSideModeInherited?: boolean;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » de l'Exercice
+   * (`Activity`, `ActivityDefinition`, `SessionDraftExercise`). Absent : synthèse d'avant.
+   */
+  readonly phasesToVerify?: readonly number[];
 };
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « avec le texte « Paramètre à
+ * vérifier » à la place de « Paramètre à compléter ». S'il y a à la fois des paramètre à vérifier et
+ * à compléter, la codification des paramètres à compléter est prioritaire. ») : une synthèse qui
+ * n'est pas « Paramètres à compléter » devient « Paramètre à vérifier » dès qu'une phase encore
+ * présente et renseignée est marquée (`phasesToVerifyIn`).
+ */
+function withParametersToVerify(summary: string, facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">): string {
+  if (isIncompleteSummary(summary)) return summary;
+  return phasesToVerifyIn(facts.executionParameters, facts.phasesToVerify).length > 0
+    ? strings.executionParameters.card.toVerify
+    : summary;
+}
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : vrai si la synthèse est « Paramètre à
+ * vérifier », que les présentations rendent en orange (carte de Composition sur fond orange pâle).
+ */
+export function isToVerifySummary(summary: string): boolean {
+  return summary === strings.executionParameters.card.toVerify;
+}
 
 /**
  * Durée compacte et lisible, sans segment inutile (contrairement à
@@ -233,6 +261,10 @@ function formatCountWithUnit(count: number, singular: string, plural: string): s
  *   existant « Paramètres à compléter. », sans aucune valeur inventée.
  */
 export function formatExerciseRowSummary(facts: ExerciseRowSummaryFacts): string {
+  return withParametersToVerify(exerciseRowSummaryOf(facts), facts);
+}
+
+function exerciseRowSummaryOf(facts: ExerciseRowSummaryFacts): string {
   const exerciseRow = strings.screens.composition.exerciseRow;
   const recap = strings.screens.exercise.recap;
   const parameters = facts.executionParameters;
@@ -399,7 +431,11 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  * répétés ; aucun texte de pause ni de récupération. En Circuit de Séries, N
  * est celui des paramètres déjà adaptés par la story 1.4 : aucune règle propre.
  */
-export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
+export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "executionParameters" | "phasesToVerify">): string {
+  return withParametersToVerify(occurrenceSummaryOf(facts), facts);
+}
+
+function occurrenceSummaryOf(facts: Pick<ExerciseRowSummaryFacts, "executionParameters">): string {
   const parameters = facts.executionParameters;
   const card = strings.screens.composition.occurrenceCard;
   const failure = strings.screens.composition.exerciseRow.toFailure;

@@ -81,7 +81,8 @@ const STOP_POINT_SNAPSHOT = "SELECT id, session_id, tour_id, position FROM sessi
 /** Tables que la 016 ne touche pas. */
 const UNTOUCHED = ["users", "profiles", "categories", "body_zones", "labels", "sessions", "cycles", "tours", "movements", "activity_definitions", "migration_notices"];
 
-const MIGRATION_017_COLUMNS = new Set(["origin", "format_key", "format_settings"]);
+// [Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (019) ignorée de même.]
+const MIGRATION_017_COLUMNS = new Set(["origin", "format_key", "format_settings", "phases_to_verify"]);
 
 async function snapshot(database: Database): Promise<Record<string, unknown>> {
   const result: Record<string, unknown> = {};
@@ -171,8 +172,8 @@ async function seededVersion15(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un Cycle)", () => {
-  it("version courante 18 (016, 017 puis 018, PRE-9 C.1 et A.2b)", () => {
-    expect(DATABASE_VERSION).toBe(18);
+  it("version courante 19 (016 à 019, PRE-9 C.1, A.2b et recette n° 2 constat e)", () => {
+    expect(DATABASE_VERSION).toBe(19);
   });
 
   it("reconstruit activities et session_stop_points sans perte : lignes identiques, cycle_id NULL, aucune autre table touchée", async () => {

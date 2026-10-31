@@ -93,6 +93,12 @@ export type ActivityDefinition = {
    * complétion passée) — Cible `UNSET`, inexécutable.
    */
   readonly missingPhaseIds?: readonly number[];
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (`activity_definitions.phases_to_verify`,
+   * `migration019`) : phases dont la durée a été reprise d'une valeur par défaut ajoutée au
+   * Mouvement (« Paramètre à vérifier », orange) ; absent : rien à vérifier.
+   */
+  readonly phasesToVerify?: readonly number[];
   /** Zones corporelles — collection non vide, distincte (plan §4). */
   readonly bodyZoneIds: readonly string[];
   /** Direction de l'Exercice, égale à `executionParameters.sideMode` (relue des paramètres). */

@@ -18,6 +18,18 @@ import {
   type MovementPriorMemberships,
   type MovementRepository,
 } from "@/domain/activities/MovementRepository";
+import {
+  readCatalogExecutionParameters,
+  serializeCatalogExecutionParameters,
+  type CatalogExecutionParameters,
+} from "@/domain/activities/ExecutionParameters";
+import {
+  addedPhaseDefaults,
+  decodePhasesToVerify,
+  encodePhasesToVerify,
+  fillEmptyPhaseDurations,
+  mergePhasesToVerify,
+} from "@/domain/activities/parametersToVerify";
 import type { DraftMediaItem, MediaLinkInput } from "@/domain/media/ActivityMedia";
 import type { MediaAsset } from "@/domain/media/MediaAsset";
 import type { Database } from "@/infrastructure/database/Database";
@@ -262,16 +274,79 @@ export async function updateMovementContent(
     [movement.id],
   );
   await transaction.runAsync("DELETE FROM movement_phases WHERE movement_id = ?", [movement.id]);
-  await insertPhases(
+  const stored = new Map(storedDurations.map((row) => [row.phase_id, row.duration_seconds] as const));
+  await insertPhases(transaction, movement.id, movement.phases, stored);
+  // Recette iPhone n° 2 du 31/10/2026 (constat e) : valeurs par défaut ajoutées → durées vides des
+  // Exercices liés, marquées « à vérifier », dans la même transaction.
+  await propagateAddedPhaseDefaults(
     transaction,
     movement.id,
-    movement.phases,
-    new Map(storedDurations.map((row) => [row.phase_id, row.duration_seconds] as const)),
+    addedPhaseDefaults(stored, movement.phases),
+    movement.phases.map((phase) => phase.id),
   );
   await transaction.runAsync("DELETE FROM movement_body_zones WHERE movement_id = ?", [movement.id]);
   await insertBodyZones(transaction, movement.id, movement.bodyZoneIds);
   if (content.media !== undefined) {
     await replaceMovementMediaLinks(transaction, movement.id, content.media, mediaId);
+  }
+}
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « Ajouter une valeur par défaut
+ * doit mettre à jour les exercices qui utilisent cet exercice, mais que les champs […] soient
+ * identifiés en orange, avec le texte « Paramètre à vérifier » » ; « Champs vides seulement »,
+ * « Séances et Catalogue ») — dans la transaction de l'enregistrement du Mouvement : chaque
+ * Exercice lié (occurrences de Séance `activities.source_movement_id`, Exercices du Catalogue
+ * `activity_definitions.movement_id`) reçoit les valeurs par défaut ajoutées dans ses SEULES durées
+ * de phase vides (même identité de phase, `fillEmptyPhaseDurations`) ; ces phases s'ajoutent à sa
+ * marque `phases_to_verify` (`migration019`). Une durée déjà renseignée n'est jamais remplacée ; un
+ * Exercice dont les paramètres sont illisibles, ou dont le motif sortirait des bornes, reste tel
+ * quel. Les colonnes scalaires projetées ne dépendent pas des durées de phase (D-446) : inchangées.
+ */
+async function propagateAddedPhaseDefaults(
+  transaction: Database,
+  movementId: string,
+  defaults: ReadonlyMap<number, number>,
+  phaseIds: readonly number[],
+): Promise<void> {
+  if (defaults.size === 0) return;
+  const targets = [
+    {
+      table: "activities",
+      rows: await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
+        `SELECT id, execution_parameters, phases_to_verify FROM activities
+         WHERE source_movement_id = ? AND type = 'EXERCISE' AND execution_parameters IS NOT NULL`,
+        [movementId],
+      ),
+    },
+    {
+      table: "activity_definitions",
+      rows: await transaction.getAllAsync<{ id: string; execution_parameters: string | null; phases_to_verify: string | null }>(
+        "SELECT id, execution_parameters, phases_to_verify FROM activity_definitions WHERE movement_id = ?",
+        [movementId],
+      ),
+    },
+  ] as const;
+  for (const { table, rows } of targets) {
+    for (const row of rows) {
+      let parameters: CatalogExecutionParameters;
+      let marked: number[];
+      try {
+        parameters = readCatalogExecutionParameters(row.execution_parameters);
+        marked = decodePhasesToVerify(row.phases_to_verify);
+      } catch {
+        continue;
+      }
+      const result = fillEmptyPhaseDurations(parameters, defaults, phaseIds);
+      if (result === null) continue;
+      // `updated_at` inchangé : la reprise n'est pas une modification de l'utilisateur (l'ordre du
+      // Catalogue des Exercices, trié par `updated_at`, ne bouge pas).
+      await transaction.runAsync(`UPDATE ${table} SET execution_parameters = ?, phases_to_verify = ? WHERE id = ?`, [
+        serializeCatalogExecutionParameters(result.parameters),
+        encodePhasesToVerify(mergePhasesToVerify(marked, result.filled)),
+        row.id,
+      ]);
+    }
   }
 }
 

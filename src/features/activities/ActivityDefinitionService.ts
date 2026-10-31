@@ -206,6 +206,15 @@ export class ActivityDefinitionService {
   ) {}
 
   /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : retire la
+   * marque « Paramètre à vérifier » persistée de l'Exercice du Catalogue `id`. Sans effet si le
+   * dépôt ne le permet pas.
+   */
+  async acknowledgeParametersToVerify(id: string): Promise<void> {
+    await this.repository.acknowledgeParametersToVerify?.(id);
+  }
+
+  /**
    * PRE-8 (B.1, B.2) : services du Mouvement autonome (Catalogue des Mouvements, fiche CE-MVT-01),
    * sur le MÊME `MovementRepository` que les autres opérations du geste — aucune seconde
    * composition SQLite. `null` sans `MovementRepository` (doublures antérieures à MFN).

@@ -61,6 +61,13 @@ export type SegmentedControlOption<T extends string> = {
    * couleur primaire, lisible sur le fond du cadre.
    */
   readonly ownSurface?: boolean;
+  /**
+   * Variante `inline` seulement (PRE-9, contrôle de la recette iPhone n° 2 du 31/10/2026,
+   * cr2-phases-rouge, Hermann : « Seul le cadre du champ du nombre de phases doit être rouge. Pas
+   * toute la ligne. ») : sélectionnée, l'option porte un cadre rouge (bord 1 `colors.danger`, rayon
+   * de l'option) par-dessus son contenu. Rendu choisi sans maquette.
+   */
+  readonly invalid?: boolean;
 };
 
 /**
@@ -459,6 +466,13 @@ export function SegmentedControl<T extends string>({
                   </View>
                 )}
               </View>
+              {selected && option.invalid ? (
+                <View
+                  pointerEvents="none"
+                  style={styles.inlineInvalidFrame}
+                  testID={testID ? `${testID}-${option.value}-invalid-frame` : undefined}
+                />
+              ) : null}
             </View>
           );
         })}
@@ -640,6 +654,17 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     borderRadius: INLINE_OPTION_RADIUS,
+  },
+  // PRE-9, recette iPhone n° 2 (cr2-phases-rouge) : cadre rouge de l'option sélectionnée à compléter.
+  inlineInvalidFrame: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: INLINE_OPTION_RADIUS,
+    borderWidth: 1,
+    borderColor: colors.danger,
   },
   inlineContent: {
     flexDirection: "row",

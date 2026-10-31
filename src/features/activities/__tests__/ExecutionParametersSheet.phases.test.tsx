@@ -1,5 +1,5 @@
 import { describe, expect, it, jest } from "@jest/globals";
-import { fireEvent, render, screen, within } from "@testing-library/react-native";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react-native";
 import { StyleSheet } from "react-native";
 
 import {
@@ -11,7 +11,7 @@ import {
   type SeriesTarget,
   type WorkPhase,
 } from "@/domain/activities/ExecutionParameters";
-import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
+import { CARD_SHEET_MOTION_MS, ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import {
   CELL_BACKSPACE,
   hideExecutionSheetKeyboard,
@@ -22,6 +22,7 @@ import { TABLE_ROW_HEIGHT } from "@/features/activities/sheetTable";
 import { PHASE_CELL_GAP, PHASE_CELL_WIDTH } from "@/features/activities/WorkPhasesTable";
 import { strings } from "@/shared/i18n";
 import { TestSafeAreaProvider } from "@/shared/ui/TestSafeAreaProvider";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors } from "@/shared/ui/tokens";
 
 /**
@@ -798,32 +799,124 @@ describe("Contre-recette iPhone du 30/10/2026 — séparateurs du tableau des ph
   });
 });
 
-describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a", () => {
+describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat a ; contrôle cr2-phases-rouge", () => {
   const SELECTION = "execution-sheet-row-phases-selection";
-  it("durée de phase manquante et tableau replié : cadre de la ligne « Phases de l'exercice » rouge (fond dangerSurface, bord danger) ; déployé ou complet : aucun rouge", () => {
+  const FRAME = `${WITH}-invalid-frame`;
+  it("durée de phase manquante et tableau replié : seul le cadre du champ « n phases » est rouge (bord danger), pas la ligne ; déployé ou complet : aucun rouge", () => {
     renderSheet(params());
     fireEvent.press(get(WITH));
-    // Déployé : les cellules « — » portent l'indication, la ligne reste normale.
-    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    // Déployé : les cellules « — » portent l'indication, aucun cadre rouge.
+    expect(query(FRAME)).toBeNull();
     fireEvent.press(get(CHEVRON));
     expect(query(TABLE)).toBeNull();
-    expect(styleOf(SELECTION)).toMatchObject({ backgroundColor: colors.dangerSurface, borderWidth: 1, borderColor: colors.danger });
+    expect(styleOf(FRAME)).toMatchObject({ borderWidth: 1, borderColor: colors.danger });
+    // La ligne « Phases de l'exercice » reste neutre (cr2-phases-rouge).
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(styleOf(SELECTION).backgroundColor).not.toBe(colors.dangerSurface);
     // Redéployé : plus de cadre rouge ; une seule durée renseignée ne suffit pas.
     fireEvent.press(get(CHEVRON));
-    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(query(FRAME)).toBeNull();
     enterDuration(1, "5");
     fireEvent.press(get(CHEVRON));
-    expect(styleOf(SELECTION).borderColor).toBe(colors.danger);
+    expect(styleOf(FRAME).borderColor).toBe(colors.danger);
     fireEvent.press(get(CHEVRON));
     enterDuration(2, "3");
     fireEvent.press(get(CHEVRON));
-    expect(styleOf(SELECTION).borderColor).toBeUndefined();
-    expect(styleOf(SELECTION).backgroundColor).not.toBe(colors.dangerSurface);
+    expect(query(FRAME)).toBeNull();
   });
 
   it("phases complètes, tableau replié : aucun rouge", () => {
     renderSheet(withPhases([["A", 6], ["B", 3]]));
     fireEvent.press(get(CHEVRON));
+    expect(query(FRAME)).toBeNull();
     expect(styleOf(SELECTION).borderColor).toBeUndefined();
+  });
+});
+
+describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier »", () => {
+  const SELECTION = "execution-sheet-row-phases-selection";
+  function renderMarked(parent: ExecutionParametersInput, phasesToVerify: readonly number[]) {
+    render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={parent}
+          profileSideRecoverySecondsDefault={10}
+          phasesToVerify={phasesToVerify}
+          onApply={jest.fn()}
+          onCancel={jest.fn()}
+        />
+      </TestSafeAreaProvider>,
+    );
+  }
+
+  it("durée reprise du Mouvement : sa cellule et toute la ligne « Phases » en orange ; les autres cellules normales", () => {
+    renderMarked(withPhases([["A", 6], ["B", 3]]), [2]);
+    expect(styleOf(SELECTION)).toMatchObject({ backgroundColor: toVerifyColors.surface, borderWidth: 1, borderColor: toVerifyColors.border });
+    expect(styleOf(duration(2)).backgroundColor).toBe(toVerifyColors.surface);
+    expect(styleOf(duration(1)).backgroundColor).not.toBe(toVerifyColors.surface);
+  });
+
+  it("« à compléter » prioritaire : une durée manque → ligne sans orange (cellule manquante rouge), la cellule reprise reste orange", () => {
+    const parent = withPhases([["A", 6], ["B", 3]]);
+    const series = parent.series as { readonly workPhases: readonly WorkPhase[] };
+    renderMarked({ ...parent, series: { ...parent.series, workPhases: [series.workPhases[0]!, { ...series.workPhases[1]!, durationSeconds: 0 }] } } as ExecutionParametersInput, [1]);
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(styleOf(duration(2)).backgroundColor).toBe(colors.dangerSurface);
+    expect(styleOf(duration(1)).backgroundColor).toBe(toVerifyColors.surface);
+  });
+
+  it("sans marque : aucun orange", () => {
+    renderMarked(withPhases([["A", 6], ["B", 3]]), []);
+    expect(styleOf(SELECTION).borderColor).toBeUndefined();
+    expect(styleOf(duration(1)).backgroundColor).not.toBe(toVerifyColors.surface);
+  });
+});
+
+describe("PRE-9 — recette iPhone n° 2 du 31/10/2026, constat d : feuille ouverte depuis une carte de la Composition", () => {
+  function renderCard() {
+    const onApply = jest.fn<(value: ExecutionParameters) => void>();
+    const onCancel = jest.fn();
+    render(
+      <TestSafeAreaProvider>
+        <ExecutionParametersSheet
+          parent={withPhases([["A", 6], ["B", 3]])}
+          profileSideRecoverySecondsDefault={10}
+          presentation="compositionCard"
+          onApply={onApply}
+          onCancel={onCancel}
+        />
+      </TestSafeAreaProvider>,
+    );
+    return { onApply, onCancel };
+  }
+
+  it("voile animé par la feuille (Modal sans fondu propre) ; montée plus lente que le prototype (0,45 s)", () => {
+    renderCard();
+    expect(get("execution-sheet-modal").props.animationType).toBe("none");
+    expect(get("execution-sheet-scrim-shade")).toBeTruthy();
+    expect(CARD_SHEET_MOTION_MS).toBeGreaterThan(250);
+  });
+
+  it("✕ : la feuille redescend d'abord (même durée), puis `onCancel` ; un second appui ne ferme pas deux fois", async () => {
+    const { onCancel } = renderCard();
+    fireEvent.press(get("execution-sheet-cancel"));
+    fireEvent.press(get("execution-sheet-cancel"));
+    expect(onCancel).not.toHaveBeenCalled();
+    await waitFor(() => expect(onCancel).toHaveBeenCalledTimes(1), { timeout: 3000 });
+  });
+
+  it("✓ : `onApply` après la descente", async () => {
+    const { onApply } = renderCard();
+    validate();
+    expect(onApply).not.toHaveBeenCalled();
+    await waitFor(() => expect(onApply).toHaveBeenCalledTimes(1), { timeout: 3000 });
+  });
+
+  it("présentation par défaut (éditeur) : inchangée — Modal en fondu, fermeture immédiate", () => {
+    const { onCancel } = renderSheet(withPhases([["A", 6], ["B", 3]]));
+    expect(get("execution-sheet-modal").props.animationType).toBe("fade");
+    expect(query("execution-sheet-scrim-shade")).toBeNull();
+    fireEvent.press(get("execution-sheet-cancel"));
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 });

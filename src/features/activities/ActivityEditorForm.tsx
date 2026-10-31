@@ -45,9 +45,7 @@ import {
   MovementLevelPanel,
   type EditorLevel,
 } from "@/features/activities/MovementLevelMenu";
-import { KeyboardAccessoryBar } from "@/features/activities/KeyboardAccessoryBar";
-import { MovementPhasesEditor, type MovementPhasesKeyboardBar } from "@/features/activities/MovementPhasesEditor";
-import { SHEET_KEYBOARD_BAR_ENABLED, type KeyboardFrame } from "@/features/activities/useSheetKeyboard";
+import { MovementPhasesEditor } from "@/features/activities/MovementPhasesEditor";
 import { BodyZonePickerModal } from "@/features/reference-data/BodyZonePickerModal";
 import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { isIncompleteSummary } from "@/features/sessions/compositionPresentation";
@@ -154,6 +152,13 @@ export type ActivityEditorFormProps = {
    * transmis à la Feuille (`openSheetDraft`) ; absent : max(`id`) + 1.
    */
   nextPhaseId?: number;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » de l'Exercice
+   * édité, en orange dans la Feuille ; à sa fermeture (✓ ou ✕), `onParametersToVerifyAcknowledged`
+   * (Hermann : « Ouverture de la feuille (Recommandé) »). Absent ou vide : aucun orange.
+   */
+  phasesToVerify?: readonly number[];
+  onParametersToVerifyAcknowledged?: () => void;
   /**
    * PRE-7 (A2.3, MFN-06) : fin de la saisie du nom (clavier fermé, champ quitté ou validé).
    * PRE-7 (R-5, R04) : l'adaptateur y ferme le panneau sous le nom — Entrée ne sélectionne jamais
@@ -388,6 +393,8 @@ export function ActivityEditorForm({
   phaseStructureLocked = false,
   contentLocked = false,
   nextPhaseId,
+  phasesToVerify,
+  onParametersToVerifyAcknowledged,
   onNameEndEditing,
   nameAssist = null,
   nameHint = null,
@@ -533,22 +540,12 @@ export function ActivityEditorForm({
     setEditableLiftPx(next);
     editableLift.set(reduceMotion ? next : withTiming(next, movementEditorLiftTiming(k.duration)));
   }
-  // PRE-9, recette iPhone n° 2 du 31/10/2026 (a2b-creer) : barre du clavier (« ← Précédent »,
-  // « Suivant → », « Fermer ») pendant la saisie d'une durée de phase au pavé numérique iOS, qui n'a
-  // pas de touche Entrée — même barre que la Feuille (`KeyboardAccessoryBar`, mécanisme RC-1 : posée
-  // au bas de son hôte, remontée au-dessus du clavier). Sa hauteur s'ajoute à la réserve du clavier.
-  const [phasesKeyboardBar, setPhasesKeyboardBar] = useState<MovementPhasesKeyboardBar | null>(null);
-  const [movementKeyboardFrame, setMovementKeyboardFrame] = useState<KeyboardFrame | null>(null);
-  const [barHostBottom, setBarHostBottom] = useState(0);
-  const [barHeight, setBarHeight] = useState(0);
-  const barHostRef = useRef<View>(null);
-  const isPhasesBarShown =
-    isMovement && SHEET_KEYBOARD_BAR_ENABLED && phasesKeyboardBar !== null && movementKeyboardFrame !== null;
-  const barReserve = isPhasesBarShown ? barHeight : 0;
-  const barReserveRef = useRef(0);
+  // [Retiré le 31/10/2026, PRE-9 — contrôle de la recette iPhone n° 2 (cr2-phases KO, Hermann :
+  // « Retirer aussi la barre optionnelle avec les boutons précédent, suivant et fermer ») : barre du
+  // clavier (`KeyboardAccessoryBar`) pendant la saisie d'une durée de phase.]
   function movementKeyboardInset(): number {
     const k = movementKeyboardRef.current;
-    return k.shown ? Math.max(0, k.bottom - k.top) + barReserveRef.current : 0;
+    return k.shown ? Math.max(0, k.bottom - k.top) : 0;
   }
   function adjustMovementLayer() {
     const k = movementKeyboardRef.current;
@@ -582,11 +579,6 @@ export function ActivityEditorForm({
     setMovementLiftRef.current = setMovementLift;
     revealRefs.current = { description: revealDescription, phases: revealPhases };
   });
-  // Recette iPhone n° 2 du 31/10/2026 : la barre du clavier apparue, la ligne en saisie reste au-dessus.
-  useEffect(() => {
-    barReserveRef.current = barReserve;
-    if (barReserve > 0) adjustMovementLayerRef.current();
-  }, [barReserve]);
   useEffect(() => {
     if (!isMovement) return;
     const show = Keyboard.addListener(Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow", (event) => {
@@ -595,7 +587,6 @@ export function ActivityEditorForm({
       k.top = event.endCoordinates.screenY;
       if (event.duration > 0) k.duration = event.duration;
       setKeyboardInset(Math.max(0, k.bottom - k.top));
-      setMovementKeyboardFrame({ screenY: event.endCoordinates.screenY, duration: event.duration });
       setIsMovementKeyboardShown(true);
       adjustMovementLayerRef.current();
     });
@@ -604,7 +595,6 @@ export function ActivityEditorForm({
       k.shown = false;
       if (event.duration > 0) k.duration = event.duration;
       setKeyboardInset(0);
-      setMovementKeyboardFrame(null);
       setIsMovementKeyboardShown(false);
       setMovementLiftRef.current(0);
     });
@@ -706,6 +696,8 @@ export function ActivityEditorForm({
 
   function closeSheet() {
     setIsSheetOpen(false);
+    // Recette iPhone n° 2 (constat e) : feuille ouverte puis fermée — l'Exercice n'est plus « à vérifier ».
+    if (phasesToVerify !== undefined && phasesToVerify.length > 0) onParametersToVerifyAcknowledged?.();
     // Le focus revient au déclencheur (P3-21).
     const node = findNodeHandle(parametersCardRef.current);
     if (node !== null) {
@@ -979,7 +971,7 @@ export function ActivityEditorForm({
           zone d'évitement, même désactivée, remplaçait cette réserve par 0 : le défilement passait sous
           le clavier et la fin du contenu restait inatteignable. */}
       <KeyboardAvoidingView
-        style={[styles.flex, isMovement ? { paddingBottom: keyboardInset + barReserve } : null]}
+        style={[styles.flex, isMovement ? { paddingBottom: keyboardInset } : null]}
         behavior={Platform.OS === "ios" && !isMovement ? "padding" : undefined}
         enabled={!isMovement}
         testID="editor-keyboard-reserve"
@@ -1076,7 +1068,6 @@ export function ActivityEditorForm({
                     onChange={movementPhases.onChange}
                     editable={!isBodyLocked}
                     onFocusChange={onPhasesFocusChange}
-                    onKeyboardBarChange={setPhasesKeyboardBar}
                     onActiveRowBottomChange={(bottom) => {
                       phasesActiveBottomRef.current = bottom;
                       if (isPhasesFocused) revealPhases();
@@ -1191,6 +1182,7 @@ export function ActivityEditorForm({
           // PRE-7 (A2.2) : la structure des phases fait partie du contenu verrouillé.
           phaseStructureLocked={phaseStructureLocked || contentLocked}
           nextPhaseId={nextPhaseId}
+          {...(phasesToVerify !== undefined && phasesToVerify.length > 0 ? { phasesToVerify } : {})}
           onApply={applyParameters}
           onCancel={closeSheet}
         />
@@ -1256,37 +1248,6 @@ export function ActivityEditorForm({
               placement={levelPanelPlacement}
               onDismiss={() => setLevelPanelPlacement(null)}
               testID="activity-editor-level-panel"
-            />
-          ) : null}
-        </View>
-      ) : null}
-
-      {/* PRE-9, recette iPhone n° 2 du 31/10/2026 (a2b-creer) : barre du clavier de la durée de phase
-          (iOS), au bas de cet hôte qui couvre l'Éditeur ; « Suivant → » passe à la ligne suivante,
-          « ← Précédent » au libellé de la même ligne, « Fermer » ferme le clavier. */}
-      {isMovement && SHEET_KEYBOARD_BAR_ENABLED ? (
-        <View
-          ref={barHostRef}
-          pointerEvents="box-none"
-          style={[styles.levelPanelHost, styles.movementOverlayHost]}
-          onLayout={() =>
-            barHostRef.current?.measureInWindow((_x, y, _width, height) => {
-              if (height > 0) setBarHostBottom(y + height);
-            })
-          }
-          testID="movement-keyboard-bar-host"
-        >
-          {isPhasesBarShown && phasesKeyboardBar !== null && movementKeyboardFrame !== null ? (
-            <KeyboardAccessoryBar
-              keyboardFrame={movementKeyboardFrame}
-              containerBottom={barHostBottom > 0 ? barHostBottom : windowSize.height}
-              reduceMotion={reduceMotion}
-              onHeight={setBarHeight}
-              canPrevious
-              canNext
-              onPrevious={phasesKeyboardBar.onPrevious}
-              onNext={phasesKeyboardBar.onNext}
-              onClose={() => Keyboard.dismiss()}
             />
           ) : null}
         </View>

@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 
 import {
@@ -45,6 +45,7 @@ import {
   replaceOccurrenceWithNewMovement,
   withDraftMovement,
   withOccurrenceMovement,
+  withoutPhasesToVerify,
   type SessionDraft,
   type SessionDraftExercise,
 } from "@/domain/sessions/SessionDraft";
@@ -78,6 +79,7 @@ import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
 import { formatExerciseRowSummary } from "@/features/sessions/compositionPresentation";
 import { inheritsCircuitSeriesCount } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
+import { SessionServiceContext } from "@/features/sessions/SessionServiceContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
 import { strings } from "@/shared/i18n";
@@ -511,6 +513,8 @@ function CatalogueActivityEditorScreen({
   // PRE-7 (A2.1, MFN-02, MFN/AC30) : compteur de phase du Mouvement relu avec la définition (ou
   // le geste repris), transmis à la Feuille ; absent en création indépendante (max + 1).
   const [movementNextPhaseId, setMovementNextPhaseId] = useState<number | undefined>(undefined);
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : phases « à vérifier » de l'Exercice relu.
+  const [phasesToVerify, setPhasesToVerify] = useState<readonly number[]>([]);
   // PRE-7 (A2.2, D-438 ; R-4, C03) : geste d'origine — identité (nouveau mouvement « Créer un
   // nouveau mouvement ») et nom AVANT modification.
   const [origin, setOrigin] = useState<{ readonly movementId: string; readonly name: string } | null>(null);
@@ -558,6 +562,7 @@ function CatalogueActivityEditorScreen({
             };
             setBaselineParameters(cloneExecutionParameters(definition.executionParameters));
             setMovementNextPhaseId(definition.movementNextPhaseId);
+            setPhasesToVerify(definition.phasesToVerify ?? []);
             setOrigin({ movementId: definition.movementId, name: definition.name });
             setInitial(loaded);
             setValue(loaded);
@@ -1136,6 +1141,16 @@ function CatalogueActivityEditorScreen({
           profileSideRecoverySecondsDefault={profile.sideRecovery}
           contentLocked={contentLocked}
           nextPhaseId={movementNextPhaseId}
+          // Recette iPhone n° 2 du 31/10/2026 (constat e) : orange dans la Feuille ; marque retirée à
+          // sa fermeture (« Ouverture de la feuille »).
+          phasesToVerify={phasesToVerify}
+          onParametersToVerifyAcknowledged={() => {
+            setPhasesToVerify([]);
+            if (definitionId === null) return;
+            activityDefinitionService.acknowledgeParametersToVerify(definitionId).catch((error: unknown) => {
+              console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+            });
+          }}
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? t.movementSuggestion.completeNameHint : null}
@@ -1395,6 +1410,8 @@ function occurrencePhaseList(exercise: SessionDraftExercise, movements: SessionD
 function CompositionExerciseEditor() {
   const router = useRouter();
   const { draft, updateDraft } = useSessionDraft();
+  // PRE-9, recette iPhone n° 2 (constat e) : retrait de la marque « à vérifier » persistée.
+  const sessionService = useContext(SessionServiceContext);
   const activityDefinitionService = useActivityDefinitionService();
   const [bodyZonesLoadToken, setBodyZonesLoadToken] = useState(0);
   const bodyZonesReferential = useBodyZonesReferential(activityDefinitionService, bodyZonesLoadToken);
@@ -2224,6 +2241,20 @@ function CompositionExerciseEditor() {
             unlockedMovement?.nextPhaseId ??
             (opensAsMovement && local !== null ? occurrencePhaseList(local, draft.movements).nextPhaseId : undefined)
           }
+          // Recette iPhone n° 2 du 31/10/2026 (constat e) : orange dans la Feuille ; marque retirée à
+          // sa fermeture, du brouillon (copie locale comprise) et de la Séance enregistrée.
+          {...(local?.phasesToVerify !== undefined ? { phasesToVerify: local.phasesToVerify } : {})}
+          onParametersToVerifyAcknowledged={() => {
+            if (local === null) return;
+            const exerciseId = local.id;
+            setLocal((current) => (current === null ? current : withoutPhasesToVerify(current)));
+            updateDraft((current) => ({
+              exercises: current.exercises.map((candidate) => (candidate.id === exerciseId ? withoutPhasesToVerify(candidate) : candidate)),
+            }));
+            sessionService?.acknowledgeParametersToVerify(exerciseId).catch((error: unknown) => {
+              console.error("Impossible de retirer la marque « Paramètre à vérifier ».", error);
+            });
+          }}
           onNameEndEditing={originChoice.onNameEndEditing}
           nameAssist={originChoice.nameAssist}
           nameHint={nameHintVisible ? strings.screens.activities.editor.movementSuggestion.completeNameHint : null}

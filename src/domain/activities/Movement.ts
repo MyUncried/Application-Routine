@@ -58,6 +58,9 @@ import {
  * (`durationSeconds`), valeur par défaut d'un NOUVEL Exercice seulement ; les durées de chaque
  * Exercice restent ses paramètres locaux, jamais réécrits par le Mouvement (Hermann, 31/10 :
  * « Inchangés »).]
+ * [Remplacé en partie le 31/10/2026, recette iPhone n° 2, constat e : une valeur par défaut AJOUTÉE
+ * remplit les durées VIDES des Exercices liés, marqués « Paramètre à vérifier »
+ * (`parametersToVerify.ts`, `updateMovementContent`) ; une durée renseignée reste inchangée.]
  */
 export type MovementPhase = {
   readonly id: number;
@@ -624,6 +627,8 @@ export function findMovementNameConflict<T extends { readonly id: string; readon
  * reprises par défaut […], si elles n'existent pas elles sont à renseigner dans la séance ». Une
  * phase dont le Mouvement porte une durée la reçoit ; les autres restent à renseigner (0). Valeurs
  * COPIÉES : une modification ultérieure du Mouvement ne les change pas (Hermann, 31/10 : « Inchangés »).]
+ * [Remplacé en partie le 31/10/2026, recette iPhone n° 2, constat e : sauf une durée restée VIDE, qui
+ * reçoit une valeur par défaut ajoutée ensuite au Mouvement (« Paramètre à vérifier »).]
  */
 export function repriseExecutionParameters(movement: Movement, base: ExecutionParametersInput): ExecutionParametersInput {
   if (movement.phases.length === 0 || base.series.kind !== "UNIFORM") {

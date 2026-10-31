@@ -108,7 +108,14 @@ export const DATABASE_NAME = "kodjo.db";
  * Mouvement (`movement_phases.duration_seconds`, 1..3535 s, `NULL` = aucune durée) — colonne
  * additive nullable, toute phase existante reste sans durée. 001..017 inchangées.
  */
-export const DATABASE_VERSION = 18;
+/**
+ * **PRE-9 (version 19, `migration019`, recette iPhone n° 2 du 31/10/2026, constat e)** : marque
+ * « Paramètre à vérifier » d'un Exercice (`activities.phases_to_verify`,
+ * `activity_definitions.phases_to_verify`, liste JSON d'identités de phase, `NULL` = rien à
+ * vérifier) — colonnes additives nullables, tout Exercice existant reste sans marque. 001..018
+ * inchangées. [Plan : A.4 → 020, A.5 → 021.]
+ */
+export const DATABASE_VERSION = 19;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

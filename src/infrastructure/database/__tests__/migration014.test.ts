@@ -97,7 +97,10 @@ async function untouched(database: Database): Promise<Record<string, unknown>> {
         ? rows.map(({ archived_at: _archivedAt, ...rest }) => rest)
         : table === "sessions"
           ? rows.map(({ origin: _origin, ...rest }) => rest)
-          : rows;
+          : // Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (019, `migration019.test.ts`).
+            table === "activity_definitions"
+            ? rows.map(({ phases_to_verify: _phasesToVerify, ...rest }) => rest)
+            : rows;
   }
   return snapshot;
 }
@@ -187,8 +190,8 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 }
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
-  it("version courante 18 (014 à 018, PRE-9 A.1, C.1 et A.2b)", () => {
-    expect(DATABASE_VERSION).toBe(18);
+  it("version courante 19 (014 à 019, PRE-9 A.1, C.1, A.2b et recette n° 2 constat e)", () => {
+    expect(DATABASE_VERSION).toBe(19);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {

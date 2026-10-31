@@ -158,6 +158,8 @@ import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
 import { CardMotionBlock, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
+  hoveredCollapsedCircuit,
+  LAYOUT_COLLAPSED_HOVER_DELAY_MS,
   layoutHeaderKey,
   layoutItemKey,
   layoutStopBoxKey,
@@ -221,6 +223,7 @@ import {
   formatOccurrenceEstimatedDuration,
   formatOccurrenceSummary,
   isIncompleteSummary,
+  isToVerifySummary,
   resolveOccurrenceCategory,
   type OccurrenceCircuitContext,
 } from "@/features/sessions/compositionPresentation";
@@ -233,6 +236,7 @@ import {
   occurrenceCardIncompleteSurface,
   occurrenceCardInCircuitSurface,
   occurrenceCardSurface,
+  occurrenceCardToVerifySurface,
   occurrenceRecoveryTouchExtent,
 } from "@/features/sessions/OccurrenceCard";
 import {
@@ -2235,6 +2239,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       return next;
     });
   }
+  /** Recette n° 2 du 31/10 (arrêt sur un Circuit replié) : repli lu par le geste en cours. */
+  const layoutCollapsedRef = useRef(layoutCollapsed);
+  useLayoutEffect(() => {
+    layoutCollapsedRef.current = layoutCollapsed;
+  });
   const tourRepeatCount = draft.tourRepeatCount ?? DEFAULT_TOUR_REPEAT_COUNT;
   // PRE-6 (story 2.2) : contexte de Circuit des durées d'occurrence (nom accessible, durée estimée).
   const occurrenceCircuitContext: OccurrenceCircuitContext = {
@@ -2544,7 +2553,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const current = layoutDragRef.current;
     if (current === null) return;
     const slot = current.target;
-    const next =
+    const computed =
       slot === null
         ? null
         : layoutDragShifts(layoutPiecesRef.current, layoutBoxesRef.current, current.lifted, {
@@ -2552,18 +2561,84 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             insertTop: slot.insertTop,
             gap: layoutContainerGap(slot.container),
           });
+    // Recette iPhone n° 2 du 31/10/2026 (arrêt sur un Circuit replié) : un Circuit déployé AU-DESSUS de
+    // l'élément saisi le déplace dans la mise en page ; la translation du registre qui le porte compense
+    // ce déplacement (`layoutSourceDrift`), posée sans animation : il reste sous le doigt.
+    const drift = layoutSourceDrift(current, layoutBoxesRef.current);
+    const next =
+      drift === 0 ? computed : { shifts: new Map(computed?.shifts ?? []).set(current.liftedKey, -drift), end: computed?.end ?? 0 };
     if (sameLayoutDragShifts(next, current.shifts)) return;
+    if ((current.shifts?.shifts.get(current.liftedKey) ?? 0) !== -drift) shiftRegistryRef.current?.pose(nativeShiftKey(current.liftedKey), -drift);
     current.shifts = next;
     setLayoutLift((lift) => (lift === null || lift.phase !== "DRAGGING" ? lift : { ...lift, shifts: next }));
   }, []);
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (Hermann : « L'arrêt d'une carte sur un circuit replié doit
+   * l'ouvrir ») : une destination qui reste un Circuit replié pendant `LAYOUT_COLLAPSED_HOVER_DELAY_MS`
+   * déploie ce Circuit (même déploiement animé que le chevron, `useCircuitCardsReveal`) ; ses cartes
+   * deviennent des destinations. Il reste déployé après le geste, comme déplié au toucher.
+   */
+  const layoutHoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearLayoutHover = useCallback(() => {
+    if (layoutHoverTimerRef.current !== null) clearTimeout(layoutHoverTimerRef.current);
+    layoutHoverTimerRef.current = null;
+  }, []);
+  useEffect(() => clearLayoutHover, [clearLayoutHover]);
+  /** Destination sous le doigt (`handleY` + translation, repère du contenu), dans les boîtes courantes. */
+  const retargetLayoutDrag = useCallback(
+    (current: LayoutDragGesture, translationY: number) => {
+      const layout = richLayoutRef.current;
+      if (layout === null) return;
+      current.lastTranslationY = translationY;
+      const slot = resolveLayoutDrop(
+        layout,
+        current.source,
+        current.handleY + translationY,
+        layoutBoxesRef.current,
+        (exercise) => exercise.id,
+        layoutContainerGap,
+        // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre
+        // à l'élément saisi deux emplacements, avant eux et après eux (un Point saisi n'en a qu'un).
+        current.stopPointId === undefined ? layoutDropStopPointsOf(layout) : NO_LAYOUT_DROP_STOP_POINTS,
+      );
+      if (!(sameLayoutDrop(slot, current.target) && slot?.lineY === current.target?.lineY)) current.target = slot;
+      // Lecture la plus prudente du constat (« l'arrêt d'une carte ») : une carte d'Exercice seulement,
+      // pas un Point d'arrêt saisi (À CLARIFIER, spec-recette-2-corrections-composition.md).
+      const isCollapsed = (id: string) => current.stopPointId === undefined && layoutCollapsedRef.current.has(id);
+      const hovered = hoveredCollapsedCircuit(current.target, isCollapsed);
+      if (hovered === current.hoverCircuitId) return;
+      clearLayoutHover();
+      current.hoverCircuitId = hovered;
+      if (hovered === null) return;
+      layoutHoverTimerRef.current = setTimeout(() => {
+        layoutHoverTimerRef.current = null;
+        if (layoutDragRef.current !== current || hoveredCollapsedCircuit(current.target, isCollapsed) !== hovered) return;
+        current.hoverCircuitId = null;
+        current.expandedOnHover = true;
+        setLayoutCollapsed((collapsed) => {
+          if (!collapsed.has(hovered)) return collapsed;
+          const next = new Map(collapsed);
+          next.delete(hovered);
+          return next;
+        });
+      }, LAYOUT_COLLAPSED_HOVER_DELAY_MS);
+    },
+    [clearLayoutHover],
+  );
   const reportLayoutBox = useCallback(
     (key: string, box: LayoutBox | null) => {
       if (box === null) layoutBoxesRef.current.delete(key);
       else layoutBoxesRef.current.set(key, box);
+      const current = layoutDragRef.current;
       // Recette n° 2 : une mesure changée pendant le geste (Circuit saisi qui se replie) recalcule l'aperçu.
-      if (box !== null && layoutDragRef.current !== null) refreshLayoutShifts();
+      // Arrêt sur un Circuit replié (31/10) : pendant son déploiement, la destination sous le doigt
+      // immobile est aussi recalculée (ses cartes apparaissent).
+      if (box !== null && current !== null) {
+        if (current.expandedOnHover && current.lastTranslationY !== null) retargetLayoutDrag(current, current.lastTranslationY);
+        refreshLayoutShifts();
+      }
     },
-    [refreshLayoutShifts],
+    [refreshLayoutShifts, retargetLayoutDrag],
   );
   /**
    * Recette n° 2 (PRE-6 stories 5.2b, 7.4, 7.6) : suite visuelle du lâcher — `hold` : dialogue ouvert,
@@ -2572,7 +2647,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * nulles, sauf l'élément déposé, posé sous le lâcher puis amené à sa place. Un Circuit ou un Cycle
    * lâché est aussitôt porté par la translation du registre (`pose`), qui relaie celle du doigt.
    */
-  const layoutSettleFor = useCallback((current: LayoutDragGesture, translationY: number): LayoutSettle => {
+  const layoutSettleFor = useCallback((current: LayoutDragGesture, fingerTranslationY: number): LayoutSettle => {
+    // Recette n° 2 du 31/10 (arrêt sur un Circuit replié) : position affichée, compensation comprise.
+    const translationY = fingerTranslationY - layoutSourceDrift(current, layoutBoxesRef.current);
     const piece = liftedPiece(layoutPiecesRef.current, current.lifted.boxKey);
     const key = piece === undefined ? null : liftedShiftKey(piece);
     const block = piece !== undefined && (piece.kind === "CIRCUIT" || piece.kind === "CYCLE");
@@ -2775,6 +2852,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // Story 5.2b : un nouveau geste pendant un retour arrête ce retour (translations à 0, synchrone).
       if (layoutLiftRef.current !== null) shiftRegistryRef.current?.reset();
       const lifted: LayoutLiftedSource = { boxKey, gap: layoutContainerGap(piece.container) };
+      clearLayoutHover();
       layoutDragRef.current = {
         source,
         handleY: handle.top + handle.height / 2,
@@ -2782,6 +2860,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         lifted,
         shifts: null,
         ...(stopPointId !== undefined ? { stopPointId } : {}),
+        sourceTop: box.top,
+        liftedKey: liftedShiftKey(piece),
+        lastTranslationY: null,
+        hoverCircuitId: null,
+        expandedOnHover: false,
       };
       setLayoutLift({
         source,
@@ -2807,35 +2890,24 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }
       return true;
     },
-    [autoScroll, closeCircuitControls],
+    [autoScroll, clearLayoutHover, closeCircuitControls],
   );
   const moveLayoutDrag = useCallback(
     (translationY: number) => {
       const current = layoutDragRef.current;
-      const layout = richLayoutRef.current;
-      if (current === null || layout === null) return;
-      const target = resolveLayoutDrop(
-        layout,
-        current.source,
-        current.handleY + translationY,
-        layoutBoxesRef.current,
-        (exercise) => exercise.id,
-        layoutContainerGap,
-        // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre
-        // à l'élément saisi deux emplacements, avant eux et après eux (un Point saisi n'en a qu'un).
-        current.stopPointId === undefined ? layoutDropStopPointsOf(layout) : NO_LAYOUT_DROP_STOP_POINTS,
-      );
-      if (!(sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY)) current.target = target;
+      if (current === null || richLayoutRef.current === null) return;
+      retargetLayoutDrag(current, translationY);
       // Recette n° 2 : la place visée s'ouvre, celle de l'élément saisi se referme (registre animé).
       refreshLayoutShifts();
     },
-    [refreshLayoutShifts],
+    [refreshLayoutShifts, retargetLayoutDrag],
   );
   const endLayoutDrag = useCallback(
     (translationY: number) => {
       moveLayoutDrag(translationY);
       const current = layoutDragRef.current;
       layoutDragRef.current = null;
+      clearLayoutHover();
       autoScroll.end();
       if (current === null) return;
       const settle = layoutSettleFor(current, translationY);
@@ -2858,17 +2930,18 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       }
       runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL), settle);
     },
-    [autoScroll, layoutSettleFor, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
+    [autoScroll, clearLayoutHover, layoutSettleFor, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
   );
   const cancelLayoutDrag = useCallback(
     (translationY = 0) => {
       const current = layoutDragRef.current;
       layoutDragRef.current = null;
+      clearLayoutHover();
       autoScroll.end();
       // Story 5.2b : geste interrompu — retour en douceur depuis la position atteinte.
       if (current !== null) layoutSettleFor(current, translationY).release();
     },
-    [autoScroll, layoutSettleFor],
+    [autoScroll, clearLayoutHover, layoutSettleFor],
   );
   /** Recette n° 2 : fin du retour (ou de la mise en place) de l'élément lâché — il rejoint la chaîne du rail. */
   useEffect(() => {
@@ -6802,6 +6875,9 @@ function CompositionActivityRow({
   // PRE-7 (D-448, point 7, recette JA2 nv-5) : synthèse « Paramètres à compléter. » (par exemple une
   // phase sans durée après un changement de rang) → carte sur `colors.dangerSurface`.
   const isIncomplete = isIncompleteSummary(summary);
+  // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat e) : « Paramètre à vérifier » → carte orange
+  // (« Paramètres à compléter » prime : la synthèse ne vaut jamais les deux).
+  const isToVerify = isToVerifySummary(summary);
   /**
    * Hauteur de la CARTE seule : 80 (carte v2, PRE-6 story 5.1, D-435), récupération comprise
    * (ligne 3). La rangée du point d'arrêt, rendue SOUS la carte hors placement, n'entre pas ici.
@@ -6820,7 +6896,7 @@ function CompositionActivityRow({
    * Bord affiché : hors Circuit, et dans le Circuit à l'état soulevé (`activityBlockDragged`) ou
    * incomplète (recette du 29/10 : liseré rouge, `occurrenceCardIncompleteSurface`).
    */
-  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged || isIncomplete;
+  const isCardBordered = activity.structuralPosition !== "IN_TOUR" || isDragged || isIncomplete || isToVerify;
   /**
    * PRE-6 (story 5.3, D-435) : emplacement de l'occurrence en placement (Domaine, `placementSlots`)
    * — zone de récupération en ligne 3 ; point d'arrêt dans la rangée sous la carte.
@@ -7060,6 +7136,7 @@ function CompositionActivityRow({
           // PRE-6 (story 5.1, D-435) : dans le Circuit, carte sans bord ; l'état soulevé garde le sien.
           activity.structuralPosition === "IN_TOUR" && !isDragged ? occurrenceCardInCircuitSurface : null,
           isIncomplete && !isDragged ? occurrenceCardIncompleteSurface : null,
+          isToVerify && !isDragged ? occurrenceCardToVerifySurface : null,
           isDragged ? styles.activityBlockDragged : null,
           // Hauteur conditionnelle dérivée en un point unique — jamais un
           // littéral par état.
@@ -7324,7 +7401,27 @@ type LayoutDragGesture = {
   readonly stopPointId?: string;
   readonly lifted: LayoutLiftedSource;
   shifts: LayoutDragShifts | null;
+  /** Recette n° 2 du 31/10 (arrêt sur un Circuit replié) : haut de l'élément saisi au début du geste. */
+  readonly sourceTop: number;
+  /** Translation du registre qui porte l'élément saisi (`liftedShiftKey`). */
+  readonly liftedKey: string;
+  /** Dernière translation du doigt (`null` : aucun déplacement encore). */
+  lastTranslationY: number | null;
+  /** Circuit replié sur lequel l'élément est arrêté (délai en cours), `null` : aucun. */
+  hoverCircuitId: string | null;
+  /** Un Circuit replié a été déployé par un arrêt pendant ce geste. */
+  expandedOnHover: boolean;
 };
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (arrêt sur un Circuit replié) : déplacement, dans la mise en page,
+ * de l'élément saisi depuis le début du geste (un Circuit déployé au-dessus de lui le fait descendre) ;
+ * 0 si sa boîte n'est pas mesurée.
+ */
+function layoutSourceDrift(current: LayoutDragGesture, boxes: ReadonlyMap<string, LayoutBox>): number {
+  const box = boxes.get(current.lifted.boxKey);
+  return box === undefined ? 0 : box.top - current.sourceTop;
+}
 
 /** Suite visuelle d'une dépose (voir `layoutSettleFor`). */
 type LayoutSettle = { readonly applied: () => void; readonly hold: () => void; readonly release: () => void };

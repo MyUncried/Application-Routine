@@ -181,7 +181,25 @@ export type SessionDraftExercise = {
   readonly copyNumber?: number | null;
   /** PRE-9 (C.1, ARB-03) : Format porté par l'Exercice (`Activity.format`), conservé à la duplication (ARB-17) ; absent/`null` = libre. */
   readonly format?: ElementFormat | null;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : phases « à vérifier » relues de la Séance
+   * (`Activity.phasesToVerify`) — affichage seulement (carte orange « Paramètre à vérifier »,
+   * champs orange dans la feuille) ; retirée à l'ouverture de la feuille. Jamais écrite par
+   * l'enregistrement de la Séance, ni comparée (`exerciseEquals`) : la retirer ne rend pas le
+   * brouillon modifié.
+   */
+  readonly phasesToVerify?: readonly number[];
 };
+
+/**
+ * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : Exercice du
+ * brouillon sans marque « à vérifier » (même objet s'il n'en porte pas).
+ */
+export function withoutPhasesToVerify(exercise: SessionDraftExercise): SessionDraftExercise {
+  if (exercise.phasesToVerify === undefined) return exercise;
+  const { phasesToVerify: _phasesToVerify, ...rest } = exercise;
+  return rest;
+}
 
 /**
  * PRE-7 (R-3, D-445 C05, arbitrage de Hermann du 26/10/2026) : Mouvement créé (`NEW`) ou
@@ -489,6 +507,8 @@ function activityToDraftExercise(activity: Activity): SessionDraftExercise {
     ...(activity.copyNumber !== undefined && activity.copyNumber !== null ? { copyNumber: activity.copyNumber } : {}),
     // PRE-9 (C.1) : Format porté, copie indépendante.
     ...(activity.format !== undefined && activity.format !== null ? { format: cloneElementFormat(activity.format) } : {}),
+    // PRE-9 (recette iPhone n° 2, constat e) : phases « à vérifier », affichage seulement.
+    ...(activity.phasesToVerify !== undefined && activity.phasesToVerify.length > 0 ? { phasesToVerify: [...activity.phasesToVerify] } : {}),
   };
 }
 

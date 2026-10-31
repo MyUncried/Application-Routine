@@ -22,6 +22,7 @@ import {
   formatExerciseBodyZones,
   formatExerciseRowSummary,
   isIncompleteSummary,
+  isToVerifySummary,
   resolveOccurrenceCategory,
 } from "@/features/sessions/compositionPresentation";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
@@ -32,6 +33,7 @@ import { FINAL_ACTION_BUTTON_HEIGHT } from "@/shared/ui/finalAction";
 import { PrimaryActionButton, PrimaryActionZone, usePrimaryActionZone } from "@/shared/ui/PrimaryActionZone";
 import { FixedHeader, HeaderSeparator, ScreenShell } from "@/shared/ui/ScreenShell";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
+import { toVerifyColors } from "@/shared/ui/toVerifyColors";
 import { colors, dimensions, layout, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
@@ -445,7 +447,11 @@ function SelectionRow({
                   style={[
                     styles.rowSecondaryLine,
                     styles.rowSummaryText,
-                    isIncompleteSummary(summary) ? styles.rowSummaryIncomplete : null,
+                    isIncompleteSummary(summary)
+                      ? styles.rowSummaryIncomplete
+                      : isToVerifySummary(summary)
+                        ? styles.rowSummaryToVerify
+                        : null,
                   ]}
                   testID={`activity-selection-row-summary-${definition.id}`}
                 >
@@ -630,6 +636,10 @@ const styles = StyleSheet.create({
   },
   rowSummaryIncomplete: {
     color: colors.danger,
+  },
+  // PRE-9, recette iPhone n° 2 (constat e) : « Paramètre à vérifier » en orange.
+  rowSummaryToVerify: {
+    color: toVerifyColors.text,
   },
   // Sablier 16, puis la durée à 8, alignée à gauche dans sa réserve de 68.
   rowDuration: {

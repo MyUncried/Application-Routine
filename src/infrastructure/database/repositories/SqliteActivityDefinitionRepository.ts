@@ -29,6 +29,7 @@ import {
   type SiblingCompletion,
   type SiblingDefinition,
 } from "@/domain/activities/sharedCorrection";
+import { phasesToVerifyField } from "@/domain/activities/parametersToVerify";
 import type { Database } from "@/infrastructure/database/Database";
 import type { ActivityDefinitionRow } from "@/infrastructure/database/types/DatabaseRows";
 
@@ -58,7 +59,8 @@ export class RetiredCategoryError extends Error {
   }
 }
 
-const SELECT_COLUMNS = "id, movement_id, execution_parameters, created_at, updated_at";
+// PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier » relue.
+const SELECT_COLUMNS = "id, movement_id, execution_parameters, created_at, updated_at, phases_to_verify";
 
 /**
  * PRE-4 (story 1.1, AD-3, AD-13) : défense du repository — les paramètres
@@ -408,6 +410,17 @@ export class SqliteActivityDefinitionRepository implements ActivityDefinitionRep
     return mapActivityDefinitionRow(row, records);
   }
 
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (« Ouverture de la feuille ») : retire la
+   * marque « Paramètre à vérifier » de l'Exercice du Catalogue, sans autre écriture.
+   */
+  async acknowledgeParametersToVerify(id: string): Promise<void> {
+    await this.database.runAsync(
+      "UPDATE activity_definitions SET phases_to_verify = NULL WHERE id = ? AND phases_to_verify IS NOT NULL",
+      [id],
+    );
+  }
+
   async listAll(): Promise<readonly ActivityDefinition[]> {
     const rows = await this.database.getAllAsync<ActivityDefinitionRow>(
       `SELECT ${SELECT_COLUMNS} FROM activity_definitions ORDER BY updated_at DESC`,
@@ -440,6 +453,8 @@ function mapActivityDefinitionRow(
   return {
     executionParameters,
     ...(resolution.status === "INCOMPLETE" ? { missingPhaseIds: resolution.missingPhaseIds } : {}),
+    // PRE-9 (recette iPhone n° 2, constat e) : phases « à vérifier » ; absent sans marque.
+    ...phasesToVerifyField(row.phases_to_verify),
     media: record.mediaLinks.map((link) => ({
       id: link.id,
       activityDefinitionId: row.id,

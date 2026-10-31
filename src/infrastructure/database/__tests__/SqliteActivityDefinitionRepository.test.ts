@@ -768,7 +768,8 @@ describe("SqliteActivityDefinitionRepository — PRE-4 story 1.1 (NodeSqliteData
     const created = await repository.create(definitionInput(mixed));
     // PRE-7 (A1.2, migration 012) : la définition ne porte plus de projection scalaire.
     const columns = (await database.getAllAsync<{ name: string }>("PRAGMA table_info(activity_definitions)")).map((c) => c.name);
-    expect(columns).toEqual(["id", "movement_id", "execution_parameters", "created_at", "updated_at"]);
+    // [Recette iPhone n° 2 du 31/10/2026, constat e : marque `phases_to_verify` (migration 019), pas un scalaire.]
+    expect(columns).toEqual(["id", "movement_id", "execution_parameters", "created_at", "updated_at", "phases_to_verify"]);
     const json = async (id: string) =>
       JSON.parse(
         (await database.getFirstAsync<{ execution_parameters: string }>(

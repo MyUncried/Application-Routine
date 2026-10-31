@@ -247,3 +247,22 @@ export function sameLayoutDrop(a: LayoutDestination | null, b: LayoutDestination
   if (a.index !== b.index || a.container.kind !== b.container.kind || (a.afterStopPoints === true) !== (b.afterStopPoints === true)) return false;
   return a.container.kind === "SESSION" || (b.container.kind !== "SESSION" && a.container.id === b.container.id);
 }
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (Hermann : « L'arrêt d'une carte sur un circuit replié doit
+ * l'ouvrir ») — temps d'arrêt, en millisecondes, d'un élément saisi sur un Circuit replié avant que
+ * ce Circuit se déploie (rendu choisi, Figma muet : à valider sur iPhone). L'arrêt est compté tant que
+ * la destination résolue reste ce Circuit replié (sa fin, seule destination qu'il offre replié).
+ */
+export const LAYOUT_COLLAPSED_HOVER_DELAY_MS = 500;
+
+/**
+ * Circuit replié visé par la destination `dropTarget` (identifiant), `null` sinon. Un Circuit replié
+ * n'offre que sa fin (`layoutDropCandidates`) : la destination est dans ce Circuit si et seulement si
+ * l'élément saisi est arrêté sur lui (jamais un Circuit ni un Cycle, D-451 ; l'écran ne l'applique qu'à
+ * une carte d'Exercice, pas à un Point d'arrêt saisi).
+ */
+export function hoveredCollapsedCircuit(dropTarget: LayoutDestination | null, isCollapsed: (circuitId: string) => boolean): string | null {
+  if (dropTarget === null || dropTarget.container.kind !== "CIRCUIT") return null;
+  return isCollapsed(dropTarget.container.id) ? dropTarget.container.id : null;
+}

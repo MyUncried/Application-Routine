@@ -70,6 +70,9 @@ export type MovementExerciseDefaults = {
  * « durées par défaut du Mouvement reprises par identité de phase, vides où le Mouvement n'en a
  * pas ». Valeurs copiées dans l'Exercice : ni sa modification dans la Séance ne touche le
  * Mouvement, ni une modification ultérieure du Mouvement ne touche l'Exercice (31/10 : « Inchangés »).]
+ * [Remplacé en partie le 31/10/2026, recette iPhone n° 2, constat e : une durée restée VIDE dans un
+ * Exercice enregistré reçoit une valeur par défaut ajoutée ensuite au Mouvement (« Paramètre à
+ * vérifier », `parametersToVerify.ts`).]
  */
 export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
   return {

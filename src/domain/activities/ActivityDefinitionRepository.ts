@@ -67,4 +67,9 @@ export interface ActivityDefinitionRepository {
     input: UpdateActivityDefinitionInput,
     siblingCompletions?: readonly SiblingCompletion[],
   ): Promise<ActivityDefinition | null>;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : retire la marque « Paramètre à vérifier »
+   * de l'Exercice (feuille des paramètres ouverte). Facultative : absente, rien n'est retiré.
+   */
+  acknowledgeParametersToVerify?(id: string): Promise<void>;
 }

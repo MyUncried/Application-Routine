@@ -8,6 +8,7 @@ import {
   CountStepper,
   containerMoveAccessibility,
   containerTitle,
+  durationGrabProps,
   type ContainerMoveActions,
 } from "@/features/sessions/CircuitHeader";
 import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
@@ -44,7 +45,7 @@ export type CycleHeaderProps = {
   readonly onRowLayout?: ViewProps["onLayout"];
   /** Retrait du titre qui laisse la colonne de l'anneau du rail (dessiné par l'écran). */
   readonly titleInset?: number;
-  /** PRE-9 B.4 (ARB-09) : appui long sur le titre — saisie du Cycle entier pour le glisser. */
+  /** PRE-9 B.4 (ARB-09) : appui long sur le titre — saisie du Cycle entier pour le glisser ; recette n° 2 du 31/10 : aussi sur la durée. */
   readonly onLongPress?: () => void;
   /** PRE-9 B.4 : alternatives accessibles au glisser (« Monter » / « Descendre »). */
   readonly moveActions?: ContainerMoveActions;
@@ -83,6 +84,8 @@ export function CycleHeader({
 }: CycleHeaderProps) {
   const t = strings.screens.composition.cycle;
   const title = containerTitle(t.title, letter);
+  // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie (comme le titre).
+  const durationGrab = durationGrabProps(onLongPress);
   return (
     <View style={[styles.header, { paddingLeft: titleInset }]} testID={testID}>
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
@@ -130,7 +133,8 @@ export function CycleHeader({
         </View>
         {/* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */}
         <Text
-          style={styles.duration}
+          {...durationGrab}
+          style={[styles.duration, durationGrab.style]}
           numberOfLines={1}
           accessible={false}
           importantForAccessibility="no"

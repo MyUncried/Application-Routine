@@ -89,6 +89,9 @@ function phaseDurationsChanged(before: readonly MovementPhase[], after: readonly
  * PRE-9 A.2b : seules les durées par défaut des phases changent (contenu partagé identique). Ces
  * durées ne servent qu'à la création d'un Exercice ; les Exercices existants restent inchangés
  * (Hermann, 31/10/2026 : « Inchangés ») — aucune confirmation C03 n'est demandée (`SILENT`).
+ * [31/10/2026, recette iPhone n° 2, constat e : « restent inchangés » remplacé en partie — une valeur
+ * ajoutée remplit les durées VIDES des Exercices liés (« Paramètre à vérifier »), à l'écriture du
+ * Mouvement (`updateMovementContent`) ; la décision reste `SILENT`, sans dialogue.]
  */
 export function onlyPhaseDurationsChanged(before: MovementContentSnapshot, after: MovementContentSnapshot): boolean {
   return !movementContentChanged(before, after) && phaseDurationsChanged(before.phases, after.phases);

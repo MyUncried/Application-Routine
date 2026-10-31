@@ -52,6 +52,11 @@ export interface SessionRepository {
    * régénération d'identifiant pour une Activité conservée).
    */
   update(sessionId: string, input: UpdateSessionInput): Promise<UpdateSessionOutcome>;
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e : retire la marque « Paramètre à vérifier »
+   * de l'occurrence (feuille des paramètres ouverte). Facultative : absente, rien n'est retiré.
+   */
+  acknowledgeParametersToVerify?(activityId: string): Promise<void>;
 }
 
 /**

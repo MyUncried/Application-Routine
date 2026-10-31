@@ -167,6 +167,21 @@ export const CIRCUIT_HEADER_TOUCH_GEOMETRY = {
   counterOffset: COUNTER_OFFSET,
 } as const;
 
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (Hermann : « Appui long sur la zone de la durée d'un circuit ou
+ * d'un cycle doit permettre de le déplacer ») — la durée d'un en-tête de conteneur porte le même appui
+ * long que le titre (`onLongPress`, saisie du conteneur, délai système de 500 ms par défaut du `Text`
+ * natif = `LONG_PRESS_DELAY_MS`) ; aucun appui court (la durée n'en avait pas) ; sans surbrillance ;
+ * toujours retirée de l'accessibilité (lue avec le nom, qui porte « Monter » / « Descendre »). Sa zone
+ * de toucher est étendue à la hauteur de la cible du titre (44), sans changer la mise en page.
+ * Absent (`undefined`) : texte simple, inchangé.
+ */
+export function durationGrabProps(onLongPress: (() => void) | undefined) {
+  return onLongPress === undefined
+    ? { style: null }
+    : { onLongPress, suppressHighlighting: true, style: durationGrabStyle.target };
+}
+
 /** Largeur minimale du titre (nom, et chevron du Circuit) : le compteur commence à `COUNTER_OFFSET`. */
 export const CONTAINER_TITLE_MIN_WIDTH = COUNTER_OFFSET - TITLE_TO_COUNTER_GAP;
 
@@ -274,7 +289,8 @@ export type CircuitHeaderProps = {
   readonly titleInset?: number;
   /**
    * PRE-9 B.4 (COMP §6) : appui long sur le nom et le chevron — saisie du Circuit pour le glisser
-   * (un Circuit déployé est d'abord replié par l'écran). Absent : appui court seul.
+   * (un Circuit déployé est d'abord replié par l'écran). Absent : appui court seul. Recette n° 2 du 31/10 :
+   * aussi sur la durée (`durationGrabProps`).
    */
   readonly onLongPress?: () => void;
   /** PRE-9 B.4 : alternatives accessibles au glisser (« Monter » / « Descendre »). */
@@ -356,6 +372,8 @@ export function CircuitHeader({
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
   const title = containerTitle(t.title, letter);
+  // Recette n° 2 du 31/10 : la durée porte aussi l'appui long de saisie.
+  const durationGrab = durationGrabProps(onLongPress);
   return (
     <Animated.View
       style={[
@@ -413,7 +431,8 @@ export function CircuitHeader({
         </View>
         {/* Lue avec le nom (VoiceOver), elle est retirée de l'accessibilité ici. */}
         <Text
-          style={styles.duration}
+          {...durationGrab}
+          style={[styles.duration, durationGrab.style]}
           numberOfLines={1}
           accessible={false}
           importantForAccessibility="no"
@@ -1069,5 +1088,18 @@ const styles = StyleSheet.create({
   // Recette n° 2 du 31/10 : découpe de la ligne des noms pendant son ouverture / sa fermeture.
   namesClip: {
     overflow: "hidden",
+  },
+});
+
+/**
+ * Recette n° 2 du 31/10 : zone d'appui long de la durée — étendue au-dessus et au-dessous de la ligne
+ * comme la cible du titre (44 de haut), marges négatives : la mise en page de la ligne est inchangée.
+ */
+const durationGrabStyle = StyleSheet.create({
+  target: {
+    marginTop: -TARGET_OVERFLOW_ABOVE_ROW,
+    marginBottom: -TARGET_OVERFLOW_BELOW_ROW,
+    paddingTop: TARGET_OVERFLOW_ABOVE_ROW,
+    paddingBottom: TARGET_OVERFLOW_BELOW_ROW,
   },
 });

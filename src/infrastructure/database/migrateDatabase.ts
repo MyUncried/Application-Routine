@@ -20,6 +20,7 @@ import { applyMigration015 } from "./migrations/migration015";
 import { applyMigration016 } from "./migrations/migration016";
 import { applyMigration017 } from "./migrations/migration017";
 import { applyMigration018 } from "./migrations/migration018";
+import { applyMigration019 } from "./migrations/migration019";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -232,6 +233,15 @@ export async function migrateDatabase(
     if (pending(17)) {
       await applyMigration018(transaction);
       version = 18;
+    }
+
+    // PRE-9 (recette iPhone n° 2 du 31/10/2026, constat e, décisions de Hermann du 31/10) : marque
+    // « Paramètre à vérifier » d'un Exercice, colonnes additives nullables
+    // `activities.phases_to_verify` et `activity_definitions.phases_to_verify` ; tout Exercice
+    // existant reste sans marque. Un échec annule tout et laisse `user_version` à 18.
+    if (pending(18)) {
+      await applyMigration019(transaction);
+      version = 19;
     }
 
     if (version !== targetVersion) {

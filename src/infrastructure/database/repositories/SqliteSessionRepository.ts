@@ -12,6 +12,7 @@ import {
 } from "@/domain/activities/ExecutionParameters";
 import { resolveCatalogParameters, splitResolvedParameters } from "@/domain/activities/Movement";
 import { MovementNotFoundError } from "@/domain/activities/MovementRepository";
+import { phasesToVerifyField } from "@/domain/activities/parametersToVerify";
 import { DEFAULT_CIRCUIT_NATURE, isCircuitNature, type CircuitNature } from "@/domain/sessions/circuit";
 import { SessionValidationError } from "@/domain/sessions/errors";
 import {
@@ -296,6 +297,17 @@ export class SqliteSessionRepository implements SessionRepository, StructuredSes
     private readonly uuidFactory: UuidFactory = Crypto.randomUUID,
     private readonly now: () => string = () => new Date().toISOString(),
   ) {}
+
+  /**
+   * PRE-9 — recette iPhone n° 2 du 31/10/2026, constat e (Hermann : « Ouverture de la feuille
+   * (Recommandé) ») : la feuille des paramètres de l'occurrence a été ouverte — sa marque « à
+   * vérifier » est retirée, sans autre écriture. Sans effet pour une occurrence non enregistrée.
+   */
+  async acknowledgeParametersToVerify(activityId: string): Promise<void> {
+    await this.database.runAsync("UPDATE activities SET phases_to_verify = NULL WHERE id = ? AND phases_to_verify IS NOT NULL", [
+      activityId,
+    ]);
+  }
 
   /**
    * Persiste, dans une UNIQUE transaction SQLite (D-107) : la Séance, son Circuit et TOUS les
@@ -1252,8 +1264,9 @@ async function readAssembledSessions(
     `SELECT id, session_id, cycle_id, position, repeat_count, side_mode, nature FROM tours WHERE session_id IN (${placeholders})`,
     ids,
   );
+  // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : marque « à vérifier », lue seulement.
   const activities = await database.getAllAsync<ActivityRow>(
-    `SELECT ${ACTIVITY_ROW_COLUMNS} FROM activities WHERE session_id IN (${placeholders})`,
+    `SELECT ${ACTIVITY_ROW_COLUMNS}, phases_to_verify FROM activities WHERE session_id IN (${placeholders})`,
     ids,
   );
   const stopPoints = await database.getAllAsync<StopPointRow>(
@@ -1665,6 +1678,11 @@ function toActivity(
     copyNumber: row.copy_number,
     // PRE-9 (C.1) : Format porté par l'Exercice ; absent pour un Exercice libre.
     ...formatField(row),
+    // PRE-9 (recette iPhone n° 2, constat e, `migration019`) : phases « à vérifier » ; absent sans
+    // marque. Jamais écrite par l'enregistrement de la Séance (UPDATE et INSERT l'ignorent : conservée
+    // en place, absente d'une nouvelle ligne) ; posée par l'enregistrement d'un Mouvement, retirée à
+    // l'ouverture de la feuille (`acknowledgeParametersToVerify`).
+    ...phasesToVerifyField(row.phases_to_verify),
     id: row.id,
     type: row.type,
     structuralPosition,

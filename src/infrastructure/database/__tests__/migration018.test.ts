@@ -113,7 +113,10 @@ async function snapshot(database: Database): Promise<Record<string, unknown>> {
   for (const table of TABLES) {
     const rows = await database.getAllAsync<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY 1, 2`);
     result[table] = rows.map((row) =>
-      Object.fromEntries(Object.entries(row).filter(([column]) => !(table === "movement_phases" && ADDED.has(column)))),
+      // [Recette iPhone n° 2 du 31/10/2026 : `phases_to_verify` (019) ajoutée au démarrage, ignorée ici.]
+      Object.fromEntries(
+        Object.entries(row).filter(([column]) => !(table === "movement_phases" && ADDED.has(column)) && column !== "phases_to_verify"),
+      ),
     );
   }
   return result;
@@ -175,8 +178,8 @@ async function seededVersion17(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvement)", () => {
-  it("version courante 18 ; bornes figées de la 018 égales à celles des phases (1..3535 s)", () => {
-    expect(DATABASE_VERSION).toBe(18);
+  it("version courante 19 (018 puis 019) ; bornes figées de la 018 égales à celles des phases (1..3535 s)", () => {
+    expect(DATABASE_VERSION).toBe(19);
     expect(MIGRATION_018_PHASE_DURATION_BOUNDS).toEqual(WORK_PATTERN_DURATION_BOUNDS);
   });
 
@@ -187,7 +190,7 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await snapshot(database)).toEqual(before);
     expect(await columns(database, "movement_phases")).toEqual(["movement_id", "phase_id", "position", "label", "duration_seconds"]);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM movement_phases WHERE duration_seconds IS NOT NULL")).toEqual([{ count: 0 }]);
@@ -206,7 +209,7 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -227,7 +230,7 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
   it("une erreur après l'ajout de la colonne annule tout et laisse la base au schéma 017 ; le démarrage suivant migre", async () => {
     let database = await seededVersion17();
     const before = await snapshot(database);
-    const failing = failOnExec(database, /^PRAGMA user_version = 18/);
+    const failing = failOnExec(database, /^PRAGMA user_version = 19/);
     await expect(migrateDatabase(failing.database, () => T)).rejects.toThrow("Injected failure");
     // L'ajout de la colonne avait bien été exécuté dans la transaction.
     expect(failing.executed.some((source) => source.startsWith("ALTER TABLE movement_phases ADD COLUMN duration_seconds"))).toBe(true);
@@ -238,16 +241,16 @@ describe("PRE-9 A.2b — migration 018 (durée facultative d'une phase du Mouvem
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await columns(database, "movement_phases")).toContain("duration_seconds");
     expect(await snapshot(database)).toEqual(before);
   });
 
-  it("installation neuve : 001 à 018, aucun avis", async () => {
+  it("installation neuve : 001 à 019, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(18);
+    expect(await version(database)).toBe(19);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM migration_notices")).toEqual([{ count: 0 }]);
     expect(await columns(database, "movement_phases")).toContain("duration_seconds");
   });
