@@ -225,7 +225,9 @@ export const fr = {
         playUnavailableAccessibilityLabel: "Lancer la séance — indisponible",
         archivedAccessibility: "archivée",
         cycleLine: "Cycle · {count} {unit}",
-        cycleUnit: { singular: "répétition", plural: "répétitions" },
+        // [31/10/2026, Hermann : « Le Catalogue des Séances affiche encore « Cycle · N répétitions » […]
+        // Faut-il l'aligner aussi ? Oui » — unité « passage(s) », comme la Composition.]
+        cycleUnit: { singular: "passage", plural: "passages" },
         // PRE-9 B.1b (référence « Composition : circuits, cycles et création » §2 : « L’unité reste
         // tour(s) ») : « Circuit · N tours · groupées|alternées » [remplace « Circuit · N tours|séries »
         // (unité accordée à la nature), 29/10/2026].

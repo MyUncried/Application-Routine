@@ -82,7 +82,7 @@ describe("PRE-8 E.3 — arbre rendu", () => {
   it("lignes de conteneurs sans valeur, noms et volumes, récupération grisée à sa position", () => {
     render(<SessionCompositionTree tree={knee().tree} testID="tree" />);
     expect(screen.getByTestId("tree-divider")).toBeTruthy();
-    expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle · 2 répétitions");
+    expect(screen.getByTestId("tree-line-cy")).toHaveTextContent("Cycle · 2 passages");
     expect(screen.getByTestId("tree-line-c1")).toHaveTextContent("Circuit · 3 tours · groupées");
     expect(screen.getByTestId("tree-line-sq")).toHaveTextContent("Squat assisté3 × 12 rép.");
     expect(screen.getByTestId("tree-line-ext:recovery")).toHaveTextContent("Récupération1 min");
@@ -114,13 +114,13 @@ describe("PRE-8 E.3 — arbre rendu", () => {
   });
 
   it("libellés au singulier ; Circuit : unité « tour(s) » et adjectif de nature (PRE-9 B.1b, référence §2)", () => {
-    expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 1 }).name).toBe("Cycle · 1 répétition");
+    expect(treeLineLabel({ kind: "CYCLE", key: "c", depth: 0, repeatCount: 1 }).name).toBe("Cycle · 1 passage");
     expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 4, nature: "SERIES" }).name).toBe("Circuit · 4 tours · alternées");
     expect(treeLineLabel({ kind: "CIRCUIT", key: "c", depth: 0, repeatCount: 1, nature: "TOURS" }).name).toBe("Circuit · 1 tour · groupées");
   });
 
   it("texte d'accessibilité de la composition", () => {
-    expect(compositionAccessibilityText(knee().tree)).toMatch(/^Composition de la séance : Mobilisation du genou 45 s, Cycle · 2 répétitions, Circuit · 3 tours · groupées/);
+    expect(compositionAccessibilityText(knee().tree)).toMatch(/^Composition de la séance : Mobilisation du genou 45 s, Cycle · 2 passages, Circuit · 3 tours · groupées/);
   });
 });
 
