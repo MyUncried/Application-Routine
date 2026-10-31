@@ -214,11 +214,12 @@ describe("B.1b — rendu d'une disposition générale", () => {
   });
 
   // [B.1b : « ni glisser, ni balayage, ni actions accessibles » — remplacé pour le glisser et « Monter »
-  // / « Descendre » par B.4 (31/10/2026) ; balayage (B.5) et placement (B.6) toujours indisponibles.]
-  it("gestes non disponibles (B.5, B.6) : ni balayage, ni Dupliquer / Supprimer ; placement et Volumes indisponibles", async () => {
+  // / « Descendre » par B.4 (31/10/2026) ; pour le balayage et « Dupliquer » / « Supprimer » par B.5
+  // (31/10/2026, `CompositionScreen.b5.test.tsx`) ; placement (B.6) toujours indisponible.]
+  it("gestes non disponibles (B.6) : placement et Volumes indisponibles ; actions accessibles des cartes (B.4, B.5)", async () => {
     await renderComposition(richDraft());
     const card = screen.getByTestId("composition-exercise-row-a1");
-    expect(card.props.accessibilityActions.map((action: { name: string }) => action.name)).toEqual(["moveUp", "moveDown"]);
+    expect(card.props.accessibilityActions.map((action: { name: string }) => action.name)).toEqual(["moveUp", "moveDown", "duplicate", "delete"]);
     // Sans mesure de la carte, l'appui long ne la soulève pas (géométrie incomplète).
     fireEvent(card, "longPress");
     expect(screen.queryByTestId("composition-activity-actions-a1", hidden)).toBeNull();

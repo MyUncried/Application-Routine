@@ -299,7 +299,8 @@ describe("B.4 — glisser-déposer dans une disposition générale (COMP §6, AR
     await renderComposition(twoCircuitsDraft());
     const actions = (id: string) =>
       screen.getByTestId(`composition-exercise-row-${id}`).props.accessibilityActions.map((action: { name: string }) => action.name);
-    expect(actions("e0")).toEqual(["moveDown"]);
+    // [B.4 : ["moveDown"] — B.5 (31/10/2026) ajoute « Dupliquer » / « Supprimer ».]
+    expect(actions("e0")).toEqual(["moveDown", "duplicate", "delete"]);
     fireEvent(screen.getByTestId("composition-exercise-row-a1"), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
     expect(shape(probe.draft)).toBe("e0 a1 ca[a2] cb[b1] e9");
     fireEvent(screen.getByTestId("composition-exercise-row-e0"), "accessibilityAction", { nativeEvent: { actionName: "moveDown" } });

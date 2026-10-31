@@ -6,15 +6,24 @@
  * - `VanishingBlock` : retrait progressif d'un conteneur vidé par une dépose (précision de Hermann du
  *   30/10/2026, ch07 « Retrait d'un Circuit » : « effacement progressif et lent du Circuit retiré, puis
  *   remontée douce des éléments suivants ») — fondu, PUIS fermeture de sa place ;
- * - `LayoutDropLine` : repère d'insertion de la destination (éclairage, COMP §6).
+ * - `LayoutDropLine` : repère d'insertion de la destination (éclairage, COMP §6) ;
+ * - `CardMotionBlock` (B.5) : carte supprimée (fondu puis fermeture de sa place) ou copie qui apparaît
+ *   (ouverture de sa place et fondu), aux durées de l'ancien modèle (D-441, D-442, D-443).
+ * Le dernier membre supprimé d'un conteneur emporte le conteneur, retiré par `VanishingBlock` (B.5).
  */
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Animated, StyleSheet, View, type GestureResponderEvent, type LayoutChangeEvent, type ViewProps } from "react-native";
-import Reanimated, { Easing as ReanimatedEasing, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Reanimated, { Easing as ReanimatedEasing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from "react-native-reanimated";
 import { scheduleOnRN } from "react-native-worklets";
 
 import { CIRCUIT_HIDE_DURATION_MS, CIRCUIT_REVEAL_DURATION_MS } from "@/features/sessions/CircuitHeader";
+import {
+  MOTION_APPEAR_DURATION_MS,
+  MOTION_FADE_DURATION_MS,
+  MOTION_FADE_TO_SLIDE_DELAY_MS,
+  MOTION_SHIFT_DURATION_MS,
+} from "@/features/sessions/compositionMotion";
 import type { DragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { colors } from "@/shared/ui/tokens";
 import { useReduceMotion } from "@/shared/ui/useReduceMotion";
@@ -182,6 +191,107 @@ export function VanishingBlock({ gap, onDone, testID, children }: { gap: number;
       testID={testID}
     >
       {children}
+    </Reanimated.View>
+  );
+}
+
+/**
+ * PRE-9 (story B.5) — durées et courbes de la carte supprimée ou dupliquée dans une disposition
+ * générale : celles de l'ancien modèle (story 7.6 / 7.7, D-441, D-442, D-443, `compositionMotion.ts`).
+ * Suppression : fondu de 450 ms, la place se referme à partir de 200 ms en 320 ms (les éléments
+ * suivants remontent pendant la fin du fondu) ; duplication : la place s'ouvre en 320 ms pendant que la
+ * copie apparaît en fondu de 450 ms. « Réduire les animations » : immédiat.
+ */
+const CARD_SHIFT_EASING = ReanimatedEasing.bezier(0.33, 1, 0.68, 1);
+const CARD_FADE_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
+
+/** Mouvement d'une carte : au repos, en disparition (suppression), en apparition (copie). */
+export type CardMotionMode = "IDLE" | "LEAVING" | "APPEARING";
+
+/**
+ * Carte d'une disposition générale, toujours enveloppée (aucun remontage quand le mouvement commence
+ * ou se termine) : au repos, transparent pour la mise en page ; en disparition, fondu puis fermeture
+ * de sa hauteur et de l'écart qui la suit (`gap`) ; en apparition (au montage de la copie), ouverture
+ * de sa place depuis 0 et fondu entrant. `onDone` à la fin du mouvement. La hauteur naturelle est
+ * relevée sur la vue intérieure (non contrainte par la hauteur bornée de l'enveloppe). `style` et
+ * `onLayout` : ceux de l'enveloppe, élément de la liste (sa position y est mesurée).
+ */
+export function CardMotionBlock({
+  mode,
+  gap,
+  onDone,
+  style: outerStyle,
+  onLayout,
+  testID,
+  children,
+}: {
+  mode: CardMotionMode;
+  gap: number;
+  onDone: () => void;
+  style?: ViewProps["style"];
+  onLayout?: (event: LayoutChangeEvent) => void;
+  testID: string;
+  children: ReactNode;
+}) {
+  const reduceMotion = useReduceMotion();
+  const opacity = useSharedValue(mode === "APPEARING" ? 0 : 1);
+  /** 0 : place ouverte ; 1 : place refermée. */
+  const closing = useSharedValue(mode === "APPEARING" ? 1 : 0);
+  const height = useSharedValue(0);
+  const done = useRef(onDone);
+  useEffect(() => {
+    done.current = onDone;
+  }, [onDone]);
+  useEffect(() => {
+    if (mode === "IDLE") return;
+    const finish = () => done.current();
+    if (reduceMotion) {
+      opacity.set(mode === "APPEARING" ? 1 : 0);
+      closing.set(mode === "APPEARING" ? 0 : 1);
+      finish();
+      return;
+    }
+    if (mode === "LEAVING") {
+      opacity.set(withTiming(0, { duration: MOTION_FADE_DURATION_MS, easing: CARD_FADE_EASING }));
+      closing.set(
+        withDelay(
+          MOTION_FADE_TO_SLIDE_DELAY_MS,
+          withTiming(1, { duration: MOTION_SHIFT_DURATION_MS, easing: CARD_SHIFT_EASING }, (finished) => {
+            if (finished === true) scheduleOnRN(finish);
+          }),
+        ),
+      );
+      return;
+    }
+    closing.set(withTiming(0, { duration: MOTION_SHIFT_DURATION_MS, easing: CARD_SHIFT_EASING }));
+    opacity.set(
+      withTiming(1, { duration: MOTION_APPEAR_DURATION_MS, easing: CARD_FADE_EASING }, (finished) => {
+        if (finished === true) scheduleOnRN(finish);
+      }),
+    );
+  }, [closing, mode, opacity, reduceMotion]);
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    maxHeight: closing.value <= 0 ? undefined : height.value <= 0 ? 0 : (1 - closing.value) * height.value,
+    marginBottom: -closing.value * gap,
+  }));
+  const onInnerLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      height.set(event.nativeEvent.layout.height);
+    },
+    [height],
+  );
+  const leaving = mode === "LEAVING";
+  return (
+    <Reanimated.View
+      pointerEvents={leaving ? "none" : "auto"}
+      accessibilityElementsHidden={leaving}
+      importantForAccessibility={leaving ? "no-hide-descendants" : "auto"}
+      style={[outerStyle, mode === "IDLE" ? null : styles.clip, style]}
+      onLayout={onLayout}
+      testID={testID}
+    >
+      <View onLayout={onInnerLayout}>{children}</View>
     </Reanimated.View>
   );
 }

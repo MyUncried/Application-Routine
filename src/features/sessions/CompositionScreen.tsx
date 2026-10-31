@@ -57,8 +57,10 @@ import {
 } from "@/domain/sessions/layoutOperations";
 import { EnvelopeHandle, envelopeTargetKey, useEnvelopePerimeterDrag } from "@/features/sessions/EnvelopePerimeter";
 import {
+  duplicateLayoutExercise,
   moveLayoutItem,
   neutralDropControl,
+  removeLayoutExercise,
   stepLayoutItem,
   type LayoutDropControl,
   type LayoutItemMoveOutcome,
@@ -138,7 +140,7 @@ import {
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
 import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
-import { LayoutDropLine, useBlockDragGesture, VanishingBlock } from "@/features/sessions/LayoutDragParts";
+import { CardMotionBlock, LayoutDropLine, useBlockDragGesture, VanishingBlock, type CardMotionMode } from "@/features/sessions/LayoutDragParts";
 import {
   layoutHeaderKey,
   layoutItemKey,
@@ -1034,8 +1036,19 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     appearanceRef.current = null;
     setAppearance(null);
   }, []);
-  /** Story 7.5 : termine aussitôt une suppression animée en cours (brouillon écrit). */
-  const flushDeletion = useCallback(() => deletionRef.current?.commit(), []);
+  /**
+   * PRE-9 B.5 : carte d'une disposition générale en mouvement — supprimée (fondu, puis fermeture de sa
+   * place ; brouillon écrit à la fin, `commit`, comme la suppression de l'ancien modèle) ou copie qui
+   * apparaît (brouillon écrit aussitôt, comme la copie de l'ancien modèle).
+   */
+  const [layoutCardMotion, setLayoutCardMotion] = useState<{ readonly id: string; readonly mode: Exclude<CardMotionMode, "IDLE"> } | null>(null);
+  /** PRE-9 B.5 : suppression animée en cours dans une disposition générale ; une seule à la fois. */
+  const layoutDeletionRef = useRef<{ readonly id: string; readonly commit: () => void } | null>(null);
+  /** Story 7.5 : termine aussitôt une suppression animée en cours (brouillon écrit). PRE-9 B.5 : de même dans une disposition générale. */
+  const flushDeletion = useCallback(() => {
+    deletionRef.current?.commit();
+    layoutDeletionRef.current?.commit();
+  }, []);
   /** Revue 7.5 : dernier brouillon rendu, pour rejouer une suppression à son écriture. */
   const draftRef = useRef(draft);
   useLayoutEffect(() => {
@@ -1269,7 +1282,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     closeCircuitControls();
     // Story 7.5 : pendant une suppression animée, le brouillon n'est pas encore écrit — elle est
     // terminée aussitôt, et l'enregistrement demande un nouveau toucher (choix 7.5).
-    if (deletionRef.current !== null) {
+    if (deletionRef.current !== null || layoutDeletionRef.current !== null) {
       flushDeletion();
       return;
     }
@@ -2256,12 +2269,16 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const text = strings.screens.composition.layoutMove.refused[reason];
     if (text !== "") AccessibilityInfo.announceForAccessibility(text);
   }, []);
-  /** Écrit un déplacement accepté ; les conteneurs vidés restent rendus le temps de leur effacement. */
+  /**
+   * Écrit un déplacement accepté ; les conteneurs vidés restent rendus le temps de leur effacement.
+   * PRE-9 B.5 : `keepMembers` — suppression du dernier membre : le conteneur s'efface avec ce qu'il
+   * contenait (la carte supprimée), au lieu d'un conteneur vide (dépose : le membre est ailleurs).
+   */
   const commitLayoutMove = useCallback(
-    (next: SessionDraft, removed: readonly LayoutItemRef[]) => {
+    (next: SessionDraft, removed: readonly LayoutItemRef[], keepMembers = false) => {
       const before = richLayoutRef.current;
       if (before !== null && removed.length > 0) {
-        const items = vanishingContainers(before, removed);
+        const items = vanishingContainers(before, removed, keepMembers);
         setVanishing((current) => [...current.filter((item) => !items.some((added) => added.key === item.key)), ...items]);
       }
       updateDraft(() => next);
@@ -2297,12 +2314,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   );
   const startLayoutDrag = useCallback(
     (source: LayoutItemRef): boolean => {
-      if (layoutDragRef.current !== null || richLayoutRef.current === null) return false;
+      // PRE-9 B.5 : ni pendant une suppression animée (mise en page figée).
+      if (layoutDragRef.current !== null || richLayoutRef.current === null || layoutDeletionRef.current !== null) return false;
       const handle = layoutBoxesRef.current.get(source.kind === "EXERCISE" ? layoutItemKey(source) : layoutHeaderKey(source.kind, source.id));
       if (handle === undefined) return false;
       layoutDragRef.current = { source, handleY: handle.top + handle.height / 2, target: null };
       setLayoutDrag({ source, target: null });
       closeCircuitControls();
+      setRevealedActionsId(null);
       autoScroll.begin();
       if (source.kind === "CIRCUIT") {
         // COMP §6 : « Un appui long sur l'en-tête d'un circuit déployé commence par le replier puis
@@ -2355,6 +2374,77 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [draft, runLayoutMove],
   );
+  /**
+   * PRE-9 B.5 (epics B.5 ; D-442 amendée : suppression toujours appliquée ; COMP §1 : « Il disparaît
+   * lorsque son dernier membre en sort » ; précision de Hermann du 30/10/2026, ch07 « Retrait d'un
+   * Circuit ») — Supprimer d'une carte d'une disposition générale :
+   * - membre parmi d'autres : la carte s'efface en fondu, puis sa place se referme et les éléments
+   *   suivants remontent (`CardMotionBlock`, durées de l'ancien modèle) ; le brouillon est écrit à la
+   *   fin (`commit`, aussi appelé par `flushDeletion` : enregistrement, perte du premier plan…) ;
+   * - dernier membre d'un Circuit (et d'un Cycle vidé par ce retrait) : le brouillon est écrit aussitôt
+   *   et le conteneur, rendu tel qu'avant avec la carte, s'efface lentement à sa place puis sa place se
+   *   referme (`VanishingBlock`, 900 + 700 ms, B.4) ; « Réduire les animations » : immédiat.
+   * Aucun Point d'arrêt dans une disposition générale avant B.6 : rien d'autre n'est retiré.
+   */
+  const handleLayoutDelete = useCallback(
+    (exerciseId: string) => {
+      setRevealedActionsId(null);
+      if (layoutDragRef.current !== null || layoutDeletionRef.current !== null) return;
+      const outcome = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
+      if (outcome.status !== "APPLIED") return;
+      // « Réduire les animations » : aucun mouvement, le brouillon est écrit aussitôt.
+      if (reduceMotion) {
+        updateDraft(() => outcome.draft);
+        return;
+      }
+      if (outcome.removedContainers.length > 0) {
+        commitLayoutMove(outcome.draft, outcome.removedContainers, true);
+        return;
+      }
+      const pending = {
+        id: exerciseId,
+        commit: () => {
+          if (layoutDeletionRef.current !== pending) return;
+          layoutDeletionRef.current = null;
+          setLayoutCardMotion((current) => (current?.id === exerciseId ? null : current));
+          // Rejouée sur le brouillon courant ; un conteneur vidé entre-temps s'efface vide (la carte
+          // s'est déjà effacée).
+          const settled = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
+          if (settled.status === "APPLIED") commitLayoutMove(settled.draft, settled.removedContainers);
+        },
+      };
+      layoutDeletionRef.current = pending;
+      setLayoutCardMotion({ id: exerciseId, mode: "LEAVING" });
+    },
+    [commitLayoutMove, reduceMotion, updateDraft],
+  );
+  /**
+   * PRE-9 B.5 (D-441 ; ARB-17 ; correction C.1 du 30/10) — Dupliquer d'une carte d'une disposition
+   * générale : copie juste après la source dans le même conteneur (`duplicateLayoutExercise` : Format
+   * et réglages conservés, N d'un Circuit alterné conservé) ; brouillon écrit aussitôt, la copie
+   * apparaît (ouverture de sa place et fondu, comme la copie de l'ancien modèle, D-443). Aucune
+   * duplication de Circuit ni de Cycle (ARB-08).
+   */
+  const handleLayoutDuplicate = useCallback(
+    (exerciseId: string) => {
+      setRevealedActionsId(null);
+      if (layoutDragRef.current !== null || layoutDeletionRef.current !== null) return;
+      const newId = Crypto.randomUUID();
+      const outcome = duplicateLayoutExercise(draftRef.current, exerciseId, newId, () => Crypto.randomUUID());
+      if (outcome.status !== "APPLIED") return;
+      if (!reduceMotion) setLayoutCardMotion({ id: newId, mode: "APPEARING" });
+      updateDraft(() => outcome.draft);
+    },
+    [reduceMotion, updateDraft],
+  );
+  /** PRE-9 B.5 : fin du mouvement d'une carte — suppression écrite, ou copie pleinement affichée. */
+  const handleLayoutCardMotionDone = useCallback((id: string, mode: Exclude<CardMotionMode, "IDLE">) => {
+    if (mode === "LEAVING") {
+      if (layoutDeletionRef.current?.id === id) layoutDeletionRef.current.commit();
+      return;
+    }
+    setLayoutCardMotion((current) => (current?.id === id && current.mode === "APPEARING" ? null : current));
+  }, []);
   const layoutDragContext = useMemo<LayoutDragContext | null>(
     () =>
       richLayout === null || envelope !== null || pendingLayoutMove !== null || pendingNatureChange !== null
@@ -2382,6 +2472,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       richLayout,
       startLayoutDrag,
     ],
+  );
+
+  /** PRE-9 B.5 : actions glissées des cartes d'une disposition générale ; inactives quand le glisser l'est. */
+  const layoutActionsContext = useMemo<LayoutActionsContext | null>(
+    () =>
+      richLayout === null || envelope !== null || pendingLayoutMove !== null || pendingNatureChange !== null
+        ? null
+        : { revealedId: revealedActionsId, onReveal: handleRevealActions, onDuplicate: handleLayoutDuplicate, onDelete: handleLayoutDelete },
+    [envelope, handleLayoutDelete, handleLayoutDuplicate, handleRevealActions, pendingLayoutMove, pendingNatureChange, revealedActionsId, richLayout],
   );
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
@@ -3661,6 +3760,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             drag={layoutDragContext}
             vanishing={vanishing}
             onVanished={handleVanished}
+            actions={layoutActionsContext}
+            cardMotion={layoutCardMotion}
+            onCardMotionDone={handleLayoutCardMotionDone}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -5392,15 +5494,22 @@ type CompositionActivityRowProps = {
    * PRE-9 B.1b : carte d'une disposition générale (`LayoutSequence`) — écart au-dessus d'elle dans sa
    * liste, que son rail traverse. Défini : seul l'appui court (modification) est actif ; glisser,
    * balayage (Dupliquer / Supprimer) et leurs actions accessibles relèvent de B.4 et B.5 ; rail
-   * simplifié porté par la carte (lien à travers l'écart au-dessus, queue sous le média).
+   * simplifié porté par la carte (lien à travers l'écart au-dessus, queue sous le média). [Glisser :
+   * B.4 ; balayage et « Dupliquer » / « Supprimer » : B.5 (`layoutSwipeable`).]
    */
   readonly layoutRailGap?: number;
   /**
    * PRE-9 B.4 (COMP §6, G1–G5) : dans une disposition générale, appui long puis glisser actifs
    * (`onDragStart` / `onDragMove` / `onDragEnd`), ainsi que « Monter » / « Descendre »
-   * (`onMoveUp` / `onMoveDown`) ; le balayage (Dupliquer / Supprimer) reste réservé à B.5.
+   * (`onMoveUp` / `onMoveDown`). [B.4 : « le balayage (Dupliquer / Supprimer) reste réservé à B.5 »
+   * — remplacé par B.5 le 31/10/2026 : voir `layoutSwipeable`.]
    */
   readonly layoutDraggable?: boolean;
+  /**
+   * PRE-9 B.5 (D-441, D-442) : dans une disposition générale, balayage gauche (Dupliquer / Supprimer)
+   * et ses actions accessibles « Dupliquer » / « Supprimer » actifs.
+   */
+  readonly layoutSwipeable?: boolean;
 };
 
 /**
@@ -5559,12 +5668,13 @@ function CompositionActivityRow({
   onFocusConsumed,
   layoutRailGap,
   layoutDraggable = false,
+  layoutSwipeable = false,
 }: CompositionActivityRowProps) {
   /** PRE-9 B.1b : carte d'une disposition générale — voir `layoutRailGap`. */
   const inLayout = layoutRailGap !== undefined;
-  /** PRE-9 B.4 : glisser actif (ancien modèle, ou disposition générale) ; balayage hors disposition générale (B.5). */
-  const canDrag = !inLayout || layoutDraggable;
-  const canSwipe = !inLayout;
+  /** PRE-9 B.4 : glisser actif (ancien modèle, ou disposition générale). B.5 : balayage de même. */
+  const canSwipe = !inLayout || layoutSwipeable;
+  const canDrag = !inLayout || layoutDraggable || canSwipe;
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<View>(null);
@@ -6043,12 +6153,14 @@ function CompositionActivityRow({
         () => formatCompactDuration(displayedRecoverySeconds),
       )}`
     : formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName);
-  // PRE-9 B.1b : dans une disposition générale, ni duplication ni suppression (B.5). B.4 : « Monter »
-  // / « Descendre » sur les positions de l'arbre (`stepLayoutItem`).
+  // PRE-9 B.4 : « Monter » / « Descendre » sur les positions de l'arbre (`stepLayoutItem`). [B.1b : « dans
+  // une disposition générale, ni duplication ni suppression (B.5) » — remplacé par B.5 le 31/10/2026.]
+  // B.5 : « Dupliquer » / « Supprimer » (`duplicateLayoutExercise`, `removeLayoutExercise`).
   const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = inLayout
     ? {
         ...(layoutDraggable && onMoveUp !== null ? { moveUp: onMoveUp } : {}),
         ...(layoutDraggable && onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+        ...(layoutSwipeable ? { duplicate: onDuplicate, delete: onDelete } : {}),
       }
     : {
         ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
@@ -6083,8 +6195,9 @@ function CompositionActivityRow({
           // Story 5.2b : de même pendant le dialogue de perte et le retour animé (`isRaised`).
           // Contre-recette iPhone du 30/10 (constat c, Hermann : « Une carte d'exercice se trouvant
           // directement dans un cycle : […] le fond du cadre a un fond blanc rectangulaire (coins
-          // carrés) ») : dans une disposition générale, aucun balayage ne découvre ce fond (B.5) ; la
-          // rangée est transparente, la carte seule (coins arrondis) repose sur le fond du Cycle.
+          // carrés) ») : dans une disposition générale, la rangée est transparente, la carte seule
+          // (coins arrondis) repose sur le fond du Cycle. PRE-9 B.5 : le balayage y découvre donc le
+          // fond de son conteneur (Séance, Cycle ou Circuit), comme le fond du Tour dans l'ancien modèle.
           backgroundColor: isRaised || inLayout
             ? "transparent"
             : activity.structuralPosition === "IN_TOUR"
@@ -6110,7 +6223,7 @@ function CompositionActivityRow({
       // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
       // les puces de l'emplacement répondent.
       // PRE-9 B.1b : ni glisser ni balayage dans une disposition générale (B.4, B.5). B.4 : glisser
-      // actif (`layoutDraggable`), balayage toujours inactif (`canSwipe`).
+      // actif (`layoutDraggable`). B.5 : balayage actif (`layoutSwipeable`, `canSwipe`).
       {...(placement === null && canDrag
         ? {
             onTouchStart: handleTouchStart,
@@ -6350,9 +6463,10 @@ const LAYOUT_DROP_CONTROL: LayoutDropControl = neutralDropControl;
 /**
  * PRE-9 B.4 : conteneurs retirés par un déplacement, à leur place dans la disposition d'avant (parent,
  * élément suivant encore présent), vidés — rendus le temps de leur effacement. Un Circuit d'un Cycle
- * lui-même retiré n'est pas rendu séparément.
+ * lui-même retiré n'est pas rendu séparément. PRE-9 B.5 : `keepMembers` (suppression du dernier
+ * membre) — rendus tels qu'avant, avec la carte supprimée, qui s'efface avec eux.
  */
-function vanishingContainers(before: ResolvedLayout, removed: readonly LayoutItemRef[]): VanishingContainer[] {
+function vanishingContainers(before: ResolvedLayout, removed: readonly LayoutItemRef[], keepMembers = false): VanishingContainer[] {
   const gone = new Set(removed.map((item) => `${item.kind === "CIRCUIT" ? "circuit" : "cycle"}:${item.id}`));
   const result: VanishingContainer[] = [];
   const visit = (siblings: readonly (ResolvedLayoutElement | StructureCycleMember<SessionDraftExercise>)[], parentCycleId: string | null) => {
@@ -6364,9 +6478,9 @@ function vanishingContainers(before: ResolvedLayout, removed: readonly LayoutIte
       }
       const beforeKey = siblings.slice(at + 1).map(layoutElementKey).find((next) => !gone.has(next)) ?? null;
       if (element.kind === "CIRCUIT") {
-        result.push({ key, parentCycleId, beforeKey, element: { kind: "CIRCUIT", circuit: { ...element.circuit, exercises: [] } } });
+        result.push({ key, parentCycleId, beforeKey, element: { kind: "CIRCUIT", circuit: keepMembers ? element.circuit : { ...element.circuit, exercises: [] } } });
       } else if (element.kind === "CYCLE") {
-        result.push({ key, parentCycleId, beforeKey, element: { kind: "CYCLE", cycle: { ...element.cycle, members: [] } } });
+        result.push({ key, parentCycleId, beforeKey, element: { kind: "CYCLE", cycle: keepMembers ? element.cycle : { ...element.cycle, members: [] } } });
       }
     });
   };
@@ -6494,6 +6608,20 @@ type LayoutRenderContext = {
   /** PRE-9 B.4 : conteneurs vidés par une dépose, en cours d'effacement. */
   readonly vanishing: readonly VanishingContainer[];
   readonly onVanished: (key: string) => void;
+  /** PRE-9 B.5 : actions glissées des cartes (Dupliquer / Supprimer) ; `null` : inactives. */
+  readonly actions: LayoutActionsContext | null;
+  /** PRE-9 B.5 : carte en mouvement (supprimée, ou copie qui apparaît) ; `null` : aucune. */
+  readonly cardMotion: { readonly id: string; readonly mode: Exclude<CardMotionMode, "IDLE"> } | null;
+  readonly onCardMotionDone: (id: string, mode: Exclude<CardMotionMode, "IDLE">) => void;
+};
+
+/** PRE-9 B.5 : actions glissées des cartes d'une disposition générale (D-441, D-442 ; ARB-08 : Exercice seulement). */
+type LayoutActionsContext = {
+  /** Carte dont les actions sont révélées (une seule à la fois), `null` : aucune. */
+  readonly revealedId: string | null;
+  readonly onReveal: (exerciseId: string | null) => void;
+  readonly onDuplicate: (exerciseId: string) => void;
+  readonly onDelete: (exerciseId: string) => void;
 };
 
 type LayoutSequenceProps = LayoutRenderContext & {
@@ -6553,8 +6681,12 @@ function vanishingAt(
  * en page reste figée, l'élément suit le doigt, la destination la plus proche est éclairée (conteneur
  * bordé, repère d'insertion), la liste défile près des bords (`useDragAutoScroll`) ; au relâchement,
  * `moveLayoutItem` (refus sans altération, confirmation de perte, conteneur vidé effacé
- * progressivement). « Monter » / « Descendre » accessibles (`stepLayoutItem`). Dupliquer / Supprimer
- * (B.5) et les pauses (B.6) restent hors de ce rendu.
+ * progressivement). « Monter » / « Descendre » accessibles (`stepLayoutItem`). [B.4 : « Dupliquer /
+ * Supprimer (B.5) et les pauses (B.6) restent hors de ce rendu » — remplacé pour Dupliquer / Supprimer
+ * par B.5.] PRE-9 B.5 : balayage gauche d'une carte (Dupliquer / Supprimer) et actions accessibles ;
+ * carte supprimée effacée puis sa place refermée, copie qui apparaît (`CardMotionBlock`) ; dernier
+ * membre supprimé : conteneur effacé lentement (`VanishingBlock`). Les pauses (B.6) restent hors de
+ * ce rendu.
  *
  * Rail simplifié : chaque élément porte ses segments — lien à travers l'écart qui le précède, anneau
  * sur l'en-tête d'un conteneur, queue jusqu'à son bas ; un conteneur trace sa queue derrière ses
@@ -6599,6 +6731,7 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                 position={{ index: directExercises.indexOf(element.exercise), count: directExercises.length }}
                 frameY={0}
                 railGap={SEQUENCE_GAP}
+                listGap={COMPOSITION_ROW_GAP}
                 raised={raised}
                 rail={rail}
                 context={context}
@@ -6690,7 +6823,7 @@ function LayoutVanishing({
 }) {
   const { onVanished } = context;
   const done = useCallback(() => onVanished(item.key), [item.key, onVanished]);
-  const ghostContext = useMemo<LayoutRenderContext>(() => ({ ...context, drag: null, vanishing: [] }), [context]);
+  const ghostContext = useMemo<LayoutRenderContext>(() => ({ ...context, drag: null, vanishing: [], actions: null, cardMotion: null }), [context]);
   const testID = `composition-layout-vanishing-${item.key.replace(":", "-")}`;
   return (
     <VanishingBlock gap={gap} onDone={done} testID={testID}>
@@ -6713,12 +6846,30 @@ function LayoutVanishing({
   );
 }
 
-/** PRE-9 B.2 / B.4 : Exercice direct de la Séance ou d'un Cycle — enveloppe, mesure, carte. */
+/**
+ * PRE-9 B.5 : mouvement de la carte `exerciseId` (suppression, copie qui apparaît), `IDLE` au repos,
+ * et son rappel de fin.
+ */
+function useLayoutCardMotion(exerciseId: string, context: LayoutRenderContext): { readonly mode: CardMotionMode; readonly onDone: () => void } {
+  const motion = context.cardMotion !== null && context.cardMotion.id === exerciseId ? context.cardMotion.mode : null;
+  const { onCardMotionDone } = context;
+  const onDone = useCallback(() => {
+    if (motion !== null) onCardMotionDone(exerciseId, motion);
+  }, [exerciseId, motion, onCardMotionDone]);
+  return { mode: motion ?? "IDLE", onDone };
+}
+
+/**
+ * PRE-9 B.2 / B.4 : Exercice direct de la Séance ou d'un Cycle — enveloppe, mesure, carte. B.5 : la
+ * vue de l'Exercice, élément de sa liste, porte le mouvement de la carte (`CardMotionBlock`,
+ * `listGap` : écart de la liste qui la contient).
+ */
 function LayoutDirectExercise({
   exercise,
   position,
   frameY,
   railGap,
+  listGap,
   raised,
   rail,
   context,
@@ -6728,13 +6879,18 @@ function LayoutDirectExercise({
   /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance ; `null` inconnue. */
   frameY: number | null;
   railGap: number;
+  listGap: number;
   raised: boolean;
   rail: SequenceRailContext;
   context: LayoutRenderContext;
 }) {
   const onLayout = useReportedBox(layoutItemKey({ kind: "EXERCISE", id: exercise.id }), frameY, context.drag?.reportBox);
+  const motion = useLayoutCardMotion(exercise.id, context);
   return (
-    <View
+    <CardMotionBlock
+      mode={motion.mode}
+      gap={listGap}
+      onDone={motion.onDone}
       style={[styles.exerciseList, raised ? styles.dragElevated : null]}
       onLayout={onLayout}
       testID={`composition-layout-exercise-${exercise.id}`}
@@ -6749,7 +6905,51 @@ function LayoutDirectExercise({
       >
         <LayoutExerciseRow exercise={exercise} circuit={null} position={position} railGap={railGap} rail={rail} context={context} />
       </EnvelopeFrame>
-    </View>
+    </CardMotionBlock>
+  );
+}
+
+/**
+ * PRE-9 B.5 : carte d'un Circuit, dans l'enveloppe de son mouvement (`CardMotionBlock`, élément de la
+ * liste des cartes) ; la position de la carte dans la liste est celle de l'enveloppe (`motionY`) plus
+ * la sienne dans l'enveloppe (0).
+ */
+function LayoutCircuitCard({
+  exercise,
+  circuit,
+  position,
+  rail,
+  context,
+  cardsFrameY,
+}: {
+  exercise: SessionDraftExercise;
+  circuit: StructureCircuit<SessionDraftExercise>;
+  position: { readonly index: number; readonly count: number };
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+  cardsFrameY: number | null;
+}) {
+  const motion = useLayoutCardMotion(exercise.id, context);
+  const [motionY, setMotionY] = useState(0);
+  const onMotionLayout = useCallback((event: LayoutChangeEvent) => setMotionY(event.nativeEvent.layout.y), []);
+  return (
+    <CardMotionBlock
+      mode={motion.mode}
+      gap={CIRCUIT_GAP}
+      onDone={motion.onDone}
+      onLayout={onMotionLayout}
+      testID={`composition-layout-card-motion-${exercise.id}`}
+    >
+      <LayoutExerciseRow
+        exercise={exercise}
+        circuit={circuit}
+        position={position}
+        railGap={CIRCUIT_GAP}
+        rail={rail}
+        context={context}
+        measureFrameY={cardsFrameY === null ? null : cardsFrameY + motionY}
+      />
+    </CardMotionBlock>
   );
 }
 
@@ -6801,14 +7001,21 @@ function LayoutExerciseRow({
   const onDragCancel = useCallback(() => drag?.onCancel(), [drag]);
   const onDragMove = useCallback((translationY: number) => drag?.onMove(translationY), [drag]);
   const onDragEnd = useCallback((translationY: number) => drag?.onEnd(translationY), [drag]);
+  // PRE-9 B.5 : balayage (Dupliquer / Supprimer) et ses actions accessibles ; une carte à la fois.
+  const { actions } = context;
+  const revealedId = actions === null ? null : actions.revealedId;
+  const onRevealActions = useCallback(() => actions?.onReveal(exercise.id), [actions, exercise.id]);
+  const onHideActions = useCallback(() => actions?.onReveal(null), [actions]);
+  const onDuplicate = useCallback(() => actions?.onDuplicate(exercise.id), [actions, exercise.id]);
+  const onDelete = useCallback(() => actions?.onDelete(exercise.id), [actions, exercise.id]);
   return (
     <CompositionActivityRow
       activity={displayed}
       position={position}
-      areActionsRevealed={false}
+      areActionsRevealed={revealedId === exercise.id}
       isDragged={isDragged}
       isRaised={isDragged}
-      isBlockedByOtherReveal={false}
+      isBlockedByOtherReveal={revealedId !== null && revealedId !== exercise.id}
       bodyZonesReferential={context.bodyZonesReferential}
       categoriesReferential={context.categoriesReferential}
       levelPositions={context.levelPositions}
@@ -6817,21 +7024,22 @@ function LayoutExerciseRow({
       focusRequest={null}
       onFocusConsumed={noop}
       onEdit={edit}
-      onRevealActions={noop}
-      onHideActions={noop}
+      onRevealActions={onRevealActions}
+      onHideActions={onHideActions}
       onDragStart={onDragStart}
       onDragCancel={onDragCancel}
       onDragMove={onDragMove}
       onDragEnd={onDragEnd}
       rail={rail}
       autoScroll={context.autoScroll}
-      onDuplicate={noop}
-      onDelete={noop}
+      onDuplicate={onDuplicate}
+      onDelete={onDelete}
       onMoveUp={drag?.stepAction(source, "UP") ?? null}
       onMoveDown={drag?.stepAction(source, "DOWN") ?? null}
       placement={null}
       layoutRailGap={railGap}
       layoutDraggable={drag !== null}
+      layoutSwipeable={actions !== null}
     />
   );
 }
@@ -6980,15 +7188,14 @@ function LayoutCircuitBlock({
           testID={`${testID}-exercises`}
         >
           {circuit.exercises.map((exercise, index) => (
-            <LayoutExerciseRow
+            <LayoutCircuitCard
               key={exercise.id}
               exercise={exercise}
               circuit={circuit}
               position={{ index, count: circuit.exercises.length }}
-              railGap={CIRCUIT_GAP}
               rail={rail}
               context={context}
-              measureFrameY={cardsFrameY}
+              cardsFrameY={cardsFrameY}
             />
           ))}
         </Reanimated.View>
@@ -7132,6 +7339,7 @@ function LayoutCycleBlock({
               position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
               frameY={cycleY}
               railGap={LAYOUT_CYCLE_GAP}
+              listGap={LAYOUT_CYCLE_GAP}
               raised={memberRaised}
               rail={rail}
               context={context}

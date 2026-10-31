@@ -27,10 +27,16 @@
  * un brouillon qui en porte refuse ces déplacements sans altération (`STOP_POINTS`) — l'ancien modèle
  * garde son glisser historique (Points compris).
  *
+ * PRE-9 (story B.5) : suppression (`removeLayoutExercise`, conteneur vidé retiré) et duplication
+ * (`duplicateLayoutExercise`, D-441, ARB-17) d'un Exercice ; aucune duplication de Circuit ni de
+ * Cycle (ARB-08).
+ *
  * Fonctions pures ; rien n'est écrit : l'issue porte le brouillon à appliquer.
  */
 
 import type { CircuitLoss } from "./circuit";
+import { copyCircuitReserveEntry } from "./circuitMembership";
+import { duplicateActivity } from "./composition";
 import { currentLayout, settleLayoutCircuitMembership, withLayout } from "./layoutOperations";
 import type { SessionDraft } from "./SessionDraft";
 import type { SessionStructure, StructureCircuit, StructureCycle, StructureCycleMember, StructureElement, StructureStopPointLocation } from "./structure";
@@ -389,4 +395,121 @@ export function stepLayoutItem(
     if (outcome.status !== "UNCHANGED") return outcome;
   }
   return { status: "REFUSED", reason: "AT_BOUNDARY" };
+}
+
+// ---------------------------------------------------------------------------
+// PRE-9 (story B.5) — suppression et duplication d'un Exercice de la structure générale
+// ---------------------------------------------------------------------------
+
+/** Issue d'une suppression ou d'une duplication d'Exercice (`removeLayoutExercise`, `duplicateLayoutExercise`). */
+export type LayoutExerciseEditOutcome =
+  | {
+      readonly status: "APPLIED";
+      readonly draft: SessionDraft;
+      /** Conteneurs vidés par la suppression, retirés (effacement progressif côté écran) ; toujours vide pour une duplication. */
+      readonly removedContainers: readonly LayoutItemRef[];
+    }
+  /**
+   * `STOP_POINTS` : la disposition porte des Points d'arrêt — elle est alors représentable dans
+   * l'ancien modèle (une disposition générale n'en porte aucun avant B.6), dont les opérations
+   * historiques s'appliquent (`removeOccurrenceOutcome`, `duplicateOccurrenceOutcome`, D-441, D-442).
+   */
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINTS" };
+
+/**
+ * PRE-9 B.5 (epics B.5 ; COMP §1 : « Il disparaît lorsque son dernier membre en sort ») — suppression
+ * de l'Exercice `exerciseId`, où qu'il soit (niveau Séance, Exercice direct d'un Cycle, Circuit d'un
+ * Cycle ou de la Séance). Ses voisins se resserrent ; s'il était le dernier membre de son Circuit, le
+ * Circuit est retiré, puis le Cycle devenu vide (`removedContainers`). La réserve de séries du Circuit
+ * quitté part avec lui (`settleLayoutCircuitMembership`) ; les autres Exercices sont inchangés (un
+ * Format n'est jamais transmis ni retiré : correction C.1 du 30/10). Aucune confirmation : la
+ * suppression ne fait perdre que l'Exercice supprimé (D-442 amendée : toujours appliquée).
+ */
+export function removeLayoutExercise(draft: SessionDraft, exerciseId: string, newContainerId: () => string): LayoutExerciseEditOutcome {
+  const layout = currentLayout(draft, newContainerId);
+  const detached = detach(layout, { kind: "EXERCISE", id: exerciseId });
+  if (detached === null || !draft.exercises.some((exercise) => exercise.id === exerciseId)) {
+    return { status: "REFUSED", reason: "NOT_FOUND" };
+  }
+  if (layout.stopPoints.length > 0) {
+    return { status: "REFUSED", reason: "STOP_POINTS" };
+  }
+  const { layout: pruned, removed } = pruneEmpty(detached.layout);
+  const exercises = draft.exercises.filter((exercise) => exercise.id !== exerciseId);
+  const settlement = settleLayoutCircuitMembership({ ...draft, structure: layout }, { exercises, structure: pruned });
+  return {
+    status: "APPLIED",
+    draft: withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, pruned),
+    removedContainers: removed,
+  };
+}
+
+/** Insère `copyId` juste après `sourceId`, dans le même conteneur ; `null` si la source est absente. */
+function insertCopyAfter(layout: Layout, sourceId: string, copyId: string): Layout | null {
+  let placed = false;
+  const inCircuit = (circuit: StructureCircuit<string>): StructureCircuit<string> => {
+    const at = placed ? -1 : circuit.exercises.indexOf(sourceId);
+    if (at < 0) return circuit;
+    placed = true;
+    return { ...circuit, exercises: insertAt(circuit.exercises, at + 1, copyId) };
+  };
+  const elements = layout.elements.flatMap((element): StructureElement<string>[] => {
+    switch (element.kind) {
+      case "EXERCISE":
+        if (placed || element.exercise !== sourceId) return [element];
+        placed = true;
+        return [element, { kind: "EXERCISE", exercise: copyId }];
+      case "CIRCUIT":
+        return [{ kind: "CIRCUIT", circuit: inCircuit(element.circuit) }];
+      case "CYCLE": {
+        const members = element.cycle.members.flatMap((member): StructureCycleMember<string>[] => {
+          if (member.kind === "CIRCUIT") return [{ kind: "CIRCUIT", circuit: inCircuit(member.circuit) }];
+          if (placed || member.exercise !== sourceId) return [member];
+          placed = true;
+          return [member, { kind: "EXERCISE", exercise: copyId }];
+        });
+        return [{ kind: "CYCLE", cycle: { ...element.cycle, members } }];
+      }
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  });
+  return placed ? { ...layout, elements } : null;
+}
+
+/**
+ * PRE-9 B.5 (D-441 ; ARB-17 ; correction C.1 du 30/10 : Format porté par l'Exercice seul) —
+ * duplication de l'Exercice `exerciseId` : la copie (`duplicateActivity` : même Mouvement, numéro de
+ * copie, paramètres indépendants, récupération comprise, Format et réglages de Format conservés) est
+ * insérée juste après la source, dans le même conteneur (Séance, Cycle ou Circuit). Dans un Circuit
+ * alterné, la copie garde le nombre de séries de sa source, déjà au N du Circuit, et reçoit sa réserve
+ * de séries (`copyCircuitReserveEntry`). Rien n'est transmis aux autres éléments. Aucune duplication de
+ * Circuit ni de Cycle (ARB-08) : seule cette opération d'Exercice existe. Entrée invalide — `newId`
+ * déjà présent : exception (convention de `duplicateOccurrenceOutcome`).
+ */
+export function duplicateLayoutExercise(
+  draft: SessionDraft,
+  exerciseId: string,
+  newId: string,
+  newContainerId: () => string,
+): LayoutExerciseEditOutcome {
+  if (draft.exercises.some((exercise) => exercise.id === newId)) {
+    throw new Error(`duplicateLayoutExercise : l'identifiant de copie « ${newId} » existe déjà dans la Composition.`);
+  }
+  const layout = currentLayout(draft, newContainerId);
+  const inserted = insertCopyAfter(layout, exerciseId, newId);
+  const exercises = duplicateActivity(draft.exercises, exerciseId, newId);
+  if (inserted === null || exercises === draft.exercises) {
+    return { status: "REFUSED", reason: "NOT_FOUND" };
+  }
+  if (layout.stopPoints.length > 0) {
+    return { status: "REFUSED", reason: "STOP_POINTS" };
+  }
+  return {
+    status: "APPLIED",
+    draft: withLayout({ ...draft, exercises, ...copyCircuitReserveEntry(draft, exerciseId, newId) }, inserted),
+    removedContainers: [],
+  };
 }
