@@ -1331,6 +1331,8 @@ type InscriptionPlan = {
   readonly exercises: readonly SessionDraftExercise[];
   readonly movements: SessionDraft["movements"];
   readonly reserve?: SessionDraft["circuitSeriesReserve"];
+  /** PRE-9, recette n° 2 du 31/10 (constat d) : disposition générale suivant un remplacement d'occurrence. */
+  readonly structure?: SessionDraft["structure"];
   readonly occurrence: SessionDraftExercise;
 };
 
@@ -1766,6 +1768,8 @@ function CompositionExerciseEditor() {
         targetCount: 0,
         movements: draft.movements,
         ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+        // PRE-9, recette iPhone n° 2 du 31/10 (constat d) : la disposition générale suit le remplacement.
+        ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
       };
     }
     const createsMovement = encoded.type === "EXERCISE" && (encoded.sourceMovementId ?? "").trim().length === 0;
@@ -1909,7 +1913,7 @@ function CompositionExerciseEditor() {
    * inactif. Rien n'est écrit en base avant l'enregistrement de la Séance.
    */
   function inscribeAndRelock(plan: InscriptionPlan) {
-    writeDraft(plan.exercises, plan.movements, plan.reserve);
+    writeDraft(plan.exercises, plan.movements, plan.reserve, plan.structure);
     const { occurrence } = plan;
     nameRef.current = occurrence.name;
     if (local !== null && occurrence.id !== local.id) {
@@ -2027,13 +2031,15 @@ function CompositionExerciseEditor() {
       exercises: replaced.exercises,
       movements,
       reserve: replaced.circuitSeriesReserve,
+      // PRE-9, recette iPhone n° 2 du 31/10 (constat d) : la disposition générale suit le remplacement.
+      ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
       occurrence: occurrenceIn(replaced.exercises, ids.occurrenceId),
     };
   }
 
   function commitNewMovement(current: SessionDraftExercise, unlocked: UnlockedMovement) {
     const plan = newMovementPlan(current, unlocked);
-    commitFinished(plan.exercises, plan.movements, plan.reserve);
+    commitFinished(plan.exercises, plan.movements, plan.reserve, plan.structure);
   }
 
   /**

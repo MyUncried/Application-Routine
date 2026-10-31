@@ -210,8 +210,15 @@ describe("PRE-9 A.2 — « Créer un nouveau mouvement » : création d'un Mouve
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     // 45 s, avec Compte à rebours et Fin du Profil : durée estimée de l'Exercice.
     expect(String(card("Burpees").props.accessibilityLabel)).toBe("Exercice, Burpees, 1 sur 1, 1 min");
-    // Paramètres renseignés : la carte ouvre l'éditeur de l'Exercice, comme avant.
+    // [« Paramètres renseignés : la carte ouvre l'éditeur de l'Exercice, comme avant » — remplacé par la
+    // recette iPhone n° 2 du 31/10/2026 (constat c) : la carte ouvre la feuille, la photo ouvre l'éditeur.]
     await tapCard("Burpees");
+    expect(router.getPathname()).toBe("/composition");
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await act(async () => undefined);
+    fireEvent.press(screen.getByLabelText(composition.exerciseRow.openMovementAccessibilityLabel));
+    await act(async () => undefined);
     expect(router.getPathname()).toBe("/exercise");
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
   }, 40000);

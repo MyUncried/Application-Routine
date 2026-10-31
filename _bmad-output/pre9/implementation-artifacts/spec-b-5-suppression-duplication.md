@@ -77,3 +77,17 @@ Préparer une Séance : E0, E1, E2, E3, E4 ; poser un Circuit sur E1 et E2 (Circ
 10. « Réduire les animations » activé : suppression et duplication immédiates, sans fondu ni effacement.
 11. Pendant l'effacement d'une carte, toucher « Continuer » : la suppression est écrite, un second toucher enregistre.
 12. Séance à un seul Circuit (ancien modèle) : balayage, Dupliquer, Supprimer inchangés (Points d'arrêt retirés sans message si besoin) ; noter si le Circuit vidé doit s'effacer lentement (À CLARIFIER 1).
+
+## Recette iPhone n° 2 du 31/10/2026 — lot 3
+
+**Constat de Hermann (verbatim, b6-supprimer)** : « Exercice dans un cycle avec un point d'arrêt à la fin du cycle, un deuxième exercice après le cycle : dupliquer l'exercice le positionne sur le point d'arrêt, les deux se chevauchent. Le cadre du cycle ne s'allonge pas, et la copie de l'exercice se retrouve aussi à cheval avec l'exercice après le cycle. »
+
+**Cause (déduite du code ; Jest ne joue ni la mesure native ni l'animation)** : `CardMotionBlock` (copie qui apparaît) lançait l'ouverture de sa place au montage, sur le fil UI, avant de connaître sa hauteur (mesure `onLayout` rapportée au fil JS, en retard quand l'écran est chargé — écriture du brouillon et rendu de toute la disposition) : la hauteur bornée restait 0 pendant l'ouverture ; à la fin, `maxHeight: undefined` n'est pas appliqué par Reanimated (la dernière valeur, 0, reste). La découpe retirée à la fin du fondu, la copie, dans une place de hauteur nulle, débordait sur le Point et sur l'élément suivant ; le Cycle ne s'agrandissait pas. Le registre des décalages du lot 1 n'intervient pas (aucun glisser).
+
+**Correction** (classe A : D-441, D-443, B.5 « la place s'ouvre ») : l'ouverture de la place de la copie attend sa hauteur mesurée ; au repos, hauteur libre explicite (`CARD_MOTION_UNCONSTRAINED_HEIGHT`) au lieu de `undefined`. Domaine inchangé (copie avant le Point qui suivait la source).
+
+**Synchronisation** : classe **A** ; aucune règle modifiée ; commentaire de `CardMotionBlock` annoté ; ch07 section « Recette iPhone n° 2 du 31/10/2026 — lot 3 ».
+
+**Tests** : `CompositionScreen.b5.test.tsx` (inchangé) ; `layoutMoves.recette2.test.ts` (duplication de chaque Exercice : aucun conteneur vide).
+
+**À vérifier sur iPhone** : Cycle `[E, P]` puis E2 — dupliquer E : la copie apparaît entre E et P, le Cycle s'agrandit, P et E2 descendent, aucun chevauchement ; idem au niveau Séance et dans un Circuit.

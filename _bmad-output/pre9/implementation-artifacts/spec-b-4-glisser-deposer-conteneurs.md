@@ -126,3 +126,24 @@ Séance à deux Circuits (E0, Circuit A [E1, E2], Circuit B [E3], E4), puis la m
 8. Pendant les gestes, le rail reste continu (ni trou, ni segment à travers une photo).
 9. « Réduire les animations » : décalages et retours immédiats.
 10. Séance à un seul Circuit (ancien modèle) : comportement inchangé.
+
+## Recette iPhone n° 2 du 31/10/2026 — lot 3
+
+**Constats de Hermann (verbatim)** :
+- b4-cycle (KO) : « Circuit qui se déplie : le sous titre disparait et la carte du circuit se rétrécit d'abord brusquement, avant qu'elle ne se déploie lentement. Circuit qui se replie : le sous-titre apparaitre et la carte du circuit s'agrandit d'abord brusquement, avant de se rétrécir lentement. Dans les deux cas cela provoque un saut dans le mouvement. » ; b4b-cycle : « Même problème que pour le circuit ».
+- Constat d : « j'ai eu le cas d'une séance avec un circuit sans exercice, mais je ne sais comment j'ai produit cela. »
+
+**b4-cycle — cause et correction** (classe A : mouvement progressif du repli, recettes du 29/10 et du 30/10, obs-3 b) : la ligne des noms du Circuit replié était montée ou démontée d'un coup (fondu d'entrée seulement) tandis que les cartes s'ouvraient ou se fermaient en 700 / 900 ms : la hauteur de l'en-tête sautait d'environ 22 pt avant l'animation des cartes. Désormais `CollapsedNamesLine` (`CircuitHeader.tsx`) ouvre la ligne de 0 à sa hauteur mesurée (fondu entrant) pendant le repli des cartes, et la referme (fondu sortant) pendant leur déploiement, avec la même durée et la même courbe, puis la démonte : la hauteur du Circuit varie continûment. [Recette du 29/10 : « la ligne des noms apparaît en fondu, avec le repli des cartes » (`entering`) — remplacé.] Vaut pour tout Circuit (ancien modèle, niveau Séance, Circuit d'un Cycle).
+
+**Constat d — enquête et cause** (classe A : COMP §1 « un conteneur n'est jamais vide ») :
+- Opérations de structure vérifiées (invariant testé : aucun Circuit ni Cycle vide) : déplacement de chaque élément vers chaque emplacement (avant / après les Points), « Monter » / « Descendre », suppression de chaque Exercice et de tous à la suite, duplication, pas des Points, enveloppe (Points de bord compris), choix de répétition — `pruneEmpty` retire toujours le conteneur vidé.
+- **Cause trouvée** : `replaceOccurrence` (PRE-7 R-6 / R-4 : changement de niveau d'un Exercice, « Créer un nouveau mouvement » au crayon) remplaçait l'Exercice par une nouvelle identité dans `exercises` sans toucher `structure`. En structure générale, l'ancienne identité restait dans son Circuit, n'était plus rendue (`resolveRichLayout` : un identifiant absent n'est pas rendu, « un conteneur garde sa place, même vide ») : Circuit **vide** à l'écran s'il n'avait qu'elle, et nouvel Exercice ajouté en fin de Séance ; l'enregistrement suivait la même règle (`withDraftExercises`).
+- Correction : `replaceOccurrence` et `replaceOccurrenceWithNewMovement` réécrivent aussi l'identité dans `structure` (même place, même conteneur) ; `ExerciseScreen` transmet cette structure (`planFinish`, `newMovementPlan`, `inscribeAndRelock`).
+- Ancien modèle : le « Circuit vide » n'existe que dans ses zones (`structureFromLegacy`) ; il n'est ni rendu (`hasLegacyCircuit`) ni enregistré (`withoutEmptyLegacyCircuit`) — légitime, inchangé.
+- Effacement d'un conteneur vidé (`VanishingBlock`) : rendu vide pendant environ 1,6 s par construction (dépose du dernier membre), puis retiré ; non persistant.
+
+**Synchronisation** : classe **A** (aucune règle modifiée) ; ch07 section « Recette iPhone n° 2 du 31/10/2026 — lot 3 » ; commentaires de code annotés (`CircuitHeader.tsx`, `SessionDraft.replaceOccurrence`, `ExerciseScreen.tsx`).
+
+**Tests** : `CircuitHeader.test.tsx` (ligne découpée, sans `entering` ; déployé : ligne montée pendant l'animation puis démontée ; annotation datée) ; `CompositionScreen.test.tsx` et `CompositionScreen.b1b.test.tsx` (démontage de la ligne au rappel de fin ; annotations datées) ; `layoutMoves.recette2.test.ts` (invariant « aucun conteneur vide » ; remplacement d'occurrence : Circuit conservé avec la nouvelle identité, enregistrable).
+
+**À vérifier sur iPhone** : replier / déplier un Circuit (niveau Séance, dans un Cycle, ancien modèle) : la carte grandit ou rétrécit d'un seul mouvement, sans saut ; changer le niveau d'un Exercice seul dans un Circuit d'une Séance à deux Circuits : il reste dans son Circuit.

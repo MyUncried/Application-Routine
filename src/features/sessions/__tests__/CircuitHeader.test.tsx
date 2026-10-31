@@ -591,11 +591,30 @@ describe("CircuitHeader — repli du Circuit (ARB-12)", () => {
     expect(style("header-names")).toMatchObject({ marginTop: 7, fontSize: 12, lineHeight: 15 });
     expect(style("header")).toMatchObject({ minHeight: CIRCUIT_HEADER_HEIGHT });
     expect(14 + CIRCUIT_HEADER_HEIGHT + 7 + 15 + 14).toBe(CIRCUIT_HEADER_COLLAPSED_HEIGHT);
-    expect(screen.getByTestId("header-names-reveal", anyNode).props.entering).toBeTruthy();
+    // [Recette du 29/10 : `entering` (fondu à l'apparition) — remplacé par la recette iPhone n° 2 du
+    // 31/10/2026 (b4-cycle) : ligne découpée, ouverte et refermée avec les cartes.]
+    expect(screen.getByTestId("header-names-reveal", anyNode).props.entering).toBeUndefined();
+    expect(StyleSheet.flatten(screen.getByTestId("header-names-reveal", anyNode).props.style)).toMatchObject({ overflow: "hidden" });
     // Le compteur et la durée restent sur la ligne d'en-tête.
     expect(within(screen.getByTestId("header-row")).getByTestId("header-counter")).toBeTruthy();
     fireEvent.press(screen.getByTestId("header-collapse"));
     expect(onToggleCollapsed).toHaveBeenCalledTimes(2);
+  });
+
+  it("recette n° 2 du 31/10 (b4-cycle) : déployé, la ligne des noms se referme avec les cartes puis est démontée — aucun saut", async () => {
+    const { rerender } = renderHeader({ memberNames: ["Squat", "Pompes"], isCollapsed: true });
+    const reveal = screen.getByTestId("header-names-reveal", anyNode);
+    // Repliée : hauteur libre, opaque.
+    expect(StyleSheet.flatten(reveal.props.style)).toMatchObject({ opacity: 1 });
+    rerender({ isCollapsed: false });
+    // Pendant le déploiement, la ligne reste montée (elle se referme avec les cartes).
+    expect(screen.getByTestId("header-names", anyNode)).toBeTruthy();
+    // Le simulacre de Reanimated termine l'animation aussitôt : démontage au rappel de fin (microtâche).
+    await act(async () => {});
+    expect(screen.queryByTestId("header-names", anyNode)).toBeNull();
+    rerender({ isCollapsed: true });
+    // Au repli, elle est montée aussitôt, puis s'ouvre (animation de hauteur et d'opacité, fil UI).
+    expect(screen.getByTestId("header-names", anyNode).props.children).toBe("Squat · Pompes");
   });
 });
 

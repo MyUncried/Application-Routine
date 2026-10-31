@@ -886,6 +886,10 @@ export const fr = {
       },
       exerciseRow: {
         editAccessibilityLabel: "Modifier l’exercice",
+        // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c, Hermann) : l'appui sur la carte ouvre la
+        // feuille des paramètres d'exécution ; l'appui sur la photo ouvre la fiche du mouvement.
+        editParametersAccessibilityLabel: "Modifier les paramètres",
+        openMovementAccessibilityLabel: "Ouvrir le mouvement",
         seriesSingular: "série",
         seriesPlural: "séries",
         repetitionSingular: "répétition",

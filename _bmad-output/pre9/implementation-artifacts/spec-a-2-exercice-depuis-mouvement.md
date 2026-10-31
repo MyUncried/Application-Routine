@@ -32,3 +32,21 @@ Rendu de Figma `10705:20223` (valeurs relevées en lecture seule, nœuds `10705:
 
 - Nouveaux : `CompositionMovementFlow.integration.test.tsx` (4, routeur et SQLite réels), `movementExercises.a2.test.ts` (ARB-07 ancien modèle et structure générale, construction de l'Exercice, passage, garde) ; tests du menu (position, voile, ordre). Mis à jour (« PRE-9 A.2 — ARB-22a, D-449 ») : `CompositionScreen`, `CompositionScreen.b2`, `creationLayout`, `CompositionExerciseFlow`, `CompositionSaveFlow`, `ExerciseEditingPaths`.
 - Suite complète : voir `sprint-status.yaml`. Aucune vérification sur iPhone (recette n° 1).
+
+## Recette iPhone n° 2 du 31/10/2026 — lot 3 (constat c)
+
+**Demande de Hermann (verbatim)** : « Composition de séance, comportement souhaité : l'appui sur la carte n'ouvre plus la fiche d'exercice mais ouvre la modale des paramètres d'exécution (voile grisé qui apparaît, modale apparaît de bas en haut) ; l'appui sur la photo ouvre la fiche du mouvement. »
+
+**Remplace** (texte d'origine conservé) : décision du 29/10 (recette n° 1, constat k, `spec-recette-1-corrections.md` point 1 ; ch07 l.1190) — [« carte complète : ouverture de l'Exercice » ; « Lorsqu'ensuite les paramètres sont renseignés, appuyer sur la carte l'ouvre dans l'écran initial avec la photo, comme actuellement »].
+
+**Réalisé** (classe B, demande explicite) :
+- `CompositionScreen.handleEditActivity` : l'appui court sur une carte d'Exercice (type `EXERCISE`), complète ou à compléter, ouvre `ExecutionParametersSheet` (`useMovementExerciseIntake.openParameters`) — voile en fondu (`Modal` `fade`), feuille qui monte du bas (`sheetEntry`), déjà en place ; une autre Activité ouvre son éditeur comme avant.
+- Photo : bouton distinct posé sur le gabarit média de la carte (`composition-exercise-media-button-<id>`), frère de la carte (un élément accessible masque ses descendants sous VoiceOver), qui suit la carte (balayage, glisser) ; appui → `handleOpenMovement` (route `/exercise`, `CompositionExerciseEditor`, ouverte jusque-là par la carte) ; appui long → saisie de la carte ; actions révélées : appui neutre. Ancien modèle (`ActivityZoneList`) et structure générale (`LayoutExerciseRow`).
+- Accessibilité : carte = bouton, indication « Modifier les paramètres » (`exerciseRow.editParametersAccessibilityLabel`) ; photo = bouton « Ouvrir le mouvement » (`exerciseRow.openMovementAccessibilityLabel`).
+- Feuille ouverte sur un Exercice complet : mêmes règles que l'éditeur — ligne de base AD-13 (paramètres à l'ouverture), N hérité (AD-37), structure des phases verrouillée (MFN-09), entrée de réserve de Circuit retirée si les séries changent (PRE-6 story 3.3, `exitCircuit`). Carte à compléter : comportement du 29/10 inchangé (aucune ligne de base).
+
+**Synchronisation code / documentation** : classe **B** — ch07 « Recette iPhone n° 2 du 31/10/2026 — lot 3 » (citation) et l.1190 annotée ; ch10 RM-021 annoté ; ch13 CE Composition « Gestes » (l.1939) annoté ; `spec-recette-1-corrections.md` point 1 annoté ; cette spec. Recherche ciblée (« appui court sur une carte », « ouvre directement son édition », « la toucher ouvre », « carte complète ») : aucune autre formulation active (copies figées de `docs/preparation/PRE-4` non touchées). Choix (classe D/C) : bouton de la photo frère de la carte ; rendu inchangé (aucun Figma de cet état).
+
+**Tests** : `CompositionScreen.recette1.test.tsx` (carte complète → feuille, photo → éditeur ; annotations datées), `CompositionScreen.b1b.test.tsx` (photo → éditeur, annotation datée), `CompositionScreen.recette2lot3.test.tsx` (libellés accessibles, réserve), `i18n/index.test.ts`.
+
+**À vérifier sur iPhone** : appui sur la carte → voile en fondu puis feuille qui monte ; appui sur la photo → fiche de l'Exercice ; appui long sur la photo → la carte se soulève ; balayage depuis la photo → actions révélées ; VoiceOver : carte « … , Modifier les paramètres », puis bouton « Ouvrir le mouvement ».

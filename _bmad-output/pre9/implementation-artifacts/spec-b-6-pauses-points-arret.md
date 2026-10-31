@@ -147,3 +147,25 @@ Préparer une Séance : E0, E1, E2, E3, E4, E5. Poser un Circuit sur E1 et E2 (C
 3. Relâcher le Point juste après le Compte à rebours : refus annoncé, retour animé à sa place.
 4. Point en tête d'un Cycle × 2 face à un Point de fin : choix « Début / Fin de passage » ; pendant le dialogue le Point reste où il a été lâché ; Annuler : retour en douceur.
 5. Séance à un seul Circuit (ancien modèle) : glisser un Point — le point de raccord se déplace avec la puce pendant tout le geste (b6-ancien) ; le reste du comportement est inchangé.
+
+## Recette iPhone n° 2 du 31/10/2026 — lot 3
+
+**Constats de Hermann (verbatim)** :
+- b6-deplacer (KO) : « Exercice dans un cycle, avec un point d'arrêt en début de cycle : le déplacement de l'exercice avant le point d'arrêt, mais dans le cycle, est interdit. Par contre, le déplacement du point d'arrêt après l'exercice et à la fin du cycle est autorisé. La situation à la fin est supposée être la même. »
+- b6-enveloppe : voir la spec B.4b, même section (cadre continu autour d'un Point en mode enveloppe).
+- b6-supprimer : voir la spec B.5, même section (duplication dans un Cycle).
+
+**Cause (b6-deplacer)** : Cycle `[P, E]` ; déposer E « avant P » vise le rang 0 du Cycle, où E est déjà : l'insertion au rang 0 place bien E devant P (convention de `stopPointsAfterInsertion`), mais `moveLayoutItem` ne comparait que l'ordre des ÉLÉMENTS — inchangé — et rendait `UNCHANGED` : retour animé de la carte, perçu comme un refus. De plus, la dépose ne distinguait pas « avant le Point » de « après le Point » (même rang) : la place d'origine de E n'était pas un emplacement.
+
+**Règle appliquée (inchangée)** : RM-219 et RM-251 jugent la situation finale, quelle que soit l'opération ; une même situation finale reçoit le même jugement. Seule diffère la sanction d'un Point devenu interdit ou consécutif : le déplacement autonome d'un Point est refusé (règle stricte, D-441, ARB-06 « selon les règles applicables à sa position de destination ») ; le déplacement d'un Exercice est appliqué et le Point retiré sans message (règle tolérante, D-442). Dans le cas de Hermann, la situation finale (`[E, P]`, Point en fin de Cycle) est autorisée : les deux opérations l'appliquent.
+
+**Corrections** (classe A ; `layoutStopPoints.ts` : aucune règle modifiée) :
+- `moveLayoutItem` : `UNCHANGED` seulement si les éléments ET les emplacements des Points sont inchangés (`sameLayout`) [B.4 : « mêmes éléments → UNCHANGED » — remplacé].
+- `LayoutDestination.afterStopPoints` : insertion après les Points du rang (`attach`, `stopPointsAfterInsertion`).
+- `layoutDrop.ts` : un rang qui porte des Points offre à un Exercice, un Circuit ou un Cycle saisi deux emplacements — avant eux (au-dessus du premier Point ; la place s'ouvre au-dessus du Point) et après eux (sous le dernier ; le Point reste en place) ; un Point saisi n'en a qu'un (inchangé).
+
+**Synchronisation code / documentation** : classe **A** (anomalie ; RM-219, RM-251, D-441, D-442, ARB-02 inchangés) — cette spec ; ch07 section « Recette iPhone n° 2 du 31/10/2026 — lot 3 » (constat et règle expliquée) ; commentaires de `layoutMoves.ts`, `layoutTree.ts`, `layoutDrop.ts` annotés.
+
+**Tests** : `layoutMoves.recette2.test.ts` (Exercice devant le Point de tête : appliqué, même situation que le déplacement du Point ; déposé après le Point : inchangé ; au niveau Séance, avant / après le Point ; Point de fin interdit : refus du Point, retrait tolérant pour l'Exercice) ; `layoutDrop.recette2.test.ts` (3 : emplacements avant / après, doigt au-dessus / au-dessous, entre deux membres).
+
+**À vérifier sur iPhone** : Cycle `[P, E]` — glisser E au-dessus du Point : le Point descend pendant le geste, E se pose devant lui ; relâcher E sous le Point : retour à sa place, rien ne change.

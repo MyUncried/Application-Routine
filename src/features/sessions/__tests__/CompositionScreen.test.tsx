@@ -915,8 +915,10 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   it("PRE6-2.2 — the card hint announces the edit intent, then the reorder / actions gestures", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
+    // [« editAccessibilityLabel » — remplacé par la recette iPhone n° 2 du 31/10/2026 (constat c) : la carte
+    // ouvre les paramètres d'exécution, « Modifier les paramètres ».]
     expect(screen.getByTestId("composition-exercise-row-ex-1").props.accessibilityHint).toBe(
-      `${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`,
+      `${composition.exerciseRow.editParametersAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`,
     );
   });
 
@@ -940,7 +942,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
   it("pressing the Exercise row navigates to /exercise with its own exerciseId (reopen for editing, complétion REWORK12 — édition ciblée par identifiant)", () => {
     renderScreenWithDraft([{ ...createExerciseDraft("ex-1"), name: "Gainage", executionParameters: durationParameters(45) }]);
 
-    fireEvent.press(screen.getByLabelText(/^Exercice, Gainage, /));
+    // Recette iPhone n° 2 du 31/10/2026 (constat c) : [la carte] — remplacé : la photo ouvre l'Exercice.
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-1"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/exercise",
       params: { exerciseId: "ex-1" },
@@ -976,7 +979,8 @@ describe("CompositionScreen — ligne Exercice (T01-S08)", () => {
     ]);
     expect(order).toEqual(["composition-exercise-row-ex-1", "composition-exercise-row-ex-2"]);
 
-    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    // Recette iPhone n° 2 du 31/10/2026 (constat c) : [la carte] — remplacé : la photo ouvre l'Exercice.
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/exercise",
       params: { exerciseId: "ex-2" },
@@ -2551,10 +2555,19 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     anActivity("ex-2", "BEFORE_TOUR", { name: "Squats" }),
   ];
 
-  it("AC-02 — a short press opens the Activity for editing", () => {
+  // [AC-02 : « a short press opens the Activity for editing » — remplacé par la recette iPhone n° 2 du
+  // 31/10/2026 (constat c) : l'appui court sur la carte ouvre les paramètres d'exécution ; la photo ouvre
+  // l'Exercice.]
+  it("AC-02 — a short press opens the execution parameters; the photo opens the Activity for editing", async () => {
     renderScreenWithDraft(twoActivities);
 
     fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    await act(async () => undefined);
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await act(async () => undefined);
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/exercise",
       params: { exerciseId: "ex-2" },
@@ -2641,14 +2654,16 @@ describe("CompositionScreen — gestes d'une carte Activité (T02-S01, AC-02/AC-
     );
   });
 
-  // PRE-6 story 5.1 (D-435) : plus de poignée ; le média n'est qu'un repère, sans cible propre.
-  it("AC-03 — the long press is recognized on the whole card; no handle, and the media is no target of its own", () => {
+  // PRE-6 story 5.1 (D-435) : plus de poignée ; [le média n'est qu'un repère, sans cible propre — remplacé
+  // par la recette iPhone n° 2 du 31/10/2026 (constat c) : la photo est un bouton « Ouvrir le mouvement »].
+  it("AC-03 — the long press is recognized on the whole card; no handle; the photo is its own « Ouvrir le mouvement » button", () => {
     renderScreenWithDraft(twoActivities);
 
     const row = screen.getByTestId("composition-exercise-row-ex-1");
     expect(within(row).queryByTestId("composition-boundary-handle-slot")).toBeNull();
-    // Un toucher sur le média est celui de la carte : il ouvre l'Exercice.
-    fireEvent.press(within(row).getByTestId("composition-exercise-media"));
+    const photo = screen.getByTestId("composition-exercise-media-button-ex-1");
+    expect(photo.props.accessibilityLabel).toBe(composition.exerciseRow.openMovementAccessibilityLabel);
+    fireEvent.press(photo);
     expect(mockPush).toHaveBeenCalledTimes(1);
     // Le reconnaisseur d'appui long est bien porté par la carte entière.
     expect(row.props.onResponderGrant).toBeDefined();
@@ -2964,6 +2979,8 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
       screen.getByTestId("composition-activity-ex-2").props.pointerEvents,
     ).toBe("none");
     fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo, bouton distinct, est bloquée de même.
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).not.toHaveBeenCalled();
 
     // Une fois refermée, l'autre carte redevient interactive.
@@ -2971,7 +2988,7 @@ describe("CompositionScreen — actions glissées Dupliquer/Supprimer (T02-S01, 
     expect(
       screen.getByTestId("composition-activity-ex-2").props.pointerEvents,
     ).toBe("auto");
-    fireEvent.press(screen.getByTestId("composition-exercise-row-ex-2"));
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-ex-2"));
     expect(mockPush).toHaveBeenCalledWith({
       pathname: "/exercise",
       params: { exerciseId: "ex-2" },
@@ -3505,7 +3522,7 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(absolute).toHaveLength(0);
   });
 
-  it("PRE6-7.2 (D-442) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", () => {
+  it("PRE6-7.2 (D-442) — hors placement, la récupération n'est plus une cible : un toucher sur la ligne 3 ouvre l'Exercice, un appui long saisit la carte, jamais de roulette ni de bulle", async () => {
     renderScreenWithDraft([anActivity("ex-1", "BEFORE_TOUR", { name: "Gainage", postActivityRecoverySeconds: 20 })]);
 
     const recovery = screen.getByTestId("composition-activity-recovery-ex-1-recovery");
@@ -3517,10 +3534,15 @@ describe("CompositionScreen — carte v2 : récupération en ligne 3 et géomét
     expect(recovery.props.hitSlop).toBeUndefined();
     expect(StyleSheet.flatten(recovery.props.style).marginTop).toBeUndefined();
 
-    // Toucher la ligne 3 : la carte ouvre l'Exercice ; aucune roulette.
+    // Toucher la ligne 3 : l'appui de la carte ; aucune roulette. [« la carte ouvre l'Exercice » — remplacé par la
+    // recette iPhone n° 2 du 31/10/2026 (constat c) : la carte ouvre la feuille des paramètres d'exécution.]
     fireEvent.press(recovery);
+    await act(async () => undefined);
     expect(screen.queryByTestId("duration-wheel-title")).toBeNull();
-    expect(mockPush).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await act(async () => undefined);
 
     // Appui long sur la ligne 3 : la carte est saisie (état soulevé) ; aucune bulle « Retirer ».
     fireEvent(recovery, "longPress");
@@ -4247,6 +4269,9 @@ describe("CompositionScreen — repli du Circuit (PRE-9 B.1a, ARB-12)", () => {
     expect(isExpanded()).toBe(true);
     expect(screen.getByTestId("composition-activity-squat")).toBeTruthy();
     expect(screen.getByTestId("composition-activity-pompes")).toBeTruthy();
+    // [Recette du 29/10 : ligne des noms retirée aussitôt — remplacé par la recette iPhone n° 2 du
+    // 31/10/2026 (b4-cycle) : elle se referme avec les cartes, puis est démontée (rappel en microtâche).]
+    await act(async () => {});
     expect(screen.queryByTestId("composition-circuit-header-names", hidden)).toBeNull();
     expect(probe.draft).toBe(before);
   });
@@ -7031,13 +7056,19 @@ describe("CompositionScreen — mode placement et sous-brouillon (PRE-6 story 4.
       expect(screen.getByTestId("composition-after-circuit-line-track")).toBeTruthy();
     });
 
-    it("story 7.2 — outside placement the recovery is display only: a touch opens the Exercise, a long press lifts the card; nothing changes", () => {
+    // [« a touch opens the Exercise » — remplacé par la recette iPhone n° 2 du 31/10/2026 (constat c) : le
+    // toucher de la carte ouvre la feuille des paramètres d'exécution (annulée ici : rien ne change).]
+    it("story 7.2 — outside placement the recovery is display only: a touch is the card's (execution parameters), a long press lifts the card; nothing changes", async () => {
       renderPlacement(matrix({ A: { postActivityRecoverySeconds: 20 } }));
       const before = probe.draft;
       expect(within(displayed("A")).getByText("20 s")).toBeTruthy();
       fireEvent.press(displayed("A"));
+      await act(async () => undefined);
       expect(screen.queryByTestId("wheel-picker-overlay")).toBeNull();
-      expect(mockPush).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+      fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+      await act(async () => undefined);
+      expect(mockPush).not.toHaveBeenCalled();
       fireEvent(displayed("A"), "longPress");
       expect(screen.getByTestId("composition-exercise-row-A").props.accessibilityState).toMatchObject({ selected: true });
       expect(screen.queryByText("Retirer la récupération")).toBeNull();
@@ -10442,10 +10473,12 @@ describe("CompositionScreen — photo ou affiche vidéo dans le gabarit (PRE-6 s
     expect(within(screen.getByTestId("composition-exercise-row-b")).getByTestId("composition-exercise-media-icon", hidden)).toBeTruthy();
   });
 
-  it("the media is no target of its own: a touch opens the Exercise like the rest of the card, the long press lifts the card with its media", () => {
+  // [« the media is no target of its own: a touch opens the Exercise like the rest of the card » — remplacé par
+  // la recette iPhone n° 2 du 31/10/2026 (constat c) : la photo porte son propre bouton, qui ouvre l'Exercice.]
+  it("the photo button opens the Exercise; the long press lifts the card with its media", () => {
     renderWithMedia([anActivity("a", "BEFORE_TOUR", { name: "Squat assisté", media: photoMedia("a") })]);
     mockPush.mockClear();
-    fireEvent.press(screen.getByTestId("composition-exercise-media-image", hidden));
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     expect(mockPush).toHaveBeenCalledTimes(1);
     measureDisplayedRows();
     fireEvent(screen.getByTestId("composition-exercise-row-a"), "longPress");

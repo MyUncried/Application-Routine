@@ -61,7 +61,7 @@ B.2 : un seul contenu désigné (`EnvelopeState.designated`) ; un autre toucher 
 ## Écarts et limites
 
 1. **Calage au relâchement**, non en continu : le trait suit le doigt, le cadre se recale au relâchement (un recalage en continu démonterait le trait sous le doigt, porté par le contenu de bord).
-2. **Pas de défilement automatique** pendant le glisser d'un trait : pour étendre au-delà de l'écran, défiler d'abord, ou utiliser les actions VoiceOver.
+2. **Pas de défilement automatique** pendant le glisser d'un trait : pour étendre au-delà de l'écran, défiler d'abord, ou utiliser les actions VoiceOver. [31/10/2026, recette iPhone n° 2 (b4b-etendre) : remplacé — liste figée pendant le glisser, défilement automatique près des bords ; voir « Recette iPhone n° 2 du 31/10/2026 — lot 3 ».]
 3. **Pas de franchissement de frontière** : un périmètre reste chez les frères d'un même parent (un Circuit dans un Cycle ne s'étend pas hors du Cycle) — réserve COMP §5 maintenue.
 4. **Séance à Points d'arrêt** : aucune extension (traits absents), comme les déplacements B.3 / B.4 ; sélection multiple limitée par la règle B.2 (aucun conteneur qui ferait sortir de l'ancien modèle). Levée attendue avec B.6.
 5. Zone tactile du trait bas : 64 × 28, débordant d'environ 10 pt sur le contenu suivant ; le contenu qui porte le trait passe au-dessus de ses frères (`zIndex`) dans un même parent ; entre zones de l'ancien modèle (avant le Circuit / Circuit / après), ce rehaussement ne franchit pas le parent — à vérifier sur iPhone.
@@ -97,3 +97,32 @@ Préparer une Séance de cinq Exercices E1 à E5, sans Circuit.
 10. VoiceOver : sur un trait, « Bord bas du circuit, 1 élément, ajustable » ; balayer vers le haut : « 2 éléments » ; actions « Étendre vers le bas », « Réduire par le bas ».
 11. Séance avec un Point d'arrêt : un contenu désigné n'a pas de traits.
 12. Vérifier que le trait bas reste saisissable même s'il touche la carte suivante (zone tactile), notamment à la frontière avant / après le Circuit d'une Séance à un seul Circuit.
+
+## Recette iPhone n° 2 du 31/10/2026 — lot 3
+
+**Constats de Hermann (verbatim)** :
+- b4b-etendre (KO) : « Lorsqu'on bouge un trait l'écran bouge avec. Par ailleurs le trait ne reste pas sous le doigt. Le trait doit rester sous le doigt lorsqu'il se déplace, l'écran doit rester figé et se déplacer avec le défilement du train uniquement s'il dépasse le cadre de l'écran. »
+- b4b-saisie (KO) : « Exercice suivi d'un point d'arrêt : Ajout d'un circuit et sélection de l'exercice : Les traits n'apparaissent pas, ils devraient et on doit pouvoir intégrer le point d'arrêt avec l'exercice. Ajout d'un cycle et sélection de l'exercice : le trait apparaît, et c'est très bien, mais je ne peux pas sélectionner le point d'arrêt, je devrais pouvoir le faire. »
+- b6-enveloppe (KO, voir aussi la spec B.6) : « Le point d'arrêt reste effectivement dans le conteneur, mais en terme d'affichage, le conteneur n'a plus de bord de cadre à gauche et à droite du Point d'arrêt. »
+- b4b-cycle (KO) : « Même problème que pour le circuit » — voir la spec B.4, même section.
+
+**Causes** :
+1. b4b-etendre : le trait est un répondeur JavaScript dans la liste défilante native ; sur iOS, le défilement natif démarrait sous le doigt (la liste défilait avec le trait) et le trait, déplacé du seul écart du doigt, ne compensait pas ce défilement ; aucun défilement automatique (écart 2).
+2. b4b-saisie : l'étendue d'un périmètre ne comptait que des contenus éligibles ; un Point d'arrêt n'était jamais une limite. Exercice suivi d'un Point puis d'un contenu inéligible (un Circuit, pour un Circuit) : étendue d'un seul contenu, pas de traits. Cycle : le pas suivant sautait le Point jusqu'au contenu suivant.
+3. b6-enveloppe : en mode enveloppe, la rangée d'un Point située entre deux contenus d'un périmètre restait atténuée, sans cadre : le cadre continu s'interrompait à sa hauteur (bords gauche et droit absents).
+
+**Corrections** :
+- Domaine (`layoutOperations.ts`) : un périmètre est une suite d'**unités** — contenus et Points d'arrêt du même parent (`EnvelopeUnit`, `siblingsOf`) ; `EnvelopeSpan` porte en plus les Points de son bord (`leadingStopPointIds`, `trailingStopPointIds`) ; `envelopeSpanReach` rend l'étendue en unités (un Point est libre s'il n'est au bord d'aucun autre périmètre) ; `adjustEnvelopeSpan` avance d'une unité et garde au moins un contenu ; `envelopeSpanUnits` ; `wrapSpansInContainers` fait entrer les Points du bord désignés (`stopPointsAfterGrouping`, `StopPointGroupingBoundary`), en tête (début de tour / de passage) ou en fin.
+- Écran : en mode enveloppe, chaque rangée de Point est enveloppée par `EnvelopeFrame` (unité `STOP_POINT`) — dans un périmètre, elle porte sa part du cadre continu (bords gauche et droit) et, au bord, le trait ; hors périmètre, inactive et atténuée (B.2). Ancien modèle (`ActivityZoneList`) et structure générale (`LayoutStopPointRow`).
+- Trait (`EnvelopeHandle`) : pendant le glisser, la liste est figée (`scrollEnabled` à faux, posé aussitôt sur la vue native puis par l'état de l'écran) ; près des bords de la zone visible, elle défile d'elle-même (`useDragAutoScroll`, story 7.4) et le trait suit (translation = doigt + défilement accumulé) ; au relâchement, la position du doigt est rapportée au repère des mesures prises à l'appui ; sortie du mode pendant un glisser : liste rendue.
+
+**Remplace** (texte conservé) : écart 2 [« Pas de défilement automatique pendant le glisser d'un trait : pour étendre au-delà de l'écran, défiler d'abord, ou utiliser les actions VoiceOver. »] ; « Réalisé » [`envelopeSpanReach` : « suite contiguë […] des contenus éligibles »] — les Points du parent sont désormais des unités de l'étendue.
+
+**Synchronisation code / documentation** :
+- Classe **B** (demandes explicites du 31/10) : b4b-etendre ; b4b-saisie (précision de la règle « il entre dans le conteneur », ch07 « B.6 — vocabulaire du Cycle et enveloppe », étendue au bord du périmètre). Mis à jour : ch07 section « Recette iPhone n° 2 du 31/10/2026 — lot 3 » et ARB-06 annoté ; cette spec ; en-têtes et commentaires de code annotés (`EnvelopePerimeter.tsx`, `layoutStopPoints.ts`, `layoutOperations.ts`, `CompositionScreen.tsx`).
+- Classe **A** : b6-enveloppe (« un seul cadre plein, continu », B.4b).
+- Règles inchangées : RM-219, RM-251 (un conteneur posé est de compte 1 : séquence fonctionnelle inchangée), D-451, COMP §5 (« au moins un membre »). COMP §6 l.70 (« L'étendue change […] sans poignée ») : déjà annoté par B.4b.
+
+**Tests** : `layoutOperations.recette2.test.ts` (8 : traits sur un Point, Point en fin de tour, sans Point désigné, Cycle — arrêt sur le Point puis le contenu suivant et retour, Point de tête, Point au bord d'un autre périmètre, périmètre invalide, ancien modèle) ; `layoutOperations.b4b.test.ts` (étendue avec le Point, annotation datée) ; `CompositionScreen.recette2lot3.test.tsx` (trait et cadre sur la rangée du Point, Point entre deux contenus encadré, liste figée de l'appui au relâchement).
+
+**À vérifier sur iPhone** : le trait reste sous le doigt ; l'écran ne bouge pas, sauf près des bords (défilement automatique) ; calage correct après un défilement automatique ; rangée du Point encadrée sans jointure.

@@ -13,7 +13,14 @@
  * Fonctions pures.
  */
 
-import { separatorOf, settleLayoutStopPoints, stopPointsAfterInsertion, stopPointsAfterRemoval, type LayoutRepetitionConflictInfo } from "./layoutStopPoints";
+import {
+  layoutStopPointKey,
+  separatorOf,
+  settleLayoutStopPoints,
+  stopPointsAfterInsertion,
+  stopPointsAfterRemoval,
+  type LayoutRepetitionConflictInfo,
+} from "./layoutStopPoints";
 import type { SessionDraft } from "./SessionDraft";
 import type { TourBoundaryChoice } from "./StopPoint";
 import type { SessionStructure, StructureCircuit, StructureCycle, StructureCycleMember, StructureElement, StructureStopPointLocation } from "./structure";
@@ -30,7 +37,15 @@ export type LayoutContainerRef = { readonly kind: "SESSION" } | { readonly kind:
  * Destination : conteneur et rang parmi ses membres, l'élément déplacé retiré (les conteneurs vidés
  * par ce retrait comptent encore : ils ne disparaissent qu'à l'application).
  */
-export type LayoutDestination = { readonly container: LayoutContainerRef; readonly index: number };
+export type LayoutDestination = {
+  readonly container: LayoutContainerRef;
+  readonly index: number;
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : insertion APRÈS les Points d'arrêt de ce rang
+   * (ils restent devant l'élément inséré). Absent : avant eux (convention de `stopPointsAfterInsertion`).
+   */
+  readonly afterStopPoints?: boolean;
+};
 
 /** Nœud détaché par le retrait de la source. */
 export type Detached =
@@ -105,6 +120,7 @@ export function insertAt<T>(items: readonly T[], index: number, item: T): T[] {
 /** Insère le nœud à la destination ; `null` si le conteneur est absent ou si l'imbrication est interdite (D-451). */
 export function attach(layout: Layout, node: Detached, destination: LayoutDestination): Layout | "NESTING" | null {
   const { container, index } = destination;
+  const afterStopPoints = destination.afterStopPoints === true;
   switch (container.kind) {
     case "SESSION": {
       const element: StructureElement<string> =
@@ -115,7 +131,7 @@ export function attach(layout: Layout, node: Detached, destination: LayoutDestin
             : { kind: "CYCLE", cycle: node.cycle };
       return {
         elements: insertAt(layout.elements, index, element),
-        stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, layout.elements.length)),
+        stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, layout.elements.length), afterStopPoints),
       };
     }
     case "CYCLE": {
@@ -128,7 +144,7 @@ export function attach(layout: Layout, node: Detached, destination: LayoutDestin
         size = element.cycle.members.length;
         return { kind: "CYCLE", cycle: { ...element.cycle, members: insertAt(element.cycle.members, index, member) } };
       });
-      return size === null ? null : { elements, stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, size)) };
+      return size === null ? null : { elements, stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, size), afterStopPoints) };
     }
     case "CIRCUIT": {
       if (node.kind !== "EXERCISE") return "NESTING";
@@ -158,7 +174,7 @@ export function attach(layout: Layout, node: Detached, destination: LayoutDestin
           }
         }
       });
-      return size === null ? null : { elements, stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, size)) };
+      return size === null ? null : { elements, stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, clampIndex(index, size), afterStopPoints) };
     }
     default: {
       const unreachable: never = container;
@@ -212,6 +228,19 @@ export function pruneEmpty(layout: Layout): { readonly layout: Layout; readonly 
 
 /** Comparaison structurelle de deux séquences d'éléments (identités et ordre). */
 export const sameElements = (a: Layout, b: Layout) => JSON.stringify(a.elements) === JSON.stringify(b.elements);
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : mêmes éléments ET mêmes emplacements de Points
+ * d'arrêt — un Exercice qui passe de l'autre côté d'un Point de son rang change la disposition même si
+ * l'ordre des éléments est inchangé (`[P, E]` → `[E, P]`).
+ */
+export const sameLayout = (a: Layout, b: Layout) =>
+  sameElements(a, b) &&
+  a.stopPoints.length === b.stopPoints.length &&
+  a.stopPoints.every((point, index) => {
+    const other = b.stopPoints[index]!;
+    return layoutStopPointKey(point) === layoutStopPointKey(other) && (point as { id?: string }).id === (other as { id?: string }).id;
+  });
 
 /** Lecture des séparateurs du brouillon (occurrences `EXERCISE`, RM-251). */
 export const separatorsOfDraft = (draft: SessionDraft) => separatorOf(draft.exercises);

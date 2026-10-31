@@ -218,7 +218,13 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
   // n'est pas posé » — remplacé le 31/10/2026 par B.6.]
   it("Séance à Points d'arrêt (B.6) : extension comme sans Point ; un Point entre deux contenus réunis entre dans le Circuit, un Point d'après reste autour", () => {
     const draft = flat(["a", "b", "c"], [{ id: "p", scope: "BEFORE_TOUR", position: 2 }]);
-    expect(envelopeSpanReach(draft, "CIRCUIT", span(ex("a")))).toEqual({ run: [ex("a"), ex("b"), ex("c")], start: 0, end: 0 });
+    // [B.4b / B.6 : étendue `[a, b, c]` — remplacé par la recette iPhone n° 2 du 31/10/2026 (b4b-saisie) :
+    // le Point est une unité de l'étendue, le bord peut s'y arrêter.]
+    expect(envelopeSpanReach(draft, "CIRCUIT", span(ex("a")))).toEqual({
+      run: [ex("a"), ex("b"), { kind: "STOP_POINT", id: "p" }, ex("c")],
+      start: 0,
+      end: 0,
+    });
     expect(adjustEnvelopeSpan(draft, "CIRCUIT", span(ex("a")), "BOTTOM", 1).members).toEqual([ex("a"), ex("b")]);
     // [a, b, P, c] → [Circuit k [a, b], P, c] : P après le Circuit (ancien modèle : AFTER_TOUR 0).
     const after = wrapSpansInContainers(draft, [span(ex("a"), ex("b"))], "CIRCUIT", () => "k");

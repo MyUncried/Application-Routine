@@ -60,7 +60,7 @@ import {
   detach,
   layoutItemLocation,
   pruneEmpty,
-  sameElements,
+  sameLayout,
   separatorsOfDraft,
   withSettledStopPoints,
   type LayoutDestination,
@@ -160,7 +160,10 @@ export function moveLayoutItem(
   if (attached === "NESTING") return { status: "REFUSED", reason: "NESTING" };
   if (attached === null) return { status: "REFUSED", reason: "NOT_FOUND" };
   const { layout: moved, removed } = pruneEmpty(attached);
-  if (sameElements(moved, layout)) return { status: "UNCHANGED" };
+  // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : [B.4 : « mêmes éléments → UNCHANGED » —
+  // remplacé :] un Exercice passé de l'autre côté d'un Point de son rang (`[P, E]` → `[E, P]`) change la
+  // disposition ; il est jugé comme tout déplacement (règle tolérante de D-442).
+  if (sameLayout(moved, layout)) return { status: "UNCHANGED" };
 
   const settlement = settleLayoutCircuitMembership({ ...draft, structure: layout }, { exercises: draft.exercises, structure: moved });
   if (settlement.refusedExerciseIds.length > 0) {

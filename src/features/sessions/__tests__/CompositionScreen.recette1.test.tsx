@@ -238,7 +238,15 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     await act(async () => undefined);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
+    // [« carte complète → éditeur » — remplacé par la recette iPhone n° 2 du 31/10/2026 (constat c) :
+    // toute carte d'Exercice ouvre la feuille ; la photo ouvre l'éditeur.]
     fireEvent.press(cardOf("a"));
+    await act(async () => undefined);
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await act(async () => undefined);
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
     expect(screen.queryByTestId("execution-sheet")).toBeNull();
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
@@ -260,7 +268,14 @@ describe("Demande de Hermann du 29/10/2026 — toucher d'une carte « Paramètre
     expect(mockPush).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
     await act(async () => undefined);
+    // Recette iPhone n° 2 du 31/10/2026 (constat c) : carte complète → feuille ; photo → éditeur.
     fireEvent.press(cardOf("a"));
+    await act(async () => undefined);
+    expect(screen.getByTestId("execution-sheet")).toBeTruthy();
+    fireEvent.press(screen.getByTestId("execution-sheet-cancel"));
+    await act(async () => undefined);
+    expect(mockPush).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-a"));
     await act(async () => undefined);
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a" } });
   });

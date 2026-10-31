@@ -54,6 +54,7 @@ import {
   type EnvelopeEdge,
   type EnvelopeSpan,
   type EnvelopeTarget,
+  type EnvelopeUnit,
 } from "@/domain/sessions/layoutOperations";
 import { EnvelopeHandle, envelopeTargetKey, useEnvelopePerimeterDrag } from "@/features/sessions/EnvelopePerimeter";
 import {
@@ -163,6 +164,7 @@ import {
   resolveLayoutDrop,
   sameLayoutDrop,
   type LayoutBox,
+  type LayoutDropStopPoint,
   type LayoutDropTarget,
 } from "@/features/sessions/layoutDrop";
 import {
@@ -346,12 +348,19 @@ type EnvelopeSpanPlacement = {
 type EnvelopeContext = {
   readonly container: EnvelopeContainer;
   readonly isCandidate: (target: EnvelopeTarget) => boolean;
-  readonly placementOf: (target: EnvelopeTarget) => EnvelopeSpanPlacement | null;
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b4b-saisie, b6-enveloppe) : place d'une UNITÉ — contenu ou Point
+   * d'arrêt — dans un périmètre désigné ; un Point du périmètre porte sa part du cadre continu (bords
+   * gauche et droit) et, au bord, son trait. [B.4b : contenus seuls.]
+   */
+  readonly placementOf: (target: EnvelopeUnit) => EnvelopeSpanPlacement | null;
   readonly onDesignate: (target: EnvelopeTarget, name: string) => void;
   readonly onStepEdge: (span: EnvelopeSpan, edge: EnvelopeEdge, direction: 1 | -1) => void;
   readonly onEdgeDragStart: (span: EnvelopeSpan, edge: EnvelopeEdge) => void;
   readonly onEdgeDragEnd: (pageY?: number) => void;
   readonly registerFrame: (key: string, view: View | null) => void;
+  /** Recette n° 2 (b4b-etendre) : défilement automatique pendant le glisser d'un trait. */
+  readonly autoScroll: DragAutoScroll;
 };
 
 const NO_ENVELOPE_SPANS: readonly EnvelopeSpan[] = [];
@@ -1564,6 +1573,37 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     spans: envelope?.spans ?? NO_ENVELOPE_SPANS,
     onReplace: replaceEnvelopeSpan,
   });
+  const { begin: beginPerimeterDrag, end: endPerimeterDrag } = perimeterDrag;
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b4b-etendre, Hermann : « Lorsqu'on bouge un trait l'écran bouge
+   * avec. […] l'écran doit rester figé et se déplacer avec le défilement du train uniquement s'il
+   * dépasse le cadre de l'écran ») : pendant le glisser d'un trait, le défilement par l'utilisateur est
+   * coupé (comme pour une carte saisie, T02-S01) — tout de suite sur la vue native, puis par l'état de
+   * l'écran ; seul le défilement automatique près des bords déplace la liste (`EnvelopeHandle`).
+   */
+  const [isEnvelopeEdgeDragging, setIsEnvelopeEdgeDragging] = useState(false);
+  const lockBodyScroll = useCallback((locked: boolean) => {
+    try {
+      bodyScrollRef.current?.setNativeProps({ scrollEnabled: !locked });
+    } catch {
+      // Vue native indisponible (tests, démontage) : l'état de l'écran suffit.
+    }
+    setIsEnvelopeEdgeDragging(locked);
+  }, []);
+  const beginEnvelopeEdgeDrag = useCallback(
+    (span: EnvelopeSpan, edge: EnvelopeEdge) => {
+      lockBodyScroll(true);
+      beginPerimeterDrag(span, edge);
+    },
+    [beginPerimeterDrag, lockBodyScroll],
+  );
+  const endEnvelopeEdgeDrag = useCallback(
+    (pageY?: number) => {
+      lockBodyScroll(false);
+      endPerimeterDrag(pageY);
+    },
+    [endPerimeterDrag, lockBodyScroll],
+  );
   /** PRE-9 B.4b : trait de bord, pas à pas (VoiceOver) — étendre (`1`) ou réduire (`-1`) d'un contenu. */
   const stepEnvelopeEdge = useCallback(
     (span: EnvelopeSpan, edge: EnvelopeEdge, direction: 1 | -1) => {
@@ -1603,8 +1643,12 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const reach = envelopeSpanReach(draft, container, span, spans);
       const wide = span.members.some((member) => member.kind === "CIRCUIT");
       const adjustable = reach !== null && reach.run.length > 1;
-      span.members.forEach((member, index) =>
-        placements.set(envelopeTargetKey(member), { span, first: index === 0, last: index === span.members.length - 1, wide, adjustable }),
+      // Recette iPhone n° 2 du 31/10/2026 (b4b-saisie, b6-enveloppe) : les unités du périmètre — ses
+      // contenus et les Points d'arrêt qu'il contient (entre ses contenus ou à son bord) — portent
+      // chacune leur part du cadre continu ; le premier et le dernier, les traits. [B.4b : contenus seuls.]
+      const units: readonly EnvelopeUnit[] = reach === null ? span.members : reach.run.slice(reach.start, reach.end + 1);
+      units.forEach((unit, index) =>
+        placements.set(envelopeTargetKey(unit), { span, first: index === 0, last: index === units.length - 1, wide, adjustable }),
       );
     }
     return {
@@ -1613,11 +1657,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       placementOf: (target) => placements.get(envelopeTargetKey(target)) ?? null,
       onDesignate: designateEnvelopeTarget,
       onStepEdge: stepEnvelopeEdge,
-      onEdgeDragStart: perimeterDrag.begin,
-      onEdgeDragEnd: perimeterDrag.end,
+      onEdgeDragStart: beginEnvelopeEdgeDrag,
+      onEdgeDragEnd: endEnvelopeEdgeDrag,
       registerFrame: perimeterDrag.registerFrame,
+      autoScroll,
     };
-  }, [circuitEnvelopeCandidates, cycleEnvelopeCandidates, designateEnvelopeTarget, draft, envelope, perimeterDrag.begin, perimeterDrag.end, perimeterDrag.registerFrame, stepEnvelopeEdge]);
+  }, [
+    autoScroll,
+    beginEnvelopeEdgeDrag,
+    circuitEnvelopeCandidates,
+    cycleEnvelopeCandidates,
+    designateEnvelopeTarget,
+    draft,
+    endEnvelopeEdgeDrag,
+    envelope,
+    perimeterDrag.registerFrame,
+    stepEnvelopeEdge,
+  ]);
   /** Circuit unique de l'ancien modèle, tel que le Domaine le désigne parmi les contenus éligibles d'un Cycle. */
   const legacyCircuitTarget: EnvelopeTarget = cycleEnvelopeCandidates.find((candidate) => candidate.kind === "CIRCUIT") ?? {
     kind: "CIRCUIT",
@@ -2765,6 +2821,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         layoutBoxesRef.current,
         (exercise) => exercise.id,
         layoutContainerGap,
+        // Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre
+        // à l'élément saisi deux emplacements, avant eux et après eux (un Point saisi n'en a qu'un).
+        current.stopPointId === undefined ? layoutDropStopPointsOf(layout) : NO_LAYOUT_DROP_STOP_POINTS,
       );
       if (!(sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY)) current.target = target;
       // Recette n° 2 : la place visée s'ouvre, celle de l'élément saisi se referme (registre animé).
@@ -4044,15 +4103,29 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (activityId: string) => {
       closeCircuitControls();
       // Demande de Hermann du 29/10/2026 : carte « Paramètres à compléter » → feuille de paramètres
-      // directement, sans ouvrir la carte ; complète → éditeur de l'Exercice, comme avant.
+      // directement, sans ouvrir la carte ; [« complète → éditeur de l'Exercice, comme avant » —
+      // remplacé par la recette iPhone n° 2 du 31/10/2026 (constat c, Hermann : « l'appui sur la carte
+      // n'ouvre plus la fiche d'exercice mais ouvre la modale des paramètres d'exécution (voile grisé
+      // qui apparaît, modale apparaît de bas en haut) ; l'appui sur la photo ouvre la fiche du
+      // mouvement. »)] : toute carte d'Exercice ouvre la feuille des paramètres ; la photo ouvre
+      // l'Exercice (`handleOpenMovement`). Une autre Activité (sans paramètres d'exécution) ouvre son
+      // éditeur, comme avant.
       const touched = draft.exercises.find((exercise) => exercise.id === activityId);
-      if (touched !== undefined && isExerciseParametersIncomplete(touched)) {
+      if (touched !== undefined && (touched.type === "EXERCISE" || isExerciseParametersIncomplete(touched))) {
         openExerciseParameters(activityId);
         return;
       }
       router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
     },
     [closeCircuitControls, draft.exercises, openExerciseParameters, router],
+  );
+  /** Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice — fiche de l'Exercice / du Mouvement. */
+  const handleOpenMovement = useCallback(
+    (activityId: string) => {
+      closeCircuitControls();
+      router.push({ pathname: "/exercise", params: { exerciseId: activityId } });
+    },
+    [closeCircuitControls, router],
   );
   // PRE-6 (story 2.1, RM-159) : durée de séance de l'en-tête — toutes les occurrences, sans
   // Compte à rebours ni Fin. Story 7.8 (D-443) : estimation arrondie aux 15 s, « ≈ » / « ≥ » ; la
@@ -4280,7 +4353,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
         // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
         // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
-        scrollEnabled={draggedKey === null && draggingSource === null}
+        scrollEnabled={draggedKey === null && draggingSource === null && !isEnvelopeEdgeDragging}
         // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
         onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
         scrollEventThrottle={16}
@@ -4346,6 +4419,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             categoriesReferential={categoriesReferential}
             levelPositions={levelPositions}
             onEdit={handleEditActivity}
+            onOpenMovement={handleOpenMovement}
             railShiftOf={layoutShiftOf}
             autoScroll={autoScroll}
             envelope={envelopeContext}
@@ -4403,6 +4477,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           focusRequest={itemFocusRequest}
           onFocusConsumed={consumeItemFocus}
           onEdit={handleEditActivity}
+          onOpenMovement={handleOpenMovement}
           onRevealActions={handleRevealActions}
           onDragStart={handleRowDragStart}
           onDragMove={handleDragMove}
@@ -4447,7 +4522,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           ]}
           // PRE-9 B.2 : dans le cadre du mode enveloppe, la mesure serait relative au cadre — ignorée
           // (aucun glisser dans ce mode ; le Circuit est remonté et remesuré à la sortie).
-          onLayout={envelopeContext === null ? handleTourLayout : undefined}
+          onLayout={isEnvelopeActive ? undefined : handleTourLayout}
           testID="composition-tour-section"
         >
           {/*
@@ -4587,6 +4662,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
               focusRequest={itemFocusRequest}
               onFocusConsumed={consumeItemFocus}
               onEdit={handleEditActivity}
+              onOpenMovement={handleOpenMovement}
               onRevealActions={handleRevealActions}
               onDragStart={handleRowDragStart}
               onDragMove={handleDragMove}
@@ -4693,6 +4769,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           focusRequest={itemFocusRequest}
           onFocusConsumed={consumeItemFocus}
           onEdit={handleEditActivity}
+          onOpenMovement={handleOpenMovement}
           onRevealActions={handleRevealActions}
           onDragStart={handleRowDragStart}
           onDragMove={handleDragMove}
@@ -5163,6 +5240,8 @@ type ActivityZoneListProps = {
   readonly focusRequest: ItemFocusRequest | null;
   readonly onFocusConsumed: (token: number) => void;
   readonly onEdit: (activityId: string) => void;
+  /** Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice (fiche de l'Exercice). */
+  readonly onOpenMovement: (activityId: string) => void;
   readonly onRevealActions: (activityId: string | null) => void;
   /**
    * Début (clé) ou interruption (`null`, position atteinte) du glisser d'une carte ou d'un point ;
@@ -5428,7 +5507,8 @@ function EnvelopeFrame({
   children,
 }: {
   envelope: EnvelopeContext | null;
-  target: EnvelopeTarget;
+  /** Recette n° 2 du 31/10 : aussi un Point d'arrêt (jamais désignable seul ; cadre s'il est dans un périmètre). */
+  target: EnvelopeUnit;
   /** Nom du contenu (carte d'Exercice, « le circuit [A] »), pour le nom accessible et les annonces. */
   name: string;
   testID: string;
@@ -5453,8 +5533,11 @@ function EnvelopeFrame({
   if (envelope === null) {
     return <>{children}</>;
   }
-  const isCandidate = envelope.isCandidate(target);
-  const placement = isCandidate ? envelope.placementOf(target) : null;
+  const isStopPoint = target.kind === "STOP_POINT";
+  const isCandidate = !isStopPoint && envelope.isCandidate(target);
+  // Recette n° 2 du 31/10 : un Point d'arrêt n'est jamais désignable seul, mais il appartient au
+  // périmètre qui le contient (entre deux contenus ou au bord) : il en porte le cadre.
+  const placement = isCandidate || isStopPoint ? envelope.placementOf(target) : null;
   const isDesignated = placement !== null;
   const t = strings.screens.composition.envelope;
   const label = (
@@ -5471,6 +5554,14 @@ function EnvelopeFrame({
   const joinsBelow = placement !== null && !placement.last;
   const count = placement === null ? 0 : placement.span.members.length;
   const value = count === 1 ? t.perimeterOne : t.perimeterMany.replace("{count}", String(count));
+  const frameStyle = [
+    styles.envelopeTarget,
+    frameOutset === 0 ? { borderRadius: frameRadius } : { left: -frameOutset, right: -frameOutset, borderRadius: frameRadius },
+    isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate,
+    // B.4b : périmètre de plusieurs unités — un seul cadre, continu à travers les écarts.
+    joinsAbove ? { top: -gap / 2, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null,
+    joinsBelow ? { bottom: -gap / 2, borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : null,
+  ];
   const handle = (edge: EnvelopeEdge) =>
     placement === null ? null : (
       <EnvelopeHandle
@@ -5490,6 +5581,7 @@ function EnvelopeFrame({
         onStep={(direction) => envelope.onStepEdge(placement.span, edge, direction)}
         onDragStart={() => envelope.onEdgeDragStart(placement.span, edge)}
         onDragEnd={envelope.onEdgeDragEnd}
+        autoScroll={envelope.autoScroll}
         testID={`${testID}-handle-${edge === "TOP" ? "top" : "bottom"}`}
       />
     );
@@ -5501,24 +5593,20 @@ function EnvelopeFrame({
       testID={testID}
     >
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        {children}
+        {/* PRE-9 B.2 : un Point d'arrêt hors périmètre reste inactif et atténué. */}
+        {isStopPoint && placement === null ? <PlacementAttenuation active>{children}</PlacementAttenuation> : children}
       </View>
-      {isCandidate ? (
+      {isCandidate && !isStopPoint ? (
         <Pressable
           onPress={() => envelope.onDesignate(target, name)}
           accessibilityRole="button"
           accessibilityLabel={label}
           accessibilityState={{ selected: isDesignated }}
-          style={[
-            styles.envelopeTarget,
-            frameOutset === 0 ? { borderRadius: frameRadius } : { left: -frameOutset, right: -frameOutset, borderRadius: frameRadius },
-            isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate,
-            // B.4b : périmètre de plusieurs contenus — un seul cadre, continu à travers les écarts.
-            joinsAbove ? { top: -gap / 2, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null,
-            joinsBelow ? { bottom: -gap / 2, borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : null,
-          ]}
+          style={frameStyle}
           testID={`${testID}-target`}
         />
+      ) : isStopPoint && placement !== null ? (
+        <View pointerEvents="none" style={frameStyle} testID={`${testID}-frame`} />
       ) : null}
       {placement?.adjustable === true && placement.first ? handle("TOP") : null}
       {placement?.adjustable === true && placement.last ? handle("BOTTOM") : null}
@@ -5555,6 +5643,7 @@ function ActivityZoneList({
   focusRequest,
   onFocusConsumed,
   onEdit,
+  onOpenMovement,
   onRevealActions,
   onDragStart,
   onDragMove,
@@ -5667,13 +5756,21 @@ function ActivityZoneList({
               onMoveDown={stopPointStepAction(item.point.id, "DOWN")}
             />
           );
-          // PRE-9 B.2 : en mode enveloppe, un Point d'arrêt n'est jamais éligible — inactif.
+          // PRE-9 B.2 : en mode enveloppe, un Point d'arrêt n'est jamais éligible — inactif. Recette iPhone
+          // n° 2 du 31/10 (b4b-saisie, b6-enveloppe) : il porte sa part du cadre du périmètre qui le contient.
           return envelope === null ? (
             stopPointRow
           ) : (
-            <PlacementAttenuation key={key} active>
+            <EnvelopeFrame
+              key={key}
+              envelope={envelope}
+              target={{ kind: "STOP_POINT", id: item.point.id }}
+              name=""
+              gap={zone === "IN_TOUR" ? CIRCUIT_GAP : SEQUENCE_GAP}
+              testID={`composition-envelope-stop-point-${item.point.id}`}
+            >
               {stopPointRow}
-            </PlacementAttenuation>
+            </EnvelopeFrame>
           );
         }
         const activity = item.occurrence;
@@ -5695,6 +5792,8 @@ function ActivityZoneList({
           focusRequest={focusRequest !== null && focusRequest.key === key ? focusRequest : null}
           onFocusConsumed={onFocusConsumed}
           onEdit={() => onEdit(activity.id)}
+          // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.
+          onOpenMovement={activity.type === "EXERCISE" ? () => onOpenMovement(activity.id) : null}
           onRevealActions={() => onRevealActions(activity.id)}
           onHideActions={() => onRevealActions(null)}
           onDragStart={() => onDragStart(key)}
@@ -6126,6 +6225,13 @@ type CompositionActivityRowProps = {
    * simplifié porté par la carte (lien à travers l'écart au-dessus, queue sous le média). [Glisser :
    * B.4 ; balayage et « Dupliquer » / « Supprimer » : B.5 (`layoutSwipeable`).]
    */
+  /**
+   * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c, Hermann : « l'appui sur la carte n'ouvre plus la
+   * fiche d'exercice mais ouvre la modale des paramètres d'exécution […] ; l'appui sur la photo ouvre la
+   * fiche du mouvement ») : toucher de la photo (gabarit média) — ouvre l'Exercice / le Mouvement.
+   * `null` ou absent : la photo fait partie de la carte (son appui est celui de la carte).
+   */
+  readonly onOpenMovement?: (() => void) | null;
   readonly layoutRailGap?: number;
   /**
    * PRE-9 B.4 (COMP §6, G1–G5) : dans une disposition générale, appui long puis glisser actifs
@@ -6295,6 +6401,7 @@ function CompositionActivityRow({
   placementRowFollowed = false,
   focusRequest,
   onFocusConsumed,
+  onOpenMovement = null,
   layoutRailGap,
   layoutDraggable = false,
   layoutSwipeable = false,
@@ -6305,6 +6412,8 @@ function CompositionActivityRow({
   const canSwipe = !inLayout || layoutSwipeable;
   const canDrag = !inLayout || layoutDraggable || canSwipe;
   const composition = strings.screens.composition;
+  // Recette iPhone n° 2 du 31/10/2026 (constat c) : carte d'Exercice — l'appui ouvre les paramètres.
+  const editHint = onOpenMovement !== null ? composition.exerciseRow.editParametersAccessibilityLabel : composition.exerciseRow.editAccessibilityLabel;
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<View>(null);
   // Revue 6.2 : focus demandé sur la carte (pas d'une zone à l'autre — la carte peut avoir été
@@ -6933,11 +7042,13 @@ function CompositionActivityRow({
         importantForAccessibility={placement !== null ? "no" : "auto"}
         accessibilityRole="button"
         accessibilityLabel={accessibilityLabel}
-        // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
+        // Intention d'édition (appui court) puis gestes de réorganisation et d'actions. Recette iPhone
+        // n° 2 du 31/10/2026 (constat c) : l'appui court d'une carte d'Exercice ouvre les paramètres
+        // d'exécution (« Modifier les paramètres ») ; sa photo est un bouton distinct (« Ouvrir le mouvement »).
         accessibilityHint={
           inLayout && !layoutDraggable
-            ? composition.exerciseRow.editAccessibilityLabel
-            : `${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`
+            ? editHint
+            : `${editHint}. ${composition.activityActions.reorderAccessibilityHint}`
         }
         accessibilityState={{ selected: isDragged }}
         accessibilityActions={accessibilityActions}
@@ -6991,6 +7102,33 @@ function CompositionActivityRow({
         />
 
       </AnimatedPressable>
+
+      {/*
+       * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c, Hermann : « l'appui sur la photo ouvre la
+       * fiche du mouvement ») : la photo (gabarit média) est un bouton distinct, posé sur elle et qui
+       * suit la carte (balayage, glisser) ; frère de la carte — et non son enfant — pour rester un
+       * élément VoiceOver propre (un élément accessible masque ses descendants). L'appui long y saisit
+       * la carte comme ailleurs ; actions révélées : appui neutre, comme la carte. Hors placement.
+       */}
+      {onOpenMovement !== null && placement === null ? (
+        <Animated.View
+          pointerEvents={fadeLeaving ? "none" : "box-none"}
+          style={[styles.activityMediaButtonTrack, { transform: cardTransform }]}
+          testID={`composition-exercise-media-track-${activity.id}`}
+        >
+          <Pressable
+            onPress={() => {
+              if (!areActionsRevealed) onOpenMovement();
+            }}
+            onLongPress={canDrag ? handleLongPress : undefined}
+            delayLongPress={LONG_PRESS_DELAY_MS}
+            accessibilityRole="button"
+            accessibilityLabel={composition.exerciseRow.openMovementAccessibilityLabel}
+            style={styles.activityMediaButton}
+            testID={`composition-exercise-media-button-${activity.id}`}
+          />
+        </Animated.View>
+      ) : null}
 
       {/*
        * PRE-6 (story 5.2, D-435) : rail de l'occurrence, peint APRÈS la carte (il passe sur ses
@@ -7310,6 +7448,8 @@ type LayoutRenderContext = {
   readonly categoriesReferential: readonly Category[];
   readonly levelPositions: ReadonlyMap<string, MovementLevelPosition>;
   readonly onEdit: (activityId: string) => void;
+  /** Recette iPhone n° 2 du 31/10/2026 (constat c) : photo d'une carte d'Exercice (fiche de l'Exercice). */
+  readonly onOpenMovement: (activityId: string) => void;
   readonly railShiftOf: (key: string) => Animated.Value;
   readonly autoScroll: DragAutoScroll;
   /** PRE-9 B.2 : mode enveloppe (contenus éligibles désignables, le reste inactif) ; `null` hors mode. */
@@ -7601,7 +7741,18 @@ function LayoutStopPointRow({
       onLayout={onLayout}
       testID={`composition-layout-stop-point-${id}`}
     >
-      {context.envelope === null ? node : <PlacementAttenuation active>{node}</PlacementAttenuation>}
+      {/* Recette iPhone n° 2 du 31/10 (b4b-saisie, b6-enveloppe) : en mode enveloppe, le Point porte sa
+          part du cadre du périmètre qui le contient (bords gauche et droit, trait de bord) ; hors
+          périmètre, inactif et atténué (B.2). */}
+      <EnvelopeFrame
+        envelope={context.envelope}
+        target={{ kind: "STOP_POINT", id }}
+        name=""
+        gap={gap}
+        testID={`composition-envelope-stop-point-${id}`}
+      >
+        {node}
+      </EnvelopeFrame>
     </View>
   );
 }
@@ -8039,8 +8190,10 @@ function LayoutExerciseRow({
   );
   const circuitContext: OccurrenceCircuitContext =
     circuit === null ? {} : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount };
-  const { onEdit, drag } = context;
+  const { onEdit, onOpenMovement, drag } = context;
   const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
+  // Recette iPhone n° 2 du 31/10/2026 (constat c) : la photo d'une carte d'Exercice ouvre sa fiche.
+  const openMovement = useCallback(() => onOpenMovement(exercise.id), [exercise.id, onOpenMovement]);
   const source = useMemo<LayoutItemRef>(() => ({ kind: "EXERCISE", id: exercise.id }), [exercise.id]);
   const onLayout = useReportedBox(layoutItemKey(source), measureFrameY ?? null, measureFrameY === undefined ? undefined : drag?.reportBox);
   const isDragged = drag?.source?.kind === "EXERCISE" && drag.source.id === exercise.id;
@@ -8075,6 +8228,7 @@ function LayoutExerciseRow({
       focusRequest={null}
       onFocusConsumed={noop}
       onEdit={edit}
+      onOpenMovement={exercise.type === "EXERCISE" ? openMovement : null}
       onRevealActions={onRevealActions}
       onHideActions={onHideActions}
       onDragStart={onDragStart}
@@ -8866,6 +9020,14 @@ const LAYOUT_CYCLE_GAP = CIRCUIT_GAP;
 function layoutContainerGap(container: LayoutContainerRef): number {
   return container.kind === "SESSION" ? SEQUENCE_GAP : container.kind === "CYCLE" ? LAYOUT_CYCLE_GAP : CIRCUIT_GAP;
 }
+const NO_LAYOUT_DROP_STOP_POINTS: readonly LayoutDropStopPoint[] = [];
+/** Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : Points d'arrêt de la disposition, lus par `resolveLayoutDrop`. */
+function layoutDropStopPointsOf(layout: ResolvedLayout): readonly LayoutDropStopPoint[] {
+  return layout.stopPoints.flatMap((point) => {
+    const container = stopPointContainerOf(point);
+    return container === null ? [] : [{ container, position: point.position, id: layoutStopPointId(point) }];
+  });
+}
 /**
  * Haut de l'anneau du Circuit, centré sur la hauteur de l'en-tête (Figma `9819:20017` : y 15 pour
  * 40). Revue 5.2 : l'en-tête a une hauteur MINIMALE de 40 (Dynamic Type) ; l'anneau suit sa hauteur
@@ -9252,6 +9414,21 @@ const styles = StyleSheet.create({
   // PRE-6 story 6.2 : rangée autonome d'un point (22 : hauteur de sa ligne), repère du rail.
   stopPointRow: {
     position: "relative",
+  },
+  // Recette iPhone n° 2 du 31/10/2026 (constat c) : bouton de la photo, sur le gabarit média de la carte.
+  activityMediaButtonTrack: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    height: OCCURRENCE_CARD_MEDIA.bottom + OCCURRENCE_CARD_MEDIA.top,
+  },
+  activityMediaButton: {
+    position: "absolute",
+    top: OCCURRENCE_CARD_MEDIA.top,
+    left: OCCURRENCE_CARD_MEDIA.centerX - (OCCURRENCE_CARD_MEDIA.bottom - OCCURRENCE_CARD_MEDIA.top) / 2,
+    width: OCCURRENCE_CARD_MEDIA.bottom - OCCURRENCE_CARD_MEDIA.top,
+    height: OCCURRENCE_CARD_MEDIA.bottom - OCCURRENCE_CARD_MEDIA.top,
   },
   activityRowContainerDragged: {
     zIndex: 1,

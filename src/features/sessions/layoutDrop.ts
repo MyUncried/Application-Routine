@@ -18,6 +18,9 @@
  * ce qui est à cette ordonnée ou plus bas descend pour faire la place) et le haut que l'élément
  * déposé y occupera (`insertTop`), lus par l'aperçu (`layoutDragShifts.ts`).
  *
+ * Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : un rang qui porte des Points d'arrêt offre deux
+ * emplacements à un élément saisi — avant eux et après eux (`afterStopPoints`, `LayoutDropStopPoint`).
+ *
  * Fonctions pures.
  */
 
@@ -79,6 +82,15 @@ function elementMember<E>(element: StructureElement<E> | StructureCycleMember<E>
 }
 
 const sameItem = (a: LayoutItemRef, b: LayoutItemRef) => a.kind === b.kind && a.id === b.id;
+const sameContainer = (a: LayoutContainerRef, b: LayoutContainerRef) =>
+  a.kind === b.kind && (a.kind === "SESSION" || (b.kind !== "SESSION" && a.id === b.id));
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : Point d'arrêt de la disposition (conteneur, rang
+ * AVEC la source, identifiant de sa rangée mesurée) — un rang qui porte des Points offre deux
+ * emplacements à un Exercice, un Circuit ou un Cycle saisi : avant eux et après eux (`afterStopPoints`).
+ */
+export type LayoutDropStopPoint = { readonly container: LayoutContainerRef; readonly position: number; readonly id: string };
 
 /**
  * Emplacements admis pour `source` avec leur ordonnée (voir l'en-tête). Un emplacement dont une
@@ -90,12 +102,31 @@ export function layoutDropCandidates<E>(
   boxes: ReadonlyMap<string, LayoutBox>,
   idOf: (exercise: E) => string,
   gapOf: LayoutGapOf = NO_GAP,
+  stopPoints: readonly LayoutDropStopPoint[] = [],
 ): readonly LayoutDropTarget[] {
   const candidates: LayoutDropTarget[] = [];
   const bottom = (box: LayoutBox) => box.top + box.height;
 
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : boîtes des Points d'arrêt du rang `index` (rangs
+   * comptés sans la source) du conteneur, dans l'ordre ; `null` si l'une n'est pas mesurée.
+   */
+  const pointBoxesAt = (container: LayoutContainerRef, sourceIndex: number, index: number): LayoutBox[] | null => {
+    const boxesAt: LayoutBox[] = [];
+    for (const point of stopPoints) {
+      if (!sameContainer(point.container, container)) continue;
+      const rank = sourceIndex >= 0 && point.position > sourceIndex ? point.position - 1 : point.position;
+      if (rank !== index) continue;
+      const box = boxes.get(layoutStopBoxKey(point.id));
+      if (box === undefined) return null;
+      boxesAt.push(box);
+    }
+    return boxesAt.sort((a, b) => a.top - b.top);
+  };
+
   /** Rangs d'une suite de membres (sans la source) ; `head` : ordonnée de tête si le conteneur a un en-tête. */
   const sequence = (container: LayoutContainerRef, members: readonly Member[], head: number | null, end: number | null) => {
+    const sourceIndex = members.findIndex((member) => sameItem(member.item, source));
     const kept = members.filter((member) => !sameItem(member.item, source));
     const measured = kept.map((member) => boxes.get(layoutItemKey(member.item)));
     if (measured.some((box) => box === undefined)) return false;
@@ -106,20 +137,38 @@ export function layoutDropCandidates<E>(
     for (let index = 0; index <= list.length; index += 1) {
       const before = list[index - 1];
       const after = list[index];
+      // Recette n° 2 : Points d'arrêt de ce rang — l'emplacement « avant eux » est au-dessus du
+      // premier, un second emplacement « après eux » sous le dernier.
+      const points = pointBoxesAt(container, sourceIndex, index) ?? [];
+      const firstPoint = points[0];
+      const lastPoint = points[points.length - 1];
+      const below = firstPoint ?? after;
       const lineY =
-        before !== undefined && after !== undefined
-          ? (bottom(before) + after.top) / 2
-          : after !== undefined
-            ? (head ?? after.top - 2 * LAYOUT_DROP_EDGE_INSET)
+        before !== undefined && below !== undefined
+          ? (bottom(before) + below.top) / 2
+          : below !== undefined
+            ? (head ?? below.top - 2 * LAYOUT_DROP_EDGE_INSET)
             : before !== undefined
               ? (end ?? bottom(before) + 2 * LAYOUT_DROP_EDGE_INSET)
               : head;
-      if (lineY === null || lineY === undefined) continue;
-      // Insertion juste après le membre qui précède (avant les Points d'arrêt de ce rang, convention
-      // de `stopPointsAfterInsertion`), sinon en tête du conteneur.
-      const insertY = before !== undefined ? bottom(before) + 0.5 : after !== undefined && head === null ? after.top - 0.5 : lineY;
-      const insertTop = before !== undefined ? bottom(before) + gap : (headTop ?? after?.top ?? lineY);
-      candidates.push({ container, index, lineY, insertY, insertTop });
+      if (lineY !== null && lineY !== undefined) {
+        // Insertion juste après le membre qui précède (avant les Points d'arrêt de ce rang, convention
+        // de `stopPointsAfterInsertion`), sinon en tête du conteneur.
+        const insertY = before !== undefined ? bottom(before) + 0.5 : below !== undefined && head === null ? below.top - 0.5 : lineY;
+        const insertTop = before !== undefined ? bottom(before) + gap : (headTop ?? below?.top ?? lineY);
+        candidates.push({ container, index, lineY, insertY, insertTop });
+      }
+      if (lastPoint !== undefined) {
+        const afterLineY = after !== undefined ? (bottom(lastPoint) + after.top) / 2 : bottom(lastPoint) + 2 * LAYOUT_DROP_EDGE_INSET;
+        candidates.push({
+          container,
+          index,
+          afterStopPoints: true,
+          lineY: afterLineY,
+          insertY: bottom(lastPoint) + 0.5,
+          insertTop: bottom(lastPoint) + gap,
+        });
+      }
     }
     return true;
   };
@@ -183,9 +232,10 @@ export function resolveLayoutDrop<E>(
   boxes: ReadonlyMap<string, LayoutBox>,
   idOf: (exercise: E) => string,
   gapOf: LayoutGapOf = NO_GAP,
+  stopPoints: readonly LayoutDropStopPoint[] = [],
 ): LayoutDropTarget | null {
   let best: LayoutDropTarget | null = null;
-  for (const candidate of layoutDropCandidates(layout, source, boxes, idOf, gapOf)) {
+  for (const candidate of layoutDropCandidates(layout, source, boxes, idOf, gapOf, stopPoints)) {
     if (best === null || Math.abs(candidate.lineY - pointerY) < Math.abs(best.lineY - pointerY)) best = candidate;
   }
   return best;
@@ -194,6 +244,6 @@ export function resolveLayoutDrop<E>(
 /** Même destination (conteneur et rang). */
 export function sameLayoutDrop(a: LayoutDestination | null, b: LayoutDestination | null): boolean {
   if (a === null || b === null) return a === b;
-  if (a.index !== b.index || a.container.kind !== b.container.kind) return false;
+  if (a.index !== b.index || a.container.kind !== b.container.kind || (a.afterStopPoints === true) !== (b.afterStopPoints === true)) return false;
   return a.container.kind === "SESSION" || (b.container.kind !== "SESSION" && a.container.id === b.container.id);
 }

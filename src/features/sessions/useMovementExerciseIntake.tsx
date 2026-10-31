@@ -2,17 +2,24 @@ import * as Crypto from "expo-crypto";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 
-import { validateForSave } from "@/domain/activities/ExecutionParameters";
+import {
+  cloneExecutionParameters,
+  executionParametersEqual,
+  validateForSave,
+  type ExecutionParametersInput,
+} from "@/domain/activities/ExecutionParameters";
 import {
   DEFAULT_EXERCISE_COUNTDOWN_SECONDS,
   DEFAULT_EXERCISE_END_SECONDS,
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
 } from "@/domain/preferences/Profile";
+import { exitCircuit } from "@/domain/sessions/circuit";
 import { ExecutionParametersSheet } from "@/features/activities/ExecutionParametersSheet";
 import { ProfileServiceContext } from "@/features/preferences/ProfileServiceContext";
 import {
   exerciseOfMovement,
   inheritsCircuitSeriesCount,
+  isExerciseParametersIncomplete,
   isPersistedMovementOccurrence,
   takeMovementsHandedToComposition,
   withMovementExercises,
@@ -46,7 +53,10 @@ function profileDefaultsOf(profile: {
 export type MovementExerciseIntake = {
   /** Feuille de paramètres ouverte (`null` : aucune), à rendre par-dessus la Composition. */
   readonly sheet: ReactNode;
-  /** Ouvre directement la feuille de paramètres de l'Exercice (carte « Paramètres à compléter »). */
+  /**
+   * Ouvre directement la feuille de paramètres de l'Exercice (carte « Paramètres à compléter » ; recette
+   * iPhone n° 2 du 31/10/2026, constat c : toute carte d'Exercice).
+   */
   readonly openParameters: (exerciseId: string) => void;
 };
 
@@ -72,7 +82,17 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
   const { draft, updateDraft } = useSessionDraft();
   const profileService = useContext(ProfileServiceContext);
   const [defaults, setDefaults] = useState<ProfileDefaults>(DOMAIN_DEFAULTS);
-  const [opened, setOpened] = useState<{ readonly exerciseId: string; readonly nextPhaseId: number | undefined } | null>(null);
+  /**
+   * Feuille ouverte : Exercice, compteur de phases et — recette iPhone n° 2 du 31/10/2026 (constat c :
+   * toute carte d'Exercice ouvre la feuille) — paramètres à l'ouverture (`opening`, lus au premier rendu) :
+   * ligne de base d'AD-13 pour un Exercice complet (comme l'éditeur, `CompositionExerciseEditor`) et
+   * référence de la règle de réserve de Circuit (story 3.3).
+   */
+  const [opened, setOpened] = useState<{
+    readonly exerciseId: string;
+    readonly nextPhaseId: number | undefined;
+    readonly opening?: { readonly parameters: ExecutionParametersInput; readonly baseline: ExecutionParametersInput | null };
+  } | null>(null);
   /** Prochain identifiant de phase des Mouvements remis, par Exercice inséré (MFN-09). */
   const nextPhaseIdsRef = useRef(new Map<string, number>());
   const mountedRef = useRef(true);
@@ -129,6 +149,13 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
   if (opened === null || exercise === null) {
     return { sheet: null, openParameters };
   }
+  if (opened.opening === undefined) {
+    // Paramètres à l'ouverture, relus une fois (état ajusté au rendu). Carte « Paramètres à compléter » :
+    // aucune ligne de base (comportement du 29/10) ; Exercice complet : ligne de base d'AD-13.
+    const parameters = cloneExecutionParameters(exercise.executionParameters);
+    setOpened({ ...opened, opening: { parameters, baseline: isExerciseParametersIncomplete(exercise) ? null : parameters } });
+  }
+  const opening = opened.opening ?? { parameters: exercise.executionParameters, baseline: null };
   const close = () => setOpened(null);
   const movementId = (exercise.sourceMovementId ?? "").trim();
   const nextPhaseId = opened.nextPhaseId ?? draft.movements?.[movementId]?.nextPhaseId;
@@ -138,20 +165,29 @@ export function useMovementExerciseIntake(): MovementExerciseIntake {
       <ExecutionParametersSheet
         key={exercise.id}
         parent={exercise.executionParameters}
-        baseline={null}
+        baseline={opening.baseline}
         profileSideRecoverySecondsDefault={defaults.sideRecoverySeconds}
         exerciseSignals="absent"
         inheritedSeriesCount={inheritsCircuitSeriesCount(draft, exercise)}
         phaseStructureLocked={isPersistedMovementOccurrence(exercise, draft.movements)}
         {...(nextPhaseId !== undefined ? { nextPhaseId } : {})}
         onApply={(parameters) => {
-          const validated = validateForSave(parameters, null);
+          const validated = validateForSave(parameters, opening.baseline);
           const applied = validated.ok ? validated.value : parameters;
-          updateDraft((current) => ({
-            exercises: current.exercises.map((candidate) =>
+          // Recette n° 2 du 31/10 (constat c) : même règle que l'éditeur (PRE-6 story 3.3) — des séries
+          // changées depuis l'ouverture retirent l'entrée de réserve de Circuit de l'Exercice.
+          const reopened = validateForSave(opening.parameters, opening.parameters);
+          const openedSeries = reopened.ok ? [opening.parameters, reopened.value] : [opening.parameters];
+          const seriesChanged = !openedSeries.some((before) => executionParametersEqual(applied, { ...applied, series: before.series }));
+          updateDraft((current) => {
+            const exercises = current.exercises.map((candidate) =>
               candidate.id === exercise.id ? { ...candidate, executionParameters: applied, sideMode: applied.sideMode } : candidate,
-            ),
-          }));
+            );
+            const hasReserveEntry = current.circuitSeriesReserve !== undefined && Object.prototype.hasOwnProperty.call(current.circuitSeriesReserve, exercise.id);
+            if (!seriesChanged || !hasReserveEntry) return { exercises };
+            const occurrence = exercises.find((candidate) => candidate.id === exercise.id)!;
+            return { exercises, circuitSeriesReserve: exitCircuit(current, occurrence).circuitSeriesReserve };
+          });
           close();
         }}
         onCancel={close}

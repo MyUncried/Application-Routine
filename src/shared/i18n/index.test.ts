@@ -358,6 +358,9 @@ describe("strings", () => {
   it("exposes the exact exercise-row summary lexical fragments (T01-S08, CHANGES_REQUESTED, D-095; V2-BILAT-01 direction clause added)", () => {
     expect(strings.screens.composition.exerciseRow).toEqual({
       editAccessibilityLabel: "Modifier l’exercice",
+      // PRE-9, recette iPhone n° 2 du 31/10/2026 (constat c) : carte → paramètres, photo → mouvement.
+      editParametersAccessibilityLabel: "Modifier les paramètres",
+      openMovementAccessibilityLabel: "Ouvrir le mouvement",
       seriesSingular: "série",
       seriesPlural: "séries",
       repetitionSingular: "répétition",

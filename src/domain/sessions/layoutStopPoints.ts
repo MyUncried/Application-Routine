@@ -369,15 +369,35 @@ export function stopPointsAfterRemoval<P extends StructureStopPointLocation>(poi
   return mapPoints(points, (point) => (inContainer(point, container) && point.position > index ? { ...point, position: point.position - 1 } : point));
 }
 
-/** Un élément inséré au rang `index` de `container`, avant le Point qui occupe ce rang : ce Point et les suivants avancent. */
-export function stopPointsAfterInsertion<P extends StructureStopPointLocation>(points: readonly P[], container: StopPointContainer, index: number): readonly P[] {
-  return mapPoints(points, (point) => (inContainer(point, container) && point.position >= index ? { ...point, position: point.position + 1 } : point));
+/**
+ * Un élément inséré au rang `index` de `container`, avant le Point qui occupe ce rang : ce Point et les
+ * suivants avancent. Recette iPhone n° 2 du 31/10/2026 (b6-deplacer) : `afterStopPoints` — insertion
+ * APRÈS les Points de ce rang (ils restent devant l'élément inséré) ; seuls les suivants avancent.
+ */
+export function stopPointsAfterInsertion<P extends StructureStopPointLocation>(
+  points: readonly P[],
+  container: StopPointContainer,
+  index: number,
+  afterStopPoints = false,
+): readonly P[] {
+  return mapPoints(points, (point) =>
+    inContainer(point, container) && (afterStopPoints ? point.position > index : point.position >= index) ? { ...point, position: point.position + 1 } : point,
+  );
 }
+
+/**
+ * Points du bord d'un périmètre d'enveloppe désignés avec lui (identifiants, `layoutStopPointId`) :
+ * `leading` à son rang de tête, `trailing` au rang qui suit son dernier contenu.
+ */
+export type StopPointGroupingBoundary = { readonly leading: ReadonlySet<string>; readonly trailing: ReadonlySet<string> };
+const NO_GROUPING_BOUNDARY: StopPointGroupingBoundary = { leading: new Set(), trailing: new Set() };
 
 /**
  * Les `count` éléments consécutifs de `container` à partir du rang `start` deviennent les membres d'un
  * nouveau conteneur `into` (enveloppe multiple, B.4b) : les Points situés entre eux y entrent, à leur
- * place ; ceux d'avant ou d'après restent dehors, autour du nouveau conteneur.
+ * place ; ceux d'avant ou d'après restent dehors, autour du nouveau conteneur — sauf (recette iPhone
+ * n° 2 du 31/10/2026, règle de Hermann du 31/10 : un Point inclus dans le périmètre « entre dans le
+ * conteneur ») ceux du bord désignés avec le périmètre (`boundary`).
  */
 export function stopPointsAfterGrouping<P extends StructureStopPointLocation>(
   points: readonly P[],
@@ -385,11 +405,16 @@ export function stopPointsAfterGrouping<P extends StructureStopPointLocation>(
   start: number,
   count: number,
   into: StopPointContainer,
+  boundary: StopPointGroupingBoundary = NO_GROUPING_BOUNDARY,
 ): readonly P[] {
-  if (count <= 1) return points;
+  if (count <= 1 && boundary.leading.size === 0 && boundary.trailing.size === 0) return points;
   return mapPoints(points, (point) => {
-    if (!inContainer(point, container) || point.position <= start) return point;
+    if (!inContainer(point, container) || point.position < start) return point;
+    // Recette iPhone n° 2 du 31/10/2026 (b4b-saisie) : un Point du bord du périmètre, désigné avec
+    // lui, entre dans le conteneur (en tête ou en fin) ; sinon il reste dehors, devant ou derrière.
+    if (point.position === start) return boundary.leading.has(layoutStopPointId(point)) ? relocated(point, into, 0) : point;
     if (point.position < start + count) return relocated(point, into, point.position - start);
+    if (point.position === start + count && boundary.trailing.has(layoutStopPointId(point))) return relocated(point, into, count);
     return { ...point, position: point.position - count + 1 };
   });
 }

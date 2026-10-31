@@ -603,7 +603,7 @@ export function replaceOccurrenceWithNewMovement(
   edited: SessionDraftExercise,
   ids: { readonly occurrenceId: string; readonly movementId: string },
   options: { readonly nextPhaseId?: number } = {},
-): Pick<SessionDraft, "exercises" | "movements" | "circuitSeriesReserve"> {
+): Pick<SessionDraft, "exercises" | "movements" | "circuitSeriesReserve" | "structure"> {
   if (!draft.exercises.some((exercise) => exercise.id === edited.id)) {
     throw new Error("replaceOccurrenceWithNewMovement: the edited occurrence is not in the draft.");
   }
@@ -619,6 +619,7 @@ export function replaceOccurrenceWithNewMovement(
     exercises: replaced.exercises,
     movements: { ...(draft.movements ?? {}), [movement.id]: movement },
     ...(replaced.circuitSeriesReserve !== undefined ? { circuitSeriesReserve: replaced.circuitSeriesReserve } : {}),
+    ...(replaced.structure !== undefined ? { structure: replaced.structure } : {}),
   };
 }
 
@@ -661,12 +662,18 @@ export function withOccurrenceMovement(
  * à la MÊME place, l'occurrence `previousId` par `replacement` (identité nouvelle). L'entrée de
  * réserve de Circuit éventuelle suit l'occurrence ; la table des Mouvements n'est pas touchée.
  * Fonction pure ; une occurrence absente du brouillon lève (entrée invalide).
+ *
+ * PRE-9, recette iPhone n° 2 du 31/10/2026 (constat d, Hermann : « une séance avec un circuit sans
+ * exercice ») : la disposition générale (`structure`) suit aussi le remplacement — l'identité nouvelle
+ * prend la place de l'ancienne dans son conteneur. Sans cela, l'ancienne identité, absente des
+ * Exercices, n'était plus rendue (son Circuit pouvait rester VIDE) et la nouvelle était ajoutée à la
+ * fin de la Séance (`resolveRichLayout`, `toStructuredSessionInput`).
  */
 export function replaceOccurrence(
   draft: SessionDraft,
   previousId: string,
   replacement: SessionDraftExercise,
-): Pick<SessionDraft, "exercises" | "circuitSeriesReserve"> {
+): Pick<SessionDraft, "exercises" | "circuitSeriesReserve" | "structure"> {
   if (!draft.exercises.some((exercise) => exercise.id === previousId)) {
     throw new Error("replaceOccurrence: the replaced occurrence is not in the draft.");
   }
@@ -677,7 +684,12 @@ export function replaceOccurrence(
     const { [previousId]: rows, ...rest } = reserve;
     circuitSeriesReserve = { ...rest, [replacement.id]: rows! };
   }
-  return { exercises, ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}) };
+  const structure = draft.structure === undefined ? undefined : mapStructure(draft.structure, (id) => (id === previousId ? replacement.id : id));
+  return {
+    exercises,
+    ...(circuitSeriesReserve !== undefined ? { circuitSeriesReserve } : {}),
+    ...(structure !== undefined ? { structure } : {}),
+  };
 }
 
 /**

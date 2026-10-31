@@ -318,7 +318,7 @@ describe("R-3 — création locale, copie et description corrigée depuis la cop
     expect(screen.getByText("Gainage (copie)")).toBeTruthy();
 
     // Ouvrir la copie : contenu modifiable (Mouvement NEW du brouillon) ; description corrigée.
-    fireEvent.press(screen.getByTestId(`composition-exercise-row-${copyId}`));
+    fireEvent.press(screen.getByTestId(`composition-exercise-media-button-${copyId}`)); // Recette n° 2 du 31/10 (constat c) : la photo ouvre l'Exercice.
     const step = await screen.findByLabelText(exercise.instruction.stepAccessibilityLabel.replace("{n}", "1"));
     fireEvent.changeText(step, "Dos droit");
     fireEvent.press(screen.getByLabelText(exercise.finishAction));

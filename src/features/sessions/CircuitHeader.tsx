@@ -11,8 +11,6 @@ import {
 } from "react-native";
 import Reanimated, {
   Easing as ReanimatedEasing,
-  FadeIn,
-  ReduceMotion,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -53,7 +51,6 @@ export const CIRCUIT_HIDE_DURATION_MS = 900;
 const CIRCUIT_REVEAL_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
 /** Hauteur maximale « libre » hors animation (aucune contrainte sur le contenu). */
 const UNCONSTRAINED_HEIGHT = 100000;
-const namesEntering = FadeIn.duration(CIRCUIT_REVEAL_DURATION_MS).reduceMotion(ReduceMotion.System);
 
 /**
  * Compte du Circuit (AD-38, D-058) : 1..99, la borne même de `clampSeriesCount` appliquée par
@@ -425,16 +422,75 @@ export function CircuitHeader({
           {duration}
         </Text>
       </View>
-      {isCollapsed ? (
-        // Recette du 29/10 (obs-3 b) : la ligne des noms apparaît en fondu, avec le repli des cartes.
-        <Reanimated.View entering={namesEntering} testID={`${testID}-names-reveal`}>
-          <Text style={styles.names} numberOfLines={1} testID={`${testID}-names`}>
-            {memberNames.join(` ${MIDDLE_DOT} `)}
-          </Text>
-        </Reanimated.View>
-      ) : null}
+      {/*
+       * [Recette du 29/10 (obs-3 b) : « la ligne des noms apparaît en fondu, avec le repli des cartes »
+       * (`entering`, montée et démontée d'un coup) — remplacé par la recette iPhone n° 2 du 31/10/2026 :]
+       * la ligne des noms s'ouvre et se referme avec les cartes (`CollapsedNamesLine`).
+       */}
+      <CollapsedNamesLine isCollapsed={isCollapsed} text={memberNames.join(` ${MIDDLE_DOT} `)} testID={testID} />
       </Reanimated.View>
     </Animated.View>
+  );
+}
+
+/** Hauteur de la ligne des noms tant qu'elle n'est pas mesurée : écart de 7 et texte de 15. */
+const COLLAPSED_NAMES_FALLBACK_HEIGHT = COLLAPSED_NAMES_GAP + NAMES_TEXT.lineHeight;
+
+/**
+ * Recette iPhone n° 2 du 31/10/2026 (b4-cycle, b4b-cycle ; Hermann : « Circuit qui se déplie : le sous
+ * titre disparait et la carte du circuit se rétrécit d'abord brusquement, avant qu'elle ne se déploie
+ * lentement. Circuit qui se replie : le sous-titre apparaitre et la carte du circuit s'agrandit d'abord
+ * brusquement, avant de se rétrécir lentement. Dans les deux cas cela provoque un saut dans le
+ * mouvement. ») — ligne des noms du Circuit replié, animée avec les cartes (`useCircuitCardsReveal`) :
+ * même durée (repli 900 ms, déploiement 700 ms), même courbe, sur le fil UI. Au repli, elle s'ouvre de
+ * 0 à sa hauteur et apparaît en fondu pendant que les cartes se referment ; au déploiement, elle se
+ * referme et s'efface pendant que les cartes s'ouvrent, puis est démontée. La hauteur du Circuit passe
+ * ainsi continûment d'un état à l'autre (la somme des deux mouvements), sans saut. « Réduire les
+ * animations » : immédiat.
+ */
+function CollapsedNamesLine({ isCollapsed, text, testID }: { isCollapsed: boolean; text: string; testID: string }) {
+  const reduceMotion = useReduceMotion();
+  const [mounted, setMounted] = useState(isCollapsed);
+  // Dernier état reçu : un repli monte la ligne aussitôt (état ajusté au rendu).
+  const [seenCollapsed, setSeenCollapsed] = useState(isCollapsed);
+  if (seenCollapsed !== isCollapsed) {
+    setSeenCollapsed(isCollapsed);
+    if (isCollapsed) setMounted(true);
+  }
+  const progress = useSharedValue(isCollapsed ? 1 : 0);
+  const naturalHeight = useSharedValue(0);
+  const previous = useRef(isCollapsed);
+  useEffect(() => {
+    if (previous.current === isCollapsed) return;
+    previous.current = isCollapsed;
+    const unmount = () => setMounted(false);
+    const duration = reduceMotion ? 0 : isCollapsed ? CIRCUIT_HIDE_DURATION_MS : CIRCUIT_REVEAL_DURATION_MS;
+    progress.set(
+      withTiming(isCollapsed ? 1 : 0, { duration, easing: CIRCUIT_REVEAL_EASING }, (finished) => {
+        if (finished === true && !isCollapsed) scheduleOnRN(unmount);
+      }),
+    );
+  }, [isCollapsed, progress, reduceMotion]);
+  const style = useAnimatedStyle(() => ({
+    opacity: progress.value,
+    maxHeight:
+      progress.value >= 1 ? UNCONSTRAINED_HEIGHT : progress.value * (naturalHeight.value > 0 ? naturalHeight.value : COLLAPSED_NAMES_FALLBACK_HEIGHT),
+  }));
+  /** Hauteur naturelle (texte non contraint par la découpe, écart compris), base de l'animation. */
+  const onTextLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const { height } = event.nativeEvent.layout;
+      if (height > 0) naturalHeight.set(height + COLLAPSED_NAMES_GAP);
+    },
+    [naturalHeight],
+  );
+  if (!mounted && !isCollapsed) return null;
+  return (
+    <Reanimated.View style={[styles.namesClip, style]} testID={`${testID}-names-reveal`}>
+      <Text style={styles.names} numberOfLines={1} onLayout={onTextLayout} testID={`${testID}-names`}>
+        {text}
+      </Text>
+    </Reanimated.View>
   );
 }
 
@@ -1009,5 +1065,9 @@ const styles = StyleSheet.create({
     marginTop: COLLAPSED_NAMES_GAP,
     ...NAMES_TEXT,
     color: colors.textPrimary,
+  },
+  // Recette n° 2 du 31/10 : découpe de la ligne des noms pendant son ouverture / sa fermeture.
+  namesClip: {
+    overflow: "hidden",
   },
 });

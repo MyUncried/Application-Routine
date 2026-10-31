@@ -209,6 +209,8 @@ export function VanishingBlock({ gap, onDone, testID, children }: { gap: number;
  */
 const CARD_SHIFT_EASING = ReanimatedEasing.bezier(0.33, 1, 0.68, 1);
 const CARD_FADE_EASING = ReanimatedEasing.bezier(0.4, 0, 0.2, 1);
+/** Hauteur maximale « libre » d'une carte au repos (aucune contrainte ; `undefined` n'est pas appliqué par Reanimated). */
+const CARD_MOTION_UNCONSTRAINED_HEIGHT = 100000;
 
 /** Mouvement d'une carte : au repos, en disparition (suppression), en apparition (copie). */
 export type CardMotionMode = "IDLE" | "LEAVING" | "APPEARING";
@@ -243,6 +245,17 @@ export function CardMotionBlock({
   /** 0 : place ouverte ; 1 : place refermée. */
   const closing = useSharedValue(mode === "APPEARING" ? 1 : 0);
   const height = useSharedValue(0);
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b6-supprimer, Hermann : « dupliquer l'exercice le positionne sur
+   * le point d'arrêt, les deux se chevauchent. Le cadre du cycle ne s'allonge pas, et la copie de
+   * l'exercice se retrouve aussi à cheval avec l'exercice après le cycle ») — cause : l'ouverture de la
+   * place de la copie partait au montage, sur le fil UI, avant la mesure de sa hauteur (rappel
+   * `onLayout`, fil JS, en retard quand l'écran est chargé) : la hauteur bornée restait 0 pendant toute
+   * l'ouverture, puis la fin posait `maxHeight: undefined`, que Reanimated n'applique pas (la dernière
+   * valeur, 0, reste) ; la découpe retirée, la copie débordait de sa place nulle sur ce qui suit.
+   * Désormais l'ouverture attend la mesure (`measured`), et la fin pose une hauteur libre explicite.
+   */
+  const [measured, setMeasured] = useState(mode !== "APPEARING");
   const done = useRef(onDone);
   useEffect(() => {
     done.current = onDone;
@@ -256,6 +269,8 @@ export function CardMotionBlock({
       finish();
       return;
     }
+    // Copie : l'ouverture commence quand sa hauteur naturelle est connue.
+    if (mode === "APPEARING" && !measured) return;
     if (mode === "LEAVING") {
       opacity.set(withTiming(0, { duration: MOTION_FADE_DURATION_MS, easing: CARD_FADE_EASING }));
       closing.set(
@@ -274,15 +289,18 @@ export function CardMotionBlock({
         if (finished === true) scheduleOnRN(finish);
       }),
     );
-  }, [closing, mode, opacity, reduceMotion]);
+  }, [closing, measured, mode, opacity, reduceMotion]);
   const style = useAnimatedStyle(() => ({
     opacity: opacity.value,
-    maxHeight: closing.value <= 0 ? undefined : height.value <= 0 ? 0 : (1 - closing.value) * height.value,
+    // [B.5 : `maxHeight: undefined` place ouverte — remplacé (recette n° 2) par une hauteur libre explicite.]
+    maxHeight: closing.value <= 0 ? CARD_MOTION_UNCONSTRAINED_HEIGHT : height.value <= 0 ? 0 : (1 - closing.value) * height.value,
     marginBottom: -closing.value * gap,
   }));
   const onInnerLayout = useCallback(
     (event: LayoutChangeEvent) => {
-      height.set(event.nativeEvent.layout.height);
+      const measuredHeight = event.nativeEvent.layout.height;
+      height.set(measuredHeight);
+      if (measuredHeight > 0) setMeasured(true);
     },
     [height],
   );

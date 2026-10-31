@@ -44,7 +44,16 @@ import { clampSeriesCount, seriesCountOf, type SeriesRow } from "@/domain/activi
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
 import { circuitCompatibility, FORMAT_REGISTRY } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
-import { stopPointsAfterGrouping, stopPointsAfterInsertion, type LayoutRepetitionConflictInfo, type StopPointContainer } from "./layoutStopPoints";
+import {
+  layoutStopPointId,
+  sameStopPointContainer,
+  stopPointContainerOf,
+  stopPointsAfterGrouping,
+  stopPointsAfterInsertion,
+  type LayoutRepetitionConflictInfo,
+  type StopPointContainer,
+  type StopPointGroupingBoundary,
+} from "./layoutStopPoints";
 import { attach, detach, layoutItemLocation, pruneEmpty, withSettledStopPoints, type LayoutContainerRef } from "./layoutTree";
 import type { StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
@@ -468,19 +477,41 @@ export function wrapInContainer(
  * (niveau Séance, ou Cycle pour un Circuit), dans l'ordre d'affichage, au moins un. Chaque périmètre
  * désigné devient UN conteneur à la confirmation.
  */
-export type EnvelopeSpan = { readonly members: readonly EnvelopeTarget[] };
+export type EnvelopeSpan = {
+  readonly members: readonly EnvelopeTarget[];
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b4b-saisie ; règle de Hermann du 31/10 : un Point d'arrêt
+   * inclus dans le périmètre d'un nouveau conteneur « entre dans le conteneur ») : Points d'arrêt du
+   * bord désignés avec le périmètre — au rang de tête (`leading`), au rang qui suit son dernier contenu
+   * (`trailing`). Les Points situés entre ses contenus en font toujours partie. Absents : aucun.
+   */
+  readonly leadingStopPointIds?: readonly string[];
+  readonly trailingStopPointIds?: readonly string[];
+};
 
 /** Bord d'un périmètre, déplacé par son trait (haut ou bas). */
 export type EnvelopeEdge = "TOP" | "BOTTOM";
 
-/** Étendue atteignable d'un périmètre : suite contiguë de contenus éligibles libres, et sa place dans cette suite. */
+/**
+ * Unité d'un périmètre (recette n° 2 du 31/10) : un contenu, ou un Point d'arrêt du même parent — le
+ * bord d'un périmètre peut s'arrêter sur un Point (qui entre alors dans le conteneur).
+ */
+export type EnvelopeUnit = EnvelopeTarget | { readonly kind: "STOP_POINT"; readonly id: string };
+
+/**
+ * Étendue atteignable d'un périmètre : suite contiguë d'unités libres (contenus éligibles, Points
+ * d'arrêt du même parent), et la place du périmètre dans cette suite (`start` … `end`, unités).
+ * [B.4b : `run` ne portait que des contenus — étendu aux Points d'arrêt le 31/10/2026, recette n° 2.]
+ */
 export type EnvelopeSpanReach = {
-  readonly run: readonly EnvelopeTarget[];
+  readonly run: readonly EnvelopeUnit[];
   readonly start: number;
   readonly end: number;
 };
 
 const sameTarget = (a: EnvelopeTarget, b: EnvelopeTarget) => a.kind === b.kind && a.id === b.id;
+const sameUnit = (a: EnvelopeUnit, b: EnvelopeUnit) => a.kind === b.kind && a.id === b.id;
+const isContent = (unit: EnvelopeUnit): unit is EnvelopeTarget => unit.kind !== "STOP_POINT";
 
 function nodeTarget(node: StructureElement<string> | StructureCycleMember<string>): EnvelopeTarget | null {
   switch (node.kind) {
@@ -493,21 +524,91 @@ function nodeTarget(node: StructureElement<string> | StructureCycleMember<string
   }
 }
 
-/** Frères (niveau Séance, ou membres d'un Cycle) du contenu `first` ; `null` s'il est absent. */
-function siblingsOf(layout: Layout, first: EnvelopeTarget): readonly (EnvelopeTarget | null)[] | null {
-  const session = layout.elements.map(nodeTarget);
-  if (session.some((item) => item !== null && sameTarget(item, first))) {
-    return session;
+/**
+ * Unités du parent (niveau Séance, ou membres d'un Cycle) du contenu `first`, dans l'ordre d'affichage :
+ * les Points d'arrêt de chaque rang, puis le contenu de ce rang (`null` : contenu jamais éligible, un
+ * Cycle) ; `null` si `first` est absent. [B.4b : contenus seuls — Points ajoutés le 31/10/2026.]
+ */
+function siblingsOf(layout: Layout, first: EnvelopeTarget): readonly (EnvelopeUnit | null)[] | null {
+  const unitsOf = (nodes: readonly (StructureElement<string> | StructureCycleMember<string>)[], container: StopPointContainer) => {
+    const pointsAt = (rank: number): EnvelopeUnit[] =>
+      layout.stopPoints.flatMap((point) => {
+        const own = stopPointContainerOf(point);
+        return own !== null && sameStopPointContainer(own, container) && point.position === rank
+          ? [{ kind: "STOP_POINT" as const, id: layoutStopPointId(point) }]
+          : [];
+      });
+    const units: (EnvelopeUnit | null)[] = [];
+    nodes.forEach((node, rank) => units.push(...pointsAt(rank), nodeTarget(node)));
+    units.push(...pointsAt(nodes.length));
+    return units;
+  };
+  const holds = (nodes: readonly (StructureElement<string> | StructureCycleMember<string>)[]) =>
+    nodes.some((node) => {
+      const content = nodeTarget(node);
+      return content !== null && sameTarget(content, first);
+    });
+  if (holds(layout.elements)) {
+    return unitsOf(layout.elements, { kind: "SESSION" });
   }
   for (const element of layout.elements) {
-    if (element.kind === "CYCLE") {
-      const members = element.cycle.members.map(nodeTarget);
-      if (members.some((item) => item !== null && sameTarget(item, first))) {
-        return members;
-      }
+    if (element.kind === "CYCLE" && holds(element.cycle.members)) {
+      return unitsOf(element.cycle.members, { kind: "CYCLE", id: element.cycle.id });
     }
   }
   return null;
+}
+
+/** Unités d'un périmètre, dans l'ordre : Points de tête, contenus et Points entre eux, Points de fin. */
+function spanUnitsIn(siblings: readonly (EnvelopeUnit | null)[], span: EnvelopeSpan): { readonly start: number; readonly end: number } | null {
+  const first = span.members[0];
+  if (first === undefined) return null;
+  const at = siblings.findIndex((unit) => unit !== null && sameUnit(unit, first));
+  if (at < 0) return null;
+  let index = at;
+  for (const [offset, member] of span.members.entries()) {
+    if (offset > 0) {
+      index += 1;
+      // Entre deux contenus du périmètre, seuls des Points d'arrêt (ils en font partie).
+      while (siblings[index]?.kind === "STOP_POINT") index += 1;
+    }
+    const unit = siblings[index];
+    if (unit === null || unit === undefined || !sameUnit(unit, member)) return null;
+  }
+  const leading = span.leadingStopPointIds ?? [];
+  const trailing = span.trailingStopPointIds ?? [];
+  const matches = (ids: readonly string[], from: number) =>
+    ids.every((id, offset) => {
+      const unit = siblings[from + offset];
+      return unit !== null && unit !== undefined && unit.kind === "STOP_POINT" && unit.id === id;
+    });
+  if (!matches(leading, at - leading.length) || !matches(trailing, index + 1)) return null;
+  return { start: at - leading.length, end: index + trailing.length };
+}
+
+/** Unités d'un périmètre valide, dans l'ordre d'affichage (`[]` s'il ne l'est pas) : cadre continu, traits. */
+export function envelopeSpanUnits(
+  draft: SessionDraft,
+  container: "CIRCUIT" | "CYCLE",
+  span: EnvelopeSpan,
+  others: readonly EnvelopeSpan[] = [],
+): readonly EnvelopeUnit[] {
+  const reach = envelopeSpanReach(draft, container, span, others);
+  return reach === null ? [] : reach.run.slice(reach.start, reach.end + 1);
+}
+
+/** Périmètre formé des unités `units` (au moins un contenu) : contenus, Points de tête et de fin. */
+function spanOfUnits(units: readonly EnvelopeUnit[]): EnvelopeSpan {
+  const firstContent = units.findIndex(isContent);
+  let lastContent = units.length - 1;
+  while (lastContent >= 0 && !isContent(units[lastContent]!)) lastContent -= 1;
+  const leading = units.slice(0, firstContent).map((unit) => unit.id);
+  const trailing = units.slice(lastContent + 1).map((unit) => unit.id);
+  return {
+    members: units.filter(isContent),
+    ...(leading.length > 0 ? { leadingStopPointIds: leading } : {}),
+    ...(trailing.length > 0 ? { trailingStopPointIds: trailing } : {}),
+  };
 }
 
 /**
@@ -534,25 +635,27 @@ export function envelopeSpanReach(
     return null;
   }
   const candidates = envelopeCandidates(draft, container);
-  const taken = others.filter((other) => other !== span).flatMap((other) => other.members);
-  const free = (item: EnvelopeTarget | null): item is EnvelopeTarget =>
-    item !== null && candidates.some((candidate) => sameTarget(candidate, item)) && !taken.some((other) => sameTarget(other, item));
-  const at = siblings.findIndex((item) => item !== null && sameTarget(item, first));
-  const contiguous = span.members.every((member, offset) => {
-    const sibling = siblings[at + offset];
-    return sibling !== undefined && free(sibling) && sameTarget(sibling, member);
-  });
-  if (!contiguous) {
+  const rest = others.filter((other) => other !== span);
+  const taken = rest.flatMap((other) => other.members);
+  const takenPoints = new Set(rest.flatMap((other) => [...(other.leadingStopPointIds ?? []), ...(other.trailingStopPointIds ?? [])]));
+  // Recette n° 2 du 31/10 : un Point d'arrêt du parent est libre s'il n'est au bord d'aucun autre périmètre.
+  const free = (item: EnvelopeUnit | null): item is EnvelopeUnit =>
+    item !== null &&
+    (item.kind === "STOP_POINT"
+      ? !takenPoints.has(item.id)
+      : candidates.some((candidate) => sameTarget(candidate, item)) && !taken.some((other) => sameTarget(other, item)));
+  const bounds = spanUnitsIn(siblings, span);
+  if (bounds === null || !siblings.slice(bounds.start, bounds.end + 1).every(free)) {
     return null;
   }
   // [B.4b : « Une Séance portant des Points d'arrêt ne s'étend pas au-delà du périmètre » — retiré le
   // 31/10/2026 par B.6 : les Points situés entre les contenus réunis entrent dans le conteneur.]
-  let low = at;
+  let low = bounds.start;
   while (low > 0 && free(siblings[low - 1] ?? null)) low -= 1;
-  let high = at + span.members.length - 1;
+  let high = bounds.end;
   while (high < siblings.length - 1 && free(siblings[high + 1] ?? null)) high += 1;
-  const run = siblings.slice(low, high + 1).filter((item): item is EnvelopeTarget => item !== null);
-  return { run, start: at - low, end: at - low + span.members.length - 1 };
+  const run = siblings.slice(low, high + 1).filter((item): item is EnvelopeUnit => item !== null);
+  return { run, start: bounds.start - low, end: bounds.end - low };
 }
 
 /**
@@ -573,9 +676,15 @@ export function adjustEnvelopeSpan(
     return span;
   }
   const step = Math.trunc(delta);
-  const start = edge === "TOP" ? Math.max(0, Math.min(reach.start + step, reach.end)) : reach.start;
-  const end = edge === "BOTTOM" ? Math.min(reach.run.length - 1, Math.max(reach.end + step, reach.start)) : reach.end;
-  return start === reach.start && end === reach.end ? span : { members: reach.run.slice(start, end + 1) };
+  // Recette n° 2 du 31/10 : le pas est une unité (contenu ou Point d'arrêt) ; le périmètre garde au
+  // moins un contenu (« La création effective exige au moins un membre », COMP §5).
+  let lastContent = reach.end;
+  while (lastContent > reach.start && !isContent(reach.run[lastContent]!)) lastContent -= 1;
+  let firstContent = reach.start;
+  while (firstContent < reach.end && !isContent(reach.run[firstContent]!)) firstContent += 1;
+  const start = edge === "TOP" ? Math.max(0, Math.min(reach.start + step, lastContent)) : reach.start;
+  const end = edge === "BOTTOM" ? Math.min(reach.run.length - 1, Math.max(reach.end + step, firstContent)) : reach.end;
+  return start === reach.start && end === reach.end ? span : spanOfUnits(reach.run.slice(start, end + 1));
 }
 
 /**
@@ -620,7 +729,8 @@ export function wrapSpansInContainers(
     // disposition lui est d'abord donnée ; un Circuit désigné est celui qu'elle porte (au plus un).
     const seeded = withLayout(draft, currentLayout(draft, newContainerId));
     const legacyCircuit = seeded.structure === undefined ? undefined : structureCircuits(seeded.structure)[0];
-    const remapped = spans.map((span) => ({
+    const remapped = spans.map((span): EnvelopeSpan => ({
+      ...span,
       members: span.members.map((member) => (member.kind === "CIRCUIT" && legacyCircuit !== undefined ? { kind: "CIRCUIT" as const, id: legacyCircuit.id } : member)),
     }));
     const next = wrapSpansInContainers(seeded, remapped, container, newContainerId);
@@ -635,7 +745,13 @@ export function wrapSpansInContainers(
     return content === null ? undefined : spans.find((span) => sameTarget(span.members[0]!, content));
   };
   /** B.6 : regroupements réalisés (parent, premier rang, nombre de contenus, nouveau conteneur), pour les Points. */
-  const groupings: { readonly parent: StopPointContainer; readonly start: number; readonly count: number; readonly into: StopPointContainer }[] = [];
+  const groupings: {
+    readonly parent: StopPointContainer;
+    readonly start: number;
+    readonly count: number;
+    readonly into: StopPointContainer;
+    readonly boundary: StopPointGroupingBoundary;
+  }[] = [];
   const containerOfNode = (node: StructureElement<string> | StructureCycleMember<string>): StopPointContainer =>
     node.kind === "CIRCUIT" ? { kind: "CIRCUIT", id: node.circuit.id } : node.kind === "CYCLE" ? { kind: "CYCLE", id: node.cycle.id } : { kind: "SESSION" };
   /** Regroupe, dans une suite de frères, chaque périmètre en un nœud produit par `make`. */
@@ -652,7 +768,14 @@ export function wrapSpansInContainers(
         continue;
       }
       const made = make(nodes.slice(index, index + span.members.length));
-      groupings.push({ parent, start: index, count: span.members.length, into: containerOfNode(made) });
+      groupings.push({
+        parent,
+        start: index,
+        count: span.members.length,
+        into: containerOfNode(made),
+        // Recette n° 2 du 31/10 : Points du bord désignés avec le périmètre — ils entrent dans le conteneur.
+        boundary: { leading: new Set(span.leadingStopPointIds ?? []), trailing: new Set(span.trailingStopPointIds ?? []) },
+      });
       result.push(made);
       index += span.members.length - 1;
     }
@@ -696,7 +819,7 @@ export function wrapSpansInContainers(
   // Du dernier regroupement au premier : les rangs des précédents restent ceux d'origine.
   const stopPoints = [...groupings]
     .reverse()
-    .reduce((points, grouping) => stopPointsAfterGrouping(points, grouping.parent, grouping.start, grouping.count, grouping.into), layout.stopPoints);
+    .reduce((points, grouping) => stopPointsAfterGrouping(points, grouping.parent, grouping.start, grouping.count, grouping.into, grouping.boundary), layout.stopPoints);
   return withLayout(draft, { elements, stopPoints });
 }
 

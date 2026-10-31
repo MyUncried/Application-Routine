@@ -14,12 +14,15 @@
  *   haut / le bas », « Réduire par le haut / le bas ».
  * - `useEnvelopePerimeterDrag` : mesure (`measureInWindow`) des contenus atteignables au début du
  *   glisser et calage du bord (`edgeIndexAt`).
+ * - Recette iPhone n° 2 du 31/10/2026 (Hermann) : b4b-etendre — liste figée pendant le glisser d'un trait,
+ *   défilement automatique près des bords, trait sous le doigt ; b4b-saisie — les unités d'un périmètre
+ *   comprennent les Points d'arrêt du parent (`EnvelopeUnit`), mesurés et calés comme les contenus.
  *
  * Rendu des traits : aucune maquette Figma (`10819:20344`, `10836:20478` n'en montrent pas) — rendu
  * minimal choisi, cohérent avec le cadre désigné (même bleu), à juger en recette (ARB-19).
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, View, type AccessibilityActionEvent, type GestureResponderEvent } from "react-native";
 
 import {
@@ -28,13 +31,14 @@ import {
   type EnvelopeEdge,
   type EnvelopeSpan,
   type EnvelopeSpanReach,
-  type EnvelopeTarget,
+  type EnvelopeUnit,
 } from "@/domain/sessions/layoutOperations";
 import type { SessionDraft } from "@/domain/sessions/SessionDraft";
+import type { DragAutoScroll } from "@/features/sessions/useDragAutoScroll";
 import { colors } from "@/shared/ui/tokens";
 
-/** Clé d'un contenu du mode enveloppe (mesures, noms). */
-export const envelopeTargetKey = (target: EnvelopeTarget): string => `${target.kind}:${target.id}`;
+/** Clé d'une unité du mode enveloppe (contenu ou, recette n° 2 du 31/10, Point d'arrêt) : mesures, noms. */
+export const envelopeTargetKey = (target: EnvelopeUnit): string => `${target.kind}:${target.id}`;
 
 /** Limites verticales mesurées d'un contenu, en coordonnées de fenêtre. */
 export type EnvelopeRect = { readonly top: number; readonly bottom: number };
@@ -143,17 +147,53 @@ export type EnvelopeHandleProps = {
   readonly onDragStart: () => void;
   /** Relâchement à `pageY` ; sans valeur : glisser interrompu (aucun changement). */
   readonly onDragEnd: (pageY?: number) => void;
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b4b-etendre) : défilement automatique de la liste pendant le
+   * glisser (story 7.4) ; `onDragStart` fige la liste (défilement par l'utilisateur coupé).
+   */
+  readonly autoScroll: DragAutoScroll;
   readonly testID: string;
 };
 
 /** Trait d'un bord du périmètre (voir l'en-tête). */
-export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, onStep, onDragStart, onDragEnd, testID }: EnvelopeHandleProps) {
+export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, onStep, onDragStart, onDragEnd, autoScroll, testID }: EnvelopeHandleProps) {
   const [translation] = useState(() => new Animated.Value(0));
   const originRef = useRef(0);
+  /** Déplacement du doigt depuis l'appui (le défilement automatique s'y ajoute). */
+  const fingerDyRef = useRef(0);
+  const draggingRef = useRef(false);
+  /**
+   * Recette iPhone n° 2 du 31/10/2026 (b4b-etendre, Hermann : « Le trait doit rester sous le doigt
+   * lorsqu'il se déplace, l'écran doit rester figé et se déplacer avec le défilement du train
+   * uniquement s'il dépasse le cadre de l'écran ») : la liste est figée pendant le glisser
+   * (`onDragStart` : défilement par l'utilisateur coupé, comme pour une carte saisie) ; près d'un bord
+   * de la zone visible, elle défile d'elle-même (`useDragAutoScroll`, story 7.4) et le trait suit ce
+   * défilement — il reste sous le doigt. Au relâchement, la position du doigt est rapportée au repère
+   * des mesures prises à l'appui (défilement accumulé ajouté).
+   */
   const finish = (pageY?: number) => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    const scrolled = pageY === undefined ? 0 : autoScroll.track(pageY);
+    autoScroll.end();
     translation.setValue(0);
-    onDragEnd(pageY);
+    onDragEnd(pageY === undefined ? undefined : pageY + scrolled);
   };
+  // Trait démonté pendant son glisser (sortie du mode, Annuler d'un autre doigt) : défilement arrêté,
+  // liste rendue, aucun changement.
+  const unmountRef = useRef({ autoScroll, onDragEnd });
+  useEffect(() => {
+    unmountRef.current = { autoScroll, onDragEnd };
+  });
+  useEffect(
+    () => () => {
+      if (!draggingRef.current) return;
+      draggingRef.current = false;
+      unmountRef.current.autoScroll.end();
+      unmountRef.current.onDragEnd();
+    },
+    [],
+  );
   const onAccessibilityAction = (event: AccessibilityActionEvent) => {
     if (event.nativeEvent.actionName === "increment" || event.nativeEvent.actionName === "extend") onStep(1);
     if (event.nativeEvent.actionName === "decrement" || event.nativeEvent.actionName === "reduce") onStep(-1);
@@ -172,13 +212,25 @@ export function EnvelopeHandle({ edge, label, value, extendLabel, reduceLabel, o
       ]}
       onAccessibilityAction={onAccessibilityAction}
       onStartShouldSetResponder={() => true}
+      // Recette n° 2 : le trait garde le geste dès l'appui (phase de capture), avant tout défilement.
+      onStartShouldSetResponderCapture={() => true}
       onMoveShouldSetResponder={() => true}
+      onMoveShouldSetResponderCapture={() => draggingRef.current}
       onResponderTerminationRequest={() => false}
       onResponderGrant={(event: GestureResponderEvent) => {
         originRef.current = event.nativeEvent.pageY;
+        fingerDyRef.current = 0;
+        draggingRef.current = true;
         onDragStart();
+        autoScroll.begin();
+        // Story 7.4 : le trait suit le défilement automatique, même sans mouvement du doigt.
+        autoScroll.attach((scrollDelta) => translation.setValue(fingerDyRef.current + scrollDelta));
       }}
-      onResponderMove={(event: GestureResponderEvent) => translation.setValue(event.nativeEvent.pageY - originRef.current)}
+      onResponderMove={(event: GestureResponderEvent) => {
+        if (!draggingRef.current) return;
+        fingerDyRef.current = event.nativeEvent.pageY - originRef.current;
+        translation.setValue(fingerDyRef.current + autoScroll.track(event.nativeEvent.pageY));
+      }}
       onResponderRelease={(event: GestureResponderEvent) => finish(event.nativeEvent.pageY)}
       onResponderTerminate={() => finish()}
       style={[styles.hit, edge === "TOP" ? { top: HANDLE_HIT_OFFSET } : { bottom: HANDLE_HIT_OFFSET }, { transform: [{ translateY: translation }] }]}

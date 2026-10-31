@@ -207,9 +207,11 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(screen.queryByTestId("composition-circuit-header", hidden)).toBeNull();
   });
 
-  it("toucher une carte ouvre l'éditeur de cet Exercice, comme dans l'ancien modèle", async () => {
+  // [B.1b : « toucher une carte ouvre l'éditeur de cet Exercice » — remplacé par la recette iPhone n° 2 du
+  // 31/10/2026 (constat c, Hermann) : la carte ouvre les paramètres d'exécution, la photo ouvre l'Exercice.]
+  it("toucher la photo d'une carte ouvre l'éditeur de cet Exercice, comme dans l'ancien modèle (recette n° 2, constat c)", async () => {
     await renderComposition(richDraft());
-    fireEvent.press(screen.getByTestId("composition-exercise-row-a2"));
+    fireEvent.press(screen.getByTestId("composition-exercise-media-button-a2"));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/exercise", params: { exerciseId: "a2" } });
   });
 
@@ -319,6 +321,8 @@ describe("B.1b — rendu d'une disposition générale", () => {
 
     fireEvent.press(screen.getByTestId(`${CB}-collapse`));
     expect(screen.getByTestId("composition-exercise-row-b1", hidden)).toBeTruthy();
+    // Recette n° 2 du 31/10 (b4-cycle) : la ligne des noms se referme avec les cartes, puis est démontée.
+    await act(async () => {});
     expect(screen.queryByTestId(`${CB}-names`, hidden)).toBeNull();
   });
 
