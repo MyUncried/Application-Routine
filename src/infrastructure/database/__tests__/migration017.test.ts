@@ -203,8 +203,8 @@ async function seededVersion16(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de création)", () => {
-  it("version courante 17 ; listes figées de la 017 égales au registre du domaine", () => {
-    expect(DATABASE_VERSION).toBe(17);
+  it("version courante 18 (017 puis 018, A.2b) ; listes figées de la 017 égales au registre du domaine", () => {
+    expect(DATABASE_VERSION).toBe(18);
     expect([...MIGRATION_017_FORMAT_KEYS]).toEqual([...ELEMENT_FORMAT_KEYS]);
     expect([...MIGRATION_017_SESSION_ORIGINS]).toEqual([...SESSION_ORIGINS]);
   });
@@ -216,7 +216,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     await initializeDatabase(database);
     database = reopen(database);
 
-    expect(await version(database)).toBe(17);
+    expect(await version(database)).toBe(18);
     expect(await snapshot(database)).toEqual(before);
     expect(await columns(database, "tours")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
     expect(await columns(database, "activities")).toEqual(expect.arrayContaining(["format_key", "format_settings"]));
@@ -231,7 +231,7 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
     // Démarrage suivant : rien n'est rejoué.
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(17);
+    expect(await version(database)).toBe(18);
     expect(await snapshot(database)).toEqual(before);
   });
 
@@ -274,15 +274,15 @@ describe("PRE-9 C.1 — migration 017 (Format porté par l'élément, origine de
 
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(17);
+    expect(await version(database)).toBe(18);
     expect(await snapshot(database)).toEqual(before);
   });
 
-  it("installation neuve : 001 à 017, aucun avis", async () => {
+  it("installation neuve : 001 à 018, aucun avis", async () => {
     let database = open();
     await initializeDatabase(database);
     database = reopen(database);
-    expect(await version(database)).toBe(17);
+    expect(await version(database)).toBe(18);
     expect(await database.getAllAsync("SELECT COUNT(*) AS count FROM migration_notices")).toEqual([{ count: 0 }]);
     expect(await columns(database, "sessions")).toContain("origin");
   });

@@ -715,6 +715,18 @@ export const fr = {
         circuitCreatedAnnouncement: "Circuit créé autour de {name}",
         cycleCreatedAnnouncement: "Cycle créé autour de {name}",
       },
+      // PRE-9 B.4 (ch13 « annonce de la raison d'un refus de dépose ») : annonces VoiceOver d'une dépose
+      // refusée sans modification dans une disposition générale. Formulations à valider.
+      layoutMove: {
+        refused: {
+          NESTING: "Dépose impossible : un circuit ne va pas dans un circuit, ni un cycle dans un cycle",
+          FORMAT_INCOMPATIBLE: "Dépose impossible : le format de cet exercice n’est pas compatible avec ce circuit",
+          STOP_POINTS: "Dépose impossible tant que la séance contient des points d’arrêt",
+          CONTROL: "Dépose impossible",
+          NOT_FOUND: "",
+          AT_BOUNDARY: "",
+        },
+      },
       // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
       // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
       // (stories 4.2, 5.1) sont retirées.
@@ -1243,6 +1255,13 @@ export const fr = {
         row: "Phase {n}",
         moveUp: "Monter",
         moveDown: "Descendre",
+        // PRE-9 A.2b (Hermann, 30/10/2026) : durée facultative de la phase, reprise par défaut dans
+        // un nouvel Exercice. Rendu choisi (aucun Figma dédié) : valeur à droite du libellé.
+        durationPrompt: "Durée",
+        durationAccessibility: "Durée de la phase {rank}",
+        durationNone: "aucune durée",
+        durationWheelTitle: "Durée par défaut",
+        durationClear: "Sans durée",
       },
       catalogue: {
         segment: "Mouvements",

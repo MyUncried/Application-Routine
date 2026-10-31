@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, type ViewProps } from "react-native";
+import { Pressable, StyleSheet, Text, View, type ViewProps } from "react-native";
 
 import { CYCLE_REPEAT_COUNT_MAX, CYCLE_REPEAT_COUNT_MIN } from "@/domain/sessions/structure";
 import {
@@ -6,8 +6,11 @@ import {
   CIRCUIT_HEADER_TOUCH_GEOMETRY,
   CONTAINER_TITLE_MIN_WIDTH,
   CountStepper,
+  containerMoveAccessibility,
   containerTitle,
+  type ContainerMoveActions,
 } from "@/features/sessions/CircuitHeader";
+import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
 import { strings } from "@/shared/i18n";
 import { colors, spacing, type } from "@/shared/ui/tokens";
 
@@ -41,6 +44,10 @@ export type CycleHeaderProps = {
   readonly onRowLayout?: ViewProps["onLayout"];
   /** Retrait du titre qui laisse la colonne de l'anneau du rail (dessiné par l'écran). */
   readonly titleInset?: number;
+  /** PRE-9 B.4 (ARB-09) : appui long sur le titre — saisie du Cycle entier pour le glisser. */
+  readonly onLongPress?: () => void;
+  /** PRE-9 B.4 : alternatives accessibles au glisser (« Monter » / « Descendre »). */
+  readonly moveActions?: ContainerMoveActions;
   readonly testID: string;
 };
 
@@ -70,6 +77,8 @@ export function CycleHeader({
   counterRef,
   onRowLayout,
   titleInset = 0,
+  onLongPress,
+  moveActions,
   testID,
 }: CycleHeaderProps) {
   const t = strings.screens.composition.cycle;
@@ -77,15 +86,26 @@ export function CycleHeader({
   return (
     <View style={[styles.header, { paddingLeft: titleInset }]} testID={testID}>
       <View style={styles.row} onLayout={onRowLayout} testID={`${testID}-row`}>
-        <Text
-          style={styles.title}
-          numberOfLines={1}
-          accessibilityRole="header"
-          accessibilityLabel={`${title}, ${duration}`}
-          testID={`${testID}-title`}
+        {/* PRE-9 B.4 : le titre porte l'appui long (aucun appui court) ; il reste un en-tête pour VoiceOver. */}
+        <Pressable
+          onLongPress={onLongPress}
+          delayLongPress={LONG_PRESS_DELAY_MS}
+          disabled={onLongPress === undefined}
+          accessible={false}
+          style={styles.titleTarget}
+          testID={`${testID}-grab`}
         >
-          {title}
-        </Text>
+          <Text
+            style={styles.title}
+            numberOfLines={1}
+            accessibilityRole="header"
+            accessibilityLabel={`${title}, ${duration}`}
+            {...containerMoveAccessibility(moveActions)}
+            testID={`${testID}-title`}
+          >
+            {title}
+          </Text>
+        </Pressable>
         <View style={styles.counterSlot} testID={`${testID}-counter-slot`}>
           <View style={styles.counter} testID={`${testID}-counter-row`}>
             <CountStepper
@@ -132,6 +152,11 @@ const styles = StyleSheet.create({
     minHeight: CIRCUIT_HEADER_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
+  },
+  // PRE-9 B.4 : cible de l'appui long, à la place du titre dans la ligne.
+  titleTarget: {
+    flexShrink: 1,
+    minWidth: CONTAINER_TITLE_MIN_WIDTH,
   },
   // Recette du 29/10 (obs-3 c) : compteur à la même abscisse que celui du Circuit.
   title: {

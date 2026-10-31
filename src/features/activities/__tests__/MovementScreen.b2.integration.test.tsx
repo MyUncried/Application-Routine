@@ -181,7 +181,7 @@ describe("PRE-8 B.2 — fiche Mouvement", () => {
     expect(screen.getByText(strings.screens.activities.editor.levelMenu.unsetLabel, anyNode)).toBeTruthy();
   });
 
-  it("MVT-01 et MVT-09 : saisie des phases (libellés seuls, identités successives) ; Terminer indisponible sans Catégorie", async () => {
+  it("MVT-01 et MVT-09 : saisie des phases (libellés, identités successives ; durée facultative depuis A.2b) ; Terminer indisponible sans Catégorie", async () => {
     await renderSheet();
     await type("exercise-name-input", "Burpees");
     // Catégorie et Zones sont exigées par les règles existantes : posées directement sur le brouillon
@@ -349,7 +349,7 @@ describe("PRE-8 — recette A/B : fiche et formulaire Mouvement", () => {
     expect(await count("movements")).toBe(1);
   });
 
-  it("F03 à F06 : « Description du mouvement » ; phases en liste d'étapes (sans tableau ni durée) ; libellé limité à 20 points de code", async () => {
+  it("F03 à F06 : « Description du mouvement » ; phases en liste d'étapes (sans tableau ; durée facultative depuis A.2b, 31/10) ; libellé limité à 20 points de code", async () => {
     await renderSheet();
     expect(screen.getByTestId("activity-editor-description-title", anyNode).props.children).toBe(t.descriptionTitle);
     expect(screen.getByTestId("movement-phases-title", anyNode).props.children).toBe(t.phases.title);
@@ -825,5 +825,111 @@ describe("PRE-9 CAT.2 — cartes Résultat (Catalogue) et Composition (Séance)"
     expect(screen.getByText(strings.screens.activities.editor.movementSuggestion.completeNameHint, anyNode)).toBeTruthy();
     expect(await count("movements")).toBe(1);
     expect(mockBack).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * PRE-9 A.2b — durée facultative d'une phase sur la fiche Mouvement. Décision de Hermann du 30/10/2026 :
+ * « les durées de la phase peuvent faire partie du mouvement, si elles sont renseignées elles sont
+ * reprises par défaut et peuvent être changées dans la séance » ; 31/10 : une modification ultérieure
+ * laisse les Exercices existants « Inchangés ». Rendu choisi (aucun Figma) : valeur à droite du libellé,
+ * roulette de durée partagée sous la ligne.
+ */
+describe("PRE-9 A.2b — durées des phases sur la fiche Mouvement", () => {
+  async function chooseSeconds(seconds: number) {
+    await act(async () => {
+      fireEvent(screen.getByTestId("duration-wheel-seconds", anyNode), "selectionChange", { nativeEvent: { selection: seconds } });
+    });
+    await press("duration-wheel-validate");
+  }
+
+  it("création : phase sans durée par défaut (« Durée » en invite) ; ✓ de la roulette fixe 30 s, affichée à droite du libellé", async () => {
+    await renderSheet();
+    await type("exercise-name-input", "Squat");
+    await type("movement-phases-invite", "Descente");
+    const prompt = screen.getByTestId("movement-phases-duration-1", anyNode);
+    expect(within(prompt).getByText(t.phases.durationPrompt)).toBeTruthy();
+    expect(prompt.props.accessibilityLabel).toBe("Durée de la phase 1, aucune durée");
+    await press("movement-phases-duration-1");
+    expect(screen.getByTestId("movement-phases-duration-wheel-1", anyNode)).toBeTruthy();
+    // Phase vide : aucune action « Sans durée ».
+    expect(screen.queryByTestId("movement-phases-duration-clear-1", anyNode)).toBeNull();
+    await chooseSeconds(30);
+    expect(screen.queryByTestId("movement-phases-duration-wheel-1", anyNode)).toBeNull();
+    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("30 s")).toBeTruthy();
+  });
+
+  it("édition (Catalogue) : durées seules modifiées → enregistrées sans dialogue C03, même avec un Exercice lié ; l'Exercice existant reste inchangé", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente" }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await new SqliteSessionRepository(database, ids("ses"), () => NOW).create({
+      name: "Séance",
+      initialCountdownSeconds: 10,
+      finalPhaseSeconds: 5,
+      tourRepeatCount: 1,
+      exercises: [{ type: "EXERCISE", structuralPosition: "IN_TOUR", executionParameters: durationParameters(30), postActivityRecoverySeconds: 0, sourceMovementId: "m1" }],
+    });
+    const exerciseBefore = await database.getAllAsync("SELECT * FROM activities");
+    await renderSheet({ movementId: "m1" });
+    await press("activity-editor-edit-movement");
+    await press("movement-phases-duration-2");
+    await chooseSeconds(45);
+    await press("movement-finish-action");
+    expect(screen.queryByTestId("movement-save-dialog", anyNode)).toBeNull();
+    expect((await movements().findById("m1"))!.phases).toStrictEqual([
+      { id: 1, label: "Descente" },
+      { id: 2, label: "Montée", durationSeconds: 45 },
+    ]);
+    // Hermann, 31/10 : « Inchangés » — l'Exercice existant garde ses paramètres locaux.
+    expect(await database.getAllAsync("SELECT * FROM activities")).toEqual(exerciseBefore);
+    expect(mockBack).toHaveBeenCalled();
+  });
+
+  it("« Sans durée » retire la durée ; renommer et déplacer gardent la durée de la phase ; une phase retirée perd la sienne", async () => {
+    await movements().create(
+      movement("m1", "Squat", {
+        phases: [
+          { id: 1, label: "Descente", durationSeconds: 3 },
+          { id: 2, label: "Pause", durationSeconds: 1 },
+          { id: 3, label: "Montée", durationSeconds: 2 },
+          { id: 4, label: "Repos", durationSeconds: 5 },
+        ],
+        nextPhaseId: 5,
+      }),
+    );
+    await renderSheet({ movementId: "m1", mode: MOVEMENT_EDIT_MODE_PARAM });
+    expect(within(screen.getByTestId("movement-phases-duration-1", anyNode)).getByText("3 s")).toBeTruthy();
+    // Phase 2 : « Sans durée ».
+    await press("movement-phases-duration-2");
+    await press("movement-phases-duration-clear-2");
+    expect(within(screen.getByTestId("movement-phases-duration-2", anyNode)).getByText(t.phases.durationPrompt)).toBeTruthy();
+    // Phase 4 retirée (avec sa durée) ; phase 1 renommée ; phase 3 montée au premier rang.
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-4", anyNode), "accessibilityAction", { nativeEvent: { actionName: "remove" } });
+    });
+    await type("movement-phases-label-1", "Flexion");
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-3", anyNode), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    });
+    await act(async () => {
+      fireEvent(screen.getByTestId("movement-phases-label-2", anyNode), "accessibilityAction", { nativeEvent: { actionName: "moveUp" } });
+    });
+    await press("movement-finish-action");
+    expect((await movements().findById("m1"))!.phases).toStrictEqual([
+      { id: 3, label: "Montée", durationSeconds: 2 },
+      { id: 1, label: "Flexion", durationSeconds: 3 },
+      { id: 2, label: "Pause" },
+    ]);
+  });
+
+  it("consultation : durées renseignées affichées en lecture seule, rien pour une phase sans durée ; aucune roulette", async () => {
+    await movements().create(
+      movement("m1", "Squat", { phases: [{ id: 1, label: "Descente", durationSeconds: 75 }, { id: 2, label: "Montée" }], nextPhaseId: 3 }),
+    );
+    await renderSheet({ movementId: "m1" });
+    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.children).toBe("1 min 15 s");
+    expect(screen.queryByTestId("movement-phases-duration-2", anyNode)).toBeNull();
+    expect(screen.getByTestId("movement-phases-duration-1", anyNode).props.accessibilityRole).toBeUndefined();
   });
 });

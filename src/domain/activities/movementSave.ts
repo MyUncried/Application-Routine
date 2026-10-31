@@ -18,6 +18,14 @@
  * enregistrées sont un compte distinct (0 tant que le moteur T04 n'existe pas). L'application ne
  * déduit jamais la différence sémantique entre correction et nouveau mouvement.
  *
+ * [PRE-9 A.2b, 31/10/2026 — décisions de Hermann des 30 et 31/10 : le Mouvement porte une durée par
+ * défaut facultative par phase, simple valeur initiale d'un NOUVEL Exercice ; une modification
+ * ultérieure laisse les Exercices existants « Inchangés ». Ces durées ne sont donc pas du contenu
+ * partagé au sens de la table : une modification qui ne touche qu'elles est enregistrée `SILENT`
+ * (même identité, sans dialogue). Un changement de nom ou de contenu partagé suit la table.
+ * Confirmé par Hermann le 31/10 : « Non, enregistrement direct (Recommandé) » ;
+ * voir `spec-a-2b-durees-phases-mouvement.md`.]
+ *
  * Fonctions pures — sans React, SQLite, Expo, i18n ni horloge.
  */
 
@@ -67,6 +75,25 @@ function samePhases(a: readonly MovementPhase[], b: readonly MovementPhase[]): b
   return a.length === b.length && a.every((phase, index) => phase.id === b[index]!.id && phase.label === b[index]!.label);
 }
 
+/**
+ * PRE-9 A.2b : vrai si une durée par défaut RENSEIGNÉE dans `after` (nombre ou `null`) diffère de
+ * celle de la même identité dans `before` ; une durée absente de `after` (structure reconstruite
+ * depuis les paramètres d'un Exercice) n'est pas une modification.
+ */
+function phaseDurationsChanged(before: readonly MovementPhase[], after: readonly MovementPhase[]): boolean {
+  const stored = new Map(before.map((phase) => [phase.id, phase.durationSeconds ?? null] as const));
+  return after.some((phase) => phase.durationSeconds !== undefined && (stored.get(phase.id) ?? null) !== phase.durationSeconds);
+}
+
+/**
+ * PRE-9 A.2b : seules les durées par défaut des phases changent (contenu partagé identique). Ces
+ * durées ne servent qu'à la création d'un Exercice ; les Exercices existants restent inchangés
+ * (Hermann, 31/10/2026 : « Inchangés ») — aucune confirmation C03 n'est demandée (`SILENT`).
+ */
+export function onlyPhaseDurationsChanged(before: MovementContentSnapshot, after: MovementContentSnapshot): boolean {
+  return !movementContentChanged(before, after) && phaseDurationsChanged(before.phases, after.phases);
+}
+
 /** Vrai si le contenu partagé diffère (voir l'en-tête) ; les paramètres d'exécution sont ignorés. */
 export function movementContentChanged(before: MovementContentSnapshot, after: MovementContentSnapshot): boolean {
   return (
@@ -98,6 +125,9 @@ export function decideMovementSave(
   }
   if (before.name !== after.name) {
     return { kind: "CHOICE", otherCount: otherUsageCount };
+  }
+  if (onlyPhaseDurationsChanged(before, after)) {
+    return { kind: "SILENT" };
   }
   if (!movementContentChanged(before, after)) {
     return { kind: "NONE" };

@@ -103,7 +103,12 @@ export const DATABASE_NAME = "kodjo.db";
  * schéma comme vestiges inutilisés : ni lus ni écrits par le code actif ; aucune
  * migration de suppression. Leur vacuité sur l'iPhone n'est pas vérifiée.]
  */
-export const DATABASE_VERSION = 17;
+/**
+ * **PRE-9 (version 18, `migration018`, story A.2b)** : durée facultative d'une phase du
+ * Mouvement (`movement_phases.duration_seconds`, 1..3535 s, `NULL` = aucune durée) — colonne
+ * additive nullable, toute phase existante reste sans durée. 001..017 inchangées.
+ */
+export const DATABASE_VERSION = 18;
 export const LOCAL_USER_SINGLETON_KEY = 1;
 /** Même patron que `LOCAL_USER_SINGLETON_KEY` — le Profil reste un agrégat singleton unique (`migration007`, plan §3.2). */
 export const LOCAL_PROFILE_SINGLETON_KEY = 1;

@@ -177,6 +177,8 @@ export type MovementPhaseRow = {
   phase_id: number;
   position: number;
   label: string;
+  /** PRE-9 (A.2b, `migration018`) : durée facultative de la phase, `null` = aucune. */
+  duration_seconds: number | null;
 };
 
 /** PRE-7 (A1.2) : Zone corporelle d'un Mouvement. */

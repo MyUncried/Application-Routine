@@ -171,8 +171,8 @@ async function seededVersion15(): Promise<NodeSqliteDatabase> {
 }
 
 describe("PRE-9 A.1 — migration 016 (Exercice direct de Cycle, Point dans un Cycle)", () => {
-  it("version courante 17 (016 puis 017, PRE-9 C.1)", () => {
-    expect(DATABASE_VERSION).toBe(17);
+  it("version courante 18 (016, 017 puis 018, PRE-9 C.1 et A.2b)", () => {
+    expect(DATABASE_VERSION).toBe(18);
   });
 
   it("reconstruit activities et session_stop_points sans perte : lignes identiques, cycle_id NULL, aucune autre table touchée", async () => {

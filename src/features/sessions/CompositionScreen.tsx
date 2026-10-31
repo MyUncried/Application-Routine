@@ -52,7 +52,16 @@ import {
   wrapInContainer,
   type EnvelopeTarget,
 } from "@/domain/sessions/layoutOperations";
-import { structureCircuits, type StructureCircuit, type StructureCycle } from "@/domain/sessions/structure";
+import {
+  moveLayoutItem,
+  neutralDropControl,
+  stepLayoutItem,
+  type LayoutDropControl,
+  type LayoutItemMoveOutcome,
+  type LayoutItemMoveRefusal,
+  type LayoutItemRef,
+} from "@/domain/sessions/layoutMoves";
+import { structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
 import {
   STRUCTURAL_ZONES,
   duplicateOccurrence,
@@ -124,7 +133,16 @@ import {
 } from "@/features/sessions/CircuitHeader";
 import { CIRCUIT_NATURE_PANEL_GAP, CircuitNaturePanel } from "@/features/sessions/CircuitNatureMenu";
 import { CircuitVolumesSheet } from "@/features/sessions/CircuitVolumesSheet";
-import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout } from "@/features/sessions/compositionLayout";
+import { formatLayoutDuration, resolveRichLayout, type ResolvedLayout, type ResolvedLayoutElement } from "@/features/sessions/compositionLayout";
+import { LayoutDropLine, useBlockDragGesture, VanishingBlock } from "@/features/sessions/LayoutDragParts";
+import {
+  layoutHeaderKey,
+  layoutItemKey,
+  resolveLayoutDrop,
+  sameLayoutDrop,
+  type LayoutBox,
+  type LayoutDropTarget,
+} from "@/features/sessions/layoutDrop";
 import { CycleHeader } from "@/features/sessions/CycleHeader";
 import { CreateMenu } from "@/features/sessions/CreateMenu";
 import { isExerciseParametersIncomplete, markMovementsInSession } from "@/features/sessions/movementExercises";
@@ -1848,7 +1866,15 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * PRE-9 B.1b (D-451, COMP §1 et §4) : disposition générale (plusieurs Circuits, Cycles) — rendue
    * selon sa structure à la place des zones de l'ancien modèle ; `null` : rendu historique inchangé.
    */
-  const richLayout = useMemo(() => resolveRichLayout(draft), [draft]);
+  /**
+   * PRE-9 B.4 (précision de Hermann du 30/10/2026) : conteneurs vidés par une dépose, en effacement.
+   * Tant qu'il en reste, la disposition est rendue selon sa structure même si elle est redevenue
+   * représentable dans l'ancien modèle (dernier membre d'un second Circuit sorti) : l'effacement
+   * se joue à sa place, puis le rendu historique reprend.
+   */
+  const [vanishing, setVanishing] = useState<readonly VanishingContainer[]>([]);
+  const isVanishing = vanishing.length > 0;
+  const richLayout = useMemo(() => resolveRichLayout(draft, isVanishing), [draft, isVanishing]);
   /**
    * Contre-recette du 30/10 : Cycles posés à l'instant (absents avant « Confirmer le cycle »).
    * L'apparition (`entering`) ne joue qu'au montage du Cycle ; la demande est levée à l'entrée
@@ -2130,6 +2156,158 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       });
     },
     [closeCircuitControls],
+  );
+
+  // ---------------------------------------------------------------------------
+  // PRE-9 B.4 (COMP §6 G1–G8, ARB-06, ARB-09, ARB-24) — glisser-déposer et pas à pas dans une
+  // disposition générale. L'ancien modèle garde son glisser historique (zones, Points d'arrêt).
+  // ---------------------------------------------------------------------------
+  /** Boîtes mesurées des éléments et en-têtes rendus (repère du contenu défilant). */
+  const layoutBoxesRef = useRef(new Map<string, LayoutBox>());
+  const reportLayoutBox = useCallback((key: string, box: LayoutBox | null) => {
+    if (box === null) layoutBoxesRef.current.delete(key);
+    else layoutBoxesRef.current.set(key, box);
+  }, []);
+  const richLayoutRef = useRef(richLayout);
+  useLayoutEffect(() => {
+    richLayoutRef.current = richLayout;
+  });
+  /** Élément saisi et destination éclairée (rendu) ; la référence porte aussi l'ordonnée de saisie. */
+  const [layoutDrag, setLayoutDrag] = useState<{ readonly source: LayoutItemRef; readonly target: LayoutDropTarget | null } | null>(null);
+  const layoutDragRef = useRef<{ readonly source: LayoutItemRef; readonly handleY: number; target: LayoutDropTarget | null } | null>(null);
+  /** Déplacement avec perte de séries en attente (COMP §6 : Annuler conserve tout ; Confirmer applique ensemble). */
+  const [pendingLayoutMove, setPendingLayoutMove] = useState<{ readonly run: () => LayoutItemMoveOutcome; readonly targetCount: number } | null>(null);
+  const handleVanished = useCallback((key: string) => setVanishing((current) => current.filter((item) => item.key !== key)), []);
+  const announceLayoutRefusal = useCallback((reason: LayoutItemMoveRefusal) => {
+    const text = strings.screens.composition.layoutMove.refused[reason];
+    if (text !== "") AccessibilityInfo.announceForAccessibility(text);
+  }, []);
+  /** Écrit un déplacement accepté ; les conteneurs vidés restent rendus le temps de leur effacement. */
+  const commitLayoutMove = useCallback(
+    (next: SessionDraft, removed: readonly LayoutItemRef[]) => {
+      const before = richLayoutRef.current;
+      if (before !== null && removed.length > 0) {
+        const items = vanishingContainers(before, removed);
+        setVanishing((current) => [...current.filter((item) => !items.some((added) => added.key === item.key)), ...items]);
+      }
+      updateDraft(() => next);
+    },
+    [updateDraft],
+  );
+  /** Issue d'un déplacement (dépose ou pas à pas) : appliqué, confirmation de perte, refus annoncé sans modification. */
+  const runLayoutMove = useCallback(
+    (run: () => LayoutItemMoveOutcome) => {
+      const outcome = run();
+      switch (outcome.status) {
+        case "APPLIED":
+          commitLayoutMove(outcome.draft, outcome.removedContainers);
+          return;
+        case "CONFIRMATION_REQUIRED":
+          // Confirmation demandée par le seul contrôle avant dépose : dialogue propre à C.4 (ARB-24) ;
+          // d'ici là, aucun contrôle ne la demande (contrôle neutre) — refus sans modification.
+          if (outcome.losses.length > 0) setPendingLayoutMove({ run, targetCount: outcome.targetCount });
+          else announceLayoutRefusal("CONTROL");
+          return;
+        case "REFUSED":
+          announceLayoutRefusal(outcome.reason);
+          return;
+        case "UNCHANGED":
+          return;
+        default: {
+          const unreachable: never = outcome;
+          return unreachable;
+        }
+      }
+    },
+    [announceLayoutRefusal, commitLayoutMove, setPendingLayoutMove],
+  );
+  const startLayoutDrag = useCallback(
+    (source: LayoutItemRef): boolean => {
+      if (layoutDragRef.current !== null || richLayoutRef.current === null) return false;
+      const handle = layoutBoxesRef.current.get(source.kind === "EXERCISE" ? layoutItemKey(source) : layoutHeaderKey(source.kind, source.id));
+      if (handle === undefined) return false;
+      layoutDragRef.current = { source, handleY: handle.top + handle.height / 2, target: null };
+      setLayoutDrag({ source, target: null });
+      closeCircuitControls();
+      autoScroll.begin();
+      if (source.kind === "CIRCUIT") {
+        // COMP §6 : « Un appui long sur l'en-tête d'un circuit déployé commence par le replier puis
+        // amorce son déplacement. »
+        const circuit = structureCircuits(richLayoutRef.current).find((item) => item.id === source.id);
+        if (circuit !== undefined) {
+          const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
+          setLayoutCollapsed((current) => (current.get(source.id) === contentKey ? current : new Map(current).set(source.id, contentKey)));
+        }
+      }
+      return true;
+    },
+    [autoScroll, closeCircuitControls],
+  );
+  const moveLayoutDrag = useCallback((translationY: number) => {
+    const current = layoutDragRef.current;
+    const layout = richLayoutRef.current;
+    if (current === null || layout === null) return;
+    const target = resolveLayoutDrop(layout, current.source, current.handleY + translationY, layoutBoxesRef.current, (exercise) => exercise.id);
+    if (sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY) return;
+    current.target = target;
+    setLayoutDrag({ source: current.source, target });
+  }, []);
+  const endLayoutDrag = useCallback(
+    (translationY: number) => {
+      moveLayoutDrag(translationY);
+      const current = layoutDragRef.current;
+      layoutDragRef.current = null;
+      autoScroll.end();
+      setLayoutDrag(null);
+      // `dropTarget` : emplacement de dépose (B.4), à ne pas confondre avec la Cible d'une série
+      // (garde PRE4-1.1/AC1 de `legacyModeConfinement`).
+      const dropTarget = current === null ? null : current.target;
+      if (current === null || dropTarget === null) return;
+      runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL));
+    },
+    [autoScroll, moveLayoutDrag, runLayoutMove],
+  );
+  const cancelLayoutDrag = useCallback(() => {
+    layoutDragRef.current = null;
+    autoScroll.end();
+    setLayoutDrag(null);
+  }, [autoScroll]);
+  /** `stepOccurrence` généralisé (« Monter » / « Descendre »), `null` à la frontière de la séquence. */
+  const layoutStepAction = useCallback(
+    (source: LayoutItemRef, direction: "UP" | "DOWN"): (() => void) | null => {
+      const probe = stepLayoutItem(draft, source, direction, () => "probe", LAYOUT_DROP_CONTROL);
+      if (probe.status === "REFUSED" && (probe.reason === "AT_BOUNDARY" || probe.reason === "NOT_FOUND" || probe.reason === "STOP_POINTS")) return null;
+      return () => runLayoutMove(() => stepLayoutItem(draftRef.current, source, direction, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL));
+    },
+    [draft, runLayoutMove],
+  );
+  const layoutDragContext = useMemo<LayoutDragContext | null>(
+    () =>
+      richLayout === null || envelope !== null || pendingLayoutMove !== null || pendingNatureChange !== null
+        ? null
+        : {
+            source: layoutDrag?.source ?? null,
+            target: layoutDrag === null ? null : layoutDrag.target,
+            reportBox: reportLayoutBox,
+            onStart: startLayoutDrag,
+            onMove: moveLayoutDrag,
+            onEnd: endLayoutDrag,
+            onCancel: cancelLayoutDrag,
+            stepAction: layoutStepAction,
+          },
+    [
+      cancelLayoutDrag,
+      endLayoutDrag,
+      envelope,
+      layoutDrag,
+      layoutStepAction,
+      moveLayoutDrag,
+      pendingLayoutMove,
+      pendingNatureChange,
+      reportLayoutBox,
+      richLayout,
+      startLayoutDrag,
+    ],
   );
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
@@ -3335,7 +3513,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         // défilement PAR L'UTILISATEUR est neutralisé — le geste vertical appartient alors
         // exclusivement à la carte soulevée, jamais à la liste. PRE-6 story 7.4 : la liste défile
         // alors seulement d'elle-même, près de ses bords (`useDragAutoScroll`).
-        scrollEnabled={draggedKey === null}
+        scrollEnabled={draggedKey === null && layoutDrag === null}
         // Story 7.4 : décalage, contenu et zone visible du défilement automatique.
         onScroll={(event) => autoScroll.handleScroll(event.nativeEvent.contentOffset.y)}
         scrollEventThrottle={16}
@@ -3406,6 +3584,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             envelope={envelopeContext}
             appearingCycleIds={appearingCycleIds}
             appearingCircuitIds={appearingCircuitIds}
+            drag={layoutDragContext}
+            vanishing={vanishing}
+            onVanished={handleVanished}
             panelRight={styles.bodyContent.paddingRight}
           />
         ) : null}
@@ -4001,6 +4182,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           }
           onCancel={cancelNatureChange}
           onConfirm={confirmNatureChange}
+        />
+      ) : null}
+
+      {/* PRE-9 B.4 (COMP §6) : dépose (ou pas à pas) vers un Circuit alterné avec perte de séries. Annuler :
+          emplacement et données d'origine conservés ; Confirmer : déplacement et adaptation ensemble,
+          rejoués sur le brouillon courant. */}
+      {pendingLayoutMove !== null ? (
+        <CircuitEntryConfirmModal
+          kind="MOVE"
+          seriesCount={pendingLayoutMove.targetCount}
+          exerciseCount={1}
+          onCancel={() => setPendingLayoutMove(null)}
+          onConfirm={() => {
+            const outcome = pendingLayoutMove.run();
+            setPendingLayoutMove(null);
+            if (outcome.status === "APPLIED" || outcome.status === "CONFIRMATION_REQUIRED") {
+              commitLayoutMove(outcome.draft, outcome.removedContainers);
+            } else if (outcome.status === "REFUSED") {
+              announceLayoutRefusal(outcome.reason);
+            }
+          }}
         />
       ) : null}
 
@@ -5063,6 +5265,12 @@ type CompositionActivityRowProps = {
    * simplifié porté par la carte (lien à travers l'écart au-dessus, queue sous le média).
    */
   readonly layoutRailGap?: number;
+  /**
+   * PRE-9 B.4 (COMP §6, G1–G5) : dans une disposition générale, appui long puis glisser actifs
+   * (`onDragStart` / `onDragMove` / `onDragEnd`), ainsi que « Monter » / « Descendre »
+   * (`onMoveUp` / `onMoveDown`) ; le balayage (Dupliquer / Supprimer) reste réservé à B.5.
+   */
+  readonly layoutDraggable?: boolean;
 };
 
 /**
@@ -5220,9 +5428,13 @@ function CompositionActivityRow({
   focusRequest,
   onFocusConsumed,
   layoutRailGap,
+  layoutDraggable = false,
 }: CompositionActivityRowProps) {
   /** PRE-9 B.1b : carte d'une disposition générale — voir `layoutRailGap`. */
   const inLayout = layoutRailGap !== undefined;
+  /** PRE-9 B.4 : glisser actif (ancien modèle, ou disposition générale) ; balayage hors disposition générale (B.5). */
+  const canDrag = !inLayout || layoutDraggable;
+  const canSwipe = !inLayout;
   const composition = strings.screens.composition;
   const originRef = useRef<{ x: number; y: number } | null>(null);
   const cardRef = useRef<View>(null);
@@ -5416,13 +5628,13 @@ function CompositionActivityRow({
       if (isDraggingRef.current) {
         return true;
       }
-      if (isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      if (!canSwipe || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
         return false;
       }
       applySwipeMovement(dx);
       return true;
     },
-    [applySwipeMovement, trackMovement],
+    [applySwipeMovement, canSwipe, trackMovement],
   );
 
   /**
@@ -5437,12 +5649,12 @@ function CompositionActivityRow({
   const handleTouchMove = useCallback(
     (event: GestureResponderEvent) => {
       const { dx, dy } = trackMovement(event);
-      if (isDraggingRef.current || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
+      if (!canSwipe || isDraggingRef.current || isTap(dx, dy) || Math.abs(dx) <= Math.abs(dy)) {
         return;
       }
       applySwipeMovement(dx);
     },
-    [applySwipeMovement, trackMovement],
+    [applySwipeMovement, canSwipe, trackMovement],
   );
 
   const handleResponderMove = useCallback(
@@ -5452,11 +5664,11 @@ function CompositionActivityRow({
         applyDragTranslation(dy + autoScroll.track(event.nativeEvent.pageY));
         return;
       }
-      if (Math.abs(dx) > Math.abs(dy)) {
+      if (canSwipe && Math.abs(dx) > Math.abs(dy)) {
         applySwipeMovement(dx);
       }
     },
-    [applyDragTranslation, applySwipeMovement, autoScroll, trackMovement],
+    [applyDragTranslation, applySwipeMovement, autoScroll, canSwipe, trackMovement],
   );
 
   /**
@@ -5701,10 +5913,13 @@ function CompositionActivityRow({
         () => formatCompactDuration(displayedRecoverySeconds),
       )}`
     : formatOccurrenceAccessibilityLabel(activity, position, circuitContext, displayedName);
-  // PRE-9 B.1b : dans une disposition générale, aucune action de réorganisation, duplication ni
-  // suppression (B.4, B.5).
+  // PRE-9 B.1b : dans une disposition générale, ni duplication ni suppression (B.5). B.4 : « Monter »
+  // / « Descendre » sur les positions de l'arbre (`stepLayoutItem`).
   const accessibilityActionHandlers: Partial<Record<OccurrenceAccessibilityActionName, () => void>> = inLayout
-    ? {}
+    ? {
+        ...(layoutDraggable && onMoveUp !== null ? { moveUp: onMoveUp } : {}),
+        ...(layoutDraggable && onMoveDown !== null ? { moveDown: onMoveDown } : {}),
+      }
     : {
         ...(onMoveUp !== null ? { moveUp: onMoveUp } : {}),
         ...(onMoveDown !== null ? { moveDown: onMoveDown } : {}),
@@ -5764,8 +5979,9 @@ function CompositionActivityRow({
       importantForAccessibility={fadeLeaving ? "no-hide-descendants" : "auto"}
       // PRE-6 (story 4.1) : en placement, aucun geste de carte (appui, glisser, balayage) ; seules
       // les puces de l'emplacement répondent.
-      // PRE-9 B.1b : ni glisser ni balayage dans une disposition générale (B.4, B.5).
-      {...(placement === null && !inLayout
+      // PRE-9 B.1b : ni glisser ni balayage dans une disposition générale (B.4, B.5). B.4 : glisser
+      // actif (`layoutDraggable`), balayage toujours inactif (`canSwipe`).
+      {...(placement === null && canDrag
         ? {
             onTouchStart: handleTouchStart,
             onTouchMove: handleTouchMove,
@@ -5834,7 +6050,7 @@ function CompositionActivityRow({
       <AnimatedPressable
         ref={cardRef}
         onPress={handlePress}
-        onLongPress={inLayout ? undefined : handleLongPress}
+        onLongPress={canDrag ? handleLongPress : undefined}
         delayLongPress={LONG_PRESS_DELAY_MS}
         // PRE-6 (story 4.1) : en placement, carte inactive. Arbitrage D6 (PR #391) : son contenu
         // est grisé par `OccurrenceCard`, hors récupération de ligne 3 ; elle n'est plus un élément accessible (son contenu est masqué par
@@ -5847,7 +6063,7 @@ function CompositionActivityRow({
         accessibilityLabel={accessibilityLabel}
         // Intention d'édition (appui court) puis gestes de réorganisation et d'actions.
         accessibilityHint={
-          inLayout
+          inLayout && !layoutDraggable
             ? composition.exerciseRow.editAccessibilityLabel
             : `${composition.exerciseRow.editAccessibilityLabel}. ${composition.activityActions.reorderAccessibilityHint}`
         }
@@ -5993,6 +6209,127 @@ function CompositionActivityRow({
   );
 }
 
+/**
+ * PRE-9 B.4 (ARB-24) : contrôle avant dépose appelé par chaque déplacement de la disposition générale
+ * (accepté / accepté après confirmation / refusé sans mutation). Neutre en B.4 : les refus de la
+ * matrice §2.2 et l'adaptation au N d'un Circuit alterné sont déjà appliqués par le Domaine (B.3) ;
+ * C.4 branche ici les règles des éléments formatés.
+ */
+const LAYOUT_DROP_CONTROL: LayoutDropControl = neutralDropControl;
+
+/**
+ * PRE-9 B.4 : conteneurs retirés par un déplacement, à leur place dans la disposition d'avant (parent,
+ * élément suivant encore présent), vidés — rendus le temps de leur effacement. Un Circuit d'un Cycle
+ * lui-même retiré n'est pas rendu séparément.
+ */
+function vanishingContainers(before: ResolvedLayout, removed: readonly LayoutItemRef[]): VanishingContainer[] {
+  const gone = new Set(removed.map((item) => `${item.kind === "CIRCUIT" ? "circuit" : "cycle"}:${item.id}`));
+  const result: VanishingContainer[] = [];
+  const visit = (siblings: readonly (ResolvedLayoutElement | StructureCycleMember<SessionDraftExercise>)[], parentCycleId: string | null) => {
+    siblings.forEach((element, at) => {
+      const key = layoutElementKey(element);
+      if (!gone.has(key)) {
+        if (element.kind === "CYCLE") visit(element.cycle.members, element.cycle.id);
+        return;
+      }
+      const beforeKey = siblings.slice(at + 1).map(layoutElementKey).find((next) => !gone.has(next)) ?? null;
+      if (element.kind === "CIRCUIT") {
+        result.push({ key, parentCycleId, beforeKey, element: { kind: "CIRCUIT", circuit: { ...element.circuit, exercises: [] } } });
+      } else if (element.kind === "CYCLE") {
+        result.push({ key, parentCycleId, beforeKey, element: { kind: "CYCLE", cycle: { ...element.cycle, members: [] } } });
+      }
+    });
+  };
+  visit(before.elements, null);
+  return result;
+}
+
+/**
+ * PRE-9 B.4 (COMP §6 G1–G8, ARB-06, ARB-09) : glisser-déposer d'une disposition générale, fourni par
+ * l'écran ; `null` : inactif (mode enveloppe, consultation, dialogue en attente).
+ */
+type LayoutDragContext = {
+  /** Élément saisi, `null` hors glisser. */
+  readonly source: LayoutItemRef | null;
+  /** Destination courante (conteneur éclairé, repère d'insertion), `null` sans destination. */
+  readonly target: LayoutDropTarget | null;
+  /** Boîte mesurée d'un élément ou d'un en-tête (repère du contenu défilant) ; `null` : oubliée. */
+  readonly reportBox: (key: string, box: LayoutBox | null) => void;
+  /** Appui long sur une carte ou un en-tête ; `false` : refusé (autre élément saisi, mesure absente). */
+  readonly onStart: (source: LayoutItemRef) => boolean;
+  readonly onMove: (translationY: number) => void;
+  readonly onEnd: (translationY: number) => void;
+  readonly onCancel: () => void;
+  /** « Monter » / « Descendre » d'un élément (`stepLayoutItem`), `null` à la frontière de la séquence. */
+  readonly stepAction: (source: LayoutItemRef, direction: "UP" | "DOWN") => (() => void) | null;
+};
+
+/**
+ * PRE-9 B.4 (précision de Hermann du 30/10/2026, ch07 « Retrait d'un Circuit ») : conteneur vidé par
+ * une dépose, rendu à sa place d'avant (avant l'élément `beforeKey` de son parent, ou en fin) le
+ * temps de son effacement progressif (`VanishingBlock`), puis retiré.
+ */
+type VanishingContainer = {
+  readonly key: string;
+  /** Cycle parent, `null` au niveau de la Séance. */
+  readonly parentCycleId: string | null;
+  readonly beforeKey: string | null;
+  /** Conteneur vidé (Circuit sans cartes, Cycle sans membres). */
+  readonly element: ResolvedLayoutElement;
+};
+
+/** Clé de rendu d'un élément de la disposition (niveau Séance ou membre de Cycle). */
+function layoutElementKey(element: ResolvedLayoutElement | StructureCycleMember<SessionDraftExercise>): string {
+  switch (element.kind) {
+    case "EXERCISE":
+      return `exercise:${element.exercise.id}`;
+    case "CIRCUIT":
+      return `circuit:${element.circuit.id}`;
+    case "CYCLE":
+      return `cycle:${element.cycle.id}`;
+    default: {
+      const unreachable: never = element;
+      return unreachable;
+    }
+  }
+}
+
+/** L'élément saisi est-il cet élément ou l'un de ses membres (rangée à placer au premier plan) ? */
+function layoutElementHolds(element: ResolvedLayoutElement | StructureCycleMember<SessionDraftExercise>, source: LayoutItemRef | null): boolean {
+  if (source === null) return false;
+  const inCircuit = (circuit: StructureCircuit<SessionDraftExercise>) =>
+    (source.kind === "CIRCUIT" && circuit.id === source.id) || (source.kind === "EXERCISE" && circuit.exercises.some((exercise) => exercise.id === source.id));
+  switch (element.kind) {
+    case "EXERCISE":
+      return source.kind === "EXERCISE" && element.exercise.id === source.id;
+    case "CIRCUIT":
+      return inCircuit(element.circuit);
+    case "CYCLE":
+      return (source.kind === "CYCLE" && element.cycle.id === source.id) || element.cycle.members.some((member) => layoutElementHolds(member, source));
+    default: {
+      const unreachable: never = element;
+      return unreachable;
+    }
+  }
+}
+
+/**
+ * PRE-9 B.4 : mesure d'une vue (position dans son parent) rapportée dans le repère du contenu
+ * défilant (`frameY` : ordonnée du parent) ; oubliée au démontage.
+ */
+function useReportedBox(key: string, frameY: number | null, report: ((key: string, box: LayoutBox | null) => void) | undefined) {
+  const [local, setLocal] = useState<{ readonly y: number; readonly height: number } | null>(null);
+  useEffect(() => {
+    if (report === undefined || local === null || frameY === null) return undefined;
+    report(key, { top: frameY + local.y, height: local.height });
+    return () => report(key, null);
+  }, [frameY, key, local, report]);
+  return useCallback((event: LayoutChangeEvent) => {
+    const { y, height } = event.nativeEvent.layout;
+    setLocal((current) => (current !== null && current.y === y && current.height === height ? current : { y, height }));
+  }, []);
+}
+
 /** PRE-9 B.1b : ce que chaque bloc d'une disposition générale reçoit de l'écran. */
 type LayoutRenderContext = {
   readonly letters: ReadonlyMap<string, string>;
@@ -6022,6 +6359,11 @@ type LayoutRenderContext = {
   readonly appearingCycleIds: ReadonlySet<string>;
   /** Contre-recette du 30/10 (constat b) : Circuits qui viennent d'être posés (« Confirmer le circuit »), apparition progressive. */
   readonly appearingCircuitIds: ReadonlySet<string>;
+  /** PRE-9 B.4 : glisser-déposer ; `null` : inactif. */
+  readonly drag: LayoutDragContext | null;
+  /** PRE-9 B.4 : conteneurs vidés par une dépose, en cours d'effacement. */
+  readonly vanishing: readonly VanishingContainer[];
+  readonly onVanished: (key: string) => void;
 };
 
 type LayoutSequenceProps = LayoutRenderContext & {
@@ -6050,6 +6392,21 @@ function draftCircuitMembers(draft: Pick<SessionDraft, "structure" | "exercises"
 const noop = () => {};
 
 /**
+ * PRE-9 B.4 : conteneurs en effacement à rendre avant l'élément `key` d'un parent (`null` : en fin
+ * de parent, ou dont l'élément de repère n'y est plus).
+ */
+function vanishingAt(
+  vanishing: readonly VanishingContainer[],
+  parentCycleId: string | null,
+  key: string | null,
+  keys: readonly string[],
+): readonly VanishingContainer[] {
+  return vanishing.filter(
+    (item) => item.parentCycleId === parentCycleId && (key === null ? item.beforeKey === null || !keys.includes(item.beforeKey) : item.beforeKey === key),
+  );
+}
+
+/**
  * PRE-9 B.1b (D-451, COMP §1 et §4, ARB-12, ARB-13, ARB-19 ; Figma `10725:20142`, `10744:20108`) —
  * rendu d'une disposition générale, élément par élément, entre les deux bornes (qui restent hors de
  * tout conteneur) : Exercices directs de la Séance, Circuits (en-tête B.1a avec sa lettre, repli),
@@ -6059,8 +6416,15 @@ const noop = () => {};
  * Circuit sur l'aplat du Circuit (dans un Cycle, en retrait de 4 de chaque côté pour que le fond du
  * Cycle l'encadre), cartes de la largeur habituelle, sans indentation supplémentaire.
  *
- * Gestes : seul l'appui court d'une carte (modification) est actif ; glisser-déposer (B.4),
- * Dupliquer / Supprimer (B.5) et le placement des pauses (B.6) ne s'appliquent pas encore ici.
+ * Gestes : appui court d'une carte (modification). [B.1b : « glisser-déposer (B.4), Dupliquer /
+ * Supprimer (B.5) et le placement des pauses (B.6) ne s'appliquent pas encore ici » — remplacé pour le
+ * glisser par B.4.] PRE-9 B.4 (COMP §6 G1–G8, ARB-06, ARB-09) : appui long sur une carte, sur
+ * l'en-tête d'un Circuit (déployé : replié d'abord) ou sur le titre d'un Cycle, puis glisser : la mise
+ * en page reste figée, l'élément suit le doigt, la destination la plus proche est éclairée (conteneur
+ * bordé, repère d'insertion), la liste défile près des bords (`useDragAutoScroll`) ; au relâchement,
+ * `moveLayoutItem` (refus sans altération, confirmation de perte, conteneur vidé effacé
+ * progressivement). « Monter » / « Descendre » accessibles (`stepLayoutItem`). Dupliquer / Supprimer
+ * (B.5) et les pauses (B.6) restent hors de ce rendu.
  *
  * Rail simplifié : chaque élément porte ses segments — lien à travers l'écart qui le précède, anneau
  * sur l'en-tête d'un conteneur, queue jusqu'à son bas ; un conteneur trace sa queue derrière ses
@@ -6082,36 +6446,40 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
   const natureCircuit =
     natureCircuitId === null ? undefined : structureCircuits(layout).find((circuit) => circuit.id === natureCircuitId);
   const natureAnchor = natureCircuitId === null ? undefined : anchors[natureCircuitId];
+  const keys = layout.elements.map(layoutElementKey);
+  const ghosts = (key: string | null) =>
+    vanishingAt(context.vanishing, null, key, keys).map((item) => (
+      <LayoutVanishing key={`vanishing:${item.key}`} item={item} gap={COMPOSITION_ROW_GAP} rail={rail} context={context} onAnchor={reportAnchor} />
+    ));
+  const source = context.drag?.source ?? null;
+  // Trait d'insertion de la dépose (B.4) — emplacement de dépose, pas une Cible de série.
+  const dropLine = context.drag ? context.drag.target : null;
   return (
     <>
       {layout.elements.map((element) => {
+        const key = layoutElementKey(element);
+        const raised = layoutElementHolds(element, source);
+        let node: React.ReactNode;
         switch (element.kind) {
           case "EXERCISE":
-            return (
-              <View key={`exercise:${element.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${element.exercise.id}`}>
-                {/* PRE-9 B.2 : Exercice direct de la Séance — éligible pour un Circuit ou un Cycle. */}
-                <EnvelopeFrame
-                  envelope={context.envelope}
-                  target={{ kind: "EXERCISE", id: element.exercise.id }}
-                  name={occurrenceCardName(element.exercise, context.levelPositions)}
-                  testID={`composition-envelope-exercise-${element.exercise.id}`}
-                >
-                <LayoutExerciseRow
-                  exercise={element.exercise}
-                  circuit={null}
-                  position={{ index: directExercises.indexOf(element.exercise), count: directExercises.length }}
-                  railGap={SEQUENCE_GAP}
-                  rail={rail}
-                  context={context}
-                />
-                </EnvelopeFrame>
-              </View>
+            node = (
+              <LayoutDirectExercise
+                key={key}
+                exercise={element.exercise}
+                position={{ index: directExercises.indexOf(element.exercise), count: directExercises.length }}
+                frameY={0}
+                railGap={SEQUENCE_GAP}
+                raised={raised}
+                rail={rail}
+                context={context}
+              />
             );
+            break;
           case "CIRCUIT":
-            return (
+            node = (
               // PRE-9 B.2 : Circuit du niveau Séance — éligible pour un Cycle, en bloc.
               <EnvelopeFrame
-                key={`circuit:${element.circuit.id}`}
+                key={key}
                 envelope={context.envelope}
                 target={{ kind: "CIRCUIT", id: element.circuit.id }}
                 name={layoutCircuitName(element.circuit.id, context.letters)}
@@ -6120,33 +6488,42 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
                 radius={CIRCUIT_RADIUS}
               >
               <LayoutCircuitBlock
-                key={`circuit:${element.circuit.id}`}
+                key={key}
                 circuit={element.circuit}
                 inCycle={false}
                 offsetY={0}
                 railGap={SEQUENCE_GAP}
+                raised={raised}
                 rail={rail}
                 context={context}
                 onAnchor={reportAnchor}
               />
               </EnvelopeFrame>
             );
+            break;
           case "CYCLE":
-            return (
+            node = (
               <LayoutCycleBlock
-                key={`cycle:${element.cycle.id}`}
+                key={key}
                 cycle={element.cycle}
+                raised={raised}
                 rail={rail}
                 context={context}
                 onAnchor={reportAnchor}
               />
             );
+            break;
           default: {
             const unreachable: never = element;
             return unreachable;
           }
         }
+        const before = ghosts(key);
+        return before.length === 0 ? node : [...before, node];
       })}
+      {ghosts(null)}
+      {/* PRE-9 B.4 (COMP §6 : « L'éclairage de la destination est obligatoire ») : repère d'insertion. */}
+      {dropLine ? <LayoutDropLine y={dropLine.lineY} testID="composition-layout-drop-line" /> : null}
       {/*
        * Android / web : panneau du choix de nature, dans une couche qui couvre tout le contenu
        * défilant (un toucher hors des limites d'un parent n'atteint pas ses enfants sur Android),
@@ -6167,6 +6544,84 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
   );
 }
 
+/** PRE-9 B.4 : conteneur vidé par une dépose, en effacement (`VanishingBlock`), inerte. */
+function LayoutVanishing({
+  item,
+  gap,
+  rail,
+  context,
+  onAnchor,
+}: {
+  item: VanishingContainer;
+  gap: number;
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+  onAnchor: (circuitId: string, y: number) => void;
+}) {
+  const { onVanished } = context;
+  const done = useCallback(() => onVanished(item.key), [item.key, onVanished]);
+  const ghostContext = useMemo<LayoutRenderContext>(() => ({ ...context, drag: null, vanishing: [] }), [context]);
+  const testID = `composition-layout-vanishing-${item.key.replace(":", "-")}`;
+  return (
+    <VanishingBlock gap={gap} onDone={done} testID={testID}>
+      {item.element.kind === "CIRCUIT" ? (
+        <LayoutCircuitBlock
+          circuit={item.element.circuit}
+          inCycle={item.parentCycleId !== null}
+          offsetY={null}
+          railGap={gap}
+          raised={false}
+          rail={rail}
+          context={ghostContext}
+          onAnchor={onAnchor}
+          ghost
+        />
+      ) : item.element.kind === "CYCLE" ? (
+        <LayoutCycleBlock cycle={item.element.cycle} raised={false} rail={rail} context={ghostContext} onAnchor={onAnchor} ghost />
+      ) : null}
+    </VanishingBlock>
+  );
+}
+
+/** PRE-9 B.2 / B.4 : Exercice direct de la Séance ou d'un Cycle — enveloppe, mesure, carte. */
+function LayoutDirectExercise({
+  exercise,
+  position,
+  frameY,
+  railGap,
+  raised,
+  rail,
+  context,
+}: {
+  exercise: SessionDraftExercise;
+  position: { readonly index: number; readonly count: number };
+  /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance ; `null` inconnue. */
+  frameY: number | null;
+  railGap: number;
+  raised: boolean;
+  rail: SequenceRailContext;
+  context: LayoutRenderContext;
+}) {
+  const onLayout = useReportedBox(layoutItemKey({ kind: "EXERCISE", id: exercise.id }), frameY, context.drag?.reportBox);
+  return (
+    <View
+      style={[styles.exerciseList, raised ? styles.dragElevated : null]}
+      onLayout={onLayout}
+      testID={`composition-layout-exercise-${exercise.id}`}
+    >
+      {/* PRE-9 B.2 : Exercice direct (Séance : éligible pour un Circuit ou un Cycle ; Cycle : pour un Circuit). */}
+      <EnvelopeFrame
+        envelope={context.envelope}
+        target={{ kind: "EXERCISE", id: exercise.id }}
+        name={occurrenceCardName(exercise, context.levelPositions)}
+        testID={`composition-envelope-exercise-${exercise.id}`}
+      >
+        <LayoutExerciseRow exercise={exercise} circuit={null} position={position} railGap={railGap} rail={rail} context={context} />
+      </EnvelopeFrame>
+    </View>
+  );
+}
+
 /** PRE-9 B.2 : nom d'un Circuit dans le mode enveloppe — « le circuit », ou « le circuit A » (ARB-13). */
 function layoutCircuitName(circuitId: string, letters: ReadonlyMap<string, string>): string {
   const t = strings.screens.composition.envelope;
@@ -6174,7 +6629,11 @@ function layoutCircuitName(circuitId: string, letters: ReadonlyMap<string, strin
   return letter === undefined ? t.circuitName : t.circuitNameWithLetter.replace("{letter}", letter);
 }
 
-/** PRE-9 B.1b : carte d'occurrence d'une disposition générale — `CompositionActivityRow`, appui court seul. */
+/**
+ * PRE-9 B.1b : carte d'occurrence d'une disposition générale — `CompositionActivityRow`. B.4 : appui
+ * long et glisser, « Monter » / « Descendre » ; carte d'un Circuit : sa boîte est rapportée
+ * (`measureFrameY`, ordonnée de la liste des cartes).
+ */
 function LayoutExerciseRow({
   exercise,
   circuit,
@@ -6182,6 +6641,7 @@ function LayoutExerciseRow({
   railGap,
   rail,
   context,
+  measureFrameY,
 }: {
   exercise: SessionDraftExercise;
   /** Circuit qui la contient, ou `null` (Exercice direct de la Séance ou d'un Cycle). */
@@ -6190,6 +6650,8 @@ function LayoutExerciseRow({
   railGap: number;
   rail: SequenceRailContext;
   context: LayoutRenderContext;
+  /** Carte d'un Circuit : ordonnée de la liste des cartes dans le contenu défilant (`null` inconnue). */
+  measureFrameY?: number | null;
 }) {
   // La carte lit sa position structurelle pour son aplat (dans un Circuit : sans bord, fond du
   // Circuit) et sa durée (Circuit alterné : total de ses passages) — celle de son conteneur réel.
@@ -6199,68 +6661,105 @@ function LayoutExerciseRow({
   );
   const circuitContext: OccurrenceCircuitContext =
     circuit === null ? {} : { circuitNature: circuit.nature, tourRepeatCount: circuit.repeatCount };
-  const { onEdit } = context;
+  const { onEdit, drag } = context;
   const edit = useCallback(() => onEdit(exercise.id), [exercise.id, onEdit]);
+  const source = useMemo<LayoutItemRef>(() => ({ kind: "EXERCISE", id: exercise.id }), [exercise.id]);
+  const onLayout = useReportedBox(layoutItemKey(source), measureFrameY ?? null, measureFrameY === undefined ? undefined : drag?.reportBox);
+  const isDragged = drag?.source?.kind === "EXERCISE" && drag.source.id === exercise.id;
+  const onDragStart = useCallback(() => drag?.onStart(source) ?? false, [drag, source]);
+  const onDragCancel = useCallback(() => drag?.onCancel(), [drag]);
+  const onDragMove = useCallback((translationY: number) => drag?.onMove(translationY), [drag]);
+  const onDragEnd = useCallback((translationY: number) => drag?.onEnd(translationY), [drag]);
   return (
     <CompositionActivityRow
       activity={displayed}
       position={position}
       areActionsRevealed={false}
-      isDragged={false}
-      isRaised={false}
+      isDragged={isDragged}
+      isRaised={isDragged}
       isBlockedByOtherReveal={false}
       bodyZonesReferential={context.bodyZonesReferential}
       categoriesReferential={context.categoriesReferential}
       levelPositions={context.levelPositions}
       circuitContext={circuitContext}
-      onLayout={noop}
+      onLayout={measureFrameY === undefined ? noop : onLayout}
       focusRequest={null}
       onFocusConsumed={noop}
       onEdit={edit}
       onRevealActions={noop}
       onHideActions={noop}
-      onDragStart={() => false}
-      onDragCancel={noop}
-      onDragMove={noop}
-      onDragEnd={noop}
+      onDragStart={onDragStart}
+      onDragCancel={onDragCancel}
+      onDragMove={onDragMove}
+      onDragEnd={onDragEnd}
       rail={rail}
       autoScroll={context.autoScroll}
       onDuplicate={noop}
       onDelete={noop}
-      onMoveUp={null}
-      onMoveDown={null}
+      onMoveUp={drag?.stepAction(source, "UP") ?? null}
+      onMoveDown={drag?.stepAction(source, "DOWN") ?? null}
       placement={null}
       layoutRailGap={railGap}
+      layoutDraggable={drag !== null}
     />
   );
 }
 
-/** PRE-9 B.1b : Circuit d'une disposition générale — en-tête B.1a (lettre, compteur, nature, repli) et cartes. */
+/** PRE-9 B.4 : cadre de la destination éclairée (Circuit ou Cycle). */
+function LayoutDropHighlight({ active, testID }: { active: boolean; testID: string }) {
+  return active ? <View pointerEvents="none" style={styles.layoutDropTarget} testID={testID} /> : null;
+}
+
+/**
+ * PRE-9 B.1b : Circuit d'une disposition générale — en-tête B.1a (lettre, compteur, nature, repli) et
+ * cartes. B.4 : saisi par appui long sur son en-tête (`useBlockDragGesture`), il suit le doigt au
+ * premier plan ; ses boîtes (bloc, en-tête, cartes) sont rapportées pour la résolution de la
+ * destination ; destination éclairée par un cadre. `ghost` : copie inerte en effacement.
+ */
 function LayoutCircuitBlock({
   circuit,
   inCycle,
   offsetY,
   railGap,
+  raised,
   rail,
   context,
   onAnchor,
+  ghost = false,
 }: {
   circuit: StructureCircuit<SessionDraftExercise>;
   inCycle: boolean;
-  /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance. */
-  offsetY: number;
+  /** Ordonnée du parent (Cycle) dans le contenu défilant ; 0 au niveau de la Séance ; `null` inconnue. */
+  offsetY: number | null;
   railGap: number;
+  /** PRE-9 B.4 : le bloc porte l'élément saisi (au premier plan). */
+  raised: boolean;
   rail: SequenceRailContext;
   context: LayoutRenderContext;
   onAnchor: (circuitId: string, y: number) => void;
+  ghost?: boolean;
 }) {
   const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
   const [blockY, setBlockY] = useState<number | null>(null);
   const [headerBottom, setHeaderBottom] = useState<number | null>(null);
+  const [listY, setListY] = useState<number | null>(null);
   useEffect(() => {
-    if (blockY !== null && headerBottom !== null) onAnchor(circuit.id, offsetY + blockY + headerBottom);
-  }, [blockY, circuit.id, headerBottom, offsetY, onAnchor]);
-  const { openOverlay, onToggleOverlay } = context;
+    if (!ghost && offsetY !== null && blockY !== null && headerBottom !== null) onAnchor(circuit.id, offsetY + blockY + headerBottom);
+  }, [blockY, circuit.id, ghost, headerBottom, offsetY, onAnchor]);
+  const { openOverlay, onToggleOverlay, drag } = context;
+  const report = ghost ? undefined : drag?.reportBox;
+  const source = useMemo<LayoutItemRef>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
+  const reportBlock = useReportedBox(layoutItemKey(source), offsetY, report);
+  const reportHeader = useReportedBox(layoutHeaderKey("CIRCUIT", circuit.id), offsetY === null || blockY === null ? null : offsetY + blockY, report);
+  const gesture = useBlockDragGesture({
+    onStart: () => drag?.onStart(source) ?? false,
+    onMove: (translationY) => drag?.onMove(translationY),
+    onEnd: (translationY) => drag?.onEnd(translationY),
+    onCancel: () => drag?.onCancel(),
+    autoScroll: context.autoScroll,
+  });
+  const isDragged = drag?.source?.kind === "CIRCUIT" && drag.source.id === circuit.id;
+  const isDropTarget = drag?.target?.container.kind === "CIRCUIT" && drag.target.container.id === circuit.id;
   const counterKind = layoutCircuitCounterKind(circuit.id);
   const natureKind = layoutCircuitNatureKind(circuit.id);
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
@@ -6268,14 +6767,24 @@ function LayoutCircuitBlock({
   const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
-  const testID = `composition-layout-circuit-${circuit.id}`;
+  const testID = ghost ? `composition-layout-vanishing-circuit-${circuit.id}-block` : `composition-layout-circuit-${circuit.id}`;
   // Contre-recette du 30/10 (constat b) : le Circuit qui vient d'être posé apparaît progressivement
   // (fond, anneau et en-tête) ; ses cartes, déjà visibles, restent.
   const entering = context.appearingCircuitIds.has(circuit.id) ? CIRCUIT_ENTERING : undefined;
+  const cardsFrameY = offsetY === null || blockY === null || listY === null ? null : offsetY + blockY + listY;
   return (
-    <View
-      style={[styles.tourSectionContainer, inCycle ? styles.layoutCircuitInCycle : null]}
-      onLayout={(event) => setBlockY(event.nativeEvent.layout.y)}
+    <Animated.View
+      style={[
+        styles.tourSectionContainer,
+        inCycle ? styles.layoutCircuitInCycle : null,
+        raised ? styles.dragElevated : null,
+        isDragged ? [styles.layoutBlockDragged, { transform: [{ translateY: gesture.translation }] }] : null,
+      ]}
+      onLayout={(event) => {
+        setBlockY(event.nativeEvent.layout.y);
+        reportBlock(event);
+      }}
+      {...(drag !== null && !ghost ? gesture.handlers : {})}
       testID={testID}
     >
       <Reanimated.View
@@ -6284,6 +6793,7 @@ function LayoutCircuitBlock({
         style={[StyleSheet.absoluteFill, styles.layoutCircuitSurface]}
         testID={`${testID}-surface`}
       />
+      <LayoutDropHighlight active={isDropTarget} testID={`${testID}-drop-target`} />
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
         <RailSegment centerX={railX} top={-railGap} height={railGap + ringTop} testID={`${testID}-rail-link`} />
@@ -6311,9 +6821,15 @@ function LayoutCircuitBlock({
         isCollapsed={isCollapsed}
         onToggleCollapsed={() => context.onToggleCollapsed(circuit)}
         memberNames={circuit.exercises.map((exercise) => occurrenceCardName(exercise, context.levelPositions))}
+        // PRE-9 B.4 (COMP §6) : appui long sur l'en-tête — le Circuit déployé est replié, puis suit le doigt.
+        onLongPress={drag !== null && !ghost ? gesture.begin : undefined}
+        moveActions={
+          drag !== null && !ghost ? { moveUp: drag.stepAction(source, "UP"), moveDown: drag.stepAction(source, "DOWN") } : undefined
+        }
         onLayout={(event) => {
           const { y, height } = event.nativeEvent.layout;
           setHeaderBottom(y + height);
+          reportHeader(event);
         }}
         onRowLayout={(event) => {
           const { height } = event.nativeEvent.layout;
@@ -6326,7 +6842,10 @@ function LayoutCircuitBlock({
       {!reveal.mounted || circuit.exercises.length === 0 ? null : (
         <Reanimated.View
           style={[styles.exerciseList, styles.exerciseListInCircuit, reveal.style]}
-          onLayout={reveal.onLayout}
+          onLayout={(event) => {
+            reveal.onLayout(event);
+            setListY(event.nativeEvent.layout.y);
+          }}
           testID={`${testID}-exercises`}
         >
           {circuit.exercises.map((exercise, index) => (
@@ -6338,34 +6857,60 @@ function LayoutCircuitBlock({
               railGap={CIRCUIT_GAP}
               rail={rail}
               context={context}
+              measureFrameY={cardsFrameY}
             />
           ))}
         </Reanimated.View>
       )}
-    </View>
+    </Animated.View>
   );
 }
 
-/** PRE-9 B.1b : Cycle d'une disposition générale — en-tête (jamais replié), Exercices directs et Circuits. */
+/**
+ * PRE-9 B.1b : Cycle d'une disposition générale — en-tête (jamais replié), Exercices directs et
+ * Circuits. B.4 (ARB-09) : Cycle entier saisi par appui long sur son titre ; destination éclairée.
+ */
 function LayoutCycleBlock({
   cycle,
+  raised,
   rail,
   context,
   onAnchor,
+  ghost = false,
 }: {
   cycle: StructureCycle<SessionDraftExercise>;
+  raised: boolean;
   rail: SequenceRailContext;
   context: LayoutRenderContext;
   onAnchor: (circuitId: string, y: number) => void;
+  ghost?: boolean;
 }) {
   const [rowHeight, setRowHeight] = useState(CIRCUIT_HEADER_HEIGHT);
-  const [cycleY, setCycleY] = useState(0);
-  const { openOverlay, onToggleOverlay } = context;
+  const [cycleY, setCycleY] = useState<number | null>(null);
+  const { openOverlay, onToggleOverlay, drag } = context;
+  const report = ghost ? undefined : drag?.reportBox;
+  const source = useMemo<LayoutItemRef>(() => ({ kind: "CYCLE", id: cycle.id }), [cycle.id]);
+  const reportBlock = useReportedBox(layoutItemKey(source), ghost ? null : 0, report);
+  const reportHeader = useReportedBox(layoutHeaderKey("CYCLE", cycle.id), cycleY, report);
+  const gesture = useBlockDragGesture({
+    onStart: () => drag?.onStart(source) ?? false,
+    onMove: (translationY) => drag?.onMove(translationY),
+    onEnd: (translationY) => drag?.onEnd(translationY),
+    onCancel: () => drag?.onCancel(),
+    autoScroll: context.autoScroll,
+  });
+  const isDragged = drag?.source?.kind === "CYCLE" && drag.source.id === cycle.id;
+  const isDropTarget = drag?.target?.container.kind === "CYCLE" && drag.target.container.id === cycle.id;
   const counterKind = layoutCycleCounterKind(cycle.id);
   const railX = RAIL_CENTER_X_IN_CIRCUIT;
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const directExercises = cycle.members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : []));
-  const testID = `composition-layout-cycle-${cycle.id}`;
+  const testID = ghost ? `composition-layout-vanishing-cycle-${cycle.id}-block` : `composition-layout-cycle-${cycle.id}`;
+  const memberKeys = cycle.members.map(layoutElementKey);
+  const ghosts = (key: string | null) =>
+    vanishingAt(context.vanishing, cycle.id, key, memberKeys).map((item) => (
+      <LayoutVanishing key={`vanishing:${item.key}`} item={item} gap={LAYOUT_CYCLE_GAP} rail={rail} context={context} onAnchor={onAnchor} />
+    ));
   const header = (
     <CycleHeader
       letter={context.letters.get(cycle.id)}
@@ -6380,6 +6925,11 @@ function LayoutCycleBlock({
         const { height } = event.nativeEvent.layout;
         if (height > 0) setRowHeight(height);
       }}
+      // PRE-9 B.4 (ARB-09) : appui long sur le titre — le Cycle entier suit le doigt.
+      onLongPress={drag !== null && !ghost ? gesture.begin : undefined}
+      moveActions={
+        drag !== null && !ghost ? { moveUp: drag.stepAction(source, "UP"), moveDown: drag.stepAction(source, "DOWN") } : undefined
+      }
       testID={`${testID}-header`}
     />
   );
@@ -6387,13 +6937,26 @@ function LayoutCycleBlock({
   // et en-tête), comme les cartes d'un Circuit qui se déploie ; ses membres, déjà visibles, restent.
   const entering = context.appearingCycleIds.has(cycle.id) ? CYCLE_ENTERING : undefined;
   return (
-    <View style={styles.layoutCycleContainer} onLayout={(event) => setCycleY(event.nativeEvent.layout.y)} testID={testID}>
+    <Animated.View
+      style={[
+        styles.layoutCycleContainer,
+        raised ? styles.dragElevated : null,
+        isDragged ? [styles.layoutBlockDragged, { transform: [{ translateY: gesture.translation }] }] : null,
+      ]}
+      onLayout={(event) => {
+        setCycleY(event.nativeEvent.layout.y);
+        reportBlock(event);
+      }}
+      {...(drag !== null && !ghost ? gesture.handlers : {})}
+      testID={testID}
+    >
       <Reanimated.View
         entering={entering}
         pointerEvents="none"
         style={[StyleSheet.absoluteFill, styles.layoutCycleSurface]}
         testID={`${testID}-surface`}
       />
+      <LayoutDropHighlight active={isDropTarget} testID={`${testID}-drop-target`} />
       {isCircuitControl(openOverlay) ? <NatureOutsideZone onPress={context.onOutsidePress} testID={`${testID}-outside`} /> : null}
       <View pointerEvents="none" style={StyleSheet.absoluteFill} testID={`${testID}-rail`}>
         {/* Recette du 29/10 (obs-3 c) : le rail s'arrête à l'anneau extérieur du Cycle. */}
@@ -6424,54 +6987,53 @@ function LayoutCycleBlock({
         />
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
-      <Reanimated.View entering={entering} testID={`${testID}-header-reveal`}>
+      <Reanimated.View entering={entering} onLayout={reportHeader} testID={`${testID}-header-reveal`}>
         {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
       </Reanimated.View>
-      {cycle.members.map((member) =>
-        member.kind === "EXERCISE" ? (
-          <View key={`exercise:${member.exercise.id}`} style={styles.exerciseList} testID={`composition-layout-exercise-${member.exercise.id}`}>
-            {/* PRE-9 B.2 : Exercice direct d'un Cycle — éligible pour un Circuit. */}
-            <EnvelopeFrame
-              envelope={context.envelope}
-              target={{ kind: "EXERCISE", id: member.exercise.id }}
-              name={occurrenceCardName(member.exercise, context.levelPositions)}
-              testID={`composition-envelope-exercise-${member.exercise.id}`}
-            >
-              <LayoutExerciseRow
-                exercise={member.exercise}
-                circuit={null}
-                position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
-                railGap={LAYOUT_CYCLE_GAP}
-                rail={rail}
-                context={context}
-              />
-            </EnvelopeFrame>
-          </View>
-        ) : (
-          // PRE-9 B.2 : Circuit d'un Cycle — jamais éligible (un Cycle ne s'imbrique pas), inactif.
-          <EnvelopeFrame
-            key={`circuit:${member.circuit.id}`}
-            envelope={context.envelope}
-            target={{ kind: "CIRCUIT", id: member.circuit.id }}
-            name={layoutCircuitName(member.circuit.id, context.letters)}
-            testID={`composition-envelope-circuit-${member.circuit.id}`}
-            outset={LAYOUT_CIRCUIT_IN_CYCLE_OUTSET}
-            radius={CIRCUIT_RADIUS}
-          >
-            <LayoutCircuitBlock
-              key={`circuit:${member.circuit.id}`}
-              circuit={member.circuit}
-              inCycle
-              offsetY={cycleY}
+      {cycle.members.map((member) => {
+        const key = layoutElementKey(member);
+        const memberRaised = layoutElementHolds(member, drag?.source ?? null);
+        const node =
+          member.kind === "EXERCISE" ? (
+            <LayoutDirectExercise
+              key={key}
+              exercise={member.exercise}
+              position={{ index: directExercises.indexOf(member.exercise), count: directExercises.length }}
+              frameY={cycleY}
               railGap={LAYOUT_CYCLE_GAP}
+              raised={memberRaised}
               rail={rail}
               context={context}
-              onAnchor={onAnchor}
             />
-          </EnvelopeFrame>
-        ),
-      )}
-    </View>
+          ) : (
+            // PRE-9 B.2 : Circuit d'un Cycle — jamais éligible (un Cycle ne s'imbrique pas), inactif.
+            <EnvelopeFrame
+              key={key}
+              envelope={context.envelope}
+              target={{ kind: "CIRCUIT", id: member.circuit.id }}
+              name={layoutCircuitName(member.circuit.id, context.letters)}
+              testID={`composition-envelope-circuit-${member.circuit.id}`}
+              outset={LAYOUT_CIRCUIT_IN_CYCLE_OUTSET}
+              radius={CIRCUIT_RADIUS}
+            >
+              <LayoutCircuitBlock
+                key={key}
+                circuit={member.circuit}
+                inCycle
+                offsetY={cycleY}
+                railGap={LAYOUT_CYCLE_GAP}
+                raised={memberRaised}
+                rail={rail}
+                context={context}
+                onAnchor={onAnchor}
+              />
+            </EnvelopeFrame>
+          );
+        const before = ghosts(key);
+        return before.length === 0 ? node : [...before, node];
+      })}
+      {ghosts(null)}
+    </Animated.View>
   );
 }
 
@@ -7132,6 +7694,27 @@ const styles = StyleSheet.create({
   // du corps défilant.
   dragElevated: {
     zIndex: 1,
+  },
+  // PRE-9 B.4 : Circuit ou Cycle saisi — au premier plan, ombre de la carte soulevée.
+  layoutBlockDragged: {
+    zIndex: 2,
+    shadowColor: colors.compositionDraggedCardShadow,
+    shadowOpacity: 0.18,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  // PRE-9 B.4 (COMP §6, éclairage de la destination) : cadre du Circuit ou du Cycle visé — trait plein
+  // `color/primary` et voile de la désignation d'enveloppe (B.2), sur la boîte du conteneur.
+  layoutDropTarget: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: CIRCUIT_RADIUS,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: ENVELOPE_DESIGNATED_FILL,
   },
   // T02-S02 — carte d'Activité, D-095/D-128/D-138.
   //

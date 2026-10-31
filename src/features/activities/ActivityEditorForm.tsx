@@ -195,7 +195,8 @@ export type ActivityEditorFormProps = {
   /**
    * PRE-8 (B.2, CE-MVT-01) : `"movement"` rend la fiche Mouvement — contenu partagé seul :
    * médias dans le gabarit photo pleine largeur en tête du corps, Description, puis bloc « Phases
-   * du mouvement » (`movementPhases`, libellés sans durée) ; aucune carte ni Feuille des
+   * du mouvement » (`movementPhases`, libellés sans durée [PRE-9 A.2b, 31/10/2026 : et durée par
+   * défaut facultative]) ; aucune carte ni Feuille des
    * paramètres d'exécution, aucun accordéon de médias en bas. Mêmes nom, assistance, Catégorie,
    * Zones, Niveau, médias (mêmes commandes) et `Terminer`. Défaut `"exercise"` : éditeur
    * d'Exercice inchangé.
@@ -1035,6 +1036,7 @@ export function ActivityEditorForm({
 
           {isMovement ? (
             // PRE-8 (B.2, CE-MVT-01 §7) : phases du Mouvement (libellés, ordre), jamais de durée.
+            // [PRE-9 A.2b, 31/10/2026 (Hermann, 30/10) : plus une durée par défaut facultative par phase.]
             movementPhases ? (
               <View
                 style={[styles.section, styles.followingSection]}

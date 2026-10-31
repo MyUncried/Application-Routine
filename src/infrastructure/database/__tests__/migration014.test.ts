@@ -187,8 +187,8 @@ async function seededVersion13(): Promise<NodeSqliteDatabase> {
 }
 
 describe("migration014 — structure générale de Séance, conversion sans perte (A.3, D-449 §4)", () => {
-  it("version courante 17 (014, 015, 016 puis 017, PRE-9 A.1 et C.1)", () => {
-    expect(DATABASE_VERSION).toBe(17);
+  it("version courante 18 (014 à 018, PRE-9 A.1, C.1 et A.2b)", () => {
+    expect(DATABASE_VERSION).toBe(18);
   });
 
   it("convertit chaque Séance en [avant…, Circuit, après…] sans supprimer aucune ligne", async () => {

@@ -37,6 +37,7 @@ import {
   resolvedWorkPhasesProblem,
   unsetTarget,
   validateForSave,
+  WORK_PATTERN_DURATION_BOUNDS,
   WORK_PHASE_LIMITS,
   type CatalogExecutionParameters,
   type ExecutionParameters,
@@ -51,11 +52,30 @@ import {
  * dans le Mouvement (clé complète : Mouvement + phase), conservée au déplacement
  * et au clonage ; libellé de 1 à 20 points de code, non blanc. Aucune durée :
  * les durées appartiennent aux paramètres de chaque Exercice.
+ * [Remplacé le 31/10/2026, PRE-9 A.2b — décision de Hermann du 30/10/2026 : « les durées de la
+ * phase peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par
+ * défaut et peuvent être changées dans la séance ». La phase porte une durée FACULTATIVE
+ * (`durationSeconds`), valeur par défaut d'un NOUVEL Exercice seulement ; les durées de chaque
+ * Exercice restent ses paramètres locaux, jamais réécrits par le Mouvement (Hermann, 31/10 :
+ * « Inchangés »).]
  */
 export type MovementPhase = {
   readonly id: number;
   readonly label: string;
+  /**
+   * PRE-9 A.2b : durée par défaut de la phase, 1..3535 s (`WORK_PATTERN_DURATION_BOUNDS`) ;
+   * `null` = aucune durée (explicitement retirée ou jamais saisie). ABSENTE (`undefined`) : non
+   * renseignée par l'appelant — un Mouvement relu sans durée, ou une structure reconstruite depuis
+   * les paramètres d'un Exercice ; une mise à jour conserve alors la durée enregistrée de la même
+   * identité de phase (l'Exercice ne réécrit jamais le Mouvement).
+   */
+  readonly durationSeconds?: number | null;
 };
+
+/** PRE-9 A.2b : durée par défaut renseignée d'une phase du Mouvement, `null` sinon. */
+export function movementPhaseDefaultDuration(phase: MovementPhase): number | null {
+  return typeof phase.durationSeconds === "number" ? phase.durationSeconds : null;
+}
 
 /**
  * Appartenance à un groupe de niveaux (MFN-05, D-439) : identifiant de groupe et
@@ -149,6 +169,18 @@ export function movementPhasesProblem(phases: unknown): string | null {
     ids.add(id);
     if (isBlank(label) || codePointLength(label as string) > WORK_PHASE_LIMITS.labelMaxLength) {
       return "malformed movement phase label";
+    }
+    // PRE-9 A.2b : durée par défaut facultative, entière dans 1..3535 s.
+    const { durationSeconds } = phase as { durationSeconds?: unknown };
+    if (
+      durationSeconds !== undefined &&
+      durationSeconds !== null &&
+      (typeof durationSeconds !== "number" ||
+        !Number.isInteger(durationSeconds) ||
+        durationSeconds < WORK_PATTERN_DURATION_BOUNDS.min ||
+        durationSeconds > WORK_PATTERN_DURATION_BOUNDS.max)
+    ) {
+      return "malformed movement phase duration";
     }
   }
   return null;
@@ -252,7 +284,8 @@ export function advancePhaseCounter(movement: Movement, nextPhaseId: number): Mo
 /**
  * Remplace la structure des phases (ordre, libellés, identités) et avance le
  * compteur par `advancePhaseCounter` : une identité retirée de la structure
- * reste consommée. Aucune durée n'est portée. La validité de la structure reste
+ * reste consommée. Aucune durée n'est portée. [PRE-9 A.2b, 31/10/2026 : la durée par
+ * défaut du Mouvement suit l'identité de phase, voir le corps.] La validité de la structure reste
  * à la charge de `validateMovement`.
  *
  * Entrée invalide (lève, MFN-02, MFN/AC30) : une identité absente de la
@@ -266,8 +299,18 @@ export function withPhaseStructure(movement: Movement, phases: readonly Movement
   if (retired !== undefined) {
     throw new Error(`withPhaseStructure: retired phase id ${retired.id} cannot be reallocated (MFN-02).`);
   }
+  // PRE-9 A.2b : la durée par défaut suit l'identité de phase — celle reçue si elle est renseignée
+  // (`null` compris), sinon celle de la même identité dans la structure précédente ; une phase
+  // nouvelle n'en a aucune, une phase retirée perd la sienne.
+  const previousDurations = new Map(movement.phases.map((phase) => [phase.id, phase.durationSeconds] as const));
   return advancePhaseCounter(
-    { ...movement, phases: phases.map((phase) => ({ id: phase.id, label: phase.label })) },
+    {
+      ...movement,
+      phases: phases.map((phase) => {
+        const durationSeconds = phase.durationSeconds !== undefined ? phase.durationSeconds : previousDurations.get(phase.id);
+        return durationSeconds === undefined ? { id: phase.id, label: phase.label } : { id: phase.id, label: phase.label, durationSeconds };
+      }),
+    },
     nextPhaseId,
   );
 }
@@ -577,6 +620,10 @@ export function findMovementNameConflict<T extends { readonly id: string; readon
  * structure du geste. Fonction pure. PRE-7 (D-446) : le mode Durée n'est plus le seul éligible aux
  * phases (Répétitions et À l'échec le sont aussi) ; il reste le mode initial de la reprise,
  * comportement inchangé, l'utilisateur pouvant ensuite choisir Répétitions ou À l'échec.
+ * [PRE-9 A.2b, 31/10/2026 — décision de Hermann du 30/10 : « si elles sont renseignées elles sont
+ * reprises par défaut […], si elles n'existent pas elles sont à renseigner dans la séance ». Une
+ * phase dont le Mouvement porte une durée la reçoit ; les autres restent à renseigner (0). Valeurs
+ * COPIÉES : une modification ultérieure du Mouvement ne les change pas (Hermann, 31/10 : « Inchangés »).]
  */
 export function repriseExecutionParameters(movement: Movement, base: ExecutionParametersInput): ExecutionParametersInput {
   if (movement.phases.length === 0 || base.series.kind !== "UNIFORM") {
@@ -588,7 +635,13 @@ export function repriseExecutionParameters(movement: Movement, base: ExecutionPa
     series: {
       ...base.series,
       target: unsetTarget(),
-      workPhases: movement.phases.map((phase) => ({ id: phase.id, label: phase.label, durationSeconds: 0 })),
+      // PRE-9 A.2b (Hermann, 30/10/2026) : durée par défaut du Mouvement reprise par identité de
+      // phase si elle est renseignée ; sinon 0, à renseigner dans la Séance.
+      workPhases: movement.phases.map((phase) => ({
+        id: phase.id,
+        label: phase.label,
+        durationSeconds: movementPhaseDefaultDuration(phase) ?? 0,
+      })),
     },
   };
 }
@@ -608,6 +661,11 @@ export function repriseExecutionParameters(movement: Movement, base: ExecutionPa
  * sont conservés tels quels : D-446 rend les phases compatibles avec tous les formats (Q9), aucune
  * autre contrainte ne s'applique. Les durées vides laissent l'exercice incomplet, signalé et bloqué
  * par la validation existante (C05, `hasMissingPhaseDuration`). Fonction pure.
+ * [31/10/2026, PRE-9 A.2b — réponse de Hermann : « les durées par défaut de toutes les phases sont
+ * reprises ». Lecture appliquée : toute phase du mouvement choisi qui porte une durée par défaut la
+ * reçoit (elle remplace la durée locale du même rang) ; une phase sans durée par défaut suit la règle
+ * ci-dessus (durée locale du même rang, sinon vide). Remplace, pour ces phases, « durée du rang i
+ * reprise » et « sans → phases, durées vides ».]
  */
 export function transferParametersByRank(
   parameters: ExecutionParametersInput,
@@ -617,7 +675,7 @@ export function transferParametersByRank(
   const workPhases: WorkPhase[] = targetPhases.map((phase, rank) => ({
     id: phase.id,
     label: phase.label,
-    durationSeconds: source[rank]?.durationSeconds ?? 0,
+    durationSeconds: movementPhaseDefaultDuration(phase) ?? source[rank]?.durationSeconds ?? 0,
   }));
   return { ...parameters, series: { ...parameters.series, workPhases } };
 }

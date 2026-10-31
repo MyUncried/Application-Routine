@@ -66,6 +66,10 @@ export type MovementExerciseDefaults = {
  * rebours et Fin du Profil, phases du Mouvement à durées vides (`repriseExecutionParameters`) ;
  * aucune Récupération automatique (`null`, AD-35). Paramètres incomplets tant qu'ils ne sont pas
  * réglés : la Composition le signale et bloque l'enregistrement (D-389).
+ * [PRE-9 A.2b, 31/10/2026 — décision de Hermann du 30/10 : « à durées vides » est remplacé par
+ * « durées par défaut du Mouvement reprises par identité de phase, vides où le Mouvement n'en a
+ * pas ». Valeurs copiées dans l'Exercice : ni sa modification dans la Séance ne touche le
+ * Mouvement, ni une modification ultérieure du Mouvement ne touche l'Exercice (31/10 : « Inchangés »).]
  */
 export function exerciseOfMovement(movement: Movement, id: string, defaults: MovementExerciseDefaults): SessionDraftExercise {
   return {

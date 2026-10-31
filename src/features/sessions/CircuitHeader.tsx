@@ -22,6 +22,7 @@ import { scheduleOnRN } from "react-native-worklets";
 import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { CircuitNature } from "@/domain/sessions/circuit";
 import { CircuitNatureMenu } from "@/features/sessions/CircuitNatureMenu";
+import { LONG_PRESS_DELAY_MS } from "@/features/sessions/compositionGesture";
 import { strings } from "@/shared/i18n";
 import { KodjoIcon } from "@/shared/ui/KodjoIcon";
 import {
@@ -274,8 +275,33 @@ export type CircuitHeaderProps = {
    * de l'anneau du rail (dessiné par l'écran) ; 0 par défaut.
    */
   readonly titleInset?: number;
+  /**
+   * PRE-9 B.4 (COMP §6) : appui long sur le nom et le chevron — saisie du Circuit pour le glisser
+   * (un Circuit déployé est d'abord replié par l'écran). Absent : appui court seul.
+   */
+  readonly onLongPress?: () => void;
+  /** PRE-9 B.4 : alternatives accessibles au glisser (« Monter » / « Descendre »). */
+  readonly moveActions?: ContainerMoveActions;
   readonly testID: string;
 };
+
+/** PRE-9 B.4 : actions accessibles de déplacement pas à pas d'un conteneur, `null` si indisponible. */
+export type ContainerMoveActions = { readonly moveUp: (() => void) | null; readonly moveDown: (() => void) | null };
+
+/** Actions accessibles « Monter » / « Descendre » disponibles (libellés des cartes d'occurrence). */
+export function containerMoveAccessibility(actions: ContainerMoveActions | undefined) {
+  const labels = strings.screens.composition.activityActions;
+  return {
+    accessibilityActions: [
+      ...(actions?.moveUp ? [{ name: "moveUp", label: labels.moveUp }] : []),
+      ...(actions?.moveDown ? [{ name: "moveDown", label: labels.moveDown }] : []),
+    ],
+    onAccessibilityAction: (event: { readonly nativeEvent: { readonly actionName: string } }) => {
+      if (event.nativeEvent.actionName === "moveUp") actions?.moveUp?.();
+      if (event.nativeEvent.actionName === "moveDown") actions?.moveDown?.();
+    },
+  };
+}
 
 /**
  * En-tête du Circuit (PRE-6 story 3.1, CIR-10, AD-41, AD-42), rendu dans le conteneur Circuit
@@ -327,6 +353,8 @@ export function CircuitHeader({
   translateY,
   entering,
   titleInset = 0,
+  onLongPress,
+  moveActions,
   testID,
 }: CircuitHeaderProps) {
   const t = strings.screens.composition.circuit;
@@ -349,6 +377,9 @@ export function CircuitHeader({
         {/* ARB-12 : le nom et le chevron forment une seule cible réelle de 44 de haut. */}
         <Pressable
           onPress={onToggleCollapsed}
+          onLongPress={onLongPress}
+          delayLongPress={LONG_PRESS_DELAY_MS}
+          {...containerMoveAccessibility(moveActions)}
           accessibilityRole="button"
           // Revue 5.2 : VoiceOver lit la durée juste après le nom (elle est affichée à droite).
           accessibilityLabel={`${title}, ${duration}`}

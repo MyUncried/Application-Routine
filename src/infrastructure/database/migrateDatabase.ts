@@ -19,6 +19,7 @@ import { applyMigration014 } from "./migrations/migration014";
 import { applyMigration015 } from "./migrations/migration015";
 import { applyMigration016 } from "./migrations/migration016";
 import { applyMigration017 } from "./migrations/migration017";
+import { applyMigration018 } from "./migrations/migration018";
 
 type UserVersionRow = { user_version: number };
 type CountRow = { count: number };
@@ -223,6 +224,14 @@ export async function migrateDatabase(
     if (pending(16)) {
       await applyMigration017(transaction);
       version = 17;
+    }
+
+    // PRE-9 (A.2b, décisions de Hermann des 30 et 31/10/2026) : durée facultative d'une phase du
+    // Mouvement, colonne additive nullable `movement_phases.duration_seconds` ; toute phase existante
+    // reste sans durée. Un échec annule tout et laisse `user_version` à 17.
+    if (pending(17)) {
+      await applyMigration018(transaction);
+      version = 18;
     }
 
     if (version !== targetVersion) {

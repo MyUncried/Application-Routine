@@ -16,7 +16,7 @@ development_status:
   epic-a: in-progress
   a-1-fondation-structure-generale: done  # livrée (migration 016, chemin structuré) ; suite Jest complète verte (224 suites / 4 783 tests) le 29/10 ; spec-a-1-fondation-structure-generale.md  # migration 016 (Exercices directs de Cycle, Point dans un Cycle)
   a-2-exercice-depuis-mouvement: review  # livrée (spec-a-2-exercice-depuis-mouvement.md) ; menu Créer conforme à Figma ; suite complète verte 241 / 4 896 le 29/10 ; recette n° 1 ; ARB-22a, ARB-07 (décidés)
-  a-2b-durees-phases-mouvement: backlog  # ajoutée le 30/10 (contre-recette n° 1), placée après B.3 par décision de Hermann
+  a-2b-durees-phases-mouvement: review  # ajoutée le 30/10 (contre-recette n° 1), placée après B.3 par décision de Hermann ; livrée 31/10 (spec-a-2b-durees-phases-mouvement.md) ; migration 018 approuvée par Hermann le 31/10 (A.4 → 019, A.5 → 020) ; tests ciblés verts, suite complète et recette iPhone en attente ; réponses de Hermann du 31/10 appliquées (enregistrement direct, rendu à juger en recette n° 2, Cible à saisir, défauts repris au changement de niveau)
   a-4-conversion-e8b: backlog  # ARB-01 validé : conversion automatique sans perte
   a-3-retrait-parcours-exercices-autonomes: backlog  # après A.4
   a-5-retrait-table-definitions: backlog  # conditionnelle : non-utilisation, conservation prouvée, autorisation de Hermann
@@ -24,7 +24,7 @@ development_status:
   b-1-rendu-structure: done  # B.1a (spec-b-1a-en-tete-circuit-d451.md) et B.1b (spec-b-1b-rendu-cycles-circuits.md) livrées ; gestes en structure générale reportés B.4–B.6 ; suite complète verte 232 / 4 837 le 29/10 ; ARB-12, ARB-13, ARB-19 (décidés)
   b-2-menu-creer-enveloppe: review  # livrée (spec-b-2-menu-creer-enveloppe.md) ; suite complète verte 239 / 4 879 le 29/10 ; recette iPhone n° 1 faite le 29/10 (KO base-3, ent-3, obs-3, constats a–k) ; corrections : spec-recette-1-corrections.md, suite complète verte 245 / 4 908 ; contre-recette du 30/10 faite (KO r1-carte, r1-cycle, r1-menu, r1-exo, r1-fondu + constats), corrigée hors r1-fondu (à clarifier) ; contre-recette n° 2 en attente ; ARB-06, ARB-07 (décidés)
   b-3-series-par-circuit-cibles-zero: review  # livrée 31/10 (spec-b-3-series-par-circuit-cibles-zero.md) ; ARB-10 (décidé) ; règles par Circuit (N, conversions, réserve, entrée en Circuit alterné), déplacement en domaine (geste B.4), cibles 0 et ZERO_VOLUME sans migration ; tests ciblés verts, suite complète et recette iPhone en attente ; À CLARIFIER : ligne ajoutée « — » ou copie, [0, à l'échec], rendu du volume nul
-  b-4-glisser-deposer-conteneurs: backlog  # ARB-06, ARB-09, ARB-24 (décidés)
+  b-4-glisser-deposer-conteneurs: review  # livrée 31/10 (spec-b-4-glisser-deposer-conteneurs.md) ; ARB-06, ARB-09, ARB-24 (décidés) ; moveLayoutItem / stepLayoutItem, point d'appel du contrôle avant dépose (neutre, C.4), glisser G1–G8 + Cycle entier en disposition générale, éclairage, défilement automatique, Circuit vidé effacé (900 + 700 ms) ; tests ciblés verts, suite complète et recette iPhone en attente ; NON RÉALISÉ : en-têtes collantes CS-D2–D6/D8 (décision attendue) ; Points d'arrêt en structure générale : B.6
   b-4b-enveloppe-multiple-perimetre: backlog  # ajoutée le 29/10 (recette n° 1, constat i), placée après B.4 par décision de Hermann
   b-5-suppression-duplication: backlog  # ARB-08, ARB-17 (décidés)
   b-6-pauses-points-arret: backlog  # ARB-02a/b (décidés)

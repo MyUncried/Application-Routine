@@ -1,17 +1,21 @@
 import { useEffect, useRef, useState, type ReactElement } from "react";
-import { StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View, type AccessibilityActionEvent } from "react-native";
 
-import { WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
+import { formatPhraseDuration } from "@/domain/activities/durationFormat";
+import { WORK_PATTERN_DURATION_BOUNDS, WORK_PHASE_LIMITS } from "@/domain/activities/ExecutionParameters";
+import { movementPhaseDefaultDuration } from "@/domain/activities/Movement";
 import {
   addMovementPhase,
   moveMovementPhase,
   removeMovementPhase,
   renameMovementPhase,
+  setMovementPhaseDuration,
   type MovementPhaseList,
 } from "@/domain/activities/movementPhaseList";
+import { DurationWheelPicker } from "@/features/sessions/DurationWheelPicker";
 import { codePointLength } from "@/domain/sessions/validation";
 import { strings } from "@/shared/i18n";
-import { colors, spacing, type } from "@/shared/ui/tokens";
+import { colors, minTouchTarget, spacing, type } from "@/shared/ui/tokens";
 
 /**
  * PRE-8 (story B.2, CE-MVT-01 §7 et §12, Figma « DSF / Formulaires / Phases du mouvement »
@@ -29,6 +33,15 @@ import { colors, spacing, type } from "@/shared/ui/tokens";
  * `WORK_PHASE_LIMITS.labelMaxLength` points de code (20), la limite du modèle d'exécution, en
  * création comme en modification : une saisie qui la dépasse est refusée. En lecture seule :
  * libellés seuls, sans invite. Aucune exigence de phase : un Mouvement peut n'en avoir aucune.
+ *
+ * [Remplacé le 31/10/2026, PRE-9 A.2b — décision de Hermann du 30/10/2026 : « les durées de la phase
+ * peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par défaut et
+ * peuvent être changées dans la séance ». « JAMAIS de durée » ci-dessus est remplacé : chaque phase
+ * porte une durée FACULTATIVE, affichée à droite de son libellé (« Durée » en invite si elle est
+ * vide). La toucher ouvre, sous la ligne, la roulette de durée partagée (`DurationWheelPicker`,
+ * bornes 1..3535 s, `WORK_PATTERN_DURATION_BOUNDS`, ouverture sur `00:00` quand elle est vide) ;
+ * « Sans durée » la retire. En lecture seule : durée renseignée affichée, rien sinon. Aucun rendu
+ * Figma de cette durée (`10450:24387` n'en montre pas) : rendu CHOISI, à valider en recette.]
  */
 
 const t = strings.screens.movement.phases;
@@ -41,6 +54,11 @@ const NUMBER_WIDTH = 16;
 const TITLE_TO_LIST = spacing[10];
 /** Numéro et texte de l'invite, comme la Description (`#AEB3BA`, sans jeton). */
 const PROMPT_COLOR = "#AEB3BA";
+
+/** PRE-9 A.2b : largeur de la valeur de durée, celle d'une cellule Durée du tableau des phases (76). */
+const DURATION_WIDTH = 76;
+/** Hauteur de la valeur de durée (ligne de texte) ; cible portée à 44 par `hitSlop`. */
+const DURATION_TOUCH_HEIGHT = 20;
 
 /** Libellé admis (F06) : au plus `WORK_PHASE_LIMITS.labelMaxLength` points de code. */
 export function isPhaseLabelWithinLimit(label: string): boolean {
@@ -125,6 +143,9 @@ export function MovementPhasesEditor({
   // Recette du 27/10 (remarque 2, accord de Hermann) : comme la Description, Entrée sur une phase
   // ouvre la phase suivante JUSTE APRÈS elle — l'invite se place sous la phase (`null` : en fin).
   const [inviteAfter, setInviteAfter] = useState<number | null>(null);
+  // PRE-9 A.2b : phase dont la roulette de durée est ouverte (une seule à la fois).
+  const [durationOpen, setDurationOpen] = useState<number | null>(null);
+  const openDurationPhase = editable && value.phases.some((phase) => phase.id === durationOpen) ? durationOpen : null;
   useEffect(() => {
     if (pendingFocus.current === null) return;
     inputs.current.get(pendingFocus.current)?.focus();
@@ -215,9 +236,11 @@ export function MovementPhasesEditor({
                   {phase.label}
                 </Text>
               )}
+              {renderDuration(phase.id, movementPhaseDefaultDuration(phase), rank)}
             </View>
           );
-          return showInvite && inviteIndex === index ? [row, renderInvite()] : [row];
+          const withWheel = openDurationPhase === phase.id ? [row, renderDurationWheel(phase.id, rank)] : [row];
+          return showInvite && inviteIndex === index ? [...withWheel, renderInvite()] : withWheel;
   });
   if (showInvite && inviteIndex === null) items.push(renderInvite());
 
@@ -236,6 +259,74 @@ export function MovementPhasesEditor({
       </View>
     </View>
   );
+
+  /** PRE-9 A.2b : durée par défaut de la phase, à droite du libellé. */
+  function renderDuration(phaseId: number, seconds: number | null, rank: string) {
+    const shown = seconds === null ? null : formatPhraseDuration(seconds);
+    if (!editable) {
+      return shown === null ? null : (
+        <Text style={styles.duration} testID={`${testID}-duration-${rank}`}>
+          {shown}
+        </Text>
+      );
+    }
+    const slop = (minTouchTarget - DURATION_TOUCH_HEIGHT) / 2;
+    return (
+      <Pressable
+        onPress={() => {
+          Keyboard.dismiss();
+          setDurationOpen((current) => (current === phaseId ? null : phaseId));
+        }}
+        accessibilityRole="button"
+        accessibilityLabel={`${t.durationAccessibility.replace("{rank}", rank)}, ${shown ?? t.durationNone}`}
+        accessibilityState={{ expanded: openDurationPhase === phaseId }}
+        hitSlop={{ top: slop, bottom: slop }}
+        style={styles.durationButton}
+        testID={`${testID}-duration-${rank}`}
+      >
+        <Text style={[styles.duration, shown === null ? styles.durationPrompt : null]}>{shown ?? t.durationPrompt}</Text>
+      </Pressable>
+    );
+  }
+
+  /** PRE-9 A.2b : roulette de durée sous la ligne de la phase ; ✓ applique, ✕ ferme sans rien changer. */
+  function renderDurationWheel(phaseId: number, rank: string) {
+    const phase = phases.find((candidate) => candidate.id === phaseId);
+    const current = phase === undefined ? null : movementPhaseDefaultDuration(phase);
+    const wheelLabels = strings.screens.exercise.wheelPicker;
+    return (
+      <View key={`duration-${phaseId}`} style={styles.wheel} testID={`${testID}-duration-wheel-${rank}`}>
+        <DurationWheelPicker
+          totalSeconds={current ?? 0}
+          targetBounds={WORK_PATTERN_DURATION_BOUNDS}
+          title={t.durationWheelTitle}
+          onValidate={(seconds) => {
+            setDurationOpen(null);
+            onChange(setMovementPhaseDuration(value, phaseId, seconds));
+          }}
+          onCancel={() => setDurationOpen(null)}
+          minutesAccessibilityLabel={wheelLabels.minutesAccessibilityLabel}
+          secondsAccessibilityLabel={wheelLabels.secondsAccessibilityLabel}
+          cancelAccessibilityLabel={wheelLabels.cancelAccessibilityLabel}
+          validateAccessibilityLabel={wheelLabels.validateAccessibilityLabel}
+        />
+        {current !== null ? (
+          <Pressable
+            onPress={() => {
+              setDurationOpen(null);
+              onChange(setMovementPhaseDuration(value, phaseId, null));
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={t.durationClear}
+            style={styles.clearButton}
+            testID={`${testID}-duration-clear-${rank}`}
+          >
+            <Text style={styles.clearLabel}>{t.durationClear}</Text>
+          </Pressable>
+        ) : null}
+      </View>
+    );
+  }
 
   function renderInvite() {
     const position = inviteIndex === null ? phases.length : inviteIndex + 1;
@@ -315,6 +406,33 @@ const styles = StyleSheet.create({
   },
   promptNumber: {
     color: PROMPT_COLOR,
+  },
+  // PRE-9 A.2b (rendu choisi) : valeur de durée alignée à droite, sur la largeur d'une cellule Durée.
+  durationButton: {
+    width: DURATION_WIDTH,
+    minHeight: DURATION_TOUCH_HEIGHT,
+    alignItems: "flex-end",
+  },
+  duration: {
+    ...type.body,
+    color: colors.textPrimary,
+    textAlign: "right",
+  },
+  durationPrompt: {
+    color: PROMPT_COLOR,
+  },
+  wheel: {
+    alignItems: "center",
+    gap: spacing[8],
+  },
+  clearButton: {
+    minHeight: minTouchTarget,
+    justifyContent: "center",
+    paddingHorizontal: spacing[8],
+  },
+  clearLabel: {
+    ...type.body,
+    color: colors.primary,
   },
   text: {
     ...type.body,

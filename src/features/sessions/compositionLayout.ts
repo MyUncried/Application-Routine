@@ -24,10 +24,13 @@ export type ResolvedLayoutElement = StructureElement<SessionDraftExercise>;
  * identifiant absent du brouillon n'est pas rendu (un conteneur garde sa place, même vide) ; un
  * Exercice du brouillon absent de la disposition (ajouté depuis la Composition) est rendu à la fin,
  * au niveau de la Séance, là où l'enregistrement le place.
+ *
+ * PRE-9 B.4 : `force` — rendu selon la structure même représentable dans l'ancien modèle, le temps
+ * de l'effacement d'un conteneur vidé par une dépose.
  */
-export function resolveRichLayout(draft: Pick<SessionDraft, "structure" | "exercises">): ResolvedLayout | null {
+export function resolveRichLayout(draft: Pick<SessionDraft, "structure" | "exercises">, force = false): ResolvedLayout | null {
   const layout = draft.structure;
-  if (layout === undefined || legacyFromStructure(layout) !== null) {
+  if (layout === undefined || (!force && legacyFromStructure(layout) !== null)) {
     return null;
   }
   const byId = new Map(draft.exercises.map((exercise) => [exercise.id, exercise]));

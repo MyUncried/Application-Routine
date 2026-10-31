@@ -199,7 +199,7 @@ Terminer valide le brouillon et revient au contexte appelant avec l'identité en
 
 ### 5. Données affichées et source de vérité
 
-Mouvement partagé : nom, alias existants, catégorie, zones corporelles, description, médias, phases (identités et libellés), groupe et clé de tri. Rang calculé à la lecture. Pendant l'édition, afficher le brouillon. Paramètres d'exécution et durées des phases absents. Compter les exercices réellement liés ; vérifier séparément les exécutions par identité.
+Mouvement partagé : nom, alias existants, catégorie, zones corporelles, description, médias, phases (identités et libellés), groupe et clé de tri. Rang calculé à la lecture. Pendant l'édition, afficher le brouillon. Paramètres d'exécution et durées des phases absents. [31/10/2026, story A.2b — décisions de Hermann du 30/10 (« les durées de la phase peuvent faire partie du mouvement, si elles sont renseignées elles sont reprises par défaut et peuvent être changées dans la séance, si elles n'existent pas elles sont à renseigner dans la séance ») et du 31/10 (Exercices existants « Inchangés ») : chaque phase du mouvement porte une durée par défaut FACULTATIVE, reprise par identité de phase dans un nouvel exercice seulement ; voir ch07 « A.2b et B.4b — précisions de Hermann du 31/10/2026 ».] Compter les exercices réellement liés ; vérifier séparément les exécutions par identité.
 
 ### 6. Classification des valeurs Figma
 
@@ -265,7 +265,7 @@ Mouvement ≠ paramètres d'exécution ; aucun exercice implicite ; noms uniques
 
 Exécuter MVT-01 à MVT-12 de la spécification ciblée, avec le corpus automatique R07 complet et les tests existants de sauvegarde, phases et lecture partagée. Vérifier visuellement les six états principaux du chapitre 06 sur terminal (clavier, scroll et safe areas compris). Les 25 PNG sont des références d'états ; leur présence n'est pas une preuve de conformité du code.
 
-> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées, modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
+> **Référence ciblée — parcours Mouvement, 27/10/2026.** [Création et modification des mouvements](../DSF-MOUVEMENTS-CREATION-EDITION-2026-10-27.md) remplace, sur ce périmètre seulement, les anciens écrans de création d’exercice : nouveau gabarit, structure des phases sans durées [31/10/2026, A.2b : plus une durée par défaut facultative par phase — voir ch07 « A.2b et B.4b — précisions de Hermann du 31/10/2026 ».], modification et variante depuis le catalogue des mouvements. Le crayon et la création de variante depuis une séance ne sont plus des parcours cibles. Les règles de recherche R01–R08 et de sauvegarde C03 restent applicables. Les autres lots de la simplification ne sont pas déclarés documentés ou livrés par cette mise à jour.
 
 > **Cible validée D-449 — 26/10/2026.** [Six décisions closes](../KODJO-Seance-Objet-Unique-Decisions-2026-10-26.md). Les dispositions ci-dessous sur l’exercice autonome de catalogue, le lancement `ACTIVITY`, le cycle technique unique et les catalogues séparés par nature décrivent le modèle antérieur et sont remplacées sur ces seuls points. Les autres règles restent applicables. La réalisation et les visuels Figma ne sont pas déclarés livrés.
 
@@ -5759,7 +5759,7 @@ Sans groupe ; deux membres ; groupe singleton ; trois et plus de trois niveaux ;
 
 #### 12. Contrôles et interactions
 
-Choix difficulté = insertion avant/après l’origine. Changer dans une séance : nouvelle occurrence dans le brouillon, durée transférée par rang, complément des seules valeurs manquantes. Les paramètres indépendants du mouvement restent modifiables.
+Choix difficulté = insertion avant/après l’origine. Changer dans une séance : nouvelle occurrence dans le brouillon, durée transférée par rang, complément des seules valeurs manquantes. [31/10/2026, A.2b — réponse de Hermann : « les durées par défaut de toutes les phases sont reprises ». Lecture appliquée : lors d'un changement de niveau, toute phase du mouvement choisi qui porte une durée par défaut la reçoit (elle remplace la durée locale du même rang) ; une phase sans durée par défaut suit la règle ci-dessus (durée locale du même rang, sinon vide). Voir ch07 « A.2b et B.4b — précisions de Hermann du 31/10/2026 ».] Les paramètres indépendants du mouvement restent modifiables.
 
 #### 13. Gestes
 

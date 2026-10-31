@@ -130,11 +130,23 @@ function validatedContent(content: MovementContent): MovementContent {
   return { ...result.value, media: content.media };
 }
 
-async function insertPhases(transaction: Database, movementId: string, phases: readonly MovementPhase[]): Promise<void> {
+/**
+ * PRE-9 A.2b (`migration018`) : la durée par défaut d'une phase est écrite si elle est renseignée ;
+ * `null` ou absente → `NULL`. `kept` (mise à jour) : durées enregistrées par identité de phase,
+ * reprises pour une phase reçue SANS durée renseignée (`undefined`) — structure reconstruite depuis
+ * les paramètres d'un Exercice (Séance, Catalogue) : l'Exercice ne réécrit jamais le Mouvement.
+ */
+async function insertPhases(
+  transaction: Database,
+  movementId: string,
+  phases: readonly MovementPhase[],
+  kept: ReadonlyMap<number, number | null> = new Map(),
+): Promise<void> {
   for (const [position, phase] of phases.entries()) {
+    const durationSeconds = phase.durationSeconds !== undefined ? phase.durationSeconds : (kept.get(phase.id) ?? null);
     await transaction.runAsync(
-      "INSERT INTO movement_phases (movement_id, phase_id, position, label) VALUES (?, ?, ?, ?)",
-      [movementId, phase.id, position, phase.label],
+      "INSERT INTO movement_phases (movement_id, phase_id, position, label, duration_seconds) VALUES (?, ?, ?, ?, ?)",
+      [movementId, phase.id, position, phase.label, durationSeconds],
     );
   }
 }
@@ -245,8 +257,17 @@ export async function updateMovementContent(
     throw new Error("Expected exactly one movement row to be updated.");
   }
   await replaceAliases(transaction, movement.id, movement.aliases);
+  const storedDurations = await transaction.getAllAsync<{ phase_id: number; duration_seconds: number | null }>(
+    "SELECT phase_id, duration_seconds FROM movement_phases WHERE movement_id = ?",
+    [movement.id],
+  );
   await transaction.runAsync("DELETE FROM movement_phases WHERE movement_id = ?", [movement.id]);
-  await insertPhases(transaction, movement.id, movement.phases);
+  await insertPhases(
+    transaction,
+    movement.id,
+    movement.phases,
+    new Map(storedDurations.map((row) => [row.phase_id, row.duration_seconds] as const)),
+  );
   await transaction.runAsync("DELETE FROM movement_body_zones WHERE movement_id = ?", [movement.id]);
   await insertBodyZones(transaction, movement.id, movement.bodyZoneIds);
   if (content.media !== undefined) {
@@ -289,7 +310,7 @@ async function assembleRecords(
   }
   const ids = rows.map((row) => row.id);
   const phaseRows = await database.getAllAsync<MovementPhaseRow>(
-    `SELECT movement_id, phase_id, position, label FROM movement_phases
+    `SELECT movement_id, phase_id, position, label, duration_seconds FROM movement_phases
      WHERE movement_id IN (${placeholders(ids)}) ORDER BY movement_id ASC, position ASC`,
     ids,
   );
@@ -334,7 +355,12 @@ async function assembleRecords(
       media,
       categoryId: row.category_id,
       bodyZoneIds: (zonesById.get(row.id) ?? []).map((zone) => zone.body_zone_id),
-      phases: (phasesById.get(row.id) ?? []).map((phase) => ({ id: phase.phase_id, label: phase.label })),
+      // PRE-9 A.2b : durée par défaut portée seulement si elle est renseignée (absente sinon).
+      phases: (phasesById.get(row.id) ?? []).map((phase) =>
+        phase.duration_seconds === null
+          ? { id: phase.phase_id, label: phase.label }
+          : { id: phase.phase_id, label: phase.label, durationSeconds: phase.duration_seconds },
+      ),
       nextPhaseId: row.next_phase_id,
       aliases: (aliasesById.get(row.id) ?? []).map((alias) => alias.alias),
       levelGroup:
