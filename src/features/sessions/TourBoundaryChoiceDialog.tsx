@@ -9,6 +9,11 @@ export type TourBoundaryChoiceDialogProps = {
   readonly onChoose: (choice: TourBoundaryChoice) => void;
   /** « Annuler » (et, sur Android, retour système ou toucher hors du dialogue) : rien ne change. */
   readonly onCancel: () => void;
+  /**
+   * PRE-9 B.6 (ARB-02b) : portée répétée en cause — Circuit (Tours, défaut) ou Cycle (répétitions :
+   * « Début de répétition » / « Fin de répétition »). Même dialogue, mêmes opérations.
+   */
+  readonly scope?: "CIRCUIT" | "CYCLE";
 };
 
 /**
@@ -22,8 +27,10 @@ export type TourBoundaryChoiceDialogProps = {
  * Les rappels lisent toujours les dernières props (le choix est rejoué sur l'état COURANT par
  * l'écran). Rien n'est rendu : le dialogue est celui du système.
  */
-export function TourBoundaryChoiceDialog({ onChoose, onCancel }: TourBoundaryChoiceDialogProps) {
+export function TourBoundaryChoiceDialog({ onChoose, onCancel, scope = "CIRCUIT" }: TourBoundaryChoiceDialogProps) {
   const latest = useRef({ onChoose, onCancel });
+  // La portée est celle de la demande qui a monté le dialogue (ouvert une fois par montage).
+  const initialScope = useRef(scope);
   useEffect(() => {
     latest.current = { onChoose, onCancel };
   }, [onCancel, onChoose]);
@@ -32,7 +39,8 @@ export function TourBoundaryChoiceDialog({ onChoose, onCancel }: TourBoundaryCho
   useEffect(() => {
     if (shown.current) return;
     shown.current = true;
-    const t = strings.screens.composition.tourBoundaryChoice;
+    const t =
+      initialScope.current === "CYCLE" ? strings.screens.composition.repetitionBoundaryChoice : strings.screens.composition.tourBoundaryChoice;
     // Un seul rappel par dialogue (Android peut signaler une fermeture après un bouton).
     let settled = false;
     const settle = (action: () => void) => {

@@ -214,13 +214,18 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
     expect(envelopeSpanReach(draft, "CIRCUIT", span(ex("a")))?.run).toEqual([ex("a")]);
   });
 
-  it("Séance à Points d'arrêt : aucune extension (suivi des Points : B.6) ; un périmètre étendu n'est pas posé", () => {
+  // [B.4b : « Séance à Points d'arrêt : aucune extension (suivi des Points : B.6) ; un périmètre étendu
+  // n'est pas posé » — remplacé le 31/10/2026 par B.6.]
+  it("Séance à Points d'arrêt (B.6) : extension comme sans Point ; un Point entre deux contenus réunis entre dans le Circuit, un Point d'après reste autour", () => {
     const draft = flat(["a", "b", "c"], [{ id: "p", scope: "BEFORE_TOUR", position: 2 }]);
-    expect(envelopeSpanReach(draft, "CIRCUIT", span(ex("a")))).toEqual({ run: [ex("a")], start: 0, end: 0 });
-    expect(adjustEnvelopeSpan(draft, "CIRCUIT", span(ex("a")), "BOTTOM", 1).members).toEqual([ex("a")]);
-    expect(wrapSpansInContainers(draft, [span(ex("a"), ex("b"))], "CIRCUIT", ids)).toBe(draft);
-    // Un périmètre à un seul Exercice reste posable (comme en B.2).
-    expect(legacyFromStructure(wrapSpansInContainers(draft, [span(ex("a"))], "CIRCUIT", () => "k").structure!)?.composition.tour.id).toBe("k");
+    expect(envelopeSpanReach(draft, "CIRCUIT", span(ex("a")))).toEqual({ run: [ex("a"), ex("b"), ex("c")], start: 0, end: 0 });
+    expect(adjustEnvelopeSpan(draft, "CIRCUIT", span(ex("a")), "BOTTOM", 1).members).toEqual([ex("a"), ex("b")]);
+    // [a, b, P, c] → [Circuit k [a, b], P, c] : P après le Circuit (ancien modèle : AFTER_TOUR 0).
+    const after = wrapSpansInContainers(draft, [span(ex("a"), ex("b"))], "CIRCUIT", () => "k");
+    expect(after.stopPoints).toEqual([{ id: "p", scope: "AFTER_TOUR", position: 0 }]);
+    // [a, b, P, c] → [Circuit k [b, P, c]] … ici [b, c] réunis : P entre eux, dans le Circuit.
+    const inside = wrapSpansInContainers(draft, [span(ex("b"), ex("c"))], "CIRCUIT", () => "k");
+    expect(inside.stopPoints).toEqual([{ id: "p", scope: "IN_TOUR", position: 1 }]);
   });
 
   it("brouillon de l'ancien modèle jamais enregistré : le Circuit unique est désigné par son identifiant provisoire", () => {

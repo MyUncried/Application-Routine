@@ -663,6 +663,12 @@ export const fr = {
         // PRE-6 story 6.2 : point en tête de portée (données héritées), formulation à valider.
         stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
         stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
+        // PRE-9 B.6 (ARB-02a/b) : emplacements d’un Cycle (début et fin de répétition) et après un
+        // Circuit ou un Cycle désigné par sa lettre (ARB-13). Formulations à valider.
+        addStopPointAtCycleStartAccessibilityLabel: "Ajouter un point d’arrêt au début du cycle",
+        addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
+        stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
+        existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
         confirmSingular: "Confirmer {n} pause ajoutée",
         confirmPlural: "Confirmer {n} pauses ajoutées",
         // PRE-6 story 6.3 (D-441, arbitrage du 22/10/2026) : retrait de point, mélange ou modification
@@ -737,11 +743,15 @@ export const fr = {
         refused: {
           NESTING: "Dépose impossible : un circuit ne va pas dans un circuit, ni un cycle dans un cycle",
           FORMAT_INCOMPATIBLE: "Dépose impossible : le format de cet exercice n’est pas compatible avec ce circuit",
-          STOP_POINTS: "Dépose impossible tant que la séance contient des points d’arrêt",
+          // [B.4 : « STOP_POINTS: Dépose impossible tant que la séance contient des points d’arrêt » —
+          // refus retiré le 31/10/2026 par B.6.]
           CONTROL: "Dépose impossible",
           NOT_FOUND: "",
           AT_BOUNDARY: "",
         },
+        // PRE-9 B.6 (D-441, RM-251, ARB-06) : dépose d'un Point d'arrêt refusée sans mutation (position
+        // interdite, occupée, ou consécutive à un autre Point). Formulation à valider.
+        stopPointRefused: "Dépose impossible : un point d’arrêt ne peut pas être placé ici",
       },
       // PRE-6 story 7.2 (D-442) : la récupération ne se règle plus hors placement — la bulle « Retirer
       // la récupération » et les actions « Modifier » / « Retirer la récupération » de la carte
@@ -763,6 +773,16 @@ export const fr = {
         message: "Les deux se suivraient entre deux tours. Lequel conserver ?",
         head: "Début de tour",
         tail: "Fin de tour",
+        cancel: "Annuler",
+      },
+      // PRE-9 B.6 (ARB-02b : « demande de choix entre point de début et point de fin de répétition […]
+      // même formulation et mêmes opérations que D-442 ») : même dialogue pour un Cycle répété, ses
+      // répétitions au lieu des tours. Formulation à valider (À CLARIFIER de la spec B.6).
+      repetitionBoundaryChoice: {
+        title: "Point d’arrêt en début et en fin de répétition",
+        message: "Les deux se suivraient entre deux répétitions du cycle. Lequel conserver ?",
+        head: "Début de répétition",
+        tail: "Fin de répétition",
         cancel: "Annuler",
       },
       // PRE-6 story 7.2 (D-442) : points retirés sans message par un déplacement d’Exercice, un

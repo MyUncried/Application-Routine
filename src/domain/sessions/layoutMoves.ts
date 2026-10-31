@@ -23,9 +23,14 @@
  * - ARB-24 : point d'appel d'un contrôle avant dépose (`LayoutDropControl` : accepté / accepté après
  *   confirmation / refusé sans mutation), neutre par défaut ; C.4 y branche ses règles.
  *
- * Points d'arrêt : une disposition générale n'en porte aucun avant B.6 (`STRUCTURE_STOP_POINTS_UNSUPPORTED`) ;
- * un brouillon qui en porte refuse ces déplacements sans altération (`STOP_POINTS`) — l'ancien modèle
- * garde son glisser historique (Points compris).
+ * Points d'arrêt : [B.4 : « une disposition générale n'en porte aucun avant B.6 ; un brouillon qui en
+ * porte refuse ces déplacements sans altération (`STOP_POINTS`) » — remplacé le 31/10/2026 par B.6.]
+ * PRE-9 B.6 (ARB-02 règles 1 à 3 et 5, ARB-06, D-441, D-442) : les Points restent à leur place dans la
+ * séquence (`layoutStopPoints.ts`) ; un conteneur déplacé emporte les siens ; puis la règle tolérante
+ * de D-442 s'applique à toute la structure (`settleLayoutStopPoints` : Points devenus interdits ou
+ * consécutifs retirés sans message, le premier conservé ; conflit de répétition créé → choix requis,
+ * `CHOICE_REQUIRED`). Un Point se déplace seul (`moveLayoutStopPoint`, `stepLayoutStopPoint`), dans un
+ * conteneur compris, « selon les règles applicables à sa position de destination » (ARB-06).
  *
  * PRE-9 (story B.5) : suppression (`removeLayoutExercise`, conteneur vidé retiré) et duplication
  * (`duplicateLayoutExercise`, D-441, ARB-17) d'un Exercice ; aucune duplication de Circuit ni de
@@ -38,22 +43,37 @@ import type { CircuitLoss } from "./circuit";
 import { copyCircuitReserveEntry } from "./circuitMembership";
 import { duplicateActivity } from "./composition";
 import { currentLayout, settleLayoutCircuitMembership, withLayout } from "./layoutOperations";
+import {
+  analyzeLayoutStopPoints,
+  isLayoutStopPointAllowed,
+  judgeLayoutStopPointMove,
+  layoutStopPointId,
+  layoutStopPointKey,
+  sameStopPointContainer,
+  stopPointContainerOf,
+  stopPointLocationIn,
+  type LayoutRepetitionConflictInfo,
+  type LayoutStopPointRefusal,
+} from "./layoutStopPoints";
+import {
+  attach,
+  detach,
+  layoutItemLocation,
+  pruneEmpty,
+  sameElements,
+  separatorsOfDraft,
+  withSettledStopPoints,
+  type LayoutDestination,
+  type LayoutItemRef,
+} from "./layoutTree";
 import type { SessionDraft } from "./SessionDraft";
-import type { SessionStructure, StructureCircuit, StructureCycle, StructureCycleMember, StructureElement, StructureStopPointLocation } from "./structure";
+import type { TourBoundaryChoice } from "./StopPoint";
+import type { SessionStructure, StructureCircuit, StructureStopPointLocation } from "./structure";
+
+export { layoutItemLocation } from "./layoutTree";
+export type { LayoutContainerRef, LayoutDestination, LayoutItemRef } from "./layoutTree";
 
 type Layout = SessionStructure<string, StructureStopPointLocation>;
-
-/** Élément déplaçable : Exercice (identifiant d'occurrence), Circuit ou Cycle (identifiant de conteneur). */
-export type LayoutItemRef = { readonly kind: "EXERCISE" | "CIRCUIT" | "CYCLE"; readonly id: string };
-
-/** Conteneur de destination : niveau Séance, Cycle ou Circuit. */
-export type LayoutContainerRef = { readonly kind: "SESSION" } | { readonly kind: "CYCLE" | "CIRCUIT"; readonly id: string };
-
-/**
- * Destination : conteneur et rang parmi ses membres, l'élément déplacé retiré (les conteneurs vidés
- * par ce retrait comptent encore : ils ne disparaissent qu'à l'application).
- */
-export type LayoutDestination = { readonly container: LayoutContainerRef; readonly index: number };
 
 /** Réponse du contrôle avant dépose (ARB-24). */
 export type LayoutDropCheck =
@@ -75,14 +95,18 @@ export type LayoutDropControl = (context: {
 /** Contrôle neutre : tout élément libre est accepté (les refus de la matrice §2.2 sont déjà appliqués). */
 export const neutralDropControl: LayoutDropControl = () => ({ status: "ACCEPTED" });
 
-export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "STOP_POINTS" | "CONTROL" | "AT_BOUNDARY";
+/** [B.4 : refus `STOP_POINTS` tant que la Séance portait des Points d'arrêt — retiré le 31/10/2026 par B.6.] */
+export type LayoutItemMoveRefusal = "NOT_FOUND" | "NESTING" | "FORMAT_INCOMPATIBLE" | "CONTROL" | "AT_BOUNDARY";
 
-export type LayoutItemMoveOutcome =
+/** Issue appliquée, ou à confirmer, d'un déplacement (voir `LayoutItemMoveOutcome`). */
+export type LayoutItemMoveResult =
   | {
       readonly status: "APPLIED";
       readonly draft: SessionDraft;
       /** Conteneurs vidés par le déplacement, retirés (effacement progressif côté écran). */
       readonly removedContainers: readonly LayoutItemRef[];
+      /** PRE-9 B.6 (D-442) : Points d'arrêt retirés sans message par le déplacement. */
+      readonly removedStopPointIds: readonly string[];
     }
   | {
       readonly status: "CONFIRMATION_REQUIRED";
@@ -93,172 +117,32 @@ export type LayoutItemMoveOutcome =
       readonly controlReason?: string;
       readonly draft: SessionDraft;
       readonly removedContainers: readonly LayoutItemRef[];
+      readonly removedStopPointIds: readonly string[];
+    };
+
+export type LayoutItemMoveOutcome =
+  | LayoutItemMoveResult
+  /**
+   * PRE-9 B.6 (D-442, ARB-02 règle 5, ARB-02b) : le déplacement ferait se suivre un Point de début et
+   * un Point de fin d'une portée répétée (Circuit N ≥ 2, Cycle × k ≥ 2) ; rien n'est appliqué.
+   * `resolutions.HEAD` conserve le début, `.TAIL` la fin ; chacune est l'issue complète à appliquer
+   * (éventuellement une confirmation de perte). « Annuler » : rien ne change.
+   */
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: LayoutRepetitionConflictInfo;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, LayoutItemMoveResult>>;
     }
   /** Destination identique à la position actuelle : rien à faire. */
   | { readonly status: "UNCHANGED" }
   | { readonly status: "REFUSED"; readonly reason: LayoutItemMoveRefusal; readonly controlReason?: string };
 
-/** Nœud détaché par le retrait de la source. */
-type Detached =
-  | { readonly kind: "EXERCISE"; readonly id: string }
-  | { readonly kind: "CIRCUIT"; readonly circuit: StructureCircuit<string> }
-  | { readonly kind: "CYCLE"; readonly cycle: StructureCycle<string> };
-
-/** Retire la source de la disposition, conteneurs vidés CONSERVÉS ; `null` si elle est absente. */
-function detach(layout: Layout, source: LayoutItemRef): { readonly layout: Layout; readonly node: Detached } | null {
-  let node: Detached | null = null;
-  const fromCircuit = (circuit: StructureCircuit<string>): StructureCircuit<string> => {
-    if (source.kind !== "EXERCISE" || !circuit.exercises.includes(source.id)) return circuit;
-    node = { kind: "EXERCISE", id: source.id };
-    return { ...circuit, exercises: circuit.exercises.filter((id) => id !== source.id) };
-  };
-  const elements: StructureElement<string>[] = [];
-  for (const element of layout.elements) {
-    switch (element.kind) {
-      case "EXERCISE":
-        if (source.kind === "EXERCISE" && element.exercise === source.id) node = { kind: "EXERCISE", id: source.id };
-        else elements.push(element);
-        break;
-      case "CIRCUIT":
-        if (source.kind === "CIRCUIT" && element.circuit.id === source.id) node = { kind: "CIRCUIT", circuit: element.circuit };
-        else elements.push({ kind: "CIRCUIT", circuit: fromCircuit(element.circuit) });
-        break;
-      case "CYCLE": {
-        if (source.kind === "CYCLE" && element.cycle.id === source.id) {
-          node = { kind: "CYCLE", cycle: element.cycle };
-          break;
-        }
-        const members = element.cycle.members.flatMap((member): StructureCycleMember<string>[] => {
-          if (member.kind === "EXERCISE") {
-            if (source.kind === "EXERCISE" && member.exercise === source.id) {
-              node = { kind: "EXERCISE", id: source.id };
-              return [];
-            }
-            return [member];
-          }
-          if (source.kind === "CIRCUIT" && member.circuit.id === source.id) {
-            node = { kind: "CIRCUIT", circuit: member.circuit };
-            return [];
-          }
-          return [{ kind: "CIRCUIT", circuit: fromCircuit(member.circuit) }];
-        });
-        elements.push({ kind: "CYCLE", cycle: { ...element.cycle, members } });
-        break;
-      }
-      default: {
-        const unreachable: never = element;
-        return unreachable;
-      }
-    }
-  }
-  return node === null ? null : { layout: { ...layout, elements }, node };
-}
-
-const clampIndex = (index: number, length: number) =>
-  Math.max(0, Math.min(Number.isFinite(index) ? Math.trunc(index) : length, length));
-
-function insertAt<T>(items: readonly T[], index: number, item: T): T[] {
-  const at = clampIndex(index, items.length);
-  return [...items.slice(0, at), item, ...items.slice(at)];
-}
-
-/** Insère le nœud à la destination ; `null` si le conteneur est absent ou si l'imbrication est interdite (D-451). */
-function attach(layout: Layout, node: Detached, destination: LayoutDestination): Layout | "NESTING" | null {
-  const { container, index } = destination;
-  switch (container.kind) {
-    case "SESSION": {
-      const element: StructureElement<string> =
-        node.kind === "EXERCISE"
-          ? { kind: "EXERCISE", exercise: node.id }
-          : node.kind === "CIRCUIT"
-            ? { kind: "CIRCUIT", circuit: node.circuit }
-            : { kind: "CYCLE", cycle: node.cycle };
-      return { ...layout, elements: insertAt(layout.elements, index, element) };
-    }
-    case "CYCLE": {
-      if (node.kind === "CYCLE") return "NESTING";
-      const member: StructureCycleMember<string> =
-        node.kind === "EXERCISE" ? { kind: "EXERCISE", exercise: node.id } : { kind: "CIRCUIT", circuit: node.circuit };
-      let found = false;
-      const elements = layout.elements.map((element): StructureElement<string> => {
-        if (element.kind !== "CYCLE" || element.cycle.id !== container.id) return element;
-        found = true;
-        return { kind: "CYCLE", cycle: { ...element.cycle, members: insertAt(element.cycle.members, index, member) } };
-      });
-      return found ? { ...layout, elements } : null;
-    }
-    case "CIRCUIT": {
-      if (node.kind !== "EXERCISE") return "NESTING";
-      let found = false;
-      const into = (circuit: StructureCircuit<string>): StructureCircuit<string> => {
-        if (circuit.id !== container.id) return circuit;
-        found = true;
-        return { ...circuit, exercises: insertAt(circuit.exercises, index, node.id) };
-      };
-      const elements = layout.elements.map((element): StructureElement<string> => {
-        switch (element.kind) {
-          case "EXERCISE":
-            return element;
-          case "CIRCUIT":
-            return { kind: "CIRCUIT", circuit: into(element.circuit) };
-          case "CYCLE":
-            return {
-              kind: "CYCLE",
-              cycle: {
-                ...element.cycle,
-                members: element.cycle.members.map((member) => (member.kind === "CIRCUIT" ? { kind: "CIRCUIT", circuit: into(member.circuit) } : member)),
-              },
-            };
-          default: {
-            const unreachable: never = element;
-            return unreachable;
-          }
-        }
-      });
-      return found ? { ...layout, elements } : null;
-    }
-    default: {
-      const unreachable: never = container;
-      return unreachable;
-    }
-  }
-}
-
-/** COMP §1 : retire les Circuits puis les Cycles devenus vides ; rend les conteneurs retirés. */
-function pruneEmpty(layout: Layout): { readonly layout: Layout; readonly removed: readonly LayoutItemRef[] } {
-  const removed: LayoutItemRef[] = [];
-  const elements = layout.elements.flatMap((element): StructureElement<string>[] => {
-    if (element.kind === "CIRCUIT") {
-      if (element.circuit.exercises.length > 0) return [element];
-      removed.push({ kind: "CIRCUIT", id: element.circuit.id });
-      return [];
-    }
-    if (element.kind === "CYCLE") {
-      const members = element.cycle.members.filter((member) => {
-        if (member.kind === "CIRCUIT" && member.circuit.exercises.length === 0) {
-          removed.push({ kind: "CIRCUIT", id: member.circuit.id });
-          return false;
-        }
-        return true;
-      });
-      if (members.length === 0) {
-        removed.push({ kind: "CYCLE", id: element.cycle.id });
-        return [];
-      }
-      return [members.length === element.cycle.members.length ? element : { kind: "CYCLE", cycle: { ...element.cycle, members } }];
-    }
-    return [element];
-  });
-  return { layout: removed.length === 0 ? layout : { ...layout, elements }, removed };
-}
-
-/** Comparaison structurelle de deux séquences d'éléments (identités et ordre). */
-const sameElements = (a: Layout, b: Layout) => JSON.stringify(a.elements) === JSON.stringify(b.elements);
-
 /**
  * Déplace `source` à `destination` (voir l'en-tête). Ordre des contrôles, tous avant toute écriture :
- * élément et conteneur connus ; Points d'arrêt (B.6) ; imbrication D-451 ; position inchangée ;
- * adaptation au Circuit d'arrivée et matrice des Formats (B.3) ; contrôle avant dépose (C.4).
+ * élément et conteneur connus ; imbrication D-451 ; position inchangée ; Points d'arrêt (B.6 : réglés
+ * sur la disposition d'arrivée, choix de répétition) ; adaptation au Circuit d'arrivée et matrice des
+ * Formats (B.3) ; contrôle avant dépose (C.4). [B.4 : « Points d'arrêt (B.6) » — refus sans altération,
+ * remplacé par B.6.]
  */
 export function moveLayoutItem(
   draft: SessionDraft,
@@ -272,9 +156,6 @@ export function moveLayoutItem(
   if (detached === null || (source.kind === "EXERCISE" && !draft.exercises.some((exercise) => exercise.id === source.id))) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  if (layout.stopPoints.length > 0) {
-    return { status: "REFUSED", reason: "STOP_POINTS" };
-  }
   const attached = attach(detached.layout, detached.node, destination);
   if (attached === "NESTING") return { status: "REFUSED", reason: "NESTING" };
   if (attached === null) return { status: "REFUSED", reason: "NOT_FOUND" };
@@ -285,20 +166,29 @@ export function moveLayoutItem(
   if (settlement.refusedExerciseIds.length > 0) {
     return { status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" };
   }
-  const result = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, moved);
-  const check = control({ before: draft, after: result, source, destination });
-  if (check.status === "REFUSED") return { status: "REFUSED", reason: "CONTROL", controlReason: check.reason };
-  if (settlement.losses.length > 0 || check.status === "CONFIRM") {
-    return {
-      status: "CONFIRMATION_REQUIRED",
-      losses: settlement.losses,
-      targetCount: settlement.targetCount,
-      ...(check.status === "CONFIRM" ? { controlReason: check.reason } : {}),
-      draft: result,
-      removedContainers: removed,
-    };
-  }
-  return { status: "APPLIED", draft: result, removedContainers: removed };
+  const finish = (result: Layout, removedStopPointIds: readonly string[]): LayoutItemMoveResult | Extract<LayoutItemMoveOutcome, { status: "REFUSED" }> => {
+    const next = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, result);
+    const check = control({ before: draft, after: next, source, destination });
+    if (check.status === "REFUSED") return { status: "REFUSED", reason: "CONTROL", controlReason: check.reason };
+    if (settlement.losses.length > 0 || check.status === "CONFIRM") {
+      return {
+        status: "CONFIRMATION_REQUIRED",
+        losses: settlement.losses,
+        targetCount: settlement.targetCount,
+        ...(check.status === "CONFIRM" ? { controlReason: check.reason } : {}),
+        draft: next,
+        removedContainers: removed,
+        removedStopPointIds,
+      };
+    }
+    return { status: "APPLIED", draft: next, removedContainers: removed, removedStopPointIds };
+  };
+  const outcome = withSettledStopPoints(draft, layout, moved, finish);
+  if (outcome.status !== "CHOICE_REQUIRED") return outcome;
+  const { HEAD, TAIL } = outcome.resolutions;
+  if (HEAD.status === "REFUSED") return HEAD;
+  if (TAIL.status === "REFUSED") return TAIL;
+  return { status: "CHOICE_REQUIRED", conflict: outcome.conflict, resolutions: { HEAD, TAIL } };
 }
 
 // ---------------------------------------------------------------------------
@@ -336,36 +226,6 @@ export function layoutSlots(layoutWithoutSource: Pick<Layout, "elements">, sourc
   return slots;
 }
 
-/** Emplacement actuel d'un élément : son conteneur et son rang. */
-export function layoutItemLocation(layout: Pick<Layout, "elements">, source: LayoutItemRef): LayoutDestination | null {
-  const inCircuit = (circuit: StructureCircuit<string>): LayoutDestination | null => {
-    const index = source.kind === "EXERCISE" ? circuit.exercises.indexOf(source.id) : -1;
-    return index < 0 ? null : { container: { kind: "CIRCUIT", id: circuit.id }, index };
-  };
-  for (const [at, element] of layout.elements.entries()) {
-    if (element.kind === "EXERCISE" && source.kind === "EXERCISE" && element.exercise === source.id) return { container: { kind: "SESSION" }, index: at };
-    if (element.kind === "CIRCUIT") {
-      if (source.kind === "CIRCUIT" && element.circuit.id === source.id) return { container: { kind: "SESSION" }, index: at };
-      const found = inCircuit(element.circuit);
-      if (found !== null) return found;
-    }
-    if (element.kind === "CYCLE") {
-      if (source.kind === "CYCLE" && element.cycle.id === source.id) return { container: { kind: "SESSION" }, index: at };
-      for (const [index, member] of element.cycle.members.entries()) {
-        if (member.kind === "EXERCISE" && source.kind === "EXERCISE" && member.exercise === source.id) {
-          return { container: { kind: "CYCLE", id: element.cycle.id }, index };
-        }
-        if (member.kind === "CIRCUIT") {
-          if (source.kind === "CIRCUIT" && member.circuit.id === source.id) return { container: { kind: "CYCLE", id: element.cycle.id }, index };
-          const found = inCircuit(member.circuit);
-          if (found !== null) return found;
-        }
-      }
-    }
-  }
-  return null;
-}
-
 const sameDestination = (a: LayoutDestination, b: LayoutDestination) =>
   a.index === b.index && a.container.kind === b.container.kind && (a.container.kind === "SESSION" || (b.container.kind !== "SESSION" && a.container.id === b.container.id));
 
@@ -375,6 +235,11 @@ const sameDestination = (a: LayoutDestination, b: LayoutDestination) =>
  * frontière d'un conteneur, il en sort ou y entre (en fin en montant, en tête en descendant), comme
  * l'ancien modèle entre les zones avant / dans / après le Circuit. Mêmes contrôles et même issue que
  * `moveLayoutItem` ; `AT_BOUNDARY` en tête ou en fin de séquence.
+ *
+ * PRE-9 B.6 (D-441, `stepOccurrence` : « échange avec l'élément VOISIN de la séquence mêlée, point ou
+ * occurrence ») : un Point voisin dans le même conteneur (juste avant en montant, juste après en
+ * descendant) est d'abord franchi — l'élément et ce Point échangent leur place —, puis la règle
+ * tolérante de D-442 s'applique (`[A, P, B]`, B monte : `[A, B, P]`, P retiré s'il précède la Fin).
  */
 export function stepLayoutItem(
   draft: SessionDraft,
@@ -387,6 +252,26 @@ export function stepLayoutItem(
   const location = layoutItemLocation(layout, source);
   const detached = detach(layout, source);
   if (location === null || detached === null) return { status: "REFUSED", reason: "NOT_FOUND" };
+  // Point voisin : rang du Point juste avant (`index`) ou juste après (`index + 1`) l'élément.
+  const neighborPosition = direction === "UP" ? location.index : location.index + 1;
+  const neighbors = layout.stopPoints.filter((point) => {
+    const container = stopPointContainerOf(point);
+    return container !== null && sameStopPointContainer(container, location.container) && point.position === neighborPosition;
+  });
+  if (neighbors.length > 0) {
+    const crossed = direction === "UP" ? location.index + 1 : location.index;
+    const swapped: Layout = {
+      ...layout,
+      stopPoints: layout.stopPoints.map((point) => (neighbors.includes(point) ? { ...point, position: crossed } : point)),
+    };
+    const outcome = withSettledStopPoints(draft, layout, swapped, (result, removedStopPointIds): LayoutItemMoveResult => ({
+      status: "APPLIED",
+      draft: withLayout(draft, result),
+      removedContainers: [],
+      removedStopPointIds,
+    }));
+    return outcome;
+  }
   const slots = layoutSlots(detached.layout, source.kind);
   const current = slots.findIndex((slot) => sameDestination(slot, location));
   const step = direction === "UP" ? -1 : 1;
@@ -401,20 +286,37 @@ export function stepLayoutItem(
 // PRE-9 (story B.5) — suppression et duplication d'un Exercice de la structure générale
 // ---------------------------------------------------------------------------
 
+/** Suppression ou duplication appliquée. */
+export type LayoutExerciseEditResult = {
+  readonly status: "APPLIED";
+  readonly draft: SessionDraft;
+  /** Conteneurs vidés par la suppression, retirés (effacement progressif côté écran) ; toujours vide pour une duplication. */
+  readonly removedContainers: readonly LayoutItemRef[];
+  /** PRE-9 B.6 (D-442) : Points d'arrêt retirés sans message ; toujours vide pour une duplication. */
+  readonly removedStopPointIds: readonly string[];
+};
+
 /** Issue d'une suppression ou d'une duplication d'Exercice (`removeLayoutExercise`, `duplicateLayoutExercise`). */
 export type LayoutExerciseEditOutcome =
+  | LayoutExerciseEditResult
+  /**
+   * PRE-9 B.6 (D-442 amendée, recette J6 ; ARB-02b) : la suppression ferait se suivre un Point de début
+   * et un Point de fin d'une portée répétée — « Début de tour / Fin de tour » (ou de répétition), ou
+   * Annuler ; chaque résolution est la suppression complète à appliquer.
+   */
   | {
-      readonly status: "APPLIED";
-      readonly draft: SessionDraft;
-      /** Conteneurs vidés par la suppression, retirés (effacement progressif côté écran) ; toujours vide pour une duplication. */
-      readonly removedContainers: readonly LayoutItemRef[];
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: LayoutRepetitionConflictInfo;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, LayoutExerciseEditResult>>;
     }
   /**
-   * `STOP_POINTS` : la disposition porte des Points d'arrêt — elle est alors représentable dans
-   * l'ancien modèle (une disposition générale n'en porte aucun avant B.6), dont les opérations
-   * historiques s'appliquent (`removeOccurrenceOutcome`, `duplicateOccurrenceOutcome`, D-441, D-442).
+   * [B.5 : « `STOP_POINTS` : la disposition porte des Points d'arrêt — elle est alors représentable
+   * dans l'ancien modèle (une disposition générale n'en porte aucun avant B.6) » — retiré le 31/10/2026
+   * par B.6.] `STOP_POINT_CONFLICT` (B.6, duplication seule) : la copie rendrait un Point interdit ou
+   * consécutif — refus doux de D-441, en pratique impossible (la copie est insérée juste après sa
+   * source, avant le Point qui la suivait).
    */
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINTS" };
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "STOP_POINT_CONFLICT" };
 
 /**
  * PRE-9 B.5 (epics B.5 ; COMP §1 : « Il disparaît lorsque son dernier membre en sort ») — suppression
@@ -424,6 +326,12 @@ export type LayoutExerciseEditOutcome =
  * quitté part avec lui (`settleLayoutCircuitMembership`) ; les autres Exercices sont inchangés (un
  * Format n'est jamais transmis ni retiré : correction C.1 du 30/10). Aucune confirmation : la
  * suppression ne fait perdre que l'Exercice supprimé (D-442 amendée : toujours appliquée).
+ *
+ * PRE-9 B.6 (epics B.5 « points d'arrêt devenus interdits retirés sans message » ; D-442 ; ARB-02) :
+ * les Points restent à leur place dans la séquence ; ceux que la suppression rend interdits (RM-219)
+ * ou consécutifs (RM-251, le premier conservé), ou qui perdent leur conteneur, sont retirés sans
+ * message (`removedStopPointIds`) ; un conflit de répétition créé demande le choix
+ * (`CHOICE_REQUIRED`).
  */
 export function removeLayoutExercise(draft: SessionDraft, exerciseId: string, newContainerId: () => string): LayoutExerciseEditOutcome {
   const layout = currentLayout(draft, newContainerId);
@@ -431,52 +339,24 @@ export function removeLayoutExercise(draft: SessionDraft, exerciseId: string, ne
   if (detached === null || !draft.exercises.some((exercise) => exercise.id === exerciseId)) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  if (layout.stopPoints.length > 0) {
-    return { status: "REFUSED", reason: "STOP_POINTS" };
-  }
   const { layout: pruned, removed } = pruneEmpty(detached.layout);
   const exercises = draft.exercises.filter((exercise) => exercise.id !== exerciseId);
   const settlement = settleLayoutCircuitMembership({ ...draft, structure: layout }, { exercises, structure: pruned });
-  return {
+  const finish = (result: Layout, removedStopPointIds: readonly string[]): LayoutExerciseEditResult => ({
     status: "APPLIED",
-    draft: withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, pruned),
+    draft: withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, result),
     removedContainers: removed,
-  };
+    removedStopPointIds,
+  });
+  return withSettledStopPoints({ ...draft, exercises }, layout, pruned, finish);
 }
 
 /** Insère `copyId` juste après `sourceId`, dans le même conteneur ; `null` si la source est absente. */
 function insertCopyAfter(layout: Layout, sourceId: string, copyId: string): Layout | null {
-  let placed = false;
-  const inCircuit = (circuit: StructureCircuit<string>): StructureCircuit<string> => {
-    const at = placed ? -1 : circuit.exercises.indexOf(sourceId);
-    if (at < 0) return circuit;
-    placed = true;
-    return { ...circuit, exercises: insertAt(circuit.exercises, at + 1, copyId) };
-  };
-  const elements = layout.elements.flatMap((element): StructureElement<string>[] => {
-    switch (element.kind) {
-      case "EXERCISE":
-        if (placed || element.exercise !== sourceId) return [element];
-        placed = true;
-        return [element, { kind: "EXERCISE", exercise: copyId }];
-      case "CIRCUIT":
-        return [{ kind: "CIRCUIT", circuit: inCircuit(element.circuit) }];
-      case "CYCLE": {
-        const members = element.cycle.members.flatMap((member): StructureCycleMember<string>[] => {
-          if (member.kind === "CIRCUIT") return [{ kind: "CIRCUIT", circuit: inCircuit(member.circuit) }];
-          if (placed || member.exercise !== sourceId) return [member];
-          placed = true;
-          return [member, { kind: "EXERCISE", exercise: copyId }];
-        });
-        return [{ kind: "CYCLE", cycle: { ...element.cycle, members } }];
-      }
-      default: {
-        const unreachable: never = element;
-        return unreachable;
-      }
-    }
-  });
-  return placed ? { ...layout, elements } : null;
+  const location = layoutItemLocation(layout, { kind: "EXERCISE", id: sourceId });
+  if (location === null) return null;
+  const attached = attach(layout, { kind: "EXERCISE", id: copyId }, { container: location.container, index: location.index + 1 });
+  return attached === null || attached === "NESTING" ? null : attached;
 }
 
 /**
@@ -488,6 +368,9 @@ function insertCopyAfter(layout: Layout, sourceId: string, copyId: string): Layo
  * de séries (`copyCircuitReserveEntry`). Rien n'est transmis aux autres éléments. Aucune duplication de
  * Circuit ni de Cycle (ARB-08) : seule cette opération d'Exercice existe. Entrée invalide — `newId`
  * déjà présent : exception (convention de `duplicateOccurrenceOutcome`).
+ *
+ * PRE-9 B.6 (D-441, arbitrage du 22/10/2026 ; RM-210) : la copie est insérée AVANT le Point qui suivait
+ * la source (`[A, P, B]` → `[A, A′, P, B]`) ; aucun Point n'est copié.
  */
 export function duplicateLayoutExercise(
   draft: SessionDraft,
@@ -504,12 +387,110 @@ export function duplicateLayoutExercise(
   if (inserted === null || exercises === draft.exercises) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  if (layout.stopPoints.length > 0) {
-    return { status: "REFUSED", reason: "STOP_POINTS" };
+  const outcome = withSettledStopPoints({ ...draft, exercises }, layout, inserted, (_result, removedStopPointIds) => ({ status: "APPLIED" as const, removedStopPointIds }));
+  if (outcome.status === "CHOICE_REQUIRED" || outcome.removedStopPointIds.length > 0) {
+    return { status: "REFUSED", reason: "STOP_POINT_CONFLICT" };
   }
   return {
     status: "APPLIED",
     draft: withLayout({ ...draft, exercises, ...copyCircuitReserveEntry(draft, exerciseId, newId) }, inserted),
     removedContainers: [],
+    removedStopPointIds: [],
   };
+}
+
+// ---------------------------------------------------------------------------
+// PRE-9 (story B.6) — déplacement autonome d'un Point d'arrêt (D-441, ARB-06)
+// ---------------------------------------------------------------------------
+
+/** Issue d'un déplacement de Point (`moveLayoutStopPoint`, `stepLayoutStopPoint`). */
+export type LayoutStopPointMoveOutcome =
+  | { readonly status: "APPLIED"; readonly draft: SessionDraft }
+  | { readonly status: "UNCHANGED" }
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: LayoutRepetitionConflictInfo;
+      /** `HEAD` / `TAIL` : brouillon à appliquer ; conserver l'autre Point retire donc le Point déplacé. */
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, SessionDraft>>;
+    }
+  | { readonly status: "REFUSED"; readonly reason: LayoutStopPointRefusal | "NOT_FOUND" | "AT_BOUNDARY" };
+
+/**
+ * PRE-9 B.6 (D-441 « déplacement autonome » ; RM-251 ; ARB-06 : « Un point d'arrêt peut également être
+ * déplacé dans le conteneur, selon les règles applicables à sa position de destination ») — dépose du
+ * Point `stopPointId` à l'emplacement `target` (Séance, Cycle ou Circuit, où qu'il soit), identité
+ * conservée, structure inchangée. Refus sans mutation : cible non autorisée (RM-219, exception de début
+ * et de fin de répétition comprise), occupée, ou qui rendrait le Point consécutif à un autre (RM-251) ;
+ * un conflit de répétition créé rend le choix requis (D-442). Même emplacement : `UNCHANGED`.
+ */
+export function moveLayoutStopPoint(
+  draft: SessionDraft,
+  stopPointId: string,
+  target: StructureStopPointLocation,
+  newContainerId: () => string,
+): LayoutStopPointMoveOutcome {
+  const layout = currentLayout(draft, newContainerId);
+  const point = layout.stopPoints.find((candidate) => layoutStopPointId(candidate) === stopPointId);
+  if (point === undefined) return { status: "REFUSED", reason: "NOT_FOUND" };
+  if (layoutStopPointKey(point) === layoutStopPointKey(target)) return { status: "UNCHANGED" };
+  const judgement = judgeLayoutStopPointMove({ layout, isSeparator: separatorsOfDraft(draft) }, stopPointId, target);
+  if (judgement === null) return { status: "REFUSED", reason: "NOT_FOUND" };
+  switch (judgement.status) {
+    case "REFUSED":
+      return { status: "REFUSED", reason: judgement.reason };
+    case "APPLIED":
+      return { status: "APPLIED", draft: withLayout(draft, { ...layout, stopPoints: judgement.stopPoints }) };
+    case "CHOICE_REQUIRED":
+      return {
+        status: "CHOICE_REQUIRED",
+        conflict: judgement.conflict,
+        resolutions: {
+          HEAD: withLayout(draft, { ...layout, stopPoints: judgement.resolutions.HEAD.stopPoints }),
+          TAIL: withLayout(draft, { ...layout, stopPoints: judgement.resolutions.TAIL.stopPoints }),
+        },
+      };
+    default: {
+      const unreachable: never = judgement;
+      return unreachable;
+    }
+  }
+}
+
+/**
+ * Emplacements de Point de la disposition, dans l'ordre de la séquence fonctionnelle (voir
+ * `analyzeLayoutStopPoints`) : chaque emplacement de chaque conteneur.
+ */
+export function layoutStopPointSlots(draft: SessionDraft, newContainerId: () => string): readonly StructureStopPointLocation[] {
+  const layout = currentLayout(draft, newContainerId);
+  return analyzeLayoutStopPoints(layout, separatorsOfDraft(draft)).items.flatMap((item) =>
+    item.kind === "SLOT" ? [stopPointLocationIn(item.container, item.position)] : [],
+  );
+}
+
+/**
+ * PRE-9 B.6 (D-441, CE-T03-08 « Monter » / « Descendre » d'un Point, généralisé à la structure) : le
+ * Point passe au plus proche emplacement, dans le sens demandé, où sa dépose serait acceptée
+ * (`moveLayoutStopPoint` : appliquée ou choix requis), en entrant dans un conteneur ou en en sortant.
+ * `AT_BOUNDARY` s'il n'en existe aucun.
+ */
+export function stepLayoutStopPoint(
+  draft: SessionDraft,
+  stopPointId: string,
+  direction: "UP" | "DOWN",
+  newContainerId: () => string,
+): LayoutStopPointMoveOutcome {
+  const layout = currentLayout(draft, newContainerId);
+  const point = layout.stopPoints.find((candidate) => layoutStopPointId(candidate) === stopPointId);
+  if (point === undefined) return { status: "REFUSED", reason: "NOT_FOUND" };
+  const analysis = analyzeLayoutStopPoints(layout, separatorsOfDraft(draft));
+  const slots = layoutStopPointSlots(draft, newContainerId);
+  const current = slots.findIndex((slot) => layoutStopPointKey(slot) === layoutStopPointKey(point));
+  const step = direction === "UP" ? -1 : 1;
+  for (let at = current + step; current >= 0 && at >= 0 && at < slots.length; at += step) {
+    const slot = slots[at]!;
+    if (!isLayoutStopPointAllowed(analysis, slot)) continue;
+    const outcome = moveLayoutStopPoint(draft, stopPointId, slot, newContainerId);
+    if (outcome.status === "APPLIED" || outcome.status === "CHOICE_REQUIRED") return outcome;
+  }
+  return { status: "REFUSED", reason: "AT_BOUNDARY" };
 }

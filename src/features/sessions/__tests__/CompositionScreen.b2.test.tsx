@@ -183,15 +183,17 @@ describe("B.2 — menu Créer (COMP §5, Figma 10705:20223)", () => {
     expect(screen.queryByTestId("composition-envelope-bar")).toBeNull();
   });
 
-  it("Séance à Points d'arrêt : aucun conteneur qui la ferait sortir de l'ancien modèle (B.6) — actions indisponibles", async () => {
+  // [B.2 : « Séance à Points d'arrêt : aucun conteneur qui la ferait sortir de l'ancien modèle (B.6) —
+  // actions indisponibles » — remplacé le 31/10/2026 par B.6 : les Points existent dans toute la structure.]
+  it("Séance à Points d'arrêt : « Ajouter un circuit / un cycle » disponibles (B.6)", async () => {
     await renderComposition({
       ...flatDraft(),
       exercises: [exercise("a"), exercise("b", "IN_TOUR"), exercise("c", "AFTER_TOUR")],
       stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }],
     });
     openMenu();
-    expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: true });
-    expect(screen.getByTestId("composition-add-activity-tree-cycle").props.accessibilityState).toEqual({ disabled: true });
+    expect(screen.getByTestId("composition-add-activity-tree-circuit").props.accessibilityState).toEqual({ disabled: false });
+    expect(screen.getByTestId("composition-add-activity-tree-cycle").props.accessibilityState).toEqual({ disabled: false });
   });
 });
 

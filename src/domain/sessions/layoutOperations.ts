@@ -9,7 +9,13 @@
  *   (`prepareLayoutNatureChange`) et troncature définitive à la confirmation ; alternées → groupées
  *   ne change que la nature (COMP §2) ;
  * - compte du Cycle 1..99 (D-451).
- * Les Points d'arrêt ne sont pas concernés : une disposition générale n'en porte pas avant B.6.
+ * [B.1b : « Les Points d'arrêt ne sont pas concernés : une disposition générale n'en porte pas avant
+ * B.6. » — remplacé le 31/10/2026 par B.6.] PRE-9 B.6 (ARB-02, ARB-02a/b, ARB-06, D-441, D-442) : une
+ * disposition générale porte ses Points d'arrêt (`layoutStopPoints.ts`) ; chaque opération les laisse à
+ * leur place dans la séquence (`layoutTree.ts`), un nouveau conteneur posé sur plusieurs contenus
+ * reçoit ceux qui les séparaient, et un changement de compte (Circuit ou Cycle) applique D-442 —
+ * Points devenus interdits retirés sans message au passage à 1, choix de début ou de fin de répétition
+ * au passage à 2 ou plus (`layoutCircuitCountOutcome`, `layoutCycleCountOutcome`).
  *
  * PRE-9 (B.3, COMP §2 et §6, ch10 « Ajout et sortie du circuit », D-07, D-09, §2.4 des Arbitrages
  * consolidés du 30/10) : ces règles valent pour CHAQUE Circuit de la Séance —
@@ -38,16 +44,17 @@ import { clampSeriesCount, seriesCountOf, type SeriesRow } from "@/domain/activi
 import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
 import { circuitCompatibility, FORMAT_REGISTRY } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
+import { stopPointsAfterGrouping, stopPointsAfterInsertion, type LayoutRepetitionConflictInfo, type StopPointContainer } from "./layoutStopPoints";
+import { attach, detach, layoutItemLocation, pruneEmpty, withSettledStopPoints, type LayoutContainerRef } from "./layoutTree";
 import type { StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
-import type { StopPoint } from "./StopPoint";
+import type { StopPoint, TourBoundaryChoice } from "./StopPoint";
 import {
   CYCLE_REPEAT_COUNT_MAX,
   CYCLE_REPEAT_COUNT_MIN,
   legacyFromStructure,
   NO_CIRCUIT_ID,
   structureCircuits,
-  structureExercises,
   structureFromLegacy,
   withoutEmptyLegacyCircuit,
   type SessionStructure,
@@ -157,8 +164,53 @@ function blockedByFormattedMember(draft: SessionDraft, circuit: StructureCircuit
   return draft.exercises.some((exercise) => inCircuit(exercise) && !formattedMemberFits(exercise, nature, count));
 }
 
-/** Compte du Circuit désigné, borné 1..99 (voir l'en-tête). */
+/**
+ * Compte du Circuit désigné, borné 1..99 (voir l'en-tête). PRE-9 B.6 : Points réglés selon D-442
+ * (`layoutCircuitCountOutcome`) ; un passage qui demanderait le choix de début ou de fin de Tour
+ * n'est pas appliqué par cette forme (brouillon rendu tel quel : rien sans le choix de l'utilisateur).
+ */
 export function setLayoutCircuitCount(draft: SessionDraft, circuitId: string, requested: number): SessionDraft {
+  const outcome = layoutCircuitCountOutcome(draft, circuitId, requested);
+  return outcome.status === "APPLIED" ? outcome.draft : draft;
+}
+
+/** Issue d'un changement de compte de Circuit ou de Cycle (PRE-9 B.6, D-442, ARB-02b). */
+export type LayoutCountOutcome =
+  | { readonly status: "APPLIED"; readonly draft: SessionDraft; readonly removedStopPointIds: readonly string[] }
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: LayoutRepetitionConflictInfo;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, { readonly status: "APPLIED"; readonly draft: SessionDraft; readonly removedStopPointIds: readonly string[] }>>;
+    };
+
+/**
+ * PRE-9 B.6 (D-442 : « le passage de N = 1 à N ≥ 2 » demande le choix ; « un Point devenu interdit par
+ * le passage à N = 1 est retiré sans message » ; ARB-02b : mêmes règles pour le Cycle) — réglage des
+ * Points après le changement de compte `next` du brouillon `draft` (disposition générale).
+ */
+function settleCountChange(draft: SessionDraft, next: SessionDraft): LayoutCountOutcome {
+  if (next === draft || draft.structure === undefined || next.structure === undefined) {
+    return { status: "APPLIED", draft: next, removedStopPointIds: [] };
+  }
+  const structure = next.structure;
+  return withSettledStopPoints(draft, draft.structure, structure, (layout, removedStopPointIds) => ({
+    status: "APPLIED" as const,
+    draft: removedStopPointIds.length === 0 ? next : { ...next, structure: { ...structure, stopPoints: layout.stopPoints } },
+    removedStopPointIds,
+  }));
+}
+
+/** Compte du Circuit désigné (voir `setLayoutCircuitCount`), Points réglés : appliqué ou choix requis. */
+export function layoutCircuitCountOutcome(draft: SessionDraft, circuitId: string, requested: number): LayoutCountOutcome {
+  return settleCountChange(draft, circuitCountChanged(draft, circuitId, requested));
+}
+
+/** Compte du Cycle désigné (voir `setLayoutCycleCount`), Points réglés : appliqué ou choix requis. */
+export function layoutCycleCountOutcome(draft: SessionDraft, cycleId: string, requested: number): LayoutCountOutcome {
+  return settleCountChange(draft, cycleCountChanged(draft, cycleId, requested));
+}
+
+function circuitCountChanged(draft: SessionDraft, circuitId: string, requested: number): SessionDraft {
   const circuit = layoutCircuit(draft, circuitId);
   if (circuit === undefined || draft.structure === undefined || !Number.isFinite(requested)) {
     return draft;
@@ -233,8 +285,13 @@ export function applyLayoutNatureChange(draft: SessionDraft, circuitId: string, 
   return { ...draft, structure, exercises, circuitSeriesReserve: Object.keys(reserve).length === 0 ? undefined : reserve };
 }
 
-/** Compte du Cycle désigné, borné 1..99 (D-451). */
+/** Compte du Cycle désigné, borné 1..99 (D-451). PRE-9 B.6 : Points réglés comme pour le Circuit (`layoutCycleCountOutcome`). */
 export function setLayoutCycleCount(draft: SessionDraft, cycleId: string, requested: number): SessionDraft {
+  const outcome = layoutCycleCountOutcome(draft, cycleId, requested);
+  return outcome.status === "APPLIED" ? outcome.draft : draft;
+}
+
+function cycleCountChanged(draft: SessionDraft, cycleId: string, requested: number): SessionDraft {
   if (draft.structure === undefined || !Number.isFinite(requested)) {
     return draft;
   }
@@ -290,7 +347,8 @@ export function currentLayout(draft: SessionDraft, newContainerId: () => string)
 export function withLayout(draft: SessionDraft, layout: Layout): SessionDraft {
   const legacy = legacyFromStructure(layout);
   if (legacy === null) {
-    return { ...draft, structure: layout };
+    // PRE-9 B.6 : les Points sont ceux de la disposition ; les Points de l'ancien modèle ne sont plus lus.
+    return { ...draft, structure: layout, ...(draft.stopPoints !== undefined && draft.stopPoints.length > 0 ? { stopPoints: [] } : {}) };
   }
   const byId = new Map(draft.exercises.map((exercise) => [exercise.id, exercise]));
   const placed = (ids: readonly string[], structuralPosition: StructuralPosition) =>
@@ -318,13 +376,11 @@ export function withLayout(draft: SessionDraft, layout: Layout): SessionDraft {
 /** Contenu qu'un nouveau conteneur peut envelopper (ARB-06 ; règles d'imbrication D-451). */
 export type EnvelopeTarget = { readonly kind: "EXERCISE" | "CIRCUIT"; readonly id: string };
 
-/**
- * Une disposition générale ne porte aucun Point d'arrêt avant B.6 (`STRUCTURE_STOP_POINTS_UNSUPPORTED`) :
- * tant qu'une Séance en a, aucun conteneur qui la ferait sortir de l'ancien modèle n'est proposé.
+/*
+ * [B.2 : « Une disposition générale ne porte aucun Point d'arrêt avant B.6 : tant qu'une Séance en a,
+ * aucun conteneur qui la ferait sortir de l'ancien modèle n'est proposé » (`blockedByStopPoints`) —
+ * retiré le 31/10/2026 par B.6 : les Points d'arrêt existent dans toute la structure.]
  */
-function blockedByStopPoints(result: Layout): boolean {
-  return result.stopPoints.length > 0 && legacyFromStructure(result) === null;
-}
 
 function eligibleExercise(draft: SessionDraft, id: string): boolean {
   const exercise = draft.exercises.find((item) => item.id === id);
@@ -382,10 +438,7 @@ export function envelopeCandidates(draft: SessionDraft, container: "CIRCUIT" | "
       }
     }
   }
-  return targets.filter((target) => {
-    const result = wrapped(layout, target, container, "candidate");
-    return result !== null && !blockedByStopPoints(result);
-  });
+  return targets.filter((target) => wrapped(layout, target, container, "candidate") !== null);
 }
 
 /**
@@ -462,8 +515,8 @@ function siblingsOf(layout: Layout, first: EnvelopeTarget): readonly (EnvelopeTa
  * éligibles (`envelopeCandidates`, règles d'imbrication D-451 : pour un Circuit, des Exercices ; pour
  * un Cycle, des Exercices et des Circuits du niveau Séance) qui n'appartiennent à aucun autre
  * périmètre désigné (`others`). `null` si le périmètre n'est pas valide (vide, non contigu,
- * inéligible). Une Séance portant des Points d'arrêt ne s'étend pas au-delà du périmètre (leur suivi
- * relève de B.6, comme les déplacements B.3 / B.4).
+ * inéligible). [B.4b : « Une Séance portant des Points d'arrêt ne s'étend pas au-delà du périmètre
+ * (leur suivi relève de B.6, comme les déplacements B.3 / B.4) » — retiré le 31/10/2026 par B.6.]
  */
 export function envelopeSpanReach(
   draft: SessionDraft,
@@ -492,9 +545,8 @@ export function envelopeSpanReach(
   if (!contiguous) {
     return null;
   }
-  if (layout.stopPoints.length > 0) {
-    return { run: span.members, start: 0, end: span.members.length - 1 };
-  }
+  // [B.4b : « Une Séance portant des Points d'arrêt ne s'étend pas au-delà du périmètre » — retiré le
+  // 31/10/2026 par B.6 : les Points situés entre les contenus réunis entrent dans le conteneur.]
   let low = at;
   while (low > 0 && free(siblings[low - 1] ?? null)) low -= 1;
   let high = at + span.members.length - 1;
@@ -549,9 +601,13 @@ export function toggleEnvelopeDesignation(
  * chaque périmètre devient un Circuit dont ses Exercices sont les membres) ; de même un Cycle par
  * périmètre (lecture par analogie, à confirmer). Circuit : compte 1, séries groupées ; Cycle :
  * répétition 1 ; jamais vide ; règles d'imbrication D-451 respectées par l'éligibilité. Brouillon
- * inchangé si un périmètre est invalide ou chevauche un autre, ou si le résultat ferait sortir de
- * l'ancien modèle une Séance portant des Points d'arrêt (B.6) ; un périmètre de plusieurs contenus
- * n'est pas posé dans une Séance à Points d'arrêt.
+ * inchangé si un périmètre est invalide ou chevauche un autre. [B.4b : « ou si le résultat ferait
+ * sortir de l'ancien modèle une Séance portant des Points d'arrêt (B.6) ; un périmètre de plusieurs
+ * contenus n'est pas posé dans une Séance à Points d'arrêt » — retiré le 31/10/2026 par B.6.] PRE-9 B.6
+ * (ARB-06 : un Point entre dans le conteneur « selon les règles applicables à sa position de
+ * destination ») : les Points situés entre les contenus d'un périmètre entrent dans le nouveau
+ * conteneur à leur place ; ceux d'avant et d'après restent autour (`stopPointsAfterGrouping`). Un
+ * conteneur posé est de compte 1 : la séquence fonctionnelle, donc la validité des Points, est inchangée.
  */
 export function wrapSpansInContainers(
   draft: SessionDraft,
@@ -574,17 +630,19 @@ export function wrapSpansInContainers(
     return draft;
   }
   const layout = currentLayout(draft, newContainerId);
-  if (layout.stopPoints.length > 0 && spans.some((span) => span.members.length > 1)) {
-    return draft;
-  }
   const spanStartingAt = (node: StructureElement<string> | StructureCycleMember<string>) => {
     const content = nodeTarget(node);
     return content === null ? undefined : spans.find((span) => sameTarget(span.members[0]!, content));
   };
+  /** B.6 : regroupements réalisés (parent, premier rang, nombre de contenus, nouveau conteneur), pour les Points. */
+  const groupings: { readonly parent: StopPointContainer; readonly start: number; readonly count: number; readonly into: StopPointContainer }[] = [];
+  const containerOfNode = (node: StructureElement<string> | StructureCycleMember<string>): StopPointContainer =>
+    node.kind === "CIRCUIT" ? { kind: "CIRCUIT", id: node.circuit.id } : node.kind === "CYCLE" ? { kind: "CYCLE", id: node.cycle.id } : { kind: "SESSION" };
   /** Regroupe, dans une suite de frères, chaque périmètre en un nœud produit par `make`. */
   const group = <N extends StructureElement<string> | StructureCycleMember<string>>(
     nodes: readonly N[],
     make: (members: readonly N[]) => N,
+    parent: StopPointContainer,
   ): N[] => {
     const result: N[] = [];
     for (let index = 0; index < nodes.length; index += 1) {
@@ -593,7 +651,9 @@ export function wrapSpansInContainers(
         result.push(nodes[index]!);
         continue;
       }
-      result.push(make(nodes.slice(index, index + span.members.length)));
+      const made = make(nodes.slice(index, index + span.members.length));
+      groupings.push({ parent, start: index, count: span.members.length, into: containerOfNode(made) });
+      result.push(made);
       index += span.members.length - 1;
     }
     return result;
@@ -604,16 +664,21 @@ export function wrapSpansInContainers(
     nature: DEFAULT_CIRCUIT_NATURE,
     exercises: members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : [])),
   });
+  const session: StopPointContainer = { kind: "SESSION" };
   const elements =
     container === "CIRCUIT"
-      ? group(layout.elements, (members): StructureElement<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) })).map(
+      ? group(layout.elements, (members): StructureElement<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) }), session).map(
           (element): StructureElement<string> =>
             element.kind === "CYCLE"
               ? {
                   kind: "CYCLE",
                   cycle: {
                     ...element.cycle,
-                    members: group(element.cycle.members, (members): StructureCycleMember<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) })),
+                    members: group(
+                      element.cycle.members,
+                      (members): StructureCycleMember<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) }),
+                      { kind: "CYCLE", id: element.cycle.id },
+                    ),
                   },
                 }
               : element,
@@ -627,60 +692,38 @@ export function wrapSpansInContainers(
               member.kind === "EXERCISE" ? [{ kind: "EXERCISE", exercise: member.exercise }] : member.kind === "CIRCUIT" ? [member] : [],
             ),
           },
-        }));
-  const result: Layout = { ...layout, elements };
-  return blockedByStopPoints(result) ? draft : withLayout(draft, result);
+        }), session);
+  // Du dernier regroupement au premier : les rangs des précédents restent ceux d'origine.
+  const stopPoints = [...groupings]
+    .reverse()
+    .reduce((points, grouping) => stopPointsAfterGrouping(points, grouping.parent, grouping.start, grouping.count, grouping.into), layout.stopPoints);
+  return withLayout(draft, { elements, stopPoints });
 }
 
 /**
  * ARB-07 : un nouvel Exercice est inséré après le dernier Exercice entré, dans son conteneur ; sans
  * repère (ou repère absent), à la fin du niveau principal. Disposition générale seulement : dans
  * l'ancien modèle, l'insertion existante s'applique.
+ *
+ * PRE-9 B.6 (D-441 ; « comme actuellement », ARB-07) : comme l'insertion de l'ancien modèle
+ * (`appendActivityAfterLastDisplayed`, Points inchangés), le nouvel Exercice prend place après le
+ * repère ET après le Point qui le suit éventuellement ; les Points suivants restent à leur place.
  */
 export function insertExerciseInLayout(draft: SessionDraft, exercise: SessionDraftExercise, afterExerciseId: string | null): SessionDraft {
   const layout = draft.structure;
   if (layout === undefined || legacyFromStructure(layout) !== null) {
     return { ...draft, exercises: [...draft.exercises, exercise] };
   }
-  let placed = false;
-  const inCircuit = (circuit: StructureCircuit<string>): StructureCircuit<string> => {
-    const index = placed || afterExerciseId === null ? -1 : circuit.exercises.indexOf(afterExerciseId);
-    if (index < 0) {
-      return circuit;
-    }
-    placed = true;
-    return { ...circuit, exercises: [...circuit.exercises.slice(0, index + 1), exercise.id, ...circuit.exercises.slice(index + 1)] };
+  const anchor = afterExerciseId === null ? null : layoutItemLocation(layout, { kind: "EXERCISE", id: afterExerciseId });
+  const container: LayoutContainerRef = anchor?.container ?? { kind: "SESSION" };
+  const index = anchor === null ? layout.elements.length : anchor.index + 1;
+  const attached = attach({ elements: layout.elements, stopPoints: [] }, { kind: "EXERCISE", id: exercise.id }, { container, index });
+  const elements = attached === null || attached === "NESTING" ? [...layout.elements, { kind: "EXERCISE" as const, exercise: exercise.id }] : attached.elements;
+  return {
+    ...draft,
+    exercises: [...draft.exercises, exercise],
+    structure: { elements, stopPoints: stopPointsAfterInsertion(layout.stopPoints, container, index + 1) },
   };
-  const elements: StructureElement<string>[] = [];
-  for (const element of layout.elements) {
-    if (element.kind === "CIRCUIT") {
-      elements.push({ kind: "CIRCUIT", circuit: inCircuit(element.circuit) });
-    } else if (element.kind === "CYCLE") {
-      const members: StructureCycleMember<string>[] = [];
-      for (const member of element.cycle.members) {
-        if (member.kind === "CIRCUIT") {
-          members.push({ kind: "CIRCUIT", circuit: inCircuit(member.circuit) });
-        } else {
-          members.push(member);
-          if (!placed && member.exercise === afterExerciseId) {
-            placed = true;
-            members.push({ kind: "EXERCISE", exercise: exercise.id });
-          }
-        }
-      }
-      elements.push({ kind: "CYCLE", cycle: { ...element.cycle, members } });
-    } else {
-      elements.push(element);
-      if (!placed && element.exercise === afterExerciseId) {
-        placed = true;
-        elements.push({ kind: "EXERCISE", exercise: exercise.id });
-      }
-    }
-  }
-  if (!placed) {
-    elements.push({ kind: "EXERCISE", exercise: exercise.id });
-  }
-  return { ...draft, exercises: [...draft.exercises, exercise], structure: { ...layout, elements } };
 }
 
 // ---------------------------------------------------------------------------
@@ -785,10 +828,23 @@ export function settleLayoutCircuitMembership(
 
 /** Issue d'un déplacement d'Exercice vers un Circuit (`moveExerciseToCircuit`). */
 export type LayoutMoveOutcome =
-  | { readonly status: "APPLIED"; readonly draft: SessionDraft }
+  | { readonly status: "APPLIED"; readonly draft: SessionDraft; readonly removedStopPointIds: readonly string[] }
   /** Des valeurs seraient perdues (D-09) : `draft` est à écrire après « Confirmer » ; « Annuler » garde l'entrée. */
-  | { readonly status: "CONFIRMATION_REQUIRED"; readonly losses: readonly CircuitLoss[]; readonly targetCount: number; readonly draft: SessionDraft }
-  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "FORMAT_INCOMPATIBLE" | "STOP_POINTS" };
+  | {
+      readonly status: "CONFIRMATION_REQUIRED";
+      readonly losses: readonly CircuitLoss[];
+      readonly targetCount: number;
+      readonly draft: SessionDraft;
+      readonly removedStopPointIds: readonly string[];
+    }
+  /** PRE-9 B.6 (D-442, ARB-02b) : choix de début ou de fin de répétition ; chaque résolution est l'issue complète. */
+  | {
+      readonly status: "CHOICE_REQUIRED";
+      readonly conflict: LayoutRepetitionConflictInfo;
+      readonly resolutions: Readonly<Record<TourBoundaryChoice, Extract<LayoutMoveOutcome, { status: "APPLIED" | "CONFIRMATION_REQUIRED" }>>>;
+    }
+  /** [B.3 : refus `STOP_POINTS` — retiré le 31/10/2026 par B.6.] */
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "FORMAT_INCOMPATIBLE" };
 
 /**
  * PRE-9 (B.3, COMP §6 : « Le déplacement d'un exercice vers un circuit alterné respecte le N commun
@@ -802,8 +858,10 @@ export type LayoutMoveOutcome =
  * Rien n'est muté : l'issue porte le brouillon à écrire (`APPLIED`, ou `CONFIRMATION_REQUIRED`, à
  * écrire seulement après « Confirmer »). Dans le même Circuit : réordonnancement simple, sans
  * adaptation. Refus sans altération : Exercice ou Circuit inconnu ; Exercice formaté que le Circuit
- * n'admet pas sans altération (D-05, matrice §2.2 ; adaptation de ses réglages : C.4) ; Séance
- * portant des Points d'arrêt (leur suivi lors d'un déplacement relève de B.4 / B.6).
+ * n'admet pas sans altération (D-05, matrice §2.2 ; adaptation de ses réglages : C.4). [B.3 : « Séance
+ * portant des Points d'arrêt (leur suivi lors d'un déplacement relève de B.4 / B.6) » — remplacé le
+ * 31/10/2026 par B.6 :] les Points restent à leur place dans la séquence et la règle tolérante de D-442
+ * s'applique (`removedStopPointIds`, choix de répétition `CHOICE_REQUIRED`), comme pour `moveLayoutItem`.
  */
 export function moveExerciseToCircuit(
   draft: SessionDraft,
@@ -815,65 +873,25 @@ export function moveExerciseToCircuit(
   const layout = currentLayout(draft, newContainerId);
   const exercise = draft.exercises.find((item) => item.id === exerciseId);
   const target = structureCircuits(layout).find((circuit) => circuit.id === circuitId);
-  if (exercise === undefined || target === undefined || !structureExercises(layout).includes(exerciseId)) {
+  const detached = detach(layout, { kind: "EXERCISE", id: exerciseId });
+  if (exercise === undefined || target === undefined || detached === null) {
     return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  // Les Points d'arrêt suivent un déplacement avec B.4 / B.6 (ARB-02a/b) : refus sans altération d'ici là.
-  if (layout.stopPoints.length > 0) {
-    return { status: "REFUSED", reason: "STOP_POINTS" };
+  const attached = attach(detached.layout, detached.node, { container: { kind: "CIRCUIT", id: circuitId }, index });
+  if (attached === null || attached === "NESTING") {
+    return { status: "REFUSED", reason: "NOT_FOUND" };
   }
-  const without = (ids: readonly string[]) => ids.filter((id) => id !== exerciseId);
-  const remaining = without(target.exercises);
-  const at = Math.max(0, Math.min(Number.isFinite(index) ? Math.trunc(index) : remaining.length, remaining.length));
-  const placeIn = (circuit: StructureCircuit<string>): StructureCircuit<string> | null => {
-    if (circuit.id === circuitId) {
-      return { ...circuit, exercises: [...remaining.slice(0, at), exerciseId, ...remaining.slice(at)] };
-    }
-    const exercises = without(circuit.exercises);
-    // COMP §1 : un conteneur disparaît lorsque son dernier membre en sort.
-    return exercises.length === 0 ? null : exercises.length === circuit.exercises.length ? circuit : { ...circuit, exercises };
-  };
-  const elements: StructureElement<string>[] = [];
-  for (const element of layout.elements) {
-    switch (element.kind) {
-      case "EXERCISE":
-        if (element.exercise !== exerciseId) {
-          elements.push(element);
-        }
-        break;
-      case "CIRCUIT": {
-        const circuit = placeIn(element.circuit);
-        if (circuit !== null) {
-          elements.push(circuit === element.circuit ? element : { kind: "CIRCUIT", circuit });
-        }
-        break;
-      }
-      case "CYCLE": {
-        const members = element.cycle.members.flatMap((member): StructureCycleMember<string>[] => {
-          if (member.kind === "EXERCISE") {
-            return member.exercise === exerciseId ? [] : [member];
-          }
-          const circuit = placeIn(member.circuit);
-          return circuit === null ? [] : [circuit === member.circuit ? member : { kind: "CIRCUIT", circuit }];
-        });
-        if (members.length > 0) {
-          elements.push({ kind: "CYCLE", cycle: { ...element.cycle, members } });
-        }
-        break;
-      }
-      default: {
-        const unreachable: never = element;
-        return unreachable;
-      }
-    }
-  }
-  const moved: Layout = { ...layout, elements };
+  // COMP §1 : un conteneur disparaît lorsque son dernier membre en sort.
+  const moved = pruneEmpty(attached).layout;
   const settlement = settleLayoutCircuitMembership({ ...draft, structure: layout }, { exercises: draft.exercises, structure: moved });
   if (settlement.refusedExerciseIds.length > 0) {
     return { status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" };
   }
-  const result = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, moved);
-  return settlement.losses.length > 0
-    ? { status: "CONFIRMATION_REQUIRED", losses: settlement.losses, targetCount: settlement.targetCount, draft: result }
-    : { status: "APPLIED", draft: result };
+  const finish = (result: Layout, removedStopPointIds: readonly string[]): Extract<LayoutMoveOutcome, { status: "APPLIED" | "CONFIRMATION_REQUIRED" }> => {
+    const next = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, result);
+    return settlement.losses.length > 0
+      ? { status: "CONFIRMATION_REQUIRED", losses: settlement.losses, targetCount: settlement.targetCount, draft: next, removedStopPointIds }
+      : { status: "APPLIED", draft: next, removedStopPointIds };
+  };
+  return withSettledStopPoints(draft, layout, moved, finish);
 }

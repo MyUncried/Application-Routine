@@ -217,12 +217,14 @@ describe("Recette n° 1 — « Ajouter un arrêt » avec un seul Circuit (ancien
     expect(addStop().props.accessibilityState).toEqual(enabled);
   });
 
-  it("limite connue jusqu'à B.6 : deux Circuits (disposition générale) — « Ajouter un arrêt » indisponible", async () => {
+  // [« limite connue jusqu'à B.6 : deux Circuits (disposition générale) — « Ajouter un arrêt »
+  // indisponible » — levée le 31/10/2026 par B.6.]
+  it("B.6 : deux Circuits (disposition générale) — « Ajouter un arrêt » disponible", async () => {
     await renderComposition(flatDraft());
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-a");
     await envelopeAround("CIRCUIT", "composition-envelope-exercise-c");
     expect(resolveRichLayout(probe.draft!)).not.toBeNull();
-    expect(addStop().props.accessibilityState).toEqual({ selected: false, disabled: true });
+    expect(addStop().props.accessibilityState).toEqual({ selected: false, disabled: false });
   });
 });
 

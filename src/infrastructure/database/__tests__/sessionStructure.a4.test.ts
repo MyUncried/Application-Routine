@@ -222,11 +222,13 @@ describe("PRE-8 A.4 — structure générale persistée", () => {
     expect(await database.getFirstAsync("SELECT name FROM sessions WHERE id = ?", [created.id])).toEqual({ name: "Séance à cycles" });
   });
 
-  it("refuse les formes invalides et les Points d'arrêt hors de l'ancien modèle, sans écrire", async () => {
+  // [31/10/2026, PRE-9 B.6 : les Points d'arrêt sont admis dans toute la structure générale (ARB-02,
+  // RM-219 évaluée sur toute la séquence) — le cas « Point hors de l'ancien modèle refusé » est retiré
+  // de cette liste ; ses refus et admissions sont couverts par layoutStopPoints.b6 et stopPointsGeneral.b6.]
+  it("refuse les formes invalides, sans écrire", async () => {
     for (const structure of [
       { elements: [{ kind: "CYCLE" as const, cycle: { id: "empty", repeatCount: 2, members: [] } }], stopPoints: [] },
       { elements: [{ kind: "CIRCUIT" as const, circuit: circuit("c", [exercise("x")], 100) }], stopPoints: [] },
-      { ...multiCycle(), stopPoints: [{ circuitId: "c1", position: 0 }] },
       { elements: [], stopPoints: [] },
     ]) {
       await expect(repository().createStructured(input(structure))).rejects.toBeInstanceOf(SessionValidationError);

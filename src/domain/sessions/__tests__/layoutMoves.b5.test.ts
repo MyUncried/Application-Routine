@@ -144,14 +144,18 @@ describe("PRE-9 B.5 — suppression d'un Exercice", () => {
     expect(removeLayoutExercise(sample(), "inconnu", ids)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
   });
 
-  it("Points d'arrêt (ancien modèle seulement avant B.6) : refus, les opérations historiques s'appliquent", () => {
+  // [B.5 : « Points d'arrêt (ancien modèle seulement avant B.6) : refus, les opérations historiques
+  // s'appliquent » (refus `STOP_POINTS`) — remplacé le 31/10/2026 par B.6 : D-441 / D-442 appliqués.]
+  it("Points d'arrêt (B.6) : suppression appliquée, Point devenu interdit retiré sans message ; copie insérée avant le Point", () => {
     const draft: SessionDraft = {
       ...createEmptyDraft(),
       exercises: [{ ...exercise("x1"), structuralPosition: "BEFORE_TOUR" }, { ...exercise("x2"), structuralPosition: "BEFORE_TOUR" }],
       stopPoints: [{ id: "p", scope: "BEFORE_TOUR", position: 1 }],
     };
-    expect(removeLayoutExercise(draft, "x1", ids)).toEqual({ status: "REFUSED", reason: "STOP_POINTS" });
-    expect(duplicateLayoutExercise(draft, "x1", "copy", ids)).toEqual({ status: "REFUSED", reason: "STOP_POINTS" });
+    const removed = removeLayoutExercise(draft, "x1", ids);
+    expect(removed.status === "APPLIED" && removed.removedStopPointIds).toEqual(["p"]);
+    const duplicated = applied(duplicateLayoutExercise(draft, "x1", "copy", ids));
+    expect(duplicated.draft.stopPoints).toEqual([{ id: "p", scope: "BEFORE_TOUR", position: 2 }]);
   });
 });
 

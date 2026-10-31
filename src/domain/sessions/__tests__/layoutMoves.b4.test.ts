@@ -174,7 +174,8 @@ describe("PRE-9 B.4 — Circuit et Cycle entiers (G6–G8, ARB-09)", () => {
     expect(moveLayoutItem(twoCycles, { kind: "CYCLE", id: "y1" }, cycle("y2", 0), ids)).toEqual({ status: "REFUSED", reason: "NESTING" });
   });
 
-  it("élément ou conteneur inconnu, Points d'arrêt (B.6) : refus sans altération", () => {
+  // [B.4 : « …, Points d'arrêt (B.6) : refus sans altération » (`STOP_POINTS`) — remplacé le 31/10/2026 par B.6.]
+  it("élément ou conteneur inconnu : refus sans altération ; Points d'arrêt (B.6) : déplacement appliqué, D-442", () => {
     expect(moveLayoutItem(sample(), { kind: "EXERCISE", id: "zz" }, session(0), ids)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
     expect(moveLayoutItem(sample(), { kind: "EXERCISE", id: "e0" }, circuit("zz", 0), ids)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
     // Le Cycle déplacé ne peut pas se recevoir lui-même.
@@ -184,7 +185,9 @@ describe("PRE-9 B.4 — Circuit et Cycle entiers (G6–G8, ARB-09)", () => {
       exercises: [exercise("x"), exercise("y")],
       stopPoints: [{ id: "p", scope: "BEFORE_TOUR", position: 1 }],
     };
-    expect(moveLayoutItem(legacyWithPoint, { kind: "EXERCISE", id: "y" }, session(0), ids)).toEqual({ status: "REFUSED", reason: "STOP_POINTS" });
+    // [x, P, y] → y en tête : [y, x, P] — P précéderait la Fin : retiré sans message (RM-219, D-442).
+    const moved = moveLayoutItem(legacyWithPoint, { kind: "EXERCISE", id: "y" }, session(0), ids);
+    expect(moved.status === "APPLIED" ? moved.removedStopPointIds : moved.status).toEqual(["p"]);
   });
 });
 

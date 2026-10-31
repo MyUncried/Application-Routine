@@ -208,12 +208,13 @@ describe("structure — validation de forme", () => {
     ]);
   });
 
-  it("n'accepte encore aucun Point d'arrêt hors de l'ancien modèle (règles généralisées : Epic C)", () => {
+  // [« n'accepte encore aucun Point d'arrêt hors de l'ancien modèle » — remplacé le 31/10/2026 par B.6 (ARB-02a/b).]
+  it("accepte un Point d'arrêt hors de l'ancien modèle (B.6 : forme seulement ; RM-219 à l'écriture)", () => {
     expect(
       codes({
         elements: [{ kind: "CYCLE", cycle: { id: "A", repeatCount: 2, members: [circuit("c1", [exercise("x")])].map((circuit) => ({ kind: "CIRCUIT" as const, circuit })) } }],
         stopPoints: [{ circuitId: "c1", position: 0 }],
       }),
-    ).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED"]);
+    ).toEqual([]);
   });
 });

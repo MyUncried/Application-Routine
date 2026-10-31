@@ -271,6 +271,11 @@ describe("strings", () => {
       // PRE-6 story 6.2 : point en tête de portée (données héritées).
       stopPointAtCircuitStartAccessibilityLabel: "Point d’arrêt au début du circuit",
       stopPointAtSessionStartAccessibilityLabel: "Point d’arrêt au début de la séance",
+      // PRE-9 B.6 : emplacements d’un Cycle.
+      addStopPointAtCycleStartAccessibilityLabel: "Ajouter un point d’arrêt au début du cycle",
+      addStopPointAfterCycleAccessibilityLabel: "Ajouter un point d’arrêt après le cycle",
+      stopPointAtCycleStartAccessibilityLabel: "Point d’arrêt au début du cycle",
+      existingStopPointAfterCycleAccessibilityLabel: "Point d’arrêt après le cycle",
       confirmSingular: "Confirmer {n} pause ajoutée",
       confirmPlural: "Confirmer {n} pauses ajoutées",
       // PRE-6 story 6.3 (D-441) : libellé des changements autres que des ajouts seuls.

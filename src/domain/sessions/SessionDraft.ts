@@ -72,6 +72,7 @@ import {
   structureFromLegacy,
   withoutEmptyLegacyCircuit,
   type SessionStructure,
+  type StructureCircuit,
   type StructureCycleMember,
   type StructureElement,
   type StructureStopPointLocation,
@@ -812,8 +813,41 @@ export function sessionDraftsEqual(a: SessionDraft, b: SessionDraft): boolean {
     (a.circuitNature ?? DEFAULT_CIRCUIT_NATURE) === (b.circuitNature ?? DEFAULT_CIRCUIT_NATURE) &&
     exercisesEqual(a.exercises, b.exercises) &&
     // PRE-6 (story 1.2) : un point ajouté, retiré ou déplacé seul rend le brouillon modifié.
-    stopPointsEqual(a.stopPoints ?? [], b.stopPoints ?? [])
+    stopPointsEqual(a.stopPoints ?? [], b.stopPoints ?? []) &&
+    // PRE-9 B.6 (même règle que la story 1.2) : dans une disposition générale, un Point ajouté, retiré
+    // ou déplacé — ou la disposition elle-même modifiée — rend le brouillon modifié.
+    richLayoutSignature(a.structure) === richLayoutSignature(b.structure)
   );
+}
+
+/**
+ * PRE-9 B.6 : signature d'une disposition générale (Circuits, Cycles, comptes, natures, ordre, Points
+ * par emplacement, identifiants de Point ignorés) ; `""` si absente ou représentable dans l'ancien
+ * modèle (les champs de l'ancien modèle sont alors comparés).
+ */
+function richLayoutSignature(layout: SessionDraft["structure"]): string {
+  if (layout === undefined || legacyFromStructure(layout) !== null) {
+    return "";
+  }
+  const circuit = (item: StructureCircuit<string>) => `C(${item.id},${item.repeatCount},${item.nature})[${item.exercises.join(",")}]`;
+  const elements = layout.elements.map((element) => {
+    switch (element.kind) {
+      case "EXERCISE":
+        return `E(${element.exercise})`;
+      case "CIRCUIT":
+        return circuit(element.circuit);
+      case "CYCLE":
+        return `Y(${element.cycle.id},${element.cycle.repeatCount}){${element.cycle.members
+          .map((member) => (member.kind === "CIRCUIT" ? circuit(member.circuit) : `E(${member.exercise})`))
+          .join(" ")}}`;
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  });
+  const points = layout.stopPoints.map((point) => `${point.circuitId ?? ""}|${point.cycleId ?? ""}|${point.position}`).sort();
+  return `${elements.join(" ")}#${points.join(" ")}`;
 }
 
 /** Compare deux collections de Points d'arrêt par emplacement `(scope, position)`, identifiants et ordre du tableau ignorés. */

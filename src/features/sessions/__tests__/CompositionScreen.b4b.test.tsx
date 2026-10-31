@@ -277,12 +277,13 @@ describe("B.4b — périmètre ajustable (traits haut et bas)", () => {
     expect(within(block).queryByTestId("composition-exercise-row-c")).toBeNull();
   });
 
-  it("aucun contenu atteignable (Séance à Points d'arrêt, suivi en B.6) : pas de traits", async () => {
+  // [B.4b : « aucun contenu atteignable (Séance à Points d'arrêt, suivi en B.6) : pas de traits » —
+  // remplacé le 31/10/2026 par B.6 : une Séance à Points d'arrêt s'étend comme une autre.]
+  it("Séance à Points d'arrêt (B.6) : traits présents, comme sans Point", async () => {
     await renderComposition({ ...flatDraft(), stopPoints: [{ id: "p1", scope: "BEFORE_TOUR", position: 1 }] });
     enter("CIRCUIT");
     press("a");
-    expect(screen.queryByTestId("composition-envelope-exercise-a-handle-top")).toBeNull();
-    expect(screen.queryByTestId("composition-envelope-exercise-a-handle-bottom")).toBeNull();
+    expect(screen.getByTestId("composition-envelope-exercise-a-handle-bottom")).toBeTruthy();
   });
 
   it("Annuler après extension : aucune mutation du brouillon", async () => {

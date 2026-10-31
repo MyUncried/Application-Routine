@@ -121,15 +121,19 @@ describe("PRE-9 B.2 — conteneur posé sur un premier contenu (ARB-06)", () => 
     });
   });
 
-  it("non éligible : Exercice formaté (ARB-27), Exercice d'un Circuit, conteneur hors ancien modèle tant que la Séance a des Points (B.6)", () => {
+  // [B.2 : « …, conteneur hors ancien modèle tant que la Séance a des Points (B.6) » — remplacé le 31/10/2026 par B.6.]
+  it("non éligible : Exercice formaté (ARB-27), Exercice d'un Circuit ; Séance à Points : conteneurs proposés (B.6)", () => {
     const formatted: SessionDraft = { ...withoutCircuit(), exercises: [{ ...named("a"), format: { key: "EMOM", settings: {} } }, named("b")] };
     expect(envelopeCandidates(formatted, "CIRCUIT").map((target) => target.id)).toEqual(["b"]);
     expect(wrapInContainer(formatted, { kind: "EXERCISE", id: "a" }, "CIRCUIT", newId)).toBe(formatted);
 
     const withPoint = wrapInContainer(withoutCircuit([{ id: "p", scope: "BEFORE_TOUR", position: 1 }]), { kind: "EXERCISE", id: "a" }, "CIRCUIT", () => "c1");
-    expect(envelopeCandidates(withPoint, "CIRCUIT")).toEqual([]);
-    expect(envelopeCandidates(withPoint, "CYCLE")).toEqual([]);
+    expect(envelopeCandidates(withPoint, "CIRCUIT").map((target) => target.id)).toEqual(["b", "c"]);
+    expect(envelopeCandidates(withPoint, "CYCLE").map((target) => target.id)).toEqual(["c1", "b", "c"]);
     expect(envelopeCandidates(withPoint, "CIRCUIT").some((target) => target.id === "a")).toBe(false);
+    // Second Circuit posé : disposition générale, le Point reste entre les deux Circuits.
+    const second = wrapInContainer(withPoint, { kind: "EXERCISE", id: "b" }, "CIRCUIT", () => "c2");
+    expect(second.structure?.stopPoints).toEqual([{ id: "p", circuitId: null, position: 1 }]);
   });
 });
 

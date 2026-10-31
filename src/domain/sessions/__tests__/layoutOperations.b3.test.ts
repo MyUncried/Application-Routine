@@ -238,7 +238,9 @@ describe("PRE-9 B.3 — déplacement vers un Circuit (COMP §6 ; geste en B.4)",
     expect(reordered.draft.exercises).toBe(base.exercises);
   });
 
-  it("refus sans altération : Exercice ou Circuit inconnu ; Séance portant des Points d'arrêt (B.4 / B.6)", () => {
+  // [B.3 : « … ; Séance portant des Points d'arrêt (B.4 / B.6) » (refus `STOP_POINTS`) — remplacé le
+  // 31/10/2026 par B.6 : déplacement appliqué, D-442 sur toute la structure.]
+  it("refus sans altération : Exercice ou Circuit inconnu ; Séance portant des Points d'arrêt : appliqué (B.6, D-442)", () => {
     expect(moveExerciseToCircuit(twoNatures(), "absent", "ca", 0, newId)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
     expect(moveExerciseToCircuit(twoNatures(), "e0", "absent", 0, newId)).toEqual({ status: "REFUSED", reason: "NOT_FOUND" });
     const legacyWithPoint: SessionDraft = {
@@ -255,7 +257,9 @@ describe("PRE-9 B.3 — déplacement vers un Circuit (COMP §6 ; geste en B.4)",
         stopPoints: [],
       },
     };
-    expect(moveExerciseToCircuit(legacyWithPoint, "p", "t", 0, newId)).toEqual({ status: "REFUSED", reason: "STOP_POINTS" });
+    const outcome = moveExerciseToCircuit(legacyWithPoint, "p", "t", 0, newId);
+    // Le Point qui suivait p précéderait le Circuit en tête de Séance : retiré sans message (RM-219).
+    expect(outcome.status === "APPLIED" || outcome.status === "CONFIRMATION_REQUIRED" ? outcome.removedStopPointIds : outcome.status).toEqual(["s1"]);
   });
 });
 

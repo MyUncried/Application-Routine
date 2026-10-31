@@ -46,9 +46,9 @@ import {
   containerLetters,
   envelopeCandidates,
   envelopeSpanReach,
+  layoutCircuitCountOutcome,
+  layoutCycleCountOutcome,
   prepareLayoutNatureChange,
-  setLayoutCircuitCount,
-  setLayoutCycleCount,
   toggleEnvelopeDesignation,
   wrapSpansInContainers,
   type EnvelopeEdge,
@@ -59,15 +59,28 @@ import { EnvelopeHandle, envelopeTargetKey, useEnvelopePerimeterDrag } from "@/f
 import {
   duplicateLayoutExercise,
   moveLayoutItem,
+  moveLayoutStopPoint,
   neutralDropControl,
   removeLayoutExercise,
   stepLayoutItem,
+  stepLayoutStopPoint,
   type LayoutDropControl,
   type LayoutItemMoveOutcome,
   type LayoutItemMoveRefusal,
   type LayoutItemRef,
+  type LayoutStopPointMoveOutcome,
 } from "@/domain/sessions/layoutMoves";
-import { structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
+import {
+  applyLayoutPlacementDraft,
+  layoutPlacementConfirmation,
+  layoutPlacementSlots,
+  toggleLayoutPlacementStopPointOutcome,
+  toggleLayoutPlacementStopPointRemoval,
+  type LayoutPlacementSlot,
+  type LayoutPlacementStopPointOutcome,
+} from "@/domain/sessions/layoutPlacement";
+import { layoutStopPointId, sameStopPointContainer, stopPointContainerOf, stopPointLocationIn, type StopPointContainer } from "@/domain/sessions/layoutStopPoints";
+import { legacyFromStructure, structureCircuits, type StructureCircuit, type StructureCycle, type StructureCycleMember } from "@/domain/sessions/structure";
 import {
   STRUCTURAL_ZONES,
   duplicateOccurrence,
@@ -94,6 +107,7 @@ import {
   togglePlacementStopPointRemoval,
   type PlacementContext,
   type PlacementDraft,
+  type PlacementRecoverySlot,
   type PlacementSlot,
   type PlacementStopPointOutcome,
   type PlacementStopPointSlot,
@@ -626,7 +640,19 @@ type TourChoiceRequest =
   | { readonly kind: "PLACEMENT_EXISTING_STOP_POINT"; readonly stopPointId: string }
   | { readonly kind: "CIRCUIT_COUNT"; readonly count: number }
   // Story 7.5 (D-442 amendée) : suppression qui créerait un conflit de Tour.
-  | { readonly kind: "OCCURRENCE_DELETE"; readonly activityId: string };
+  | { readonly kind: "OCCURRENCE_DELETE"; readonly activityId: string }
+  /**
+   * PRE-9 B.6 (D-442, ARB-02 règle 5, ARB-02b) : opération d'une disposition générale (déplacement,
+   * suppression, compte, Point déplacé, placement) qui ferait se suivre début et fin de Tour d'un
+   * Circuit (`scope` CIRCUIT) ou de répétition d'un Cycle (`scope` CYCLE) — même dialogue ;
+   * `apply` rejoue l'opération sur l'état COURANT avec la résolution choisie ; `cancel` : « Annuler ».
+   */
+  | {
+      readonly kind: "LAYOUT";
+      readonly scope: "CIRCUIT" | "CYCLE";
+      readonly apply: (choice: TourBoundaryChoice) => void;
+      readonly cancel?: () => void;
+    };
 
 /**
  * Story 7.2 (D-442) : resélection en placement du point existant `stopPointId`, refusée par
@@ -1588,10 +1614,21 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     () => ({ exercises: draft.exercises, stopPoints: draft.stopPoints ?? EMPTY_STOP_POINTS, tourRepeatCount: draft.tourRepeatCount }),
     [draft.exercises, draft.stopPoints, draft.tourRepeatCount],
   );
+  /**
+   * PRE-9 B.6 (ARB-02, ch08 « Placement des récupérations et des points d'arrêt ») : disposition
+   * générale — le placement s'y applique sur tous les niveaux (`layoutPlacement.ts`), mêmes règles,
+   * même sous-brouillon, même barre ; sinon le placement de l'ancien modèle, inchangé.
+   */
+  const isGeneralLayout = draft.structure !== undefined && legacyFromStructure(draft.structure) === null;
   /** Story 6.3 : nature de « Confirmer » (libellé, disponibilité) ; `null` hors placement. */
   const confirmation = useMemo(
-    () => (placement === null ? null : placementConfirmation(placement, placementContext)),
-    [placement, placementContext],
+    () =>
+      placement === null
+        ? null
+        : isGeneralLayout
+          ? layoutPlacementConfirmation(placement, draft)
+          : placementConfirmation(placement, placementContext),
+    [draft, isGeneralLayout, placement, placementContext],
   );
   /**
    * « Confirmer » : une seule mise à jour fonctionnelle du brouillon (`postActivityRecoverySeconds`
@@ -1603,16 +1640,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const confirmPlacement = useCallback(() => {
     if (placement === null || confirmation === null || confirmation.kind === "NONE") return;
     const applied = placement;
+    // PRE-9 B.6 : disposition générale — application sur toute la structure (`applyLayoutPlacementDraft`).
+    const apply = isGeneralLayout ? applyLayoutPlacementDraft : applyPlacementDraft;
     // Rien d'applicable sur le brouillon courant (même brouillon rendu) : aucune mise à jour.
-    const preview = applyPlacementDraft(draft, applied, () => "");
+    const preview = apply(draft, applied, () => "");
     if (preview !== draft) {
       const stopPointIds = applied.stopPoints.map(() => Crypto.randomUUID());
       updateDraft((current) => {
         let next = 0;
-        return applyPlacementDraft(current, applied, () => stopPointIds[next++] ?? Crypto.randomUUID());
+        return apply(current, applied, () => stopPointIds[next++] ?? Crypto.randomUUID());
       });
     }
     leavePlacement();
+    if (isGeneralLayout) {
+      // PRE-9 B.6 : « Ajouter un arrêt » reste disponible tant qu'une carte existe (récupérations).
+      setAddStopFocusRequest((current) => current + 1);
+      return;
+    }
     // Revue 6.3 : si « Ajouter un arrêt » devient indisponible (dernier point retiré sans autre
     // ajout possible), le focus va à la première carte plutôt qu'à un bouton désactivé.
     const first = STOP_POINT_SCOPE_ORDER.flatMap((scope) =>
@@ -1623,7 +1667,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     } else {
       requestItemFocus(railRowKey(first.id));
     }
-  }, [confirmation, draft, leavePlacement, placement, requestItemFocus, updateDraft]);
+  }, [confirmation, draft, isGeneralLayout, leavePlacement, placement, requestItemFocus, updateDraft]);
   /**
    * Contre-recette iPhone du 30/10 (Hermann : « Appuyer de nouveau sur le bouton d'action point
    * d'arrêt referme l'écran de sélection (même comportement sur confirmer) ») : hors placement,
@@ -1675,6 +1719,33 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (location: StopPointLocation) => {
       if (placement === null) return;
       setRecoveryWheel(null);
+      const t = strings.screens.composition.placement;
+      if (isGeneralLayout) {
+        // PRE-9 B.6 (ARB-02b) : même choix, Circuit (« de tour ») ou Cycle (« de répétition »).
+        const general = toggleLayoutPlacementStopPointOutcome(placement, location, draft);
+        if (general.status === "CHOICE_REQUIRED") {
+          openTourChoice({
+            kind: "LAYOUT",
+            scope: general.scope.kind,
+            apply: (choice) => {
+              const resolved = general.resolutions[choice];
+              placementAnnouncementRef.current = {
+                text: isPlacementStopPointAdded(resolved, location) ? t.stopPointAddedAnnouncement : t.additionCancelledAnnouncement,
+                withLabel: true,
+              };
+              setPlacement(resolved);
+            },
+          });
+          return;
+        }
+        if (general.placement === placement) return;
+        placementAnnouncementRef.current = {
+          text: isPlacementStopPointAdded(general.placement, location) ? t.stopPointAddedAnnouncement : t.additionCancelledAnnouncement,
+          withLabel: true,
+        };
+        setPlacement(general.placement);
+        return;
+      }
       const outcome = togglePlacementStopPointOutcome(placement, location, placementContext);
       if (outcome.status === "CHOICE_REQUIRED") {
         openTourChoice({ kind: "PLACEMENT_STOP_POINT", location });
@@ -1683,14 +1754,13 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       const next = outcome.placement;
       if (next === placement) return;
       // Revue 6.3 (ch13 L1524) : effet, puis nombre d'ajouts (« Point d'arrêt ajouté. Confirmer 2 … »).
-      const t = strings.screens.composition.placement;
       placementAnnouncementRef.current = {
         text: isPlacementStopPointAdded(next, location) ? t.stopPointAddedAnnouncement : t.additionCancelledAnnouncement,
         withLabel: true,
       };
       setPlacement(next);
     },
-    [openTourChoice, placement, placementContext],
+    [draft, isGeneralLayout, openTourChoice, placement, placementContext],
   );
   /**
    * ✓ de la roulette d'une zone de récupération (story 7.2, D-442) : la zone est sélectionnée à la
@@ -1730,9 +1800,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     (stopPointId: string) => {
       if (placement === null) return;
       const t = strings.screens.composition.placement;
-      const next = togglePlacementStopPointRemoval(placement, stopPointId, placementContext);
+      const next = isGeneralLayout
+        ? toggleLayoutPlacementStopPointRemoval(placement, stopPointId, draft)
+        : togglePlacementStopPointRemoval(placement, stopPointId, placementContext);
       if (next === placement) {
-        if (placementReselectionChoice(placement, stopPointId, placementContext) !== null) {
+        // PRE-9 B.6 : disposition générale — resélection en conflit de répétition avec un ajout : choix.
+        const choice = isGeneralLayout ? layoutReselectionChoice(placement, stopPointId, draft) : null;
+        if (choice !== null) {
+          openTourChoice({
+            kind: "LAYOUT",
+            scope: choice.scope.kind,
+            apply: (keep) => {
+              const resolved = choice.resolutions[keep];
+              if (isPlacementStopPointRemoved(resolved, stopPointId)) AccessibilityInfo.announceForAccessibility(t.stopPointKeepRefusedAnnouncement);
+              else placementAnnouncementRef.current = { text: t.stopPointKeptAnnouncement, withLabel: true };
+              setPlacement(resolved);
+            },
+          });
+          return;
+        }
+        if (!isGeneralLayout && placementReselectionChoice(placement, stopPointId, placementContext) !== null) {
           openTourChoice({ kind: "PLACEMENT_EXISTING_STOP_POINT", stopPointId });
           return;
         }
@@ -1746,7 +1833,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       };
       setPlacement(next);
     },
-    [openTourChoice, placement, placementContext],
+    [draft, isGeneralLayout, openTourChoice, placement, placementContext],
   );
   /**
    * Revue 6.3 : seule source des annonces du placement, en UN message pour ne pas s'interrompre —
@@ -1784,13 +1871,26 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Emplacements du placement (Domaine), par occurrence et après le Circuit. Story 6.3 (D-441,
   // RM-251) : en placement, calculés sur l'état effectif (existants − retraits + ajouts du
   // sous-brouillon) — un retrait programmé libère les emplacements voisins.
+  // PRE-9 B.6 : disposition générale — emplacements de toute la structure (`layoutPlacementSlots`),
+  // vus par l'offre d'« Ajouter un arrêt » comme ceux de l'ancien modèle (`layoutOfferSlots`).
   const entrySlots = useMemo(
-    () => placementSlots(placementContext.exercises, placementContext.stopPoints, EMPTY_PLACEMENT_DRAFT, placementContext),
-    [placementContext],
+    () =>
+      isGeneralLayout
+        ? layoutOfferSlots(draft, EMPTY_PLACEMENT_DRAFT)
+        : placementSlots(placementContext.exercises, placementContext.stopPoints, EMPTY_PLACEMENT_DRAFT, placementContext),
+    [draft, isGeneralLayout, placementContext],
   );
   const draftSlots = useMemo(
-    () => (placement === null ? entrySlots : placementSlots(placementContext.exercises, placementContext.stopPoints, placement, placementContext)),
-    [entrySlots, placement, placementContext],
+    () =>
+      placement === null || isGeneralLayout
+        ? entrySlots
+        : placementSlots(placementContext.exercises, placementContext.stopPoints, placement, placementContext),
+    [entrySlots, isGeneralLayout, placement, placementContext],
+  );
+  /** PRE-9 B.6 : emplacements de Point de la disposition générale sur l'état effectif du placement. */
+  const generalSlots = useMemo(
+    () => (isGeneralLayout ? layoutPlacementSlots(draft, placement ?? EMPTY_PLACEMENT_DRAFT) : NO_LAYOUT_PLACEMENT_SLOTS),
+    [draft, isGeneralLayout, placement],
   );
   // « Ajouter un arrêt » est indisponible quand le placement n'aurait rien à proposer (Composition
   // vide, tout est déjà présent). Story 6.3 (D-441, R3) : un point existant IDENTIFIÉ suffit à le
@@ -1864,8 +1964,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   // Pendant le placement, durées recalculées en direct sur le brouillon tel que « Confirmer » le
   // produirait (R positive remplace la Pause terminale, story 1.3).
   const durationDraft = useMemo(
-    () => (placement === null ? draft : applyPlacementDraft(draft, placement, () => "")),
-    [draft, placement],
+    () => (placement === null ? draft : (isGeneralLayout ? applyLayoutPlacementDraft : applyPlacementDraft)(draft, placement, () => "")),
+    [draft, isGeneralLayout, placement],
   );
   // PRE-6 story 7.2 (D-442) : D-301 est retirée — plus aucun message d'enchaînement sans pause.
   /** Story 6.3 : ce que `placementRowPointOf` lit (noms, sous-brouillon, contexte, emplacements masqués). */
@@ -1909,6 +2009,53 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       slotByOccurrence,
     ],
   );
+  /**
+   * PRE-9 B.6 (ch08 « Placement des récupérations et des points d'arrêt », D-441, D-442, ARB-02) —
+   * placement d'une disposition générale : la carte porte sa zone de récupération et l'emplacement de
+   * Point qui la suit dans son conteneur (même rendu que l'ancien modèle) ; les emplacements de tête
+   * (Circuit, Cycle) et d'après un conteneur sont des rangées autonomes (`layoutStops.rowsAt`).
+   */
+  const generalSlotAfter = useMemo(
+    () => new Map(generalSlots.flatMap((slot) => (slot.afterExerciseId === null ? [] : [[slot.afterExerciseId, slot] as const]))),
+    [generalSlots],
+  );
+  const generalLabels = useMemo(
+    () => (isGeneralLayout ? layoutPlacementLabels(draft, generalSlots, levelPositions) : null),
+    [draft, generalSlots, isGeneralLayout, levelPositions],
+  );
+  const generalRowPointOf = useCallback(
+    (slot: LayoutPlacementSlot | undefined): PlacementStopPointRowPoint | null =>
+      slot === undefined || placement === null || generalLabels === null ? null : layoutRowPointOf(slot, placement, draft, generalLabels),
+    [draft, generalLabels, placement],
+  );
+  const generalPlacementRowContext = useMemo<PlacementRowContext | null>(() => {
+    if (placement === null || !isGeneralLayout) return null;
+    const bySlotKey = new Map(generalSlots.map((slot) => [stopPointKey(slot.designation), slot]));
+    return {
+      draft: placement,
+      slotFor: (occurrenceId) => {
+        const occurrence = draft.exercises.find((exercise) => exercise.id === occurrenceId);
+        if (occurrence === undefined) return null;
+        const after = generalSlotAfter.get(occurrenceId);
+        return { kind: "OCCURRENCE", occurrenceId, recovery: recoverySlotOfOccurrence(occurrence), stopPoint: after?.stopPoint ?? null };
+      },
+      rowPointOf: (stopPoint) => (stopPoint === null ? null : generalRowPointOf(bySlotKey.get(stopPointKey(stopPoint.location)))),
+      circuitHeadRowPoint: null,
+      onPressRecovery: handlePlacementRecoveryPress,
+      onToggleStopPoint: handlePlacementStopPointToggle,
+      onToggleExistingStopPoint: handlePlacementExistingStopPointToggle,
+    };
+  }, [
+    draft.exercises,
+    generalRowPointOf,
+    generalSlotAfter,
+    generalSlots,
+    handlePlacementExistingStopPointToggle,
+    handlePlacementRecoveryPress,
+    handlePlacementStopPointToggle,
+    isGeneralLayout,
+    placement,
+  ]);
 
   const composition = strings.screens.composition;
   const addToSession = strings.screens.activities.addToSession;
@@ -2215,22 +2362,41 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * appliqué au seul conteneur désigné (`setLayoutCircuitCount` : en séries alternées, les Exercices
    * du Circuit suivent N, réserve AD-38 ; `setLayoutCycleCount`). Forme fonctionnelle : chaque pas
    * (maintien compris) part du brouillon COURANT. Un pas referme le choix de nature éventuellement
-   * ouvert. Aucun Point d'arrêt dans une disposition générale avant B.6 : aucun choix de Tour.
+   * ouvert. [B.1b : « Aucun Point d'arrêt dans une disposition générale avant B.6 : aucun choix de
+   * Tour. » — remplacé le 31/10/2026 par B.6 :] PRE-9 B.6 (D-442, ARB-02b) : au passage à 1, les Points
+   * devenus interdits sont retirés (annonce discrète) ; au passage de 1 à 2 ou plus avec un Point de
+   * début et un Point de fin, le choix « Début de tour / Fin de tour » (Cycle : « de répétition ») est
+   * demandé AVANT tout changement (Annuler : compte inchangé).
    */
-  const handleLayoutCircuitCount = useCallback(
-    (circuitId: string, count: number) => {
+  const handleLayoutCount = useCallback(
+    (kind: "CIRCUIT" | "CYCLE", id: string, count: number) => {
       setOpenOverlay((current) => (layoutNatureCircuitOf(current) !== null ? null : current));
-      updateDraft((current) => setLayoutCircuitCount(current, circuitId, count));
+      if (tourChoicePendingRef.current) return;
+      const outcomeOf = (current: SessionDraft) => (kind === "CIRCUIT" ? layoutCircuitCountOutcome(current, id, count) : layoutCycleCountOutcome(current, id, count));
+      const probe = outcomeOf(draftRef.current);
+      if (probe.status === "CHOICE_REQUIRED") {
+        openTourChoice({
+          kind: "LAYOUT",
+          scope: probe.conflict.scope.kind,
+          apply: (choice) => {
+            const replay = outcomeOf(draftRef.current);
+            const resolution = replay.status === "CHOICE_REQUIRED" ? replay.resolutions[choice] : replay;
+            updateDraft(() => resolution.draft);
+            reportRemovedStopPoints(resolution.removedStopPointIds);
+          },
+        });
+        return;
+      }
+      updateDraft((current) => {
+        const outcome = outcomeOf(current);
+        return outcome.status === "APPLIED" ? outcome.draft : current;
+      });
+      reportRemovedStopPoints(probe.removedStopPointIds);
     },
-    [updateDraft],
+    [openTourChoice, reportRemovedStopPoints, updateDraft],
   );
-  const handleLayoutCycleCount = useCallback(
-    (cycleId: string, count: number) => {
-      setOpenOverlay((current) => (layoutNatureCircuitOf(current) !== null ? null : current));
-      updateDraft((current) => setLayoutCycleCount(current, cycleId, count));
-    },
-    [updateDraft],
-  );
+  const handleLayoutCircuitCount = useCallback((circuitId: string, count: number) => handleLayoutCount("CIRCUIT", circuitId, count), [handleLayoutCount]);
+  const handleLayoutCycleCount = useCallback((cycleId: string, count: number) => handleLayoutCount("CYCLE", cycleId, count), [handleLayoutCount]);
   /** PRE-9 B.1b (ARB-12) : repli d'un Circuit de la disposition — état de l'écran, brouillon inchangé. */
   const toggleLayoutCircuitCollapsed = useCallback(
     (circuit: StructureCircuit<SessionDraftExercise>) => {
@@ -2259,9 +2425,14 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   useLayoutEffect(() => {
     richLayoutRef.current = richLayout;
   });
-  /** Élément saisi et destination éclairée (rendu) ; la référence porte aussi l'ordonnée de saisie. */
-  const [layoutDrag, setLayoutDrag] = useState<{ readonly source: LayoutItemRef; readonly target: LayoutDropTarget | null } | null>(null);
-  const layoutDragRef = useRef<{ readonly source: LayoutItemRef; readonly handleY: number; target: LayoutDropTarget | null } | null>(null);
+  /**
+   * Élément saisi et destination éclairée (rendu) ; la référence porte aussi l'ordonnée de saisie.
+   * PRE-9 B.6 (D-441, ARB-06) : `stopPointId` — Point d'arrêt saisi (la source est alors un repère
+   * d'Exercice fictif : un Point peut aller partout où un Exercice irait, chaque emplacement d'un
+   * conteneur étant un emplacement de Point).
+   */
+  const [layoutDrag, setLayoutDrag] = useState<{ readonly source: LayoutItemRef; readonly target: LayoutDropTarget | null; readonly stopPointId?: string } | null>(null);
+  const layoutDragRef = useRef<{ readonly source: LayoutItemRef; readonly handleY: number; target: LayoutDropTarget | null; readonly stopPointId?: string } | null>(null);
   /** Déplacement avec perte de séries en attente (COMP §6 : Annuler conserve tout ; Confirmer applique ensemble). */
   const [pendingLayoutMove, setPendingLayoutMove] = useState<{ readonly run: () => LayoutItemMoveOutcome; readonly targetCount: number } | null>(null);
   const handleVanished = useCallback((key: string) => setVanishing((current) => current.filter((item) => item.key !== key)), []);
@@ -2285,19 +2456,37 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     },
     [updateDraft],
   );
-  /** Issue d'un déplacement (dépose ou pas à pas) : appliqué, confirmation de perte, refus annoncé sans modification. */
+  /**
+   * Issue d'un déplacement (dépose ou pas à pas) : appliqué, confirmation de perte, refus annoncé sans
+   * modification. PRE-9 B.6 (D-442) : Points retirés sans message annoncés discrètement ; un conflit de
+   * début et de fin de Tour (ou de répétition) ouvre le choix, puis l'opération est rejouée sur le
+   * brouillon courant avec la résolution choisie (« Annuler » : rien ne change).
+   */
+  const runLayoutMoveRef = useRef<(run: () => LayoutItemMoveOutcome) => void>(() => {});
   const runLayoutMove = useCallback(
     (run: () => LayoutItemMoveOutcome) => {
       const outcome = run();
       switch (outcome.status) {
         case "APPLIED":
           commitLayoutMove(outcome.draft, outcome.removedContainers);
+          reportRemovedStopPoints(outcome.removedStopPointIds);
           return;
         case "CONFIRMATION_REQUIRED":
           // Confirmation demandée par le seul contrôle avant dépose : dialogue propre à C.4 (ARB-24) ;
           // d'ici là, aucun contrôle ne la demande (contrôle neutre) — refus sans modification.
           if (outcome.losses.length > 0) setPendingLayoutMove({ run, targetCount: outcome.targetCount });
           else announceLayoutRefusal("CONTROL");
+          return;
+        case "CHOICE_REQUIRED":
+          openTourChoice({
+            kind: "LAYOUT",
+            scope: outcome.conflict.scope.kind,
+            apply: (choice) =>
+              runLayoutMoveRef.current(() => {
+                const replay = run();
+                return replay.status === "CHOICE_REQUIRED" ? replay.resolutions[choice] : replay;
+              }),
+          });
           return;
         case "REFUSED":
           announceLayoutRefusal(outcome.reason);
@@ -2310,20 +2499,70 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
         }
       }
     },
-    [announceLayoutRefusal, commitLayoutMove, setPendingLayoutMove],
+    [announceLayoutRefusal, commitLayoutMove, openTourChoice, reportRemovedStopPoints, setPendingLayoutMove],
+  );
+  useLayoutEffect(() => {
+    runLayoutMoveRef.current = runLayoutMove;
+  });
+  /**
+   * PRE-9 B.6 (D-441, ARB-06) : issue d'un déplacement de Point d'arrêt (dépose, « Monter » /
+   * « Descendre ») — appliqué ; choix de début ou de fin de répétition ; refus annoncé sans mutation.
+   */
+  const runLayoutStopPointMove = useCallback(
+    (run: () => LayoutStopPointMoveOutcome, focusId?: string) => {
+      const outcome = run();
+      switch (outcome.status) {
+        case "APPLIED":
+          updateDraft(() => outcome.draft);
+          if (focusId !== undefined) requestItemFocus(layoutStopFocusKey(focusId));
+          return;
+        case "CHOICE_REQUIRED":
+          openTourChoice({
+            kind: "LAYOUT",
+            scope: outcome.conflict.scope.kind,
+            apply: (choice) => {
+              const replay = run();
+              if (replay.status === "CHOICE_REQUIRED") {
+                const next = replay.resolutions[choice];
+                updateDraft(() => next);
+                const kept = (next.structure?.stopPoints ?? []).length;
+                const before = (draftRef.current.structure?.stopPoints ?? []).length;
+                if (kept < before) AccessibilityInfo.announceForAccessibility(removedStopPointsAnnouncement(before - kept));
+              } else if (replay.status === "APPLIED") {
+                updateDraft(() => replay.draft);
+              }
+            },
+          });
+          return;
+        case "REFUSED":
+          if (outcome.reason !== "NOT_FOUND" && outcome.reason !== "AT_BOUNDARY") {
+            AccessibilityInfo.announceForAccessibility(strings.screens.composition.layoutMove.stopPointRefused);
+          }
+          return;
+        case "UNCHANGED":
+          return;
+        default: {
+          const unreachable: never = outcome;
+          return unreachable;
+        }
+      }
+    },
+    [openTourChoice, requestItemFocus, updateDraft],
   );
   const startLayoutDrag = useCallback(
-    (source: LayoutItemRef): boolean => {
+    (source: LayoutItemRef, stopPointId?: string): boolean => {
       // PRE-9 B.5 : ni pendant une suppression animée (mise en page figée).
       if (layoutDragRef.current !== null || richLayoutRef.current === null || layoutDeletionRef.current !== null) return false;
-      const handle = layoutBoxesRef.current.get(source.kind === "EXERCISE" ? layoutItemKey(source) : layoutHeaderKey(source.kind, source.id));
+      const handleKey =
+        stopPointId !== undefined ? layoutStopBoxKey(stopPointId) : source.kind === "EXERCISE" ? layoutItemKey(source) : layoutHeaderKey(source.kind, source.id);
+      const handle = layoutBoxesRef.current.get(handleKey);
       if (handle === undefined) return false;
-      layoutDragRef.current = { source, handleY: handle.top + handle.height / 2, target: null };
-      setLayoutDrag({ source, target: null });
+      layoutDragRef.current = { source, handleY: handle.top + handle.height / 2, target: null, ...(stopPointId !== undefined ? { stopPointId } : {}) };
+      setLayoutDrag({ source, target: null, ...(stopPointId !== undefined ? { stopPointId } : {}) });
       closeCircuitControls();
       setRevealedActionsId(null);
       autoScroll.begin();
-      if (source.kind === "CIRCUIT") {
+      if (source.kind === "CIRCUIT" && stopPointId === undefined) {
         // COMP §6 : « Un appui long sur l'en-tête d'un circuit déployé commence par le replier puis
         // amorce son déplacement. »
         const circuit = structureCircuits(richLayoutRef.current).find((item) => item.id === source.id);
@@ -2343,7 +2582,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     const target = resolveLayoutDrop(layout, current.source, current.handleY + translationY, layoutBoxesRef.current, (exercise) => exercise.id);
     if (sameLayoutDrop(target, current.target) && target?.lineY === current.target?.lineY) return;
     current.target = target;
-    setLayoutDrag({ source: current.source, target });
+    setLayoutDrag({ source: current.source, target, ...(current.stopPointId !== undefined ? { stopPointId: current.stopPointId } : {}) });
   }, []);
   const endLayoutDrag = useCallback(
     (translationY: number) => {
@@ -2356,9 +2595,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // (garde PRE4-1.1/AC1 de `legacyModeConfinement`).
       const dropTarget = current === null ? null : current.target;
       if (current === null || dropTarget === null) return;
+      const stopPointId = current.stopPointId;
+      if (stopPointId !== undefined) {
+        // PRE-9 B.6 (ARB-06) : le Point va à l'emplacement (conteneur, rang) éclairé, selon ses règles.
+        runLayoutStopPointMove(() =>
+          moveLayoutStopPoint(draftRef.current, stopPointId, stopPointLocationIn(dropTarget.container, dropTarget.index), () => Crypto.randomUUID()),
+        );
+        return;
+      }
       runLayoutMove(() => moveLayoutItem(draftRef.current, current.source, dropTarget, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL));
     },
-    [autoScroll, moveLayoutDrag, runLayoutMove],
+    [autoScroll, moveLayoutDrag, runLayoutMove, runLayoutStopPointMove],
   );
   const cancelLayoutDrag = useCallback(() => {
     layoutDragRef.current = null;
@@ -2369,10 +2616,23 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
   const layoutStepAction = useCallback(
     (source: LayoutItemRef, direction: "UP" | "DOWN"): (() => void) | null => {
       const probe = stepLayoutItem(draft, source, direction, () => "probe", LAYOUT_DROP_CONTROL);
-      if (probe.status === "REFUSED" && (probe.reason === "AT_BOUNDARY" || probe.reason === "NOT_FOUND" || probe.reason === "STOP_POINTS")) return null;
+      // [B.4 : refus `STOP_POINTS` aussi écarté — retiré le 31/10/2026 par B.6.]
+      if (probe.status === "REFUSED" && (probe.reason === "AT_BOUNDARY" || probe.reason === "NOT_FOUND")) return null;
       return () => runLayoutMove(() => stepLayoutItem(draftRef.current, source, direction, () => Crypto.randomUUID(), LAYOUT_DROP_CONTROL));
     },
     [draft, runLayoutMove],
+  );
+  /**
+   * PRE-9 B.6 (D-441 ; ch13 CE-T03-08, story 6.2 : « Monter » / « Descendre » d'un Point, « proposées
+   * seulement si le déplacement serait accepté ») — généralisé à la structure (`stepLayoutStopPoint`).
+   */
+  const layoutStopPointStepAction = useCallback(
+    (stopPointId: string, direction: "UP" | "DOWN"): (() => void) | null => {
+      const probe = stepLayoutStopPoint(draft, stopPointId, direction, () => "probe");
+      if (probe.status !== "APPLIED" && probe.status !== "CHOICE_REQUIRED") return null;
+      return () => runLayoutStopPointMove(() => stepLayoutStopPoint(draftRef.current, stopPointId, direction, () => Crypto.randomUUID()), stopPointId);
+    },
+    [draft, runLayoutStopPointMove],
   );
   /**
    * PRE-9 B.5 (epics B.5 ; D-442 amendée : suppression toujours appliquée ; COMP §1 : « Il disparaît
@@ -2384,21 +2644,40 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
    * - dernier membre d'un Circuit (et d'un Cycle vidé par ce retrait) : le brouillon est écrit aussitôt
    *   et le conteneur, rendu tel qu'avant avec la carte, s'efface lentement à sa place puis sa place se
    *   referme (`VanishingBlock`, 900 + 700 ms, B.4) ; « Réduire les animations » : immédiat.
-   * Aucun Point d'arrêt dans une disposition générale avant B.6 : rien d'autre n'est retiré.
+   * [B.5 : « Aucun Point d'arrêt dans une disposition générale avant B.6 : rien d'autre n'est retiré. »
+   * — remplacé le 31/10/2026 par B.6 :] les Points devenus interdits ou consécutifs sont retirés sans
+   * message (annonce discrète, D-442) ; une suppression qui ferait se suivre début et fin de Tour (ou
+   * de répétition) demande le choix d'abord, puis est appliquée sans effacement animé.
    */
   const handleLayoutDelete = useCallback(
     (exerciseId: string) => {
       setRevealedActionsId(null);
       if (layoutDragRef.current !== null || layoutDeletionRef.current !== null) return;
       const outcome = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
+      if (outcome.status === "CHOICE_REQUIRED") {
+        openTourChoice({
+          kind: "LAYOUT",
+          scope: outcome.conflict.scope.kind,
+          apply: (choice) => {
+            const replay = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
+            const resolution = replay.status === "CHOICE_REQUIRED" ? replay.resolutions[choice] : replay;
+            if (resolution.status !== "APPLIED") return;
+            commitLayoutMove(resolution.draft, resolution.removedContainers, true);
+            reportRemovedStopPoints(resolution.removedStopPointIds);
+          },
+        });
+        return;
+      }
       if (outcome.status !== "APPLIED") return;
       // « Réduire les animations » : aucun mouvement, le brouillon est écrit aussitôt.
       if (reduceMotion) {
         updateDraft(() => outcome.draft);
+        reportRemovedStopPoints(outcome.removedStopPointIds);
         return;
       }
       if (outcome.removedContainers.length > 0) {
         commitLayoutMove(outcome.draft, outcome.removedContainers, true);
+        reportRemovedStopPoints(outcome.removedStopPointIds);
         return;
       }
       const pending = {
@@ -2408,22 +2687,27 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
           layoutDeletionRef.current = null;
           setLayoutCardMotion((current) => (current?.id === exerciseId ? null : current));
           // Rejouée sur le brouillon courant ; un conteneur vidé entre-temps s'efface vide (la carte
-          // s'est déjà effacée).
-          const settled = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
-          if (settled.status === "APPLIED") commitLayoutMove(settled.draft, settled.removedContainers);
+          // s'est déjà effacée). B.6 : un choix devenu nécessaire entre-temps garde le début.
+          const replay = removeLayoutExercise(draftRef.current, exerciseId, () => Crypto.randomUUID());
+          const settled = replay.status === "CHOICE_REQUIRED" ? replay.resolutions.HEAD : replay;
+          if (settled.status === "APPLIED") {
+            commitLayoutMove(settled.draft, settled.removedContainers);
+            reportRemovedStopPoints(settled.removedStopPointIds);
+          }
         },
       };
       layoutDeletionRef.current = pending;
       setLayoutCardMotion({ id: exerciseId, mode: "LEAVING" });
     },
-    [commitLayoutMove, reduceMotion, updateDraft],
+    [commitLayoutMove, openTourChoice, reduceMotion, reportRemovedStopPoints, updateDraft],
   );
   /**
    * PRE-9 B.5 (D-441 ; ARB-17 ; correction C.1 du 30/10) — Dupliquer d'une carte d'une disposition
    * générale : copie juste après la source dans le même conteneur (`duplicateLayoutExercise` : Format
    * et réglages conservés, N d'un Circuit alterné conservé) ; brouillon écrit aussitôt, la copie
    * apparaît (ouverture de sa place et fondu, comme la copie de l'ancien modèle, D-443). Aucune
-   * duplication de Circuit ni de Cycle (ARB-08).
+   * duplication de Circuit ni de Cycle (ARB-08). PRE-9 B.6 (D-441) : la copie est insérée avant le
+   * Point qui suivait sa source ; aucun Point n'est copié.
    */
   const handleLayoutDuplicate = useCallback(
     (exerciseId: string) => {
@@ -2445,19 +2729,25 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
     }
     setLayoutCardMotion((current) => (current?.id === id && current.mode === "APPEARING" ? null : current));
   }, []);
+  // PRE-9 B.6 : un Point d'arrêt saisi est porté par un repère d'Exercice fictif (voir `layoutDrag`).
+  const startLayoutStopPointDrag = useCallback((stopPointId: string) => startLayoutDrag(STOP_POINT_DRAG_SOURCE, stopPointId), [startLayoutDrag]);
   const layoutDragContext = useMemo<LayoutDragContext | null>(
     () =>
-      richLayout === null || envelope !== null || pendingLayoutMove !== null || pendingNatureChange !== null
+      // PRE-9 B.6 : ni glisser ni pas à pas en placement (seuls les emplacements répondent).
+      richLayout === null || envelope !== null || placement !== null || pendingLayoutMove !== null || pendingNatureChange !== null
         ? null
         : {
             source: layoutDrag?.source ?? null,
             target: layoutDrag === null ? null : layoutDrag.target,
+            stopPointId: layoutDrag?.stopPointId ?? null,
             reportBox: reportLayoutBox,
             onStart: startLayoutDrag,
+            onStartStopPoint: startLayoutStopPointDrag,
             onMove: moveLayoutDrag,
             onEnd: endLayoutDrag,
             onCancel: cancelLayoutDrag,
             stepAction: layoutStepAction,
+            stopPointStepAction: layoutStopPointStepAction,
           },
     [
       cancelLayoutDrag,
@@ -2465,22 +2755,57 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       envelope,
       layoutDrag,
       layoutStepAction,
+      layoutStopPointStepAction,
       moveLayoutDrag,
       pendingLayoutMove,
       pendingNatureChange,
+      placement,
       reportLayoutBox,
       richLayout,
       startLayoutDrag,
+      startLayoutStopPointDrag,
     ],
   );
+  /**
+   * PRE-9 B.6 (D-441, ARB-02, ARB-06) : Points d'arrêt d'une disposition générale — hors placement,
+   * chaque Point est une rangée autonome à sa place (niveau Séance, Cycle, Circuit), saisie par appui
+   * long, « Monter » / « Descendre » accessibles ; en placement, les emplacements de tête et d'après un
+   * conteneur sont des rangées autonomes (ceux d'après un Exercice sont portés par sa carte).
+   */
+  const layoutStops = useMemo<LayoutStopsContext>(() => {
+    const points = draft.structure?.stopPoints ?? [];
+    const labels = generalLabels;
+    return {
+      placement: generalPlacementRowContext,
+      rowsAt: (container, position) => {
+        if (placement !== null) {
+          const slot = generalSlots.find(
+            (item) => item.afterExerciseId === null && item.position === position && sameStopPointContainer(item.container, container),
+          );
+          const point = generalRowPointOf(slot);
+          return slot === undefined || point === null ? [] : [{ kind: "PLACEMENT", key: `layout-slot-${slot.rank}`, point }];
+        }
+        return points.flatMap((item): LayoutStopRow[] => {
+          const own = stopPointContainerOf(item);
+          if (own === null || item.position !== position || !sameStopPointContainer(own, container)) return [];
+          const id = layoutStopPointId(item);
+          return [{ kind: "POINT", id, accessibilityLabel: labels?.existing(id) ?? strings.screens.composition.placement.stopPoint }];
+        });
+      },
+      focusRequest: itemFocusRequest,
+      onFocusConsumed: consumeItemFocus,
+    };
+  }, [consumeItemFocus, draft.structure, generalLabels, generalPlacementRowContext, generalRowPointOf, generalSlots, itemFocusRequest, placement]);
 
   /** PRE-9 B.5 : actions glissées des cartes d'une disposition générale ; inactives quand le glisser l'est. */
   const layoutActionsContext = useMemo<LayoutActionsContext | null>(
     () =>
       richLayout === null || envelope !== null || pendingLayoutMove !== null || pendingNatureChange !== null
         ? null
-        : { revealedId: revealedActionsId, onReveal: handleRevealActions, onDuplicate: handleLayoutDuplicate, onDelete: handleLayoutDelete },
-    [envelope, handleLayoutDelete, handleLayoutDuplicate, handleRevealActions, pendingLayoutMove, pendingNatureChange, revealedActionsId, richLayout],
+        : placement !== null
+          ? null
+          : { revealedId: revealedActionsId, onReveal: handleRevealActions, onDuplicate: handleLayoutDuplicate, onDelete: handleLayoutDelete },
+    [envelope, handleLayoutDelete, handleLayoutDuplicate, handleRevealActions, pendingLayoutMove, pendingNatureChange, placement, revealedActionsId, richLayout],
   );
 
   const handleZoneLayout = useCallback((zone: StructuralPosition, event: LayoutChangeEvent) => {
@@ -3240,6 +3565,11 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       if (request === null) return;
       const placementText = strings.screens.composition.placement;
       switch (request.kind) {
+        case "LAYOUT": {
+          if (choice === null) request.cancel?.();
+          else request.apply(choice);
+          return;
+        }
         case "OCCURRENCE_DELETE": {
           // Story 7.5 : « Annuler » ne supprime rien.
           if (choice !== null) startDeletion(request.activityId, choice);
@@ -3579,7 +3909,9 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       // (B.6) ne s'appliquent pas encore à plusieurs Circuits ni aux Cycles : indisponibles.
       isVolumesDisabled={draggedKey !== null || richLayout !== null}
       isPlacementActive={isPlacementActive}
-      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || richLayout !== null}
+      // PRE-9 B.6 : « Ajouter un arrêt » s'applique aussi à une disposition générale. [B.1b : « ||
+      // richLayout !== null » (placement indisponible) — retiré le 31/10/2026 par B.6.]
+      isAddStopDisabled={!hasPlacementOffer || draggedKey !== null || layoutDrag !== null}
       addStopFocusRequest={addStopFocusRequest}
       addStopAccessibilityHint={addStopAccessibilityHint}
       testID="composition-context-header"
@@ -3761,6 +4093,7 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             vanishing={vanishing}
             onVanished={handleVanished}
             actions={layoutActionsContext}
+            stops={layoutStops}
             cardMotion={layoutCardMotion}
             onCardMotionDone={handleLayoutCardMotionDone}
             panelRight={styles.bodyContent.paddingRight}
@@ -4333,6 +4666,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       {pendingTourChoice !== null ? (
         <TourBoundaryChoiceDialog
           key={tourChoiceToken}
+          // PRE-9 B.6 (ARB-02b) : Cycle répété — « Début de répétition / Fin de répétition ».
+          scope={pendingTourChoice.kind === "LAYOUT" ? pendingTourChoice.scope : "CIRCUIT"}
           onChoose={(choice) => resolveTourChoice(choice)}
           onCancel={() => resolveTourChoice(null)}
         />
@@ -4384,6 +4719,8 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             setPendingLayoutMove(null);
             if (outcome.status === "APPLIED" || outcome.status === "CONFIRMATION_REQUIRED") {
               commitLayoutMove(outcome.draft, outcome.removedContainers);
+              // PRE-9 B.6 (D-442) : Points retirés sans message, annonce discrète.
+              reportRemovedStopPoints(outcome.removedStopPointIds);
             } else if (outcome.status === "REFUSED") {
               announceLayoutRefusal(outcome.reason);
             }
@@ -6501,6 +6838,11 @@ type LayoutDragContext = {
   readonly reportBox: (key: string, box: LayoutBox | null) => void;
   /** Appui long sur une carte ou un en-tête ; `false` : refusé (autre élément saisi, mesure absente). */
   readonly onStart: (source: LayoutItemRef) => boolean;
+  /** PRE-9 B.6 : Point d'arrêt saisi (`null` : aucun) et son appui long ; même mouvement, même dépose. */
+  readonly stopPointId: string | null;
+  readonly onStartStopPoint: (stopPointId: string) => boolean;
+  /** PRE-9 B.6 : « Monter » / « Descendre » d'un Point (`stepLayoutStopPoint`), `null` si aucun déplacement accepté. */
+  readonly stopPointStepAction: (stopPointId: string, direction: "UP" | "DOWN") => (() => void) | null;
   readonly onMove: (translationY: number) => void;
   readonly onEnd: (translationY: number) => void;
   readonly onCancel: () => void;
@@ -6610,10 +6952,290 @@ type LayoutRenderContext = {
   readonly onVanished: (key: string) => void;
   /** PRE-9 B.5 : actions glissées des cartes (Dupliquer / Supprimer) ; `null` : inactives. */
   readonly actions: LayoutActionsContext | null;
+  /** PRE-9 B.6 : Points d'arrêt et placement de la disposition générale. */
+  readonly stops: LayoutStopsContext;
   /** PRE-9 B.5 : carte en mouvement (supprimée, ou copie qui apparaît) ; `null` : aucune. */
   readonly cardMotion: { readonly id: string; readonly mode: Exclude<CardMotionMode, "IDLE"> } | null;
   readonly onCardMotionDone: (id: string, mode: Exclude<CardMotionMode, "IDLE">) => void;
 };
+
+// ---------------------------------------------------------------------------
+// PRE-9 B.6 — Points d'arrêt et placement d'une disposition générale (D-441, D-442, ARB-02, ARB-06)
+// ---------------------------------------------------------------------------
+
+/** Repère d'Exercice fictif d'un Point d'arrêt saisi : aucun élément ne le porte (voir `layoutDrag`). */
+const STOP_POINT_DRAG_SOURCE: LayoutItemRef = { kind: "EXERCISE", id: "\u0000point-d-arret" };
+
+/** Clé de la boîte mesurée d'une rangée de Point (point de saisie du glisser). */
+function layoutStopBoxKey(stopPointId: string): string {
+  return `stop:${stopPointId}`;
+}
+
+/** Clé de focus d'une rangée de Point (celle de l'ancien modèle). */
+function layoutStopFocusKey(stopPointId: string): string {
+  return railStopKey(stopPointId);
+}
+
+const NO_LAYOUT_PLACEMENT_SLOTS: readonly LayoutPlacementSlot[] = [];
+const NO_STOP_ROWS: readonly never[] = [];
+
+/** Rangée autonome d'un emplacement : Point existant (hors placement) ou emplacement du placement. */
+type LayoutStopRow =
+  | { readonly kind: "POINT"; readonly id: string; readonly accessibilityLabel: string }
+  | { readonly kind: "PLACEMENT"; readonly key: string; readonly point: PlacementStopPointRowPoint };
+
+/** Ce que les blocs d'une disposition générale reçoivent pour les Points d'arrêt (B.6). */
+type LayoutStopsContext = {
+  /** En placement : zone de récupération et emplacement sous chaque carte ; `null` hors placement. */
+  readonly placement: PlacementRowContext | null;
+  /** Rangées autonomes à rendre à l'emplacement `position` du conteneur. */
+  readonly rowsAt: (container: StopPointContainer, position: number) => readonly LayoutStopRow[];
+  readonly focusRequest: ItemFocusRequest | null;
+  readonly onFocusConsumed: (token: number) => void;
+};
+
+/** Conteneur en effacement : aucun Point, aucun emplacement (rendu inerte). */
+const NO_LAYOUT_STOPS: LayoutStopsContext = { placement: null, rowsAt: () => NO_STOP_ROWS, focusRequest: null, onFocusConsumed: () => {} };
+
+/** Zone de récupération d'une occurrence en placement (même règle que `placement.ts`). */
+function recoverySlotOfOccurrence(occurrence: SessionDraftExercise): PlacementRecoverySlot | null {
+  if (occurrence.type !== "EXERCISE") return null;
+  const seconds = occurrence.postActivityRecoverySeconds;
+  return seconds === null || seconds === undefined ? { kind: "AVAILABLE" } : { kind: "EXISTING", seconds };
+}
+
+/** Offre du placement d'une disposition générale, dans la forme lue par `placementOfferOf`. */
+function layoutOfferSlots(draft: SessionDraft, placement: PlacementDraft): readonly PlacementSlot[] {
+  const points = layoutPlacementSlots(draft, placement).flatMap((slot): PlacementSlot[] =>
+    slot.stopPoint === null ? [] : [{ kind: "OCCURRENCE", occurrenceId: null, recovery: null, stopPoint: slot.stopPoint }],
+  );
+  const recoveries = draft.exercises.flatMap((exercise): PlacementSlot[] => {
+    const recovery = recoverySlotOfOccurrence(exercise);
+    return recovery === null ? [] : [{ kind: "OCCURRENCE", occurrenceId: exercise.id, recovery, stopPoint: null }];
+  });
+  return [...points, ...recoveries];
+}
+
+/** Noms accessibles du placement d'une disposition générale : Points existants, emplacements à ajouter. */
+type LayoutPlacementLabels = {
+  readonly existing: (stopPointId: string) => string;
+  readonly available: (rank: number) => string;
+};
+
+/**
+ * Noms par la règle de la story 6.2 (dernier Exercice qui précède dans le conteneur), étendue aux
+ * Cycles : « … au début du circuit / du cycle », « … après le circuit / le cycle », « … au début de la
+ * séance ». Formulations des Cycles à valider.
+ */
+function layoutPlacementLabels(
+  draft: SessionDraft,
+  slots: readonly LayoutPlacementSlot[],
+  levelPositions: ReadonlyMap<string, MovementLevelPosition>,
+): LayoutPlacementLabels {
+  const t = strings.screens.composition.placement;
+  const byId = new Map(draft.exercises.map((exercise) => [exercise.id, exercise]));
+  const elements = draft.structure?.elements ?? [];
+  const previousKind = (slot: LayoutPlacementSlot): "EXERCISE" | "CIRCUIT" | "CYCLE" | null => {
+    if (slot.position === 0) return null;
+    const { container } = slot;
+    if (container.kind === "CIRCUIT") return "EXERCISE";
+    if (container.kind === "SESSION") return elements[slot.position - 1]?.kind ?? null;
+    const cycle = elements.find((element) => element.kind === "CYCLE" && element.cycle.id === container.id);
+    return cycle?.kind === "CYCLE" ? (cycle.cycle.members[slot.position - 1]?.kind ?? null) : null;
+  };
+  const labelOf = (slot: LayoutPlacementSlot, existing: boolean): string => {
+    const exercise = slot.afterExerciseId === null ? undefined : byId.get(slot.afterExerciseId);
+    if (exercise !== undefined) {
+      const name = occurrenceCardName(exercise, levelPositions);
+      return (existing ? t.existingStopPointAccessibilityLabel : t.addStopPointAccessibilityLabel).replace("{exercise}", () => name);
+    }
+    if (slot.position === 0) {
+      if (slot.container.kind === "CIRCUIT") return existing ? t.stopPointAtCircuitStartAccessibilityLabel : t.addStopPointAtCircuitStartAccessibilityLabel;
+      if (slot.container.kind === "CYCLE") return existing ? t.stopPointAtCycleStartAccessibilityLabel : t.addStopPointAtCycleStartAccessibilityLabel;
+      return t.stopPointAtSessionStartAccessibilityLabel;
+    }
+    return previousKind(slot) === "CYCLE"
+      ? existing
+        ? t.existingStopPointAfterCycleAccessibilityLabel
+        : t.addStopPointAfterCycleAccessibilityLabel
+      : existing
+        ? t.existingStopPointAfterCircuitAccessibilityLabel
+        : t.addStopPointAfterCircuitAccessibilityLabel;
+  };
+  const existingById = new Map(slots.flatMap((slot) => (slot.stopPoint?.stopPointId === undefined ? [] : [[slot.stopPoint.stopPointId, labelOf(slot, true)] as const])));
+  const availableByRank = new Map(slots.map((slot) => [slot.rank, labelOf(slot, false)] as const));
+  return {
+    existing: (stopPointId) => existingById.get(stopPointId) ?? t.stopPoint,
+    available: (rank) => availableByRank.get(rank) ?? t.stopPoint,
+  };
+}
+
+/**
+ * PRE-9 B.6 : resélection en placement du Point existant `stopPointId`, refusée parce qu'elle créerait
+ * un conflit de répétition avec un AJOUT — le choix requis ; `null` sinon.
+ */
+function layoutReselectionChoice(
+  placement: PlacementDraft,
+  stopPointId: string,
+  draft: SessionDraft,
+): Extract<LayoutPlacementStopPointOutcome, { status: "CHOICE_REQUIRED" }> | null {
+  if (!isPlacementStopPointRemoved(placement, stopPointId)) return null;
+  const slot = layoutPlacementSlots(draft, placement).find((item) => item.stopPoint?.stopPointId === stopPointId);
+  if (slot === undefined) return null;
+  const outcome = toggleLayoutPlacementStopPointOutcome(placement, slot.designation, draft);
+  return outcome.status === "CHOICE_REQUIRED" ? outcome : null;
+}
+
+/** Point rendu pour un emplacement du placement d'une disposition générale (voir `placementRowPointOf`). */
+function layoutRowPointOf(
+  slot: LayoutPlacementSlot,
+  placement: PlacementDraft,
+  draft: SessionDraft,
+  labels: LayoutPlacementLabels,
+): PlacementStopPointRowPoint | null {
+  const stopPoint = slot.stopPoint;
+  if (stopPoint === null) return null;
+  if (!stopPoint.existing) return { kind: "AVAILABLE", location: slot.designation, accessibilityLabel: labels.available(slot.rank) };
+  const id = stopPoint.stopPointId;
+  if (id === undefined) return null;
+  const blocked =
+    isPlacementStopPointRemoved(placement, id) &&
+    toggleLayoutPlacementStopPointRemoval(placement, id, draft) === placement &&
+    layoutReselectionChoice(placement, id, draft) === null;
+  return { kind: "EXISTING", stopPointId: id, accessibilityLabel: labels.existing(id), blocked };
+}
+
+/** Clé de test d'un conteneur d'emplacement. */
+function stopContainerTestKey(container: StopPointContainer): string {
+  return container.kind === "SESSION" ? "session" : `${container.kind.toLowerCase()}-${container.id}`;
+}
+
+/**
+ * PRE-9 B.6 (D-441, CE-T03-08 ; ARB-02a) : rangées autonomes de l'emplacement `position` du conteneur —
+ * hors placement, ses Points d'arrêt (`StopPointRow` de l'ancien modèle : puce centrée, rail, appui long
+ * pour saisir, « Monter » / « Descendre ») ; en placement, l'emplacement de tête ou d'après un
+ * conteneur. `gap` : écart de la liste qui les contient (lien du rail au-dessus de la rangée).
+ */
+function LayoutStopRows({
+  container,
+  position,
+  gap,
+  frameY,
+  context,
+}: {
+  container: StopPointContainer;
+  position: number;
+  gap: number;
+  /** Ordonnée de la liste qui les contient dans le contenu défilant ; `null` inconnue. */
+  frameY: number | null;
+  context: LayoutRenderContext;
+}) {
+  const rows = context.stops.rowsAt(container, position);
+  if (rows.length === 0) return null;
+  return (
+    <>
+      {rows.map((row) =>
+        row.kind === "POINT" ? (
+          <LayoutStopPointRow key={row.id} row={row} gap={gap} frameY={frameY} context={context} />
+        ) : context.stops.placement === null ? null : (
+          <LayoutPlacementStopRow
+            key={row.key}
+            row={row}
+            gap={gap}
+            placement={context.stops.placement}
+            context={context}
+            testID={`composition-layout-placement-${stopContainerTestKey(container)}-${position}`}
+          />
+        ),
+      )}
+    </>
+  );
+}
+
+/** Rail d'une rangée de Point : lien à travers l'écart qui la précède, queue sur sa hauteur. */
+function useStopRowRail(key: string, gap: number, context: LayoutRenderContext): SequenceRailContext {
+  const { railShiftOf } = context;
+  return useMemo(
+    () => ({ links: new Map([[key, { prevKey: `${key}:previous`, length: gap }]]), shiftOf: railShiftOf, skippedKeys: NO_SKIPPED_KEYS }),
+    [gap, key, railShiftOf],
+  );
+}
+
+function LayoutStopPointRow({
+  row,
+  gap,
+  frameY,
+  context,
+}: {
+  row: Extract<LayoutStopRow, { kind: "POINT" }>;
+  gap: number;
+  frameY: number | null;
+  context: LayoutRenderContext;
+}) {
+  const { drag, stops } = context;
+  const id = row.id;
+  const railKey = railStopKey(id);
+  const rail = useStopRowRail(railKey, gap, context);
+  const onLayout = useReportedBox(layoutStopBoxKey(id), frameY, drag?.reportBox);
+  const point = useMemo<StopPoint>(() => ({ id, scope: "BEFORE_TOUR", position: 0 }), [id]);
+  const isDragged = drag?.stopPointId === id;
+  const focusKey = layoutStopFocusKey(id);
+  const node = (
+    <StopPointRow
+      point={point}
+      accessibilityLabel={row.accessibilityLabel}
+      isDragged={isDragged}
+      isRaised={isDragged}
+      rail={rail}
+      autoScroll={context.autoScroll}
+      fadeOpacity={null}
+      fadeLeaving={false}
+      onLayout={onLayout}
+      focusRequest={stops.focusRequest !== null && stops.focusRequest.key === focusKey ? stops.focusRequest : null}
+      onFocusConsumed={stops.onFocusConsumed}
+      onDragStart={() => drag?.onStartStopPoint(id) ?? false}
+      onDragCancel={() => drag?.onCancel()}
+      onDragMove={(translationY) => drag?.onMove(translationY)}
+      onDragEnd={(translationY) => drag?.onEnd(translationY)}
+      onMoveUp={drag?.stopPointStepAction(id, "UP") ?? null}
+      onMoveDown={drag?.stopPointStepAction(id, "DOWN") ?? null}
+    />
+  );
+  // En mode enveloppe, un Point d'arrêt n'est jamais éligible : inactif (comme dans l'ancien modèle).
+  return (
+    <View style={isDragged ? styles.dragElevated : null} testID={`composition-layout-stop-point-${id}`}>
+      {context.envelope === null ? node : <PlacementAttenuation active>{node}</PlacementAttenuation>}
+    </View>
+  );
+}
+
+function LayoutPlacementStopRow({
+  row,
+  gap,
+  placement,
+  context,
+  testID,
+}: {
+  row: Extract<LayoutStopRow, { kind: "PLACEMENT" }>;
+  gap: number;
+  placement: PlacementRowContext;
+  context: LayoutRenderContext;
+  testID: string;
+}) {
+  const railKey = `placement:${row.key}`;
+  const rail = useStopRowRail(railKey, gap, context);
+  return (
+    <PlacementStopPointItemRow
+      railKey={railKey}
+      point={row.point}
+      placement={placement}
+      rail={rail}
+      touchExtent={{ top: gap / 2, bottom: gap / 2 }}
+      onLayout={noop}
+      testID={testID}
+    />
+  );
+}
 
 /** PRE-9 B.5 : actions glissées des cartes d'une disposition générale (D-441, D-442 ; ARB-08 : Exercice seulement). */
 type LayoutActionsContext = {
@@ -6716,11 +7338,16 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
   const source = context.drag?.source ?? null;
   // Trait d'insertion de la dépose (B.4) — emplacement de dépose, pas une Cible de série.
   const dropLine = context.drag ? context.drag.target : null;
+  const session: StopPointContainer = { kind: "SESSION" };
   return (
     <>
-      {layout.elements.map((element) => {
+      {layout.elements.map((element, elementIndex) => {
         const key = layoutElementKey(element);
         const raised = layoutElementHolds(element, source);
+        // PRE-9 B.6 : Points d'arrêt (ou emplacements du placement) avant l'élément, au niveau Séance.
+        const stops = (
+          <LayoutStopRows key={`stops:session:${elementIndex}`} container={session} position={elementIndex} gap={COMPOSITION_ROW_GAP} frameY={0} context={context} />
+        );
         let node: React.ReactNode;
         switch (element.kind) {
           case "EXERCISE":
@@ -6782,9 +7409,10 @@ function LayoutSequence({ layout, panelRight, ...context }: LayoutSequenceProps)
           }
         }
         const before = ghosts(key);
-        return before.length === 0 ? node : [...before, node];
+        return [stops, ...before, node];
       })}
       {ghosts(null)}
+      <LayoutStopRows container={session} position={layout.elements.length} gap={COMPOSITION_ROW_GAP} frameY={0} context={context} />
       {/* PRE-9 B.4 (COMP §6 : « L'éclairage de la destination est obligatoire ») : repère d'insertion. */}
       {dropLine ? <LayoutDropLine y={dropLine.lineY} testID="composition-layout-drop-line" /> : null}
       {/*
@@ -6823,7 +7451,10 @@ function LayoutVanishing({
 }) {
   const { onVanished } = context;
   const done = useCallback(() => onVanished(item.key), [item.key, onVanished]);
-  const ghostContext = useMemo<LayoutRenderContext>(() => ({ ...context, drag: null, vanishing: [], actions: null, cardMotion: null }), [context]);
+  const ghostContext = useMemo<LayoutRenderContext>(
+    () => ({ ...context, drag: null, vanishing: [], actions: null, cardMotion: null, stops: NO_LAYOUT_STOPS }),
+    [context],
+  );
   const testID = `composition-layout-vanishing-${item.key.replace(":", "-")}`;
   return (
     <VanishingBlock gap={gap} onDone={done} testID={testID}>
@@ -7036,7 +7667,8 @@ function LayoutExerciseRow({
       onDelete={onDelete}
       onMoveUp={drag?.stepAction(source, "UP") ?? null}
       onMoveDown={drag?.stepAction(source, "DOWN") ?? null}
-      placement={null}
+      // PRE-9 B.6 : en placement, zone de récupération et emplacement de Point sous la carte.
+      placement={context.stops.placement}
       layoutRailGap={railGap}
       layoutDraggable={drag !== null}
       layoutSwipeable={actions !== null}
@@ -7102,7 +7734,10 @@ function LayoutCircuitBlock({
   const counterKind = layoutCircuitCounterKind(circuit.id);
   const natureKind = layoutCircuitNatureKind(circuit.id);
   const contentKey = circuit.exercises.map((exercise) => exercise.id).join(" ");
-  const isCollapsed = context.collapsed.get(circuit.id) === contentKey;
+  // PRE-9 B.6 : jamais replié en placement (emplacements du Circuit visibles), comme le Circuit unique (B.1a).
+  const isCollapsed = context.collapsed.get(circuit.id) === contentKey && context.stops.placement === null;
+  const circuitContainer = useMemo<StopPointContainer>(() => ({ kind: "CIRCUIT", id: circuit.id }), [circuit.id]);
+  const inPlacement = context.stops.placement !== null;
   const reveal = useCircuitCardsReveal(isCollapsed, CIRCUIT_GAP, CIRCUIT_CARDS_BOTTOM_OVERLAP);
   const railX = RAIL_CENTER_X_IN_COLUMN + (inCycle ? LAYOUT_CIRCUIT_IN_CYCLE_OUTSET : CIRCUIT_OUTSET);
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
@@ -7141,6 +7776,18 @@ function LayoutCircuitBlock({
           <RailRing centerX={railX} centerY={CIRCUIT_PADDING_VERTICAL + rowHeight / 2} testID={`${testID}-rail-ring`} />
         </Reanimated.View>
       </View>
+      {/* PRE-9 B.6 : en placement, l'en-tête est inactif et masqué à l'accessibilité (seuls les emplacements répondent). */}
+      <View
+        pointerEvents={inPlacement ? "none" : "box-none"}
+        accessibilityElementsHidden={inPlacement}
+        importantForAccessibility={inPlacement ? "no-hide-descendants" : "auto"}
+        onLayout={(event) => {
+          const { y, height } = event.nativeEvent.layout;
+          setHeaderBottom(y + height);
+          reportHeader(event);
+        }}
+        testID={`${testID}-header-frame`}
+      >
       <CircuitHeader
         entering={entering}
         nature={circuit.nature}
@@ -7165,17 +7812,13 @@ function LayoutCircuitBlock({
         moveActions={
           drag !== null && !ghost ? { moveUp: drag.stepAction(source, "UP"), moveDown: drag.stepAction(source, "DOWN") } : undefined
         }
-        onLayout={(event) => {
-          const { y, height } = event.nativeEvent.layout;
-          setHeaderBottom(y + height);
-          reportHeader(event);
-        }}
         onRowLayout={(event) => {
           const { height } = event.nativeEvent.layout;
           if (height > 0) setRowHeight(height);
         }}
         testID={`${testID}-header`}
       />
+      </View>
       {/* ARB-12 : Circuit replié — ses cartes sont masquées, le brouillon est inchangé. */}
       {/* Recette du 29/10 (obs-3 b) : dévoilement et repli animés (`useCircuitCardsReveal`). */}
       {!reveal.mounted || circuit.exercises.length === 0 ? null : (
@@ -7187,7 +7830,16 @@ function LayoutCircuitBlock({
           }}
           testID={`${testID}-exercises`}
         >
-          {circuit.exercises.map((exercise, index) => (
+          {circuit.exercises.map((exercise, index) => [
+            // PRE-9 B.6 (RM-220, ARB-02a) : Points d'arrêt du Circuit avant cette carte (rencontrés à chaque Tour).
+            <LayoutStopRows
+              key={`stops:${circuit.id}:${index}`}
+              container={circuitContainer}
+              position={index}
+              gap={CIRCUIT_GAP}
+              frameY={cardsFrameY}
+              context={context}
+            />,
             <LayoutCircuitCard
               key={exercise.id}
               exercise={exercise}
@@ -7196,8 +7848,9 @@ function LayoutCircuitBlock({
               rail={rail}
               context={context}
               cardsFrameY={cardsFrameY}
-            />
-          ))}
+            />,
+          ])}
+          <LayoutStopRows container={circuitContainer} position={circuit.exercises.length} gap={CIRCUIT_GAP} frameY={cardsFrameY} context={context} />
         </Reanimated.View>
       )}
     </Animated.View>
@@ -7244,6 +7897,7 @@ function LayoutCycleBlock({
   const ringTop = CIRCUIT_PADDING_VERTICAL + circuitHeaderRingTop(rowHeight);
   const directExercises = cycle.members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : []));
   const testID = ghost ? `composition-layout-vanishing-cycle-${cycle.id}-block` : `composition-layout-cycle-${cycle.id}`;
+  const cycleContainer = useMemo<StopPointContainer>(() => ({ kind: "CYCLE", id: cycle.id }), [cycle.id]);
   const memberKeys = cycle.members.map(layoutElementKey);
   const ghosts = (key: string | null) =>
     vanishingAt(context.vanishing, cycle.id, key, memberKeys).map((item) => (
@@ -7326,11 +7980,23 @@ function LayoutCycleBlock({
       </View>
       {/* PRE-9 B.2 : en mode enveloppe, l'en-tête du Cycle est inactif (jamais éligible : aucun Cycle dans un Cycle). */}
       <Reanimated.View entering={entering} onLayout={reportHeader} testID={`${testID}-header-reveal`}>
-        {context.envelope === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
+        {/* PRE-9 B.6 : en placement, l'en-tête est inactif (seuls les emplacements répondent). */}
+        {context.envelope === null && context.stops.placement === null ? header : <PlacementAttenuation active>{header}</PlacementAttenuation>}
       </Reanimated.View>
-      {cycle.members.map((member) => {
+      {cycle.members.map((member, memberIndex) => {
         const key = layoutElementKey(member);
         const memberRaised = layoutElementHolds(member, drag?.source ?? null);
+        // PRE-9 B.6 (ARB-02a) : Points d'arrêt du Cycle avant ce membre (rencontrés à chaque répétition).
+        const stops = (
+          <LayoutStopRows
+            key={`stops:${cycle.id}:${memberIndex}`}
+            container={cycleContainer}
+            position={memberIndex}
+            gap={LAYOUT_CYCLE_GAP}
+            frameY={cycleY}
+            context={context}
+          />
+        );
         const node =
           member.kind === "EXERCISE" ? (
             <LayoutDirectExercise
@@ -7369,9 +8035,10 @@ function LayoutCycleBlock({
             </EnvelopeFrame>
           );
         const before = ghosts(key);
-        return before.length === 0 ? node : [...before, node];
+        return [stops, ...before, node];
       })}
       {ghosts(null)}
+      <LayoutStopRows container={cycleContainer} position={cycle.members.length} gap={LAYOUT_CYCLE_GAP} frameY={cycleY} context={context} />
     </Animated.View>
   );
 }

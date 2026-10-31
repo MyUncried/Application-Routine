@@ -16,10 +16,13 @@
  * Point d'arrêt : conteneur et `position`, nombre d'éléments du conteneur qui le précèdent (au
  * niveau principal : Exercices, Circuits et Cycles ; dans un Cycle : ses Exercices directs et
  * Circuits ; dans un Circuit : ses Exercices). Conteneur : `circuitId` (Circuit), sinon `cycleId`
- * (Cycle, PRE-9 A.1, ARB-06), sinon le niveau principal. Les règles RM-219, RM-251 et D-442
+ * (Cycle, PRE-9 A.1, ARB-06), sinon le niveau principal. [A.1 : « Les règles RM-219, RM-251 et D-442
  * restent celles du modèle à Circuit unique ; leur généralisation à toute la structure relève de
  * PRE-9 B.6 (ARB-02a/b). Jusque-là, une structure non représentable dans l'ancien modèle
- * n'accepte aucun Point d'arrêt (`STRUCTURE_STOP_POINTS_UNSUPPORTED`).
+ * n'accepte aucun Point d'arrêt (`STRUCTURE_STOP_POINTS_UNSUPPORTED`). » — remplacé le 31/10/2026 par
+ * B.6 :] les règles s'évaluent sur la séquence fonctionnelle de toute la structure
+ * (`layoutStopPoints.ts`, ARB-02) ; la forme est contrôlée ici, RM-219 à l'écriture
+ * (`validateStructuredSessionInput`).
  *
  * Fonctions pures, sans React ni SQLite.
  */
@@ -417,8 +420,8 @@ export type StructureViolationCode =
   | "STRUCTURE_DUPLICATE_ID"
   | "STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT"
   | "STRUCTURE_STOP_POINT_OUT_OF_RANGE"
-  | "STRUCTURE_STOP_POINT_DUPLICATE"
-  | "STRUCTURE_STOP_POINTS_UNSUPPORTED";
+  | "STRUCTURE_STOP_POINT_DUPLICATE";
+// [A.1 : « | "STRUCTURE_STOP_POINTS_UNSUPPORTED" » — code retiré le 31/10/2026 par B.6 (ARB-02a/b).]
 
 export type StructureViolation = { readonly code: StructureViolationCode };
 
@@ -426,7 +429,8 @@ export type StructureViolation = { readonly code: StructureViolationCode };
  * Règles de forme de la structure, indépendantes du contenu des Exercices (validé par les règles
  * existantes de l'occurrence) : Cycle non vide, comptes entiers dans leurs bornes, nature connue,
  * identités de Circuit et de Cycle uniques, Points d'arrêt dans un seul conteneur connu, uniques
- * par emplacement. Hors de l'ancien modèle, aucun Point d'arrêt (voir l'en-tête).
+ * par emplacement. [A.1 : « Hors de l'ancien modèle, aucun Point d'arrêt » — retiré le 31/10/2026 par
+ * B.6 : un Point peut se trouver dans tout conteneur.]
  */
 export function validateStructureShape<E, P extends StructureStopPointLocation>(
   structure: SessionStructure<E, P>,
@@ -526,9 +530,6 @@ export function validateStructureShape<E, P extends StructureStopPointLocation>(
       push("STRUCTURE_STOP_POINT_DUPLICATE");
     }
     seen.add(key);
-  }
-  if (structure.stopPoints.length > 0 && legacyFromStructure({ elements: structure.elements, stopPoints: [] }) === null) {
-    push("STRUCTURE_STOP_POINTS_UNSUPPORTED");
   }
   return violations;
 }

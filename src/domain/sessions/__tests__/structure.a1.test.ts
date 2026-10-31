@@ -86,13 +86,14 @@ describe("PRE-9 A.1 — Cycle d'Exercices directs et de Circuits (D-451)", () =>
     expect(validateStructureShape(duplicated, idOf).map((v) => v.code)).toEqual(["STRUCTURE_DUPLICATE_ID"]);
   });
 
-  it("Point d'arrêt dans un Cycle : conteneur connu et rang borné par ses membres ; jamais deux conteneurs ; refusé jusqu'à B.6", () => {
+  // [A.1 : « … ; refusé jusqu'à B.6 » (`STRUCTURE_STOP_POINTS_UNSUPPORTED`) — garde retirée le 31/10/2026 par B.6.]
+  it("Point d'arrêt dans un Cycle : conteneur connu et rang borné par ses membres ; jamais deux conteneurs", () => {
     const codes = (points: readonly StructureStopPointLocation[]) => validateStructureShape(withDirectMembers(points), idOf).map((v) => v.code).sort();
-    // Emplacement de forme valide : seule la garde de généralisation (B.6, ARB-02a/b) le refuse.
-    expect(codes([{ circuitId: null, cycleId: "A", position: 3 }])).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED"]);
-    expect(codes([{ circuitId: null, cycleId: "A", position: 4 }])).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED", "STRUCTURE_STOP_POINT_OUT_OF_RANGE"].sort());
-    expect(codes([{ circuitId: null, cycleId: "inconnu", position: 0 }])).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED", "STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT"].sort());
-    expect(codes([{ circuitId: "c1", cycleId: "A", position: 0 }])).toEqual(["STRUCTURE_STOP_POINTS_UNSUPPORTED", "STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT"].sort());
+    // Emplacement de forme valide : accepté (B.6, ARB-02a/b) ; RM-219 se juge à l'écriture.
+    expect(codes([{ circuitId: null, cycleId: "A", position: 3 }])).toEqual([]);
+    expect(codes([{ circuitId: null, cycleId: "A", position: 4 }])).toEqual(["STRUCTURE_STOP_POINT_OUT_OF_RANGE"]);
+    expect(codes([{ circuitId: null, cycleId: "inconnu", position: 0 }])).toEqual(["STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT"]);
+    expect(codes([{ circuitId: "c1", cycleId: "A", position: 0 }])).toEqual(["STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT"]);
     expect(codes([{ circuitId: null, cycleId: "A", position: 1 }, { circuitId: null, cycleId: "A", position: 1 }])).toContain("STRUCTURE_STOP_POINT_DUPLICATE");
   });
 

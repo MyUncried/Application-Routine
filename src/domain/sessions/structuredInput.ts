@@ -6,14 +6,21 @@
  * `validateCreateSessionInput`, la forme par `validateStructureShape`. Une structure
  * représentable dans l'ancien modèle (`[Exercices…, Circuit, Exercices…]`) est validée
  * exactement comme aujourd'hui, Points d'arrêt et compte du Circuit compris (RM-219, D-442).
- * Pour une structure plus riche, chaque Exercice est validé par les mêmes règles ; les Points
- * d'arrêt y restent refusés tant que PRE-9 B.6 n'a pas généralisé leurs règles (ARB-02a/b).
+ * Pour une structure plus riche, chaque Exercice est validé par les mêmes règles. [A.1 : « les Points
+ * d'arrêt y restent refusés tant que PRE-9 B.6 n'a pas généralisé leurs règles (ARB-02a/b) » —
+ * remplacé le 31/10/2026 par B.6 :] ses Points d'arrêt suivent la même règle d'écriture que l'ancien
+ * modèle (`validateStopPoints` : bornes, unicité, RM-219 avec l'exception de début et de fin de
+ * répétition), évaluée sur la séquence fonctionnelle de toute la structure (`layoutStopPoints.ts`,
+ * ARB-02) ; comme dans l'ancien modèle, des Points consécutifs ou un conflit de répétition hérités
+ * n'empêchent pas l'enregistrement (le plan d'exécution n'en fait qu'un arrêt, D-442).
  *
  * Les identifiants des Exercices, Circuits et Cycles sont fournis par l'appelant (brouillon).
  */
 
+import { analyzeLayoutStopPoints, isLayoutStopPointAllowed, isLayoutStopPointInRange, separatorOf } from "./layoutStopPoints";
 import {
   legacyFromStructure,
+  mapStructure,
   structureCircuits,
   structureExercises,
   validateStructureShape,
@@ -65,8 +72,20 @@ const STRUCTURE_VIOLATIONS: Record<StructureViolationCode, ValidationViolation> 
   STRUCTURE_STOP_POINT_UNKNOWN_CIRCUIT: { code: "UNRECOGNIZED", field: "session.stopPoints" },
   STRUCTURE_STOP_POINT_OUT_OF_RANGE: { code: "OUT_OF_RANGE", field: "session.stopPoints" },
   STRUCTURE_STOP_POINT_DUPLICATE: { code: "DUPLICATE", field: "session.stopPoints" },
-  STRUCTURE_STOP_POINTS_UNSUPPORTED: { code: "FORBIDDEN_PLACEMENT" satisfies ValidationErrorCode, field: "session.stopPoints" },
 };
+
+/** PRE-9 B.6 (RM-219, D-442, ARB-02b) : Point d'une structure générale à un emplacement interdit. */
+const STOP_POINT_FORBIDDEN: ValidationViolation = { code: "FORBIDDEN_PLACEMENT" satisfies ValidationErrorCode, field: "session.stopPoints" };
+
+/**
+ * PRE-9 B.6 : RM-219 sur la séquence fonctionnelle d'une structure générale (l'ancien modèle garde sa
+ * propre validation, `validateCreateSessionInput`). Un emplacement inconnu relève de la forme.
+ */
+function generalStopPointsForbidden(structure: StructureInput): boolean {
+  if (structure.stopPoints.length === 0 || legacyFromStructure(structure) !== null) return false;
+  const analysis = analyzeLayoutStopPoints(mapStructure(structure, (exercise) => exercise.id), separatorOf(structureExercises(structure)));
+  return structure.stopPoints.some((point) => isLayoutStopPointInRange(analysis, point) && !isLayoutStopPointAllowed(analysis, point));
+}
 
 const FORMAT_VIOLATIONS: Record<ElementFormatViolationCode, ValidationViolation> = {
   FORMAT_UNKNOWN: { code: "UNRECOGNIZED", field: "element.format" },
@@ -177,6 +196,9 @@ export function validateStructuredSessionInput(input: StructuredSessionInput): V
   }
   if (circuitCarriesFormat(input.structure)) {
     violations.push(FORMAT_ON_CIRCUIT);
+  }
+  if (generalStopPointsForbidden(input.structure)) {
+    violations.push(STOP_POINT_FORBIDDEN);
   }
   // PRE-9 (C.1) : contrôle structurel de chaque Format porté (registre) ; règles propres : C.3.
   for (const format of formatsOf(input.structure)) {
