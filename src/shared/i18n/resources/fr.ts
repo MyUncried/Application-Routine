@@ -622,12 +622,14 @@ export const fr = {
       // PRE-9 B.1b (D-451 ; référence §4 : « Le cycle ne se replie pas […] Sa ligne n’a pas
       // d’adjectif de nature ; unité « répétition(s) » ») : en-tête du Cycle. Compte 1..99, nombre
       // révélant le stepper (RM-027, comme le Circuit) ; l’unité n’est pas interactive.
+      // [31/10/2026, Hermann : « Remplacer le terme « répétition » par « passage » dans la composition
+      // de séance pour le nombre de cycles, et dans le message » — remplace l'unité « répétition(s) ».]
       cycle: {
         title: "Cycle",
-        countUnit: { singular: "répétition", plural: "répétitions" },
-        countAccessibilityLabel: "Nombre de répétitions",
-        decrementAccessibilityLabel: "Retirer une répétition",
-        incrementAccessibilityLabel: "Ajouter une répétition",
+        countUnit: { singular: "passage", plural: "passages" },
+        countAccessibilityLabel: "Nombre de passages",
+        decrementAccessibilityLabel: "Retirer un passage",
+        incrementAccessibilityLabel: "Ajouter un passage",
       },
       wheelPicker: {
         minutesAccessibilityLabel: "Minutes",
@@ -779,10 +781,11 @@ export const fr = {
       // même formulation et mêmes opérations que D-442 ») : même dialogue pour un Cycle répété, ses
       // répétitions au lieu des tours. Formulation à valider (À CLARIFIER de la spec B.6).
       repetitionBoundaryChoice: {
-        title: "Point d’arrêt en début et en fin de répétition",
-        message: "Les deux se suivraient entre deux répétitions du cycle. Lequel conserver ?",
-        head: "Début de répétition",
-        tail: "Fin de répétition",
+        // [31/10/2026, Hermann : « répétition » → « passage » dans ce message.]
+        title: "Point d’arrêt en début et en fin de passage",
+        message: "Les deux se suivraient entre deux passages du cycle. Lequel conserver ?",
+        head: "Début de passage",
+        tail: "Fin de passage",
         cancel: "Annuler",
       },
       // PRE-6 story 7.2 (D-442) : points retirés sans message par un déplacement d’Exercice, un

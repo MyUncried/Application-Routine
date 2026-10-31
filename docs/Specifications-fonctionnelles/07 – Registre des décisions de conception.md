@@ -1272,3 +1272,13 @@ Réponse de Hermann du 30/10/2026 à « La pile d'une famille doit-elle aussi mo
 ## B.4c — en-têtes collantes — décision de Hermann du 31/10/2026
 
 Question : « acceptez-vous de reporter les en-têtes collantes de B.4 dans une story B.4c, placée après B.6 ? » — réponse : « Ok confirmé ». Règles CS-D2 à CS-D6 et CS-D8 de COMP §7 réalisées en B.4c, après B.6 ; CS-D1 et CS-D7 tenues depuis B.4.
+
+## B.5 / B.6 — réponses de Hermann du 31/10/2026
+
+- **« Monter » sur une carte face à un point d'arrêt.** Question : « franchit-elle d'abord le point d'arrêt juste au-dessus, ou avance-t-elle élément par élément ? » — réponse : « Elle franchit d'abord le point d'arrêt » (comportement livré par B.6, confirmé).
+- **Ancien modèle à un seul Circuit.** Question : « le Circuit vidé doit-il aussi s'effacer lentement ? » — réponse : « Oui » (à réaliser : même effacement lent que dans la structure générale, 900 + 700 ms).
+
+## B.6 — vocabulaire du Cycle et enveloppe — décisions de Hermann du 31/10/2026
+
+- **Vocabulaire du Cycle.** « Remplacer le terme « répétition » par « passage » dans la composition de séance pour le nombre de cycles, et dans le message. » — en-tête du Cycle « N passage(s) », stepper « Nombre de passages », dialogue « Point d’arrêt en début et en fin de passage » / « Début de passage » / « Fin de passage ». Le Catalogue des Séances (« Cycle · N répétitions ») n’est pas visé par cette demande.
+- **Point d’arrêt dans le périmètre d’une enveloppe.** Question : un point situé entre des contenus regroupés par un nouveau Circuit ou Cycle (périmètre étendu) — réponse : « a) il entre dans le conteneur » ; il est alors rencontré à chaque tour ou passage du conteneur. Comportement livré par B.4b/B.6, désormais règle écrite.

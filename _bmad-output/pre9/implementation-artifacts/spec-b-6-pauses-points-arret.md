@@ -110,3 +110,9 @@ Préparer une Séance : E0, E1, E2, E3, E4, E5. Poser un Circuit sur E1 et E2 (C
 18. **Enregistrer et rouvrir** : « Continuer », rouvrir la Séance : tous les Points sont à leur place (niveau Séance, Cycle, Circuit du Cycle).
 19. **Quitter sans enregistrer** après avoir seulement ajouté un Point : la garde d'abandon s'affiche.
 20. **Séance à un seul Circuit (ancien modèle)** : placement, Points, choix de tour, glisser : comportement inchangé.
+
+## Réponses de Hermann du 31/10/2026
+
+- À CLARIFIER 4 (Monter / Descendre d'une carte) : « Elle franchit d'abord le point d'arrêt » — comportement livré confirmé.
+- À CLARIFIER 1 (libellés) : « Remplacer le terme « répétition » par « passage » dans la composition de séance pour le nombre de cycles, et dans le message » — réalisé (fr.ts : en-tête et stepper du Cycle, dialogue).
+- À CLARIFIER 2 (point dans une enveloppe) : « a) il entre dans le conteneur » — comportement livré confirmé ; COMP l.64 à lire avec ch07 « B.6 — vocabulaire du Cycle et enveloppe ».

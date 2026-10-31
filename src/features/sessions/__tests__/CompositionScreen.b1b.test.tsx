@@ -176,9 +176,9 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(text(`${CY}-title`)).toBe("Cycle");
     expect(text(`${CA}-title`)).toBe("Circuit A");
     expect(text(`${CB}-title`)).toBe("Circuit B");
-    // Comptes : « 2 répétitions » (sans adjectif), « 3 tours · groupées », « 2 tours · groupées ».
+    // Comptes (31/10 : « répétition » → « passage », Hermann) : « 2 passages » (sans adjectif), « 3 tours · groupées », « 2 tours · groupées ».
     expect(text(`${CY}-counter-value`)).toBe(2);
-    expect(text(`${CY}-counter-unit`)).toBe("répétitions");
+    expect(text(`${CY}-counter-unit`)).toBe("passages");
     expect(screen.queryByTestId(`${CY}-counter-adjective`, hidden)).toBeNull();
     expect(screen.queryByTestId(`${CY}-collapse`, hidden)).toBeNull();
     expect(text(`${CA}-counter-value`)).toBe(3);
@@ -259,7 +259,7 @@ describe("B.1b — rendu d'une disposition générale", () => {
       fireEvent(screen.getByTestId(`${CY}-counter`), "accessibilityAction", { nativeEvent: { actionName: "decrement" } });
     }
     expect(text(`${CY}-counter-value`)).toBe(1);
-    expect(text(`${CY}-counter-unit`)).toBe("répétition");
+    expect(text(`${CY}-counter-unit`)).toBe("passage");
     expect(screen.getByTestId(`${CY}-counter-stepper-decrement`).props.accessibilityState).toMatchObject({ disabled: true });
     // VoiceOver : incrément borné à 99.
     for (let i = 0; i < 120; i += 1) {
@@ -268,7 +268,7 @@ describe("B.1b — rendu d'une disposition générale", () => {
     expect(text(`${CY}-counter-value`)).toBe(99);
     const cycle = probe.draft?.structure?.elements.find((element) => element.kind === "CYCLE");
     expect(cycle?.kind === "CYCLE" ? cycle.cycle.repeatCount : null).toBe(99);
-    expect(screen.getByTestId(`${CY}-counter`).props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 99, text: "99 répétitions" });
+    expect(screen.getByTestId(`${CY}-counter`).props.accessibilityValue).toMatchObject({ min: 1, max: 99, now: 99, text: "99 passages" });
   });
 
   it("nature avec perte : confirmation ; Annuler ne change rien ; Confirmer adapte le seul Circuit concerné", async () => {
@@ -339,7 +339,7 @@ describe("B.1b — rendu d'une disposition générale", () => {
       ),
     );
     expect(text(`${CY}-title`)).toBe("Cycle");
-    expect(text(`${CY}-counter-unit`)).toBe("répétition");
+    expect(text(`${CY}-counter-unit`)).toBe("passage");
     expect(text(`${CA}-title`)).toBe("Circuit");
   });
 
