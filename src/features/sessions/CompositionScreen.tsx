@@ -41,17 +41,21 @@ import {
 } from "@/domain/sessions/circuit";
 import { copyCircuitReserveEntry, settleCircuitMembership } from "@/domain/sessions/circuitMembership";
 import {
+  adjustEnvelopeSpan,
   applyLayoutNatureChange,
   containerLetters,
-  currentLayout,
   envelopeCandidates,
+  envelopeSpanReach,
   prepareLayoutNatureChange,
   setLayoutCircuitCount,
   setLayoutCycleCount,
-  withLayout,
-  wrapInContainer,
+  toggleEnvelopeDesignation,
+  wrapSpansInContainers,
+  type EnvelopeEdge,
+  type EnvelopeSpan,
   type EnvelopeTarget,
 } from "@/domain/sessions/layoutOperations";
+import { EnvelopeHandle, envelopeTargetKey, useEnvelopePerimeterDrag } from "@/features/sessions/EnvelopePerimeter";
 import {
   moveLayoutItem,
   neutralDropControl,
@@ -277,42 +281,58 @@ type LayoutControlKind =
   | `layout-circuit-nature:${string}`
   | `layout-cycle-counter:${string}`;
 
-/** PRE-9 B.2 (ARB-06) : mode enveloppe — conteneur à poser et premier contenu désigné. */
+/** PRE-9 B.2 (ARB-06) : mode enveloppe — conteneur à poser et contenus désignés. */
 type EnvelopeContainer = "CIRCUIT" | "CYCLE";
-/** Contenu désigné (`designated`) : nommé ainsi pour ne pas être confondu avec une Cible de série (garde PRE-4 AC1). */
-type EnvelopeState = { readonly container: EnvelopeContainer; readonly designated: EnvelopeTarget | null; readonly targetName: string };
+/**
+ * PRE-9 B.4b : périmètres désignés (`spans`, un conteneur par périmètre ; sélection multiple) et noms
+ * des contenus touchés (annonces). [B.2 : « un seul contenu désigné » — remplacé par B.4b.]
+ */
+type EnvelopeState = {
+  readonly container: EnvelopeContainer;
+  readonly spans: readonly EnvelopeSpan[];
+  readonly names: Readonly<Record<string, string>>;
+};
+
+/** PRE-9 B.4b : place d'un contenu dans un périmètre désigné (cadre continu, traits de bord). */
+type EnvelopeSpanPlacement = {
+  readonly span: EnvelopeSpan;
+  readonly first: boolean;
+  readonly last: boolean;
+  /** Le périmètre contient un Circuit : cadre à la largeur du Circuit pour tous ses contenus. */
+  readonly wide: boolean;
+  /** Bords déplaçables (au moins un contenu atteignable au-delà, ou plus d'un contenu) : traits affichés. */
+  readonly adjustable: boolean;
+};
 
 /**
  * PRE-9 B.2 : ce que chaque rangée ou bloc reçoit en mode enveloppe — éligibilité (Domaine,
- * `envelopeCandidates`), désignation et toucher de désignation. `null` hors mode.
+ * `envelopeCandidates`), désignation et toucher de désignation. `null` hors mode. B.4b : place dans
+ * un périmètre, traits de bord (pas à pas et glisser), mesure des cadres.
  */
 type EnvelopeContext = {
   readonly container: EnvelopeContainer;
   readonly isCandidate: (target: EnvelopeTarget) => boolean;
-  readonly isDesignated: (target: EnvelopeTarget) => boolean;
+  readonly placementOf: (target: EnvelopeTarget) => EnvelopeSpanPlacement | null;
   readonly onDesignate: (target: EnvelopeTarget, name: string) => void;
+  readonly onStepEdge: (span: EnvelopeSpan, edge: EnvelopeEdge, direction: 1 | -1) => void;
+  readonly onEdgeDragStart: (span: EnvelopeSpan, edge: EnvelopeEdge) => void;
+  readonly onEdgeDragEnd: (pageY?: number) => void;
+  readonly registerFrame: (key: string, view: View | null) => void;
 };
+
+const NO_ENVELOPE_SPANS: readonly EnvelopeSpan[] = [];
 
 function sameEnvelopeTarget(a: EnvelopeTarget | null, b: EnvelopeTarget): boolean {
   return a !== null && a.kind === b.kind && a.id === b.id;
 }
 
 /**
- * PRE-9 B.2 (ARB-06) : brouillon après « Confirmer » — `wrapInContainer` sur le brouillon courant.
- * Un brouillon de l'ancien modèle encore sans structure (jamais enregistré) n'a pas d'identifiant de
- * Circuit stable : sa disposition courante lui est d'abord donnée (`withLayout`, sans autre
- * changement), et le Circuit désigné est celui qu'elle porte (au plus un dans l'ancien modèle).
+ * PRE-9 B.2 (ARB-06) / B.4b : brouillon après « Confirmer » — un conteneur par périmètre désigné
+ * (`wrapSpansInContainers`, qui donne d'abord sa disposition à un brouillon de l'ancien modèle jamais
+ * enregistré).
  */
-function draftAfterEnvelope(current: SessionDraft, container: EnvelopeContainer, target: EnvelopeTarget): SessionDraft {
-  const newContainerId = () => Crypto.randomUUID();
-  if (current.structure !== undefined) {
-    return wrapInContainer(current, target, container, newContainerId);
-  }
-  const seeded = withLayout(current, currentLayout(current, newContainerId));
-  const legacyCircuit = seeded.structure === undefined ? undefined : structureCircuits(seeded.structure)[0];
-  const seededTarget: EnvelopeTarget = target.kind === "CIRCUIT" && legacyCircuit !== undefined ? { kind: "CIRCUIT", id: legacyCircuit.id } : target;
-  const next = wrapInContainer(seeded, seededTarget, container, newContainerId);
-  return next === seeded ? current : next;
+function draftAfterEnvelope(current: SessionDraft, container: EnvelopeContainer, spans: readonly EnvelopeSpan[]): SessionDraft {
+  return wrapSpansInContainers(current, spans, container, () => Crypto.randomUUID());
 }
 
 const LAYOUT_CIRCUIT_NATURE_PREFIX ="layout-circuit-nature:";
@@ -1451,42 +1471,96 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
       setRevealedActionsId(null);
       setCycleReveal(null);
       setCircuitReveal(null);
-      setEnvelope({ container, designated: null, targetName: "" });
+      setEnvelope({ container, spans: [], names: {} });
     },
     [finishDragPreview, flushDeletion, placement],
   );
-  /** Toucher d'un contenu éligible : il devient le contenu désigné (un seul ; un autre toucher le déplace). */
-  const designateEnvelopeTarget = useCallback((target: EnvelopeTarget, name: string) => {
-    setEnvelope((current) => (current === null ? current : { ...current, designated: target, targetName: name }));
-    AccessibilityInfo.announceForAccessibility(strings.screens.composition.envelope.designatedAnnouncement.replace("{name}", name));
+  /**
+   * PRE-9 B.4b (sélection multiple ; Hermann, 29/10 et 31/10 : « Un Circuit par Exercice ») : toucher
+   * un contenu éligible libre le désigne (un nouveau périmètre, donc un conteneur de plus) ; toucher un
+   * contenu d'un périmètre désigné retire ce périmètre. [B.2 : « un seul ; un autre toucher le déplace »
+   * — remplacé.]
+   */
+  const designateEnvelopeTarget = useCallback(
+    (target: EnvelopeTarget, name: string) => {
+      if (envelope === null) return;
+      const spans = toggleEnvelopeDesignation(draft, envelope.container, envelope.spans, target);
+      if (spans === envelope.spans) return;
+      const added = spans.length > envelope.spans.length;
+      setEnvelope({ ...envelope, spans, names: { ...envelope.names, [envelopeTargetKey(target)]: name } });
+      const t = strings.screens.composition.envelope;
+      AccessibilityInfo.announceForAccessibility((added ? t.designatedAnnouncement : t.undesignatedAnnouncement).replace("{name}", name));
+    },
+    [draft, envelope],
+  );
+  /** PRE-9 B.4b : un périmètre remplacé par son extension ou sa réduction ; annonce de son étendue. */
+  const replaceEnvelopeSpan = useCallback((previous: EnvelopeSpan, next: EnvelopeSpan) => {
+    setEnvelope((current) => (current === null ? current : { ...current, spans: current.spans.map((span) => (span === previous ? next : span)) }));
+    const t = strings.screens.composition.envelope;
+    AccessibilityInfo.announceForAccessibility(
+      next.members.length === 1 ? t.perimeterOne : t.perimeterMany.replace("{count}", String(next.members.length)),
+    );
   }, []);
+  const perimeterDrag = useEnvelopePerimeterDrag({
+    draft,
+    container: envelope?.container ?? "CIRCUIT",
+    spans: envelope?.spans ?? NO_ENVELOPE_SPANS,
+    onReplace: replaceEnvelopeSpan,
+  });
+  /** PRE-9 B.4b : trait de bord, pas à pas (VoiceOver) — étendre (`1`) ou réduire (`-1`) d'un contenu. */
+  const stepEnvelopeEdge = useCallback(
+    (span: EnvelopeSpan, edge: EnvelopeEdge, direction: 1 | -1) => {
+      if (envelope === null) return;
+      const delta = edge === "TOP" ? -direction : direction;
+      const next = adjustEnvelopeSpan(draft, envelope.container, span, edge, delta, envelope.spans);
+      if (next !== span) replaceEnvelopeSpan(span, next);
+    },
+    [draft, envelope, replaceEnvelopeSpan],
+  );
   /** « Annuler » (et retour système, X, perte du premier plan) : sortie sans aucune mutation. */
   const cancelEnvelope = useCallback(() => setEnvelope(null), []);
-  /** « Confirmer le circuit / le cycle » : le conteneur est posé sur le contenu désigné, puis sortie du mode. */
+  /** « Confirmer le circuit / le cycle » (B.4b : « les circuits / les cycles ») : un conteneur par périmètre désigné, puis sortie du mode. */
   const confirmEnvelope = useCallback(() => {
-    if (envelope === null || envelope.designated === null) return;
-    const { container, designated, targetName } = envelope;
+    if (envelope === null || envelope.spans.length === 0) return;
+    const { container, spans, names } = envelope;
     // Contre-recette du 30/10 : Cycles présents avant la pose — celui qui naît apparaît progressivement.
     if (container === "CYCLE") setCycleReveal({ known: new Set(layoutCycleIds(resolveRichLayout(draft))) });
     // Contre-recette du 30/10 (constat b) : de même pour le Circuit qui naît.
     if (container === "CIRCUIT") setCircuitReveal({ knownMembers: new Set(draftCircuitMembers(draft)) });
-    updateDraft((current) => draftAfterEnvelope(current, container, designated));
+    updateDraft((current) => draftAfterEnvelope(current, container, spans));
     setEnvelope(null);
     const t = strings.screens.composition.envelope;
+    const first = spans[0]!.members[0]!;
     AccessibilityInfo.announceForAccessibility(
-      (container === "CIRCUIT" ? t.circuitCreatedAnnouncement : t.cycleCreatedAnnouncement).replace("{name}", targetName),
+      spans.length > 1
+        ? (container === "CIRCUIT" ? t.circuitsCreatedAnnouncement : t.cyclesCreatedAnnouncement).replace("{count}", String(spans.length))
+        : (container === "CIRCUIT" ? t.circuitCreatedAnnouncement : t.cycleCreatedAnnouncement).replace("{name}", names[envelopeTargetKey(first)] ?? ""),
     );
   }, [draft, envelope, updateDraft]);
   const envelopeContext = useMemo<EnvelopeContext | null>(() => {
     if (envelope === null) return null;
-    const candidates = envelope.container === "CIRCUIT" ? circuitEnvelopeCandidates : cycleEnvelopeCandidates;
+    const { container, spans } = envelope;
+    const candidates = container === "CIRCUIT" ? circuitEnvelopeCandidates : cycleEnvelopeCandidates;
+    const placements = new Map<string, EnvelopeSpanPlacement>();
+    for (const span of spans) {
+      const reach = envelopeSpanReach(draft, container, span, spans);
+      const wide = span.members.some((member) => member.kind === "CIRCUIT");
+      const adjustable = reach !== null && reach.run.length > 1;
+      span.members.forEach((member, index) =>
+        placements.set(envelopeTargetKey(member), { span, first: index === 0, last: index === span.members.length - 1, wide, adjustable }),
+      );
+    }
     return {
-      container: envelope.container,
+      container,
       isCandidate: (target) => candidates.some((candidate) => sameEnvelopeTarget(candidate, target)),
-      isDesignated: (target) => sameEnvelopeTarget(envelope.designated, target),
+      placementOf: (target) => placements.get(envelopeTargetKey(target)) ?? null,
       onDesignate: designateEnvelopeTarget,
+      onStepEdge: stepEnvelopeEdge,
+      onEdgeDragStart: perimeterDrag.begin,
+      onEdgeDragEnd: perimeterDrag.end,
+      registerFrame: perimeterDrag.registerFrame,
     };
-  }, [circuitEnvelopeCandidates, cycleEnvelopeCandidates, designateEnvelopeTarget, envelope]);
+  }, [circuitEnvelopeCandidates, cycleEnvelopeCandidates, designateEnvelopeTarget, draft, envelope, perimeterDrag.begin, perimeterDrag.end, perimeterDrag.registerFrame, stepEnvelopeEdge]);
   /** Circuit unique de l'ancien modèle, tel que le Domaine le désigne parmi les contenus éligibles d'un Cycle. */
   const legacyCircuitTarget: EnvelopeTarget = cycleEnvelopeCandidates.find((candidate) => candidate.kind === "CIRCUIT") ?? {
     kind: "CIRCUIT",
@@ -4045,8 +4119,17 @@ export function CompositionScreen({ sessionId = null }: CompositionScreenProps =
             porte « Confirmer le circuit / le cycle », disponible une fois un contenu désigné, et « Annuler ». */}
         {envelope !== null ? (
           <PlacementBar
-            confirmLabel={envelope.container === "CIRCUIT" ? composition.envelope.confirmCircuit : composition.envelope.confirmCycle}
-            isConfirmDisabled={envelope.designated === null}
+            // PRE-9 B.4b : plusieurs périmètres désignés — « Confirmer les circuits / les cycles » (libellé choisi, à valider).
+            confirmLabel={
+              envelope.container === "CIRCUIT"
+                ? envelope.spans.length > 1
+                  ? composition.envelope.confirmCircuits
+                  : composition.envelope.confirmCircuit
+                : envelope.spans.length > 1
+                  ? composition.envelope.confirmCycles
+                  : composition.envelope.confirmCycle
+            }
+            isConfirmDisabled={envelope.spans.length === 0}
             onConfirm={confirmEnvelope}
             onCancel={cancelEnvelope}
             testID="composition-envelope-bar"
@@ -4627,6 +4710,7 @@ function EnvelopeFrame({
   testID,
   outset = 0,
   radius = dimensions.standardCard.radius,
+  gap = SEQUENCE_GAP,
   children,
 }: {
   envelope: EnvelopeContext | null;
@@ -4644,13 +4728,20 @@ function EnvelopeFrame({
    */
   outset?: number;
   radius?: number;
+  /**
+   * PRE-9 B.4b : écart jusqu'au contenu frère suivant (niveau Séance : `SEQUENCE_GAP` ; dans un Cycle :
+   * `LAYOUT_CYCLE_GAP`) — le cadre d'un périmètre de plusieurs contenus le franchit (moitié de chaque
+   * côté) pour former un seul cadre continu.
+   */
+  gap?: number;
   children: React.ReactNode;
 }) {
   if (envelope === null) {
     return <>{children}</>;
   }
   const isCandidate = envelope.isCandidate(target);
-  const isDesignated = isCandidate && envelope.isDesignated(target);
+  const placement = isCandidate ? envelope.placementOf(target) : null;
+  const isDesignated = placement !== null;
   const t = strings.screens.composition.envelope;
   const label = (
     target.kind === "CIRCUIT"
@@ -4659,8 +4750,42 @@ function EnvelopeFrame({
         ? t.exerciseInCircuitAccessibilityLabel
         : t.exerciseInCycleAccessibilityLabel
   ).replace("{name}", name);
+  // B.4b : un périmètre qui contient un Circuit prend sa largeur et son arrondi pour tous ses contenus.
+  const frameOutset = placement?.wide ? Math.max(outset, CIRCUIT_OUTSET) : outset;
+  const frameRadius = placement?.wide ? CIRCUIT_RADIUS : radius;
+  const joinsAbove = placement !== null && !placement.first;
+  const joinsBelow = placement !== null && !placement.last;
+  const count = placement === null ? 0 : placement.span.members.length;
+  const value = count === 1 ? t.perimeterOne : t.perimeterMany.replace("{count}", String(count));
+  const handle = (edge: EnvelopeEdge) =>
+    placement === null ? null : (
+      <EnvelopeHandle
+        edge={edge}
+        label={
+          envelope.container === "CIRCUIT"
+            ? edge === "TOP"
+              ? t.circuitTopEdge
+              : t.circuitBottomEdge
+            : edge === "TOP"
+              ? t.cycleTopEdge
+              : t.cycleBottomEdge
+        }
+        value={value}
+        extendLabel={edge === "TOP" ? t.extendUp : t.extendDown}
+        reduceLabel={edge === "TOP" ? t.reduceFromTop : t.reduceFromBottom}
+        onStep={(direction) => envelope.onStepEdge(placement.span, edge, direction)}
+        onDragStart={() => envelope.onEdgeDragStart(placement.span, edge)}
+        onDragEnd={envelope.onEdgeDragEnd}
+        testID={`${testID}-handle-${edge === "TOP" ? "top" : "bottom"}`}
+      />
+    );
   return (
-    <View testID={testID}>
+    <View
+      ref={(view) => envelope.registerFrame(envelopeTargetKey(target), view)}
+      // B.4b : le contenu qui porte le trait bas passe au-dessus de ses frères suivants (zone tactile).
+      style={placement?.last === true && placement.adjustable ? styles.envelopeFrameRaised : null}
+      testID={testID}
+    >
       <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {children}
       </View>
@@ -4672,12 +4797,17 @@ function EnvelopeFrame({
           accessibilityState={{ selected: isDesignated }}
           style={[
             styles.envelopeTarget,
-            outset === 0 ? { borderRadius: radius } : { left: -outset, right: -outset, borderRadius: radius },
+            frameOutset === 0 ? { borderRadius: frameRadius } : { left: -frameOutset, right: -frameOutset, borderRadius: frameRadius },
             isDesignated ? styles.envelopeTargetDesignated : styles.envelopeTargetCandidate,
+            // B.4b : périmètre de plusieurs contenus — un seul cadre, continu à travers les écarts.
+            joinsAbove ? { top: -gap / 2, borderTopWidth: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 } : null,
+            joinsBelow ? { bottom: -gap / 2, borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : null,
           ]}
           testID={`${testID}-target`}
         />
       ) : null}
+      {placement?.adjustable === true && placement.first ? handle("TOP") : null}
+      {placement?.adjustable === true && placement.last ? handle("BOTTOM") : null}
     </View>
   );
 }
@@ -6615,6 +6745,7 @@ function LayoutDirectExercise({
         target={{ kind: "EXERCISE", id: exercise.id }}
         name={occurrenceCardName(exercise, context.levelPositions)}
         testID={`composition-envelope-exercise-${exercise.id}`}
+        gap={railGap}
       >
         <LayoutExerciseRow exercise={exercise} circuit={null} position={position} railGap={railGap} rail={rail} context={context} />
       </EnvelopeFrame>
@@ -7992,6 +8123,10 @@ const styles = StyleSheet.create({
   envelopeTargetDesignated: {
     borderStyle: "solid",
     backgroundColor: ENVELOPE_DESIGNATED_FILL,
+  },
+  // PRE-9 B.4b : contenu portant le trait bas d'un périmètre, au-dessus de ses frères suivants.
+  envelopeFrameRaised: {
+    zIndex: 1,
   },
   // CMP-06 : zone d'action basse regroupant la synthèse et `Continuer`.
   // A-01 : plus de `marginTop: "auto"` ici — `body` (`flex: 1`, ci-dessus)

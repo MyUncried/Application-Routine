@@ -406,6 +406,232 @@ export function wrapInContainer(
   return result === null ? draft : withLayout(draft, result);
 }
 
+// ---------------------------------------------------------------------------
+// PRE-9 (B.4b) — enveloppe multiple et périmètre ajustable
+// ---------------------------------------------------------------------------
+
+/**
+ * Périmètre d'un conteneur en cours de pose (B.4b) : contenus frères contigus d'un même parent
+ * (niveau Séance, ou Cycle pour un Circuit), dans l'ordre d'affichage, au moins un. Chaque périmètre
+ * désigné devient UN conteneur à la confirmation.
+ */
+export type EnvelopeSpan = { readonly members: readonly EnvelopeTarget[] };
+
+/** Bord d'un périmètre, déplacé par son trait (haut ou bas). */
+export type EnvelopeEdge = "TOP" | "BOTTOM";
+
+/** Étendue atteignable d'un périmètre : suite contiguë de contenus éligibles libres, et sa place dans cette suite. */
+export type EnvelopeSpanReach = {
+  readonly run: readonly EnvelopeTarget[];
+  readonly start: number;
+  readonly end: number;
+};
+
+const sameTarget = (a: EnvelopeTarget, b: EnvelopeTarget) => a.kind === b.kind && a.id === b.id;
+
+function nodeTarget(node: StructureElement<string> | StructureCycleMember<string>): EnvelopeTarget | null {
+  switch (node.kind) {
+    case "EXERCISE":
+      return { kind: "EXERCISE", id: node.exercise };
+    case "CIRCUIT":
+      return { kind: "CIRCUIT", id: node.circuit.id };
+    default:
+      return null;
+  }
+}
+
+/** Frères (niveau Séance, ou membres d'un Cycle) du contenu `first` ; `null` s'il est absent. */
+function siblingsOf(layout: Layout, first: EnvelopeTarget): readonly (EnvelopeTarget | null)[] | null {
+  const session = layout.elements.map(nodeTarget);
+  if (session.some((item) => item !== null && sameTarget(item, first))) {
+    return session;
+  }
+  for (const element of layout.elements) {
+    if (element.kind === "CYCLE") {
+      const members = element.cycle.members.map(nodeTarget);
+      if (members.some((item) => item !== null && sameTarget(item, first))) {
+        return members;
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Étendue atteignable du périmètre `span` (B.4b) : la suite contiguë, chez ses frères, des contenus
+ * éligibles (`envelopeCandidates`, règles d'imbrication D-451 : pour un Circuit, des Exercices ; pour
+ * un Cycle, des Exercices et des Circuits du niveau Séance) qui n'appartiennent à aucun autre
+ * périmètre désigné (`others`). `null` si le périmètre n'est pas valide (vide, non contigu,
+ * inéligible). Une Séance portant des Points d'arrêt ne s'étend pas au-delà du périmètre (leur suivi
+ * relève de B.6, comme les déplacements B.3 / B.4).
+ */
+export function envelopeSpanReach(
+  draft: SessionDraft,
+  container: "CIRCUIT" | "CYCLE",
+  span: EnvelopeSpan,
+  others: readonly EnvelopeSpan[] = [],
+): EnvelopeSpanReach | null {
+  const first = span.members[0];
+  if (first === undefined) {
+    return null;
+  }
+  const layout = currentLayout(draft, () => "candidate");
+  const siblings = siblingsOf(layout, first);
+  if (siblings === null) {
+    return null;
+  }
+  const candidates = envelopeCandidates(draft, container);
+  const taken = others.filter((other) => other !== span).flatMap((other) => other.members);
+  const free = (item: EnvelopeTarget | null): item is EnvelopeTarget =>
+    item !== null && candidates.some((candidate) => sameTarget(candidate, item)) && !taken.some((other) => sameTarget(other, item));
+  const at = siblings.findIndex((item) => item !== null && sameTarget(item, first));
+  const contiguous = span.members.every((member, offset) => {
+    const sibling = siblings[at + offset];
+    return sibling !== undefined && free(sibling) && sameTarget(sibling, member);
+  });
+  if (!contiguous) {
+    return null;
+  }
+  if (layout.stopPoints.length > 0) {
+    return { run: span.members, start: 0, end: span.members.length - 1 };
+  }
+  let low = at;
+  while (low > 0 && free(siblings[low - 1] ?? null)) low -= 1;
+  let high = at + span.members.length - 1;
+  while (high < siblings.length - 1 && free(siblings[high + 1] ?? null)) high += 1;
+  const run = siblings.slice(low, high + 1).filter((item): item is EnvelopeTarget => item !== null);
+  return { run, start: at - low, end: at - low + span.members.length - 1 };
+}
+
+/**
+ * Déplace le bord `edge` du périmètre de `delta` contenus (B.4b) : vers le haut (négatif) ou le bas
+ * (positif) ; un bord haut qui monte et un bord bas qui descend étendent, l'inverse réduit. Borné à
+ * l'étendue atteignable (`envelopeSpanReach`) et à un contenu au moins. Même référence si rien ne change.
+ */
+export function adjustEnvelopeSpan(
+  draft: SessionDraft,
+  container: "CIRCUIT" | "CYCLE",
+  span: EnvelopeSpan,
+  edge: EnvelopeEdge,
+  delta: number,
+  others: readonly EnvelopeSpan[] = [],
+): EnvelopeSpan {
+  const reach = envelopeSpanReach(draft, container, span, others);
+  if (reach === null || !Number.isFinite(delta)) {
+    return span;
+  }
+  const step = Math.trunc(delta);
+  const start = edge === "TOP" ? Math.max(0, Math.min(reach.start + step, reach.end)) : reach.start;
+  const end = edge === "BOTTOM" ? Math.min(reach.run.length - 1, Math.max(reach.end + step, reach.start)) : reach.end;
+  return start === reach.start && end === reach.end ? span : { members: reach.run.slice(start, end + 1) };
+}
+
+/**
+ * Sélection multiple (B.4b) : toucher un contenu éligible libre ajoute un périmètre à un seul contenu ;
+ * toucher un contenu d'un périmètre désigné retire ce périmètre. Contenu inéligible : inchangé.
+ */
+export function toggleEnvelopeDesignation(
+  draft: SessionDraft,
+  container: "CIRCUIT" | "CYCLE",
+  spans: readonly EnvelopeSpan[],
+  target: EnvelopeTarget,
+): readonly EnvelopeSpan[] {
+  const holder = spans.find((span) => span.members.some((member) => sameTarget(member, target)));
+  if (holder !== undefined) {
+    return spans.filter((span) => span !== holder);
+  }
+  const added: EnvelopeSpan = { members: [target] };
+  return envelopeSpanReach(draft, container, added, spans) === null ? spans : [...spans, added];
+}
+
+/**
+ * Pose (B.4b) un conteneur par périmètre désigné : « Un Circuit par Exercice » (Hermann, 31/10/2026 ;
+ * chaque périmètre devient un Circuit dont ses Exercices sont les membres) ; de même un Cycle par
+ * périmètre (lecture par analogie, à confirmer). Circuit : compte 1, séries groupées ; Cycle :
+ * répétition 1 ; jamais vide ; règles d'imbrication D-451 respectées par l'éligibilité. Brouillon
+ * inchangé si un périmètre est invalide ou chevauche un autre, ou si le résultat ferait sortir de
+ * l'ancien modèle une Séance portant des Points d'arrêt (B.6) ; un périmètre de plusieurs contenus
+ * n'est pas posé dans une Séance à Points d'arrêt.
+ */
+export function wrapSpansInContainers(
+  draft: SessionDraft,
+  spans: readonly EnvelopeSpan[],
+  container: "CIRCUIT" | "CYCLE",
+  newContainerId: () => string,
+): SessionDraft {
+  if (draft.structure === undefined && spans.length > 0) {
+    // Brouillon de l'ancien modèle jamais enregistré : son Circuit n'a pas d'identifiant stable. Sa
+    // disposition lui est d'abord donnée ; un Circuit désigné est celui qu'elle porte (au plus un).
+    const seeded = withLayout(draft, currentLayout(draft, newContainerId));
+    const legacyCircuit = seeded.structure === undefined ? undefined : structureCircuits(seeded.structure)[0];
+    const remapped = spans.map((span) => ({
+      members: span.members.map((member) => (member.kind === "CIRCUIT" && legacyCircuit !== undefined ? { kind: "CIRCUIT" as const, id: legacyCircuit.id } : member)),
+    }));
+    const next = wrapSpansInContainers(seeded, remapped, container, newContainerId);
+    return next === seeded ? draft : next;
+  }
+  if (spans.length === 0 || spans.some((span) => envelopeSpanReach(draft, container, span, spans) === null)) {
+    return draft;
+  }
+  const layout = currentLayout(draft, newContainerId);
+  if (layout.stopPoints.length > 0 && spans.some((span) => span.members.length > 1)) {
+    return draft;
+  }
+  const spanStartingAt = (node: StructureElement<string> | StructureCycleMember<string>) => {
+    const content = nodeTarget(node);
+    return content === null ? undefined : spans.find((span) => sameTarget(span.members[0]!, content));
+  };
+  /** Regroupe, dans une suite de frères, chaque périmètre en un nœud produit par `make`. */
+  const group = <N extends StructureElement<string> | StructureCycleMember<string>>(
+    nodes: readonly N[],
+    make: (members: readonly N[]) => N,
+  ): N[] => {
+    const result: N[] = [];
+    for (let index = 0; index < nodes.length; index += 1) {
+      const span = spanStartingAt(nodes[index]!);
+      if (span === undefined) {
+        result.push(nodes[index]!);
+        continue;
+      }
+      result.push(make(nodes.slice(index, index + span.members.length)));
+      index += span.members.length - 1;
+    }
+    return result;
+  };
+  const circuitOf = (members: readonly (StructureElement<string> | StructureCycleMember<string>)[]): StructureCircuit<string> => ({
+    id: newContainerId(),
+    repeatCount: 1,
+    nature: DEFAULT_CIRCUIT_NATURE,
+    exercises: members.flatMap((member) => (member.kind === "EXERCISE" ? [member.exercise] : [])),
+  });
+  const elements =
+    container === "CIRCUIT"
+      ? group(layout.elements, (members): StructureElement<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) })).map(
+          (element): StructureElement<string> =>
+            element.kind === "CYCLE"
+              ? {
+                  kind: "CYCLE",
+                  cycle: {
+                    ...element.cycle,
+                    members: group(element.cycle.members, (members): StructureCycleMember<string> => ({ kind: "CIRCUIT", circuit: circuitOf(members) })),
+                  },
+                }
+              : element,
+        )
+      : group(layout.elements, (members): StructureElement<string> => ({
+          kind: "CYCLE",
+          cycle: {
+            id: newContainerId(),
+            repeatCount: CYCLE_REPEAT_COUNT_MIN,
+            members: members.flatMap((member): StructureCycleMember<string>[] =>
+              member.kind === "EXERCISE" ? [{ kind: "EXERCISE", exercise: member.exercise }] : member.kind === "CIRCUIT" ? [member] : [],
+            ),
+          },
+        }));
+  const result: Layout = { ...layout, elements };
+  return blockedByStopPoints(result) ? draft : withLayout(draft, result);
+}
+
 /**
  * ARB-07 : un nouvel Exercice est inséré après le dernier Exercice entré, dans son conteneur ; sans
  * repère (ou repère absent), à la fin du niveau principal. Disposition générale seulement : dans

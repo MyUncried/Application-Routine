@@ -714,6 +714,22 @@ export const fr = {
         designatedAnnouncement: "{name} désigné",
         circuitCreatedAnnouncement: "Circuit créé autour de {name}",
         cycleCreatedAnnouncement: "Cycle créé autour de {name}",
+        // PRE-9 B.4b (sélection multiple, périmètre ajustable) : formulations choisies, à valider en recette.
+        undesignatedAnnouncement: "{name} retiré de la sélection",
+        confirmCircuits: "Confirmer les circuits",
+        confirmCycles: "Confirmer les cycles",
+        circuitsCreatedAnnouncement: "{count} circuits créés",
+        cyclesCreatedAnnouncement: "{count} cycles créés",
+        circuitTopEdge: "Bord haut du circuit",
+        circuitBottomEdge: "Bord bas du circuit",
+        cycleTopEdge: "Bord haut du cycle",
+        cycleBottomEdge: "Bord bas du cycle",
+        extendUp: "Étendre vers le haut",
+        extendDown: "Étendre vers le bas",
+        reduceFromTop: "Réduire par le haut",
+        reduceFromBottom: "Réduire par le bas",
+        perimeterOne: "1 élément",
+        perimeterMany: "{count} éléments",
       },
       // PRE-9 B.4 (ch13 « annonce de la raison d'un refus de dépose ») : annonces VoiceOver d'une dépose
       // refusée sans modification dans une disposition générale. Formulations à valider.

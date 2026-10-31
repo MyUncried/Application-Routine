@@ -1765,7 +1765,7 @@ Liste A/B : sélectionner B puis A → insertion A/B ; désélection, 0/1/N, fer
 
 **Complément Formats du 14/10 :** Pour une séance issue d’un format, appliquer CE-FMT-03 : réglages autorisés toujours éditables, identité et constantes conservées, synthèse et calculs actualisés. Conserver les contraintes du format ; la nature utilise les libellés groupées/alternées et le circuit l’unité tour(s). La portée d’un format sur plusieurs conteneurs reste reportée à la définition des formats.
 
-**Référence courante du 28/10 :** [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md) remplace les dispositions antérieures contraires de ce contrat : menu à cinq actions, création par enveloppe non vide, multi-circuit, cycle visible et non repliable, appui long G1–G8 et défilement CS-D1–CS-D8. La sélection d’enveloppe transfrontière et les frontières des points d’arrêt restent explicitement réservées ; les maquettes ne valent pas règle implicite.
+**Référence courante du 28/10 :** [Composition du 28/10](../KODJO-Composition-conteneurs-2026-10-28.md) remplace les dispositions antérieures contraires de ce contrat : menu à cinq actions, création par enveloppe non vide, multi-circuit, cycle visible et non repliable, appui long G1–G8 et défilement CS-D1–CS-D8. La sélection d’enveloppe transfrontière et les frontières des points d’arrêt restent explicitement réservées ; les maquettes ne valent pas règle implicite. [31/10/2026, PRE-9 B.4b : sélection multiple (un conteneur par contenu désigné) et périmètre du conteneur en cours de pose ajustable par deux traits haut et bas, sur des contenus contigus du même parent — sans franchissement de frontière ; voir ch07 « A.2b et B.4b — précisions de Hermann du 31/10/2026 » et COMP §5.]
 
 #### 1. Identification
 

@@ -232,7 +232,9 @@ describe("B.2 — mode enveloppe (ARB-06 ; Figma 10819:20344, 10836:20478)", () 
     fireEvent.press(screen.getByTestId("composition-exercise-row-a", hidden));
     expect(mockPush).not.toHaveBeenCalled();
 
-    // Toucher désigne ; un autre toucher déplace la désignation (une seule).
+    // Toucher désigne. [B.2 : « un autre toucher déplace la désignation (une seule) » — remplacé par
+    // B.4b (sélection multiple, CompositionScreen.b4b.test.tsx) : un second toucher du même contenu le retire.]
+    fireEvent.press(screen.getByTestId("composition-envelope-exercise-a-target"));
     fireEvent.press(screen.getByTestId("composition-envelope-exercise-a-target"));
     fireEvent.press(screen.getByTestId("composition-envelope-exercise-b-target"));
     expect(screen.getByTestId("composition-envelope-exercise-a-target").props.accessibilityState).toEqual({ selected: false });
