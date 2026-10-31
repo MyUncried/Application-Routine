@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   EXECUTION_BOUNDS,
+  FIRST_POSITIVE_TARGET,
   WORK_PHASE_LIMITS,
   hasMissingPhaseDuration,
   isBilateral,
@@ -498,6 +499,15 @@ function seriesTypeCountLabel(count: number, seriesType: SeriesType): string {
         : t.seriesCountUniform;
   return template.replace("{n}", String(count));
 }
+
+/**
+ * PRE-9 (B.3, COMP §3) : roues de la Cible COMMUNE (séries identiques ; D-434 : jamais ouvertes depuis
+ * une cellule du tableau). Une Cible commune 0 annulerait toutes les séries — volume total nul,
+ * refusé (ARB-10) — : ces roues gardent la plus petite Cible positive, et leur position neutre
+ * `00:00` (recette du 29/10) laisse ✓ indisponible. La Cible 0 se saisit dans une cellule du tableau.
+ */
+const UNIFORM_DURATION_WHEEL_BOUNDS = { min: FIRST_POSITIVE_TARGET, max: EXECUTION_BOUNDS.durationTarget.max } as const;
+const UNIFORM_REPETITIONS_WHEEL_BOUNDS = { min: FIRST_POSITIVE_TARGET, max: EXECUTION_BOUNDS.repetitionTarget.max } as const;
 
 /** Indice d'accessibilité d'une valeur signalée, selon la violation (PRE-4). */
 const invalidHintFor = (code: ExecutionParametersViolation["code"]) =>
@@ -1484,7 +1494,7 @@ export function ExecutionParametersSheet({
         // pour 30 s comme pour 1 min (depuis 00:01, il fallait aussi ramener les secondes à 00).
         // [Remplace, pour cette roue, « « — » → 00:01 » de D-430 / `selectorOpeningPosition`.]
         totalSeconds={target.kind === "UNSET" ? 0 : opening.kind === "NUMBER" ? opening.value : 0}
-        targetBounds={EXECUTION_BOUNDS.durationTarget}
+        targetBounds={UNIFORM_DURATION_WHEEL_BOUNDS}
         onValidate={(seconds) => {
           closeSurface(openKey);
           apply(numberTarget(seconds));
@@ -1525,8 +1535,8 @@ export function ExecutionParametersSheet({
     const opening = selectorOpeningPosition("REPETITIONS", target);
     return (
       <NumberWheelPicker
-        value={opening.kind === "NUMBER" ? opening.value : EXECUTION_BOUNDS.repetitionTarget.min}
-        targetBounds={EXECUTION_BOUNDS.repetitionTarget}
+        value={opening.kind === "NUMBER" ? opening.value : UNIFORM_REPETITIONS_WHEEL_BOUNDS.min}
+        targetBounds={UNIFORM_REPETITIONS_WHEEL_BOUNDS}
         onValidate={(value: number) => {
           closeSurface(openKey);
           apply(numberTarget(value));

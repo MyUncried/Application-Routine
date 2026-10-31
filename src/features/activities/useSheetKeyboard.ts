@@ -9,7 +9,7 @@ import {
   type TextInput,
 } from "react-native";
 
-import { EXECUTION_BOUNDS, numberTarget, seriesRowsOf, unsetTarget } from "@/domain/activities/ExecutionParameters";
+import { EXECUTION_BOUNDS, numberTarget, seriesRowsOf, unsetTarget, WORK_PATTERN_DURATION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import {
   effectiveParameters,
   isSingleSeries,
@@ -69,7 +69,7 @@ import {
  *   (`toggleRowFailure`, valeur numérique mémorisée et restituée).
  * - PRE-5 story 2.8 (D-434, FR-6, AD-26) : libellé de phase (clavier texte, sans barre) et
  *   durée de phase (« MMSS », mêmes règles que les cellules du tableau des séries : bornes
- *   `EXECUTION_BOUNDS.durationTarget`, secondes reportées, vidée → à renseigner), appliqués à
+ *   `WORK_PATTERN_DURATION_BOUNDS` (PRE-9 B.3), secondes reportées, vidée → à renseigner), appliqués à
  *   la sortie par les transitions existantes `setWorkPhaseLabel` et `setWorkPhaseDuration`.
  *   Précédent / Suivant ne parcourent que les durées du tableau des phases ; la barre n'a pas
  *   « À l'échec ».
@@ -198,6 +198,8 @@ export function rowPauseEditText(draft: ExecutionSheetDraft, row: number): strin
  * D-434 (QD-434-3, QD-434-4) — sortie de la cellule Cible d'une ligne : durée « MMSS »
  * (secondes > 59 reportées) ou Répétitions, ramenée dans les bornes existantes ; vidée → à
  * renseigner (0 n'est pas permis). Valeur inchangée : Brouillon rendu tel quel.
+ * [PRE-9 B.3, COMP §3 du 28/10 : « 0 n'est pas permis » remplacé — 0 saisi est une Cible 0
+ * (participation volontairement absente) ; vidée reste « — », à renseigner, jamais 0.]
  */
 export function applyRowTargetEdit(draft: ExecutionSheetDraft, row: number, text: string): ExecutionSheetDraft {
   const index = draft.rowIds.indexOf(row);
@@ -205,9 +207,11 @@ export function applyRowTargetEdit(draft: ExecutionSheetDraft, row: number, text
   const mode = effectiveParameters(draft).mode;
   if (current === undefined || mode === null) return draft;
   const value =
-    mode === "DURATION"
-      ? cellDurationSeconds(text, EXECUTION_BOUNDS.durationTarget)
-      : cellIntegerValue(text, EXECUTION_BOUNDS.repetitionTarget);
+    text === ""
+      ? null
+      : mode === "DURATION"
+        ? cellDurationSeconds(text, EXECUTION_BOUNDS.durationTarget)
+        : cellIntegerValue(text, EXECUTION_BOUNDS.repetitionTarget);
   if (value === null) return current.kind === "UNSET" ? draft : setRowTarget(draft, index, unsetTarget());
   return current.kind === "NUMBER" && current.value === value ? draft : setRowTarget(draft, index, numberTarget(value));
 }
@@ -254,7 +258,7 @@ export function applyPhaseDurationEdit(draft: ExecutionSheetDraft, phase: number
   const current = phaseOf(draft, phase);
   if (current === undefined) return draft;
   // PRE-7 (D-448, point 6) : 0 s saisi reste 0 s (cellule rouge, ✓ refusé) ; vidée → `null`.
-  const value = cellPhaseDurationSeconds(text, EXECUTION_BOUNDS.durationTarget);
+  const value = cellPhaseDurationSeconds(text, WORK_PATTERN_DURATION_BOUNDS);
   return current.durationSeconds === value ? draft : setWorkPhaseDuration(draft, phase, value);
 }
 

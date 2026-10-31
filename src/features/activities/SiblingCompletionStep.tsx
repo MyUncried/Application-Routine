@@ -2,7 +2,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { EXECUTION_BOUNDS } from "@/domain/activities/ExecutionParameters";
+import { WORK_PATTERN_DURATION_BOUNDS } from "@/domain/activities/ExecutionParameters";
 import type { MovementPhase } from "@/domain/activities/Movement";
 import {
   buildSiblingCompletions,
@@ -161,7 +161,8 @@ export function SiblingCompletionStep({ gaps, phases, siblingLabels, onFinish, o
 export function durationEntryValue(digits: string): number | null {
   const seconds = cellDurationSeconds(digits, { min: 0, max: Number.MAX_SAFE_INTEGER });
   if (seconds === null) return null;
-  const { min, max } = EXECUTION_BOUNDS.durationTarget;
+  // PRE-9 (B.3, COMP §3) : durée de PHASE, minimum propre (1 s) inchangé par l'ouverture des Cibles à 0.
+  const { min, max } = WORK_PATTERN_DURATION_BOUNDS;
   return seconds >= min && seconds <= max ? seconds : null;
 }
 

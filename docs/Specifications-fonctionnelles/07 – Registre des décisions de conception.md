@@ -1258,3 +1258,9 @@ Réponse de Hermann du 30/10/2026 à « La pile d'une famille doit-elle aussi mo
 ## Retrait d'un Circuit — précision de Hermann du 30/10/2026
 
 « Circuit : l'apparition et la disparition du circuit doivent se faire progressivement et plus lentement » — précision de Hermann du 30/10/2026 : la disparition vise aussi le retrait d'un Circuit de la Séance (« b) et ok pour le traiter en B.4 / B.5 ») : effacement progressif et lent du Circuit retiré, puis remontée douce des éléments suivants. Réalisation : stories B.4 / B.5.
+
+## A.2b et B.4b — précisions de Hermann du 31/10/2026
+
+- **A.2b, durées des phases du Mouvement.** Question : si on modifie plus tard les durées d'un Mouvement, que deviennent les Exercices déjà créés ? Réponse : « Inchangés » — les durées du Mouvement ne servent que de valeurs par défaut à la création d'un nouvel Exercice ; les Exercices existants gardent leurs durées locales.
+- **B.4b, sélection multiple.** Après sélection de plusieurs Exercices puis « Ajouter un circuit » : « Un Circuit par Exercice » — chaque Exercice sélectionné devient le premier membre de son propre Circuit.
+- **B.4b, périmètre ajustable.** « idem pour la séance » désigne « Le Cycle » : les traits de périmètre servent aussi au Cycle en cours de création.

@@ -85,7 +85,8 @@ export function exerciseOfMovement(movement: Movement, id: string, defaults: Mov
  * insertion que les anciens parcours (B.2) : disposition générale (`insertIntoRichLayout`), sinon
  * ancien modèle (`appendActivityAfterLastDisplayed` puis réglage du Circuit). Un nouvel Exercice a
  * une seule série : son entrée dans un Circuit de Séries ne retire aucune série (aucune perte à
- * confirmer).
+ * confirmer). PRE-9 (B.3) : en disposition générale aussi, il est porté au N du Circuit alterné qui
+ * le reçoit (extension par sa ligne, sans perte).
  */
 export function withMovementExercises(
   draft: SessionDraft,
@@ -93,7 +94,7 @@ export function withMovementExercises(
 ): Pick<SessionDraft, "exercises"> & Partial<Pick<SessionDraft, "structure">> {
   const rich = insertIntoRichLayout(draft, additions);
   if (rich !== null) {
-    return rich;
+    return { exercises: rich.exercises, structure: rich.structure };
   }
   let next = draft.exercises;
   for (const addition of additions) {

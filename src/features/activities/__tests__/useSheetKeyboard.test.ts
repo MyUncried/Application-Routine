@@ -174,12 +174,15 @@ describe("D-434 — champs clavier des cellules du tableau des séries", () => {
     const row = draft.rowIds[0]!;
     expect(applyRowTargetEdit(draft, row, "175").rows[0]!.target).toEqual(numberTarget(135));
     expect(applyRowTargetEdit(draft, row, "9999").rows[0]!.target).toEqual(numberTarget(3535));
-    expect(applyRowTargetEdit(draft, row, "0").rows[0]!.target).toEqual(numberTarget(1));
+    // PRE-9 (B.3, COMP §3) : 0 saisi est une Cible 0 (« 0 n'est pas permis » remplacé) ; vidée reste « — ».
+    expect(applyRowTargetEdit(draft, row, "0").rows[0]!.target).toEqual(numberTarget(0));
     expect(applyRowTargetEdit(draft, row, "").rows[0]!.target).toEqual(unsetTarget());
     expect(applyRowTargetEdit(draft, row, "105")).toBe(draft);
     expect(applyRowTargetEdit(draft, 999, "30")).toBe(draft);
     const repetitions = rows([numberTarget(12), numberTarget(10)], "REPETITIONS");
     expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "150").rows[0]!.target).toEqual(numberTarget(100));
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "0").rows[0]!.target).toEqual(numberTarget(0));
+    expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "").rows[0]!.target).toEqual(unsetTarget());
     expect(applyRowTargetEdit(repetitions, repetitions.rowIds[0]!, "").rows[0]!.target).toEqual(unsetTarget());
   });
 

@@ -2043,3 +2043,79 @@ describe("ExerciseScreen — Feuille des paramètres MFN (PRE-7, story A2.1)", (
     expect(screen.getByTestId("activity-editor-finish-action").props.accessibilityState).toMatchObject({ disabled: true });
   });
 });
+
+/**
+ * PRE-9 (story B.3, ch10 « Nombre imposé et diminution » l.1142, « Suppression et interactions »
+ * l.1182, « Ajout et sortie du circuit » ; COMP §6, D-07, D-09) — disposition générale à deux
+ * Circuits : la Feuille d'un Exercice d'un Circuit alterné garde N en lecture seule, sans suppression
+ * locale de série ; un Exercice d'un Circuit groupé reste libre ; un nouvel Exercice inséré dans un
+ * Circuit alterné est porté à SON N, avec confirmation s'il perd des séries.
+ */
+describe("ExerciseScreen — disposition générale, Circuit alterné parmi d'autres (PRE-9, B.3)", () => {
+  const hint = strings.executionParameters.circuit.inheritedSeriesCount;
+  const modal = strings.screens.composition.circuitEntryConfirmModal;
+  const openSheet = () => fireEvent.press(screen.getByTestId("exercise-parameters-card"));
+  const isLocked = () => screen.getByTestId("execution-sheet-series-toggle").props.accessibilityState?.disabled === true;
+  const member = (id: string, count = 2) =>
+    canonicalOccurrence({ id, structuralPosition: "BEFORE_TOUR", executionParameters: durationParameters(30, count) });
+  /** Circuit B groupé × 2 [g-1], puis Circuit A alterné × N [s-1] : le dernier Exercice affiché est dans A. */
+  const layout = (count: number) => ({
+    structure: {
+      elements: [
+        { kind: "CIRCUIT" as const, circuit: { id: "cb", repeatCount: 2, nature: "TOURS" as const, exercises: ["g-1"] } },
+        { kind: "CIRCUIT" as const, circuit: { id: "ca", repeatCount: count, nature: "SERIES" as const, exercises: ["s-1"] } },
+      ],
+      stopPoints: [],
+    },
+  });
+  const seriesCount = (exercise: SessionDraftExercise) => {
+    const series = exercise.executionParameters.series;
+    return series.kind === "UNIFORM" ? series.count : series.rows.length;
+  };
+
+  it("Exercice du Circuit alterné : N affiché, indisponible et expliqué, croix de série indisponibles ; Circuit groupé : libre", () => {
+    renderRoute({ params: { exerciseId: "s-1" }, exercises: [member("g-1"), member("s-1")], draft: layout(2) });
+    openSheet();
+    expect(isLocked()).toBe(true);
+    expect(screen.getByTestId("execution-sheet-series-toggle").props.accessibilityHint).toBe(hint);
+    fireEvent.press(screen.getByTestId("execution-sheet-series-type-control-VARIABLE"));
+    expect(screen.getByTestId("execution-sheet-table-row-1-remove").props.accessibilityState).toMatchObject({ disabled: true });
+    screen.unmount();
+
+    renderRoute({ params: { exerciseId: "g-1" }, exercises: [member("g-1"), member("s-1")], draft: layout(2) });
+    openSheet();
+    expect(isLocked()).toBe(false);
+  });
+
+  it("nouvel Exercice inséré dans le Circuit alterné avec perte : dialogue ; Annuler n'ajoute rien ; Confirmer insère dans A, adapté à N", async () => {
+    const { updateDraft } = renderRoute({ exercises: [member("g-1"), member("s-1", 1)], draft: layout(1) });
+    await fillNewExercise();
+    openSheet();
+    tapExecutionSheetStep("execution-sheet-series-increment");
+    fireEvent.press(screen.getByTestId("execution-sheet-validate"));
+
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(screen.getByText(modal.addTitle)).toBeTruthy();
+    expect(updateDraft).not.toHaveBeenCalled();
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.cancel));
+    expect(updateDraft).not.toHaveBeenCalled();
+
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    fireEvent.press(within(screen.getByTestId("circuit-entry-confirm-card")).getByLabelText(modal.confirm));
+    expect(updateDraft).toHaveBeenCalledTimes(1);
+    const patch = updateDraft.mock.calls[0]![0];
+    const added = patch.exercises!.find((exercise) => !["g-1", "s-1"].includes(exercise.id))!;
+    expect(seriesCount(added)).toBe(1);
+    const circuitA = patch.structure!.elements[1]!;
+    expect(circuitA.kind === "CIRCUIT" ? circuitA.circuit.exercises : []).toEqual(["s-1", added.id]);
+  });
+
+  it("nouvel Exercice sans perte : porté au N du Circuit alterné, sans dialogue", async () => {
+    const { updateDraft } = renderRoute({ exercises: [member("g-1"), member("s-1", 3)], draft: layout(3) });
+    await fillNewExercise();
+    fireEvent.press(screen.getByTestId("exercise-finish-action"));
+    expect(screen.queryByText(modal.addTitle)).toBeNull();
+    const added = updateDraft.mock.calls[0]![0].exercises!.find((exercise) => !["g-1", "s-1"].includes(exercise.id))!;
+    expect(seriesCount(added)).toBe(3);
+  });
+});

@@ -7,6 +7,7 @@ import {
   isBilateral,
   seriesCountOf,
   seriesRowsOf,
+  zeroVolumeViolations,
   type ExecutionParametersInput,
   type SeriesTarget,
 } from "@/domain/activities/ExecutionParameters";
@@ -391,7 +392,8 @@ export const OCCURRENCE_SUMMARY_MAX_VALUES = 3;
  *   « 3 séries à l’échec ») ; une cible à l'échec parmi des cibles chiffrées en
  *   variables est écrite « à l’échec » à sa place (rendu des lignes mixtes
  *   encore à aligner, ch13) ;
- * - Mode non renseigné ou cible à renseigner : « Paramètres à compléter. ».
+ * - Mode non renseigné ou cible à renseigner : « Paramètres à compléter. » ; PRE-9 (B.3) : de même
+ *   pour un Exercice dont toutes les cibles valent 0 (volume total nul, ARB-10).
  *
  * Durées au format `formatCompactDuration`. Le nom et le Mode ne sont pas
  * répétés ; aucun texte de pause ni de récupération. En Circuit de Séries, N
@@ -419,6 +421,12 @@ export function formatOccurrenceSummary(facts: Pick<ExerciseRowSummaryFacts, "ex
     return `${formatCountWithUnit(count, exerciseRow.seriesSingular, exerciseRow.seriesPlural)} ${failure}`;
   }
   if (parameters.mode === null || hasUnsetTarget(parameters)) {
+    return strings.executionParameters.card.incomplete;
+  }
+  // PRE-9 (B.3, COMP §3, ARB-10 ; ch10 « Si cette valeur est zéro et que l'adaptation ne laisse aucun
+  // volume, la validation de l'exercice tout nul s'applique ») : toutes les Cibles à 0 — volume total
+  // nul, enregistrement refusé : même signalement que des paramètres à compléter (D-448 point 7).
+  if (zeroVolumeViolations(parameters.series).length > 0) {
     return strings.executionParameters.card.incomplete;
   }
 

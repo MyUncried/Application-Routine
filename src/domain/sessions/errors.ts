@@ -27,7 +27,9 @@ export type ValidationErrorCode =
   /** T01-S10 : identifiant d'Activité en doublon dans un même agrégat de modification ; PRE-6 (story 1.2) : aussi deux Points d'arrêt sur le même emplacement `(scope, position)` (`session.stopPoints`). */
   | "DUPLICATE"
   /** PRE-6 (story 1.2, RM-219) : Point d'arrêt sur un emplacement interdit (juste après le compte à rebours initial ou juste avant la Fin). */
-  | "FORBIDDEN_PLACEMENT";
+  | "FORBIDDEN_PLACEMENT"
+  /** PRE-9 (B.3, COMP §3, ARB-10) : Exercice dont toutes les Cibles valent 0 — volume total nul, refusé. */
+  | "ZERO_VOLUME";
 
 export type ValidationField =
   | "session.name"

@@ -6916,7 +6916,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(shown(target(1))).toBe("00:05");
   });
 
-  it("frappe : la première remplace, les suivantes composent, quatre chiffres au plus ; à la sortie, 01:75 → 2 min 15 s ; hors bornes ramenée à la borne (3535, 1 s ; Pause 300)", () => {
+  it("frappe : la première remplace, les suivantes composent, quatre chiffres au plus ; à la sortie, 01:75 → 2 min 15 s ; hors bornes ramenée à la borne (3535, 1 s [PRE-9 B.3 : 0 s admis] ; Pause 300)", () => {
     const { onApply } = renderSheet(variable([[numberTarget(65), 10], [numberTarget(45), 20], [numberTarget(30), 30]]));
     focus(target(1));
     typeInExecutionSheetCell(target(1), "175");
@@ -6925,8 +6925,9 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
     expect(shown(target(1))).toBe("2 min 15 s");
     enterExecutionSheetCell(target(2), "99999");
     expect(shown(target(2))).toBe(formatPhraseDuration(3535));
+    // PRE-9 (B.3, COMP §3) : 0 saisi est une Cible 0 (participation volontairement absente).
     enterExecutionSheetCell(target(3), "0");
-    expect(shown(target(3))).toBe("1 s");
+    expect(shown(target(3))).toBe("0 s");
     enterExecutionSheetCell(pause(1), "1000");
     expect(shown(pause(1))).toBe(formatPhraseDuration(300));
     validate();
@@ -6935,7 +6936,7 @@ describe("ExecutionParametersSheet — D-434 (saisie au clavier des cellules)", 
       rows: [
         { target: numberTarget(135), pauseSeconds: 300, loadKg: 20 },
         { target: numberTarget(3535), pauseSeconds: 20, loadKg: 20 },
-        { target: numberTarget(1), pauseSeconds: 30, loadKg: 20 },
+        { target: numberTarget(0), pauseSeconds: 30, loadKg: 20 },
       ],
       workPhases: [],
     });

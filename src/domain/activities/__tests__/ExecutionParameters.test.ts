@@ -199,7 +199,8 @@ describe("PRE4-1.1/AC3 — lecteur v2", () => {
     expect(() => readV2(serializeV2(durationParameters(30)).replace('"mode":"DURATION"', '"mode":"SPRINT"'))).toThrow(
       ExecutionParametersDataError,
     );
-    expect(() => readV2(serializeV2(durationParameters(30)).replace('"kind":"NUMBER","value":30', '"kind":"NUMBER","value":0'))).toThrow(
+    // PRE-9 (B.3, COMP §3) : une Cible 0 est une donnée valide ; une Cible négative reste corrompue.
+    expect(() => readV2(serializeV2(durationParameters(30)).replace('"kind":"NUMBER","value":30', '"kind":"NUMBER","value":-1'))).toThrow(
       ExecutionParametersDataError,
     );
   });
@@ -375,7 +376,8 @@ describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)"
     code: "OUT_OF_RANGE",
     field: "target",
     level: "INPUT",
-    details: { min: 1, max: 3535 },
+    // PRE-9 (B.3, COMP §3) : borne basse de la Cible 0 (1 auparavant).
+    details: { min: 0, max: 3535 },
     seriesNumber,
   });
 
@@ -418,7 +420,7 @@ describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)"
     const uniformLegacy = durationParameters(5999, 3, 10);
     expect(validateForSave(cloneExecutionParameters(uniformLegacy), uniformLegacy).ok).toBe(true);
     expect(validateForSave(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [0] }).ok).toBe(true);
-    const required = [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 } }];
+    const required = [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 } }];
     expect(violations(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [null] })).toEqual(required);
     expect(violations(cloneExecutionParameters(uniformLegacy), uniformLegacy, { baselineRowIndexes: [0, 1] })).toEqual(required);
     // Base variable, entrée identiques : la Cible commune est appariée à une ligne de même valeur.
@@ -429,15 +431,17 @@ describe("PRE4-3.2/AC12 — alignement des Séries sur la ligne de base (AD-13)"
 });
 
 describe("PRE4-Q36 — Cible Durée à la seconde (décision de Hermann du 2026-10-17)", () => {
-  it("PRE4-Q36, D-430 — 31, 7, 4, 1 et 3533 s admises ; 3536 s refusée ; 0 refusé ; 5999 s héritée non modifiée tolérée (H25)", () => {
+  it("PRE4-Q36, D-430 — 31, 7, 4, 1 et 3533 s admises ; 3536 s refusée ; 0 refusé [PRE-9 B.3 : 0 seul refusé pour volume nul] ; 5999 s héritée non modifiée tolérée (H25)", () => {
     for (const seconds of [31, 7, 4, 1, 3533]) {
       expect({ seconds, ok: accepted(durationParameters(seconds), null) }).toEqual({ seconds, ok: true });
     }
     expect(violations(durationParameters(3536), null)).toEqual([
-      { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 } },
+      { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 } },
     ]);
     // Une Durée par Série de 0 s est refusée (Δ50) : une Cible `NUMBER` est un entier ≥ 1.
-    expect(violations(durationParameters(0), null)).toEqual([{ code: "OUT_OF_RANGE", field: "target", level: "STRUCTURE" }]);
+    // [PRE-9 B.3, COMP §3 du 28/10 : la Cible 0 est admise ; un Exercice dont TOUTES les Cibles
+    // valent 0 est refusé pour volume total nul (ARB-10).]
+    expect(violations(durationParameters(0), null)).toEqual([{ code: "ZERO_VOLUME", field: "target", level: "STRUCTURE" }]);
     const legacy5999 = durationParameters(5999, 2, 30);
     expect(accepted(cloneExecutionParameters(legacy5999), legacy5999)).toBe(true);
     expect(accepted(durationParameters(3533, 2, 30), legacy5999)).toBe(true);
@@ -489,8 +493,8 @@ describe("Création", () => {
 });
 
 describe("PRE4-3.4 — position d’ouverture du Sélecteur de cible (AD-16, Q21, Q25, Q36)", () => {
-  it("PRE4-3.4/AC4 — nearestGridValue borne seulement depuis Q36 : 0 → 1 (D-430), 5999 → 3535, valeurs dans les bornes inchangées (1, 4, 7, 31, 5, 3535)", () => {
-    expect(nearestGridValue("DURATION", 0)).toBe(1);
+  it("PRE4-3.4/AC4 — nearestGridValue borne seulement depuis Q36 : 0 → 1 (D-430) [PRE-9 B.3 : 0 → 0], 5999 → 3535, valeurs dans les bornes inchangées (1, 4, 7, 31, 5, 3535)", () => {
+    expect(nearestGridValue("DURATION", 0)).toBe(0);
     expect(nearestGridValue("DURATION", 1)).toBe(1);
     expect(nearestGridValue("DURATION", 4)).toBe(4);
     expect(nearestGridValue("DURATION", 5999)).toBe(3535);
@@ -505,16 +509,17 @@ describe("PRE4-3.4 — position d’ouverture du Sélecteur de cible (AD-16, Q21
     expect(nearestGridValue("DURATION", 7.4)).toBe(7);
     expect(nearestGridValue("DURATION", 7.5)).toBe(8);
     expect(nearestGridValue("DURATION", Number.POSITIVE_INFINITY)).toBe(3535);
-    expect(nearestGridValue("DURATION", Number.NEGATIVE_INFINITY)).toBe(1);
-    expect(nearestGridValue("DURATION", Number.NaN)).toBe(1);
-    expect(nearestGridValue("DURATION", -30)).toBe(1);
+    // PRE-9 (B.3, COMP §3) : borne basse 0.
+    expect(nearestGridValue("DURATION", Number.NEGATIVE_INFINITY)).toBe(0);
+    expect(nearestGridValue("DURATION", Number.NaN)).toBe(0);
+    expect(nearestGridValue("DURATION", -30)).toBe(0);
     expect(nearestGridValue("REPETITIONS", Number.POSITIVE_INFINITY)).toBe(100);
-    expect(nearestGridValue("REPETITIONS", Number.NaN)).toBe(1);
+    expect(nearestGridValue("REPETITIONS", Number.NaN)).toBe(0);
   });
 
   it("PRE4-3.4/AC4 — nearestGridValue en Répétitions : 1..100, sans multiple de 5 (150 → 100, 0 → 1, 7 → 7)", () => {
     expect(nearestGridValue("REPETITIONS", 150)).toBe(100);
-    expect(nearestGridValue("REPETITIONS", 0)).toBe(1);
+    expect(nearestGridValue("REPETITIONS", 0)).toBe(0); // PRE-9 (B.3, COMP §3) : 0..100.
     expect(nearestGridValue("REPETITIONS", 7)).toBe(7);
     expect(nearestGridValue("REPETITIONS", 100)).toBe(100);
   });
@@ -543,8 +548,11 @@ describe("PRE4-3.6 — `stepTarget` et `stepWithinBounds` (AD-16, Q13, Q26, Q36,
     expect(stepTarget("DURATION", numberTarget(3535), 1)).toBe("unavailable");
     // D-430 : 5 s n'est plus la borne ; − depuis 5 s donne 4 s, et la borne basse est 1 s.
     expect(stepTarget("DURATION", numberTarget(5), -1)).toEqual(numberTarget(4));
-    expect(stepTarget("DURATION", numberTarget(1), -1)).toBe("unavailable");
-    expect(stepTarget("REPETITIONS", numberTarget(1), -1)).toBe("unavailable");
+    // PRE-9 (B.3, COMP §3) : la borne basse est 0 ; − depuis 1 donne 0, puis indisponible.
+    expect(stepTarget("DURATION", numberTarget(1), -1)).toEqual(numberTarget(0));
+    expect(stepTarget("REPETITIONS", numberTarget(1), -1)).toEqual(numberTarget(0));
+    expect(stepTarget("DURATION", numberTarget(0), -1)).toBe("unavailable");
+    expect(stepTarget("REPETITIONS", numberTarget(0), -1)).toBe("unavailable");
     expect(stepTarget("REPETITIONS", numberTarget(100), 1)).toBe("unavailable");
   });
 

@@ -512,6 +512,7 @@ describe("PRE-4 story 1.3 — augmentation de N depuis une ligne à l'échec", (
  * par Mode, retrait et annulation (AC1 à AC14, `epics-parts/epic-3.md`).
  * Un bloc par critère, attendus littéraux.
  */
+// PRE-9 (B.3, COMP §3) : bornes de saisie des Cibles 0..3535 s et 0..100 (borne basse 1 auparavant).
 describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
   function committedWith(draft: ExecutionSheetDraft, baseline: ExecutionParametersInput | null) {
     const result = commitSheetDraft(draft, baseline);
@@ -1004,7 +1005,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       expect(commitSheetDraft(setRowTargetTyped(reopened, 0, numberTarget(5995)), legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 1 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 1 },
         ],
       });
     });
@@ -1015,7 +1016,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       expect(commitSheetDraft(grown, legacy)).toEqual({
         ok: false,
         violations: [
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 4 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 4 },
         ],
       });
     });
@@ -1036,7 +1037,7 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
       const otherMode = setUniformTarget(setMode(openSheetDraft(uniformLegacy), "REPETITIONS"), numberTarget(5999));
       expect(commitSheetDraft(otherMode, uniformLegacy)).toEqual({
         ok: false,
-        violations: [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 100 } }],
+        violations: [{ code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 100 } }],
       });
       expect(committedWith(setMode(otherMode, "DURATION"), uniformLegacy).series).toEqual(uniform(2, 5999, 10));
 
@@ -1050,8 +1051,8 @@ describe("PRE-4 story 3.2 — Brouillon de Feuille", () => {
         ok: false,
         violations: [
           { code: "OUT_OF_RANGE", field: "cadenceBeepIntervalSeconds", level: "INPUT", details: { min: 0, max: 10 } },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 2 },
-          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 1, max: 3535 }, seriesNumber: 3 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 2 },
+          { code: "OUT_OF_RANGE", field: "target", level: "INPUT", details: { min: 0, max: 3535 }, seriesNumber: 3 },
         ],
       });
     });

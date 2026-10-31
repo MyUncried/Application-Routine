@@ -33,7 +33,7 @@ import {
   DEFAULT_SIDE_CHANGE_RECOVERY_SECONDS,
   type Silhouette,
 } from "@/domain/preferences/Profile";
-import { DEFAULT_CIRCUIT_NATURE, exitCircuit, type CircuitNature } from "@/domain/sessions/circuit";
+import { exitCircuit } from "@/domain/sessions/circuit";
 import { settleCircuitMembership, type CircuitMembershipSettlement } from "@/domain/sessions/circuitMembership";
 import { appendActivityAfterLastDisplayed } from "@/domain/sessions/composition";
 import {
@@ -76,6 +76,7 @@ import { useReferenceSheet } from "@/features/reference-data/useReferenceSheet";
 import { CircuitEntryConfirmModal } from "@/features/sessions/CircuitEntryConfirmModal";
 import { insertIntoRichLayout } from "@/features/sessions/compositionLayout";
 import { formatExerciseRowSummary } from "@/features/sessions/compositionPresentation";
+import { inheritsCircuitSeriesCount } from "@/features/sessions/movementExercises";
 import { useSessionDraft } from "@/features/sessions/SessionDraftContext";
 import { ExerciseExitConfirmModal } from "@/features/sessions/ExerciseExitConfirmModal";
 import { useCompositionExitGuard } from "@/features/sessions/useCompositionExitGuard";
@@ -1344,8 +1345,7 @@ function occurrenceIn(exercises: readonly SessionDraftExercise[], id: string): S
 
 function openedOccurrenceOf(
   exercise: SessionDraftExercise | null,
-  nature: CircuitNature | undefined,
-  movements: SessionDraft["movements"],
+  draft: Pick<SessionDraft, "structure" | "exercises" | "circuitNature" | "movements">,
 ): OpenedOccurrence | null {
   if (exercise === null) {
     return null;
@@ -1353,12 +1353,13 @@ function openedOccurrenceOf(
   const opened = cloneExecutionParameters(exercise.executionParameters);
   const validated = validateForSave(opened, opened);
   return {
-    inheritedSeriesCount:
-      exercise.structuralPosition === "IN_TOUR" &&
-      exercise.type === "EXERCISE" &&
-      (nature ?? DEFAULT_CIRCUIT_NATURE) === "SERIES",
+    // PRE-9 (B.3, ch10 « Nombre imposé et diminution », l.1142, l.1182) : même règle que la feuille
+    // ouverte depuis la carte (`inheritsCircuitSeriesCount`) — ancien modèle, Circuit unique de
+    // Séries ; disposition générale, Exercice de N'IMPORTE QUEL Circuit alterné (N en lecture seule,
+    // aucune suppression locale de série).
+    inheritedSeriesCount: inheritsCircuitSeriesCount(draft, exercise),
     openedParameters: validated.ok ? [opened, validated.value] : [opened],
-    phaseStructureLocked: isPersistedMovementOccurrence(exercise, movements),
+    phaseStructureLocked: isPersistedMovementOccurrence(exercise, draft.movements),
   };
 }
 
@@ -1426,10 +1427,10 @@ function CompositionExerciseEditor() {
   //   occurrence n'est pas encore dans le Circuit : elle y est adaptée à `Terminer` (story 2.3) ;
   // - paramètres à l'ouverture, référence de la règle de réserve (`commitFinished`).
   const [openedOccurrence, setOpenedOccurrence] = useState(() =>
-    openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements),
+    openedOccurrenceOf(existingExercise, draft),
   );
   if (openedOccurrence === null && existingExercise !== null) {
-    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft.circuitNature, draft.movements));
+    setOpenedOccurrence(openedOccurrenceOf(existingExercise, draft));
   }
   const inheritedSeriesCount = openedOccurrence?.inheritedSeriesCount ?? false;
   const phaseStructureLocked = openedOccurrence?.phaseStructureLocked ?? false;
@@ -1781,7 +1782,13 @@ function CompositionExerciseEditor() {
           targetCount: 0,
         }
       : richInsertion !== null
-        ? { exercises: richInsertion.exercises, losses: [], targetCount: 0, structure: richInsertion.structure }
+        ? // PRE-9 (B.3) : occurrence entrée dans un Circuit alterné adaptée à SON N, pertes confirmées.
+          {
+            exercises: richInsertion.exercises,
+            losses: richInsertion.losses,
+            targetCount: richInsertion.targetCount,
+            structure: richInsertion.structure,
+          }
         : settleCircuitMembership(draft, appendActivityAfterLastDisplayed(draft.exercises, finished));
     if (!createsMovement && isPersistedMovementOccurrence(finished, draft.movements)) {
       return { ...plan, movements: draft.movements };

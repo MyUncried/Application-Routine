@@ -1540,8 +1540,8 @@ Création : mode/durée/côté non renseignés —, Série 1, Pause 0 s, charge 
 | Paramètre | Bornes | Granularité validée le 02/10 |
 |---|---|---|
 | Séries | 1..99 | 1 |
-| Répétitions par Série | 1..100 | 1 |
-| Durée par Série | 1..3535 s (minimum porté de 5 à 1 s par D-430, 19/10/2026) | Roulette par pas de 1 s ; 00:00 interdit comme cible |
+| Répétitions par Série | 1..100 [28/10/2026, COMP §3 : cibles 0..100 répétitions et 0..3535 s par série ; volume total de l'Exercice non nul (ARB-10) ; les phases conservent leur minimum de 1 s — annoté le 31/10 (B.3).] | 1 |
+| Durée par Série | 1..3535 s (minimum porté de 5 à 1 s par D-430, 19/10/2026) [28/10/2026, COMP §3 : cibles 0..100 répétitions et 0..3535 s par série ; volume total de l'Exercice non nul (ARB-10) ; les phases conservent leur minimum de 1 s — annoté le 31/10 (B.3).] | Roulette par pas de 1 s ; 00:00 interdit comme cible |
 | Phase d’exercice | Chaque phase validée ≥ 1 s ; somme des phases 1..3535 s (D-430) | Pas de 1 s ; 0 s ou vide reste à renseigner, sans retrait ; enregistrement de l’exercice édité bloqué (D-438) |
 | Pause après chaque série / Pause entre les côtés | 0..300 s | Tap 1 s ; maintien accéléré 1/5/10 selon DSF Bip |
 | Bip de cadence (ligne Cadence) | 0..10 s | 1 s, aucune accélération ; 5 s, 2 s, 1 s et Sans sont des choix directs (RM-245) |

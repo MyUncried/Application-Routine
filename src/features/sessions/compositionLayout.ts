@@ -7,7 +7,8 @@
  * Fonctions pures.
  */
 
-import { insertExerciseInLayout } from "@/domain/sessions/layoutOperations";
+import type { CircuitLoss } from "@/domain/sessions/circuit";
+import { circuitOfExercise, insertExerciseInLayout, settleLayoutCircuitMembership } from "@/domain/sessions/layoutOperations";
 import { legacyFromStructure, computeStructureDuration, structureExercises, type SessionStructure, type StructureCycleMember, type StructureElement, type StructureStopPointLocation } from "@/domain/sessions/structure";
 import type { SessionDraft, SessionDraftExercise } from "@/domain/sessions/SessionDraft";
 import { formatSessionDurationEstimate } from "@/features/sessions/compositionPresentation";
@@ -89,13 +90,17 @@ export function formatLayoutDuration(elements: readonly ResolvedLayoutElement[])
  * suivantes chacune après la précédente. `null` : le brouillon relève de l'ancien modèle, dont
  * l'insertion existante s'applique, inchangée.
  *
- * Le réglage d'une occurrence qui entre dans un Circuit alterné (N du Circuit) relève de B.3 : il
- * n'est pas appliqué ici.
+ * [B.2 : « Le réglage d'une occurrence qui entre dans un Circuit alterné (N du Circuit) relève de
+ * B.3 : il n'est pas appliqué ici. » — remplacé par B.3.] PRE-9 (B.3, ch10 « Ajout et sortie du
+ * circuit », COMP §6, D-07, D-09) : une occurrence insérée dans un Circuit alterné est adaptée au N de
+ * CE Circuit (`settleLayoutCircuitMembership`) ; `losses` non vide : l'appelant demande confirmation
+ * AVANT toute écriture (Annuler : rien n'est ajouté), `targetCount` étant le N annoncé et
+ * `enteringCount` le nombre d'occurrences entrées dans un Circuit alterné.
  */
 export function insertIntoRichLayout(
   draft: SessionDraft,
   additions: readonly SessionDraftExercise[],
-): Pick<SessionDraft, "exercises" | "structure"> | null {
+): RichLayoutInsertion | null {
   const resolved = resolveRichLayout(draft);
   if (resolved === null) {
     return null;
@@ -107,5 +112,14 @@ export function insertIntoRichLayout(
     next = insertExerciseInLayout(next, exercise, anchor);
     anchor = exercise.id;
   }
-  return { exercises: next.exercises, structure: next.structure };
+  const settled = settleLayoutCircuitMembership(draft, next);
+  const enteringCount = additions.filter((exercise) => circuitOfExercise(next.structure, exercise.id)?.nature === "SERIES").length;
+  return { exercises: settled.exercises, structure: next.structure, losses: settled.losses, targetCount: settled.targetCount, enteringCount };
 }
+
+/** Insertion dans une disposition générale (`insertIntoRichLayout`), avec le réglage du Circuit d'arrivée (B.3). */
+export type RichLayoutInsertion = Pick<SessionDraft, "exercises" | "structure"> & {
+  readonly losses: readonly CircuitLoss[];
+  readonly targetCount: number;
+  readonly enteringCount: number;
+};

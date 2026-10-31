@@ -185,10 +185,17 @@ export function ActivitySelectionScreen() {
     // AD-35) : l'occurrence naît sans récupération (`null`, absente).
     const copies = orderedSelection.map((definition) => activityDefinitionToDraftExercise(definition, Crypto.randomUUID(), null));
     // PRE-9 B.2 (ARB-07) : disposition générale — copies insérées après le dernier Exercice affiché,
-    // dans son conteneur, chacune à la suite de la précédente ; aucun réglage de Circuit (B.3).
+    // dans son conteneur, chacune à la suite de la précédente. PRE-9 (B.3) : copies entrées dans un
+    // Circuit alterné adaptées à SON N, même confirmation unique si l'une perd des séries.
     const richInsertion = insertIntoRichLayout(draft, copies);
     if (richInsertion !== null) {
-      return { exercises: richInsertion.exercises, structure: richInsertion.structure, losses: [], targetCount: 0, enteringCount: 0 };
+      return {
+        exercises: richInsertion.exercises,
+        structure: richInsertion.structure,
+        losses: richInsertion.losses,
+        targetCount: richInsertion.targetCount,
+        enteringCount: richInsertion.enteringCount,
+      };
     }
     let nextExercises = draft.exercises;
     for (const copy of copies) {

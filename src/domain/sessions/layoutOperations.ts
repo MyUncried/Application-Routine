@@ -11,6 +11,20 @@
  * - compte du Cycle 1..99 (D-451).
  * Les Points d'arrêt ne sont pas concernés : une disposition générale n'en porte pas avant B.6.
  *
+ * PRE-9 (B.3, COMP §2 et §6, ch10 « Ajout et sortie du circuit », D-07, D-09, §2.4 des Arbitrages
+ * consolidés du 30/10) : ces règles valent pour CHAQUE Circuit de la Séance —
+ * - entrée d'un Exercice dans un Circuit alterné (nouvel Exercice inséré, déplacement) : son nombre
+ *   actif de séries est adapté au N de CE Circuit (extension par la dernière ligne, troncature au-delà),
+ *   régime et autres paramètres conservés ; pertes calculées avant toute mutation, confirmation si et
+ *   seulement si des valeurs sont perdues (`settleLayoutCircuitMembership`, `moveExerciseToCircuit`) ;
+ * - sortie d'un Circuit : nombre actif et paramètres conservés, réserve de brouillon retirée ;
+ * - un Circuit vidé par un déplacement disparaît (COMP §1, §6) ;
+ * - Exercice formaté (D-05, matrice §2.2, `circuitCompatibility`) : combinaison refusée par la
+ *   matrice ou exigeant une adaptation de ses réglages de Format (C.4) refusée sans altération ; de
+ *   même, un compte ou une nature de Circuit qui exigerait de modifier les séries d'un membre formaté
+ *   n'est pas appliqué (« Les constantes des Formats ne sont jamais effacées ou modifiées
+ *   silencieusement », D-17).
+ *
  * Lettres de désignation (COMP §4, ARB-13) : Circuit A, B… dans l'ordre de Composition, à
  * l'échelle de la Séance (sans repartir dans chaque Cycle), Cycle A, B… de même ; aucune lettre
  * lorsqu'un seul conteneur de cette nature est présent ; après Z : AA, AB…, réattribuées selon
@@ -19,9 +33,10 @@
  * Fonctions pures ; même référence lorsque rien ne change.
  */
 
-import { clampSeriesCount, type SeriesRow } from "@/domain/activities/ExecutionParameters";
+import { clampSeriesCount, seriesCountOf, type SeriesRow } from "@/domain/activities/ExecutionParameters";
 
-import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLossReport, type CircuitNature } from "./circuit";
+import { adaptExercise, DEFAULT_CIRCUIT_NATURE, lostSeriesCount, type CircuitLoss, type CircuitLossReport, type CircuitNature } from "./circuit";
+import { circuitCompatibility, FORMAT_REGISTRY } from "./formats";
 import { DEFAULT_TOUR_REPEAT_COUNT } from "./defaults";
 import type { StructuralPosition } from "./Session";
 import type { SessionDraft, SessionDraftExercise } from "./SessionDraft";
@@ -32,6 +47,7 @@ import {
   legacyFromStructure,
   NO_CIRCUIT_ID,
   structureCircuits,
+  structureExercises,
   structureFromLegacy,
   withoutEmptyLegacyCircuit,
   type SessionStructure,
@@ -111,6 +127,36 @@ function followsCount(draft: SessionDraft, circuit: StructureCircuit<string>): (
   return (exercise) => members.has(exercise.id) && exercise.type === "EXERCISE";
 }
 
+/**
+ * PRE-9 (B.3, D-05, D-17, matrice §2.2) : un Exercice formaté peut-il être membre d'un Circuit de
+ * cette nature et de ce compte SANS que ses séries ou ses réglages de Format soient modifiés ? Libre :
+ * toujours. Groupées : la matrice admet les six Formats, rien n'est modifié (D-08). Alternées : la
+ * matrice doit l'admettre (`UNDECIDED` n'est jamais un refus, mais l'adaptation n'est pas décidée)
+ * sans réglage à adapter (EMOM : C.4), et son nombre de séries doit déjà valoir N.
+ */
+export function formattedMemberFits(exercise: SessionDraftExercise, nature: CircuitNature, count: number): boolean {
+  const format = exercise.format ?? null;
+  if (format === null || exercise.type !== "EXERCISE") {
+    return true;
+  }
+  const compatibility = circuitCompatibility(format.key, { nature, repeatCount: count });
+  if (compatibility.status === "REFUSED") {
+    return false;
+  }
+  if (nature === "TOURS") {
+    return true;
+  }
+  const rule = FORMAT_REGISTRY[format.key].inCircuit[nature];
+  const adaptsSetting = rule.status === "ADMITTED" && rule.adaptsSetting !== undefined;
+  return compatibility.status === "ADMITTED" && !adaptsSetting && seriesCountOf(exercise.executionParameters) === count;
+}
+
+/** Vrai si un membre formaté du Circuit ne supporterait pas la nature ou le compte demandés (voir l'en-tête). */
+function blockedByFormattedMember(draft: SessionDraft, circuit: StructureCircuit<string>, nature: CircuitNature, count: number): boolean {
+  const inCircuit = followsCount(draft, circuit);
+  return draft.exercises.some((exercise) => inCircuit(exercise) && !formattedMemberFits(exercise, nature, count));
+}
+
 /** Compte du Circuit désigné, borné 1..99 (voir l'en-tête). */
 export function setLayoutCircuitCount(draft: SessionDraft, circuitId: string, requested: number): SessionDraft {
   const circuit = layoutCircuit(draft, circuitId);
@@ -119,6 +165,9 @@ export function setLayoutCircuitCount(draft: SessionDraft, circuitId: string, re
   }
   const count = clampSeriesCount(requested);
   if (count === circuit.repeatCount) {
+    return draft;
+  }
+  if (circuit.nature === "SERIES" && blockedByFormattedMember(draft, circuit, circuit.nature, count)) {
     return draft;
   }
   const structure = withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, repeatCount: count }));
@@ -146,7 +195,7 @@ export function setLayoutCircuitCount(draft: SessionDraft, circuitId: string, re
 /** Pertes d'un changement de nature du Circuit désigné, sans mutation (voir l'en-tête). */
 export function prepareLayoutNatureChange(draft: SessionDraft, circuitId: string, nature: CircuitNature): CircuitLossReport {
   const circuit = layoutCircuit(draft, circuitId);
-  if (circuit === undefined || nature === circuit.nature || nature === "TOURS") {
+  if (circuit === undefined || nature === circuit.nature || nature === "TOURS" || blockedByFormattedMember(draft, circuit, nature, circuit.repeatCount)) {
     return { losses: [] };
   }
   const inCircuit = followsCount(draft, circuit);
@@ -162,6 +211,9 @@ export function prepareLayoutNatureChange(draft: SessionDraft, circuitId: string
 export function applyLayoutNatureChange(draft: SessionDraft, circuitId: string, nature: CircuitNature): SessionDraft {
   const circuit = layoutCircuit(draft, circuitId);
   if (circuit === undefined || draft.structure === undefined || nature === circuit.nature) {
+    return draft;
+  }
+  if (blockedByFormattedMember(draft, circuit, nature, circuit.repeatCount)) {
     return draft;
   }
   const structure = withLayoutCircuit(draft.structure, circuitId, (current) => ({ ...current, nature }));
@@ -403,4 +455,199 @@ export function insertExerciseInLayout(draft: SessionDraft, exercise: SessionDra
     elements.push({ kind: "EXERCISE", exercise: exercise.id });
   }
   return { ...draft, exercises: [...draft.exercises, exercise], structure: { ...layout, elements } };
+}
+
+// ---------------------------------------------------------------------------
+// PRE-9 (B.3) — entrée et sortie d'un Circuit de la disposition générale
+// ---------------------------------------------------------------------------
+
+/** Circuit de la disposition qui contient l'Exercice `exerciseId` (Cycles compris), s'il existe. */
+export function circuitOfExercise(layout: Pick<Layout, "elements"> | undefined, exerciseId: string): StructureCircuit<string> | undefined {
+  return layout === undefined ? undefined : structureCircuits(layout).find((circuit) => circuit.exercises.includes(exerciseId));
+}
+
+/** Réglage de l'appartenance aux Circuits après une opération de Composition (voir `settleLayoutCircuitMembership`). */
+export type LayoutCircuitMembershipSettlement = {
+  /** Occurrences après adaptation ; `next.exercises` lui-même si aucune n'est adaptée. */
+  readonly exercises: readonly SessionDraftExercise[];
+  /** Pertes des Exercices entrants, sur leur état avant adaptation ; vide = aucune confirmation. */
+  readonly losses: readonly CircuitLoss[];
+  /** N du Circuit alterné de la première perte (texte du dialogue) ; 0 sans perte. */
+  readonly targetCount: number;
+  /** Exercices formatés entrés dans un Circuit qui ne les admet pas sans altération : opération à refuser. */
+  readonly refusedExerciseIds: readonly string[];
+  /** Réserve du brouillon, présente (éventuellement `undefined`) si une sortie l'a modifiée. */
+  readonly reservePatch: Pick<SessionDraft, "circuitSeriesReserve"> | Record<string, never>;
+};
+
+/**
+ * PRE-9 (B.3, COMP §6, ch10 « Ajout et sortie du circuit », D-07, D-09, §2.4) — même règle que
+ * `settleCircuitMembership` (ancien modèle), appliquée à chaque Circuit d'une disposition générale :
+ * compare l'appartenance de chaque Exercice avant (`previous.structure`) et après (`next.structure`).
+ * - Un Exercice qui ENTRE dans un Circuit alterné (nouveau, ou venu d'ailleurs, y compris d'un autre
+ *   Circuit) est adapté au N de ce Circuit (`adaptExercise`, sans réserve : une troncature confirmée
+ *   est définitive) ; ses pertes sont rendues pour confirmation AVANT toute écriture. Dans un Circuit
+ *   groupé, il est inchangé (D-08 : séries intrinsèques non modifiées).
+ * - Un Exercice qui QUITTE son Circuit (ou est retiré) perd son entrée de réserve ; son nombre actif et
+ *   ses paramètres sont conservés, sans message.
+ * - Un Exercice formaté qui entre dans un Circuit ne l'admettant pas sans altération
+ *   (`formattedMemberFits`) est signalé dans `refusedExerciseIds` : l'appelant refuse l'opération.
+ * Fonction pure : rien n'est écrit ; l'appelant applique `exercises` et `reservePatch` avec la
+ * structure produite par son opération.
+ */
+export function settleLayoutCircuitMembership(
+  previous: Pick<SessionDraft, "exercises" | "structure" | "circuitSeriesReserve">,
+  next: Pick<SessionDraft, "exercises" | "structure">,
+): LayoutCircuitMembershipSettlement {
+  const previousIds = new Set(previous.exercises.map((exercise) => exercise.id));
+  const previousCircuitId = (id: string) => (previousIds.has(id) ? circuitOfExercise(previous.structure, id)?.id : undefined);
+  const nextIds = new Set(next.exercises.map((exercise) => exercise.id));
+
+  let reserve = previous.circuitSeriesReserve;
+  let reserveChanged = false;
+  for (const exercise of previous.exercises) {
+    const before = previousCircuitId(exercise.id);
+    if (before === undefined || reserve?.[exercise.id] === undefined) {
+      continue;
+    }
+    const after = nextIds.has(exercise.id) ? circuitOfExercise(next.structure, exercise.id)?.id : undefined;
+    if (after !== before) {
+      const { [exercise.id]: _removed, ...rest } = reserve;
+      reserve = rest;
+      reserveChanged = true;
+    }
+  }
+
+  const losses: CircuitLoss[] = [];
+  const refusedExerciseIds: string[] = [];
+  let targetCount = 0;
+  let changed = false;
+  const exercises = next.exercises.map((exercise) => {
+    const circuit = circuitOfExercise(next.structure, exercise.id);
+    if (circuit === undefined || exercise.type !== "EXERCISE" || previousCircuitId(exercise.id) === circuit.id) {
+      return exercise;
+    }
+    if (!formattedMemberFits(exercise, circuit.nature, circuit.repeatCount)) {
+      refusedExerciseIds.push(exercise.id);
+      return exercise;
+    }
+    if (circuit.nature !== "SERIES") {
+      return exercise;
+    }
+    const lost = lostSeriesCount(exercise, circuit.repeatCount);
+    if (lost > 0) {
+      if (losses.length === 0) {
+        targetCount = circuit.repeatCount;
+      }
+      losses.push({ occurrenceId: exercise.id, lostSeriesCount: lost });
+    }
+    const adapted = adaptExercise(exercise, circuit.repeatCount, []).exercise;
+    changed ||= adapted !== exercise;
+    return adapted;
+  });
+
+  return {
+    exercises: changed ? exercises : next.exercises,
+    losses,
+    targetCount,
+    refusedExerciseIds,
+    reservePatch: reserveChanged
+      ? { circuitSeriesReserve: reserve === undefined || Object.keys(reserve).length === 0 ? undefined : reserve }
+      : {},
+  };
+}
+
+/** Issue d'un déplacement d'Exercice vers un Circuit (`moveExerciseToCircuit`). */
+export type LayoutMoveOutcome =
+  | { readonly status: "APPLIED"; readonly draft: SessionDraft }
+  /** Des valeurs seraient perdues (D-09) : `draft` est à écrire après « Confirmer » ; « Annuler » garde l'entrée. */
+  | { readonly status: "CONFIRMATION_REQUIRED"; readonly losses: readonly CircuitLoss[]; readonly targetCount: number; readonly draft: SessionDraft }
+  | { readonly status: "REFUSED"; readonly reason: "NOT_FOUND" | "FORMAT_INCOMPATIBLE" | "STOP_POINTS" };
+
+/**
+ * PRE-9 (B.3, COMP §6 : « Le déplacement d'un exercice vers un circuit alterné respecte le N commun
+ * […] confirmation en cas de perte, Annuler conserve emplacement et données d'origine, Confirmer
+ * réalise déplacement et adaptation ensemble. Sans perte, les règles existantes d'adaptation
+ * s'appliquent. La disparition du conteneur source vidé appartient à l'application effective du
+ * déplacement » ; ch10 « Ajout et sortie du circuit » ; D-07, D-09, §2.4) — opération de domaine du
+ * déplacement d'un Exercice, depuis n'importe quel niveau (Séance, Cycle, autre Circuit), au rang
+ * `index` (borné) du Circuit `circuitId`. Le geste (glisser-déposer) appartient à B.4.
+ *
+ * Rien n'est muté : l'issue porte le brouillon à écrire (`APPLIED`, ou `CONFIRMATION_REQUIRED`, à
+ * écrire seulement après « Confirmer »). Dans le même Circuit : réordonnancement simple, sans
+ * adaptation. Refus sans altération : Exercice ou Circuit inconnu ; Exercice formaté que le Circuit
+ * n'admet pas sans altération (D-05, matrice §2.2 ; adaptation de ses réglages : C.4) ; Séance
+ * portant des Points d'arrêt (leur suivi lors d'un déplacement relève de B.4 / B.6).
+ */
+export function moveExerciseToCircuit(
+  draft: SessionDraft,
+  exerciseId: string,
+  circuitId: string,
+  index: number,
+  newContainerId: () => string,
+): LayoutMoveOutcome {
+  const layout = currentLayout(draft, newContainerId);
+  const exercise = draft.exercises.find((item) => item.id === exerciseId);
+  const target = structureCircuits(layout).find((circuit) => circuit.id === circuitId);
+  if (exercise === undefined || target === undefined || !structureExercises(layout).includes(exerciseId)) {
+    return { status: "REFUSED", reason: "NOT_FOUND" };
+  }
+  // Les Points d'arrêt suivent un déplacement avec B.4 / B.6 (ARB-02a/b) : refus sans altération d'ici là.
+  if (layout.stopPoints.length > 0) {
+    return { status: "REFUSED", reason: "STOP_POINTS" };
+  }
+  const without = (ids: readonly string[]) => ids.filter((id) => id !== exerciseId);
+  const remaining = without(target.exercises);
+  const at = Math.max(0, Math.min(Number.isFinite(index) ? Math.trunc(index) : remaining.length, remaining.length));
+  const placeIn = (circuit: StructureCircuit<string>): StructureCircuit<string> | null => {
+    if (circuit.id === circuitId) {
+      return { ...circuit, exercises: [...remaining.slice(0, at), exerciseId, ...remaining.slice(at)] };
+    }
+    const exercises = without(circuit.exercises);
+    // COMP §1 : un conteneur disparaît lorsque son dernier membre en sort.
+    return exercises.length === 0 ? null : exercises.length === circuit.exercises.length ? circuit : { ...circuit, exercises };
+  };
+  const elements: StructureElement<string>[] = [];
+  for (const element of layout.elements) {
+    switch (element.kind) {
+      case "EXERCISE":
+        if (element.exercise !== exerciseId) {
+          elements.push(element);
+        }
+        break;
+      case "CIRCUIT": {
+        const circuit = placeIn(element.circuit);
+        if (circuit !== null) {
+          elements.push(circuit === element.circuit ? element : { kind: "CIRCUIT", circuit });
+        }
+        break;
+      }
+      case "CYCLE": {
+        const members = element.cycle.members.flatMap((member): StructureCycleMember<string>[] => {
+          if (member.kind === "EXERCISE") {
+            return member.exercise === exerciseId ? [] : [member];
+          }
+          const circuit = placeIn(member.circuit);
+          return circuit === null ? [] : [circuit === member.circuit ? member : { kind: "CIRCUIT", circuit }];
+        });
+        if (members.length > 0) {
+          elements.push({ kind: "CYCLE", cycle: { ...element.cycle, members } });
+        }
+        break;
+      }
+      default: {
+        const unreachable: never = element;
+        return unreachable;
+      }
+    }
+  }
+  const moved: Layout = { ...layout, elements };
+  const settlement = settleLayoutCircuitMembership({ ...draft, structure: layout }, { exercises: draft.exercises, structure: moved });
+  if (settlement.refusedExerciseIds.length > 0) {
+    return { status: "REFUSED", reason: "FORMAT_INCOMPATIBLE" };
+  }
+  const result = withLayout({ ...draft, exercises: settlement.exercises, ...settlement.reservePatch }, moved);
+  return settlement.losses.length > 0
+    ? { status: "CONFIRMATION_REQUIRED", losses: settlement.losses, targetCount: settlement.targetCount, draft: result }
+    : { status: "APPLIED", draft: result };
 }
